@@ -15,9 +15,17 @@ identity/aptitude/status/enlisted rank, materialized equipment, and the
 per-soldier `SoldierCareer` service record must remain plain serializable data.
 A marine persists no experience number: their band is resolved from the armour
 they are wearing (`SquadExperienceStandard`), so there is nothing to migrate.
-Legacy recipe, printed-inventory, and fabrication fields are migration input
-only. `readResolve` backfills new collections/objects and maps legacy recipes to
-stable equipment-template ids without stripping capabilities from old saves.
+Legacy recipe ids are migration input only. `readResolve` backfills new
+collections/objects and maps them to stable equipment-template ids without
+stripping capabilities from old saves.
+
+**There is no counted armoury inventory, and nothing should add one back.**
+Equipment is owned as permanent template cards; issuing kit against a card
+spends fleet cargo through `EquipmentTemplateCost`. The former print-stock
+economy — a per-item owned count, per-soldier allocation reserved against it,
+and fabrication materials to print more — was deleted once it had no live
+callers left. Anything that needs to cost the player materiel must reach the
+counted things: fleet cargo, or the mech bay's spare components.
 
 ## Derived organizational state
 

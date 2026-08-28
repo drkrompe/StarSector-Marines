@@ -55,7 +55,6 @@ class FleetArmoryViewModelTest {
                 viewModel.selectedArmorDoctrineId());
         assertEquals(authoritative.result(),
                 viewModel.currentSquadEquipmentPreview().result());
-        assertEquals(authoritative.gear(), viewModel.currentSquadEquipmentPreview().gear());
         assertEquals(MarineSquad.TEAM_SIZE, viewModel.marineCards().get().size());
         assertTrue(viewModel.marineCards().get().get(0).name().contains(" "));
         FleetArmoryViewModel.MarineViewerCard firstMarine =
