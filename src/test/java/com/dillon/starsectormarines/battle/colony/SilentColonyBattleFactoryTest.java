@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.colony;
 
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.command.SilentColonyCommand;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
@@ -41,15 +42,27 @@ class SilentColonyBattleFactoryTest {
                 .count());
         assertTrue(sim.getCommander(Faction.MARINE)
                 instanceof SilentColonyCommand);
+        for (long shuttleId : sim.getAirEntityIds()) {
+            ShuttleMission mission = sim.world().mission(shuttleId);
+            assertNotNull(mission.commandClaim);
+            assertEquals(CommandAuthority.MISSION_COMMAND,
+                    mission.commandClaim.authority());
+            assertEquals(SilentColonyCommand.ISSUER,
+                    mission.commandClaim.issuer());
+        }
         Squad commanded = addMarineSquad(sim, "marine-command-test");
         Squad payloadOwned = addMarineSquad(sim, "marine-payload-test");
         ObjectiveAssignment payloadOrder = ObjectiveAssignment.escort(
                 payloadOwned.id, 1, 1);
         sim.assignSquadCommand(payloadOrder, CommandAuthority.PAYLOAD,
                 "payload-owner", "external survivor duty");
-        SilentColonyCommand command = (SilentColonyCommand)
-                sim.getCommander(Faction.MARINE);
-        command.tick(sim, sim);
+        sim.claimSquadCommand(commanded.id, CommandAuthority.MISSION_COMMAND,
+                SilentColonyCommand.ISSUER,
+                "Silent Colony expedition force");
+        sim.advance(3f);
+        assertTrue(sim.getCommanderSnapshot(Faction.MARINE).detail()
+                instanceof com.dillon.starsectormarines.battle.command
+                .SilentColonyCommandSnapshot);
         int commandedMarineSquads = 0;
         for (var squad : sim.getSquads()) {
             if (squad.faction != Faction.MARINE || squad.aliveMembers <= 0) {

@@ -28,6 +28,8 @@ import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandPicture;
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
+import com.dillon.starsectormarines.battle.command.ExtractionObjectiveFacts;
+import com.dillon.starsectormarines.battle.command.SilentColonyCommandSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
@@ -220,6 +222,8 @@ public final class SquadStateDumper {
         o.put("extractionDefenseCommand", buildExtractionDefenseCommandJson(
                 squad, commander, sim));
         o.put("rescueCommand", buildRescueCommandJson(squad, commander, sim));
+        o.put("silentColonyCommand", buildSilentColonyCommandJson(
+                squad, commander, sim));
         o.put("swarmPressureDirector", buildSwarmPressureJson(sim));
         o.put("currentCommanderInfluence", buildCommanderInfluenceJson(
                 squad.faction, sim));
@@ -770,6 +774,68 @@ public final class SquadStateDumper {
             out.put("squadIntent", intent);
         }
         return out;
+    }
+
+    private static Object buildSilentColonyCommandJson(
+            Squad squad, CommanderSnapshot<?> commander,
+            BattleSimulation sim) throws Exception {
+        SilentColonyCommandSnapshot snapshot = commander != null
+                && commander.detail() instanceof SilentColonyCommandSnapshot silent
+                ? silent : null;
+        if (snapshot == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("tick", snapshot.tick());
+        out.put("ageTicks", Math.max(0, sim.simTickIndex - snapshot.tick()));
+        out.put("influenceTick", snapshot.influenceTick());
+        out.put("perspective", snapshot.perspective().name());
+        out.put("phase", snapshot.phase().name());
+        out.put("archiveZoneId", snapshot.archiveZoneId());
+        out.put("knownPressureContacts", snapshot.knownPressureContacts());
+        out.put("archiveBranchSquads", snapshot.archiveBranchSquads());
+        out.put("survivorBranchSquads", snapshot.survivorBranchSquads());
+        out.put("archive", buildExtractionObjectiveJson(snapshot.archive()));
+        out.put("survivors", buildExtractionObjectiveJson(snapshot.survivors()));
+        SilentColonyCommandSnapshot.SquadIntent selected =
+                snapshot.intentFor(squad.id);
+        if (selected == null) {
+            out.put("squadIntent", JSONObject.NULL);
+        } else {
+            out.put("squadIntent", new JSONObject()
+                    .put("role", selected.role().name())
+                    .put("membershipReason", selected.membershipReason().name())
+                    .put("assignmentReason", selected.assignmentReason().name())
+                    .put("assignmentKind", selected.assignmentKind() != null
+                            ? selected.assignmentKind().name() : JSONObject.NULL)
+                    .put("targetCellX", selected.targetCellX())
+                    .put("targetCellY", selected.targetCellY())
+                    .put("localContact", selected.localContact()));
+        }
+        return out;
+    }
+
+    private static JSONObject buildExtractionObjectiveJson(
+            ExtractionObjectiveFacts objective) throws Exception {
+        return new JSONObject()
+                .put("payloadId", objective.payloadId())
+                .put("payloadName", objective.payloadName())
+                .put("kind", objective.kind().name())
+                .put("phase", objective.phase())
+                .put("sourceCellX", objective.sourceCellX())
+                .put("sourceCellY", objective.sourceCellY())
+                .put("egressCellX", objective.egressCellX())
+                .put("egressCellY", objective.egressCellY())
+                .put("payloadCellX", objective.payloadCellX())
+                .put("payloadCellY", objective.payloadCellY())
+                .put("initialElements", objective.initialElements())
+                .put("activeElements", objective.activeElements())
+                .put("boardedElements", objective.boardedElements())
+                .put("lostElements", objective.lostElements())
+                .put("progress", objective.progress())
+                .put("alarmActive", objective.alarmActive())
+                .put("escortPresent", objective.escortPresent())
+                .put("complete", objective.complete())
+                .put("failed", objective.failed())
+                .put("failure", objective.failure().name());
     }
 
     private static Object buildSwarmPressureJson(BattleSimulation sim)

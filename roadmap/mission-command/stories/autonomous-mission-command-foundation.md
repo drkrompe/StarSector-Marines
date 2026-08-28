@@ -4,9 +4,9 @@ Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest m
 
 Written: 2026-08-25
 
-Updated: 2026-08-28 — Opening Operations has migrated to paired frozen command;
-the remaining Silent Colony legacy planner submits through scoped directive
-control. Foundation acceptance still uses Conquest as the production reference.
+Updated: 2026-08-28 — Opening Operations and Silent Colony have migrated to
+frozen command. Foundation acceptance still uses Conquest as the production
+reference while mission-specific stories own their live acceptance.
 
 Read `mission-command-nouns.md`, `conquest-command.md`, `ai-nouns.md`,
 `conquest-nouns.md`, and `battle-fixtures-nouns.md` before

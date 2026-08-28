@@ -67,8 +67,9 @@ Marine corridor and bounded conventional defender interdiction commanders now
 run as a paired production duel. Civilian Rescue now supplies the first
 asymmetric Extraction adapter: Marines coordinate the shelter, cohort, screens,
 and lift while a separately disclosed swarm director owns pressure waves and
-perimeter approaches. Generic and Rescue live acceptance and the authored
-Silent Colony command picture remain.
+perimeter approaches. Silent Colony now divides its Marine expedition into
+stable archive and survivor branches through the same frozen command envelope.
+Live acceptance for Generic Extraction, Rescue, and Silent Colony remains.
 Each mission keeps its own strategy geometry. See `conquest-command.md`,
 `sabotage-command.md`, `assault-command.md`, `raid-command.md`,
 `extraction-command.md`, `ai-nouns.md`, `reinforcement-nouns.md`, and
@@ -164,11 +165,9 @@ doorway parking. The two deterministic contact-execution defects it exposed
 are now closed: casualty replans exactly replace sticky-plan fireteam roles,
 and committed shooters may advance only the existing cooldown-staggered move
 to strictly better cover while the mission route remains suppressed. Opening
-Operations and Silent Colony now submit their legacy plans through scoped
-directive control as well, closing the remaining production assignment-writer
-bypass without pretending those missions have adopted frozen perspective
-frames. Exact hostile and whole-zone occupancy remain neutral evidence and
-never commander input.
+Operations and Silent Colony now use frozen perspective frames as well, closing
+the remaining production legacy planner without exposing exact hostile or
+whole-zone occupancy as commander input.
 
 Complete the remaining live acceptance in
 `autonomous-mission-command-foundation.md`. Re-establish the canonical Conquest
