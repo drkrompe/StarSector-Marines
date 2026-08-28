@@ -108,6 +108,60 @@ class IntegralSystemDefTest {
                         + " of " + registry.size() + " do");
     }
 
+    /**
+     * The claim is the role, not the tier. Breaching is what an ASSAULT pattern
+     * is <em>for</em> — the XIV's own catalog copy calls it a breach pattern —
+     * so every assault suit expresses it and nothing else does. A future tier-IV
+     * scout or line pattern would still carry nothing, which is what keeps this
+     * a role marker rather than a tax on the top of the ladder
+     * ({@code integral-system-slate.md}).
+     */
+    @Test
+    void breachingIsTheAssaultRolesCapabilityAndNobodyElses() {
+        MarineArmorCatalogRegistry registry = MarineArmorCatalogRegistry.installed();
+        if (registry == null) return;
+
+        for (MarineArmorCatalogDef armor : registry.all()) {
+            boolean assault = "ASSAULT".equals(armor.unitClass());
+            boolean breaches = armor.hasIntegralSystem()
+                    && armor.integralSystem().effect() == IntegralSystemEffect.BREACHER_ASSIST;
+            assertEquals(assault, breaches,
+                    armor.id() + " is unitClass " + armor.unitClass()
+                            + " and " + (breaches ? "does" : "does not") + " breach");
+        }
+    }
+
+    /**
+     * Six suits carrying the same effect are six suits only if they behave
+     * differently. Identical numbers under different names is the palette-swap
+     * failure {@code equipment-lore-catalog.md} exists to prevent, and it is the
+     * easy mistake to make when adding the seventh.
+     */
+    @Test
+    void everyFactionsTakeOnBreachingIsActuallyADifferentSuit() {
+        MarineArmorCatalogRegistry registry = MarineArmorCatalogRegistry.installed();
+        if (registry == null) return;
+
+        List<String> ids = new ArrayList<>();
+        List<String> shapes = new ArrayList<>();
+        for (MarineArmorCatalogDef armor : registry.all()) {
+            if (!armor.hasIntegralSystem()) continue;
+            IntegralSystemDef system = armor.integralSystem();
+            assertFalse(ids.contains(system.id()),
+                    "two patterns share the system id " + system.id());
+            ids.add(system.id());
+
+            BreacherAssistSpec spec = system.breacherAssist();
+            String shape = system.durationSeconds() + "/" + system.cooldownSeconds()
+                    + "/" + spec.moveSpeedMult() + "/" + spec.frontalResistance()
+                    + "/" + spec.shieldedArcDegrees();
+            assertFalse(shapes.contains(shape),
+                    armor.id() + " is a renamed copy of another pattern's system: " + shape);
+            shapes.add(shape);
+        }
+        assertTrue(ids.size() > 1, "the family should have more than one member");
+    }
+
     @Test
     void anArmourPatternWithoutOneSaysSoRatherThanFaking() throws JSONException {
         JSONObject battle = new JSONObject()
