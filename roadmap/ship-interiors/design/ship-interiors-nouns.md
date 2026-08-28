@@ -727,7 +727,8 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     not have, and would make the one screen where they inspect their own
     machines disagree with the fleet it is drawn from.
 17. **A deck is seen through the battle renderer, never through a second
-    painter.** A generated deck is already a map, so authoring evidence, a
+    painter, and its art is loaded by the deck rather than by the screen.**
+    A generated deck is already a map, so authoring evidence, a
     hosted deck view, and a boarding action are one renderer over one
     simulation, differing only in camera, layer set, and whether the frame
     drains to the screen or to an image. A tool that redraws the deck its own
@@ -736,6 +737,23 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     renderer has no concept of — room purpose, zone cuts, which opening is a
     door — is a legitimate second view, but it annotates the render or
     abandons the pretence of being one.
+
+    The ship is one scene and the screens are only cameras onto it, so **which
+    sheets to load is the deck's business, not each screen's**. Screens that
+    each listed what they expected to have in shot were right until the ship was
+    framed differently: the room views loaded the ground and the crew, the Mech
+    Lab loaded the machines too, and the whole-ship view — which sees all of it
+    at once — was written loading none of them and shipped a deck with no floor
+    and no people in it. The set now hangs off the one door every screen already
+    comes through.
+
+    **Headless evidence cannot see this.** The snapshot suite builds its deck
+    with no sprite cache at all, and the headless renderer loads sheets off disk
+    its own way, so the ship-view snapshot came out fully painted — hull,
+    decking, fixtures and machines — for the whole time the game was drawing an
+    empty wireframe. That evidence proves layout and composition and says
+    nothing about whether the running mod loaded its art. Only a first frame in
+    the game does.
 18. **A deck's form is what the ship can do when whole; damage is state laid
     over that form.** Refits change the form in both directions — a hull fitted
     with more berthing has more berths, and one whose bays were converted to

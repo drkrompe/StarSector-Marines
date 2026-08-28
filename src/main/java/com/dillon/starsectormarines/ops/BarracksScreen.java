@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
-import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -84,14 +83,6 @@ public final class BarracksScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
-            shipSprites().ensureLayeredUnitSprites();
-            // ShotRenderService resolves both projectile bodies and shared
-            // tinted bolts from this cache. Battles load it through their full
-            // sprite bootstrap; a shipboard room host must opt in too.
-            shipSprites().ensureMarineSecondarySprites();
-            shipSprites().ensureTileSheet();
-            shipSprites().ensureRoadSheet();
-            shipSprites().ensureDoodadSheet();
             built.canvases().set(candidate.requireElement("barracks-canvas"),
                     new BarracksCanvas(context.companyDeck(), viewModel::sceneMarines));
             if (viewport != null) {
@@ -143,10 +134,6 @@ public final class BarracksScreen implements Screen {
                 "barracks-muster-list")) {
             component.requireElement(id);
         }
-    }
-
-    private BattleSprites shipSprites() {
-        return context.companyDeck().sprites();
     }
 
     private void close() {
