@@ -43,6 +43,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.DiamondLayoutStag
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CorridorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FillDispatchStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LabelLeavesStage;
@@ -182,7 +183,8 @@ public final class BspCityGenerator implements MapGenerator {
                 new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
                 new OverwatchTowerStage(),                  // taxonomy consumer — corner-tower guns
                 new SpawnAnchorStage(),                     // spawn anchors
-                new ConquestLandingAreaStage()));           // paired BEACH arrival geometry
+                new ConquestLandingAreaStage(),             // paired BEACH arrival geometry
+                new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
 
     /**
@@ -213,7 +215,8 @@ public final class BspCityGenerator implements MapGenerator {
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b
                 new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
-                new SpawnAnchorStage()));                   // spawn anchors
+                new SpawnAnchorStage(),                     // spawn anchors
+                new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
 
     /**
@@ -237,7 +240,8 @@ public final class BspCityGenerator implements MapGenerator {
                 new StationSpawnStage(),      // diameter-endpoint spawns
                 new StationTopologyStage(),   // derive depth / articulation / bridge / on-loop roles
                 new TacticalLinkStage(),      // (empty node list → empty map)
-                new FinalizeStage()));        // wall HP / cover / wall tags / buildings
+                new FinalizeStage(),          // wall HP / cover / wall tags / buildings
+                new InteriorAnchorFitStage()));  // closing: POI anchors vs the finished grid
     }
 
     /**
@@ -257,7 +261,8 @@ public final class BspCityGenerator implements MapGenerator {
                 new CoreSpawnStage(),         // defender at core, marine at outer ring
                 new StationTopologyStage(),   // radial depth / gate bridges / on-loop
                 new TacticalLinkStage(),      // (empty node list → empty map)
-                new FinalizeStage()));        // wall HP / cover / wall tags / buildings
+                new FinalizeStage(),          // wall HP / cover / wall tags / buildings
+                new InteriorAnchorFitStage()));  // closing: POI anchors vs the finished grid
     }
 
     /**
@@ -274,7 +279,8 @@ public final class BspCityGenerator implements MapGenerator {
                 new CoreSpawnStage(),         // defender at core, marine at a port
                 new StationTopologyStage(),   // radial depth / port + spoke bridges / connective loop
                 new TacticalLinkStage(),
-                new FinalizeStage()));
+                new FinalizeStage(),
+                new InteriorAnchorFitStage()));  // closing: POI anchors vs the finished grid
     }
 
     /** Swap in a compound-aware filler. Idempotent — last write wins. */

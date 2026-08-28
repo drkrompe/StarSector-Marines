@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
+import com.dillon.starsectormarines.ops.battleview.InteriorChange;
+import com.dillon.starsectormarines.ops.battleview.ShipInterior;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import org.json.JSONObject;
@@ -54,6 +56,21 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
 
     /** Hulls chosen to span the size range: a frigate, a personnel transport, a capital, a freighter. */
     private static final String[] HULLS = { "wolf", "valkyrie", "conquest", "atlas" };
+
+    /**
+     * Hulls a player might plausibly quarter a company on, chosen to span role
+     * rather than size: the comparison is only interesting because a bigger
+     * ship can be a worse home.
+     */
+    private static final String[] CANDIDATE_HULLS = {
+            "valkyrie", "starliner", "eagle", "dominator", "apogee",
+            "venture", "legion", "atlas", "conquest", "prometheus" };
+
+    /** The places a marine company weighs a hull on, in the order they are read. */
+    private static final RoomPurpose[] COMPARED = {
+            RoomPurpose.BARRACKS, RoomPurpose.VEHICLE_BAY, RoomPurpose.ARMORY,
+            RoomPurpose.FIRING_RANGE, RoomPurpose.HANGAR, RoomPurpose.PATIENT_WARD,
+            RoomPurpose.MESS_HALL, RoomPurpose.STOCKROOM, RoomPurpose.CONFERENCE_ROOM };
     private static final int CELL = 8;
     private static final long SEED = 42L;
 
@@ -157,12 +174,180 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
                 }
             }
         }
+        if (vanilla.available()) {
+            SnapshotArtifact comparison = candidates(vanilla);
+            if (comparison != null) artifacts.add(comparison);
+        }
         if (artifacts.isEmpty()) {
             artifacts.add(plan("synthetic", null,
                     new DeckSizing.DeckPlan(96, 28, List.of()), "no game install",
                     RoomFit.STANDARD));
         }
         return List.copyOf(artifacts);
+    }
+
+    /**
+     * Every candidate hull side by side, as what would be aboard each.
+     *
+     * <p>The transfer decision, drawn. A ship list rated by tonnage cannot show
+     * the trade the player is actually making, because the trade is between
+     * hulls that hold different things: a liner out-berths a warship twice her
+     * weight and has nowhere to service a walker, and a freighter has holds and
+     * no reason for anybody to be aboard. The last column is the half that
+     * matters most — a screen that only showed gains would be a worse screen
+     * than none.
+     *
+     * <p>Read against the first row, which is the fleet's best home by lift and
+     * therefore where a company would be quartered by default.
+     */
+    private static SnapshotArtifact candidates(VanillaHullSilhouettes vanilla) throws Exception {
+        List<VanillaHullSilhouettes.Hull> hulls = new ArrayList<>();
+        for (String hullId : CANDIDATE_HULLS) {
+            VanillaHullSilhouettes.Hull hull = vanilla.read(hullId);
+            if (hull != null && hull.hullClass().boardable()) hulls.add(hull);
+        }
+        if (hulls.isEmpty()) return null;
+        hulls.sort(Comparator.comparingInt(VanillaHullSilhouettes.Hull::lift).reversed());
+
+        List<ShipInterior> interiors = new ArrayList<>();
+        for (VanillaHullSilhouettes.Hull hull : hulls) {
+            interiors.add(ShipInterior.of(new CompanyShip(hull.hullClass(), hull.role(),
+                    hull.minCrew(), hull.maxCrew(), hull.cargo(),
+                    hull.silhouette().aspect()), SEED));
+        }
+
+        int margin = 24;
+        int rowHeight = 30;
+        int nameWidth = 150;
+        int classWidth = 210;
+        int liftWidth = 70;
+        int cellWidth = 96;
+        int lossWidth = 320;
+        int width = margin * 2 + nameWidth + classWidth + liftWidth
+                + cellWidth * COMPARED.length + lossWidth;
+        int height = margin * 2 + rowHeight * (hulls.size() + 3) + 40;
+
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setColor(HULL);
+        g.fillRect(0, 0, width, height);
+
+        g.setColor(LABEL);
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
+        g.drawString("Where the company could live", margin, margin + 6);
+
+        Font head = new Font(Font.SANS_SERIF, Font.BOLD, 11);
+        Font body = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
+        int y = margin + rowHeight + 6;
+
+        g.setFont(head);
+        g.setColor(CORRIDOR);
+        int x = margin;
+        g.drawString("HULL", x, y);
+        x += nameWidth;
+        g.drawString("CLASS AND ROLE", x, y);
+        x += classWidth;
+        g.drawString("LIFT", x, y);
+        x += liftWidth;
+        for (RoomPurpose purpose : COMPARED) {
+            g.drawString(shortName(purpose), x, y);
+            x += cellWidth;
+        }
+        g.drawString("MOVING HERE WOULD COST", x, y);
+
+        g.setColor(STRUCTURE);
+        g.drawLine(margin, y + 8, width - margin, y + 8);
+
+        // Read against a hull a company would plausibly already be on. Comparing
+        // against the fleet's largest makes every other row a pure gain and the
+        // cost column empty, which is precisely the reading this sheet exists to
+        // avoid.
+        int home = 0;
+        for (int row = 0; row < hulls.size(); row++) {
+            if (hulls.get(row).role().landsGroundForces()) { home = row; break; }
+        }
+        ShipInterior best = interiors.get(home);
+        for (int row = 0; row < hulls.size(); row++) {
+            VanillaHullSilhouettes.Hull hull = hulls.get(row);
+            ShipInterior interior = interiors.get(row);
+            y += rowHeight;
+            x = margin;
+
+            g.setFont(body);
+            g.setColor(LABEL);
+            g.drawString(hull.id(), x, y);
+            x += nameWidth;
+            g.setColor(CORRIDOR);
+            g.drawString(hull.hullClass().name().toLowerCase() + ", "
+                    + hull.role().name().toLowerCase().replace('_', ' '), x, y);
+            x += classWidth;
+            g.drawString(String.valueOf(hull.lift()), x, y);
+            x += liftWidth;
+
+            for (RoomPurpose purpose : COMPARED) {
+                ShipInterior.Facility facility = interior.facility(purpose);
+                if (!facility.programmed()) {
+                    // Absence is a fact worth reading at a glance: it is the
+                    // reason to go shopping for a different hull.
+                    g.setColor(STRUCTURE);
+                    g.drawString("--", x, y);
+                } else {
+                    g.setColor(ROOM_COLORS.getOrDefault(purpose, LABEL));
+                    String held = facility.capacity() > 0
+                            ? String.valueOf(facility.capacity())
+                            : "yes";
+                    g.drawString(held + "  (" + facility.rooms() + ")", x, y);
+                }
+                x += cellWidth;
+            }
+
+            if (row == home) {
+                g.setColor(CORRIDOR);
+                g.drawString("- where they live now", x, y);
+            } else {
+                List<RoomPurpose> lost = new InteriorChange(best, interior).lost();
+                g.setColor(lost.isEmpty() ? CORRIDOR : new Color(0xc4, 0x4b, 0x4b));
+                g.drawString(lost.isEmpty() ? "nothing" : describe(lost), x, y);
+            }
+        }
+
+        y += rowHeight + 18;
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        g.setColor(CORRIDOR);
+        g.drawString("Capacity is what the rooms hold - bunks, serviced hulls, hold units - "
+                + "with the number of separate compartments in brackets. "
+                + "\"--\" is no such place aboard. Losses are read against the "
+                + "troop transport, and berthing against lift: a hull that berths "
+                + "far fewer than she lifts could not fit the program she owes.",
+                margin, y);
+
+        g.dispose();
+        return new SnapshotArtifact("ship-candidates.png", image);
+    }
+
+    private static String shortName(RoomPurpose purpose) {
+        return switch (purpose) {
+            case BARRACKS -> "BERTHING";
+            case VEHICLE_BAY -> "MECH BAY";
+            case PATIENT_WARD -> "SICK BAY";
+            case CONFERENCE_ROOM -> "BRIEFING";
+            case STOCKROOM -> "HOLD";
+            case FIRING_RANGE -> "RANGE";
+            case MESS_HALL -> "MESS";
+            default -> purpose.name().replace('_', ' ');
+        };
+    }
+
+    private static String describe(List<RoomPurpose> purposes) {
+        StringBuilder text = new StringBuilder();
+        for (RoomPurpose purpose : purposes) {
+            if (text.length() > 0) text.append(", ");
+            text.append(shortName(purpose).toLowerCase());
+        }
+        return text.toString();
     }
 
     private static SnapshotArtifact plan(String name, HullSilhouette silhouette,

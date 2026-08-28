@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.nav.mesh.GreedyNavigationMesh;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -18,8 +19,9 @@ import java.util.Arrays;
 
 /**
  * Owns the spatial state slice that {@code BattleSimulation} previously held
- * inline — the {@link NavigationGrid}, {@link CellTopology}, {@link ZoneGraph}
- * + dirty flag, the per-cell {@link #occupancyMap}, the unit + destination
+ * inline — the {@link NavigationGrid}, {@link CellTopology}, {@link ZoneGraph},
+ * derived {@link GreedyNavigationMesh} + shared dirty lifecycle, the per-cell
+ * {@link #occupancyMap}, the unit + destination
  * spatial indices, the per-target vantage-point cache, and the per-tick
  * {@link LosCache} lifecycle. Sibling slice to
  * {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService},
@@ -42,6 +44,7 @@ public final class NavigationService {
     private final NavigationGrid grid;
     private final CellTopology topology;
     private final ZoneGraph zoneGraph;
+    private final GreedyNavigationMesh navigationMesh;
 
     /** Per-cell unit count (current cell + path destination), rebuilt at the top of each tick and incrementally updated via {@link #applyOccupancyDeltaInline}. Read by the pathfinder so units route around ally-held cells. Saturates at 255. */
     private final byte[] occupancyMap;
@@ -59,7 +62,7 @@ public final class NavigationService {
      * LOS-bearing firing position exists.
      *
      * <p>Lifetime is per-battle; cleared in lockstep with the zone-graph
-     * rebuild ({@link #flushZoneGraphIfDirty}) since vantage geometry is
+     * rebuild ({@link #flushNavigationTopologyIfDirty}) since vantage geometry is
      * determined by walkability + LOS, which any breach / demolish event
      * invalidates.
      */
@@ -68,9 +71,9 @@ public final class NavigationService {
     /**
      * Set whenever the walkability layout changes during a tick (wall breach,
      * turret demolish, hub demolish). Drained once at the end of the tick via
-     * {@link #flushZoneGraphIfDirty()} so multiple breaches in the same tick
+     * {@link #flushNavigationTopologyIfDirty()} so multiple breaches in the same tick
      * collapse into one update. AI queries that run mid-tick see the previous
-     * tick's graph — fine in practice, since rubble stays walkable forever
+     * tick's graph and mesh snapshot — fine in practice, since rubble stays walkable forever
      * (paths only ever gain shortcuts) and the new portal becomes visible
      * within 1/30s.
      *
@@ -80,7 +83,7 @@ public final class NavigationService {
      * the full path for a cell-less dirty mark or when {@link DevConfig#ZONE_INCREMENTAL_REBUILD}
      * is off (the kill-switch).
      */
-    private boolean zoneGraphDirty = false;
+    private boolean navigationTopologyDirty = false;
     private boolean zoneForceFullRebuild = false;
     private int[] openedCells = new int[8];
     private int openedCount = 0;
@@ -101,6 +104,7 @@ public final class NavigationService {
         this.destIndex = new UnitDestinationSpatialIndex(grid.getWidth(), grid.getHeight());
         this.zoneGraph = new ZoneGraph(grid);
         this.zoneGraph.rebuild();
+        this.navigationMesh = new GreedyNavigationMesh(grid);
     }
 
     /** Injects the dense entity store once it's built (see {@link #roster}). Called once at sim construction. */
@@ -111,6 +115,12 @@ public final class NavigationService {
     public CellTopology getTopology() { return topology; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
     public ZoneGraph getZoneGraph() { return zoneGraph; }
+    /**
+     * Greedy rectangular acceleration layer derived from the same grid as the
+     * zone graph. Its immutable snapshot advances at the topology flush
+     * boundary, never during an in-tick destruction batch.
+     */
+    public GreedyNavigationMesh getNavigationMesh() { return navigationMesh; }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. */
     public byte[] getOccupancyMap() { return occupancyMap; }
     public UnitSpatialIndex getUnitIndex() { return unitIndex; }
@@ -142,19 +152,29 @@ public final class NavigationService {
     /**
      * Records a just-opened cell (wall breach / structure→rubble) for the end-of-tick incremental
      * zone-graph update — called by {@code MapEditor}'s runtime map-modification ops. Preferred
-     * over {@link #markZoneGraphDirty()}: it lets the drain take the O(smaller-zone)
+     * over {@link #markNavigationTopologyDirty()}: it lets the drain take the O(smaller-zone)
      * {@link ZoneGraph#applyCellsOpened} path instead of a full O(W×H) rebuild.
      */
     public void markCellOpened(int x, int y) {
-        zoneGraphDirty = true;
+        navigationTopologyDirty = true;
         if (openedCount == openedCells.length) openedCells = Arrays.copyOf(openedCells, openedCount * 2);
         openedCells[openedCount++] = grid.index(x, y);
     }
 
-    /** Marks the zone graph dirty without a specific cell — forces a full rebuild on the next drain.
+    /** Marks every derived navigation layer dirty without a specific cell — forces a full rebuild on the next drain.
      *  Prefer {@link #markCellOpened} when the changed cell is known. */
-    public void markZoneGraphDirty() { zoneGraphDirty = true; zoneForceFullRebuild = true; }
-    public boolean isZoneGraphDirty() { return zoneGraphDirty; }
+    public void markNavigationTopologyDirty() {
+        navigationTopologyDirty = true;
+        zoneForceFullRebuild = true;
+    }
+
+    /** Compatibility name retained for existing mutation coordinators. */
+    public void markZoneGraphDirty() { markNavigationTopologyDirty(); }
+
+    public boolean isNavigationTopologyDirty() { return navigationTopologyDirty; }
+
+    /** Compatibility name retained for existing diagnostics and tests. */
+    public boolean isZoneGraphDirty() { return isNavigationTopologyDirty(); }
 
     /**
      * Runtime removal of a thin cardinal barrier. Edge topology only becomes
@@ -175,31 +195,35 @@ public final class NavigationService {
         }
         if (grid.isSharedEdgePassable(x, y, direction)) return;
         grid.openSharedEdge(x, y, direction);
-        markZoneGraphDirty();
+        markNavigationTopologyDirty();
     }
 
     /**
-     * Drains the zone-graph dirty state at the end of a tick (collapsing multiple in-tick breaches
-     * into one update) and clears the vantage-point cache in lockstep so the next
+     * Drains the derived-navigation dirty state at the end of a tick (collapsing multiple in-tick breaches
+     * into one update), rebuilds the greedy navigation mesh, and clears the vantage-point cache in lockstep so the next
      * {@code findFiringPosition} stage-2 lookup recomputes against the new geometry. Retained
      * shared-goal fields are invalidated at the same boundary so their older topology view cannot
      * hide the new opening. No-op when clean. Takes the incremental {@link
      * ZoneGraph#applyCellsOpened} path when the changed cells are known and {@link
      * DevConfig#ZONE_INCREMENTAL_REBUILD} is on; otherwise a full {@link ZoneGraph#rebuild()}.
      */
-    public void flushZoneGraphIfDirty() {
-        if (!zoneGraphDirty) return;
+    public void flushNavigationTopologyIfDirty() {
+        if (!navigationTopologyDirty) return;
         if (DevConfig.ZONE_INCREMENTAL_REBUILD && !zoneForceFullRebuild && openedCount > 0) {
             zoneGraph.applyCellsOpened(Arrays.copyOf(openedCells, openedCount));
         } else {
             zoneGraph.rebuild();
         }
+        navigationMesh.rebuild();
         vantagePointsByTargetCell.clear();
         sharedGoalPathfinder.invalidateAll();
-        zoneGraphDirty = false;
+        navigationTopologyDirty = false;
         zoneForceFullRebuild = false;
         openedCount = 0;
     }
+
+    /** Compatibility name; prefer {@link #flushNavigationTopologyIfDirty()}. */
+    public void flushZoneGraphIfDirty() { flushNavigationTopologyIfDirty(); }
 
     /**
      * Returns the cached vantage-point set for target cell ({@code tx},

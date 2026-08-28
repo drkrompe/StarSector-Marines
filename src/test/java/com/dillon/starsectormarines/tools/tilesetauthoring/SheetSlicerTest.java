@@ -84,21 +84,21 @@ class SheetSlicerTest {
         }
         entries.get(1).footprintX = 2;     // a piece that covers two cells of deck
 
-        int[] size = TilesetExport.pack(entries);
-        assertEquals(4, size[0], "three pieces, one of them two cells wide");
-        assertEquals(1, size[1]);
+        TilesetExport.Packing packing = TilesetExport.pack(entries, List.of());
+        assertEquals(4, packing.columns(), "three pieces, one of them two cells wide");
+        assertEquals(1, packing.rows());
         assertEquals(0, entries.get(0).col);
         assertEquals(1, entries.get(1).col);
         assertEquals(3, entries.get(2).col, "the two-cell piece should advance the cursor by two");
 
-        BufferedImage atlas = TilesetExport.atlas(source, entries, 64);
+        BufferedImage atlas = TilesetExport.atlas(source, entries, List.of(), 64);
         assertEquals(4 * 64, atlas.getWidth());
         assertEquals(64, atlas.getHeight());
         // Stretched to fill, so the far corner of the two-cell slot is covered.
         assertTrue((atlas.getRGB(2 * 64 - 2, 32) >>> 24) > 128,
                 "a two-cell piece should be stretched across both cells");
 
-        JSONObject tileset = TilesetExport.tileset("graphics/doodads/test.png", 64, entries);
+        JSONObject tileset = TilesetExport.tileset("graphics/doodads/test.png", 64, entries, List.of());
         assertEquals(64, tileset.getInt("cellPx"));
         assertEquals(3, tileset.getJSONArray("doodads").length());
         assertEquals(2, tileset.getJSONArray("doodads").getJSONObject(1)

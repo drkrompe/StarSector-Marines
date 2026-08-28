@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — separated cell standability from shared-edge transitions and widened compound firing aprons.
+Updated: 2026-08-28 — separated authoritative cells, shared-edge transitions, and derived regions; widened compound firing aprons; and guaranteed standable interior anchors.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -57,6 +57,14 @@ Runtime topology retains the permissive-mutation law: destruction may open an
 authored edge, while construction that closes an edge under existing paths is a
 separate future problem.
 
+The greedy navigation mesh is derived runtime structure, not generated map
+authority. It combines compatible walkable cells into deterministic rectangular
+regions, preserves doorways and closed edges as seams, and publishes passable
+boundary intervals between regions. Generation and runtime destruction mutate
+cells or shared edges; the ordinary navigation-topology flush then rebuilds the
+mesh alongside zones and geometry-dependent caches. A generator must never
+author a region directly or depend on a particular greedy decomposition.
+
 **Room purpose** is a carve-time semantic label, such as a room, corridor, or
 special facility. Consumers ask the purpose instead of rediscovering regions
 from coordinates. It must remain an authored fact, not a post-hoc convention.
@@ -72,6 +80,20 @@ position** is different: it is an exact walkable member cell belonging to that
 place, such as the protected cell behind a bunker firing aperture. Consumers
 prefer authored stand positions before deriving nearby cells, and later
 generation stages must not overwrite their enclosing authored footprint.
+Because an anchor carries identity rather than standability, a consumer that
+needs somewhere to stand — or a room to resolve — derives that cell from the
+place's footprint instead of reading it off the anchor.
+
+A point of interest's **interior anchor** is the opposite promise: the cell a
+mission objective is placed on, and therefore standable whenever the footprint
+encloses a standable cell. A footprint carved solid encloses none, and its
+interior anchor falls back to the exterior interaction anchor. The guarantee
+cannot hold where the anchor is authored, because later stages keep changing
+the map underneath it — furnishing drops a fixture on the cell, wall stampers
+paint over the footprint. It is therefore reconciled once against the finished
+grid, after the last stage to touch it. An anchor that fails the guarantee does
+not merely look wrong: mission layouts filter candidate sites on it, and
+room-scoped objectives resolve no room at all from a blocked or doorway cell.
 
 Parcel ownership is established before content fills. A filler may own one leaf
 or an already-claimed compound, but it must not infer a multi-leaf building by
