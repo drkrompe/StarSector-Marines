@@ -4,11 +4,11 @@ Status: IN PROGRESS
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 — both screens are now room views on the company ship and
-`BarracksSceneLayout` is gone. What remains is retiring `MechLabSceneLayout`
-with the Mech Lab canvas's no-host-pass fallback, and deriving the room
-breadcrumbs from deck and compartment facts instead of literal strings. Read
-`company-ship.md` for where the deck's parameters come from.
+Updated: 2026-08-27 — both screens are room views on the company ship, both
+constant layout tables are deleted, and the UI snapshots photograph the real
+generated deck. What remains is deriving the room breadcrumbs from deck and
+compartment facts instead of literal strings. Read `company-ship.md` for where
+the deck's parameters come from.
 
 Read `ship-interiors-nouns.md` before implementing this story. The crew model it
 puts on the deck is in `ai-nouns.md`.

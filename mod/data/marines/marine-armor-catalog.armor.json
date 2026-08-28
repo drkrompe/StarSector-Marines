@@ -163,7 +163,25 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "FOUNDRY_BREAKER", "armorCapacity": 27.0, "armorRating": 6.0, "moveSpeedMult": 0.80, "incomingAccuracyMult": 1.00 }
+      "battle": {
+        "appearanceFamily": "FOUNDRY_BREAKER",
+        "armorCapacity": 27.0,
+        "armorRating": 6.0,
+        "moveSpeedMult": 0.80,
+        "incomingAccuracyMult": 1.00,
+        "integralSystem": {
+          "id": "system.breacher-assist",
+          "displayName": "Breaching assist",
+          "description": "Industrial shoulder rams and a salvaged riot screen, wired to the same trigger. Fires the bracing hard enough to carry the rig through a doorway, and holds the screen up front while it runs. The flanks are exactly as exposed as they always were.",
+          "effect": "breacher-assist",
+          "resource": "cooldown",
+          "durationSeconds": 3.0,
+          "cooldownSeconds": 22.0,
+          "moveSpeedMult": 1.45,
+          "frontalResistance": 0.5,
+          "shieldedArcDegrees": 120.0
+        }
+      }
     },
     {
       "id": "armor.outlaw",

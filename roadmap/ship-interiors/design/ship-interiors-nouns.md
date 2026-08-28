@@ -403,6 +403,14 @@ host can take a backdrop pass and an actor pass off one settled frame, and
 catch-up after a long absence is bounded rather than replayed — ambient work is
 a rotation with no history to lose.
 
+**There is one answer to what a room looks like.** A screen has no substitute
+scene to draw when the ship is unavailable, and a canvas that cannot reach her
+draws nothing rather than something else. A fallback room is a second model of
+the same place, and it goes stale the moment the generator changes — the two
+rooms the screens once carried were, in the end, seen only in the headless
+evidence, which is to say the evidence was of a room no player would ever stand
+in. Deck-hosted evidence is rendered from the same deck the game builds.
+
 **The company is the ship's marine complement.** The marines aboard the company
 ship are the roster, and nobody else is: they muster into her berthings by name,
 carrying the weapon and armour the armoury issued them, and every rack the roster

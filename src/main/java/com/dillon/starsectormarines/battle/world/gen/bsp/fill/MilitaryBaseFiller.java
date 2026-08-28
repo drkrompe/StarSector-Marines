@@ -132,6 +132,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
         stampCommandRadar(compound, inCompound, memberCells, roadReservation,
                 grid, topology, doodads);
         stampGunEmplacements(compound, inCompound, grid, topology, pois);
+        CompoundWallApertures.stamp(inCompound, grid, topology);
         emitTacticalNodes(compound, leafPois, tactical);
     }
 
