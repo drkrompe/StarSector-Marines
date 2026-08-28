@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -169,6 +171,28 @@ public final class AmbientTaskService {
             livePoses.put(actorId, pose);
             applyAppearance(actorId, pose);
         }
+    }
+
+    /**
+     * What an assigned actor is doing right now, or null if they have none.
+     *
+     * <p>For a host that draws something extra over the top of the ordinary
+     * unit — welding sparks at the point a technician is working. That overlay
+     * has to follow the actor who is actually working rather than a script laid
+     * over the scene, or it lights up where nobody is standing.
+     */
+    public AmbientTaskPose pose(long actorId) {
+        return livePoses.get(actorId);
+    }
+
+    /** Actors currently assigned a route, in roster order. */
+    public List<Long> assigned() {
+        List<Long> working = new ArrayList<>();
+        for (int index = 0; index < roster.liveCount(); index++) {
+            long actorId = roster.get(index);
+            if (assignments.containsKey(actorId)) working.add(actorId);
+        }
+        return working;
     }
 
     /** Reasserts task poses after the ordinary battle FacingSystem has run. */
