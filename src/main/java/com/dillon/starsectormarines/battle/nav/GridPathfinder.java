@@ -257,6 +257,20 @@ public final class GridPathfinder {
         }
     }
 
+    /**
+     * Package-private refinement seam for composite pathfinders that own the
+     * outer profiling scope. Semantics are identical to the full-control public
+     * overload, but this call does not record another nested path request.
+     */
+    static int[] findPathUnprofiled(NavigationGrid grid,
+                                    int startX, int startY,
+                                    int goalX, int goalY,
+                                    boolean cardinalOnly, byte[] occupancy,
+                                    float[] costField, boolean[] passable) {
+        return findPathInner(grid, startX, startY, goalX, goalY,
+                cardinalOnly, occupancy, costField, passable);
+    }
+
     private static int[] findPathInner(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
                                         boolean cardinalOnly, byte[] occupancy, float[] costField, boolean[] passable) {
         if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {

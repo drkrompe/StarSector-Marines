@@ -23,7 +23,11 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
+import com.dillon.starsectormarines.marine.BreacherAssistSpec;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.IntegralSystemEffect;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.SpecialResourceMode;
 
 /**
  * Measures time-to-kill by running the shipped firing pipeline, not by
@@ -90,18 +94,37 @@ public final class TtkHarness {
     }
 
     /**
+     * A screen held up for the whole measurement, so a row isolates what the
+     * arc is worth rather than averaging one authored window into a long
+     * fight. {@code facingDegrees} is where the screen points: the shooter
+     * stands due west of the defender, so {@link #FRONT_DEGREES} faces it and
+     * {@link #FLANK_DEGREES} turns away from it.
+     */
+    public record Screen(float fraction, float arcDegrees, float facingDegrees) {}
+
+    /** The bearing of the shooter from the defender in this arena. */
+    public static final float FRONT_DEGREES = 90f;
+    /** Directly away from the shooter — the same screen, pointed at nothing. */
+    public static final float FLANK_DEGREES = -90f;
+
+    /**
      * The thing being shot at. {@code armor} is optional — null means the
      * archetype's bare stat block, which is how militia, aliens, and swarm
-     * runners actually spawn.
+     * runners actually spawn. {@code screen} is optional in the same way: most
+     * actors never raise one.
      */
-    public record Defender(String label, UnitType type, MarineArmorPattern armor) {
+    public record Defender(String label, UnitType type, MarineArmorPattern armor, Screen screen) {
 
         public static Defender bare(String label, UnitType type) {
-            return new Defender(label, type, null);
+            return new Defender(label, type, null, null);
         }
 
         public static Defender armored(String label, MarineArmorPattern armor) {
-            return new Defender(label, UnitType.MARINE, armor);
+            return new Defender(label, UnitType.MARINE, armor, null);
+        }
+
+        public static Defender screened(String label, MarineArmorPattern armor, Screen screen) {
+            return new Defender(label, UnitType.MARINE, armor, screen);
         }
     }
 
@@ -179,6 +202,15 @@ public final class TtkHarness {
 
         for (int trial = 0; trial < trials; trial++) {
             long target = sim.spawn(defenderSpec(scenario.defender(), trial, targetCellX));
+            Screen screen = scenario.defender().screen();
+            if (screen != null) {
+                // Raised directly rather than through the AI's use policy: this
+                // measures what the arc is worth, and a policy deciding when to
+                // spend it belongs in its own story's evidence.
+                roster.mitigations().face(target, screen.facingDegrees());
+                roster.mitigations().grant(target, screen.fraction(), screen.arcDegrees(),
+                        TRIAL_TIMEOUT_SECONDS * 2f);
+            }
             if (trial == 0) {
                 effectiveHp = world.maxHp(target);
                 if (world.hasArmor(target)) {
@@ -212,7 +244,8 @@ public final class TtkHarness {
                     tally.roundsLanded++;
                     // moraleImpact 0: this is a lethality measurement, and a
                     // squadless defender has no morale state to drain anyway.
-                    sim.applyDamage(impact.victimId, impact.damage, impact.penetration, 0f);
+                    sim.applyDamage(impact.victimId, impact.shooterId, impact.damage,
+                            impact.penetration, 0f);
                 });
                 // The sim clears these in advance(); this harness never calls
                 // it, so they are drained here to keep a long run flat.
@@ -250,7 +283,21 @@ public final class TtkHarness {
             spec.armor(armor.armorCapacity, armor.armorRating, armor.moveSpeedMult,
                     armor.incomingAccuracyMult);
         }
+        if (defender.screen() != null) spec.integralSystem(screenSource(defender.screen()));
         return spec;
+    }
+
+    /**
+     * The suit-side source a screen needs to exist at all — spawn attaches the
+     * mitigation capability only to an actor carrying something that can raise
+     * one. Its clocks are never spent here; the harness grants the screen
+     * directly.
+     */
+    private static IntegralSystemDef screenSource(Screen screen) {
+        return new IntegralSystemDef("system.ttk-screen", "Measured screen", EquipmentGrade.SERVICE,
+                "Held up for the whole measurement.", IntegralSystemEffect.BREACHER_ASSIST,
+                SpecialResourceMode.COOLDOWN, 1f, 2f, 0,
+                new BreacherAssistSpec(1.01f, screen.fraction(), screen.arcDegrees()), null);
     }
 
     /** Per-trial counters; a class rather than locals so the impact sink lambda can write to them. */

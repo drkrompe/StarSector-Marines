@@ -82,6 +82,14 @@ public final class CombatTelemetryService {
     /** Post-mitigation HP {@code id} has absorbed, from any source. */
     public float damageTaken(long id) { return getFloat(id, BattleComponents.TELEMETRY_DAMAGE_TAKEN); }
 
+    /**
+     * Post-cover damage {@code id}'s live screen refused, reaching neither
+     * armor nor structure ({@code combat-durability-nouns.md}). Separate from
+     * {@link #damageTaken} on purpose — this is the number that says a screen
+     * worked, and netting it into absorbed damage would hide it.
+     */
+    public float damageMitigated(long id) { return getFloat(id, BattleComponents.TELEMETRY_DAMAGE_MITIGATED); }
+
     /** Hostiles {@code id} landed the killing blow on. */
     public int kills(long id) { return getInt(id, BattleComponents.TELEMETRY_KILLS); }
 
@@ -128,6 +136,11 @@ public final class CombatTelemetryService {
     /** Records {@code applied} HP absorbed by {@code targetId}, from any source. */
     public void recordDamageTaken(long targetId, float applied) {
         bumpFloat(targetId, BattleComponents.TELEMETRY_DAMAGE_TAKEN, applied);
+    }
+
+    /** Records {@code mitigated} HP of post-cover damage {@code targetId}'s screen refused. */
+    public void recordDamageMitigated(long targetId, float mitigated) {
+        bumpFloat(targetId, BattleComponents.TELEMETRY_DAMAGE_MITIGATED, mitigated);
     }
 
     /** Credits {@code attackerId} with a kill. One detonation killing three counts three. */

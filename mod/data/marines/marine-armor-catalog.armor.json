@@ -53,7 +53,24 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "AEGIS_COMPOSITE", "armorCapacity": 9.0, "armorRating": 7.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.91 }
+      "battle": {
+        "appearanceFamily": "AEGIS_COMPOSITE",
+        "armorCapacity": 9.0,
+        "armorRating": 7.0,
+        "moveSpeedMult": 1.02,
+        "incomingAccuracyMult": 0.91,
+        "integralSystem": {
+          "id": "system.predictive-volley",
+          "grade": "milspec",
+          "displayName": "Predictive volley",
+          "description": "The same threat display that buys the Aegis its footing can just as easily lock a firing solution. When the wearer holds a clear line on something worth spending it on, the suit's shoulder pod puts a brace of smart micro-missiles into it before the wearer would otherwise get a shot off. The rack is small, it is not the wearer's rifle, and it does not refill in the field.",
+          "effect": "missile-pod",
+          "resource": "ammunition",
+          "durationSeconds": 1.0,
+          "startingAmmo": 2,
+          "weaponId": "weapon.micro-missile"
+        }
+      }
     },
     {
       "id": "armor.palatine",
@@ -116,6 +133,7 @@
         "incomingAccuracyMult": 0.98,
         "integralSystem": {
           "id": "system.assault-bracing",
+          "grade": "milspec",
           "displayName": "Assault bracing",
           "description": "Domain-spec bracing driven off the suit's own plant, on a doctrine timer rather than a gamble. It carries the wearer through the threshold at a pace the Hegemony can train, repeat, and account for, with the frontal plate locked forward the whole way. Nothing about it is improvised, which is the entire point.",
           "effect": "breacher-assist",
@@ -145,6 +163,7 @@
         "incomingAccuracyMult": 0.90,
         "integralSystem": {
           "id": "system.predictive-breach",
+          "grade": "masterwork",
           "displayName": "Predictive breach",
           "description": "The threat display picks the moment and the joints spend everything on it. The window is short and comes around again quickly; the screen is a courtesy rather than a wall. Corporate doctrine holds that the fastest way through a killing ground is to not be standing in it.",
           "effect": "breacher-assist",
@@ -174,6 +193,7 @@
         "incomingAccuracyMult": 0.95,
         "integralSystem": {
           "id": "system.interlock-advance",
+          "grade": "service",
           "displayName": "Interlock advance",
           "description": "Coalition breaching drill rendered in hardware: the actuators surge and the shoulder blocks interlock outward, covering a wider front than one wearer strictly needs. Member worlds standardized on the wider arc because the marine beside you may not be from your navy.",
           "effect": "breacher-assist",
@@ -203,6 +223,7 @@
         "incomingAccuracyMult": 0.97,
         "integralSystem": {
           "id": "system.consecrated-advance",
+          "grade": "masterwork",
           "displayName": "Consecrated advance",
           "description": "The custody governors release and the shell walks forward behind its own fitted plate, unhurried, for a long time. A Knight in this suit is not crossing the room quickly. They are crossing it in front of somebody else.",
           "effect": "breacher-assist",
@@ -232,6 +253,7 @@
         "incomingAccuracyMult": 1.01,
         "integralSystem": {
           "id": "system.blazon-advance",
+          "grade": "milspec",
           "displayName": "Blazon advance",
           "description": "The cooling loops dump everything they have been hoarding and the guard suit advances gleaming, plate spread wide. It is a magnificent thing to walk behind and an unmissable thing to shoot at, and the loops take a very long time to forgive it.",
           "effect": "breacher-assist",
@@ -261,6 +283,7 @@
         "incomingAccuracyMult": 1.00,
         "integralSystem": {
           "id": "system.breacher-assist",
+          "grade": "surplus",
           "displayName": "Breaching assist",
           "description": "Industrial shoulder rams and a salvaged riot screen, wired to the same trigger by somebody in a hurry. It fires hard enough to throw the rig through a doorway and no further, the screen is a sheet of scrap, and the servos need a long sulk afterwards. The flanks are exactly as exposed as they always were.",
           "effect": "breacher-assist",

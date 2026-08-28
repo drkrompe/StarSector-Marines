@@ -1,11 +1,10 @@
 package com.dillon.starsectormarines.battle.world;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.vehicle.GroundBody;
-import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
-import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 /**
  * Coordinates the runtime map-modification cycle — the cross-domain operations
@@ -79,6 +78,22 @@ public final class MapEditor {
         return true;
     }
 
+    /**
+     * Damages one authored shared-edge feature. Destruction removes its
+     * presentation/cover identity first, then opens the owned edge through the
+     * navigation service so every derived topology layer advances at the
+     * ordinary batched flush boundary.
+     */
+    public boolean damageEdgeBarrier(int x, int y, Direction direction,
+                                     int amount) {
+        SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, direction);
+        if (barrier == null) return false;
+        if (!grid.damageEdgeBarrier(x, y, direction, amount)) return false;
+        navigation.openSharedEdge(
+                barrier.cellX(), barrier.cellY(), barrier.direction());
+        return true;
+    }
+
     private void peelRoofAround(int wallX, int wallY) {
         destroyRoof(wallX - 1, wallY);
         destroyRoof(wallX + 1, wallY);
@@ -120,20 +135,5 @@ public final class MapEditor {
         grid.recomputeCoverAt(cellX, cellY + 1);
         grid.recomputeCoverAt(cellX, cellY - 1);
         navigation.markCellOpened(cellX, cellY);
-    }
-
-    /**
-     * Commits a destroyed convoy vehicle's sampled footprint as a persistent,
-     * see-through navigation obstacle. Infantry and later convoy routes both see
-     * the same honest blocked cells; the full zone/cache rebuild is required
-     * because this is a cell closure rather than an opening.
-     */
-    public void placeVehicleWreck(GroundBody body, VehicleType type) {
-        VehicleFootprint.forEachSampledCell(body.x, body.y, body.facingDegrees,
-                type.visualLengthCells, type.visualWidthCells, grid, (x, y) -> {
-                    grid.setWalkable(x, y, false);
-                    topology.setVehicle(x, y, true);
-                });
-        navigation.markNavigationTopologyDirty();
     }
 }

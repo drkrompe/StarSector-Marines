@@ -89,7 +89,8 @@ public final class GreedyNavigationMesh {
 
         List<Transition> transitions = detectTransitions(cellToRegion);
         return new Snapshot(width, height, revision, regions, transitions,
-                cellToRegion, buildAdjacency(regions.size(), transitions));
+                cellToRegion, buildAdjacency(regions.size(), transitions),
+                buildTransitionIndex(regions.size(), transitions));
     }
 
     /**
@@ -229,6 +230,23 @@ public final class GreedyNavigationMesh {
         return result;
     }
 
+    private static int[][] buildTransitionIndex(int regionCount,
+                                                List<Transition> transitions) {
+        List<List<Integer>> byRegion = new ArrayList<>(regionCount);
+        for (int i = 0; i < regionCount; i++) byRegion.add(new ArrayList<>());
+        for (Transition transition : transitions) {
+            byRegion.get(transition.regionA()).add(transition.id());
+            byRegion.get(transition.regionB()).add(transition.id());
+        }
+        int[][] result = new int[regionCount][];
+        for (int i = 0; i < regionCount; i++) {
+            List<Integer> row = byRegion.get(i);
+            result[i] = new int[row.size()];
+            for (int j = 0; j < row.size(); j++) result[i][j] = row.get(j);
+        }
+        return result;
+    }
+
     private static void addUnique(List<Integer> values, int value) {
         if (!values.contains(value)) values.add(value);
     }
@@ -273,11 +291,13 @@ public final class GreedyNavigationMesh {
         private final List<Transition> transitions;
         private final int[] cellToRegion;
         private final int[][] adjacency;
+        private final int[][] transitionIdsByRegion;
 
         private Snapshot(int width, int height, long revision,
                          List<Region> regions,
                          List<Transition> transitions,
-                         int[] cellToRegion, int[][] adjacency) {
+                         int[] cellToRegion, int[][] adjacency,
+                         int[][] transitionIdsByRegion) {
             this.width = width;
             this.height = height;
             this.revision = revision;
@@ -285,13 +305,15 @@ public final class GreedyNavigationMesh {
             this.transitions = List.copyOf(transitions);
             this.cellToRegion = cellToRegion;
             this.adjacency = adjacency;
+            this.transitionIdsByRegion = transitionIdsByRegion;
         }
 
         private static Snapshot empty(int width, int height) {
             int[] cellToRegion = new int[width * height];
             Arrays.fill(cellToRegion, -1);
             return new Snapshot(width, height, 0L, Collections.emptyList(),
-                    Collections.emptyList(), cellToRegion, new int[0][]);
+                    Collections.emptyList(), cellToRegion, new int[0][],
+                    new int[0][]);
         }
 
         public long revision() { return revision; }
@@ -312,6 +334,26 @@ public final class GreedyNavigationMesh {
         public int[] adjacentRegionIds(int regionId) {
             if (regionId < 0 || regionId >= adjacency.length) return new int[0];
             return Arrays.copyOf(adjacency[regionId], adjacency[regionId].length);
+        }
+
+        /** Number of boundary transitions incident to one region. */
+        public int transitionCount(int regionId) {
+            if (regionId < 0 || regionId >= transitionIdsByRegion.length) {
+                return 0;
+            }
+            return transitionIdsByRegion[regionId].length;
+        }
+
+        /**
+         * Zero-allocation transition lookup for hierarchical routing. The
+         * immutable snapshot retains ownership of its index arrays.
+         */
+        public int transitionIdAt(int regionId, int offset) {
+            if (regionId < 0 || regionId >= transitionIdsByRegion.length) {
+                return -1;
+            }
+            int[] ids = transitionIdsByRegion[regionId];
+            return offset < 0 || offset >= ids.length ? -1 : ids[offset];
         }
 
         public boolean areConnected(int startRegion, int goalRegion) {

@@ -643,7 +643,7 @@ public final class UnitRenderService implements RenderSystem {
      * shared {@link DurabilityBarDecor}. The {@code drawsDurabilityBar} tag is the
      * combatant-and-not-drone check.
      *
-     * <p>Armor is an optional live-only pool, so the armored row is emitted only for
+     * <p>Armor is an optional live-only capacity, so the armored row is emitted only for
      * an entity that actually carries one. Ownership styling comes from
      * {@link Allegiance}, resolved per entity from its simulation faction.
      *
@@ -702,7 +702,7 @@ public final class UnitRenderService implements RenderSystem {
 
     /**
      * True once combat telemetry has recorded damage against {@code id}. Telemetry
-     * is the exact first-hit record — a pool comparison would also read as "hit"
+     * is the exact first-hit record — a capacity comparison would also read as "hit"
      * for anything spawned below full, and it is already kept for every combatant.
      */
     private static boolean hasTakenFire(CombatTelemetryService telemetry, long id) {

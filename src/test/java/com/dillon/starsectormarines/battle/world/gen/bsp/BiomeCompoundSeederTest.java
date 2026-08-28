@@ -178,8 +178,9 @@ public class BiomeCompoundSeederTest {
         BiomeMap biome = makeBiomeMap();
         List<BlockLeaf> leaves = new ArrayList<>();
 
-        // Place a tiny leaf (3x3) in PORT — below MIN_SEED_DIM.
-        BlockLeaf smallPortLeaf = leafInBiome(biome, BiomeKind.PORT, 3);
+        // Seven cells used to qualify, but a two-cell apron would reduce its
+        // command building to a solid 3x3 block. It must now remain ordinary.
+        BlockLeaf smallPortLeaf = leafInBiome(biome, BiomeKind.PORT, 7);
         if (smallPortLeaf != null) {
             smallPortLeaf.kind = BlockKind.BUILDING_RESIDENTIAL;
             leaves.add(smallPortLeaf);

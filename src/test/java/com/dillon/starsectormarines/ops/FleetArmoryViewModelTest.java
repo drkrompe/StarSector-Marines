@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -15,6 +17,8 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -36,7 +40,8 @@ class FleetArmoryViewModelTest {
             "mod/data/ui/components/armory/armory-squad-list.mlx",
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
             "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
-            "mod/data/ui/components/armory/armory-refit-transaction.mlx");
+            "mod/data/ui/components/armory/armory-refit-transaction.mlx",
+            "mod/data/ui/components/armory/armory-armor-comparison.mlx");
 
     @Test
     void transactionProjectionAndApplyUseTheRosterAuthority() {
@@ -245,6 +250,94 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
+    void armorComparisonListsEveryCatalogPatternSortedByTierThenName() {
+        MarineRoster roster = fullSquad();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
+
+        List<MarineArmorCatalogDef> expectedOrder = new ArrayList<>(
+                MarineArmorCatalogRegistry.installed().all());
+        expectedOrder.sort(Comparator.comparingInt(MarineArmorCatalogDef::tier)
+                .thenComparing(MarineArmorCatalogDef::displayName));
+
+        List<FleetArmoryViewModel.ArmorComparisonCard> cards =
+                viewModel.armorComparisonCards().get();
+        assertEquals(expectedOrder.size(), cards.size());
+        for (int index = 0; index < expectedOrder.size(); index++) {
+            assertEquals(expectedOrder.get(index).displayName(), cards.get(index).name());
+            assertEquals(expectedOrder.get(index).description(), cards.get(index).description());
+        }
+        assertTrue(viewModel.armorComparisonSummary().get()
+                .startsWith(expectedOrder.size() + " armor patterns"));
+    }
+
+    @Test
+    void armorComparisonReadsTheSameIntegralSystemCopyEveryOtherSurfaceUses() {
+        MarineRoster roster = fullSquad();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
+
+        MarineArmorCatalogDef withSystem = MarineArmorCatalogRegistry.installed().all().stream()
+                .filter(MarineArmorCatalogDef::hasIntegralSystem)
+                .findFirst().orElseThrow();
+        MarineArmorCatalogDef withoutSystem = MarineArmorCatalogRegistry.installed().all().stream()
+                .filter(armor -> !armor.hasIntegralSystem())
+                .findFirst().orElseThrow();
+
+        Map<String, FleetArmoryViewModel.ArmorComparisonCard> byName = new LinkedHashMap<>();
+        for (FleetArmoryViewModel.ArmorComparisonCard card : viewModel.armorComparisonCards().get()) {
+            byName.put(card.name(), card);
+        }
+
+        FleetArmoryViewModel.ArmorComparisonCard carrierCard = byName.get(withSystem.displayName());
+        FleetArmoryViewModel.ArmorComparisonCard bareCard = byName.get(withoutSystem.displayName());
+        assertEquals(IntegralSystemCopy.tile(withSystem), carrierCard.system());
+        assertTrue(carrierCard.systemClasses().contains("tone-accent"));
+        assertEquals(IntegralSystemCopy.tile(withoutSystem), bareCard.system());
+        assertEquals("No integral system", bareCard.system());
+        assertTrue(bareCard.systemClasses().contains("tone-muted"));
+
+        for (FleetArmoryViewModel.ArmorComparisonCard card : viewModel.armorComparisonCards().get()) {
+            assertEquals(List.of("ARMOR", "RESIST", "MOVE", "EVASION"), card.stats().stream()
+                    .map(FleetArmoryViewModel.StatMeter::label).toList());
+        }
+    }
+
+    @Test
+    void armorComparisonMarkupBindsEveryCatalogPatternWithoutMissingElements()
+            throws Exception {
+        MarineRoster roster = fullSquad();
+        Reactor reactor = new Reactor();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
+        MarkupLoader loader = new MarkupLoader(
+                path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
+        props.put("armorComparisonCards", viewModel.armorComparisonCards());
+        props.put("backToFireTeams", (Runnable) () -> { });
+        props.put("back", (Runnable) () -> { });
+        putPageNavigation(props);
+
+        try (MarkupInstance instance = loader.build(reactor, "armory-armor-comparison", props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.layout(1744f, 938f);
+
+            assertEquals(MarineArmorCatalogRegistry.installed().size(),
+                    viewModel.armorComparisonCards().get().size());
+            for (FleetArmoryViewModel.ArmorComparisonCard card
+                    : viewModel.armorComparisonCards().get()) {
+                assertEquals(card.name(), instance.requireElement(card.nameId()).text());
+                assertEquals(card.description(),
+                        instance.requireElement(card.descriptionId()).text());
+                assertEquals(card.system(), instance.requireElement(card.systemId()).text());
+            }
+        }
+    }
+
+    @Test
     void woundedMarinesShowRemainingHoursAndKeepTheirBillets() {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
@@ -367,6 +460,9 @@ class FleetArmoryViewModelTest {
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
+        props.put("showArmorComparison", (Runnable) () -> { });
+        props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
+        props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
@@ -377,6 +473,7 @@ class FleetArmoryViewModelTest {
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
         props.put("backToSquads", (Runnable) () -> { });
+        props.put("backToFireTeams", (Runnable) () -> { });
         putPageNavigation(props);
         return props;
     }

@@ -22,6 +22,7 @@ import java.util.function.LongConsumer;
  *
  * <ol>
  *   <li>Cover lookup + cover-reduction curve</li>
+ *   <li>Mitigation arc resolution against the incoming bearing</li>
  *   <li>Armor/structure write + death detection</li>
  *   <li>Telemetry attribution — applied damage to attacker and target,
  *       plus a kill credit when the hit was fatal</li>
@@ -114,8 +115,18 @@ public final class DamageResolver {
         float armorBefore = hasArmor ? world.armor(targetId) : 0f;
         float armorRating = hasArmor ? world.armorRating(targetId) : 0f;
         float postCoverDamage = damage * (1f - dr) * world.damageTakenMult(targetId);
-        DurabilityModel.resolveInto(postCoverDamage, penetration, armorBefore,
-                armorRating, hpBefore, durability);
+        // Mitigation resolves here — after cover, before armor — because the arc
+        // is measured against the target's facing at the moment the hit lands,
+        // and this is the one seam that knows both. An unattributed hit has no
+        // locatable source, so it has no bearing and is never mitigated.
+        float mitigationFraction = 0f;
+        MitigationService screens = roster.mitigations();
+        if (screens.isActive(targetId) && roster.isAliveById(attackerId)) {
+            mitigationFraction = screens.fractionAgainst(targetId, tx, ty,
+                    world.x(attackerId), world.y(attackerId));
+        }
+        DurabilityModel.resolveInto(postCoverDamage, penetration, mitigationFraction,
+                armorBefore, armorRating, hpBefore, durability);
         if (hasArmor && durability.armorDamage() > 0f) {
             world.setArmor(targetId, Math.max(0f, armorBefore - durability.armorDamage()));
         }
@@ -124,13 +135,17 @@ public final class DamageResolver {
         boolean died = newHp <= 0f;   // wasAlive is guaranteed by the early return above
         // Telemetry runs here, at the one point in the sim that knows both what
         // the hit actually cost after cover and armor resolution and
-        // whether it was fatal. Credited HP is clamped to the pool that was
+        // whether it was fatal. Credited HP is clamped to what was
         // left, so overkill from a rocket doesn't read as output the shooter
         // produced. Both writes are safe on a target that is about to be
         // released: TELEMETRY is not in the corpse-remove mask.
         float applied = durability.armorDamage() + (hpBefore - Math.max(0f, newHp));
         CombatTelemetryService telemetry = roster.telemetry();
         telemetry.recordDamageTaken(targetId, applied);
+        // Its own quantity, never folded into armor: a screen that showed up as
+        // smaller resolved damage would be a statistical rumour rather than a
+        // capability the player can read.
+        telemetry.recordDamageMitigated(targetId, durability.mitigatedDamage());
         // Gated on isRecorded, not on the NO_ATTACKER sentinel alone: a convoy
         // vehicle's turret fires with the vehicle entity as the attacker, and a
         // vehicle carries GROUND_IDENTITY rather than IDENTITY, so the faction

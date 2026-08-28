@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.DoubleSupplier;
@@ -112,6 +113,8 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<String> armorPickerPanelClasses;
     private final ComputedSignal<List<LoadoutFilterOption>> loadoutFilters;
     private final ComputedSignal<String> loadoutBrowserSummary;
+    private final ComputedSignal<List<ArmorComparisonCard>> armorComparisonCards;
+    private final ComputedSignal<String> armorComparisonSummary;
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster) {
         this(reactor, roster, () -> { }, () -> 0d, EquipmentIssueResources.UNLIMITED);
@@ -202,6 +205,8 @@ public final class FleetArmoryViewModel {
                 ? "doctrine-slot" : "doctrine-slot picker-hidden");
         loadoutFilters = reactor.computed(this::buildLoadoutFilters);
         loadoutBrowserSummary = reactor.computed(this::buildLoadoutBrowserSummary);
+        armorComparisonCards = reactor.computed(this::buildArmorComparisonCards);
+        armorComparisonSummary = reactor.computed(this::buildArmorComparisonSummary);
     }
 
     public MarineRoster roster() { return roster; }
@@ -232,6 +237,8 @@ public final class FleetArmoryViewModel {
     public Signal<String> armorPickerPanelClasses() { return armorPickerPanelClasses; }
     public Signal<List<LoadoutFilterOption>> loadoutFilters() { return loadoutFilters; }
     public Signal<String> loadoutBrowserSummary() { return loadoutBrowserSummary; }
+    public Signal<List<ArmorComparisonCard>> armorComparisonCards() { return armorComparisonCards; }
+    public Signal<String> armorComparisonSummary() { return armorComparisonSummary; }
     public String selectedSquadId() { return selectedSquadId.peek(); }
     public int selectedTeamIndex() { return selectedTeamIndex.peek(); }
     public String selectedWeaponDoctrineId() { return selectedWeaponDoctrineId.peek(); }
@@ -504,6 +511,86 @@ public final class FleetArmoryViewModel {
             if (roster.armory().canAuthorArmorDoctrineIds(doctrine.issueIds())) known++;
         }
         return known;
+    }
+
+    /**
+     * Every catalogued armor pattern, side by side, sorted by tier then name so
+     * the frontier baseline reads before the battlesuits regardless of catalog
+     * declaration order. This is a read surface: comparing patterns does not
+     * select one, because a squad's armor is issued as a doctrine bundling
+     * twelve billets, not as one pattern chosen in isolation.
+     */
+    private List<ArmorComparisonCard> buildArmorComparisonCards() {
+        List<MarineArmorCatalogDef> patterns = new ArrayList<>(
+                MarineArmorCatalogRegistry.installed().all());
+        patterns.sort(Comparator.comparingInt(MarineArmorCatalogDef::tier)
+                .thenComparing(MarineArmorCatalogDef::displayName));
+        List<ArmorComparisonCard> cards = new ArrayList<>();
+        for (MarineArmorCatalogDef armor : patterns) {
+            String id = "armor-comparison:" + armor.id();
+            cards.add(new ArmorComparisonCard(
+                    id, id + ":header", id + ":name", id + ":tier", id + ":class",
+                    id + ":stats", id + ":system", id + ":description",
+                    "comparison-card",
+                    armor.displayName(),
+                    "TIER " + tierMark(armor.tier()),
+                    titleCase(armor.unitClass()),
+                    armorComparisonStats(id, armor),
+                    IntegralSystemCopy.tile(armor),
+                    comparisonSystemClasses(armor),
+                    armor.description()));
+        }
+        return List.copyOf(cards);
+    }
+
+    private String buildArmorComparisonSummary() {
+        return armorComparisonCards.get().size()
+                + " armor patterns catalogued  ·  sorted by tier, then name";
+    }
+
+    private static List<StatMeter> armorComparisonStats(String cardId, MarineArmorCatalogDef armor) {
+        float evasion = 1f - armor.incomingAccuracyMult();
+        return List.of(
+                statMeter(cardId + ":armor-value", "ARMOR",
+                        String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
+                        armor.armorCapacity(), maximumArmorCapacity()),
+                statMeter(cardId + ":resist", "RESIST",
+                        String.format(Locale.ROOT, "%.0f", armor.armorRating()),
+                        armor.armorRating(), maximumArmorRating()),
+                statMeter(cardId + ":move", "MOVE",
+                        String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult() * 100f),
+                        armor.moveSpeedMult(), maximumMoveSpeed()),
+                statMeter(cardId + ":evasion", "EVASION",
+                        signedPercent(evasion), evasion, maximumEvasion()));
+    }
+
+    private static float maximumEvasion() {
+        float maximum = 0.01f;
+        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
+            maximum = Math.max(maximum, 1f - armor.incomingAccuracyMult());
+        }
+        return maximum;
+    }
+
+    private static String signedPercent(float value) {
+        int percent = Math.round(value * 100f);
+        return (percent > 0 ? "+" : "") + percent + "%";
+    }
+
+    /**
+     * Comparison-card styling for the integral-system line, kept independent
+     * of {@link #systemClasses} so the comparison surface never depends on the
+     * fire-team card's local CSS classes.
+     */
+    private static String comparisonSystemClasses(MarineArmorCatalogDef armor) {
+        return "comparison-system label surface-dark "
+                + (IntegralSystemCopy.carried(armor) ? "tone-accent" : "tone-muted");
+    }
+
+    private static String titleCase(String value) {
+        if (value == null || value.isBlank()) return "Unclassified";
+        String lower = value.toLowerCase(Locale.ROOT).replace('_', ' ');
+        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }
 
     private static SquadLoadoutPresentationDef loadoutPresentation(
@@ -1016,7 +1103,7 @@ public final class FleetArmoryViewModel {
                         UnitType.MARINE.maxHp, UnitType.MARINE.maxHp),
                 statMeter(cardId + ":armor-value", "ARMOR",
                         String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
-                        armor.armorCapacity(), maximumArmorPool()),
+                        armor.armorCapacity(), maximumArmorCapacity()),
                 statMeter(cardId + ":resist", "RESIST",
                         String.format(Locale.ROOT, "%.0f", armor.armorRating()),
                         armor.armorRating(), maximumArmorRating()),
@@ -1073,7 +1160,7 @@ public final class FleetArmoryViewModel {
         return maximum;
     }
 
-    private static float maximumArmorPool() {
+    private static float maximumArmorCapacity() {
         float maximum = 1f;
         for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
             maximum = Math.max(maximum, armor.armorCapacity());
@@ -1178,6 +1265,45 @@ public final class FleetArmoryViewModel {
                 case "classes" -> classes;
                 case "select" -> select;
                 default -> throw new IllegalArgumentException("Unknown loadout-filter property");
+            };
+        }
+    }
+
+    /**
+     * One pattern's row in the side-by-side comparison surface: role/class,
+     * tier, protection and mobility meters, its integral system if it carries
+     * one, and the provenance copy authored on the catalog entry. See
+     * {@code powered-assault-armor-roles.md}'s comparison-presentation
+     * acceptance and {@code progression-nouns.md}'s presentation law: this
+     * reads existing catalog and simulation data, never selects or mutates it.
+     */
+    public record ArmorComparisonCard(
+            String id, String headerId, String nameId, String tierId, String classId,
+            String statsId, String systemId, String descriptionId, String classes,
+            String name, String tier, String unitClass, List<StatMeter> stats,
+            String system, String systemClasses, String description)
+            implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "headerId" -> headerId;
+                case "nameId" -> nameId;
+                case "tierId" -> tierId;
+                case "classId" -> classId;
+                case "statsId" -> statsId;
+                case "systemId" -> systemId;
+                case "descriptionId" -> descriptionId;
+                case "classes" -> classes;
+                case "name" -> name;
+                case "tier" -> tier;
+                case "unitClass" -> unitClass;
+                case "stats" -> stats;
+                case "system" -> system;
+                case "systemClasses" -> systemClasses;
+                case "description" -> description;
+                default -> throw new IllegalArgumentException(
+                        "Unknown armor-comparison-card property");
             };
         }
     }

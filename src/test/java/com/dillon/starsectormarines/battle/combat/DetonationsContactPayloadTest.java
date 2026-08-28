@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -10,6 +12,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DetonationsContactPayloadTest {
 
@@ -98,6 +102,24 @@ class DetonationsContactPayloadTest {
         assertEquals(96f, sim.world().armor(direct), EPS,
                 "area-only weapons still splash the actor at the impact point");
         assertEquals(96f, sim.world().armor(neighbor), EPS);
+    }
+
+    @Test
+    void structuralBlastDestroysWindowAndImmediatelyOpensItsSharedEdge() {
+        BattleSimulation sim = openArena();
+        NavigationGrid grid = sim.getGrid();
+        grid.placeEdgeBarrier(5, 5, Direction.E,
+                SharedEdgeBarrier.Kind.WINDOW);
+
+        sim.detonateNow(new PendingDetonation(
+                CombatTelemetryService.NO_ATTACKER,
+                6f, 5.5f, 0f,
+                0f, 0f, 0f,
+                SharedEdgeBarrier.Kind.WINDOW.structure(),
+                Faction.MARINE, false));
+
+        assertNull(grid.getEdgeBarrier(5, 5, Direction.E));
+        assertTrue(grid.isSharedEdgePassable(5, 5, Direction.E));
     }
 
     private static BattleSimulation openArena() {

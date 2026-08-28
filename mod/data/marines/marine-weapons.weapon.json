@@ -555,6 +555,53 @@
       "audio": {
         "fireSound": "gauss_cannon_fire"
       }
+    },
+    {
+      "id": "weapon.micro-missile",
+      "mount": "marine-secondary",
+      "catalog": {
+        "displayName": "Halcyon Micro-Missile",
+        "modelName": "Halcyon",
+        "designation": "MSL-1",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 20.0,
+        "damage": 46.0,
+        "accuracy": 0.9,
+        "cooldown": 6.0,
+        "penetration": 10.0,
+        "projectilesPerShot": 3,
+        "hitSpread": 0.6,
+        "roundVelocity": 33.333333,
+        "flightSec": 0.6,
+        "aoeRadius": 1.1,
+        "wallDamage": 20,
+        "wallDamageRadius": 1.0,
+        "interceptableProjectile": true,
+        "boostRamp": true
+      },
+      "render": {
+        "tracerColor": "80C8FF",
+        "projectileSprite": "graphics/missiles/missile_salamander.png",
+        "projectileVisualCells": 0.30,
+        "contrail": "missile-smoke"
+      },
+      "fx": {
+        "trail": [
+          { "kind": "glow", "radius": 0.14, "lifetime": 0.2, "color": "80C8FF" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.50, "lifetime": 0.14, "color": "C8E8FF" },
+          { "kind": "fire", "radius": 0.40, "lifetime": 0.35 },
+          { "kind": "smoke", "radius": [0.40, 0.60], "lifetime": [0.80, 1.10], "count": [2, 3], "jitter": 0.35 },
+          { "kind": "dust", "radius": 0.40, "lifetime": 0.26 }
+        ]
+      },
+      "audio": {
+        "fireSound": "annihilator_fire",
+        "impactSound": "marines_explosion"
+      }
     }
   ]
 }
