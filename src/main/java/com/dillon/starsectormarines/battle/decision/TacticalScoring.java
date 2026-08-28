@@ -2658,7 +2658,16 @@ public final class TacticalScoring {
         // matching the candidate scan. Eliminates the ZoneGraph mismatch.
         boolean[] reachable = floodReachableFromSelf(grid, sx, sy, scanRange);
 
-        List<float[]> candidates = new ArrayList<>();
+        // Pass 1 - everything but exposure, which is the only term that needs
+        // line of sight. Exposure only ever adds, so this is an exact lower
+        // bound on each candidate's final score.
+        int span = 2 * scanRange + 1;
+        FallbackScan scan = FALLBACK_SCAN.get();
+        scan.ensureCapacity(span * span);
+        long[] order = scan.order;
+        float[] baseScores = scan.baseScores;
+        int[] cellIndices = scan.cellIndices;
+        int candidateCount = 0;
         for (int dy = -scanRange; dy <= scanRange; dy++) {
             for (int dx = -scanRange; dx <= scanRange; dx++) {
                 int cx = sx + dx;
@@ -2671,7 +2680,6 @@ public final class TacticalScoring {
                 int fdy = threatRef[1] - cy;
                 int gridCover   = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = doodads.getDoodadCoverAt(cx, cy, fdx, fdy);
-                int exposure = countEnemiesWithLos(cx, cy, threatCellX, threatCellY, threatRange, threatCount, grid);
                 int zoneId = zones.zoneIdAt(cx, cy);
                 int control = (zoneId >= 0 && zoneId < zoneControl.length) ? zoneControl[zoneId] : 0;
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
@@ -2684,20 +2692,53 @@ public final class TacticalScoring {
                 float directionalScore = threatGap >= 0f
                         ? -FALLBACK_AWAY_FROM_THREAT_BONUS * threatGap
                         : -FALLBACK_TOWARD_THREAT_PENALTY * threatGap; // -negative = +positive
-                float score = distFromSelf
+                float baseScore = distFromSelf
                         + FALLBACK_OCCUPANCY_COST * occupants
                         - FALLBACK_GRID_COVER_BONUS   * gridCover
                         - FALLBACK_DOODAD_COVER_BONUS * doodadCover
                         - FALLBACK_FRIENDLY_ZONE_BONUS * control
-                        + directionalScore
-                        + FALLBACK_EXPOSURE_PENALTY * exposure;
-                candidates.add(new float[]{score, cx, cy});
+                        + directionalScore;
+                baseScores[candidateCount] = baseScore;
+                cellIndices[candidateCount] = grid.index(cx, cy);
+                order[candidateCount] =
+                        ((long) sortableFloatBits(baseScore) << 32) | candidateCount;
+                candidateCount++;
             }
         }
-        if (candidates.isEmpty()) return new int[]{sx, sy};
-        candidates.sort((a, b) -> Float.compare(a[0], b[0]));
-        float[] best = candidates.get(0);
-        return new int[]{(int) best[1], (int) best[2]};
+        if (candidateCount == 0) return new int[]{sx, sy};
+
+        // Pass 2 - cheapest base first, counting exposure only for candidates
+        // that could still win. One exposed enemy costs FALLBACK_EXPOSURE_PENALTY
+        // against a base spread of a few tens, so the first unexposed candidate
+        // normally ends the scan: the whole point of the search is the cheapest
+        // hide nobody can shoot into, and everything behind it in this order is
+        // already more expensive before its exposure is even counted.
+        heapify(order, candidateCount);
+        int gridWidth = grid.getWidth();
+        int bestSlot = -1;
+        float bestScore = Float.MAX_VALUE;
+        for (int remaining = candidateCount; remaining > 0; remaining--) {
+            long entry = order[0];
+            order[0] = order[remaining - 1];
+            siftDown(order, 0, remaining - 1);
+            int slot = (int) (entry & 0xFFFFFFFFL);
+            float baseScore = baseScores[slot];
+            if (baseScore > bestScore) break;
+            int cellIndex = cellIndices[slot];
+            int cx = cellIndex % gridWidth;
+            int cy = cellIndex / gridWidth;
+            int exposure = countEnemiesWithLos(cx, cy,
+                    threatCellX, threatCellY, threatRange, threatCount, grid);
+            float score = baseScore + FALLBACK_EXPOSURE_PENALTY * exposure;
+            // Ties keep the earliest scan-order cell, which is the one a full
+            // stable sort of every scored candidate would have left on top.
+            if (score < bestScore || (score == bestScore && slot < bestSlot)) {
+                bestScore = score;
+                bestSlot = slot;
+            }
+        }
+        int bestCell = cellIndices[bestSlot];
+        return new int[]{bestCell % gridWidth, bestCell / gridWidth};
     }
 
     /**
@@ -3014,6 +3055,60 @@ public final class TacticalScoring {
             }
         }
         return Math.max(0, n);
+    }
+
+
+    /**
+     * Per-thread scan buffers for {@link #findFallbackPositionImpl}. The
+     * fall-back search runs on the parallel unit-update workers, so its
+     * working set cannot live on the shared scoring instance.
+     */
+    private static final ThreadLocal<FallbackScan> FALLBACK_SCAN =
+            ThreadLocal.withInitial(FallbackScan::new);
+
+    /** Growable parallel buffers for one fall-back candidate scan. */
+    private static final class FallbackScan {
+        long[] order = new long[0];
+        float[] baseScores = new float[0];
+        int[] cellIndices = new int[0];
+
+        void ensureCapacity(int capacity) {
+            if (order.length >= capacity) return;
+            order = new long[capacity];
+            baseScores = new float[capacity];
+            cellIndices = new int[capacity];
+        }
+    }
+
+    /**
+     * Maps a float onto an int whose signed order matches the float's, so a
+     * plain {@code long} sort or heap can order candidates by a score that may
+     * be negative. Non-negative floats keep their bit pattern; negative ones
+     * have their magnitude bits inverted, which reverses them into place.
+     */
+    static int sortableFloatBits(float value) {
+        int bits = Float.floatToRawIntBits(value);
+        return bits ^ ((bits >> 31) & 0x7FFFFFFF);
+    }
+
+    /** Arranges {@code count} packed candidates into a min-heap by their key. */
+    static void heapify(long[] heap, int count) {
+        for (int i = (count >> 1) - 1; i >= 0; i--) siftDown(heap, i, count);
+    }
+
+    /** Restores the min-heap property at {@code index} over {@code count} entries. */
+    static void siftDown(long[] heap, int index, int count) {
+        long moved = heap[index];
+        int half = count >> 1;
+        while (index < half) {
+            int child = (index << 1) + 1;
+            int right = child + 1;
+            if (right < count && heap[right] < heap[child]) child = right;
+            if (heap[child] >= moved) break;
+            heap[index] = heap[child];
+            index = child;
+        }
+        heap[index] = moved;
     }
 
     /**
