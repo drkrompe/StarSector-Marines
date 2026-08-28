@@ -151,7 +151,7 @@ the annotation is not, so the annotation is saved to an authoring document
 beside the raw sheet and can be resumed, corrected, and re-sliced without being
 lost.
 
-Four properties of that pass are part of the model rather than of the tool:
+Five properties of that pass are part of the model rather than of the tool:
 
 - **A piece is a doodad or one cell of a block.** Facing is not a property of a
   piece. A wall or a corner is a block whose cells the game selects from the
@@ -175,6 +175,17 @@ Four properties of that pass are part of the model rather than of the tool:
   address is the id, so a cut whose names would collide with pieces already on
   the sheet is refused rather than renumbered. Pieces found by alpha have no
   grid position and keep their serial names.
+- **A mechanical pass never silently discards a judged one.** Slicing derives
+  pieces from pixels, so it recovers only what a threshold can see; a piece that
+  reconciles to nothing takes everything else it held with it. Keeping a
+  re-slice that would drop an entry carrying judgement — a block assignment, a
+  note, tags, a cover level, a footprint, a stand-in binding, a chosen id — or
+  that would drop a plate's cut cells is refused, naming what would go, until
+  the discard is asked for explicitly. This is what makes "re-sliced without
+  being lost" true of a cut plate, whose cells reconcile to nothing every time.
+  Dropping and re-finding pieces that carry nothing but their bounds stays free:
+  that is what tuning a threshold is, and excluding a speck and then raising the
+  threshold until it vanishes is the sweep working rather than work being lost.
 
 The pass is entered from the project rather than from a file chooser: raw
 sheets, their authoring documents and the exported tilesets are paired by name,

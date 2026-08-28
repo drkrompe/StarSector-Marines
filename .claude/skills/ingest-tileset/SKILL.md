@@ -130,6 +130,15 @@ See the `authoring-tools` skill for the whole surface and for the argument
 forms; the same tools are served over MCP to a session that has the server
 registered. A fused plate slices to one piece, which is the piece
 `tileset_split_on_grid` cuts into the document's stated `gridCols` x `gridRows`.
+
+**Slice once, then cut.** Running `tileset_slice apply=true` a second time on a
+sheet that has been cut or annotated is refused rather than applied: a fused
+plate has no gutters, so it is found whole again and every cut cell reconciles
+to nothing. The refusal names what would go and how to override it. Do not
+override it to get past this step — the override discards the annotation, which
+is the part nothing can re-derive. Tuning `alphaMin` on an alpha-keyed sheet is
+untouched by this: those pieces are mechanically derived and may be dropped and
+re-found freely.
 Each cut cell is named for where it sits — `<idPrefix>.c<col>r<row>`, zero-based
 and column first, so `doodad.urban.c6r1` is the seventh cell of the second row —
 which is how a row in the document is found in the picture. Pieces found by
