@@ -126,6 +126,30 @@ class TtkReportTest {
         appendTable(report, "Experience band alone (aptitude held at Steady)", "band",
                 byBand, m -> m.scenario().profile().experienceTier().displayName);
 
+        // The campaign arc as one matchup. A company opens on raw numbers in bad
+        // kit and should end as something that reads like a different species of
+        // soldier, so the levers are measured compounded rather than one at a
+        // time: band, grade, and the armour on the target all move together
+        // because the armour pattern is what sets the band to begin with.
+        SoldierProfile recruit = new SoldierProfile(SoldierAptitude.STEADY,
+                ExperienceTier.GREEN.minimumXp);
+        SoldierProfile superSoldier = new SoldierProfile(SoldierAptitude.STEADY,
+                ExperienceTier.ELITE.minimumXp);
+        List<Measurement> byArc = new ArrayList<>();
+        for (Defender defender : new Defender[]{UNARMORED, HEAVY_ARMOR}) {
+            byArc.add(TtkHarness.measure(new Scenario(
+                    WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
+                    EquipmentGrade.SURPLUS, recruit, defender,
+                    BASELINE_RANGE_FRACTION, Cover.OPEN), TRIALS));
+            byArc.add(TtkHarness.measure(new Scenario(
+                    WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
+                    EquipmentGrade.MASTERWORK, superSoldier, defender,
+                    BASELINE_RANGE_FRACTION, Cover.OPEN), TRIALS));
+        }
+        appendTable(report, "Campaign arc (band + grade compounded)", "company",
+                byArc, m -> m.scenario().grade() == EquipmentGrade.SURPLUS
+                        ? "opening: Green / Surplus" : "endgame: Elite / Masterwork");
+
         List<Measurement> byCoverAndRange = new ArrayList<>();
         for (Cover cover : Cover.values()) {
             for (float fraction : new float[]{0.25f, 0.5f, 0.9f}) {
@@ -141,6 +165,7 @@ class TtkReportTest {
         everyRow.addAll(byGrade);
         everyRow.addAll(byProfile);
         everyRow.addAll(byBand);
+        everyRow.addAll(byArc);
         everyRow.addAll(byCoverAndRange);
         appendUnresolvedCallout(report, everyRow);
 
@@ -148,6 +173,38 @@ class TtkReportTest {
 
         assertLethalityRelationships(byWeapon, byGrade, byCoverAndRange);
         assertBandIsWorthAboutAGradeStep(byBand, byGrade);
+        assertTheArcEndsInSuperSoldiers(byArc);
+    }
+
+    /**
+     * Pins the campaign arc: a company opens on raw numbers in bad kit and ends
+     * as something that reads like a different species of soldier.
+     *
+     * <p>Measured as the exchange between the two ends rather than as either
+     * side alone, because that is the thing a player actually experiences. The
+     * endgame squad shoots better kit at a worse-protected target while the
+     * opening squad shoots worse kit at a better-protected one, so band, grade,
+     * and armour all compound in the same direction.
+     *
+     * <p>The bound is far below the measured figure and holds one weapon family
+     * constant, so it is a floor rather than a target — upgrading weapon family
+     * across the arc widens it further. It fails if a tuning pass flattens the
+     * arc into a linear ladder, which would cost the campaign its sense of
+     * having grown into something.
+     */
+    private static void assertTheArcEndsInSuperSoldiers(List<Measurement> byArc) {
+        Measurement endgameKillingRecruits = pick(byArc,
+                m -> m.scenario().grade() == EquipmentGrade.MASTERWORK
+                        && m.scenario().defender() == UNARMORED);
+        Measurement recruitsKillingEndgame = pick(byArc,
+                m -> m.scenario().grade() == EquipmentGrade.SURPLUS
+                        && m.scenario().defender() == HEAVY_ARMOR);
+
+        double asymmetry = recruitsKillingEndgame.meanTtkSeconds()
+                / endgameKillingRecruits.meanTtkSeconds();
+        assertTrue(asymmetry > 8d,
+                () -> "an endgame company should overmatch an opening one, but the exchange"
+                        + " measured only " + String.format("%.1f", asymmetry) + "x");
     }
 
     /**
