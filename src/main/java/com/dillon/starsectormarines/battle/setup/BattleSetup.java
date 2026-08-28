@@ -50,6 +50,8 @@ import com.dillon.starsectormarines.battle.command.ConquestDefenderStartingForce
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
+import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.command.RaidCommand;
 import com.dillon.starsectormarines.battle.command.RaidCommandDisclosure;
@@ -676,6 +678,9 @@ public final class BattleSetup {
             case RAID -> Math.min(Math.max(0,
                     defenders.roster().totalCount - 2),
                     defenders.roster().patrolSquadSize * 3);
+            case EXTRACTION -> Math.min(Math.max(0,
+                    defenders.roster().totalCount - 2),
+                    defenders.roster().patrolSquadSize * 3);
             default -> 0;
         };
         allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
@@ -683,6 +688,8 @@ public final class BattleSetup {
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();
         Set<Integer> raidMobileSquads = type == MissionType.RAID
+                ? captureDefenderMobileSquads(sim) : Set.of();
+        Set<Integer> extractionMobileSquads = type == MissionType.EXTRACTION
                 ? captureDefenderMobileSquads(sim) : Set.of();
         if (type == MissionType.ASSAULT) {
             claimSetupGarrisons(sim, "assault-setup-garrison",
@@ -695,6 +702,13 @@ public final class BattleSetup {
                     "authored Raid strongpoint garrison");
             claimMissionMobileSquads(sim, raidMobileSquads,
                     "raid-defender", "initial Raid mobile security");
+        }
+        if (type == MissionType.EXTRACTION) {
+            claimSetupGarrisons(sim, "extraction-setup-garrison",
+                    "authored Extraction strongpoint garrison");
+            claimMissionMobileSquads(sim, extractionMobileSquads,
+                    "extraction-defender",
+                    "initial Extraction mobile security");
         }
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
@@ -718,6 +732,9 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.MARINE,
                     new ExtractionCommand(),
                     ExtractionCommandDisclosure.INSTANCE);
+            sim.setAutonomousCommander(Faction.DEFENDER,
+                    new ExtractionDefenderCommand(extractionMobileSquads),
+                    ExtractionDefenderCommandDisclosure.INSTANCE);
         }
         return sim;
     }
