@@ -155,7 +155,15 @@
           "variant": "smoke",
           "using": "throwing"
         },
-        "fieldSprite": "graphics/battle/fx/smoke-field-puff.png",
+        "field": {
+          "sheet": "graphics/battle/fx/smoke-field-sheet.png",
+          "columns": 4,
+          "rows": 2,
+          "firstFrame": 0,
+          "frameCount": 6,
+          "framesPerSecond": 6.0,
+          "tint": [1.0, 1.0, 1.0]
+        },
         "preview": {
           "state": "using",
           "phase": 0.6

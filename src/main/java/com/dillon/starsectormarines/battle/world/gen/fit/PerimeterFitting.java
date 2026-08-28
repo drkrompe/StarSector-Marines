@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.fit;
 
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -53,9 +54,26 @@ public final class PerimeterFitting implements RoomFitting {
     }
 
     private void place(RoomFloor floor, int x, int y) {
-        if (!floor.place(group.anchor(), x, y)) return;
+        if (!place(floor, group.anchor(), x, y, group.affordance())) return;
         for (AisleFitting.FixtureGroup.Satellite satellite : group.satellites()) {
-            floor.place(satellite.id(), x + satellite.along(), y + satellite.across());
+            place(floor, satellite.id(), x + satellite.along(), y + satellite.across(),
+                    satellite.affordance());
         }
+    }
+
+    /**
+     * One fixture, and the work at it where the group declared any.
+     *
+     * <p>A perimeter room is not only scenery round a clear middle. A boat bay's
+     * stores are worked exactly as a hold's are; what makes the bay different is
+     * that the deck between them has to stay clear for the boat, which is this
+     * arrangement's whole subject and says nothing about whether the gear along
+     * the sides is somebody's job.
+     */
+    private static boolean place(RoomFloor floor, String id, int x, int y,
+                                 Affordance affordance) {
+        return affordance == null
+                ? floor.place(id, x, y)
+                : floor.place(id, x, y, affordance);
     }
 }

@@ -131,7 +131,9 @@ class SpecialEquipmentRegistryTest {
             if (def.presentation().thrown() != null) {
                 assertAsset(def.id(), def.presentation().thrown().spritePath());
             }
-            assertAsset(def.id(), def.presentation().fieldSpritePath());
+            if (def.presentation().field() != null) {
+                assertAsset(def.id(), def.presentation().field().sheetPath());
+            }
             if (def.presentation().deployed() != null) {
                 assertAsset(def.id(), def.presentation().deployed().spritePath());
             }

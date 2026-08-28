@@ -21,6 +21,9 @@ import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommand;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.SilentColonyCommand;
+import com.dillon.starsectormarines.battle.command.SilentColonyCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionObjective;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
@@ -620,6 +623,55 @@ class SquadStateDumperTest {
                 director.getString("director"));
         assertEquals(4, director.getJSONArray("approaches").length());
         assertTrue(dump.isNull("extractionCommand"));
+    }
+
+    @Test
+    void silentColonyDumpPublishesBothBranchesWithoutHiddenDefense()
+            throws Exception {
+        BattleSimulation sim = openSim(40, 30);
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(new PointOfInterest(
+                        PointOfInterest.Kind.RESIDENTIAL,
+                        9, 5, 13, 9, 8, 7, 11, 7)), 82L);
+        int archiveZone = sim.getZoneGraph().zoneIdAt(32, 20);
+        sim.addObjective(new ColonyArchiveObjective(32, 20, archiveZone));
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("archivist", Faction.MARINE,
+                UnitType.MARINE, 31, 20).squad(squadId));
+        squad.leaderId = member;
+        squad.aliveMembers = 6;
+        squad.centroidX = 31.5f;
+        squad.centroidY = 20.5f;
+        sim.spawn(new EntitySpec("hidden-defense", Faction.DEFENDER,
+                UnitType.TURRET, 39, 29).moveSpeed(0f));
+        sim.claimSquadCommand(squadId, CommandAuthority.MISSION_COMMAND,
+                SilentColonyCommand.ISSUER,
+                "Silent Colony expedition force");
+        sim.setAutonomousCommander(Faction.MARINE,
+                new SilentColonyCommand(),
+                new SilentColonyCommandDisclosure(payload.placement));
+        sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                + BattleSimulation.TICK_DT);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+        JSONObject silent = dump.getJSONObject("silentColonyCommand");
+        JSONObject intent = silent.getJSONObject("squadIntent");
+
+        assertEquals("silent-colony",
+                dump.getJSONObject("commander").getString("strategy"));
+        assertEquals("DIVIDED_EXPEDITION", silent.getString("phase"));
+        assertEquals("ARCHIVE", silent.getJSONObject("archive")
+                .getString("kind"));
+        assertEquals("COHORT", silent.getJSONObject("survivors")
+                .getString("kind"));
+        assertEquals("ARCHIVE_RECOVERY", intent.getString("role"));
+        assertEquals("RECOVER_SEALED_ARCHIVE",
+                intent.getString("assignmentReason"));
+        assertEquals("SWEEP_SECTOR", intent.getString("assignmentKind"));
+        assertFalse(silent.has("hostileCellX"));
+        assertFalse(silent.has("hostileCellY"));
+        assertTrue(dump.isNull("rescueCommand"));
     }
 
     private static BattleSimulation openSim() {

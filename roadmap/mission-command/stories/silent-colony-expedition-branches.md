@@ -1,11 +1,13 @@
 # Silent Colony expedition branches
 
-Status: DRAFT — stabilize and explain the archive and survivor branches of the blind expedition.
+Status: IN PROGRESS — stable frame-only Marine branches, spawn ownership, and
+diagnostics are implemented; headless mission evidence and live acceptance remain.
 
 Written: 2026-08-24
 
-Updated: 2026-08-27 — grouped as an Extraction-family adapter while retaining
-stable expedition branches and a separately undecided security-director shape.
+Updated: 2026-08-28 — migrated the Marine expedition to frozen objective
+disclosure with stable archive/survivor membership and explicit completion
+handoff; automated opposition remains scripted.
 
 Read `mission-command-nouns.md`, `extraction-command.md`,
 `campaign-event-nouns.md`, and
@@ -42,6 +44,44 @@ original force.
 - Stabilize and publish the marine branches before deciding whether opposition
   remains scripted, gains a bounded security-network director, or mixes both.
   Shared diagnostics do not require fabricating a mirrored squad commander.
+
+## Implemented slice
+
+- The Marine planner consumes only a frozen own-force frame, faction-local
+  influence, public topology, the survivor cohort projection, and the sealed
+  archive projection. Exact automated-defense placement is not disclosed.
+- Landing shuttles carry `MISSION_COMMAND` ownership into every sortie. Active
+  player leases and payload, garrison, reinforcement, or scripted ownership
+  remain outside the expedition pool; an expired player lease returns on the
+  first command pulse.
+- Initial membership assigns one reachable squad to each active branch when
+  force size permits. Route length selects the better-positioned squad and
+  surviving member count is the currently available capability proxy; the
+  frozen command row does not yet expose loadout capability.
+- Membership persists across ordinary pulses. Loss of a branch member repairs
+  the empty branch, archive recovery moves that branch into survivor escort,
+  and an exhausted survivor cohort moves its branch into archive recovery.
+- The published command picture, selected-squad panel, and squad dump expose
+  both objective states, branch membership and assignment reasons, targets,
+  and only faction-known pressure.
+
+## Acceptance
+
+- [x] Repeated pulses preserve archive and survivor membership while both
+  objectives remain active.
+- [x] Route cost and surviving strength deterministically seed the branches.
+- [x] Archive completion and survivor exhaustion transfer squads without a
+  planless pulse.
+- [x] External ownership and active intervention leases are preserved, while
+  expired intervention returns to expedition command.
+- [x] Hidden Defender placement cannot change the Marine plan without entering
+  Marine belief.
+- [x] Selected-squad and dump output explain branch, reason, objective state,
+  pressure, and target.
+- [ ] Add deterministic mission-duration evidence under the existing
+  argument-selected Extraction harness.
+- [ ] Live-accept branch pacing, archive assault behavior, survivor escort, and
+  completion handoff.
 
 ## Exit
 
