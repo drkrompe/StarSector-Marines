@@ -143,6 +143,26 @@ public final class CommandTraceAnalyzer {
      * Lifecycle and context are deliberately separate: an episode can meet
      * contact, retain an active path, and later exit for any one reason.
      */
+    public record SecurePortalMetrics(
+            int classifiedExits,
+            int neverAtPortalExits,
+            int atPortalNotEnteredExits,
+            int enteredExits,
+            int episodesObservedAtPortal) {
+
+        public SecurePortalMetrics {
+            if (neverAtPortalExits + atPortalNotEnteredExits + enteredExits
+                    != classifiedExits) {
+                throw new IllegalArgumentException(
+                        "portal classes must cover every classified exit");
+            }
+        }
+
+        static SecurePortalMetrics empty() {
+            return new SecurePortalMetrics(0, 0, 0, 0, 0);
+        }
+    }
+
     public record SecureTravelMetrics(
             int episodesStarted,
             int targetEntryExits,
@@ -183,13 +203,16 @@ public final class CommandTraceAnalyzer {
             int squadLossMajorityCoveredFromPrimary,
             int squadLossCoolingDown,
             List<Integer> squadLossLastDistancesDecicells,
-            List<Integer> squadLossApproachProgressBasisPoints) {
+            List<Integer> squadLossApproachProgressBasisPoints,
+            SecurePortalMetrics portalProgress) {
 
         public SecureTravelMetrics {
             squadLossLastDistancesDecicells =
                     sortedCopy(squadLossLastDistancesDecicells);
             squadLossApproachProgressBasisPoints =
                     sortedCopy(squadLossApproachProgressBasisPoints);
+            portalProgress = portalProgress != null
+                    ? portalProgress : SecurePortalMetrics.empty();
             if (retargetObjectiveChanged + retargetMarkerChanged
                     + retargetAssignmentChanged + retargetUnclassified
                     != retargetExits) {
@@ -228,7 +251,7 @@ public final class CommandTraceAnalyzer {
             return new SecureTravelMetrics(0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    List.of(), List.of());
+                    List.of(), List.of(), SecurePortalMetrics.empty());
         }
     }
 
@@ -572,6 +595,18 @@ public final class CommandTraceAnalyzer {
                         secure.retargetAssignmentChanged());
                 numberField(out, "unclassified",
                         secure.retargetUnclassified());
+                out.append('}');
+                SecurePortalMetrics portal = secure.portalProgress();
+                out.append(",\"portalProgress\":{");
+                rawNumberField(out, "classifiedExits",
+                        portal.classifiedExits());
+                numberField(out, "neverAtPortalExits",
+                        portal.neverAtPortalExits());
+                numberField(out, "atPortalNotEnteredExits",
+                        portal.atPortalNotEnteredExits());
+                numberField(out, "enteredExits", portal.enteredExits());
+                numberField(out, "episodesObservedAtPortal",
+                        portal.episodesObservedAtPortal());
                 out.append('}');
                 appendIntList(out, "squadLossLastDistancesDecicells",
                         secure.squadLossLastDistancesDecicells());
@@ -1911,7 +1946,7 @@ public final class CommandTraceAnalyzer {
                     if (schemaVersion != 2 && schemaVersion != 3
                             && schemaVersion != 4 && schemaVersion != 5
                             && schemaVersion != 6 && schemaVersion != 7
-                            && schemaVersion != 8) {
+                            && schemaVersion != 8 && schemaVersion != 9) {
                         throw new IllegalArgumentException(
                                 "Unsupported command trace schemaVersion: "
                                         + schemaVersion);
@@ -2387,6 +2422,8 @@ public final class CommandTraceAnalyzer {
         boolean localContact;
         boolean activePath;
         boolean quietTravel;
+        boolean portalEvidenceAvailable;
+        boolean observedAtPortal;
         boolean finished;
         SecureTravelLossContext lastLossContext =
                 SecureTravelLossContext.UNKNOWN_TRACK;
@@ -2448,6 +2485,11 @@ public final class CommandTraceAnalyzer {
         int lossUnderFireRecently;
         int lossMajorityCoveredFromPrimary;
         int lossCoolingDown;
+        int portalClassified;
+        int portalNeverReached;
+        int portalReachedNotEntered;
+        int portalEntered;
+        int episodesObservedAtPortal;
         final List<Integer> lossDistances = new ArrayList<>();
         final List<Integer> lossProgress = new ArrayList<>();
 
@@ -2463,6 +2505,14 @@ public final class CommandTraceAnalyzer {
             if (Double.isFinite(distance)) episode.lastDistance = distance;
             episode.lastLossContext = lossContext(state, action, perspective);
             if (schemaVersion >= 8) observeLossTactics(episode, state);
+            if (schemaVersion >= 9) {
+                episode.portalEvidenceAvailable = true;
+                if (!episode.observedAtPortal
+                        && state.optInt("membersInTargetPortal", 0) > 0) {
+                    episode.observedAtPortal = true;
+                    episodesObservedAtPortal++;
+                }
+            }
             if (!episode.localContact
                     && state.optBoolean("localContact", false)) {
                 episode.localContact = true;
@@ -2483,6 +2533,12 @@ public final class CommandTraceAnalyzer {
         void finish(SecureTravelEpisode episode, SecureTravelExit exit) {
             if (episode.finished) return;
             episode.finished = true;
+            if (episode.portalEvidenceAvailable) {
+                portalClassified++;
+                if (exit == SecureTravelExit.TARGET_ENTRY) portalEntered++;
+                else if (episode.observedAtPortal) portalReachedNotEntered++;
+                else portalNeverReached++;
+            }
             switch (exit) {
                 case TARGET_ENTRY -> targetEntry++;
                 case RETARGETED -> retarget++;
@@ -2579,7 +2635,10 @@ public final class CommandTraceAnalyzer {
                     lossInitiativeProsecute, lossWithEngageableMembers,
                     lossWithEngageableFireTeams, lossUnderFireRecently,
                     lossMajorityCoveredFromPrimary, lossCoolingDown,
-                    lossDistances, lossProgress);
+                    lossDistances, lossProgress,
+                    new SecurePortalMetrics(portalClassified,
+                            portalNeverReached, portalReachedNotEntered,
+                            portalEntered, episodesObservedAtPortal));
         }
     }
 
