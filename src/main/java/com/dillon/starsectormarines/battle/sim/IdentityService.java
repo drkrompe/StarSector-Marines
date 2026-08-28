@@ -62,8 +62,17 @@ public final class IdentityService {
      * The entity's immutable {@link Faction}. The by-id replacement for the
      * {@code Entity.faction} field read as the handle collapses to a bare {@code long}
      * (identity-collapse Phase D). Readable on a corpse (IDENTITY rides the death
-     * transmute). Fail-loud on an entity with no IDENTITY — an air craft reads
-     * {@code World.airFaction(id)}, a convoy vehicle {@code ConvoyService.faction(id)}.
+     * transmute). Convoy vehicles fall back to their {@code GROUND_IDENTITY}
+     * faction so shared combat consumers can classify them. Fail-loud on an
+     * entity with neither identity capability; air craft read
+     * {@code World.airFaction(id)}.
      */
-    public Faction faction(long id) { return (Faction) entityWorld.getObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION); }
+    public Faction faction(long id) {
+        if (entityWorld.has(id, components.IDENTITY)) {
+            return (Faction) entityWorld.getObject(id, components.IDENTITY,
+                    BattleComponents.IDENTITY_FACTION);
+        }
+        return (Faction) entityWorld.getObject(id, components.GROUND_IDENTITY,
+                BattleComponents.GROUND_IDENTITY_FACTION);
+    }
 }

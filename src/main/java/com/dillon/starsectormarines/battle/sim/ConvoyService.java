@@ -13,12 +13,16 @@ import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComp
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Data owner + factory for convoy ground vehicles as world entities — the ground
  * twin of the air adoption path. Owns the birth / death of a vehicle's world
  * entity ({@link #spawn}/{@link #despawn}) and the by-id access to its
  * {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} /
- * {@code VEHICLE_MISSION} columns.
+ * {@code VEHICLE_MISSION} / {@code HEALTH} / {@code ARMOR} columns and its
+ * live-vehicle/persistent-wreck id backbone.
  *
  * <p>A <b>Service</b> in this codebase's sense (see
  * {@code ecs-nouns.md}): it owns the
@@ -30,9 +34,10 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * ({@code roster.allocateVehicle}) — self-minting would reopen the dual-mint trap.
  *
  * <p><b>Component-native.</b> A vehicle's identity ({@link VehicleType}/{@link Faction}),
- * kinematics ({@link GroundBody}), and turret ({@link GroundTurret}) each live in
- * their own column; the {@link VehicleMission} bag carries only lifecycle / path
- * state and holds none of them (the air {@code ShuttleMission} shape). {@link #spawn}
+ * kinematics ({@link GroundBody}), durability, and turret ({@link GroundTurret})
+ * each live in their own column; the {@link VehicleMission} bag carries only
+ * lifecycle / path state and holds none of them (the air {@code ShuttleMission}
+ * shape). {@link #spawn}
  * is the factory: it builds the body + optional turret from the variant, seeds
  * every column, and returns the id — callers hold no vehicle object, only the id
  * and this service.
@@ -45,6 +50,8 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 public final class ConvoyService {
 
     private final UnitRosterService roster;
+    /** World-resident live vehicles and persistent wrecks; N is normally 1-4. */
+    private final List<Long> entityIds = new ArrayList<>();
 
     public ConvoyService(UnitRosterService roster) {
         this.roster = roster;
@@ -55,7 +62,8 @@ public final class ConvoyService {
      * inbound queue's first waypoint, facing the second) + optional {@link GroundTurret}
      * from {@code type}, mints a world entity from the shared id authority
      * ({@link UnitRosterService#allocateVehicle}), seeds the ground-craft columns
-     * ({@code {GROUND_IDENTITY, GROUND_KINEMATICS, VEHICLE_MISSION, VEHICLE_CONTROL}} + {@code GROUND_TURRET}
+     * ({@code {GROUND_IDENTITY, GROUND_KINEMATICS, VEHICLE_MISSION,
+     * VEHICLE_CONTROL, HEALTH, ARMOR}} + {@code GROUND_TURRET}
      * iff armed), and returns the entity id. The caller hands a freshly-built
      * {@code mission} (single-use — one mission, one spawn), the air-spawn shape.
      */
@@ -74,17 +82,28 @@ public final class ConvoyService {
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;
         // GROUND_TURRET is present only when armed.
         ComponentType[] archetype = (turret != null)
-                ? new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION, c.VEHICLE_CONTROL, c.GROUND_TURRET}
-                : new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION, c.VEHICLE_CONTROL};
+                ? new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION,
+                    c.VEHICLE_CONTROL, c.GROUND_TURRET, c.HEALTH, c.ARMOR}
+                : new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION,
+                    c.VEHICLE_CONTROL, c.HEALTH, c.ARMOR};
         long id = roster.allocateVehicle(archetype);
         world.setObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_TYPE, type);
         world.setObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_FACTION, faction);
         world.setObject(id, c.GROUND_KINEMATICS, BattleComponents.GROUND_KINEMATICS_BODY, body);
         world.setObject(id, c.VEHICLE_MISSION, BattleComponents.VEHICLE_MISSION_STATE, mission);
         world.setObject(id, c.VEHICLE_CONTROL, BattleComponents.VEHICLE_CONTROL_STATE, new VehicleControlComponent());
+        world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_HP, type.maxStructure);
+        world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_MAX_HP, type.maxStructure);
+        world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_DAMAGE_TAKEN_MULT, 1f);
+        world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_INCOMING_ACCURACY_MULT,
+                type.incomingAccuracyMult);
+        world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_CURRENT, type.maxArmor);
+        world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_MAX, type.maxArmor);
+        world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_RATING, type.armorRating);
         if (turret != null) {
             world.setObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE, turret);
         }
+        entityIds.add(id);
         return id;
     }
 
@@ -96,6 +115,54 @@ public final class ConvoyService {
     public void despawn(long id) {
         if (id == 0L) return;
         roster.entityWorld().destroy(id);
+        entityIds.remove(id);
+    }
+
+    /** Snapshot of every convoy entity, including persistent wrecks. */
+    public long[] entityIds() {
+        long[] ids = new long[entityIds.size()];
+        for (int i = 0; i < ids.length; i++) ids[i] = entityIds.get(i);
+        return ids;
+    }
+
+    public boolean isVehicle(long id) {
+        return roster.entityWorld().has(id, roster.components().GROUND_IDENTITY);
+    }
+
+    /** Visible, structurally alive vehicles are valid combat targets. */
+    public boolean isTargetable(long id) {
+        VehicleMission mission = mission(id);
+        return mission != null && mission.isVisible() && mission.state != VehicleState.WRECKED
+                && roster.isAliveById(id);
+    }
+
+    /** Circular contact radius used by ballistic and blast broad phases. */
+    public float targetRadius(long id) {
+        VehicleType type = vehicleType(id);
+        return type != null ? Math.max(type.visualLengthCells, type.visualWidthCells) * 0.5f : 0f;
+    }
+
+    public float hitHalfHeight(long id) {
+        VehicleType type = vehicleType(id);
+        return type != null ? type.hitHalfHeight : 0f;
+    }
+
+    public float structure(long id) { return roster.world().hp(id); }
+    public float maxStructure(long id) { return roster.world().maxHp(id); }
+    public float armor(long id) { return roster.world().armor(id); }
+    public float maxArmor(long id) { return roster.world().maxArmor(id); }
+    public float armorRating(long id) { return roster.world().armorRating(id); }
+
+    public float velocityX(long id) {
+        GroundBody body = body(id);
+        if (body == null) return 0f;
+        return -(float) Math.sin(Math.toRadians(body.facingDegrees)) * body.speed;
+    }
+
+    public float velocityY(long id) {
+        GroundBody body = body(id);
+        if (body == null) return 0f;
+        return (float) Math.cos(Math.toRadians(body.facingDegrees)) * body.speed;
     }
 
     /** The vehicle's kinematic body, or {@code null} if {@code id} isn't a live ground craft (has-gated). */
@@ -127,9 +194,9 @@ public final class ConvoyService {
 
     /**
      * The {@link VehicleMission} bag for {@code id} (the {@code VEHICLE_MISSION} payload),
-     * or {@code null} if {@code id} isn't a live ground craft (has-gated). The id→mission
-     * resolution that lets {@code GroundSystem} keep a {@code List<Long>} backbone instead
-     * of a side {@code List} of handles.
+     * or {@code null} if {@code id} isn't a live ground craft (has-gated). The
+     * id→mission resolution lets {@code GroundSystem} consume this service's
+     * id backbone instead of maintaining a second list of handles.
      */
     public VehicleMission mission(long id) {
         BattleComponents c = roster.components();

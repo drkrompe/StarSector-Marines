@@ -4,7 +4,7 @@ Status: ACTIVE — `EntityWorld` is the battle composition substrate; capability
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — kept locomotion legible beneath moving primary-weapon actions.
+Updated: 2026-08-27 — made convoy durability a shared component capability without grid-unit membership.
 
 The battle simulation has one composition substrate: an `EntityWorld`.  This
 document names the durable model, ownership, and safety laws of that substrate.
@@ -93,8 +93,10 @@ shape. Current families include:
   mission, authored appearance, and optional engine or turret capability. They
   carry no grid position, so grid queries exclude them naturally.
 - **Convoy vehicles** are disjoint world entities with ground identity,
-  kinematics, mission, optional turret, and vehicle-control state. Their
-  mission state owns vehicle liveness; health is not implied.
+  kinematics, mission, health, armor, optional turret, and vehicle-control
+  state. Shared durability capability makes them damageable without granting
+  `POSITION`, dense-roster, vision, movement, or infantry-occupancy membership;
+  mission state still owns the live-vehicle versus persistent-wreck lifecycle.
 - **Presentation and reporting** are component data too. `SPRITE` is an
   authored, tier-neutral draw instruction for both live sheet actors and
   corpses; layered-animation, locomotion, and telemetry are separate

@@ -56,11 +56,9 @@ public final class MechTurretSystem {
                 long target = aimTarget(loadout, hasCombat ? combatTargets[row] : 0L);
                 float desired = hipFacing[row];
                 boolean withinTraverse = false;
-                if (target != 0L && roster.isLive(target)) {
-                    float dx = world.getFloat(target, components.POSITION,
-                            BattleComponents.POSITION_X) - posX[row];
-                    float dy = world.getFloat(target, components.POSITION,
-                            BattleComponents.POSITION_Y) - posY[row];
+                if (target != 0L && roster.isAliveById(target)) {
+                    float dx = roster.world().x(target) - posX[row];
+                    float dy = roster.world().y(target) - posY[row];
                     if (dx != 0f || dy != 0f) {
                         float targetFacing = LayeredAppearance.wrapDegrees(AirBody.facingToward(dx, dy));
                         float twist = LayeredAppearance.wrapDegrees(targetFacing - hipFacing[row]);
@@ -86,7 +84,7 @@ public final class MechTurretSystem {
     private long aimTarget(MechLoadoutComponent loadout, long combatTarget) {
         for (MechWeaponMount mount : loadout.mounts()) {
             if (mount != null && mount.burstRemaining > 0
-                    && roster.isLive(mount.burstTargetId)) {
+                    && roster.isAliveById(mount.burstTargetId)) {
                 return mount.burstTargetId;
             }
         }
@@ -94,8 +92,8 @@ public final class MechTurretSystem {
     }
 
     private float targetFacing(long target, float fromX, float fromY) {
-        float dx = world.getFloat(target, components.POSITION, BattleComponents.POSITION_X) - fromX;
-        float dy = world.getFloat(target, components.POSITION, BattleComponents.POSITION_Y) - fromY;
+        float dx = roster.world().x(target) - fromX;
+        float dy = roster.world().y(target) - fromY;
         return LayeredAppearance.wrapDegrees(AirBody.facingToward(dx, dy));
     }
 }

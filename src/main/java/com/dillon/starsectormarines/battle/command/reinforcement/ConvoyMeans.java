@@ -24,10 +24,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -74,9 +72,6 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * stale macro route is fine — the rolling local planner handles live terrain.
      */
     private TerrainCostField costField;
-    /** Clearance masks keyed by footprint radius, eroded + cached lazily (one entry per distinct vehicle width). */
-    private final Map<Integer, VehicleClearance> clearanceByRadius = new HashMap<>();
-
     public ConvoyMeans(RoadGraph graph, TraversalAxis axis) {
         this(graph, axis, null, RiskLevel.LOW, null);
     }
@@ -309,14 +304,13 @@ public final class ConvoyMeans implements ReinforcementMeans {
         return costField;
     }
 
-    /** Lazily erodes (and caches) a clearance mask for the given footprint radius. */
+    /**
+     * Builds a fresh clearance snapshot for each dispatch. Wrecks can close
+     * cells during the battle, so retaining the original mask would let later
+     * reinforcements prove routes through destroyed vehicles.
+     */
     private VehicleClearance clearanceFor(BattleControl sim, int radius) {
-        VehicleClearance c = clearanceByRadius.get(radius);
-        if (c == null) {
-            c = VehicleClearance.erode(sim.getGrid(), radius);
-            clearanceByRadius.put(radius, c);
-        }
-        return c;
+        return VehicleClearance.erode(sim.getGrid(), radius);
     }
 
     /**

@@ -32,7 +32,9 @@ public enum VehicleType {
             /*turretFrame*/ 1, /*turretMountX*/ -0.15866698f, /*turretMountY*/ 0.26800027f,
             /*turretPivotX*/ 0.108333334f, /*turretPivotY*/ 0.024999995f, /*turretVisualCells*/ 0.7f, /*turretSpriteFacingOffsetDeg*/ -90f,
             /*turretStructureId*/ TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
-            /*departsAfterDeboard*/ false, /*overwatchDurationSec*/ 20f) {
+            /*departsAfterDeboard*/ false, /*overwatchDurationSec*/ 20f,
+            /*maxStructure*/ 220f, /*maxArmor*/ 160f, /*armorRating*/ 18f,
+            /*incomingAccuracyMult*/ 1.25f, /*hitHalfHeight*/ 0.75f) {
         @Override
         public GroundBody createBody() {
             return new BicycleBody(
@@ -95,6 +97,14 @@ public enum VehicleType {
     public final boolean departsAfterDeboard;
     /** Sim-seconds the vehicle holds overwatch before departing. Only meaningful when {@link #departsAfterDeboard} is false. */
     public final float overwatchDurationSec;
+    /** Component-native durability profile seeded into HEALTH/ARMOR at spawn. */
+    public final float maxStructure;
+    public final float maxArmor;
+    public final float armorRating;
+    /** Large silhouettes are easier to hit than an infantry body. */
+    public final float incomingAccuracyMult;
+    /** Vertical half-extent used by the ballistic target-plane/contact model. */
+    public final float hitHalfHeight;
 
     public boolean hasTurretWeapon() { return turretStructureId != null && turretFrame >= 0; }
 
@@ -112,7 +122,9 @@ public enum VehicleType {
                 float turretPivotX, float turretPivotY, float turretVisualCells,
                 float turretSpriteFacingOffsetDeg,
                 String turretStructureId, boolean departsAfterDeboard,
-                float overwatchDurationSec) {
+                float overwatchDurationSec,
+                float maxStructure, float maxArmor, float armorRating,
+                float incomingAccuracyMult, float hitHalfHeight) {
         this.spritePath = spritePath;
         this.spriteFrame = spriteFrame;
         this.frameCount = frameCount;
@@ -135,6 +147,11 @@ public enum VehicleType {
         this.turretStructureId = turretStructureId;
         this.departsAfterDeboard = departsAfterDeboard;
         this.overwatchDurationSec = overwatchDurationSec;
+        this.maxStructure = maxStructure;
+        this.maxArmor = maxArmor;
+        this.armorRating = armorRating;
+        this.incomingAccuracyMult = incomingAccuracyMult;
+        this.hitHalfHeight = hitHalfHeight;
     }
 
     /**

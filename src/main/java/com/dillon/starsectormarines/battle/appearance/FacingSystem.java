@@ -88,9 +88,6 @@ public final class FacingSystem {
     private final EntityWorld world;
     private final BattleComponents components;
     private final UnitRosterService roster;
-    /** Serial tick scratch for a target's continuous POSITION pair. */
-    private final float[] targetPosition = new float[2];
-
     public FacingSystem(EntityWorld world, BattleComponents components, UnitRosterService roster) {
         this.world = world;
         this.components = components;
@@ -208,12 +205,9 @@ public final class FacingSystem {
                     long tid = inAim && secondaryAimTarget != null && secondaryAimTarget[r] != 0L
                             ? secondaryAimTarget[r]
                             : (reflexTargetId[r] != 0L ? reflexTargetId[r] : targetId[r]);
-                    if (tid != 0L && roster.isLive(tid)) {
-                        world.readFloatPair(tid, components.POSITION,
-                                BattleComponents.POSITION_X,
-                                BattleComponents.POSITION_Y, targetPosition);
-                        int tcx = (int) Math.floor(targetPosition[0]);
-                        int tcy = (int) Math.floor(targetPosition[1]);
+                    if (tid != 0L && roster.isAliveById(tid)) {
+                        int tcx = (int) Math.floor(roster.world().x(tid));
+                        int tcy = (int) Math.floor(roster.world().y(tid));
                         int tdx = tcx - rowCellX;
                         int tdy = tcy - rowCellY;
                         if (tdx != 0 || tdy != 0) {
