@@ -134,6 +134,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
      * renames every id the map selects by and reads as no change at all.
      */
     private TilesetExport.StripSpec strip;
+    /**
+     * The pictures for the open document's material-backed frames.
+     *
+     * <p>Held beside the plate for the same reason the plate is: a frame whose
+     * picture is a tileable material is not sized off the sheet at all, so
+     * anything that measures the strip needs the materials in hand.
+     */
+    private TilesetExport.Materials materials = TilesetExport.Materials.NONE;
     private boolean dirty;
     /** True while the table is being set from the canvas, so it does not answer back. */
     private boolean syncingSelection;
@@ -315,6 +323,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             sheetNote = "";
             outputSheet = "";
             strip = null;
+            materials = TilesetExport.Materials.NONE;
             model.setEntries(new ArrayList<>());
             slice();
         } catch (Exception failure) {
@@ -358,6 +367,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             sheetNote = "";
             outputSheet = "";
             strip = null;
+            materials = TilesetExport.Materials.NONE;
             model.setEntries(new ArrayList<>());
             sheetName.setText(sheet.name());
             idPrefix.setText("doodad." + sheet.name());
@@ -401,6 +411,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             sheetNote = document.note;
             outputSheet = document.outputSheet;
             strip = document.strip;
+            materials = TilesetOperations.readMaterials(context.projectRoot(), document);
             model.setEntries(document.entries);
             view.setEntries(document.entries);
             syncGrid();
@@ -911,7 +922,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         }
         if (strip != null) {
             // A strip has no cells to count and no blocks to count them into.
-            TilesetExport.StripPacking packed = TilesetExport.packStrip(model.entries, strip);
+            TilesetExport.StripPacking packed =
+                    TilesetExport.packStrip(model.entries, strip, materials);
             summary.setText(String.format(
                     "%s   %d pieces, %d frames   strip %dx%d px at 1/%.4g",
                     sourcePath == null ? "no sheet" : sourcePath.getFileName().toString(),

@@ -242,6 +242,133 @@ class TilesetStripExportTest {
         assertTrue(refused.getMessage().contains("nothing"), refused.getMessage());
     }
 
+    // ---- frames whose picture is a material ---------------------------------
+
+    private static final int GUARD = TilesetExport.MATERIAL_GUARD_PX;
+    private static final String MATERIAL = "art-source/tilesets/material/grass.png";
+
+    /** A tileable material: fully opaque, and distinguishable pixel by pixel. */
+    private static BufferedImage material(int width, int height) {
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                image.setRGB(x, y, 0xFF000000 | (x * 7 % 256) << 8 | (y * 11 % 256));
+            }
+        }
+        return image;
+    }
+
+    private static TilesetExport.Materials materials(BufferedImage material) {
+        return source -> MATERIAL.equals(source) ? material : null;
+    }
+
+    private static TilesetExport.Entry materialField(SheetSlicer.Piece piece) {
+        TilesetExport.Entry entry = entry(piece, "x.grass");
+        entry.material = MATERIAL;
+        return entry;
+    }
+
+    /**
+     * A material-backed frame is sized from the material, never from the scale.
+     *
+     * <p>A material is a surface rather than a picture drawn at a size, so there
+     * is nothing to reduce: resampling it to whatever the strip's divisor makes
+     * of the plate crop underneath would cost it the seams that let it repeat.
+     * The frame is the material plus the guard the renderer's inset crops away.
+     */
+    @Test
+    void aMaterialBackedFrameIsSizedFromItsMaterialPlusTheRenderersGroundInset() {
+        BufferedImage material = material(52, 52);
+        TilesetExport.Entry entry = materialField(new SheetSlicer.Piece(10, 10, 103, 108));
+        TilesetExport.packStrip(List.of(entry), SPEC, materials(material));
+        assertEquals(52 + 2 * GUARD, entry.frameWidth,
+                "the plate crop underneath is 103 raw pixels and must not have been consulted");
+        assertEquals(52 + 2 * GUARD, entry.frameHeight);
+    }
+
+    /**
+     * A material is placed as itself, with its own opposite edges wrapped round
+     * it.
+     *
+     * <p>Byte for byte, because that is the whole claim: the surface the map
+     * paves with is the material file and nothing has been resampled, sharpened
+     * or smoothed on the way. The guard wraps rather than clamps so that a
+     * sampler reaching outside the drawn cell finds the surface continuing.
+     */
+    @Test
+    void aMaterialBackedFrameIsTheMaterialWithItsOwnEdgesWrappedRoundIt() {
+        BufferedImage material = material(52, 52);
+        TilesetExport.Entry entry = materialField(new SheetSlicer.Piece(10, 10, 103, 108));
+        BufferedImage atlas = TilesetExport.stripAtlas(
+                sheet(), List.of(entry), SPEC, materials(material));
+        for (int y = 0; y < entry.frameHeight; y++) {
+            for (int x = 0; x < entry.frameWidth; x++) {
+                int expected = material.getRGB(
+                        Math.floorMod(x - GUARD, 52), Math.floorMod(y - GUARD, 52));
+                assertEquals(expected, atlas.getRGB(entry.frameX + x, entry.frameY + y),
+                        "the exported frame differs from the material at " + x + "," + y);
+            }
+        }
+    }
+
+    /**
+     * A material nobody resolved is refused rather than taken off the plate.
+     *
+     * <p>The plate still holds the art the material replaced, so falling back to
+     * it produces a valid strip of the right size holding the wrong pictures —
+     * which nothing downstream can report, because the atlas and the tileset
+     * describing it stay consistent with each other.
+     */
+    @Test
+    void aMaterialTheStripCannotSizeIsRefused() {
+        TilesetExport.Entry entry = materialField(new SheetSlicer.Piece(10, 10, 103, 108));
+        IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+                () -> TilesetExport.packStrip(List.of(entry), SPEC));
+        assertTrue(refused.getMessage().contains(MATERIAL), refused.getMessage());
+    }
+
+    /** Only a ground frame is drawn inset far enough to crop its guard away. */
+    @Test
+    void aMaterialOnAFrameThatIsNotGroundIsRefused() {
+        TilesetExport.Entry entry = materialField(new SheetSlicer.Piece(10, 10, 103, 108));
+        entry.layer = "overlay";
+        IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+                () -> TilesetExport.packStrip(List.of(entry), SPEC, materials(material(52, 52))));
+        assertTrue(refused.getMessage().contains("overlay"), refused.getMessage());
+    }
+
+    /** A material has no drawn border, so honouring both would ignore one. */
+    @Test
+    void aMaterialBackedFrameThatAlsoDeclaresASpriteBorderIsRefused() {
+        TilesetExport.Entry entry = materialField(new SheetSlicer.Piece(10, 10, 103, 108));
+        entry.spriteBorderX = 4;
+        IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+                () -> TilesetExport.packStrip(List.of(entry), SPEC, materials(material(52, 52))));
+        assertTrue(refused.getMessage().contains("sprite border"), refused.getMessage());
+    }
+
+    /**
+     * Where a frame's picture comes from survives a round trip.
+     *
+     * <p>The field that only the document has is the one a re-export drops in
+     * silence, and this is the field whose loss puts the plate's art back.
+     */
+    @Test
+    void aMaterialBackedFrameRoundTripsWhichMaterialItTakesItsPictureFrom() throws Exception {
+        TilesetDocument document = new TilesetDocument();
+        document.sheet = "art-source/tilesets/x.raw.png";
+        document.sheetName = "x";
+        document.strip = SPEC;
+        document.entries.add(materialField(new SheetSlicer.Piece(1, 2, 30, 40)));
+        document.entries.add(entry(new SheetSlicer.Piece(40, 2, 30, 40), "x.water"));
+
+        TilesetDocument read = TilesetDocument.fromJson(document.toJson());
+        assertEquals(MATERIAL, read.entries.get(0).material);
+        assertTrue(read.entries.get(0).hasMaterial());
+        assertEquals("", read.entries.get(1).material, "a plate crop names no material");
+        assertFalse(read.entries.get(1).hasMaterial());
+    }
+
     /**
      * A strip of ground goes with the tilesets, a strip of props with the
      * doodads — the distinction blocks draw for a grid sheet, asked of the shape

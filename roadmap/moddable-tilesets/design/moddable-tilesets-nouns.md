@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — a piece's picture must be on the sheet its document annotates; a piece may be drawn as several bodies; a repeating field is solid and carries a sprite border that is not part of the surface.
+Updated: 2026-08-28 — a frame's picture may be a declared tileable material, sized by that material plus the renderer's ground inset; a sheet has exactly one producer; a piece may be drawn as several bodies; a repeating field is solid and carries a sprite border that is not part of the surface.
 
 Read `stories.md` for open work.
 
@@ -272,17 +272,42 @@ These properties of that pass are part of the model rather than of the tool:
   still the wrong relief. What makes the obligation checkable rather than
   remembered is that the derivation leaves everything outside a cell flat, so the
   companions state their own frame boxes and those must be the albedo's.
-- **A piece's picture must be on the sheet its document annotates.** The alpha
-  law's sibling, and it fails in the same silent way. A document that names a
-  piece whose art lives somewhere else — a tileable material from a library, a
-  patch composited in afterwards — can hold every id, every cover level and
-  every number for that sheet and still not reproduce it: exporting puts back
-  whatever was under the replacement. The two producers stay consistent with
-  each other and the substitution is invisible in the tileset, so nothing
-  downstream can report it. Where a sheet's frames disagree about where their
-  picture comes from, the sheet is not exportable until they agree, and a strip
-  cannot compromise: order is the address, so it exports whole or not at all.
-  `nature-tiles-material-provenance.md` is the worked case.
+- **A piece's picture must be on the sheet its document annotates, or the
+  document must say where else it is.** The alpha law's sibling, and it fails in
+  the same silent way. A document that names a piece whose art lives somewhere
+  else — a tileable material from a library, a patch composited in afterwards —
+  and does not say so can hold every id, every cover level and every number for
+  that sheet and still not reproduce it: exporting puts back whatever was under
+  the replacement. The two producers stay consistent with each other and the
+  substitution is invisible in the tileset, so nothing downstream can report it.
+  Where a sheet's frames disagree about where their picture comes from and the
+  document cannot say so, the sheet is not exportable until they agree, and a
+  strip cannot compromise: order is the address, so it exports whole or not at
+  all. `nature-tiles-material-provenance.md` is the worked case.
+- **A frame's picture may be a material, and then it is sized by the material.**
+  The way out of the law above is a declaration rather than a prohibition: an
+  entry may name the tileable **material** file its picture comes from, and the
+  export places it there. A material is a *surface* rather than a picture drawn
+  at a size, so nothing about the sheet's scale applies to it — resampling a
+  seamless texture to fit a frame either loses its seams or has to wrap-pad to
+  keep them, and sizing the frame from the material avoids the question
+  entirely. It is placed with the renderer's own ground inset of itself wrapped
+  periodically round it, so that the inset the renderer crops away is exactly
+  the guard and what remains is exactly the material. **That width is taken from
+  the renderer rather than restated**, because it is one number for one reason
+  and two copies of it would drift into a seam nothing can see. A material is a
+  repeating surface, so it may only back a ground frame, it carries no sprite
+  border — the border is the repair for art drawn as a slab, and honouring both
+  would silently ignore one — and it must be solid, for the same reason a field
+  must be.
+- **A sheet has exactly one producer, and a manifest that pastes into it after
+  the fact is a second one.** Placing content into an already-written atlas at
+  pixel rectangles is the pinned-coordinate defect and the two-producer defect at
+  once: the rectangles address a layout the packer owns and is free to change,
+  the two steps must run in an order nothing records, and the atlas and the
+  tileset beside it stay consistent through every way it can go wrong. Content
+  that is not on the plate belongs on the authoring entry that uses it, so the
+  export is the only thing that writes the sheet.
 - **A repeating field is solid where it is drawn, and its sprite border is not
   part of the surface.** A field is the one kind of piece drawn around nothing,
   so the void law inverts for it: every pixel a key carves off its rim is a
