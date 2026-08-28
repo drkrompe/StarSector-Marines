@@ -39,10 +39,10 @@ public class MechLocomotionTest {
         assertEquals(5.5f, sim.world().renderX(mech), 0.0001f);
 
         steering.tick(BattleSimulation.TICK_DT);
-        assertEquals(-174f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
+        assertEquals(-179.6f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES), 0.001f);
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 60; i++) {
             sim.advanceMovement(mech);
             steering.tick(BattleSimulation.TICK_DT);
         }
@@ -64,7 +64,7 @@ public class MechLocomotionTest {
 
         // North is the queued path bearing; the east-facing target must not snap
         // the chassis away from its travel direction.
-        assertEquals(174f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
+        assertEquals(179.6f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES), 0.001f);
     }
 
@@ -79,9 +79,9 @@ public class MechLocomotionTest {
         new MechLocomotionSystem(sim.getEntityWorld(), c, sim.getRoster())
                 .tick(BattleSimulation.TICK_DT);
 
-        assertEquals(-174f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
+        assertEquals(-179.6f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES), 0.001f);
-        assertEquals(180f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
+        assertEquals(12f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_ANGULAR_VELOCITY), 0.001f);
     }
 
@@ -98,8 +98,26 @@ public class MechLocomotionTest {
         new MechLocomotionSystem(sim.getEntityWorld(), c, sim.getRoster())
                 .tick(BattleSimulation.TICK_DT);
 
-        assertEquals(174f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
+        assertEquals(179.6f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES), 0.001f);
+    }
+
+    @Test
+    public void reversingIntentBrakesBeforeChangingTurnDirection() {
+        MechLocomotion.AngularStep east = MechLocomotion.dampedTurn(
+                0f, 0f, 90f, MechLocomotion.DEFAULT_TURN_RATE_DEGREES,
+                MechLocomotion.DEFAULT_TURN_ACCELERATION_DEGREES,
+                BattleSimulation.TICK_DT);
+        MechLocomotion.AngularStep reverse = MechLocomotion.dampedTurn(
+                east.facingDegrees(), east.angularVelocityDegrees(), -90f,
+                MechLocomotion.DEFAULT_TURN_RATE_DEGREES,
+                MechLocomotion.DEFAULT_TURN_ACCELERATION_DEGREES,
+                BattleSimulation.TICK_DT);
+
+        assertEquals(12f, east.angularVelocityDegrees(), 0.001f);
+        assertEquals(east.facingDegrees(), reverse.facingDegrees(), 0.001f,
+                "the first reversal tick arrests the old swing instead of snapping back");
+        assertEquals(0f, reverse.angularVelocityDegrees(), 0.001f);
     }
 
     @Test
