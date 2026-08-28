@@ -1,10 +1,10 @@
 # Mission-command nouns
 
-Status: ACTIVE — the shared autonomous command architecture is in production for Conquest, Sabotage, Assault, Raid, and the Marine side of generic Extraction.
+Status: ACTIVE — the shared autonomous command architecture is in production for paired Conquest, Sabotage, Assault, Raid, and generic Extraction command duels.
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — added route-aware generic Extraction corridor command and its published diagnostic/evidence picture.
+Updated: 2026-08-27 — added paired generic Extraction evidence for production pressure and alarm/interdiction response.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
 meaning and faction-honest knowledge into stable squad assignments. It is the
