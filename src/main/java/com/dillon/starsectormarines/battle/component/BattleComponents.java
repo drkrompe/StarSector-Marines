@@ -371,7 +371,7 @@ public final class BattleComponents {
     public static final int TELEMETRY_SECONDARY_USED = 6;
     /**
      * {@link #TELEMETRY} field 7: post-cover damage this entity's live
-     * mitigation refused, never reaching either pool (FLOAT).
+     * mitigation refused, never reaching either armor or structure (FLOAT).
      *
      * <p>Its own quantity on purpose. Folding a screen's work into
      * {@link #TELEMETRY_DAMAGE_TAKEN} would make a working screen
@@ -456,7 +456,7 @@ public final class BattleComponents {
     /**
      * Optional live protection state — {@code float current, max, rating}.
      * Presence means the actor has an authored armor capability, including while
-     * its current pool is depleted; armorless actors omit the component. Removed
+     * its current capacity is depleted; armorless actors omit the component. Removed
      * in the corpse transmute alongside {@link #HEALTH}.
      */
     public final ComponentType ARMOR;

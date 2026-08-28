@@ -196,7 +196,7 @@ public final class TurretAuthoringPage implements AuthoringPage {
         inspector.add(section("Structure",
                 number("Structure", 0.01, 10000, 1, selection -> durability(selection).getDouble("structure"),
                         (selection, value) -> durability(selection).put("structure", value)),
-                number("Armor pool", 0.01, 10000, 1, selection -> durability(selection).getDouble("armorCapacity"),
+                number("Armor capacity", 0.01, 10000, 1, selection -> durability(selection).getDouble("armorCapacity"),
                         (selection, value) -> durability(selection).put("armorCapacity", value)),
                 number("Armor rating", 0.01, 1000, 1, selection -> durability(selection).getDouble("armorRating"),
                         (selection, value) -> durability(selection).put("armorRating", value)),

@@ -79,6 +79,18 @@ legibility.
   behavior — movement, protection with a clock on it, a delivered payload,
   perception — never as durability. Whether a pattern carries one is a question
   about what that suit is for, not a quota: see `integral-system-slate.md`.
+- **System family** — the shared name and icon every pattern's take on one
+  effect has in common, such as a breach assist. Six suits carry that effect and
+  each names its own version something else; the family is what lets a player see
+  they are the same capability rather than six unrelated tricks, so it leads and
+  the tradition's own name follows as flavour.
+- **System grade** — how well a tradition builds its version, on the same
+  Surplus/Service/Milspec/Masterwork ladder a weapon's manufacture already uses,
+  so one word means one thing across the Armory. It is <b>description, not
+  arithmetic</b>: unlike a weapon family, an integral system does not consume the
+  grade's stat multipliers, because its numbers are authored outright and scaling
+  them again would price the same quality twice. A Masterwork system is finely
+  made, not automatically the strongest — a family is side-grades.
 - **Equipment template card** — permanent collected capability for one primary
   family-and-grade, armor pattern, or special item. It gates authoring and issue,
   is never consumed, and is distinct from a reusable squad definition.
@@ -384,7 +396,7 @@ added.
 The pattern owns the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
 removes that armor and exposed structure. Structure remains the platform's base
-pool; armor no longer adds health or applies a permanent damage-reduction
+capacity; armor no longer adds health or applies a permanent damage-reduction
 multiplier after it breaks.
 
 The planned assault-armor role makes those trades legible without turning the

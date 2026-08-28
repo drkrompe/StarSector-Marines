@@ -51,7 +51,9 @@ class IntegralSystemCopyTest {
                 "fixture assumption: the foundry-breaker carries a breaching assist");
 
         String summary = IntegralSystemCopy.summary(rig);
-        assertTrue(summary.contains(rig.integralSystem().displayName()), summary);
+        assertTrue(summary.contains(rig.integralSystem().familyName()),
+                "the family leads so six takes on one ability compare: " + summary);
+        assertTrue(summary.contains(rig.integralSystem().grade().displayName), summary);
         assertTrue(summary.contains(seconds(rig.integralSystem().durationSeconds()) + "s")
                         && summary.contains(seconds(rig.integralSystem().cooldownSeconds()) + "s"),
                 "a player deciding on the suit needs the authored clock, got: " + summary);
@@ -127,7 +129,7 @@ class IntegralSystemCopyTest {
                 "fixture assumption: the Aegis carries the missile pod");
 
         String summary = IntegralSystemCopy.summary(pattern);
-        assertTrue(summary.contains(pod.displayName()), summary);
+        assertTrue(summary.contains(pod.familyName()), summary);
         assertTrue(summary.contains(pod.startingAmmo() + " uses")
                         || pod.startingAmmo() == 1 && summary.contains("1 use"),
                 "the clock should quote the authored uses rather than a duration/cooldown pair: "
