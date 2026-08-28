@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -13,6 +14,8 @@ import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -95,5 +98,82 @@ public class ShuttleMeansTest {
             assertTrue(mission.marineLoadout[i].primaryDef() != null);
             assertTrue(mission.marineLoadout[i].armorFamily != null);
         }
+    }
+
+    /**
+     * A sortie flies off the garrison's own field when it has one.
+     *
+     * <p>Entry and exit are both a hardstand: the craft lifts from the field,
+     * delivers, and comes home to it, instead of materialising past the edge of
+     * the world and vanishing back over it.
+     */
+    @Test
+    public void theSortieFliesFromTheAirfieldWhenThereIsOne() {
+        BattleSimulation sim = openSim();
+        sim.getCompoundService().register(commandPost(2, 2));
+        LandingPad pad = LandingPad.garrison(3, 9, LandingPad.Approach.SOUTH);
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, null, List.of(pad));
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 8, 3);
+
+        means.dispatch(sim, req);
+
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertEquals(pad.centerX + 0.5f, mission.entryX, 0.001f,
+                "the sortie starts on its hardstand, not off the map edge");
+        assertEquals(pad.centerY + 0.5f, mission.entryY, 0.001f);
+        assertEquals(pad.centerX + 0.5f, mission.exitX, 0.001f,
+                "and comes home to the field rather than leaving the world");
+        assertEquals(pad.centerY + 0.5f, mission.exitY, 0.001f);
+    }
+
+    /**
+     * With no field, the sortie still arrives from off the map — a battle
+     * without a garrison airfield behaves exactly as it did.
+     */
+    @Test
+    public void withoutAnAirfieldTheSortieStillComesFromOffMap() {
+        BattleSimulation sim = openSim();
+        sim.getCompoundService().register(commandPost(2, 2));
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH);
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 8, 3);
+
+        means.dispatch(sim, req);
+
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertTrue(mission.entryY > H || mission.entryY < 0,
+                "a defender sortie with no field enters over the rear map edge");
+    }
+
+    /**
+     * The landing zone is chosen around the deployment policy's safe band, not
+     * around the rally.
+     *
+     * <p>The rally is where force is needed, which on a losing track is where
+     * the marines are. Landing on it deboards a squad into whoever just took
+     * the position, which is the one thing an air drop must not do.
+     */
+    @Test
+    public void theLandingZoneFollowsTheSafeBandRatherThanTheRally() {
+        BattleSimulation sim = openSim();
+        sim.getCompoundService().register(commandPost(2, 2));
+        ConvoyDeploymentPolicy rearBand = request -> new ConvoyDeployment(
+                2, 10, 0, true, false, null);
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, rearBand, List.of());
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.OBJECTIVE_LOST,
+                ReinforcementRequest.Strength.SMALL, 9, 1);
+
+        means.dispatch(sim, req);
+
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertTrue(mission.lzY > 5,
+                "the drop belongs in the safe band at y=10, not on the rally at y=1;"
+                        + " landed at " + mission.lzX + "," + mission.lzY);
     }
 }

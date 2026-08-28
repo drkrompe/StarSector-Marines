@@ -245,6 +245,21 @@ likewise a map fact rather than a shipboard one — a fortress vehicle shed
 publishes the same berths a mech bay does, and what occupies one remains the
 host's decision from a roster.
 
+An **airfield** is the first structure whose substance is open ground rather
+than enclosed floor. Its apron is paved yard with berths marked on it, and its
+hardstands are the aviation form of a machine berth: generation authors the
+clear footprint and the approach direction, and what stands there is the host's
+to decide from a roster. It is therefore sited in what the packing left over
+rather than claimed before it — which is the opposite of the rule for buildings,
+and deliberately so. **A reservation made before packing reshapes every
+placement around itself, and generation cannot see what that costs.** An apron
+claimed up front produced a ward where every building still had its door and its
+route, and no heavy vehicle could reach the defender rear at all: walkable,
+connected, fully checked, and impassable to the one thing that mattered. Ground
+that was already spare cannot do that. The price is that an airfield is not
+guaranteed — a ward whose packing left no clear stretch has none, the same way a
+compound with no wing a bay fits in has no vehicle shed.
+
 **Wedging is a hull's virtue and a compound's defect.** A packer scores a
 position by how tightly it wedges against something already solid, which is
 correct inside a vessel: a void between two compartments is wasted displacement.
@@ -255,6 +270,18 @@ place, which is why a place packed on open ground states how freely its rooms
 may be glued to one another. The bound that matters is the ground's own size: a
 run of wall longer than half the extent it stands on has no way round inside the
 place at all, and only a single building may exceed that on its own.
+
+**One door makes a room reachable; it does not make it a fight.** Reachability
+is all packing checks, so a building large enough to matter can come out with a
+single entrance — widened to two cells, which reads as two doors on the same
+wall — and be cleared by holding that one doorway. The attacker never chooses an
+approach and the defender never covers more than one, so the interior might as
+well not be there. A place therefore says how much floor earns another way in,
+and each further one is cut on a face the room does not already have: another
+door beside the first changes nothing, while one on the far wall means the
+building can be entered from two sides, flanked, or given up at one end and held
+at the other. A hull keeps one hatch per compartment; how a deck is cut belongs
+to the ship family.
 
 **A wall is left over on a hull and authored on a map.** A packer carves a
 room's floor and leaves the ring around it alone, which is the whole of a

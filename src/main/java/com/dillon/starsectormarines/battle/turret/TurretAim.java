@@ -179,9 +179,33 @@ public final class TurretAim {
      * <p>Bresenham-stepped along the line; per-step squared distance to
      * either endpoint gates the close-wall pass. Either radius {@code <= 0}
      * disables that side.
+     *
+     * <p>Smoke blocks this outright, and deliberately ignores the close-wall
+     * exemption: a cloud sitting on the mount is exactly the case the
+     * exemption must not forgive. That is a rule about <em>seeing</em>. An
+     * air pair deciding whether it may shoot asks
+     * {@link #airFireLineClear} instead, where smoke costs accuracy rather
+     * than the shot.
      */
     public static boolean airLosVisible(NavigationGrid grid, int x0, int y0, int x1, int y1,
                                         float originRadius, float endpointRadius) {
+        return airLineClear(grid, x0, y0, x1, y1, originRadius, endpointRadius, true);
+    }
+
+    /**
+     * Direct-fire counterpart to {@link #airLosVisible}: the same close-wall
+     * geometry, with smoke excluded. Keeps an air pair on the same rule
+     * ground pairs get from {@code NavigationGrid.hasLineOfFire} — structure
+     * stops a round, obscuration only degrades it.
+     */
+    public static boolean airFireLineClear(NavigationGrid grid, int x0, int y0, int x1, int y1,
+                                           float originRadius, float endpointRadius) {
+        return airLineClear(grid, x0, y0, x1, y1, originRadius, endpointRadius, false);
+    }
+
+    private static boolean airLineClear(NavigationGrid grid, int x0, int y0, int x1, int y1,
+                                        float originRadius, float endpointRadius,
+                                        boolean smokeBlocks) {
         float ro2 = originRadius > 0f ? originRadius * originRadius : -1f;
         float re2 = endpointRadius > 0f ? endpointRadius * endpointRadius : -1f;
         int dx = Math.abs(x1 - x0);
@@ -193,8 +217,8 @@ public final class TurretAim {
         int y = y0;
         while (true) {
             boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
-            if (!endpoint && grid.blocksLineOfSight(x, y)) {
-                if (grid.hasTransientOpacity(x, y)) return false;
+            if (!endpoint && smokeBlocks && grid.hasTransientOpacity(x, y)) return false;
+            if (!endpoint && grid.blocksStructuralLineOfSight(x, y)) {
                 float distSqOrigin = (float) ((x - x0) * (x - x0) + (y - y0) * (y - y0));
                 float distSqEnd    = (float) ((x - x1) * (x - x1) + (y - y1) * (y - y1));
                 boolean nearOrigin = ro2 >= 0f && distSqOrigin <= ro2;

@@ -1,13 +1,59 @@
 {
   "sheet": "graphics/tilesets/urban-tileset-3.png",
-  "slice": { "mode": "auto-strip", "alphaThreshold": 16, "minGap": 4 },
+  "slice": {
+    "alphaThreshold": 16,
+    "minGap": 4,
+    "mode": "auto-strip"
+  },
   "tiles": [
-    { "id": "urban3.street-square", "frame": 0, "layer": "ground", "name": "street-square", "description": "uniform square paver — primary road surface" },
-    { "id": "urban3.street-irregular", "frame": 1, "layer": "ground", "name": "street-irregular", "description": "irregular cobbled paver — alt road surface (use one or the other per road, mixing reads as patchy)" },
-    { "id": "urban3.sidewalk", "frame": 2, "layer": "ground", "name": "sidewalk", "description": "plain sidewalk slab — straight runs" },
-    { "id": "urban3.sidewalk-corner", "frame": 3, "layer": "ground", "name": "sidewalk-corner", "description": "alt sidewalk slab — corners (two perpendicular non-sidewalk neighbors)" },
-    { "id": "urban3.culvert", "frame": 4, "layer": "overlay", "name": "culvert", "description": "drain culvert doodad — placed at curb edge" },
-    { "id": "urban3.bench-s", "frame": 5, "layer": "overlay", "name": "bench-s", "description": "bench facing south — back of seat read from north sidewalk" },
-    { "id": "urban3.bench-e", "frame": 6, "layer": "overlay", "name": "bench-e", "description": "bench facing east — mirror at render time for a west-facing variant" }
+    {
+      "description": "uniform square paver \u2014 primary road surface",
+      "frame": 0,
+      "id": "urban3.street-square",
+      "layer": "ground",
+      "name": "street-square"
+    },
+    {
+      "description": "irregular cobbled paver \u2014 alt road surface (use one or the other per road, mixing reads as patchy)",
+      "frame": 1,
+      "id": "urban3.street-irregular",
+      "layer": "ground",
+      "name": "street-irregular"
+    },
+    {
+      "description": "plain sidewalk slab \u2014 straight runs",
+      "frame": 2,
+      "id": "urban3.sidewalk",
+      "layer": "ground",
+      "name": "sidewalk"
+    },
+    {
+      "description": "alt sidewalk slab \u2014 corners (two perpendicular non-sidewalk neighbors)",
+      "frame": 3,
+      "id": "urban3.sidewalk-corner",
+      "layer": "ground",
+      "name": "sidewalk-corner"
+    },
+    {
+      "description": "drain culvert doodad \u2014 placed at curb edge",
+      "frame": 4,
+      "id": "urban3.culvert",
+      "layer": "overlay",
+      "name": "culvert"
+    },
+    {
+      "description": "bench facing south \u2014 back of seat read from north sidewalk",
+      "frame": 5,
+      "id": "urban3.bench-s",
+      "layer": "overlay",
+      "name": "bench-s"
+    },
+    {
+      "description": "bench facing east \u2014 mirror at render time for a west-facing variant",
+      "frame": 6,
+      "id": "urban3.bench-e",
+      "layer": "overlay",
+      "name": "bench-e"
+    }
   ]
 }

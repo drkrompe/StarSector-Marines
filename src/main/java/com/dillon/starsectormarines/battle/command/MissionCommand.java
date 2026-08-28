@@ -5,8 +5,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * Per-faction strategic planner ("Tier C") sitting above the per-squad GOAP
- * planner. Decides <em>which squad goes where, doing what</em> by writing
- * {@code Squad.assignedObjective} on its faction's squads. Per-squad GOAP
+ * planner. Decides <em>which squad goes where, doing what</em> by submitting
+ * directives through {@link SquadDirectiveControl}. Per-squad GOAP
  * ({@code GoapInfantryBehavior} / {@code GoapMechBehavior}) reads that
  * assignment and picks MISSION-priority goals accordingly.
  *
@@ -39,14 +39,14 @@ public interface MissionCommand extends CommandStrategy {
     /**
      * Run the commander's slow-tick decision pass. Implementations refresh
      * any internal state (zone status, objective registry), score the
-     * (squad, objective) pairs they care about, and write the chosen
-     * {@link ObjectiveAssignment} onto each squad of {@link #faction()}.
+     * (squad, objective) pairs they care about, and submit the chosen
+     * {@link ObjectiveAssignment} for each squad of {@link #faction()}.
      *
      * <p>Called by {@code BattleSimulation.tick} at the commander cadence
      * — typically every {@link CommanderService#COMMANDER_TICK_PERIOD}
      * sim-seconds — before the per-squad GOAP replan pass.
      */
-    void tick(BattleView sim);
+    void tick(BattleView sim, SquadDirectiveControl directives);
 
     /**
      * Default no-op commander used when a faction has no commander wired.
@@ -56,6 +56,9 @@ public interface MissionCommand extends CommandStrategy {
      */
     MissionCommand NOOP = new MissionCommand() {
         @Override public Faction faction() { return null; }
-        @Override public void tick(BattleView sim) { /* deliberate no-op */ }
+        @Override public void tick(BattleView sim,
+                                   SquadDirectiveControl directives) {
+            /* deliberate no-op */
+        }
     };
 }

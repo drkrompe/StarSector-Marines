@@ -123,7 +123,21 @@ public final class ConquestCommand implements ConquestFrontCommand,
     static final int TRACK_LINE_MIN_ADVANCE_CELLS = 3;
     /** Quantization keeps small belief jitter from rewriting a stable order. */
     static final int TRACK_LINE_BAND_CELLS = 4;
+    /** How far a staging search may slide off the squad's own line of advance. */
     private static final int TRACK_LINE_SNAP_RADIUS = 12;
+    /**
+     * Lateral half-width of the corridor whose hostiles set a squad's standoff.
+     * A track is a wide band — on a 160-cell map each of the three spans more
+     * than fifty cells — so the nearest contact by forward coordinate alone can
+     * sit at the far lateral edge: irrelevant to this squad's advance, yet close
+     * enough on the forward axis to put the safe line behind where the squad
+     * already stands. The lane stage then fails and the squad is left with no
+     * assignment at all. Only contacts that could end up in front of a cell the
+     * stage search might pick belong in the scan — the snap reach plus the
+     * standoff.
+     */
+    static final int TRACK_LINE_STANDOFF_LATERAL_CELLS =
+            TRACK_LINE_SNAP_RADIUS + TRACK_LINE_STANDOFF_CELLS;
 
     /**
      * Cells of slack added around a compound's footprint when resolving its
@@ -931,6 +945,18 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * preferred track's believed hostile frontier. Specific zone work is
      * selected before this fallback; local contact also suppresses it so the
      * tactical engagement planner owns the squad without a competing marker.
+     *
+     * <p>The frontier is read only from contacts within
+     * {@link #TRACK_LINE_STANDOFF_LATERAL_CELLS} of the squad's own line of
+     * advance. A contact at the far lateral edge of the same track is not in
+     * front of this squad and must not set its standoff.
+     *
+     * <p>A believed front in the track with nothing in that corridor drops the
+     * standoff bound rather than the stage: the squad knows where the lane is
+     * contested and simply is not the one facing it, so the friendly line and
+     * the stride cap size its step. A track with no belief at all still
+     * declines to stage — an own-force push on no intelligence is a decision
+     * for the mission phase, not for this fallback.
      */
     private TrackStage laneStageChoice(PlanningSquad squad, int track,
                                        ConquestCommandFrame frame) {
@@ -938,21 +964,31 @@ public final class ConquestCommand implements ConquestFrontCommand,
         CommanderInfluenceSnapshot influence = frame.influence();
         if (influence == null) return null;
 
+        int squadLateral = Math.round(trackLayout.lateralCoordinate(
+                squad.centroidX, squad.centroidY));
+        boolean trackFrontBelieved = false;
         int nearestHostileForward = Integer.MAX_VALUE;
         for (CommanderContact contact : influence.contacts()) {
             if (trackLayout.trackForCell(contact.cellX(), contact.cellY()) != track) {
                 continue;
             }
+            trackFrontBelieved = true;
+            int contactLateral = Math.round(trackLayout.lateralCoordinate(
+                    contact.cellX(), contact.cellY()));
+            if (Math.abs(contactLateral - squadLateral)
+                    > TRACK_LINE_STANDOFF_LATERAL_CELLS) continue;
             int forward = Math.round(trackLayout.forwardCoordinate(
                     contact.cellX(), contact.cellY()));
             nearestHostileForward = Math.min(nearestHostileForward, forward);
         }
-        if (nearestHostileForward == Integer.MAX_VALUE) return null;
+        if (!trackFrontBelieved) return null;
 
         int squadForward = Math.round(trackLayout.forwardCoordinate(
                 squad.centroidX, squad.centroidY));
         int friendlyLead = friendlyLeadForward(track, squadForward, frame);
-        int safeFront = nearestHostileForward - TRACK_LINE_STANDOFF_CELLS;
+        int safeFront = nearestHostileForward == Integer.MAX_VALUE
+                ? Integer.MAX_VALUE
+                : nearestHostileForward - TRACK_LINE_STANDOFF_CELLS;
         int supportedFront = friendlyLead + TRACK_LINE_LEAD_CELLS;
         int strideFront = squadForward + TRACK_LINE_MAX_STRIDE_CELLS;
         int desiredForward = Math.min(safeFront,
@@ -965,10 +1001,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
             return null;
         }
 
-        int lateral = Math.round(trackLayout.lateralCoordinate(
-                squad.centroidX, squad.centroidY));
-        lateral = Math.max(trackLayout.lateralStartInclusive(track),
-                Math.min(trackLayout.lateralEndInclusive(track), lateral));
+        int lateral = Math.max(trackLayout.lateralStartInclusive(track),
+                Math.min(trackLayout.lateralEndInclusive(track), squadLateral));
         return reachableTrackStage(squad, track, lateral, desiredForward, frame);
     }
 

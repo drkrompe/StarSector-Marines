@@ -15,6 +15,8 @@ public final class LandingPad {
         CIVIC_LANDING_ZONE,
         CIVILIAN_SPACEPORT,
         CONQUEST_ARRIVAL,
+        /** A hardstand on the defender garrison's own airfield, inside its ward. */
+        GARRISON_AIRFIELD,
         FALLBACK
     }
 
@@ -73,6 +75,12 @@ public final class LandingPad {
     public static LandingPad conquest(int centerX, int centerY, Approach approach) {
         return new LandingPad(centerX, centerY, 2, 2, approach,
                 Purpose.CONQUEST_ARRIVAL);
+    }
+
+    /** One hardstand on a defender garrison's airfield. */
+    public static LandingPad garrison(int centerX, int centerY, Approach approach) {
+        return new LandingPad(centerX, centerY, 2, 2, approach,
+                Purpose.GARRISON_AIRFIELD);
     }
 
     /** Backward-compatible one-cell berth for a dynamically selected LZ. */

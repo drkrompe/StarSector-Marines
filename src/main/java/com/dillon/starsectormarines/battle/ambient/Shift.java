@@ -34,6 +34,15 @@ import java.util.Map;
  * a bay with eight berths and one terminal cannot occupy eight technicians on a
  * rotation that includes the terminal.
  *
+ * <p>How long the loop takes is not a fact a shift knows or should. It names the
+ * jobs and where they are; how long somebody spends walking between two of them
+ * is what their legs and the pathfinder settle on the day, and the dwell begins
+ * when they arrive. A shift that budgeted the walk itself would be guessing at
+ * a corridor it cannot see, and the guess was wrong in the expensive direction:
+ * scheduled for an unhurried straight line across a whole ship, a crew that
+ * actually walks several times faster spends its life standing at the fixture
+ * waiting for the timetable to catch up.
+ *
  * <p>Routes name claim <b>groups</b> rather than coordinates, so two people
  * never work the same bench and a third waits for one to come free. The
  * coordinates carried on each stop are the deterministic fallback a pose-only
@@ -42,25 +51,17 @@ import java.util.Map;
  */
 public final class Shift {
 
-    /** Cells a second an ambient walker covers. Unhurried: this is a shift, not a sortie. */
+    /**
+     * Cells a second an ambient walker is drawn covering by the pose sampler.
+     *
+     * <p>Not the pace of a live shift, which is the actor's own movement through
+     * the ordinary pathfinder. This is what a host that samples a route for a
+     * pose without ticking anything assumes about the walk between two stops.
+     */
     public static final float WALK_SPEED = 0.72f;
 
     /** How near an armed stranger has to be before somebody stops working. */
     private static final float THREAT_RADIUS = 14f;
-
-    /**
-     * How much longer a walk between two sites is than the straight line between
-     * them.
-     *
-     * <p>The route clock budgets travel from the distance between stops, and a
-     * deck is a spine with rooms hung off it — so the actual walk from a berth
-     * forward to a mess amidships is nothing like the line drawn between them.
-     * Budget the straight line and the schedule moves somebody on to their next
-     * job before they have arrived at this one, and a shift that spans the ship
-     * never dwells anywhere at all. So a spanning shift is scheduled at a slower
-     * assumed pace, which is the same thing as allowing for the corridor.
-     */
-    private static final float CORRIDOR_DETOUR = 1.7f;
 
     /** How far apart in the loop two consecutive members start. */
     private static final float PHASE_STEP = 1.7f;
@@ -311,8 +312,7 @@ public final class Shift {
                     JobBoard.group(placed.site().id(), job)));
         }
         String id = role.name().toLowerCase(Locale.ROOT) + "-" + base.id() + "-" + index;
-        return new AmbientTaskRoute(id, index * PHASE_STEP,
-                spans ? WALK_SPEED / CORRIDOR_DETOUR : WALK_SPEED,
+        return new AmbientTaskRoute(id, index * PHASE_STEP, WALK_SPEED,
                 THREAT_RADIUS, threatPolicy, stops);
     }
 }

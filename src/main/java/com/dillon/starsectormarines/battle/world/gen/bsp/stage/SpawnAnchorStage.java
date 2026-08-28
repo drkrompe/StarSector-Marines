@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.Random;
 
@@ -28,8 +29,10 @@ public final class SpawnAnchorStage implements GenStage {
         int[] marine;
         int[] defender;
         if (axis != null) {
-            marine   = pickBiomeSpawn(grid, biomeMap, BiomeKind.BEACH,             rng, axis, false);
-            defender = pickBiomeSpawn(grid, biomeMap, BiomeKind.FORTRESS_DISTRICT, rng, axis, true);
+            marine   = pickBiomeSpawn(grid, ctx.topology, biomeMap, BiomeKind.BEACH,
+                    rng, axis, false);
+            defender = pickBiomeSpawn(grid, ctx.topology, biomeMap,
+                    BiomeKind.FORTRESS_DISTRICT, rng, axis, true);
         } else {
             marine   = pickSpawnAnchor(grid, 1, 1, ctx.width / 2, ctx.height - 1, rng);
             defender = pickSpawnAnchor(grid, ctx.width / 2, 1, ctx.width - 1, ctx.height - 1, rng);
@@ -51,7 +54,8 @@ public final class SpawnAnchorStage implements GenStage {
      * the wall sits at ~30% inset from the biome's attacker-facing edge, so 60%
      * reliably lands past it.
      */
-    private static int[] pickBiomeSpawn(NavigationGrid grid, BiomeMap biomeMap, BiomeKind biome,
+    private static int[] pickBiomeSpawn(NavigationGrid grid, CellTopology topology,
+                                        BiomeMap biomeMap, BiomeKind biome,
                                         Random rng, TraversalAxis axis, boolean deepBias) {
         int w = grid.getWidth();
         int h = grid.getHeight();
@@ -77,6 +81,18 @@ public final class SpawnAnchorStage implements GenStage {
         }
         int spanX = Math.max(1, hi - lo + 1);
         int spanY = Math.max(1, bot - top + 1);
+        // Muster in the open before settling for anywhere standable. A packed
+        // ward fills its band with building, so "any walkable cell" now lands
+        // indoors most of the time, and a spawn inside a mess hall is a rally
+        // point no relief column can drive to — the convoy means needs a heavy
+        // vehicle route to it and a doorway is not one.
+        for (int i = 0; i < 64; i++) {
+            int x = lo + rng.nextInt(spanX);
+            int y = top + rng.nextInt(spanY);
+            if (biomeMap.biomeAt(x, y) == biome && isOpenGround(grid, topology, x, y)) {
+                return new int[]{x, y};
+            }
+        }
         for (int i = 0; i < 64; i++) {
             int x = lo + rng.nextInt(spanX);
             int y = top + rng.nextInt(spanY);
@@ -88,6 +104,28 @@ public final class SpawnAnchorStage implements GenStage {
             }
         }
         return new int[]{ (lo + hi) / 2, (top + bot) / 2 };
+    }
+
+    /**
+     * Whether a vehicle could stand here: outdoors, and clear on every side.
+     *
+     * <p>Both halves matter. Indoor floor is disqualified because a building
+     * interior is reached through a doorway, and the width test is what rules
+     * out a yard cell wedged against a wall — either one alone still strands a
+     * relief column a cell short of where it was sent.
+     */
+    private static boolean isOpenGround(NavigationGrid grid, CellTopology topology,
+                                        int x, int y) {
+        if (!grid.isWalkable(x, y)) return false;
+        if (topology.getGroundKind(x, y) == CellTopology.GroundKind.INDOOR) return false;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                if (!grid.inBounds(x + dx, y + dy) || !grid.isWalkable(x + dx, y + dy)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
