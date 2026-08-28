@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.marine.CampaignMech;
@@ -243,5 +244,43 @@ final class ShipDeckBattleSceneTest {
             }
         }
         return opaque / (float) (image.getWidth() * image.getHeight());
+    }
+
+    /**
+     * A detail on a generated range puts rounds downrange.
+     *
+     * <p>The last of the four jobs a marine has, and the only one that resolves
+     * against the simulation rather than only posing. Nothing here is authored:
+     * the fitting bound each firing point to the butts it faces, so the shift's
+     * own focus is what the target is spawned on and what the shooter fires at.
+     *
+     * <p>Campaign personnel and inventory stay untouched — the shooters are
+     * simulation-owned marines on the deck's own roster, and the target is a
+     * frame the scene spawned, not a soldier anybody recruited.
+     */
+    @Test
+    void aDetailOnAGeneratedRangeFiresDownIt() {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            DeckGraph.Compartment range = scene.room(RoomPurpose.FIRING_RANGE);
+            assertNotNull(range, "the deck generated no firing range to shoot on");
+            long[] detail = scene.staff(range, CrewRole.MARINE, 4);
+            assertTrue(detail.length > 0, "the range took nobody on");
+
+            Set<Long> shooters = new HashSet<>();
+            for (long actor : detail) shooters.add(actor);
+
+            int rounds = 0;
+            for (int step = 0; step < 400 && rounds == 0; step++) {
+                scene.simulation().advance(0.1f);
+                for (ShotEvent shot : scene.simulation().getShotsThisFrame()) {
+                    if (shooters.contains(shot.shooterId)) rounds++;
+                }
+            }
+            assertTrue(rounds > 0,
+                    "the detail stood on the firing line and never fired a round");
+        }
     }
 }
