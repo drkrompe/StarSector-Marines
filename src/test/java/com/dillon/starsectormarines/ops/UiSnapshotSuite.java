@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
@@ -179,7 +180,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      */
     private static CompanyDeck companyShip(Supplier<List<MechVariant>> lance,
                                            Supplier<List<MarineSoldier>> company) {
-        CompanyDeck ship = new CompanyDeck(CompanyShip.founding(), SHIP_SEED,
+        CompanyDeck ship = new CompanyDeck(TestHulls.transport(), SHIP_SEED,
                 null, lance, company);
         ship.advance(18f);
         return ship;
