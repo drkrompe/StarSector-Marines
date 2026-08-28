@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
-import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -12,9 +11,7 @@ import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 
 import java.awt.Color;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -23,7 +20,9 @@ import java.util.function.Supplier;
  * <p>Theirs, not the ship's biggest bunkroom. A company is billeted across
  * however many berthings the deck laid down, so a fixed framing would show the
  * player a squad list beside a room that squad does not sleep in, and selecting
- * a different formation would change nothing on screen.
+ * a different formation would change nothing on screen. Which room is theirs is
+ * the ship's answer, not this canvas's, so the heading above the room and the
+ * room itself cannot disagree.
  *
  * <p>The room is not the squad, either. Everybody quartered there is drawn,
  * and selecting a squad marks its members rather than emptying the room of
@@ -73,7 +72,7 @@ public final class BarracksCanvas implements CanvasProducer {
         float height = context.metrics().surfaceHeight();
         List<MarineSoldier> squad = selected.get();
         ShipDeckBattleScene aboard = ship.live() ? ship.scene() : null;
-        DeckGraph.Compartment berthing = aboard != null ? framedRoom(squad) : null;
+        DeckGraph.Compartment berthing = aboard != null ? ship.quartersFor(squad) : null;
         if (berthing == null) {
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
@@ -106,32 +105,6 @@ public final class BarracksCanvas implements CanvasProducer {
                     Projection.forHost(aboard, view, host[0]));
         }
         context.hostPass(aboard.pass(view, ACTOR_LAYERS));
-    }
-
-    /**
-     * The compartment most of the selected squad bunks in.
-     *
-     * <p>Most rather than first: a squad straddles two bunkrooms when the muster
-     * runs out of racks part way through it, and the room worth showing is the
-     * one holding more of them. A squad away on a stationing has nobody aboard
-     * at all, and then the ship's principal berthing stands in - the panel still
-     * has to draw something, and an empty frame reads as a broken screen rather
-     * than as a squad being elsewhere.
-     */
-    private DeckGraph.Compartment framedRoom(List<MarineSoldier> squad) {
-        Map<DeckGraph.Compartment, Integer> tally = new LinkedHashMap<>();
-        for (MarineSoldier soldier : squad) {
-            DeckGraph.Compartment berthing = ship.quartersOf(soldier.id());
-            if (berthing != null) tally.merge(berthing, 1, Integer::sum);
-        }
-        DeckGraph.Compartment best = null;
-        int most = 0;
-        for (Map.Entry<DeckGraph.Compartment, Integer> entry : tally.entrySet()) {
-            if (entry.getValue() <= most) continue;
-            most = entry.getValue();
-            best = entry.getKey();
-        }
-        return best != null ? best : ship.room(RoomPurpose.BARRACKS);
     }
 
     /**

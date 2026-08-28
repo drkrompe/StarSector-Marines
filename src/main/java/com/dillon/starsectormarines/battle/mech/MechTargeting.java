@@ -78,6 +78,18 @@ public final class MechTargeting {
             best = candidate;
             bestDistance = distance;
         }
+        for (long candidate : sim.getConvoyVehicleIds()) {
+            if (!sim.isCombatTarget(candidate)
+                    || sim.identity().faction(candidate) == ownFaction) continue;
+            float distance = TacticalScoring.cellDistance(
+                    sim.world().x(mech), sim.world().y(mech),
+                    sim.world().x(candidate), sim.world().y(candidate));
+            if (distance < bestDistance
+                    && isDirectlyEngageable(mech, candidate, hipFacing, range, sim)) {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
         return best;
     }
 
@@ -86,7 +98,7 @@ public final class MechTargeting {
                                                  BattleView sim) {
         if (target == 0L || sim.resolveUnit(target) == 0L) return false;
         if (sim.identity().faction(target) == sim.identity().faction(mech)
-                || !sim.identity().type(target).combatant) {
+                || !sim.isCombatTarget(target)) {
             return false;
         }
         float dx = sim.world().x(target) - sim.world().x(mech);

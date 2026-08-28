@@ -4,9 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — expanded the overview to the whole four-bay facility and
-its battle-owned fabrication, logistics, and inspection activity, and removed
-the scenario-authored ceiling from debug mech rosters.
+Updated: 2026-08-27 — made upper-chassis facing preserve remembered contact or
+short-horizon route intent when no live target is active.
 
 ## Purpose
 
@@ -114,6 +113,14 @@ wedge still makes body facing matter. When a lance moves in open terrain,
 roles arrange its members forward, shoulder, and rearward; terrain may relax
 that arrangement while retaining a minimum allied-mech separation. Idle posts
 are not re-formed merely for visual tidiness.
+
+Facing communicates intent without granting knowledge or changing locomotion.
+An active target owns upper-chassis aim. Without one, the mech looks toward its
+squad's primary remembered contact at the last-known cell; without contact, it
+looks a short horizon along its queued route so an approaching turn reads before
+the hips reach it. Remembered facing never reads the hidden unit's live position
+and never becomes permission to fire. Moving hips remain aligned to the path;
+stationary hips may settle toward the same remembered contact.
 
 ## Authority flow
 

@@ -3,11 +3,11 @@ package com.dillon.starsectormarines.battle.combat;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
-import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 
 import java.util.ArrayList;
@@ -132,11 +132,13 @@ public final class BallisticResolver {
         final int doodadLevel;
         final long unitId;
         final boolean friendly;
+        final boolean vehicle;
         final int victimCellX;
         final int victimCellY;
 
         private Event(float t, boolean doodad, float x, float y, float z, int doodadLevel,
-                       long unitId, boolean friendly, int victimCellX, int victimCellY) {
+                       long unitId, boolean friendly, boolean vehicle,
+                       int victimCellX, int victimCellY) {
             this.t = t;
             this.doodad = doodad;
             this.x = x;
@@ -145,17 +147,20 @@ public final class BallisticResolver {
             this.doodadLevel = doodadLevel;
             this.unitId = unitId;
             this.friendly = friendly;
+            this.vehicle = vehicle;
             this.victimCellX = victimCellX;
             this.victimCellY = victimCellY;
         }
 
         static Event doodad(float t, float x, float y, float z, int level) {
-            return new Event(t, true, x, y, z, level, 0L, false, 0, 0);
+            return new Event(t, true, x, y, z, level, 0L, false, false, 0, 0);
         }
 
-        static Event unit(float t, float x, float y, float z, long unitId, boolean friendly,
+        static Event unit(float t, float x, float y, float z, long unitId,
+                           boolean friendly, boolean vehicle,
                            int victimCellX, int victimCellY) {
-            return new Event(t, false, x, y, z, 0, unitId, friendly, victimCellX, victimCellY);
+            return new Event(t, false, x, y, z, 0, unitId, friendly, vehicle,
+                    victimCellX, victimCellY);
         }
     }
 
@@ -163,6 +168,7 @@ public final class BallisticResolver {
     private final DoodadService doodads;
     private final UnitSpatialIndex unitIndex;
     private final UnitRosterService roster;
+    private final ConvoyService convoy;
 
     public BallisticResolver(NavigationGrid grid, DoodadService doodads,
                               UnitSpatialIndex unitIndex, UnitRosterService roster) {
@@ -170,6 +176,7 @@ public final class BallisticResolver {
         this.doodads = doodads;
         this.unitIndex = unitIndex;
         this.roster = roster;
+        this.convoy = roster.convoy();
     }
 
     /**
@@ -228,7 +235,10 @@ public final class BallisticResolver {
         // contribution and reproduces S1's aim point exactly.
         float wTargetX = 0f;
         float wTargetY = 0f;
-        if (movement.has(target)) {
+        if (convoy.isVehicle(target)) {
+            wTargetX = convoy.velocityX(target);
+            wTargetY = convoy.velocityY(target);
+        } else if (movement.has(target)) {
             wTargetX = movement.velX(target);
             wTargetY = movement.velY(target);
         }
@@ -240,10 +250,9 @@ public final class BallisticResolver {
         // rotates the real ground ray; elevation error becomes a linear Z
         // slope. An authored miss therefore visibly clears the intended
         // silhouette instead of crossing it and failing a hidden second roll.
-        UnitType targetType = roster.identity().type(target);
         TargetPlaneAim.Sample aim = TargetPlaneAim.sample(
                 finalAccuracy, world.incomingAccuracyMult(target), effectiveSpread,
-                roster.radius(target), roster.hitHalfHeight(target), rng);
+                targetRadius(target), targetHitHalfHeight(target), rng);
         float baseDx = leadX - fromX;
         float baseDy = leadY - fromY;
         float baseDist = (float) Math.sqrt(baseDx * baseDx + baseDy * baseDy);
@@ -311,10 +320,15 @@ public final class BallisticResolver {
         float margin = GATHER_MARGIN_CELLS + MAX_MOVER_SPEED_CELLS * (rayLen / roundVelocity);
         LongBucket candidates = new LongBucket();
         unitIndex.gatherAlongSegment(fromX, fromY, rayEndX, rayEndY, margin, candidates);
+        for (long vehicleId : convoy.entityIds()) {
+            if (convoy.isTargetable(vehicleId)) candidates.add(vehicleId);
+        }
         for (int i = 0; i < candidates.size; i++) {
             long candidateId = candidates.ids[i];
             if (candidateId == source.entityId()) continue;
-            if (!roster.isAliveById(candidateId)) continue;
+            boolean vehicle = convoy.isVehicle(candidateId);
+            if (vehicle ? !convoy.isTargetable(candidateId)
+                    : !roster.isAliveById(candidateId)) continue;
 
             Faction candidateFaction = roster.identity().faction(candidateId);
             // Civilians are neutral rather than faction-allied, but marine
@@ -327,8 +341,7 @@ public final class BallisticResolver {
 
             // The same physical body circle SeparationSystem shoves apart and
             // Detonations/WorldPicker size against — one radius concept per body.
-            UnitType candidateType = roster.identity().type(candidateId);
-            float r = roster.radius(candidateId);
+            float r = vehicle ? convoy.targetRadius(candidateId) : roster.radius(candidateId);
             float ux = world.x(candidateId);
             float uy = world.y(candidateId);
 
@@ -342,7 +355,10 @@ public final class BallisticResolver {
             // is intentionally unsynchronized.
             float wx = 0f;
             float wy = 0f;
-            if (movement.has(candidateId)) {
+            if (vehicle) {
+                wx = convoy.velocityX(candidateId);
+                wy = convoy.velocityY(candidateId);
+            } else if (movement.has(candidateId)) {
                 wx = movement.velX(candidateId);
                 wy = movement.velY(candidateId);
             }
@@ -390,7 +406,9 @@ public final class BallisticResolver {
             // apply their own Z gates at their respective event sites;
             // structural walls alone remain full-height.
             float contactZ = fromZ + zSlope * rayDistAtEntry;
-            if (Math.abs(contactZ) > roster.hitHalfHeight(candidateId)) continue;
+            if (Math.abs(contactZ) > (vehicle
+                    ? convoy.hitHalfHeight(candidateId)
+                    : roster.hitHalfHeight(candidateId))) continue;
 
             boolean friendly = candidateFaction == shooterFaction;
             if (friendly && rayDistAtEntry < PROXIMITY_CATCH_ZERO_DISTANCE) continue;
@@ -405,7 +423,7 @@ public final class BallisticResolver {
             int victimCellX = (int) Math.floor(ux + wx * sEntry);
             int victimCellY = (int) Math.floor(uy + wy * sEntry);
             events.add(Event.unit(sEntry, contactX, contactY, contactZ,
-                    candidateId, friendly, victimCellX, victimCellY));
+                    candidateId, friendly, vehicle, victimCellX, victimCellY));
         }
 
         // Step 5: walk events sorted by t; first stop wins. A wall (when
@@ -429,8 +447,9 @@ public final class BallisticResolver {
             long victim = e.unitId;
             int fromDx = shooterCellX - e.victimCellX;
             int fromDy = shooterCellY - e.victimCellY;
-            int coverLevel = grid.getCoverAt(e.victimCellX, e.victimCellY, fromDx, fromDy);
-            float coverCatchHalfHeight = grid.getCoverCatchHalfHeight(
+            int coverLevel = e.vehicle ? 0
+                    : grid.getCoverAt(e.victimCellX, e.victimCellY, fromDx, fromDy);
+            float coverCatchHalfHeight = e.vehicle ? 0f : grid.getCoverCatchHalfHeight(
                     e.victimCellX, e.victimCellY, fromDx, fromDy);
             if (!intersectsCatchBand(e.z, coverCatchHalfHeight)) coverLevel = 0;
             float coverBlockChance = BLOCK_CHANCE_BY_LEVEL[
@@ -458,6 +477,14 @@ public final class BallisticResolver {
         StopKind finalKind = wallFound ? StopKind.WALL : StopKind.OVERSHOOT;
         return new Resolution(rayEndX, rayEndY, fromZ + zSlope * rayLen, rayLen / roundVelocity,
                 0L, false, false, finalKind);
+    }
+
+    private float targetRadius(long id) {
+        return convoy.isVehicle(id) ? convoy.targetRadius(id) : roster.radius(id);
+    }
+
+    private float targetHitHalfHeight(long id) {
+        return convoy.isVehicle(id) ? convoy.hitHalfHeight(id) : roster.hitHalfHeight(id);
     }
 
     /** Entry fraction of segment {@code a -> b} into one closed unit cell. */

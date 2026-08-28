@@ -118,6 +118,12 @@ public final class BarracksScreen implements Screen {
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("selectedSquadSummary", viewModel.selectedSquadSummary());
         props.put("quartersStatus", viewModel.quartersStatus());
+        // Computed rather than fixed: selecting a formation moves the camera to
+        // that squad's own berthing, and a heading that stayed put would name a
+        // different compartment from the one on screen.
+        props.put("contextLabel", reactor.computed(() -> ShipBreadcrumb.of(
+                context.companyDeck().ship(),
+                context.companyDeck().quartersFor(viewModel.sceneMarines()))));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
                 context::shipHasRoom,
                 this::close,

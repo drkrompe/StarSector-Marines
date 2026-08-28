@@ -1,10 +1,10 @@
 # Convoy
 
-Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defender `HEAVY_APC` as its operational variant and vehicle interaction, damage, variants, scale, and terminal recovery as extension paths.
+Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defender `HEAVY_APC` as its operational, damageable variant and moving-vehicle interaction, variants, scale, and terminal recovery as extension paths.
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — made aligned terminal-region landing authoritative when no safer exact approach remains.
+Updated: 2026-08-27 — added shared armor/structure, combat targeting, and persistent obstructing wrecks.
 
 ## Purpose and boundary
 
@@ -40,14 +40,17 @@ selection vocabulary; it does not constrain the route between selected points.
 
 A convoy mission moves through a single lifecycle:
 
-`PENDING → INCOMING → LANDED → OVERWATCH → DEPARTING → GONE`.
+`PENDING → INCOMING → LANDED → OVERWATCH → DEPARTING → GONE`, with
+`WRECKED` as a terminal transition from any visible live state.
 
 `PENDING` is the off-map stagger. `INCOMING` drives from an off-map staging
 point to the landing zone. `LANDED` releases passengers one at a time into a
 nearby free cell and assigns their new squad to the reinforcement objective.
 An armed APC then `OVERWATCH`s before `DEPARTING`; a variant that does not
 linger may go straight to departure. `GONE` is terminal and removes the world
-actor. Dispatch proves inbound and outbound travel before creating the vehicle.
+actor. `WRECKED` stops motion and weapons, removes combat targetability, and
+retains the chassis as presentation and navigation authority. Dispatch proves
+inbound and outbound travel before creating the vehicle.
 Entries, junctions, and exits are tried in stable ranked order, so one bad route
 does not suppress a later valid candidate. A perimeter route stages far enough
 inside the map for the full body to fit while its visible path still begins and
@@ -55,13 +58,23 @@ ends off-map. If no complete journey exists, the means rejects atomically and
 the reinforcement dispatcher may try its next provider; no ticket-consuming
 false success or stranded actor is created.
 
-The vehicle is a world-resident actor but not a normal grid combatant. Its
-identity, motion, mission, and optional turret authority are separate from its
-passenger payload. It is rendered and can fire while visible; it does not yet
-occupy the infantry grid or participate in ordinary collision/damage handling.
-That distinction is intentional and makes the infantry-interaction and
-vehicle-damage stories real extensions rather than claims about present
-behavior.
+The vehicle is a world-resident combat target but not a normal grid combatant.
+Its ground identity, kinematics, mission, shared `HEALTH`/`ARMOR`, and optional
+turret authority are separate from its passenger payload. Target acquisition,
+direct ballistics, contact-fused explosives, and area detonations include a
+small explicit convoy candidate set; this avoids falsely adding vehicles to the
+dense infantry roster or occupancy index. Its continuous body supplies target
+position, velocity, radius, and height. Moving vehicles still do not occupy the
+infantry grid or participate in ordinary unit-unit collision; that remains the
+vehicle-interaction extension.
+
+`HEAVY_APC` durability is 220 structure behind 160 armor at rating 18. It uses
+the shared durability law: low-penetration rifles chip armor slowly, while
+marine rockets and mech LRMs defeat it in a few committed hits or one strong
+salvo. HP zero is once-only. Any passengers still onboard die except for one
+or two faction-rostered infantry who eject into nearby free cells at 25% HP.
+The live mission becomes `WRECKED`, its turret and body stop, and stacked or
+late impacts cannot repeat wreck or passenger effects.
 
 ## Route, corridor, and motion
 
@@ -107,10 +120,11 @@ so later attempts cannot ping-pong through an earlier bad bend. If no such route
 exists, reroute attempts are rate-limited while ordinary tracking continues;
 the durable abort, hold, or deliver-in-place terminal outcome remains open.
 
-The macro terrain cost and clearance inputs are built for a battle and reused
-by recovery. They do not currently rebake for every terrain change; the local
-planner sees live navigation changes, while a later policy can decide when a
-macro reroute must refresh its inputs.
+The macro terrain cost input is built for a battle and reused by recovery.
+Clearance is an immutable snapshot, so creating a wreck rebuilds every active
+mission's clearance and later dispatches always derive a fresh mask. The local
+planner sees the same live navigation closure. Thus neither recovery nor a new
+reinforcement can honestly plan through a destroyed APC.
 
 ## Standing laws
 
@@ -130,6 +144,10 @@ macro reroute must refresh its inputs.
 - Passenger deboarding uses the same faction roster and squad/objective
   conventions as other reinforcement means. The convoy creates delivery; it
   does not create a separate infantry ruleset.
+- Vehicle durability uses the shared armor/structure authority. A destroyed
+  vehicle is no longer a combat target or weapon platform, but its persistent
+  footprint closes navigation cells and invalidates clearance before later
+  vehicles plan or recover.
 
 ## Adjacent domains and extension points
 
@@ -140,8 +158,9 @@ retired. `[[road_graph_design]]` remains the durable generator rationale.
 
 Convoy meets `reinforcement-nouns.md` at the orchestration, supply-gate, and
 faction-roster boundary, and `conquest-nouns.md` at compound capture ownership.
-The air domain remains the delivery counterpart, while the future air-to-ground
-interaction depends on a real vehicle damage model.
+The air domain remains the delivery counterpart. Its existing ground-target
+fire may damage vehicles through the shared target and damage boundaries;
+airborne-specific targeting policy remains Air-owned.
 
 Future variants belong behind vehicle capabilities rather than another parallel
 convoy model: payload/deboard effect, chassis/body, clearance/handling profile,

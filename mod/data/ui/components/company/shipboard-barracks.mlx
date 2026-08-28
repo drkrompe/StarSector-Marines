@@ -1,10 +1,10 @@
-<template props="squadRows,musterRows,recordCells,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="contextLabel,squadRows,musterRows,recordCells,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
   <div id="barracks-root" class="barracks-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / HABITATION DECK / MARINE QUARTERS" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="{contextLabel}" />
 
     <div id="barracks-room-bar" class="panel barracks-room-bar">
       <div id="barracks-room-title" class="label heading tone-edge">BARRACKS  //  COMPANY QUARTERS</div>
-      <div id="barracks-room-copy" class="label tone-muted">Browse the formations aboard the flagship between planetary operations.</div>
+      <div id="barracks-room-copy" class="label tone-muted">Browse the formations aboard the company ship between planetary operations.</div>
     </div>
 
     <div id="barracks-body" class="barracks-body">

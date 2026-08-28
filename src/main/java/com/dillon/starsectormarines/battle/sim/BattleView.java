@@ -127,8 +127,14 @@ public interface BattleView {
     /** Thread-safe projectile snapshot for planning and opportunity-fire scoring. */
     List<Projectile> snapshotActiveProjectiles();
 
-    /** Resolve a unit id to itself if a live unit holds it, else {@code 0L}. */
+    /** Resolve any held live roster entity or targetable convoy vehicle, else {@code 0L}. */
     long resolveUnit(long id);
+
+    /** True for a live hostile-capable roster actor or a targetable convoy vehicle. */
+    boolean isCombatTarget(long id);
+
+    /** Armor-aware target classification used by rockets, satchels, and mech preference. */
+    boolean isHardenedTarget(long id);
 
     /** Entity-access facade for broad by-id component reads ({@code world().hp(id)}); focused consumers should prefer the owning component service. See {@link World}. */
     World world();

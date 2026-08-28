@@ -170,6 +170,7 @@ public final class VehicleMission {
     /** True when the vehicle is on-map and rendered. */
     public boolean isVisible() {
         return state == VehicleState.INCOMING || state == VehicleState.LANDED
-                || state == VehicleState.OVERWATCH || state == VehicleState.DEPARTING;
+                || state == VehicleState.OVERWATCH || state == VehicleState.DEPARTING
+                || state == VehicleState.WRECKED;
     }
 }

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -98,8 +99,22 @@ public final class World {
     // spans [cx,cx+1), center at cx+0.5); cellX/cellY are the derived grid cell
     // (floor) for nav/LoS/fog lookups, kept as int-returning accessors so the
     // existing cell-space call sites compile unchanged.
-    public float x(long id) { return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X); }
-    public float y(long id) { return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y); }
+    public float x(long id) {
+        if (entityWorld.has(id, components.POSITION)) {
+            return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
+        }
+        GroundBody body = groundBody(id);
+        if (body != null) return body.x;
+        return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
+    }
+    public float y(long id) {
+        if (entityWorld.has(id, components.POSITION)) {
+            return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
+        }
+        GroundBody body = groundBody(id);
+        if (body != null) return body.y;
+        return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
+    }
     public void setPos(long id, float x, float y) {
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, x);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, y);
@@ -117,8 +132,23 @@ public final class World {
     // fell). Reads are TOLERANT (0 when the entity is gone / lacks it) —
     // render code must not fail-loud on a maybe-released ref, unlike the
     // strict hp/cell accessors. Center-based, same as x()/y().
-    public float renderX(long id) { return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X, 0f); }
-    public float renderY(long id) { return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y, 0f); }
+    public float renderX(long id) {
+        GroundBody body = groundBody(id);
+        return body != null ? body.x
+                : entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X, 0f);
+    }
+    public float renderY(long id) {
+        GroundBody body = groundBody(id);
+        return body != null ? body.y
+                : entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y, 0f);
+    }
+
+    private GroundBody groundBody(long id) {
+        return entityWorld.has(id, components.GROUND_KINEMATICS)
+                ? (GroundBody) entityWorld.getObject(id, components.GROUND_KINEMATICS,
+                    BattleComponents.GROUND_KINEMATICS_BODY)
+                : null;
+    }
 
     // Modular appearance is an OPTIONAL, live-only presentation capability.
     // Body and helmet selectors are intentionally independent equipment writes.

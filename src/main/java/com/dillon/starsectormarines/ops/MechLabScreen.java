@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
@@ -100,13 +99,8 @@ public final class MechLabScreen implements Screen {
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             () -> previewSprites().layeredMechSprites(),
-                            () -> previewSprites().layeredUnitSprites().get(
-                                    LayeredArmorFamily.ARMY_GREEN),
-                            () -> previewSprites().tileSheet(),
-                            () -> previewSprites().roadSheet(),
                             () -> previewSprites().mechLabWeldingTorch(),
                             () -> previewSprites().mechLabWeldingSparks(),
-                            cameraController::pose,
                             viewModel::fittingFocused,
                             () -> context.companyDeck().scene(),
                             this::framing,
@@ -130,6 +124,8 @@ public final class MechLabScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("contextLabel", ShipBreadcrumb.of(context.companyDeck().ship(),
+                context.companyDeck().room(RoomPurpose.VEHICLE_BAY)));
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
