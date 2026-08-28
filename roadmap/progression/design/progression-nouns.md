@@ -72,13 +72,13 @@ legibility.
   appearance package. A pattern realizes one assault-armor role and may carry
   equipment provenance. Unlike weapon grade, it changes survivability and
   movement tradeoffs as its own kit choice.
-- **Integral system** — a capability the suit itself carries, declared by at
-  most one per armour pattern and by most patterns not at all. It is authored
-  per pattern rather than per role, so which concrete suit was recovered is
-  what surprises the player, and it never spends the billet's carried special
-  item. An integral system must express itself as behavior — movement,
-  protection with a clock on it, a delivered payload, perception — never as
-  durability.
+- **Integral system** — a capability the suit itself carries, at most one per
+  armour pattern. It is authored per pattern rather than per role, so which
+  concrete suit was recovered is what surprises the player, and it never spends
+  the billet's carried special item. An integral system must express itself as
+  behavior — movement, protection with a clock on it, a delivered payload,
+  perception — never as durability. Whether a pattern carries one is a question
+  about what that suit is for, not a quota: see `integral-system-slate.md`.
 - **Equipment template card** — permanent collected capability for one primary
   family-and-grade, armor pattern, or special item. It gates authoring and issue,
   is never consumed, and is distinct from a reusable squad definition.
