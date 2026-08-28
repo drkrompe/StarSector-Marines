@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.DefenseFrontage;
 import com.dillon.starsectormarines.battle.decision.DefenseFrontage.Aperture;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -90,6 +91,18 @@ public final class FrontageDefense implements Goal {
     /** Radius around the node anchor searched for reserve stances. Wide enough to find walkable ground near an anchor that is itself a structure cell. */
     public static final int RESERVE_RADIUS = 6;
 
+    /**
+     * How many of a compound's garrisons may man its perimeter, taken in node
+     * priority order.
+     *
+     * <p>Bounded rather than open: a wall is worth reinforcing, but a compound
+     * whose every garrison stood on the outer wall would have nothing left
+     * holding the buildings, and the assault that got through the wall — which
+     * is the assault that matters — would walk into an empty base. The squads
+     * that do share a perimeter partition it; they do not double up on posts.
+     */
+    public static final int MAX_PERIMETER_GARRISONS = 2;
+
     private FrontageDefense() {}
 
     @Override public String name() { return "FrontageDefense"; }
@@ -117,7 +130,19 @@ public final class FrontageDefense implements Goal {
     }
 
     /** The resolved posture — kept together so {@link #relevance} and {@link #customPlan} answer from one derivation rather than two that could disagree. */
-    private record Held(ApertureHold hold) {}
+    private record Held(ApertureHold hold, Layer layer) {}
+
+    /**
+     * The envelopes a squad can hold, outermost first. A compound's perimeter
+     * is one envelope and each building's shell inside it is another, so a
+     * garrison that loses the wall still has something to hold.
+     */
+    enum Layer {
+        /** The whole compound's perimeter wall. */
+        COMPOUND,
+        /** One structure's own shell, facing whatever is now inside the compound. */
+        STRUCTURE
+    }
 
     /**
      * Resolve this squad's frontage posture, or null when it should not stand
@@ -129,17 +154,30 @@ public final class FrontageDefense implements Goal {
     private Held plan(Squad squad, BattleView sim) {
         TacticalNode node = heldNode(squad, sim);
         if (node == null) return null;
+        Set<Long> claimed = stancesClaimedByOthers(squad, sim);
+        for (Layer layer : layersFor(squad, sim)) {
+            Held held = planLayer(squad, node, layer, claimed, sim);
+            if (held != null) return held;
+        }
+        return null;
+    }
 
-        int[] box = heldBox(squad, node, sim);
-        List<Integer> heldZones = heldZones(squad, sim);
-        if (heldZones.isEmpty()) return null;
-        if (breached(heldZones, squad, sim)) return null;
+    /**
+     * Hold {@code layer}'s frontage, or null when this squad cannot — which is
+     * the caller's signal to try the next envelope in. A layer is unavailable
+     * when it has no interior, when an enemy is already inside it, when its
+     * envelope yields no apertures, when none of them are threatened, or when
+     * every post that would be worth taking is already manned by somebody else.
+     */
+    private Held planLayer(Squad squad, TacticalNode node, Layer layer,
+                           Set<Long> claimed, BattleView sim) {
+        int[] box = boxFor(node, layer);
+        List<Integer> zones = zonesFor(node, layer, sim);
+        if (zones.isEmpty() || breached(zones, squad, sim)) return null;
 
-        List<Aperture> frontage = DefenseFrontage.derive(
-                box[0], box[1], box[2], box[3], DefenseFrontage.COMPOUND_MARGIN, sim);
-        if (frontage.isEmpty()) return null;
-
-        List<Aperture> threatened = byThreat(frontage, squad.faction, sim);
+        List<Aperture> threatened = byThreat(DefenseFrontage.derive(
+                box[0], box[1], box[2], box[3], DefenseFrontage.COMPOUND_MARGIN, sim),
+                squad.faction, sim);
         if (threatened.isEmpty()) return null;
 
         int alive = Math.max(1, squad.aliveMembers);
@@ -148,7 +186,7 @@ public final class FrontageDefense implements Goal {
         int onPost = Math.max(1, alive - reserve);
 
         List<ApertureHold.Post> posts = new ArrayList<>(alive);
-        Set<Long> taken = new HashSet<>();
+        Set<Long> taken = new HashSet<>(claimed);
         for (Aperture aperture : threatened) {
             if (posts.size() >= onPost) break;
             if (!taken.add(key(aperture.stanceX(), aperture.stanceY()))) continue;
@@ -157,22 +195,68 @@ public final class FrontageDefense implements Goal {
         }
         if (posts.isEmpty()) return null;
 
-        for (int[] cell : reserveCells(node, heldZones, alive - posts.size(), taken, sim)) {
+        for (int[] cell : reserveCells(node, zones, alive - posts.size(), taken, sim)) {
             posts.add(ApertureHold.Post.reserve(cell[0], cell[1]));
         }
-        return new Held(new ApertureHold(posts));
+        return new Held(new ApertureHold(posts), layer);
     }
 
     /**
-     * The footprint this squad's frontage is derived against: the whole
-     * compound for its primary garrison or a marine holder, one structure for
-     * anybody else holding a place inside it.
+     * Envelopes this squad may hold, outermost first. A perimeter holder can
+     * fall back to its own building when the compound is entered; everybody
+     * else has only their building to begin with.
      */
-    private static int[] heldBox(Squad squad, TacticalNode node, BattleView sim) {
+    private static List<Layer> layersFor(Squad squad, BattleView sim) {
         return holdsWholeCompound(squad, sim)
+                ? List.of(Layer.COMPOUND, Layer.STRUCTURE)
+                : List.of(Layer.STRUCTURE);
+    }
+
+    private static int[] boxFor(TacticalNode node, Layer layer) {
+        return layer == Layer.COMPOUND
                 ? new int[]{node.compoundLeft(), node.compoundTop(),
                 node.compoundRight(), node.compoundBottom()}
                 : new int[]{node.left, node.top, node.right, node.bottom};
+    }
+
+    private static List<Integer> zonesFor(TacticalNode node, Layer layer, BattleView sim) {
+        int[] box = boxFor(node, layer);
+        return GarrisonArea.garrisonZones(
+                box[0] - DefenseFrontage.COMPOUND_MARGIN, box[1] - DefenseFrontage.COMPOUND_MARGIN,
+                box[2] + DefenseFrontage.COMPOUND_MARGIN, box[3] + DefenseFrontage.COMPOUND_MARGIN,
+                sim);
+    }
+
+    /**
+     * Stance cells other friendly squads are already manning.
+     *
+     * <p>This is what lets more than one garrison share a perimeter: each takes
+     * the most threatened apertures nobody else has taken, so reinforcing a
+     * wall widens the frontage held rather than stacking two squads on the same
+     * few windows. Read from live plans, which is exact while squad replanning
+     * is serial; were that to change, this would need a real reservation rather
+     * than a read.
+     */
+    private static Set<Long> stancesClaimedByOthers(Squad self, BattleView sim) {
+        Set<Long> claimed = new HashSet<>();
+        for (Squad other : sim.getSquads()) {
+            if (other == null || other.id == self.id) continue;
+            if (other.faction != self.faction || other.aliveMembers <= 0) continue;
+            SquadPlan plan = other.currentPlan;
+            if (plan == null || plan.isComplete()) continue;
+            SquadPlan.Step step = plan.currentStep();
+            if (step == null || !(step.action instanceof ApertureHold hold)) continue;
+            for (ApertureHold.Post post : hold.posts()) {
+                claimed.add(key(post.standX(), post.standY()));
+            }
+        }
+        return claimed;
+    }
+
+    /** Which envelope this squad is holding right now, or null when it is not standing to. Diagnostics only. */
+    static Layer activeLayer(Squad squad, BattleView sim) {
+        Held held = INSTANCE.plan(squad, sim);
+        return held == null ? null : held.layer();
     }
 
     /**
@@ -181,7 +265,31 @@ public final class FrontageDefense implements Goal {
      * report which layer a garrison is holding without guessing at the rule.
      */
     static boolean holdsWholeCompound(Squad squad, BattleView sim) {
-        return GarrisonCompound.defenderAreaPatrol(squad, sim) || marineHeldNode(squad) != null;
+        if (marineHeldNode(squad) != null) return true;
+        if (!squad.holdsFireUntilKillZone || sim == null) return false;
+        TacticalNode node = squad.assignedNode;
+        if (node == null) return false;
+        if (GarrisonArea.garrisonZones(node, DefenseFrontage.COMPOUND_MARGIN, sim).size() < 2) {
+            return false;
+        }
+        return perimeterRank(node, sim) < MAX_PERIMETER_GARRISONS;
+    }
+
+    /**
+     * How many nodes of this compound outrank {@code node}. Zero is the primary
+     * node, and anything under {@link #MAX_PERIMETER_GARRISONS} may man the
+     * wall. Deliberately a rank rather than a "is primary" test: that is the
+     * only difference between one garrison on the wall and a bounded few.
+     */
+    private static int perimeterRank(TacticalNode node, BattleView sim) {
+        TacticalMap map = sim.getTacticalMap();
+        if (map == null) return 0;
+        int rank = 0;
+        for (TacticalNode other : map.forFaction(node.defaultGuard)) {
+            if (other == node || !GarrisonCompound.sameCompound(other, node)) continue;
+            if (GarrisonCompound.higherPriority(other, node)) rank++;
+        }
+        return rank;
     }
 
     /**
@@ -193,11 +301,7 @@ public final class FrontageDefense implements Goal {
     static List<Integer> heldZones(Squad squad, BattleView sim) {
         TacticalNode node = heldNode(squad, sim);
         if (node == null) return List.of();
-        int[] box = heldBox(squad, node, sim);
-        return GarrisonArea.garrisonZones(
-                box[0] - DefenseFrontage.COMPOUND_MARGIN, box[1] - DefenseFrontage.COMPOUND_MARGIN,
-                box[2] + DefenseFrontage.COMPOUND_MARGIN, box[3] + DefenseFrontage.COMPOUND_MARGIN,
-                sim);
+        return zonesFor(node, layersFor(squad, sim).get(0), sim);
     }
 
     /**
