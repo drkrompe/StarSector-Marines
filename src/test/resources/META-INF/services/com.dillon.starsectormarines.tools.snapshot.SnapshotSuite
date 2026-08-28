@@ -8,3 +8,4 @@ com.dillon.starsectormarines.battle.deployable.PointDefenceSceneSnapshotSuite
 com.dillon.starsectormarines.battle.deployable.DeployedCoverSceneSnapshotSuite
 com.dillon.starsectormarines.battle.appearance.IntegralSystemFxSnapshotSuite
 com.dillon.starsectormarines.battle.vision.PerceptionSweepSceneSnapshotSuite
+com.dillon.starsectormarines.battle.air.AirfieldSortieSnapshotSuite
