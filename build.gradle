@@ -366,6 +366,75 @@ shadowJar {
     exclude 'module-info.class'
 }
 
+// "Tool and test infrastructure must not enter the shipped mod jar" is a rule
+// this repository states in several places and has so far enforced by someone
+// remembering to unzip the jar and look. It is exactly the kind of rule that
+// holds until the day a tool class acquires an innocent-looking import.
+//
+// The forbidden set is computed rather than listed: everything on the tool
+// runtime classpath that is not also on the shipped runtime classpath is, by
+// construction, tool-only — the authoring workbench, the MCP host, JUnit, and
+// the game's own jars, which the game provides and we must never bundle. A new
+// tool dependency is therefore covered the moment it is added, with no list to
+// keep in step.
+tasks.register('verifyModJarBoundary') {
+    group = 'verification'
+    description = 'Fail if tool/test-only code reached the shipped mod jar'
+    dependsOn tasks.named('shadowJar')
+
+    def shipped = tasks.named('shadowJar').flatMap { it.archiveFile }
+    def toolClasspath = sourceSets.test.runtimeClasspath
+    def shippedClasspath = sourceSets.main.runtimeClasspath
+    inputs.file(shipped)
+    inputs.files(toolClasspath)
+
+    doLast {
+        Set<String> allowed = classEntries(shippedClasspath)
+        Set<String> forbidden = classEntries(toolClasspath)
+        forbidden.removeAll(allowed)
+
+        List<String> leaked = []
+        new java.util.zip.ZipFile(shipped.get().asFile).withCloseable { archive ->
+            archive.entries().each { entry ->
+                if (forbidden.contains(entry.name)) leaked.add(entry.name)
+            }
+        }
+        if (!leaked.isEmpty()) {
+            throw new GradleException("tool/test-only classes reached "
+                    + shipped.get().asFile.name + ":\n  "
+                    + leaked.sort().take(20).join('\n  ')
+                    + (leaked.size() > 20 ? "\n  ... and " + (leaked.size() - 20) + " more" : "")
+                    + "\nSee the tool/test boundary in CLAUDE.md.")
+        }
+        logger.lifecycle('Mod jar boundary clean: none of ' + forbidden.size()
+                + ' tool-only classes are shipped.')
+    }
+}
+
+/** Every {@code .class} entry a classpath contributes, named as a jar would name it. */
+static Set<String> classEntries(FileCollection classpath) {
+    Set<String> names = new LinkedHashSet<>()
+    classpath.files.each { File element ->
+        if (element.isDirectory()) {
+            element.eachFileRecurse { File file ->
+                if (file.name.endsWith('.class')) {
+                    names.add(element.toPath().relativize(file.toPath())
+                            .toString().replace('\\', '/'))
+                }
+            }
+        } else if (element.name.endsWith('.jar') && element.isFile()) {
+            new java.util.zip.ZipFile(element).withCloseable { archive ->
+                archive.entries().each { entry ->
+                    if (entry.name.endsWith('.class')) names.add(entry.name)
+                }
+            }
+        }
+    }
+    return names
+}
+
+tasks.named('check').configure { dependsOn tasks.named('verifyModJarBoundary') }
+
 // Wire the shaded jar into the standard build lifecycle so `gradlew build`
 // produces the mod jar without needing to name `shadowJar` explicitly.
 tasks.named('assemble').configure { dependsOn tasks.named('shadowJar') }
