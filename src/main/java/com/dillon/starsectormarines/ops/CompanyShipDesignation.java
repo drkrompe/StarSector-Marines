@@ -25,12 +25,13 @@ import java.util.List;
  * honest than persisting a second copy that can fall out of step with the
  * refits and damage the base game applies.
  *
- * <p><b>A designation that no longer names a ship is replaced, not followed.</b>
- * Ships are sold, mothballed, and lost, and a company pointing at a hull that is
- * no longer in the fleet has to end up somewhere rather than nowhere. The
- * fallback is the fleet's best remaining candidate, which is also what a company
- * that has never chosen gets — so the operations screens work before the choice
- * exists and keep working after the chosen ship is gone.
+ * <p><b>Never chosen and no longer there are different states.</b> A company
+ * that has not picked a ship has no home, and the operations screens say so by
+ * being unavailable until the player picks one — quartering them somewhere on
+ * their behalf would make the first real decision about what the company is for
+ * into a default they never saw. A company whose chosen ship has left the fleet
+ * is a different case: they had a home and lost it, and they have to end up
+ * somewhere rather than nowhere, so the best remaining hull takes them in.
  */
 public final class CompanyShipDesignation {
 
@@ -47,24 +48,35 @@ public final class CompanyShipDesignation {
      */
     public static FleetMemberAPI aboard() {
         MarineRoster roster = roster();
+        String chosen = roster == null ? null : roster.companyShipId();
+        if (chosen == null) return null;
+
         List<FleetMemberAPI> fleet = candidates();
         // A company whose every hull is laid up still sleeps somewhere. Being
         // shut down makes a ship a poor thing to offer the player, not a
         // reason for the company to have no home at all.
         if (fleet.isEmpty()) fleet = allShips();
+        for (FleetMemberAPI member : fleet) {
+            if (chosen.equals(member.getId())) return member;
+        }
         if (fleet.isEmpty()) return null;
 
-        String chosen = roster == null ? null : roster.companyShipId();
-        if (chosen != null) {
-            for (FleetMemberAPI member : fleet) {
-                if (chosen.equals(member.getId())) return member;
-            }
-            LOG.info("CompanyShipDesignation: the company's ship (" + chosen
-                    + ") is no longer in the fleet; moving them to the best remaining hull");
-        }
+        LOG.info("CompanyShipDesignation: the company's ship (" + chosen
+                + ") is no longer in the fleet; moving them to the best remaining hull");
         FleetMemberAPI best = fleet.get(0);
-        if (roster != null) roster.setCompanyShipId(best.getId());
+        roster.setCompanyShipId(best.getId());
         return best;
+    }
+
+    /**
+     * Whether the company has yet been given a ship to live aboard.
+     *
+     * <p>False only before the founding choice. A company whose ship was sold
+     * or lost still has one, because losing a home is not the same as never
+     * having picked one.
+     */
+    public static boolean quartered() {
+        return aboard() != null;
     }
 
     /**
