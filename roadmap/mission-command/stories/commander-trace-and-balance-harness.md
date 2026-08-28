@@ -114,7 +114,7 @@ early terminal results—and may take several minutes. A max-tick or external-
 fixture override is labelled ad hoc in the report; `summary.json` is the full
 machine-readable evidence and `summary.md` is its human overview.
 
-Command-trace schema 7 canonicalizes diagnostic scalar floats to basis-point
+Command-trace schema 8 canonicalizes diagnostic scalar floats to basis-point
 precision and published squad centroids to one tenth of a cell. The simulation
 and commander still consume their unmodified values. This boundary keeps
 sub-cell integration drift from masquerading as a different command decision
@@ -122,7 +122,12 @@ while retaining much finer spatial resolution than any objective zone or
 movement marker requires. Schema 6 added the count of squad members with an
 unexhausted movement path. Schema 7 adds the authoritative compound capture
 cell/zone and the perspective-safe count of own squad members in their current
-assigned target zone. The offline analyzer applies strict
+assigned target zone. Schema 8 adds final-living tactical-contact facets:
+published contact posture/doctrine/initiative and engageability, actual-moving
+members, directional cover from the believed primary contact, recent incoming
+fire, morale state, current goal/action, and members presently cooling down.
+Cooldown is not reported as shots fired and no suppression state is invented.
+The offline analyzer applies strict
 lifecycle → suspension → contact → active-path → genuine-idle precedence to
 command-unassigned actions; schema 5 and older rows remain explicitly
 unclassified rather than being reinterpreted without the missing path fact.
@@ -256,6 +261,24 @@ were within 13.5 cells and five had crossed half their starting range. The run
 captured two compounds and held one at timeout. This isolates tactical survival
 under contact—and secondarily the final breach—as the next question; it does
 not authorize force, damage, or doctrine tuning from one seed.
+
+## Tactical-contact loss follow-up
+
+Command-trace schema 8 and Conquest summary schema 6 now retain the last living
+command-pulse tactical picture for every secure-travel squad-loss exit. The
+report exposes orthogonal facts instead of forcing a single explanation:
+breach action, actual movement, movement with no directional cover from the
+published primary contact, contact doctrine and initiative, engageable members
+and fireteams, recent incoming fire, majority directional cover, and weapon
+cooldown presence. Schema 7 losses remain explicitly unknown.
+
+This closes the instrumentation gap but does not yet answer the balance
+question from the earlier sealed run; that trace predates schema 8. The next
+step is a duplicate bounded Conquest replay, then correlation of its loss rows.
+If engageable squads are still dying without evidence of return fire, add a
+monotonic squad-level rounds-fired counter rather than inferring shots from
+cooldown. If breach-action losses dominate, first latch the breach's stack-up
+versus advance phase before tuning doctrine.
 
 ## Historical construction-only baselines
 

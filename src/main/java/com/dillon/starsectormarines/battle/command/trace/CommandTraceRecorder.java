@@ -60,7 +60,7 @@ public final class CommandTraceRecorder {
     public CommandTraceRecorder(String fixtureKind, String schedulerMode,
                                 int startTick) {
         StringBuilder header = begin("run", startTick);
-        numberField(header, "schemaVersion", 7);
+        numberField(header, "schemaVersion", 8);
         nullableField(header, "fixtureKind", fixtureKind);
         field(header, "schedulerMode", schedulerMode);
         appendLine(end(header));
@@ -521,6 +521,21 @@ public final class CommandTraceRecorder {
         booleanField(out, "localContact", squad.localContact());
         numberField(out, "activePathMembers", squad.activePathMembers());
         numberField(out, "membersInTargetZone", squad.membersInTargetZone());
+        booleanField(out, "underFireRecently", squad.underFireRecently());
+        booleanField(out, "moraleBroken", squad.moraleBroken());
+        nullableField(out, "currentGoal", squad.currentGoal());
+        nullableField(out, "currentAction", squad.currentAction());
+        numberField(out, "movingMembers", squad.movingMembers());
+        numberField(out, "coveredFromPrimaryMembers",
+                squad.coveredFromPrimaryMembers());
+        numberField(out, "primaryEngageableMembers",
+                squad.primaryEngageableMembers());
+        numberField(out, "primaryEngageableFireTeams",
+                squad.primaryEngageableFireTeams());
+        nullableField(out, "contactPosture", squad.contactPosture());
+        nullableField(out, "contactDoctrine", squad.contactDoctrine());
+        nullableField(out, "contactInitiative", squad.contactInitiative());
+        numberField(out, "coolingDownMembers", squad.coolingDownMembers());
         out.append('}');
     }
 

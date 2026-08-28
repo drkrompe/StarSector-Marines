@@ -152,6 +152,15 @@ published contact, or insufficient track context. Exact position relative to
 a normalized front requires normalized own-squad progress and must not be
 inferred from cell coordinates alone.
 
+Final-living tactical evidence stays orthogonal rather than collapsing into a
+guessed posture. A command pulse may publish the squad contact picture's
+posture, doctrine, initiative and engageable fire line; actual moving members;
+directional cover against the published primary believed contact; recent
+incoming-fire/morale facts; the current action; and members presently inside a
+weapon cooldown. None of those alone proves suppression or a shot between
+command pulses. Missing threat direction is unknown cover, not exposure, and
+older trace schemas remain unknown rather than receiving zero-valued facts.
+
 An opt-in **visual replay** samples the first deterministic replay at a requested
 tick cadence, renders the production battle scene through the GL-free Java2D
 drain, and retains both numbered PNG frames and one looping review GIF. It always

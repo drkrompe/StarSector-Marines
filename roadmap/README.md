@@ -133,9 +133,15 @@ capture-marker churn. Every lost squad's final living command pulse had local
 contact. Median loss distance was about 44.8 cells after 39.6% of the original
 approach, while four squads got within 13.5 cells, separating a broad contact-
 survival problem from a smaller near-objective breach problem. Compare the
-full-strength row when the local Gradle environment permits, then correlate
-loss episodes with cover, suppression, and engagement behavior rather than
-changing commander targets from this one seed. Exact whole-zone occupancy
+full-strength row when the local Gradle environment permits. Trace schema 8 now
+publishes the squad's last-living contact intent, engageable members/fireteams,
+actual movement, directional cover from its believed primary contact, recent
+incoming fire, current action, and weapon cooldown presence. Run the duplicate
+bounded Conquest evidence next and correlate those facets rather than changing
+commander targets from the old schema-7 seed. There is no implemented
+suppression state, and cooldown does not prove a shot; add a monotonic
+squad-level rounds-fired counter only if the new run isolates that remaining
+question. Exact whole-zone occupancy
 remains neutral outcome evidence and must never become commander input. Then
 close the remaining assignment-writer and live-acceptance edges in
 `autonomous-mission-command-foundation.md`. Assault's paired production
