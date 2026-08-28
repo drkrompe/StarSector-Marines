@@ -34,7 +34,7 @@ Weapons:
 - `weapons/grades/masterwork/dmr.png` — fleet-printed grade-IV exemplar.
 
 The head is separate from the shoulder/body mass and can rotate independently around its
-center. Each body has an empty helmet socket. Running `build_variants.py` writes disposable
+center. Each body has an empty helmet socket. Running `art-source/marine-modular-topdown/build_variants.py` writes disposable
 family, head-look, and mixed-armor previews to `build/sprite-previews/infantry/`.
 
 ## Shoulder-width anatomy shorthand
@@ -56,7 +56,7 @@ Current landmarks:
 - Rocket aimed offset: `(0.3333 sw, -0.12 sw)`, placing its centerline approximately
   two-thirds of the way from the spine to the right shoulder edge.
 
-`build_variants.py` uses the `sw(value)` helper as its source of truth. `variants.json`
+`art-source/marine-modular-topdown/build_variants.py` uses the `sw(value)` helper as its source of truth. `variants.json`
 records proportional `*Sw` values alongside compiled reference-pixel values for consumers
 that have not yet adopted shoulder-relative layout.
 
@@ -72,7 +72,7 @@ The successful prompt pattern is: one isolated object, strict zenith projection,
 north orientation, an explicit empty socket or operator-free constraint, a flat chroma
 background, and an existing accepted layer used only as geometry/style reference.
 
-`build_variants.py` normalizes the retained alpha originals in `sources/` and rebuilds
+`art-source/marine-modular-topdown/build_variants.py` normalizes the retained alpha originals in `art-source/marine-modular-topdown/sources/` and rebuilds
 these runtime sprites plus ignored build-tree previews. Chroma-key intermediates are
 deliberately discarded.
 

@@ -4,8 +4,12 @@ Pre-pack art inputs and the scripts that turn them into shipped assets.
 
 `mod/` is what ships: `deployMod` is a `Sync` of that whole folder into the
 Starsector mods directory, so anything left inside it is copied to every install.
-Raw generated sheets, ImageGen masters and derivation scripts are inputs to the
-shipped art, not part of it — roughly 50 MB of them — so they live here instead.
+
+**The rule: `mod/` holds the built asset and the data that describes it, never
+the thing it was built from.** Raw generated sheets, ImageGen masters, retained
+`sources/` originals, annotation documents, and the scripts that consume them all
+live here instead — roughly 135 MB of them, which is more than the art they
+produce.
 
 They stay version-controlled rather than local-only, because a sheet has to be
 re-derivable and re-annotatable later, and because the annotation of a sheet is
@@ -13,13 +17,52 @@ work that cannot be redone mechanically.
 
 | Directory | Holds |
 |-----------|-------|
-| `tilesets/` | Raw tileset sheets, their normalization and atlas-packing scripts, and the material sources those scripts consume. |
-| `doodads/` | ImageGen masters and raw prop renders, with the scripts that derive shipped frames from them. |
+| `tilesets/` | Raw tileset sheets, their authoring documents, and the normalization and atlas-packing scripts. |
+| `doodads/` | The whole prop chain: ImageGen masters, raw renders, the scripts that derive frames from them, the derived `sources/`, and the atlas builder. |
+| `alien-modular-topdown/` | Retained alien layer originals and the script that normalizes them. |
+| `mech-modular-topdown/` | Retained mech layer originals, the layer builder, and the variant contact-sheet renderer. |
+| `marine-modular-topdown/` | Retained marine body/head/weapon originals, their prompt recipes, and the variant builder. |
+| `colonist-modular-topdown/` | Retained colonist layer originals. The layers they produced are checked in; no builder is currently kept. |
 
 Tileset authoring documents — one per annotated sheet, written by the Tilesets
 page of `gradlew.bat layerAuthoring` — live in `tilesets/` beside the sheet they
 annotate, as `<name>.tileset-authoring.json`.
 
-Every script here addresses its outputs from the repository root, not from a
-sibling directory, so moving art source never silently retargets a write.
-`RawArtStaysOutOfModTest` enforces the boundary from the other side.
+## Writing a script here
+
+Every script computes the repository root and addresses `mod/` from there:
+
+```python
+HERE = Path(__file__).resolve().parent
+REPOSITORY = HERE.parent.parent
+ROOT = REPOSITORY / "mod" / "graphics" / ...
+```
+
+Each domain sits exactly one level under `art-source/`, so `HERE.parent.parent`
+is the repository root everywhere and the idiom does not have to be re-derived
+per script. Never reach a shipped path by counting `.parent` hops up out of
+`mod/`: that is what made the previous layout fragile, and it silently retargets
+a write the moment anything moves.
+
+Run scripts from the repository root, for example:
+
+```powershell
+python art-source/doodads/stitch_atlas.py
+```
+
+## What stays in `mod/`
+
+Documentation of the **shipped art** stays beside it — the `README.md` in each
+`*-modular-topdown/` directory describes the runtime layer set, which is what a
+reader standing in that directory wants. Documentation of **how the art is
+produced** moves here with the pipeline: `doodads/README.md` is the atlas
+builder's manual, and `marine-modular-topdown/PROMPTS.md` is a generation recipe.
+
+No script stays behind. A script that derives shipped art from shipped art —
+`mech-modular-topdown/render_variants.py`, which reads the checked-in mech layers
+and writes a contact sheet into `roadmap/` — is still a build step rather than an
+asset, and nothing about it needs to sit next to the art it reads.
+
+`RawArtStaysOutOfModTest` enforces the boundary from the other side: no
+`.raw.png`, no `*.tileset-authoring.json`, no `imagegen*` directory, no
+`sources/` directory, and no `.py` file survives under `mod/`.
