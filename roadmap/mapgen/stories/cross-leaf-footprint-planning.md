@@ -4,7 +4,12 @@ Status: PROPOSED
 
 Written: 2026-08-23
 
-Read `mapgen-nouns.md` before implementing this story.
+Updated: 2026-08-28 — `compound-programs.md` now owns why a coherent footprint
+is wanted and what decides its size. This story remains the seam where such a
+claim has to coexist with roads, parcel ownership, and neighboring fills.
+
+Read `compound-programs.md` and `mapgen-nouns.md` before implementing this
+story.
 
 ## Goal
 

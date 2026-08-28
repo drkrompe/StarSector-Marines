@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.tools.authoring.AuthoringCrashReporter;
+
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
@@ -123,6 +125,20 @@ public final class TilesetLibraryView extends JPanel {
                     thumbnails.put((Path) chunk[0], (ImageIcon) chunk[1]);
                 }
                 list.repaint();
+            }
+
+            @Override protected void done() {
+                try {
+                    get();
+                } catch (Exception failure) {
+                    // SwingWorker keeps a background failure inside the future,
+                    // so without this the strip would simply stay blank and say
+                    // nothing about why.
+                    AuthoringCrashReporter.report("tileset thumbnail loader", failure);
+                } catch (Error fatal) {
+                    AuthoringCrashReporter.report("tileset thumbnail loader", fatal);
+                    throw fatal;
+                }
             }
         }.execute();
     }

@@ -39,6 +39,7 @@ public final class UiElement {
     private int canvasWidth = 300;
     private int canvasHeight = 150;
     private int inputMaxLength = 64;
+    private String imageSource;
 
     private UiLayout layout = UiLayout.COLUMN;
     private Insets padding = Insets.ZERO;
@@ -199,6 +200,28 @@ public final class UiElement {
     private void requireCanvas() {
         if (tag != UiTag.CANVAS) {
             throw new IllegalStateException(id + " is not a canvas");
+        }
+    }
+
+    /**
+     * Points this image at one asset path. A null or blank path is a legal
+     * value meaning "there is nothing to show here", which is exactly what a
+     * bound {@code src} produces for a subject that carries no icon.
+     */
+    public UiElement imageSource(String path) {
+        requireImage();
+        imageSource = path;
+        return this;
+    }
+
+    public String imageSource() {
+        requireImage();
+        return imageSource;
+    }
+
+    private void requireImage() {
+        if (tag != UiTag.IMAGE) {
+            throw new IllegalStateException(id + " is not an image");
         }
     }
 

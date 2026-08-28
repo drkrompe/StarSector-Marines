@@ -169,12 +169,19 @@ public final class FrontageDefense implements Goal {
      * anybody else holding a place inside it.
      */
     private static int[] heldBox(Squad squad, TacticalNode node, BattleView sim) {
-        boolean compoundScope = GarrisonCompound.defenderAreaPatrol(squad, sim)
-                || marineHeldNode(squad) != null;
-        return compoundScope
+        return holdsWholeCompound(squad, sim)
                 ? new int[]{node.compoundLeft(), node.compoundTop(),
                 node.compoundRight(), node.compoundBottom()}
                 : new int[]{node.left, node.top, node.right, node.bottom};
+    }
+
+    /**
+     * Whether this squad's frontage is the whole compound's perimeter rather
+     * than one structure's shell inside it. Package-visible so a diagnostic can
+     * report which layer a garrison is holding without guessing at the rule.
+     */
+    static boolean holdsWholeCompound(Squad squad, BattleView sim) {
+        return GarrisonCompound.defenderAreaPatrol(squad, sim) || marineHeldNode(squad) != null;
     }
 
     /**

@@ -4,6 +4,8 @@
     {
       "factionId": "independent",
       "offers": [
+        { "templateId": "equipment-template:special.breaching-cutter", "sources": { "license": 6, "recovery": 8 } },
+        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 10, "recovery": 4 } },
         { "templateId": "equipment-template:weapon.field-rifle:surplus", "sources": { "market": 12 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 14 } },
         { "templateId": "equipment-template:weapon.field-rifle:milspec", "sources": { "license": 8, "recovery": 4 } },
@@ -52,6 +54,7 @@
     {
       "factionId": "hegemony",
       "offers": [
+        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 12, "license": 6 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 14 } },
         { "templateId": "equipment-template:weapon.field-rifle:milspec", "sources": { "license": 12, "patron": 5 } },
         { "templateId": "equipment-template:weapon.squad-automatic:service", "sources": { "market": 10 } },
@@ -83,6 +86,7 @@
     {
       "factionId": "persean",
       "offers": [
+        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 10, "license": 5 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 10 } },
         { "templateId": "equipment-template:weapon.pulse-rifle:service", "sources": { "market": 10 } },
         { "templateId": "equipment-template:weapon.dmr:milspec", "sources": { "license": 8, "patron": 4 } },
@@ -99,6 +103,7 @@
     {
       "factionId": "luddic_church",
       "offers": [
+        { "templateId": "equipment-template:special.breaching-cutter", "sources": { "license": 5, "patron": 4, "recovery": 5 } },
         { "templateId": "equipment-template:weapon.field-rifle:surplus", "sources": { "market": 14 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 12 } },
         { "templateId": "equipment-template:weapon.dmr:service", "sources": { "market": 8 } },
@@ -128,6 +133,7 @@
     {
       "factionId": "luddic_path",
       "offers": [
+        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 8, "recovery": 5 } },
         { "templateId": "equipment-template:weapon.field-rifle:surplus", "sources": { "market": 10, "recovery": 6 } },
         { "templateId": "equipment-template:weapon.smg:surplus", "sources": { "market": 13, "recovery": 7 } },
         { "templateId": "equipment-template:weapon.smg:service", "sources": { "recovery": 8 } },
@@ -142,6 +148,7 @@
     {
       "factionId": "sindrian_diktat",
       "offers": [
+        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 10, "license": 4 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 11 } },
         { "templateId": "equipment-template:weapon.pulse-rifle:service", "sources": { "market": 9 } },
         { "templateId": "equipment-template:weapon.squad-automatic:milspec", "sources": { "license": 9 } },
@@ -171,6 +178,8 @@
     {
       "factionId": "pirates",
       "offers": [
+        { "templateId": "equipment-template:special.breaching-cutter", "sources": { "recovery": 7 } },
+        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 12, "recovery": 6 } },
         { "templateId": "equipment-template:weapon.field-rifle:surplus", "sources": { "market": 10, "recovery": 5 } },
         { "templateId": "equipment-template:weapon.smg:surplus", "sources": { "market": 14 } },
         { "templateId": "equipment-template:weapon.smg:service", "sources": { "market": 9, "recovery": 6 } },
