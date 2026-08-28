@@ -6,4 +6,4 @@ Written: 2026-08-23
 | Story | Shipped | Commit(s) | Folded into |
 | --- | --- | --- | --- |
 | `d1-armor-structure-foundation.md` | 2026-08-23 | `29701ce0` | `combat-durability-nouns.md` |
-| `d5-timed-directional-mitigation.md` | 2026-08-28 | `PENDING` | `combat-durability-nouns.md` |
+| `d5-timed-directional-mitigation.md` | 2026-08-28 | `a08c64cb` | `combat-durability-nouns.md` |
