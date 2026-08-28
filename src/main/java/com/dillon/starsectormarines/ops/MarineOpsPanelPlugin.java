@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BaseCustomUIPanelPlugin;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -134,7 +135,8 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         // when you come back, not still walking. Ticking this from the current
         // screen instead would stop the crew the moment nobody was watching
         // them, which is the difference between a ship and a diorama.
-        ctx.companyDeck().advance(amount);
+        CompanyDeck ship = ctx.companyDeck();
+        if (ship != null) ship.advance(amount);
         screens.get(id).advance(amount);
     }
 
@@ -165,7 +167,8 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         // The context is abandoned with the dialog. Release a battle even if
         // the player dismissed mid-fight rather than reaching Results/Loot.
         ctx.setBattleSimulation(null);
-        ctx.companyDeck().dismiss();
+        CompanyDeck ship = ctx.companyDeck();
+        if (ship != null) ship.dismiss();
         stopIntelAudio();
     }
 
