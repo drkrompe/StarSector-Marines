@@ -20,7 +20,11 @@ from pack_texture_atlas import pack_manifest
 
 
 HERE = Path(__file__).resolve().parent
-TILESETS = HERE.parent
+# Raw art lives outside mod/, so the shipped folder never carries pre-pack
+# inputs. Outputs are addressed from the repository root rather than from
+# a sibling directory.
+REPO_ROOT = HERE.parent.parent
+TILESETS = REPO_ROOT / "mod" / "graphics" / "tilesets"
 
 
 @dataclass(frozen=True)

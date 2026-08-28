@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +42,8 @@ public final class TilesetDocument {
     /** Cell size used to split fused plates and to guess footprints, in source pixels. */
     public int gridCell = 104;
     public List<TilesetExport.Entry> entries = new ArrayList<>();
+    /** The named autotile blocks the entries may belong to. */
+    public List<TilesetExport.BlockSpec> blocks = new ArrayList<>();
 
     /** The conventional location of a sheet's authoring document, given the project root. */
     public static Path pathFor(Path projectRoot, String sheetName) {
@@ -56,9 +60,24 @@ public final class TilesetDocument {
             o.put("footprintCells", new JSONArray().put(entry.footprintX).put(entry.footprintY));
             o.put("cover", entry.cover);
             o.put("included", entry.included);
+            if (entry.isBlockMember()) {
+                o.put("block", entry.blockId);
+                o.put("slot", entry.slot);
+            }
+            if (!entry.note.isEmpty()) o.put("note", entry.note);
+            if (!entry.tags.isEmpty()) o.put("tags", new JSONArray(entry.tags));
             array.put(o);
         }
+        JSONArray blockArray = new JSONArray();
+        for (TilesetExport.BlockSpec spec : blocks) {
+            JSONObject o = new JSONObject();
+            o.put("id", spec.id);
+            o.put("layout", TilesetExport.jsonLayout(spec.layout));
+            if (spec.fillRgb != null) o.put("fillRgb", String.format("0x%06X", spec.fillRgb));
+            blockArray.put(o);
+        }
         JSONObject root = new JSONObject();
+        root.put("blocks", blockArray);
         root.put("sheet", sheet);
         root.put("sheetName", sheetName);
         root.put("idPrefix", idPrefix);
@@ -77,6 +96,14 @@ public final class TilesetDocument {
         doc.cellPx = root.optInt("cellPx", 64);
         doc.alphaMin = root.optInt("alphaMin", SheetSlicer.DEFAULT_ALPHA_MIN);
         doc.gridCell = root.optInt("gridCell", 104);
+        JSONArray blockArray = root.optJSONArray("blocks");
+        for (int i = 0; blockArray != null && i < blockArray.length(); i++) {
+            JSONObject o = blockArray.getJSONObject(i);
+            doc.blocks.add(new TilesetExport.BlockSpec(
+                    o.getString("id"),
+                    GridLayout.fromJson(o.getString("layout")),
+                    o.has("fillRgb") ? Integer.decode(o.getString("fillRgb")) : null));
+        }
         JSONArray array = root.optJSONArray("entries");
         for (int i = 0; array != null && i < array.length(); i++) {
             JSONObject o = array.getJSONObject(i);
@@ -91,6 +118,13 @@ public final class TilesetDocument {
             }
             entry.cover = o.optString("cover", "none");
             entry.included = o.optBoolean("included", true);
+            entry.blockId = o.optString("block", "");
+            entry.slot = o.optString("slot", "");
+            entry.note = o.optString("note", "");
+            JSONArray tags = o.optJSONArray("tags");
+            for (int t = 0; tags != null && t < tags.length(); t++) {
+                entry.tags.add(tags.getString(t));
+            }
             doc.entries.add(entry);
         }
         return doc;

@@ -6,8 +6,12 @@ from PIL import Image
 
 
 HERE = Path(__file__).resolve().parent
+# Raw art lives outside mod/, so the shipped folder never carries pre-pack
+# inputs. Outputs are addressed from the repository root rather than from
+# a sibling directory.
+REPO_ROOT = HERE.parent.parent
 MASTERS = HERE / "imagegen-masters"
-SOURCES = HERE / "sources"
+SOURCES = REPO_ROOT / "mod" / "graphics" / "doodads" / "sources"
 
 
 def content(image: Image.Image) -> Image.Image:

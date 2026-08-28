@@ -38,9 +38,10 @@ mobility while it runs.
 
 ## Pick one pattern, not both
 
-The slate's budget has room for about two more carriers across the whole
-catalog, and `perception-integral-systems.md` wants one of them. This story
-therefore authors a brace on **one** line pattern and leaves the other alone.
+Two line suits with near-identical braces would be the palette swap the catalog
+exists to prevent, so this story authors a brace on **one** pattern and leaves
+the other alone — not because a slot is scarce, but because the second one
+would have nothing of its own to say.
 
 The Legionary is the better fit for bracing as hardware — it is the pattern with
 standardized fittings and a repair culture, and a brace is a mechanism that gets
