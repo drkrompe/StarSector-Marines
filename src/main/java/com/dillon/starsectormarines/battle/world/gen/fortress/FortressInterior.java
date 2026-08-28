@@ -61,13 +61,24 @@ public final class FortressInterior {
      * twenty-eight-cell depth, and left ground fifty-odd cells further to walk
      * to than to look at.
      *
+     * <p>It also says how much floor earns another way in. One door is enough
+     * to make a room reachable, and reachability is all the packing checks; it
+     * is not enough to make a building worth fighting over. A vehicle shed five
+     * hundred cells across with one entrance — widened to two cells, which
+     * reads as two doors on the same wall — is cleared by holding that doorway,
+     * so an attacker never chooses an approach and a defender never covers more
+     * than one. Ninety cells is set against the program: a magazine keeps its
+     * single door, a barracks block earns a second, and a shed takes every face
+     * the packing leaves it. A hull keeps one hatch per compartment, because
+     * how a deck is cut is the ship family's decision and not this one's.
+     *
      * <p>The allowance is a short seam rather than none. Buildings that corner
      * into each other and share a few cells read as a compound; buildings held
      * apart on all sides read as sheds dropped on a field, which is the look
      * the packing was adopted to get away from. What is bought is a way
      * through: a run stops growing before it becomes a wall nobody can cross.
      */
-    private static final RoomPacker.Massing MASSING = new RoomPacker.Massing(6, 4);
+    private static final RoomPacker.Massing MASSING = new RoomPacker.Massing(6, 4, 90);
 
     /**
      * Rooms a garrison lives and works in, which are the ones given windows.

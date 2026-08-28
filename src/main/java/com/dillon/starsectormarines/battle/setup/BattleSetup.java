@@ -1518,7 +1518,8 @@ public final class BattleSetup {
         }
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
                 convoyPolicy));
-        rs.addMeans(new ShuttleMeans(axis, groundRoster, risk));
+        rs.addMeans(new ShuttleMeans(axis, groundRoster, risk,
+                convoyPolicy, map.landingPads));
         rs.addMeans(new WalkInMeans(axis, groundRoster, risk));
     }
 

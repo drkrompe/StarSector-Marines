@@ -224,13 +224,18 @@ public final class CloseContactTactics {
 
     /**
      * Whether a higher-priority survival response owns the carrier this tick.
-     * A broken squad is already being pulled out of contact by the SURVIVAL
-     * goal bucket, and a friendly demolition pack about to go off is a reason
-     * to move rather than to keep working.
+     * A marine whose fire team has broken is already peeling to cover under
+     * the dispatcher's morale override, and a friendly demolition pack about
+     * to go off is a reason to move rather than to keep working.
+     *
+     * <p>Asks about the carrier's own fire team rather than the squad: his
+     * team peeling is what takes him out of contact, and a sibling team
+     * breaking is no reason for him to drop a charge he is standing on.
      */
     private static boolean survivalOverrides(long unit, BattleView sim) {
         Squad squad = sim.squadOf(unit);
-        if (squad != null && squad.moraleBroken) return true;
+        if (squad != null && sim.squad().hasSquad(unit)
+                && squad.fireTeamBroken(sim.squad().fireTeamIndex(unit))) return true;
         return sim.satchelCharges().nearestFriendlyHazard(
                 sim.identity().faction(unit), sim.world().x(unit), sim.world().y(unit),
                 0.9f) != null;
