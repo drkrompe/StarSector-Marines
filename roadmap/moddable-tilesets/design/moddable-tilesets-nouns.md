@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — folded in the authoring pipeline: raw sheets, annotation documents, packed atlases, project-discovered sheets, and the boundary that keeps pre-pack art out of `mod/`.
+Updated: 2026-08-28 — folded in the authoring pipeline and placement-time doodad rotation while keeping authored art orientation out of catalog identity.
 
 Read `stories.md` for open work.
 
@@ -38,7 +38,9 @@ override layer: changing core generation policy remains a deliberate core edit.
   neither ticks, and neither is an entity. Anything that is scenery is
   authored, placed, drawn, and scored as one kind of thing; a second prop
   model for scenery that happens to look important is duplication wearing a
-  domain name.
+  domain name. One placement may carry a quarter-turn: the source span remains
+  the definition's, while its rendered and tactical world footprint turns with
+  the art.
 - A **mapping definition** is the selection policy between generated concepts
   and registry ids: render-surface dispatch, named doodad pools, and tunables
   for an existing filler. It does not currently select or define a filler
@@ -156,7 +158,9 @@ Three properties of that pass are part of the model rather than of the tool:
   four-neighbour mask through its layout, so the authoring act is assigning
   pieces to that layout's slots. Authored content may never carry a per-piece
   facing: that would be a second answer to a question the layout already
-  answers, and would move geometry authority out of code into art data.
+  answers, and would move geometry authority out of code into art data. A
+  doodad placement may still rotate one canonical piece to fit its generated
+  room; the turn belongs to the placement, not the authored piece identity.
 - **A block's origin is generated, never counted.** Its cells are addressed as
   origin plus a layout offset, so they must be packed as one contiguous patch
   and the packer reports where it put them. A slot a sheet does not fill stays
