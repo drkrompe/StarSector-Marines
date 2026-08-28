@@ -180,11 +180,9 @@ systems from the same catalog entry the player's Armory reads, so a hostile in a
 foundry-breaker fights with the thing the rig is named after. `progression-nouns.md`
 owns both models.
 
-What is left is gated on simulation work rather than on authoring, so it is
-storied separately rather than held here:
-
-- **Battle presentation** — `integral-system-battle-presentation.md`. Nothing is
-  drawn today, so an active assist is invisible on the field.
+A running system is also legible on the field: its treatment is authored
+appearance data, and a raised screen is drawn spanning the arc it protects
+(`progression-nouns.md`, presentation law).
 
 Which patterns should carry a system at all, and what the faction traditions
 support, is direction rather than scope: see `integral-system-slate.md`.
