@@ -2,8 +2,8 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
-import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -71,21 +71,12 @@ final class FrontageScene {
 
     private FrontageScene() {}
 
-    /**
-     * Which edge the marine assault enters from. The compound's own geometry is
-     * identical in every case; only the approach differs.
-     *
-     * <p>Named for where the edge appears in a rendered frame rather than by
-     * compass point. World +y draws upward, and the two places that already
-     * name wall directions disagree about what that makes "north", so a
-     * compass label here would be a claim this scene has no way to check and
-     * every reader watching a recording would read it as wrong.
-     */
+    /** Where the marine assault enters from. The compound's own geometry is identical in every case; only the approach differs. */
     enum Approach {
-        TOP(WIDTH / 2, HEIGHT - 4),
-        BOTTOM(WIDTH / 2, 3),
-        RIGHT(WIDTH - 4, HEIGHT / 2),
-        LEFT(3, HEIGHT / 2);
+        SOUTH(WIDTH / 2, HEIGHT - 4),
+        NORTH(WIDTH / 2, 3),
+        EAST(WIDTH - 4, HEIGHT / 2),
+        WEST(3, HEIGHT / 2);
 
         final int cellX;
         final int cellY;
@@ -112,7 +103,7 @@ final class FrontageScene {
      */
     record Sample(int tick, String goal, int aperturePosts, int reservePosts,
                   int postsFacingThreat, int membersOnPost, float believedPressure,
-                  boolean enemyInside, boolean standToLegalNow,
+                  boolean enemyInside, boolean frontageRelevant,
                   float marineX, float marineY, int liveMarines) {
 
         int posts() { return aperturePosts + reservePosts; }
@@ -165,14 +156,10 @@ final class FrontageScene {
         }
 
         float pressure = sim.getCommanderInfluence(Faction.DEFENDER).maxHostile();
-        // The squad's goal is whatever its last replan chose and so lags
-        // reality by up to one replan interval; the gate itself is evaluated
-        // now. Recording both keeps "the goal still says stand-to" from being
-        // mistaken for "the gate failed to close".
-        boolean standToLegal =
-                FrontageDefense.INSTANCE.relevance(WorldState.EMPTY, garrison, sim) > 0f;
+        boolean frontageRelevant = FrontageDefense.INSTANCE.relevance(
+                WorldState.EMPTY, garrison, sim) > 0f;
         return new Sample(tick, goal, aperture, reserve, facingThreat, onPost,
-                pressure, enemyInside(scene), standToLegal,
+                pressure, enemyInside(scene), frontageRelevant,
                 marines[0], marines[1], (int) marines[2]);
     }
 
@@ -239,10 +226,10 @@ final class FrontageScene {
 
     /**
      * Whether a marine stands in the garrison's held zones — asked of
-     * {@link FrontageDefense} itself rather than recomputed here. The scope
-     * matters: a garrison holding one structure inside a compound holds only
-     * that building, so a compound-scope answer would report a breach the goal
-     * does not see and the scene would accuse it of failing to release.
+     * {@link FrontageDefense} itself rather than recomputed here. Scope is the
+     * reason: a garrison holding one structure inside a compound holds only
+     * that building, so a compound-scope answer reports a breach the gate does
+     * not see and the scene would accuse it of failing to release.
      */
     private static boolean enemyInside(Scene scene) {
         BattleSimulation sim = scene.sim();
