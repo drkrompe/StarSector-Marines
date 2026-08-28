@@ -77,6 +77,9 @@ public final class ShipTransferViewModel {
     private final ComputedSignal<String> verdict;
     private final ComputedSignal<String> transferLabel;
     private final ComputedSignal<String> transferClasses;
+    private final ComputedSignal<String> roomTitle;
+    private final ComputedSignal<String> roomCopy;
+    private final ComputedSignal<String> contextLabel;
 
     /** The player's own fleet, and their own company's designation. */
     public ShipTransferViewModel(Reactor reactor) {
@@ -107,11 +110,30 @@ public final class ShipTransferViewModel {
         verdict = reactor.computed(this::buildVerdict);
         transferLabel = reactor.computed(() -> {
             revision.get();
-            return isHome(selected()) ? "THE COMPANY LIVES HERE" : "MOVE THE COMPANY ABOARD";
+            if (isHome(selected())) return "THE COMPANY LIVES HERE";
+            return founding() ? "QUARTER THE COMPANY HERE" : "MOVE THE COMPANY ABOARD";
         });
         transferClasses = reactor.computed(() -> {
             revision.get();
             return "transfer-commit" + (isHome(selected()) ? " current" : "");
+        });
+        roomTitle = reactor.computed(() -> {
+            revision.get();
+            return founding() ? "COMPANY SHIP  //  FOUNDING" : "COMPANY SHIP  //  TRANSFER";
+        });
+        // Named for the fleet rather than a compartment: this is the only page
+        // in the shell that is not aboard anything in particular.
+        contextLabel = reactor.computed(() -> {
+            revision.get();
+            return founding() ? "COMPANY FLEET / FOUNDING" : "COMPANY FLEET / TRANSFER";
+        });
+        roomCopy = reactor.computed(() -> {
+            revision.get();
+            return founding()
+                    ? "The company has to live somewhere. This is the first real "
+                            + "decision about what it is for."
+                    : "A bigger hull is not automatically a better home. What a ship "
+                            + "takes away is the half worth reading.";
         });
     }
 
@@ -122,6 +144,9 @@ public final class ShipTransferViewModel {
     public Signal<String> verdict() { return verdict; }
     public Signal<String> transferLabel() { return transferLabel; }
     public Signal<String> transferClasses() { return transferClasses; }
+    public Signal<String> roomTitle() { return roomTitle; }
+    public Signal<String> roomCopy() { return roomCopy; }
+    public Signal<String> contextLabel() { return contextLabel; }
 
     /**
      * The selected candidate's deck, for the plan view. Null if she has none.
@@ -220,13 +245,49 @@ public final class ShipTransferViewModel {
         if (ship == null) return "";
         if (!ship.ship().habitable()) return "No interior. Nobody could live aboard her.";
         if (isHome(ship)) return "The company is quartered here.";
-        ShipInterior quarters = interiorOf(homeShip());
         ShipInterior interior = interiorOf(ship);
-        if (quarters == null || interior == null) return "";
+        if (interior == null) return "";
+        // Before there is a home the question is not what the company would
+        // give up but what this hull cannot give them, which is the same
+        // question asked of a ship rather than of a move.
+        if (founding()) {
+            List<RoomPurpose> absent = missing(interior);
+            return absent.isEmpty()
+                    ? "She has everywhere the company needs."
+                    : "She has no " + list(absent, "or") + ".";
+        }
+        ShipInterior quarters = interiorOf(homeShip());
+        if (quarters == null) return "";
         List<RoomPurpose> lost = new InteriorChange(quarters, interior).lost();
         return lost.isEmpty()
                 ? "Nothing aboard would be given up."
-                : "Moving here would give up " + list(lost) + ".";
+                : "Moving here would give up " + list(lost, "and") + ".";
+    }
+
+    /** Whether the company has yet to be given a ship at all. */
+    private boolean founding() {
+        return home.get() == null;
+    }
+
+    /** The places a company weighs a hull on that this one does not have. */
+    private static List<RoomPurpose> missing(ShipInterior interior) {
+        List<RoomPurpose> absent = new ArrayList<>();
+        for (RoomPurpose purpose : COMPARED) {
+            if (!interior.facility(purpose).programmed()) absent.add(purpose);
+        }
+        return absent;
+    }
+
+    private static String cost(ShipInterior quarters, ShipInterior candidate) {
+        if (candidate == null) return "";
+        // Founding asks the same question of a ship that transfer asks of a
+        // move: what will this hull not do for the company. With no home to
+        // measure against, that is simply what she lacks.
+        if (quarters == null) {
+            return shorten("no ", missing(candidate), "or", "has everywhere");
+        }
+        return shorten("loses ", new InteriorChange(quarters, candidate).lost(),
+                "and", "no loss");
     }
 
     /**
@@ -236,13 +297,12 @@ public final class ShipTransferViewModel {
      * as a count, because a sentence cut off mid-word tells the player less than
      * the number does. The full list is on the ship's own page.
      */
-    private static String cost(ShipInterior quarters, ShipInterior candidate) {
-        if (quarters == null || candidate == null) return "";
-        List<RoomPurpose> lost = new InteriorChange(quarters, candidate).lost();
-        if (lost.isEmpty()) return "no loss";
-        if (lost.size() <= ROW_LOSSES) return "loses " + list(lost);
-        return "loses " + list(lost.subList(0, ROW_LOSSES))
-                + " +" + (lost.size() - ROW_LOSSES) + " more";
+    private static String shorten(String lead, List<RoomPurpose> purposes,
+                                 String conjunction, String none) {
+        if (purposes.isEmpty()) return none;
+        if (purposes.size() <= ROW_LOSSES) return lead + list(purposes, conjunction);
+        return lead + list(purposes.subList(0, ROW_LOSSES), conjunction)
+                + " +" + (purposes.size() - ROW_LOSSES) + " more";
     }
 
     private ShipInterior interiorOf(Candidate ship) {
@@ -318,10 +378,17 @@ public final class ShipTransferViewModel {
                         : "unclassified");
     }
 
-    private static String list(List<RoomPurpose> purposes) {
+    /**
+     * @param conjunction joins the last two. A list of things given up reads
+     *     "and"; a list of things absent reads "or", because "no mech bay and
+     *     range" says she has neither only by accident of grammar.
+     */
+    private static String list(List<RoomPurpose> purposes, String conjunction) {
         StringBuilder text = new StringBuilder();
         for (int index = 0; index < purposes.size(); index++) {
-            if (index > 0) text.append(index == purposes.size() - 1 ? " and " : ", ");
+            if (index > 0) {
+                text.append(index == purposes.size() - 1 ? " " + conjunction + " " : ", ");
+            }
             text.append(label(purposes.get(index)).toLowerCase(Locale.ROOT));
         }
         return text.toString();

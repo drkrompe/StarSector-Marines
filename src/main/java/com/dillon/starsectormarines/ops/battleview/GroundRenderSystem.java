@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
@@ -116,11 +118,13 @@ public final class GroundRenderSystem implements RenderSystem {
                     if (topology.isWindow(x, y)) windowPane(topology, x, y);
                 }
             }
+            emitEdgeBarriers(grid, view);
             return;
         }
 
         emitFloors(grid, topology, view);
         emitWalls(grid, topology, view);
+        emitEdgeBarriers(grid, view);
     }
 
     // ---- floor + overlay pass ------------------------------------------------
@@ -253,6 +257,42 @@ public final class GroundRenderSystem implements RenderSystem {
         float inset = cell * 0.07f;
         fillRect(frameX + inset, frameY + inset,
                 frameX + frameW - inset, frameY + frameH - inset, WINDOW_GLASS);
+    }
+
+    /** Sparse shared-edge features paint over both adjacent floor cells. */
+    private void emitEdgeBarriers(NavigationGrid grid, VisibleCellRect view) {
+        float cell = cam.cellPxSize();
+        float frameThickness = cell * 0.16f;
+        float glassThickness = cell * 0.07f;
+        float endInset = cell * 0.10f;
+        for (SharedEdgeBarrier barrier : grid.getEdgeBarriers()) {
+            int x = barrier.cellX();
+            int y = barrier.cellY();
+            int nx = x + barrier.direction().dx;
+            int ny = y + barrier.direction().dy;
+            if (!view.contains(x, y) && !view.contains(nx, ny)) continue;
+            if (barrier.kind() != SharedEdgeBarrier.Kind.WINDOW) continue;
+
+            if (barrier.direction() == Direction.E) {
+                float edgeX = cam.cellToScreenX(x + 1f);
+                float y0 = cam.cellToScreenY(y) + endInset;
+                float y1 = cam.cellToScreenY(y + 1f) - endInset;
+                fillRect(edgeX - frameThickness * 0.5f, y0,
+                        edgeX + frameThickness * 0.5f, y1, WINDOW_FRAME);
+                fillRect(edgeX - glassThickness * 0.5f, y0 + endInset,
+                        edgeX + glassThickness * 0.5f, y1 - endInset,
+                        WINDOW_GLASS);
+            } else {
+                float edgeY = cam.cellToScreenY(y + 1f);
+                float x0 = cam.cellToScreenX(x) + endInset;
+                float x1 = cam.cellToScreenX(x + 1f) - endInset;
+                fillRect(x0, edgeY - frameThickness * 0.5f,
+                        x1, edgeY + frameThickness * 0.5f, WINDOW_FRAME);
+                fillRect(x0 + endInset, edgeY - glassThickness * 0.5f,
+                        x1 - endInset, edgeY + glassThickness * 0.5f,
+                        WINDOW_GLASS);
+            }
+        }
     }
 
     /**

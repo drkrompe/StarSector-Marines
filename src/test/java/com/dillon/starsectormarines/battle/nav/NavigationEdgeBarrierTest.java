@@ -1,12 +1,16 @@
 package com.dillon.starsectormarines.battle.nav;
 
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -105,6 +109,57 @@ class NavigationEdgeBarrierTest {
         assertTrue(navigation.getZoneGraph().areConnected(
                 navigation.getZoneGraph().zoneIdAt(0, 0),
                 navigation.getZoneGraph().zoneIdAt(2, 0)));
+    }
+
+    @Test
+    void authoredWindowOwnsMovementTraceCoverAndDestruction() {
+        NavigationGrid grid = walkableGrid(3, 2);
+        grid.setCoverAtFacing(1, 0, NavigationGrid.FACING_E,
+                2, 0.6f);
+        SharedEdgeBarrier window = grid.placeEdgeBarrier(
+                1, 0, Direction.E, SharedEdgeBarrier.Kind.WINDOW);
+
+        assertSame(window, grid.getEdgeBarrier(2, 0, Direction.W));
+        assertFalse(grid.isSharedEdgePassable(1, 0, Direction.E));
+        assertArrayEquals(new int[]{1, 0, 1, 1, 2, 1, 2, 0},
+                GridPathfinder.findPath(grid, 1, 0, 2, 0, true, null));
+        assertTrue(grid.hasLineOfSight(1, 0, 2, 0));
+        assertTrue(grid.hasLineOfFire(1.5f, 0.5f, 2.5f, 0.5f));
+        assertSame(window, grid.firstEdgeBarrierOnLine(
+                1.5f, 0.5f, 2.5f, 0.5f));
+        assertEquals(2, grid.getCoverAtFacing(1, 0,
+                NavigationGrid.FACING_E));
+        assertEquals(1, grid.getCoverAtFacing(2, 0,
+                NavigationGrid.FACING_W));
+
+        NavigationService navigation = new NavigationService(grid,
+                new CellTopology(3, 2));
+        MapEditor editor = new MapEditor(navigation);
+        assertFalse(editor.damageEdgeBarrier(2, 0, Direction.W, 39));
+        assertEquals(1, window.structure());
+        assertTrue(editor.damageEdgeBarrier(1, 0, Direction.E, 1));
+
+        assertNull(grid.getEdgeBarrier(1, 0, Direction.E));
+        assertTrue(grid.isSharedEdgePassable(1, 0, Direction.E));
+        assertEquals(2, grid.getCoverAtFacing(1, 0,
+                NavigationGrid.FACING_E));
+        assertEquals(0.6f, grid.getCoverCatchHalfHeightAtFacing(
+                1, 0, NavigationGrid.FACING_E));
+        assertTrue(navigation.isNavigationTopologyDirty());
+        assertArrayEquals(new int[]{1, 0, 2, 0},
+                GridPathfinder.findPath(grid, 1, 0, 2, 0, true, null));
+        navigation.flushNavigationTopologyIfDirty();
+        assertFalse(navigation.isNavigationTopologyDirty());
+    }
+
+    @Test
+    void authoredWindowRejectsASecretBlockedCell() {
+        NavigationGrid grid = walkableGrid(2, 1);
+        grid.setWalkable(1, 0, false);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> grid.placeEdgeBarrier(0, 0, Direction.E,
+                        SharedEdgeBarrier.Kind.WINDOW));
     }
 
     private static NavigationGrid walkableGrid(int width, int height) {

@@ -4,7 +4,10 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — separated authoritative cells, shared-edge transitions, and derived regions; widened compound firing aprons while preserving functional buildings through parcel sizing; added role-readable compound dressing; guaranteed standable interior anchors; and made orphaned-pocket sealing yield to a compound.
+Updated: 2026-08-28 — shipped shared-edge windows for Conquest bunkers,
+widened compound firing aprons while preserving functional parcel members,
+added role-readable compound dressing, guaranteed standable interior anchors,
+and made pocket sealing yield to a compound.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -56,6 +59,24 @@ drawing a narrow wall without closing its edge would create dishonest scenery.
 Runtime topology retains the permissive-mutation law: destruction may open an
 authored edge, while construction that closes an edge under existing paths is a
 separate future problem.
+
+A **shared-edge barrier** is that authored identity. It is stored once on a
+canonical east- or north-facing edge, while reciprocal lookup from either
+adjacent cell returns the same feature. Both cells must already be walkable and
+the transition initially open: the feature divides usable space instead of
+smuggling a cell wall into edge metadata. Its profile defines sight and direct-
+projectile policy, directional cover and vertical catch, structure, and
+appearance together. The first profile is a transparent firing **window**: it
+blocks movement, passes sight and direct rounds, supplies low cover to both
+adjacent positions, and can be broken by structural blast damage. Destruction
+removes the identity and cover, then opens the reciprocal edge through the map
+editor so zones, retained paths, vantage caches, and the region mesh advance
+together at the normal topology flush. Runtime construction remains excluded.
+Diagonal traversal consumes the neighboring cardinal transitions as well, so a
+unit cannot slip around a closed barrier endpoint in one diagonal step.
+Arbitrary angled or within-cell dividers remain outside this model: a shape
+that partitions one cell into disconnected interiors would require explicit
+subcell regions or a finer low-level lattice, not more meanings on a cell edge.
 
 The greedy navigation mesh is derived runtime structure, not generated map
 authority. It combines compatible walkable cells into deterministic rectangular
@@ -111,16 +132,18 @@ overwriting roads or neighboring fills after dispatch. Cross-leaf structures
 therefore require an explicit planning stage that publishes the claimed
 footprint and its circulation obligations.
 
-Firing apertures are structural wall cells: they remain non-walkable and
-destructible while passing sight and projectiles. Hollow building shells place
-them on facade runs belonging to tactically usable rooms; secured storage and
-infrastructure rooms may deliberately remain opaque. Compound perimeter walls
-place apertures in adjacent two-cell pairs only on sufficiently long straight
-runs with walkable firing space on both sides. Compound buildings retain a
-two-cell internal apron to support oblique firing angles, while gates,
-hardpoints, corners, and reserved road circulation remain clear. That apron
-expands the minimum parcel claimed by a walled compound; it may not reduce an
-intended member below a hollow shell with a standable interior and doorway.
+Thick-facade firing apertures are structural wall cells: they remain non-
+walkable and destructible while passing sight and projectiles. Hollow building
+shells place them on facade runs belonging to tactically usable rooms; secured
+storage and infrastructure rooms may deliberately remain opaque. Compound
+perimeter walls place apertures in adjacent two-cell pairs only on sufficiently
+long straight runs with walkable firing space on both sides. Compound buildings
+retain a two-cell internal apron to support oblique firing angles, while gates,
+hardpoints, corners, and reserved road circulation remain clear. These wall-
+cell apertures model a thick shell; shared-edge windows model a narrow divider
+without consuming either side. The apron expands the minimum parcel claimed by
+a walled compound; it may not reduce an intended member below a hollow shell
+with a standable interior and doorway.
 Compound dressing is clustered by role and place: logistics props explain each
 military wing, while planters and seating define shared domestic space. Hard
 fixtures and visual-only clutter both preserve gates, building thresholds,
@@ -160,10 +183,11 @@ behavior and durability of every referenced structure.
 
 The Conquest fortress's open-backed forward bunkers use the same separation of
 place from position: a blocked center turret remains the bunker anchor, while
-two walkable cells behind attacker-facing, see-through windows are authored as
-the garrison's member positions. The road reservation and a reachable rear
-approach are placement requirements, so a bunker is omitted rather than
-publishing unusable fighting cells.
+two attacker-facing shared-edge windows bound the garrison's authored member
+positions. Each exterior neighbor remains walkable and a one-cell front-and-
+flank halo proves a legal route around the intact pane. The road reservation,
+halo, and reachable rear approach are placement requirements, so a bunker is
+omitted rather than publishing an isolated fighting cell.
 
 The layout catalog loads after turret structures and rejects unknown structure
 ids, duplicate or out-of-bounds cells, turrets placed off ordinary pads, and
