@@ -4,7 +4,7 @@ Status: ACTIVE — canonical provenance and faction-fit reference for shipped Ma
 
 Written: 2026-08-26
 
-Updated: 2026-08-28 — the Aegis composite line suit's predictive volley shipped as the second integral system, alongside the Halcyon micro-missile delivery mechanism it fires.
+Updated: 2026-08-28 — the Emberjaw breacher and Quillon vibro-blade shipped as the two close-contact boarding tools, alongside the Aegis composite line suit's predictive volley and the Halcyon micro-missile it fires.
 
 Read `faction-lore-nouns.md` for evidence tiers and the individual faction guides
 for institutional context. `progression-nouns.md` owns acquisition and issue;
@@ -45,6 +45,8 @@ delivery behavior, protection tradeoff, or special activation.
 | `special.smoke-grenade` | **Wayfarer multispectral smoke** — a League interoperability answer to mismatched coalition optics. | League and Independent markets; corporate reconnaissance and specialist recovery elsewhere. | Smoke remains faction-neutral in simulation; availability does not grant a hidden optical advantage. |
 | `special.frag-grenade` | **FRG-1 Shattercap** — a compact Kazeron security grenade whose specification leaked widely. | League, Diktat, Independent, pirate, and Pather circulation. | It remains anti-personnel ordnance, not a faction-specific wall breacher or universal heavy weapon. |
 | `special.satchel-charge` | **Breachhand mag-clamp kit** — an industrial voidwork tool associated with Gilead guild maintenance and adapted for combat. | Church and Knight custodians; copied Pather, pirate, and Independent demolition sets. | Hegemony and Tri-Tachyon have other engineering channels and need not stock a renamed Breachhand equivalent without a distinct mechanic. |
+| `special.breaching-cutter` | **CUT-1 Emberjaw thermal breacher** — an Independent breaker-yard hull-cutting tool carried into boarding work. | Independent salvage and shipbreaking crews; Church and Knight custodial cutters kept running past their service life; pirate conversions of whatever they recover. | Thermal and arc are mechanism variants of one breach-tool role, not two catalog entries. It is sustained local contact work with no blast, and it opens only an authored breach point — it is not a portable demolition charge and not a wall-removal tool. Corporate and Hegemony engineering channels need no renamed equivalent without a distinct mechanic. |
+| `special.vibro-blade` | **VBL-1 Quillon vibro-blade** — a rugged Hegemony boarding pattern whose specification spread through coalition arsenals. | Hegemony issue; copied League and Diktat patterns; broad Independent, Pather, and pirate circulation; rare Tri-Tachyon monofilament tools of the same role. | Vibro and monofilament are one edge role; a monofilament label buys presentation and provenance, never extra reach or a hidden bonus. It is anti-personnel reaction equipment and cannot be used on machinery, walls, or emplacements. |
 
 ## Armor patterns
 

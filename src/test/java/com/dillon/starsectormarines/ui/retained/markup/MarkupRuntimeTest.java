@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -204,6 +205,33 @@ class MarkupRuntimeTest {
 
         try (MarkupInstance installed = loader.build("reload-view", Map.of())) {
             assertEquals("Stable", installed.root().text());
+        }
+    }
+
+    @Test
+    void imagesBindTheirSourceAndTreatNothingAsNothing() {
+        Reactor values = new Reactor();
+        MutableSignal<String> icon = values.signal("graphics/ui/armory/system-missile-pod.png");
+        MarkupLoader loader = loader("icon-view.mlx", """
+                <template props="icon">
+                  <div id="root">
+                    <img id="badge" src="{icon}" />
+                    <img id="absent" />
+                  </div>
+                </template>
+                """);
+
+        try (MarkupInstance instance = loader.build(values, "icon-view", Map.of("icon", icon))) {
+            UiElement badge = instance.requireElement("badge");
+            assertEquals(UiTag.IMAGE, badge.tag());
+            assertEquals("graphics/ui/armory/system-missile-pod.png", badge.imageSource());
+            assertEquals(0, badge.childCount());
+            assertNull(badge.text(), "an image is not a text node");
+            assertNull(instance.requireElement("absent").imageSource());
+
+            icon.set(null);
+            assertEquals(1, instance.flush());
+            assertNull(badge.imageSource(), "a pattern that carries nothing shows nothing");
         }
     }
 

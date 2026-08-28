@@ -28,8 +28,11 @@ public final class FrontageSceneSnapshotSuite implements SnapshotSuite {
 
     /** Same seed the scene test asserts against, so the animation and the assertions describe one battle. */
     private static final long SEED = 20260828L;
-    private static final int GARRISON = 8;
-    private static final int ASSAULT = 8;
+    /** One garrison per emitted node plus a spread assault, so a recording shows the layered defense rather than one squad. */
+    private static final int GARRISON_SQUADS = 4;
+    private static final int GARRISON_SIZE = 8;
+    private static final int ASSAULT_SQUADS = 3;
+    private static final int ASSAULT_SIZE = 8;
     private static final int TICKS = 2400;
     /** One frame per 30 ticks — fine enough to catch the stand-to, coarse enough to stay watchable. */
     private static final int FRAME_EVERY_TICKS = 30;
@@ -60,7 +63,8 @@ public final class FrontageSceneSnapshotSuite implements SnapshotSuite {
 
     private SnapshotArtifact record(BattleReviewFrameRenderer renderer, Approach approach)
             throws Exception {
-        Scene scene = FrontageScene.build(SEED, GARRISON, ASSAULT, approach);
+        Scene scene = FrontageScene.build(SEED, GARRISON_SQUADS, GARRISON_SIZE,
+                ASSAULT_SQUADS, ASSAULT_SIZE, approach);
         BattleSimulation sim = scene.sim();
         List<BufferedImage> frames = new ArrayList<>(TICKS / FRAME_EVERY_TICKS + 1);
         for (int tick = 0; tick <= TICKS; tick++) {
@@ -71,22 +75,7 @@ public final class FrontageSceneSnapshotSuite implements SnapshotSuite {
             sim.advance(BattleSimulation.TICK_DT);
         }
         return SnapshotArtifact.animation(
-                "assault-from-" + edge(approach) + ".gif", frames, FRAME_DELAY_MILLIS);
-    }
-
-    /**
-     * Which edge of the <em>rendered frame</em> an approach enters from.
-     * {@link Approach} is named in world terms and world +y draws upward, so a
-     * recording labelled by the enum tells a viewer the assault came from the
-     * south while they watch it walk down from the top of the picture.
-     */
-    private static String edge(Approach approach) {
-        return switch (approach) {
-            case SOUTH -> "top";
-            case NORTH -> "bottom";
-            case EAST -> "right";
-            case WEST -> "left";
-        };
+                "assault-from-" + approach.renderedEdge() + ".gif", frames, FRAME_DELAY_MILLIS);
     }
 
     /** Tick, the garrison's current goal, and — while it is standing to — how its posts are split. */
@@ -94,7 +83,7 @@ public final class FrontageSceneSnapshotSuite implements SnapshotSuite {
         Sample sample = FrontageScene.sample(scene, tick);
         StringBuilder caption = new StringBuilder(String.format(Locale.ROOT,
                 "assault from %s  •  t%-4d  •  %s",
-                edge(scene.approach()), tick, sample.goal()));
+                scene.approach().renderedEdge(), tick, sample.goal()));
         if (sample.posts() > 0) {
             caption.append(String.format(Locale.ROOT,
                     "  •  %d posts, %d cover, %d reserve  •  %d on post",
