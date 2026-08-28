@@ -8,8 +8,8 @@ Updated: 2026-08-27 — renamed off the flagship framing. The company lives on a
 ship the player designates, which need not be the ship they fly. Read
 `company-ship.md` for where the deck's parameters come from.
 
-Read `ship-interiors-nouns.md` before implementing this story. Depends on
-`fixture-derived-ambient-routes.md`.
+Read `ship-interiors-nouns.md` before implementing this story. The crew model it
+puts on the deck is in `ai-nouns.md`.
 
 Retire the two constant scene layouts and host Barracks and Mech Lab on the
 company ship's generated deck. Today each screen owns a private grid with its

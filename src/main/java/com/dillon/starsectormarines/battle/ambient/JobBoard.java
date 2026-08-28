@@ -42,6 +42,14 @@ public final class JobBoard {
     /**
      * Publish a site's live jobs as claimable points.
      *
+     * <p>Saying the same thing twice is not an error. A site is published by
+     * every shift that reaches it, and shifts share: two berthing spaces on the
+     * same deck send their watches to the same mess, so the mess is offered up
+     * once by each of them. What a publish states is what is there, and a second
+     * statement of it leaves the board as it was. A genuinely clashing id — two
+     * sites claiming one number — still fails loudly at
+     * {@link TaskPointService#register}, because that is a different mistake.
+     *
      * @param berthed whether the berth at each index holds a machine, as
      *     returned by the host that parked them; an empty array means none do
      * @return the affordances that actually have somewhere to be done, in
@@ -55,7 +63,9 @@ public final class JobBoard {
         for (FixtureTask task : live(authored, site, berthed)) {
             String group = group(site.id(), task.affordance());
             int index = counts.merge(task.affordance(), 1, Integer::sum) - 1;
-            service.register(new TaskPoint(group + "#" + index, group,
+            String id = group + "#" + index;
+            if (service.isRegistered(id)) continue;
+            service.register(new TaskPoint(id, group,
                     task.cellX() + 0.5f, task.cellY() + 0.5f,
                     task.fixtureX() + 0.5f, task.fixtureY() + 0.5f));
         }
