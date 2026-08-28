@@ -90,6 +90,19 @@ public final class CompoundService {
          */
         public float captureProgress;
 
+        /**
+         * Resolved capture cell — the walkable cell whose zone <em>is</em> this
+         * compound's room. Starts unresolved ({@code -1}) and is filled in by
+         * {@link CompoundCaptureSystem} on its first tick.
+         *
+         * <p>Not simply {@link TacticalNode#anchorX}: a node anchor is the
+         * place's stable identity and is explicitly allowed to be a wall,
+         * turret mount, or furnished cell, none of which belong to a zone. The
+         * capture state machine needs a cell that does.
+         */
+        public int captureCellX = -1;
+        public int captureCellY = -1;
+
         Record(TacticalNode node) {
             this.node = node;
         }

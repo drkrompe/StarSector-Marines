@@ -126,7 +126,10 @@ Do not run builds or leave generated task files there.
   pieces by keying on alpha, proposes a footprint for each from the sheet grid,
   and exports a packed atlas plus its `*.tileset.json`. Footprints are
   edited there rather than inferred, because how much deck a piece covers is a
-  judgement about the object, not a measurement of the art.
+  judgement about the object, not a measurement of the art. The annotations are
+  saved to `art-source/tilesets/<name>.tileset-authoring.json`, so a sheet can be
+  annotated across several sittings; re-slicing carries existing annotations onto
+  the newly found pieces and names any that no longer match.
   All three pages validate before replacement; the Turrets page prepares every
   linked target before replacing files atomically and rolls back earlier files
   if a later replacement fails.
