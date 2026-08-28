@@ -326,14 +326,39 @@ than being reinterpreted as exact capture-room evidence; capture-zone identity
 changes censor a cohort so a breached/merged room cannot fabricate an arrival
 or reinforcement.
 
-Run the duplicate bounded reinforced fixture next. If cohorts commonly enter
-understrength, gain no zone members, and exit with defenders still present,
-the first commander behavior seam is contested-compound relief: preserve the
-depleted squad's intent but stop treating one broken, displaced, or
-single-survivor squad as a full capture allocation. If healthy reinforced
-cohorts remain mixed instead, focus the tactical slice on unreachable in-zone
-defenders in `ClearZone` and unseen defender re-entry in `HoldZone` before
-tuning force budgets or capture timers.
+The duplicate bounded reinforced fixture completed byte-stably at 6,000 ticks.
+It initially appeared to contain twelve cohorts: six captured cleanly 125–155
+ticks after entry, while six remained mixed for 5,885 ticks. The latter were
+not independent assaults. All six newly published fortress-ward strongpoints
+resolved to capture zone `0`, the map's giant outdoor component, and therefore
+published the same 1,931-event occupancy series. One Marine entering that
+component at tick 115 made all six read `1M/260D`; all transitioned to
+`CONTESTED` together at tick 120. Those aliases contributed 35,310 of 35,350
+mixed compound-ticks. Three valid rear objectives were never entered, while
+every genuinely reached room captured promptly. This run therefore does not
+authorize contested-compound relief or tactical force tuning.
+
+The topology fault sat below command. `RoomPacker` published threshold cells
+without the navigation doorway tag, admitted room bulkheads over already-live
+floor outside its local mask, and the outer-wall demolition sweep did not honor
+the same compound/ward protection mask as wall placement. The repair keeps
+packed thresholds as portal boundaries, stamps every claimed bulkhead as real
+non-walkable structure without changing candidate selection, and excludes
+authored compounds/ward space from demolition. Focused
+coverage asserts every packed ship threshold is a navigation doorway and the
+six canonical fortress strongpoints own six bounded, distinct room zones.
+
+The final narrowed duplicate replay also completed byte-stably at 6,000 ticks.
+It observed five real compound rooms and twelve bounded cohorts: five captured,
+one exited with defenders present, four exited empty, one was censored by a zone
+change, and one timed out; ten became uncontested. Marines captured five rooms
+and held four. Secure travel recorded four target entries, four retargets, and
+fourteen squad-loss exits, while 23/24 assignments closed marker range and three
+adjacent-assault commitments published. Exact-room capture conversion therefore
+works after arrival. The next seam is the last approach/threshold transition:
+why squads that close the marker are lost or fragment before exact-zone entry.
+Inspect marker-closure-to-entry latency, unit distribution and staging at the
+door, and contact behavior there before changing capture slots or timers.
 
 ## Historical construction-only baselines
 

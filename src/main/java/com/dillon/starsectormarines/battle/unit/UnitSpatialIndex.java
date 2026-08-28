@@ -592,7 +592,19 @@ public final class UnitSpatialIndex {
     private float nearestOutsideDistanceSquared(float cx, float cy,
                                                  int centerBx, int centerBy,
                                                  int ring) {
-        float nearest = Float.MAX_VALUE;
+        float nearest = nearestOutsideDistance(cx, cy, centerBx, centerBy, ring);
+        return nearest * nearest;
+    }
+
+    /**
+     * Distance from the query point to the closest point of the grid outside
+     * bucket rings {@code 0..ring}, or {@link Float#POSITIVE_INFINITY} once
+     * those rings cover every bucket. Nothing unvisited can be nearer than
+     * this, which is what lets a nearest-first scan stop.
+     */
+    private float nearestOutsideDistance(float cx, float cy,
+                                         int centerBx, int centerBy, int ring) {
+        float nearest = Float.POSITIVE_INFINITY;
         int left = centerBx - ring;
         int right = centerBx + ring;
         int top = centerBy - ring;
@@ -603,7 +615,73 @@ public final class UnitSpatialIndex {
         if (top > 0) nearest = Math.min(nearest, cy - top * BUCKET);
         if (bottom < bucketsY - 1) nearest = Math.min(nearest,
                 (bottom + 1) * BUCKET - cy);
-        return nearest * nearest;
+        return nearest;
+    }
+
+    /**
+     * Receives combatants from {@link #forEachOtherFactionCombatantByRing}
+     * nearest bucket ring first, and decides how far the scan keeps going.
+     */
+    public interface RingVisitor {
+
+        /**
+         * One candidate, at the position the index snapshotted. Movers drift
+         * from it during the unit-update phase, so a caller that needs an
+         * exact distance re-reads the live position; the snapshot is what
+         * bounds the search, not what measures it.
+         */
+        void accept(long id, float snapshotX, float snapshotY);
+
+        /**
+         * Called once per completed ring with the distance to the nearest
+         * point not yet covered. Return {@code false} to stop expanding —
+         * typically once no unvisited candidate could beat what has been
+         * found, allowing for snapshot drift.
+         */
+        boolean continueAfterRing(float nearestOutsideDistance);
+    }
+
+    /**
+     * Visits every snapshot combatant outside {@code selfFaction} in expanding
+     * bucket rings around the query point, letting the visitor stop as soon as
+     * distance rules out everything further away. This is the nearest-first
+     * counterpart to {@link #gatherOtherFactionCombatants}, for callers whose
+     * search radius is not known up front.
+     */
+    public void forEachOtherFactionCombatantByRing(float cx, float cy,
+                                                   Faction selfFaction,
+                                                   RingVisitor visitor) {
+        int centerBx = Math.max(0, Math.min(bucketsX - 1,
+                Math.floorDiv((int) Math.floor(cx), BUCKET)));
+        int centerBy = Math.max(0, Math.min(bucketsY - 1,
+                Math.floorDiv((int) Math.floor(cy), BUCKET)));
+        int maxRing = Math.max(Math.max(centerBx, bucketsX - 1 - centerBx),
+                Math.max(centerBy, bucketsY - 1 - centerBy));
+        int selfFactionOrdinal = selfFaction.ordinal();
+
+        for (int ring = 0; ring <= maxRing; ring++) {
+            int x0 = Math.max(0, centerBx - ring);
+            int x1 = Math.min(bucketsX - 1, centerBx + ring);
+            int y0 = Math.max(0, centerBy - ring);
+            int y1 = Math.min(bucketsY - 1, centerBy + ring);
+            for (int by = y0; by <= y1; by++) {
+                for (int bx = x0; bx <= x1; bx++) {
+                    if (Math.max(Math.abs(bx - centerBx),
+                            Math.abs(by - centerBy)) != ring) continue;
+                    Bucket bucket = buckets[by * bucketsX + bx];
+                    if (bucket == null) continue;
+                    CombatantSlice combatants = bucket.combatants;
+                    for (int i = 0, n = combatants.size; i < n; i++) {
+                        if ((combatants.factionOrdinals[i] & 0xFF)
+                                == selfFactionOrdinal) continue;
+                        visitor.accept(combatants.ids[i],
+                                combatants.posX[i], combatants.posY[i]);
+                    }
+                }
+            }
+            if (!visitor.continueAfterRing(nearestOutsideDistance(
+                    cx, cy, centerBx, centerBy, ring))) return;
+        }
     }
 
     /**
