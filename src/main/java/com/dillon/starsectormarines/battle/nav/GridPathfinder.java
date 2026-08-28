@@ -162,9 +162,30 @@ public final class GridPathfinder {
             }
         }
 
+        /**
+         * Grow the open set, <b>keeping what is already in it</b>.
+         *
+         * <p>Reallocating without the copy discards the heap mid-search. Every
+         * slot then reads back as zero, which is a valid cell index rather than
+         * a sentinel, so the search continues over a cell it never opened and
+         * writes a heap position for it. That write is the lasting damage: the
+         * workspace is cleaned by replaying the cells a search touched, cell
+         * zero was never on that list, and so its bogus position survives into
+         * every later search on the thread — including searches on an entirely
+         * different, smaller grid, which then abandon routes that plainly
+         * exist.
+         *
+         * <p>Observed as exactly that: a fully open thirty-two by twenty-four
+         * grid where every path returned empty after expanding two nodes, with
+         * {@code heapPos[0]} left reading 1075 after the workspace had been
+         * cleaned. It stays hidden because it needs a frontier past the initial
+         * capacity to trigger, and because the symptom is an empty path, which
+         * is indistinguishable from an honest "no route".
+         */
         void ensureHeapCapacity(int required) {
             if (heap.length < required) {
-                heap = new int[Math.max(heap.length * 2, Math.max(required, 1024))];
+                heap = Arrays.copyOf(heap,
+                        Math.max(heap.length * 2, Math.max(required, 1024)));
             }
         }
 
