@@ -122,9 +122,10 @@ Breaching is now the assault role's signature rather than one pirate pattern's
 quirk. All six ASSAULT patterns carry a version of the same effect and nothing
 else in the catalog carries anything, so what a player learns is "assault suits
 breach" rather than "expensive suits get a trick". The six differ on every axis
-the effect has {D} the Hegemony version is the most available, the pirate one the
-least and the crudest {D} and a test refuses a renamed copy. Which pattern gets
-what, and why the budget stops at roughly two more, is `integral-system-slate.md`.
+the effect has — the Hegemony version is the most available, the pirate one the
+least and the crudest — and a test refuses a renamed copy. Which pattern gets
+what, and why a pattern with nothing to say carries nothing, is
+`integral-system-slate.md`.
 
 Two of the six under-express until the mitigation lands: the Knightly and
 Sindrian versions spend most of their design on the screen, so today the Armory

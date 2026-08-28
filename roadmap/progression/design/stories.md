@@ -19,8 +19,8 @@ Read `progression-nouns.md` before changing a progression story.
 | `integral-system-battle-presentation.md` | Planned | A running system is invisible on the field today. Pose and screen, downstream only; coordinate with S7 and S9. |
 | `shoulder-micro-missile-pod.md` | Planned | The second first-system. Blocked on a micro-missile delivery mechanism; the only planned carrier for the ammunition resource mode. |
 | `defender-integral-systems.md` | Planned | Defenders carry the systems their patterns declare. Depends on the use policy; the foundry-breaker is a pirate pattern its own faction cannot currently use. |
-| `perception-integral-systems.md` | Planned | The Janus scout's sensor provenance spent as a bounded reveal. Where the long-deferred concealment question lands, from the seeing side. Claims one of about two remaining budget slots. |
-| `firing-platform-integral-systems.md` | Planned | A line pattern planting as a firing platform: assault crosses, line holds. Must pick one carrier; claims the other remaining budget slot. |
+| `perception-integral-systems.md` | Planned | The Janus scout's sensor provenance spent as a bounded reveal. Where the long-deferred concealment question lands, from the seeing side. |
+| `firing-platform-integral-systems.md` | Planned | A line pattern planting as a firing platform: assault crosses, line holds. Picks one carrier of the two candidates. |
 | `s7-grade-visual-identity.md` | Planned | Depends on shipped S1. Presentation-only grade signal. |
 | `s8-roster-legibility.md` | Ready | Requires shipped telemetry. Establishes campaign quality readout and UI-scale prerequisite. |
 | `s9-in-battle-quality-conveyance.md` | Ready | Requires shipped telemetry; coordinate its person-driven signal with S7. |

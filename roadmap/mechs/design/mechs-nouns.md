@@ -126,11 +126,14 @@ Hip and upper-chassis turns accelerate and brake within separate angular
 budgets. A changed target or route therefore arrests the old swing before
 reversing it instead of snapping to a new turn direction. Each foot retains a
 world-space plant until reach or yaw requires a step; the lifted foot advances
-toward a velocity-predicted, stance-constrained landing and adopts the hip
-bearing only at touchdown. Pivoting uses the same rule, so one pad supports the
-body while the other walks around the turn. The rendered waist and complete
-upper assembly respond through a damped support-driven weight transfer. This
-gait is fixed-tick presentation state only: it does not move collision,
+toward a stance-constrained landing predicted around the body's touchdown
+position and adopts the hip bearing only when it plants. A completed moving
+stride leaves one pad behind the body and the new pad ahead, rather than letting
+the chassis overrun both supports. Pivoting uses the same rule, so one pad
+supports the body while the other walks around the turn. The rendered waist and
+complete upper assembly respond through a damped, two-dimensional weight
+transfer toward the single support pad or the segment between two planted pads.
+This gait is fixed-tick presentation state only: it does not move collision,
 pathing, aim, or targeting authority.
 
 ## Authority flow
