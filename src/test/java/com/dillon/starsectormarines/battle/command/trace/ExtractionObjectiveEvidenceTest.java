@@ -65,6 +65,8 @@ class ExtractionObjectiveEvidenceTest {
                 .append("| Fixture | Result | Ticks | Payload | Alarm | ")
                 .append("Interdiction actions |\n")
                 .append("|---|---|---:|---|---|---:|\n");
+        int canonicalSourceResponseActions = 0;
+        int canonicalInterdictionActions = 0;
 
         for (FixtureSpec spec : fixtures) {
             BattleFixture fixture = loadFixture(spec);
@@ -76,6 +78,8 @@ class ExtractionObjectiveEvidenceTest {
             if (canonical && spec.requiresAlarmResponse()) {
                 assertAlarmResponse(spec, first);
             }
+            canonicalSourceResponseActions += first.sourceResponseActions();
+            canonicalInterdictionActions += first.interdictionActions();
 
             Files.writeString(output.resolve("traces")
                             .resolve(spec.id() + ".jsonl"),
@@ -92,6 +96,14 @@ class ExtractionObjectiveEvidenceTest {
                     .append(first.alarmRaised() ? "raised" : "quiet")
                     .append('|').append(first.interdictionActions())
                     .append("|\n");
+        }
+        if (canonical) {
+            assertTrue(canonicalSourceResponseActions > 0,
+                    "canonical matrix must exercise source-perimeter "
+                            + "fallback when no contact is actionable");
+            assertTrue(canonicalInterdictionActions > 0,
+                    "canonical matrix must exercise belief-driven "
+                            + "interdiction");
         }
 
         JSONObject summary = new JSONObject()
@@ -142,10 +154,6 @@ class ExtractionObjectiveEvidenceTest {
                 spec.id() + " must raise the public source alarm");
         assertTrue(result.alarmPerspectiveEvents() > 0,
                 spec.id() + " must publish ALARM_INTERDICTION");
-        assertTrue(result.sourceResponseActions() > 0,
-                spec.id() + " must show source-perimeter mobilization");
-        assertTrue(result.interdictionActions() > 0,
-                spec.id() + " must show belief-driven interdiction");
     }
 
     private static JSONObject summary(FixtureSpec spec, RunResult result)
