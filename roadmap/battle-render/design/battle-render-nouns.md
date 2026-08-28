@@ -4,9 +4,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — generated-map evidence enters through the ordinary battle
-scene, and the durability bar is emitted by every layer that draws something
-shootable, convoy vehicles included.
+Updated: 2026-08-28 — the GROUND collector now presents sparse authored shared-
+edge windows directly from their live simulation identity.
 
 ## Vocabulary
 
@@ -62,6 +61,13 @@ pipeline never manufactures a shot.
 The current world order is `GROUND → DECALS → VEHICLES → DOODADS → HIGHLIGHTS → FOG → UNITS → ROOFS → DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX → FLYBY`. The enum is the authority for this order; the sequence here makes the standing occlusion contract legible without replacing it.
 
 Ground is a dense, cell-backed surface. Current camera culling range-loops the visible cell rectangle for dense passes and AABB-rejects eligible sparse scenery. This preserves cell truth while avoiding off-camera collection. If terrain or decal work becomes the measured ceiling again, future dense render tiles may cache a view-resident projection of cell blocks. A tile is a derived, view-admitted presentation block, never a new simulation grid or coordinate system. Ground and decals may keep separate backing while sharing tile addressing, invalidation, and eviction policy. Evicted ground rebuilds from cells and evicted decals replay retained sources; unavailable tile backing falls back locally to the present cell path without changing paint order.
+
+Shared-edge windows are sparse GROUND features rather than painted properties
+of either adjacent floor cell. The collector reads the live canonical barrier
+list, culls against either neighboring cell, and emits frame and pane geometry
+over the shared boundary after the floor/wall pass. Destruction removes that
+same identity, so the next collected frame contains neither pane nor a stale
+presentation-side tombstone.
 
 ## Standing laws
 
