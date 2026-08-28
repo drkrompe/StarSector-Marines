@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.squad.FireTeamMorale;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -264,9 +265,15 @@ public class RecoverFromAmbushTest {
         squad.originalSize = 1;
         squad.aliveMembers = 1;
         squad.aliveMembersAtLastPlan = 1;
-        squad.morale = 0f;
+        // Morale is held per fire team; the squad's own fields are readouts
+        // the tick recomputes. A one-marine squad is one team, so breaking
+        // that team is what makes the squad read as broken.
+        FireTeamMorale team = squad.fireTeamMorale(0);
+        team.aliveMembers = 1;
+        team.originalSize = 1;
+        team.morale = 0f;
+        team.timeSinceUnderFire = 0f;
         squad.moraleBroken = false;
-        squad.timeSinceUnderFire = 0f;
         SquadPlan.Step oldStep = new SquadPlan.Step(OverwatchPosture.INSTANCE);
         oldStep.assignments.put("any", List.of(marine));
         SquadPlan oldPlan = new SquadPlan(List.of(oldStep));

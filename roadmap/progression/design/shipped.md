@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-08-28 — folded both deployables, the integral-system use policy, and defender adoption.
+Updated: 2026-08-28 — folded the Janus sensor sweep.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -26,3 +26,4 @@ Updated: 2026-08-28 — folded both deployables, the integral-system use policy,
 | `defender-integral-systems.md` | 2026-08-28 | this commit | `progression-nouns.md` — defenders carrying what their patterns declare, the one-data-path law, systems as composition rather than a difficulty lever, and the still-open pre-contact readability question; `integral-armor-systems.md` — removed from remaining scope |
 | `deployable-emplacements.md` | 2026-08-28 | this commit | `progression-nouns.md` — the deployable activation, the placed-emplacement noun, ordnance interception as distinct from damage, the bounded-on-every-axis law, and the Palisade pod; `moddable-weapons-nouns.md` — the round-declares-its-own-vulnerability law and the emplacement authority split for a carried platform; `equipment-lore-catalog.md` — Palisade provenance. Presentation shipped with it: engagements are drawn, a lost engagement reads differently from a stopped one, and the `point-defence` snapshot suite records a saturating salvo. Deployable cover was deliberately deferred and shipped separately. |
 | `deployable-cover.md` | 2026-08-28 | this commit | `progression-nouns.md` — the actor/boundary-property split inside the deployable category, the placed-cover-screen noun, the one-boundary directionality law, and the Rampart revetment; `mapgen-nouns.md` — the runtime-construction exclusion replaced by the no-islands law construction must satisfy, plus the passable field-revetment profile; `equipment-lore-catalog.md` — Rampart provenance. Presentation shipped with it: the screen is drawn on the boundary it occupies, and the `deployable-cover` snapshot suite records the same fire into a covered lane, an open lane, and a screened post shot from the flank. |
+| `perception-integral-systems.md` | 2026-08-28 | this commit | `progression-nouns.md` — perception as the third integral-system effect, the player-facing-by-construction reveal, the information-not-authority and never-conceals laws, and the bounded wall read; `fog-of-war-nouns.md` — the temporary-source split into host-projected and simulation-carried channels and the carried sweep's own boundaries; `integral-system-slate.md` — the Janus moved from candidate to shipped. Evidence ships with it: the `perception-sweep` snapshot suite records the player's own picture before, during, and after the window. |
