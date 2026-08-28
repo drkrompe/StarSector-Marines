@@ -4,11 +4,24 @@ Status: IN PROGRESS
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 — the mech bay, berthing, the mess and the firing range are
+Updated: 2026-08-28 — the mech bay, berthing, the mess and the firing range are
 furnished and publish affordances and task points. Berthing came out with no room
 for a lounge at its authored size, so that part of the scope is now a question
-about the recipe rather than about the fill. The density and empty-region sweeps
-remain.
+about the recipe rather than about the fill. `CompartmentFillSweepTest` now
+measures the empty-region and density criteria across five hulls and six seeds,
+and it says the fill is not there yet: **344 of 2054 fitted compartments hold a
+void larger than four cells square** — a hangar comes out twelve square, an
+engine room ten — and **480 are furnished below a tenth of their floor**. Those
+counts are ratchets, not pass marks; they come down as the fill improves. The
+refit ladder is confirmed: the same floor measurably holds more at each of
+`MAKESHIFT`, `STANDARD`, `OPTIMISED`.
+
+The sweep still overcounts. `AisleFitting` deliberately reserves a working aisle
+scaled to the room, and a machinery space is mostly open deck on purpose, but
+the instrument measures the finished deck and cannot see a reservation. Telling
+an argued aisle from an abandoned middle is the next thing it owes — and the
+open design question underneath it is whether a large declared working floor is
+a legitimate room or the defect this story exists to fix.
 
 Read `ship-interiors-nouns.md` before implementing this story, especially the
 Fill quality section and law 9. Depends on `ship-deck-family.md`.

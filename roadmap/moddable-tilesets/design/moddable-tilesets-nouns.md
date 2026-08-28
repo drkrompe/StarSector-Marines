@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — folded in the authoring pipeline and placement-time doodad rotation while keeping authored art orientation out of catalog identity.
+Updated: 2026-08-28 — folded in the authoring pipeline, placement-time doodad rotation, and positional ids for cut plate cells, while keeping authored art orientation out of catalog identity.
 
 Read `stories.md` for open work.
 
@@ -151,7 +151,7 @@ the annotation is not, so the annotation is saved to an authoring document
 beside the raw sheet and can be resumed, corrected, and re-sliced without being
 lost.
 
-Three properties of that pass are part of the model rather than of the tool:
+Four properties of that pass are part of the model rather than of the tool:
 
 - **A piece is a doodad or one cell of a block.** Facing is not a property of a
   piece. A wall or a corner is a block whose cells the game selects from the
@@ -168,6 +168,13 @@ Three properties of that pass are part of the model rather than of the tool:
 - **Only kept pieces are packed.** A sheet's unused art does not reach the
   atlas, so a tileset's size reflects what the game uses rather than what was
   drawn.
+- **A cut cell is named for where it sits.** Splitting a fused plate names its
+  cells `<idPrefix>.c<col>r<row>`, zero-based and column first, because the
+  annotation pass is a person and a model looking at the same picture and a
+  serial name gives neither of them a way to point at one cell of a hundred. The
+  address is the id, so a cut whose names would collide with pieces already on
+  the sheet is refused rather than renumbered. Pieces found by alpha have no
+  grid position and keep their serial names.
 
 The pass is entered from the project rather than from a file chooser: raw
 sheets, their authoring documents and the exported tilesets are paired by name,
