@@ -116,7 +116,27 @@
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
       },
-      "battle": { "appearanceFamily": "BLUE_SCOUT", "armorCapacity": 4.0, "armorRating": 4.0, "moveSpeedMult": 1.06, "incomingAccuracyMult": 0.88 }
+      "battle": {
+        "appearanceFamily": "BLUE_SCOUT",
+        "armorCapacity": 4.0,
+        "armorRating": 4.0,
+        "moveSpeedMult": 1.06,
+        "incomingAccuracyMult": 0.88,
+        "integralSystem": {
+          "id": "system.aperture-read",
+          "grade": "masterwork",
+          "displayName": "Aperture read",
+          "description": "The hood's sensor cluster and the weave under the plate normally idle at whatever the licence permits. Held at the edge of ground the scout cannot see into, the suit spends its whole thermal budget on one wide active return and puts the result straight onto the company net: the room, the street, and a short way through the nearer walls, for as long as the emitters can stand it. It is proprietary, it is expensive to run, and it tells you what is there. It does nothing else.",
+          "effect": "perception-sweep",
+          "policy": "approaching-dead-ground",
+          "lookaheadCells": 7.0,
+          "resource": "cooldown",
+          "durationSeconds": 4.0,
+          "cooldownSeconds": 20.0,
+          "revealRangeCells": 44.0,
+          "wallReadRadiusCells": 7.0
+        }
+      }
     },
     {
       "id": "armor.heavy",

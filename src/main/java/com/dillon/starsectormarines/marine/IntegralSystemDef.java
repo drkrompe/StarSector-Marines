@@ -43,6 +43,7 @@ public record IntegralSystemDef(
         int startingAmmo,
         BreacherAssistSpec breacherAssist,
         MissilePodSpec missilePod,
+        PerceptionSweepSpec perceptionSweep,
         IntegralSystemPolicySpec policy) implements Serializable {
 
     /**
@@ -95,6 +96,7 @@ public record IntegralSystemDef(
 
         BreacherAssistSpec breacher = null;
         MissilePodSpec missilePod = null;
+        PerceptionSweepSpec perceptionSweep = null;
         switch (effect) {
             case BREACHER_ASSIST -> {
                 if (resourceMode != SpecialResourceMode.COOLDOWN) {
@@ -110,6 +112,17 @@ public record IntegralSystemDef(
                 }
                 missilePod = MissilePodSpec.parse(json, armorId, id);
             }
+            case PERCEPTION_SWEEP -> {
+                // Ammunition is for a payload that leaves the suit. A scout who
+                // runs out of looking is a scout carrying a stat with a counter
+                // on it, so a sweep waits instead: the clock is the whole cost.
+                if (resourceMode != SpecialResourceMode.COOLDOWN) {
+                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
+                            + "' is a sensor sweep and must be cooldown-gated: looking at"
+                            + " something is not a payload that runs out.");
+                }
+                perceptionSweep = PerceptionSweepSpec.parse(json, armorId, id);
+            }
         }
 
         return new IntegralSystemDef(
@@ -124,6 +137,7 @@ public record IntegralSystemDef(
                 startingAmmo,
                 breacher,
                 missilePod,
+                perceptionSweep,
                 parsePolicy(json, armorId, id, effect));
     }
 
@@ -140,6 +154,8 @@ public record IntegralSystemDef(
         return switch (effect) {
             case BREACHER_ASSIST -> new SpecialAiPolicy[] {SpecialAiPolicy.CROSSING_UNDER_FIRE};
             case MISSILE_POD -> new SpecialAiPolicy[] {SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT};
+            case PERCEPTION_SWEEP ->
+                    new SpecialAiPolicy[] {SpecialAiPolicy.APPROACHING_DEAD_GROUND};
         };
     }
 
@@ -154,6 +170,8 @@ public record IntegralSystemDef(
             return switch (declared) {
                 case CROSSING_UNDER_FIRE -> CrossingUnderFireSpec.parse(json, armorId, systemId);
                 case SIGHTED_STANDOFF_CONTACT -> SightedStandoffSpec.parse(json, armorId, systemId);
+                case APPROACHING_DEAD_GROUND ->
+                        ApproachingDeadGroundSpec.parse(json, armorId, systemId);
                 default -> throw new JSONException("Integral system '" + systemId + "' on armor '"
                         + armorId + "' declares AI policy '" + declared.key
                         + "', which has no authored parameters for an integral system");
@@ -178,6 +196,11 @@ public record IntegralSystemDef(
     /** This system's standoff parameters, or null when it declares another policy. */
     public SightedStandoffSpec sightedStandoff() {
         return policy instanceof SightedStandoffSpec spec ? spec : null;
+    }
+
+    /** This system's dead-ground parameters, or null when it declares another policy. */
+    public ApproachingDeadGroundSpec approachingDeadGround() {
+        return policy instanceof ApproachingDeadGroundSpec spec ? spec : null;
     }
 
     /**
