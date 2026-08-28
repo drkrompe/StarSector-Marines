@@ -144,7 +144,7 @@ final class FrontageScene {
      */
     record Sample(int tick, String goal, int aperturePosts, int reservePosts,
                   int postsFacingThreat, int membersOnPost, float believedPressure,
-                  boolean enemyInside, boolean frontageRelevant,
+                  boolean enemyInside, boolean frontageRelevant, String perimeterLayer,
                   float marineX, float marineY, int liveMarines,
                   List<SquadSample> garrisons, Crowding crowding) {
 
@@ -152,12 +152,13 @@ final class FrontageScene {
     }
 
     /**
-     * One garrison squad's state at a sampled instant. {@code scope} is the
-     * layer it holds — the compound perimeter or one structure's shell — which
-     * is what makes overlapping posts between two squads a defect rather than
-     * a coincidence.
+     * One garrison squad's state at a sampled instant. {@code layer} is the
+     * envelope it is currently holding — {@code COMPOUND} for the perimeter,
+     * {@code STRUCTURE} for a building shell, {@code none} when it is not
+     * standing to. Two squads may share a layer; overlapping posts within one
+     * are still a defect.
      */
-    record SquadSample(int squadId, String scope, String goal, int aperturePosts,
+    record SquadSample(int squadId, String layer, String goal, int aperturePosts,
                        int reservePosts, int membersOnPost, boolean frontageRelevant,
                        int aliveMembers) {}
 
@@ -284,7 +285,7 @@ final class FrontageScene {
                 WorldState.EMPTY, perimeter, sim) > 0f;
 
         return new Sample(tick, goal, aperture, reserve, facingThreat, onPost,
-                pressure, enemyInside(scene), frontageRelevant,
+                pressure, enemyInside(scene), frontageRelevant, layerName(perimeter, sim),
                 marines[0], marines[1], (int) marines[2],
                 List.copyOf(rows), crowding(scene, sim));
     }
@@ -298,12 +299,17 @@ final class FrontageScene {
                 if (post.isReserve()) reserve++; else aperture++;
             }
         }
-        return new SquadSample(squad.id,
-                FrontageDefense.holdsWholeCompound(squad, sim) ? "COMPOUND" : "STRUCTURE",
+        return new SquadSample(squad.id, layerName(squad, sim),
                 squad.currentGoal != null ? squad.currentGoal.name() : "none",
                 aperture, reserve, hold == null ? 0 : membersOnPost(sim, squad, hold),
                 FrontageDefense.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
                 squad.aliveMembers);
+    }
+
+    /** The envelope a squad is holding at this instant, or {@code none} when it is not standing to. */
+    private static String layerName(Squad squad, BattleSimulation sim) {
+        FrontageDefense.Layer layer = FrontageDefense.activeLayer(squad, sim);
+        return layer == null ? "none" : layer.name();
     }
 
     /** Post overlap between squads, and how tightly live bodies are packed. */

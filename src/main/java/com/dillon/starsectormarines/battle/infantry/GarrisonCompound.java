@@ -144,12 +144,14 @@ public final class GarrisonCompound implements Goal {
         return best == node;
     }
 
-    private static boolean sameCompound(TacticalNode a, TacticalNode b) {
+    /** Nodes of one compound carry the identical persisted union bbox, so footprint equality is the compound key. Package-visible: frontage ranks perimeter holders by the same identity. */
+    static boolean sameCompound(TacticalNode a, TacticalNode b) {
         return a.compoundLeft() == b.compoundLeft() && a.compoundTop() == b.compoundTop()
                 && a.compoundRight() == b.compoundRight() && a.compoundBottom() == b.compoundBottom();
     }
 
-    private static boolean higherPriority(TacticalNode n, TacticalNode best) {
+    /** Priority desc, then anchor, for a deterministic order among one compound's nodes. Package-visible for the same reason as {@link #sameCompound}. */
+    static boolean higherPriority(TacticalNode n, TacticalNode best) {
         if (n.priorityScore != best.priorityScore) return n.priorityScore > best.priorityScore;
         if (n.anchorX != best.anchorX) return n.anchorX < best.anchorX;
         return n.anchorY < best.anchorY;
