@@ -29,9 +29,13 @@ import java.util.List;
  * that has not picked a ship has no home, and the operations screens say so by
  * being unavailable until the player picks one — quartering them somewhere on
  * their behalf would make the first real decision about what the company is for
- * into a default they never saw. A company whose chosen ship has left the fleet
- * is a different case: they had a home and lost it, and they have to end up
- * somewhere rather than nowhere, so the best remaining hull takes them in.
+ * into a default they never saw.
+ *
+ * <p>A company whose ship is gone is displaced rather than re-homed, for the
+ * same reason. Losing a home is not being handed one, and moving them to the
+ * next-best hull on their behalf would turn the loss into a shrug — the player
+ * would find out their transport had burned by noticing the room looked
+ * different. They are put back to choosing, out of whatever is left.
  */
 public final class CompanyShipDesignation {
 
@@ -51,21 +55,48 @@ public final class CompanyShipDesignation {
         String chosen = roster == null ? null : roster.companyShipId();
         if (chosen == null) return null;
 
-        List<FleetMemberAPI> fleet = candidates();
-        // A company whose every hull is laid up still sleeps somewhere. Being
-        // shut down makes a ship a poor thing to offer the player, not a
-        // reason for the company to have no home at all.
-        if (fleet.isEmpty()) fleet = allShips();
-        for (FleetMemberAPI member : fleet) {
+        // Laid-up hulls count here. Being shut down makes a ship a poor thing
+        // to offer the player, not a reason to declare the company's own home
+        // missing while it is sitting in the fleet mothballed.
+        for (FleetMemberAPI member : allShips()) {
             if (chosen.equals(member.getId())) return member;
         }
-        if (fleet.isEmpty()) return null;
+        LOG.info("CompanyShipDesignation: the company's ship ("
+                + roster.companyShipName() + ") is gone; they have nowhere to live");
+        roster.reportCompanyShipGone();
+        return null;
+    }
 
-        LOG.info("CompanyShipDesignation: the company's ship (" + chosen
-                + ") is no longer in the fleet; moving them to the best remaining hull");
-        FleetMemberAPI best = fleet.get(0);
-        roster.setCompanyShipId(best.getId());
-        return best;
+    /**
+     * Where the company stands on having a home, for the screen that offers
+     * them one.
+     *
+     * @param shipId the ship they live aboard, or null for a company with none
+     * @param formerShipName the ship they lost, when they had one
+     * @param lostInAction whether she was lost rather than let go
+     */
+    public record Home(String shipId, String formerShipName, boolean lostInAction) {
+
+        public static final Home NONE = new Home(null, null, false);
+
+        /** Whether the company has never had a ship, as against having lost one. */
+        public boolean founding() {
+            return shipId == null && formerShipName == null;
+        }
+
+        /** Whether the company had a home and no longer does. */
+        public boolean displaced() {
+            return shipId == null && formerShipName != null;
+        }
+    }
+
+    /** The company's standing with respect to quarters. Never null. */
+    public static Home home() {
+        FleetMemberAPI aboard = aboard();
+        MarineRoster roster = roster();
+        if (roster == null) return Home.NONE;
+        return new Home(aboard == null ? null : aboard.getId(),
+                roster.formerShipName(), roster.formerShipLostInAction());
     }
 
     /**
@@ -98,7 +129,7 @@ public final class CompanyShipDesignation {
         MarineRoster roster = roster();
         if (roster == null || member == null) return false;
         if (!candidates().contains(member)) return false;
-        roster.setCompanyShipId(member.getId());
+        roster.setCompanyShip(member.getId(), shipName(member));
         LOG.info("CompanyShipDesignation: the company now lives aboard "
                 + member.getShipName() + " (" + member.getHullId() + ")");
         return true;
@@ -160,6 +191,12 @@ public final class CompanyShipDesignation {
         MarineRoster roster = roster();
         long company = roster == null ? FOUNDING_DECK_SEED : roster.deckSeed();
         return hull == null ? company : company * 31L + hull.hashCode();
+    }
+
+    /** What to call her, falling back to her hull when she is unnamed. */
+    static String shipName(FleetMemberAPI member) {
+        String named = member.getShipName();
+        return named == null || named.isBlank() ? member.getHullId() : named;
     }
 
     /** Everyone a hull can carry who is not needed to work her. */

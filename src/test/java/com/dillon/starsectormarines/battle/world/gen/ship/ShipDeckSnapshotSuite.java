@@ -2,7 +2,8 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -450,7 +451,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
                 // Doors are compartment-graph facts, not world art: the renderer
                 // has no idea which opening is this room's way in. Marking them
                 // over the render is the annotation this pass is read with.
-                for (DeckGraph.Compartment.Door door : c.doors()) {
+                for (Doorway door : c.doors()) {
                     g.setColor(DOOR_MARK);
                     g.fillRect(ox + (door.x() - c.left() + 1) * DETAIL_CELL,
                             top + (door.y() - c.top() + 1) * DETAIL_CELL,

@@ -83,28 +83,47 @@ public final class SheetSlicer {
     private static final int ROW_OVERLAP = 10;
 
     /**
-     * Split a piece into a grid of {@code cell}-pixel tiles.
+     * Split a piece into an exact {@code cols} x {@code rows} grid.
      *
      * <p>Tileable plates are drawn edge to edge with no gutter between them, so
      * they arrive from {@link #slice} fused into one block. They cannot be told
      * apart by looking at pixels — the whole point of a tiling plate is that its
      * edges match its neighbour — so splitting them is an authoring decision
      * made on the pieces that are known to be plates.
+     *
+     * <p><b>The grid is stated, not measured, and its cells need not be square.</b>
+     * Generated art is laid out to whatever the prompt asked for: a 20-frame
+     * strip has cells four times wider than they are tall, and a plate's cells
+     * rarely divide its pixel size evenly. Taking a cell size in pixels meant
+     * recovering the layout by rounding, which quietly produced the wrong number
+     * of columns whenever a sheet was not square. The layout is the thing the
+     * operator actually knows, so it is the thing this takes.
+     *
+     * <p>Boundaries are placed proportionally and the remainder falls where it
+     * lands, so the parts tile the piece exactly with no gap and no overlap.
      */
-    public static List<Piece> splitOnGrid(Piece piece, int cell) {
+    public static List<Piece> splitOnGrid(Piece piece, int cols, int rows) {
+        if (cols < 1 || rows < 1) {
+            throw new IllegalArgumentException("a grid needs at least one cell: "
+                    + cols + "x" + rows);
+        }
         List<Piece> parts = new ArrayList<>();
-        int cols = Math.max(1, Math.round(piece.width() / (float) cell));
-        int rows = Math.max(1, Math.round(piece.height() / (float) cell));
-        int stepX = piece.width() / cols;
-        int stepY = piece.height() / rows;
         for (int row = 0; row < rows; row++) {
+            int top = edge(piece.height(), row, rows);
+            int bottom = edge(piece.height(), row + 1, rows);
             for (int col = 0; col < cols; col++) {
-                int w = col == cols - 1 ? piece.width() - stepX * col : stepX;
-                int h = row == rows - 1 ? piece.height() - stepY * row : stepY;
-                parts.add(new Piece(piece.x() + stepX * col, piece.y() + stepY * row, w, h));
+                int left = edge(piece.width(), col, cols);
+                int right = edge(piece.width(), col + 1, cols);
+                parts.add(new Piece(piece.x() + left, piece.y() + top,
+                        Math.max(1, right - left), Math.max(1, bottom - top)));
             }
         }
         return parts;
+    }
+
+    /** Boundary {@code index} of {@code divisions} across {@code extent}, rounded once. */
+    private static int edge(int extent, int index, int divisions) {
+        return (int) Math.round(extent * (double) index / divisions);
     }
 
     /** Eight-connected components of the thresholded alpha mask, as tight bounding boxes. */

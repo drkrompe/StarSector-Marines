@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirScale;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
@@ -60,7 +61,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * {@code build/map-previews/sprite-conquest-military-compound.png} and
  * {@code build/map-previews/sprite-gated-housing-compound.png}, and a generated
  * administrative interior at
- * {@code build/map-previews/sprite-civic-headquarters.png}. Re-run via
+ * {@code build/map-previews/sprite-civic-headquarters.png}. The authored
+ * shared-edge firing windows receive their own close production-path crop at
+ * {@code build/map-previews/sprite-forward-bunker-window.png}. Re-run via
  * {@code gradlew :test --tests "*BspMapSpritePreviewTest*"}.
  */
 public class BspMapSpritePreviewTest {
@@ -132,6 +135,34 @@ public class BspMapSpritePreviewTest {
         BufferedImage crop = cropCompound(full, map, compound, cellPx, 4);
 
         Path out = OUT_DIR.resolve("sprite-conquest-military-compound.png");
+        ImageIO.write(crop, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
+    }
+
+    /** Close production-path render of the shared-edge windows on a forward bunker. */
+    @Test
+    void renderForwardBunkerWindow() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        long seed = 777L;
+        MapResult map = new BspCityGenerator().generate(
+                BattleSetup.CONQUEST_GRID_W,
+                BattleSetup.CONQUEST_GRID_H,
+                seed, TraversalAxis.SOUTH_TO_NORTH);
+        TacticalNode bunker = map.tacticalMap.ofKind(TacticalNode.Kind.FORWARD_BUNKER)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        "Conquest preview seed must contain a forward bunker"));
+
+        int margin = 3;
+        int widthCells = bunker.right - bunker.left + 1 + margin * 2;
+        int heightCells = bunker.bottom - bunker.top + 1 + margin * 2;
+        float centerX = (bunker.left + bunker.right + 1) * 0.5f;
+        float centerY = (bunker.top + bunker.bottom + 1) * 0.5f;
+        BufferedImage crop = battleMaps.renderView(map, seed,
+                centerX, centerY, widthCells, heightCells, 40);
+
+        Path out = OUT_DIR.resolve("sprite-forward-bunker-window.png");
         ImageIO.write(crop, "PNG", out.toFile());
         System.out.println("  wrote " + out.toAbsolutePath());
     }

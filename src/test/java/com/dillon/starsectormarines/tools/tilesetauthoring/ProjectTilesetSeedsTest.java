@@ -54,7 +54,8 @@ class ProjectTilesetSeedsTest {
             assertTrue(Files.isRegularFile(sheet),
                     seed.getFileName() + " names a sheet that is not there: " + document.sheet);
             assertTrue(document.cellPx > 0, seed.getFileName() + " has no export cell size");
-            assertTrue(document.gridCell > 0, seed.getFileName() + " has no source grid size");
+            assertTrue(document.gridCols > 0 && document.gridRows > 0,
+                    seed.getFileName() + " has no plate layout");
             assertTrue(document.alphaMin > 0 && document.alphaMin < 255,
                     seed.getFileName() + " has an unusable alpha threshold");
         }

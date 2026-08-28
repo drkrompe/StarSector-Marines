@@ -6,7 +6,8 @@ are shipped.
 
 Written: 2026-08-24
 
-Updated: 2026-08-28 — headless command replay may emit cadence-based neutral visual evidence.
+Updated: 2026-08-28 — canonical Conquest evidence now uses representative V3
+full-company launch fixtures instead of historical construction-only rows.
 
 ## Vocabulary
 
@@ -50,8 +51,9 @@ spawns, loadouts, objectives, and commanders.
 
 For supported scenarios, the flow is:
 
-`MissionLaunch` facts → V1 construction fixture → production `BattleSetup`
-factory → V2 launch overlay → fresh `BattleSimulation` → ordinary fixed ticks.
+`MissionLaunch` facts → versioned construction fixture → production
+`BattleSetup` factory → V3 launch wrapper and overlay → fresh
+`BattleSimulation` → ordinary fixed ticks.
 
 The active battle context retains the highest-fidelity available fixture as
 cold diagnostic metadata. The existing tick-profile capture may embed it
@@ -96,7 +98,10 @@ draws in scheduler-dependent order. Each fixture is run twice; byte equality of
 the canonical trace and normalized metrics is an evidence invariant, while a
 production-scheduler run is informational. Battle-long evidence is opt-in and
 bounded. Reaching the bound publishes a neutral timeout instead of fabricating
-a winner.
+a winner. Trace schema 5 keeps simulation and command inputs untouched while
+canonicalizing published scalar diagnostics to basis-point precision and squad
+centroids to one tenth of a cell, preventing insignificant integration drift
+from presenting as a different command decision.
 
 Construction V2 adds each assignment's actual seats per sortie and the resolved
 arrival policy plus employer/player shuttle boundary. Historical V1 documents
@@ -110,13 +115,16 @@ documents with nested V1 construction remain readable. `MissionLaunch` and
 headless replay both invoke `BattleLaunchOverlay`; production retains the live
 campaign cargo adapter while replay receives an independent finite supply
 account. Stable catalog ids resolve equipment and powers fail-loud, and
-scenario-authored roles/objectives remain owned by the V1 factory.
+scenario-authored roles/objectives remain owned by the construction factory.
 
-The checked-in production-shaped Conquest launch proves post-overlay headless
-reconstruction with eight four-cycle Valkyries at six seats per sortie (192
-seats), and the command harness can consume legacy and current schemas. The canonical command
-matrix remains on its historical V1 fixtures until representative live
-full-company launches are captured and deliberately rebaselined.
+The checked-in canonical Conquest matrix now carries two V3 launch fixtures:
+seventeen squads / 204 marines at Reinforced scale and thirty-four squads / 408
+marines at Full Strength. Both use the production paired-arrival policy, three
+landing areas, and six reusable six-seat Aeroshuttles; the wrapper freezes every
+ordered marine commitment and whole-squad identity. Historical V1 construction
+and V2 launch documents remain codec coverage, not canonical commander
+workloads. Canonical validation rejects a row that loses its launch wrapper,
+paired arrival shape, or declared company commitment.
 
 Sabotage construction captures the same stable scenario inputs accepted by its
 production factory and rebuilds the mission's three named charge sites and

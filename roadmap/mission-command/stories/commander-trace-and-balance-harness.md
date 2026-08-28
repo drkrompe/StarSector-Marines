@@ -4,8 +4,9 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-28 — added cadence-based PNG and GIF visual replay to every
-argument-selected mission evidence adapter; launch-fidelity Conquest evidence remains.
+Updated: 2026-08-28 — promoted representative 17- and 34-squad V3 Conquest
+launch fixtures into the canonical matrix, made commitment shape explicit in
+its reports, and established the first byte-stable full-company baseline.
 
 Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -65,6 +66,10 @@ churned, or collapsed before tuning force budgets or doctrine.
   while globally retaining useful executable force for actionable front
   resistance; published actions expose a binding distant-capture deferral
   separately from the reason for actual front work.
+- [x] Conquest command-unassigned time is split into lifecycle, execution
+  suspension, local contact, active-path movement, genuine idle, and legacy
+  unclassified buckets using only published own-force facts; the buckets are
+  visible in the report, selected-squad panel, and squad dump.
 - [ ] The harness can compare a bounded player intervention with the same
   zero-input baseline once interventions exist, without making input mandatory.
 - [x] Live Conquest diagnostics can select one perspective and display its
@@ -88,19 +93,91 @@ than being scored as a defender win.
 
 | Fixture | Seed / axis | Commitment | Authored pressure |
 |---|---|---|---|
-| `undercommitted-south` | 1 / south-to-north | 112 seats over 28 sequential cycles in three Kites (10/9/9) | Reinforced / low risk / no heavy armor |
-| `expected-west` | 4096 / west-to-east | 336 seats over 28 sequential cycles in one Valkyrie | Reinforced / high risk / heavy armor |
+| `reinforced-south` | 1 / south-to-north | 17 squads / 204 frozen marines; six Aeroshuttles cycle 6/6/6/6/5/5 | Reinforced / low risk / no heavy armor |
+| `full-strength-west` | 4096 / west-to-east | 34 squads / 408 frozen marines; six Aeroshuttles cycle 12/12/11/11/11/11 | Full Strength / medium risk / heavy armor |
 
 Generated traces and timestamp-free summaries live under
 `build/reports/commander/conquest/`. The matrix is intentionally opt-in; normal
-tests cover fixture codecs, production construction, trace schema, and analysis
-contracts without executing full battles. Each canonical invocation performs
+tests cover fixture codecs, full-company launch shape, production construction,
+trace schema, and analysis contracts without executing full battles. Canonical
+rows must retain a V3 launch wrapper, paired six-seat Aeroshuttle arrivals, and
+their declared marine/squad commitment. Each canonical invocation performs
 two replays of both full 240×160 fixtures—72,000 bounded simulation ticks before
 early terminal results—and may take several minutes. A max-tick or external-
 fixture override is labelled ad hoc in the report; `summary.json` is the full
 machine-readable evidence and `summary.md` is its human overview.
 
-## Canonical baselines
+Command-trace schema 6 canonicalizes diagnostic scalar floats to basis-point
+precision and published squad centroids to one tenth of a cell. The simulation
+and commander still consume their unmodified values. This boundary keeps
+sub-cell integration drift from masquerading as a different command decision
+while retaining much finer spatial resolution than any objective zone or
+movement marker requires. Schema 6 also publishes the count of squad members
+with an unexhausted movement path. The offline analyzer applies strict
+lifecycle → suspension → contact → active-path → genuine-idle precedence to
+command-unassigned actions; schema 5 and older rows remain explicitly
+unclassified rather than being reinterpreted without the missing path fact.
+
+## Representative V3 full-company baseline
+
+The 2026-08-28 forced-serial canonical run completed all four 18,000-tick
+replays in approximately nineteen minutes. Both fixtures timed out without a
+fabricated winner, and each fixture's command events and normalized metrics
+were byte-identical across its two replays.
+
+| Fixture | Marine / defender losses | Peak live force | Capture travel | Territory at timeout |
+|---|---:|---:|---:|---|
+| `reinforced-south` | 209 / 181 | 58 members / 11 squads | 18/25 movement episodes closed; 1/18 secure episodes entered its zone | 1 capture, then lost; 0 held |
+| `full-strength-west` | 431 / 412 | 211 members / 27 squads | 225/284 movement episodes closed; 2/42 secure episodes entered their zone | 5 captures; 5 held |
+
+The representative launches invalidate the old conclusion that the commander
+could not produce territorial progress. Reinforced-south reached two compounds,
+peaked at 7,500 capture-progress basis points, and briefly captured one.
+Full-strength-west reached five compounds and retained all five through the
+bound. Adjacent-assault commitments occurred in both rows (two and six), so the
+final-compound exception and broader-front reserve now receive integrated—not
+only focused—coverage. Fresh distant capture was deferred on 196 Marine
+squad-pulses in reinforced-south and 20 in full-strength-west.
+
+The defender command also mobilized against every observed threat episode:
+seven reinforced-south and ten full-strength-west samples, all published with
+zero-pulse latency and no unmobilized episode. This does not establish balance
+from two seeds, but it does establish that paired commander response and lane
+pressure survive representative force delivery.
+
+The next Conquest evidence seam was command inactivity, not transport shape.
+The Marine commander published 165 command-unassigned/no-actionable pulses in
+reinforced-south and 398 in full-strength-west, while only 1/18 and 2/42
+secure-compound episodes were observed inside their exact target zone. Before
+tuning allocation, split those pulses by physical cause—destroyed or not-yet-
+arrived squad, form-up/execution suspension, active local contact, preserved
+useful movement, or genuine idle command pool—and make the genuine idle cases
+visible in the trace/report. Exact neutral capture-zone presence remains
+referee evidence and must not become commander input.
+
+## Command-inactivity classification follow-up
+
+The 2026-08-28 schema-6 bounded rerun classified the first 6,000 ticks of each
+representative V3 launch twice, with byte-identical trace and metric output.
+Reinforced-south produced no command-unassigned time before losing 202 of its
+204 committed marines. Full-strength-west produced 104 no-actionable
+squad-pulses / 7,799 squad-ticks; every one classified as active local contact.
+Lifecycle, execution suspension, path-only movement, genuine idle, and
+unclassified time were all zero. The selected-squad dump fixture independently
+exercised the precedence case where local contact and an active path coexist.
+
+This evidence closes the suspected early-window commander-idle gap without a
+behavior change: `NO_ACTIONABLE_TRACK_TARGET` was handing squads to their local
+tactical contact doctrine, not abandoning quiet squads. Preserving an expired
+lane advance or inventing an own-force lead fallback remains a valid future
+option only if a longer or different representative trace records non-zero
+genuine-idle time. Do not tune it from the old aggregate count. The next
+Conquest investigation should instead focus on why secure-compound assignments
+so rarely cross into their exact target zones, using the existing movement,
+contact, suspension, and neutral presence evidence without feeding referee
+occupancy back into command.
+
+## Historical construction-only baselines
 
 The 2026-08-25 forced-serial run reached the bound on both fixtures, with both
 replays byte-identical. A mission-rule defect initially declared defender
@@ -128,21 +205,20 @@ of a faction-local defender belief read as an uncontested compound. The
 attacker therefore bypassed broader-front work and met contact on a long
 capture route.
 
-This remains evidence, not a balance verdict. The historical construction
+This remains evidence, not a balance verdict. These historical construction
 fixtures replay the production scenario factory but do not apply the campaign
 deployment overlay; their generated sortie squads therefore do not exercise
-campaign identity or form-up suspension. V2 launch fixtures can now bring that
-overlay into a representative commander workload, but the canonical matrix
-must still be populated with captured full-company launches before
-concentration or reinforcement timing is tuned. The independently valid policy correction is now implemented:
+campaign identity or form-up suspension. They remain here to explain why the
+matrix was deliberately replaced rather than silently rebaselined. The
+independently valid policy correction is now implemented:
 unknown occupancy permits a measured probe but is not positive knowledge that
 a distant compound is clear. Fresh distant capture allocation leaves at least
 one executable actionable squad on the front, prefers squads without useful
 front work, preserves in-flight captures, and exempts the adjacent-threshold
 commitment path. Neutral referee occupancy never becomes commander input. A
-canonical rerun must now establish whether and where that cap binds in the two
-construction fixtures; the prior baseline remains historical evidence rather
-than validation of the correction.
+representative canonical rerun now establishes where that cap binds above; the
+prior baseline remains historical evidence rather than validation of the
+correction.
 
 The schema-4 forced-serial rerun exercised the correction and remained
 byte-stable across both replays:
@@ -166,8 +242,8 @@ The earlier terminal/outcome delta is descriptive only. Combat and rendering
 work also advanced between these baselines, so the defender terminal in
 `undercommitted-south` cannot be attributed solely to capture allocation. The
 commander conclusion is narrower and supported directly by perspective data:
-the reserve binds, in-flight captures remain stable, and the current canonical
-fixtures still lack launch-faithful simultaneous force. Neither fixture
+the reserve binds, in-flight captures remain stable, and the historical
+fixtures lacked launch-faithful simultaneous force. Neither fixture
 exercised the adjacent exception, which remains covered by focused unit tests.
 
 ## Constraints
