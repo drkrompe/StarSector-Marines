@@ -2,7 +2,10 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.TacticalNode.StandPosition;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -79,22 +82,36 @@ public class FortressBunkerWindowTest {
                             && stand.y() >= bunker.top && stand.y() <= bunker.bottom,
                     context(axis, seed, "stand position outside bunker bounds"));
 
-            int windowX = stand.x() + frontDx;
-            int windowY = stand.y() + frontDy;
-            assertTrue(map.topology.isWindow(windowX, windowY),
-                    context(axis, seed, "missing firing window"));
-            assertTrue(map.topology.isWall(windowX, windowY),
-                    context(axis, seed, "window must remain structural wall"));
-            assertFalse(map.grid.isWalkable(windowX, windowY),
-                    context(axis, seed, "window wall must be non-walkable"));
-            assertTrue(map.grid.isSeeThrough(windowX, windowY),
-                    context(axis, seed, "window must pass sight and projectiles"));
+            Direction front = frontDx < 0 ? Direction.W : Direction.S;
+            SharedEdgeBarrier window = map.grid.getEdgeBarrier(
+                    stand.x(), stand.y(), front);
+            assertTrue(window != null,
+                    context(axis, seed, "missing shared-edge firing window"));
+            assertEquals(SharedEdgeBarrier.Kind.WINDOW, window.kind(),
+                    context(axis, seed, "wrong barrier profile"));
+            assertFalse(map.topology.isWindow(stand.x(), stand.y()),
+                    context(axis, seed, "edge window must not consume a wall cell"));
+            assertFalse(map.grid.isSharedEdgePassable(
+                            stand.x(), stand.y(), front),
+                    context(axis, seed, "window edge must block traversal"));
 
-            int outsideX = stand.x() + frontDx * 2;
-            int outsideY = stand.y() + frontDy * 2;
+            int outsideX = stand.x() + frontDx;
+            int outsideY = stand.y() + frontDy;
+            assertTrue(map.grid.isWalkable(outsideX, outsideY),
+                    context(axis, seed, "window exterior must remain standable"));
             assertTrue(map.grid.hasLineOfSight(
                             stand.x(), stand.y(), outsideX, outsideY),
                     context(axis, seed, "stand cell cannot see through its window"));
+            assertTrue(map.grid.hasLineOfFire(
+                            stand.x() + 0.5f, stand.y() + 0.5f,
+                            outsideX + 0.5f, outsideY + 0.5f),
+                    context(axis, seed, "window must pass direct fire"));
+            int[] detour = GridPathfinder.findPath(map.grid,
+                    stand.x(), stand.y(), outsideX, outsideY, true, null);
+            assertFalse(Paths.isEmpty(detour),
+                    context(axis, seed, "window must retain an alternate route"));
+            assertTrue(Paths.cellCount(detour) > 2,
+                    context(axis, seed, "path crossed the intact window"));
         }
     }
 

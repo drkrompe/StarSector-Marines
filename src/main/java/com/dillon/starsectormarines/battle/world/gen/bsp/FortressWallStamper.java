@@ -9,7 +9,9 @@ import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.TacticalNode.StandPosition;
 
@@ -629,8 +631,8 @@ public final class FortressWallStamper implements GenStage {
      * ({@code -1=front, 1=rear}), then rotated for the traversal axis:
      *
      * <pre>
-     *   # W # W #    W = see-through wall window
-     *   # S T S #    S = authored infantry stand cell, T = turret mount
+     *   # W # W #    W = authored stand cell at a shared-edge window
+     *   # . T . #    T = turret mount
      *   # . . . #    . = open rear access
      * </pre>
      */
@@ -650,16 +652,18 @@ public final class FortressWallStamper implements GenStage {
                         || Math.abs(along) == BUNKER_HALF_FRONTAGE;
 
                 if (frontWindow) {
-                    paintBunkerWall(grid, topology, x, y, wallMask, true);
+                    clearBunkerFloor(grid, topology, x, y);
+                    Direction front = axis == TraversalAxis.SOUTH_TO_NORTH
+                            ? Direction.S : Direction.W;
+                    grid.placeEdgeBarrier(x, y, front,
+                            SharedEdgeBarrier.Kind.WINDOW);
+                    standPositions.add(new StandPosition(x, y));
                 } else if (perimeterWall) {
-                    paintBunkerWall(grid, topology, x, y, wallMask, false);
+                    paintBunkerWall(grid, topology, x, y, wallMask);
                 } else if (depth == 0 && along == 0) {
                     stampBunkerTurret(grid, topology, x, y, wallMask);
                 } else {
                     clearBunkerFloor(grid, topology, x, y);
-                    if (depth == 0 && Math.abs(along) == 1) {
-                        standPositions.add(new StandPosition(x, y));
-                    }
                 }
             }
         }
@@ -681,14 +685,13 @@ public final class FortressWallStamper implements GenStage {
     }
 
     private static void paintBunkerWall(NavigationGrid grid, CellTopology topology,
-                                         int x, int y, boolean[][] wallMask,
-                                         boolean window) {
+                                         int x, int y, boolean[][] wallMask) {
         paintWall(grid, topology, x, y, wallMask, null);
         topology.setFixture(x, y, false);
         topology.setVehicle(x, y, false);
-        topology.setWindow(x, y, window);
+        topology.setWindow(x, y, false);
         topology.setNatureOverlayIndex(x, y, -1);
-        grid.setSeeThrough(x, y, window);
+        grid.setSeeThrough(x, y, false);
     }
 
     private static void stampBunkerTurret(NavigationGrid grid, CellTopology topology,
@@ -732,6 +735,31 @@ public final class FortressWallStamper implements GenStage {
                 int y = cy + (axis == TraversalAxis.SOUTH_TO_NORTH ? depth : along);
                 if (!grid.inBounds(x, y)) return false;
                 if (roadReservation != null && roadReservation[x][y]) return false;
+            }
+        }
+        // A one-cell walkable halo across the front and both flanks proves
+        // that each window's exterior side belongs to real circulation and
+        // that the intact pane still has a route around the free-standing
+        // bunker. This rejects a visually plausible stamp inside a stranded
+        // one-cell pocket.
+        int frontDepth = -BUNKER_HALF_DEPTH - 1;
+        for (int along = -BUNKER_HALF_FRONTAGE;
+             along <= BUNKER_HALF_FRONTAGE; along++) {
+            int x = cx + (axis == TraversalAxis.SOUTH_TO_NORTH
+                    ? along : frontDepth);
+            int y = cy + (axis == TraversalAxis.SOUTH_TO_NORTH
+                    ? frontDepth : along);
+            if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return false;
+        }
+        for (int depth = -BUNKER_HALF_DEPTH;
+             depth <= BUNKER_HALF_DEPTH; depth++) {
+            for (int flank = -1; flank <= 1; flank += 2) {
+                int along = flank * (BUNKER_HALF_FRONTAGE + 1);
+                int x = cx + (axis == TraversalAxis.SOUTH_TO_NORTH
+                        ? along : depth);
+                int y = cy + (axis == TraversalAxis.SOUTH_TO_NORTH
+                        ? depth : along);
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return false;
             }
         }
         int rearDepth = BUNKER_HALF_DEPTH + 1;

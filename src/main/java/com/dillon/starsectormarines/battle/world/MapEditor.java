@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.world;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 /**
@@ -73,6 +75,22 @@ public final class MapEditor {
         topology.setGroundKind(x, y, CellTopology.GroundKind.RUBBLE);
         peelRoofAround(x, y);
         navigation.markCellOpened(x, y);
+        return true;
+    }
+
+    /**
+     * Damages one authored shared-edge feature. Destruction removes its
+     * presentation/cover identity first, then opens the owned edge through the
+     * navigation service so every derived topology layer advances at the
+     * ordinary batched flush boundary.
+     */
+    public boolean damageEdgeBarrier(int x, int y, Direction direction,
+                                     int amount) {
+        SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, direction);
+        if (barrier == null) return false;
+        if (!grid.damageEdgeBarrier(x, y, direction, amount)) return false;
+        navigation.openSharedEdge(
+                barrier.cellX(), barrier.cellY(), barrier.direction());
         return true;
     }
 

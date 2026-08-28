@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — distinguished live resolver truth from transitional decision, morale, telemetry, and presentation readers.
+Updated: 2026-08-28 — clarified authored shared-edge barrier structure as map durability rather than actor durability.
 
 ## Purpose
 
@@ -67,6 +67,12 @@ zero does not kill an actor.
 Cover applies before armor so physical protection is neither bypassed nor
 double-counted. Wall durability remains a separate map-structure system with
 weapon-authored wall damage; wall damage is not renamed penetration.
+
+Authored shared-edge barriers belong to that same map-structure boundary, not
+to actor armor or structure. Their profile owns a small independent structure
+pool, and explosion wall damage may deplete it. Breaking the feature removes
+its cover and presentation identity and opens its navigation edge through the
+map editor; none of those effects enter `DurabilityModel` or actor telemetry.
 
 The first model deliberately has no through-armor structure bypass, damage
 types, armor regeneration, localized facings, or ablative segments. Those are
