@@ -41,8 +41,10 @@ public record CompanyShip(HullClass hullClass, HullRole role,
     /**
      * Whether this hull can be lived aboard at all.
      *
-     * <p>Small hulls are not boardable and have no playable interior, so a
-     * frigate is not a company ship however much the player likes it.
+     * <p>Only a hull with no deck of its own fails this — a fighter is carried
+     * rather than entered. Everything from a frigate up has an interior; how
+     * poor a home it makes is a matter of what its deck turns out to hold, not
+     * of whether it has one.
      */
     public boolean habitable() {
         return hullClass.boardable();
