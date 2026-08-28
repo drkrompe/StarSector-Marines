@@ -250,7 +250,7 @@ class FleetArmoryViewModelTest {
         MarineSquad squad = roster.squads().get(0);
         Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
         outcome.put(squad.memberIds().get(0), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(outcome, 0, 100f, 1.25f);
+        roster.applySoldierOutcome(outcome, 100f, 1.25f);
         roster.recruitToSquad(roster.reserveSquad().id());
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
                 new Reactor(), roster, () -> { }, () -> 100d);
@@ -268,7 +268,7 @@ class FleetArmoryViewModelTest {
         MarineSquad squad = roster.squads().get(0);
         Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
         outcome.put(squad.memberIds().get(0), MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(outcome, 0, 20f, 1f);
+        roster.applySoldierOutcome(outcome, 20f, 1f);
         roster.recruitToSquad(roster.reserveSquad().id());
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
 
@@ -288,7 +288,7 @@ class FleetArmoryViewModelTest {
         MarineSquad squad = roster.squads().get(0);
         Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
         outcome.put(squad.memberIds().get(0), MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(outcome, 0, 20f, 1f);
+        roster.applySoldierOutcome(outcome, 20f, 1f);
         roster.recruitToSquad(roster.reserveSquad().id());
         AtomicInteger inspections = new AtomicInteger();
         Reactor reactor = new Reactor();

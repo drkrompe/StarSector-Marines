@@ -78,7 +78,7 @@ class MarinePersonnelLogisticsTest {
         Map<String, MarineSoldierStatus> losses = new LinkedHashMap<>();
         losses.put(line.memberIds().get(0), MarineSoldierStatus.KIA);
         losses.put(line.memberIds().get(4), MarineSoldierStatus.MIA);
-        roster.applySoldierOutcome(losses, 0, 20f, 3f);
+        roster.applySoldierOutcome(losses, 20f, 3f);
         MarineSoldier reserve = roster.recruitToSquad(roster.reserveSquad().id());
         float[] quantity = {1f};
 
