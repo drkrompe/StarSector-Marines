@@ -55,14 +55,18 @@ final class ShipDeckBattleSceneTest {
     private static final float TRANSPORT_ASPECT = 0.28f;
 
     /**
-     * Constructing the headless drain installs the tile catalogs, which the deck
-     * scene needs before it can build a sim. Shared so neither test depends on
-     * the other having run first.
+     * Draws the deck to an image, which is what the fill assertions below read.
+     *
+     * <p>Here because these tests render, not to install anything: the catalogs
+     * a deck scene needs are installed for every test by
+     * {@code TileRegistryTestInstaller}, and standing this up for them would
+     * load the whole battle sprite pack to get at two JSON files. Shared so
+     * neither test depends on the other having run first.
      */
     private static HeadlessUiRenderer drain;
 
     @BeforeAll
-    static void installCatalogs() {
+    static void openDrain() {
         Path modRoot = Paths.get("mod").toAbsolutePath().normalize();
         drain = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(modRoot), modRoot);
     }
