@@ -61,15 +61,20 @@ public final class VehicleBayFitting implements RoomFitting {
     /**
      * The bay floor, taken from the hand-authored Mech Lab rather than invented.
      *
-     * <p>Row three of the urban sheet carries a marked industrial deck: column
-     * one edges a bay, columns nought and two alternate across its middle. A
-     * shade of the room colour was never going to do this job — a bay is a
-     * marked-out rectangle of floor, and painting it is what stops a row of bays
-     * reading as frames standing on nothing.
+     * <p>The urban sheet carries a marked industrial deck: a yellow stripe edges
+     * a bay, and two grates alternate across its middle. A shade of the room
+     * colour was never going to do this job — a bay is a marked-out rectangle of
+     * floor, and painting it is what stops a row of bays reading as frames
+     * standing on nothing.
+     *
+     * <p>Named rather than pointed at. These used to be a row and three columns
+     * into {@code urban-tileset.png}, which is a coordinate into a packed atlas
+     * that the tileset exporter is free to lay out however it likes. Nothing
+     * downstream can notice such a reference going stale: the deck still paints,
+     * and simply paints shelves.
      */
-    private static final int FLOOR_ROW = 3;
-    private static final int FLOOR_EDGE_COLUMN = 1;
-    private static final int[] FLOOR_FIELD_COLUMNS = { 0, 2 };
+    private static final String FLOOR_EDGE = "doodad.fl-striped-yellow";
+    private static final String[] FLOOR_FIELD = { "doodad.fl-grate-1", "doodad.fl-grate-2" };
 
     /**
      * The gantry frame down each side of a bay, and the clutter that collects
@@ -346,10 +351,9 @@ public final class VehicleBayFitting implements RoomFitting {
             for (int side = 0; side < BAY_WIDTH; side++) {
                 boolean perimeter = side == 0 || side == BAY_WIDTH - 1
                         || step == 0 || step == depth - 1;
-                int column = perimeter ? FLOOR_EDGE_COLUMN
-                        : FLOOR_FIELD_COLUMNS[((side + step) & 1)];
+                String paving = perimeter ? FLOOR_EDGE : FLOOR_FIELD[((side + step) & 1)];
                 int[] cell = floor.toLocal(origin + side, band + step);
-                floor.pave(cell[0], cell[1], column, FLOOR_ROW);
+                floor.pave(cell[0], cell[1], paving);
             }
         }
     }
