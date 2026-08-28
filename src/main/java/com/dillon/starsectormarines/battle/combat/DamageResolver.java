@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.squad.FireTeamMorale;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -230,8 +231,10 @@ public final class DamageResolver {
         // happens in {@link SquadMoraleSystem#tick}). The squad's
         // {@link Squad#morale} field is unused for mech squads.
         //
-        // Infantry squad members feed the legacy squad-level drain (hit
-        // event + cap scaling + death bonus). Solo units (turrets, civilians)
+        // Infantry feeds the drain to the hit marine's own fire team (hit
+        // event + cap scaling + death bonus) — cohesion breaks at team
+        // granularity, so fire concentrated on one team must not spread its
+        // drain across composed siblings. Solo units (turrets, civilians)
         // skip both — their behaviors don't consult MORALE_BROKEN.
         if (wasAlive && moraleImpact > 0f) {
             if (world.hasMechLoadout(targetId)) {
@@ -242,7 +245,7 @@ public final class DamageResolver {
                 // moot, so keep the guard.
                 if (!died) applyMechHpThresholdDrain(targetId);
             } else if (roster.squad().hasSquad(targetId)) {
-                applySquadMoraleDrain(targetId, moraleImpact, died);
+                applyFireTeamMoraleDrain(targetId, moraleImpact, died);
             }
         }
     }
@@ -286,33 +289,42 @@ public final class DamageResolver {
     }
 
     /**
-     * Squad-level morale drain (infantry path). Death drain stacks on top of
-     * hit drain and bypasses the cooldown — a kill is a discrete event the
-     * model should always reflect. The hit-component only fires when the
-     * cooldown is clear; otherwise a burst of hits in one tick would each
-     * stack their per-hit drain and break a full squad in a single frame.
-     * Recovery gate (timeSinceUnderFire reset) fires on every hit, even when
-     * the drain cooldown blocked the drop — otherwise a sustained burst would
-     * only reset the timer on the first bullet, letting recovery resume
-     * mid-volley.
+     * Morale drain charged to the hit marine's own fire team (infantry path).
+     * The team — not the squad — is the unit that breaks, so a burst walked
+     * across one team leaves its siblings composed and still executing the
+     * squad's plan.
+     *
+     * <p>Death drain stacks on top of hit drain and bypasses the cooldown —
+     * a kill is a discrete event the model should always reflect. The
+     * hit-component only fires when the team's cooldown is clear; otherwise a
+     * burst of hits in one tick would each stack their per-hit drain and
+     * break an intact team in a single frame. The recovery gate
+     * ({@link FireTeamMorale#timeSinceUnderFire} reset) fires on every hit,
+     * even when the drain cooldown blocked the drop — otherwise a sustained
+     * burst would only reset the timer on the first bullet, letting recovery
+     * resume mid-volley.
+     *
+     * <p>Reads the team's cap off the census
+     * {@link SquadMoraleSystem#tick} took this tick. A team spawned since
+     * that census has {@code originalSize == 0} and so reads cap 1.0 — the
+     * intact default, correct for a team that has not been shot at yet.
      */
-    private void applySquadMoraleDrain(long targetId, float moraleImpact, boolean died) {
+    private void applyFireTeamMoraleDrain(long targetId, float moraleImpact, boolean died) {
         Squad sq = squads.get(roster.squad().squadId(targetId));
         if (sq == null) return;
-        float cap = (sq.originalSize > 0 && sq.aliveMembers > 0)
-                ? (float) sq.aliveMembers / sq.originalSize
-                : 1f;
+        FireTeamMorale team = sq.fireTeamMorale(roster.squad().fireTeamIndex(targetId));
+        float cap = team.cap();
         float drop = 0f;
-        if (sq.moraleDrainCooldown <= 0f) {
+        if (team.drainCooldown <= 0f) {
             float hit = (cap > 0f)
                     ? SquadMoraleSystem.MORALE_DROP_ON_HIT / cap
                     : SquadMoraleSystem.MORALE_DROP_ON_HIT;
             drop += hit * moraleImpact;
-            sq.moraleDrainCooldown = SquadMoraleSystem.MORALE_DRAIN_COOLDOWN;
+            team.drainCooldown = SquadMoraleSystem.MORALE_DRAIN_COOLDOWN;
         }
         if (died) drop += SquadMoraleSystem.MORALE_DROP_ON_DEATH;
-        if (drop > 0f) sq.morale = Math.max(0f, sq.morale - drop);
-        sq.timeSinceUnderFire = 0f;
+        if (drop > 0f) team.morale = Math.max(0f, team.morale - drop);
+        team.timeSinceUnderFire = 0f;
     }
 
     /**
