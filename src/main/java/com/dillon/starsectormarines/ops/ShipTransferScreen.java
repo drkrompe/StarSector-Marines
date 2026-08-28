@@ -103,6 +103,8 @@ public final class ShipTransferScreen implements Screen {
         props.put("selectedName", viewModel.selectedName());
         props.put("selectedSummary", viewModel.selectedSummary());
         props.put("verdict", viewModel.verdict());
+        props.put("costLabel", viewModel.costLabel());
+        props.put("costClasses", viewModel.costClasses());
         props.put("transferLabel", viewModel.transferLabel());
         props.put("transferClasses", viewModel.transferClasses());
         props.put("transferAction", (Runnable) this::transfer);
@@ -135,7 +137,7 @@ public final class ShipTransferScreen implements Screen {
                 "page-nav-hq", "page-nav-barracks", "page-nav-armory",
                 "page-nav-mech-lab", "transfer-room-bar", "transfer-body",
                 "transfer-fleet-list", "transfer-stage", "transfer-plan",
-                "transfer-commit", "transfer-facility-cells")) {
+                "transfer-commit", "transfer-cost", "transfer-facility-cells")) {
             component.requireElement(id);
         }
     }
