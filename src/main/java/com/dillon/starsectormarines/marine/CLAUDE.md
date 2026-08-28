@@ -27,10 +27,12 @@ write them directly:
   every transfer; deriving it also means an under-strength squad consolidates
   into fewer full teams instead of keeping hollow ones.
 - **Enlisted rank and the squad leader** — `MarineRoster.refreshLeadership`
-  re-derives both after any membership or fitness change, and `readResolve`
-  calls it too. Rank follows the billet, so a new mutator that adds, removes,
-  or changes the fitness of a soldier must call it or the squad will keep
-  pointing at a leader who is gone.
+  re-derives both after any membership, fitness, **or issued-armour** change,
+  and `readResolve` calls it too. Rank follows the billet, so a new mutator that
+  adds, removes, or changes the fitness of a soldier must call it or the squad
+  will keep pointing at a leader who is gone. Armour counts because it sets the
+  experience band and sergeant's stripes follow that band — a refit that skips
+  the refresh leaves rank and band disagreeing.
 
 Squad **equipment doctrine assignment is authored state**, not another derived
 rollup. `MarineSquad` holds one weapon doctrine id and one armor doctrine id;

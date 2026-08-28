@@ -807,6 +807,9 @@ public class MarineRoster implements Serializable {
         MarineSoldier soldier = soldierById(soldierId);
         if (!canAllocateArmor(soldierId, armor)) return false;
         soldier.setArmor(armor);
+        // Armour sets the experience band, and stripes follow the band, so an
+        // armour change is a leadership change ({@code progression-nouns.md}).
+        refreshLeadership();
         return true;
     }
 
@@ -1006,6 +1009,7 @@ public class MarineRoster implements Serializable {
             soldier.setArmor(billet.armorId());
         }
         squad.setEquipmentDoctrineIds(weaponDoctrineId, armorDoctrineId);
+        refreshLeadership();
         return SquadEquipmentResult.APPLIED;
     }
 
@@ -1295,6 +1299,7 @@ public class MarineRoster implements Serializable {
             }
             squad.setTeamTemplateCardId(request.teamIndex, card.id());
         }
+        refreshLeadership();
     }
 
     private boolean recipesUnlocked(FireTeamTemplateCard card) {
