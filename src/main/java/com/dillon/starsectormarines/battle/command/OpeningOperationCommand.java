@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  */
 public final class OpeningOperationCommand implements MissionCommand {
 
+    static final String ISSUER_PREFIX = "opening-operation:";
+
     private final Faction faction;
     private final Faction opponent;
     private final boolean preserveLocalGarrisons;
@@ -31,25 +33,26 @@ public final class OpeningOperationCommand implements MissionCommand {
     }
 
     @Override
-    public void tick(BattleView sim) {
+    public void tick(BattleView sim, SquadDirectiveControl directives) {
+        String issuer = ISSUER_PREFIX + faction;
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != faction || squad.aliveMembers <= 0) continue;
             if (preserveLocalGarrisons && squad.assignedNode != null
                     && squad.assignedNode.defaultGuard == faction) {
-                squad.assignedObjective = null;
+                directives.releaseSquadCommand(squad.id, issuer,
+                        "preserve authored local garrison");
                 continue;
             }
             int targetZone = nearestOpponentZone(squad, sim);
             if (targetZone < 0) {
-                squad.assignedObjective = null;
+                directives.releaseSquadCommand(squad.id, issuer,
+                        "no live opposing combatant");
                 continue;
             }
-            ObjectiveAssignment current = squad.assignedObjective;
-            if (current == null || current.kind() != AssignmentKind.CLEAR_ZONE
-                    || current.targetZoneId() != targetZone) {
-                squad.assignedObjective = ObjectiveAssignment.clearZone(
-                        squad.id, targetZone);
-            }
+            directives.assignSquadCommand(ObjectiveAssignment.clearZone(
+                            squad.id, targetZone),
+                    CommandAuthority.MISSION_COMMAND, issuer,
+                    "advance on nearest opposing combatant zone");
         }
     }
 
