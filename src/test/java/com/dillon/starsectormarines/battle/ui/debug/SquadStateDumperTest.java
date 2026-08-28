@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.command.AssaultCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.AssaultDefenderCommand;
 import com.dillon.starsectormarines.battle.command.AssaultDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.ExtractionCommand;
+import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.CommanderService;
@@ -15,6 +17,7 @@ import com.dillon.starsectormarines.battle.command.SabotageCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommand;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.command.objective.ExtractionObjective;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
@@ -407,6 +410,41 @@ class SquadStateDumperTest {
         assertTrue(dump.isNull("assaultCommand"));
         assertFalse(area.has("hostileCellX"));
         assertFalse(area.has("hostileCellY"));
+    }
+
+    @Test
+    void extractionDumpPublishesPayloadRoleReasonAndTarget()
+            throws Exception {
+        BattleSimulation sim = openSim();
+        int zone = sim.getZoneGraph().zoneIdAt(24, 12);
+        sim.addObjective(new ExtractionObjective("EXTRACTION-01", "package",
+                zone, new int[]{24, 12, 23, 12, 22, 12, 21, 12,
+                20, 12, 19, 12, 18, 12, 17, 12, 16, 12, 15, 12,
+                14, 12, 13, 12, 12, 12, 11, 12, 10, 12, 9, 12,
+                8, 12, 7, 12, 6, 12, 5, 12, 4, 12, 3, 12}));
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("escort", Faction.MARINE,
+                UnitType.MARINE, 3, 12).squad(squadId));
+        squad.leaderId = member;
+        sim.setAutonomousCommander(Faction.MARINE,
+                new ExtractionCommand(), ExtractionCommandDisclosure.INSTANCE);
+        sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                + BattleSimulation.TICK_DT);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+        JSONObject extraction = dump.getJSONObject("extractionCommand");
+        JSONObject intent = extraction.getJSONObject("squadIntent");
+
+        assertEquals("extraction-attacker",
+                dump.getJSONObject("commander").getString("strategy"));
+        assertEquals("AT_SOURCE", extraction.getString("phase"));
+        assertEquals("EXTRACTION-01", extraction.getString("payloadId"));
+        assertEquals("PAYLOAD_ELEMENT", intent.getString("role"));
+        assertEquals("PACKAGE_PICKUP", intent.getString("reason"));
+        assertEquals("ESCORT", intent.getString("assignmentKind"));
+        assertEquals(24, intent.getInt("targetCellX"));
+        assertFalse(intent.getBoolean("localContact"));
     }
 
     private static BattleSimulation openSim() {

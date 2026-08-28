@@ -14,6 +14,8 @@ public record ExtractionObjectiveFacts(
         int egressCellY,
         int payloadCellX,
         int payloadCellY,
+        int corridorGuideCellX,
+        int corridorGuideCellY,
         int initialElements,
         int activeElements,
         int boardedElements,

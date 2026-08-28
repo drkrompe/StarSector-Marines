@@ -259,6 +259,14 @@ public final class ExtractionObjective implements ExtractionPayloadObjective {
     }
     @Override public int payloadCellX() { return Paths.cellX(route, routeIndex); }
     @Override public int payloadCellY() { return Paths.cellY(route, routeIndex); }
+    @Override public int corridorGuideCellX() {
+        int guide = Math.min(routeIndex + 6, routeCellCount() - 1);
+        return Paths.cellX(route, guide);
+    }
+    @Override public int corridorGuideCellY() {
+        int guide = Math.min(routeIndex + 6, routeCellCount() - 1);
+        return Paths.cellY(route, guide);
+    }
     @Override public int initialElements() { return 1; }
     @Override public int activeElements() {
         return complete || failure == Failure.LOST ? 0 : 1;
