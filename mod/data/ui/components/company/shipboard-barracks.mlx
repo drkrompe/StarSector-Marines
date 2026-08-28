@@ -1,4 +1,4 @@
-<template props="squadRows,musterRows,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="squadRows,musterRows,recordCells,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
   <div id="barracks-root" class="barracks-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / HABITATION DECK / MARINE QUARTERS" />
 
@@ -16,6 +16,7 @@
             <div id="{squad.nameId}" class="label squad-name">{squad.name}</div>
             <div id="{squad.statusId}" class="label heading tone-accent squad-status">{squad.status}</div>
             <div id="{squad.detailId}" class="label tone-muted squad-detail">{squad.detail}</div>
+            <div id="{squad.recordId}" class="label tone-muted squad-record">{squad.record}</div>
           </button>
         </div>
       </div>
@@ -27,6 +28,16 @@
             <div id="barracks-selected-summary" class="label tone-muted">{selectedSquadSummary}</div>
           </div>
           <div id="barracks-quarters-status" class="label heading tone-edge quarters-status">{quartersStatus}</div>
+        </div>
+
+        <div id="barracks-record" class="record-strip surface-dark">
+          <div id="barracks-record-heading" class="label heading tone-edge record-heading">SERVICE RECORD</div>
+          <div id="barracks-record-cells" class="record-cells">
+            <div each="cell in recordCells" key="{cell.id}" id="{cell.id}" class="record-cell">
+              <div id="{cell.labelId}" class="label tone-muted record-label">{cell.label}</div>
+              <div id="{cell.valueId}" class="label tone-accent record-value">{cell.value}</div>
+            </div>
+          </div>
         </div>
 
         <canvas id="barracks-canvas" class="barracks-canvas" width="1280" height="650" />
@@ -59,11 +70,11 @@
   .squad-rail { flex-direction: column; width: 254px; padding: 8px; gap: 6px; overflow: hidden; }
   .rail-copy { height: 22px; }
   .squad-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
-  .barracks-squad-row { flex-direction: column; width: 100%; height: 76px; padding: 8px; gap: 3px; border-width: 1px; text-align: left; }
+  .barracks-squad-row { flex-direction: column; width: 100%; height: 94px; padding: 8px; gap: 3px; border-width: 1px; text-align: left; }
   .barracks-squad-row.selected { background-color: #183b50; border-color: #ffd464; }
   .barracks-squad-row.stationed { opacity: 0.68; }
   .squad-name { height: 20px; }
-  .squad-status, .squad-detail { height: 17px; }
+  .squad-status, .squad-detail, .squad-record { height: 17px; }
 
   .barracks-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 7px; gap: 6px; overflow: hidden; }
   .selected-heading { flex-direction: row; height: 53px; padding: 7px 9px; gap: 8px; }
@@ -71,6 +82,13 @@
   .selected-name { height: 25px; font-family: title; }
   .quarters-status { width: 430px; padding-top: 9px; text-align: right; }
   .barracks-canvas { width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
+
+  .record-strip { flex-direction: row; height: 54px; padding: 6px 9px; gap: 10px; border-width: 1px; }
+  .record-heading { width: 152px; padding-top: 11px; }
+  .record-cells { flex-direction: row; width: 0px; flex-grow: 1; gap: 10px; overflow: hidden; }
+  .record-cell { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; }
+  .record-label { height: 15px; }
+  .record-value { height: 21px; font-family: heading; }
 
   .muster-panel { flex-direction: column; height: 160px; padding: 7px; gap: 5px; border-width: 1px; }
   .muster-list { display: grid; height: 0px; flex-grow: 1; gap: 4px; overflow: hidden; }
