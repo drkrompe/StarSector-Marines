@@ -171,6 +171,25 @@ public class Detonations {
                         && !topology.isRoofDestroyed(ucx, ucy)) continue;
                 aoeScratch.add(u);
             }
+            // Convoy entities deliberately do not join the infantry roster or
+            // spatial index; their tiny world-resident slice participates in
+            // the same physical splash test explicitly.
+            for (long vehicleId : roster.convoy().entityIds()) {
+                if (!roster.convoy().isTargetable(vehicleId)) continue;
+                if (hasDirectPayload && vehicleId == det.directTargetId) continue;
+                if (det.friendlyFireImmune
+                        && roster.convoy().faction(vehicleId) == det.shooterFaction) continue;
+                float ux = world.x(vehicleId);
+                float uy = world.y(vehicleId);
+                float dx = ux - det.endpointX;
+                float dy = uy - det.endpointY;
+                float hitR = det.aoeRadius + roster.convoy().targetRadius(vehicleId);
+                if (dx * dx + dy * dy > hitR * hitR) continue;
+                int ucx = (int) Math.floor(ux);
+                int ucy = (int) Math.floor(uy);
+                if (!grid.hasLineOfSight(targetCx, targetCy, ucx, ucy)) continue;
+                aoeScratch.add(vehicleId);
+            }
             for (int i = 0, n = aoeScratch.size(); i < n; i++) {
                 damageService.applyDamage(aoeScratch.getLong(i), det.shooterId, det.damage, det.penetration, 1f);
             }

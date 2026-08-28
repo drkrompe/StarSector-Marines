@@ -243,7 +243,7 @@ public class HeavyWeapons {
                 if (mount.burstTimer > 0f) continue;
 
                 long target = mount.burstTargetId;
-                if (!roster.isLive(target)) {
+                if (!roster.isAliveById(target)) {
                     mount.burstRemaining = 0;
                     mount.burstTargetId = 0L;
                     continue;
