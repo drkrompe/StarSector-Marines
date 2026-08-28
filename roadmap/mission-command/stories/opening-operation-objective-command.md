@@ -4,7 +4,11 @@ Status: DRAFT — use the opening ladder as the first small-force, non-Conquest 
 
 Written: 2026-08-25
 
-Read `ai-nouns.md`, `early-operation-nouns.md`, and
+Updated: 2026-08-27 — grouped as an Assault-family scenario adapter under
+Mission Command without generalizing its finite preserve/secure laws.
+
+Read `mission-command-nouns.md`, `assault-command.md`,
+`early-operation-nouns.md`, and
 `autonomous-mission-command-foundation.md` before planning this story.
 
 ## Intent
@@ -55,4 +59,4 @@ objectives and victory.
 ## Exit
 
 Fold durable opening-scenario command laws into `early-operation-nouns.md`, add
-this story to the AI shipped ledger, and delete it when implementation ships.
+this story to the mission-command shipped ledger, and delete it when implementation ships.

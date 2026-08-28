@@ -4,7 +4,9 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — mission-configured Aeroshuttle pairs cycle every selected squad through lane-aligned beachheads with deterministic timing variance.
+Updated: 2026-08-27 — separated commander allocation and diagnostics into
+`conquest-command.md`; territorial law remains here, including mission-configured
+Aeroshuttle pairs and lane-aligned beachheads.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -79,6 +81,10 @@ empty transition pauses its progress instead of assigning ownership by a
 momentary absence.
 
 ## Assault and control loop
+
+`conquest-command.md` is canonical for attacker/defender allocation, track
+mobilization, command pictures, diagnostics, and command evidence. This section
+states the territorial constraints Conquest exposes to that adapter.
 
 The marine commander treats compound capture as a primary objective. It sends
 a measured, capped detachment toward a compound with no believed defender and

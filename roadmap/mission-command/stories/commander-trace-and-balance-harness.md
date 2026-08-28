@@ -4,9 +4,10 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — schema-4 canonical evidence proves the distant-capture reserve binds; launch-fidelity concentration evidence remains.
+Updated: 2026-08-27 — moved under Mission Command as the shared argument-driven
+evidence story; launch-fidelity Conquest evidence remains.
 
-Read `ai-nouns.md` and `battle-fixtures-nouns.md` before implementing this
+Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
 
 ## Intent
@@ -170,5 +171,5 @@ exercised the adjacent exception, which remains covered by focused unit tests.
 
 ## Exit
 
-Fold durable balance-evidence laws into `ai-nouns.md`, add this story to
+Fold durable balance-evidence laws into `mission-command-nouns.md`, add this story to
 `shipped.md`, and delete it when the reusable trace and Conquest batch ship.

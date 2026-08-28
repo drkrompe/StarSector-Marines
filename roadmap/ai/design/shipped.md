@@ -4,6 +4,9 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
+Updated: 2026-08-27 — moved retired Sabotage commander stories to the
+Mission Command shipped ledger.
+
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
 | `01-world-state.md` | 2026-05-18 | `afa1a84b` | `ai-nouns.md` |
@@ -33,5 +36,3 @@ Written: 2026-08-23
 | `29-sirocco-screened-overwatch.md` | 2026-08-22 | `98fcc3fb` | `ai-nouns.md` |
 | `30-mech-formation-discipline.md` | 2026-08-22 | `861a5bf1` | `ai-nouns.md` |
 | `31-adaptive-squad-formations.md` | 2026-08-22 | `4c0864d9` | `ai-nouns.md` |
-| `sabotage-site-task-groups.md` | 2026-08-26 | `3efd0c42`, `30da6637` | `ai-nouns.md` |
-| `sabotage-site-defense-command.md` | 2026-08-26 | `d598c1df` | `ai-nouns.md` |
