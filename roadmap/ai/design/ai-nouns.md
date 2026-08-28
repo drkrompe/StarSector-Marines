@@ -4,8 +4,9 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — ambient work is now paced by the worker rather than by an
-authored clock: the dwell begins on arrival, a full job is passed over for the
+Updated: 2026-08-28 — belief now expires two ways: decay for a hostile merely
+gone unobserved, immediate removal once its identity stops resolving. Earlier:
+ambient work is paced by the worker rather than by an authored clock: the dwell begins on arrival, a full job is passed over for the
 next on the rotation, and nothing free anywhere keeps somebody at the job they
 have. Earlier: added the defense frontage and the standing-to garrison
 posture, which give a held place's authored apertures to whichever side holds
@@ -341,9 +342,12 @@ control.
 A **belief** is a squad's own evidence about a hostile identity and location.
 Direct line of sight records a full-confidence identity-backed contact. Heard
 shots and detonations may create lower-confidence, inexact evidence; indirect
-fire does not disclose a launcher identity merely by being heard. Beliefs decay
-and disappear. An unknown hostile's live position is never promoted into a
-squad tactical fact.
+fire does not disclose a launcher identity merely by being heard. Beliefs
+expire two ways: one about a hostile that merely went unobserved decays and
+disappears over the belief lifetime, while one whose identity no longer
+resolves to something actionable is dropped outright at the next tick. An
+unknown hostile's live position is never promoted into a squad tactical
+fact.
 
 A **contact picture** is the immutable, once-per-tick local interpretation of
 that squad's beliefs. It gives one answer for the tactical axis, threat sector,
@@ -357,11 +361,15 @@ its centroid. A dispersed fireteam therefore retains a contact local to that
 element even when sibling teams pull the centroid away. Immediate friendly
 strength is measured around the primary contact, so a remote sibling element
 does not make an isolated fireteam's local balance appear favorable. A
-remembered identity may remain useful evidence, but it is actionable planner
-contact only while it still resolves to a live hostile combatant; a dead or
-released identity cannot satisfy target, line-of-sight, range, or identified
-contact-reinforcement facts. An anonymous current audible bearing remains a
-valid investigation cue without inventing a hostile identity.
+remembered identity is actionable planner contact only while it still resolves
+to a live hostile combatant; a dead or released identity cannot satisfy target,
+line-of-sight, range, or identified contact-reinforcement facts, and is
+therefore not kept. Belief tracks identities rather than vacated ground: a
+squad holds no position memory of a hostile that has died, so the consumers
+that read belief without re-checking liveness — break-contact threat choice,
+smoke and frag anchors, threat density — cannot steer it off a corpse. An
+anonymous current audible bearing remains a valid investigation cue without
+inventing a hostile identity.
 
 Direct contact, alert and morale transitions, casualties, and hostile incoming
 fire are tactical interrupts. The periodic replan remains the convergence path.
