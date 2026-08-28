@@ -64,6 +64,8 @@ public final class TilesetDocument {
                 o.put("block", entry.blockId);
                 o.put("slot", entry.slot);
             }
+            if (!entry.note.isEmpty()) o.put("note", entry.note);
+            if (!entry.tags.isEmpty()) o.put("tags", new JSONArray(entry.tags));
             array.put(o);
         }
         JSONArray blockArray = new JSONArray();
@@ -118,6 +120,11 @@ public final class TilesetDocument {
             entry.included = o.optBoolean("included", true);
             entry.blockId = o.optString("block", "");
             entry.slot = o.optString("slot", "");
+            entry.note = o.optString("note", "");
+            JSONArray tags = o.optJSONArray("tags");
+            for (int t = 0; tags != null && t < tags.length(); t++) {
+                entry.tags.add(tags.getString(t));
+            }
             doc.entries.add(entry);
         }
         return doc;

@@ -4,7 +4,7 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — distinguished authoritative cell topology from shared-edge transitions and derived greedy regions.
+Updated: 2026-08-28 — added bounded coarse-to-fine routing over reactive greedy regions.
 
 ## Vocabulary
 
@@ -36,7 +36,10 @@ may transition between two standable cells; this permits thin boundary
 barriers without declaring either adjacent cell unusable. The greedy navigation
 mesh combines compatible cells into immutable, revisioned rectangular regions;
 closed edges become region seams and doorway cells remain explicit singleton
-regions. A* routes,
+regions. Ordinary one-off routes search those regions and boundary intervals,
+pad the selected region corridor, then run authoritative cell A* inside it.
+Shared-goal reverse fields remain the dense same-destination path for a frozen
+unit-update snapshot. A* routes,
 walkability and occupancy density, perception line of sight, fog, zones, and
 topology all consume a grid projection at their boundary. A grid result is
 converted back to a center only when it becomes a point-space destination. Direct-fire
@@ -64,6 +67,10 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
    no mutation may patch a region while leaving the grid unchanged. Runtime
    topology changes are batched, then zones, region mesh, retained path fields,
    and geometry-dependent caches advance together at one flush boundary.
+   A hierarchical route is accepted only after cell-level refinement and only
+   when its measured cost is no more than 25% above an admissible lower bound;
+   stale, failed, overly broad, or overly indirect corridors fall back to
+   unrestricted cell A*.
 5. Arrival, settling, and repath permission must never be inferred from one old-style progress flag or exact point equality. A completed route pins its final center so arrival and settling agree for its own destination.
 6. A live spatial distance must use true positions. A bucket, cache key, destination cell, or map lookup may use projected cells only where the discrete abstraction is the intended authority.
 7. Radius is the shared interaction footprint. Direct-fire aim remains
@@ -84,8 +91,8 @@ Air and convoy systems own their own continuous bodies; they are not ground `POS
 Future work may improve path geometry, tactical scoring precision, or
 firing-position selection, but must preserve the projection boundary and the
 separate point-authoritative direct-fire boundary.
-Hierarchical routing may search navigation regions and their boundary intervals,
-then refine against the authoritative grid. Clearance or terrain-cost variants
+Hierarchical routing searches navigation regions and their boundary intervals,
+then refines against the authoritative grid. Clearance or terrain-cost variants
 may derive their own compatible-region snapshots rather than weakening the base
 mesh's uniform traversal contract.
 Surface-to-surface range rules and broader ballistic-contact changes belong to

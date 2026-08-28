@@ -45,6 +45,7 @@ public final class NavigationService {
     private final CellTopology topology;
     private final ZoneGraph zoneGraph;
     private final GreedyNavigationMesh navigationMesh;
+    private final HierarchicalPathfinder hierarchicalPathfinder;
 
     /** Per-cell unit count (current cell + path destination), rebuilt at the top of each tick and incrementally updated via {@link #applyOccupancyDeltaInline}. Read by the pathfinder so units route around ally-held cells. Saturates at 255. */
     private final byte[] occupancyMap;
@@ -99,12 +100,15 @@ public final class NavigationService {
         this.grid = grid;
         this.topology = topology;
         this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
-        this.sharedGoalPathfinder = new SharedGoalPathfinder(grid, occupancyMap);
         this.unitIndex = new UnitSpatialIndex(grid.getWidth(), grid.getHeight());
         this.destIndex = new UnitDestinationSpatialIndex(grid.getWidth(), grid.getHeight());
         this.zoneGraph = new ZoneGraph(grid);
         this.zoneGraph.rebuild();
         this.navigationMesh = new GreedyNavigationMesh(grid);
+        this.hierarchicalPathfinder = new HierarchicalPathfinder(grid,
+                navigationMesh);
+        this.sharedGoalPathfinder = new SharedGoalPathfinder(grid,
+                occupancyMap, hierarchicalPathfinder);
     }
 
     /** Injects the dense entity store once it's built (see {@link #roster}). Called once at sim construction. */
@@ -300,6 +304,27 @@ public final class NavigationService {
                 }
             }
         }
+    }
+
+    /** Occupancy-aware coarse-to-fine path for ordinary one-off movement. */
+    public int[] findPath(int startX, int startY, int goalX, int goalY) {
+        return hierarchicalPathfinder.findPath(startX, startY, goalX, goalY,
+                GridPathfinder.USE_CARDINAL_NAVIGATION, occupancyMap);
+    }
+
+    /** Geometry-only coarse-to-fine path for reachability and authored routes. */
+    public int[] findGeometricPath(int startX, int startY,
+                                   int goalX, int goalY) {
+        return hierarchicalPathfinder.findPath(startX, startY, goalX, goalY,
+                GridPathfinder.USE_CARDINAL_NAVIGATION, null);
+    }
+
+    /** Coarse-to-fine route with terrain cost and footprint clearance. */
+    public int[] findPath(int startX, int startY, int goalX, int goalY,
+                          float[] costField, boolean[] passable) {
+        return hierarchicalPathfinder.findPath(startX, startY, goalX, goalY,
+                GridPathfinder.USE_CARDINAL_NAVIGATION, null,
+                costField, passable);
     }
 
     /**

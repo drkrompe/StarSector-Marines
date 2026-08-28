@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
@@ -24,10 +25,13 @@ public final class IntegralSystemService {
 
     private final EntityWorld entityWorld;
     private final BattleComponents components;
+    private final MitigationService mitigations;
 
-    public IntegralSystemService(EntityWorld entityWorld, BattleComponents components) {
+    public IntegralSystemService(EntityWorld entityWorld, BattleComponents components,
+                                 MitigationService mitigations) {
         this.entityWorld = entityWorld;
         this.components = components;
+        this.mitigations = mitigations;
     }
 
     /** Whether this unit's suit carries a capability at all. Most do not. */
@@ -138,11 +142,23 @@ public final class IntegralSystemService {
 
     private void applyEffect(long id, IntegralSystemDef def) {
         BreacherAssistSpec breacher = def.breacherAssist();
-        if (breacher != null) setMoveSpeedFromBase(id, breacher.moveSpeedMult());
+        if (breacher == null) return;
+        setMoveSpeedFromBase(id, breacher.moveSpeedMult());
+        // The screen is mitigation, owned by combat-durability rather than by
+        // this service: the authored pair is handed over and the durability
+        // side owns the arc, the clock, and the expiry from there.
+        mitigations.grant(id, breacher.frontalResistance(),
+                breacher.shieldedArcDegrees(), def.durationSeconds());
     }
 
+    /**
+     * The screen's own clock expires with the system's, so dropping it here is
+     * belt and braces rather than the mechanism — but it is what guarantees the
+     * standing "no residue" rule holds even if the two ever disagree by a tick.
+     */
     private void clearEffect(long id) {
         setMoveSpeedFromBase(id, 1f);
+        mitigations.clear(id);
     }
 
     /**
