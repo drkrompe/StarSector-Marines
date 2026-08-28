@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -24,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /** Display-ready, read-only projection for the retained Company HQ dashboard. */
 final class CompanyHqViewModel {
@@ -45,6 +47,7 @@ final class CompanyHqViewModel {
     }
 
     static CompanyHqViewModel current(
+            Predicate<RoomPurpose> aboard,
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
@@ -57,7 +60,7 @@ final class CompanyHqViewModel {
         CampaignState state = script != null ? script.state() : null;
         List<CompanyNews.Entry> news = CompanyNews.latest(
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
-        return build(standing, clocks, news, day, openBarracks, openArmory,
+        return build(standing, clocks, news, day, aboard, openBarracks, openArmory,
                 openMechLab, close, respond);
     }
 
@@ -66,6 +69,7 @@ final class CompanyHqViewModel {
             List<CompanyClocks.Entry> clocks,
             List<CompanyNews.Entry> news,
             int day,
+            Predicate<RoomPurpose> aboard,
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
@@ -113,7 +117,7 @@ final class CompanyHqViewModel {
         props.put("newsEmpty", news.isEmpty()
                 ? Strings.get("companyHqNewsEmpty") : "");
 
-        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, close,
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, aboard, close,
                 () -> { }, openBarracks, openArmory, openMechLab);
         return new CompanyHqViewModel(props);
     }
@@ -122,7 +126,7 @@ final class CompanyHqViewModel {
     static CompanyHqViewModel preview() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("purpose", "FLAGSHIP  /  BRIDGE  /  COMMAND NETWORK");
-        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         props.put("assessmentHeader", "BRIDGE ADJUTANT  //  DAILY ASSESSMENT");
         props.put("ratingHeader", "MERCENARY RATING");

@@ -383,6 +383,7 @@ class FleetArmoryViewModelTest {
 
     private static void putPageNavigation(Map<String, Object> props) {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
+                MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { });
     }
 }
