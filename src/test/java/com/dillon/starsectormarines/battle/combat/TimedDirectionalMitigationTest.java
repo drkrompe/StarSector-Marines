@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
@@ -397,7 +398,7 @@ class TimedDirectionalMitigationTest {
      * they measure mitigation rather than an activation policy.
      */
     private static IntegralSystemDef screenSource(float fraction, float arcDegrees) {
-        return new IntegralSystemDef("system.test-screen", "Test screen", "A screen.",
+        return new IntegralSystemDef("system.test-screen", "Test screen", EquipmentGrade.SERVICE, "A screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 3f, 9f, 0, new BreacherAssistSpec(1.1f, fraction, arcDegrees), null);
     }

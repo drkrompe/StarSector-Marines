@@ -3,6 +3,11 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -10,6 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -183,9 +189,65 @@ class IntegralSystemDefTest {
         assertNull(def.integralSystem());
     }
 
+    /**
+     * Six patterns carry a breach assist and each named its own version
+     * something else. The family and the grade are what let a player compare
+     * them; without a grade a system would be a bare name again.
+     */
+    @Test
+    void everySystemDeclaresItsFamilyAndHowWellItIsMade() throws JSONException {
+        IntegralSystemDef system = IntegralSystemDef.parse(breacherAssist(), "armor.test");
+        assertEquals("Breach assist", system.familyName());
+        assertEquals(EquipmentGrade.MILSPEC, system.grade());
+        assertNotEquals(system.familyName(), system.displayName(),
+                "the family is the shared name; displayName is this tradition's own");
+
+        JSONObject ungraded = breacherAssist();
+        ungraded.remove("grade");
+        assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(ungraded, "armor.test"));
+
+        JSONException failure = assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(breacherAssist().put("grade", "artisanal"),
+                        "armor.test"));
+        assertTrue(failure.getMessage().contains("masterwork"),
+                "the refusal should list the grades that exist: " + failure.getMessage());
+    }
+
+    /**
+     * Grade describes manufacture; it must never silently scale the authored
+     * numbers the way a weapon family's grade does, or the same quality would be
+     * priced twice.
+     */
+    @Test
+    void gradeDescribesManufactureAndChangesNoNumbers() throws JSONException {
+        IntegralSystemDef surplus = IntegralSystemDef.parse(
+                breacherAssist().put("grade", "surplus"), "armor.test");
+        IntegralSystemDef masterwork = IntegralSystemDef.parse(
+                breacherAssist().put("grade", "masterwork"), "armor.test");
+
+        assertNotEquals(surplus.grade(), masterwork.grade());
+        assertEquals(surplus.durationSeconds(), masterwork.durationSeconds(), 1e-6f);
+        assertEquals(surplus.cooldownSeconds(), masterwork.cooldownSeconds(), 1e-6f);
+        assertEquals(surplus.breacherAssist().moveSpeedMult(),
+                masterwork.breacherAssist().moveSpeedMult(), 1e-6f);
+        assertEquals(surplus.breacherAssist().frontalResistance(),
+                masterwork.breacherAssist().frontalResistance(), 1e-6f);
+    }
+
+    /** One icon per family: a pattern's own version is told apart by name and grade, not art. */
+    @Test
+    void everyFamilyPointsAtAnIconThatExists() {
+        for (IntegralSystemEffect effect : IntegralSystemEffect.values()) {
+            assertTrue(Files.isRegularFile(Path.of("mod", effect.iconPath)),
+                    effect.displayName + " is missing its icon at " + effect.iconPath);
+        }
+    }
+
     private static JSONObject breacherAssist() throws JSONException {
         return new JSONObject()
                 .put("id", "system.test-assist")
+                .put("grade", "milspec")
                 .put("displayName", "Breaching assist")
                 .put("description", "Rams and a screen on one trigger.")
                 .put("effect", "breacher-assist")
@@ -200,6 +262,7 @@ class IntegralSystemDefTest {
     private static JSONObject missilePod() throws JSONException {
         return new JSONObject()
                 .put("id", "system.test-pod")
+                .put("grade", "milspec")
                 .put("displayName", "Predictive volley")
                 .put("description", "A brace of smart micro-missiles.")
                 .put("effect", "missile-pod")

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -254,7 +255,7 @@ class IntegralSystemActivationTest {
 
     private static IntegralSystemDef breacherAssist() {
         return new IntegralSystemDef(
-                "system.test-assist", "Breaching assist", "Rams and a screen.",
+                "system.test-assist", "Breaching assist", EquipmentGrade.SERVICE, "Rams and a screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 DURATION, COOLDOWN, 0,
                 new BreacherAssistSpec(BOOST, RESISTANCE, ARC), null);
@@ -262,7 +263,7 @@ class IntegralSystemActivationTest {
 
     private static IntegralSystemDef missilePod() {
         return new IntegralSystemDef(
-                "system.test-pod", "Predictive volley", "A brace of missiles.",
+                "system.test-pod", "Predictive volley", EquipmentGrade.SERVICE, "A brace of missiles.",
                 IntegralSystemEffect.MISSILE_POD, SpecialResourceMode.AMMUNITION,
                 1f, 0f, 2,
                 null, new MissilePodSpec("weapon.micro-missile"));
