@@ -4,8 +4,8 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-28 — classified secure-travel retarget provenance and
-last-alive squad-loss location/context in summary schema 5.
+Updated: 2026-08-28 — used schema-8 tactical evidence to move the next
+Conquest investigation from travel loss to contested-zone conversion.
 
 Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -272,13 +272,31 @@ published primary contact, contact doctrine and initiative, engageable members
 and fireteams, recent incoming fire, majority directional cover, and weapon
 cooldown presence. Schema 7 losses remain explicitly unknown.
 
-This closes the instrumentation gap but does not yet answer the balance
-question from the earlier sealed run; that trace predates schema 8. The next
-step is a duplicate bounded Conquest replay, then correlation of its loss rows.
-If engageable squads are still dying without evidence of return fire, add a
-monotonic squad-level rounds-fired counter rather than inferring shots from
-cooldown. If breach-action losses dominate, first latch the breach's stack-up
-versus advance phase before tuning doctrine.
+The duplicate forced-serial 6,000-tick reinforced replay was byte-stable and
+materially changed the current picture. Of 32 secure trips, 23 entered their
+exact target zone, five retargeted, two ended in squad loss, and two remained
+active at timeout. Twenty-two adjacent-assault commitments and eight compounds
+with Marine presence confirm that approach and final-room entry are no longer
+the dominant failure in this row.
+
+The two loss exits likewise do not support an uncovered charge or final-breach
+failure. SQ-124's final living pulse was one stationary Marine 45.6 cells from
+the marker on `EnterZone[97]`, with `HOLD` / `RECEIVE`, one engageable member
+and fireteam, and one member cooling down. SQ-126's was one stationary Marine
+69.9 cells out on `BreakContact`, recently under fire and morale-broken, with
+`ADVANCE` / `NONE`, one engageable member and fireteam, and one member cooling
+down. Neither row published `BreachAndAdvance` or actual movement. Cooldown
+remains a recovery-state observation rather than a cumulative shot count.
+
+The stronger next seam is contested capture conversion. The same run recorded
+41,230 mixed-occupancy compound-ticks, zero marine-only compound-ticks, zero
+captures, and peak capture progress of 6,667 basis points despite those 23
+entries. Extend neutral evidence around capture-zone cohorts and correlate it
+with the perspective squad actions already in the zone: arrival strength,
+friendly reinforcement, hostile clearance, rotation or displacement, and time
+to uncontested control. Exact hostile and whole-zone occupancy remain referee
+facts and must not become commander input. Add a monotonic squad-level
+rounds-fired counter only if this cohort view leaves return fire unresolved.
 
 ## Historical construction-only baselines
 
