@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MissilePodSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,7 +74,12 @@ final class IntegralSystemCopy {
         parts.add(system.description());
         String effect = effectDetail(system);
         if (!effect.isEmpty()) {
-            parts.add(effect + ", then the suit is exactly the suit it was.");
+            // Only a reverting effect (a temporary stat boost) is honestly
+            // described as "the suit is exactly the suit it was" afterward —
+            // a spent salvo doesn't revert anything, it's just gone.
+            parts.add(system.breacherAssist() != null
+                    ? effect + ", then the suit is exactly the suit it was."
+                    : effect + ".");
         }
         parts.add(availability(system));
         return String.join("  //  ", parts);
@@ -87,12 +94,19 @@ final class IntegralSystemCopy {
      */
     private static String effect(IntegralSystemDef system) {
         BreacherAssistSpec breacher = system.breacherAssist();
-        if (breacher == null) return "";
-        String movement = percent(breacher.moveSpeedMult() - 1f) + " faster";
-        return system.grantsMitigation()
-                ? movement + ", " + percent(breacher.frontalResistance()) + " refused over "
-                        + degrees(breacher.shieldedArcDegrees())
-                : movement;
+        if (breacher != null) {
+            String movement = percent(breacher.moveSpeedMult() - 1f) + " faster";
+            return system.grantsMitigation()
+                    ? movement + ", " + percent(breacher.frontalResistance()) + " refused over "
+                            + degrees(breacher.shieldedArcDegrees())
+                    : movement;
+        }
+        MissilePodSpec pod = system.missilePod();
+        if (pod != null) {
+            int salvo = Math.max(1, pod.weaponDef().projectilesPerShot());
+            return "Fires " + salvo + (salvo == 1 ? " missile" : " missiles") + " on its own";
+        }
+        return "";
     }
 
     /**
@@ -102,14 +116,25 @@ final class IntegralSystemCopy {
      */
     private static String effectDetail(IntegralSystemDef system) {
         BreacherAssistSpec breacher = system.breacherAssist();
-        if (breacher == null) return "";
-        String movement = "Moves " + percent(breacher.moveSpeedMult() - 1f)
-                + " faster while it runs";
-        return system.grantsMitigation()
-                ? movement + " and turns aside " + percent(breacher.frontalResistance())
-                        + " of what reaches its " + degrees(breacher.shieldedArcDegrees())
-                        + " front, leaving the flanks exactly as exposed as they were"
-                : movement;
+        if (breacher != null) {
+            String movement = "Moves " + percent(breacher.moveSpeedMult() - 1f)
+                    + " faster while it runs";
+            return system.grantsMitigation()
+                    ? movement + " and turns aside " + percent(breacher.frontalResistance())
+                            + " of what reaches its " + degrees(breacher.shieldedArcDegrees())
+                            + " front, leaving the flanks exactly as exposed as they were"
+                    : movement;
+        }
+        MissilePodSpec pod = system.missilePod();
+        if (pod != null) {
+            WeaponDef weapon = pod.weaponDef();
+            int salvo = Math.max(1, weapon.projectilesPerShot());
+            return "Looses a salvo of " + salvo
+                    + (salvo == 1 ? " micro-missile" : " micro-missiles")
+                    + " at a target the pod picks for itself, with the ordinary blast and the"
+                    + " ordinary consequences for anyone standing near it";
+        }
+        return "";
     }
 
     /** Whole degrees with the sign; an arc is authored to the degree and read at a glance. */

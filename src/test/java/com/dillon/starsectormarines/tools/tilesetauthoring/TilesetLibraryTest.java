@@ -100,6 +100,22 @@ class TilesetLibraryTest {
     }
 
     @Test
+    void aSeedThatCarriesANoteSendsTheReaderToIt(@TempDir Path root) throws Exception {
+        // Some seeds exist to say their sheet is not a straight ingest at all.
+        // Promising "slice to begin" would be exactly wrong for those.
+        rawSheet(root, "strip.raw.png");
+        Files.writeString(TilesetDocument.pathFor(root, "strip"),
+                "{\"sheet\":\"" + TilesetLibrary.SOURCE_DIR + "/strip.raw.png\","
+                        + "\"note\":\"Non-square frames; the grid split cannot cut this.\"}",
+                StandardCharsets.UTF_8);
+
+        TilesetLibrary.Sheet sheet = named(TilesetLibrary.scan(root), "strip");
+
+        assertTrue(sheet.isSeeded());
+        assertEquals("seeded — see note", sheet.status());
+    }
+
+    @Test
     void anAnnotatedSheetReportsItsProgressAndWhetherItShipped(@TempDir Path root) throws Exception {
         rawSheet(root, "ship.raw.png");
         document(root, "ship", 12);
