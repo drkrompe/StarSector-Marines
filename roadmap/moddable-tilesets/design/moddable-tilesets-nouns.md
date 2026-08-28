@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — the alpha law now says keying a plate is an edit to the art rather than a per-sheet setting, a silhouette is checked as a shape and never as a total, and a disowned fit's residual does not measure the cut in force.
+Updated: 2026-08-28 — an atlas now has two shapes and a strip's laws are stated (order is the address, the scale is authored, reducing sharpens); a key's settings are per cell as well as its flooding; a derived height/normal companion is re-derived rather than preserved.
 
 Read `stories.md` for open work.
 
@@ -58,6 +58,17 @@ override layer: changing core generation policy remains a deliberate core edit.
   the only durable home for them.
 - A **packed atlas** is the exported sheet a tileset definition addresses. It
   contains the pieces that were kept, arranged by the packer, and nothing else.
+  An atlas has one of two **shapes**, and they are alternatives rather than
+  settings. A **cell grid** partitions the sheet on a stated cell size and
+  addresses its content by `(col, row)`; a **strip** lays pieces in a row at
+  whatever size and aspect each was drawn at, separated by gutters, and its
+  content is addressed by the frame index the loader assigns when it scans the
+  atlas at load. A strip has no cell size, no coordinates and no blocks, and
+  giving it one would be inventing a grid the art does not have. Which shape a
+  sheet is, is a property of the sheet, and the authoring document says it.
+- A **derived companion** is a height or normal map baked from an albedo atlas
+  and found beside it by name. It is part of the sheet even though no file
+  references it.
 - A **cut** is where a plate's grid sits on its sheet: the stated
   `cols x rows` together with, per axis, the coordinate its first line falls on
   and the distance between lines. A cut is not a division of the canvas. It is
@@ -182,6 +193,26 @@ These properties of that pass are part of the model rather than of the tool:
   the rule is not "keep such references up to date" but "do not hold one".
   Content the game reaches for therefore needs an id even when it is only
   paint: deck markings and floor covering are addressed exactly like props.
+- **On a strip, order is the address.** A frame index is not authored: it is
+  assigned by the loader as it scans the atlas left to right, so a tile's id is
+  bound to its picture by position and nothing else. Moving a piece, dropping
+  one, fusing two across a gutter the loader walks through, or splitting one
+  down an internal gap renames every piece after it — and leaves the tileset and
+  the atlas each internally consistent, which is why no amount of reading them
+  can catch it. The export therefore preserves document order and **runs the
+  loader's own slicer over the atlas before writing it**, requiring the frames it
+  finds to be the frames that were packed. That check is not defensive
+  programming; it is the only place the binding can be verified at all.
+- **A strip states the scale it is drawn at.** The raw art is several times the
+  size the sheet ships at, and nothing in the art says which fraction is
+  intended — so a single divisor, authored once for the sheet, is what turns raw
+  pieces into frames. Taking the sizes from the previous atlas instead would make
+  that atlas an input again, which is the same circularity the alpha law
+  forbids. **Reducing is not only resampling**: an average over six source pixels
+  is a flat average, and a paved surface has only a few pixels at 39px to say it
+  is made of stones with, so the reduction sharpens back the local contrast it
+  removed. That belongs to reducing rather than being a treatment applied
+  afterwards.
 - **The authoring document must be able to say everything the tileset says.**
   A sheet whose document cannot express one of a definition's fields cannot be
   re-exported without silently dropping it, and a dropped combat number — how
@@ -207,7 +238,25 @@ These properties of that pass are part of the model rather than of the tool:
   contrasting backdrop, because both a passing suite and a per-piece opacity
   figure stayed green through the failure that made this a law: a prop keyed to
   a plausible fraction can still be one cut in half by a corridor of background
-  that reached its middle.
+  that reached its middle. **The key's settings are per cell as well as its
+  flooding.** A paving slab and a wrought-iron bench disagree about what
+  background is on the same sheet: the bench's own rails and legs are drawn
+  inside the range that is unambiguously background beside the slab, so a single
+  threshold either deletes the bench's frame and leaves four planks floating, or
+  leaves the slab a dark halo it then has to tile with. The cell is the unit the
+  judgement is made on, so it is the unit the settings attach to.
+- **A derived companion is re-derived, never preserved.** A sheet's height and
+  normal maps are baked from its albedo, found again by naming convention alone,
+  and sampled at the coordinates the albedo's own frames give. Nothing connects
+  the three files, so re-packing an albedo leaves the parallax reading the relief
+  of a sheet that no longer exists — silently, because a stale companion is a
+  valid image of the right size and every check that can see it passes. An
+  export that changes an atlas owes a re-derivation. Reproducing the old geometry
+  instead is not the easier option but a far stricter one, because identical
+  frame boxes are not identical pixels: relief inside a box that did not move is
+  still the wrong relief. What makes the obligation checkable rather than
+  remembered is that the derivation leaves everything outside a cell flat, so the
+  companions state their own frame boxes and those must be the albedo's.
 - **A silhouette is checked as a shape, never as a total.** How much of a cell a
   piece covers is the one thing about its alpha that is easy to measure, and it
   is blind to every way the shape can be wrong, because the errors are signed
