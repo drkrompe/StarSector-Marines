@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
+import com.dillon.starsectormarines.tools.authoring.AuthoringMessages;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPage;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
 
@@ -9,7 +10,6 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -93,8 +93,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private final JLabel summary = new JLabel(" ");
 
     private final List<TilesetExport.BlockSpec> blocks = new ArrayList<>();
-    private final DefaultComboBoxModel<TilesetLibrary.Sheet> library = new DefaultComboBoxModel<>();
-    private final JComboBox<TilesetLibrary.Sheet> librarySheets = new JComboBox<>(library);
+    private final TilesetLibraryView library = new TilesetLibraryView(this::openFromLibrary);
 
     private BufferedImage source;
     private Path sourcePath;
@@ -107,11 +106,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
         JToolBar bar = new JToolBar();
         bar.setFloatable(false);
-        bar.add(new JLabel(" project "));
-        librarySheets.setMaximumSize(new Dimension(360, 26));
-        librarySheets.setPreferredSize(new Dimension(360, 26));
-        bar.add(librarySheets);
-        bar.add(new AbstractAction("Open") {
+        bar.add(new AbstractAction("Open selected") {
             @Override public void actionPerformed(ActionEvent e) {
                 openSelectedFromLibrary();
             }
@@ -195,8 +190,10 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         JSplitPane rightSide = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                 tableScroll, previewScroll);
         rightSide.setResizeWeight(0.45);
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                new JScrollPane(view), rightSide);
+        JSplitPane sheetSide = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                library, new JScrollPane(view));
+        sheetSide.setResizeWeight(0.0);
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sheetSide, rightSide);
         split.setResizeWeight(0.5);
 
         summary.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
@@ -235,22 +232,13 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             model.setEntries(new ArrayList<>());
             slice();
         } catch (Exception failure) {
-            JOptionPane.showMessageDialog(root, "Could not read " + file + ":\n" + failure,
-                    "Open sheet", JOptionPane.ERROR_MESSAGE);
+            AuthoringMessages.error(root, "Open sheet", "Could not read " + file, failure);
         }
     }
 
     private void rescanLibrary() {
-        TilesetLibrary.Sheet selected = (TilesetLibrary.Sheet) librarySheets.getSelectedItem();
-        library.removeAllElements();
         List<TilesetLibrary.Sheet> sheets = TilesetLibrary.scan(context.projectRoot());
-        for (TilesetLibrary.Sheet sheet : sheets) {
-            library.addElement(sheet);
-            // Keep the operator on the sheet they were editing across a rescan.
-            if (selected != null && selected.name().equals(sheet.name())) {
-                library.setSelectedItem(sheet);
-            }
-        }
+        library.setSheets(sheets);
         context.reportStatus(sheets.size() + " sheets in " + TilesetLibrary.SOURCE_DIR);
     }
 
@@ -263,17 +251,18 @@ public final class TilesetAuthoringPage implements AuthoringPage {
      * opened at all because its raw art is not in the project.
      */
     private void openSelectedFromLibrary() {
-        TilesetLibrary.Sheet sheet = (TilesetLibrary.Sheet) librarySheets.getSelectedItem();
+        openFromLibrary(library.selected());
+    }
+
+    private void openFromLibrary(TilesetLibrary.Sheet sheet) {
         if (sheet == null) return;
         if (sheet.isAnnotated()) {
             openDocumentAt(sheet.document());
             return;
         }
         if (sheet.rawSheet() == null) {
-            JOptionPane.showMessageDialog(root,
-                    sheet.name() + " ships as a tileset but has no raw art in "
-                            + TilesetLibrary.SOURCE_DIR + ", so there is nothing to annotate.",
-                    "Open", JOptionPane.INFORMATION_MESSAGE);
+            AuthoringMessages.info(root, "Open", sheet.name() + " ships as a tileset but has no raw art in "
+                            + TilesetLibrary.SOURCE_DIR + ", so there is nothing to annotate.");
             return;
         }
         try {
@@ -286,9 +275,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             idPrefix.setText("doodad." + sheet.name());
             slice();
         } catch (Exception failure) {
-            JOptionPane.showMessageDialog(root,
-                    "Could not read " + sheet.rawSheet() + ":\n" + failure,
-                    "Open", JOptionPane.ERROR_MESSAGE);
+            AuthoringMessages.error(root, "Open", "Could not read " + sheet.rawSheet(), failure);
         }
     }
 
@@ -327,8 +314,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             if (!sheetNote.isEmpty()) {
                 // Whatever the seed knows about this sheet is worth reading
                 // before the first slice, not after it goes wrong.
-                JOptionPane.showMessageDialog(root, sheetNote,
-                        document.sheetName, JOptionPane.INFORMATION_MESSAGE);
+                AuthoringMessages.info(root, document.sheetName, sheetNote);
             }
             if (document.entries.isEmpty()) {
                 // A seeded document: it chose the sheet and the slice settings
@@ -342,8 +328,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             report();
             refreshPreview();
         } catch (Exception failure) {
-            JOptionPane.showMessageDialog(root, "Could not open " + path + ":\n" + failure,
-                    "Open document", JOptionPane.ERROR_MESSAGE);
+            AuthoringMessages.error(root, "Open document", "Could not open " + path, failure);
         }
     }
 
@@ -369,8 +354,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             rescanLibrary();
             context.reportStatus("Wrote " + path);
         } catch (Exception failure) {
-            JOptionPane.showMessageDialog(root, "Could not save " + path + ":\n" + failure,
-                    "Save document", JOptionPane.ERROR_MESSAGE);
+            AuthoringMessages.error(root, "Save document", "Could not save " + path, failure);
         }
     }
 
@@ -441,9 +425,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private void splitSelected() {
         int[] rows = model.selectedRows;
         if (source == null || rows == null || rows.length == 0) {
-            JOptionPane.showMessageDialog(root,
-                    "Select the fused plates in the table first.",
-                    "Split on grid", JOptionPane.INFORMATION_MESSAGE);
+            AuthoringMessages.info(root, "Split on grid", "Select the fused plates in the table first.");
             return;
         }
         int cell = (Integer) gridCell.getValue();
@@ -482,9 +464,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private void groupSelected() {
         List<TilesetExport.Entry> selected = selectedEntries();
         if (selected.isEmpty()) {
-            JOptionPane.showMessageDialog(root,
-                    "Select the block's pieces in the table first.",
-                    "Group as block", JOptionPane.INFORMATION_MESSAGE);
+            AuthoringMessages.info(root, "Group as block", "Select the block's pieces in the table first.");
             return;
         }
         JTextField id = new JTextField(defaultBlockId(), 18);
@@ -511,17 +491,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             String text = fill.getText().trim();
             fillRgb = text.isEmpty() ? null : Integer.decode(text);
         } catch (NumberFormatException bad) {
-            JOptionPane.showMessageDialog(root, "Fill must look like 0x060A10.",
-                    "Group as block", JOptionPane.ERROR_MESSAGE);
+            AuthoringMessages.error(root, "Group as block", "Fill must look like 0x060A10.");
             return;
         }
 
         List<String> slots = BlockSlots.of(chosen);
         if (selected.size() > slots.size()) {
-            JOptionPane.showMessageDialog(root,
-                    selected.size() + " pieces selected but " + jsonName(chosen)
-                            + " has only " + slots.size() + " slots.",
-                    "Group as block", JOptionPane.ERROR_MESSAGE);
+            AuthoringMessages.error(root, "Group as block", selected.size() + " pieces selected but " + jsonName(chosen)
+                            + " has only " + slots.size() + " slots.");
             return;
         }
         for (int i = 0; i < selected.size(); i++) {
@@ -639,8 +616,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             context.reportStatus("Wrote " + atlasPath + ", " + tilesetPath + " and " + cardPath);
             report();
         } catch (Exception failure) {
-            JOptionPane.showMessageDialog(root, "Export failed:\n" + failure,
-                    "Export tileset", JOptionPane.ERROR_MESSAGE);
+            AuthoringMessages.error(root, "Export tileset", "Export failed.", failure);
         }
     }
 
@@ -799,10 +775,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 return;
             }
             if (specFor(blockId) == null) {
-                JOptionPane.showMessageDialog(root,
-                        "No block named '" + blockId + "'. Use \"Group selected as block\" "
-                                + "to declare one with its layout.",
-                        "Block", JOptionPane.ERROR_MESSAGE);
+                AuthoringMessages.error(root, "Block", "No block named '" + blockId + "'. Use \"Group selected as block\" "
+                                + "to declare one with its layout.");
                 return;
             }
             e.blockId = blockId;
@@ -824,10 +798,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             TilesetExport.BlockSpec spec = specFor(e.blockId);
             if (spec == null) return;
             if (!BlockSlots.fits(spec.layout, slot)) {
-                JOptionPane.showMessageDialog(root,
-                        "'" + slot + "' is not a slot of " + jsonName(spec.layout) + ". Use one of "
-                                + String.join(", ", BlockSlots.of(spec.layout)) + ".",
-                        "Slot", JOptionPane.ERROR_MESSAGE);
+                AuthoringMessages.error(root, "Slot", "'" + slot + "' is not a slot of " + jsonName(spec.layout) + ". Use one of "
+                                + String.join(", ", BlockSlots.of(spec.layout)) + ".");
                 return;
             }
             e.slot = slot;
