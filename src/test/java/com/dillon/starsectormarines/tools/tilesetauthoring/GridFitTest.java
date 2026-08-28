@@ -45,9 +45,17 @@ class GridFitTest {
     private static final int COLS = 10;
     private static final int ROWS = 10;
 
-    /** The nine column gutters measured on the sheet, for reference in failures. */
+    /**
+     * The nine column gutters measured on the sheet, for reference in failures.
+     *
+     * <p>The last one sits in a flat-bottomed trough — the mean column
+     * brightness runs {@code 18.6 20.7 18.3 20.3 18.3 18.4 20.9 18.8} across
+     * x=1112..1119 — so which pixel of it scores highest is decided by tenths
+     * and moved from 1116 to 1114 when the sheet was given its alpha. Both are
+     * the same gap. The other eight did not move.
+     */
     private static final List<Integer> KNOWN_COLUMN_GUTTERS =
-            List.of(127, 249, 372, 496, 617, 740, 864, 986, 1116);
+            List.of(127, 249, 372, 496, 617, 740, 864, 986, 1114);
 
     /**
      * The gap between cells five and six, in sheet pixels.
