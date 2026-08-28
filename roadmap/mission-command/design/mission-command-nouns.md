@@ -4,8 +4,8 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — made perspective travel evidence an explicit,
-single-exit lifecycle with separately reported tactical context.
+Updated: 2026-08-28 — classified secure-travel retarget causes and last-alive
+loss location/context without importing referee knowledge.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
 meaning and faction-honest knowledge into stable squad assignments. It is the
@@ -139,6 +139,18 @@ movement, and quiet travel are overlapping context on that episode, never
 alternative exit reasons. A rejected proposal does not end its still-effective
 incumbent, and reissuing the same semantic destination does not create a new
 trip.
+
+Retarget provenance is likewise perspective evidence. A secure trip may end
+because command selected another compound, changed the approach marker inside
+the same compound, or replaced capture duty with another assignment; a row
+whose accepted action/directive pair cannot establish that cause remains
+unclassified. Squad loss is located from the final living command observation,
+not claimed as an exact death cell: reports retain straight-line distance to
+the objective, progress relative to the trip's starting distance, and whether
+that final picture carried local contact, track-level hostile belief, no
+published contact, or insufficient track context. Exact position relative to
+a normalized front requires normalized own-squad progress and must not be
+inferred from cell coordinates alone.
 
 An opt-in **visual replay** samples the first deterministic replay at a requested
 tick cadence, renders the production battle scene through the GL-free Java2D

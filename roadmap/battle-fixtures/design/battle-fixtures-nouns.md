@@ -7,7 +7,7 @@ are shipped.
 Written: 2026-08-24
 
 Updated: 2026-08-28 — separated trace schema 7 from the derived Conquest
-summary-schema-4 secure-travel lifecycle.
+summary-schema-5 provenance and last-alive loss-location analysis.
 
 ## Vocabulary
 
@@ -106,12 +106,15 @@ authoritative capture cell/zone and the perspective-safe count of own squad
 members in their assigned target zone; neutral whole-zone occupancy remains a
 separate referee fact.
 
-The Conquest summary document is version 4. It derives a single explicit exit
+The Conquest summary document is version 5. It derives a single explicit exit
 for every perspective-observed secure-compound travel segment and keeps local
 contact, active path, and quiet travel as separate context. This is an analyzer
 contract, not another trace fact: command-trace schema 7 already carries the
 directive, own-squad state, observation windows, and run boundary needed to
-make the distinction.
+make the distinction. The same perspective rows classify retarget destination
+changes and locate squad-loss exits from the final living centroid relative to
+the objective marker. The summary labels these as last-observed evidence and
+does not invent normalized front position from raw cell coordinates.
 
 Construction V2 adds each assignment's actual seats per sortie and the resolved
 arrival policy plus employer/player shuttle boundary. Historical V1 documents
