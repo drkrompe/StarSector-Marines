@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MissilePodSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,7 +74,12 @@ final class IntegralSystemCopy {
         parts.add(system.description());
         String effect = effect(system);
         if (!effect.isEmpty()) {
-            parts.add(effect + ", then the suit is exactly the suit it was.");
+            // Only a reverting effect (a temporary stat boost) is honestly
+            // described as "the suit is exactly the suit it was" afterward —
+            // a spent salvo doesn't revert anything, it's just gone.
+            parts.add(system.breacherAssist() != null
+                    ? effect + ", then the suit is exactly the suit it was."
+                    : effect + ".");
         }
         parts.add(availability(system));
         return String.join("  //  ", parts);
@@ -84,8 +91,17 @@ final class IntegralSystemCopy {
      */
     private static String effect(IntegralSystemDef system) {
         BreacherAssistSpec breacher = system.breacherAssist();
-        if (breacher == null) return "";
-        return "Moves " + percent(breacher.moveSpeedMult() - 1f) + " faster while it runs";
+        if (breacher != null) {
+            return "Moves " + percent(breacher.moveSpeedMult() - 1f) + " faster while it runs";
+        }
+        MissilePodSpec pod = system.missilePod();
+        if (pod != null) {
+            WeaponDef weapon = pod.weaponDef();
+            int salvo = Math.max(1, weapon.projectilesPerShot());
+            return "Fires a salvo of " + salvo + (salvo == 1 ? " missile" : " missiles")
+                    + " at a self-picked target";
+        }
+        return "";
     }
 
     private static String availability(IntegralSystemDef system) {
