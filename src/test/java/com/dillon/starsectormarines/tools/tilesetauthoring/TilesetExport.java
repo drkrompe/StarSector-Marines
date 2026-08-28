@@ -104,9 +104,39 @@ public final class TilesetExport {
          * other content might have been.
          */
         public String standsInFor = "";
+        /**
+         * Sliced sheets only: which layer the tile draws on, {@code ground} or
+         * {@code overlay}. A ground tile is inset before it is drawn so its
+         * neighbours do not show a sampler seam; an overlay is a standalone
+         * sprite and is drawn whole.
+         */
+        public String layer = "ground";
+        /** Sliced sheets only: whether a unit may stand on this tile. */
+        public boolean passable = true;
+        /**
+         * Sliced sheets only: which bases this tile may be drawn over. Empty for
+         * a ground tile, which overlays nothing. See
+         * {@link com.dillon.starsectormarines.battle.world.tiles.TileDef#validOn}.
+         */
+        public List<String> validOn = new ArrayList<>();
+        /**
+         * Sliced sheets only: the short label the tileset carries as a tile's
+         * {@code name}.
+         *
+         * <p>Not the id and not derivable from it. The id is what code selects
+         * with and is namespaced; the label is what a reader of the catalog sees
+         * beside the picture. {@link #note} is its long form and exports as the
+         * tile's {@code description}.
+         */
+        public String label = "";
         /** Assigned by {@link #pack}. */
         public int col;
         public int row;
+        /** Assigned by {@link #packStrip}: this frame's pixel box on the strip. */
+        public int frameX;
+        public int frameY;
+        public int frameWidth;
+        public int frameHeight;
 
         public Entry(SheetSlicer.Piece piece, String id) {
             this.piece = piece;
@@ -231,6 +261,259 @@ public final class TilesetExport {
         }
         g.dispose();
         return atlas;
+    }
+
+    /**
+     * How a sheet exports as an <b>auto-strip</b>: frames in a row, found again
+     * at load by the gaps between them.
+     *
+     * <p>A sliced sheet is a second shape a tileset can have, not a variant of
+     * the grid one. Its pieces are not cells of anything: they are drawn at
+     * whatever size and aspect the art has, laid out left to right, and
+     * addressed by their position in that row. Nothing about a sliced sheet is
+     * a {@code (col, row)}, and giving it a {@code cellPx} would be inventing a
+     * grid the art does not have — a bench 17px wide beside a paver 39px wide
+     * are both one tile.
+     *
+     * <p>{@code mode}, {@code alphaThreshold} and {@code minGap} are what the
+     * exported tileset says about itself and must survive a round trip.
+     * {@code scale}, {@code gutterPx} and {@code marginPx} are how this atlas
+     * gets packed: the raw art is drawn several times larger than it ships, and
+     * the single divisor between the two is the judgement that says how large
+     * this sheet's tiles are on the deck. Deriving it from the previous atlas
+     * instead is exactly the circularity the alpha law forbids.
+     *
+     * @param mode           the slicing the runtime performs; only {@code auto-strip} exists
+     * @param alphaThreshold alpha at or above which a pixel is content
+     * @param minGap         transparent columns that separate two frames
+     * @param scale          raw pixels per exported pixel
+     * @param gutterPx       transparent columns the packer leaves between frames
+     * @param marginPx       transparent border round the whole strip
+     */
+    public record StripSpec(String mode, int alphaThreshold, int minGap,
+                            double scale, int gutterPx, int marginPx) {
+
+        public static final String AUTO_STRIP = "auto-strip";
+
+        public StripSpec {
+            if (!AUTO_STRIP.equals(mode)) {
+                throw new IllegalArgumentException("unknown slice mode '" + mode + "'");
+            }
+            if (!(scale > 0) || !Double.isFinite(scale)) {
+                throw new IllegalArgumentException("a strip's scale must be positive: " + scale);
+            }
+            if (minGap < 1) throw new IllegalArgumentException("minGap must be at least 1");
+            // A gutter narrower than the gap the loader splits on would fuse two
+            // frames into one, which renumbers every frame after it and is
+            // invisible in the tileset the export writes beside the atlas.
+            if (gutterPx < minGap) {
+                throw new IllegalArgumentException("a gutter of " + gutterPx + "px cannot separate "
+                        + "frames the loader splits on " + minGap + " transparent columns");
+            }
+            if (marginPx < 0) throw new IllegalArgumentException("marginPx cannot be negative");
+        }
+
+        /** The shipped defaults: what {@code SpriteSheetSlicer} looks for. */
+        public static StripSpec of(double scale) {
+            return new StripSpec(AUTO_STRIP, 16, 4, scale, 8, 2);
+        }
+    }
+
+    /** The strip's extent, and the frames on it in the order the loader finds them. */
+    public record StripPacking(int width, int height, List<Entry> frames) {}
+
+    /**
+     * Lay the included pieces out in a row, each scaled by the strip's own
+     * divisor, and record where each landed.
+     *
+     * <p>Order is the document's, because on a sliced sheet order <em>is</em>
+     * the address: a tile pins the frame index the loader will hand it, so
+     * moving a piece renames every piece after it.
+     */
+    public static StripPacking packStrip(List<Entry> entries, StripSpec spec) {
+        List<Entry> frames = new ArrayList<>();
+        int cursor = spec.marginPx();
+        int tallest = 0;
+        for (Entry entry : entries) {
+            if (!entry.included) continue;
+            if (!frames.isEmpty()) cursor += spec.gutterPx();
+            entry.frameWidth = Math.max(1, (int) Math.round(entry.piece.width() / spec.scale()));
+            entry.frameHeight = Math.max(1, (int) Math.round(entry.piece.height() / spec.scale()));
+            entry.frameX = cursor;
+            entry.frameY = spec.marginPx();
+            cursor += entry.frameWidth;
+            tallest = Math.max(tallest, entry.frameHeight);
+            frames.add(entry);
+        }
+        return new StripPacking(Math.max(1, cursor + spec.marginPx()),
+                Math.max(1, tallest + 2 * spec.marginPx()), frames);
+    }
+
+    /** Draw every included piece into its packed frame. */
+    public static BufferedImage stripAtlas(BufferedImage source, List<Entry> entries,
+                                           StripSpec spec) {
+        StripPacking packing = packStrip(entries, spec);
+        BufferedImage atlas = new BufferedImage(
+                packing.width(), packing.height(), BufferedImage.TYPE_INT_ARGB);
+        for (Entry entry : packing.frames()) {
+            BufferedImage frame = sharpen(
+                    resample(source, entry.piece, entry.frameWidth, entry.frameHeight));
+            for (int y = 0; y < entry.frameHeight; y++) {
+                for (int x = 0; x < entry.frameWidth; x++) {
+                    int argb = frame.getRGB(x, y);
+                    if (argb >>> 24 != 0) atlas.setRGB(entry.frameX + x, entry.frameY + y, argb);
+                }
+            }
+        }
+        return atlas;
+    }
+
+    /** Gaussian weight at one pixel's distance for the sharpen blur's radius. */
+    private static final double SHARPEN_NEIGHBOUR = 0.19;
+    /** How much of the detail the blur removed is added back. */
+    private static final double SHARPEN_AMOUNT = 1.0;
+    /** Detail below this many levels is grain, and amplifying it is amplifying noise. */
+    private static final int SHARPEN_THRESHOLD = 2;
+
+    /**
+     * Put back the local contrast the reduction averaged away.
+     *
+     * <p>Six source pixels to one is an average, and the average of a cobbled
+     * surface is a flat one. Measured against the sheet this replaces, an
+     * unsharpened reduction carries about three quarters of its neighbour-to-
+     * neighbour contrast — visibly softer at 39px, where a paver has only a few
+     * pixels to say it is made of stones with. Sharpening is therefore part of
+     * reducing rather than a treatment applied to it.
+     *
+     * <p>Only opaque pixels take part, in the blur as well as the result: a
+     * transparent neighbour has no colour, and letting one average in would ring
+     * a dark halo round every silhouette. Alpha itself is never touched — it was
+     * decided when the sheet was keyed, and a sharpen that moved it would move
+     * the frame boxes the loader finds.
+     */
+    private static BufferedImage sharpen(BufferedImage frame) {
+        int width = frame.getWidth();
+        int height = frame.getHeight();
+        int[] src = frame.getRGB(0, 0, width, height, null, 0, width);
+        int[] out = src.clone();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int at = y * width + x;
+                if (src[at] >>> 24 == 0) continue;
+                int packed = 0xFF000000;
+                for (int shift = 16; shift >= 0; shift -= 8) {
+                    double sum = 0;
+                    double weight = 0;
+                    for (int dy = -1; dy <= 1; dy++) {
+                        for (int dx = -1; dx <= 1; dx++) {
+                            int nx = x + dx;
+                            int ny = y + dy;
+                            if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+                            int neighbour = src[ny * width + nx];
+                            if (neighbour >>> 24 == 0) continue;
+                            double w = Math.pow(SHARPEN_NEIGHBOUR, Math.abs(dx) + Math.abs(dy));
+                            sum += w * ((neighbour >> shift) & 0xFF);
+                            weight += w;
+                        }
+                    }
+                    int value = (src[at] >> shift) & 0xFF;
+                    double blurred = weight == 0 ? value : sum / weight;
+                    double detail = value - blurred;
+                    int sharpened = Math.abs(detail) <= SHARPEN_THRESHOLD
+                            ? value
+                            : (int) Math.round(value + SHARPEN_AMOUNT * detail);
+                    packed |= Math.max(0, Math.min(255, sharpened)) << shift;
+                }
+                out[at] = packed;
+            }
+        }
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        result.setRGB(0, 0, width, height, out, 0, width);
+        return result;
+    }
+
+    /**
+     * Area-average one piece down into its frame, then take alpha to 0 or 255.
+     *
+     * <p>A strip is reduced by five or six to one, where sampling four source
+     * pixels out of thirty throws away most of a cobbled surface and keeps
+     * whichever stones the grid happened to land on. Averaging the whole
+     * footprint is what a reduction of that size needs.
+     *
+     * <p>Colour is weighted by alpha, so a keyed edge averages the art it is
+     * part of instead of pulling the matte's black in behind it. Alpha itself
+     * is then hard: a strip is found again by alpha at load, and a soft halo is
+     * both a seam between two ground tiles and dust the slicer can mistake for
+     * another frame.
+     */
+    private static BufferedImage resample(BufferedImage source, SheetSlicer.Piece piece,
+                                          int dstWidth, int dstHeight) {
+        int srcWidth = piece.width();
+        int srcHeight = piece.height();
+        int[] src = source.getRGB(piece.x(), piece.y(), srcWidth, srcHeight, null, 0, srcWidth);
+        BufferedImage frame = new BufferedImage(dstWidth, dstHeight, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < dstHeight; y++) {
+            int y0 = (int) ((long) y * srcHeight / dstHeight);
+            int y1 = Math.max(y0 + 1, (int) ((long) (y + 1) * srcHeight / dstHeight));
+            for (int x = 0; x < dstWidth; x++) {
+                int x0 = (int) ((long) x * srcWidth / dstWidth);
+                int x1 = Math.max(x0 + 1, (int) ((long) (x + 1) * srcWidth / dstWidth));
+                long alphaSum = 0;
+                long red = 0;
+                long green = 0;
+                long blue = 0;
+                int count = 0;
+                for (int sy = y0; sy < y1; sy++) {
+                    for (int sx = x0; sx < x1; sx++) {
+                        int argb = src[sy * srcWidth + sx];
+                        int alpha = argb >>> 24;
+                        alphaSum += alpha;
+                        red += (long) alpha * ((argb >> 16) & 0xFF);
+                        green += (long) alpha * ((argb >> 8) & 0xFF);
+                        blue += (long) alpha * (argb & 0xFF);
+                        count++;
+                    }
+                }
+                if (count == 0 || alphaSum * 2 < (long) count * 255) continue;
+                int packed = 0xFF000000
+                        | (int) (red / alphaSum) << 16
+                        | (int) (green / alphaSum) << 8
+                        | (int) (blue / alphaSum);
+                frame.setRGB(x, y, packed);
+            }
+        }
+        return frame;
+    }
+
+    /** The tileset document describing {@code sheetPath}'s sliced frames. */
+    public static JSONObject slicedTileset(String sheetPath, List<Entry> entries, StripSpec spec)
+            throws JSONException {
+        StripPacking packing = packStrip(entries, spec);
+        JSONObject slice = new JSONObject();
+        slice.put("mode", spec.mode());
+        slice.put("alphaThreshold", spec.alphaThreshold());
+        slice.put("minGap", spec.minGap());
+
+        JSONArray tiles = new JSONArray();
+        for (int frame = 0; frame < packing.frames().size(); frame++) {
+            Entry entry = packing.frames().get(frame);
+            JSONObject o = new JSONObject();
+            o.put("id", entry.id);
+            o.put("frame", frame);
+            o.put("layer", entry.layer);
+            if (!"none".equals(entry.cover)) o.put("cover", entry.cover);
+            if (!entry.passable) o.put("passable", false);
+            if (!entry.validOn.isEmpty()) o.put("validOn", new JSONArray(entry.validOn));
+            if (!entry.label.isEmpty()) o.put("name", entry.label);
+            if (!entry.note.isEmpty()) o.put("description", entry.note);
+            tiles.put(o);
+        }
+
+        JSONObject root = new JSONObject();
+        root.put("sheet", sheetPath);
+        root.put("slice", slice);
+        root.put("tiles", tiles);
+        return root;
     }
 
     /** The tileset document describing {@code sheetPath}'s blocks and doodads. */

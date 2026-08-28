@@ -154,7 +154,8 @@ abstract class AbstractZoneAction implements Action {
 
         if (inContact) {
             sim.combat().setFireIntent(member, target,
-                    committed ? FireStance.STANCED : FireStance.MOVING, false);
+                    committed ? FireStance.STANCED : FireStance.MOVING,
+                    committed);
         } else {
             // Opportunistic return fire while advancing. The pursuit target
             // is out of range/LoS (or absent) — across the open approach
@@ -174,7 +175,19 @@ abstract class AbstractZoneAction implements Action {
         }
 
         if (committed && inContact) {
-            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            int[] path = sim.world().path(member);
+            // A committed contact suppresses the long objective route, but a
+            // successful shot may have authored RepositionToCover's short,
+            // strictly-better-cover move. Its per-member cooldown is the
+            // ownership marker: advance that staggered micro-move while it is
+            // live; otherwise plant on the firing line as before.
+            boolean activeCoverReposition = sim.world().repositionCooldown(member) > 0f
+                    && sim.world().pathIdx(member) < Paths.cellCount(path);
+            if (activeCoverReposition) {
+                sim.advanceMovement(member);
+            } else if (!Paths.isEmpty(path)) {
+                sim.clearPath(member);
+            }
             if (squad.timeSinceReplan >= CONTACT_HALT_REPLAN_THROTTLE) {
                 squad.timeSinceReplan = Planner.REPLAN_PERIOD;
             }

@@ -17,9 +17,11 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.TreeMap;
 
 /**
  * A transient tactical unit assembled from deploying marines, or a defender
@@ -312,41 +314,68 @@ public final class Squad {
     public int aliveMembers = 0;
 
     /**
-     * Soft cohesion variable in [0, 1]. Drains on incoming hits and member
-     * deaths, recovers passively while out of contact, and is capped by
-     * {@code aliveMembers / originalSize} — so a mauled squad can shake off
-     * a bad engagement <em>once</em> but can never fully reset.
+     * Alive-member-weighted mean of {@link FireTeamMorale#morale} over this
+     * squad's live fire teams. A readout — for the HUD, the debug dump, the
+     * command trace — not a value anything decides on. Cohesion is held per
+     * fire team; reach it through {@link #fireTeamMorale(int)}.
      *
-     * <p>Drives {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#MORALE_BROKEN}
-     * with hysteresis on {@link #moraleBroken}: trips below
-     * {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_BROKEN_THRESHOLD},
-     * clears above {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_CLEAR_THRESHOLD}.
-     * Updated each tick by {@code BattleSimulation.updateSquadMorale}.
+     * <p>Recomputed each tick by {@link SquadMoraleSystem#tick}.
      */
     public float morale = 1.0f;
     /**
-     * Hysteresis flag set by {@code updateSquadMorale}. Once {@link #morale}
-     * crosses below the broken threshold, this stays true until morale climbs
-     * above the (higher) clear threshold — prevents flickering at the boundary
-     * if a squad keeps oscillating just under the line. SurviveContact reads
-     * this, not the raw morale value, so the planner sees a stable signal.
+     * True when <em>every</em> live fire team has broken — a derived
+     * aggregate over {@link FireTeamMorale#broken}, and the point at which
+     * the squad as a whole is finished rather than merely down a team.
+     *
+     * <p>Read by the squad-level consumers that legitimately ask that
+     * question: the mission-goal carve-outs via
+     * {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#MORALE_BROKEN},
+     * the command tier, and radio chatter. The withdrawal itself is not
+     * driven from here — a broken fire team peels on its own, in
+     * {@code GoapInfantryBehavior}, whatever the rest of the squad is doing.
      */
     public boolean moraleBroken = false;
     /**
-     * Sim-seconds remaining on the morale-drain cooldown. Each drain event
-     * (hit or near-miss) sets this to {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_DRAIN_COOLDOWN};
-     * subsequent drains within the window are silently dropped. Prevents a
-     * burst of bullets in one tick from insta-breaking a full squad — caps
-     * effective drain rate at ~5 events per second.
-     */
-    public float moraleDrainCooldown = 0f;
-    /**
-     * Sim seconds since the last hit or near-miss on a squadmate. Gates morale
-     * recovery — see {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_RECOVER_AFTER_FIRE_SECONDS}.
-     * Initialized to a large value so fresh squads can recover immediately if
-     * broken without first being shot at (degenerate case but possible).
+     * Sim seconds since the last hit or near-miss on any squadmate — the
+     * minimum of {@link FireTeamMorale#timeSinceUnderFire} over live teams,
+     * so the squad reads as under fire while any one of its teams is. Feeds
+     * the command tier's {@code underFireRecently}; per-team recovery gates
+     * on the team's own timer, not on this.
      */
     public float timeSinceUnderFire = Float.MAX_VALUE / 2f;
+
+    /**
+     * Per-fire-team cohesion, keyed by organizational team index. Sorted so
+     * aggregation and the debug dump walk teams in a stable order.
+     *
+     * <p>Written only from the serial morale tick and damage drain; the
+     * parallel per-unit dispatch reads it through
+     * {@link #fireTeamBroken(int)}, which never creates an entry.
+     */
+    private final TreeMap<Integer, FireTeamMorale> fireTeamMorale = new TreeMap<>();
+
+    /**
+     * This squad's fire-team cohesion state, creating it on first touch.
+     * <b>Serial callers only</b> — the morale tick and the damage drain.
+     */
+    public FireTeamMorale fireTeamMorale(int teamIndex) {
+        return fireTeamMorale.computeIfAbsent(Math.max(0, teamIndex), FireTeamMorale::new);
+    }
+
+    /** Live fire-team cohesion states in ascending team order. */
+    public Collection<FireTeamMorale> fireTeamMorale() {
+        return fireTeamMorale.values();
+    }
+
+    /**
+     * Whether {@code teamIndex} has broken. Pure read — safe from the
+     * parallel per-unit dispatch, and false for a team that has never been
+     * touched by the morale tick.
+     */
+    public boolean fireTeamBroken(int teamIndex) {
+        FireTeamMorale team = fireTeamMorale.get(Math.max(0, teamIndex));
+        return team != null && team.broken;
+    }
     /** Centroid X over alive members. Undefined when {@link #aliveMembers} is 0. */
     public float centroidX = 0f;
     /** Centroid Y over alive members. Undefined when {@link #aliveMembers} is 0. */

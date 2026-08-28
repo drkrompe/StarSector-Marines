@@ -124,6 +124,16 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private GridCut placement;
     /** Explicit atlas destination from the document; empty derives it from content. */
     private String outputSheet = "";
+    /**
+     * The strip settings from the document, or null for a cell-grid sheet.
+     *
+     * <p>Held rather than edited: which shape a sheet is, and the scale it is
+     * drawn at, are decided when it is set up, and there is nothing on this page
+     * that could change them. What matters is that they survive a sitting —
+     * dropping them turns a sliced sheet into a grid one on the next save, which
+     * renames every id the map selects by and reads as no change at all.
+     */
+    private TilesetExport.StripSpec strip;
     private boolean dirty;
     /** True while the table is being set from the canvas, so it does not answer back. */
     private boolean syncingSelection;
@@ -304,6 +314,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             blocks.clear();
             sheetNote = "";
             outputSheet = "";
+            strip = null;
             model.setEntries(new ArrayList<>());
             slice();
         } catch (Exception failure) {
@@ -346,6 +357,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             blocks.clear();
             sheetNote = "";
             outputSheet = "";
+            strip = null;
             model.setEntries(new ArrayList<>());
             sheetName.setText(sheet.name());
             idPrefix.setText("doodad." + sheet.name());
@@ -388,6 +400,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             blocks.addAll(document.blocks);
             sheetNote = document.note;
             outputSheet = document.outputSheet;
+            strip = document.strip;
             model.setEntries(document.entries);
             view.setEntries(document.entries);
             syncGrid();
@@ -434,6 +447,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         if (placed != null) document.setCut(placed);
         document.outputSheet = outputSheet;
         document.note = sheetNote;
+        document.strip = strip;
         document.entries = model.entries;
         document.blocks = new ArrayList<>(blocks);
         return document;
@@ -894,6 +908,16 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             if (!entry.included) continue;
             included++;
             cells += entry.isBlockMember() ? 1 : entry.footprintX * entry.footprintY;
+        }
+        if (strip != null) {
+            // A strip has no cells to count and no blocks to count them into.
+            TilesetExport.StripPacking packed = TilesetExport.packStrip(model.entries, strip);
+            summary.setText(String.format(
+                    "%s   %d pieces, %d frames   strip %dx%d px at 1/%.4g",
+                    sourcePath == null ? "no sheet" : sourcePath.getFileName().toString(),
+                    model.entries.size(), packed.frames().size(),
+                    packed.width(), packed.height(), strip.scale()));
+            return;
         }
         TilesetExport.Packing packing = TilesetExport.pack(model.entries, blocks);
         summary.setText(String.format(

@@ -154,7 +154,12 @@ public final class FortressProgram {
      * a change to it.
      */
     public static int envelopeArea(List<FortressBuilding> program) {
-        return Math.round(floorArea(program) * SLACK);
+        // The apron is ground the ward holds but no building stands on, so it
+        // is added rather than scaled: the slack covers what packing wastes
+        // around buildings, and an airfield is not waste. The airfield takes
+        // what the packing left rather than a reservation, so this is what makes
+        // sure there is something left for it to take.
+        return Math.round(floorArea(program) * SLACK) + FortressAirfield.apronArea();
     }
 
     /** Ground per cell of building floor. Measured, not guessed — see {@link #envelopeArea}. */
