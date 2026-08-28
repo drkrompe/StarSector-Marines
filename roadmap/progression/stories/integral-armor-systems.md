@@ -8,7 +8,7 @@ Status: IN PROGRESS — declared, carried into battle, running, and legible in
 the Armory before issue. The directional mitigation, an authored AI policy,
 battle presentation, and the missile pod remain.
 Written: 2026-08-27
-Updated: 2026-08-28 — Armory legibility landed; what is left is the shield half, the use policy, battle presentation, and the pod.
+Updated: 2026-08-28 — the breach family is authored across all six assault patterns; what is left is the shield half, the use policy, battle presentation, and the pod.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -117,6 +117,19 @@ exactly the suit it was, and cannot be spent again until its cooldown drains.
 Movement is recomputed from an untouched base speed rather than scaled in
 place, so repeated runs cannot compound and a second effect will not inherit
 the first one's remainder.
+
+Breaching is now the assault role's signature rather than one pirate pattern's
+quirk. All six ASSAULT patterns carry a version of the same effect and nothing
+else in the catalog carries anything, so what a player learns is "assault suits
+breach" rather than "expensive suits get a trick". The six differ on every axis
+the effect has {D} the Hegemony version is the most available, the pirate one the
+least and the crudest {D} and a test refuses a renamed copy. Which pattern gets
+what, and why the budget stops at roughly two more, is `integral-system-slate.md`.
+
+Two of the six under-express until the mitigation lands: the Knightly and
+Sindrian versions spend most of their design on the screen, so today the Armory
+truthfully advertises the Reliquary as a twelve-percent movement boost, which is
+not what the suit is for.
 
 A suit's system is legible before it is issued. The doctrine designer's tile —
 the screen where a pattern is actually chosen — spends its one non-meter line

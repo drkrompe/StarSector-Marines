@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -72,6 +73,17 @@ public final class FacingSystem {
                 BattleComponents.MECH_LAYERED_FACING_DEGREES, heading);
         world.setFloat(id, components.MECH_LAYERED_ANIMATION,
                 BattleComponents.MECH_LAYERED_HIP_FACING_DEGREES, heading);
+        if (world.has(id, components.MECH_GAIT_STATE)) {
+            MechGaitState gait = (MechGaitState) world.getObject(
+                    id, components.MECH_GAIT_STATE,
+                    BattleComponents.MECH_GAIT_STATE_STATE);
+            if (gait != null) {
+                gait.reset(world.getFloat(id, components.POSITION,
+                                BattleComponents.POSITION_X),
+                        world.getFloat(id, components.POSITION,
+                                BattleComponents.POSITION_Y), heading);
+            }
+        }
     }
 
     public static final float MIN_TRAVEL_SPEED = 0.5f;
