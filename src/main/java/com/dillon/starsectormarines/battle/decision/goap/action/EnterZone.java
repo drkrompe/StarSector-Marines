@@ -57,11 +57,19 @@ public final class EnterZone extends AbstractZoneAction {
     /** Destination cell inside the target zone — chosen at construction so all members aim at the same spot and the pathfinder routes them through the portal naturally. */
     private final int destX;
     private final int destY;
+    /** Final assault hops push through contact; ordinary transit remains cautious. */
+    private final boolean commitThroughContact;
 
     public EnterZone(int targetZoneId, int destX, int destY) {
+        this(targetZoneId, destX, destY, false);
+    }
+
+    private EnterZone(int targetZoneId, int destX, int destY,
+                      boolean commitThroughContact) {
         super(targetZoneId);
         this.destX = destX;
         this.destY = destY;
+        this.commitThroughContact = commitThroughContact;
     }
 
     /**
@@ -71,14 +79,26 @@ public final class EnterZone extends AbstractZoneAction {
      * then no-ops and the next replan re-synthesizes.
      */
     public static EnterZone forZone(NavigationZone zone, NavigationGrid grid) {
+        return forZone(zone, grid, false);
+    }
+
+    /** Builds the final room-taking hop, which cannot park at the threshold. */
+    public static EnterZone committedForZone(NavigationZone zone,
+                                             NavigationGrid grid) {
+        return forZone(zone, grid, true);
+    }
+
+    private static EnterZone forZone(NavigationZone zone, NavigationGrid grid,
+                                     boolean commitThroughContact) {
         int[] c = interiorCell(zone, grid);
         int x = c != null ? c[0] : 0;
         int y = c != null ? c[1] : 0;
-        return new EnterZone(zone.getZoneId(), x, y);
+        return new EnterZone(zone.getZoneId(), x, y, commitThroughContact);
     }
 
     public int destX() { return destX; }
     public int destY() { return destY; }
+    public boolean commitsThroughContact() { return commitThroughContact; }
 
     @Override public String name() { return "EnterZone[" + targetZoneId + "]"; }
 
@@ -101,6 +121,18 @@ public final class EnterZone extends AbstractZoneAction {
             squad.clearMechScreen();
             clearBounding(squad);
             return ActionStatus.SUCCESS;
+        }
+
+        // The final SECURE_COMPOUND hop is already the decision to take the
+        // room. Its following ClearZone/HoldZone steps use commitment
+        // semantics, so allowing this threshold step to re-enter the cautious
+        // contact halt can preserve the same mission plan forever without ever
+        // handing off to them.
+        if (commitThroughContact) {
+            squad.clearMechScreen();
+            clearBounding(squad);
+            advanceIntoZone(member, squad, sim, destX, destY, false);
+            return ActionStatus.RUNNING;
         }
 
         updateAdvanceThreat(squad, sim, destX, destY);
