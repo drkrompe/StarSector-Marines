@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — separated cell standability from shared-edge transitions, widened compound firing aprons, and stated the interior-anchor standability guarantee.
+Updated: 2026-08-28 — separated authoritative cells, shared-edge transitions, and derived regions; widened compound firing aprons; and guaranteed standable interior anchors.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -56,6 +56,14 @@ drawing a narrow wall without closing its edge would create dishonest scenery.
 Runtime topology retains the permissive-mutation law: destruction may open an
 authored edge, while construction that closes an edge under existing paths is a
 separate future problem.
+
+The greedy navigation mesh is derived runtime structure, not generated map
+authority. It combines compatible walkable cells into deterministic rectangular
+regions, preserves doorways and closed edges as seams, and publishes passable
+boundary intervals between regions. Generation and runtime destruction mutate
+cells or shared edges; the ordinary navigation-topology flush then rebuilds the
+mesh alongside zones and geometry-dependent caches. A generator must never
+author a region directly or depend on a particular greedy decomposition.
 
 **Room purpose** is a carve-time semantic label, such as a room, corridor, or
 special facility. Consumers ask the purpose instead of rediscovering regions

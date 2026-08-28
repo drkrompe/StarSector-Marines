@@ -94,6 +94,19 @@ public enum GridLayout {
      */
     public abstract int[] resolve(int originCol, int originRow, boolean n, boolean s, boolean e, boolean w);
 
+    /**
+     * Width and height, in cells, of the patch this layout addresses from its
+     * origin — 1 for {@link #SINGLE}, 3 for every 3x3 layout.
+     *
+     * <p>Authoring tools need the extent to reserve a contiguous patch in a
+     * packed atlas and to know which slots a layout has. That extent is part of
+     * the layout's geometry, so it is answered here rather than re-derived from
+     * the layout's name somewhere else.
+     */
+    public int span() {
+        return this == SINGLE ? 1 : 3;
+    }
+
     /** Parse from the tileset JSON {@code layout} field. */
     public static GridLayout fromJson(String s) {
         switch (s.trim().toLowerCase()) {
