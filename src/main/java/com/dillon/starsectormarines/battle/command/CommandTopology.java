@@ -115,4 +115,12 @@ public final class CommandTopology {
                 targetX, targetY).length;
         return length > 0 ? length : Integer.MAX_VALUE;
     }
+
+    /** Frozen-grid route cells, or an empty path when the endpoints do not connect. */
+    public int[] route(int startX, int startY, int targetX, int targetY) {
+        if (!inBounds(startX, startY) || !inBounds(targetX, targetY)) {
+            return GridPathfinder.EMPTY_PATH;
+        }
+        return GridPathfinder.findPath(grid, startX, startY, targetX, targetY);
+    }
 }

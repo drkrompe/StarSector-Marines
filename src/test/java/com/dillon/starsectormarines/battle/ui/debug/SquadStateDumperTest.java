@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.command.SabotageDefenderCommand;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionObjective;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
@@ -32,9 +33,12 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -483,6 +487,43 @@ class SquadStateDumperTest {
         assertFalse(defense.has("payloadCellX"));
         assertFalse(defense.has("progress"));
         assertFalse(defense.has("controllingSquadId"));
+    }
+
+    @Test
+    void rescueDumpPublishesMarineCorridorAndSwarmDirector() throws Exception {
+        BattleSimulation sim = openSim(40, 30);
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(new PointOfInterest(
+                        PointOfInterest.Kind.RESIDENTIAL,
+                        9, 5, 13, 9, 8, 7, 11, 7)), 81L);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("escort", Faction.MARINE,
+                UnitType.MARINE, 3, 12).squad(squadId));
+        squad.leaderId = member;
+        sim.spawn(new EntitySpec("runner", Faction.DEFENDER,
+                UnitType.SWARM_RUNNER, 39, 29)
+                .role(UnitRole.SWARM_PRESSURE));
+        assertTrue(sim.configureSwarmReinforcements(
+                payload.placement, 1, 81L));
+        sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                + BattleSimulation.TICK_DT);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+        JSONObject rescue = dump.getJSONObject("rescueCommand");
+        JSONObject intent = rescue.getJSONObject("squadIntent");
+        JSONObject director = dump.getJSONObject("swarmPressureDirector");
+
+        assertEquals("rescue-corridor",
+                dump.getJSONObject("commander").getString("strategy"));
+        assertEquals("AT_SOURCE", rescue.getString("phase"));
+        assertEquals("COHORT_ESCORT", intent.getString("role"));
+        assertEquals("SHELTER_RELIEF", intent.getString("reason"));
+        assertEquals("SWARM", director.getString("perspective"));
+        assertEquals("rescue-swarm-pressure",
+                director.getString("director"));
+        assertEquals(4, director.getJSONArray("approaches").length());
+        assertTrue(dump.isNull("extractionCommand"));
     }
 
     private static BattleSimulation openSim() {

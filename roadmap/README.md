@@ -64,8 +64,11 @@ Generic Extraction now replaces elimination with an escorted recovery-package
 contract and exposes the same neutral payload projection used by Civilian
 Rescue and Silent Colony without flattening their variant laws. Its autonomous
 Marine corridor and bounded conventional defender interdiction commanders now
-run as a paired production duel; live acceptance and authored Rescue/Silent
-Colony command pictures remain.
+run as a paired production duel. Civilian Rescue now supplies the first
+asymmetric Extraction adapter: Marines coordinate the shelter, cohort, screens,
+and lift while a separately disclosed swarm director owns pressure waves and
+perimeter approaches. Generic and Rescue live acceptance and the authored
+Silent Colony command picture remain.
 Each mission keeps its own strategy geometry. See `conquest-command.md`,
 `sabotage-command.md`, `assault-command.md`, `raid-command.md`,
 `extraction-command.md`, `ai-nouns.md`, `reinforcement-nouns.md`, and
@@ -137,9 +140,10 @@ ownership, directives, panel/dump/overlay views, and forced-serial trace evidenc
 Review a canonical-duration `commanderEvidence -Pmission=assault` run and the
 deferred live play pass before retiring its two implementation stories.
 Opening Operations remains the smallest later command-duel proof. Raid's first
-contract is ready for canonical-duration and live review; generic Extraction's
-paired corridor and bounded interdiction commanders are ready for canonical
-and live review. Each mission
+contract is ready for canonical-duration and live review. Generic Extraction is
+ready for live review, while Civilian Rescue now has deterministic canonical
+evidence for its Marine corridor command and separate swarm-pressure director;
+its live pressure pass remains deliberately deferred. Each mission
 adapts the same knowledge, ownership, cadence, and diagnostic contracts through
 its own geometry. The grouped work lives in the Mission Command `stories.md`.
 

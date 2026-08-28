@@ -1,10 +1,10 @@
 # Extraction command
 
-Status: ACTIVE — generic Extraction has an authoritative payload law and paired corridor/interdiction commanders; canonical/live acceptance and authored variant pictures remain open.
+Status: ACTIVE — generic Extraction has paired corridor/interdiction commanders and Civilian Rescue has an asymmetric corridor/swarm command picture; live acceptance and Silent Colony remain open.
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — added a deterministic two-fixture matrix covering quiet production pressure and surviving post-alarm interdiction.
+Updated: 2026-08-27 — shipped deterministic Civilian Rescue corridor command and its separately disclosed swarm-pressure director.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `campaign-event-nouns.md` for the authored event stakes.
@@ -89,16 +89,47 @@ knowledge semantics are not those of a human squad commander.
 
 ## Civilian Rescue
 
-Marine command owns shelter, cohort, moving-screen, and lift duties. The swarm
-pressure system should remain an inspectable non-human director owning its
-waves, legal cohort/screen context, approach/choke allocation, and pressure
-reason. Architectural observability does not require fake squads, beliefs, or
-reserves.
+Marine command consumes only an owning-side frame containing the public shelter,
+cohort projection, route topology, own force, and local influence. One stable
+mobile squad escorts the cohort while the remaining mobile squads retain stable
+lead, left, right, and rear screen roles. Before release, separate shelter-
+approach cells organize relief; after release, route-relative guide and screen
+cells form the corridor to the lift. Repeated role echelons receive stable
+offsets instead of forming one brick. A local actionable contact may hold only
+the affected squad's current target for a bounded interval; it does not freeze
+the whole formation.
+
+Authored shelter and pickup guards remain outside the command pool under their
+existing garrison or payload authority. The commander does not invent a missing
+pickup-guard post. Mission command owns where the mobile force is useful while
+the evacuation tracker, squad doctrine, and individual combat behavior retain
+their existing authority.
+
+The swarm remains an inspectable non-human director rather than a mirrored
+squad commander. It owns `SWARM_PRESSURE` runners and reinforcement waves,
+allocates wave cells across four perimeter approaches, and publishes its phase,
+pressure reason, population, owned wave, approaches, and only aggregated target
+contexts (`ROAMING`, `MARINE_SCREEN`, or `COHORT_CONTACT`). It does not expose
+the exact cohort cell, Marine positions, controlling squad, or invented beliefs
+and reserves. Individual swarm pursuit and attack behavior remains local.
+
+The selected-squad overlay, squad dump, and perspective trace expose Marine
+roles, reasons, targets, local slowdown, shelter/cohort/guide/lift geometry, and
+the last owned swarm wave and approaches. Director trace rows are explicitly
+labelled as a separate swarm perspective and deduplicated by director revision.
 
 The existing rescue tracker and evacuation objective publish the shared cohort
 projection while retaining physical civilian identity, movement, pickup
 boarding, partial survival, and campaign scaling. The shared projection does
 not replace any of those laws.
+
+The existing `commanderEvidence -Pmission=extraction` selector runs both generic
+Extraction and Rescue adapters; no scenario-specific Gradle task is required.
+The canonical Rescue fixture uses two six-seat Aeroshuttles, completes with all
+eight civilians boarded at tick 3,669, publishes 48 Marine command pictures and
+162 swarm-director revisions, and replays byte-identically. This is deterministic
+correctness evidence, not a pressure or balance target; live pressure tuning
+remains in the campaign Rescue acceptance story.
 
 ## Silent Colony
 
@@ -114,6 +145,7 @@ The survivor branch retains cohort/egress semantics; the archive remains a
 source-recovery branch without invented boarding state.
 
 `generic-extraction-corridor-command.md`,
-`generic-extraction-interdiction-command.md`,
-`rescue-corridor-command-picture.md`, and
-`silent-colony-expedition-branches.md` own the open command work.
+`generic-extraction-interdiction-command.md`, and
+`silent-colony-expedition-branches.md` own the open command work. The shipped
+Rescue migration is retained in `shipped.md`; live pressure tuning remains in
+`roadmap/campaign/living-world/stories/rescue-pressure-acceptance.md`.
