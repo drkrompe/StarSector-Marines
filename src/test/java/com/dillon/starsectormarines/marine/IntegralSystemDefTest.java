@@ -1,16 +1,23 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -86,8 +93,76 @@ class IntegralSystemDefTest {
         JSONException failure = assertThrows(JSONException.class,
                 () -> IntegralSystemDef.parse(
                         breacherAssist().put("effect", "invisibility"), "armor.test"));
-        assertTrue(failure.getMessage().contains("breacher-assist"),
+        assertTrue(failure.getMessage().contains("breacher-assist")
+                        && failure.getMessage().contains("missile-pod"),
                 "the refusal should list the effects that do exist: " + failure.getMessage());
+    }
+
+    @Test
+    void aMissilePodParsesItsAuthoredCapability() throws JSONException {
+        IntegralSystemDef system = IntegralSystemDef.parse(missilePod(), "armor.test");
+
+        assertEquals("system.test-pod", system.id());
+        assertEquals(IntegralSystemEffect.MISSILE_POD, system.effect());
+        assertEquals(SpecialResourceMode.AMMUNITION, system.resourceMode());
+        assertTrue(system.usesAmmunition(), "a missile pod runs out, it does not wait");
+        assertEquals(2, system.startingAmmo());
+        assertNull(system.breacherAssist(), "a pod is not also a breacher");
+
+        MissilePodSpec pod = system.missilePod();
+        assertNotNull(pod);
+        assertEquals("weapon.micro-missile", pod.weaponId());
+        assertSame(WeaponRegistry.require("weapon.micro-missile"), pod.weaponDef(),
+                "the pod delegates to the one authoritative weapon definition"
+                        + " rather than duplicating its numbers");
+    }
+
+    /**
+     * The validation the breacher assist gets against cooldown
+     * ({@link #aBreacherAssistParsesItsAuthoredCapability}) mirrored for the
+     * pod's own resource mode.
+     */
+    @Test
+    void aMissilePodMustBeAmmunitionGated() throws JSONException {
+        JSONObject cooldownGated = missilePod().put("resource", "cooldown")
+                .put("cooldownSeconds", 20.0);
+        cooldownGated.remove("startingAmmo");
+
+        JSONException failure = assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(cooldownGated, "armor.test"));
+        assertTrue(failure.getMessage().contains("ammunition-gated"), failure.getMessage());
+    }
+
+    @Test
+    void aMissilePodMustNameItsWeapon() throws JSONException {
+        JSONObject noWeapon = missilePod();
+        noWeapon.remove("weaponId");
+
+        JSONException failure = assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(noWeapon, "armor.test"));
+        assertTrue(failure.getMessage().contains("weaponId"), failure.getMessage());
+    }
+
+    @Test
+    void aMissilePodRefusesAnUnknownWeapon() throws JSONException {
+        JSONObject json = missilePod().put("weaponId", "weapon.does-not-exist");
+
+        JSONException failure = assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(json, "armor.test"));
+        assertTrue(failure.getMessage().contains("weapon.does-not-exist"), failure.getMessage());
+    }
+
+    /**
+     * The rule this story is most at risk of breaking, pinned at parse time:
+     * a shoulder pod is infantry ordnance, never a mech-mount weapon.
+     */
+    @Test
+    void aMissilePodRefusesAMechMountWeapon() throws JSONException {
+        JSONObject json = missilePod().put("weaponId", WeaponRegistry.MECH_LRM_ARTILLERY_ID);
+
+        JSONException failure = assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(json, "armor.test"));
+        assertTrue(failure.getMessage().contains("marine-secondary"), failure.getMessage());
     }
 
     @Test
@@ -114,9 +189,65 @@ class IntegralSystemDefTest {
         assertNull(def.integralSystem());
     }
 
+    /**
+     * Six patterns carry a breach assist and each named its own version
+     * something else. The family and the grade are what let a player compare
+     * them; without a grade a system would be a bare name again.
+     */
+    @Test
+    void everySystemDeclaresItsFamilyAndHowWellItIsMade() throws JSONException {
+        IntegralSystemDef system = IntegralSystemDef.parse(breacherAssist(), "armor.test");
+        assertEquals("Breach assist", system.familyName());
+        assertEquals(EquipmentGrade.MILSPEC, system.grade());
+        assertNotEquals(system.familyName(), system.displayName(),
+                "the family is the shared name; displayName is this tradition's own");
+
+        JSONObject ungraded = breacherAssist();
+        ungraded.remove("grade");
+        assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(ungraded, "armor.test"));
+
+        JSONException failure = assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(breacherAssist().put("grade", "artisanal"),
+                        "armor.test"));
+        assertTrue(failure.getMessage().contains("masterwork"),
+                "the refusal should list the grades that exist: " + failure.getMessage());
+    }
+
+    /**
+     * Grade describes manufacture; it must never silently scale the authored
+     * numbers the way a weapon family's grade does, or the same quality would be
+     * priced twice.
+     */
+    @Test
+    void gradeDescribesManufactureAndChangesNoNumbers() throws JSONException {
+        IntegralSystemDef surplus = IntegralSystemDef.parse(
+                breacherAssist().put("grade", "surplus"), "armor.test");
+        IntegralSystemDef masterwork = IntegralSystemDef.parse(
+                breacherAssist().put("grade", "masterwork"), "armor.test");
+
+        assertNotEquals(surplus.grade(), masterwork.grade());
+        assertEquals(surplus.durationSeconds(), masterwork.durationSeconds(), 1e-6f);
+        assertEquals(surplus.cooldownSeconds(), masterwork.cooldownSeconds(), 1e-6f);
+        assertEquals(surplus.breacherAssist().moveSpeedMult(),
+                masterwork.breacherAssist().moveSpeedMult(), 1e-6f);
+        assertEquals(surplus.breacherAssist().frontalResistance(),
+                masterwork.breacherAssist().frontalResistance(), 1e-6f);
+    }
+
+    /** One icon per family: a pattern's own version is told apart by name and grade, not art. */
+    @Test
+    void everyFamilyPointsAtAnIconThatExists() {
+        for (IntegralSystemEffect effect : IntegralSystemEffect.values()) {
+            assertTrue(Files.isRegularFile(Path.of("mod", effect.iconPath)),
+                    effect.displayName + " is missing its icon at " + effect.iconPath);
+        }
+    }
+
     private static JSONObject breacherAssist() throws JSONException {
         return new JSONObject()
                 .put("id", "system.test-assist")
+                .put("grade", "milspec")
                 .put("displayName", "Breaching assist")
                 .put("description", "Rams and a screen on one trigger.")
                 .put("effect", "breacher-assist")
@@ -126,5 +257,18 @@ class IntegralSystemDefTest {
                 .put("moveSpeedMult", 1.45)
                 .put("frontalResistance", 0.5)
                 .put("shieldedArcDegrees", 120.0);
+    }
+
+    private static JSONObject missilePod() throws JSONException {
+        return new JSONObject()
+                .put("id", "system.test-pod")
+                .put("grade", "milspec")
+                .put("displayName", "Predictive volley")
+                .put("description", "A brace of smart micro-missiles.")
+                .put("effect", "missile-pod")
+                .put("resource", "ammunition")
+                .put("durationSeconds", 1.0)
+                .put("startingAmmo", 2)
+                .put("weaponId", "weapon.micro-missile");
     }
 }

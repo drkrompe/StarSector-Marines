@@ -4,7 +4,7 @@ Status: ACTIVE — canonical provenance and faction-fit reference for shipped Ma
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — grounded the first shipped weapon, special-equipment, armor, and built-in loadout catalog.
+Updated: 2026-08-28 — the Aegis composite line suit's predictive volley shipped as the second integral system, alongside the Halcyon micro-missile delivery mechanism it fires.
 
 Read `faction-lore-nouns.md` for evidence tiers and the individual faction guides
 for institutional context. `progression-nouns.md` owns acquisition and issue;
@@ -58,7 +58,7 @@ delivery behavior, protection tradeoff, or special activation.
 | `armor.scout` | **Janus scout suit** — Tri-Tachyon composite reconnaissance protection with sensor and electronic-warfare integration. | Corporate teams; imported League and Diktat specialists; gray-market Independent users. | It is not ordinary Hegemony, Church, pirate, or Pather line protection. |
 | `armor.combat` | **Bastion line armor** — a Kazeron-led interchangeable coalition pattern. | League forces and exported, licensed, or captured Hegemony, Independent, and Diktat stocks. | Shared line role does not make it the Hegemony's preferred institutional suit. |
 | `armor.line` | **Legionary line suit** — standardized, pressure-sealed Hegemony armor designed for campaign repair. | Hegemony regulars, licensed Diktat formations, Church and Knight custodians, and battlefield recovery. | Tri-Tachyon internal forces prefer integrated composite systems; pirates and Pathers do not maintain clean Legionary issue at scale. |
-| `armor.aegis-composite` | **Aegis composite line suit** — a Tri-Tachyon response pattern with predictive threat displays and powered balance correction. | Corporate response teams and expensive licensed or recovered Independent examples. | Its speed and reduced incoming hit profile are bought with less capacity and rating than low-tech line armor; no neural-interface faction bonus exists outside the suit. |
+| `armor.aegis-composite` | **Aegis composite line suit** — a Tri-Tachyon response pattern with predictive threat displays and powered balance correction, which the suit spends as a **predictive volley**: a shoulder-launched brace of Halcyon micro-missiles at a self-picked target, the second authored integral system. | Corporate response teams and expensive licensed or recovered Independent examples. | Its speed and reduced incoming hit profile are bought with less capacity and rating than low-tech line armor; no neural-interface faction bonus exists outside the suit, and the rack is small, finite, and does not refill in the field. |
 | `armor.palatine` | **Palatine legacy line suit** — a Church pattern rebuilt from inherited shells and artisan-fitted resistant plate. | Church sanctioned guards, Knight custodians, and rare licensed or recovered examples. | High armor rating comes with low capacity and a real mobility cost; consecration grants no hidden immunity. |
 | `armor.furnace-line` | **Furnace state line suit** — thick petrochemical laminate over a conventional Sindrian pressure frame. | Diktat regulars, Lion's Guard formations, and exported or recovered Independent stocks. | Its deep capacity is paired with ordinary resistance, weight, and a conspicuous target profile. |
 | `armor.reaver` | **Reaver reinforced rig** — a veteran Blackforge frame with powered bracing and additional ship plate. | Pirate warbands, Pather cells, and battlefield recovery. | Raw capacity and useful speed do not erase its poor armor rating or irregular maintenance. |
@@ -108,21 +108,34 @@ reason to want one suit, and the shipped catalog keeps carriers to a small
 minority on purpose.
 
 **Breaching is the assault role's signature.** All six ASSAULT patterns carry a
-version of the same breaching assist and no other pattern carries anything. That
-is a claim about the role rather than about the tier: a future tier-IV scout or
-line suit would still declare nothing. Each tradition spends the effect on the
-axis it is actually good at — Hegemony doctrine on availability, League
-interoperability on a wider covering arc, Tri-Tachyon prediction on a brief
-frequent window, Knightly custody on the screen at the cost of nearly all the
-speed, Sindrian prestige on one long conspicuous gesture, and the pirate copy on
-raw shove with nothing else.
+version of the same breaching assist. That is a claim about the role rather
+than about the tier: a future tier-IV scout or line suit would still declare
+nothing. Each tradition spends the effect on the axis it is actually good at —
+Hegemony doctrine on availability, League interoperability on a wider covering
+arc, Tri-Tachyon prediction on a brief frequent window, Knightly custody on the
+screen at the cost of nearly all the speed, Sindrian prestige on one long
+conspicuous gesture, and the pirate copy on raw shove with nothing else.
 
 The pirates' version is the only one without a proper designation, which is the
 correct amount of respect for a cargo exoskeleton with servos welded to it.
 
+**Payload delivery is not a role signature; it is one suit's answer.** Unlike
+breaching, micro-missile support is not what any single role is *for* — faction
+lore carries it across Hegemony, League, and Tri-Tachyon traditions alike, which
+is three plausible homes and no obvious single one. The Tri-Tachyon Aegis
+carries the first one, a **predictive volley**, because its own catalog copy
+already says "predictive threat displays" and "a difficult firing solution":
+the Specter spends that same prediction on evasion because breaching is what
+the Specter is for, while the Aegis is a line suit built to make itself hard to
+hit rather than to cross a room — so its display is spent locking a shot
+instead of dodging one. It is not placed on a Hegemony or League pattern
+because their assault heavies already carry the breach family, and stacking a
+second system onto an already-decorated ASSAULT pattern would blur "one family,
+one role."
+
 `integral-system-slate.md` owns which patterns carry what and why; it also holds
-the two individual (non-family) systems that are still direction rather than
-authored.
+the remaining individual (non-family) systems that are still direction rather
+than authored.
 
 ## Availability law
 

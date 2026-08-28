@@ -150,6 +150,7 @@ public class BattleRenderer {
     private QuadBatch urbanTile3Batch;
     private QuadBatch natureBatch;
     private QuadBatch doodadBatch;
+    private QuadBatch parkedVehicleBatch;
 
     /**
      * Solid-color batch for in-loop fills that need to share painter
@@ -224,7 +225,7 @@ public class BattleRenderer {
                 }),
                 RenderSystem.of(RenderLayer.DECALS, (ctx, out) ->
                         out.addCustom(RenderLayer.DECALS, () -> renderDecals(ctx.sim, ctx.alphaMult))),
-                new VehicleRenderSystem(sprites),
+                new ParkedAircraftRenderSystem(sprites),
                 new DoodadRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.HIGHLIGHTS, (ctx, out) ->
                         highlightRenderer.collect(ctx.highlights, ctx.camera, out, ctx.alphaMult)),
@@ -293,6 +294,9 @@ public class BattleRenderer {
             natureBatch = new QuadBatch(sprites.natureSheet(), sprites.natureSheetPxW(), sprites.natureSheetPxH(), 4096);
         if (doodadBatch == null && sprites.doodadSheet() != null)
             doodadBatch = new QuadBatch(sprites.doodadSheet(), sprites.doodadSheetPxW(), sprites.doodadSheetPxH(), 4096);
+        if (parkedVehicleBatch == null && sprites.parkedVehicleSheet() != null)
+            parkedVehicleBatch = new QuadBatch(sprites.parkedVehicleSheet(),
+                    sprites.parkedVehicleSheetPxW(), sprites.parkedVehicleSheetPxH(), 256);
 
         // Register the per-sheet batches so drainLayer can resolve a SheetQuad's
         // sheet to its batch. Same instances the inline tile passes use.
@@ -303,12 +307,11 @@ public class BattleRenderer {
         registerBatch(sprites.urbanTile3Sheet(), urbanTile3Batch);
         registerBatch(sprites.natureSheet(), natureBatch);
         registerBatch(sprites.doodadSheet(), doodadBatch);
+        registerBatch(sprites.parkedVehicleSheet(), parkedVehicleBatch);
 
-        // Sprite-sheet batches for the VEHICLES + CONVOY layers (Vehicle/Convoy
-        // RenderSystems). Their sheets are loaded by ensureVehicleSheets() /
-        // ensureConvoySprites() before this runs (BattleScreen.attach order).
-        // batchBySheet owns the QuadBatch refs.
-        registerSpriteSheetBatches(sprites.vehicleSheets().values());
+        // Sprite-sheet batches for the CONVOY layer (ConvoyRenderSystem). Its
+        // sheets are loaded by ensureConvoySprites() before this runs
+        // (BattleScreen.attach order). batchBySheet owns the QuadBatch refs.
         registerSpriteSheetBatches(sprites.convoySprites().values());
 
         // Entity sheets for the UNITS layer (UnitRenderService sprite sweeps) so

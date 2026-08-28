@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.IntegralSystemEffect;
+import com.dillon.starsectormarines.marine.MissilePodSpec;
 import com.dillon.starsectormarines.marine.SpecialResourceMode;
 import org.junit.jupiter.api.Test;
 
@@ -163,6 +165,28 @@ class IntegralSystemActivationTest {
         assertEquals(0f, systems.cooldownRemaining(breacher), 1e-6f);
     }
 
+    /**
+     * The other half of the model from the breacher: spending a delivered
+     * payload is not a stat effect, so activating it must leave movement
+     * completely alone while still spending exactly one use
+     * ({@code integral-armor-systems.md}).
+     */
+    @Test
+    void aMissilePodActivationSpendsAmmoWithoutTouchingMovement() {
+        UnitRosterService roster = roster();
+        long gunner = roster.spawn(marine().integralSystem(missilePod()));
+        IntegralSystemService systems = roster.integralSystems();
+        float issued = roster.movement().moveSpeed(gunner);
+
+        assertEquals(2, systems.ammo(gunner));
+        assertTrue(systems.activate(gunner));
+
+        assertEquals(issued, roster.movement().moveSpeed(gunner), 1e-6f,
+                "a delivered payload is not a movement effect");
+        assertEquals(1f, systems.moveSpeedMultiplier(gunner), 1e-6f);
+        assertEquals(1, systems.ammo(gunner), "one salvo spent");
+    }
+
     @Test
     void theBoostIsMeasuredAgainstTheIssuedSuitNotABareMarine() {
         UnitRosterService roster = roster();
@@ -231,9 +255,17 @@ class IntegralSystemActivationTest {
 
     private static IntegralSystemDef breacherAssist() {
         return new IntegralSystemDef(
-                "system.test-assist", "Breaching assist", "Rams and a screen.",
+                "system.test-assist", "Breaching assist", EquipmentGrade.SERVICE, "Rams and a screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 DURATION, COOLDOWN, 0,
-                new BreacherAssistSpec(BOOST, RESISTANCE, ARC));
+                new BreacherAssistSpec(BOOST, RESISTANCE, ARC), null);
+    }
+
+    private static IntegralSystemDef missilePod() {
+        return new IntegralSystemDef(
+                "system.test-pod", "Predictive volley", EquipmentGrade.SERVICE, "A brace of missiles.",
+                IntegralSystemEffect.MISSILE_POD, SpecialResourceMode.AMMUNITION,
+                1f, 0f, 2,
+                null, new MissilePodSpec("weapon.micro-missile"));
     }
 }
