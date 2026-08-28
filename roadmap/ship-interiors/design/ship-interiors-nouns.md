@@ -371,6 +371,27 @@ simply this map family's job site, and a building interior on a surface map
 answers the same three questions. What is shipboard is which purposes a deck
 programs and what its fittings publish.
 
+**The ship runs; a screen is a camera.** A deck is manned everywhere it has work
+and advanced as a whole, and the screens that look at parts of it choose a
+framing and nothing else. Framing must not decide what exists: staff only the
+room somebody is watching and the ship's population becomes a fact about where
+the player is looking — the technicians they walk away from stop working, the
+marines they arrive at were conjured on the way, and the passage between two
+compartments is empty, because traffic in a corridor is what the rooms at both
+ends of it produce. This is also the cheaper half. The alternative to one deck
+is one private grid per screen kept in step with the others by hand, while a
+fully manned capital transport — a hundred-odd compartments and a few hundred
+hands — costs well under a millisecond a frame.
+
+It follows that a deck-hosted screen **advances** rather than seeks. Seeking is
+a presentation teleport that interpolates between a route's stops in a straight
+line, bypassing collision on purpose; on a hand-authored room those lines are
+clear by construction, and on a generated deck they cross bulkheads. A deck that
+ticks has no use for the licence. The clock is monotonic and idempotent so a
+host can take a backdrop pass and an actor pass off one settled frame, and
+catch-up after a long absence is bounded rather than replayed — ambient work is
+a rotation with no history to lose.
+
 Threat policy is a parameter of the route and a home deck's crew yield only to
 **hostiles**. Yielding to any combatant sounds safer and is wrong here: the
 machines a technician services are armed, so the crew of a bay would flee the

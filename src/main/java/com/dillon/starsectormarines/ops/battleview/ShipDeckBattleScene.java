@@ -51,8 +51,22 @@ import java.util.Map;
  * left behind with the generator: without it a host can draw the deck but cannot
  * say which part of it is the room it is a screen for.
  *
- * <p>This owns no HUD, input, audio, or simulation advance. It is a still deck
- * and a camera over it.
+ * <p><b>The whole deck runs.</b> Not the compartment somebody is looking at —
+ * the ship. A screen is a camera, and a camera does not decide what exists: the
+ * watch in the bay keeps working while the player is reading the berthing
+ * screen, and walks out of frame and back into it. Simulating only the framed
+ * room would be both more code and less ship, because the alternative to one
+ * deck is one private grid per screen kept in step with the others by hand,
+ * which is what this replaces.
+ *
+ * <p>That is also why a deck-hosted screen advances rather than seeks.
+ * {@link com.dillon.starsectormarines.battle.ambient.AmbientTaskService#seek}
+ * is a presentation teleport which bypasses collision on purpose; on a
+ * hand-authored room its straight lines are clear by construction, and on a
+ * generated deck they cross bulkheads. A deck that ticks needs no such licence.
+ *
+ * <p>This owns no HUD, input, or audio. It is a deck, a clock, and a camera
+ * over it.
  *
  * <p><b>Pre-condition:</b> the tile catalogs must be installed before
  * construction — the sim bakes overlay cover from {@code TileRegistry} as it is
@@ -80,6 +94,13 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             RenderLayer.GROUND, RenderLayer.VEHICLES,
             RenderLayer.DOODADS, RenderLayer.UNITS);
 
+    /**
+     * Most a single {@link #advanceTo} will actually run, however far the clock
+     * has moved. A screen reopened after an hour catches up by a bounded amount
+     * and then simply picks the ship up where the rotation has got to.
+     */
+    private static final float MAX_CATCH_UP_SECONDS = 30f;
+
     private final BattleRenderer renderer;
     private final BattleSimulation simulation;
     private final List<Gantry> gantries;
@@ -94,6 +115,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final Map<Long, Long> butts = new HashMap<>();
     private final HighlightOverlay highlights = new HighlightOverlay();
     private final Selection selection = new Selection();
+    /** How far the deck has been run; see {@link #advanceTo}. */
+    private float simulatedSeconds;
 
     /** Scene model only; a tooling drain brings its own renderer and assets. */
     public ShipDeckBattleScene(MapResult deck, long seed) {
@@ -273,6 +296,43 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     }
 
     /**
+     * Crew the ship: every compartment that has work for a role gets a watch of
+     * it, whether or not anybody is looking at that compartment.
+     *
+     * <p>A deck is manned or it is not. Staffing only the room a screen frames
+     * would make the ship's population a fact about the camera — walk from the
+     * bay to the berthing and the technicians you left behind would stop
+     * existing, and the marines you arrive to find would have been conjured on
+     * the way. It also gets the traffic wrong in the one place it shows: the
+     * passage between two compartments is busy because both ends of it are
+     * working, and a deck that mans one room has an empty corridor.
+     *
+     * <p>Posting is per compartment and per role because that is what a shift
+     * is posted to. What each watch then <em>reaches</em> is the shift's
+     * business — a barracks watch walks to the mess and the range on its own,
+     * and manning the mess does not mean stationing anybody there.
+     *
+     * @param watch most of each role to post to any one compartment; each
+     *     posting is still capped by what that compartment can keep busy
+     * @return every hand now aboard
+     */
+    public long[] manDeck(int watch) {
+        if (rooms == null) {
+            throw new IllegalStateException("this deck scene carries no room graph");
+        }
+        if (watch <= 0) return new long[0];
+        List<Long> aboard = new ArrayList<>();
+        for (DeckGraph.Compartment room : rooms.compartments()) {
+            for (CrewRole role : CrewRole.values()) {
+                for (long hand : staff(room, role, watch)) aboard.add(hand);
+            }
+        }
+        long[] crew = new long[aboard.size()];
+        for (int index = 0; index < crew.length; index++) crew[index] = aboard.get(index);
+        return crew;
+    }
+
+    /**
      * The shift a role posted to this compartment would work, and the jobs it
      * reaches across the rest of the deck.
      *
@@ -327,6 +387,38 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             return target;
         }
         return 0L;
+    }
+
+    /**
+     * Run the deck forward to an authored time.
+     *
+     * <p>Monotonic and idempotent, so a host may call it once a frame and then
+     * take several render passes off one settled state — a backdrop pass and an
+     * actor pass have to agree about where everybody is standing.
+     *
+     * <p>A screen opened an hour into a voyage does not replay the hour. The
+     * catch-up is bounded and the clock then jumps: ambient work is a rotation
+     * with no history to lose, so the ship a player walks in on is simply the
+     * ship a little further round its loop.
+     *
+     * @param elapsedSeconds time since this deck came into service; going
+     *     backwards is ignored rather than rewound, since a deck has no
+     *     recorded past to seek within
+     */
+    public void advanceTo(float elapsedSeconds) {
+        if (!Float.isFinite(elapsedSeconds)) {
+            throw new IllegalArgumentException("deck time must be finite");
+        }
+        float target = Math.max(0f, elapsedSeconds);
+        float ahead = target - simulatedSeconds;
+        if (ahead <= 0f) return;
+        simulation.advance(Math.min(ahead, MAX_CATCH_UP_SECONDS));
+        simulatedSeconds = target;
+    }
+
+    /** How far this deck has been run. */
+    public float simulatedSeconds() {
+        return simulatedSeconds;
     }
 
     public BattleSceneHostPass pass(DeckView view) {

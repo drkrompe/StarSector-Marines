@@ -36,15 +36,17 @@ real.
   as the live views, substituting only the final drain.
 - The screens keep their current interaction and layout authority. This story
   changes the place they depict, not the surface.
-- **A screen that seeks rather than advances will draw people through walls.**
-  The Mech Lab freezes time and samples poses, and that sampler interpolates
-  between stops in a straight line — deliberately, since it exists to make a
-  picture rather than to simulate. On the two hand-authored layouts the straight
-  lines are clear by construction; on a generated deck they are not, and a shift
-  that reaches the mess crosses several bulkheads to get there. Moving these
-  screens onto the deck is exactly what turns a documented bound into a visible
-  defect, so decide it here: either these screens advance the bounded simulation
-  the way Barracks already does, or the sampler walks stops rather than lines.
+- **The ship runs; a screen is a camera.** The whole deck is manned and
+  advanced, not the compartment somebody is framing. The Mech Lab therefore
+  advances, as Barracks already does, and stops seeking: the pose sampler
+  interpolates between stops in a straight line, which is a deliberate collision
+  bypass for making a picture and which on a generated deck crosses bulkheads.
+  Framing must not decide what exists, or the technicians a player walks away
+  from stop working and the corridor between two rooms is empty because traffic
+  in a passage is what the compartments at both ends of it produce. This is also
+  the cheaper half: a fully manned capital transport — 107 compartments, 265
+  hands — costs about 0.75 ms a frame, so there is no performance argument for
+  simulating less ship than exists.
 
 ## Acceptance
 
