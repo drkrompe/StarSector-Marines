@@ -88,6 +88,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmReinforcementSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -720,13 +721,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     public boolean configureSwarmReinforcements(
             CivilianEvacuationPlacement placement, int targetPopulation, long seed) {
-        return swarmReinforcements.configure(placement, targetPopulation, seed);
+        return swarmReinforcements.configure(placement, targetPopulation, seed,
+                this);
     }
     public boolean isSwarmReinforcementConfigured() {
         return swarmReinforcements.isConfigured();
     }
     public int swarmTargetPopulation() {
         return swarmReinforcements.targetPopulation();
+    }
+    public SwarmPressureSnapshot getSwarmPressureSnapshot() {
+        return swarmReinforcements.snapshot();
     }
     public boolean configureRescuePickupSupport(
             CivilianEvacuationPlacement placement,

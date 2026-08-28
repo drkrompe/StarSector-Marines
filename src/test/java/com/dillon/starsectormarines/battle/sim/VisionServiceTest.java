@@ -71,4 +71,22 @@ public class VisionServiceTest {
         assertThrows(IllegalArgumentException.class, () -> vision.visionRange(id));   // corpse
         assertThrows(IllegalArgumentException.class, () -> vision.airLosRadius(999L)); // never allocated
     }
+
+    @Test
+    public void targetAirLosRadiusIsTolerantOfAnEntityThatNeverSees() {
+        UnitRosterService r = roster();
+        long id = r.spawn(unit("u"));
+        VisionService vision = r.vision();
+        vision.setAirLosRadius(id, 3f);
+
+        // A perceiver answers with its authored radius...
+        assertEquals(3f, vision.targetAirLosRadius(id), 1e-6f);
+
+        // ...while the seen-only ids the targeting path legitimately hands it — a
+        // convoy vehicle (HEALTH/ARMOR, no perception components) and a corpse —
+        // answer 0, "standard grid LoS", instead of throwing.
+        r.entityWorld().removeComponent(id, r.components().VISION);
+        assertEquals(0f, vision.targetAirLosRadius(id), 1e-6f);
+        assertEquals(0f, vision.targetAirLosRadius(999L), 1e-6f);
+    }
 }

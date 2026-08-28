@@ -24,7 +24,10 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * unit's {@code airLosRadius} just seeds to 0) but <b>live-only</b>: the death
  * transmute removes it, so {@link #has} is the presence check and the field
  * accessors are <b>fail-loud</b> on a corpse (the COMBAT precedent). Live decision
- * code reads alive refs, so no presence gate is needed there. Serial-only.
+ * code reads alive refs, so no presence gate is needed there. It is universal over
+ * <em>units</em> only, though: a convoy vehicle is a legal combat target that never
+ * carried VISION, so the seeing side of a LoS pair reads {@link #airLosRadius} and
+ * the seen side reads {@link #targetAirLosRadius}. Serial-only.
  */
 public final class VisionService {
 
@@ -46,4 +49,17 @@ public final class VisionService {
     /** Close-wall "air" line-of-sight radius in cells; {@code 0} = standard grid LoS, &gt;0 for fliers that see/shoot over the walls they hover above. */
     public float airLosRadius(long id) { return entityWorld.getFloat(id, components.VISION, BattleComponents.VISION_AIR_LOS_RADIUS); }
     public void setAirLosRadius(long id, float v) { entityWorld.setFloat(id, components.VISION, BattleComponents.VISION_AIR_LOS_RADIUS, v); }
+
+    /**
+     * {@link #airLosRadius} for an arbitrary <em>target</em> id, which need not
+     * carry VISION at all: a convoy vehicle is a world-resident combat target with
+     * {@code HEALTH}/{@code ARMOR} and no perception components, and a remembered
+     * contact may already be a corpse. Both are seen rather than seeing, and
+     * {@code 0} — "standard grid LoS" — is exactly the right answer for them, so
+     * the LoS side of targeting reads through here instead of the fail-loud
+     * accessor.
+     */
+    public float targetAirLosRadius(long id) {
+        return entityWorld.getFloat(id, components.VISION, BattleComponents.VISION_AIR_LOS_RADIUS, 0f);
+    }
 }
