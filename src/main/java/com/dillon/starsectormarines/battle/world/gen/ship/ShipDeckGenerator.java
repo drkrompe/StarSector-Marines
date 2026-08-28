@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.CompartmentFillStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.DeckEndSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.HullProfileStage;

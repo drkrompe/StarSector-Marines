@@ -61,11 +61,13 @@ class SheetSlicerTest {
 
     @Test
     void aFusedPlateSplitsIntoItsTiles() {
+        // Two tiles side by side: the plate is stated as 2 x 1, not measured.
         SheetSlicer.Piece fused = new SheetSlicer.Piece(0, 0, 208, 104);
-        List<SheetSlicer.Piece> parts = SheetSlicer.splitOnGrid(fused, 104);
+        List<SheetSlicer.Piece> parts = SheetSlicer.splitOnGrid(fused, 2, 1);
         assertEquals(2, parts.size());
         assertEquals(0, parts.get(0).x());
         assertEquals(104, parts.get(1).x());
+        assertEquals(104, parts.get(0).height(), "each tile keeps the plate's full height");
     }
 
     @Test

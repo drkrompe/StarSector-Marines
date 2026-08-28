@@ -39,8 +39,24 @@ public final class TilesetDocument {
     public String idPrefix = "doodad.sheet";
     public int cellPx = 64;
     public int alphaMin = SheetSlicer.DEFAULT_ALPHA_MIN;
-    /** Cell size used to split fused plates and to guess footprints, in source pixels. */
-    public int gridCell = 104;
+    /**
+     * The plate layout this sheet was drawn to, as columns and rows.
+     *
+     * <p>Stated rather than measured: it is what the sheet was generated to, and
+     * it cannot be read off the pixels. Cells need not be square — a 20-frame
+     * strip is {@code 20 x 1} — and every cell size is derived from this and the
+     * sheet's own size rather than the other way round.
+     *
+     * <p>{@code 1 x 1} means the sheet is not a plate: a cut-out sheet's pieces
+     * are found by alpha and their footprints are authored rather than guessed.
+     */
+    public int gridCols = 1;
+    public int gridRows = 1;
+    /**
+     * Where the packed atlas is written, relative to {@code mod/}. Empty derives
+     * it from what the sheet contains — see {@link #defaultOutputSheet}.
+     */
+    public String outputSheet = "";
     /**
      * A standing note about the sheet itself, shown when it is opened.
      *
@@ -76,6 +92,7 @@ public final class TilesetDocument {
                 o.put("slot", entry.slot);
             }
             if (!entry.note.isEmpty()) o.put("note", entry.note);
+            if (!entry.standsInFor.isEmpty()) o.put("standsInFor", entry.standsInFor);
             if (!entry.tags.isEmpty()) o.put("tags", new JSONArray(entry.tags));
             array.put(o);
         }
@@ -95,7 +112,9 @@ public final class TilesetDocument {
         root.put("idPrefix", idPrefix);
         root.put("cellPx", cellPx);
         root.put("alphaMin", alphaMin);
-        root.put("gridCell", gridCell);
+        root.put("gridCols", gridCols);
+        root.put("gridRows", gridRows);
+        if (!outputSheet.isEmpty()) root.put("outputSheet", outputSheet);
         root.put("entries", array);
         return root;
     }
@@ -107,7 +126,9 @@ public final class TilesetDocument {
         doc.idPrefix = root.optString("idPrefix", "doodad." + doc.sheetName);
         doc.cellPx = root.optInt("cellPx", 64);
         doc.alphaMin = root.optInt("alphaMin", SheetSlicer.DEFAULT_ALPHA_MIN);
-        doc.gridCell = root.optInt("gridCell", 104);
+        doc.gridCols = Math.max(1, root.optInt("gridCols", 1));
+        doc.gridRows = Math.max(1, root.optInt("gridRows", 1));
+        doc.outputSheet = root.optString("outputSheet", "");
         doc.note = root.optString("note", "");
         JSONArray blockArray = root.optJSONArray("blocks");
         for (int i = 0; blockArray != null && i < blockArray.length(); i++) {
@@ -134,6 +155,7 @@ public final class TilesetDocument {
             entry.blockId = o.optString("block", "");
             entry.slot = o.optString("slot", "");
             entry.note = o.optString("note", "");
+            entry.standsInFor = o.optString("standsInFor", "");
             JSONArray tags = o.optJSONArray("tags");
             for (int t = 0; tags != null && t < tags.length(); t++) {
                 entry.tags.add(tags.getString(t));
@@ -197,7 +219,7 @@ public final class TilesetDocument {
      */
     public static Reconciliation reconcile(List<SheetSlicer.Piece> pieces,
                                            List<TilesetExport.Entry> prior,
-                                           String idPrefix, int gridCell) {
+                                           String idPrefix, int cellPxX, int cellPxY) {
         record Pair(int freshIndex, int priorIndex, double overlap) {}
         List<Pair> pairs = new ArrayList<>();
         for (int f = 0; f < pieces.size(); f++) {
@@ -232,8 +254,8 @@ public final class TilesetDocument {
                 carried++;
             } else {
                 entry = new TilesetExport.Entry(piece, freeId(idPrefix, f, taken));
-                entry.footprintX = guessFootprint(piece.width(), gridCell);
-                entry.footprintY = guessFootprint(piece.height(), gridCell);
+                entry.footprintX = guessFootprint(piece.width(), cellPxX);
+                entry.footprintY = guessFootprint(piece.height(), cellPxY);
                 taken.add(entry.id);
                 added++;
             }
@@ -250,9 +272,39 @@ public final class TilesetDocument {
      * A first guess only: how many cells the art spans on the sheet's own grid,
      * rounded. Anything near the middle of two cell counts is exactly the case a
      * human has to settle.
+     *
+     * <p>Guessed per axis, because a sheet's cells are not square in general.
      */
-    public static int guessFootprint(int pixels, int gridCell) {
-        return Math.max(1, Math.round(pixels / (float) gridCell));
+    public static int guessFootprint(int pixels, int cellPx) {
+        if (cellPx <= 0) return 1;
+        return Math.max(1, Math.round(pixels / (float) cellPx));
+    }
+
+    /** One cell's width in source pixels, given the sheet this document annotates. */
+    public int cellPxX(int sheetWidth) {
+        return Math.max(1, Math.round(sheetWidth / (float) Math.max(1, gridCols)));
+    }
+
+    /** One cell's height in source pixels. Not the same number as {@link #cellPxX}. */
+    public int cellPxY(int sheetHeight) {
+        return Math.max(1, Math.round(sheetHeight / (float) Math.max(1, gridRows)));
+    }
+
+    /**
+     * Where a sheet's atlas belongs when the document does not say.
+     *
+     * <p>A sheet that declares autotile blocks is terrain and belongs with the
+     * tilesets; one that is only props belongs with the doodads. The old fixed
+     * {@code graphics/doodads/} destination was right when the tool could only
+     * make props and wrong the moment it could author a wall.
+     */
+    public static String defaultOutputSheet(String sheetName, boolean hasBlocks) {
+        return (hasBlocks ? "graphics/tilesets/" : "graphics/doodads/") + sheetName + ".png";
+    }
+
+    /** The atlas destination this document asks for, relative to {@code mod/}. */
+    public String resolvedOutputSheet(boolean hasBlocks) {
+        return outputSheet.isEmpty() ? defaultOutputSheet(sheetName, hasBlocks) : outputSheet;
     }
 
     /** Reading-order id, stepped past any id a carried annotation already holds. */

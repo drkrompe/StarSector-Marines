@@ -43,8 +43,10 @@ class MilitaryCompoundLayoutTest {
     void roleBuildingsUseDistinctFixturesAndFaceTheSharedParadeGround() {
         GenContext ctx = filled(17L);
 
-        assertTrue(count(ctx.doodads, "doodad.military-command-console") >= 1);
-        assertTrue(count(ctx.doodads, "doodad.military-tactical-table") >= 1);
+        assertTrue(count(ctx.doodads, "doodad.military-command-console") >= 4,
+                "command and operations chambers need console banks, not token props");
+        assertEquals(1, count(ctx.doodads, "doodad.military-tactical-table"),
+                "the command chamber centers on one planning table");
         assertTrue(count(ctx.doodads, "doodad.military-bunk") >= 4);
         assertTrue(count(ctx.doodads, "doodad.industrial-crate-stack") >= 1);
         assertTrue(count(ctx.doodads, "doodad.industrial-generator") >= 1);
@@ -59,6 +61,26 @@ class MilitaryCompoundLayoutTest {
         assertDoorPair(ctx.grid, inset(BARRACKS), BuildingPlacement.Side.BOTTOM);
         assertDoorPair(ctx.grid, inset(ARMORY), BuildingPlacement.Side.TOP);
         assertDoorPair(ctx.grid, inset(VEHICLE_BAY), BuildingPlacement.Side.TOP);
+    }
+
+    @Test
+    void commandBanksAddVisualDensityWithoutBarricadingTheOperationsFloor() {
+        GenContext ctx = filled(17L);
+        DoodadDef console = TileRegistry.installed().doodad("doodad.military-command-console");
+        int banks = 0;
+        for (Doodad doodad : ctx.doodads) {
+            if (!matches(doodad, console) || !inset(COMMAND).contains(doodad.cellX, doodad.cellY)) {
+                continue;
+            }
+            banks++;
+            assertTrue(ctx.grid.isWalkable(doodad.cellX, doodad.cellY));
+            assertFalse(ctx.topology.isFixture(doodad.cellX, doodad.cellY));
+        }
+        assertTrue(banks >= 4, "command post should read as a staffed operations floor");
+
+        Doodad table = only(ctx.doodads, "doodad.military-tactical-table");
+        assertTrue(ctx.topology.isFixture(table.cellX, table.cellY));
+        assertFalse(ctx.grid.isWalkable(table.cellX, table.cellY));
     }
 
     @Test
