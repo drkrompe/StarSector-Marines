@@ -133,23 +133,27 @@ row is a fixed 208px name-and-detail pair that already truncates a long pattern
 name, so an individual suit's capability is spelled out in the Armory and the
 barracks says only how many of the formation carry one.
 
-- **The directional resistance.** `combat-durability-nouns.md` still owes the
-  bounded, timed, arc-limited mitigation concept this leans on, and telemetry
-  has to report it as its own mitigation rather than as inflated capacity.
-  Until it exists the breacher gets the movement half only, so the acceptance
-  bullet about a visible, expiring protection is not met yet.
-- **An authored AI use policy.** The current trigger is a deliberate placeholder
-  living in the sweep: spend it while actually moving with hostiles inside
-  twelve cells. It is real behavior rather than a stub, but the decision belongs
-  in the special-equipment policy vocabulary the standing rules point at, not in
-  a hard-coded radius.
-- **Presentation.** The pose and the screen, downstream of simulation as always.
-  Nothing is drawn today, so an active assist is invisible.
-- **The shoulder micro-missile pod**, which needs a micro-missile weapon in the
-  catalog before its effect is worth declaring.
-- **Defender adoption**, still out of scope: `InfantryLoadoutRolls` deliberately
-  does not pass a pattern's system through, so a hostile in a foundry-breaker
-  fights without one.
+Everything left is gated on simulation work rather than on authoring, so it is
+storied separately rather than held here:
+
+- **The directional resistance** — `d5-timed-directional-mitigation.md`. Until
+  the concept exists the breacher gets the movement half only, so the acceptance
+  bullet about a visible, expiring protection is not met, and the Armory
+  deliberately does not advertise the screen.
+- **An authored AI use policy** — `integral-system-use-policy.md`. The current
+  trigger is a placeholder living in the sweep: spend it while actually moving
+  with hostiles inside twelve cells.
+- **Battle presentation** — `integral-system-battle-presentation.md`. Nothing is
+  drawn today, so an active assist is invisible on the field.
+- **The shoulder micro-missile pod** — `shoulder-micro-missile-pod.md`, which
+  needs a micro-missile delivery mechanism first and is the only planned carrier
+  for the ammunition resource mode.
+- **Defender adoption** — `defender-integral-systems.md`. `InfantryLoadoutRolls`
+  still does not pass a pattern's system through, so a hostile in a
+  foundry-breaker fights without one.
+
+Which patterns should carry a system at all, and what the faction traditions
+support, is direction rather than scope: see `integral-system-slate.md`.
 
 ## Out of scope
 

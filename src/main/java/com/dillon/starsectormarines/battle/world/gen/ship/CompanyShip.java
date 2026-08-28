@@ -47,19 +47,4 @@ public record CompanyShip(HullClass hullClass, HullRole role,
     public boolean habitable() {
         return hullClass.boardable();
     }
-
-    /**
-     * The hull a company starts out with: a light troop transport.
-     *
-     * <p><b>Provisional.</b> The company ship is meant to be chosen out of the
-     * player's own fleet and transferred later, and until that lands there is no
-     * choice to read — so this stands in for it. Everything downstream takes a
-     * {@link CompanyShip} rather than reaching for this, which is what makes
-     * that later change a change of one call site. See
-     * {@code company-ship-selection.md}.
-     */
-    public static CompanyShip founding() {
-        return new CompanyShip(HullClass.CRUISER, HullRole.TROOP_TRANSPORT,
-                10, 250, 50, 0.28f);
-    }
 }

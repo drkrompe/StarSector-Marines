@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.nav.zone;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.List;
  * <ul>
  *   <li>Non-walkable cells (walls)</li>
  *   <li>Doorway-flagged cells (zone boundaries — get their own zone in pass 2)</li>
+ *   <li>Closed shared cardinal edges (thin navigation barriers)</li>
  * </ul>
  */
 public final class ZoneDetector {
@@ -75,10 +77,10 @@ public final class ZoneDetector {
                 int idx = bfsQueue[head++];
                 int x = idx % width;
                 int y = idx / width;
-                if (x + 1 < width)  tail = visitCardinal(grid, idx + 1,     cellToZoneId, bfsQueue, tail, currentZoneId);
-                if (x - 1 >= 0)     tail = visitCardinal(grid, idx - 1,     cellToZoneId, bfsQueue, tail, currentZoneId);
-                if (y + 1 < height) tail = visitCardinal(grid, idx + width, cellToZoneId, bfsQueue, tail, currentZoneId);
-                if (y - 1 >= 0)     tail = visitCardinal(grid, idx - width, cellToZoneId, bfsQueue, tail, currentZoneId);
+                if (x + 1 < width)  tail = visitCardinal(grid, x, y, Direction.E, idx + 1,     cellToZoneId, bfsQueue, tail, currentZoneId);
+                if (x - 1 >= 0)     tail = visitCardinal(grid, x, y, Direction.W, idx - 1,     cellToZoneId, bfsQueue, tail, currentZoneId);
+                if (y + 1 < height) tail = visitCardinal(grid, x, y, Direction.N, idx + width, cellToZoneId, bfsQueue, tail, currentZoneId);
+                if (y - 1 >= 0)     tail = visitCardinal(grid, x, y, Direction.S, idx - width, cellToZoneId, bfsQueue, tail, currentZoneId);
             }
 
             int[] cells = Arrays.copyOf(bfsQueue, tail);
@@ -103,10 +105,14 @@ public final class ZoneDetector {
      * If {@code nIdx} is unassigned, walkable, and not a doorway, tags it for
      * {@code zoneId} and appends to the BFS queue. Returns the new tail.
      */
-    private static int visitCardinal(NavigationGrid grid, int nIdx, int[] cellToZoneId, int[] bfsQueue, int tail, int zoneId) {
+    private static int visitCardinal(NavigationGrid grid, int fromX, int fromY,
+                                     Direction direction, int nIdx,
+                                     int[] cellToZoneId, int[] bfsQueue,
+                                     int tail, int zoneId) {
         if (cellToZoneId[nIdx] != -1) return tail;
         if (!grid.isWalkableAt(nIdx)) return tail;
         if (grid.isDoorwayAt(nIdx)) return tail;
+        if (!grid.isSharedEdgePassable(fromX, fromY, direction)) return tail;
         cellToZoneId[nIdx] = zoneId;
         bfsQueue[tail] = nIdx;
         return tail + 1;
