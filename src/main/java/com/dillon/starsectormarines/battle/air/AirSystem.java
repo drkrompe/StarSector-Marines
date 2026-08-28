@@ -64,6 +64,15 @@ public class AirSystem {
 
     /** Distance threshold (cells) at which an INCOMING shuttle snaps to the LZ and transitions to LANDED. Tight enough that the snap is invisible; loose enough that the asymptotic brake-to-station taper doesn't stall short. */
     private static final float SHUTTLE_LZ_ARRIVAL_DIST = 0.2f;
+    /**
+     * Cells from the pad centre at which a walking marine is aboard.
+     *
+     * <p>Generous on purpose. The pad is five cells square and a squad arrives
+     * strung out across it; asking each marine to stand on one exact cell turns
+     * embarkation into a queueing puzzle nobody watching would understand.
+     */
+    private static final float BOARDING_REACH = 3.5f;
+
     /** Distance threshold (cells) at which a DEPARTING shuttle transitions to GONE / next cycle. Larger than the LZ threshold because exit points sit well off-map and we don't need pinpoint accuracy. */
     private static final float SHUTTLE_EXIT_ARRIVAL_DIST = 1.0f;
     /** Cell radius around a flying turret's origin where walls are treated as transparent — models the shuttle being "above" its containing building. Tuned to typical building wall thickness; past this, real LOS rules apply. */
@@ -378,6 +387,23 @@ public class AirSystem {
                     }
                     break;
 
+                case LOADING:
+                    // Down on the pad with the engines idling. Nothing steers:
+                    // the craft is where it lives, and the sortie starts when
+                    // the people it is waiting for get here.
+                    world.setAltitudeT(id, 0f);
+                    mission.boardingPatience -= dt;
+                    embark(mission);
+                    if (readyToLift(mission)) {
+                        beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
+                        mission.state = ShuttleState.INCOMING;
+                    } else if (mission.boardingPatience <= 0f) {
+                        // Nobody made it out to the pad. The sortie is off, and
+                        // the craft does not squat on the hardstand forever.
+                        mission.state = ShuttleState.GONE;
+                    }
+                    break;
+
                 case INCOMING:
                     AirSteeringSystem.steer(body, mission.lzX, mission.lzY, SteeringMode.BRAKE_TO_STATION, type, dt);
                     updateShuttleAltitude(id, mission, body, mission.lzX, mission.lzY, /*incoming=*/true, dt);
@@ -674,6 +700,62 @@ public class AirSystem {
         // altitudeT + flightPhase by AirAppearance at render time, not stored.
         world.setFlightPhase(id, world.flightPhase(id)
                 + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+    }
+
+    /**
+     * Take aboard any of the embarking squad that has reached the ramp.
+     *
+     * <p>Gathered before anything is released. The roster is a dense array that
+     * swap-and-pops on release, so removing a unit part-way through a walk of
+     * it moves an untouched unit into a slot the walk has already passed.
+     *
+     * <p>A boarded marine is removed from the battle rather than transferred:
+     * the loadouts this sortie will deboard were rolled from the same profile
+     * and tier as the squad walking aboard, so there is nothing to carry across
+     * that is not already the same kit.
+     */
+    private void embark(ShuttleMission mission) {
+        if (mission.embarkSquadId == Squad.NO_SQUAD) return;
+        if (mission.marinesRemaining >= mission.seatsPerSortie) return;
+        long[] gathered = new long[mission.seatsPerSortie];
+        int found = 0;
+        for (int i = 0, live = roster.liveCount(); i < live && found < gathered.length; i++) {
+            long u = roster.get(i);
+            if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != mission.embarkSquadId) {
+                continue;
+            }
+            float dx = world.x(u) - mission.entryX;
+            float dy = world.y(u) - mission.entryY;
+            if (dx * dx + dy * dy > BOARDING_REACH * BOARDING_REACH) continue;
+            gathered[found++] = u;
+        }
+        for (int i = 0; i < found && mission.marinesRemaining < mission.seatsPerSortie; i++) {
+            roster.release(gathered[i]);
+            mission.marinesRemaining++;
+        }
+    }
+
+    /**
+     * Whether a loading craft has what it is waiting for.
+     *
+     * <p>Full, or nobody left to wait for. The second is what keeps a sortie
+     * honest when its squad is cut down crossing the yard: whoever reached the
+     * ramp goes, and the seats their friends would have filled stay empty.
+     */
+    private boolean readyToLift(ShuttleMission mission) {
+        if (mission.marinesRemaining <= 0) return false;
+        if (mission.marinesRemaining >= mission.seatsPerSortie) return true;
+        return !squadStillComing(mission.embarkSquadId);
+    }
+
+    /** Whether any of that squad is still alive and therefore still walking. */
+    private boolean squadStillComing(int squadId) {
+        if (squadId == Squad.NO_SQUAD) return false;
+        for (int i = 0, live = roster.liveCount(); i < live; i++) {
+            long u = roster.get(i);
+            if (roster.squad().hasSquad(u) && roster.squad().squadId(u) == squadId) return true;
+        }
+        return false;
     }
 
     /**

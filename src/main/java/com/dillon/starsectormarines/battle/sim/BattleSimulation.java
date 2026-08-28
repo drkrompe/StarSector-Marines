@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
 
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
+import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
@@ -240,6 +241,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final DeadBodySystem deadBodySystem;
     /** Presentation system that authors every live sheet-drawn unit's {@code SPRITE} facing/pose frame each tick — see {@link FacingSystem}. Ticked at the tail of {@link #tick}, just before the entity-world flush. */
     private final FacingSystem facingSystem;
+    /** Presentation system that authors what a running integral system looks like — see {@link SystemFxSystem}. Ticked beside {@link #facingSystem} for the same reason. */
+    private final SystemFxSystem systemFxSystem;
     /** Simulation-authoritative mech pivoting, settled before appearance authoring. */
     private final com.dillon.starsectormarines.battle.mech.MechLocomotionSystem mechLocomotionSystem;
     /** Fixed-tick, presentation-only planted-foot and waist solver. */
@@ -544,6 +547,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 civilianEvacuation.markLost(event.unitId()));
         deathDispatcher.subscribe(this::recordCommandTraceCasualty);
         this.facingSystem = new FacingSystem(entityWorld, battleComponents, rosterService);
+        this.systemFxSystem = new SystemFxSystem(rosterService);
         this.mechLocomotionSystem = new com.dillon.starsectormarines.battle.mech.MechLocomotionSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
@@ -899,6 +903,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public ShotService getShots() { return shots; }
     public LongList getDeathsThisFrame()         { return deathsThisFrame; }
+
+    /**
+     * Actors whose integral system was spent during the last {@link #advance(float)}
+     * call. Presentation-only, with the {@link #getDeathsThisFrame()} lifecycle:
+     * the audio tier plays one positional cue per entry and nothing else reads it.
+     */
+    public LongList getSystemActivationsThisFrame() { return systemFxSystem.activationsThisFrame(); }
     /** Presentation event seam for friendly-fire radio callouts; values may repeat when several rounds land in one frame. */
     public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
     public boolean isComplete()            { return complete; }
@@ -1389,6 +1400,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathsThisFrame.clear();
         friendlyFireSquadsThisFrame.clear();
         effects.beginFrame();
+        systemFxSystem.beginFrame();
         if (complete) return;
         tickAccumulator += dt;
         while (tickAccumulator >= TICK_DT) {
@@ -1458,8 +1470,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         smokeFields.tick(TICK_DT);
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
-        // this cadence stays invisible. Ephemeral sources (shuttles, fighters)
-        // are pushed by BattleScreen.advance() each frame before this call.
+        // this cadence stays invisible. Host-projected temporary sources
+        // (shuttles, fighters, recon pings) are pushed by BattleScreen.advance()
+        // each frame before this call; simulation-carried ones (a running sensor
+        // sweep) are republished by integralSystemSystem below, so they are read
+        // here one tick later — well inside the vision cadence either way.
         fogOfWar.tick(simTickIndex, rosterService);
         tickProfile.lap(TickProfile.Phase.VISION);
         navigation.rebuildOccupancyMap(rosterService);
@@ -1757,6 +1772,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechGaitSystem.tick(TICK_DT);
         mechTurretSystem.tick(TICK_DT);
         facingSystem.tick();
+        // Authors what a running integral system looks like, from the same
+        // settled state and for the same reason: a treatment written here is
+        // present on the tick of activation and gone on the tick the effect
+        // expires, because both have already happened by the time it runs.
+        systemFxSystem.tick();
         // FacingSystem authors the ordinary battle pose. Active ambient work
         // reasserts its narrower presentation contract afterwards, including
         // dry-fire use of the actor's already-issued primary weapon.

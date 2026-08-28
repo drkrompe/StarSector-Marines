@@ -163,11 +163,22 @@ public final class WalkInMeans implements ReinforcementMeans {
      * edge), so {@link #canFulfill} can reject the request cleanly.
      */
     private int[] pickPrimaryCell(BattleView sim, ReinforcementRequest req) {
+        return pickPrimaryCell(sim, req, axis);
+    }
+
+    /**
+     * Where a party of this side walks onto the map, shared with the shuttle
+     * means' embark party.
+     *
+     * <p>A squad marching out to board an aircraft arrives from exactly the
+     * same place a squad marching to the front does — their own rear edge —
+     * and there is no reason for two answers to that question.
+     */
+    static int[] pickPrimaryCell(BattleView sim, ReinforcementRequest req,
+                                 TraversalAxis axis) {
         NavigationGrid grid = sim.getGrid();
         LandingZoneScorer scorer = new LandingZoneScorer(grid, sim.getTopology());
-        int gw = grid.getWidth();
-        int gh = grid.getHeight();
-        Edge edge = pickEdge(req, gw, gh);
+        Edge edge = pickEdge(req, axis);
         int[] cell = scanEdge(grid, scorer, edge, req.rallyX, req.rallyY);
         if (cell != null) return cell;
         for (Edge fallback : Edge.values()) {
@@ -185,7 +196,7 @@ public final class WalkInMeans implements ReinforcementMeans {
      * for marine — arbitrary but stable, the fallback in {@link #pickPrimaryCell}
      * will iterate the other edges if the chosen one has no walkable cell.
      */
-    private Edge pickEdge(ReinforcementRequest req, int gw, int gh) {
+    private static Edge pickEdge(ReinforcementRequest req, TraversalAxis axis) {
         boolean defender = req.side == Faction.DEFENDER;
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
             return defender ? Edge.NORTH : Edge.SOUTH;
@@ -253,7 +264,7 @@ public final class WalkInMeans implements ReinforcementMeans {
      * including the seed itself. Same shape as {@code AirSystem#findDeboardCell}
      * — radius-limited, breadth-first so results stay clustered.
      */
-    private static List<int[]> collectAdjacentCells(NavigationGrid grid, LandingZoneScorer scorer,
+    static List<int[]> collectAdjacentCells(NavigationGrid grid, LandingZoneScorer scorer,
                                                     int px, int py, int count) {
         List<int[]> out = new ArrayList<>(count);
         Set<Long> seen = new HashSet<>();

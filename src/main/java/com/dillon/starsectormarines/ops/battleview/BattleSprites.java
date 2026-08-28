@@ -147,6 +147,16 @@ public class BattleSprites {
     private SpriteAPI satchelChargeSprite;
     private boolean satchelSpriteLoadAttempted;
 
+    // ---- running integral-system FX ---------------------------------------
+
+    /** One facet of a raised screen; many are laid along the arc it covers. */
+    public static final String SYSTEM_SCREEN_FACET_SPRITE = "graphics/fx/screen_facet.png";
+    /** The suit's projector firing up, drawn pointing along the screen's facing. */
+    public static final String SYSTEM_EMITTER_SPRITE = "graphics/fx/system_emitter.png";
+    private SpriteAPI systemScreenFacetSprite;
+    private SpriteAPI systemEmitterSprite;
+    private boolean systemFxSpritesLoadAttempted;
+
     // ---- embedded Mech Lab workshop FX ------------------------------------
 
     private SpriteAPI mechLabWeldingTorch;
@@ -171,6 +181,10 @@ public class BattleSprites {
     public SpriteAPI smokeGrenadeSprite() { return smokeGrenadeSprite; }
     public SpriteAPI smokePuffSprite() { return smokePuffSprite; }
     public SpriteAPI satchelChargeSprite() { return satchelChargeSprite; }
+    /** One facet of a raised screen, tiled along its arc. Null until {@link #ensureSystemFxSprites()} succeeds. */
+    public SpriteAPI systemScreenFacetSprite() { return systemScreenFacetSprite; }
+    /** The projector bloom on a suit whose integral system is running. Null until {@link #ensureSystemFxSprites()} succeeds. */
+    public SpriteAPI systemEmitterSprite() { return systemEmitterSprite; }
     public SpriteAPI mechLabWeldingTorch() { return mechLabWeldingTorch; }
     public SpriteAPI mechLabWeldingSparks() { return mechLabWeldingSparks; }
     public SpriteAPI decalSheet()                  { return decalSheet; }
@@ -511,6 +525,19 @@ public class BattleSprites {
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
         }
+    }
+
+    /**
+     * Loads the two textures a running integral system is drawn with. Same
+     * load-once, degrade-gracefully shape as the engine FX above: a missing
+     * texture leaves the tessellated arc drawn and the sprites absent rather
+     * than failing a frame.
+     */
+    public void ensureSystemFxSprites() {
+        if (systemFxSpritesLoadAttempted) return;
+        systemFxSpritesLoadAttempted = true;
+        systemScreenFacetSprite = loadEngineFxSpriteOrNull(SYSTEM_SCREEN_FACET_SPRITE);
+        systemEmitterSprite = loadEngineFxSpriteOrNull(SYSTEM_EMITTER_SPRITE);
     }
 
     public void ensureSatchelSprite() {

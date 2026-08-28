@@ -178,8 +178,12 @@ commanders now share stable area geometry while retaining separate beliefs,
 ownership, directives, panel/dump/overlay views, and forced-serial trace evidence.
 Review a canonical-duration `commanderEvidence -Pmission=assault` run and the
 deferred live play pass before retiring its two implementation stories.
-Opening Operations remains the smallest later command-duel proof. Raid's first
-contract is ready for canonical-duration and live review. Generic Extraction is
+Opening Operations now supplies the small-force command-duel proof: both sides
+plan preserve/assault intent around one disclosed scenario place without exact
+hostile positions, and spawn-time claims keep the finite force pools explicit.
+Its deterministic cells still need authored COMMS/depot place legibility and
+the opening-ladder live pass before that story closes. Raid's first contract is
+ready for canonical-duration and live review. Generic Extraction is
 ready for live review, while Civilian Rescue now has deterministic canonical
 evidence for its Marine corridor command and separate swarm-pressure director;
 its live pressure pass remains deliberately deferred. Each mission

@@ -19,6 +19,7 @@ work that cannot be redone mechanically.
 |-----------|-------|
 | `tilesets/` | Raw tileset sheets, their authoring documents, and the normalization and atlas-packing scripts. |
 | `armory/` | ImageGen masters for Armory item icons. The shipped icon is the master downscaled to a 512px long edge, which `RawArtStaysOutOfModTest` enforces. |
+| `fx/` | Generated masters for battle FX textures and `build_fx.py`, which derives the shipped 128px versions. The derivation is not only a downscale: it thins the screen facet's interior so overlapping copies stay translucent, and turns the emitter to the sprite frame's zero angle so no draw site has to correct for it. |
 | `doodads/` | The whole prop chain: ImageGen masters, raw renders, the scripts that derive frames from them, the derived `sources/`, and the atlas builder. |
 | `alien-modular-topdown/` | Retained alien layer originals and the script that normalizes them. |
 | `mech-modular-topdown/` | Retained mech layer originals, the layer builder, and the variant contact-sheet renderer. |

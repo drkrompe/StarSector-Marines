@@ -232,8 +232,8 @@ class ConvoyMeansTest {
 
     private static ConvoyMeans means(TraversalAxis axis, RoadGraph graph,
                                      int minimumForward) {
-        ConvoyDeploymentPolicy policy = request ->
-                new ConvoyDeployment(request.rallyX, request.rallyY,
+        DeliveryDeploymentPolicy policy = request ->
+                new DeliveryDeployment(request.rallyX, request.rallyY,
                         minimumForward, true, request.hasObjective(),
                         SquadCommandClaim.mission(
                                 "conquest-defender", "test relief"));
@@ -307,7 +307,7 @@ class ConvoyMeansTest {
                 240, 160, 42L, axis);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
         int minimumForward = axis == TraversalAxis.WEST_TO_EAST ? 120 : 80;
-        ConvoyDeploymentPolicy policy = request -> new ConvoyDeployment(
+        DeliveryDeploymentPolicy policy = request -> new DeliveryDeployment(
                 map.defenderSpawnX, map.defenderSpawnY, minimumForward,
                 true, false,
                 SquadCommandClaim.mission("conquest-defender", "canonical test"));

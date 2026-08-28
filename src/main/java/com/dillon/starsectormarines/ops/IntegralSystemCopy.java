@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.BreacherAssistSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MissilePodSpec;
+import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,7 +95,7 @@ final class IntegralSystemCopy {
             // Only a reverting effect (a temporary stat boost) is honestly
             // described as "the suit is exactly the suit it was" afterward —
             // a spent salvo doesn't revert anything, it's just gone.
-            parts.add(system.breacherAssist() != null
+            parts.add(system.breacherAssist() != null || system.perceptionSweep() != null
                     ? effect + ", then the suit is exactly the suit it was."
                     : effect + ".");
         }
@@ -122,6 +123,13 @@ final class IntegralSystemCopy {
         if (pod != null) {
             int salvo = Math.max(1, pod.weaponDef().projectilesPerShot());
             return "Fires " + salvo + (salvo == 1 ? " missile" : " missiles") + " on its own";
+        }
+        PerceptionSweepSpec sweep = system.perceptionSweep();
+        if (sweep != null) {
+            return "Reads " + cells(sweep.revealRangeCells()) + " out"
+                    + (sweep.wallReadRadiusCells() > 0f
+                            ? ", " + cells(sweep.wallReadRadiusCells()) + " of it through walls"
+                            : "");
         }
         return "";
     }
@@ -151,7 +159,24 @@ final class IntegralSystemCopy {
                     + " at a target the pod picks for itself, with the ordinary blast and the"
                     + " ordinary consequences for anyone standing near it";
         }
+        PerceptionSweepSpec sweep = system.perceptionSweep();
+        if (sweep != null) {
+            String read = "Opens " + cells(sweep.revealRangeCells())
+                    + " of ground around the wearer to your own picture";
+            // The wall read is the half worth spelling out, because it is the
+            // half that is bounded: a reader who takes it for an x-ray will
+            // walk a scout up to a block expecting the far side of it.
+            return sweep.wallReadRadiusCells() > 0f
+                    ? read + ", carrying through walls within "
+                            + cells(sweep.wallReadRadiusCells()) + " of them and no further"
+                    : read + ", stopped by every wall in the way";
+        }
         return "";
+    }
+
+    /** Whole cells; a range is authored to the cell and read as a distance. */
+    private static String cells(float value) {
+        return Math.round(value) + " cells";
     }
 
     /** Whole degrees with the sign; an arc is authored to the degree and read at a glance. */

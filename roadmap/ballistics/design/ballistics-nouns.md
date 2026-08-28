@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — added exact profile-aware crossings for authored shared-edge barriers.
+Updated: 2026-08-28 — smoke became graded obscuration instead of a line-of-fire gate.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -23,6 +23,9 @@ projectile.
   low path rather than a second hidden hit roll.
 - A **contact** is a candidate physical stop along that path: a wall, crossed
   cover feature, directional cover edge, or body silhouette.
+- **Obscuration** is matter on the path that degrades the sight picture
+  without being a contact. Smoke is the only obscurant today. It is measured
+  as a depth in cells and never appears among contacts.
 - A **committed outcome** is the resolved endpoint, stop kind, victim if any,
   and flight time. Later movement does not reroll it; a target already dead at
   arrival simply cannot receive the delayed payload.
@@ -72,6 +75,25 @@ sight and direct rounds while still supplying directional low cover at the
 adjacent body position. That cover remains an interception chance rather than
 a hard pane contact, and disappears with the feature when structural blast
 damage breaks it.
+
+## Obscuration
+
+Obscuration is the exact inverse of cover: cover intercepts a round without
+touching accuracy, and obscuration costs accuracy without ever touching a
+round. Smoke therefore stops nothing and forbids nothing. It is priced as a
+depth — the smoke-filled cells on the shooter-to-target segment, counting both
+endpoint cells, so standing inside a cloud obscures as surely as shooting
+through one — and each such cell compounds a multiplier onto the accuracy the
+target plane commits. A floor keeps even a deep lane above zero.
+
+The direct-fire gate is structural only. A screened lane is a bad shot rather
+than an impossible one, which is what makes suppressing a screened position a
+decision instead of a refusal; the same rule holds for air pairs, whose
+close-wall exemption follows sight, not fire. This is deliberately not
+symmetric with perception: sight, fog, and target *acquisition* still stop at
+a cloud, so smoke breaks a squad's ability to find new targets while leaving
+it able to keep working one it already holds. A screen buys concealment and
+degraded incoming fire, never immunity.
 
 ## Cover and safety
 
