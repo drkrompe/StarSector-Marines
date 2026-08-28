@@ -125,17 +125,17 @@ See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
 
-Use the new representative Conquest baseline to classify its remaining
-command-unassigned/no-actionable pulses before tuning force allocation. The
-canonical 17-squad row briefly captured one compound; the 34-squad row captured
-and held five, and both defending commanders mobilized against every observed
-threat episode. Transport undercommitment is therefore no longer the primary
-explanation. Split idle-looking pulses into destroyed/not-yet-arrived,
-form-up-suspended, local-contact, useful-motion, and genuinely idle command-pool
-cases, expose the distinction in trace/report evidence, and fix only the last
-category. Keep exact capture-zone presence as neutral outcome evidence, never
-commander input. Then close the remaining assignment-writer and live-acceptance
-edges in `autonomous-mission-command-foundation.md`. Assault's paired production
+Continue Conquest secure-travel evidence at the episode boundary. Capture,
+command, execution, markers, and schema-7 evidence now share the same resolved
+capture room; the final entry hop commits through contact, room holding stays
+inside that room, and perspective traces count any own member in the assigned
+target zone. Finalize each secure episode by entry, retarget, release, loss,
+suspension, observation gap, timeout, or terminal result while keeping contact,
+active path, and quiet travel as orthogonal context. Then rerun the
+representative-duration matrix before tuning allocation. Exact whole-zone
+occupancy remains neutral outcome evidence and must never become commander
+input. Then close the remaining assignment-writer and live-acceptance edges in
+`autonomous-mission-command-foundation.md`. Assault's paired production
 commanders now share stable area geometry while retaining separate beliefs,
 ownership, directives, panel/dump/overlay views, and forced-serial trace evidence.
 Review a canonical-duration `commanderEvidence -Pmission=assault` run and the

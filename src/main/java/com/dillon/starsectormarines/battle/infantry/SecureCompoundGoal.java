@@ -125,7 +125,10 @@ public final class SecureCompoundGoal implements Goal {
             // only the compound's constituent rooms also earn a ClearZone. This
             // keeps the squad from parking on a ClearZone against the unbounded
             // outdoor zone (it always holds a stray defender) — see story 17.
-            steps.add(new SquadPlan.Step(EnterZone.forZone(zone, grid)));
+            boolean finalHop = i == path.size() - 1;
+            steps.add(new SquadPlan.Step(finalHop
+                    ? EnterZone.committedForZone(zone, grid)
+                    : EnterZone.forZone(zone, grid)));
             if (GarrisonArea.isGarrisonZone(zone, node.left, node.top, node.right, node.bottom, grid)) {
                 steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
             }

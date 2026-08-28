@@ -1138,6 +1138,35 @@ public class ConquestCommandTest {
     }
 
     @Test
+    public void blockedCompoundAnchorUsesResolvedCaptureRoomForOrderAndMarker() {
+        BattleSimulation sim = compoundAt(15);
+        sim.getGrid().setWalkable(15, 5, false);
+        sim.getZoneGraph().rebuild();
+        TacticalNode node = new TacticalNode(TacticalNode.Kind.COMMAND_POST,
+                15, 5, 14, 4, 16, 6, Faction.DEFENDER, 100, 4);
+        CompoundService.Record record = sim.getCompoundService().register(node);
+        Squad squad = addMarineSquad(sim, 2f, 1f);
+
+        ConquestCommand command = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+        tick(command, sim);
+
+        int captureZone = sim.getCompoundService().captureZoneId(record, sim);
+        assertTrue(captureZone >= 0);
+        assertEquals(captureZone, squad.assignedObjective.targetZoneId());
+        assertEquals(node, squad.assignedObjective.targetNode(),
+                "the arbiter must rebind the copied order to the live compound");
+        ConquestFrontSnapshot.SquadDirective directive =
+                command.frontSnapshot().directiveFor(squad.id);
+        assertEquals(record.captureCellX, directive.markerCellX());
+        assertEquals(record.captureCellY, directive.markerCellY());
+        assertTrue(sim.getGrid().isWalkable(
+                directive.markerCellX(), directive.markerCellY()));
+        assertEquals(captureZone, sim.getZoneGraph().zoneIdAt(
+                directive.markerCellX(), directive.markerCellY()));
+    }
+
+    @Test
     public void unreachableSoleKeepDoesNotConvergeSquadsIntoASealedTarget() {
         BattleSimulation sim = sealedCompoundAt(19);
         registerCompound(sim, new TacticalNode(TacticalNode.Kind.COMMAND_POST,
