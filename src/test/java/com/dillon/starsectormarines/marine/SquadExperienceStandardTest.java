@@ -75,16 +75,26 @@ class SquadExperienceStandardTest {
     }
 
     @Test
-    void theProfileKeepsPersistedAptitudeAndIgnoresAccumulatedXp() {
+    void theProfilePairsPersistedAptitudeWithTheIssuedBand() {
         MarineSoldier soldier = soldierWearing(MarineArmorPattern.CHARCOAL);
-        soldier.addExperience(5000);
 
         assertEquals(soldier.aptitude(),
                 SquadExperienceStandard.profileFor(soldier).aptitude(),
                 "aptitude stays innate and per marine");
         assertEquals(ExperienceTier.VETERAN,
                 SquadExperienceStandard.profileFor(soldier).experienceTier(),
-                "a personal XP hoard cannot outrank what the company issued");
+                "the band is whatever the company could issue");
+    }
+
+    @Test
+    void reissuingArmourRebandsTheMarineWithNoOtherStateInvolved() {
+        MarineSoldier soldier = soldierWearing(MarineArmorPattern.MILITIA);
+        assertEquals(ExperienceTier.REGULAR, SquadExperienceStandard.bandFor(soldier));
+
+        soldier.setArmor(MarineArmorPattern.RED_ELITE);
+
+        assertEquals(ExperienceTier.ELITE, SquadExperienceStandard.bandFor(soldier),
+                "the suit is the whole input; nothing else has to be caught up");
     }
 
     @Test

@@ -63,7 +63,9 @@ production, with canonical-duration and live review remaining.
 Generic Extraction now replaces elimination with an escorted recovery-package
 contract and exposes the same neutral payload projection used by Civilian
 Rescue and Silent Colony without flattening their variant laws. Its autonomous
-corridor commander is the next migration dependency.
+Marine corridor and bounded conventional defender interdiction commanders now
+run as a paired production duel; live acceptance and authored Rescue/Silent
+Colony command pictures remain.
 Each mission keeps its own strategy geometry. See `conquest-command.md`,
 `sabotage-command.md`, `assault-command.md`, `raid-command.md`,
 `extraction-command.md`, `ai-nouns.md`, `reinforcement-nouns.md`, and

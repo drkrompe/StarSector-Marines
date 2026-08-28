@@ -62,7 +62,7 @@ SquadSnapshot
 
 MarineSnapshot
   soldierId / name / status / unavailableUntilDay
-  aptitude / experienceXp
+  aptitude / band (resolved from issued armour)
   primary + grade / secondary / armor
 ```
 

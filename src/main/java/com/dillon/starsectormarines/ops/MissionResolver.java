@@ -433,18 +433,13 @@ public final class MissionResolver {
         MarineRosterScript personnelScript = MarineRosterScript.getInstance();
         if (personnelScript == null) return null;
         MarineRoster roster = personnelScript.roster();
-        int survivorXp = outcome.victory ? switch (outcome.risk) {
-            case LOW -> 30;
-            case MEDIUM -> 50;
-            case HIGH -> 80;
-        } : 10;
         float wiaDays = switch (outcome.risk) {
             case LOW -> 7f;
             case MEDIUM -> 12f;
             case HIGH -> 18f;
         };
         roster.applySoldierOutcome(
-                resolvePersonnelOutcomes(outcome), survivorXp, currentDayInt(), wiaDays,
+                resolvePersonnelOutcomes(outcome), currentDayInt(), wiaDays,
                 outcome.soldierTelemetry, outcome.victory);
         if (outcome.victory) {
             Set<String> acquiredOrCarried =

@@ -20,8 +20,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * <p>Pure and stateless: (pose, corridor, type, grid) → trajectory or
  * {@code null}. No {@link VehicleMission} / {@link GroundSystem} coupling, which is
  * what makes it unit-testable in isolation and reusable for future tanks /
- * player vehicles. A {@code null} return means "no forward trajectory" — the
- * recovery ladder (slice 3) escalates from there.
+ * player vehicles. A {@code null} return means "no forward trajectory"; the
+ * controller distinguishes an aligned terminal-region pose from an ordinary
+ * route failure before escalating through the recovery ladder.
  */
 public final class LocalTrajectoryPlanner {
 
@@ -71,7 +72,10 @@ public final class LocalTrajectoryPlanner {
         Pose goal = corridor.targetAhead(start.x, start.y, horizon);
         float goalRadius = Math.max(MIN_GOAL_RADIUS_CELLS, GOAL_RADIUS_TURN_RADIUS_FACTOR * turnRadius);
 
-        Trajectory terminal = directTerminalTrajectory(start, goal, goalRadius, type, grid);
+        boolean routeEnd = samePoint(goal.x, goal.y, corridor.endX(), corridor.endY());
+        Trajectory terminal = routeEnd
+                ? directTerminalTrajectory(start, goal, goalRadius, type, grid)
+                : null;
         if (terminal != null) return terminal;
 
         float margin = turnRadius
@@ -90,10 +94,33 @@ public final class LocalTrajectoryPlanner {
     }
 
     /**
+     * True when {@code pose} occupies the same soft goal region Hybrid A* uses
+     * after the rolling target has pinned to the route endpoint. A controller
+     * calls this only after no executable forward trajectory remains: at that
+     * point the null result means terminal-region success, not route failure.
+     */
+    static boolean isInTerminalGoalRegion(Pose pose, ReferenceCorridor corridor,
+                                          VehicleType type) {
+        GroundBody body = type.createBody();
+        if (!(body instanceof BicycleBody)) return false;
+        float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
+        float horizon = Math.max(MIN_HORIZON_CELLS, HORIZON_TURN_RADIUS_FACTOR * turnRadius);
+        Pose goal = corridor.targetAhead(pose.x, pose.y, horizon);
+        if (!samePoint(goal.x, goal.y, corridor.endX(), corridor.endY())) return false;
+        float goalRadius = Math.max(MIN_GOAL_RADIUS_CELLS,
+                GOAL_RADIUS_TURN_RADIUS_FACTOR * turnRadius);
+        return HybridAStarPlanner.isInLocalGoalRegion(
+                pose.x, pose.y, pose.facingDeg, goal, goalRadius * goalRadius);
+    }
+
+    /**
      * Inside the soft goal radius the lattice would accept the start node and
      * extract a one-pose (therefore null) path. Preserve the distinction between
      * arrival and planning failure by returning the exact short straight finish
-     * when pose, corridor tangent, and swept footprint agree.
+     * when the body can merge toward the route endpoint and the swept footprint
+     * is clear. This fallback applies only after the rolling goal has pinned to
+     * the route endpoint: intermediate rolling goals still require tangent
+     * agreement in the lattice so proximity before a bend is not false success.
      */
     private static Trajectory directTerminalTrajectory(Pose start, Pose goal, float goalRadius,
                                                        VehicleType type, NavigationGrid grid) {
@@ -101,8 +128,7 @@ public final class LocalTrajectoryPlanner {
         float distance = (float) Math.hypot(dx, dy);
         if (distance < 1e-4f || distance > goalRadius) return null;
         float bearing = AirBody.facingToward(dx, dy);
-        if (headingError(start.facingDeg, bearing) > 20f
-                || headingError(goal.facingDeg, bearing) > 20f) return null;
+        if (headingError(start.facingDeg, bearing) > 20f) return null;
 
         float length = type.visualLengthCells + HybridAStarPlanner.PLANNER_CLEARANCE;
         float width = type.visualWidthCells + HybridAStarPlanner.PLANNER_CLEARANCE;
@@ -118,5 +144,10 @@ public final class LocalTrajectoryPlanner {
 
     private static float headingError(float a, float b) {
         return Math.abs(((a - b + 540f) % 360f) - 180f);
+    }
+
+    private static boolean samePoint(float ax, float ay, float bx, float by) {
+        float dx = ax - bx, dy = ay - by;
+        return dx * dx + dy * dy < 1e-6f;
     }
 }

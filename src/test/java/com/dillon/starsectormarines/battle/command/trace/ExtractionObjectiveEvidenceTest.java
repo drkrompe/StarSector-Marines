@@ -1,13 +1,14 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
+import com.dillon.starsectormarines.battle.command.ExtractionObjectiveDisclosure;
+import com.dillon.starsectormarines.battle.command.ExtractionObjectiveFacts;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.ExtractionBattleFixture;
-import com.dillon.starsectormarines.battle.command.ExtractionObjectiveDisclosure;
-import com.dillon.starsectormarines.battle.command.ExtractionObjectiveFacts;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -16,43 +17,112 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Opt-in command and neutral evidence for generic Extraction. */
+/** Opt-in paired command and neutral evidence for generic Extraction. */
 @Tag("extraction-command-evidence")
 class ExtractionObjectiveEvidenceTest {
     private static final int DEFAULT_MAX_TICKS = 12_000;
-    private static final String DEFAULT_FIXTURE =
-            "/battle-fixtures/extraction-objective-v1.json";
+    private static final List<FixtureSpec> DEFAULT_FIXTURES = List.of(
+            new FixtureSpec("production-pressure",
+                    "/battle-fixtures/extraction-objective-v1.json",
+                    true, false),
+            new FixtureSpec("alarm-response",
+                    "/battle-fixtures/extraction-alarm-response-v1.json",
+                    true, true));
 
     @Test
-    void writesByteStableForcedSerialExtractionObjectiveEvidence()
+    void writesByteStableForcedSerialExtractionCommandEvidence()
             throws Exception {
         assertEquals(Integer.MAX_VALUE,
                 UnitUpdateSystem.configuredMinimumParallelUnits());
-        int maxTicks = Integer.getInteger(
-                "extraction.command.evidence.maxTicks", DEFAULT_MAX_TICKS);
+        String configuredMaxTicks = System.getProperty(
+                "extraction.command.evidence.maxTicks", "").trim();
+        int maxTicks = configuredMaxTicks.isBlank() ? DEFAULT_MAX_TICKS
+                : Integer.parseInt(configuredMaxTicks);
         if (maxTicks < 1) throw new IllegalArgumentException(
                 "extraction.command.evidence.maxTicks must be positive");
-        BattleFixture fixture = loadFixture();
-        RunResult first = run(fixture, maxTicks);
-        RunResult second = run(fixture, maxTicks);
-        assertEquals(first.trace(), second.trace(),
-                "same Extraction fixture must produce byte-stable neutral events");
-        assertTrue(first.trace().contains(
-                "\"event\":\"extraction-payload-state\""));
-        assertTrue(first.trace().contains(
-                "\"payloadId\":\"EXTRACTION-01\""));
-        assertTrue(first.trace().contains(
-                "\"strategy\":\"extraction-attacker\""));
-        assertTrue(first.trace().contains(
-                "\"strategy\":\"extraction-defender\""));
-        assertTrue(first.trace().contains("\"extraction\":{"));
-        assertTrue(first.trace().contains("\"extractionDefense\":{"));
-        assertTrue(first.trace().contains("\"role\":\"PAYLOAD_ELEMENT\""));
-        for (String line : first.trace().lines().filter(row ->
+
+        Path output = Path.of(System.getProperty(
+                "extraction.command.evidence.outputDir",
+                "build/reports/commander/extraction"))
+                .toAbsolutePath().normalize();
+        Files.createDirectories(output.resolve("traces"));
+        JSONArray summaries = new JSONArray();
+        List<FixtureSpec> fixtures = fixtures();
+        boolean canonical = configuredMaxTicks.isBlank()
+                && fixtures.equals(DEFAULT_FIXTURES);
+        StringBuilder markdown = new StringBuilder()
+                .append("# Extraction command evidence\n\n")
+                .append(canonical ? "Canonical" : "Ad hoc")
+                .append(" forced-serial, zero-input production Extraction ")
+                .append("fixtures replayed twice with byte-identical ")
+                .append("perspective and neutral traces.\n\n")
+                .append("| Fixture | Result | Ticks | Payload | Alarm | ")
+                .append("Interdiction actions |\n")
+                .append("|---|---|---:|---|---|---:|\n");
+
+        for (FixtureSpec spec : fixtures) {
+            BattleFixture fixture = loadFixture(spec);
+            RunResult first = run(fixture, maxTicks);
+            RunResult second = run(fixture, maxTicks);
+            assertEquals(first.trace(), second.trace(),
+                    spec.id() + " must produce byte-stable command evidence");
+            assertCommonEvidence(spec, first);
+            if (canonical && spec.requiresAlarmResponse()) {
+                assertAlarmResponse(spec, first);
+            }
+
+            Files.writeString(output.resolve("traces")
+                            .resolve(spec.id() + ".jsonl"),
+                    first.trace(), StandardCharsets.UTF_8);
+            summaries.put(summary(spec, first));
+            markdown.append('|').append(spec.id()).append('|')
+                    .append(first.complete() ? "COMPLETE" : "TIMEOUT")
+                    .append(first.winner() != null
+                            ? " (" + first.winner() + ")" : "")
+                    .append('|').append(first.ticks()).append('|')
+                    .append(first.payloadPhase()).append(' ')
+                    .append(Math.round(first.payloadProgress() * 100f))
+                    .append("%|")
+                    .append(first.alarmRaised() ? "raised" : "quiet")
+                    .append('|').append(first.interdictionActions())
+                    .append("|\n");
+        }
+
+        JSONObject summary = new JSONObject()
+                .put("schemaVersion", 2)
+                .put("schedulerMode", "SERIAL_DETERMINISTIC")
+                .put("canonical", canonical)
+                .put("maxTicks", maxTicks)
+                .put("repeatCount", 2)
+                .put("fixtures", summaries);
+        Files.writeString(output.resolve("summary.json"),
+                summary.toString(2) + '\n', StandardCharsets.UTF_8);
+        Files.writeString(output.resolve("summary.md"),
+                markdown.toString(), StandardCharsets.UTF_8);
+        System.out.println("[extraction-command-evidence] report "
+                + output.resolve("summary.md"));
+    }
+
+    private static void assertCommonEvidence(FixtureSpec spec,
+                                             RunResult result) {
+        String trace = result.trace();
+        assertTrue(trace.contains("\"event\":\"extraction-payload-state\""),
+                spec.id());
+        assertTrue(trace.contains("\"payloadId\":\"EXTRACTION-01\""),
+                spec.id());
+        assertTrue(trace.contains("\"strategy\":\"extraction-attacker\""),
+                spec.id());
+        assertTrue(trace.contains("\"strategy\":\"extraction-defender\""),
+                spec.id());
+        assertTrue(trace.contains("\"extraction\":{"), spec.id());
+        assertTrue(trace.contains("\"extractionDefense\":{"), spec.id());
+        assertTrue(trace.contains("\"role\":\"PAYLOAD_ELEMENT\""), spec.id());
+        for (String line : trace.lines().filter(row ->
                 row.contains("\"strategy\":\"extraction-defender\""))
                 .toList()) {
             assertTrue(!line.contains("\"egressCellX\"")
@@ -60,54 +130,43 @@ class ExtractionObjectiveEvidenceTest {
                             && !line.contains("\"corridorGuideCellX\"")
                             && !line.contains("\"progress\"")
                             && !line.contains("\"controllingSquadId\""),
-                    "defender perspective leaked hidden extraction truth: "
+                    spec.id() + " defender perspective leaked hidden truth: "
                             + line);
         }
+    }
 
-        Path output = Path.of(System.getProperty(
-                "extraction.command.evidence.outputDir",
-                "build/reports/commander/extraction"))
-                .toAbsolutePath().normalize();
-        Files.createDirectories(output.resolve("traces"));
-        Files.writeString(output.resolve(
-                        "traces/extraction-command.jsonl"),
-                first.trace(), StandardCharsets.UTF_8);
-        JSONObject summary = new JSONObject()
-                .put("schemaVersion", 1)
-                .put("schedulerMode", "SERIAL_DETERMINISTIC")
-                .put("fixture", DEFAULT_FIXTURE)
-                .put("maxTicks", maxTicks)
-                .put("repeatCount", 2)
-                .put("termination", first.complete()
+    private static void assertAlarmResponse(FixtureSpec spec,
+                                            RunResult result) {
+        assertTrue(result.alarmRaised(),
+                spec.id() + " must raise the public source alarm");
+        assertTrue(result.alarmPerspectiveEvents() > 0,
+                spec.id() + " must publish ALARM_INTERDICTION");
+        assertTrue(result.sourceResponseActions() > 0,
+                spec.id() + " must show source-perimeter mobilization");
+        assertTrue(result.interdictionActions() > 0,
+                spec.id() + " must show belief-driven interdiction");
+    }
+
+    private static JSONObject summary(FixtureSpec spec, RunResult result)
+            throws Exception {
+        return new JSONObject()
+                .put("id", spec.id())
+                .put("fixture", spec.location())
+                .put("requiresAlarmResponse", spec.requiresAlarmResponse())
+                .put("termination", result.complete()
                         ? "COMPLETE" : "TIMEOUT")
-                .put("winner", first.winner() != null
-                        ? first.winner() : JSONObject.NULL)
-                .put("ticks", first.ticks())
-                .put("payloadPhase", first.payloadPhase())
-                .put("payloadProgress", first.payloadProgress())
-                .put("payloadFailure", first.payloadFailure())
-                .put("traceEvents", first.trace().lines().count());
-        Files.writeString(output.resolve("summary.json"),
-                summary.toString(2) + '\n', StandardCharsets.UTF_8);
-        Files.writeString(output.resolve("summary.md"),
-                "# Extraction command evidence\n\n"
-                        + "Forced-serial, zero-input production Extraction "
-                        + "replayed twice with byte-identical perspective "
-                        + "and neutral traces.\n\n"
-                        + "- Maximum ticks: " + maxTicks + "\n"
-                        + "- Result: " + (first.complete()
-                        ? "COMPLETE" : "TIMEOUT") + "\n"
-                        + "- Winner: " + (first.winner() != null
-                        ? first.winner() : "—") + "\n"
-                        + "- Ticks: " + first.ticks() + "\n"
-                        + "- Payload phase: " + first.payloadPhase() + "\n"
-                        + "- Payload progress: "
-                        + Math.round(first.payloadProgress() * 100f) + "%\n"
-                        + "- Payload failure: " + first.payloadFailure()
-                        + "\n",
-                StandardCharsets.UTF_8);
-        System.out.println("[extraction-command-evidence] report "
-                + output.resolve("summary.md"));
+                .put("winner", result.winner() != null
+                        ? result.winner() : JSONObject.NULL)
+                .put("ticks", result.ticks())
+                .put("payloadPhase", result.payloadPhase())
+                .put("payloadProgress", result.payloadProgress())
+                .put("payloadFailure", result.payloadFailure())
+                .put("alarmRaised", result.alarmRaised())
+                .put("alarmPerspectiveEvents",
+                        result.alarmPerspectiveEvents())
+                .put("sourceResponseActions", result.sourceResponseActions())
+                .put("interdictionActions", result.interdictionActions())
+                .put("traceEvents", result.trace().lines().count());
     }
 
     private static RunResult run(BattleFixture fixture, int maxTicks) {
@@ -121,27 +180,47 @@ class ExtractionObjectiveEvidenceTest {
                     .freezeNeutral(sim).stream()
                     .filter(row -> "EXTRACTION-01".equals(row.payloadId()))
                     .findFirst().orElseThrow();
-            return new RunResult(sim.getCommandTraceJsonLines(),
-                    sim.getSimTickIndex(), sim.isComplete(),
+            String trace = sim.getCommandTraceJsonLines();
+            return new RunResult(trace, sim.getSimTickIndex(),
+                    sim.isComplete(),
                     sim.getWinner() != null ? sim.getWinner().name() : null,
                     payload.phase(), payload.progress(),
-                    payload.failure().name());
+                    payload.failure().name(), payload.alarmActive(),
+                    countDefenderLines(trace,
+                            "\"phase\":\"ALARM_INTERDICTION\""),
+                    countDefenderLines(trace,
+                            "\"role\":\"ALARM_RESPONDER\""),
+                    countDefenderLines(trace,
+                            "\"role\":\"INTERDICTION\""));
         }
     }
 
-    private static BattleFixture loadFixture() throws Exception {
+    private static int countDefenderLines(String trace, String needle) {
+        return (int) trace.lines()
+                .filter(line -> line.contains(
+                        "\"strategy\":\"extraction-defender\""))
+                .filter(line -> line.contains(needle))
+                .count();
+    }
+
+    private static List<FixtureSpec> fixtures() {
         String selected = System.getProperty(
                 "extraction.command.evidence.fixture.path", "").trim();
+        return selected.isBlank() ? DEFAULT_FIXTURES
+                : List.of(new FixtureSpec("adhoc", selected, false, false));
+    }
+
+    private static BattleFixture loadFixture(FixtureSpec spec) throws Exception {
         String json;
-        if (selected.isBlank()) {
+        if (spec.classpathResource()) {
             try (InputStream stream = ExtractionObjectiveEvidenceTest.class
-                    .getResourceAsStream(DEFAULT_FIXTURE)) {
+                    .getResourceAsStream(spec.location())) {
                 if (stream == null) throw new IllegalStateException(
-                        "Missing Extraction fixture: " + DEFAULT_FIXTURE);
+                        "Missing Extraction fixture: " + spec.location());
                 json = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
             }
         } else {
-            json = Files.readString(Path.of(selected)
+            json = Files.readString(Path.of(spec.location())
                     .toAbsolutePath().normalize());
         }
         BattleFixture fixture = BattleFixtureJson.fromJson(new JSONObject(json));
@@ -155,7 +234,14 @@ class ExtractionObjectiveEvidenceTest {
         return fixture;
     }
 
+    private record FixtureSpec(String id, String location,
+                               boolean classpathResource,
+                               boolean requiresAlarmResponse) { }
+
     private record RunResult(String trace, int ticks, boolean complete,
                              String winner, String payloadPhase,
-                             float payloadProgress, String payloadFailure) { }
+                             float payloadProgress, String payloadFailure,
+                             boolean alarmRaised, int alarmPerspectiveEvents,
+                             int sourceResponseActions,
+                             int interdictionActions) { }
 }

@@ -97,22 +97,6 @@ class DebugCompanyTest {
     }
 
     @Test
-    void firstContractIsTheCampaignOpening() {
-        MarineRoster debug = DebugCompany.roster(DebugCompanyStage.FIRST_CONTRACT);
-        MarineRoster campaign = new MarineRoster();
-        campaign.bootstrapInitialComplement(MarineSquad.CAPACITY);
-
-        assertEquals(campaign.activeSoldiers().size(), debug.activeSoldiers().size());
-        for (MarineSoldier soldier : debug.activeSoldiers()) {
-            assertEquals(ExperienceTier.GREEN, soldier.profile().experienceTier(),
-                    "the opening company has seen nothing yet");
-        }
-        MarineSquad squad = debug.squadById(DebugCompany.lineSquadIds(debug).get(0));
-        assertSame(EnlistedRank.CORPORAL, debug.squadLeader(squad).enlistedRank(),
-                "a green squad is led by a corporal — sergeant needs veteran service");
-    }
-
-    @Test
     void stripesAndBandsFollowTheArmourEachSquadWasIssued() {
         // Experience is issued with the armour, so a stage no longer authors a
         // band directly: the randomized armour doctrine each squad rolls does.
