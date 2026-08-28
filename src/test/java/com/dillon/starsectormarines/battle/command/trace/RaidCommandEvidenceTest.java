@@ -33,9 +33,14 @@ class RaidCommandEvidenceTest {
                 "raid.command.evidence.maxTicks", DEFAULT_MAX_TICKS);
         if (maxTicks < 1) throw new IllegalArgumentException(
                 "raid.command.evidence.maxTicks must be positive");
+        Path output = Path.of(System.getProperty(
+                "raid.command.evidence.outputDir",
+                "build/reports/commander/raid")).toAbsolutePath().normalize();
         BattleFixture fixture = loadFixture();
-        RunResult first = run(fixture, maxTicks);
-        RunResult second = run(fixture, maxTicks);
+        RunResult first = run(fixture, maxTicks, output,
+                "raid-command-duel");
+        RunResult second = run(fixture, maxTicks, null,
+                "raid-command-duel");
         assertEquals(first.trace(), second.trace(),
                 "same Raid fixture must produce byte-stable command events");
         assertTrue(first.trace().contains("\"strategy\":\"raid-attacker\""));
@@ -45,9 +50,6 @@ class RaidCommandEvidenceTest {
         assertTrue(first.trace().contains("\"egressCellX\":-1"),
                 "defender trace must preserve egress non-disclosure");
 
-        Path output = Path.of(System.getProperty(
-                "raid.command.evidence.outputDir",
-                "build/reports/commander/raid")).toAbsolutePath().normalize();
         Files.createDirectories(output.resolve("traces"));
         Files.writeString(output.resolve("traces/raid-command-duel.jsonl"),
                 first.trace(), StandardCharsets.UTF_8);
@@ -77,11 +79,16 @@ class RaidCommandEvidenceTest {
                 + output.resolve("summary.md"));
     }
 
-    private static RunResult run(BattleFixture fixture, int maxTicks) {
-        try (BattleSimulation sim = fixture.build()) {
+    private static RunResult run(BattleFixture fixture, int maxTicks,
+                                 Path visualRoot, String runId)
+            throws Exception {
+        try (BattleSimulation sim = fixture.build();
+             CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
+                     visualRoot, runId, sim)) {
             sim.setCommandTraceEnabled(true, fixture.kind());
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 sim.advance(BattleSimulation.TICK_DT);
+                capture.afterAdvance();
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             return new RunResult(sim.getCommandTraceJsonLines(),

@@ -9,8 +9,9 @@
  * <br>Boundary: pure spatial mechanism with no actor knowledge. Tactical
  *           "where should I go" decisions belong in {@code decision/},
  *           not here. For "can I walk there" use {@code GridPathfinder}
- *           (it honors edges); do NOT use {@code zone/ZoneGraph}, which
- *           floods on cell walkability alone and ignores edges. For radius
+ *           (it honors edges); {@code zone/ZoneGraph} honors shared cardinal
+ *           transitions while retaining doorway cells as explicit portals.
+ *           For radius
  *           queries use the {@code unit/} spatial indices, never a raw
  *           grid walk.
  *

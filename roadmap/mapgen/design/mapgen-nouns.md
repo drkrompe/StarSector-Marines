@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — generalized firing apertures across eligible building facades and compound perimeter walls.
+Updated: 2026-08-28 — separated cell standability from shared-edge transitions and widened compound firing aprons.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -37,12 +37,25 @@ composition choice rather than a widening conditional inside the generator.
 
 ## Tactical space
 
-The tile grid and its topology are tactical authority. Open-city generation
-starts from traversable terrain and adds structures; station generation starts
-from solid space and carves a reachable interior. A city road graph is planning
-and visual structure, not the authority for unit movement. A station graph is
-the authored relationship between rooms and corridors, used to reason about
-reachability and roles without making incidental tile shapes into API.
+The tile grid and its topology are tactical authority. A cell owns standability;
+a shared cardinal edge owns the transition between two standable cells. A thin
+edge barrier may therefore divide adjacent usable cells without consuming
+either cell, and zone connectivity must honor that closed transition. Open-city
+generation starts from traversable terrain and adds structures; station
+generation starts from solid space and carves a reachable interior. A city road
+graph is planning and visual structure, not the authority for unit movement. A
+station graph is the authored relationship between rooms and corridors, used to
+reason about reachability and roles without making incidental tile shapes into
+API.
+
+Edge passability is navigation topology, not by itself a structural wall. A
+production thin barrier must publish one authored identity from which movement,
+ballistic interception, visibility, directional cover, durability, and
+presentation derive. Closing an edge only for A* would create a secret obstacle;
+drawing a narrow wall without closing its edge would create dishonest scenery.
+Runtime topology retains the permissive-mutation law: destruction may open an
+authored edge, while construction that closes an edge under existing paths is a
+separate future problem.
 
 **Room purpose** is a carve-time semantic label, such as a room, corridor, or
 special facility. Consumers ask the purpose instead of rediscovering regions
@@ -70,9 +83,10 @@ Firing apertures are structural wall cells: they remain non-walkable and
 destructible while passing sight and projectiles. Hollow building shells place
 them on facade runs belonging to tactically usable rooms; secured storage and
 infrastructure rooms may deliberately remain opaque. Compound perimeter walls
-place apertures only on sufficiently long straight runs with walkable firing
-space on both sides, preserving gates, hardpoints, corners, and reserved road
-circulation.
+place apertures in adjacent two-cell pairs only on sufficiently long straight
+runs with walkable firing space on both sides. Compound buildings retain a
+two-cell internal apron to support oblique firing angles, while gates,
+hardpoints, corners, and reserved road circulation remain clear.
 
 ## City, station, and ship families
 

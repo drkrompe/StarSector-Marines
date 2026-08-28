@@ -284,6 +284,61 @@ public class NavigationGrid {
         setEdgePassable(x, y, dir, true);
     }
 
+    /**
+     * True when the shared cardinal edge from {@code (x, y)} can be crossed
+     * in both directions. A shared edge exists only between two in-bounds
+     * cells; diagonal directions name corners rather than shared edges and
+     * are rejected.
+     *
+     * <p>This is the topology query for a thin, cell-boundary barrier. The
+     * two cells may both remain walkable while their shared transition is
+     * closed. A* already applies the same dual-side rule on its hot path;
+     * zone and authoring code use this named form so they cannot accidentally
+     * treat cell walkability as connectivity.
+     */
+    public boolean isSharedEdgePassable(int x, int y, Direction dir) {
+        requireCardinal(dir);
+        int nx = x + dir.dx;
+        int ny = y + dir.dy;
+        if (!inBounds(x, y) || !inBounds(nx, ny)) return false;
+        return isEdgePassable(x, y, dir)
+                && isEdgePassable(nx, ny, dir.opposite());
+    }
+
+    /**
+     * Atomically changes both cell-local halves of one shared cardinal edge.
+     * No-op when either cell is out of bounds. Generation may use this method
+     * directly; runtime opening goes through
+     * {@link NavigationService#openSharedEdge} so zone and retained-path
+     * caches are invalidated at the ordinary topology boundary.
+     */
+    public void setSharedEdgePassable(int x, int y, Direction dir,
+                                      boolean passable) {
+        requireCardinal(dir);
+        int nx = x + dir.dx;
+        int ny = y + dir.dy;
+        if (!inBounds(x, y) || !inBounds(nx, ny)) return;
+        setEdgePassable(x, y, dir, passable);
+        setEdgePassable(nx, ny, dir.opposite(), passable);
+    }
+
+    /** Closes both halves of one shared cardinal transition. */
+    public void blockSharedEdge(int x, int y, Direction dir) {
+        setSharedEdgePassable(x, y, dir, false);
+    }
+
+    /** Opens both halves of one shared cardinal transition. */
+    public void openSharedEdge(int x, int y, Direction dir) {
+        setSharedEdgePassable(x, y, dir, true);
+    }
+
+    private static void requireCardinal(Direction dir) {
+        if (dir == null || dir.isDiagonal()) {
+            throw new IllegalArgumentException(
+                    "shared edge direction must be cardinal");
+        }
+    }
+
     // ----- Cover -----
 
     /**
