@@ -162,8 +162,13 @@ eight entries had a sampled portal occupant, while five crossed between the
 75-tick command samples. The evidence therefore does not show persistent
 doorway parking. Investigate the dominant loss/contact seam next—all fifteen
 squad-loss exits had local contact, twelve last published `HOLD`, eleven still
-had engageable members/fireteams, and none were moving—plus the deterministic
-fireteam-role rebind defect before changing capture slots or timers. Exact
+had engageable members/fireteams, and none were moving. The deterministic
+fireteam-role rebind defect is now closed: a casualty replan exactly replaces
+sticky-plan role maps and restarts bounds authored from the old partition.
+Focused coordination suites pass, while the 6,000-tick fixture remains
+byte-stable at 6 captures / 4 holds and the same 22/0/8 portal classification.
+Investigate the contact-bound `HOLD` doctrine/execution handoff before changing
+capture slots or timers. Exact
 hostile and whole-zone occupancy remain neutral evidence and never commander
 input.
 Then
