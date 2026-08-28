@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadCareer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -23,6 +24,7 @@ public final class BarracksViewModel {
     private final MutableSignal<Integer> revision;
     private final ComputedSignal<List<SquadRow>> squadRows;
     private final ComputedSignal<List<MusterRow>> musterRows;
+    private final ComputedSignal<List<RecordCell>> recordCells;
     private final ComputedSignal<String> selectedSquadName;
     private final ComputedSignal<String> selectedSquadSummary;
     private final ComputedSignal<String> quartersStatus;
@@ -38,6 +40,7 @@ public final class BarracksViewModel {
         selectedSquadId = reactor.signal(firstSquadId());
         squadRows = reactor.computed(this::buildSquadRows);
         musterRows = reactor.computed(this::buildMusterRows);
+        recordCells = reactor.computed(this::buildRecordCells);
         selectedSquadName = reactor.computed(() -> {
             revision.get();
             MarineSquad squad = selectedSquad();
@@ -49,6 +52,7 @@ public final class BarracksViewModel {
 
     public Signal<List<SquadRow>> squadRows() { return squadRows; }
     public Signal<List<MusterRow>> musterRows() { return musterRows; }
+    public Signal<List<RecordCell>> recordCells() { return recordCells; }
     public Signal<String> selectedSquadName() { return selectedSquadName; }
     public Signal<String> selectedSquadSummary() { return selectedSquadSummary; }
     public Signal<String> quartersStatus() { return quartersStatus; }
@@ -87,9 +91,10 @@ public final class BarracksViewModel {
                     + (squad.stationed() ? " stationed" : "");
             String id = "barracks-squad:" + squad.id();
             rows.add(new SquadRow(id, id + ":name", id + ":status", id + ":detail",
-                    classes, squad.name(), status,
+                    id + ":record", classes, squad.name(), status,
                     ready + " / " + MarineSquad.CAPACITY + " RTD"
                             + (wounded > 0 ? "  ·  " + wounded + " WIA" : ""),
+                    compactRecord(squad.career()),
                     () -> selectedSquadId.set(squad.id())));
         }
         return List.copyOf(rows);
@@ -123,6 +128,46 @@ public final class BarracksViewModel {
                     soldier.enlistedRank().abbreviation() + " " + soldier.name(), detail));
         }
         return List.copyOf(rows);
+    }
+
+    /**
+     * The selected formation's lifetime service record. Read-only evidence: the
+     * career is never a combat input ({@code progression-nouns.md}), so nothing
+     * here feeds back into how the squad fights.
+     */
+    private List<RecordCell> buildRecordCells() {
+        revision.get();
+        MarineSquad squad = selectedSquad();
+        if (squad == null) return List.of();
+        SquadCareer career = squad.career();
+        List<RecordCell> cells = new ArrayList<>();
+        // Zero states spell themselves out. The heading face carries no em-dash,
+        // so a placeholder glyph renders as an empty cell that reads as a bug.
+        cells.add(cell("operations", "OPERATIONS", career.missionsDeployed() == 0 ? "none"
+                : career.missionsDeployed() + "  (" + career.missionsWon() + " won)"));
+        cells.add(cell("kills", "CONFIRMED", String.valueOf(career.kills())));
+        cells.add(cell("accuracy", "ROUNDS ON TARGET", career.roundsFired() == 0 ? "no data"
+                : Math.round(career.landedFraction() * 100f) + "%"));
+        cells.add(cell("casualties", "CASUALTIES", career.marinesDeployed() == 0 ? "none"
+                : career.casualties() + " of " + career.marinesDeployed()));
+        // Kept un-netted from damage dealt at the telemetry seam precisely so it
+        // can be reported rather than quietly folded away.
+        cells.add(cell("friendly", "FRIENDLY FIRE",
+                career.friendlyFireDamage() <= 0f ? "none"
+                        : String.valueOf(Math.round(career.friendlyFireDamage()))));
+        return List.copyOf(cells);
+    }
+
+    private static RecordCell cell(String key, String label, String value) {
+        String id = "barracks-record:" + key;
+        return new RecordCell(id, id + ":label", id + ":value", label, value);
+    }
+
+    /** One line the squad rail can carry without crowding the readiness detail. */
+    private static String compactRecord(SquadCareer career) {
+        if (career == null || career.missionsDeployed() == 0) return "No operations on record";
+        return career.missionsWon() + "W / " + career.missionsDeployed() + " ops"
+                + "  ·  " + career.kills() + " confirmed";
     }
 
     private String buildSelectedSummary() {
@@ -182,9 +227,26 @@ public final class BarracksViewModel {
         };
     }
 
+    public record RecordCell(String id, String labelId, String valueId,
+                            String label, String value) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "labelId" -> labelId;
+                case "valueId" -> valueId;
+                case "label" -> label;
+                case "value" -> value;
+                default -> throw new IllegalArgumentException(
+                        "Unknown barracks record property: " + property);
+            };
+        }
+    }
+
     public record SquadRow(String id, String nameId, String statusId, String detailId,
-                           String classes, String name, String status, String detail,
-                           Runnable select) implements MarkupPropertySource {
+                           String recordId, String classes, String name, String status,
+                           String detail, String record, Runnable select)
+            implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
@@ -192,10 +254,12 @@ public final class BarracksViewModel {
                 case "nameId" -> nameId;
                 case "statusId" -> statusId;
                 case "detailId" -> detailId;
+                case "recordId" -> recordId;
                 case "classes" -> classes;
                 case "name" -> name;
                 case "status" -> status;
                 case "detail" -> detail;
+                case "record" -> record;
                 case "select" -> select;
                 default -> throw new IllegalArgumentException(
                         "Unknown barracks squad property: " + property);

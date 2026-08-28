@@ -114,6 +114,7 @@ public final class BarracksScreen implements Screen {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("squadRows", viewModel.squadRows());
         props.put("musterRows", viewModel.musterRows());
+        props.put("recordCells", viewModel.recordCells());
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("selectedSquadSummary", viewModel.selectedSquadSummary());
         props.put("quartersStatus", viewModel.quartersStatus());

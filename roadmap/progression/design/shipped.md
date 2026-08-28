@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-08-27 — folded card-sourced experience.
+Updated: 2026-08-27 — folded card-sourced experience and the squad career record.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -16,4 +16,5 @@ Updated: 2026-08-27 — folded card-sourced experience.
 | `s2d-frag-grenades.md` | 2026-08-25 | this commit | `progression-nouns.md` — three-use anti-personnel special, honest cluster AI, reservations, campaign acquisition, Fleet Assault doctrine, and faction availability; `moddable-weapons-nouns.md` — registry-owned short-arc projectile and detonation behavior |
 | `equipment-template-cargo-economy.md` | 2026-08-25 | this commit | `progression-nouns.md` — permanent equipment-template ownership, base-game cargo issue costs, legacy recipe migration, and removal of printed stock from live squad issue; `company-view-nouns.md` — template-bounded authoring and atomic squad materialization |
 | `equipment-template-learning-item.md` | 2026-08-25 | this commit | `progression-nouns.md` — parameterized cargo cards, consume-on-success Armory learning, and the ship-production knowledge boundary |
+| `s12-squad-career-standing.md` | 2026-08-27 | this commit | `progression-nouns.md` — squad-grain career evidence, frozen deployment attribution, and the never-a-quality-input law; `company-view-nouns.md` — the Barracks service record |
 | `s11-card-sourced-experience.md` | 2026-08-27 | this commit | `progression-nouns.md` — aptitude and experience: bands issued with the armour pattern, the rejected weapon-grade source, no hidden leader promotion, and stripes following issued armour |
