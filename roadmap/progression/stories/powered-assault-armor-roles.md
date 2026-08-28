@@ -1,15 +1,15 @@
 # Powered assault-armor roles
 
 Status: PARTIALLY SHIPPED — the cross-faction line/heavy pattern catalog, bounded
-stat side-grades, acquisition sources, tiered built-in doctrine matrix, and defender
-adoption are live. Explicit role/provenance fields, comparison presentation, and
-concealment still coordinate with `s6-unlock-ladder-expansion.md` and
+stat side-grades, acquisition sources, tiered built-in doctrine matrix, defender
+adoption, and Armory comparison presentation are live. Explicit role/provenance
+fields and concealment still coordinate with `s6-unlock-ladder-expansion.md` and
 `target-faction-ground-rosters.md`; concealment behavior requires an explicit shared
 perception contract.
 
 Written: 2026-08-24
 
-Updated: 2026-08-26 — attached concrete faction suits to defender tables and broadened tier-I scrap issue.
+Updated: 2026-08-28 — shipped the Fleet Armory pattern comparison surface (`FleetArmoryViewModel.armorComparisonCards`, `armory-armor-comparison.mlx`) so every catalogued pattern reads side by side; explicit role/provenance data fields remain outstanding.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`,
 and `faction-lore-nouns.md` before implementing this story.
@@ -159,7 +159,13 @@ an oversized armor pattern.
   assigned pattern and stock exactly.
 - Armory comparison names role, protection, mobility, and provenance without
   presenting role as tier. A player can explain why a light suit may be a
-  later unlock than a crude heavy one.
+  later unlock than a crude heavy one. **Shipped**: the Fleet Armory's Compare
+  Patterns surface (reachable from the fire-team armor picker) lists every
+  catalogued pattern side by side with its unit class, tier, protection and
+  mobility meters, integral system (via the shared `IntegralSystemCopy`), and
+  provenance copy, sorted by tier then name. It remains presentation-only and
+  does not select or issue a pattern; the closed role vocabulary and stable
+  provenance id fields it will eventually read are still outstanding below.
 - Representative Hegemony, Tri-Tachyon, Church, Path, and pirate suits are
   distinguishable by more than color; League, Diktat, Independent, and modded
   fallback behavior also have deterministic catalog coverage.

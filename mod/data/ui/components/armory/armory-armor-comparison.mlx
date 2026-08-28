@@ -1,0 +1,105 @@
+<template props="selectedSquadName,armorComparisonSummary,armorComparisonCards,backToFireTeams,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+  <div id="armor-comparison-root" class="armor-comparison-root">
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / ARMORY / ARMOR COMPARISON" />
+
+    <div id="comparison-breadcrumb" class="panel">
+      <button id="comparison-breadcrumb-companies" onclick="{back}">Companies</button>
+      <div id="comparison-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
+      <button id="back-to-fireteams" onclick="{backToFireTeams}">{selectedSquadName}</button>
+      <div id="comparison-separator-current" class="breadcrumb-separator label tone-muted">/</div>
+      <div id="comparison-current" class="breadcrumb-current label tone-accent">Compare Armor Patterns</div>
+    </div>
+
+    <div id="comparison-intro" class="panel">
+      <div id="comparison-heading" class="label heading tone-edge">ARMOR PATTERN COMPARISON</div>
+      <div id="comparison-summary" class="label surface-dark tone-muted">{armorComparisonSummary}</div>
+      <div id="comparison-copy" class="label tone-muted">Every catalogued pattern, side by side: protection, mobility, class, tier, integral system, and provenance.</div>
+    </div>
+
+    <div id="comparison-list" class="comparison-list">
+      <div each="card in armorComparisonCards" key="{card.id}" id="{card.id}" class="{card.classes}">
+        <div id="{card.headerId}" class="comparison-header">
+          <div id="{card.nameId}" class="comparison-name label tone-edge">{card.name}</div>
+          <div id="{card.classId}" class="comparison-badge class-badge label tone-edge">{card.unitClass}</div>
+          <div id="{card.tierId}" class="comparison-badge tier-badge label tone-accent">{card.tier}</div>
+        </div>
+        <div id="{card.statsId}" class="comparison-stat-group">
+          <div each="stat in card.stats" key="{stat.id}" id="{stat.id}" class="comparison-stat-row">
+            <div id="{stat.labelId}" class="comparison-stat-label label tone-muted">{stat.label}</div>
+            <div id="{stat.trackId}" class="comparison-stat-track">
+              <div id="{stat.fillId}" class="comparison-stat-fill" style="{stat.fillStyle}" />
+            </div>
+            <div id="{stat.valueId}" class="comparison-stat-value label tone-edge">{stat.value}</div>
+          </div>
+        </div>
+        <div id="{card.systemId}" class="{card.systemClasses}">{card.system}</div>
+        <div id="{card.descriptionId}" class="comparison-description label tone-muted">{card.description}</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .armor-comparison-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+
+  #comparison-breadcrumb { flex-direction: row; height: 28px; padding: 3px 4px; gap: 5px; }
+  #comparison-breadcrumb button { padding: 2px 7px; border-width: 1px; font-family: body; }
+  .breadcrumb-separator { width: 10px; text-align: center; }
+  .breadcrumb-current { padding: 3px 4px; }
+
+  #comparison-intro { flex-direction: column; height: 62px; padding: 6px 8px; gap: 3px; }
+  #comparison-heading { height: 18px; }
+  #comparison-summary { height: 19px; padding: 2px 6px; }
+  #comparison-copy { height: 17px; }
+
+  .comparison-list {
+    display: grid;
+    height: 0px;
+    flex-grow: 1;
+    gap: 8px;
+    padding: 1px;
+    overflow: scroll;
+  }
+
+  .comparison-card {
+    flex-direction: column;
+    width: 476px;
+    height: 272px;
+    padding: 7px;
+    gap: 5px;
+    border-width: 1px;
+    font-family: body;
+    text-align: left;
+    overflow: hidden;
+    background-color: #0e1621;
+    border-color: #405a78;
+  }
+
+  .comparison-header { flex-direction: row; height: 22px; gap: 5px; }
+  .comparison-name { width: 0px; flex-grow: 1; padding: 3px 2px; }
+  .comparison-badge { height: 20px; padding: 2px 6px; border-width: 1px; text-align: center; }
+  .class-badge { width: 96px; background-color: #172b3b; border-color: #53c6e8; }
+  .tier-badge { width: 70px; background-color: #2b2718; border-color: #dfb84d; }
+
+  .comparison-stat-group { flex-direction: column; height: 66px; gap: 2px; }
+  .comparison-stat-row { flex-direction: row; height: 14px; gap: 4px; }
+  .comparison-stat-label { width: 54px; }
+  .comparison-stat-track {
+    flex-direction: row;
+    width: 0px;
+    height: 9px;
+    flex-grow: 1;
+    border-width: 1px;
+    overflow: hidden;
+    background-color: #101a25;
+    border-color: #405a78;
+  }
+  .comparison-stat-fill { height: 100%; background-color: #71c9f2; }
+  .comparison-stat-value { width: 46px; text-align: right; }
+
+  .comparison-system { height: 20px; padding: 3px 5px; border-width: 1px; overflow: hidden; }
+
+  .comparison-description { height: 128px; white-space: normal; overflow: hidden; }
+</style>
