@@ -67,6 +67,7 @@ public final class Shift {
 
     private final CrewRole role;
     private final JobSite base;
+    private final List<JobSite> sites;
     private final AmbientThreatPolicy threatPolicy;
     private final Map<Affordance, List<Placed>> byJob;
     private final List<Affordance> order;
@@ -75,14 +76,77 @@ public final class Shift {
     /** One job, and the site whose claim group it belongs to. */
     private record Placed(FixtureTask task, JobSite site) {}
 
-    private Shift(CrewRole role, JobSite base, AmbientThreatPolicy threatPolicy,
+    private Shift(CrewRole role, List<JobSite> sites, AmbientThreatPolicy threatPolicy,
                   Map<Affordance, List<Placed>> byJob, List<Affordance> order, boolean spans) {
         this.role = role;
-        this.base = base;
+        this.base = sites.get(0);
+        this.sites = sites;
         this.threatPolicy = threatPolicy;
         this.byJob = byJob;
         this.order = order;
         this.spans = spans;
+    }
+
+    /**
+     * The shift somebody posted to one site would work, reaching wherever else
+     * on the map their other jobs are.
+     *
+     * <p>Nearest rather than authored, and found by asking what each place
+     * actually publishes rather than by a table of which purpose serves which
+     * job. A table would be a second place to keep the generator's decisions,
+     * and it would be wrong the first time a room started affording something
+     * new.
+     *
+     * <p>This is the entry point a host or a mission wants. Deriving the sites
+     * is not a fact about ships: a civilian posted to a house on a town map
+     * eats and works and sleeps in the same spread of places, for the same
+     * reason, and the selection would only have to be written a second time.
+     *
+     * @param posted where this role is stationed, which names the shift
+     * @param candidates every site on the map, including {@code posted}
+     */
+    public static Shift postedAt(CrewRole role, JobSite posted,
+                                 List<? extends JobSite> candidates,
+                                 List<FixtureTask> authored, boolean[] berthed,
+                                 AmbientThreatPolicy threatPolicy) {
+        if (role == null) throw new IllegalArgumentException("a shift needs a role");
+        if (posted == null) throw new IllegalArgumentException("a shift needs a posting");
+        List<JobSite> sites = new ArrayList<>();
+        sites.add(posted);
+        if (candidates != null) {
+            for (Affordance job : role.jobs()) {
+                if (offers(posted, role, job, authored, berthed)) continue;
+                JobSite nearest = null;
+                long best = Long.MAX_VALUE;
+                for (JobSite candidate : candidates) {
+                    if (candidate.id() == posted.id()) continue;
+                    if (!offers(candidate, role, job, authored, berthed)) continue;
+                    long span = distanceSquared(posted, candidate);
+                    if (span < best) {
+                        best = span;
+                        nearest = candidate;
+                    }
+                }
+                if (nearest != null && !sites.contains(nearest)) sites.add(nearest);
+            }
+        }
+        return of(role, sites, authored, berthed, threatPolicy);
+    }
+
+    /** Whether this site has a live job of that kind, and it is this role's. */
+    private static boolean offers(JobSite site, CrewRole role, Affordance job,
+                                  List<FixtureTask> authored, boolean[] berthed) {
+        if (!JobBoard.belongsTo(role, site, job)) return false;
+        for (FixtureTask task : JobBoard.live(authored, site, berthed)) {
+            if (task.affordance() == job) return true;
+        }
+        return false;
+    }
+
+    private static long distanceSquared(JobSite from, JobSite to) {
+        long dx = (long) from.centreX() - to.centreX();
+        long dy = (long) from.centreY() - to.centreY();
+        return dx * dx + dy * dy;
     }
 
     /**
@@ -113,7 +177,7 @@ public final class Shift {
         for (Affordance job : role.jobs()) {
             if (byJob.containsKey(job)) order.add(job);
         }
-        return new Shift(role, sites.get(0), threatPolicy, byJob, order, spansSites(byJob));
+        return new Shift(role, List.copyOf(sites), threatPolicy, byJob, order, spansSites(byJob));
     }
 
     /** Whether more than one site contributes, which is what the clock has to allow for. */
@@ -138,6 +202,11 @@ public final class Shift {
      */
     public JobSite base() {
         return base;
+    }
+
+    /** Everywhere this shift works, the posting first. */
+    public List<JobSite> sites() {
+        return sites;
     }
 
     /** Whether this shift reaches more than one site. */

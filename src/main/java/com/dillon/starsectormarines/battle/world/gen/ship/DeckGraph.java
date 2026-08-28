@@ -73,6 +73,16 @@ public final class DeckGraph {
             return shape.contains(x - originX, y - originY);
         }
 
+        @Override
+        public int centreX() {
+            return originX + shape.width() / 2;
+        }
+
+        @Override
+        public int centreY() {
+            return originY + shape.height() / 2;
+        }
+
         public int left() {
             return originX;
         }
