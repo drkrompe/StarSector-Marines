@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.nav.zone;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
@@ -105,10 +106,14 @@ public final class ZoneGraph {
         int y = c / width;
         int[] cand = new int[4];
         int nc = 0;
-        nc = addInteriorNeighbor(c + 1,     x + 1 < width,  cand, nc);
-        nc = addInteriorNeighbor(c - 1,     x - 1 >= 0,     cand, nc);
-        nc = addInteriorNeighbor(c + width, y + 1 < height, cand, nc);
-        nc = addInteriorNeighbor(c - width, y - 1 >= 0,     cand, nc);
+        nc = addInteriorNeighbor(x, y, Direction.E, c + 1,
+                x + 1 < width, cand, nc);
+        nc = addInteriorNeighbor(x, y, Direction.W, c - 1,
+                x - 1 >= 0, cand, nc);
+        nc = addInteriorNeighbor(x, y, Direction.N, c + width,
+                y + 1 < height, cand, nc);
+        nc = addInteriorNeighbor(x, y, Direction.S, c - width,
+                y - 1 >= 0, cand, nc);
 
         if (nc == 0) { newSingletonZone(c); return; }   // isolated opening
 
@@ -134,8 +139,11 @@ public final class ZoneGraph {
     }
 
     /** Adds {@code nIdx}'s zone to {@code cand} if it's an in-bounds, walkable, non-doorway, already-zoned interior cell (deduped). */
-    private int addInteriorNeighbor(int nIdx, boolean inBounds, int[] cand, int nc) {
+    private int addInteriorNeighbor(int fromX, int fromY,
+                                    Direction direction, int nIdx,
+                                    boolean inBounds, int[] cand, int nc) {
         if (!inBounds || !grid.isWalkableAt(nIdx) || grid.isDoorwayAt(nIdx)) return nc;
+        if (!grid.isSharedEdgePassable(fromX, fromY, direction)) return nc;
         int z = cellToZoneId[nIdx];
         if (z < 0) return nc;                        // not yet zoned (e.g. an also-just-opened neighbor)
         for (int i = 0; i < nc; i++) if (cand[i] == z) return nc;   // dedup

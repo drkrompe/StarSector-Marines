@@ -157,6 +157,28 @@ public final class NavigationService {
     public boolean isZoneGraphDirty() { return zoneGraphDirty; }
 
     /**
+     * Runtime removal of a thin cardinal barrier. Edge topology only becomes
+     * more permissive during battle, matching the cell-breach invariant: an
+     * existing route remains legal and later searches gain the shortcut.
+     * The full rebuild is intentional because opening an edge merges two
+     * already-zoned walkable regions without adding a new cell for the
+     * incremental cell-opening algorithm to fold.
+     */
+    public void openSharedEdge(int x, int y, Direction direction) {
+        if (direction == null || direction.isDiagonal()) {
+            throw new IllegalArgumentException(
+                    "shared edge direction must be cardinal");
+        }
+        if (!grid.inBounds(x, y)
+                || !grid.inBounds(x + direction.dx, y + direction.dy)) {
+            return;
+        }
+        if (grid.isSharedEdgePassable(x, y, direction)) return;
+        grid.openSharedEdge(x, y, direction);
+        markZoneGraphDirty();
+    }
+
+    /**
      * Drains the zone-graph dirty state at the end of a tick (collapsing multiple in-tick breaches
      * into one update) and clears the vantage-point cache in lockstep so the next
      * {@code findFiringPosition} stage-2 lookup recomputes against the new geometry. Retained
