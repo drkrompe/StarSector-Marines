@@ -108,6 +108,25 @@ test {
     inputs.dir('art-source/tilesets')
             .withPropertyName('tilesetSeeds')
             .withPathSensitivity(PathSensitivity.RELATIVE)
+    // The shipped catalogs and art are read off disk at runtime too, and by far
+    // more tests: TileRegistryTestInstaller loads every builtin catalog before
+    // any test runs, and the preview/tools tests read the real sheets. Edit a
+    // `.tileset.json` or a sheet without these and gradle reports UP-TO-DATE
+    // with the change unverified. Declare `mod/data` and `mod/graphics` only -
+    // `mod/jars` and `mod/sounds` are outputs of shadowJar and deployMod, so
+    // including them would make `:test` stale on every single build.
+    inputs.dir('mod/data')
+            .withPropertyName('shippedCatalogs')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir('mod/graphics')
+            .withPropertyName('shippedArt')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+    // Same hazard, different root: CatalogSmokeFixtureTest reads the staged
+    // two-provider fixture straight out of the source tree rather than off the
+    // test classpath, so gradle cannot see it either.
+    inputs.dir('src/liveTest/catalog-smoke')
+            .withPropertyName('catalogSmokeFixture')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
     // Opt-in gate for the ecs-migration Phase-0 access micro-bench
     // (EcsAccessBenchTest). Off by default so the normal suite stays fast for
     // concurrent sessions; run on demand with `-Decs.bench=true`.

@@ -95,6 +95,11 @@ Do not run builds or leave generated task files there.
   at compile time.
 - `gradlew.bat build` → `mod/jars/StarsectorMarines.jar` (directly into the mod folder; no
   intermediate copy step).
+- Tests read data off disk rather than off the classpath, so a checked-in file a
+  test opens at runtime must be declared with `inputs.dir` in `build.gradle`'s
+  `test {}` block, or `:test` reports UP-TO-DATE with the change unverified.
+  Never declare a build output (`mod/jars`, `mod/sounds`) that way — a suite that
+  re-runs on every build is a suite people start skipping.
 - `gradlew.bat commanderEvidence -Pmission=conquest` → runs the selected
   mission's documented construction-fixture matrix twice in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
