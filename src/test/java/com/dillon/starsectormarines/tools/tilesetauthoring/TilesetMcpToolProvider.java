@@ -1037,11 +1037,10 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
             structured.put("rows", exported.rows());
             structured.put("doodads", exported.doodads());
             structured.put("blocks", exported.blocks());
+            structured.put("strip", exported.strip());
             return McpToolResult.of("Wrote " + exported.atlasPath() + ", "
                     + exported.tilesetPath() + " and " + exported.cardPath()
-                    + " — " + exported.columns() + "x" + exported.rows() + " cells, "
-                    + exported.doodads() + " doodads, " + exported.blocks() + " blocks",
-                    structured);
+                    + " — " + exported.extent(), structured);
         }
     }
 
