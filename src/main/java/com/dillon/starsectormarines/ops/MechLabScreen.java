@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
@@ -100,13 +99,8 @@ public final class MechLabScreen implements Screen {
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             () -> previewSprites().layeredMechSprites(),
-                            () -> previewSprites().layeredUnitSprites().get(
-                                    LayeredArmorFamily.ARMY_GREEN),
-                            () -> previewSprites().tileSheet(),
-                            () -> previewSprites().roadSheet(),
                             () -> previewSprites().mechLabWeldingTorch(),
                             () -> previewSprites().mechLabWeldingSparks(),
-                            cameraController::pose,
                             viewModel::fittingFocused,
                             () -> context.companyDeck().scene(),
                             this::framing,
