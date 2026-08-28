@@ -383,6 +383,17 @@ is one private grid per screen kept in step with the others by hand, while a
 fully manned capital transport — a hundred-odd compartments and a few hundred
 hands — costs well under a millisecond a frame.
 
+One ship also means **one scene on one clock, held across page flips**, and the
+clock belongs to the ship rather than to the page. The question this answers and
+a per-screen scene cannot is where somebody *was*: leave berthing for the lab and
+come back, and the marine who was walking to the mess should be eating. Give each
+screen its own simulation and the two pages are different ships; run only the
+page that is showing and the answer is "exactly where you left them, however long
+you were gone", which reads as a diorama. So whoever ticks the shell ticks the
+ship, and she is crewed to her complement rather than to a watch — a cap on how
+many people exist is a cap on how much ship exists, and the compartments already
+bound themselves by the work they hold.
+
 It follows that a deck-hosted screen **advances** rather than seeks. Seeking is
 a presentation teleport that interpolates between a route's stops in a straight
 line, bypassing collision on purpose; on a hand-authored room those lines are
