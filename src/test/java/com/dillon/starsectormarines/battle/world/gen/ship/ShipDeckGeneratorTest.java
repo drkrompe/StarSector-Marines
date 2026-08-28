@@ -52,6 +52,29 @@ class ShipDeckGeneratorTest {
         }
     }
 
+    /** The packer's published thresholds are zone boundaries, not plain floor. */
+    @Test
+    void packedCompartmentDoorsAreNavigationDoorways() {
+        for (long seed : SEEDS) {
+            ShipDeckGenerator generator = new ShipDeckGenerator();
+            MapResult map = generator.generateDeck(WIDTH, HEIGHT, seed);
+            int observed = 0;
+            for (DeckGraph.Compartment compartment
+                    : generator.getLastDeckGraph().compartments()) {
+                for (Doorway door : compartment.doors()) {
+                    observed++;
+                    assertTrue(map.grid.isWalkable(door.x(), door.y()),
+                            "seed " + seed + ": packed door is not walkable at "
+                                    + door.x() + "," + door.y());
+                    assertTrue(map.grid.isDoorway(door.x(), door.y()),
+                            "seed " + seed + ": packed door is ordinary floor at "
+                                    + door.x() + "," + door.y());
+                }
+            }
+            assertTrue(observed > 0, "seed " + seed + ": no packed doors to verify");
+        }
+    }
+
     /**
      * A vehicle bay authors berths, and a berth is empty floor.
      *

@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-08-28 — folded both deployables.
+Updated: 2026-08-28 — folded both deployables, the integral-system use policy, and defender adoption.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -22,5 +22,7 @@ Updated: 2026-08-28 — folded both deployables.
 | `s11-card-sourced-experience.md` | 2026-08-27 | this commit | `progression-nouns.md` — aptitude and experience: bands issued with the armour pattern, the rejected weapon-grade source, no hidden leader promotion, and stripes following issued armour |
 | `shoulder-micro-missile-pod.md` | 2026-08-28 | this commit | `integral-armor-systems.md` — the second first system, shipped as `system.predictive-volley` on `armor.aegis-composite`, firing `weapon.micro-missile`; `integral-system-slate.md` — the allocation reasoning; `equipment-lore-catalog.md` — the pattern's and weapon's provenance |
 | `s2e-close-contact-boarding-tools.md` | 2026-08-28 | this commit | `progression-nouns.md` — the close-contact activation, contact reach, contact reservation, the authored breach point, the no-universal-melee law, and the two shipped families; `moddable-weapons-nouns.md` — the adjacency executor and the bounded meaning of authored wall damage; `equipment-lore-catalog.md` — Emberjaw and Quillon provenance |
+| `integral-system-use-policy.md` | 2026-08-28 | this commit | `progression-nouns.md` — the use-policy and policy-parameters nouns, the one-vocabulary-two-carriers decision and its cost, the authored-not-compiled trigger law, and the policy-names-a-moment naming rule; `integral-armor-systems.md` — removed from remaining scope |
+| `defender-integral-systems.md` | 2026-08-28 | this commit | `progression-nouns.md` — defenders carrying what their patterns declare, the one-data-path law, systems as composition rather than a difficulty lever, and the still-open pre-contact readability question; `integral-armor-systems.md` — removed from remaining scope |
 | `deployable-emplacements.md` | 2026-08-28 | this commit | `progression-nouns.md` — the deployable activation, the placed-emplacement noun, ordnance interception as distinct from damage, the bounded-on-every-axis law, and the Palisade pod; `moddable-weapons-nouns.md` — the round-declares-its-own-vulnerability law and the emplacement authority split for a carried platform; `equipment-lore-catalog.md` — Palisade provenance. Presentation shipped with it: engagements are drawn, a lost engagement reads differently from a stopped one, and the `point-defence` snapshot suite records a saturating salvo. Deployable cover was deliberately deferred and shipped separately. |
 | `deployable-cover.md` | 2026-08-28 | this commit | `progression-nouns.md` — the actor/boundary-property split inside the deployable category, the placed-cover-screen noun, the one-boundary directionality law, and the Rampart revetment; `mapgen-nouns.md` — the runtime-construction exclusion replaced by the no-islands law construction must satisfy, plus the passable field-revetment profile; `equipment-lore-catalog.md` — Rampart provenance. Presentation shipped with it: the screen is drawn on the boundary it occupies, and the `deployable-cover` snapshot suite records the same fire into a covered lane, an open lane, and a screened post shot from the flank. |
