@@ -181,6 +181,19 @@ public final class CompanyDeck {
         return elapsedSeconds;
     }
 
+    /**
+     * Put the ship away with the dialog she was being looked at through.
+     *
+     * <p>Owned here rather than by a screen: the room views come and go while
+     * the player clicks around, and any of them closing her would end the
+     * continuity the rest of them depend on.
+     */
+    public void dismiss() {
+        if (scene != null) scene.close();
+        scene = null;
+        elapsedSeconds = 0f;
+    }
+
     private void generate() {
         if (deck != null) return;
         if (!ship.habitable()) {

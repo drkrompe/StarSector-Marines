@@ -70,8 +70,9 @@ public final class MechLabBattleScene implements AutoCloseable {
     }
 
     static BattleCamera cameraForSurface(float width, float height, int selectedGantry) {
-        return cameraForSurface(width, height,
-                MechLabCameraController.fittingPose(selectedGantry));
+        return cameraForSurface(width, height, new MechLabCameraController.CameraPose(
+                mechWorldX(selectedGantry), mechWorldY(selectedGantry),
+                MechLabCameraController.FITTING_ZOOM_NOTCHES));
     }
 
     static BattleCamera cameraForSurface(float width, float height,

@@ -436,6 +436,62 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         return simulatedSeconds;
     }
 
+    /**
+     * Draw the ship as a room screen frames her: a compartment fitted to the
+     * viewport, then zoomed and panned within it.
+     *
+     * <p>A different framing from {@link DeckView} and deliberately so. Authoring
+     * evidence states a cell size because the point is to see the art at the
+     * size it was drawn; an interactive room view states a <em>room</em>, because
+     * the point is that the compartment fills the panel whatever shape the panel
+     * is and whatever size the ship is. Fitting the whole deck instead would put
+     * a three-hundred-frame hull in a sidebar and call the resulting four-pixel
+     * cells a vehicle bay.
+     *
+     * <p>What is drawn is still the whole ship. Only the camera is on the room:
+     * crew walk in from the passage and out to the mess, because they are going
+     * to the mess.
+     */
+    public BattleSceneHostPass pass(RoomView view) {
+        return pass(view, DECK_LAYERS);
+    }
+
+    public BattleSceneHostPass pass(RoomView view, EnumSet<RenderLayer> layers) {
+        if (view == null) throw new IllegalArgumentException("a room framing is required");
+        EnumSet<RenderLayer> selected = EnumSet.copyOf(layers);
+        return new BattleSceneHostPass() {
+            @Override
+            public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
+                return prepareFrame(viewport, view, alphaMult, selected);
+            }
+
+            @Override
+            public void draw(CanvasHostViewport viewport, float alphaMult) {
+                if (renderer == null) {
+                    throw new IllegalStateException("This deck scene has no live renderer");
+                }
+                BattleSceneFrame frame = prepare(viewport, alphaMult);
+                renderer.renderWorld(frame.context(), frame.layers());
+            }
+        };
+    }
+
+    /**
+     * The camera a room view puts on the ship, for a host that needs to project
+     * world points onto its own surface — a fitting overlay has to land on the
+     * mech it annotates.
+     */
+    public BattleCamera cameraFor(RoomView view, float screenX, float screenY,
+                                  float width, float height) {
+        if (view == null) throw new IllegalArgumentException("a room framing is required");
+        BattleCamera camera = new BattleCamera(
+                simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
+        camera.setViewport(screenX, screenY, width, height, view.fittedCellPx(width, height));
+        camera.zoomAt(view.zoomNotches(), screenX + width * 0.5f, screenY + height * 0.5f);
+        camera.centerOn(view.centerCellX(), view.centerCellY());
+        return camera;
+    }
+
     public BattleSceneHostPass pass(DeckView view) {
         return pass(view, DECK_LAYERS);
     }
@@ -460,6 +516,19 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         };
     }
 
+    private BattleSceneFrame prepareFrame(CanvasHostViewport viewport, RoomView view,
+                                          float alphaMult, EnumSet<RenderLayer> layers) {
+        if (viewport.width() <= 0f || viewport.height() <= 0f) {
+            throw new IllegalArgumentException("a deck scene requires a visible viewport");
+        }
+        BattleCamera camera = cameraFor(view, viewport.screenX(), viewport.screenY(),
+                viewport.width(), viewport.height());
+        RenderContext context = new RenderContext(simulation, camera, null,
+                alphaMult, 0f, false, highlights, selection,
+                BattleRenderHostProfile.EMBEDDED_SCENE);
+        return new BattleSceneFrame(context, layers);
+    }
+
     private BattleSceneFrame prepareFrame(CanvasHostViewport viewport, DeckView view,
                                           float alphaMult, EnumSet<RenderLayer> layers) {
         if (viewport.width() <= 0f || viewport.height() <= 0f) {
@@ -479,6 +548,70 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     @Override
     public void close() {
         simulation.close();
+    }
+
+    /**
+     * An operations screen's camera on one compartment: what to fit, where to
+     * look, and how far in.
+     *
+     * <p>The fitted extent and the look-at point are separate on purpose. The
+     * extent is the room, and it decides the scale — so the panel shows a bay
+     * whether the bay is on a cruiser or a capital. The look-at point is
+     * wherever the screen's attention is, which is usually a berth rather than
+     * the middle of the room, and it moves while the extent does not. Deriving
+     * the scale from the look-at point instead would make the room breathe every
+     * time the player selected a different machine.
+     *
+     * @param fitAcross cells the framing fits across; the room plus its surround
+     * @param fitDown cells the framing fits down
+     * @param zoomNotches wheel notches in from the fitted scale, so a screen can
+     *     ease between a wide shot and a close one without knowing pixel sizes
+     */
+    public record RoomView(int fitLeft, int fitTop, int fitAcross, int fitDown,
+                           float centerCellX, float centerCellY, float zoomNotches) {
+
+        public RoomView {
+            if (fitAcross <= 0 || fitDown <= 0) {
+                throw new IllegalArgumentException("a room framing fits a positive extent");
+            }
+            if (!Float.isFinite(centerCellX) || !Float.isFinite(centerCellY)
+                    || !Float.isFinite(zoomNotches)) {
+                throw new IllegalArgumentException("room framing coordinates must be finite");
+            }
+        }
+
+        /**
+         * Frame a compartment with a margin of the hull around it, looking at
+         * its middle.
+         *
+         * <p>The surround is not decoration: a room drawn to its own bounds has
+         * its doors clipped off at the frame edge, so a doorway and a gap in the
+         * bulkhead look identical — and a room view is most often opened to see
+         * who is coming through one.
+         */
+        public static RoomView of(DeckGraph.Compartment room, int surroundCells) {
+            return of(room, surroundCells, 0f);
+        }
+
+        public static RoomView of(DeckGraph.Compartment room, int surroundCells,
+                                  float zoomNotches) {
+            if (room == null) throw new IllegalArgumentException("a compartment is required");
+            int margin = Math.max(0, surroundCells);
+            return new RoomView(room.left() - margin, room.top() - margin,
+                    room.width() + margin * 2, room.depth() + margin * 2,
+                    room.left() + room.width() * 0.5f, room.top() + room.depth() * 0.5f,
+                    zoomNotches);
+        }
+
+        /** The same framing, looking somewhere else in the room and zoomed in. */
+        public RoomView lookingAt(float cellX, float cellY, float notches) {
+            return new RoomView(fitLeft, fitTop, fitAcross, fitDown, cellX, cellY, notches);
+        }
+
+        /** Cell size that fits this framing's extent to a viewport of this shape. */
+        public float fittedCellPx(float width, float height) {
+            return Math.min(width / fitAcross, height / fitDown);
+        }
     }
 
     /**
