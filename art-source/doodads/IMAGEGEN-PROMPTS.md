@@ -117,6 +117,16 @@ Per-asset primary requests:
   blue-gray civic conference table with an inset cyan presentation/map screen,
   tidy document pads, dark gunmetal trim, and subtle amber status lights; long
   axis horizontal, no chairs or people.
+- `office-reception-counter.png`: one broad municipal reception counter shaped
+  as a shallow U or long L, with two integrated clerk work positions, two slim
+  cyan terminal screens, document trays, low privacy panels, dark gunmetal trim,
+  and tiny amber status lights; long axis horizontal and composed for a 3x2-cell
+  footprint, with no chairs or people.
+- `office-records-bank.png`: one long wall-side municipal records and
+  communications bank combining low blue-gray filing cabinets, archive drawers,
+  one compact cyan status terminal, a small secure parcel shelf, dark gunmetal
+  trim, and tiny amber indicator lights; long axis horizontal and composed for
+  a 2x1-cell footprint.
 
 ## Industrial-facility additions
 

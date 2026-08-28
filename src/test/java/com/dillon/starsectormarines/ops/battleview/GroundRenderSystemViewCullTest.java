@@ -69,16 +69,20 @@ class GroundRenderSystemViewCullTest {
         DrawCommand glass = intact.buffer(RenderLayer.GROUND)[2];
         float cell = cam.cellPxSize();
         float edgeX = cam.cellToScreenX(1f);
-        assertEquals(edgeX, (frame.centerX() + frame.width()) * 0.5f, 0.001f,
-                "frame must remain centered on the shared edge");
-        assertEquals(edgeX, (glass.centerX() + glass.width()) * 0.5f, 0.001f,
-                "pane must remain centered on the shared edge");
-        assertEquals(cell * 0.10f, frame.width() - frame.centerX(), 0.001f,
-                "edge frame is a thin seam, not a partial cell wall");
-        assertEquals(cell * 0.04f, glass.width() - glass.centerX(), 0.001f,
+        assertEquals(edgeX, frame.width(), 0.001f,
+                "frame exterior must stop on the shared edge");
+        assertEquals(edgeX - cell * 0.30f, frame.centerX(), 0.001f,
+                "frame must project into its structural-owner cell");
+        assertEquals(edgeX - cell * 0.15f,
+                (glass.centerX() + glass.width()) * 0.5f, 0.001f,
+                "pane must remain centered inside the inward frame");
+        assertEquals(cell * 0.30f, frame.width() - frame.centerX(), 0.001f,
+                "edge frame is widened for distance readability");
+        assertEquals(cell * 0.12f, glass.width() - glass.centerX(), 0.001f,
                 "glass stays visibly narrower than its frame");
-        assertEquals(cell * 0.84f, frame.height() - frame.centerY(), 0.001f);
-        assertEquals(cell * 0.68f, glass.height() - glass.centerY(), 0.001f);
+        assertEquals(cell, frame.height() - frame.centerY(), 0.001f,
+                "frame must meet the neighboring wall at both ends");
+        assertEquals(cell * 0.84f, glass.height() - glass.centerY(), 0.001f);
 
         assertTrue(sim.damageEdgeBarrier(0, 0, Direction.E, 40));
         assertEquals(1, collectGround(sim, cam),
@@ -86,11 +90,11 @@ class GroundRenderSystemViewCullTest {
     }
 
     @Test
-    void northWindowEdgeUsesTheSameThinGeometryRotated() {
+    void northWindowEdgeUsesTheSameReadableGeometryRotated() {
         NavigationGrid grid = new NavigationGrid(1, 2);
         grid.setWalkableFloor(0, 0);
         grid.setWalkableFloor(0, 1);
-        grid.placeEdgeBarrier(0, 0, Direction.N,
+        grid.placeEdgeBarrier(0, 1, Direction.S,
                 SharedEdgeBarrier.Kind.WINDOW);
         BattleSimulation sim = new BattleSimulation(grid,
                 new CellTopology(1, 2));
@@ -102,12 +106,16 @@ class GroundRenderSystemViewCullTest {
         DrawCommand glass = out.buffer(RenderLayer.GROUND)[2];
         float cell = cam.cellPxSize();
         float edgeY = cam.cellToScreenY(1f);
-        assertEquals(edgeY, (frame.centerY() + frame.height()) * 0.5f, 0.001f);
-        assertEquals(edgeY, (glass.centerY() + glass.height()) * 0.5f, 0.001f);
-        assertEquals(cell * 0.10f, frame.height() - frame.centerY(), 0.001f);
-        assertEquals(cell * 0.04f, glass.height() - glass.centerY(), 0.001f);
-        assertEquals(cell * 0.84f, frame.width() - frame.centerX(), 0.001f);
-        assertEquals(cell * 0.68f, glass.width() - glass.centerX(), 0.001f);
+        assertEquals(edgeY, frame.centerY(), 0.001f,
+                "frame exterior must stop on the shared edge");
+        assertEquals(edgeY + cell * 0.30f, frame.height(), 0.001f,
+                "south-facing window must project north into its owner cell");
+        assertEquals(edgeY + cell * 0.15f,
+                (glass.centerY() + glass.height()) * 0.5f, 0.001f);
+        assertEquals(cell * 0.30f, frame.height() - frame.centerY(), 0.001f);
+        assertEquals(cell * 0.12f, glass.height() - glass.centerY(), 0.001f);
+        assertEquals(cell, frame.width() - frame.centerX(), 0.001f);
+        assertEquals(cell * 0.84f, glass.width() - glass.centerX(), 0.001f);
     }
 
     private static int collectGround(BattleSimulation sim, BattleCamera cam) {

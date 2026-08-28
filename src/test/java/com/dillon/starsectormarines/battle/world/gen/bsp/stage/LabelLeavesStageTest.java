@@ -10,13 +10,13 @@ class LabelLeavesStageTest {
     @Test
     void civicHeadquartersRequireBothLongAndShortLotMinimums() {
         assertEquals(BlockKind.BUILDING_CIVIC,
-                LabelLeavesStage.constrainKindForSize(BlockKind.BUILDING_CIVIC, 13, 11));
+                LabelLeavesStage.constrainKindForSize(BlockKind.BUILDING_CIVIC, 15, 13));
         assertEquals(BlockKind.BUILDING_CIVIC,
-                LabelLeavesStage.constrainKindForSize(BlockKind.BUILDING_CIVIC, 11, 13));
+                LabelLeavesStage.constrainKindForSize(BlockKind.BUILDING_CIVIC, 13, 15));
         assertEquals(BlockKind.BUILDING_COMMERCIAL,
-                LabelLeavesStage.constrainKindForSize(BlockKind.BUILDING_CIVIC, 12, 11));
+                LabelLeavesStage.constrainKindForSize(BlockKind.BUILDING_CIVIC, 14, 13));
         assertEquals(BlockKind.BUILDING_COMMERCIAL,
-                LabelLeavesStage.constrainKindForSize(BlockKind.BUILDING_CIVIC, 13, 10));
+                LabelLeavesStage.constrainKindForSize(BlockKind.BUILDING_CIVIC, 15, 12));
     }
 
     @Test

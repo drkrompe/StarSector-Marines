@@ -387,7 +387,11 @@ public class NavigationGrid {
      * Authors one physical barrier and closes its shared transition. Both
      * adjacent cells must already be standable: a barrier divides usable
      * space rather than masquerading as a cell wall. Runtime construction is
-     * intentionally unsupported; generators place barriers before play.
+     * intentionally unsupported; generators place barriers before play. The
+     * authored {@code (x,y)} cell is retained as the structural-owner side of
+     * the edge even when west/south placement is canonicalized onto its
+     * neighbor. Presentation and later building-level consumers may use that
+     * side without changing the zero-width navigation transition.
      */
     public SharedEdgeBarrier placeEdgeBarrier(
             int x, int y, Direction direction, SharedEdgeBarrier.Kind kind) {
@@ -414,7 +418,7 @@ public class NavigationGrid {
         }
 
         SharedEdgeBarrier barrier = new SharedEdgeBarrier(
-                canonicalX, canonicalY, canonicalDirection, kind);
+                canonicalX, canonicalY, canonicalDirection, kind, x, y);
         barrierArray(canonicalDirection)[index(canonicalX, canonicalY)] = barrier;
         edgeBarriers.add(barrier);
         blockSharedEdge(canonicalX, canonicalY, canonicalDirection);
