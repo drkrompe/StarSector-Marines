@@ -429,17 +429,18 @@ lost while it is being towed home has been told a falsehood.
 the squads, the fire-team templates, the weapon and armour doctrines, the
 arrangements, the named officers and the machines in the bay all survive her -
 they are the company itself, and an outfit that forgets how it fights has been
-deleted rather than hurt. What sinks is what was aboard: the marines who were
-home, the kit racked in her armoury, the spares on the bay's shelf and the
-stores in her holds. That leaves an outfit that still knows how it fights and
-has to buy back the means to do it, which is a setback the player can work
-against rather than a save they have to abandon.
+deleted rather than hurt. What sinks is what was aboard and counted: the marines
+who were home, the spares on the bay's shelf and the stores in her holds. That
+leaves an outfit that still knows how it fights and has to buy back the means to
+do it, which is a setback the player can work against rather than a save they
+have to abandon.
 
-Destroying the kit is not decoration on top of the casualties, it is what stops
-them reading backwards. A marine who is no longer active releases their issued
-weapon and armour back to available stock, so killing the people without sinking
-the armoury would hand the player a fuller rack than they had before the ship
-burned.
+There is no armoury inventory to sink, and looking for one is a mistake worth
+naming. A company's equipment is a set of designs it owns permanently rather
+than a rack it draws down: owning a template card is what lets a squad be issued
+a weapon, and what an issue actually consumes is fleet cargo. Anything that
+wants to cost the player materiel has to reach the counted things - the stores
+and the bay's spares - because that is where the quantities live.
 
 **Holding the field decides who is picked up.** Losing the ship out of a battle
 the player still won leaves boats in the water and the time to use them; losing

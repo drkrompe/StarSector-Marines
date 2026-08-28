@@ -11,8 +11,8 @@ outline, with the passages threading it and the room under the cursor named. A
 company with no ship - never chosen, or displaced by a ship that did not come
 home - opens on the choice, cannot reach a room view until it has made one, and
 moves for nothing; every later move is a refit the company pays the yard for.
-Losing her kills a share of the marines aboard and sinks the armoury, the bay's
-spares and her holds, while the squads, doctrines and machines survive.
+Losing her kills a share of the marines aboard and sinks the bay's spares and
+her holds, while the squads, doctrines, templates and machines survive.
 
 Read `ship-interiors-nouns.md` and `company-ship.md` before implementing this
 story. Depends on the room views being deck-hosted, which they now are — see
@@ -89,9 +89,9 @@ fleet.
   damaged.~~ Settled for the interior and for the people: the company is
   displaced rather than re-homed, told whether she was lost or let go, and told
   how many marines went down with her. The company keeps what it is - squads,
-  templates, doctrines, officers, machines - and loses what it had: the marines
-  aboard, the armoury's stock, the bay's spares and her holds. Holding the field
-  decides who is picked up.
+  templates, doctrines, officers, machines - and loses what it had and counted:
+  the marines aboard, the bay's spares and her holds. Holding the field decides
+  who is picked up.
 - Whether the company's named officers are at risk with her. They are not, at
   present: a captain is the continuity the player rebuilds with, and losing the
   ship already costs a share of the company, its kit and its stores. Worth

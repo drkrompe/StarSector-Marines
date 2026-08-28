@@ -17,7 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -77,8 +76,8 @@ class ShipLossSettlementTest {
     }
 
     @Test
-    @DisplayName("the company keeps its designs and its machines, and loses its stock")
-    void designsAndMachinesSurviveTheStockDoesNot() {
+    @DisplayName("the company keeps its designs and its machines, and loses its spares")
+    void designsAndMachinesSurviveTheSparesDoNot() {
         MarineRoster roster = company();
         roster.mechBay().addReplenisher(MissileReplenisherComponent.STANDARD.id(), 4);
         int designs = roster.armory().ownedEquipmentTemplateIds().size();
@@ -95,7 +94,6 @@ class ShipLossSettlementTest {
         assertEquals(machines, roster.mechBay().squads().get(0).mechs().size(),
                 "the walkers come with them");
 
-        assertTrue(toll.kitLost() > 0, "the armory was a compartment aboard her");
         // The bay held five spares on its shelf and one bolted into the walker.
         assertEquals(5, toll.sparesLost());
         assertEquals(1, roster.mechBay().ownedReplenisher(
@@ -107,17 +105,19 @@ class ShipLossSettlementTest {
     }
 
     @Test
-    @DisplayName("survivors come out in fatigues rather than out of a full armory")
-    void aSinkingIsNotAWindfall() {
+    @DisplayName("what a squad is allowed to carry is not touched by a sinking")
+    void equipmentTemplatesAreNotAnInventory() {
         MarineRoster roster = company();
+        int templates = roster.armory().equipmentTemplateCards().size();
 
-        ShipLossSettlement.Toll toll =
-                ShipLossSettlement.settle(roster, null, 0, true, SEED);
+        ShipLossSettlement.settle(roster, null, 0, false, SEED);
 
-        assertFalse(roster.armory().ownedPrimary(
-                        WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE) > 0,
-                "the racked rifles went down with her");
-        assertTrue(toll.marinesSurvived() > 0);
+        // A company's equipment is a set of designs it owns permanently, not a
+        // rack it draws down; what an issue actually consumes is fleet cargo.
+        assertEquals(templates, roster.armory().equipmentTemplateCards().size());
+        assertTrue(roster.armory().ownsPrimaryTemplate(
+                WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE),
+                "the company still knows how to arm a rifle squad");
     }
 
     @Test
