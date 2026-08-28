@@ -96,6 +96,27 @@ public final class MechBay implements Serializable {
         ownedReplenishers.merge(componentId, quantity, Integer::sum);
     }
 
+    /**
+     * Spares go down with the ship; the machines and what is bolted into them
+     * do not.
+     *
+     * <p>A walker is the company's own, and what it is carrying is carrying it.
+     * What sinks is the shelf of replacements beside it, which is the input the
+     * player has to restock before the bay can refit anything again.
+     *
+     * @return how many spare components were destroyed
+     */
+    public int loseSpares() {
+        int destroyed = 0;
+        for (String componentId : new ArrayList<>(ownedReplenishers.keySet())) {
+            int installed = installedReplenisher(componentId);
+            destroyed += Math.max(0, ownedReplenisher(componentId) - installed);
+            if (installed <= 0) ownedReplenishers.remove(componentId);
+            else ownedReplenishers.put(componentId, installed);
+        }
+        return destroyed;
+    }
+
     /** Atomic one-slot refit; failure leaves the installed component untouched. */
     public boolean installReplenisher(String mechId, String componentId) {
         CampaignMech mech = mechById(mechId);
