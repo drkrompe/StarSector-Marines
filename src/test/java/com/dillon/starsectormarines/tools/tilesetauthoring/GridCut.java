@@ -10,11 +10,11 @@ import java.util.List;
  * coordinate its first line falls on and the distance between lines. It is not
  * a division of the canvas. Generated art sits inside a margin and is rarely
  * drawn to a pitch that divides its own pixel size evenly:
- * {@code urban-tileset} is a real, regular ten-column grid whose lines are
- * 123.23px apart starting 8.5px in, while dividing its 1254px canvas by ten
- * places them 125.4px apart starting at zero. The two disagree by up to nine
- * pixels at the ends, which is a visible sliver of the neighbouring cell in
- * every exported tile.
+ * {@code urban-tileset} is a real, regular ten-column grid whose gutters are
+ * 123.25px apart starting 2.31px in, while dividing its 1254px canvas by ten
+ * places lines 125.4px apart starting at zero. The two disagree by up to
+ * seventeen pixels at the ends, which is a visible sliver of the neighbouring
+ * cell in every exported tile.
  *
  * <p><b>Counts stay stated; only the placement is measured.</b> How many cells a
  * sheet holds cannot be read off the pixels — it was tried here and deleted,
