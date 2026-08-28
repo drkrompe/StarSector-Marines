@@ -80,7 +80,7 @@ class ConquestCommandBalanceReportTest {
                 List.of(row), 600, false);
 
         assertTrue(json.contains("\"schedulerMode\":\"SERIAL_DETERMINISTIC\""));
-        assertTrue(json.contains("\"schemaVersion\":4"));
+        assertTrue(json.contains("\"schemaVersion\":5"));
         assertTrue(json.contains("\"maxTicks\":600"));
         assertTrue(json.contains("\"repeatCount\":2"));
         assertTrue(json.contains("\"canonicalMatrix\":false"));
@@ -96,7 +96,15 @@ class ConquestCommandBalanceReportTest {
                 + "\"targetEntry\":0,\"retarget\":0,\"release\":0,"
                 + "\"squadLoss\":0,\"executionSuspension\":0,"
                 + "\"observationGap\":0,\"timeout\":0,"
-                + "\"terminalResult\":0}"));
+                + "\"terminalResult\":0},\"retargetProvenance\":{"
+                + "\"objectiveChanged\":0,\"markerChanged\":0,"
+                + "\"assignmentChanged\":0,\"unclassified\":0},"
+                + "\"squadLossLastDistancesDecicells\":[],"
+                + "\"squadLossApproachProgressBasisPoints\":[],"
+                + "\"squadLossFrontContext\":{\"observed\":0,"
+                + "\"unknown\":0,\"localContact\":0,"
+                + "\"trackBeliefOnly\":0,\"noPublishedContact\":0,"
+                + "\"unknownTrack\":0}"));
         assertTrue(markdown.contains("Evidence mode: ad hoc override"));
         assertTrue(markdown.contains("production launch fixtures"));
         assertTrue(markdown.contains("mobilization latencies: [75, 150]"));
@@ -106,6 +114,13 @@ class ConquestCommandBalanceReportTest {
         assertTrue(markdown.contains("peak live members"));
         assertTrue(markdown.contains("Marine secure-travel episodes: "
                 + "0/0 finalized, 0 open; exits: target entry 0"));
+        assertTrue(markdown.contains("Retarget provenance: objective changed 0, "
+                + "marker changed 0, assignment changed 0, unclassified 0"));
+        assertTrue(markdown.contains("Squad-loss last distances (0.1 cells): "
+                + "[]; approach progress (bp): []"));
+        assertTrue(markdown.contains("Last-alive front context: observed 0, "
+                + "unknown location 0, local contact 0, track belief only 0, "
+                + "no published contact 0, unknown track 0"));
         assertTrue(markdown.contains("Context may overlap: local contact 0, "
                 + "active path 0, quiet travel 0"));
         assertTrue(markdown.contains("Capture-zone presence:"));
