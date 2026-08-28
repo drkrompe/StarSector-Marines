@@ -34,17 +34,55 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.SettingsAPI;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Proxy;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadStateDumperTest {
+
+    @Test
+    void snapshotWriteIsSynchronousAndUsesExpectedCommonPath() throws Exception {
+        AtomicReference<String> path = new AtomicReference<>();
+        AtomicReference<JSONObject> json = new AtomicReference<>();
+        AtomicBoolean onlyIfChanged = new AtomicBoolean(true);
+        SettingsAPI previous = Global.getSettings();
+        SettingsAPI settings = (SettingsAPI) Proxy.newProxyInstance(
+                SettingsAPI.class.getClassLoader(),
+                new Class<?>[]{SettingsAPI.class},
+                (proxy, method, args) -> {
+                    if (method.getName().equals("writeJSONToCommon")) {
+                        path.set((String) args[0]);
+                        json.set((JSONObject) args[1]);
+                        onlyIfChanged.set((Boolean) args[2]);
+                    }
+                    return null;
+                });
+        JSONObject snapshot = new JSONObject().put("squad", 180);
+
+        try {
+            Global.setSettings(settings);
+            SquadStateDumper.writeSnapshot(
+                    "starsector_marines/debug/squad_180.json", snapshot);
+        } finally {
+            Global.setSettings(previous);
+        }
+
+        assertEquals("starsector_marines/debug/squad_180.json", path.get());
+        assertSame(snapshot, json.get());
+        assertFalse(onlyIfChanged.get());
+    }
 
     @Test
     void contactPictureCarriesDecisionAgeRatioAndPrimaryEvidence() throws Exception {
