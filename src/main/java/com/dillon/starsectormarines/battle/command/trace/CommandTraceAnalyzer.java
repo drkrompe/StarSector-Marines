@@ -57,13 +57,16 @@ public final class CommandTraceAnalyzer {
             List<Integer> publishedMobilizationLatenciesTicks,
             int unmobilizedThreatEpisodes,
             int peakPublishedTrackShareBasisPoints,
-            PhysicalProgressMetrics physicalProgress) {
+            PhysicalProgressMetrics physicalProgress,
+            CommandInactivityMetrics commandInactivity) {
 
         public FactionMetrics {
             publishedMobilizationLatenciesTicks =
                     List.copyOf(publishedMobilizationLatenciesTicks);
             physicalProgress = physicalProgress != null
                     ? physicalProgress : PhysicalProgressMetrics.empty();
+            commandInactivity = commandInactivity != null
+                    ? commandInactivity : CommandInactivityMetrics.empty();
         }
 
         public FactionMetrics(int perspectiveSamples, int retargets,
@@ -83,7 +86,52 @@ public final class CommandTraceAnalyzer {
                     unreachableSquadPulses, noActionableSquadPulses,
                     0, reserveSquadTicks, mobilizationLatencies,
                     unmobilizedThreatEpisodes, peakTrackShare,
-                    PhysicalProgressMetrics.empty());
+                    PhysicalProgressMetrics.empty(),
+                    CommandInactivityMetrics.empty());
+        }
+
+        public FactionMetrics(int perspectiveSamples, int retargets,
+                              int releases, int reissues,
+                              int rejectedProposals, int stabilityHolds,
+                              int unassignedSquadPulses,
+                              int unassignedSquadTicks,
+                              int unreachableSquadPulses,
+                              int noActionableSquadPulses,
+                              int distantCaptureDeferredSquadPulses,
+                              long reserveSquadTicks,
+                              List<Integer> mobilizationLatencies,
+                              int unmobilizedThreatEpisodes,
+                              int peakTrackShare,
+                              PhysicalProgressMetrics physicalProgress) {
+            this(perspectiveSamples, retargets, releases, reissues,
+                    rejectedProposals, stabilityHolds,
+                    unassignedSquadPulses, unassignedSquadTicks,
+                    unreachableSquadPulses, noActionableSquadPulses,
+                    distantCaptureDeferredSquadPulses, reserveSquadTicks,
+                    mobilizationLatencies, unmobilizedThreatEpisodes,
+                    peakTrackShare, physicalProgress,
+                    CommandInactivityMetrics.empty());
+        }
+    }
+
+    /** Mutually-exclusive explanations for command-unassigned Conquest time. */
+    public record CommandInactivityMetrics(
+            int lifecycleSquadPulses,
+            long lifecycleSquadTicks,
+            int executionSuspendedSquadPulses,
+            long executionSuspendedSquadTicks,
+            int localContactSquadPulses,
+            long localContactSquadTicks,
+            int usefulMovementSquadPulses,
+            long usefulMovementSquadTicks,
+            int genuineIdleSquadPulses,
+            long genuineIdleSquadTicks,
+            int unclassifiedSquadPulses,
+            long unclassifiedSquadTicks) {
+
+        static CommandInactivityMetrics empty() {
+            return new CommandInactivityMetrics(0, 0L, 0, 0L, 0, 0L,
+                    0, 0L, 0, 0L, 0, 0L);
         }
     }
 
@@ -217,6 +265,33 @@ public final class CommandTraceAnalyzer {
                         metrics.noActionableSquadPulses());
                 numberField(out, "distantCaptureDeferredSquadPulses",
                         metrics.distantCaptureDeferredSquadPulses());
+                CommandInactivityMetrics inactivity = metrics.commandInactivity();
+                out.append(",\"commandInactivity\":{");
+                rawNumberField(out, "lifecycleSquadPulses",
+                        inactivity.lifecycleSquadPulses());
+                longField(out, "lifecycleSquadTicks",
+                        inactivity.lifecycleSquadTicks());
+                numberField(out, "executionSuspendedSquadPulses",
+                        inactivity.executionSuspendedSquadPulses());
+                longField(out, "executionSuspendedSquadTicks",
+                        inactivity.executionSuspendedSquadTicks());
+                numberField(out, "localContactSquadPulses",
+                        inactivity.localContactSquadPulses());
+                longField(out, "localContactSquadTicks",
+                        inactivity.localContactSquadTicks());
+                numberField(out, "usefulMovementSquadPulses",
+                        inactivity.usefulMovementSquadPulses());
+                longField(out, "usefulMovementSquadTicks",
+                        inactivity.usefulMovementSquadTicks());
+                numberField(out, "genuineIdleSquadPulses",
+                        inactivity.genuineIdleSquadPulses());
+                longField(out, "genuineIdleSquadTicks",
+                        inactivity.genuineIdleSquadTicks());
+                numberField(out, "unclassifiedSquadPulses",
+                        inactivity.unclassifiedSquadPulses());
+                longField(out, "unclassifiedSquadTicks",
+                        inactivity.unclassifiedSquadTicks());
+                out.append('}');
                 longField(out, "reserveSquadTicks",
                         metrics.reserveSquadTicks());
                 out.append(",\"publishedMobilizationLatenciesTicks\":[");
@@ -345,6 +420,7 @@ public final class CommandTraceAnalyzer {
         int unreachablePulses = 0;
         int noActionablePulses = 0;
         int distantCaptureDeferredPulses = 0;
+        InactivityAccumulator inactivity = new InactivityAccumulator();
         long reserveTicks = 0;
         int peakShare = 0;
         Map<Integer, ThreatState> threats = new HashMap<>();
@@ -399,6 +475,8 @@ public final class CommandTraceAnalyzer {
             JSONObject conquest = row.optJSONObject("conquest");
             if (conquest == null) continue;
             JSONArray actions = conquest.getJSONArray("actions");
+            Map<Integer, JSONObject> squadStates = bySquad(
+                    conquest.optJSONArray("squads"));
             Map<Integer, Boolean> respondingTracks = new HashMap<>();
             int unassignedNow = 0;
             for (int i = 0; i < actions.length(); i++) {
@@ -414,12 +492,18 @@ public final class CommandTraceAnalyzer {
                         unassignedPulses++;
                     }
                     unassignedNow++;
+                    inactivity.add(inactivityCause(schemaVersion,
+                                    squadStates.get(action.getInt("squadId"))),
+                            !baseline, intervalTicks);
                 } else if ("NO_ACTIONABLE_TRACK_TARGET".equals(reason)) {
                     if (!baseline) {
                         noActionablePulses++;
                         unassignedPulses++;
                     }
                     unassignedNow++;
+                    inactivity.add(inactivityCause(schemaVersion,
+                                    squadStates.get(action.getInt("squadId"))),
+                            !baseline, intervalTicks);
                 }
                 if ("DEFENDER_TRACK_RESPONSE".equals(reason)
                         || "DEFENDER_ADJACENT_TRACK_RESPONSE".equals(reason)) {
@@ -488,7 +572,52 @@ public final class CommandTraceAnalyzer {
                 reissues, rejected, stabilityHolds, unassignedPulses,
                 unassignedTicks, unreachablePulses, noActionablePulses,
                 distantCaptureDeferredPulses, reserveTicks, latencies,
-                unanswered, peakShare, physical);
+                unanswered, peakShare, physical, inactivity.metrics());
+    }
+
+    private static InactivityCause inactivityCause(int schemaVersion,
+                                                    JSONObject state) {
+        if (schemaVersion < 6) return InactivityCause.UNCLASSIFIED;
+        if (state == null || state.optInt("aliveMembers", 0) <= 0) {
+            return InactivityCause.LIFECYCLE;
+        }
+        if (!state.isNull("executionSuspension")) {
+            return InactivityCause.EXECUTION_SUSPENDED;
+        }
+        if (state.optBoolean("localContact", false)) {
+            return InactivityCause.LOCAL_CONTACT;
+        }
+        if (state.optInt("activePathMembers", 0) > 0) {
+            return InactivityCause.USEFUL_MOVEMENT;
+        }
+        return InactivityCause.GENUINE_IDLE;
+    }
+
+    private enum InactivityCause {
+        LIFECYCLE,
+        EXECUTION_SUSPENDED,
+        LOCAL_CONTACT,
+        USEFUL_MOVEMENT,
+        GENUINE_IDLE,
+        UNCLASSIFIED
+    }
+
+    private static final class InactivityAccumulator {
+        private final int[] pulses = new int[InactivityCause.values().length];
+        private final long[] ticks = new long[InactivityCause.values().length];
+
+        void add(InactivityCause cause, boolean countPulse, int intervalTicks) {
+            int index = cause.ordinal();
+            if (countPulse) pulses[index]++;
+            ticks[index] += intervalTicks;
+        }
+
+        CommandInactivityMetrics metrics() {
+            return new CommandInactivityMetrics(
+                    pulses[0], ticks[0], pulses[1], ticks[1],
+                    pulses[2], ticks[2], pulses[3], ticks[3],
+                    pulses[4], ticks[4], pulses[5], ticks[5]);
+        }
     }
 
     private static PhysicalProgressMetrics analyzePhysicalProgress(
@@ -947,7 +1076,8 @@ public final class CommandTraceAnalyzer {
                     trace.headerSeen = true;
                     int schemaVersion = row.getInt("schemaVersion");
                     if (schemaVersion != 2 && schemaVersion != 3
-                            && schemaVersion != 4 && schemaVersion != 5) {
+                            && schemaVersion != 4 && schemaVersion != 5
+                            && schemaVersion != 6) {
                         throw new IllegalArgumentException(
                                 "Unsupported command trace schemaVersion: "
                                         + schemaVersion);

@@ -62,11 +62,28 @@ class CivicHeadquartersFloorPlanTest {
             assertEquals(1, purposeComponents(topology, leaf, RoomPurpose.SERVER_ROOM));
             assertTwoCellSpine(grid, topology, leaf, frontage, publicDoor);
 
-            assertEquals(2, doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_OFFICE));
+            assertEquals(4, doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_OFFICE),
+                    "each office needs a workstation plus records bank");
             assertEquals(1, doodadsInPurpose(doodads, topology, RoomPurpose.CONFERENCE_ROOM));
-            assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.SERVER_ROOM) >= 3,
-                    "server room needs a rack row rather than one symbolic cabinet");
-            assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_RECEPTION) >= 1);
+            assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.SERVER_ROOM) >= 2,
+                    "server room needs multiple two-cell racks around an aisle");
+            assertEquals(2,
+                    doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_RECEPTION),
+                    "paired counters should flank the public circulation lane");
+            assertTrue(doodads.stream().anyMatch(doodad -> doodad.quarterTurns != 0),
+                    "civic fixtures should turn to fit their rooms " + frontage);
+            for (Doodad doodad : doodads) {
+                boolean swapsAxes = (doodad.quarterTurns & 1) != 0;
+                assertEquals(swapsAxes ? doodad.sourceCellsY : doodad.sourceCellsX,
+                        doodad.footprintCellsX, "rotated footprint width " + frontage);
+                assertEquals(swapsAxes ? doodad.sourceCellsX : doodad.sourceCellsY,
+                        doodad.footprintCellsY, "rotated footprint height " + frontage);
+            }
+            assertTrue(windowsFacingPurpose(topology, leaf, RoomPurpose.CIVIC_RECEPTION)
+                            + windowsFacingPurpose(topology, leaf, RoomPurpose.CONFERENCE_ROOM) >= 2,
+                    "public rooms retain exterior firing apertures " + frontage);
+            assertEquals(0, windowsFacingPurpose(topology, leaf, RoomPurpose.CIVIC_OFFICE),
+                    "compact offices reserve their facade capacity for the fixture group " + frontage);
 
             for (int y = leaf.top + 1; y < leaf.bottom; y++) {
                 for (int x = leaf.left + 1; x < leaf.right; x++) {
@@ -228,6 +245,24 @@ class CivicHeadquartersFloorPlanTest {
         int count = 0;
         for (Doodad doodad : doodads) {
             if (topology.getRoomPurpose(doodad.cellX, doodad.cellY) == purpose) count++;
+        }
+        return count;
+    }
+
+    private static int windowsFacingPurpose(CellTopology topology, BlockLeaf leaf,
+                                            RoomPurpose purpose) {
+        int count = 0;
+        for (int x = leaf.left; x <= leaf.right; x++) {
+            if (topology.isWindow(x, leaf.top)
+                    && topology.getRoomPurpose(x, leaf.top + 1) == purpose) count++;
+            if (topology.isWindow(x, leaf.bottom)
+                    && topology.getRoomPurpose(x, leaf.bottom - 1) == purpose) count++;
+        }
+        for (int y = leaf.top + 1; y < leaf.bottom; y++) {
+            if (topology.isWindow(leaf.left, y)
+                    && topology.getRoomPurpose(leaf.left + 1, y) == purpose) count++;
+            if (topology.isWindow(leaf.right, y)
+                    && topology.getRoomPurpose(leaf.right - 1, y) == purpose) count++;
         }
         return count;
     }

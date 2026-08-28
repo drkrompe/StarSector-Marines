@@ -227,9 +227,64 @@
       "ballisticHalfHeight": 0.38
     },
     {
-      "id": "doodad.residential-bed-h",
+      "id": "doodad.civic-workstation-bank",
       "col": 0,
       "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.civic-server-rack",
+      "col": 2,
+      "row": 4,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.75,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.civic-conference-table",
+      "col": 3,
+      "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.office-reception-counter",
+      "col": 0,
+      "row": 6,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.office-records-bank",
+      "col": 6,
+      "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.residential-bed-h",
+      "col": 6,
+      "row": 5,
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
@@ -240,8 +295,8 @@
     },
     {
       "id": "doodad.residential-bed-head-e",
-      "col": 2,
-      "row": 4,
+      "col": 3,
+      "row": 6,
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
@@ -252,8 +307,8 @@
     },
     {
       "id": "doodad.residential-bed-v",
-      "col": 4,
-      "row": 4,
+      "col": 5,
+      "row": 6,
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
@@ -264,8 +319,8 @@
     },
     {
       "id": "doodad.residential-bed-head-n",
-      "col": 5,
-      "row": 4,
+      "col": 6,
+      "row": 6,
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
@@ -276,8 +331,8 @@
     },
     {
       "id": "doodad.residential-sofa-h",
-      "col": 6,
-      "row": 4,
+      "col": 3,
+      "row": 7,
       "cover": "med",
       "ballisticHalfHeight": 0.42,
       "footprintCells": [
@@ -289,7 +344,7 @@
     {
       "id": "doodad.residential-sofa-back-s",
       "col": 0,
-      "row": 5,
+      "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.42,
       "footprintCells": [
@@ -300,8 +355,8 @@
     },
     {
       "id": "doodad.residential-sofa-v",
-      "col": 2,
-      "row": 5,
+      "col": 7,
+      "row": 6,
       "cover": "med",
       "ballisticHalfHeight": 0.42,
       "footprintCells": [
@@ -312,8 +367,8 @@
     },
     {
       "id": "doodad.residential-sofa-back-e",
-      "col": 3,
-      "row": 5,
+      "col": 2,
+      "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.42,
       "footprintCells": [
@@ -324,15 +379,15 @@
     },
     {
       "id": "doodad.residential-planter-h",
-      "col": 6,
-      "row": 5,
+      "col": 3,
+      "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.55
     },
     {
       "id": "doodad.residential-planter-v",
-      "col": 7,
-      "row": 5,
+      "col": 4,
+      "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.55
     }
@@ -525,60 +580,90 @@
     {
       "col": 0,
       "row": 4,
-      "name": "Residential bed head west",
-      "description": "Low civilian bed with its head against the west wall."
+      "name": "Civic workstation suite",
+      "description": "Two-cell municipal workstation suite with terminal, storage, and privacy panels."
     },
     {
       "col": 2,
       "row": 4,
-      "name": "Residential bed head east",
-      "description": "Low civilian bed with its head against the east wall."
+      "name": "Civic server rack",
+      "description": "Two-cell municipal data cabinet with status lights."
     },
     {
-      "col": 4,
+      "col": 3,
       "row": 4,
-      "name": "Residential bed head south",
-      "description": "Low civilian bed with its head against the south wall."
+      "name": "Civic conference table",
+      "description": "Large administrative planning table with inset presentation display."
     },
     {
-      "col": 5,
-      "row": 4,
-      "name": "Residential bed head north",
-      "description": "Low civilian bed with its head against the north wall."
+      "col": 0,
+      "row": 6,
+      "name": "Civic reception counter",
+      "description": "Broad two-station public reception counter."
     },
     {
       "col": 6,
       "row": 4,
+      "name": "Civic records bank",
+      "description": "Wall-side archive cabinets with a compact communications terminal."
+    },
+    {
+      "col": 6,
+      "row": 5,
+      "name": "Residential bed head west",
+      "description": "Low civilian bed with its head against the west wall."
+    },
+    {
+      "col": 3,
+      "row": 6,
+      "name": "Residential bed head east",
+      "description": "Low civilian bed with its head against the east wall."
+    },
+    {
+      "col": 5,
+      "row": 6,
+      "name": "Residential bed head south",
+      "description": "Low civilian bed with its head against the south wall."
+    },
+    {
+      "col": 6,
+      "row": 6,
+      "name": "Residential bed head north",
+      "description": "Low civilian bed with its head against the north wall."
+    },
+    {
+      "col": 3,
+      "row": 7,
       "name": "Residential sofa back north",
       "description": "Low two-seat civilian sofa facing south into the room."
     },
     {
       "col": 0,
-      "row": 5,
+      "row": 8,
       "name": "Residential sofa back south",
       "description": "Low two-seat civilian sofa facing north into the room."
     },
     {
-      "col": 2,
-      "row": 5,
+      "col": 7,
+      "row": 6,
       "name": "Residential sofa back west",
       "description": "Low two-seat civilian sofa facing east into the room."
     },
     {
-      "col": 3,
-      "row": 5,
+      "col": 2,
+      "row": 8,
       "name": "Residential sofa back east",
       "description": "Low two-seat civilian sofa facing west into the room."
     },
     {
-      "col": 6,
-      "row": 5,
+      "col": 3,
+      "row": 8,
       "name": "Courtyard planter horizontal",
       "description": "Raised concrete shrub planter aligned east-west."
     },
     {
-      "col": 7,
-      "row": 5,
+      "col": 4,
+      "row": 8,
       "name": "Courtyard planter vertical",
       "description": "Raised concrete shrub planter aligned north-south."
     }
