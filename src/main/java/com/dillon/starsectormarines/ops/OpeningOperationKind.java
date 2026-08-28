@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
-/** Stable identities for the green-company story ladder and its battle setups. */
+/**
+ * Stable identities for the Independent brokers' militia-support work and its
+ * authored battle setups. Recurring low-tier contracts rather than one-shot
+ * story rungs — see {@code OpeningOperationStory}.
+ */
 public enum OpeningOperationKind {
     RELIEF("story_opening_relief"),
     COUNTERATTACK("story_opening_counterattack");

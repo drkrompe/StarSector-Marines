@@ -1,9 +1,5 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
-import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
-import com.dillon.starsectormarines.marine.MarineRoster;
-import com.dillon.starsectormarines.marine.MarineSoldier;
-import com.dillon.starsectormarines.marine.SquadExperienceStandard;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
@@ -12,10 +8,36 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.Random;
 
-/** One rung of the Independent broker's two-operation green-company ladder. */
+/**
+ * A small militia-support job carried by Independent brokers.
+ *
+ * <p><b>Recurring work, not a ladder the company climbs off.</b> These were
+ * once a two-rung on-ramp gated on the roster being small and wearing nothing
+ * above starting issue, so the offer vanished the moment the player collected
+ * anything worth having. That made the work read as a tutorial being taken
+ * away rather than as a kind of contract that exists in the world.
+ *
+ * <p>Nothing retires them now except the player. The payout is fixed and small,
+ * so it decays against the rest of the board as the company grows and a captain
+ * stops spending a sortie on it. That judgement is the intended retirement, and
+ * it is the player's to make rather than a predicate's.
+ *
+ * <p>Availability is a deterministic roll rather than a guarantee — roughly one
+ * independent broker in {@value #OFFERED_ONE_BROKER_IN} has militia work going.
+ * The roll is seeded from the generator's per-(planet, client) hash, so
+ * revisiting a planet shows the same board.
+ *
+ * <p>The relief job comes first: the depot counterattack is written as the
+ * follow-up to one, so it stays behind a completed relief. Past that both
+ * recur independently and indefinitely.
+ */
 public final class OpeningOperationStory implements StoryMissionDef {
 
-    static final int GREEN_COMPANY_MAX_SOLDIERS = 18;
+    /** Roughly this many independent brokers to one carrying militia work. */
+    static final int OFFERED_ONE_BROKER_IN = 3;
+
+    /** Keeps the availability roll off the stream {@link #build} draws from. */
+    private static final long OFFER_ROLL_SALT = 0x9E3779B97F4A7C15L;
 
     private final OpeningOperationKind kind;
 
@@ -33,14 +55,11 @@ public final class OpeningOperationStory implements StoryMissionDef {
     public boolean isEligible(StoryEligibilityContext ctx) {
         if (ctx == null || ctx.roster == null || ctx.client == null) return false;
         if (!"independent".equals(ctx.client.factionId)) return false;
-        if (ctx.roster.hasCompletedStory(id())) return false;
-        return switch (kind) {
-            case RELIEF -> !ctx.roster.hasCompletedStory(
-                    OpeningOperationKind.COUNTERATTACK.missionId)
-                    && isGreenCompany(ctx.roster);
-            case COUNTERATTACK -> ctx.roster.hasCompletedStory(
-                    OpeningOperationKind.RELIEF.missionId);
-        };
+        if (kind == OpeningOperationKind.COUNTERATTACK
+                && !ctx.roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId)) {
+            return false;
+        }
+        return offeredAt(ctx.seed, id());
     }
 
     @Override
@@ -87,25 +106,12 @@ public final class OpeningOperationStory implements StoryMissionDef {
     }
 
     /**
-     * True while the company still looks like a new game: small, and wearing
-     * nothing better than what a fresh outfit is issued.
-     *
-     * <p>Starting issue is a tier-2 suit, which reads as {@code REGULAR}, so
-     * the ladder's first rung asks whether anything <em>above</em> that has
-     * been collected rather than testing for literal {@code GREEN}. A single
-     * recovered line suit is the company outgrowing the opening operations
-     * ({@code progression-nouns.md}).
+     * Whether this broker has this job going. Deterministic in the generator's
+     * per-(planet, client) seed, so a board does not reshuffle under a player
+     * who flies away and comes back.
      */
-    static boolean isGreenCompany(MarineRoster roster) {
-        if (roster == null || roster.soldiers().size() > GREEN_COMPANY_MAX_SOLDIERS) {
-            return false;
-        }
-        for (MarineSoldier soldier : roster.soldiers()) {
-            if (SquadExperienceStandard.bandFor(soldier).ordinal()
-                    > ExperienceTier.REGULAR.ordinal()) {
-                return false;
-            }
-        }
-        return true;
+    static boolean offeredAt(long seed, String missionId) {
+        return new Random(seed ^ OFFER_ROLL_SALT ^ missionId.hashCode())
+                .nextInt(OFFERED_ONE_BROKER_IN) == 0;
     }
 }
