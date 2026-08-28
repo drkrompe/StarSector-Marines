@@ -188,7 +188,7 @@ final class MannedDeckTest {
      */
     @Test
     void aCompanyDeckIsOneShipAcrossEveryRoomView() {
-        CompanyDeck ship = new CompanyDeck(CompanyShip.founding(), SEED);
+        CompanyDeck ship = new CompanyDeck(TestHulls.transport(), SEED);
         ShipDeckBattleScene fromBerthing = ship.scene();
         assertSame(fromBerthing, ship.scene(), "two room views got two different ships");
         assertSame(fromBerthing.simulation(), ship.scene().simulation(),
@@ -220,7 +220,7 @@ final class MannedDeckTest {
         assertTrue(!company.isEmpty(), "the company has nobody in it");
 
         CompanyDeck ship = new CompanyDeck(
-                CompanyShip.founding(), SEED, null, null, () -> company);
+                TestHulls.transport(), SEED, null, null, () -> company);
         try {
             ShipDeckBattleScene scene = ship.scene();
             int billeted = 0;

@@ -6,11 +6,13 @@ import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
@@ -126,6 +128,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-equipment-designer-low-resolution.png",
                         renderEquipmentDesigner(context, renderer, 1163, 625)),
+                new SnapshotArtifact("fleet-armory-integral-system-designer-wide.png",
+                        renderEquipmentDesigner(
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                SquadEquipmentDoctrines.OUTLAW_HEAVY_ARMOR)),
                 new SnapshotArtifact("mech-lab-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
@@ -179,7 +185,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      */
     private static CompanyDeck companyShip(Supplier<List<MechVariant>> lance,
                                            Supplier<List<MarineSoldier>> company) {
-        CompanyDeck ship = new CompanyDeck(CompanyShip.founding(), SHIP_SEED,
+        CompanyDeck ship = new CompanyDeck(TestHulls.transport(), SHIP_SEED,
                 null, lance, company);
         ship.advance(18f);
         return ship;
@@ -316,13 +322,27 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderEquipmentDesigner(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
+        return renderEquipmentDesigner(context, renderer, width, height, null);
+    }
+
+    /**
+     * @param armorDoctrineId when non-null, opens the armor page on that
+     *                        schedule instead of the weapon page. The armor page
+     *                        is where a pattern's integral system is read before
+     *                        it is issued ({@code integral-armor-systems.md}).
+     */
+    private static BufferedImage renderEquipmentDesigner(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, String armorDoctrineId) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         FleetArmoryViewModel armory = new FleetArmoryViewModel(reactor, roster);
         EquipmentDoctrineDesignerViewModel designer = new EquipmentDoctrineDesignerViewModel(
                 reactor, roster, armory.selectedSquadId(),
-                armory.selectedWeaponDoctrineId(), armory.selectedArmorDoctrineId());
+                armory.selectedWeaponDoctrineId(),
+                armorDoctrineId != null ? armorDoctrineId : armory.selectedArmorDoctrineId());
+        if (armorDoctrineId != null) designer.showArmor().run();
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
         loader.reload();

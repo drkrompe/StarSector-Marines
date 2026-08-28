@@ -73,6 +73,11 @@ final class LayeredMechComposer {
                 ? LayeredMechAppearance.mechanicalFootReveal(locomotionPhase, false) : 0f;
         float rightStep = stepping
                 ? LayeredMechAppearance.mechanicalFootReveal(locomotionPhase, true) : 0f;
+        float waistSway = moving
+                ? LayeredMechAppearance.walkingWaistSway(locomotionPhase, chassis) : 0f;
+        float[] waistOffset = rotate(waistSway * hullWidth, 0f, hipFacingDeg);
+        float upperX = actorX + waistOffset[0];
+        float upperY = actorY + waistOffset[1];
 
         // The light chassis expose articulated bones between their waist and
         // feet. Each bone rotates and stretches to the live foot anchor;
@@ -104,9 +109,9 @@ final class LayeredMechComposer {
         LayerTransform leftThigh = layer(authoredPose, "left-thigh");
         LayerTransform rightThigh = layer(authoredPose, "right-thigh");
         if (leftThigh != null && rightThigh != null) {
-            emitAuthored(out, assets.thighBone, leftThigh, actorX, actorY, hullWidth,
+            emitAuthored(out, assets.thighBone, leftThigh, upperX, upperY, hullWidth,
                     hipFacingDeg, alpha);
-            emitAuthored(out, assets.thighBone, rightThigh, actorX, actorY, hullWidth,
+            emitAuthored(out, assets.thighBone, rightThigh, upperX, upperY, hullWidth,
                     hipFacingDeg, alpha);
         }
 
@@ -115,7 +120,7 @@ final class LayeredMechComposer {
                 + (chassisTransform != null ? chassisTransform.angleDegrees() : 0f);
 
         float cgKick = 0.025f * LayeredMechAppearance.recoil(chaingunPhase);
-        emitArms(out, assets, chassis, arms, actorX, actorY, hullWidth,
+        emitArms(out, assets, chassis, arms, upperX, upperY, hullWidth,
                 upperFacingDeg, cgKick, alpha);
 
         float srmKick = ((flags & LayeredMechAppearance.FLAG_SRM_ACTIVE) != 0)
@@ -126,15 +131,15 @@ final class LayeredMechComposer {
                 || chassis == LayeredMechAppearance.CHASSIS_HOUND;
         if (!podsAboveChassis) {
             emitShoulderPods(out, assets, chassis, leftShoulder, rightShoulder,
-                    actorX, actorY, hullWidth, upperFacingDeg, srmKick, lrmKick, alpha);
+                    upperX, upperY, hullWidth, upperFacingDeg, srmKick, lrmKick, alpha);
         }
 
         LayeredSpriteCache chassisSprite = selectChassis(assets, chassis);
         if (chassisTransform != null) {
-            emitAuthored(out, chassisSprite, chassisTransform, actorX, actorY, hullWidth,
+            emitAuthored(out, chassisSprite, chassisTransform, upperX, upperY, hullWidth,
                     torsoFacingDeg, alpha);
         } else {
-            emitCentered(out, chassisSprite, actorX, actorY, hullWidth, torsoFacingDeg,
+            emitCentered(out, chassisSprite, upperX, upperY, hullWidth, torsoFacingDeg,
                     0f, 0f, 0f, alpha);
         }
 
@@ -143,30 +148,30 @@ final class LayeredMechComposer {
         if (leftThigh == null && rightThigh == null
                 && (chassis == LayeredMechAppearance.CHASSIS_HOUND
                 || chassis == LayeredMechAppearance.CHASSIS_SIROCCO)) {
-            emitConnection(out, assets.thighBone, actorX, actorY, hullWidth, hipFacingDeg,
-                    -footX, leftFootY, alpha);
-            emitConnection(out, assets.thighBone, actorX, actorY, hullWidth, hipFacingDeg,
-                    footX, rightFootY, alpha);
+            emitConnection(out, assets.thighBone, upperX, upperY, hullWidth, hipFacingDeg,
+                    -footX - waistSway, leftFootY, alpha);
+            emitConnection(out, assets.thighBone, upperX, upperY, hullWidth, hipFacingDeg,
+                    footX - waistSway, rightFootY, alpha);
         }
 
         // Bulwark's racks are exposed above its armor; Hound carries one dorsal
         // SRM rack. Sirocco's paired LRMs stay beneath its broader hull.
         if (podsAboveChassis) {
             emitShoulderPods(out, assets, chassis, leftShoulder, rightShoulder,
-                    actorX, actorY, hullWidth, upperFacingDeg, srmKick, lrmKick, alpha);
+                    upperX, upperY, hullWidth, upperFacingDeg, srmKick, lrmKick, alpha);
         }
 
         if ((flags & LayeredMechAppearance.FLAG_CHAINGUN_FLASH) != 0) {
-            emitArmsFlash(out, assets, arms, actorX, actorY, hullWidth,
+            emitArmsFlash(out, assets, arms, upperX, upperY, hullWidth,
                     upperFacingDeg, cgKick, alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_SRM_FLASH) != 0) {
             emitShoulderFlashes(out, assets, chassis, leftShoulder, rightShoulder, true,
-                    actorX, actorY, hullWidth, upperFacingDeg, alpha);
+                    upperX, upperY, hullWidth, upperFacingDeg, alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_LRM_FLASH) != 0) {
             emitShoulderFlashes(out, assets, chassis, leftShoulder, rightShoulder, false,
-                    actorX, actorY, hullWidth, upperFacingDeg, alpha);
+                    upperX, upperY, hullWidth, upperFacingDeg, alpha);
         }
     }
 
