@@ -33,8 +33,15 @@ class ShipTransferViewModelTest {
                     new CompanyShip(HullClass.CRUISER, HullRole.LINER,
                             60, 1510, 300, 0.44f));
 
+    /** A squad boat: lift enough to carry people, one deck to carry them on. */
+    private static final ShipTransferViewModel.Candidate KITE =
+            new ShipTransferViewModel.Candidate("kite", "KITE",
+                    "frigate, fast transport", 28, 30,
+                    new CompanyShip(HullClass.FRIGATE, HullRole.TROOP_TRANSPORT,
+                            2, 30, 30, 0.30f));
+
     private static final List<ShipTransferViewModel.Candidate> FLEET =
-            List.of(TRANSPORT, LINER);
+            List.of(TRANSPORT, LINER, KITE);
 
     /** Ninety-six marines and four walkers, both hulls being cruisers. */
     private static final int MOVE = 15_000 + 96 * 150 + 4 * 2_500;
@@ -279,6 +286,36 @@ class ShipTransferViewModelTest {
 
         assertTrue(viewModel.selectedCost().free());
         assertEquals("", viewModel.costLabel().get());
+    }
+
+    @Test
+    @DisplayName("a boat is listed and refused rather than quietly missing")
+    void aHullTooSmallToLiveAboardIsRefusedNotHidden() {
+        Quarters quarters = new Quarters();
+        quarters.moveAboard(TRANSPORT.id());
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(new Reactor(),
+                () -> FLEET, quarters::get, quarters::moveAboard, company(MOVE * 4));
+
+        // Listed, so the player learns where the line is by seeing it.
+        assertEquals("TOO SMALL TO LIVE ABOARD", row(viewModel, KITE.id()).cost());
+        assertTrue(row(viewModel, KITE.id()).classes().contains("unsupported"));
+
+        viewModel.select(KITE.id());
+        assertTrue(viewModel.verdict().get().contains("One deck"), viewModel.verdict().get());
+        assertEquals("NOT A COMPANY BERTH", viewModel.transferLabel().get());
+
+        viewModel.commit();
+        assertEquals(TRANSPORT.id(), quarters.get().shipId(),
+                "the company should not have moved onto a boat");
+    }
+
+    @Test
+    @DisplayName("lift does not make a hull a home")
+    void liftIsNotTheMeasure() {
+        // The Kite carries twenty-eight hands beyond her crew and the Valkyrie
+        // two hundred and forty; the Kite still is not somewhere to live.
+        assertTrue(KITE.lift() > 0 && !KITE.quarters());
+        assertTrue(TRANSPORT.quarters());
     }
 
     private static ShipTransferViewModel.CandidateRow row(

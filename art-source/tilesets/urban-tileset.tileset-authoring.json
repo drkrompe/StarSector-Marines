@@ -18,7 +18,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-a",
+      "id": "doodad.urban.c0r0",
       "included": true,
       "rect": [
         0,
@@ -33,7 +33,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-b",
+      "id": "doodad.urban.c1r0",
       "included": true,
       "rect": [
         125,
@@ -48,7 +48,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-c",
+      "id": "doodad.urban.c2r0",
       "included": true,
       "rect": [
         251,
@@ -64,7 +64,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-d",
+      "id": "doodad.urban.c3r0",
       "included": true,
       "rect": [
         376,
@@ -81,7 +81,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-e",
+      "id": "doodad.urban.c4r0",
       "included": true,
       "rect": [
         502,
@@ -98,7 +98,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-f",
+      "id": "doodad.urban.c5r0",
       "included": true,
       "rect": [
         627,
@@ -114,7 +114,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-g",
+      "id": "doodad.urban.c6r0",
       "included": true,
       "rect": [
         752,
@@ -129,7 +129,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-h",
+      "id": "doodad.urban.c7r0",
       "included": true,
       "rect": [
         878,
@@ -144,7 +144,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-i",
+      "id": "doodad.urban.c8r0",
       "included": true,
       "rect": [
         1003,
@@ -159,7 +159,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-j",
+      "id": "doodad.urban.c9r0",
       "included": true,
       "rect": [
         1129,
@@ -174,7 +174,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-k",
+      "id": "doodad.urban.c0r1",
       "included": true,
       "rect": [
         0,
@@ -189,7 +189,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-l",
+      "id": "doodad.urban.c1r1",
       "included": true,
       "rect": [
         125,
@@ -204,7 +204,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-m",
+      "id": "doodad.urban.c2r1",
       "included": true,
       "rect": [
         251,
@@ -220,7 +220,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-n",
+      "id": "doodad.urban.c3r1",
       "included": true,
       "rect": [
         376,
@@ -237,7 +237,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-o",
+      "id": "doodad.urban.c4r1",
       "included": true,
       "rect": [
         502,
@@ -254,7 +254,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-p",
+      "id": "doodad.urban.c5r1",
       "included": true,
       "rect": [
         627,
@@ -270,7 +270,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-q",
+      "id": "doodad.urban.c6r1",
       "included": true,
       "rect": [
         752,
@@ -285,7 +285,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-r",
+      "id": "doodad.urban.c7r1",
       "included": true,
       "rect": [
         878,
@@ -300,7 +300,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-s",
+      "id": "doodad.urban.c8r1",
       "included": true,
       "rect": [
         1003,
@@ -315,7 +315,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-t",
+      "id": "doodad.urban.c9r1",
       "included": true,
       "rect": [
         1129,
@@ -330,7 +330,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-u",
+      "id": "doodad.urban.c0r2",
       "included": true,
       "rect": [
         0,
@@ -345,7 +345,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-v",
+      "id": "doodad.urban.c1r2",
       "included": true,
       "rect": [
         125,
@@ -360,7 +360,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-w",
+      "id": "doodad.urban.c2r2",
       "included": true,
       "rect": [
         251,
@@ -376,7 +376,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-x",
+      "id": "doodad.urban.c3r2",
       "included": true,
       "rect": [
         376,
@@ -393,7 +393,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-y",
+      "id": "doodad.urban.c4r2",
       "included": true,
       "rect": [
         502,
@@ -410,7 +410,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-z",
+      "id": "doodad.urban.c5r2",
       "included": true,
       "rect": [
         627,
@@ -426,7 +426,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-aa",
+      "id": "doodad.urban.c6r2",
       "included": true,
       "rect": [
         752,
@@ -441,7 +441,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ab",
+      "id": "doodad.urban.c7r2",
       "included": true,
       "rect": [
         878,
@@ -456,7 +456,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ac",
+      "id": "doodad.urban.c8r2",
       "included": true,
       "rect": [
         1003,
@@ -471,7 +471,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ad",
+      "id": "doodad.urban.c9r2",
       "included": true,
       "rect": [
         1129,
@@ -486,7 +486,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ae",
+      "id": "doodad.urban.c0r3",
       "included": true,
       "rect": [
         0,
@@ -501,7 +501,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-af",
+      "id": "doodad.urban.c1r3",
       "included": true,
       "rect": [
         125,
@@ -516,7 +516,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ag",
+      "id": "doodad.urban.c2r3",
       "included": true,
       "rect": [
         251,
@@ -531,7 +531,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ah",
+      "id": "doodad.urban.c3r3",
       "included": true,
       "rect": [
         376,
@@ -546,7 +546,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ai",
+      "id": "doodad.urban.c4r3",
       "included": true,
       "rect": [
         502,
@@ -561,7 +561,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-aj",
+      "id": "doodad.urban.c5r3",
       "included": true,
       "rect": [
         627,
@@ -576,7 +576,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ak",
+      "id": "doodad.urban.c6r3",
       "included": true,
       "rect": [
         752,
@@ -591,7 +591,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-al",
+      "id": "doodad.urban.c7r3",
       "included": true,
       "rect": [
         878,
@@ -606,7 +606,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-am",
+      "id": "doodad.urban.c8r3",
       "included": true,
       "rect": [
         1003,
@@ -621,7 +621,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-an",
+      "id": "doodad.urban.c9r3",
       "included": true,
       "rect": [
         1129,
@@ -636,7 +636,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ao",
+      "id": "doodad.urban.c0r4",
       "included": true,
       "rect": [
         0,
@@ -651,7 +651,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ap",
+      "id": "doodad.urban.c1r4",
       "included": true,
       "rect": [
         125,
@@ -666,7 +666,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-aq",
+      "id": "doodad.urban.c2r4",
       "included": true,
       "rect": [
         251,
@@ -681,7 +681,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ar",
+      "id": "doodad.urban.c3r4",
       "included": true,
       "rect": [
         376,
@@ -696,7 +696,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-as",
+      "id": "doodad.urban.c4r4",
       "included": true,
       "rect": [
         502,
@@ -711,7 +711,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-at",
+      "id": "doodad.urban.c5r4",
       "included": true,
       "rect": [
         627,
@@ -726,7 +726,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-au",
+      "id": "doodad.urban.c6r4",
       "included": true,
       "rect": [
         752,
@@ -741,7 +741,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-av",
+      "id": "doodad.urban.c7r4",
       "included": true,
       "rect": [
         878,
@@ -756,7 +756,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-aw",
+      "id": "doodad.urban.c8r4",
       "included": true,
       "rect": [
         1003,
@@ -771,7 +771,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ax",
+      "id": "doodad.urban.c9r4",
       "included": true,
       "rect": [
         1129,
@@ -786,7 +786,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ay",
+      "id": "doodad.urban.c0r5",
       "included": true,
       "rect": [
         0,
@@ -801,7 +801,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-az",
+      "id": "doodad.urban.c1r5",
       "included": true,
       "rect": [
         125,
@@ -816,7 +816,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ba",
+      "id": "doodad.urban.c2r5",
       "included": true,
       "rect": [
         251,
@@ -831,7 +831,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bb",
+      "id": "doodad.urban.c3r5",
       "included": true,
       "rect": [
         376,
@@ -846,7 +846,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bc",
+      "id": "doodad.urban.c4r5",
       "included": true,
       "rect": [
         502,
@@ -861,7 +861,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bd",
+      "id": "doodad.urban.c5r5",
       "included": true,
       "rect": [
         627,
@@ -876,7 +876,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-be",
+      "id": "doodad.urban.c6r5",
       "included": true,
       "rect": [
         752,
@@ -891,7 +891,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bf",
+      "id": "doodad.urban.c7r5",
       "included": true,
       "rect": [
         878,
@@ -906,7 +906,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bg",
+      "id": "doodad.urban.c8r5",
       "included": true,
       "rect": [
         1003,
@@ -921,7 +921,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bh",
+      "id": "doodad.urban.c9r5",
       "included": true,
       "rect": [
         1129,
@@ -936,7 +936,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bi",
+      "id": "doodad.urban.c0r6",
       "included": true,
       "rect": [
         0,
@@ -951,7 +951,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bj",
+      "id": "doodad.urban.c1r6",
       "included": true,
       "rect": [
         125,
@@ -966,7 +966,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bk",
+      "id": "doodad.urban.c2r6",
       "included": true,
       "rect": [
         251,
@@ -981,7 +981,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bl",
+      "id": "doodad.urban.c3r6",
       "included": true,
       "rect": [
         376,
@@ -996,7 +996,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bm",
+      "id": "doodad.urban.c4r6",
       "included": true,
       "rect": [
         502,
@@ -1011,7 +1011,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bn",
+      "id": "doodad.urban.c5r6",
       "included": true,
       "rect": [
         627,
@@ -1026,7 +1026,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bo",
+      "id": "doodad.urban.c6r6",
       "included": true,
       "rect": [
         752,
@@ -1041,7 +1041,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bp",
+      "id": "doodad.urban.c7r6",
       "included": true,
       "rect": [
         878,
@@ -1056,7 +1056,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bq",
+      "id": "doodad.urban.c8r6",
       "included": true,
       "rect": [
         1003,
@@ -1071,7 +1071,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-br",
+      "id": "doodad.urban.c9r6",
       "included": true,
       "rect": [
         1129,
@@ -1086,7 +1086,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bs",
+      "id": "doodad.urban.c0r7",
       "included": true,
       "rect": [
         0,
@@ -1101,7 +1101,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bt",
+      "id": "doodad.urban.c1r7",
       "included": true,
       "rect": [
         125,
@@ -1116,7 +1116,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bu",
+      "id": "doodad.urban.c2r7",
       "included": true,
       "rect": [
         251,
@@ -1131,7 +1131,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bv",
+      "id": "doodad.urban.c3r7",
       "included": true,
       "rect": [
         376,
@@ -1146,7 +1146,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bw",
+      "id": "doodad.urban.c4r7",
       "included": true,
       "rect": [
         502,
@@ -1161,7 +1161,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bx",
+      "id": "doodad.urban.c5r7",
       "included": true,
       "rect": [
         627,
@@ -1176,7 +1176,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-by",
+      "id": "doodad.urban.c6r7",
       "included": true,
       "rect": [
         752,
@@ -1191,7 +1191,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-bz",
+      "id": "doodad.urban.c7r7",
       "included": true,
       "rect": [
         878,
@@ -1206,7 +1206,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ca",
+      "id": "doodad.urban.c8r7",
       "included": true,
       "rect": [
         1003,
@@ -1221,7 +1221,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cb",
+      "id": "doodad.urban.c9r7",
       "included": true,
       "rect": [
         1129,
@@ -1236,7 +1236,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cc",
+      "id": "doodad.urban.c0r8",
       "included": true,
       "rect": [
         0,
@@ -1251,7 +1251,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cd",
+      "id": "doodad.urban.c1r8",
       "included": true,
       "rect": [
         125,
@@ -1266,7 +1266,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ce",
+      "id": "doodad.urban.c2r8",
       "included": true,
       "rect": [
         251,
@@ -1281,7 +1281,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cf",
+      "id": "doodad.urban.c3r8",
       "included": true,
       "rect": [
         376,
@@ -1296,7 +1296,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cg",
+      "id": "doodad.urban.c4r8",
       "included": true,
       "rect": [
         502,
@@ -1311,7 +1311,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ch",
+      "id": "doodad.urban.c5r8",
       "included": true,
       "rect": [
         627,
@@ -1326,7 +1326,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ci",
+      "id": "doodad.urban.c6r8",
       "included": true,
       "rect": [
         752,
@@ -1341,7 +1341,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cj",
+      "id": "doodad.urban.c7r8",
       "included": true,
       "rect": [
         878,
@@ -1356,7 +1356,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ck",
+      "id": "doodad.urban.c8r8",
       "included": true,
       "rect": [
         1003,
@@ -1371,7 +1371,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cl",
+      "id": "doodad.urban.c9r8",
       "included": true,
       "rect": [
         1129,
@@ -1386,7 +1386,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cm",
+      "id": "doodad.urban.c0r9",
       "included": true,
       "rect": [
         0,
@@ -1401,7 +1401,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cn",
+      "id": "doodad.urban.c1r9",
       "included": true,
       "rect": [
         125,
@@ -1416,7 +1416,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-co",
+      "id": "doodad.urban.c2r9",
       "included": true,
       "rect": [
         251,
@@ -1431,7 +1431,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cp",
+      "id": "doodad.urban.c3r9",
       "included": true,
       "rect": [
         376,
@@ -1446,7 +1446,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cq",
+      "id": "doodad.urban.c4r9",
       "included": true,
       "rect": [
         502,
@@ -1461,7 +1461,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cr",
+      "id": "doodad.urban.c5r9",
       "included": true,
       "rect": [
         627,
@@ -1476,7 +1476,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cs",
+      "id": "doodad.urban.c6r9",
       "included": true,
       "rect": [
         752,
@@ -1491,7 +1491,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-ct",
+      "id": "doodad.urban.c7r9",
       "included": true,
       "rect": [
         878,
@@ -1506,7 +1506,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cu",
+      "id": "doodad.urban.c8r9",
       "included": true,
       "rect": [
         1003,
@@ -1521,7 +1521,7 @@
         1,
         1
       ],
-      "id": "doodad.urban.piece-000-cv",
+      "id": "doodad.urban.c9r9",
       "included": true,
       "rect": [
         1129,
@@ -1534,7 +1534,7 @@
   "gridCols": 10,
   "gridRows": 10,
   "idPrefix": "doodad.urban",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 10x10 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Do not re-slice this sheet with apply=true: slicing finds the plate as one fused piece again and reports every cut cell as no longer found, so a re-slice discards the cut and anything authored onto it. Cut once, then annotate. 1254x1254 at 10x10. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Its 3x3 wall and floor patches are what block grouping was built for: urban.wall is a wall-3x3 at origin (3,0), urban.floor a floor-3x3 at (0,0). urban.wall is assigned and was checked against the art before it was kept: corner studs sit on the outer corners, each edge cell carries its face slit on the side the slot names as exterior, and the enclosed centre is blank because the 0x060A10 fill is what that case is for. urban.floor is declared but still unassigned.",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 10x10 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Cut once, then annotate: slicing finds the plate as one fused piece again, so re-slicing has nothing to add. 1254x1254 at 10x10. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Its 3x3 wall and floor patches are what block grouping was built for: urban.wall is a wall-3x3 at origin (3,0), urban.floor a floor-3x3 at (0,0). urban.wall is assigned and was checked against the art before it was kept: corner studs sit on the outer corners, each edge cell carries its face slit on the side the slot names as exterior, and the enclosed centre is blank because the 0x060A10 fill is what that case is for. urban.floor is declared but still unassigned.",
   "sheet": "art-source/tilesets/urban-tileset.raw.png",
   "sheetName": "urban-tileset"
 }

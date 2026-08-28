@@ -39,17 +39,24 @@ the `ingest-tileset` skill in `.claude/skills/` walks through it, and
 document. Measure the sheet first:
 
 ```powershell
-python art-source/tilesets/measure_sheet.py art-source/tilesets/<name>.raw.png --cells 10x10 --write
+tools/authoring.sh tileset_measure '{"sheet":"<name>","gridCols":10,"gridRows":10}'
 ```
 
 That reports what can be read off the pixels — size, whether there is a usable
 alpha channel, how many pieces each alpha threshold finds — and drafts the seed.
 It deliberately **does not detect the cell grid**: seam-energy and
 autocorrelation were both measured against sheets whose grids were known and both
-read noise, so it verifies a stated `--cells` instead of inventing one.
+read noise, so it verifies a stated `gridCols`/`gridRows` instead of inventing
+one.
 
-The draft's `note` is a placeholder, and replacing it is the ingest step the
-script cannot do. A seed:
+Measuring is a Java tool (`SheetMeasurement`, reached through `tools/authoring.sh`
+or the MCP server) rather than a script here, because it needs no Python
+install and shares one implementation with the slicer whose thresholds it
+reports. A `measure_sheet.py` once did the same job and was deleted rather than
+maintained as a second answer to the same question.
+
+The draft's `note` is a placeholder, and replacing it is the ingest step no
+measurement can do. A seed:
 
 ```json
 {

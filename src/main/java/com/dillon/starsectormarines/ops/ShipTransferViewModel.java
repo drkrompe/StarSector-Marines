@@ -61,6 +61,11 @@ public final class ShipTransferViewModel {
             if (id == null) throw new IllegalArgumentException("a ship needs an identity");
             if (ship == null) throw new IllegalArgumentException("a candidate needs a hull");
         }
+
+        /** Whether a company could be based aboard her at all. */
+        public boolean quarters() {
+            return ship.hullClass().quarters();
+        }
     }
 
     private final Supplier<List<Candidate>> fleet;
@@ -117,12 +122,16 @@ public final class ShipTransferViewModel {
         verdict = reactor.computed(this::buildVerdict);
         transferLabel = reactor.computed(() -> {
             revision.get();
-            if (isHome(selected())) return "THE COMPANY LIVES HERE";
+            Candidate ship = selected();
+            if (isHome(ship)) return "THE COMPANY LIVES HERE";
+            if (ship != null && !ship.quarters()) return "NOT A COMPANY BERTH";
             return unquartered() ? "QUARTER THE COMPANY HERE" : "MOVE THE COMPANY ABOARD";
         });
         transferClasses = reactor.computed(() -> {
             revision.get();
-            if (isHome(selected())) return "transfer-commit current";
+            Candidate ship = selected();
+            if (isHome(ship)) return "transfer-commit current";
+            if (ship != null && !ship.quarters()) return "transfer-commit unaffordable";
             return affordable() ? "transfer-commit" : "transfer-commit unaffordable";
         });
         costLabel = reactor.computed(this::buildCostLabel);
@@ -199,7 +208,7 @@ public final class ShipTransferViewModel {
      */
     public void commit() {
         Candidate ship = selected();
-        if (ship == null || isHome(ship)) return;
+        if (ship == null || isHome(ship) || !ship.quarters()) return;
         TransferCost price = costOf(ship);
         if (price.credits() > means.credits()) return;
         means.charge(price.credits());
@@ -213,7 +222,8 @@ public final class ShipTransferViewModel {
      * <p>Free for a company with nowhere to live: see {@link TransferCost}.
      */
     public TransferCost costOf(Candidate ship) {
-        if (ship == null || isHome(ship) || unquartered()) return TransferCost.FREE;
+        if (ship == null || isHome(ship) || !ship.quarters()) return TransferCost.FREE;
+        if (unquartered()) return TransferCost.FREE;
         return TransferCost.of(ship.ship().hullClass(), means.marines(), means.walkers());
     }
 
@@ -235,11 +245,14 @@ public final class ShipTransferViewModel {
             boolean here = isHome(ship);
             String classes = "transfer-row"
                     + (ship.id().equals(selectedShipId.get()) ? " selected" : "")
-                    + (here ? " current" : "");
+                    + (here ? " current" : "")
+                    + (ship.quarters() ? "" : " unsupported");
             String id = "transfer-ship:" + ship.id();
             rows.add(new CandidateRow(id, id + ":name", id + ":hull", id + ":detail",
                     id + ":cost", classes, ship.name(), ship.designation(),
-                    berths(interior), here ? "HOME" : cost(quarters, interior),
+                    berths(interior),
+                    here ? "HOME" : !ship.quarters() ? "TOO SMALL TO LIVE ABOARD"
+                            : cost(quarters, interior),
                     () -> selectedShipId.set(ship.id())));
         }
         return List.copyOf(rows);
@@ -291,6 +304,9 @@ public final class ShipTransferViewModel {
         Candidate ship = selected();
         if (ship == null) return "";
         if (!ship.ship().habitable()) return "No interior. Nobody could live aboard her.";
+        if (!ship.quarters()) {
+            return "One deck. A boat to send somewhere, not somewhere to live.";
+        }
         if (isHome(ship)) return "The company is quartered here.";
         ShipInterior interior = interiorOf(ship);
         if (interior == null) return "";

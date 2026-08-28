@@ -6,8 +6,8 @@ are shipped.
 
 Written: 2026-08-24
 
-Updated: 2026-08-28 — canonical Conquest evidence now uses representative V3
-full-company launch fixtures instead of historical construction-only rows.
+Updated: 2026-08-28 — separated trace schema 7 from the derived Conquest
+summary-schema-4 secure-travel lifecycle.
 
 ## Vocabulary
 
@@ -105,6 +105,13 @@ from presenting as a different command decision. It records each compound's
 authoritative capture cell/zone and the perspective-safe count of own squad
 members in their assigned target zone; neutral whole-zone occupancy remains a
 separate referee fact.
+
+The Conquest summary document is version 4. It derives a single explicit exit
+for every perspective-observed secure-compound travel segment and keeps local
+contact, active path, and quiet travel as separate context. This is an analyzer
+contract, not another trace fact: command-trace schema 7 already carries the
+directive, own-squad state, observation windows, and run boundary needed to
+make the distinction.
 
 Construction V2 adds each assignment's actual seats per sortie and the resolved
 arrival policy plus employer/player shuttle boundary. Historical V1 documents

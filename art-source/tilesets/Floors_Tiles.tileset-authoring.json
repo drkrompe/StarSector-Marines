@@ -9,7 +9,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-a",
+      "id": "doodad.floors.c0r0",
       "included": true,
       "rect": [
         0,
@@ -24,7 +24,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-b",
+      "id": "doodad.floors.c1r0",
       "included": true,
       "rect": [
         49,
@@ -39,7 +39,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-c",
+      "id": "doodad.floors.c2r0",
       "included": true,
       "rect": [
         98,
@@ -54,7 +54,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-d",
+      "id": "doodad.floors.c3r0",
       "included": true,
       "rect": [
         147,
@@ -69,7 +69,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-e",
+      "id": "doodad.floors.c4r0",
       "included": true,
       "rect": [
         196,
@@ -84,7 +84,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-f",
+      "id": "doodad.floors.c5r0",
       "included": true,
       "rect": [
         245,
@@ -99,7 +99,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-g",
+      "id": "doodad.floors.c6r0",
       "included": true,
       "rect": [
         294,
@@ -114,7 +114,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-h",
+      "id": "doodad.floors.c7r0",
       "included": true,
       "rect": [
         343,
@@ -129,7 +129,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-i",
+      "id": "doodad.floors.c8r0",
       "included": true,
       "rect": [
         392,
@@ -144,7 +144,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-j",
+      "id": "doodad.floors.c9r0",
       "included": true,
       "rect": [
         441,
@@ -159,7 +159,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-k",
+      "id": "doodad.floors.c10r0",
       "included": true,
       "rect": [
         490,
@@ -174,7 +174,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-l",
+      "id": "doodad.floors.c11r0",
       "included": true,
       "rect": [
         539,
@@ -189,7 +189,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-m",
+      "id": "doodad.floors.c12r0",
       "included": true,
       "rect": [
         588,
@@ -204,7 +204,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-n",
+      "id": "doodad.floors.c13r0",
       "included": true,
       "rect": [
         637,
@@ -219,7 +219,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-o",
+      "id": "doodad.floors.c14r0",
       "included": true,
       "rect": [
         686,
@@ -234,7 +234,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-p",
+      "id": "doodad.floors.c15r0",
       "included": true,
       "rect": [
         735,
@@ -249,7 +249,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-q",
+      "id": "doodad.floors.c16r0",
       "included": true,
       "rect": [
         784,
@@ -264,7 +264,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-r",
+      "id": "doodad.floors.c17r0",
       "included": true,
       "rect": [
         833,
@@ -279,7 +279,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-s",
+      "id": "doodad.floors.c18r0",
       "included": true,
       "rect": [
         882,
@@ -294,7 +294,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-t",
+      "id": "doodad.floors.c19r0",
       "included": true,
       "rect": [
         931,
@@ -309,7 +309,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-u",
+      "id": "doodad.floors.c20r0",
       "included": true,
       "rect": [
         980,
@@ -324,7 +324,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-v",
+      "id": "doodad.floors.c21r0",
       "included": true,
       "rect": [
         1029,
@@ -339,7 +339,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-w",
+      "id": "doodad.floors.c22r0",
       "included": true,
       "rect": [
         1078,
@@ -354,7 +354,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-x",
+      "id": "doodad.floors.c23r0",
       "included": true,
       "rect": [
         1127,
@@ -369,7 +369,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-y",
+      "id": "doodad.floors.c24r0",
       "included": true,
       "rect": [
         1176,
@@ -384,7 +384,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-z",
+      "id": "doodad.floors.c0r1",
       "included": true,
       "rect": [
         0,
@@ -399,7 +399,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-aa",
+      "id": "doodad.floors.c1r1",
       "included": true,
       "rect": [
         49,
@@ -414,7 +414,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ab",
+      "id": "doodad.floors.c2r1",
       "included": true,
       "rect": [
         98,
@@ -429,7 +429,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ac",
+      "id": "doodad.floors.c3r1",
       "included": true,
       "rect": [
         147,
@@ -444,7 +444,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ad",
+      "id": "doodad.floors.c4r1",
       "included": true,
       "rect": [
         196,
@@ -459,7 +459,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ae",
+      "id": "doodad.floors.c5r1",
       "included": true,
       "rect": [
         245,
@@ -474,7 +474,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-af",
+      "id": "doodad.floors.c6r1",
       "included": true,
       "rect": [
         294,
@@ -489,7 +489,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ag",
+      "id": "doodad.floors.c7r1",
       "included": true,
       "rect": [
         343,
@@ -504,7 +504,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ah",
+      "id": "doodad.floors.c8r1",
       "included": true,
       "rect": [
         392,
@@ -519,7 +519,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ai",
+      "id": "doodad.floors.c9r1",
       "included": true,
       "rect": [
         441,
@@ -534,7 +534,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-aj",
+      "id": "doodad.floors.c10r1",
       "included": true,
       "rect": [
         490,
@@ -549,7 +549,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ak",
+      "id": "doodad.floors.c11r1",
       "included": true,
       "rect": [
         539,
@@ -564,7 +564,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-al",
+      "id": "doodad.floors.c12r1",
       "included": true,
       "rect": [
         588,
@@ -579,7 +579,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-am",
+      "id": "doodad.floors.c13r1",
       "included": true,
       "rect": [
         637,
@@ -594,7 +594,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-an",
+      "id": "doodad.floors.c14r1",
       "included": true,
       "rect": [
         686,
@@ -609,7 +609,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ao",
+      "id": "doodad.floors.c15r1",
       "included": true,
       "rect": [
         735,
@@ -624,7 +624,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ap",
+      "id": "doodad.floors.c16r1",
       "included": true,
       "rect": [
         784,
@@ -639,7 +639,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-aq",
+      "id": "doodad.floors.c17r1",
       "included": true,
       "rect": [
         833,
@@ -654,7 +654,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ar",
+      "id": "doodad.floors.c18r1",
       "included": true,
       "rect": [
         882,
@@ -669,7 +669,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-as",
+      "id": "doodad.floors.c19r1",
       "included": true,
       "rect": [
         931,
@@ -684,7 +684,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-at",
+      "id": "doodad.floors.c20r1",
       "included": true,
       "rect": [
         980,
@@ -699,7 +699,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-au",
+      "id": "doodad.floors.c21r1",
       "included": true,
       "rect": [
         1029,
@@ -714,7 +714,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-av",
+      "id": "doodad.floors.c22r1",
       "included": true,
       "rect": [
         1078,
@@ -729,7 +729,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-aw",
+      "id": "doodad.floors.c23r1",
       "included": true,
       "rect": [
         1127,
@@ -744,7 +744,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ax",
+      "id": "doodad.floors.c24r1",
       "included": true,
       "rect": [
         1176,
@@ -759,7 +759,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ay",
+      "id": "doodad.floors.c0r2",
       "included": true,
       "rect": [
         0,
@@ -774,7 +774,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-az",
+      "id": "doodad.floors.c1r2",
       "included": true,
       "rect": [
         49,
@@ -789,7 +789,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ba",
+      "id": "doodad.floors.c2r2",
       "included": true,
       "rect": [
         98,
@@ -804,7 +804,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bb",
+      "id": "doodad.floors.c3r2",
       "included": true,
       "rect": [
         147,
@@ -819,7 +819,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bc",
+      "id": "doodad.floors.c4r2",
       "included": true,
       "rect": [
         196,
@@ -834,7 +834,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bd",
+      "id": "doodad.floors.c5r2",
       "included": true,
       "rect": [
         245,
@@ -849,7 +849,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-be",
+      "id": "doodad.floors.c6r2",
       "included": true,
       "rect": [
         294,
@@ -864,7 +864,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bf",
+      "id": "doodad.floors.c7r2",
       "included": true,
       "rect": [
         343,
@@ -879,7 +879,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bg",
+      "id": "doodad.floors.c8r2",
       "included": true,
       "rect": [
         392,
@@ -894,7 +894,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bh",
+      "id": "doodad.floors.c9r2",
       "included": true,
       "rect": [
         441,
@@ -909,7 +909,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bi",
+      "id": "doodad.floors.c10r2",
       "included": true,
       "rect": [
         490,
@@ -924,7 +924,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bj",
+      "id": "doodad.floors.c11r2",
       "included": true,
       "rect": [
         539,
@@ -939,7 +939,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bk",
+      "id": "doodad.floors.c12r2",
       "included": true,
       "rect": [
         588,
@@ -954,7 +954,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bl",
+      "id": "doodad.floors.c13r2",
       "included": true,
       "rect": [
         637,
@@ -969,7 +969,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bm",
+      "id": "doodad.floors.c14r2",
       "included": true,
       "rect": [
         686,
@@ -984,7 +984,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bn",
+      "id": "doodad.floors.c15r2",
       "included": true,
       "rect": [
         735,
@@ -999,7 +999,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bo",
+      "id": "doodad.floors.c16r2",
       "included": true,
       "rect": [
         784,
@@ -1014,7 +1014,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bp",
+      "id": "doodad.floors.c17r2",
       "included": true,
       "rect": [
         833,
@@ -1029,7 +1029,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bq",
+      "id": "doodad.floors.c18r2",
       "included": true,
       "rect": [
         882,
@@ -1044,7 +1044,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-br",
+      "id": "doodad.floors.c19r2",
       "included": true,
       "rect": [
         931,
@@ -1059,7 +1059,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bs",
+      "id": "doodad.floors.c20r2",
       "included": true,
       "rect": [
         980,
@@ -1074,7 +1074,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bt",
+      "id": "doodad.floors.c21r2",
       "included": true,
       "rect": [
         1029,
@@ -1089,7 +1089,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bu",
+      "id": "doodad.floors.c22r2",
       "included": true,
       "rect": [
         1078,
@@ -1104,7 +1104,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bv",
+      "id": "doodad.floors.c23r2",
       "included": true,
       "rect": [
         1127,
@@ -1119,7 +1119,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bw",
+      "id": "doodad.floors.c24r2",
       "included": true,
       "rect": [
         1176,
@@ -1134,7 +1134,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bx",
+      "id": "doodad.floors.c0r3",
       "included": true,
       "rect": [
         0,
@@ -1149,7 +1149,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-by",
+      "id": "doodad.floors.c1r3",
       "included": true,
       "rect": [
         49,
@@ -1164,7 +1164,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-bz",
+      "id": "doodad.floors.c2r3",
       "included": true,
       "rect": [
         98,
@@ -1179,7 +1179,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ca",
+      "id": "doodad.floors.c3r3",
       "included": true,
       "rect": [
         147,
@@ -1194,7 +1194,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cb",
+      "id": "doodad.floors.c4r3",
       "included": true,
       "rect": [
         196,
@@ -1209,7 +1209,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cc",
+      "id": "doodad.floors.c5r3",
       "included": true,
       "rect": [
         245,
@@ -1224,7 +1224,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cd",
+      "id": "doodad.floors.c6r3",
       "included": true,
       "rect": [
         294,
@@ -1239,7 +1239,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ce",
+      "id": "doodad.floors.c7r3",
       "included": true,
       "rect": [
         343,
@@ -1254,7 +1254,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cf",
+      "id": "doodad.floors.c8r3",
       "included": true,
       "rect": [
         392,
@@ -1269,7 +1269,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cg",
+      "id": "doodad.floors.c9r3",
       "included": true,
       "rect": [
         441,
@@ -1284,7 +1284,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ch",
+      "id": "doodad.floors.c10r3",
       "included": true,
       "rect": [
         490,
@@ -1299,7 +1299,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ci",
+      "id": "doodad.floors.c11r3",
       "included": true,
       "rect": [
         539,
@@ -1314,7 +1314,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cj",
+      "id": "doodad.floors.c12r3",
       "included": true,
       "rect": [
         588,
@@ -1329,7 +1329,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ck",
+      "id": "doodad.floors.c13r3",
       "included": true,
       "rect": [
         637,
@@ -1344,7 +1344,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cl",
+      "id": "doodad.floors.c14r3",
       "included": true,
       "rect": [
         686,
@@ -1359,7 +1359,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cm",
+      "id": "doodad.floors.c15r3",
       "included": true,
       "rect": [
         735,
@@ -1374,7 +1374,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cn",
+      "id": "doodad.floors.c16r3",
       "included": true,
       "rect": [
         784,
@@ -1389,7 +1389,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-co",
+      "id": "doodad.floors.c17r3",
       "included": true,
       "rect": [
         833,
@@ -1404,7 +1404,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cp",
+      "id": "doodad.floors.c18r3",
       "included": true,
       "rect": [
         882,
@@ -1419,7 +1419,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cq",
+      "id": "doodad.floors.c19r3",
       "included": true,
       "rect": [
         931,
@@ -1434,7 +1434,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cr",
+      "id": "doodad.floors.c20r3",
       "included": true,
       "rect": [
         980,
@@ -1449,7 +1449,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cs",
+      "id": "doodad.floors.c21r3",
       "included": true,
       "rect": [
         1029,
@@ -1464,7 +1464,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ct",
+      "id": "doodad.floors.c22r3",
       "included": true,
       "rect": [
         1078,
@@ -1479,7 +1479,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cu",
+      "id": "doodad.floors.c23r3",
       "included": true,
       "rect": [
         1127,
@@ -1494,7 +1494,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cv",
+      "id": "doodad.floors.c24r3",
       "included": true,
       "rect": [
         1176,
@@ -1509,7 +1509,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cw",
+      "id": "doodad.floors.c0r4",
       "included": true,
       "rect": [
         0,
@@ -1524,7 +1524,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cx",
+      "id": "doodad.floors.c1r4",
       "included": true,
       "rect": [
         49,
@@ -1539,7 +1539,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cy",
+      "id": "doodad.floors.c2r4",
       "included": true,
       "rect": [
         98,
@@ -1554,7 +1554,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-cz",
+      "id": "doodad.floors.c3r4",
       "included": true,
       "rect": [
         147,
@@ -1569,7 +1569,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-da",
+      "id": "doodad.floors.c4r4",
       "included": true,
       "rect": [
         196,
@@ -1584,7 +1584,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-db",
+      "id": "doodad.floors.c5r4",
       "included": true,
       "rect": [
         245,
@@ -1599,7 +1599,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dc",
+      "id": "doodad.floors.c6r4",
       "included": true,
       "rect": [
         294,
@@ -1614,7 +1614,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dd",
+      "id": "doodad.floors.c7r4",
       "included": true,
       "rect": [
         343,
@@ -1629,7 +1629,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-de",
+      "id": "doodad.floors.c8r4",
       "included": true,
       "rect": [
         392,
@@ -1644,7 +1644,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-df",
+      "id": "doodad.floors.c9r4",
       "included": true,
       "rect": [
         441,
@@ -1659,7 +1659,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dg",
+      "id": "doodad.floors.c10r4",
       "included": true,
       "rect": [
         490,
@@ -1674,7 +1674,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dh",
+      "id": "doodad.floors.c11r4",
       "included": true,
       "rect": [
         539,
@@ -1689,7 +1689,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-di",
+      "id": "doodad.floors.c12r4",
       "included": true,
       "rect": [
         588,
@@ -1704,7 +1704,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dj",
+      "id": "doodad.floors.c13r4",
       "included": true,
       "rect": [
         637,
@@ -1719,7 +1719,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dk",
+      "id": "doodad.floors.c14r4",
       "included": true,
       "rect": [
         686,
@@ -1734,7 +1734,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dl",
+      "id": "doodad.floors.c15r4",
       "included": true,
       "rect": [
         735,
@@ -1749,7 +1749,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dm",
+      "id": "doodad.floors.c16r4",
       "included": true,
       "rect": [
         784,
@@ -1764,7 +1764,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dn",
+      "id": "doodad.floors.c17r4",
       "included": true,
       "rect": [
         833,
@@ -1779,7 +1779,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-do",
+      "id": "doodad.floors.c18r4",
       "included": true,
       "rect": [
         882,
@@ -1794,7 +1794,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dp",
+      "id": "doodad.floors.c19r4",
       "included": true,
       "rect": [
         931,
@@ -1809,7 +1809,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dq",
+      "id": "doodad.floors.c20r4",
       "included": true,
       "rect": [
         980,
@@ -1824,7 +1824,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dr",
+      "id": "doodad.floors.c21r4",
       "included": true,
       "rect": [
         1029,
@@ -1839,7 +1839,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ds",
+      "id": "doodad.floors.c22r4",
       "included": true,
       "rect": [
         1078,
@@ -1854,7 +1854,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dt",
+      "id": "doodad.floors.c23r4",
       "included": true,
       "rect": [
         1127,
@@ -1869,7 +1869,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-du",
+      "id": "doodad.floors.c24r4",
       "included": true,
       "rect": [
         1176,
@@ -1884,7 +1884,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dv",
+      "id": "doodad.floors.c0r5",
       "included": true,
       "rect": [
         0,
@@ -1899,7 +1899,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dw",
+      "id": "doodad.floors.c1r5",
       "included": true,
       "rect": [
         49,
@@ -1914,7 +1914,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dx",
+      "id": "doodad.floors.c2r5",
       "included": true,
       "rect": [
         98,
@@ -1929,7 +1929,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dy",
+      "id": "doodad.floors.c3r5",
       "included": true,
       "rect": [
         147,
@@ -1944,7 +1944,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-dz",
+      "id": "doodad.floors.c4r5",
       "included": true,
       "rect": [
         196,
@@ -1959,7 +1959,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ea",
+      "id": "doodad.floors.c5r5",
       "included": true,
       "rect": [
         245,
@@ -1974,7 +1974,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-eb",
+      "id": "doodad.floors.c6r5",
       "included": true,
       "rect": [
         294,
@@ -1989,7 +1989,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ec",
+      "id": "doodad.floors.c7r5",
       "included": true,
       "rect": [
         343,
@@ -2004,7 +2004,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ed",
+      "id": "doodad.floors.c8r5",
       "included": true,
       "rect": [
         392,
@@ -2019,7 +2019,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ee",
+      "id": "doodad.floors.c9r5",
       "included": true,
       "rect": [
         441,
@@ -2034,7 +2034,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ef",
+      "id": "doodad.floors.c10r5",
       "included": true,
       "rect": [
         490,
@@ -2049,7 +2049,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-eg",
+      "id": "doodad.floors.c11r5",
       "included": true,
       "rect": [
         539,
@@ -2064,7 +2064,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-eh",
+      "id": "doodad.floors.c12r5",
       "included": true,
       "rect": [
         588,
@@ -2079,7 +2079,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ei",
+      "id": "doodad.floors.c13r5",
       "included": true,
       "rect": [
         637,
@@ -2094,7 +2094,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ej",
+      "id": "doodad.floors.c14r5",
       "included": true,
       "rect": [
         686,
@@ -2109,7 +2109,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ek",
+      "id": "doodad.floors.c15r5",
       "included": true,
       "rect": [
         735,
@@ -2124,7 +2124,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-el",
+      "id": "doodad.floors.c16r5",
       "included": true,
       "rect": [
         784,
@@ -2139,7 +2139,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-em",
+      "id": "doodad.floors.c17r5",
       "included": true,
       "rect": [
         833,
@@ -2154,7 +2154,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-en",
+      "id": "doodad.floors.c18r5",
       "included": true,
       "rect": [
         882,
@@ -2169,7 +2169,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-eo",
+      "id": "doodad.floors.c19r5",
       "included": true,
       "rect": [
         931,
@@ -2184,7 +2184,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ep",
+      "id": "doodad.floors.c20r5",
       "included": true,
       "rect": [
         980,
@@ -2199,7 +2199,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-eq",
+      "id": "doodad.floors.c21r5",
       "included": true,
       "rect": [
         1029,
@@ -2214,7 +2214,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-er",
+      "id": "doodad.floors.c22r5",
       "included": true,
       "rect": [
         1078,
@@ -2229,7 +2229,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-es",
+      "id": "doodad.floors.c23r5",
       "included": true,
       "rect": [
         1127,
@@ -2244,7 +2244,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-et",
+      "id": "doodad.floors.c24r5",
       "included": true,
       "rect": [
         1176,
@@ -2259,7 +2259,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-eu",
+      "id": "doodad.floors.c0r6",
       "included": true,
       "rect": [
         0,
@@ -2274,7 +2274,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ev",
+      "id": "doodad.floors.c1r6",
       "included": true,
       "rect": [
         49,
@@ -2289,7 +2289,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ew",
+      "id": "doodad.floors.c2r6",
       "included": true,
       "rect": [
         98,
@@ -2304,7 +2304,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ex",
+      "id": "doodad.floors.c3r6",
       "included": true,
       "rect": [
         147,
@@ -2319,7 +2319,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ey",
+      "id": "doodad.floors.c4r6",
       "included": true,
       "rect": [
         196,
@@ -2334,7 +2334,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ez",
+      "id": "doodad.floors.c5r6",
       "included": true,
       "rect": [
         245,
@@ -2349,7 +2349,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fa",
+      "id": "doodad.floors.c6r6",
       "included": true,
       "rect": [
         294,
@@ -2364,7 +2364,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fb",
+      "id": "doodad.floors.c7r6",
       "included": true,
       "rect": [
         343,
@@ -2379,7 +2379,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fc",
+      "id": "doodad.floors.c8r6",
       "included": true,
       "rect": [
         392,
@@ -2394,7 +2394,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fd",
+      "id": "doodad.floors.c9r6",
       "included": true,
       "rect": [
         441,
@@ -2409,7 +2409,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fe",
+      "id": "doodad.floors.c10r6",
       "included": true,
       "rect": [
         490,
@@ -2424,7 +2424,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ff",
+      "id": "doodad.floors.c11r6",
       "included": true,
       "rect": [
         539,
@@ -2439,7 +2439,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fg",
+      "id": "doodad.floors.c12r6",
       "included": true,
       "rect": [
         588,
@@ -2454,7 +2454,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fh",
+      "id": "doodad.floors.c13r6",
       "included": true,
       "rect": [
         637,
@@ -2469,7 +2469,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fi",
+      "id": "doodad.floors.c14r6",
       "included": true,
       "rect": [
         686,
@@ -2484,7 +2484,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fj",
+      "id": "doodad.floors.c15r6",
       "included": true,
       "rect": [
         735,
@@ -2499,7 +2499,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fk",
+      "id": "doodad.floors.c16r6",
       "included": true,
       "rect": [
         784,
@@ -2514,7 +2514,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fl",
+      "id": "doodad.floors.c17r6",
       "included": true,
       "rect": [
         833,
@@ -2529,7 +2529,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fm",
+      "id": "doodad.floors.c18r6",
       "included": true,
       "rect": [
         882,
@@ -2544,7 +2544,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fn",
+      "id": "doodad.floors.c19r6",
       "included": true,
       "rect": [
         931,
@@ -2559,7 +2559,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fo",
+      "id": "doodad.floors.c20r6",
       "included": true,
       "rect": [
         980,
@@ -2574,7 +2574,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fp",
+      "id": "doodad.floors.c21r6",
       "included": true,
       "rect": [
         1029,
@@ -2589,7 +2589,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fq",
+      "id": "doodad.floors.c22r6",
       "included": true,
       "rect": [
         1078,
@@ -2604,7 +2604,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fr",
+      "id": "doodad.floors.c23r6",
       "included": true,
       "rect": [
         1127,
@@ -2619,7 +2619,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fs",
+      "id": "doodad.floors.c24r6",
       "included": true,
       "rect": [
         1176,
@@ -2634,7 +2634,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ft",
+      "id": "doodad.floors.c0r7",
       "included": true,
       "rect": [
         0,
@@ -2649,7 +2649,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fu",
+      "id": "doodad.floors.c1r7",
       "included": true,
       "rect": [
         49,
@@ -2664,7 +2664,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fv",
+      "id": "doodad.floors.c2r7",
       "included": true,
       "rect": [
         98,
@@ -2679,7 +2679,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fw",
+      "id": "doodad.floors.c3r7",
       "included": true,
       "rect": [
         147,
@@ -2694,7 +2694,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fx",
+      "id": "doodad.floors.c4r7",
       "included": true,
       "rect": [
         196,
@@ -2709,7 +2709,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fy",
+      "id": "doodad.floors.c5r7",
       "included": true,
       "rect": [
         245,
@@ -2724,7 +2724,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-fz",
+      "id": "doodad.floors.c6r7",
       "included": true,
       "rect": [
         294,
@@ -2739,7 +2739,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ga",
+      "id": "doodad.floors.c7r7",
       "included": true,
       "rect": [
         343,
@@ -2754,7 +2754,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gb",
+      "id": "doodad.floors.c8r7",
       "included": true,
       "rect": [
         392,
@@ -2769,7 +2769,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gc",
+      "id": "doodad.floors.c9r7",
       "included": true,
       "rect": [
         441,
@@ -2784,7 +2784,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gd",
+      "id": "doodad.floors.c10r7",
       "included": true,
       "rect": [
         490,
@@ -2799,7 +2799,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ge",
+      "id": "doodad.floors.c11r7",
       "included": true,
       "rect": [
         539,
@@ -2814,7 +2814,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gf",
+      "id": "doodad.floors.c12r7",
       "included": true,
       "rect": [
         588,
@@ -2829,7 +2829,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gg",
+      "id": "doodad.floors.c13r7",
       "included": true,
       "rect": [
         637,
@@ -2844,7 +2844,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gh",
+      "id": "doodad.floors.c14r7",
       "included": true,
       "rect": [
         686,
@@ -2859,7 +2859,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gi",
+      "id": "doodad.floors.c15r7",
       "included": true,
       "rect": [
         735,
@@ -2874,7 +2874,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gj",
+      "id": "doodad.floors.c16r7",
       "included": true,
       "rect": [
         784,
@@ -2889,7 +2889,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gk",
+      "id": "doodad.floors.c17r7",
       "included": true,
       "rect": [
         833,
@@ -2904,7 +2904,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gl",
+      "id": "doodad.floors.c18r7",
       "included": true,
       "rect": [
         882,
@@ -2919,7 +2919,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gm",
+      "id": "doodad.floors.c19r7",
       "included": true,
       "rect": [
         931,
@@ -2934,7 +2934,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gn",
+      "id": "doodad.floors.c20r7",
       "included": true,
       "rect": [
         980,
@@ -2949,7 +2949,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-go",
+      "id": "doodad.floors.c21r7",
       "included": true,
       "rect": [
         1029,
@@ -2964,7 +2964,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gp",
+      "id": "doodad.floors.c22r7",
       "included": true,
       "rect": [
         1078,
@@ -2979,7 +2979,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gq",
+      "id": "doodad.floors.c23r7",
       "included": true,
       "rect": [
         1127,
@@ -2994,7 +2994,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gr",
+      "id": "doodad.floors.c24r7",
       "included": true,
       "rect": [
         1176,
@@ -3009,7 +3009,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gs",
+      "id": "doodad.floors.c0r8",
       "included": true,
       "rect": [
         0,
@@ -3024,7 +3024,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gt",
+      "id": "doodad.floors.c1r8",
       "included": true,
       "rect": [
         49,
@@ -3039,7 +3039,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gu",
+      "id": "doodad.floors.c2r8",
       "included": true,
       "rect": [
         98,
@@ -3054,7 +3054,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gv",
+      "id": "doodad.floors.c3r8",
       "included": true,
       "rect": [
         147,
@@ -3069,7 +3069,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gw",
+      "id": "doodad.floors.c4r8",
       "included": true,
       "rect": [
         196,
@@ -3084,7 +3084,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gx",
+      "id": "doodad.floors.c5r8",
       "included": true,
       "rect": [
         245,
@@ -3099,7 +3099,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gy",
+      "id": "doodad.floors.c6r8",
       "included": true,
       "rect": [
         294,
@@ -3114,7 +3114,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-gz",
+      "id": "doodad.floors.c7r8",
       "included": true,
       "rect": [
         343,
@@ -3129,7 +3129,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ha",
+      "id": "doodad.floors.c8r8",
       "included": true,
       "rect": [
         392,
@@ -3144,7 +3144,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hb",
+      "id": "doodad.floors.c9r8",
       "included": true,
       "rect": [
         441,
@@ -3159,7 +3159,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hc",
+      "id": "doodad.floors.c10r8",
       "included": true,
       "rect": [
         490,
@@ -3174,7 +3174,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hd",
+      "id": "doodad.floors.c11r8",
       "included": true,
       "rect": [
         539,
@@ -3189,7 +3189,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-he",
+      "id": "doodad.floors.c12r8",
       "included": true,
       "rect": [
         588,
@@ -3204,7 +3204,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hf",
+      "id": "doodad.floors.c13r8",
       "included": true,
       "rect": [
         637,
@@ -3219,7 +3219,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hg",
+      "id": "doodad.floors.c14r8",
       "included": true,
       "rect": [
         686,
@@ -3234,7 +3234,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hh",
+      "id": "doodad.floors.c15r8",
       "included": true,
       "rect": [
         735,
@@ -3249,7 +3249,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hi",
+      "id": "doodad.floors.c16r8",
       "included": true,
       "rect": [
         784,
@@ -3264,7 +3264,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hj",
+      "id": "doodad.floors.c17r8",
       "included": true,
       "rect": [
         833,
@@ -3279,7 +3279,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hk",
+      "id": "doodad.floors.c18r8",
       "included": true,
       "rect": [
         882,
@@ -3294,7 +3294,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hl",
+      "id": "doodad.floors.c19r8",
       "included": true,
       "rect": [
         931,
@@ -3309,7 +3309,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hm",
+      "id": "doodad.floors.c20r8",
       "included": true,
       "rect": [
         980,
@@ -3324,7 +3324,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hn",
+      "id": "doodad.floors.c21r8",
       "included": true,
       "rect": [
         1029,
@@ -3339,7 +3339,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ho",
+      "id": "doodad.floors.c22r8",
       "included": true,
       "rect": [
         1078,
@@ -3354,7 +3354,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hp",
+      "id": "doodad.floors.c23r8",
       "included": true,
       "rect": [
         1127,
@@ -3369,7 +3369,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hq",
+      "id": "doodad.floors.c24r8",
       "included": true,
       "rect": [
         1176,
@@ -3384,7 +3384,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hr",
+      "id": "doodad.floors.c0r9",
       "included": true,
       "rect": [
         0,
@@ -3399,7 +3399,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hs",
+      "id": "doodad.floors.c1r9",
       "included": true,
       "rect": [
         49,
@@ -3414,7 +3414,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ht",
+      "id": "doodad.floors.c2r9",
       "included": true,
       "rect": [
         98,
@@ -3429,7 +3429,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hu",
+      "id": "doodad.floors.c3r9",
       "included": true,
       "rect": [
         147,
@@ -3444,7 +3444,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hv",
+      "id": "doodad.floors.c4r9",
       "included": true,
       "rect": [
         196,
@@ -3459,7 +3459,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hw",
+      "id": "doodad.floors.c5r9",
       "included": true,
       "rect": [
         245,
@@ -3474,7 +3474,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hx",
+      "id": "doodad.floors.c6r9",
       "included": true,
       "rect": [
         294,
@@ -3489,7 +3489,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hy",
+      "id": "doodad.floors.c7r9",
       "included": true,
       "rect": [
         343,
@@ -3504,7 +3504,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-hz",
+      "id": "doodad.floors.c8r9",
       "included": true,
       "rect": [
         392,
@@ -3519,7 +3519,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ia",
+      "id": "doodad.floors.c9r9",
       "included": true,
       "rect": [
         441,
@@ -3534,7 +3534,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ib",
+      "id": "doodad.floors.c10r9",
       "included": true,
       "rect": [
         490,
@@ -3549,7 +3549,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ic",
+      "id": "doodad.floors.c11r9",
       "included": true,
       "rect": [
         539,
@@ -3564,7 +3564,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-id",
+      "id": "doodad.floors.c12r9",
       "included": true,
       "rect": [
         588,
@@ -3579,7 +3579,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ie",
+      "id": "doodad.floors.c13r9",
       "included": true,
       "rect": [
         637,
@@ -3594,7 +3594,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-if",
+      "id": "doodad.floors.c14r9",
       "included": true,
       "rect": [
         686,
@@ -3609,7 +3609,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ig",
+      "id": "doodad.floors.c15r9",
       "included": true,
       "rect": [
         735,
@@ -3624,7 +3624,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ih",
+      "id": "doodad.floors.c16r9",
       "included": true,
       "rect": [
         784,
@@ -3639,7 +3639,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ii",
+      "id": "doodad.floors.c17r9",
       "included": true,
       "rect": [
         833,
@@ -3654,7 +3654,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ij",
+      "id": "doodad.floors.c18r9",
       "included": true,
       "rect": [
         882,
@@ -3669,7 +3669,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ik",
+      "id": "doodad.floors.c19r9",
       "included": true,
       "rect": [
         931,
@@ -3684,7 +3684,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-il",
+      "id": "doodad.floors.c20r9",
       "included": true,
       "rect": [
         980,
@@ -3699,7 +3699,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-im",
+      "id": "doodad.floors.c21r9",
       "included": true,
       "rect": [
         1029,
@@ -3714,7 +3714,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-in",
+      "id": "doodad.floors.c22r9",
       "included": true,
       "rect": [
         1078,
@@ -3729,7 +3729,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-io",
+      "id": "doodad.floors.c23r9",
       "included": true,
       "rect": [
         1127,
@@ -3744,7 +3744,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ip",
+      "id": "doodad.floors.c24r9",
       "included": true,
       "rect": [
         1176,
@@ -3759,7 +3759,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-iq",
+      "id": "doodad.floors.c0r10",
       "included": true,
       "rect": [
         0,
@@ -3774,7 +3774,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ir",
+      "id": "doodad.floors.c1r10",
       "included": true,
       "rect": [
         49,
@@ -3789,7 +3789,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-is",
+      "id": "doodad.floors.c2r10",
       "included": true,
       "rect": [
         98,
@@ -3804,7 +3804,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-it",
+      "id": "doodad.floors.c3r10",
       "included": true,
       "rect": [
         147,
@@ -3819,7 +3819,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-iu",
+      "id": "doodad.floors.c4r10",
       "included": true,
       "rect": [
         196,
@@ -3834,7 +3834,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-iv",
+      "id": "doodad.floors.c5r10",
       "included": true,
       "rect": [
         245,
@@ -3849,7 +3849,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-iw",
+      "id": "doodad.floors.c6r10",
       "included": true,
       "rect": [
         294,
@@ -3864,7 +3864,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ix",
+      "id": "doodad.floors.c7r10",
       "included": true,
       "rect": [
         343,
@@ -3879,7 +3879,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-iy",
+      "id": "doodad.floors.c8r10",
       "included": true,
       "rect": [
         392,
@@ -3894,7 +3894,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-iz",
+      "id": "doodad.floors.c9r10",
       "included": true,
       "rect": [
         441,
@@ -3909,7 +3909,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ja",
+      "id": "doodad.floors.c10r10",
       "included": true,
       "rect": [
         490,
@@ -3924,7 +3924,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jb",
+      "id": "doodad.floors.c11r10",
       "included": true,
       "rect": [
         539,
@@ -3939,7 +3939,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jc",
+      "id": "doodad.floors.c12r10",
       "included": true,
       "rect": [
         588,
@@ -3954,7 +3954,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jd",
+      "id": "doodad.floors.c13r10",
       "included": true,
       "rect": [
         637,
@@ -3969,7 +3969,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-je",
+      "id": "doodad.floors.c14r10",
       "included": true,
       "rect": [
         686,
@@ -3984,7 +3984,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jf",
+      "id": "doodad.floors.c15r10",
       "included": true,
       "rect": [
         735,
@@ -3999,7 +3999,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jg",
+      "id": "doodad.floors.c16r10",
       "included": true,
       "rect": [
         784,
@@ -4014,7 +4014,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jh",
+      "id": "doodad.floors.c17r10",
       "included": true,
       "rect": [
         833,
@@ -4029,7 +4029,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ji",
+      "id": "doodad.floors.c18r10",
       "included": true,
       "rect": [
         882,
@@ -4044,7 +4044,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jj",
+      "id": "doodad.floors.c19r10",
       "included": true,
       "rect": [
         931,
@@ -4059,7 +4059,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jk",
+      "id": "doodad.floors.c20r10",
       "included": true,
       "rect": [
         980,
@@ -4074,7 +4074,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jl",
+      "id": "doodad.floors.c21r10",
       "included": true,
       "rect": [
         1029,
@@ -4089,7 +4089,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jm",
+      "id": "doodad.floors.c22r10",
       "included": true,
       "rect": [
         1078,
@@ -4104,7 +4104,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jn",
+      "id": "doodad.floors.c23r10",
       "included": true,
       "rect": [
         1127,
@@ -4119,7 +4119,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jo",
+      "id": "doodad.floors.c24r10",
       "included": true,
       "rect": [
         1176,
@@ -4134,7 +4134,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jp",
+      "id": "doodad.floors.c0r11",
       "included": true,
       "rect": [
         0,
@@ -4149,7 +4149,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jq",
+      "id": "doodad.floors.c1r11",
       "included": true,
       "rect": [
         49,
@@ -4164,7 +4164,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jr",
+      "id": "doodad.floors.c2r11",
       "included": true,
       "rect": [
         98,
@@ -4179,7 +4179,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-js",
+      "id": "doodad.floors.c3r11",
       "included": true,
       "rect": [
         147,
@@ -4194,7 +4194,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jt",
+      "id": "doodad.floors.c4r11",
       "included": true,
       "rect": [
         196,
@@ -4209,7 +4209,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ju",
+      "id": "doodad.floors.c5r11",
       "included": true,
       "rect": [
         245,
@@ -4224,7 +4224,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jv",
+      "id": "doodad.floors.c6r11",
       "included": true,
       "rect": [
         294,
@@ -4239,7 +4239,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jw",
+      "id": "doodad.floors.c7r11",
       "included": true,
       "rect": [
         343,
@@ -4254,7 +4254,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jx",
+      "id": "doodad.floors.c8r11",
       "included": true,
       "rect": [
         392,
@@ -4269,7 +4269,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jy",
+      "id": "doodad.floors.c9r11",
       "included": true,
       "rect": [
         441,
@@ -4284,7 +4284,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-jz",
+      "id": "doodad.floors.c10r11",
       "included": true,
       "rect": [
         490,
@@ -4299,7 +4299,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ka",
+      "id": "doodad.floors.c11r11",
       "included": true,
       "rect": [
         539,
@@ -4314,7 +4314,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kb",
+      "id": "doodad.floors.c12r11",
       "included": true,
       "rect": [
         588,
@@ -4329,7 +4329,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kc",
+      "id": "doodad.floors.c13r11",
       "included": true,
       "rect": [
         637,
@@ -4344,7 +4344,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kd",
+      "id": "doodad.floors.c14r11",
       "included": true,
       "rect": [
         686,
@@ -4359,7 +4359,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ke",
+      "id": "doodad.floors.c15r11",
       "included": true,
       "rect": [
         735,
@@ -4374,7 +4374,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kf",
+      "id": "doodad.floors.c16r11",
       "included": true,
       "rect": [
         784,
@@ -4389,7 +4389,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kg",
+      "id": "doodad.floors.c17r11",
       "included": true,
       "rect": [
         833,
@@ -4404,7 +4404,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kh",
+      "id": "doodad.floors.c18r11",
       "included": true,
       "rect": [
         882,
@@ -4419,7 +4419,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ki",
+      "id": "doodad.floors.c19r11",
       "included": true,
       "rect": [
         931,
@@ -4434,7 +4434,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kj",
+      "id": "doodad.floors.c20r11",
       "included": true,
       "rect": [
         980,
@@ -4449,7 +4449,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kk",
+      "id": "doodad.floors.c21r11",
       "included": true,
       "rect": [
         1029,
@@ -4464,7 +4464,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kl",
+      "id": "doodad.floors.c22r11",
       "included": true,
       "rect": [
         1078,
@@ -4479,7 +4479,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-km",
+      "id": "doodad.floors.c23r11",
       "included": true,
       "rect": [
         1127,
@@ -4494,7 +4494,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kn",
+      "id": "doodad.floors.c24r11",
       "included": true,
       "rect": [
         1176,
@@ -4509,7 +4509,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ko",
+      "id": "doodad.floors.c0r12",
       "included": true,
       "rect": [
         0,
@@ -4524,7 +4524,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kp",
+      "id": "doodad.floors.c1r12",
       "included": true,
       "rect": [
         49,
@@ -4539,7 +4539,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kq",
+      "id": "doodad.floors.c2r12",
       "included": true,
       "rect": [
         98,
@@ -4554,7 +4554,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kr",
+      "id": "doodad.floors.c3r12",
       "included": true,
       "rect": [
         147,
@@ -4569,7 +4569,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ks",
+      "id": "doodad.floors.c4r12",
       "included": true,
       "rect": [
         196,
@@ -4584,7 +4584,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kt",
+      "id": "doodad.floors.c5r12",
       "included": true,
       "rect": [
         245,
@@ -4599,7 +4599,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ku",
+      "id": "doodad.floors.c6r12",
       "included": true,
       "rect": [
         294,
@@ -4614,7 +4614,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kv",
+      "id": "doodad.floors.c7r12",
       "included": true,
       "rect": [
         343,
@@ -4629,7 +4629,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kw",
+      "id": "doodad.floors.c8r12",
       "included": true,
       "rect": [
         392,
@@ -4644,7 +4644,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kx",
+      "id": "doodad.floors.c9r12",
       "included": true,
       "rect": [
         441,
@@ -4659,7 +4659,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ky",
+      "id": "doodad.floors.c10r12",
       "included": true,
       "rect": [
         490,
@@ -4674,7 +4674,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-kz",
+      "id": "doodad.floors.c11r12",
       "included": true,
       "rect": [
         539,
@@ -4689,7 +4689,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-la",
+      "id": "doodad.floors.c12r12",
       "included": true,
       "rect": [
         588,
@@ -4704,7 +4704,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lb",
+      "id": "doodad.floors.c13r12",
       "included": true,
       "rect": [
         637,
@@ -4719,7 +4719,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lc",
+      "id": "doodad.floors.c14r12",
       "included": true,
       "rect": [
         686,
@@ -4734,7 +4734,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ld",
+      "id": "doodad.floors.c15r12",
       "included": true,
       "rect": [
         735,
@@ -4749,7 +4749,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-le",
+      "id": "doodad.floors.c16r12",
       "included": true,
       "rect": [
         784,
@@ -4764,7 +4764,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lf",
+      "id": "doodad.floors.c17r12",
       "included": true,
       "rect": [
         833,
@@ -4779,7 +4779,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lg",
+      "id": "doodad.floors.c18r12",
       "included": true,
       "rect": [
         882,
@@ -4794,7 +4794,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lh",
+      "id": "doodad.floors.c19r12",
       "included": true,
       "rect": [
         931,
@@ -4809,7 +4809,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-li",
+      "id": "doodad.floors.c20r12",
       "included": true,
       "rect": [
         980,
@@ -4824,7 +4824,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lj",
+      "id": "doodad.floors.c21r12",
       "included": true,
       "rect": [
         1029,
@@ -4839,7 +4839,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lk",
+      "id": "doodad.floors.c22r12",
       "included": true,
       "rect": [
         1078,
@@ -4854,7 +4854,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ll",
+      "id": "doodad.floors.c23r12",
       "included": true,
       "rect": [
         1127,
@@ -4869,7 +4869,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lm",
+      "id": "doodad.floors.c24r12",
       "included": true,
       "rect": [
         1176,
@@ -4884,7 +4884,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ln",
+      "id": "doodad.floors.c0r13",
       "included": true,
       "rect": [
         0,
@@ -4899,7 +4899,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lo",
+      "id": "doodad.floors.c1r13",
       "included": true,
       "rect": [
         49,
@@ -4914,7 +4914,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lp",
+      "id": "doodad.floors.c2r13",
       "included": true,
       "rect": [
         98,
@@ -4929,7 +4929,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lq",
+      "id": "doodad.floors.c3r13",
       "included": true,
       "rect": [
         147,
@@ -4944,7 +4944,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lr",
+      "id": "doodad.floors.c4r13",
       "included": true,
       "rect": [
         196,
@@ -4959,7 +4959,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ls",
+      "id": "doodad.floors.c5r13",
       "included": true,
       "rect": [
         245,
@@ -4974,7 +4974,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lt",
+      "id": "doodad.floors.c6r13",
       "included": true,
       "rect": [
         294,
@@ -4989,7 +4989,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lu",
+      "id": "doodad.floors.c7r13",
       "included": true,
       "rect": [
         343,
@@ -5004,7 +5004,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lv",
+      "id": "doodad.floors.c8r13",
       "included": true,
       "rect": [
         392,
@@ -5019,7 +5019,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lw",
+      "id": "doodad.floors.c9r13",
       "included": true,
       "rect": [
         441,
@@ -5034,7 +5034,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lx",
+      "id": "doodad.floors.c10r13",
       "included": true,
       "rect": [
         490,
@@ -5049,7 +5049,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ly",
+      "id": "doodad.floors.c11r13",
       "included": true,
       "rect": [
         539,
@@ -5064,7 +5064,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-lz",
+      "id": "doodad.floors.c12r13",
       "included": true,
       "rect": [
         588,
@@ -5079,7 +5079,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ma",
+      "id": "doodad.floors.c13r13",
       "included": true,
       "rect": [
         637,
@@ -5094,7 +5094,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mb",
+      "id": "doodad.floors.c14r13",
       "included": true,
       "rect": [
         686,
@@ -5109,7 +5109,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mc",
+      "id": "doodad.floors.c15r13",
       "included": true,
       "rect": [
         735,
@@ -5124,7 +5124,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-md",
+      "id": "doodad.floors.c16r13",
       "included": true,
       "rect": [
         784,
@@ -5139,7 +5139,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-me",
+      "id": "doodad.floors.c17r13",
       "included": true,
       "rect": [
         833,
@@ -5154,7 +5154,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mf",
+      "id": "doodad.floors.c18r13",
       "included": true,
       "rect": [
         882,
@@ -5169,7 +5169,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mg",
+      "id": "doodad.floors.c19r13",
       "included": true,
       "rect": [
         931,
@@ -5184,7 +5184,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mh",
+      "id": "doodad.floors.c20r13",
       "included": true,
       "rect": [
         980,
@@ -5199,7 +5199,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mi",
+      "id": "doodad.floors.c21r13",
       "included": true,
       "rect": [
         1029,
@@ -5214,7 +5214,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mj",
+      "id": "doodad.floors.c22r13",
       "included": true,
       "rect": [
         1078,
@@ -5229,7 +5229,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mk",
+      "id": "doodad.floors.c23r13",
       "included": true,
       "rect": [
         1127,
@@ -5244,7 +5244,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ml",
+      "id": "doodad.floors.c24r13",
       "included": true,
       "rect": [
         1176,
@@ -5259,7 +5259,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mm",
+      "id": "doodad.floors.c0r14",
       "included": true,
       "rect": [
         0,
@@ -5274,7 +5274,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mn",
+      "id": "doodad.floors.c1r14",
       "included": true,
       "rect": [
         49,
@@ -5289,7 +5289,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mo",
+      "id": "doodad.floors.c2r14",
       "included": true,
       "rect": [
         98,
@@ -5304,7 +5304,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mp",
+      "id": "doodad.floors.c3r14",
       "included": true,
       "rect": [
         147,
@@ -5319,7 +5319,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mq",
+      "id": "doodad.floors.c4r14",
       "included": true,
       "rect": [
         196,
@@ -5334,7 +5334,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mr",
+      "id": "doodad.floors.c5r14",
       "included": true,
       "rect": [
         245,
@@ -5349,7 +5349,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ms",
+      "id": "doodad.floors.c6r14",
       "included": true,
       "rect": [
         294,
@@ -5364,7 +5364,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mt",
+      "id": "doodad.floors.c7r14",
       "included": true,
       "rect": [
         343,
@@ -5379,7 +5379,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mu",
+      "id": "doodad.floors.c8r14",
       "included": true,
       "rect": [
         392,
@@ -5394,7 +5394,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mv",
+      "id": "doodad.floors.c9r14",
       "included": true,
       "rect": [
         441,
@@ -5409,7 +5409,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mw",
+      "id": "doodad.floors.c10r14",
       "included": true,
       "rect": [
         490,
@@ -5424,7 +5424,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mx",
+      "id": "doodad.floors.c11r14",
       "included": true,
       "rect": [
         539,
@@ -5439,7 +5439,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-my",
+      "id": "doodad.floors.c12r14",
       "included": true,
       "rect": [
         588,
@@ -5454,7 +5454,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-mz",
+      "id": "doodad.floors.c13r14",
       "included": true,
       "rect": [
         637,
@@ -5469,7 +5469,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-na",
+      "id": "doodad.floors.c14r14",
       "included": true,
       "rect": [
         686,
@@ -5484,7 +5484,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nb",
+      "id": "doodad.floors.c15r14",
       "included": true,
       "rect": [
         735,
@@ -5499,7 +5499,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nc",
+      "id": "doodad.floors.c16r14",
       "included": true,
       "rect": [
         784,
@@ -5514,7 +5514,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nd",
+      "id": "doodad.floors.c17r14",
       "included": true,
       "rect": [
         833,
@@ -5529,7 +5529,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ne",
+      "id": "doodad.floors.c18r14",
       "included": true,
       "rect": [
         882,
@@ -5544,7 +5544,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nf",
+      "id": "doodad.floors.c19r14",
       "included": true,
       "rect": [
         931,
@@ -5559,7 +5559,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ng",
+      "id": "doodad.floors.c20r14",
       "included": true,
       "rect": [
         980,
@@ -5574,7 +5574,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nh",
+      "id": "doodad.floors.c21r14",
       "included": true,
       "rect": [
         1029,
@@ -5589,7 +5589,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ni",
+      "id": "doodad.floors.c22r14",
       "included": true,
       "rect": [
         1078,
@@ -5604,7 +5604,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nj",
+      "id": "doodad.floors.c23r14",
       "included": true,
       "rect": [
         1127,
@@ -5619,7 +5619,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nk",
+      "id": "doodad.floors.c24r14",
       "included": true,
       "rect": [
         1176,
@@ -5634,7 +5634,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nl",
+      "id": "doodad.floors.c0r15",
       "included": true,
       "rect": [
         0,
@@ -5649,7 +5649,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nm",
+      "id": "doodad.floors.c1r15",
       "included": true,
       "rect": [
         49,
@@ -5664,7 +5664,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nn",
+      "id": "doodad.floors.c2r15",
       "included": true,
       "rect": [
         98,
@@ -5679,7 +5679,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-no",
+      "id": "doodad.floors.c3r15",
       "included": true,
       "rect": [
         147,
@@ -5694,7 +5694,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-np",
+      "id": "doodad.floors.c4r15",
       "included": true,
       "rect": [
         196,
@@ -5709,7 +5709,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nq",
+      "id": "doodad.floors.c5r15",
       "included": true,
       "rect": [
         245,
@@ -5724,7 +5724,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nr",
+      "id": "doodad.floors.c6r15",
       "included": true,
       "rect": [
         294,
@@ -5739,7 +5739,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ns",
+      "id": "doodad.floors.c7r15",
       "included": true,
       "rect": [
         343,
@@ -5754,7 +5754,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nt",
+      "id": "doodad.floors.c8r15",
       "included": true,
       "rect": [
         392,
@@ -5769,7 +5769,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nu",
+      "id": "doodad.floors.c9r15",
       "included": true,
       "rect": [
         441,
@@ -5784,7 +5784,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nv",
+      "id": "doodad.floors.c10r15",
       "included": true,
       "rect": [
         490,
@@ -5799,7 +5799,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nw",
+      "id": "doodad.floors.c11r15",
       "included": true,
       "rect": [
         539,
@@ -5814,7 +5814,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nx",
+      "id": "doodad.floors.c12r15",
       "included": true,
       "rect": [
         588,
@@ -5829,7 +5829,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ny",
+      "id": "doodad.floors.c13r15",
       "included": true,
       "rect": [
         637,
@@ -5844,7 +5844,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-nz",
+      "id": "doodad.floors.c14r15",
       "included": true,
       "rect": [
         686,
@@ -5859,7 +5859,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-oa",
+      "id": "doodad.floors.c15r15",
       "included": true,
       "rect": [
         735,
@@ -5874,7 +5874,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ob",
+      "id": "doodad.floors.c16r15",
       "included": true,
       "rect": [
         784,
@@ -5889,7 +5889,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-oc",
+      "id": "doodad.floors.c17r15",
       "included": true,
       "rect": [
         833,
@@ -5904,7 +5904,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-od",
+      "id": "doodad.floors.c18r15",
       "included": true,
       "rect": [
         882,
@@ -5919,7 +5919,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-oe",
+      "id": "doodad.floors.c19r15",
       "included": true,
       "rect": [
         931,
@@ -5934,7 +5934,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-of",
+      "id": "doodad.floors.c20r15",
       "included": true,
       "rect": [
         980,
@@ -5949,7 +5949,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-og",
+      "id": "doodad.floors.c21r15",
       "included": true,
       "rect": [
         1029,
@@ -5964,7 +5964,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-oh",
+      "id": "doodad.floors.c22r15",
       "included": true,
       "rect": [
         1078,
@@ -5979,7 +5979,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-oi",
+      "id": "doodad.floors.c23r15",
       "included": true,
       "rect": [
         1127,
@@ -5994,7 +5994,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-oj",
+      "id": "doodad.floors.c24r15",
       "included": true,
       "rect": [
         1176,
@@ -6009,7 +6009,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ok",
+      "id": "doodad.floors.c0r16",
       "included": true,
       "rect": [
         0,
@@ -6024,7 +6024,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ol",
+      "id": "doodad.floors.c1r16",
       "included": true,
       "rect": [
         49,
@@ -6039,7 +6039,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-om",
+      "id": "doodad.floors.c2r16",
       "included": true,
       "rect": [
         98,
@@ -6054,7 +6054,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-on",
+      "id": "doodad.floors.c3r16",
       "included": true,
       "rect": [
         147,
@@ -6069,7 +6069,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-oo",
+      "id": "doodad.floors.c4r16",
       "included": true,
       "rect": [
         196,
@@ -6084,7 +6084,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-op",
+      "id": "doodad.floors.c5r16",
       "included": true,
       "rect": [
         245,
@@ -6099,7 +6099,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-oq",
+      "id": "doodad.floors.c6r16",
       "included": true,
       "rect": [
         294,
@@ -6114,7 +6114,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-or",
+      "id": "doodad.floors.c7r16",
       "included": true,
       "rect": [
         343,
@@ -6129,7 +6129,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-os",
+      "id": "doodad.floors.c8r16",
       "included": true,
       "rect": [
         392,
@@ -6144,7 +6144,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ot",
+      "id": "doodad.floors.c9r16",
       "included": true,
       "rect": [
         441,
@@ -6159,7 +6159,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ou",
+      "id": "doodad.floors.c10r16",
       "included": true,
       "rect": [
         490,
@@ -6174,7 +6174,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ov",
+      "id": "doodad.floors.c11r16",
       "included": true,
       "rect": [
         539,
@@ -6189,7 +6189,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ow",
+      "id": "doodad.floors.c12r16",
       "included": true,
       "rect": [
         588,
@@ -6204,7 +6204,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ox",
+      "id": "doodad.floors.c13r16",
       "included": true,
       "rect": [
         637,
@@ -6219,7 +6219,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-oy",
+      "id": "doodad.floors.c14r16",
       "included": true,
       "rect": [
         686,
@@ -6234,7 +6234,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-oz",
+      "id": "doodad.floors.c15r16",
       "included": true,
       "rect": [
         735,
@@ -6249,7 +6249,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pa",
+      "id": "doodad.floors.c16r16",
       "included": true,
       "rect": [
         784,
@@ -6264,7 +6264,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pb",
+      "id": "doodad.floors.c17r16",
       "included": true,
       "rect": [
         833,
@@ -6279,7 +6279,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pc",
+      "id": "doodad.floors.c18r16",
       "included": true,
       "rect": [
         882,
@@ -6294,7 +6294,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pd",
+      "id": "doodad.floors.c19r16",
       "included": true,
       "rect": [
         931,
@@ -6309,7 +6309,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pe",
+      "id": "doodad.floors.c20r16",
       "included": true,
       "rect": [
         980,
@@ -6324,7 +6324,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pf",
+      "id": "doodad.floors.c21r16",
       "included": true,
       "rect": [
         1029,
@@ -6339,7 +6339,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pg",
+      "id": "doodad.floors.c22r16",
       "included": true,
       "rect": [
         1078,
@@ -6354,7 +6354,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ph",
+      "id": "doodad.floors.c23r16",
       "included": true,
       "rect": [
         1127,
@@ -6369,7 +6369,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pi",
+      "id": "doodad.floors.c24r16",
       "included": true,
       "rect": [
         1176,
@@ -6384,7 +6384,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pj",
+      "id": "doodad.floors.c0r17",
       "included": true,
       "rect": [
         0,
@@ -6399,7 +6399,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pk",
+      "id": "doodad.floors.c1r17",
       "included": true,
       "rect": [
         49,
@@ -6414,7 +6414,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pl",
+      "id": "doodad.floors.c2r17",
       "included": true,
       "rect": [
         98,
@@ -6429,7 +6429,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pm",
+      "id": "doodad.floors.c3r17",
       "included": true,
       "rect": [
         147,
@@ -6444,7 +6444,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pn",
+      "id": "doodad.floors.c4r17",
       "included": true,
       "rect": [
         196,
@@ -6459,7 +6459,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-po",
+      "id": "doodad.floors.c5r17",
       "included": true,
       "rect": [
         245,
@@ -6474,7 +6474,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pp",
+      "id": "doodad.floors.c6r17",
       "included": true,
       "rect": [
         294,
@@ -6489,7 +6489,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pq",
+      "id": "doodad.floors.c7r17",
       "included": true,
       "rect": [
         343,
@@ -6504,7 +6504,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pr",
+      "id": "doodad.floors.c8r17",
       "included": true,
       "rect": [
         392,
@@ -6519,7 +6519,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ps",
+      "id": "doodad.floors.c9r17",
       "included": true,
       "rect": [
         441,
@@ -6534,7 +6534,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pt",
+      "id": "doodad.floors.c10r17",
       "included": true,
       "rect": [
         490,
@@ -6549,7 +6549,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pu",
+      "id": "doodad.floors.c11r17",
       "included": true,
       "rect": [
         539,
@@ -6564,7 +6564,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pv",
+      "id": "doodad.floors.c12r17",
       "included": true,
       "rect": [
         588,
@@ -6579,7 +6579,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pw",
+      "id": "doodad.floors.c13r17",
       "included": true,
       "rect": [
         637,
@@ -6594,7 +6594,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-px",
+      "id": "doodad.floors.c14r17",
       "included": true,
       "rect": [
         686,
@@ -6609,7 +6609,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-py",
+      "id": "doodad.floors.c15r17",
       "included": true,
       "rect": [
         735,
@@ -6624,7 +6624,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-pz",
+      "id": "doodad.floors.c16r17",
       "included": true,
       "rect": [
         784,
@@ -6639,7 +6639,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qa",
+      "id": "doodad.floors.c17r17",
       "included": true,
       "rect": [
         833,
@@ -6654,7 +6654,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qb",
+      "id": "doodad.floors.c18r17",
       "included": true,
       "rect": [
         882,
@@ -6669,7 +6669,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qc",
+      "id": "doodad.floors.c19r17",
       "included": true,
       "rect": [
         931,
@@ -6684,7 +6684,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qd",
+      "id": "doodad.floors.c20r17",
       "included": true,
       "rect": [
         980,
@@ -6699,7 +6699,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qe",
+      "id": "doodad.floors.c21r17",
       "included": true,
       "rect": [
         1029,
@@ -6714,7 +6714,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qf",
+      "id": "doodad.floors.c22r17",
       "included": true,
       "rect": [
         1078,
@@ -6729,7 +6729,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qg",
+      "id": "doodad.floors.c23r17",
       "included": true,
       "rect": [
         1127,
@@ -6744,7 +6744,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qh",
+      "id": "doodad.floors.c24r17",
       "included": true,
       "rect": [
         1176,
@@ -6759,7 +6759,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qi",
+      "id": "doodad.floors.c0r18",
       "included": true,
       "rect": [
         0,
@@ -6774,7 +6774,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qj",
+      "id": "doodad.floors.c1r18",
       "included": true,
       "rect": [
         49,
@@ -6789,7 +6789,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qk",
+      "id": "doodad.floors.c2r18",
       "included": true,
       "rect": [
         98,
@@ -6804,7 +6804,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ql",
+      "id": "doodad.floors.c3r18",
       "included": true,
       "rect": [
         147,
@@ -6819,7 +6819,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qm",
+      "id": "doodad.floors.c4r18",
       "included": true,
       "rect": [
         196,
@@ -6834,7 +6834,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qn",
+      "id": "doodad.floors.c5r18",
       "included": true,
       "rect": [
         245,
@@ -6849,7 +6849,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qo",
+      "id": "doodad.floors.c6r18",
       "included": true,
       "rect": [
         294,
@@ -6864,7 +6864,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qp",
+      "id": "doodad.floors.c7r18",
       "included": true,
       "rect": [
         343,
@@ -6879,7 +6879,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qq",
+      "id": "doodad.floors.c8r18",
       "included": true,
       "rect": [
         392,
@@ -6894,7 +6894,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qr",
+      "id": "doodad.floors.c9r18",
       "included": true,
       "rect": [
         441,
@@ -6909,7 +6909,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qs",
+      "id": "doodad.floors.c10r18",
       "included": true,
       "rect": [
         490,
@@ -6924,7 +6924,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qt",
+      "id": "doodad.floors.c11r18",
       "included": true,
       "rect": [
         539,
@@ -6939,7 +6939,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qu",
+      "id": "doodad.floors.c12r18",
       "included": true,
       "rect": [
         588,
@@ -6954,7 +6954,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qv",
+      "id": "doodad.floors.c13r18",
       "included": true,
       "rect": [
         637,
@@ -6969,7 +6969,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qw",
+      "id": "doodad.floors.c14r18",
       "included": true,
       "rect": [
         686,
@@ -6984,7 +6984,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qx",
+      "id": "doodad.floors.c15r18",
       "included": true,
       "rect": [
         735,
@@ -6999,7 +6999,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qy",
+      "id": "doodad.floors.c16r18",
       "included": true,
       "rect": [
         784,
@@ -7014,7 +7014,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-qz",
+      "id": "doodad.floors.c17r18",
       "included": true,
       "rect": [
         833,
@@ -7029,7 +7029,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ra",
+      "id": "doodad.floors.c18r18",
       "included": true,
       "rect": [
         882,
@@ -7044,7 +7044,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rb",
+      "id": "doodad.floors.c19r18",
       "included": true,
       "rect": [
         931,
@@ -7059,7 +7059,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rc",
+      "id": "doodad.floors.c20r18",
       "included": true,
       "rect": [
         980,
@@ -7074,7 +7074,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rd",
+      "id": "doodad.floors.c21r18",
       "included": true,
       "rect": [
         1029,
@@ -7089,7 +7089,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-re",
+      "id": "doodad.floors.c22r18",
       "included": true,
       "rect": [
         1078,
@@ -7104,7 +7104,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rf",
+      "id": "doodad.floors.c23r18",
       "included": true,
       "rect": [
         1127,
@@ -7119,7 +7119,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rg",
+      "id": "doodad.floors.c24r18",
       "included": true,
       "rect": [
         1176,
@@ -7134,7 +7134,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rh",
+      "id": "doodad.floors.c0r19",
       "included": true,
       "rect": [
         0,
@@ -7149,7 +7149,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ri",
+      "id": "doodad.floors.c1r19",
       "included": true,
       "rect": [
         49,
@@ -7164,7 +7164,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rj",
+      "id": "doodad.floors.c2r19",
       "included": true,
       "rect": [
         98,
@@ -7179,7 +7179,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rk",
+      "id": "doodad.floors.c3r19",
       "included": true,
       "rect": [
         147,
@@ -7194,7 +7194,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rl",
+      "id": "doodad.floors.c4r19",
       "included": true,
       "rect": [
         196,
@@ -7209,7 +7209,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rm",
+      "id": "doodad.floors.c5r19",
       "included": true,
       "rect": [
         245,
@@ -7224,7 +7224,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rn",
+      "id": "doodad.floors.c6r19",
       "included": true,
       "rect": [
         294,
@@ -7239,7 +7239,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ro",
+      "id": "doodad.floors.c7r19",
       "included": true,
       "rect": [
         343,
@@ -7254,7 +7254,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rp",
+      "id": "doodad.floors.c8r19",
       "included": true,
       "rect": [
         392,
@@ -7269,7 +7269,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rq",
+      "id": "doodad.floors.c9r19",
       "included": true,
       "rect": [
         441,
@@ -7284,7 +7284,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rr",
+      "id": "doodad.floors.c10r19",
       "included": true,
       "rect": [
         490,
@@ -7299,7 +7299,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rs",
+      "id": "doodad.floors.c11r19",
       "included": true,
       "rect": [
         539,
@@ -7314,7 +7314,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rt",
+      "id": "doodad.floors.c12r19",
       "included": true,
       "rect": [
         588,
@@ -7329,7 +7329,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ru",
+      "id": "doodad.floors.c13r19",
       "included": true,
       "rect": [
         637,
@@ -7344,7 +7344,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rv",
+      "id": "doodad.floors.c14r19",
       "included": true,
       "rect": [
         686,
@@ -7359,7 +7359,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rw",
+      "id": "doodad.floors.c15r19",
       "included": true,
       "rect": [
         735,
@@ -7374,7 +7374,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rx",
+      "id": "doodad.floors.c16r19",
       "included": true,
       "rect": [
         784,
@@ -7389,7 +7389,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ry",
+      "id": "doodad.floors.c17r19",
       "included": true,
       "rect": [
         833,
@@ -7404,7 +7404,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-rz",
+      "id": "doodad.floors.c18r19",
       "included": true,
       "rect": [
         882,
@@ -7419,7 +7419,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sa",
+      "id": "doodad.floors.c19r19",
       "included": true,
       "rect": [
         931,
@@ -7434,7 +7434,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sb",
+      "id": "doodad.floors.c20r19",
       "included": true,
       "rect": [
         980,
@@ -7449,7 +7449,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sc",
+      "id": "doodad.floors.c21r19",
       "included": true,
       "rect": [
         1029,
@@ -7464,7 +7464,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sd",
+      "id": "doodad.floors.c22r19",
       "included": true,
       "rect": [
         1078,
@@ -7479,7 +7479,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-se",
+      "id": "doodad.floors.c23r19",
       "included": true,
       "rect": [
         1127,
@@ -7494,7 +7494,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sf",
+      "id": "doodad.floors.c24r19",
       "included": true,
       "rect": [
         1176,
@@ -7509,7 +7509,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sg",
+      "id": "doodad.floors.c0r20",
       "included": true,
       "rect": [
         0,
@@ -7524,7 +7524,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sh",
+      "id": "doodad.floors.c1r20",
       "included": true,
       "rect": [
         49,
@@ -7539,7 +7539,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-si",
+      "id": "doodad.floors.c2r20",
       "included": true,
       "rect": [
         98,
@@ -7554,7 +7554,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sj",
+      "id": "doodad.floors.c3r20",
       "included": true,
       "rect": [
         147,
@@ -7569,7 +7569,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sk",
+      "id": "doodad.floors.c4r20",
       "included": true,
       "rect": [
         196,
@@ -7584,7 +7584,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sl",
+      "id": "doodad.floors.c5r20",
       "included": true,
       "rect": [
         245,
@@ -7599,7 +7599,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sm",
+      "id": "doodad.floors.c6r20",
       "included": true,
       "rect": [
         294,
@@ -7614,7 +7614,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sn",
+      "id": "doodad.floors.c7r20",
       "included": true,
       "rect": [
         343,
@@ -7629,7 +7629,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-so",
+      "id": "doodad.floors.c8r20",
       "included": true,
       "rect": [
         392,
@@ -7644,7 +7644,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sp",
+      "id": "doodad.floors.c9r20",
       "included": true,
       "rect": [
         441,
@@ -7659,7 +7659,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sq",
+      "id": "doodad.floors.c10r20",
       "included": true,
       "rect": [
         490,
@@ -7674,7 +7674,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sr",
+      "id": "doodad.floors.c11r20",
       "included": true,
       "rect": [
         539,
@@ -7689,7 +7689,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ss",
+      "id": "doodad.floors.c12r20",
       "included": true,
       "rect": [
         588,
@@ -7704,7 +7704,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-st",
+      "id": "doodad.floors.c13r20",
       "included": true,
       "rect": [
         637,
@@ -7719,7 +7719,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-su",
+      "id": "doodad.floors.c14r20",
       "included": true,
       "rect": [
         686,
@@ -7734,7 +7734,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sv",
+      "id": "doodad.floors.c15r20",
       "included": true,
       "rect": [
         735,
@@ -7749,7 +7749,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sw",
+      "id": "doodad.floors.c16r20",
       "included": true,
       "rect": [
         784,
@@ -7764,7 +7764,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sx",
+      "id": "doodad.floors.c17r20",
       "included": true,
       "rect": [
         833,
@@ -7779,7 +7779,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sy",
+      "id": "doodad.floors.c18r20",
       "included": true,
       "rect": [
         882,
@@ -7794,7 +7794,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-sz",
+      "id": "doodad.floors.c19r20",
       "included": true,
       "rect": [
         931,
@@ -7809,7 +7809,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ta",
+      "id": "doodad.floors.c20r20",
       "included": true,
       "rect": [
         980,
@@ -7824,7 +7824,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tb",
+      "id": "doodad.floors.c21r20",
       "included": true,
       "rect": [
         1029,
@@ -7839,7 +7839,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tc",
+      "id": "doodad.floors.c22r20",
       "included": true,
       "rect": [
         1078,
@@ -7854,7 +7854,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-td",
+      "id": "doodad.floors.c23r20",
       "included": true,
       "rect": [
         1127,
@@ -7869,7 +7869,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-te",
+      "id": "doodad.floors.c24r20",
       "included": true,
       "rect": [
         1176,
@@ -7884,7 +7884,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tf",
+      "id": "doodad.floors.c0r21",
       "included": true,
       "rect": [
         0,
@@ -7899,7 +7899,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tg",
+      "id": "doodad.floors.c1r21",
       "included": true,
       "rect": [
         49,
@@ -7914,7 +7914,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-th",
+      "id": "doodad.floors.c2r21",
       "included": true,
       "rect": [
         98,
@@ -7929,7 +7929,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ti",
+      "id": "doodad.floors.c3r21",
       "included": true,
       "rect": [
         147,
@@ -7944,7 +7944,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tj",
+      "id": "doodad.floors.c4r21",
       "included": true,
       "rect": [
         196,
@@ -7959,7 +7959,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tk",
+      "id": "doodad.floors.c5r21",
       "included": true,
       "rect": [
         245,
@@ -7974,7 +7974,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tl",
+      "id": "doodad.floors.c6r21",
       "included": true,
       "rect": [
         294,
@@ -7989,7 +7989,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tm",
+      "id": "doodad.floors.c7r21",
       "included": true,
       "rect": [
         343,
@@ -8004,7 +8004,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tn",
+      "id": "doodad.floors.c8r21",
       "included": true,
       "rect": [
         392,
@@ -8019,7 +8019,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-to",
+      "id": "doodad.floors.c9r21",
       "included": true,
       "rect": [
         441,
@@ -8034,7 +8034,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tp",
+      "id": "doodad.floors.c10r21",
       "included": true,
       "rect": [
         490,
@@ -8049,7 +8049,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tq",
+      "id": "doodad.floors.c11r21",
       "included": true,
       "rect": [
         539,
@@ -8064,7 +8064,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tr",
+      "id": "doodad.floors.c12r21",
       "included": true,
       "rect": [
         588,
@@ -8079,7 +8079,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ts",
+      "id": "doodad.floors.c13r21",
       "included": true,
       "rect": [
         637,
@@ -8094,7 +8094,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tt",
+      "id": "doodad.floors.c14r21",
       "included": true,
       "rect": [
         686,
@@ -8109,7 +8109,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tu",
+      "id": "doodad.floors.c15r21",
       "included": true,
       "rect": [
         735,
@@ -8124,7 +8124,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tv",
+      "id": "doodad.floors.c16r21",
       "included": true,
       "rect": [
         784,
@@ -8139,7 +8139,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tw",
+      "id": "doodad.floors.c17r21",
       "included": true,
       "rect": [
         833,
@@ -8154,7 +8154,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tx",
+      "id": "doodad.floors.c18r21",
       "included": true,
       "rect": [
         882,
@@ -8169,7 +8169,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ty",
+      "id": "doodad.floors.c19r21",
       "included": true,
       "rect": [
         931,
@@ -8184,7 +8184,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-tz",
+      "id": "doodad.floors.c20r21",
       "included": true,
       "rect": [
         980,
@@ -8199,7 +8199,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ua",
+      "id": "doodad.floors.c21r21",
       "included": true,
       "rect": [
         1029,
@@ -8214,7 +8214,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ub",
+      "id": "doodad.floors.c22r21",
       "included": true,
       "rect": [
         1078,
@@ -8229,7 +8229,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uc",
+      "id": "doodad.floors.c23r21",
       "included": true,
       "rect": [
         1127,
@@ -8244,7 +8244,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ud",
+      "id": "doodad.floors.c24r21",
       "included": true,
       "rect": [
         1176,
@@ -8259,7 +8259,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ue",
+      "id": "doodad.floors.c0r22",
       "included": true,
       "rect": [
         0,
@@ -8274,7 +8274,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uf",
+      "id": "doodad.floors.c1r22",
       "included": true,
       "rect": [
         49,
@@ -8289,7 +8289,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ug",
+      "id": "doodad.floors.c2r22",
       "included": true,
       "rect": [
         98,
@@ -8304,7 +8304,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uh",
+      "id": "doodad.floors.c3r22",
       "included": true,
       "rect": [
         147,
@@ -8319,7 +8319,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ui",
+      "id": "doodad.floors.c4r22",
       "included": true,
       "rect": [
         196,
@@ -8334,7 +8334,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uj",
+      "id": "doodad.floors.c5r22",
       "included": true,
       "rect": [
         245,
@@ -8349,7 +8349,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uk",
+      "id": "doodad.floors.c6r22",
       "included": true,
       "rect": [
         294,
@@ -8364,7 +8364,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ul",
+      "id": "doodad.floors.c7r22",
       "included": true,
       "rect": [
         343,
@@ -8379,7 +8379,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-um",
+      "id": "doodad.floors.c8r22",
       "included": true,
       "rect": [
         392,
@@ -8394,7 +8394,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-un",
+      "id": "doodad.floors.c9r22",
       "included": true,
       "rect": [
         441,
@@ -8409,7 +8409,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uo",
+      "id": "doodad.floors.c10r22",
       "included": true,
       "rect": [
         490,
@@ -8424,7 +8424,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-up",
+      "id": "doodad.floors.c11r22",
       "included": true,
       "rect": [
         539,
@@ -8439,7 +8439,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uq",
+      "id": "doodad.floors.c12r22",
       "included": true,
       "rect": [
         588,
@@ -8454,7 +8454,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ur",
+      "id": "doodad.floors.c13r22",
       "included": true,
       "rect": [
         637,
@@ -8469,7 +8469,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-us",
+      "id": "doodad.floors.c14r22",
       "included": true,
       "rect": [
         686,
@@ -8484,7 +8484,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ut",
+      "id": "doodad.floors.c15r22",
       "included": true,
       "rect": [
         735,
@@ -8499,7 +8499,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uu",
+      "id": "doodad.floors.c16r22",
       "included": true,
       "rect": [
         784,
@@ -8514,7 +8514,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uv",
+      "id": "doodad.floors.c17r22",
       "included": true,
       "rect": [
         833,
@@ -8529,7 +8529,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uw",
+      "id": "doodad.floors.c18r22",
       "included": true,
       "rect": [
         882,
@@ -8544,7 +8544,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ux",
+      "id": "doodad.floors.c19r22",
       "included": true,
       "rect": [
         931,
@@ -8559,7 +8559,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uy",
+      "id": "doodad.floors.c20r22",
       "included": true,
       "rect": [
         980,
@@ -8574,7 +8574,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-uz",
+      "id": "doodad.floors.c21r22",
       "included": true,
       "rect": [
         1029,
@@ -8589,7 +8589,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-va",
+      "id": "doodad.floors.c22r22",
       "included": true,
       "rect": [
         1078,
@@ -8604,7 +8604,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vb",
+      "id": "doodad.floors.c23r22",
       "included": true,
       "rect": [
         1127,
@@ -8619,7 +8619,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vc",
+      "id": "doodad.floors.c24r22",
       "included": true,
       "rect": [
         1176,
@@ -8634,7 +8634,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vd",
+      "id": "doodad.floors.c0r23",
       "included": true,
       "rect": [
         0,
@@ -8649,7 +8649,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ve",
+      "id": "doodad.floors.c1r23",
       "included": true,
       "rect": [
         49,
@@ -8664,7 +8664,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vf",
+      "id": "doodad.floors.c2r23",
       "included": true,
       "rect": [
         98,
@@ -8679,7 +8679,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vg",
+      "id": "doodad.floors.c3r23",
       "included": true,
       "rect": [
         147,
@@ -8694,7 +8694,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vh",
+      "id": "doodad.floors.c4r23",
       "included": true,
       "rect": [
         196,
@@ -8709,7 +8709,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vi",
+      "id": "doodad.floors.c5r23",
       "included": true,
       "rect": [
         245,
@@ -8724,7 +8724,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vj",
+      "id": "doodad.floors.c6r23",
       "included": true,
       "rect": [
         294,
@@ -8739,7 +8739,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vk",
+      "id": "doodad.floors.c7r23",
       "included": true,
       "rect": [
         343,
@@ -8754,7 +8754,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vl",
+      "id": "doodad.floors.c8r23",
       "included": true,
       "rect": [
         392,
@@ -8769,7 +8769,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vm",
+      "id": "doodad.floors.c9r23",
       "included": true,
       "rect": [
         441,
@@ -8784,7 +8784,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vn",
+      "id": "doodad.floors.c10r23",
       "included": true,
       "rect": [
         490,
@@ -8799,7 +8799,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vo",
+      "id": "doodad.floors.c11r23",
       "included": true,
       "rect": [
         539,
@@ -8814,7 +8814,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vp",
+      "id": "doodad.floors.c12r23",
       "included": true,
       "rect": [
         588,
@@ -8829,7 +8829,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vq",
+      "id": "doodad.floors.c13r23",
       "included": true,
       "rect": [
         637,
@@ -8844,7 +8844,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vr",
+      "id": "doodad.floors.c14r23",
       "included": true,
       "rect": [
         686,
@@ -8859,7 +8859,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vs",
+      "id": "doodad.floors.c15r23",
       "included": true,
       "rect": [
         735,
@@ -8874,7 +8874,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vt",
+      "id": "doodad.floors.c16r23",
       "included": true,
       "rect": [
         784,
@@ -8889,7 +8889,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vu",
+      "id": "doodad.floors.c17r23",
       "included": true,
       "rect": [
         833,
@@ -8904,7 +8904,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vv",
+      "id": "doodad.floors.c18r23",
       "included": true,
       "rect": [
         882,
@@ -8919,7 +8919,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vw",
+      "id": "doodad.floors.c19r23",
       "included": true,
       "rect": [
         931,
@@ -8934,7 +8934,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vx",
+      "id": "doodad.floors.c20r23",
       "included": true,
       "rect": [
         980,
@@ -8949,7 +8949,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vy",
+      "id": "doodad.floors.c21r23",
       "included": true,
       "rect": [
         1029,
@@ -8964,7 +8964,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-vz",
+      "id": "doodad.floors.c22r23",
       "included": true,
       "rect": [
         1078,
@@ -8979,7 +8979,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wa",
+      "id": "doodad.floors.c23r23",
       "included": true,
       "rect": [
         1127,
@@ -8994,7 +8994,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wb",
+      "id": "doodad.floors.c24r23",
       "included": true,
       "rect": [
         1176,
@@ -9009,7 +9009,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wc",
+      "id": "doodad.floors.c0r24",
       "included": true,
       "rect": [
         0,
@@ -9024,7 +9024,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wd",
+      "id": "doodad.floors.c1r24",
       "included": true,
       "rect": [
         49,
@@ -9039,7 +9039,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-we",
+      "id": "doodad.floors.c2r24",
       "included": true,
       "rect": [
         98,
@@ -9054,7 +9054,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wf",
+      "id": "doodad.floors.c3r24",
       "included": true,
       "rect": [
         147,
@@ -9069,7 +9069,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wg",
+      "id": "doodad.floors.c4r24",
       "included": true,
       "rect": [
         196,
@@ -9084,7 +9084,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wh",
+      "id": "doodad.floors.c5r24",
       "included": true,
       "rect": [
         245,
@@ -9099,7 +9099,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wi",
+      "id": "doodad.floors.c6r24",
       "included": true,
       "rect": [
         294,
@@ -9114,7 +9114,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wj",
+      "id": "doodad.floors.c7r24",
       "included": true,
       "rect": [
         343,
@@ -9129,7 +9129,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wk",
+      "id": "doodad.floors.c8r24",
       "included": true,
       "rect": [
         392,
@@ -9144,7 +9144,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wl",
+      "id": "doodad.floors.c9r24",
       "included": true,
       "rect": [
         441,
@@ -9159,7 +9159,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wm",
+      "id": "doodad.floors.c10r24",
       "included": true,
       "rect": [
         490,
@@ -9174,7 +9174,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wn",
+      "id": "doodad.floors.c11r24",
       "included": true,
       "rect": [
         539,
@@ -9189,7 +9189,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wo",
+      "id": "doodad.floors.c12r24",
       "included": true,
       "rect": [
         588,
@@ -9204,7 +9204,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wp",
+      "id": "doodad.floors.c13r24",
       "included": true,
       "rect": [
         637,
@@ -9219,7 +9219,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wq",
+      "id": "doodad.floors.c14r24",
       "included": true,
       "rect": [
         686,
@@ -9234,7 +9234,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wr",
+      "id": "doodad.floors.c15r24",
       "included": true,
       "rect": [
         735,
@@ -9249,7 +9249,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ws",
+      "id": "doodad.floors.c16r24",
       "included": true,
       "rect": [
         784,
@@ -9264,7 +9264,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wt",
+      "id": "doodad.floors.c17r24",
       "included": true,
       "rect": [
         833,
@@ -9279,7 +9279,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wu",
+      "id": "doodad.floors.c18r24",
       "included": true,
       "rect": [
         882,
@@ -9294,7 +9294,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wv",
+      "id": "doodad.floors.c19r24",
       "included": true,
       "rect": [
         931,
@@ -9309,7 +9309,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-ww",
+      "id": "doodad.floors.c20r24",
       "included": true,
       "rect": [
         980,
@@ -9324,7 +9324,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wx",
+      "id": "doodad.floors.c21r24",
       "included": true,
       "rect": [
         1029,
@@ -9339,7 +9339,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wy",
+      "id": "doodad.floors.c22r24",
       "included": true,
       "rect": [
         1078,
@@ -9354,7 +9354,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-wz",
+      "id": "doodad.floors.c23r24",
       "included": true,
       "rect": [
         1127,
@@ -9369,7 +9369,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xa",
+      "id": "doodad.floors.c24r24",
       "included": true,
       "rect": [
         1176,
@@ -9384,7 +9384,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xb",
+      "id": "doodad.floors.c0r25",
       "included": true,
       "rect": [
         0,
@@ -9399,7 +9399,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xc",
+      "id": "doodad.floors.c1r25",
       "included": true,
       "rect": [
         49,
@@ -9414,7 +9414,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xd",
+      "id": "doodad.floors.c2r25",
       "included": true,
       "rect": [
         98,
@@ -9429,7 +9429,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xe",
+      "id": "doodad.floors.c3r25",
       "included": true,
       "rect": [
         147,
@@ -9444,7 +9444,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xf",
+      "id": "doodad.floors.c4r25",
       "included": true,
       "rect": [
         196,
@@ -9459,7 +9459,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xg",
+      "id": "doodad.floors.c5r25",
       "included": true,
       "rect": [
         245,
@@ -9474,7 +9474,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xh",
+      "id": "doodad.floors.c6r25",
       "included": true,
       "rect": [
         294,
@@ -9489,7 +9489,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xi",
+      "id": "doodad.floors.c7r25",
       "included": true,
       "rect": [
         343,
@@ -9504,7 +9504,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xj",
+      "id": "doodad.floors.c8r25",
       "included": true,
       "rect": [
         392,
@@ -9519,7 +9519,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xk",
+      "id": "doodad.floors.c9r25",
       "included": true,
       "rect": [
         441,
@@ -9534,7 +9534,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xl",
+      "id": "doodad.floors.c10r25",
       "included": true,
       "rect": [
         490,
@@ -9549,7 +9549,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xm",
+      "id": "doodad.floors.c11r25",
       "included": true,
       "rect": [
         539,
@@ -9564,7 +9564,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xn",
+      "id": "doodad.floors.c12r25",
       "included": true,
       "rect": [
         588,
@@ -9579,7 +9579,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xo",
+      "id": "doodad.floors.c13r25",
       "included": true,
       "rect": [
         637,
@@ -9594,7 +9594,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xp",
+      "id": "doodad.floors.c14r25",
       "included": true,
       "rect": [
         686,
@@ -9609,7 +9609,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xq",
+      "id": "doodad.floors.c15r25",
       "included": true,
       "rect": [
         735,
@@ -9624,7 +9624,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xr",
+      "id": "doodad.floors.c16r25",
       "included": true,
       "rect": [
         784,
@@ -9639,7 +9639,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xs",
+      "id": "doodad.floors.c17r25",
       "included": true,
       "rect": [
         833,
@@ -9654,7 +9654,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xt",
+      "id": "doodad.floors.c18r25",
       "included": true,
       "rect": [
         882,
@@ -9669,7 +9669,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xu",
+      "id": "doodad.floors.c19r25",
       "included": true,
       "rect": [
         931,
@@ -9684,7 +9684,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xv",
+      "id": "doodad.floors.c20r25",
       "included": true,
       "rect": [
         980,
@@ -9699,7 +9699,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xw",
+      "id": "doodad.floors.c21r25",
       "included": true,
       "rect": [
         1029,
@@ -9714,7 +9714,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xx",
+      "id": "doodad.floors.c22r25",
       "included": true,
       "rect": [
         1078,
@@ -9729,7 +9729,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xy",
+      "id": "doodad.floors.c23r25",
       "included": true,
       "rect": [
         1127,
@@ -9744,7 +9744,7 @@
         1,
         1
       ],
-      "id": "doodad.floors.piece-000-xz",
+      "id": "doodad.floors.c24r25",
       "included": true,
       "rect": [
         1176,
@@ -9757,7 +9757,7 @@
   "gridCols": 25,
   "gridRows": 26,
   "idPrefix": "doodad.floors",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Do not re-slice this sheet with apply=true: slicing finds the plate as one fused piece again and reports every cut cell as no longer found, so a re-slice discards the cut and anything authored onto it. Cut once, then annotate. 1225x1284 at 25x26. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Most of its cells are ground variants selected by pool membership rather than props, so adopting it means authoring blocks, not doodads.",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Cut once, then annotate: slicing finds the plate as one fused piece again, so re-slicing has nothing to add. 1225x1284 at 25x26. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Most of its cells are ground variants selected by pool membership rather than props, so adopting it means authoring blocks, not doodads.",
   "sheet": "art-source/tilesets/Floors_Tiles.raw.png",
   "sheetName": "Floors_Tiles"
 }

@@ -1,4 +1,4 @@
-<template props="purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty,shipAction,shipLabel">
+<template props="purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty,shipAction,shipLabel,shipViewAction">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="{purpose}" />
 
@@ -27,6 +27,9 @@
           </div>
           <button id="company-hq-ship" class="hq-ship-button" onclick="{shipAction}">
             <div id="company-hq-ship-label" class="label heading hq-ship-label">{shipLabel}</div>
+          </button>
+          <button id="company-hq-ship-view" class="hq-ship-button" onclick="{shipViewAction}">
+            <div id="company-hq-ship-view-label" class="label heading hq-ship-label">WALK THE SHIP</div>
           </button>
         </div>
 
