@@ -128,19 +128,54 @@ class PointDefenseEmplacementTest {
         long victim = standingTarget(sim, 12, 10);
         placePod(sim, carrier, 10, 10);
 
+        // Feed warheads in one at a time until the mount actually connects. An
+        // engagement is a roll against the mount's authored accuracy, so the
+        // behaviour under test is what a *stop* does, not that the first burst
+        // is guaranteed to land.
+        WeaponDef gun = podStructure().mount.weapon;
         float victimHpBefore = sim.world().hp(victim);
-        // Launch from just inside the radius so the round is engageable on the
-        // very first pass, and aim it squarely at the victim.
-        queueWarhead(sim, ORDNANCE_WEAPON_ID, 13f, 10.5f, 12.5f, 10.5f, 0.5f);
-        advanceSeconds(sim, 1.0f);
+        int stopped = 0;
+        for (int attempt = 0; attempt < podStructure().mount.ammoCapacity; attempt++) {
+            // Launch from just inside the radius so the round is engageable on
+            // the very first pass, and aim it squarely at the victim.
+            queueWarhead(sim, ORDNANCE_WEAPON_ID, 13f, 10.5f, 12.5f, 10.5f, gun.cooldown * 1.5f);
+            advanceSeconds(sim, gun.cooldown * 1.5f + BattleSimulation.TICK_DT * 3f);
+            stopped = sim.telemetry().ordnanceIntercepted(carrier);
+            if (stopped > 0) break;
+        }
 
-        assertTrue(sim.getActiveProjectiles().isEmpty(), "the engaged round must be gone");
+        assertTrue(stopped > 0, "the mount must be able to stop a warhead at all");
+        assertTrue(sim.getActiveProjectiles().isEmpty(), "no round is left hanging in the air");
         assertEquals(victimHpBefore, sim.world().hp(victim), EPS,
-                "an intercepted round detonates on nobody");
-        assertEquals(1, sim.telemetry().ordnanceIntercepted(carrier),
-                "the interception is credited to the marine who placed the pod");
+                "every warhead in this run was stopped, so none detonated on anybody");
         assertEquals(0f, sim.telemetry().damageDealt(carrier), EPS,
                 "interception is not damage and must not be credited as any");
+        assertTrue(sim.telemetry().ordnanceEngaged(carrier) >= stopped,
+                "every stop was preceded by a burst that was counted");
+    }
+
+    @Test
+    void anEngagementThatMissesIsCountedAndTheWarheadKeepsFlying() {
+        BattleSimulation sim = openArena(40, 20);
+        long carrier = marine(sim, 10, 10);
+        placePod(sim, carrier, 10, 10);
+
+        WeaponDef gun = podStructure().mount.weapon;
+        int capacity = podStructure().mount.ammoCapacity;
+        long victim = standingTarget(sim, 12, 10);
+        float victimHpBefore = sim.world().hp(victim);
+        for (int attempt = 0; attempt < capacity; attempt++) {
+            queueWarhead(sim, ORDNANCE_WEAPON_ID, 13f, 10.5f, 12.5f, 10.5f, gun.cooldown * 1.5f);
+            advanceSeconds(sim, gun.cooldown * 1.5f + BattleSimulation.TICK_DT * 3f);
+        }
+
+        int engaged = sim.telemetry().ordnanceEngaged(carrier);
+        int stopped = sim.telemetry().ordnanceIntercepted(carrier);
+        assertEquals(capacity, engaged, "every round in the magazine was fired");
+        assertTrue(stopped < engaged,
+                "an authored accuracy below one must be able to lose an engagement");
+        assertTrue(sim.world().hp(victim) < victimHpBefore,
+                "the warheads it lost still arrived and still detonated");
     }
 
     @Test
@@ -180,10 +215,12 @@ class PointDefenseEmplacementTest {
         }
         advanceSeconds(sim, flightTime + BattleSimulation.TICK_DT * 3f);
 
-        int intercepted = sim.telemetry().ordnanceIntercepted(carrier);
-        assertTrue(intercepted >= 1, "the mount engages what it can reach");
-        assertTrue(intercepted < salvo,
+        int engaged = sim.telemetry().ordnanceEngaged(carrier);
+        assertTrue(engaged >= 1, "the mount engages what it can reach");
+        assertTrue(engaged < salvo,
                 "a salvo tighter than the engagement interval must saturate the mount");
+        assertTrue(sim.telemetry().ordnanceIntercepted(carrier) <= engaged,
+                "stopped rounds are a subset of the rounds fired at");
     }
 
     @Test
@@ -202,8 +239,10 @@ class PointDefenseEmplacementTest {
             advanceSeconds(sim, flightTime + BattleSimulation.TICK_DT * 3f);
         }
 
-        assertEquals(capacity, sim.telemetry().ordnanceIntercepted(carrier),
-                "the mount engages exactly its authored magazine and no more");
+        assertEquals(capacity, sim.telemetry().ordnanceEngaged(carrier),
+                "the mount fires exactly its authored magazine and no more");
+        assertTrue(sim.telemetry().ordnanceIntercepted(carrier) <= capacity,
+                "it cannot stop more warheads than it fired at");
         assertTrue(sim.pointDefense().activeEmplacements().isEmpty(),
                 "a dry mount retires rather than lingering as an inert obstacle");
     }
@@ -224,7 +263,7 @@ class PointDefenseEmplacementTest {
         queueWarhead(sim, ORDNANCE_WEAPON_ID, 13f, 10.5f, 10.5f, 10.5f, 0.4f);
         advanceSeconds(sim, 1.0f);
 
-        assertEquals(0, sim.telemetry().ordnanceIntercepted(carrier),
+        assertEquals(0, sim.telemetry().ordnanceEngaged(carrier),
                 "an expired emplacement engages nothing");
         assertTrue(sim.world().hp(victim) < victimHpBefore,
                 "with the pod gone the warhead lands");
@@ -243,7 +282,7 @@ class PointDefenseEmplacementTest {
         assertFalse(bullet.pointDefenseTarget);
         advanceSeconds(sim, 1.0f);
 
-        assertEquals(0, sim.telemetry().ordnanceIntercepted(carrier),
+        assertEquals(0, sim.telemetry().ordnanceEngaged(carrier),
                 "point defence engages ordnance, never bullets");
         assertTrue(sim.world().hp(victim) < victimHpBefore,
                 "the direct-fire round lands exactly as it would have");
@@ -259,7 +298,7 @@ class PointDefenseEmplacementTest {
         queueWarhead(sim, ORDNANCE_WEAPON_ID, 13f, 10.5f, 11.5f, 10.5f, 0.4f);
         advanceSeconds(sim, 1.0f);
 
-        assertEquals(0, sim.telemetry().ordnanceIntercepted(carrier));
+        assertEquals(0, sim.telemetry().ordnanceEngaged(carrier));
         assertTrue(sim.world().hp(victim) < victimHpBefore,
                 "carrying the kit is not the same as having placed it");
     }
@@ -303,7 +342,7 @@ class PointDefenseEmplacementTest {
         queueWarhead(sim, ORDNANCE_WEAPON_ID, 13f, 10.5f, 10.5f, 10.5f, 0.4f);
         advanceSeconds(sim, 1.0f);
 
-        assertEquals(0, sim.telemetry().ordnanceIntercepted(carrier),
+        assertEquals(0, sim.telemetry().ordnanceEngaged(carrier),
                 "a destroyed emplacement engages nothing");
         assertTrue(sim.world().hp(victim) < victimHpBefore);
     }

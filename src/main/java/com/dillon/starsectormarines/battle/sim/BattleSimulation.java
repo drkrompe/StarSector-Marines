@@ -462,7 +462,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.grid = navigation.getGrid();
         this.smokeFields = new SmokeFieldService(this.grid);
         this.satchelCharges = new SatchelChargeService();
-        this.pointDefense = new PointDefenseService();
+        this.pointDefense = new PointDefenseService(rng);
         this.closeContact = new CloseContactService();
         this.fragGrenades = new com.dillon.starsectormarines.battle.grenade.FragGrenadeService();
         this.topology = navigation.getTopology();

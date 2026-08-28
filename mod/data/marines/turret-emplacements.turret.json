@@ -40,7 +40,7 @@
       "sim": { "ammoCapacity": 200, "turnRateDegPerSec": 110.0 },
       "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
     },
-    { "id": "mount.pd-interceptor", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 6, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } }
+    { "id": "mount.pd-interceptor", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 8, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } }
   ],
   "structures": [
     { "id": "structure.turret-vulcan", "mount": "mount.turret-vulcan", "catalog": { "displayName": "Vulcan Emplacement" }, "durability": { "structure": 60.0, "armorCapacity": 80.0, "armorRating": 8.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 8.0 },

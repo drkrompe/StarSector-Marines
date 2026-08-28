@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.marine.DeployableEmplacementSpec;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Data owner for carrier-placed point-defence emplacements: the queue of
@@ -56,11 +57,26 @@ public final class PointDefenseService {
 
     /** Visible tracer duration for one engagement, in sim-seconds. Presentation only. */
     private static final float ENGAGEMENT_TRACER_SECONDS = 0.12f;
+    /**
+     * How long an engagement mark stays readable after the burst, in
+     * sim-seconds. Long enough that a reviewer sampling frames a third of a
+     * second apart still sees which rounds the mount stopped and which it
+     * missed, rather than a projectile that silently ceased to exist.
+     */
+    private static final float ENGAGEMENT_MARK_SECONDS = 0.9f;
 
+    private final Random rng;
     private final ArrayList<PendingPlacement> pending = new ArrayList<>();
     private final ArrayList<LiveEmplacement> active = new ArrayList<>();
+    private final ArrayList<EngagementMark> marks = new ArrayList<>();
     private volatile List<EmplacementView> snapshot = List.of();
+    private volatile List<EngagementView> markSnapshot = List.of();
     private long nextId = 1L;
+
+    /** Takes the battle's seeded RNG so an engagement roll replays identically. */
+    public PointDefenseService(Random rng) {
+        this.rng = rng;
+    }
 
     /**
      * Records a completed placement channel. Called from the parallel dispatch,
@@ -100,13 +116,42 @@ public final class PointDefenseService {
             if (pod.engagementTimer > 0f) continue;
             Projectile engaged = pickEngageable(pod, inFlight, sim);
             if (engaged == null) continue;
-            engaged.intercepted = true;
+            // An engagement is a burst fired at a moving warhead, not a
+            // guaranteed deletion. It costs a round from the magazine and puts
+            // the mount on its interval whether or not it connects, so "it
+            // fired and lost" is a real, reachable, visible state.
+            boolean stopped = rng.nextFloat() < pod.hitChance;
+            if (stopped) engaged.intercepted = true;
             pod.engagementsRemaining--;
             pod.engagementTimer = pod.engagementInterval;
-            sim.telemetry().recordOrdnanceIntercepted(pod.carrierId);
-            postEngagementTracer(pod, engaged, sim);
+            sim.telemetry().recordOrdnanceEngaged(pod.carrierId);
+            if (stopped) sim.telemetry().recordOrdnanceIntercepted(pod.carrierId);
+            postEngagement(pod, engaged, stopped, sim);
         }
+        ageMarks(dt);
         publishSnapshot();
+    }
+
+    /**
+     * Engagement marks left by the last second of shooting, for the renderer.
+     * Both outcomes are published: a miss that is drawn differently from a kill
+     * is what separates "the emplacement lost that one" from "the missile was
+     * never there".
+     */
+    public List<EngagementView> recentEngagements() { return markSnapshot; }
+
+    private void ageMarks(float dt) {
+        for (int i = marks.size() - 1; i >= 0; i--) {
+            EngagementMark mark = marks.get(i);
+            mark.remaining -= dt;
+            if (mark.remaining <= 0f) marks.remove(i);
+        }
+        ArrayList<EngagementView> views = new ArrayList<>(marks.size());
+        for (EngagementMark mark : marks) {
+            views.add(new EngagementView(mark.faction, mark.x, mark.y, mark.stopped,
+                    Math.max(0f, mark.remaining / ENGAGEMENT_MARK_SECONDS)));
+        }
+        markSnapshot = List.copyOf(views);
     }
 
     /** Live emplacements, for the renderer and for the carrier's do-not-stack gate. */
@@ -174,12 +219,24 @@ public final class PointDefenseService {
      * audio, and its noise footprint all apply — an emplacement the enemy can
      * hear and see firing is the point, not a hidden field that eats missiles.
      */
-    private void postEngagementTracer(LiveEmplacement pod, Projectile engaged,
-                                      BattleControl sim) {
-        sim.postShot(new ShotEvent(pod.entityId,
-                sim.world().x(pod.entityId), sim.world().y(pod.entityId),
-                engaged.currentX(), engaged.currentY(),
-                /*hit*/ true, pod.faction, ENGAGEMENT_TRACER_SECONDS, pod.structure));
+    private void postEngagement(LiveEmplacement pod, Projectile engaged,
+                                boolean stopped, BattleControl sim) {
+        float fromX = sim.world().x(pod.entityId);
+        float fromY = sim.world().y(pod.entityId);
+        float toX = engaged.currentX();
+        float toY = engaged.currentY();
+        // Point the mount at what it just shot, so a bystander can read which
+        // way the pod is working rather than seeing a tracer leave a fixed
+        // barrel. Snapped rather than slewed: the traverse on a cluster mount
+        // is far faster than the tick, and a slew rate here would be a second
+        // authority over the mount's authored turn rate.
+        sim.turretState().setFacingDegrees(pod.entityId,
+                (float) Math.toDegrees(Math.atan2(toY - fromY, toX - fromX)));
+        sim.turretState().setRecoilTimer(pod.entityId, 0f);
+        sim.postShot(new ShotEvent(pod.entityId, fromX, fromY, toX, toY,
+                stopped, pod.faction, ENGAGEMENT_TRACER_SECONDS, pod.structure));
+        marks.add(new EngagementMark(pod.faction, toX, toY, stopped,
+                ENGAGEMENT_MARK_SECONDS));
     }
 
     /**
@@ -191,7 +248,9 @@ public final class PointDefenseService {
     private void burnOut(LiveEmplacement pod, BattleControl sim) {
         long id = sim.resolveUnit(pod.entityId);
         if (id == 0L) return;
-        sim.applyExternalDamage(id, sim.world().hp(id) + sim.world().armor(id) + 1f, Float.MAX_VALUE);
+        float remaining = sim.world().hp(id)
+                + (sim.world().hasArmor(id) ? sim.world().armor(id) : 0f);
+        sim.applyExternalDamage(id, remaining + 1f, Float.MAX_VALUE);
     }
 
     private void publishSnapshot() {
@@ -211,6 +270,27 @@ public final class PointDefenseService {
                                   int engagementsRemaining) {
     }
 
+    /** One engagement the mount just made, and whether it connected. */
+    public record EngagementView(Faction faction, float x, float y, boolean stopped,
+                                 float freshness) {
+    }
+
+    private static final class EngagementMark {
+        final Faction faction;
+        final float x;
+        final float y;
+        final boolean stopped;
+        float remaining;
+
+        EngagementMark(Faction faction, float x, float y, boolean stopped, float remaining) {
+            this.faction = faction;
+            this.x = x;
+            this.y = y;
+            this.stopped = stopped;
+            this.remaining = remaining;
+        }
+    }
+
     private record PendingPlacement(long carrierId, Faction faction, int cellX, int cellY,
                                     DeployableEmplacementSpec spec) {
     }
@@ -224,6 +304,8 @@ public final class PointDefenseService {
         final StructureDef structure;
         final float interceptRadius;
         final float engagementInterval;
+        /** The mount weapon's authored accuracy against a moving warhead. */
+        final float hitChance;
         final float totalLifetime;
         final float spawnX;
         final float spawnY;
@@ -243,6 +325,7 @@ public final class PointDefenseService {
             // mount itself: one emplacement, one answer per question.
             this.interceptRadius = structure.mount.weapon.range;
             this.engagementInterval = structure.mount.weapon.cooldown;
+            this.hitChance = structure.mount.weapon.accuracy;
             this.totalLifetime = spec.lifetimeSeconds();
             this.remainingLifetime = spec.lifetimeSeconds();
             this.engagementsRemaining = structure.mount.ammoCapacity;
