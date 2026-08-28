@@ -165,6 +165,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         // The context is abandoned with the dialog. Release a battle even if
         // the player dismissed mid-fight rather than reaching Results/Loot.
         ctx.setBattleSimulation(null);
+        ctx.companyDeck().dismiss();
         stopIntelAudio();
     }
 

@@ -4,8 +4,11 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
-import com.dillon.starsectormarines.ops.battleview.MechLabBattleScene;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
+import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -32,8 +35,14 @@ public final class MechLabScreen implements Screen {
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
-    private final BattleSprites previewSprites = new BattleSprites();
-    private final MechLabCameraController cameraController = new MechLabCameraController();
+    /**
+     * The bay's own bulkheads are worth seeing, so the framing keeps a couple of
+     * cells of ship around the room: without them a hatch and a hole in the
+     * bulkhead look the same.
+     */
+    private static final int SURROUND_CELLS = 2;
+
+    private MechLabCameraController cameraController;
 
     private MarineOpsContext context;
     private Runnable dismissDialog;
@@ -43,7 +52,6 @@ public final class MechLabScreen implements Screen {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
-    private MechLabBattleScene battleScene;
     private double previewSeconds;
 
     @Override
@@ -61,6 +69,8 @@ public final class MechLabScreen implements Screen {
             closeDocument();
             roster = liveRoster;
             viewModel = new MechLabViewModel(reactor, roster.mechBay());
+            cameraController = new MechLabCameraController(
+                    MechLabCameraController.on(bayFraming(), berths()));
             cameraController.snap(false, viewModel.selectedGantryIndex(),
                     viewModel.gantryVariants().size());
         } else {
@@ -79,27 +89,28 @@ public final class MechLabScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
-            previewSprites.ensureLayeredMechSprites();
-            previewSprites.ensureLayeredUnitSprites();
-            previewSprites.ensureTileSheet();
-            previewSprites.ensureRoadSheet();
-            previewSprites.ensureDoodadSheet();
-            previewSprites.ensureMechLabFxSprites();
-            if (battleScene == null) battleScene = new MechLabBattleScene(previewSprites);
+            previewSprites().ensureLayeredMechSprites();
+            previewSprites().ensureLayeredUnitSprites();
+            previewSprites().ensureTileSheet();
+            previewSprites().ensureRoadSheet();
+            previewSprites().ensureDoodadSheet();
+            previewSprites().ensureMechLabFxSprites();
             built.canvases().set(candidate.requireElement("mech-doll-canvas"),
                     new MechLabDollCanvas(viewModel::gantryVariants,
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
-                            previewSprites::layeredMechSprites,
-                            () -> previewSprites.layeredUnitSprites().get(
+                            () -> previewSprites().layeredMechSprites(),
+                            () -> previewSprites().layeredUnitSprites().get(
                                     LayeredArmorFamily.ARMY_GREEN),
-                            previewSprites::tileSheet,
-                            previewSprites::roadSheet,
-                            previewSprites::mechLabWeldingTorch,
-                            previewSprites::mechLabWeldingSparks,
+                            () -> previewSprites().tileSheet(),
+                            () -> previewSprites().roadSheet(),
+                            () -> previewSprites().mechLabWeldingTorch(),
+                            () -> previewSprites().mechLabWeldingSparks(),
                             cameraController::pose,
                             viewModel::fittingFocused,
-                            battleScene,
+                            () -> context.companyDeck().scene(),
+                            this::framing,
+                            this::berths,
                             () -> previewSeconds));
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -180,6 +191,40 @@ public final class MechLabScreen implements Screen {
         if (dismissDialog != null) dismissDialog.run();
     }
 
+    /**
+     * The compartment this screen is a camera on: the company ship's vehicle
+     * bay. The lab is a place aboard, not a room built beside the ship.
+     */
+    private ShipDeckBattleScene.RoomView bayFraming() {
+        DeckGraph.Compartment bay = context.companyDeck().room(RoomPurpose.VEHICLE_BAY);
+        if (bay == null) throw new IllegalStateException("this ship has no vehicle bay");
+        return ShipDeckBattleScene.RoomView.of(bay, SURROUND_CELLS);
+    }
+
+    /**
+     * The ship's own sprite cache, not this screen's.
+     *
+     * <p>One per ship for the same reason there is one deck: two screens onto
+     * the same vessel loading their own copies of her tiles is the duplication
+     * this screen is being moved off.
+     */
+    private BattleSprites previewSprites() {
+        return context.companyDeck().sprites();
+    }
+
+    /** The berths standing in that bay, in the order the deck authored them. */
+    private List<Gantry> berths() {
+        DeckGraph.Compartment bay = context.companyDeck().room(RoomPurpose.VEHICLE_BAY);
+        if (bay == null) return List.of();
+        return context.companyDeck().scene().berthsIn(bay);
+    }
+
+    /** The framing for this frame: the bay, looked at from the eased camera pose. */
+    private ShipDeckBattleScene.RoomView framing() {
+        MechLabCameraController.CameraPose pose = cameraController.pose();
+        return bayFraming().lookingAt(pose.worldX(), pose.worldY(), pose.zoomNotches());
+    }
+
     @Override
     public void advance(float dt) {
         previewSeconds += Math.max(0f, dt);
@@ -205,8 +250,9 @@ public final class MechLabScreen implements Screen {
     @Override
     public void detach() {
         if (document != null) document.deactivateInput();
-        if (battleScene != null) battleScene.close();
         input = null;
+        // The ship is not this screen's to close. She outlives the page - that
+        // is the point of her being the ship rather than this screen's diorama.
     }
 
     private void closeDocument() {
@@ -215,7 +261,5 @@ public final class MechLabScreen implements Screen {
         document = null;
         markupInstance = null;
         input = null;
-        if (battleScene != null) battleScene.close();
-        battleScene = null;
     }
 }

@@ -42,15 +42,16 @@ class MechLabBattleSceneTest {
     @Test
     void wideCameraKeepsTheEntireLanceInsideTheWorkshopView() {
         BattleCamera camera = MechLabBattleScene.cameraForSurface(
-                900f, 520f, MechLabCameraController.widePose(4));
+                900f, 520f, new MechLabCameraController.CameraPose(
+                        MechLabBattleScene.GRID_WIDTH * 0.5f,
+                        MechLabBattleScene.GRID_HEIGHT * 0.5f,
+                        MechLabCameraController.WIDE_ZOOM_NOTCHES));
 
         float first = camera.cellToScreenX(MechLabBattleScene.mechWorldX(0));
         float last = camera.cellToScreenX(MechLabBattleScene.mechWorldX(3));
         assertTrue(first > 0f);
         assertTrue(last < 900f);
         assertTrue(last - first > 600f);
-        assertEquals(MechLabCameraController.widePose(1),
-                MechLabCameraController.widePose(4));
         assertEquals(0f, camera.cellToScreenX(0f), 1e-4f);
         assertEquals(900f, camera.cellToScreenX(MechLabBattleScene.GRID_WIDTH), 1e-4f);
         assertEquals(camera.cellPxSize(),
