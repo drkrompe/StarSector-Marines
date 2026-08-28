@@ -35,7 +35,13 @@ final class MarineOpsPageNav {
          * this page is about which vessel it is. It names no room for the same
          * reason {@link #HQ} does not — a hull cannot fail to have it.
          */
-        SHIP_TRANSFER(null, null);
+        SHIP_TRANSFER(null, null),
+        /**
+         * The whole vessel rather than a place in her. It names no room for the
+         * opposite reason {@link #HQ} does not: every hull with an interior has
+         * a deck, so there is nothing here a ship can fail to have.
+         */
+        SHIP_VIEW(null, null);
 
         private final RoomPurpose room;
         private final String button;

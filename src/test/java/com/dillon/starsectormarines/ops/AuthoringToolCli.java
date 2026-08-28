@@ -14,6 +14,8 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Calls one authoring tool and exits, for a caller holding a shell rather than
@@ -117,22 +119,23 @@ public final class AuthoringToolCli {
         }
 
         boolean asJson = false;
-        String argument = null;
+        List<String> positional = new ArrayList<>();
         for (int index = 3; index < argv.length; index++) {
             String token = argv[index];
             if (token.equals("--json")) {
                 asJson = true;
-            } else if (argument == null) {
-                argument = token;
             } else {
-                err.println("unexpected argument '" + token + "'; a tool takes one JSON object");
-                return USAGE;
+                positional.add(token);
             }
+        }
+        if (positional.size() > 1) {
+            err.println(tooManyArguments(positional));
+            return USAGE;
         }
 
         JSONObject arguments;
         try {
-            arguments = parse(argument, in);
+            arguments = parse(positional.isEmpty() ? null : positional.get(0), in);
         } catch (JSONException malformed) {
             err.println("arguments are not a JSON object: " + malformed.getMessage());
             return USAGE;
@@ -150,6 +153,47 @@ public final class AuthoringToolCli {
             out.println(result.text());
         }
         return result.error() ? TOOL_FAILED : 0;
+    }
+
+    /**
+     * Say what several positional arguments most likely mean.
+     *
+     * <p>Almost always it is one JSON object the shell took apart at its spaces,
+     * and "unexpected argument" sends the reader hunting for a second argument
+     * they never wrote. Rejoining the pieces is a reliable test of that, and
+     * naming it turns a puzzle into a quoting fix.
+     *
+     * <p>The pieces are <em>not</em> then accepted. A shell that split on
+     * whitespace has also collapsed whatever whitespace was inside the strings,
+     * so the rejoined object can parse cleanly and mean something other than
+     * what was typed. That is worse than refusing.
+     */
+    private static String tooManyArguments(List<String> positional) {
+        // A fragment of a split object is not valid JSON on its own, while two
+        // real arguments each are. That asymmetry is what tells the cases apart:
+        // org.json stops at the first complete value and ignores the rest, so
+        // "{} {}" parses happily and would otherwise look like a split.
+        boolean wasSplit = !parses(positional.get(0))
+                && parses(String.join(" ", positional));
+        if (!wasSplit) {
+            return "expected one JSON object but got " + positional.size()
+                    + " arguments: " + positional;
+        }
+        return "your shell split one JSON object into " + positional.size()
+                + " arguments. Quote it, or avoid quoting entirely:\n"
+                + "  bash:       'tileset_slice' '{\"name\": \"sheet\"}'\n"
+                + "  PowerShell: pass '@call.json' IN QUOTES - a bare @token is "
+                + "PowerShell's splatting operator and never reaches this program\n"
+                + "  anywhere:   pipe the object in and pass - instead";
+    }
+
+    private static boolean parses(String candidate) {
+        try {
+            new JSONObject(candidate);
+            return true;
+        } catch (JSONException notJson) {
+            return false;
+        }
     }
 
     /**
@@ -212,7 +256,8 @@ public final class AuthoringToolCli {
                   authoring --describe <tool>
 
                 Arguments are one JSON object. Pass it inline, as @file, or as - to
-                read stdin. Omit it for a tool that takes none.
+                read stdin. Omit it for a tool that takes none. In PowerShell quote
+                the @file - a bare @token is its splatting operator - or use -.
 
                   authoring tileset_list
                   authoring tileset_measure '{"sheet":"urban-tileset","gridCols":10,"gridRows":10}'
