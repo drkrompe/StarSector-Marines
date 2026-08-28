@@ -1,11 +1,13 @@
 # Opening-operation objective command
 
-Status: DRAFT — use the opening ladder as the first small-force, non-Conquest command duel.
+Status: IN PROGRESS — paired frozen command, explicit force ownership, and
+scenario diagnostics are implemented; authored-place legibility and live
+acceptance remain.
 
 Written: 2026-08-25
 
-Updated: 2026-08-27 — grouped as an Assault-family scenario adapter under
-Mission Command without generalizing its finite preserve/secure laws.
+Updated: 2026-08-28 — migrated both sides from nearest-hostile scanning to one
+setup-authored public place, with spawn-time ownership and typed diagnostics.
 
 Read `mission-command-nouns.md`, `assault-command.md`,
 `early-operation-nouns.md`, and
@@ -39,15 +41,30 @@ objectives and victory.
   arriving player tips a battle that progresses before exact contact knowledge.
 - [ ] Counterattack attackers advance on and secure the depot while bandits
   defend or locally counter from legally known context.
-- [ ] Reversing commander dispatch order does not change the command result.
-- [ ] Neither side receives a hidden hostile cell from mission command.
-- [ ] Command intent does not change terminal outcome authority; any new
+- [x] Reversing commander dispatch order does not change the command result.
+- [x] Neither side receives a hidden hostile cell from mission command.
+- [x] Command intent does not change terminal outcome authority; any new
   preserve/secure victory law is separately authored and accepted by Early
   Operations.
-- [ ] The selected-squad panel and dump explain scenario role, phase, objective,
+- [x] The selected-squad panel and dump explain scenario role, phase, objective,
   directive authority, and reason for both factions.
-- [ ] `opening-ladder-live-acceptance.md` remains the owner of live pacing,
+- [x] `opening-ladder-live-acceptance.md` remains the owner of live pacing,
   lift, force-ratio, and green-company acceptance.
+
+## Implemented architecture checkpoint
+
+Both perspectives now freeze before either plans, and neither strategy receives
+`BattleView`. Relief discloses the local-line anchor; Counterattack discloses a
+deterministic walkable bandit-depot anchor. Predeployed local squads retain
+`GARRISON` authority, raiders enter the defender mission pool at spawn, and
+every opening shuttle conveys Marine mission ownership to the squad it mints.
+Stable nearby rallies use existing `DEFEND_AREA` and `SWEEP_SECTOR` execution,
+so preserve/secure remains command intent rather than a fabricated interaction
+or victory condition.
+
+The current cells are honest deterministic command geometry, not yet guaranteed
+COMMS/depot structures. The two unchecked behavioral bullets therefore remain
+owned by authored-place work and the live opening-ladder pass.
 
 ## Constraints
 

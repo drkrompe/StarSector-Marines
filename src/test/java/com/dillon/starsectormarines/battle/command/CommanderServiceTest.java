@@ -35,7 +35,8 @@ class CommanderServiceTest {
                 AutonomousMissionCommand.class));
         for (Class<?> type : List.of(AutonomousMissionCommand.class,
                 ConquestCommand.class, ConquestDefenderCommand.class,
-                SabotageCommand.class, SabotageDefenderCommand.class)) {
+                SabotageCommand.class, SabotageDefenderCommand.class,
+                OpeningOperationCommand.class)) {
             for (var method : type.getDeclaredMethods()) {
                 assertFalse(method.getReturnType() == BattleView.class
                                 || List.of(method.getParameterTypes())
