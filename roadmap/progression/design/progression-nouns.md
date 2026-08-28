@@ -711,7 +711,7 @@ boundary* — there is no entity, because cover in this game is stored per cell
 per facing and a barricade is the thing that puts some there. Each shape has its
 own owner: an emplacement takes its survivability, geometry, and gun from the
 emplacement catalogs, while a screen takes its cover level, catch height,
-structure pool, and passability from the named shared-edge profile that
+structure, and passability from the named shared-edge profile that
 `mapgen-nouns.md` owns. A future deployable picks the shape that matches what it
 actually leaves standing, rather than being bent into whichever one shipped
 first.
@@ -744,7 +744,7 @@ different feature owing a different proof, and would be a portable wall rather
 than a portable piece of cover.
 
 Its bounds are the boundary it occupies, a finite time standing, and a small
-structure pool that explosive wall damage depletes. Expiry and destruction share
+structure that explosive wall damage depletes. Expiry and destruction share
 one removal path, so a screen that ran its clock out and one that was blown
 apart leave the boundary in the same state — the one it was found in.
 

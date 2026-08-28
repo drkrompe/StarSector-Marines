@@ -12,7 +12,7 @@ import java.io.Serializable;
  * different owner on the far side of it. A placed emplacement is an actor, so
  * its durability and geometry come from the turret catalog's structure. A
  * placed cover screen is not an actor at all — it is a property of a cell
- * boundary — so its cover level, its catch height, its structure pool, and
+ * boundary — so its cover level, its catch height, its structure, and
  * whether it is passable, transparent, and shoot-through all come from the
  * named {@code battle.nav.SharedEdgeBarrier.Kind} profile. Restating any of
  * them on the backpack would give one barricade two different answers to the

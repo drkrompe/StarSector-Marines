@@ -116,12 +116,16 @@ public final class GroundRenderSystem implements RenderSystem {
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS, grid.getWidth(), grid.getHeight());
 
         // Full-grid backing fill — under everything (matches renderGrid's backing quad).
-        // One quad; the scissor bracket clips it to the viewport.
-        float wx0 = cam.cellToScreenX(0);
-        float wy0 = cam.cellToScreenY(0);
-        float wx1 = cam.cellToScreenX(grid.getWidth());
-        float wy1 = cam.cellToScreenY(grid.getHeight());
-        fillRect(wx0, wy0, wx1, wy1, FLOOR_COLOR);
+        // One quad; the scissor bracket clips it to the viewport. A host whose
+        // world does not fill its own grid declines it, because the quad would
+        // paint over whatever it has put behind the world.
+        if (ctx.hostProfile.worldBackingPainted()) {
+            float wx0 = cam.cellToScreenX(0);
+            float wy0 = cam.cellToScreenY(0);
+            float wx1 = cam.cellToScreenX(grid.getWidth());
+            float wy1 = cam.cellToScreenY(grid.getHeight());
+            fillRect(wx0, wy0, wx1, wy1, FLOOR_COLOR);
+        }
 
         if (urban == null) {
             // No tile sheet: solid-fill non-walkable cells (renderGrid's fallback branch).
@@ -222,6 +226,8 @@ public final class GroundRenderSystem implements RenderSystem {
                             drawGroundBlock(kindBlock[ord], kindSheet[ord], kindFill[ord], nWall, sWall, eWall, wWall, x, y);
                         }
                         break;
+                    case VOID:
+                        break; // outside the hull: there is no deck here to paint
                     case SNOW:
                         break; // defined in GroundKind but no generator emits it (dead)
                     default:
