@@ -32,3 +32,4 @@ Written: 2026-08-23
 | `structural-taxonomy.md` | 2026-06-01 | `537ca031`, `3426109f`, `9320da74` | `mapgen-nouns.md` |
 | `corridors-first-class.md` | 2026-06-02 | `aae42444`, `6a07e8f6`, `c4471040`, `f04c2d51` | `mapgen-nouns.md` |
 | `station-interior-fills.md` | 2026-06-02 | `aae42444` | `mapgen-nouns.md` |
+| `thin-edge-barriers.md` | 2026-08-28 | this commit | `mapgen-nouns.md` — canonical shared-edge identity, transparent window profile, Conquest bunker consumer, and reactive destruction; `continuous-positions-nouns.md`, `ballistics-nouns.md`, `combat-durability-nouns.md`, and `battle-render-nouns.md` — routing, tracing, durability, and presentation boundaries |

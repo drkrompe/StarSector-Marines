@@ -6,8 +6,8 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -36,7 +36,11 @@ public final class GarrisonDepletedTrigger implements ReinforcementTrigger {
     @Override
     public void check(BattleView sim, Consumer<ReinforcementRequest> out) {
         CompoundService compounds = sim.getCompoundService();
-        Map<TacticalNode, int[]> agg = new HashMap<>();
+        // TacticalNode intentionally has identity equality, so HashMap bucket
+        // order changes between two otherwise identical battle builds. Preserve
+        // squad-roster discovery order: request order consumes reinforcement
+        // capacity and seeded routing rolls and is therefore simulation state.
+        Map<TacticalNode, int[]> agg = new LinkedHashMap<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.DEFENDER) continue;
             TacticalNode node = squad.assignedNode;

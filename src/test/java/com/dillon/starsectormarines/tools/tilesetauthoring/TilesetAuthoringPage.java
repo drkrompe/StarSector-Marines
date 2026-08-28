@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.tools.authoring.AuthoringMessages;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPage;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
@@ -20,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
@@ -87,18 +89,22 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private final JSpinner cellPx = new JSpinner(new SpinnerNumberModel(64, 8, 256, 8));
     private final JSpinner alphaMin =
             new JSpinner(new SpinnerNumberModel(SheetSlicer.DEFAULT_ALPHA_MIN, 1, 254, 1));
-    private final JSpinner gridCell = new JSpinner(new SpinnerNumberModel(104, 8, 512, 1));
+    private final JSpinner gridCols = new JSpinner(new SpinnerNumberModel(1, 1, 128, 1));
+    private final JSpinner gridRows = new JSpinner(new SpinnerNumberModel(1, 1, 128, 1));
     private final JSpinner screenCellPx = new JSpinner(new SpinnerNumberModel(40, 8, 160, 4));
     private final JLabel preview = new JLabel("", JLabel.CENTER);
     private final JLabel summary = new JLabel(" ");
 
     private final List<TilesetExport.BlockSpec> blocks = new ArrayList<>();
     private final TilesetLibraryView library = new TilesetLibraryView(this::openFromLibrary);
+    private TilesetMapPanel mapPanel;
 
     private BufferedImage source;
     private Path sourcePath;
     private Path documentPath;
     private String sheetNote = "";
+    /** Explicit atlas destination from the document; empty derives it from content. */
+    private String outputSheet = "";
     private boolean dirty;
 
     public TilesetAuthoringPage(AuthoringPageContext context) {
@@ -136,7 +142,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         bar.add(new JLabel(" alpha ≥ "));
         bar.add(small(alphaMin, 60));
         bar.add(new JLabel("  grid "));
-        bar.add(small(gridCell, 70));
+        bar.add(small(gridCols, 50));
+        bar.add(new JLabel(" x "));
+        bar.add(small(gridRows, 50));
         bar.add(new AbstractAction("Split selected on grid") {
             @Override public void actionPerformed(ActionEvent e) {
                 splitSelected();
@@ -187,8 +195,28 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         previewScroll.setBorder(BorderFactory.createTitledBorder(
                 "Compartment preview — the tileset as loaded, at deck scale"));
 
+        mapPanel = new TilesetMapPanel(context.projectRoot(), new TilesetMapPanel.Source() {
+            @Override public BufferedImage atlas() {
+                if (source == null || model.entries.isEmpty()) return null;
+                return TilesetExport.atlas(source, model.entries, blocks,
+                        (Integer) cellPx.getValue());
+            }
+
+            @Override public int cellPx() {
+                return (Integer) TilesetAuthoringPage.this.cellPx.getValue();
+            }
+
+            @Override public List<TilesetMapPreview.Substitution> substitutions() {
+                return bindings();
+            }
+        }, context::reportStatus);
+
+        JTabbedPane previews = new JTabbedPane();
+        previews.addTab("Compartment", previewScroll);
+        previews.addTab("Map", mapPanel);
+
         JSplitPane rightSide = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-                tableScroll, previewScroll);
+                tableScroll, previews);
         rightSide.setResizeWeight(0.45);
         JSplitPane sheetSide = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 library, new JScrollPane(view));
@@ -229,6 +257,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             documentPath = null;
             blocks.clear();
             sheetNote = "";
+            outputSheet = "";
             model.setEntries(new ArrayList<>());
             slice();
         } catch (Exception failure) {
@@ -270,6 +299,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             documentPath = null;
             blocks.clear();
             sheetNote = "";
+            outputSheet = "";
             model.setEntries(new ArrayList<>());
             sheetName.setText(sheet.name());
             idPrefix.setText("doodad." + sheet.name());
@@ -303,10 +333,12 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             sheetName.setText(document.sheetName);
             cellPx.setValue(document.cellPx);
             alphaMin.setValue(document.alphaMin);
-            gridCell.setValue(document.gridCell);
+            gridCols.setValue(document.gridCols);
+            gridRows.setValue(document.gridRows);
             blocks.clear();
             blocks.addAll(document.blocks);
             sheetNote = document.note;
+            outputSheet = document.outputSheet;
             model.setEntries(document.entries);
             view.setEntries(document.entries);
             dirty = false;
@@ -340,7 +372,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         document.idPrefix = idPrefix.getText().trim();
         document.cellPx = (Integer) cellPx.getValue();
         document.alphaMin = (Integer) alphaMin.getValue();
-        document.gridCell = (Integer) gridCell.getValue();
+        document.gridCols = (Integer) gridCols.getValue();
+        document.gridRows = (Integer) gridRows.getValue();
+        document.outputSheet = outputSheet;
         document.note = sheetNote;
         document.entries = model.entries;
         document.blocks = new ArrayList<>(blocks);
@@ -392,6 +426,17 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     /** Documents are read on whichever platform wrote them, so their paths use one separator. */
     private static final char BACKSLASH = '\\';
 
+    /** One cell's width in source pixels, from the stated layout and this sheet. */
+    private int cellPxX() {
+        if (source == null) return 1;
+        return Math.max(1, Math.round(source.getWidth() / (float) (Integer) gridCols.getValue()));
+    }
+
+    private int cellPxY() {
+        if (source == null) return 1;
+        return Math.max(1, Math.round(source.getHeight() / (float) (Integer) gridRows.getValue()));
+    }
+
     private String sheetNameOrDefault() {
         String name = sheetName.getText().trim();
         return name.isEmpty() ? "sheet" : name;
@@ -413,7 +458,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         List<SheetSlicer.Piece> pieces = SheetSlicer.slice(
                 source, (Integer) alphaMin.getValue(), SheetSlicer.DEFAULT_MIN_AREA);
         TilesetDocument.Reconciliation reconciled = TilesetDocument.reconcile(
-                pieces, model.entries, idPrefix.getText().trim(), (Integer) gridCell.getValue());
+                pieces, model.entries, idPrefix.getText().trim(), cellPxX(), cellPxY());
         model.setEntries(reconciled.entries());
         view.setEntries(reconciled.entries());
         markDirty();
@@ -428,7 +473,15 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             AuthoringMessages.info(root, "Split on grid", "Select the fused plates in the table first.");
             return;
         }
-        int cell = (Integer) gridCell.getValue();
+        int cols = (Integer) gridCols.getValue();
+        int gridDown = (Integer) gridRows.getValue();
+        if (cols == 1 && gridDown == 1) {
+            AuthoringMessages.info(root, "Split on grid",
+                    "The grid is 1 x 1, so splitting would change nothing. Set it to the "
+                            + "layout the sheet was generated to — a 20-frame strip is 20 x 1 "
+                            + "— and the cells need not be square.");
+            return;
+        }
         List<TilesetExport.Entry> replaced = new ArrayList<>();
         for (TilesetExport.Entry entry : model.entries) {
             if (!model.isSelected(entry)) {
@@ -436,12 +489,13 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 continue;
             }
             int part = 0;
-            for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cell)) {
+            for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cols, gridDown)) {
                 TilesetExport.Entry split = new TilesetExport.Entry(
                         piece, entry.id + "-" + (char) ('a' + part++));
                 split.cover = entry.cover;
-                split.footprintX = TilesetDocument.guessFootprint(piece.width(), cell);
-                split.footprintY = TilesetDocument.guessFootprint(piece.height(), cell);
+                // A plate's cells are one cell each by construction.
+                split.footprintX = 1;
+                split.footprintY = 1;
                 replaced.add(split);
             }
         }
@@ -600,7 +654,11 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         if (source == null || model.entries.isEmpty()) return;
         int cell = (Integer) cellPx.getValue();
         String name = sheetNameOrDefault();
-        String sheetRelative = "graphics/doodads/" + name + ".png";
+        // Terrain belongs with the tilesets and props with the doodads; the fixed
+        // doodad destination was right only while the tool could not author a wall.
+        String sheetRelative = outputSheet.isEmpty()
+                ? TilesetDocument.defaultOutputSheet(name, !blocks.isEmpty())
+                : outputSheet;
         Path atlasPath = context.projectRoot().resolve("mod").resolve(sheetRelative);
         Path tilesetPath = context.projectRoot()
                 .resolve("mod/data/tilesets").resolve(name + ".tileset.json");
@@ -618,6 +676,46 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         } catch (Exception failure) {
             AuthoringMessages.error(root, "Export tileset", "Export failed.", failure);
         }
+    }
+
+    /**
+     * The bound candidates, addressed by where the packer put them.
+     *
+     * <p>Packing assigns each included piece its atlas cell, so running it here
+     * is what turns "this row stands in for urban.wall" into a rectangle the
+     * preview can paint from.
+     */
+    private List<TilesetMapPreview.Substitution> bindings() {
+        TilesetExport.pack(model.entries, blocks);
+        List<TilesetMapPreview.Substitution> bound = new ArrayList<>();
+        for (TilesetExport.Entry entry : model.entries) {
+            if (!entry.included || entry.standsInFor.isEmpty()) continue;
+            int cellsX = entry.isBlockMember() ? 1 : entry.footprintX;
+            int cellsY = entry.isBlockMember() ? 1 : entry.footprintY;
+            bound.add(new TilesetMapPreview.Substitution(
+                    entry.standsInFor, entry.col, entry.row, cellsX, cellsY));
+        }
+        // A block stands in as a whole patch: bind the block, not nine cells.
+        for (TilesetExport.BlockSpec spec : blocks) {
+            TilesetExport.Entry origin = firstMember(spec.id);
+            if (origin == null || origin.standsInFor.isEmpty()) continue;
+            bound.removeIf(binding -> binding.shippedId().equals(origin.standsInFor));
+            int span = spec.layout.span();
+            bound.add(new TilesetMapPreview.Substitution(origin.standsInFor,
+                    origin.col - BlockSlots.offset(origin.slot)[0],
+                    origin.row - BlockSlots.offset(origin.slot)[1], span, span));
+        }
+        return bound;
+    }
+
+    private TilesetExport.Entry firstMember(String blockId) {
+        for (TilesetExport.Entry entry : model.entries) {
+            if (entry.included && blockId.equals(entry.blockId)
+                    && !entry.standsInFor.isEmpty()) {
+                return entry;
+            }
+        }
+        return null;
     }
 
     private void markDirty() {
@@ -690,7 +788,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private final class EntryTableModel extends AbstractTableModel {
 
         private final String[] columns = { "#", "id", "block", "slot", "cells X", "cells Y",
-                "cover", "tags", "note", "px", "in" };
+                "cover", "tags", "note", "stands in for", "px", "in" };
         private List<TilesetExport.Entry> entries = new ArrayList<>();
         private int[] selectedRows = new int[0];
 
@@ -717,14 +815,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         public Class<?> getColumnClass(int column) {
             return switch (column) {
                 case 0, 4, 5 -> Integer.class;
-                case 10 -> Boolean.class;
+                case 11 -> Boolean.class;
                 default -> String.class;
             };
         }
 
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column != 0 && column != 9;
+            return column != 0 && column != 10;
         }
 
         @Override
@@ -740,7 +838,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 case 6 -> e.isBlockMember() ? "" : e.cover;
                 case 7 -> String.join(", ", e.tags);
                 case 8 -> e.note;
-                case 9 -> e.piece.width() + "x" + e.piece.height();
+                case 9 -> e.standsInFor;
+                case 10 -> e.piece.width() + "x" + e.piece.height();
                 default -> e.included;
             };
         }
@@ -757,7 +856,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 case 6 -> e.cover = String.valueOf(value).trim().toLowerCase();
                 case 7 -> e.tags = parseTags(String.valueOf(value));
                 case 8 -> e.note = String.valueOf(value).trim();
-                case 10 -> e.included = Boolean.TRUE.equals(value);
+                case 9 -> setStandsInFor(e, String.valueOf(value).trim());
+                case 11 -> e.included = Boolean.TRUE.equals(value);
                 default -> { }
             }
             fireTableRowsUpdated(row, row);
@@ -792,6 +892,29 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 if (!tag.isEmpty() && !tags.contains(tag)) tags.add(tag);
             }
             return tags;
+        }
+
+        /**
+         * Bind this piece as a candidate for a shipped id.
+         *
+         * <p>Checked against the installed catalog when there is one, because a
+         * typo here fails silently later: the map renders, and simply does not
+         * contain the thing you were trying to look at.
+         */
+        private void setStandsInFor(TilesetExport.Entry e, String shippedId) {
+            if (!shippedId.isEmpty()) {
+                TileRegistry registry = TileRegistry.installed();
+                if (registry != null && registry.doodad(shippedId) == null
+                        && registry.block(shippedId) == null) {
+                    AuthoringMessages.error(root, "Stands in for",
+                            "'" + shippedId + "' is not a doodad or block in the shipped "
+                                    + "catalog, so a map preview would silently leave it "
+                                    + "alone. Use an id from mod/data/tilesets, for example "
+                                    + "urban.wall or doodad.crate.");
+                    return;
+                }
+            }
+            e.standsInFor = shippedId;
         }
 
         private void setSlot(TilesetExport.Entry e, String slot) {

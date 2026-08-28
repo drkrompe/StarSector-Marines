@@ -4,7 +4,7 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — added bounded coarse-to-fine routing over reactive greedy regions.
+Updated: 2026-08-28 — admitted authored shared-edge barriers into exact tracing and reactive greedy-region rebuilds.
 
 ## Vocabulary
 
@@ -44,8 +44,13 @@ walkability and occupancy density, perception line of sight, fog, zones, and
 topology all consume a grid projection at their boundary. A grid result is
 converted back to a center only when it becomes a point-space destination. Direct-fire
 legality is the narrow exception: it traces the source and intended target's
-true points through those same discrete blocker cells so separation within a
-cell cannot invent a firing lane the physical round does not have.
+true points through those same discrete blocker cells and the exact segments of
+authored shared-edge features, so separation within a cell cannot invent a
+firing lane the physical round does not have. A barrier destroyed during play
+opens the authoritative edge immediately; zones, retained fields, vantage
+caches, and the greedy mesh publish one coherent replacement at the ordinary
+topology boundary, where newly compatible cells can merge into the largest
+deterministic rectangles again.
 
 The movement service follows the center-based path continuously, records the velocity actually applied this tick, and pins a completed route exactly to its final center. Appearance derives travel state from applied velocity, so it follows the same movement that simulation used. Post-movement separation may make a bounded, walkability-guarded adjustment; later combat, presentation, and proximity consumers see that final position.
 
@@ -76,7 +81,7 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
 7. Radius is the shared interaction footprint. Direct-fire aim remains
    entity-targeted, while ballistic resolution tests the physical ray against
    unit radii and may contact an incidental body first.
-8. Separation is soft, deterministic, and subordinate to authored movement: it relaxes overlap over time, never becomes hard collision, stays on walkable space, and cannot move a unit faster than its intent permits. Static ground emplacements anchor; independently kinematic craft do not participate.
+8. Separation is soft, deterministic, and subordinate to authored movement: it relaxes overlap over time, never becomes hard collision, stays on walkable space, honors the same shared-edge and diagonal transitions as A*, and cannot move a unit faster than its intent permits. Static ground emplacements anchor; independently kinematic craft do not participate.
 9. Formation steering may shape a coherent moving allied group, but it must
    remain weaker than physical separation and must yield in constrained
    terrain. A brief movement-derived heading may finish settling infantry that

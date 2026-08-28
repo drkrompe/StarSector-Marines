@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirScale;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
@@ -13,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -57,7 +59,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * <p>Outputs: {@code build/map-previews/sprite-seed-NNNN.png} (one per
  * seed), plus close generated-compound crops at
  * {@code build/map-previews/sprite-conquest-military-compound.png} and
- * {@code build/map-previews/sprite-gated-housing-compound.png}. Re-run via
+ * {@code build/map-previews/sprite-gated-housing-compound.png}, and a generated
+ * administrative interior at
+ * {@code build/map-previews/sprite-civic-headquarters.png}. The authored
+ * shared-edge firing windows receive their own close production-path crop at
+ * {@code build/map-previews/sprite-forward-bunker-window.png}. Re-run via
  * {@code gradlew :test --tests "*BspMapSpritePreviewTest*"}.
  */
 public class BspMapSpritePreviewTest {
@@ -133,6 +139,34 @@ public class BspMapSpritePreviewTest {
         System.out.println("  wrote " + out.toAbsolutePath());
     }
 
+    /** Close production-path render of the thin shared-edge windows on a forward bunker. */
+    @Test
+    void renderForwardBunkerWindow() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        long seed = 777L;
+        MapResult map = new BspCityGenerator().generate(
+                BattleSetup.CONQUEST_GRID_W,
+                BattleSetup.CONQUEST_GRID_H,
+                seed, TraversalAxis.SOUTH_TO_NORTH);
+        TacticalNode bunker = map.tacticalMap.ofKind(TacticalNode.Kind.FORWARD_BUNKER)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        "Conquest preview seed must contain a forward bunker"));
+
+        int margin = 3;
+        int widthCells = bunker.right - bunker.left + 1 + margin * 2;
+        int heightCells = bunker.bottom - bunker.top + 1 + margin * 2;
+        float centerX = (bunker.left + bunker.right + 1) * 0.5f;
+        float centerY = (bunker.top + bunker.bottom + 1) * 0.5f;
+        BufferedImage crop = battleMaps.renderView(map, seed,
+                centerX, centerY, widthCells, heightCells, 40);
+
+        Path out = OUT_DIR.resolve("sprite-forward-bunker-window.png");
+        ImageIO.write(crop, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
+    }
+
     /** Production-path crop of the first deterministic generated housing compound. */
     @Test
     void renderGatedHousingCompound() throws Exception {
@@ -165,13 +199,55 @@ public class BspMapSpritePreviewTest {
         System.out.println("  wrote " + out.toAbsolutePath());
     }
 
+    /** Production-path crop of a generated civic headquarters and its room equipment. */
+    @Test
+    void renderCivicHeadquarters() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BspCityGenerator generator = new BspCityGenerator();
+        MapResult map = null;
+        PointOfInterest headquarters = null;
+        long previewSeed = -1L;
+        for (long seed = 0; seed < 30 && headquarters == null; seed++) {
+            MapResult candidateMap = generator.generate(GRID_W, GRID_H, seed);
+            PointOfInterest candidate = candidateMap.pointsOfInterest.stream()
+                    .filter(poi -> poi.kind == PointOfInterest.Kind.ADMINISTRATIVE)
+                    .findFirst()
+                    .orElse(null);
+            if (candidate != null) {
+                map = candidateMap;
+                headquarters = candidate;
+                previewSeed = seed;
+            }
+        }
+        if (headquarters == null || map == null) {
+            throw new AssertionError("Preview seed range must contain a civic headquarters");
+        }
+
+        int cellPx = 24;
+        BufferedImage full = battleMaps.render(map, previewSeed, cellPx);
+        BufferedImage crop = cropBounds(full, map,
+                headquarters.left, headquarters.top,
+                headquarters.right, headquarters.bottom, cellPx, 4);
+        Path out = OUT_DIR.resolve("sprite-civic-headquarters.png");
+        ImageIO.write(crop, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
+    }
+
     private static BufferedImage cropCompound(BufferedImage full, MapResult map,
                                               Compound compound, int cellPx,
                                               int margin) {
-        int left = Math.max(0, compound.left - margin);
-        int top = Math.max(0, compound.top - margin);
-        int right = Math.min(map.grid.getWidth() - 1, compound.right + margin);
-        int bottom = Math.min(map.grid.getHeight() - 1, compound.bottom + margin);
+        return cropBounds(full, map, compound.left, compound.top,
+                compound.right, compound.bottom, cellPx, margin);
+    }
+
+    private static BufferedImage cropBounds(BufferedImage full, MapResult map,
+                                            int boundsLeft, int boundsTop,
+                                            int boundsRight, int boundsBottom,
+                                            int cellPx, int margin) {
+        int left = Math.max(0, boundsLeft - margin);
+        int top = Math.max(0, boundsTop - margin);
+        int right = Math.min(map.grid.getWidth() - 1, boundsRight + margin);
+        int bottom = Math.min(map.grid.getHeight() - 1, boundsBottom + margin);
         int imageY = (map.grid.getHeight() - 1 - bottom) * cellPx;
         return full.getSubimage(left * cellPx, imageY,
                 (right - left + 1) * cellPx,

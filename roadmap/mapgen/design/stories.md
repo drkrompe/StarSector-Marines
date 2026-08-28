@@ -4,11 +4,12 @@ Status: ACTIVE — twelve bounded station, city, economic, or cross-feature stor
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — added the thin edge-barrier production vertical.
+Updated: 2026-08-28 — added the compound vehicle-hangar vertical.
 
 | Story | Status | Outcome |
 |---|---|---|
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
+| `compound-vehicle-hangar.md` | IN PROGRESS | Give a military compound a hangar with machine-sized bays, a door a machine fits through, and berths whose occupants come from a roster. |
 | `cross-leaf-footprint-planning.md` | PROPOSED | Plan one coherent multi-leaf structure before roads and per-leaf fills commit the parcel layout. |
 | `station-corridor-arenas.md` | PROPOSED | Give station junctions and gates intentional tactical space without turning transit into cover soup. |
 | `station-theme-fills.md` | PROPOSED | Fill station room purposes with distinct, tactically meaningful themes. |
@@ -19,6 +20,5 @@ Updated: 2026-08-28 — added the thin edge-barrier production vertical.
 | `refinery-district.md` | PROPOSED | Make refining a tactically distinct economic district. |
 | `agriculture-district.md` | PROPOSED | Make agriculture a tactically distinct economic district. |
 | `target-faction-facility-treatment.md` | PLANNED | Give the shared shield-relay and later battery functions core/modded faction-specific geometry, materials, cover, and approach character without changing their battle laws. |
-| `thin-edge-barriers.md` | IN PROGRESS | Promote shared-edge navigation barriers into honest authored structures with ballistic, cover, durability, and presentation semantics. |
 
 Historical implementation slices belong in `shipped.md`.
