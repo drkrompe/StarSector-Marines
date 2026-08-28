@@ -10,4 +10,4 @@ Written: 2026-08-23
 | `phase-2-doodad-pools.md` | 2026-06-27 | `fda40a33`, `259a9b8e`, `c78501b4`, `fdd757c8`, `2d37595a` | `moddable-tilesets-nouns.md` — mapping-driven content use |
 | `tileset-ingest-annotation-pass.md` | 2026-08-28 | `cccbd3c0`, `61fb4bd1`, `aa7ba140` | `moddable-tilesets-nouns.md` — authoring: raw sheet to packed atlas |
 | `authoring-mcp-server.md` | 2026-08-28 | `d38d219d`, `7f462fe7`, `c384f349`, `76b69ac4`, `98d37a75`, `ad52df1d` | `moddable-tilesets-nouns.md` — authoring: raw sheet to packed atlas; rationale to `authoring-entry-points.md` |
-| `urban-tileset-raw-alpha.md` | 2026-08-28 | `fbe00570` | `moddable-tilesets-nouns.md` — the alpha law and the fit law; the sheet's own findings to its authoring-document note |
+| `urban-tileset-raw-alpha.md` | 2026-08-28 | `fbe00570`, `bb30e8d5`, `23978cc5` | `moddable-tilesets-nouns.md` — the alpha law and the fit law; the sheet's own findings to its authoring-document note |
