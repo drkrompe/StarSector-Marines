@@ -62,11 +62,11 @@ delivery behavior, protection tradeoff, or special activation.
 | `armor.palatine` | **Palatine legacy line suit** — a Church pattern rebuilt from inherited shells and artisan-fitted resistant plate. | Church sanctioned guards, Knight custodians, and rare licensed or recovered examples. | High armor rating comes with low pool and a real mobility cost; consecration grants no hidden immunity. |
 | `armor.furnace-line` | **Furnace state line suit** — thick petrochemical laminate over a conventional Sindrian pressure frame. | Diktat regulars, Lion's Guard formations, and exported or recovered Independent stocks. | Its deep pool is paired with ordinary resistance, weight, and a conspicuous target profile. |
 | `armor.reaver` | **Reaver reinforced rig** — a veteran Blackforge frame with powered bracing and additional ship plate. | Pirate warbands, Pather cells, and battlefield recovery. | Raw pool and useful speed do not erase its poor armor rating or irregular maintenance. |
-| `armor.heavy` | **XIV heavy battlesuit** — a Hegemony Domain-spec breach and shock pattern with powered bracing. | Hegemony shock units, Knight custodians, Lion's Guard prestige formations, wealthy League forces, and rare recovered examples. | Heavy is a role, not universal top-tier faction armor. Tri-Tachyon heavy systems may become a separate item only if their mechanics justify it. |
-| `armor.specter-heavy` | **Specter composite battlesuit** — a high-output Tri-Tachyon breach shell with continuous threat prediction. | Corporate blacksite security and exceptionally rare patron or recovered Independent issue. | It is the fastest and hardest-to-hit heavy pattern, with materially less pool/rating than XIV armor and no free drone or neural mechanic. |
-| `armor.bulwark-heavy` | **Bulwark coalition battlesuit** — modular League heavy armor built around replaceable actuators and shared control standards. | League breach formations, wealthy member worlds, and mercenary patron or recovery channels. | Balance and repairability are its identity; it does not match each specialist heavy pattern at that pattern's strongest axis. |
-| `armor.reliquary-heavy` | **Reliquary consecrated battlesuit** — an artisan-restored legacy shell entrusted through Knightly trials. | Knights of Ludd and scarce Church or Independent patron/recovery channels. | Exceptional rating is paid for with lower pool and the heaviest deliberate movement; spiritual sanction is provenance, not damage reduction. |
-| `armor.lions-mantle` | **Lion's Mantle guard battlesuit** — prestige Sindrian armor with oversized cooling and lavish plate support. | Lion's Guard patron issue and rare captured or diverted examples. | The largest formal-faction armor reserve is slow and easy to hit; spectacle is a liability as well as flavor. |
+| `armor.heavy` | **XIV heavy battlesuit** — a Hegemony Domain-spec breach and shock pattern with powered bracing, which it spends as **assault bracing**: the most reliably available breach in the catalog. | Hegemony shock units, Knight custodians, Lion's Guard prestige formations, wealthy League forces, and rare recovered examples. | Heavy is a role, not universal top-tier faction armor. Tri-Tachyon heavy systems may become a separate item only if their mechanics justify it. |
+| `armor.specter-heavy` | **Specter composite battlesuit** — a high-output Tri-Tachyon breach shell whose continuous threat prediction is spent as a **predictive breach**: the briefest and most frequent window in the family. | Corporate blacksite security and exceptionally rare patron or recovered Independent issue. | It is the fastest and hardest-to-hit heavy pattern, with materially less pool/rating than XIV armor and no free drone or neural mechanic. |
+| `armor.bulwark-heavy` | **Bulwark coalition battlesuit** — modular League heavy armor built around replaceable actuators and shared control standards, expressed as an **interlock advance** covering a wider front than one wearer needs. | League breach formations, wealthy member worlds, and mercenary patron or recovery channels. | Balance and repairability are its identity; it does not match each specialist heavy pattern at that pattern's strongest axis. |
+| `armor.reliquary-heavy` | **Reliquary consecrated battlesuit** — an artisan-restored legacy shell entrusted through Knightly trials, whose **consecrated advance** buys almost no speed and the best screen anyone has. | Knights of Ludd and scarce Church or Independent patron/recovery channels. | Exceptional rating is paid for with lower pool and the heaviest deliberate movement; spiritual sanction is provenance, not damage reduction. |
+| `armor.lions-mantle` | **Lion's Mantle guard battlesuit** — prestige Sindrian armor whose oversized cooling funds one long, bright **blazon advance** per engagement and then needs a very long time to recover. | Lion's Guard patron issue and rare captured or diverted examples. | The largest formal-faction armor reserve is slow and easy to hit; spectacle is a liability as well as flavor. |
 | `armor.foundry-breaker` | **Foundry-breaker industrial rig** — a cargo exoskeleton buried under illicit servos and welded ship plate. Its shoulder bracing and a salvaged riot screen are wired to one trigger as the **breaching assist**, the first authored integral system. | Pirate and Pather foundry cells; Independent access is recovery-only. | Enormous crude pool cannot substitute for rating, mobility, or target denial, and the rig remains infantry rather than a mech. |
 
 ## Built-in loadout provenance
@@ -107,8 +107,22 @@ easiest to overuse: a system on every pattern is a tax on the tier rather than a
 reason to want one suit, and the shipped catalog keeps carriers to a small
 minority on purpose.
 
-Only the foundry-breaker declares one today. `integral-armor-systems.md` carries
-the direction, and the faction slate is planned rather than shipped.
+**Breaching is the assault role's signature.** All six ASSAULT patterns carry a
+version of the same breaching assist and no other pattern carries anything. That
+is a claim about the role rather than about the tier: a future tier-IV scout or
+line suit would still declare nothing. Each tradition spends the effect on the
+axis it is actually good at — Hegemony doctrine on availability, League
+interoperability on a wider covering arc, Tri-Tachyon prediction on a brief
+frequent window, Knightly custody on the screen at the cost of nearly all the
+speed, Sindrian prestige on one long conspicuous gesture, and the pirate copy on
+raw shove with nothing else.
+
+The pirates' version is the only one without a proper designation, which is the
+correct amount of respect for a cargo exoskeleton with servos welded to it.
+
+`integral-system-slate.md` owns which patterns carry what and why; it also holds
+the two individual (non-family) systems that are still direction rather than
+authored.
 
 ## Availability law
 

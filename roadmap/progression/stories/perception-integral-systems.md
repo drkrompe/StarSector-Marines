@@ -5,6 +5,7 @@
 
 Status: PLANNED — depends on an explicit shared perception contract.
 Written: 2026-08-28
+Updated: 2026-08-28 — narrowed to the Janus alone; the Specter now carries a breaching assist with the rest of the assault role.
 
 Read `progression-nouns.md`, `integral-system-slate.md`,
 `integral-armor-systems.md`, `powered-assault-armor-roles.md`, and the fog-of-war
@@ -12,11 +13,16 @@ model before implementing. Depends on `integral-system-use-policy.md`.
 
 ## Problem
 
-Two Tri-Tachyon patterns are authored around perception and express none of it.
-The Janus scout suit's identity is sensor and EW integration; the Specter
-battlesuit's is continuous threat prediction. Both currently differ from their
-peers only in the same four scalars everything else uses, which means the
-corporate tradition's distinguishing idea is invisible in play.
+The Janus scout suit's identity is sensor and electronic-warfare integration, and
+it expresses none of it. It differs from its peers only in the same four scalars
+everything else uses, so the one thing its description is actually about is
+invisible in play.
+
+Its sibling took a different route: the Specter now spends Tri-Tachyon threat
+prediction as its member of the breach family, a short precise window rather than
+a standing advantage. That leaves *seeing* to the Janus alone, which is the
+better allocation — a scout suit is where a sensor capability belongs, and a
+battlesuit was always a strange home for one.
 
 Perception is also the one capability family the concept has repeatedly circled
 and never landed. `powered-assault-armor-roles.md` flags concealment as needing
@@ -65,11 +71,9 @@ and either way the world behaves normally.
 - A bounded temporary vision contribution that composes with the existing
   ref-counted visibility rather than bypassing the gate, and releases exactly on
   expiry with no leaked references.
-- The Janus sweep as the first carrier, cooldown-gated.
-- Whether the Specter's prediction is the same capability at a different scale
-  or a genuinely different effect — resolved in this story rather than assumed.
-  It may well be that prediction wants a bounded reaction window instead, in
-  which case it belongs with the firing-platform work and not here.
+- The Janus sweep as the only carrier. The slate has room for roughly two more
+  systems across the whole catalog and this claims one of them, so a second
+  perception carrier is not available without giving something else up.
 - Presentation, following `integral-system-battle-presentation.md`: a sweep the
   player cannot see happen is information arriving from nowhere.
 
