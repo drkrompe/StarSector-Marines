@@ -306,6 +306,11 @@ class CommandTraceAnalyzerTest {
         assertEquals(1, physical.secureCompoundEpisodes());
         assertEquals(1,
                 physical.secureCompoundEpisodesObservedInTargetZone());
+        assertEquals(1, physical.secureTravel().episodesStarted());
+        assertEquals(1, physical.secureTravel().episodesFinalized());
+        assertEquals(1, physical.secureTravel().targetEntryExits());
+        assertEquals(0, physical.secureTravel().timeoutExits(),
+                "arrival finishes travel before the later run boundary");
         assertEquals(150L, physical.comparableTravelSquadTicks());
         assertEquals(150L, physical.markerClosingSquadTicks());
         assertEquals(75L, physical.targetZoneSquadTicks());
@@ -326,11 +331,17 @@ class CommandTraceAnalyzerTest {
     @Test
     void schemaSevenCountsAnyMemberEnteringTheAssignedTargetZone()
             throws Exception {
+        String moving = physicalPerspectiveV7(75, 10f, 10f, 1,
+                4, null, false, 2, 0, secureDirective(),
+                secureAction("COMPOUND_CAPTURE_PRESERVED", 5, 20, 20));
+        String entering = physicalPerspectiveV7(150, 12f, 12f, 1,
+                4, null, true, 1, 2, secureDirective(),
+                secureAction("COMPOUND_CAPTURE_PRESERVED", 5, 20, 20));
         String trace = String.join("\n",
                 header().replace("\"schemaVersion\":5",
                         "\"schemaVersion\":7"),
-                physicalPerspectiveV7(75, 10f, 10f, 1, 0),
-                physicalPerspectiveV7(150, 12f, 12f, 1, 2),
+                moving,
+                entering,
                 "{\"stream\":\"referee\",\"tick\":225,"
                         + "\"event\":\"timeout\",\"maxTicks\":225}", "");
 
@@ -340,6 +351,12 @@ class CommandTraceAnalyzerTest {
         assertEquals(1, physical.secureCompoundEpisodesObservedInTargetZone(),
                 "arrival is an any-member fact, not a leader-zone proxy");
         assertEquals(List.of(75), physical.targetZoneEntryLatenciesTicks());
+        var secure = physical.secureTravel();
+        assertEquals(1, secure.targetEntryExits());
+        assertEquals(1, secure.episodesWithLocalContact());
+        assertEquals(1, secure.episodesWithActivePath());
+        assertEquals(1, secure.episodesWithQuietTravel(),
+                "quiet travel is context before contact, not an exit reason");
     }
 
     @Test
@@ -434,6 +451,10 @@ class CommandTraceAnalyzerTest {
         assertEquals(1, physical.movementEpisodes());
         assertEquals(0, physical.episodesWithMarkerClosure());
         assertEquals(0L, physical.comparableTravelSquadTicks());
+        assertEquals(2, physical.secureTravel().episodesStarted());
+        assertEquals(1, physical.secureTravel().observationGapExits());
+        assertEquals(1, physical.secureTravel().timeoutExits());
+        assertEquals(0, physical.secureTravel().episodesOpen());
     }
 
     @Test
@@ -481,6 +502,120 @@ class CommandTraceAnalyzerTest {
         assertEquals(1, physical.episodesWithMarkerClosure());
         assertEquals(75L, physical.comparableTravelSquadTicks());
         assertEquals(75L, physical.markerClosingSquadTicks());
+        assertEquals(2, physical.secureTravel().episodesStarted());
+        assertEquals(1, physical.secureTravel().retargetExits());
+        assertEquals(1, physical.secureTravel().timeoutExits());
+        assertEquals(2, physical.secureTravel().episodesFinalized());
+    }
+
+    @Test
+    void secureTravelSeparatesReleaseLossAndSuspensionExits()
+            throws Exception {
+        String released = physicalPerspectiveV7(150, 10f, 10f, 1,
+                4, null, false, 0, 0, releasedDirective(150),
+                action("NO_ACTIONABLE_TRACK_TARGET", 0));
+        var release = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                physicalPerspectiveV7(75, 10f, 10f, 1, 0), released,
+                timeout(225), ""));
+        assertEquals(1, release.releaseExits());
+        assertEquals(0, release.timeoutExits());
+
+        String dead = physicalPerspectiveV7(150, 10f, 10f, 1,
+                0, null, false, 0, 0, secureDirective(), "");
+        var loss = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                physicalPerspectiveV7(75, 10f, 10f, 1, 0), dead,
+                timeout(225), ""));
+        assertEquals(1, loss.squadLossExits());
+        assertEquals(0, loss.releaseExits(),
+                "a dead own-squad row outranks its missing command action");
+
+        String forming = physicalPerspectiveV7(150, 10f, 10f, 1,
+                4, "FORMING_UP", false, 0, 0, secureDirective(),
+                secureAction("COMPOUND_CAPTURE_PRESERVED", 5, 20, 20));
+        String resumed = physicalPerspectiveV7(225, 12f, 12f, 1, 0);
+        var suspension = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                physicalPerspectiveV7(75, 10f, 10f, 1, 0), forming,
+                resumed, timeout(300), ""));
+        assertEquals(2, suspension.episodesStarted());
+        assertEquals(1, suspension.executionSuspensionExits());
+        assertEquals(1, suspension.timeoutExits());
+    }
+
+    @Test
+    void secureTravelReissueIsContinuousAndRejectedProposalKeepsIncumbent()
+            throws Exception {
+        String reissuedDirective = secureDirective()
+                .replace("\"issuedTick\":75", "\"issuedTick\":150");
+        String reissued = physicalPerspectiveV7(150, 12f, 12f, 1,
+                4, null, false, 2, 0, reissuedDirective,
+                secureAction("COMPOUND_CAPTURE_PRESERVED", 5, 20, 20));
+        var reissue = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                physicalPerspectiveV7(75, 10f, 10f, 1, 0), reissued,
+                timeout(225), ""));
+        assertEquals(1, reissue.episodesStarted());
+        assertEquals(0, reissue.retargetExits());
+        assertEquals(1, reissue.timeoutExits());
+
+        String rejectedDirective = secureDirective()
+                .replace("\"status\":\"ACTIVE\"",
+                        "\"status\":\"REJECTED\"")
+                .replace("\"targetZoneId\":5", "\"targetZoneId\":6");
+        String rejected = physicalPerspectiveV7(150, 12f, 12f, 1,
+                4, null, false, 0, 0, rejectedDirective,
+                secureAction("COMPOUND_CAPTURE_PRESERVED", 6, 40, 40));
+        var rejection = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                physicalPerspectiveV7(75, 10f, 10f, 1, 0), rejected,
+                timeout(225), ""));
+        assertEquals(1, rejection.episodesStarted());
+        assertEquals(0, rejection.retargetExits());
+        assertEquals(0, rejection.releaseExits());
+        assertEquals(1, rejection.timeoutExits());
+    }
+
+    @Test
+    void secureTravelDistinguishesRunBoundariesAndIncompleteTrace()
+            throws Exception {
+        String start = physicalPerspectiveV7(75, 10f, 10f, 1, 0);
+        var timeout = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                start, timeout(150), ""));
+        assertEquals(1, timeout.timeoutExits());
+        assertEquals(0, timeout.terminalExits());
+
+        var terminal = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                start, "{\"stream\":\"referee\",\"tick\":150,"
+                        + "\"event\":\"terminal\",\"winner\":\"DEFENDER\"}",
+                ""));
+        assertEquals(0, terminal.timeoutExits());
+        assertEquals(1, terminal.terminalExits());
+
+        var incomplete = analyzeSecure(String.join("\n",
+                schemaSevenHeader(), start, ""));
+        assertEquals(0, incomplete.episodesFinalized());
+        assertEquals(1, incomplete.episodesOpen());
+
+        var paused = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                start, "{\"stream\":\"control\",\"tick\":100,"
+                        + "\"event\":\"capture-paused\"}", ""));
+        assertEquals(1, paused.observationGapExits());
+        assertEquals(0, paused.episodesOpen());
+    }
+
+    @Test
+    void resumedInZoneBaselineDoesNotInventSecureTravelSuccess()
+            throws Exception {
+        String resumed = physicalPerspectiveV7(200, 20.5f, 20.5f, 5, 2);
+        var secure = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                physicalPerspectiveV7(75, 10f, 10f, 1, 0),
+                "{\"stream\":\"control\",\"tick\":100,"
+                        + "\"event\":\"capture-paused\"}",
+                "{\"stream\":\"control\",\"tick\":200,"
+                        + "\"event\":\"capture-resumed\"}",
+                resumed, timeout(300), ""));
+
+        assertEquals(1, secure.episodesStarted());
+        assertEquals(1, secure.observationGapExits());
+        assertEquals(0, secure.targetEntryExits());
+        assertEquals(0, secure.timeoutExits());
     }
 
     @Test
@@ -665,12 +800,64 @@ class CommandTraceAnalyzerTest {
     private static String physicalPerspectiveV7(
             int tick, float centroidX, float centroidY, int currentZone,
             int membersInTargetZone) {
-        return physicalPerspective(tick, centroidX, centroidY, currentZone,
-                false, "COMPOUND_CAPTURE_PRESERVED")
-                .replace("\"localContact\":false}",
-                        "\"localContact\":false,\"activePathMembers\":0,"
-                                + "\"membersInTargetZone\":"
-                                + membersInTargetZone + "}");
+        return physicalPerspectiveV7(tick, centroidX, centroidY, currentZone,
+                4, null, false, 0, membersInTargetZone,
+                secureDirective(), secureAction(
+                        "COMPOUND_CAPTURE_PRESERVED", 5, 20, 20));
+    }
+
+    private static CommandTraceAnalyzer.SecureTravelMetrics analyzeSecure(
+            String trace) throws Exception {
+        return CommandTraceAnalyzer.analyze(trace).factions()
+                .get(Faction.MARINE).physicalProgress().secureTravel();
+    }
+
+    private static String schemaSevenHeader() {
+        return header().replace("\"schemaVersion\":5",
+                "\"schemaVersion\":7");
+    }
+
+    private static String timeout(int tick) {
+        return "{\"stream\":\"referee\",\"tick\":" + tick
+                + ",\"event\":\"timeout\",\"maxTicks\":" + tick + '}';
+    }
+
+    private static String physicalPerspectiveV7(
+            int tick, float centroidX, float centroidY, int currentZone,
+            int aliveMembers, String suspension, boolean localContact,
+            int activePathMembers, int membersInTargetZone,
+            String directive, String action) {
+        return "{\"stream\":\"perspective\",\"tick\":" + tick
+                + ",\"observedTick\":" + tick
+                + ",\"perspective\":\"MARINE\",\"strategy\":\"conquest\""
+                + ",\"phase\":\"LANE_ADVANCE\",\"influenceTick\":" + tick
+                + ",\"commandPoolSize\":1,\"reserveCount\":0"
+                + ",\"objectives\":[],\"directives\":[" + directive + "]"
+                + ",\"conquest\":{\"axis\":\"SOUTH_TO_NORTH\""
+                + ",\"phase\":\"LANE_ADVANCE\",\"remainingCompounds\":1"
+                + ",\"keepZoneId\":5,\"keepState\":\"DEFENDER_HELD\""
+                + ",\"tracks\":[],\"squads\":[{\"squadId\":1"
+                + ",\"aliveMembers\":" + aliveMembers
+                + ",\"centroidX\":" + centroidX
+                + ",\"centroidY\":" + centroidY
+                + ",\"currentZoneId\":" + currentZone
+                + ",\"executionSuspension\":"
+                + (suspension == null ? "null" : "\"" + suspension + "\"")
+                + ",\"localContact\":" + localContact
+                + ",\"activePathMembers\":" + activePathMembers
+                + ",\"membersInTargetZone\":" + membersInTargetZone
+                + "}],\"actions\":[" + action + "]}}";
+    }
+
+    private static String secureAction(String reason, int targetZone,
+                                       int markerX, int markerY) {
+        return "{\"squadId\":1,\"preferredTrack\":0,\"effectiveTrack\":0"
+                + ",\"reason\":\"" + reason
+                + "\",\"assignmentKind\":\"SECURE_COMPOUND\""
+                + ",\"targetZoneId\":" + targetZone
+                + ",\"targetCellX\":-1,\"targetCellY\":-1"
+                + ",\"markerCellX\":" + markerX
+                + ",\"markerCellY\":" + markerY + '}';
     }
 
     private static String secureDirective() {
@@ -683,6 +870,15 @@ class CommandTraceAnalyzerTest {
                 + ",\"targetZoneId\":5,\"targetNode\":\"COMMAND_POST\""
                 + ",\"objectiveId\":-1,\"targetCellX\":-1"
                 + ",\"targetCellY\":-1}}";
+    }
+
+    private static String releasedDirective(int tick) {
+        return "{\"squadId\":1,\"issuer\":\"conquest\""
+                + ",\"authority\":\"MISSION_COMMAND\",\"status\":\"RELEASED\""
+                + ",\"reason\":\"NO_ACTIONABLE_TRACK_TARGET\""
+                + ",\"disposition\":\"released\",\"issuedTick\":" + tick
+                + ",\"stableUntilTick\":-1,\"leaseUntilTick\":-1"
+                + ",\"assignment\":null}";
     }
 
     private static String presence(int tick, String subject, String occupancy,
