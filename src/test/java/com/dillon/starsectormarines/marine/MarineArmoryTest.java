@@ -28,25 +28,6 @@ class MarineArmoryTest {
         MarineSoldier recruit = roster.activeSoldiers().get(0);
         assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), recruit.primaryDef());
         assertEquals(EquipmentGrade.SERVICE, recruit.primaryGrade());
-        assertTrue(roster.canAllocatePrimary(recruit.id(), WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
-                EquipmentGrade.SERVICE), "fallback issue is unlimited");
-    }
-
-    @Test
-    void fallbackRifleIsUnlimitedAndCannotConsumeFabricationMaterials() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(20);
-        for (MarineSoldier soldier : roster.activeSoldiers()) {
-            assertTrue(roster.allocatePrimary(soldier.id(), WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
-                    EquipmentGrade.SERVICE));
-        }
-
-        MarineArmory armory = roster.armory();
-        armory.addFabricationMaterials(100);
-        assertFalse(armory.canPrintPrimary(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE));
-        assertFalse(armory.printPrimary(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE));
-        assertFalse(armory.isPrimaryUnlocked(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SURPLUS));
-        assertEquals(100, armory.fabricationMaterials());
     }
 
     @Test
@@ -64,8 +45,6 @@ class MarineArmoryTest {
         MarineArmory armory = new MarineArmory();
         assertTrue(armory.isPrimaryUnlocked(
                 WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.SERVICE));
-        assertEquals(3, armory.ownedPrimary(
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.SERVICE));
         assertFalse(armory.isPrimaryUnlocked(
                 WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.MILSPEC));
 
@@ -75,10 +54,9 @@ class MarineArmoryTest {
     }
 
     @Test
-    void fragTemplateCardUnlocksAfterTwoVictoriesWithoutCreatingPrintCurrency() {
+    void fragTemplateCardUnlocksAfterTwoVictories() {
         MarineArmory armory = new MarineArmory();
         assertFalse(armory.isSecondaryUnlocked(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
-        assertEquals(0, armory.ownedSecondary(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
 
         armory.recordVictory(false);
         assertFalse(armory.isSecondaryUnlocked(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
@@ -86,7 +64,6 @@ class MarineArmoryTest {
         assertTrue(armory.isSecondaryUnlocked(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
         assertTrue(armory.ownsEquipmentTemplate(
                 EquipmentTemplateCatalog.specialId(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID))));
-        assertEquals(0, armory.fabricationMaterials());
     }
 
     @Test
@@ -97,8 +74,6 @@ class MarineArmoryTest {
 
         assertNotNull(fireSupport);
         assertEquals(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), fireSupport.billet(1).primaryDef());
-        assertEquals(3, loaded.ownedPrimary(
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.SERVICE));
     }
 
     @Test
@@ -129,7 +104,6 @@ class MarineArmoryTest {
         assertTrue(armory.isPrimaryUnlocked(WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK));
         assertTrue(armory.ownsEquipmentTemplate(EquipmentTemplateCatalog.primaryId(
                 WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK)));
-        assertEquals(0, armory.fabricationMaterials());
     }
 
     @Test
@@ -224,36 +198,6 @@ class MarineArmoryTest {
     }
 
     @Test
-    void fabricationAvailabilityIncludesRecipeAndMaterialCost() {
-        MarineArmory armory = new MarineArmory();
-        assertFalse(armory.canPrintPrimary(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE));
-        assertFalse(armory.canPrintSecondary(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)));
-        assertFalse(armory.canPrintArmor(MarineArmorPattern.CHARCOAL));
-
-        armory.addFabricationMaterials(3);
-        assertTrue(armory.canPrintPrimary(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE));
-        assertTrue(armory.canPrintArmor(MarineArmorPattern.CHARCOAL));
-        assertFalse(armory.canPrintSecondary(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)));
-        assertFalse(armory.canPrintPrimary(WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK),
-                "an unaffordable locked recipe stays disabled");
-    }
-
-    @Test
-    void allocationCannotExceedPrintedInventory() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(13);
-        int assigned = 0;
-        for (MarineSoldier soldier : roster.activeSoldiers()) {
-            if (roster.allocateArmor(soldier.id(), MarineArmorPattern.ARMORLESS)) assigned++;
-        }
-        assertEquals(13, assigned, "basic issue expands with the persistent roster");
-
-        MarineSoldier first = roster.activeSoldiers().get(0);
-        assertFalse(roster.allocatePrimary(first.id(), WeaponRegistry.require(WeaponRegistry.DMR_ID),
-                EquipmentGrade.MASTERWORK), "locked recipe cannot be allocated");
-    }
-
-    @Test
     void fallenSoldiersStayPersistentlyKiaAndSurvivorsStayOnDuty() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(2);
@@ -269,45 +213,13 @@ class MarineArmoryTest {
     }
 
     @Test
-    void mixedTemplateCardAppliesToOneFireTeamAndPersistsItsAssignment() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
-        MarineSquad squad = roster.squads().get(0);
-        List<MarineSoldier> untouched = roster.squadMembers(squad).subList(
-                MarineSquad.TEAM_SIZE, MarineSquad.CAPACITY);
-        List<WeaponDef> untouchedWeapons = untouched.stream()
-                .map(MarineSoldier::primaryDef).toList();
-
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 0,
-                        FireTeamTemplateCards.FIRE_SUPPORT_ID));
-
-        List<String> teamIds = squad.teamMembers(0);
-        assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), roster.soldierById(teamIds.get(0)).primaryDef());
-        assertEquals(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID),
-                roster.soldierById(teamIds.get(1)).primaryDef());
-        assertEquals(WeaponRegistry.require(WeaponRegistry.DMR_ID), roster.soldierById(teamIds.get(2)).primaryDef());
-        MarineSoldier antiArmor = roster.soldierById(teamIds.get(3));
-        assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), antiArmor.primaryDef());
-        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), antiArmor.specialEquipmentDef());
-        for (String teamId : teamIds) {
-            assertEquals(MarineArmorPattern.ARMY_GREEN, roster.soldierById(teamId).armor());
-        }
-        assertEquals(FireTeamTemplateCards.FIRE_SUPPORT_ID, squad.teamTemplateCardId(0));
-        assertNull(squad.teamTemplateCardId(1));
-        assertEquals(untouchedWeapons, untouched.stream().map(MarineSoldier::primaryDef).toList());
-    }
-
-    @Test
     void antiMaterielTemplatePersistsTheStableSpecialIdentity() throws Exception {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
         MarineSquad squad = roster.squads().get(0);
 
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 0,
-                        FireTeamTemplateCards.ANTI_MATERIEL_ID));
         MarineSoldier carrier = roster.soldierById(squad.teamMembers(0).get(3));
+        carrier.setSpecialEquipment(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID);
         assertEquals(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID,
                 carrier.specialEquipmentId());
 
@@ -323,12 +235,9 @@ class MarineArmoryTest {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
         MarineSquad squad = roster.squads().get(0);
-        assertEquals(2, roster.armory().ownedSecondary(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID)));
 
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 0,
-                        FireTeamTemplateCards.BREACH_ID));
         MarineSoldier carrier = roster.soldierById(squad.teamMembers(0).get(1));
+        carrier.setSpecialEquipment(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
         assertEquals(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID,
                 carrier.specialEquipmentId());
 
@@ -337,132 +246,6 @@ class MarineArmoryTest {
         assertEquals(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID,
                 persisted.specialEquipmentId());
         assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), persisted.specialEquipmentDef());
-    }
-
-    @Test
-    void reusableCardCannotBeOverAssignedPastFiniteStock() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(2 * MarineSquad.TEAM_SIZE);
-        MarineSquad squad = roster.squads().get(0);
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.RECON_ID));
-
-        List<String> secondTeam = squad.teamMembers(1);
-        List<WeaponDef> priorWeapons = secondTeam.stream()
-                .map(roster::soldierById).map(MarineSoldier::primaryDef).toList();
-        assertEquals(FireTeamTemplateResult.INSUFFICIENT_PRIMARIES,
-                roster.applyFireTeamTemplate(squad.id(), 1, FireTeamTemplateCards.RECON_ID));
-
-        assertEquals(priorWeapons, secondTeam.stream()
-                .map(roster::soldierById).map(MarineSoldier::primaryDef).toList());
-        assertNull(squad.teamTemplateCardId(1));
-    }
-
-    @Test
-    void targetTeamReturnsItsCurrentGearBeforeARefitIsEvaluated() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
-        MarineSquad squad = roster.squads().get(0);
-
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.RECON_ID));
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.RECON_ID));
-    }
-
-    @Test
-    void refitPreviewReportsFreeReturnedAndRequiredFromTheRealTransaction() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
-        MarineSquad squad = roster.squads().get(0);
-
-        FireTeamRefitPreview preview = roster.previewFireTeamTemplate(
-                squad.id(), 0, FireTeamTemplateCards.LINE_ID);
-
-        assertTrue(preview.canApply());
-        FireTeamGearDelta fieldRifles = delta(preview, "FR-1 Rook");
-        assertTrue(fieldRifles.unlimited());
-        assertEquals(2, fieldRifles.returned());
-        assertEquals(0, fieldRifles.required());
-        FireTeamGearDelta pulseRifles = delta(preview, "PLS-2 Lancer");
-        assertEquals(12, pulseRifles.free());
-        assertEquals(0, pulseRifles.returned());
-        assertEquals(4, pulseRifles.required());
-        // The founding complement is issued tier-2 patterns, so none of the
-        // owned Bastion suits are already fielded when this refit is priced.
-        FireTeamGearDelta charcoal = delta(preview, "Bastion line armor");
-        assertEquals(6, charcoal.free());
-        assertEquals(0, charcoal.returned());
-        assertEquals(4, charcoal.required());
-    }
-
-    @Test
-    void cardAvailabilityCountsFieldedAssignmentsAndAdditionalCompleteKits() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
-        MarineSquad squad = roster.squads().get(0);
-
-        FireTeamTemplateAvailability before = roster.fireTeamTemplateAvailability(
-                FireTeamTemplateCards.RECON_ID);
-        assertEquals(0, before.fielded());
-        assertEquals(1, before.readyToIssue());
-        assertTrue(before.recipesUnlocked());
-
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.RECON_ID));
-        FireTeamTemplateAvailability after = roster.fireTeamTemplateAvailability(
-                FireTeamTemplateCards.RECON_ID);
-        assertEquals(1, after.fielded());
-        assertEquals(0, after.readyToIssue());
-    }
-
-    @Test
-    void twoTeamSwapUsesBothReturnsInOneAtomicInventoryTransaction() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(2 * MarineSquad.TEAM_SIZE);
-        MarineSquad squad = roster.squads().get(0);
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.LINE_ID));
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 1, FireTeamTemplateCards.RECON_ID));
-        assertEquals(FireTeamTemplateResult.INSUFFICIENT_PRIMARIES,
-                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.RECON_ID),
-                "a sequential refit cannot borrow the other team's held recon kit");
-
-        FireTeamRefitPreview preview = roster.previewFireTeamTemplateSwap(
-                squad.id(), 0, squad.id(), 1);
-        assertTrue(preview.canApply());
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.swapFireTeamTemplates(squad.id(), 0, squad.id(), 1));
-
-        assertEquals(FireTeamTemplateCards.RECON_ID, squad.teamTemplateCardId(0));
-        assertEquals(FireTeamTemplateCards.LINE_ID, squad.teamTemplateCardId(1));
-        assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID),
-                roster.soldierById(squad.teamMembers(0).get(0)).primaryDef());
-        assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
-                roster.soldierById(squad.teamMembers(1).get(0)).primaryDef());
-    }
-
-    @Test
-    void failedTwoTeamSwapLeavesBothTeamsAndAssignmentsUntouched() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(2 * MarineSquad.TEAM_SIZE);
-        MarineSquad squad = roster.squads().get(0);
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.LINE_ID));
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 1, FireTeamTemplateCards.RECON_ID));
-        MarineSoldier wounded = roster.soldierById(squad.teamMembers(1).get(0));
-        roster.applySoldierOutcome(Collections.singletonMap(
-                wounded.id(), MarineSoldierStatus.WIA), 1f, 7f);
-
-        assertEquals(FireTeamTemplateResult.TEAM_NOT_READY,
-                roster.swapFireTeamTemplates(squad.id(), 0, squad.id(), 1));
-        assertEquals(FireTeamTemplateCards.LINE_ID, squad.teamTemplateCardId(0));
-        assertEquals(FireTeamTemplateCards.RECON_ID, squad.teamTemplateCardId(1));
-        assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
-                roster.soldierById(squad.teamMembers(0).get(0)).primaryDef());
-        assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID), wounded.primaryDef());
     }
 
     @Test
@@ -515,114 +298,6 @@ class MarineArmoryTest {
     }
 
     @Test
-    void squadArrangementReordersScarceTemplatesAsOneAtomicTransaction() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
-        MarineSquad squad = roster.squads().get(0);
-        SquadArrangement initial = roster.armory().createSquadArrangement(
-                "Line Forward", List.of(
-                        FireTeamTemplateCards.LINE_ID,
-                        FireTeamTemplateCards.RECON_ID,
-                        FireTeamTemplateCards.FIELD_ID));
-        SquadArrangement rotated = roster.armory().createSquadArrangement(
-                "Recon Forward", List.of(
-                        FireTeamTemplateCards.RECON_ID,
-                        FireTeamTemplateCards.FIELD_ID,
-                        FireTeamTemplateCards.LINE_ID));
-
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applySquadArrangement(squad.id(), initial.id()));
-        assertEquals(1, roster.squadArrangementFieldedCount(initial.id()));
-        assertEquals(FireTeamTemplateResult.INSUFFICIENT_PRIMARIES,
-                roster.applyFireTeamTemplate(squad.id(), 0,
-                        FireTeamTemplateCards.RECON_ID),
-                "a sequential refit cannot borrow Bravo's held recon weapons");
-
-        SquadArrangementPreview preview = roster.previewSquadArrangement(
-                squad.id(), rotated.id());
-        assertTrue(preview.canApply());
-        FireTeamGearDelta smgs = preview.gear().stream()
-                .filter(item -> "SHD-2 Rattler".equals(item.label()))
-                .findFirst().orElseThrow();
-        assertEquals(1, smgs.free());
-        assertEquals(2, smgs.returned());
-        assertEquals(2, smgs.required());
-
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applySquadArrangement(squad.id(), rotated.id()));
-        assertEquals(FireTeamTemplateCards.RECON_ID, squad.teamTemplateCardId(0));
-        assertEquals(FireTeamTemplateCards.FIELD_ID, squad.teamTemplateCardId(1));
-        assertEquals(FireTeamTemplateCards.LINE_ID, squad.teamTemplateCardId(2));
-        assertEquals(0, roster.squadArrangementFieldedCount(initial.id()));
-        assertEquals(1, roster.squadArrangementFieldedCount(rotated.id()));
-    }
-
-    @Test
-    void failedSquadArrangementLeavesEveryTeamUntouched() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
-        MarineSquad squad = roster.squads().get(0);
-        SquadArrangement field = roster.armory().createSquadArrangement(
-                "Field Column", List.of(
-                        FireTeamTemplateCards.FIELD_ID,
-                        FireTeamTemplateCards.FIELD_ID,
-                        FireTeamTemplateCards.FIELD_ID));
-        SquadArrangement line = roster.armory().createSquadArrangement(
-                "Line Column", List.of(
-                        FireTeamTemplateCards.LINE_ID,
-                        FireTeamTemplateCards.LINE_ID,
-                        FireTeamTemplateCards.LINE_ID));
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applySquadArrangement(squad.id(), field.id()));
-        MarineSoldier wounded = roster.soldierById(squad.teamMembers(1).get(0));
-        roster.applySoldierOutcome(Collections.singletonMap(
-                wounded.id(), MarineSoldierStatus.WIA), 1f, 7f);
-
-        assertEquals(FireTeamTemplateResult.TEAM_NOT_READY,
-                roster.applySquadArrangement(squad.id(), line.id()));
-        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
-            assertEquals(FireTeamTemplateCards.FIELD_ID,
-                    squad.teamTemplateCardId(team));
-            for (String memberId : squad.teamMembers(team)) {
-                assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
-                        roster.soldierById(memberId).primaryDef());
-            }
-        }
-    }
-
-    @Test
-    void insufficientSecondaryLeavesEveryBilletAndAssignmentUntouched() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
-        MarineSquad squad = roster.squads().get(0);
-        assertTrue(roster.allocateSecondary(squad.teamMembers(1).get(0),
-                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)));
-        List<MarineSoldier> team = squad.teamMembers(0).stream()
-                .map(roster::soldierById).toList();
-        List<WeaponDef> priorWeapons = team.stream().map(MarineSoldier::primaryDef).toList();
-        List<MarineArmorPattern> priorArmor = team.stream().map(MarineSoldier::armor).toList();
-
-        assertEquals(FireTeamTemplateResult.INSUFFICIENT_SECONDARIES,
-                roster.applyFireTeamTemplate(squad.id(), 0,
-                        FireTeamTemplateCards.FIRE_SUPPORT_ID));
-
-        assertEquals(priorWeapons, team.stream().map(MarineSoldier::primaryDef).toList());
-        assertEquals(priorArmor, team.stream().map(MarineSoldier::armor).toList());
-        assertNull(squad.teamTemplateCardId(0));
-    }
-
-    @Test
-    void incompleteTeamCannotReserveACompleteTemplateCard() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE - 1);
-        MarineSquad squad = roster.squads().get(0);
-
-        assertEquals(FireTeamTemplateResult.TEAM_NOT_READY,
-                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.FIELD_ID));
-        assertNull(squad.teamTemplateCardId(0));
-    }
-
-    @Test
     void customCardCanBeDesignedWithoutStockAndKeepsItsStableIdAcrossSaveLoad()
             throws Exception {
         MarineArmory armory = new MarineArmory();
@@ -667,34 +342,6 @@ class MarineArmoryTest {
     }
 
     @Test
-    void newRevisionDoesNotRewriteAssignedCardAndAssignedCardCannotBeDeleted() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
-        MarineSquad squad = roster.squads().get(0);
-        MarineArmory armory = roster.armory();
-        FireTeamTemplateCard original = armory.cloneTemplateCard(FireTeamTemplateCards.FIELD_ID);
-        assertEquals(FireTeamTemplateResult.APPLIED,
-                roster.applyFireTeamTemplate(squad.id(), 0, original.id()));
-
-        FireTeamTemplateCard revision = armory.createTemplateCard("Field Mk II",
-                List.of(
-                        billet("Leader", WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK,
-                                null, MarineArmorPattern.RED_ELITE),
-                        billet("Rifleman", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE,
-                                null, MarineArmorPattern.ARMORLESS),
-                        billet("Rifleman", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE,
-                                null, MarineArmorPattern.ARMORLESS),
-                        billet("Rifleman", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE,
-                                null, MarineArmorPattern.ARMORLESS)));
-
-        assertEquals(original.id(), squad.teamTemplateCardId(0));
-        assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
-                roster.soldierById(squad.teamMembers(0).get(0)).primaryDef());
-        assertFalse(roster.deleteFireTeamTemplate(original.id()));
-        assertTrue(roster.deleteFireTeamTemplate(revision.id()));
-    }
-
-    @Test
     void customCardRequiresExactlyFourCompleteBillets() {
         MarineArmory armory = new MarineArmory();
         List<FireTeamBillet> three = List.of(
@@ -712,35 +359,10 @@ class MarineArmoryTest {
                         FireTeamTemplateCards.starterCards().get(0).billets()));
     }
 
-    @Test
-    void woundedPersonnelContinueHoldingTheirAllocatedGear() {
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(4);
-        assertTrue(roster.allocatePrimary(roster.soldiers().get(3).id(),
-                WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE));
-        for (int i = 0; i < 3; i++) {
-            assertTrue(roster.allocatePrimary(roster.soldiers().get(i).id(),
-                    WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.SERVICE));
-        }
-        MarineSoldier wounded = roster.soldiers().get(0);
-        roster.applySoldierOutcome(Collections.singletonMap(
-                wounded.id(), MarineSoldierStatus.WIA), 1f, 7f);
-
-        assertFalse(roster.allocatePrimary(roster.soldiers().get(3).id(),
-                WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.SERVICE));
-    }
-
     private static FireTeamBillet billet(String name, WeaponDef primary,
                                           EquipmentGrade grade, SpecialEquipmentDef secondary,
                                           MarineArmorPattern armor) {
         return new FireTeamBillet(name, primary, grade, secondary, armor);
-    }
-
-    private static FireTeamGearDelta delta(FireTeamRefitPreview preview, String label) {
-        return preview.gear().stream()
-                .filter(item -> label.equals(item.label()))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("Missing gear delta: " + label));
     }
 
     @SuppressWarnings("unchecked")

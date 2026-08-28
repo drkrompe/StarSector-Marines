@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -82,16 +83,17 @@ class NamedStationingBindingTest {
         assertNull(roster.nextAssignableCaptain(stationed.id()));
         assertFalse(roster.removeById(captain.id()));
 
-        MarineSoldier away = roster.squadMembers(stationed).get(0);
-        assertFalse(roster.allocatePrimary(away.id(), away.primaryDef(), away.primaryGrade()));
-        assertFalse(roster.allocateSecondary(away.id(), (String) null));
-        assertFalse(roster.allocateArmor(away.id(), away.armor()));
-        assertEquals(FireTeamTemplateResult.STATIONED,
-                roster.applyFireTeamTemplate(stationed.id(), 0,
-                        FireTeamTemplateCards.LINE_ID));
+        // A squad that is somewhere else in the sector cannot be re-equipped.
+        assertEquals(SquadEquipmentResult.STATIONED,
+                roster.previewSquadEquipment(stationed.id(),
+                        SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS,
+                        SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR).result());
 
         assertEquals(1, roster.releaseStationing(61L));
-        assertTrue(roster.allocateSecondary(away.id(), (String) null));
+        assertNotEquals(SquadEquipmentResult.STATIONED,
+                roster.previewSquadEquipment(stationed.id(),
+                        SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS,
+                        SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR).result());
         assertTrue(roster.clearSquadCaptain(stationed.id()));
     }
 
