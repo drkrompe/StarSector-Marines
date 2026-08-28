@@ -4,11 +4,12 @@ Status: IN PROGRESS
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 — roles, jobs and shifts are built, and both the vehicle bay
-and berthing are staffed from their own fixtures. A generated barracks yields the
-rest-and-inspect half of the authored rotation; socialize and practice are in
-other compartments, so completing that loop needs a shift that spans rooms rather
-than more fixtures. The live-fire window and the seed sweep also remain.
+Updated: 2026-08-27 — roles, jobs and shifts are built, and every room a marine
+uses now publishes its jobs: rest and inspect in the barracks, socialize in the
+mess, practice on the range. All four stops of the authored rotation exist and
+none of them is a waypoint anybody typed. What is missing is the one thing that
+joins them: a shift is built from a single compartment's fixtures, so a marine
+gets each stop on its own. The live-fire window and the seed sweep also remain.
 
 Read `ship-interiors-nouns.md` before implementing this story. Depends on
 `facility-room-themes.md`.
@@ -44,11 +45,12 @@ generated room and a dead one.
 ## Acceptance
 
 - A generated barracks produces the rest, socialize, inspect, practice rotation
-  currently seen in `barracks-wide.png` without any authored waypoint. Rest and
-  inspect are met from the berth's own racks and lockers. The other two are not
-  in a berth at all — a marine eats in the mess and shoots on the range — so this
-  criterion now turns on whether a shift may span compartments, which is a
-  decision about the shift and not about the fill.
+  currently seen in `barracks-wide.png` without any authored waypoint. All four
+  jobs are now published by generated rooms — rest and inspect at the berth's own
+  racks and lockers, socialize at a mess seat, practice at a firing point — and
+  none of them is in the same compartment as all the others. The criterion is
+  therefore down to a single remaining decision: whether a shift may span
+  compartments. That is a decision about the shift, not about the fill.
 - A generated mech bay produces fabrication, parts-running, and inspection
   activity around its gantries, scaling with gantry count.
 - The live-fire window still resolves on a generated firing range: rounds are

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -93,11 +94,26 @@ public final class AisleFitting implements RoomFitting {
     /** Lay one group down, anchor first, then whatever the anchor is used with. */
     private void place(CompartmentFloor floor, int along, int across) {
         int[] anchor = floor.toLocal(along, across);
-        if (!floor.place(group.anchor(), anchor[0], anchor[1])) return;
+        if (!place(floor, group.anchor(), anchor, group.affordance())) return;
         for (FixtureGroup.Satellite satellite : group.satellites()) {
             int[] cell = floor.toLocal(along + satellite.along(), across + satellite.across());
-            floor.place(satellite.id(), cell[0], cell[1]);
+            place(floor, satellite.id(), cell, satellite.affordance());
         }
+    }
+
+    /**
+     * One fixture, and the work at it where the group declared any.
+     *
+     * <p>Which member carries the affordance is the whole of the distinction a
+     * group exists to make. A mess is a table with chairs round it and the job
+     * is at the chairs — publishing it at the table would put one place to sit
+     * at a fixture four people are sitting at.
+     */
+    private static boolean place(CompartmentFloor floor, String id, int[] cell,
+                                 Affordance affordance) {
+        return affordance == null
+                ? floor.place(id, cell[0], cell[1])
+                : floor.place(id, cell[0], cell[1], affordance);
     }
 
     /**
@@ -133,17 +149,34 @@ public final class AisleFitting implements RoomFitting {
      * and its benches. Placing the anchor alone is what makes a generated room
      * read as a diagram of a room rather than one people use.
      */
-    public record FixtureGroup(String anchor, int width, int depth, List<Satellite> satellites) {
+    public record FixtureGroup(String anchor, int width, int depth,
+                               Affordance affordance, List<Satellite> satellites) {
 
         public FixtureGroup {
             satellites = List.copyOf(satellites);
         }
 
-        /** One member of a group, offset from the anchor in the aisle's own axes. */
-        public record Satellite(String id, int along, int across) {}
+        /**
+         * One member of a group, offset from the anchor in the aisle's own axes.
+         *
+         * @param affordance what somebody does here, or null where this member
+         *     is only part of the picture
+         */
+        public record Satellite(String id, int along, int across, Affordance affordance) {
+
+            public Satellite(String id, int along, int across) {
+                this(id, along, across, null);
+            }
+        }
 
         public static FixtureGroup of(String anchor, int width, int depth, Satellite... members) {
-            return new FixtureGroup(anchor, width, depth, List.of(members));
+            return new FixtureGroup(anchor, width, depth, null, List.of(members));
+        }
+
+        /** A group whose anchor is itself somewhere with work at it. */
+        public static FixtureGroup working(String anchor, int width, int depth,
+                                           Affordance affordance, Satellite... members) {
+            return new FixtureGroup(anchor, width, depth, affordance, List.of(members));
         }
     }
 }
