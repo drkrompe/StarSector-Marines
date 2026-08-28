@@ -91,6 +91,53 @@ public final class AssignmentArbiter {
         return active.get(squadId);
     }
 
+    /** Scoped mutation facade used by legacy mission planners during their serial pulse. */
+    SquadDirectiveControl control(BattleView sim) {
+        Objects.requireNonNull(sim, "sim");
+        return new SquadDirectiveControl() {
+            @Override
+            public void claimSquadCommand(int squadId, CommandAuthority authority,
+                                          String issuer, String reason) {
+                claimExternal(requireSquad(sim, squadId), authority, issuer,
+                        reason, sim.getSimTickIndex());
+            }
+
+            @Override
+            public void assignSquadCommand(ObjectiveAssignment assignment,
+                                           CommandAuthority authority,
+                                           String issuer, String reason) {
+                assignExternal(requireSquad(sim, assignment.squadId()), assignment,
+                        authority, issuer, reason, sim.getSimTickIndex());
+            }
+
+            @Override
+            public boolean handoffSquadCommand(int squadId, String currentIssuer,
+                                               CommandAuthority nextAuthority,
+                                               String nextIssuer,
+                                               ObjectiveAssignment nextAssignment,
+                                               String reason) {
+                return handoff(requireSquad(sim, squadId), currentIssuer,
+                        nextAuthority, nextIssuer, nextAssignment, reason,
+                        sim.getSimTickIndex());
+            }
+
+            @Override
+            public boolean releaseSquadCommand(int squadId, String issuer,
+                                               String reason) {
+                return releaseExternal(requireSquad(sim, squadId), issuer,
+                        reason, sim.getSimTickIndex());
+            }
+        };
+    }
+
+    private static Squad requireSquad(BattleView sim, int squadId) {
+        Squad squad = sim.getSquad(squadId);
+        if (squad == null) {
+            throw new IllegalArgumentException("unknown squad " + squadId);
+        }
+        return squad;
+    }
+
     public void assignExternal(Squad squad, ObjectiveAssignment assignment,
                                CommandAuthority authority, String issuer,
                                String reason, int tick) {
