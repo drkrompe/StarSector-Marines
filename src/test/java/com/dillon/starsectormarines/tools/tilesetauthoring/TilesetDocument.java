@@ -188,14 +188,28 @@ public final class TilesetDocument {
         }
     }
 
-    /** What a re-slice did to the annotations that were already there. */
+    /**
+     * What a re-slice did to the annotations that were already there.
+     *
+     * <p>{@code lost} holds the prior entries themselves rather than their names,
+     * because what a caller has to decide about them is whether they were
+     * authored — see {@link TilesetOperations#atRisk} — and an id alone cannot
+     * answer that.
+     */
     public record Reconciliation(List<TilesetExport.Entry> entries, int carried, int added,
-                                 List<String> lost) {
+                                 List<TilesetExport.Entry> lost) {
+
+        public List<String> lostIds() {
+            List<String> ids = new ArrayList<>();
+            for (TilesetExport.Entry entry : lost) ids.add(entry.id);
+            return ids;
+        }
 
         public String summary() {
             String text = carried + " kept, " + added + " new";
             if (lost.isEmpty()) return text;
-            return text + ", " + lost.size() + " no longer found: " + String.join(", ", lost);
+            return text + ", " + lost.size() + " no longer found: "
+                    + String.join(", ", lostIds());
         }
     }
 
@@ -214,8 +228,8 @@ public final class TilesetDocument {
      * <p>Re-slicing is how a sheet's threshold gets tuned, and tuning it must not
      * cost the annotations already made. Pieces are matched by how much of their
      * area they share, best pair first, each prior annotation claimed once. A
-     * prior entry that matches nothing is reported by id rather than dropped
-     * quietly — it is the case where the operator needs to look.
+     * prior entry that matches nothing is reported rather than dropped quietly —
+     * it is the case where the operator needs to look.
      */
     public static Reconciliation reconcile(List<SheetSlicer.Piece> pieces,
                                            List<TilesetExport.Entry> prior,
@@ -261,9 +275,9 @@ public final class TilesetDocument {
             }
             result.add(entry);
         }
-        List<String> lost = new ArrayList<>();
+        List<TilesetExport.Entry> lost = new ArrayList<>();
         for (int p = 0; p < prior.size(); p++) {
-            if (!claimed[p]) lost.add(prior.get(p).id);
+            if (!claimed[p]) lost.add(prior.get(p));
         }
         return new Reconciliation(result, carried, added, lost);
     }
