@@ -673,8 +673,18 @@ public final class FortressWallStamper implements GenStage {
                     clearBunkerFloor(grid, topology, x, y);
                     Direction front = axis == TraversalAxis.SOUTH_TO_NORTH
                             ? Direction.S : Direction.W;
-                    grid.placeEdgeBarrier(x, y, front,
-                            SharedEdgeBarrier.Kind.WINDOW);
+                    // A bunker is stamped over whatever the fill left here, and
+                    // a building demolished under it can leave its own window on
+                    // this very edge. An edge carries exactly one authored
+                    // identity, so the bunker takes the one already there rather
+                    // than authoring a second: a window is a window, and it is
+                    // reciprocal, so the firing line is unaffected. Insisting on
+                    // a fresh edge threw instead, turning a coincidence of
+                    // geometry into a map that failed to generate at all.
+                    if (grid.getEdgeBarrier(x, y, front) == null) {
+                        grid.placeEdgeBarrier(x, y, front,
+                                SharedEdgeBarrier.Kind.WINDOW);
+                    }
                     standPositions.add(new StandPosition(x, y));
                 } else if (perimeterWall) {
                     paintBunkerWall(grid, topology, x, y, wallMask);
