@@ -62,9 +62,21 @@ or using already-issued equipment at a practice station. The battle owns the
 assignment, deterministic route intent, and temporary execution exclusion;
 the actor retains its ordinary role and identity. Each route declares whether
 any armed presence or only a hostile combatant interrupts it. An interrupted
-actor leaves the route before ordinary unit dispatch and immediately resumes
-its existing flee, guard, worker, or combat behavior. Ambient work never authors
+actor leaves the route before ordinary unit dispatch and immediately resumes its
+existing flee, guard, worker, or combat behavior. Ambient work never authors
 damage, campaign recovery, inventory mutation, or mission authority.
+
+**Standing down is a suspension, not a dismissal**, and the work is taken up
+again once the disturbance has been gone a while. Leaving is the easy half and
+was once the whole of it: a worker who yielded never came back, so a single
+transient knock removed somebody from a map's life permanently. What interrupts
+ambient work is almost always transient — an armed stranger walking past, a stray
+round setting a fallback timer running — and on a home deck it is routinely the
+crew's own equipment. Treating each of those as final turns a lively map into a
+gradually accumulating set of statues; a seeded ship's-crew run left marines
+standing in the butts of their own firing range for the rest of the voyage.
+Resumption waits out a few seconds of quiet rather than firing the instant a
+radius clears, because a threat that has stepped one cell away has not passed.
 
 A **task point** is a battle-owned, single-occupant interaction site published by
 a fixture or mission: a firing lane, berth, console, workbench, or defensive
