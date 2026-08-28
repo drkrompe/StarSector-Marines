@@ -154,6 +154,16 @@ Do not run builds or leave generated task files there.
   All three pages validate before replacement; the Turrets page prepares every
   linked target before replacing files atomically and rolls back earlier files
   if a later replacement fails.
+- `gradlew.bat installAuthoringMcpServer` → writes
+  `build/mcp/starsector-authoring-mcp.cmd` and prints the `.mcp.json` snippet
+  that registers it. The server serves the authoring tools — list/measure/read/
+  write/slice/export a tileset, render its map-preview comparison, and run the
+  snapshot catalog — over MCP stdio, headlessly and without the workbench
+  window. It is a separate entry point onto the same domain code, not an
+  embedded server: an editor holding unsaved changes and a tool writing the same
+  document would be two writers. The launcher is generated rather than checked
+  in because it embeds an absolute classpath, so re-run the task after a
+  dependency change or a `clean`. See `authoring-mcp-server.md`.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.
