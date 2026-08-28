@@ -98,9 +98,18 @@ public final class RoomPacker {
         }
     }
 
-    /** Where a room ended up, and the doors that were cut for it. */
-    public record Placed(RoomShape shape, RoomPose pose, int x, int y,
-                         RoomPurpose purpose, List<Doorway> doors) {
+    /**
+     * Where a room ended up, and the doors that were cut for it.
+     *
+     * <p>This is already everything a {@link FurnishableRoom} is, so it says so
+     * rather than being copied into one. A packed room and a placed compartment
+     * are the same thing to a fitting — a floor, a pose, its doors, and what it
+     * is for — and the whole point of drawing that seam was that neither family
+     * has to know about the other.
+     */
+    public record Placed(RoomShape shape, RoomPose pose, int originX, int originY,
+                         RoomPurpose purpose, List<Doorway> doors)
+            implements FurnishableRoom {
 
         public Placed {
             doors = List.copyOf(doors);
