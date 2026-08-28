@@ -50,6 +50,8 @@ class IntegralSystemPolicyTest {
     private static final int H = 16;
     private static final int ROW = 8;
     private static final int CARRIER_X = 6;
+    /** Six cells east of the carrier: inside one authored lookahead and outside another. */
+    private static final int SWEEP_WALL_X = CARRIER_X + 6;
 
     /**
      * Far past any authored salvo total, so a standoff scene measures whether
@@ -88,6 +90,9 @@ class IntegralSystemPolicyTest {
                 case SIGHTED_STANDOFF_CONTACT -> assertTrue(
                         system.sightedStandoff().minimumStandoffCells() > 0f,
                         pattern.id() + " must author the standoff its salvo is judged against");
+                case APPROACHING_DEAD_GROUND -> assertTrue(
+                        system.approachingDeadGround().lookaheadCells() > 0f,
+                        pattern.id() + " must author how far ahead it calls 'ahead'");
                 default -> fail(pattern.id() + " declares a policy with no authored parameters: "
                         + system.aiPolicy().key);
             }
@@ -182,6 +187,36 @@ class IntegralSystemPolicyTest {
         assertTrue(podSpendsASalvo(5f, 8));
         assertFalse(podSpendsASalvo(12f, 8),
                 "a wider authored standoff holds the same pod in the same scene");
+    }
+
+    /**
+     * The third policy's own moment, isolated the same way the other two are.
+     * The carrier never moves under its own power, so {@code heading} is the
+     * single difference between the cases: walking at a wall is dead ground
+     * ahead, walking away from it along open floor is not, and standing on the
+     * spot is not a moment at all however blind the suit is.
+     */
+    @Test
+    void aSweepSpendsItselfOnGroundItCannotSeeIntoAndNotOtherwise() {
+        assertFalse(sweepSpendsItself(/*headingX*/ 0),
+                "standing still is not approaching anything");
+        assertFalse(sweepSpendsItself(/*headingX*/ -1),
+                "walking away down open floor has nothing to read");
+        assertTrue(sweepSpendsItself(/*headingX*/ 1),
+                "walking at a wall is walking at ground the suit cannot see into");
+    }
+
+    /**
+     * A sweep's lookahead is its own number and reaches nothing else. The same
+     * blind wall is inside one authored lookahead and outside another, with the
+     * scene otherwise untouched.
+     */
+    @Test
+    void aSweepsLookaheadDecidesItsOwnMomentAndNoOthers() {
+        assertTrue(sweepSpendsItself(1, /*lookahead*/ 8f),
+                "a suit that looks eight cells ahead sees the wall six cells away");
+        assertFalse(sweepSpendsItself(1, /*lookahead*/ 3f),
+                "one that looks three does not");
     }
 
     // ---------------------------------------------------------------- defenders
@@ -313,10 +348,40 @@ class IntegralSystemPolicyTest {
         return sim.integralSystems().ammo(gunner) < startingAmmo;
     }
 
+    /**
+     * A scout in front of a wall, driven the way the breacher scenes are: the
+     * carrier cannot walk, so the velocity the policy reads is the one the test
+     * wrote rather than one the pathfinder happened to produce.
+     */
+    private static boolean sweepSpendsItself(int headingX) {
+        return sweepSpendsItself(headingX, 8f);
+    }
+
+    private static boolean sweepSpendsItself(int headingX, float lookaheadCells) {
+        BattleSimulation sim = walledArena();
+        long scout = sim.spawn(carrier("scout", Faction.MARINE)
+                .integralSystem(sweepSystem(lookaheadCells)));
+        advance(sim, 4);
+        if (headingX != 0) setHeading(sim, scout, headingX);
+        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
+        return sim.integralSystems().isActive(scout);
+    }
+
     private static BattleSimulation arena() {
         NavigationGrid grid = new NavigationGrid(W, H);
         for (int y = 0; y < H; y++) {
             for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
+    /** The same arena with one solid column east of the carrier, and open floor west. */
+    private static BattleSimulation walledArena() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                if (x != SWEEP_WALL_X) grid.setWalkableFloor(x, y);
+            }
         }
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
@@ -340,9 +405,14 @@ class IntegralSystemPolicyTest {
      * test, not the pathfinder, decided on.
      */
     private static void beginCrossing(BattleSimulation sim, long id) {
+        setHeading(sim, id, 1);
+    }
+
+    /** Writes the velocity a carrier under way would have, east or west. */
+    private static void setHeading(BattleSimulation sim, long id, int signX) {
         UnitRosterService roster = sim.getRoster();
         roster.entityWorld().setFloat(id, roster.components().MOVEMENT,
-                BattleComponents.MOVEMENT_VEL_X, 1f);
+                BattleComponents.MOVEMENT_VEL_X, signX);
     }
 
     /**
@@ -384,6 +454,26 @@ class IntegralSystemPolicyTest {
         try {
             return IntegralSystemDef.parse(missilePodJson()
                     .put("minimumStandoffCells", minimumStandoffCells), "armor.test");
+        } catch (JSONException failure) {
+            throw new AssertionError("test fixture should parse", failure);
+        }
+    }
+
+    private static IntegralSystemDef sweepSystem(float lookaheadCells) {
+        try {
+            return IntegralSystemDef.parse(new JSONObject()
+                    .put("id", "system.test-sweep")
+                    .put("grade", "service")
+                    .put("displayName", "Test sweep")
+                    .put("description", "One wide active return.")
+                    .put("effect", "perception-sweep")
+                    .put("resource", "cooldown")
+                    .put("policy", SpecialAiPolicy.APPROACHING_DEAD_GROUND.key)
+                    .put("lookaheadCells", lookaheadCells)
+                    .put("durationSeconds", 3.0)
+                    .put("cooldownSeconds", 20.0)
+                    .put("revealRangeCells", 30.0)
+                    .put("wallReadRadiusCells", 6.0), "armor.test");
         } catch (JSONException failure) {
             throw new AssertionError("test fixture should parse", failure);
         }

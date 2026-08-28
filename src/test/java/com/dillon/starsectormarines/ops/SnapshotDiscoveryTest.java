@@ -17,8 +17,8 @@ class SnapshotDiscoveryTest {
                 .toList();
 
         assertEquals(List.of("armory", "deployable-cover", "durability-bars", "frontage-scene",
-                "integral-system-fx", "layers", "point-defence", "ship-decks", "turrets",
-                "ui"), ids);
+                "integral-system-fx", "layers", "perception-sweep", "point-defence",
+                "ship-decks", "turrets", "ui"), ids);
     }
 
     @Test
