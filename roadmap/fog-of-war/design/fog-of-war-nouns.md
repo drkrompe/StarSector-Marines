@@ -4,7 +4,7 @@ Status: ACTIVE — shared observation composes current player visibility across 
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced lifecycle and experiment chronology with durable observation and authority boundaries.
+Updated: 2026-08-28 — recorded that smoke occludes sight only while direct fire grades it, and split temporary sources into the host-projected and simulation-carried channels as the Janus sensor sweep joined them.
 
 Read `stories.md` for open work.
 
@@ -31,9 +31,15 @@ position, and shots remain visible through fog.
 - The **reveal bitmap** is the union of contributor and temporary-source
   footprints. `FogOfWarService` owns its reference count and derived revealed
   cells, so overlapping sources cannot erase one another's sight.
-- A **temporary source** is a short-lived, externally projected observer such
-  as a shuttle, flyby fighter, or recon ping. It participates in the same
-  bitmap but has no battle-unit visibility row or cohort membership.
+- A **temporary source** is a short-lived observer that participates in the same
+  bitmap but has no battle-unit visibility row or cohort membership. It arrives
+  through one of two channels. A **projected source** is pushed by a render host
+  each frame — a shuttle, a flyby fighter, an active recon ping. A **carried
+  sweep** is pushed by the simulation each tick from a live unit whose armour
+  pattern is running a sensor system (`progression-nouns.md`), so it exists in
+  every host and in a headless run alike. The two channels are separate because
+  they are cleared by different owners at different cadences; each is replaced
+  as a set, and both feed the one footprint rebuild.
 - A **unit visibility state** is the renderer's HIDDEN, VISIBLE, or FADING
   presentation of a live non-contributor. It is distinct from a unit's own
   tactical line-of-sight and from whether a cell has ever been explored.
@@ -106,9 +112,19 @@ fade state must likewise transfer or clear with roster compaction and release.
 `stories.md` owns the two bounded compatibility corrections where the existing
 cache and lifecycle do not yet satisfy those laws.
 
-Friendly visible shuttles, friendly flyby fighters, and active recon pings can
-all provide temporary vision. Their footprints may therefore open a roof
-briefly when they see an interior; that is intentional.
+Friendly visible shuttles, friendly flyby fighters, active recon pings, and a
+marine running a carried sensor sweep can all provide temporary vision. Their
+footprints may therefore open a roof briefly when they see an interior; that is
+intentional.
+
+A carried sweep additionally uses the shadowcast's existing air-clearance
+parameter as a bounded wall tolerance, which is the same "walls near the source
+are transparent" rule a flier already relies on rather than a second visibility
+algorithm. It is subject to every law above, and to one that matters especially
+for it: a source that reveals must not also be a source that decides. Fog
+remains presentation authority, so a capability's own trigger reads the carrier's
+line of sight, never the reveal bitmap; and a source only ever adds, so nothing
+projected into this bitmap can make a unit less visible than it already was.
 
 ## Adjacent authority boundaries
 
@@ -132,3 +148,9 @@ Fog responds by invalidating and recasting affected observation footprints,
 including stationary contributors, so player reveal reflects the same
 occlusion. It must not maintain a private smoke list or grant the player a
 different view through the cloud than battle AI receives.
+
+That occlusion is a sight rule and stops there. A cloud denies perception, fog
+reveal, and fresh target acquisition, but it does not gate direct fire — see
+`ballistics-nouns.md`, where smoke is graded obscuration on the round's
+accuracy. Fog must not acquire a second opinion about what a cloud does to a
+shot.

@@ -30,7 +30,19 @@ public enum IntegralSystemEffect {
      * model from {@link #BREACHER_ASSIST} ({@code integral-armor-systems.md}).
      */
     MISSILE_POD("missile-pod", "Missile pod",
-            "graphics/ui/armory/system-missile-pod.png");
+            "graphics/ui/armory/system-missile-pod.png"),
+
+    /**
+     * A brief, wide, partly wall-tolerant read of the ground around the wearer,
+     * contributed to the player's picture as a temporary observer and gone when
+     * the window closes ({@code fog-of-war-nouns.md}). Answers what a suit built
+     * around sensors spends those sensors on, and it is deliberately the one
+     * effect here that changes nothing about a fight except what the player can
+     * see of it — a sweep that were worth damage would have stopped being
+     * perception.
+     */
+    PERCEPTION_SWEEP("perception-sweep", "Sensor sweep",
+            "graphics/ui/armory/system-sensor-sweep.png");
 
     public final String key;
 
