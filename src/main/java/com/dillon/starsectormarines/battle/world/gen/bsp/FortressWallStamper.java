@@ -154,7 +154,8 @@ public final class FortressWallStamper implements GenStage {
             stampWestToEast(grid, topology, bbox, keepCompound,
                     wallMask, skip, ctx.tactical, w, h, rng);
         }
-        demolishIntersectedBuildings(grid, topology, ctx.doodads, wallMask, w, h);
+        demolishIntersectedBuildings(grid, topology, ctx.doodads, wallMask,
+                compoundExclusion, w, h);
         sealOrphanedPockets(grid, topology, ctx.tactical, w, h);
         dropBunkersWithoutWindows(grid, ctx.tactical, axis);
     }
@@ -956,6 +957,10 @@ public final class FortressWallStamper implements GenStage {
      * pass the wall paints over half a building and leaves the rest of its
      * interior (INDOOR ground) visible on either side — reads as a bisected
      * structure rather than a clean fortification.
+     * Authored compound and packed-ward space is excluded from both the seed
+     * scan and its flood: wall placement already promises not to cut through
+     * those mission-bearing structures, so its cleanup pass must honor the
+     * same boundary.
      *
      * <p>Implementation: flood-fill every connected INDOOR region that has
      * at least one cell in the sweep zone, then clear (a) all flooded cells,
@@ -972,7 +977,9 @@ public final class FortressWallStamper implements GenStage {
      */
     private static void demolishIntersectedBuildings(NavigationGrid grid, CellTopology topology,
                                                       List<Doodad> doodads,
-                                                      boolean[][] wallMask, int w, int h) {
+                                                      boolean[][] wallMask,
+                                                      boolean[][] protectedSpace,
+                                                      int w, int h) {
         boolean[][] sweepZone = dilateMask(wallMask, DEMOLISH_RADIUS, w, h);
 
         boolean[][] toClear = new boolean[w][h];
@@ -980,9 +987,10 @@ public final class FortressWallStamper implements GenStage {
             for (int x = 0; x < w; x++) {
                 if (!sweepZone[x][y]) continue;
                 if (wallMask[x][y]) continue;
+                if (protectedSpace != null && protectedSpace[x][y]) continue;
                 if (toClear[x][y]) continue;
                 if (topology.getGroundKind(x, y) != GroundKind.INDOOR) continue;
-                floodIndoor(x, y, topology, toClear, w, h);
+                floodIndoor(x, y, topology, toClear, protectedSpace, w, h);
             }
         }
 
@@ -1001,6 +1009,7 @@ public final class FortressWallStamper implements GenStage {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (wallMask[x][y]) continue;
+                if (protectedSpace != null && protectedSpace[x][y]) continue;
                 if (toClear[x][y]) continue;
                 if (grid.isWalkable(x, y)) continue;
                 if (!hasClearedNeighbor(toClear, x, y, w, h)) continue;
@@ -1046,7 +1055,9 @@ public final class FortressWallStamper implements GenStage {
     }
 
     private static void floodIndoor(int startX, int startY, CellTopology topology,
-                                     boolean[][] toClear, int w, int h) {
+                                    boolean[][] toClear,
+                                    boolean[][] protectedSpace,
+                                    int w, int h) {
         Deque<int[]> queue = new ArrayDeque<>();
         queue.add(new int[]{startX, startY});
         toClear[startX][startY] = true;
@@ -1057,6 +1068,7 @@ public final class FortressWallStamper implements GenStage {
                 int nx = p[0] + d[0];
                 int ny = p[1] + d[1];
                 if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                if (protectedSpace != null && protectedSpace[nx][ny]) continue;
                 if (toClear[nx][ny]) continue;
                 if (topology.getGroundKind(nx, ny) != GroundKind.INDOOR) continue;
                 toClear[nx][ny] = true;
