@@ -126,7 +126,7 @@ class NamedStationingBindingTest {
         MarineSoldier fallen = roster.squadMembers(squad).get(1);
         roster.applySoldierOutcome(Map.of(
                 wounded.id(), MarineSoldierStatus.WIA,
-                fallen.id(), MarineSoldierStatus.KIA), 0, 10f, 7f);
+                fallen.id(), MarineSoldierStatus.KIA), 10f, 7f);
         assertTrue(roster.bindStationing(81L, captain.id(), List.of(squad.id())));
 
         assertEquals(1, roster.failStationingExtraction(81L));

@@ -72,7 +72,6 @@ class CampaignMarineDeploymentTest {
         assertTrue(roster.allocateArmor(soldier.id(), MarineArmorPattern.CHARCOAL));
         assertTrue(roster.allocatePrimary(soldier.id(), WeaponRegistry.require(WeaponRegistry.DMR_ID),
                 EquipmentGrade.SERVICE));
-        soldier.addExperience(123);
 
         CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(roster, 1);
         MarineLoadout seat = deployment.seat(0);
@@ -80,9 +79,8 @@ class CampaignMarineDeploymentTest {
         assertNotNull(seat);
         assertEquals(soldier.id(), seat.campaignSoldierId);
         assertEquals(WeaponRegistry.require(WeaponRegistry.DMR_ID), seat.primaryDef());
-        // Experience is issued with the armour, not carried from the marine:
-        // Bastion line armor is a tier-3 pattern, so the seat freezes at the
-        // veteran band regardless of the 123 XP sitting on the record.
+        // Experience is issued with the armour: Bastion line armor is a
+        // tier-3 pattern, so the seat freezes at the veteran band.
         assertEquals(ExperienceTier.VETERAN.minimumXp, seat.soldierProfile.experienceXp());
         assertEquals(LayeredArmorFamily.CHARCOAL, seat.armorFamily);
         assertEquals(MarineArmorPattern.CHARCOAL.armorCapacity, seat.armorCapacity, 1e-6f);

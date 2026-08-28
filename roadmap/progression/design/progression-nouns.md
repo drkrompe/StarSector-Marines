@@ -197,10 +197,23 @@ noise or grows past the grade span — the latter matters because the armour
 pattern already sets the band, so letting bands outweigh equipment would collapse
 the two levers the player reads into one.
 
+**Issued armour is the only experience authority.** There is exactly one place a
+band comes from, and no second path exists to reach one: a marine carries no
+persisted experience number, and the battle tier has no way to award a band
+mid-fight. Changing a shooter's quality means re-equipping them. A future
+proposal to let anything else raise a band — a mission reward, a training
+facility, a battlefield promotion — is proposing a second authority, and has to
+retire this one rather than sit beside it.
+
 Rank-and-file marines are otherwise interchangeable, and the company's growth is
 what the Armory has collected and can issue rather than a per-marine ladder.
 Enlisted stripes follow the same source: a squad leader wears sergeant's stripes
 when the suit they were issued fields them at the veteran band or better.
+
+Seniority is separate from quality and means what it says: when two marines of
+equal rank are candidates for a billet, the one with more deployments on their
+career record takes it. That is the only thing the career record decides, and it
+decides who stands where, never how well anyone shoots.
 
 That makes collection and issue the player's progression axis: which definitions
 the Armory owns, and which squads carry them. Casualties still cost bodies,
@@ -609,6 +622,10 @@ The following are direction, not current behavior:
 - Aptitude is permanent and per marine; experience is issued with the squad
   loadout definition; captain rank is a separate leadership progression. None
   of the three is a synonym for another.
+- Issued armour is the sole source of a marine's band. Neither the battle tier
+  nor a persisted per-marine number may supply a second one.
+- Seniority for a billet is deployments served; it orders people, never
+  sharpens them.
 - A squad's fighting quality is fully determined by visible issue. A hidden
   modifier that separates two identically equipped squads is a defect, not a
   feature.

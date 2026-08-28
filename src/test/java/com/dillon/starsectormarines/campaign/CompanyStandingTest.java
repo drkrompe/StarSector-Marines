@@ -107,7 +107,7 @@ class CompanyStandingTest {
         outcomes.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
         outcomes.put(roster.soldiers().get(1).id(), MarineSoldierStatus.KIA);
         outcomes.put(roster.soldiers().get(2).id(), MarineSoldierStatus.MIA);
-        roster.applySoldierOutcome(outcomes, 0, 10f, 7f);
+        roster.applySoldierOutcome(outcomes, 10f, 7f);
 
         int living = CompanyStanding.strength(roster);
         assertEquals(1, CompanyStanding.wounded(roster));
@@ -183,10 +183,10 @@ class CompanyStandingTest {
         roster.ensureActiveSoldiers(12);
         roster.applySoldierOutcome(
                 Map.of(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA),
-                0, 100f, 20f);
+                100f, 20f);
         roster.applySoldierOutcome(
                 Map.of(roster.soldiers().get(1).id(), MarineSoldierStatus.WIA),
-                0, 100f, 5f);
+                100f, 5f);
 
         assertEquals(2, CompanyStanding.wounded(roster));
         assertEquals(105f, CompanyStanding.nextRecoveryDay(roster), 0.001f);
@@ -214,7 +214,7 @@ class CompanyStandingTest {
         roster.ensureActiveSoldiers(12);
         roster.applySoldierOutcome(
                 Map.of(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA),
-                0, 10f, 7f);
+                10f, 7f);
 
         CompanyStanding standing = CompanyStanding.of(
                 finances(120_000f, 20_000f), state, roster, 5);

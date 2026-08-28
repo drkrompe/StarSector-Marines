@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.mission.story;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.SquadExperienceStandard;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
@@ -85,12 +86,25 @@ public final class OpeningOperationStory implements StoryMissionDef {
         };
     }
 
+    /**
+     * True while the company still looks like a new game: small, and wearing
+     * nothing better than what a fresh outfit is issued.
+     *
+     * <p>Starting issue is a tier-2 suit, which reads as {@code REGULAR}, so
+     * the ladder's first rung asks whether anything <em>above</em> that has
+     * been collected rather than testing for literal {@code GREEN}. A single
+     * recovered line suit is the company outgrowing the opening operations
+     * ({@code progression-nouns.md}).
+     */
     static boolean isGreenCompany(MarineRoster roster) {
         if (roster == null || roster.soldiers().size() > GREEN_COMPANY_MAX_SOLDIERS) {
             return false;
         }
         for (MarineSoldier soldier : roster.soldiers()) {
-            if (soldier.experienceXp() >= ExperienceTier.REGULAR.minimumXp) return false;
+            if (SquadExperienceStandard.bandFor(soldier).ordinal()
+                    > ExperienceTier.REGULAR.ordinal()) {
+                return false;
+            }
         }
         return true;
     }

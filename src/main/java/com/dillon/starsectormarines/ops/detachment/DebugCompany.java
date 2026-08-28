@@ -76,11 +76,8 @@ public final class DebugCompany {
             MarineSquad squad = roster.createSquad();
             SquadWeaponDoctrine weaponDoctrine = weapons.get(s);
             SquadArmorDoctrine armorDoctrine = armor.get(s);
-            List<Integer> experience = new ArrayList<>(MarineSquad.CAPACITY);
-            for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
-                experience.add(resolved.plan.experienceXp(billet));
-            }
-            List<MarineSoldier> recruits = roster.recruitToSquad(squad.id(), experience);
+            List<MarineSoldier> recruits =
+                    roster.recruitToSquad(squad.id(), MarineSquad.CAPACITY);
             if (recruits.size() != MarineSquad.CAPACITY) {
                 throw new IllegalStateException("Debug squad complement was not filled");
             }

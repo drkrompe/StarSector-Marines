@@ -22,7 +22,6 @@ public final class MarineSoldier implements Serializable {
     private SoldierAptitude aptitude;
     /** Follows the marine's billet; rewritten by the roster whenever leadership is re-derived. */
     private EnlistedRank enlistedRank;
-    private int experienceXp;
     private MarineSoldierStatus status;
     private float unavailableUntilDay;
     /** Legacy enum name written by saves predating stable primary ids. */
@@ -66,8 +65,13 @@ public final class MarineSoldier implements Serializable {
     public String name() { return name; }
     public SoldierAptitude aptitude() { return aptitude; }
     public EnlistedRank enlistedRank() { return enlistedRank; }
-    public int experienceXp() { return experienceXp; }
-    public SoldierProfile profile() { return new SoldierProfile(aptitude, experienceXp); }
+    /**
+     * The battle-ready profile this marine deploys with: persisted aptitude, and
+     * the experience band issued with their armour. Not a stored number — a
+     * rank-and-file marine has no personal ladder, so asking what they are
+     * worth means reading what they are wearing ({@code progression-nouns.md}).
+     */
+    public SoldierProfile profile() { return SquadExperienceStandard.profileFor(this); }
     public MarineSoldierStatus status() { return status; }
     public float unavailableUntilDay() { return unavailableUntilDay; }
     public String primaryId() { return primaryId; }
@@ -86,10 +90,6 @@ public final class MarineSoldier implements Serializable {
 
     /** Lifetime service record — missions, rounds, damage, kills. Never null. */
     public SoldierCareer career() { return career; }
-
-    public void addExperience(int amount) {
-        experienceXp = Math.max(0, experienceXp + amount);
-    }
 
     void setPrimary(String weaponId, EquipmentGrade grade) {
         WeaponDef def = WeaponRegistry.require(
@@ -162,7 +162,6 @@ public final class MarineSoldier implements Serializable {
             specialEquipmentId = null;
         }
         secondary = null;
-        experienceXp = Math.max(0, experienceXp);
         unavailableUntilDay = Math.max(0f, unavailableUntilDay);
         return this;
     }
