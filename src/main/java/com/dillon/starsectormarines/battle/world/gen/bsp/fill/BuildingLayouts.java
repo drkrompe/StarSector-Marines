@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -431,7 +433,7 @@ final class BuildingLayouts {
             for (int x = bl + 1; x <= br - 1; x++) {
                 if (!footprintHasPurpose(topology, x, y, prop, purpose)) continue;
                 if (!canPlaceDoodad(grid, x, y, prop, doodads)) continue;
-                if (footprintTouchesWindow(topology, x, y, prop)) continue;
+                if (footprintTouchesWindow(grid, topology, x, y, prop)) continue;
                 free.add(new int[]{x, y});
             }
         }
@@ -610,28 +612,35 @@ final class BuildingLayouts {
     }
 
     /**
-     * Gives every enclosed office one workstation, adds a low lobby desk and
-     * conference table, and fills the secured server room with an opaque rack
-     * row and a connected service aisle. The corridor itself remains entirely
-     * clear.
+     * Fits the civic plan around its authored public-to-service spine. Twin
+     * reception counters and paired office work groups hug room corners away
+     * from their fixed doors, the conference table owns the center of its
+     * room, and server racks form an opaque wall row around a service aisle.
+     * The corridor itself remains entirely clear.
      */
     private static void applyCivicHeadquarters(NavigationGrid grid, CellTopology topology,
                                                 PartitionLayout partition,
                                                 int bl, int bt, int br, int bb,
                                                 List<Doodad> doodads, Random rng) {
         if (!partition.tacticalCivic) return;
-        DoodadDef workstation = TileRegistry.installed().doodad("doodad.office-workstation-bank");
-        DoodadDef conference = TileRegistry.installed().doodad("doodad.office-conference-table");
-        DoodadDef serverRack = TileRegistry.installed().doodad("doodad.office-server-rack");
-        DoodadDef receptionDesk = TileRegistry.installed().doodad("doodad.desk-1");
+        DoodadDef workstation = TileRegistry.installed().doodad("doodad.civic-workstation-bank");
+        DoodadDef records = TileRegistry.installed().doodad("doodad.office-records-bank");
+        DoodadDef reception = TileRegistry.installed().doodad("doodad.office-reception-counter");
+        DoodadDef conference = TileRegistry.installed().doodad("doodad.civic-conference-table");
+        DoodadDef serverRack = TileRegistry.installed().doodad("doodad.civic-server-rack");
 
-        stampOneFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
-                RoomPurpose.CIVIC_OFFICE, workstation, doodads, rng, true);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.CIVIC_RECEPTION, receptionDesk, doodads, rng, true);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
+        stampOneAuthoredFixtureGroupPerPurposeRoom(grid, topology, bl, bt, br, bb,
+                RoomPurpose.CIVIC_OFFICE, workstation, records, doodads, true);
+        preservePlacementDrawsForPurposeRooms(
+                grid, topology, bl, bt, br, bb, RoomPurpose.CIVIC_OFFICE, rng);
+
+        stampOneAuthoredFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
+                RoomPurpose.CIVIC_RECEPTION, reception, doodads, true);
+        preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.CIVIC_RECEPTION, rng);
+
+        stampRotatablePurposeCenterFixture(grid, topology, bl, bt, br, bb,
                 RoomPurpose.CONFERENCE_ROOM, conference, doodads, rng, true);
-        stampPurposeFixtureRows(grid, topology, bl, bt, br, bb,
+        stampRotatablePurposeFixtureRows(grid, topology, bl, bt, br, bb,
                 RoomPurpose.SERVER_ROOM, serverRack, doodads,
                 purposeFixtureBudget(topology, bl, bt, br, bb,
                         RoomPurpose.SERVER_ROOM, 3, 6, 4), 2, false, true);
@@ -761,7 +770,260 @@ final class BuildingLayouts {
             RoomPurpose purpose, DoodadDef[] props,
             boolean requirePreferredWall,
             List<Doodad> doodads, Random rng,
-            boolean seeThrough) {
+        boolean seeThrough) {
+        for (List<int[]> roomCells : purposeRoomComponents(
+                grid, topology, bl, bt, br, bb, purpose)) {
+            List<FixtureCandidate> candidates = new ArrayList<>();
+            for (DoodadDef prop : props) {
+                if (requirePreferredWall && prop.preferredWallSide == null) continue;
+                for (int[] cell : roomCells) {
+                    if (!grid.isWalkable(cell[0], cell[1])
+                            || grid.isDoorway(cell[0], cell[1])) continue;
+                    if (!footprintHasPurpose(
+                            topology, cell[0], cell[1], prop, purpose)) continue;
+                    if (!canPlaceDoodad(grid, cell[0], cell[1], prop, doodads)) continue;
+                    if (footprintTouchesWindow(
+                            grid, topology, cell[0], cell[1], prop)) continue;
+                    if (requirePreferredWall
+                            && (!hasWallSupport(grid, topology, cell[0], cell[1], prop)
+                            || !hasOpenFront(grid, topology, purpose,
+                            cell[0], cell[1], prop, doodads))) continue;
+                    if (!preservesRoomConnectivity(
+                            grid, topology, purpose, roomCells,
+                            cell[0], cell[1], prop)) continue;
+                    candidates.add(new FixtureCandidate(cell[0], cell[1], prop));
+                }
+            }
+            if (!candidates.isEmpty()) {
+                FixtureCandidate candidate = candidates.get(rng.nextInt(candidates.size()));
+                stampFixture(grid, topology, candidate.x, candidate.y,
+                        candidate.prop, doodads, seeThrough);
+            }
+        }
+    }
+
+    /**
+     * Places one room-defining fixture in each disconnected room carrying the
+     * purpose. Candidate scoring prefers real wall contact and distance from
+     * doors, so the room's circulation is a premise rather than the gap left
+     * after a random placement.
+     */
+    private static void stampOneAuthoredFixturePerPurposeRoom(
+            NavigationGrid grid, CellTopology topology,
+            int bl, int bt, int br, int bb,
+            RoomPurpose purpose, DoodadDef prop,
+            List<Doodad> doodads, boolean seeThrough) {
+        for (List<int[]> roomCells : purposeRoomComponents(
+                grid, topology, bl, bt, br, bb, purpose)) {
+            FixtureCandidate best = null;
+            int bestScore = Integer.MIN_VALUE;
+            for (int[] cell : roomCells) {
+                int x = cell[0];
+                int y = cell[1];
+                for (int turns = 0; turns < 4; turns++) {
+                    FixtureCandidate candidate = new FixtureCandidate(x, y, prop, turns);
+                    if (!isPurposeFixtureCandidate(
+                            grid, topology, purpose, candidate, doodads)) continue;
+                    if (!preservesRoomConnectivity(
+                            grid, topology, purpose, roomCells, candidate)) continue;
+                    int score = orientedFixtureScore(grid, topology, purpose,
+                            bl, bt, br, bb, candidate, doodads);
+                    if (score > bestScore || (score == bestScore
+                            && earlierCandidate(candidate, best))) {
+                        bestScore = score;
+                        best = candidate;
+                    }
+                }
+            }
+            if (best != null) {
+                stampFixture(grid, topology, best, doodads, seeThrough);
+            }
+        }
+    }
+
+    /**
+     * Selects an anchor and satellite as one workspace before committing either
+     * footprint. This prevents one plausible prop placement from consuming the
+     * only cell arrangement in which the complete room can exist.
+     */
+    private static void stampOneAuthoredFixtureGroupPerPurposeRoom(
+            NavigationGrid grid, CellTopology topology,
+            int bl, int bt, int br, int bb,
+            RoomPurpose purpose, DoodadDef anchor, DoodadDef satellite,
+            List<Doodad> doodads, boolean seeThrough) {
+        for (List<int[]> roomCells : purposeRoomComponents(
+                grid, topology, bl, bt, br, bb, purpose)) {
+            FixtureCandidate bestAnchor = null;
+            FixtureCandidate bestSatellite = null;
+            int bestScore = Integer.MIN_VALUE;
+            for (int[] anchorCell : roomCells) {
+                int anchorX = anchorCell[0];
+                int anchorY = anchorCell[1];
+                for (int anchorTurns = 0; anchorTurns < 4; anchorTurns++) {
+                    FixtureCandidate anchorCandidate =
+                            new FixtureCandidate(anchorX, anchorY, anchor, anchorTurns);
+                    if (!isPurposeFixtureCandidate(grid, topology, purpose,
+                            anchorCandidate, doodads)) continue;
+                    for (int[] satelliteCell : roomCells) {
+                        int satelliteX = satelliteCell[0];
+                        int satelliteY = satelliteCell[1];
+                        for (int satelliteTurns = 0; satelliteTurns < 4; satelliteTurns++) {
+                            FixtureCandidate satelliteCandidate = new FixtureCandidate(
+                                    satelliteX, satelliteY, satellite, satelliteTurns);
+                            if (!isPurposeFixtureCandidate(grid, topology, purpose,
+                                    satelliteCandidate, doodads)) continue;
+                            if (fixturesOverlap(anchorCandidate, satelliteCandidate)) continue;
+                            if (!preservesRoomConnectivity(grid, topology, purpose, roomCells,
+                                    anchorCandidate, satelliteCandidate)) continue;
+                            int separation = fixtureSeparation(anchorCandidate, satelliteCandidate);
+                            int score = orientedFixtureScore(grid, topology, purpose,
+                                    bl, bt, br, bb, anchorCandidate, doodads)
+                                    + orientedFixtureScore(grid, topology, purpose,
+                                    bl, bt, br, bb, satelliteCandidate, doodads)
+                                    - separation * 10;
+                            if (score > bestScore || (score == bestScore
+                                    && earlierPair(anchorCandidate, satelliteCandidate,
+                                    bestAnchor, bestSatellite))) {
+                                bestScore = score;
+                                bestAnchor = anchorCandidate;
+                                bestSatellite = satelliteCandidate;
+                            }
+                        }
+                    }
+                }
+            }
+            if (bestAnchor != null && bestSatellite != null) {
+                stampFixture(grid, topology, bestAnchor, doodads, seeThrough);
+                stampFixture(grid, topology, bestSatellite, doodads, seeThrough);
+            }
+        }
+    }
+
+    private static boolean isPurposeFixtureCandidate(
+            NavigationGrid grid, CellTopology topology, RoomPurpose purpose,
+            FixtureCandidate candidate, List<Doodad> doodads) {
+        return footprintHasPurpose(topology, candidate, purpose)
+                && canPlaceDoodad(grid, candidate, doodads)
+                && !footprintTouchesWindow(grid, topology, candidate);
+    }
+
+    private static boolean fixturesOverlap(FixtureCandidate first,
+                                           FixtureCandidate second) {
+        return first.x < second.x + second.width
+                && first.x + first.width > second.x
+                && first.y < second.y + second.height
+                && first.y + first.height > second.y;
+    }
+
+    private static boolean earlierCandidate(FixtureCandidate candidate,
+                                            FixtureCandidate incumbent) {
+        return incumbent == null || candidate.y < incumbent.y
+                || (candidate.y == incumbent.y && candidate.x < incumbent.x)
+                || (candidate.y == incumbent.y && candidate.x == incumbent.x
+                && candidate.quarterTurns < incumbent.quarterTurns);
+    }
+
+    private static boolean earlierPair(FixtureCandidate anchor, FixtureCandidate satellite,
+                                       FixtureCandidate incumbentAnchor,
+                                       FixtureCandidate incumbentSatellite) {
+        if (earlierCandidate(anchor, incumbentAnchor)) return true;
+        if (incumbentAnchor == null || anchor.x != incumbentAnchor.x
+                || anchor.y != incumbentAnchor.y
+                || anchor.quarterTurns != incumbentAnchor.quarterTurns) return false;
+        return earlierCandidate(satellite, incumbentSatellite);
+    }
+
+    private static int fixtureSeparation(FixtureCandidate first,
+                                         FixtureCandidate second) {
+        int firstCenterX = first.x * 2 + first.width;
+        int firstCenterY = first.y * 2 + first.height;
+        int secondCenterX = second.x * 2 + second.width;
+        int secondCenterY = second.y * 2 + second.height;
+        return (Math.abs(firstCenterX - secondCenterX)
+                + Math.abs(firstCenterY - secondCenterY)) / 2;
+    }
+
+    private static int orientedFixtureScore(
+            NavigationGrid grid, CellTopology topology, RoomPurpose purpose,
+            int bl, int bt, int br, int bb,
+            FixtureCandidate candidate, List<Doodad> doodads) {
+        WallSide back = rotateSide(WallSide.N, candidate.quarterTurns);
+        WallSide front = back.opposite();
+        return fixtureWallContact(grid, topology, candidate) * 100
+                + (hasWallSupport(grid, topology, candidate, back) ? 400 : 0)
+                + (hasOpenFront(grid, topology, purpose, candidate, front, doodads) ? 250 : 0)
+                + nearestDoorwayDistance(grid, bl, bt, br, bb, candidate);
+    }
+
+    private static int fixtureWallContact(NavigationGrid grid, CellTopology topology,
+                                          FixtureCandidate candidate) {
+        int contact = 0;
+        for (WallSide side : WallSide.values()) {
+            for (int offset = 0; offset < edgeLength(candidate, side); offset++) {
+                int[] neighbor = edgeNeighbor(candidate, side, offset);
+                if (!grid.inBounds(neighbor[0], neighbor[1])
+                        || (!grid.isWalkable(neighbor[0], neighbor[1])
+                        && !topology.isFixture(neighbor[0], neighbor[1]))) contact++;
+            }
+        }
+        return contact;
+    }
+
+    private static int nearestDoorwayDistance(NavigationGrid grid,
+                                              int bl, int bt, int br, int bb,
+                                              FixtureCandidate candidate) {
+        int nearest = (br - bl) + (bb - bt);
+        for (int doorY = bt; doorY <= bb; doorY++) {
+            for (int doorX = bl; doorX <= br; doorX++) {
+                if (!grid.isDoorway(doorX, doorY)) continue;
+                for (int dy = 0; dy < candidate.height; dy++) {
+                    for (int dx = 0; dx < candidate.width; dx++) {
+                        nearest = Math.min(nearest,
+                                Math.abs(candidate.x + dx - doorX)
+                                        + Math.abs(candidate.y + dy - doorY));
+                    }
+                }
+            }
+        }
+        return nearest;
+    }
+
+    private static int fixtureWallContact(NavigationGrid grid, CellTopology topology,
+                                          int x, int y, DoodadDef prop) {
+        int contact = 0;
+        for (WallSide side : WallSide.values()) {
+            for (int offset = 0; offset < edgeLength(prop, side); offset++) {
+                int[] neighbor = edgeNeighbor(x, y, prop, side, offset);
+                if (!grid.inBounds(neighbor[0], neighbor[1])
+                        || (!grid.isWalkable(neighbor[0], neighbor[1])
+                        && !topology.isFixture(neighbor[0], neighbor[1]))) contact++;
+            }
+        }
+        return contact;
+    }
+
+    private static int nearestDoorwayDistance(NavigationGrid grid,
+                                              int bl, int bt, int br, int bb,
+                                              int x, int y, DoodadDef prop) {
+        int nearest = (br - bl) + (bb - bt);
+        for (int doorY = bt; doorY <= bb; doorY++) {
+            for (int doorX = bl; doorX <= br; doorX++) {
+                if (!grid.isDoorway(doorX, doorY)) continue;
+                for (int dy = 0; dy < prop.footprintCellsY; dy++) {
+                    for (int dx = 0; dx < prop.footprintCellsX; dx++) {
+                        nearest = Math.min(nearest,
+                                Math.abs(x + dx - doorX) + Math.abs(y + dy - doorY));
+                    }
+                }
+            }
+        }
+        return nearest;
+    }
+
+    private static List<List<int[]>> purposeRoomComponents(
+            NavigationGrid grid, CellTopology topology,
+            int bl, int bt, int br, int bb, RoomPurpose purpose) {
+        List<List<int[]>> rooms = new ArrayList<>();
         boolean[] visited = new boolean[grid.getWidth() * grid.getHeight()];
         int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
         for (int y = bt + 1; y <= bb - 1; y++) {
@@ -780,39 +1042,16 @@ final class BuildingLayouts {
                         int ny = cell[1] + direction[1];
                         if (nx <= bl || nx >= br || ny <= bt || ny >= bb) continue;
                         int index = ny * grid.getWidth() + nx;
-                        if (visited[index] || topology.getRoomPurpose(nx, ny) != purpose) continue;
+                        if (visited[index]
+                                || topology.getRoomPurpose(nx, ny) != purpose) continue;
                         visited[index] = true;
                         queue.addLast(new int[]{nx, ny});
                     }
                 }
-                List<FixtureCandidate> candidates = new ArrayList<>();
-                for (DoodadDef prop : props) {
-                    if (requirePreferredWall && prop.preferredWallSide == null) continue;
-                    for (int[] cell : roomCells) {
-                        if (!grid.isWalkable(cell[0], cell[1])
-                                || grid.isDoorway(cell[0], cell[1])) continue;
-                        if (!footprintHasPurpose(
-                                topology, cell[0], cell[1], prop, purpose)) continue;
-                        if (!canPlaceDoodad(grid, cell[0], cell[1], prop, doodads)) continue;
-                        if (footprintTouchesWindow(
-                                topology, cell[0], cell[1], prop)) continue;
-                        if (requirePreferredWall
-                                && (!hasWallSupport(grid, topology, cell[0], cell[1], prop)
-                                || !hasOpenFront(grid, topology, purpose,
-                                cell[0], cell[1], prop, doodads))) continue;
-                        if (!preservesRoomConnectivity(
-                                grid, topology, purpose, roomCells,
-                                cell[0], cell[1], prop)) continue;
-                        candidates.add(new FixtureCandidate(cell[0], cell[1], prop));
-                    }
-                }
-                if (!candidates.isEmpty()) {
-                    FixtureCandidate candidate = candidates.get(rng.nextInt(candidates.size()));
-                    stampFixture(grid, topology, candidate.x, candidate.y,
-                            candidate.prop, doodads, seeThrough);
-                }
+                rooms.add(roomCells);
             }
         }
+        return rooms;
     }
 
     private static boolean hasWallSupport(NavigationGrid grid, CellTopology topology,
@@ -828,6 +1067,17 @@ final class BuildingLayouts {
         return true;
     }
 
+    private static boolean hasWallSupport(NavigationGrid grid, CellTopology topology,
+                                          FixtureCandidate candidate, WallSide side) {
+        for (int offset = 0; offset < edgeLength(candidate, side); offset++) {
+            int[] neighbor = edgeNeighbor(candidate, side, offset);
+            if (!grid.inBounds(neighbor[0], neighbor[1])
+                    || grid.isWalkable(neighbor[0], neighbor[1])
+                    || topology.isFixture(neighbor[0], neighbor[1])) return false;
+        }
+        return true;
+    }
+
     private static boolean hasOpenFront(NavigationGrid grid, CellTopology topology,
                                         RoomPurpose purpose, int x, int y,
                                         DoodadDef prop, List<Doodad> doodads) {
@@ -835,6 +1085,20 @@ final class BuildingLayouts {
         int length = edgeLength(prop, front);
         for (int i = 0; i < length; i++) {
             int[] neighbor = edgeNeighbor(x, y, prop, front, i);
+            int cellX = neighbor[0];
+            int cellY = neighbor[1];
+            if (!grid.inBounds(cellX, cellY) || !grid.isWalkable(cellX, cellY)) return false;
+            if (grid.isDoorway(cellX, cellY) || isOccupied(cellX, cellY, doodads)) return false;
+            if (topology.getRoomPurpose(cellX, cellY) != purpose) return false;
+        }
+        return true;
+    }
+
+    private static boolean hasOpenFront(NavigationGrid grid, CellTopology topology,
+                                        RoomPurpose purpose, FixtureCandidate candidate,
+                                        WallSide front, List<Doodad> doodads) {
+        for (int offset = 0; offset < edgeLength(candidate, front); offset++) {
+            int[] neighbor = edgeNeighbor(candidate, front, offset);
             int cellX = neighbor[0];
             int cellY = neighbor[1];
             if (!grid.inBounds(cellX, cellY) || !grid.isWalkable(cellX, cellY)) return false;
@@ -860,15 +1124,56 @@ final class BuildingLayouts {
         }
     }
 
+    private static int edgeLength(FixtureCandidate candidate, WallSide side) {
+        return side == WallSide.N || side == WallSide.S
+                ? candidate.width : candidate.height;
+    }
+
+    private static int[] edgeNeighbor(FixtureCandidate candidate,
+                                      WallSide side, int offset) {
+        switch (side) {
+            case N: return new int[]{candidate.x + offset, candidate.y + candidate.height};
+            case S: return new int[]{candidate.x + offset, candidate.y - 1};
+            case E: return new int[]{candidate.x + candidate.width, candidate.y + offset};
+            case W: return new int[]{candidate.x - 1, candidate.y + offset};
+            default: throw new IllegalStateException();
+        }
+    }
+
+    private static WallSide rotateSide(WallSide side, int quarterTurns) {
+        WallSide rotated = side;
+        for (int turn = 0; turn < Math.floorMod(quarterTurns, 4); turn++) {
+            switch (rotated) {
+                case N: rotated = WallSide.W; break;
+                case W: rotated = WallSide.S; break;
+                case S: rotated = WallSide.E; break;
+                case E: rotated = WallSide.N; break;
+                default: throw new IllegalStateException();
+            }
+        }
+        return rotated;
+    }
+
     private static final class FixtureCandidate {
         final int x;
         final int y;
         final DoodadDef prop;
+        final int quarterTurns;
+        final int width;
+        final int height;
 
         FixtureCandidate(int x, int y, DoodadDef prop) {
+            this(x, y, prop, 0);
+        }
+
+        FixtureCandidate(int x, int y, DoodadDef prop, int quarterTurns) {
             this.x = x;
             this.y = y;
             this.prop = prop;
+            this.quarterTurns = Math.floorMod(quarterTurns, 4);
+            boolean swapsAxes = (this.quarterTurns & 1) != 0;
+            this.width = swapsAxes ? prop.footprintCellsY : prop.footprintCellsX;
+            this.height = swapsAxes ? prop.footprintCellsX : prop.footprintCellsY;
         }
     }
 
@@ -879,11 +1184,20 @@ final class BuildingLayouts {
                                                      List<int[]> roomCells,
                                                      int fixtureX, int fixtureY,
                                                      DoodadDef prop) {
+        return preservesRoomConnectivity(grid, topology, purpose, roomCells,
+                new FixtureCandidate(fixtureX, fixtureY, prop));
+    }
+
+    private static boolean preservesRoomConnectivity(NavigationGrid grid,
+                                                     CellTopology topology,
+                                                     RoomPurpose purpose,
+                                                     List<int[]> roomCells,
+                                                     FixtureCandidate... fixtures) {
         int remaining = 0;
         int[] start = null;
         for (int[] cell : roomCells) {
             if (!grid.isWalkable(cell[0], cell[1])) continue;
-            if (insideFootprint(cell[0], cell[1], fixtureX, fixtureY, prop)) continue;
+            if (insideAnyFootprint(cell[0], cell[1], fixtures)) continue;
             remaining++;
             if (start == null) start = cell;
         }
@@ -903,7 +1217,7 @@ final class BuildingLayouts {
                 int ny = cell[1] + direction[1];
                 if (!grid.inBounds(nx, ny) || !grid.isWalkable(nx, ny)) continue;
                 if (topology.getRoomPurpose(nx, ny) != purpose) continue;
-                if (insideFootprint(nx, ny, fixtureX, fixtureY, prop)) continue;
+                if (insideAnyFootprint(nx, ny, fixtures)) continue;
                 int index = ny * grid.getWidth() + nx;
                 if (seen[index]) continue;
                 seen[index] = true;
@@ -911,6 +1225,15 @@ final class BuildingLayouts {
             }
         }
         return reached == remaining;
+    }
+
+    private static boolean insideAnyFootprint(int x, int y,
+                                              FixtureCandidate... fixtures) {
+        for (FixtureCandidate fixture : fixtures) {
+            if (x >= fixture.x && x < fixture.x + fixture.width
+                    && y >= fixture.y && y < fixture.y + fixture.height) return true;
+        }
+        return false;
     }
 
     private static boolean insideFootprint(int x, int y, int fixtureX, int fixtureY,
@@ -963,6 +1286,16 @@ final class BuildingLayouts {
                                               int bl, int bt, int br, int bb,
                                               RoomPurpose purpose, Random rng) {
         if (purposeBounds(topology, bl, bt, br, bb, purpose) != null) rng.nextInt();
+    }
+
+    private static void preservePlacementDrawsForPurposeRooms(
+            NavigationGrid grid, CellTopology topology,
+            int bl, int bt, int br, int bb,
+            RoomPurpose purpose, Random rng) {
+        for (List<int[]> ignored : purposeRoomComponents(
+                grid, topology, bl, bt, br, bb, purpose)) {
+            rng.nextInt();
+        }
     }
 
     /**
@@ -1035,10 +1368,94 @@ final class BuildingLayouts {
                     || topology.isFixture(behindX, behindY)) continue;
             if (!footprintHasPurpose(topology, x, y, prop, purpose)) continue;
             if (!canPlaceDoodad(grid, x, y, prop, doodads)) continue;
-            if (footprintTouchesWindow(topology, x, y, prop)) continue;
+            if (footprintTouchesWindow(grid, topology, x, y, prop)) continue;
             cells.add(new int[]{x, y});
         }
         return cells;
+    }
+
+    /** Civic equipment rows rotate one canonical rack toward whichever wall supports the row. */
+    private static void stampRotatablePurposeFixtureRows(
+            NavigationGrid grid, CellTopology topology,
+            int bl, int bt, int br, int bb,
+            RoomPurpose purpose, DoodadDef prop,
+            List<Doodad> doodads, int budget, int spacing,
+            boolean seeThrough, boolean blocking) {
+        if (budget <= 0) return;
+        int[] bounds = purposeBounds(topology, bl, bt, br, bb, purpose);
+        if (bounds == null) return;
+        List<int[]> roomCells = purposeCells(topology, bl, bt, br, bb, purpose);
+        WallSide[] sides = WallSide.values();
+        boolean[] used = new boolean[sides.length];
+        int placed = 0;
+
+        for (int row = 0; row < sides.length && placed < budget; row++) {
+            int bestIndex = -1;
+            int bestScore = 0;
+            for (int i = 0; i < sides.length; i++) {
+                if (used[i]) continue;
+                int score = rotatablePurposeWallRow(grid, topology, bounds, purpose,
+                        prop, doodads, sides[i]).size();
+                if (score > bestScore) {
+                    bestIndex = i;
+                    bestScore = score;
+                }
+            }
+            if (bestIndex < 0) break;
+            used[bestIndex] = true;
+            List<FixtureCandidate> cells = rotatablePurposeWallRow(
+                    grid, topology, bounds, purpose, prop, doodads, sides[bestIndex]);
+            for (int i = 0; i < cells.size() && placed < budget; i += spacing) {
+                FixtureCandidate candidate = cells.get(i);
+                if (!canPlaceDoodad(grid, candidate, doodads)) continue;
+                if (blocking && !preservesRoomConnectivity(
+                        grid, topology, purpose, roomCells, candidate)) continue;
+                int before = doodads.size();
+                if (blocking) {
+                    stampFixture(grid, topology, candidate, doodads, seeThrough);
+                } else {
+                    doodads.add(new Doodad(candidate.x, candidate.y,
+                            candidate.prop, candidate.quarterTurns));
+                }
+                if (doodads.size() > before) placed++;
+            }
+        }
+    }
+
+    private static List<FixtureCandidate> rotatablePurposeWallRow(
+            NavigationGrid grid, CellTopology topology, int[] bounds,
+            RoomPurpose purpose, DoodadDef prop, List<Doodad> doodads,
+            WallSide side) {
+        int turns = quarterTurnsFromNorth(side);
+        FixtureCandidate dimensions = new FixtureCandidate(0, 0, prop, turns);
+        int start = side == WallSide.N || side == WallSide.S ? bounds[0] : bounds[1];
+        int end = side == WallSide.N || side == WallSide.S
+                ? bounds[2] - dimensions.width + 1
+                : bounds[3] - dimensions.height + 1;
+        List<FixtureCandidate> cells = new ArrayList<>();
+        for (int along = start; along <= end; along++) {
+            int x = side == WallSide.W ? bounds[0]
+                    : side == WallSide.E ? bounds[2] - dimensions.width + 1 : along;
+            int y = side == WallSide.S ? bounds[1]
+                    : side == WallSide.N ? bounds[3] - dimensions.height + 1 : along;
+            FixtureCandidate candidate = new FixtureCandidate(x, y, prop, turns);
+            if (!isPurposeFixtureCandidate(grid, topology, purpose, candidate, doodads)) continue;
+            if (!hasWallSupport(grid, topology, candidate, side)) continue;
+            if (!hasOpenFront(grid, topology, purpose, candidate,
+                    side.opposite(), doodads)) continue;
+            cells.add(candidate);
+        }
+        return cells;
+    }
+
+    private static int quarterTurnsFromNorth(WallSide side) {
+        switch (side) {
+            case N: return 0;
+            case W: return 1;
+            case S: return 2;
+            case E: return 3;
+            default: throw new IllegalStateException();
+        }
     }
 
     private static void stampPurposeCenterFixture(
@@ -1055,7 +1472,7 @@ final class BuildingLayouts {
             int x = cell[0], y = cell[1];
             if (!footprintHasPurpose(topology, x, y, prop, purpose)
                     || !canPlaceDoodad(grid, x, y, prop, doodads)
-                    || footprintTouchesWindow(topology, x, y, prop)) continue;
+                    || footprintTouchesWindow(grid, topology, x, y, prop)) continue;
             if (!preservesRoomConnectivity(grid, topology, purpose, roomCells,
                     x, y, prop)) continue;
             int distance = Math.abs(2 * x - bounds[0] - bounds[2])
@@ -1069,6 +1486,43 @@ final class BuildingLayouts {
         if (best.isEmpty()) return;
         int[] cell = best.get(rng.nextInt(best.size()));
         stampFixture(grid, topology, cell[0], cell[1], prop, doodads, seeThrough);
+    }
+
+    /** Centers the full footprint and turns its long axis with the room. */
+    private static void stampRotatablePurposeCenterFixture(
+            NavigationGrid grid, CellTopology topology,
+            int bl, int bt, int br, int bb,
+            RoomPurpose purpose, DoodadDef prop,
+            List<Doodad> doodads, Random rng, boolean seeThrough) {
+        int[] bounds = purposeBounds(topology, bl, bt, br, bb, purpose);
+        if (bounds == null) return;
+        List<int[]> roomCells = purposeCells(topology, bl, bt, br, bb, purpose);
+        List<FixtureCandidate> best = new ArrayList<>();
+        int bestScore = Integer.MAX_VALUE;
+        int roomCenterX = bounds[0] + bounds[2] + 1;
+        int roomCenterY = bounds[1] + bounds[3] + 1;
+        boolean roomIsWide = bounds[2] - bounds[0] >= bounds[3] - bounds[1];
+        for (int[] cell : roomCells) {
+            for (int turns = 0; turns < 4; turns++) {
+                FixtureCandidate candidate =
+                        new FixtureCandidate(cell[0], cell[1], prop, turns);
+                if (!isPurposeFixtureCandidate(
+                        grid, topology, purpose, candidate, doodads)) continue;
+                if (!preservesRoomConnectivity(
+                        grid, topology, purpose, roomCells, candidate)) continue;
+                int centerDistance = Math.abs(2 * candidate.x + candidate.width - roomCenterX)
+                        + Math.abs(2 * candidate.y + candidate.height - roomCenterY);
+                boolean fixtureIsWide = candidate.width >= candidate.height;
+                int score = centerDistance * 10 + (fixtureIsWide == roomIsWide ? 0 : 1);
+                if (score < bestScore) {
+                    best.clear();
+                    bestScore = score;
+                }
+                if (score == bestScore) best.add(candidate);
+            }
+        }
+        if (best.isEmpty()) return;
+        stampFixture(grid, topology, best.get(rng.nextInt(best.size())), doodads, seeThrough);
     }
 
     private static List<int[]> purposeCells(CellTopology topology,
@@ -1128,6 +1582,24 @@ final class BuildingLayouts {
             }
         }
         doodads.add(new Doodad(x, y, prop));
+    }
+
+    private static void stampFixture(NavigationGrid grid, CellTopology topology,
+                                     FixtureCandidate candidate, List<Doodad> doodads,
+                                     boolean seeThrough) {
+        if (!canPlaceDoodad(grid, candidate, doodads)) return;
+        for (int dy = 0; dy < candidate.height; dy++) {
+            for (int dx = 0; dx < candidate.width; dx++) {
+                int cellX = candidate.x + dx;
+                int cellY = candidate.y + dy;
+                grid.setWalkable(cellX, cellY, false);
+                grid.setSeeThrough(cellX, cellY, seeThrough);
+                topology.setWall(cellX, cellY, false);
+                topology.setFixture(cellX, cellY, true);
+            }
+        }
+        doodads.add(new Doodad(candidate.x, candidate.y,
+                candidate.prop, candidate.quarterTurns));
     }
 
     // ---- Primitives ----
@@ -1294,6 +1766,21 @@ final class BuildingLayouts {
         return true;
     }
 
+    private static boolean canPlaceDoodad(NavigationGrid grid,
+                                          FixtureCandidate candidate,
+                                          List<Doodad> doodads) {
+        for (int dy = 0; dy < candidate.height; dy++) {
+            for (int dx = 0; dx < candidate.width; dx++) {
+                int cellX = candidate.x + dx;
+                int cellY = candidate.y + dy;
+                if (!grid.inBounds(cellX, cellY) || !grid.isWalkable(cellX, cellY)) return false;
+                if (grid.isDoorway(cellX, cellY) || isNearDoorway(grid, cellX, cellY)) return false;
+                if (isOccupied(cellX, cellY, doodads)) return false;
+            }
+        }
+        return true;
+    }
+
     private static boolean footprintHasPurpose(CellTopology topology, int x, int y,
                                                DoodadDef prop, RoomPurpose purpose) {
         for (int dy = 0; dy < prop.footprintCellsY; dy++) {
@@ -1307,17 +1794,65 @@ final class BuildingLayouts {
         return true;
     }
 
+    private static boolean footprintHasPurpose(CellTopology topology,
+                                               FixtureCandidate candidate,
+                                               RoomPurpose purpose) {
+        for (int dy = 0; dy < candidate.height; dy++) {
+            for (int dx = 0; dx < candidate.width; dx++) {
+                int cellX = candidate.x + dx;
+                int cellY = candidate.y + dy;
+                if (!topology.inBounds(cellX, cellY)
+                        || topology.getRoomPurpose(cellX, cellY) != purpose) return false;
+            }
+        }
+        return true;
+    }
+
     /** Keeps the standable cell immediately inside every firing window clear. */
-    private static boolean footprintTouchesWindow(CellTopology topology, int x, int y,
+    private static boolean footprintTouchesWindow(NavigationGrid grid,
+                                                  CellTopology topology, int x, int y,
                                                   DoodadDef prop) {
         for (int dy = 0; dy < prop.footprintCellsY; dy++) {
             for (int dx = 0; dx < prop.footprintCellsX; dx++) {
                 int cellX = x + dx;
                 int cellY = y + dy;
-                if (topology.isWindow(cellX + 1, cellY)
-                        || topology.isWindow(cellX - 1, cellY)
-                        || topology.isWindow(cellX, cellY + 1)
-                        || topology.isWindow(cellX, cellY - 1)) return true;
+                for (Direction direction : Direction.CARDINALS) {
+                    int neighborX = cellX + direction.dx;
+                    int neighborY = cellY + direction.dy;
+                    if (topology.isWindow(neighborX, neighborY)
+                            || ownsWindowEdge(grid, neighborX, neighborY)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** True when this cell is the structure side of any thin window edge. */
+    private static boolean ownsWindowEdge(NavigationGrid grid, int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        for (Direction direction : Direction.CARDINALS) {
+            SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, direction);
+            if (barrier != null
+                    && barrier.kind() == SharedEdgeBarrier.Kind.WINDOW
+                    && barrier.structureCellX() == x
+                    && barrier.structureCellY() == y) return true;
+        }
+        return false;
+    }
+
+    private static boolean footprintTouchesWindow(NavigationGrid grid,
+                                                  CellTopology topology,
+                                                  FixtureCandidate candidate) {
+        for (int dy = 0; dy < candidate.height; dy++) {
+            for (int dx = 0; dx < candidate.width; dx++) {
+                int cellX = candidate.x + dx;
+                int cellY = candidate.y + dy;
+                for (Direction direction : Direction.CARDINALS) {
+                    int neighborX = cellX + direction.dx;
+                    int neighborY = cellY + direction.dy;
+                    if (topology.isWindow(neighborX, neighborY)
+                            || ownsWindowEdge(grid, neighborX, neighborY)) return true;
+                }
             }
         }
         return false;

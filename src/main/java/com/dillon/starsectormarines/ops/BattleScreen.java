@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
@@ -243,6 +244,9 @@ public class BattleScreen implements Screen, BattleUiContext {
     private float distantBoomTimer;
     /** RNG for audio variety — separate from sim.rng so audio randomness doesn't perturb sim determinism. */
     private final java.util.Random audioRng = new java.util.Random();
+    /** Shuffled music order and end-of-track observation, retained across battles to avoid repeats. */
+    private final BattleMusicPlaylist battleMusic =
+            new BattleMusicPlaylist(List.of(BATTLE_MUSIC_POOL), audioRng);
     /** Shared squad-event policy for sparse positional marine radio calls. */
     private final BattleRadioChatter radioChatter = new BattleRadioChatter();
 
@@ -277,7 +281,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /**
-     * Suspend the campaign music player and crossfade into our looping battle track.
+     * Suspend the campaign music player and crossfade into our shuffled battle playlist.
      * Guarded so re-entry from a dialog resize (attach() is documented as idempotent)
      * doesn't restart the music mid-battle. The ticking-clock loop itself is started
      * lazily on the first {@link #advance(float)} — {@code playUILoop} must be called
@@ -287,8 +291,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (audioActive) return;
         audioActive = true;
         Global.getSoundPlayer().setSuspendDefaultMusicPlayback(true);
-        String track = BATTLE_MUSIC_POOL[audioRng.nextInt(BATTLE_MUSIC_POOL.length)];
-        Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, MUSIC_FADE_SECS, track, true);
+        String track = battleMusic.start();
+        Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, MUSIC_FADE_SECS, track, false);
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         int gridW = sim != null ? sim.getGrid().getWidth()  : BattleSetup.GRID_W;
         int gridH = sim != null ? sim.getGrid().getHeight() : BattleSetup.GRID_H;
@@ -407,6 +411,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         // re-arming it every advance is how Starsector expects loops to be driven. When this
         // screen stops being current, advance() stops firing and all loops fade automatically.
         if (audioActive) {
+            String nextTrack = battleMusic.advance(Global.getSoundPlayer().getCurrentMusicId());
+            if (nextTrack != null) {
+                Global.getSoundPlayer().playCustomMusic(0, 0, nextTrack, false);
+            }
             Global.getSoundPlayer().playUILoop(LOOP_TICKING, 1f, 1f);
             driveAmbientBackground(dt);
         }
@@ -538,6 +546,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
         if (!audioActive) return;
         audioActive = false;
+        battleMusic.stop();
         // Fade out our track without queuing a replacement, then let the campaign music resume.
         Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, 0, null);
         Global.getSoundPlayer().setSuspendDefaultMusicPlayback(false);

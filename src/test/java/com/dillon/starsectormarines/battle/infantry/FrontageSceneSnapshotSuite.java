@@ -56,39 +56,55 @@ public final class FrontageSceneSnapshotSuite implements SnapshotSuite {
                 new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT);
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         for (Approach approach : Approach.values()) {
-            artifacts.add(record(renderer, approach));
+            artifacts.add(record(renderer, approach.renderedEdge(),
+                    List.of(approach), ASSAULT_SQUADS));
         }
+        // The four-sided case, one squad per edge. Its interest is the opposite
+        // of the single-axis loops: those show the defense aim, this shows what
+        // aiming everywhere costs and how briefly the wall lasts.
+        artifacts.add(record(renderer, "all-sides",
+                List.of(Approach.values()), 1));
         return artifacts;
     }
 
-    private SnapshotArtifact record(BattleReviewFrameRenderer renderer, Approach approach)
+    private SnapshotArtifact record(BattleReviewFrameRenderer renderer, String label,
+                                    List<Approach> approaches, int squadsPerApproach)
             throws Exception {
         Scene scene = FrontageScene.build(SEED, GARRISON_SQUADS, GARRISON_SIZE,
-                ASSAULT_SQUADS, ASSAULT_SIZE, approach);
+                squadsPerApproach, ASSAULT_SIZE, approaches);
         BattleSimulation sim = scene.sim();
         List<BufferedImage> frames = new ArrayList<>(TICKS / FRAME_EVERY_TICKS + 1);
         for (int tick = 0; tick <= TICKS; tick++) {
             if (tick % FRAME_EVERY_TICKS == 0) {
-                frames.add(renderer.render(sim, caption(scene, tick)));
+                frames.add(renderer.render(sim, caption(scene, label, tick)));
             }
             if (sim.isComplete()) break;
             sim.advance(BattleSimulation.TICK_DT);
         }
         return SnapshotArtifact.animation(
-                "assault-from-" + approach.renderedEdge() + ".gif", frames, FRAME_DELAY_MILLIS);
+                "assault-from-" + label + ".gif", frames, FRAME_DELAY_MILLIS);
     }
 
     /** Tick, the garrison's current goal, and — while it is standing to — how its posts are split. */
-    private static String caption(Scene scene, int tick) {
+    private static String caption(Scene scene, String label, int tick) {
         Sample sample = FrontageScene.sample(scene, tick);
         StringBuilder caption = new StringBuilder(String.format(Locale.ROOT,
                 "assault from %s  •  t%-4d  •  %s",
-                scene.approach().renderedEdge(), tick, sample.goal()));
+                label, tick, sample.goal()));
         if (sample.posts() > 0) {
-            caption.append(String.format(Locale.ROOT,
-                    "  •  %d posts, %d cover, %d reserve  •  %d on post",
-                    sample.aperturePosts(), sample.postsFacingThreat(),
-                    sample.reservePosts(), sample.membersOnPost()));
+            // On one axis the useful figure is how many posts face the threat.
+            // On several, that collapses to a single number that cannot say
+            // whether a side was left blind, so the multi-axis caption names
+            // the least-covered live edge instead.
+            caption.append(scene.approaches().size() > 1
+                    ? String.format(Locale.ROOT,
+                            "  •  %d posts, weakest live side %d  •  %d on post",
+                            sample.aperturePosts(), sample.coverageOfWeakestLiveAxis(),
+                            sample.membersOnPost())
+                    : String.format(Locale.ROOT,
+                            "  •  %d posts, %d cover, %d reserve  •  %d on post",
+                            sample.aperturePosts(), sample.postsFacingThreat(),
+                            sample.reservePosts(), sample.membersOnPost()));
         }
         if (sample.enemyInside()) caption.append("  •  BREACHED");
         return caption.toString();

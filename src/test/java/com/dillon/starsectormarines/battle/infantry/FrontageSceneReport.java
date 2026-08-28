@@ -98,14 +98,14 @@ final class FrontageSceneReport {
         JSONArray rows = new JSONArray();
         for (int index = 0; index < scene.garrisons().size(); index++) {
             int squadId = scene.garrisons().get(index).id;
-            String scope = "none";
+            Set<String> layers = new LinkedHashSet<>();
             int peakApertures = 0;
             int peakOnPost = 0;
             int standToSamples = 0;
             for (Sample sample : samples) {
                 for (SquadSample row : sample.garrisons()) {
                     if (row.squadId() != squadId) continue;
-                    if (row.aperturePosts() > 0) scope = row.scope();
+                    if (!"none".equals(row.layer())) layers.add(row.layer());
                     peakApertures = Math.max(peakApertures, row.aperturePosts());
                     peakOnPost = Math.max(peakOnPost, row.membersOnPost());
                     if (row.frontageRelevant()) standToSamples++;
@@ -115,7 +115,8 @@ final class FrontageSceneReport {
                     .put("squadId", squadId)
                     .put("node", scene.nodes().isEmpty() ? "none"
                             : nodeLabel(scene, index))
-                    .put("scope", scope)
+                    .put("layersHeld", String.join("+", layers.isEmpty()
+                            ? Set.of("none") : layers))
                     .put("peakAperturePosts", peakApertures)
                     .put("peakMembersOnPost", peakOnPost)
                     .put("standToSamples", standToSamples));
@@ -157,8 +158,14 @@ final class FrontageSceneReport {
         events.put("firstStandTo", firstTick(samples, Sample::frontageRelevant));
         events.put("firstMemberOnPost", firstTick(samples, s -> s.membersOnPost() > 0));
         events.put("firstBreach", firstTick(samples, Sample::enemyInside));
-        events.put("standToWhileBreached", samples.stream()
-                .anyMatch(s -> s.enemyInside() && s.frontageRelevant()));
+        // Two halves of the fallback law, kept separate because one is a defect
+        // and the other is the feature: nobody should still be facing outward
+        // from a wall that has been crossed, and somebody should have moved to
+        // the next envelope in rather than stopping.
+        events.put("heldOuterWallWhileBreached", samples.stream()
+                .anyMatch(s -> s.enemyInside() && "COMPOUND".equals(s.perimeterLayer())));
+        events.put("fellBackWhileBreached", samples.stream()
+                .anyMatch(s -> s.enemyInside() && "STRUCTURE".equals(s.perimeterLayer())));
         return events;
     }
 
@@ -180,6 +187,7 @@ final class FrontageSceneReport {
                     .put("postsFacingThreat", sample.postsFacingThreat())
                     .put("membersOnPost", sample.membersOnPost())
                     .put("standToLegal", sample.frontageRelevant())
+                    .put("perimeterLayer", sample.perimeterLayer())
                     .put("breached", sample.enemyInside())
                     .put("pressure", round(sample.believedPressure()))
                     .put("liveMarines", sample.liveMarines())

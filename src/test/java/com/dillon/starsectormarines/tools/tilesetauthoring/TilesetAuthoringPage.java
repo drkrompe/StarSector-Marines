@@ -41,7 +41,9 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Turns a raw art sheet into a tileset the game can load.
@@ -364,8 +366,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         }
     }
 
-    private void saveDocument() {
-        if (source == null) return;
+    /**
+     * The open annotation pass as a document.
+     *
+     * <p>Saving and exporting are the same state seen two ways, and the headless
+     * operations take a document, so the widgets are read into one here rather
+     * than by each caller in its own order.
+     */
+    private TilesetDocument currentDocument() {
         TilesetDocument document = new TilesetDocument();
         document.sheet = relative(sourcePath);
         document.sheetName = sheetNameOrDefault();
@@ -378,6 +386,12 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         document.note = sheetNote;
         document.entries = model.entries;
         document.blocks = new ArrayList<>(blocks);
+        return document;
+    }
+
+    private void saveDocument() {
+        if (source == null) return;
+        TilesetDocument document = currentDocument();
         Path path = documentPath != null ? documentPath
                 : TilesetDocument.pathFor(context.projectRoot(), document.sheetName);
         try {
@@ -476,29 +490,11 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         int cols = (Integer) gridCols.getValue();
         int gridDown = (Integer) gridRows.getValue();
         if (cols == 1 && gridDown == 1) {
-            AuthoringMessages.info(root, "Split on grid",
-                    "The grid is 1 x 1, so splitting would change nothing. Set it to the "
-                            + "layout the sheet was generated to — a 20-frame strip is 20 x 1 "
-                            + "— and the cells need not be square.");
+            AuthoringMessages.info(root, "Split on grid", TilesetOperations.DEGENERATE_GRID_MESSAGE);
             return;
         }
-        List<TilesetExport.Entry> replaced = new ArrayList<>();
-        for (TilesetExport.Entry entry : model.entries) {
-            if (!model.isSelected(entry)) {
-                replaced.add(entry);
-                continue;
-            }
-            int part = 0;
-            for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cols, gridDown)) {
-                TilesetExport.Entry split = new TilesetExport.Entry(
-                        piece, entry.id + "-" + (char) ('a' + part++));
-                split.cover = entry.cover;
-                // A plate's cells are one cell each by construction.
-                split.footprintX = 1;
-                split.footprintY = 1;
-                replaced.add(split);
-            }
-        }
+        List<TilesetExport.Entry> replaced =
+                TilesetOperations.splitOnGrid(model.entries, model::isSelected, cols, gridDown);
         model.setEntries(replaced);
         view.setEntries(replaced);
         markDirty();
@@ -555,14 +551,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                             + " has only " + slots.size() + " slots.");
             return;
         }
-        for (int i = 0; i < selected.size(); i++) {
-            TilesetExport.Entry entry = selected.get(i);
-            entry.blockId = blockId;
-            entry.slot = slots.get(i);
-            entry.included = true;
-        }
-        blocks.removeIf(spec -> spec.id.equals(blockId));
-        blocks.add(new TilesetExport.BlockSpec(blockId, chosen, fillRgb));
+        Map<String, TilesetExport.Entry> bySlot = new LinkedHashMap<>();
+        for (int i = 0; i < selected.size(); i++) bySlot.put(slots.get(i), selected.get(i));
+        TilesetOperations.setBlock(model.entries, blocks, blockId, chosen, fillRgb, bySlot);
         pruneEmptyBlocks();
         model.fireTableDataChanged();
         markDirty();
@@ -652,70 +643,24 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
     private void export() {
         if (source == null || model.entries.isEmpty()) return;
-        int cell = (Integer) cellPx.getValue();
-        String name = sheetNameOrDefault();
-        // Terrain belongs with the tilesets and props with the doodads; the fixed
-        // doodad destination was right only while the tool could not author a wall.
-        String sheetRelative = outputSheet.isEmpty()
-                ? TilesetDocument.defaultOutputSheet(name, !blocks.isEmpty())
-                : outputSheet;
-        Path atlasPath = context.projectRoot().resolve("mod").resolve(sheetRelative);
-        Path tilesetPath = context.projectRoot()
-                .resolve("mod/data/tilesets").resolve(name + ".tileset.json");
-        Path cardPath = tilesetPath.resolveSibling(name + ".tileset.md");
         try {
-            BufferedImage atlas = TilesetExport.atlas(source, model.entries, blocks, cell);
-            TilesetExport.write(atlas,
-                    TilesetExport.tileset(sheetRelative, cell, model.entries, blocks),
-                    atlasPath, tilesetPath);
-            Files.writeString(cardPath, TilesetCatalogCard.render(
-                    name, sheetRelative, cell, model.entries, blocks));
+            // Delegated so the window and the headless tools cannot drift into
+            // two export paths. A tileset written to a destination the other
+            // would not have chosen is a startup crash, not a visible difference.
+            TilesetOperations.ExportResult exported =
+                    TilesetOperations.export(context.projectRoot(), currentDocument(), source);
             rescanLibrary();
-            context.reportStatus("Wrote " + atlasPath + ", " + tilesetPath + " and " + cardPath);
+            context.reportStatus("Wrote " + exported.atlasPath() + ", "
+                    + exported.tilesetPath() + " and " + exported.cardPath());
             report();
         } catch (Exception failure) {
             AuthoringMessages.error(root, "Export tileset", "Export failed.", failure);
         }
     }
 
-    /**
-     * The bound candidates, addressed by where the packer put them.
-     *
-     * <p>Packing assigns each included piece its atlas cell, so running it here
-     * is what turns "this row stands in for urban.wall" into a rectangle the
-     * preview can paint from.
-     */
+    /** The bound candidates; see {@link TilesetOperations#bindings}. */
     private List<TilesetMapPreview.Substitution> bindings() {
-        TilesetExport.pack(model.entries, blocks);
-        List<TilesetMapPreview.Substitution> bound = new ArrayList<>();
-        for (TilesetExport.Entry entry : model.entries) {
-            if (!entry.included || entry.standsInFor.isEmpty()) continue;
-            int cellsX = entry.isBlockMember() ? 1 : entry.footprintX;
-            int cellsY = entry.isBlockMember() ? 1 : entry.footprintY;
-            bound.add(new TilesetMapPreview.Substitution(
-                    entry.standsInFor, entry.col, entry.row, cellsX, cellsY));
-        }
-        // A block stands in as a whole patch: bind the block, not nine cells.
-        for (TilesetExport.BlockSpec spec : blocks) {
-            TilesetExport.Entry origin = firstMember(spec.id);
-            if (origin == null || origin.standsInFor.isEmpty()) continue;
-            bound.removeIf(binding -> binding.shippedId().equals(origin.standsInFor));
-            int span = spec.layout.span();
-            bound.add(new TilesetMapPreview.Substitution(origin.standsInFor,
-                    origin.col - BlockSlots.offset(origin.slot)[0],
-                    origin.row - BlockSlots.offset(origin.slot)[1], span, span));
-        }
-        return bound;
-    }
-
-    private TilesetExport.Entry firstMember(String blockId) {
-        for (TilesetExport.Entry entry : model.entries) {
-            if (entry.included && blockId.equals(entry.blockId)
-                    && !entry.standsInFor.isEmpty()) {
-                return entry;
-            }
-        }
-        return null;
+        return TilesetOperations.bindings(model.entries, blocks);
     }
 
     private void markDirty() {

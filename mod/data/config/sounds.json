@@ -8,7 +8,7 @@
 		"marines_intel_music":[
 			{"file":"marines_intel_music.ogg","source":"sounds/battle/music","volume":0.7},
 		],
-		# Battle music pool. BattleScreen picks one at random each battle via playCustomMusic.
+		# Battle music pool. BattleScreen plays these as a shuffled, non-repeating playlist.
 		"marines_battle_music":[
 			{"file":"marines_battle_music.ogg","source":"sounds/battle/music","volume":0.7},
 		],
