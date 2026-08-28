@@ -105,6 +105,25 @@ class MilitaryCompoundLayoutTest {
     }
 
     @Test
+    void fortifiedPerimeterReceivesShootThroughApertures() {
+        GenContext ctx = filled(31L);
+        int windows = 0;
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                if (!ctx.topology.isWindow(x, y) || ctx.grid.getWallHp(x, y) <= 0) continue;
+                windows++;
+                assertFalse(ctx.grid.isWalkable(x, y));
+                assertTrue(ctx.grid.isSeeThrough(x, y));
+                assertFalse(ctx.grid.isDoorway(x, y));
+                assertFalse(ctx.topology.isVehicle(x, y),
+                        "corner gun emplacements remain opaque hardpoints");
+            }
+        }
+        assertTrue(windows >= 4,
+                "fortified perimeter should offer distributed firing points");
+    }
+
+    @Test
     void onlyGeneratedCommandPostIsMustHold() {
         GenContext ctx = filled(37L);
         TacticalNode command = ctx.tactical.stream()
