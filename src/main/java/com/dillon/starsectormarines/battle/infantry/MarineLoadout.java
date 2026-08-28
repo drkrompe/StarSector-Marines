@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
@@ -31,6 +32,8 @@ public final class MarineLoadout {
     public final float armorRating;
     public final float armorMoveSpeedMult;
     public final float armorIncomingAccuracyMult;
+    /** The capability the issued armour pattern carries, or null — most carry none. */
+    public final IntegralSystemDef integralSystem;
 
     public MarineLoadout(UnitRole role, Objective objective) {
         this(role, objective, DEFAULT_PRIMARY_ID, null, 0);
@@ -79,6 +82,20 @@ public final class MarineLoadout {
                          float armorCapacity, float armorRating,
                          float armorMoveSpeedMult, float armorIncomingAccuracyMult,
                          CampaignSquadTag campaignSquad) {
+        this(role, objective, primaryWeaponId, equipmentGrade, soldierProfile,
+                specialEquipmentId, secondaryAmmo, campaignSoldierId, armorFamily,
+                armorCapacity, armorRating, armorMoveSpeedMult, armorIncomingAccuracyMult,
+                campaignSquad, null);
+    }
+
+    public MarineLoadout(UnitRole role, Objective objective, String primaryWeaponId,
+                         EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+                         String specialEquipmentId, int secondaryAmmo,
+                         String campaignSoldierId, LayeredArmorFamily armorFamily,
+                         float armorCapacity, float armorRating,
+                         float armorMoveSpeedMult, float armorIncomingAccuracyMult,
+                         CampaignSquadTag campaignSquad, IntegralSystemDef integralSystem) {
+        this.integralSystem = integralSystem;
         this.campaignSquad = campaignSquad;
         this.role = role;
         this.objective = objective;
@@ -114,11 +131,23 @@ public final class MarineLoadout {
             LayeredArmorFamily armorFamily, float armorCapacity, float armorRating,
             float armorMoveSpeedMult, float armorIncomingAccuracyMult,
             CampaignSquadTag campaignSquad) {
+        return fromCatalog(role, objective, primary, equipmentGrade, soldierProfile,
+                special, campaignSoldierId, armorFamily, armorCapacity, armorRating,
+                armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquad, null);
+    }
+
+    public static MarineLoadout fromCatalog(
+            UnitRole role, Objective objective, WeaponDef primary,
+            EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+            SpecialEquipmentDef special, String campaignSoldierId,
+            LayeredArmorFamily armorFamily, float armorCapacity, float armorRating,
+            float armorMoveSpeedMult, float armorIncomingAccuracyMult,
+            CampaignSquadTag campaignSquad, IntegralSystemDef integralSystem) {
         return new MarineLoadout(role, objective, primary != null ? primary.id : null,
                 equipmentGrade, soldierProfile, special != null ? special.id() : null,
                 special != null ? special.startingAmmo() : 0, campaignSoldierId,
                 armorFamily, armorCapacity, armorRating, armorMoveSpeedMult,
-                armorIncomingAccuracyMult, campaignSquad);
+                armorIncomingAccuracyMult, campaignSquad, integralSystem);
     }
 
     public WeaponDef primaryDef() {
@@ -150,5 +179,9 @@ public final class MarineLoadout {
             marine.armor(armorCapacity, armorRating,
                     armorMoveSpeedMult, armorIncomingAccuracyMult);
         }
+        // After armor(), which folds the pattern's passive speed multiplier into
+        // the spec — the system's boost is measured against that issued speed,
+        // not against a bare marine's.
+        marine.integralSystem(integralSystem);
     }
 }

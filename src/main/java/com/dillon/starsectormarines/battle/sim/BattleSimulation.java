@@ -69,6 +69,8 @@ import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
+import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -210,6 +212,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
+    private final IntegralSystemSystem integralSystemSystem;
     /** Death-event handler for destroyed turrets ({@code UnitType.isTurret()}) — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
     /** Death-event handler for destroyed drone hubs ({@code UnitType.isDroneHub()}) — flips hub cell to walkable rubble + cascade-kills the launched drones. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
@@ -471,6 +474,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.battleComponents = rosterService.components();
         this.equipmentDropService = new EquipmentDropService(rosterService);
         this.equipmentDropSystem = new EquipmentDropSystem(rosterService, this::clearPath, equipmentDropService);
+        this.integralSystemSystem = new IntegralSystemSystem(rosterService);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
                 // deathSink takes the dying id straight into the id-native
@@ -628,6 +632,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Data owner for the COMBAT component (the World decomposition) — consumers reach it here as {@code sim.combat().attackCooldown(id)}. */
     public CombatService combat() { return rosterService.combat(); }
+
+    @Override
+    public IntegralSystemService integralSystems() { return rosterService.integralSystems(); }
 
     /** Data owner for the MOVEMENT component — {@code sim.movement().moveSpeed(id)}. */
     public MovementService movement() { return rosterService.movement(); }
@@ -1484,6 +1491,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
         // Parallel per-unit dispatch — entity for-loop. See UnitUpdateSystem
         // class doc for the parallelism + ECS-promotion notes.
+        // Ahead of the per-unit dispatch so an activation this tick is already
+        // reflected in MOVEMENT_MOVE_SPEED when the mover steps, and an expiry
+        // has already put the speed back.
+        integralSystemSystem.tick(TICK_DT, this);
         navigation.beginSharedGoalPathSnapshot();
         try {
             unitUpdate.tick(this);
