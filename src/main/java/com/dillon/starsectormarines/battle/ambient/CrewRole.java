@@ -44,20 +44,48 @@ public enum CrewRole {
      */
     MECH_TECH(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
             List.of(Affordance.SERVICE, Affordance.STOW, Affordance.READOUT),
-            List.of(Affordance.REST)),
+            List.of(Affordance.REST, Affordance.WASH)),
 
     /** Makes and repairs the parts a bay consumes, at the bench rather than the machine. */
     MACHINIST(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
             List.of(Affordance.FABRICATE, Affordance.STOW),
-            List.of(Affordance.REST)),
+            List.of(Affordance.REST, Affordance.WASH)),
 
     /**
-     * Off watch: eating and keeping their shooting in around the ship, sleeping
-     * and squaring their kit away in their own berthing.
+     * Keeps the ship running: the plant forward of the transom and the drive
+     * against it, plus the readings that say whether either is happy.
+     */
+    ENGINE_WATCH(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
+            List.of(Affordance.TEND, Affordance.READOUT, Affordance.STOW),
+            List.of(Affordance.REST, Affordance.WASH)),
+
+    /** Keeps the sick berth ready, whether or not anybody is in it. */
+    MEDIC(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
+            List.of(Affordance.TREAT, Affordance.STOW),
+            List.of(Affordance.REST, Affordance.WASH)),
+
+    /** Stands the ship's watch: the bridge, and the consoles that watch the plant. */
+    BRIDGE_WATCH(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
+            List.of(Affordance.WATCH, Affordance.READOUT),
+            List.of(Affordance.REST, Affordance.WASH)),
+
+    /** Issues weapons and takes them back in, and keeps the racks straight. */
+    ARMOURER(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
+            List.of(Affordance.ISSUE, Affordance.STOW),
+            List.of(Affordance.REST, Affordance.WASH)),
+
+    /** Works the holds and the boat bay: stores in, stores out, and the tally. */
+    STOREKEEPER(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
+            List.of(Affordance.STOW, Affordance.READOUT),
+            List.of(Affordance.REST, Affordance.WASH)),
+
+    /**
+     * Off watch: eating, washing and keeping their shooting in around the ship,
+     * sleeping and squaring their kit away in their own berthing.
      */
     MARINE(RoomPurpose.BARRACKS, UnitType.MARINE,
             List.of(Affordance.MESS, Affordance.PRACTICE),
-            List.of(Affordance.REST, Affordance.STOW));
+            List.of(Affordance.REST, Affordance.STOW, Affordance.WASH));
 
     private final RoomPurpose quarters;
     private final UnitType unit;
@@ -99,6 +127,27 @@ public enum CrewRole {
      */
     public UnitType unit() {
         return unit;
+    }
+
+    /**
+     * The job that defines this trade, or null for a role that has no work.
+     *
+     * <p>The first of the on-watch jobs, because a role's list is written with
+     * its own work at the head and what that work needs behind it. A technician
+     * welds, and fetches and reads off terminals <em>because</em> they weld; a
+     * storekeeper's whole trade is the stores.
+     *
+     * <p>This is what makes a compartment one posting rather than several. Every
+     * secondary job is shared - half the trades aboard handle stores at some
+     * point - so a room that published stowage was a billet for all of them, and
+     * a hull with nineteen spares pockets crewed a thousand engineers. Where a
+     * watch is stationed is settled by whose room it is.
+     */
+    public Affordance trade() {
+        for (Affordance job : onWatch) {
+            if (job.duty()) return job;
+        }
+        return null;
     }
 
     /** The jobs this role works in a compartment that is somebody's workplace. */
@@ -146,9 +195,9 @@ public enum CrewRole {
      */
     public static AmbientActivity activityFor(Affordance affordance) {
         return switch (affordance) {
-            case SERVICE, FABRICATE -> AmbientActivity.WORKING;
-            case STOW, READOUT -> AmbientActivity.INSPECTING;
-            case REST -> AmbientActivity.RESTING;
+            case SERVICE, FABRICATE, TREAT, ISSUE, TEND -> AmbientActivity.WORKING;
+            case STOW, READOUT, WATCH -> AmbientActivity.INSPECTING;
+            case REST, WASH -> AmbientActivity.RESTING;
             case MESS -> AmbientActivity.SOCIALIZING;
             case PRACTICE -> AmbientActivity.PRACTICING_EQUIPMENT;
         };
@@ -161,16 +210,32 @@ public enum CrewRole {
      * on the same cadence, so they arrive and leave together and the room
      * pulses; unequal ones drift apart on their own without anybody authoring a
      * schedule.
+     *
+     * <p><b>Measured against the walk, not against a watch.</b> These were
+     * seconds long while a route's travel was a fiction the same clock made up,
+     * and stayed seconds long when the walking became real - so a hand crossed a
+     * three-hundred-cell hull for forty seconds, spent three at the bench, and
+     * set off again. Six in ten actor-samples of a manned transport were
+     * somebody in a passage. A stint has to be long enough to read as the thing
+     * the walk was for, which on a ship this size is tens of seconds rather than
+     * a handful. They are still nothing like a watch: this is presentation, and
+     * a player looking at a room for half a minute should see it worked rather
+     * than see one person arrive.
      */
     public static float dwellFor(Affordance affordance) {
         return switch (affordance) {
-            case SERVICE -> 5.5f;
-            case FABRICATE -> 4.4f;
-            case STOW -> 3.2f;
-            case READOUT -> 2.6f;
-            case REST -> 7.0f;
-            case MESS -> 6.0f;
-            case PRACTICE -> 4.0f;
+            case SERVICE -> 28f;
+            case FABRICATE -> 22f;
+            case STOW -> 16f;
+            case READOUT -> 13f;
+            case REST -> 41f;
+            case MESS -> 34f;
+            case PRACTICE -> 19f;
+            case WASH -> 8f;
+            case TREAT -> 31f;
+            case WATCH -> 46f;
+            case ISSUE -> 17f;
+            case TEND -> 25f;
         };
     }
 }

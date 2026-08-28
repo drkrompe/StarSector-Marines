@@ -4,7 +4,9 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 - berthing is split between the ship's own hands and the
+Updated: 2026-08-28 - every furnished compartment now publishes work and carries
+a trade of its own, and a task point nobody can reach costs the point rather than
+the room's whole fill. Earlier: berthing is split between the ship's own hands and the
 ground force she carries, so a berth is an assignment rather than an amenity;
 rooms now state where they hook up and are laid down in a
 recorded pose, so a door is a constraint on placement rather than an outcome of
@@ -311,6 +313,15 @@ produced it.
 
 ## Ambient life
 
+Every furnished compartment is somebody's, or it is honestly nobody's. A ship
+publishes work at her heads, her sick berth, her armoury counter, her holds and
+boat bays, her plant and her drive, and her bridge, and carries a trade for each:
+the same rule that makes a bay the technician's makes a hold the storekeeper's.
+The briefing room is the deliberate exception — a briefing is an event rather
+than a watch, and giving its chairs a job would station officers in them
+permanently, which is the make-every-prop-a-work-point mistake arrived at from
+the other end.
+
 Crew routes are **derived from fixtures**, never hand-listed per deck. A route
 author reads a compartment's placed fixtures and their affordances and emits the
 stops: berths become rest, gantries become work with a weld focus, lanes become
@@ -560,8 +571,18 @@ moment it is built and stops ticking — so a deck view disables mission
 completion, and a boarding action hosted on the same scene registers its own
 objectives instead.
 
-A fill that would seal its compartment is refused, and a refused fill publishes
-**nothing** — not its fixtures, not its berths, not its work. Rolling back only
+**A point nobody can reach costs the point, not the room.** Furniture always
+strands the odd sliver behind itself — the gap between two beds in a rank, the
+corner past the end of a shelf — and a standing cell chosen there is a job with
+no way in. Held as circulation so later furniture could not take it, one such
+cell made its room fail its own connectivity check and the whole fill was thrown
+away: the armoury, the sick bay, the holds, the boat bays and the bridge each
+generated their fixtures, published their work, and shipped as bare deck.
+Withdrawing the unreachable point is what separates the two questions — whether a
+room can be walked through, and whether one particular job in it can be got at.
+
+A fill that genuinely would seal its compartment is still refused, and a refused
+fill publishes **nothing** — not its fixtures, not its berths, not its work. Rolling back only
 what can be seen is how a bay came to advertise berths standing on bare painted
 deck: the room looked deliberate from every angle except the one that counted,
 and nothing about the result said it had been thrown away.

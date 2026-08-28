@@ -45,50 +45,67 @@ public final class RoomFittings {
                 new Satellite("doodad.chair-south-yellow", 2, 1, Affordance.MESS))));
 
         // Racks against the bulkhead with the ready crates that get drawn from.
+        // The counter is the crate rather than the rack: a weapon is handed over
+        // where it is broken out, and the rack behind it is stock.
         register(new AisleFitting(RoomPurpose.ARMORY, FixtureGroup.of(
                 "doodad.shelf-1", 2, 2,
-                new Satellite("doodad.crate", 1, 1))));
+                new Satellite("doodad.crate", 1, 1, Affordance.ISSUE))));
 
         // Stores are stacked, not shelved: pallets and drums, packed close.
-        register(new AisleFitting(RoomPurpose.STOCKROOM, FixtureGroup.of(
-                "doodad.industrial-crate-stack", 2, 2,
+        // Stowage is work between two points rather than at one, so a hold
+        // publishes it at the stacks that get broken down and built back up.
+        register(new AisleFitting(RoomPurpose.STOCKROOM, FixtureGroup.working(
+                "doodad.industrial-crate-stack", 2, 2, Affordance.STOW,
                 new Satellite("doodad.industrial-drum-cluster", 1, 1))));
 
-        register(new AisleFitting(RoomPurpose.LOADING_BAY, FixtureGroup.of(
-                "doodad.industrial-pallet-stack", 2, 2,
+        register(new AisleFitting(RoomPurpose.LOADING_BAY, FixtureGroup.working(
+                "doodad.industrial-pallet-stack", 2, 2, Affordance.STOW,
                 new Satellite("doodad.box", 1, 1))));
 
-        // Machinery: the plant and the pipework running off it.
-        register(new AisleFitting(RoomPurpose.PRODUCTION_FLOOR, FixtureGroup.of(
-                "doodad.industrial-generator", 3, 3,
+        // Machinery: the plant and the pipework running off it. The work is at
+        // the plant — a pipe run is what the plant needs, not a second machine.
+        register(new AisleFitting(RoomPurpose.PRODUCTION_FLOOR, FixtureGroup.working(
+                "doodad.industrial-generator", 3, 3, Affordance.TEND,
                 new Satellite("doodad.industrial-pipe-bundle", 2, 1))));
 
-        register(new AisleFitting(RoomPurpose.ENGINE_ROOM, FixtureGroup.of(
-                "doodad.industrial-fluid-tank", 3, 3,
+        register(new AisleFitting(RoomPurpose.ENGINE_ROOM, FixtureGroup.working(
+                "doodad.industrial-fluid-tank", 3, 3, Affordance.TEND,
                 new Satellite("doodad.industrial-cable-reel", 2, 2),
                 new Satellite("doodad.industrial-pipe-bundle", 0, 2))));
 
-        register(new AisleFitting(RoomPurpose.PARTS_CAGE, FixtureGroup.of(
-                "doodad.shelf-2", 2, 2,
+        register(new AisleFitting(RoomPurpose.PARTS_CAGE, FixtureGroup.working(
+                "doodad.shelf-2", 2, 2, Affordance.STOW,
                 new Satellite("doodad.industrial-scrap-pile", 1, 1))));
 
+        // The console, not the racks. A server room is somewhere a reading is
+        // taken; the racks are what it is taken from.
         register(new AisleFitting(RoomPurpose.SERVER_ROOM, FixtureGroup.of(
                 "doodad.office-server-rack", 2, 2,
-                new Satellite("doodad.industrial-control-console", 1, 1))));
+                new Satellite("doodad.industrial-control-console", 1, 1,
+                        Affordance.READOUT))));
 
-        register(new AisleFitting(RoomPurpose.PATIENT_WARD, FixtureGroup.of(
-                "doodad.residential-bed-h", 2, 2,
+        // A ward bed is work rather than rest: it is checked and made up whether
+        // or not anybody is in it, and a bunk is somewhere else entirely.
+        register(new AisleFitting(RoomPurpose.PATIENT_WARD, FixtureGroup.working(
+                "doodad.residential-bed-h", 2, 2, Affordance.TREAT,
                 new Satellite("doodad.chest-2", 1, 1))));
 
-        register(new AisleFitting(RoomPurpose.WASHROOM, FixtureGroup.of(
-                "doodad.box", 1, 2)));
+        register(new AisleFitting(RoomPurpose.WASHROOM, FixtureGroup.working(
+                "doodad.box", 1, 2, Affordance.WASH)));
 
         // The bridge is consoles around a plot, not ranks of furniture, but the
-        // aisle arrangement still reads correctly at this size.
-        register(new AisleFitting(RoomPurpose.CONTROL_ROOM, FixtureGroup.of(
-                "doodad.military-command-console", 2, 2,
+        // aisle arrangement still reads correctly at this size. The console is
+        // the watch station; the plot is what the watch stands around.
+        register(new AisleFitting(RoomPurpose.CONTROL_ROOM, FixtureGroup.working(
+                "doodad.military-command-console", 2, 2, Affordance.WATCH,
                 new Satellite("doodad.military-tactical-table", 1, 1))));
 
+        // Furnished and deliberately publishing nothing. A briefing is an event
+        // rather than a watch, and giving these chairs a job would station
+        // somebody in them permanently — a ship whose officers spend their lives
+        // in the briefing room, which is a population invented out of furniture.
+        // It is the same mistake as making every prop a work point, arrived at
+        // from the other end.
         register(new AisleFitting(RoomPurpose.CONFERENCE_ROOM, FixtureGroup.of(
                 "doodad.office-conference-table", 3, 2,
                 new Satellite("doodad.chair-south-green", 0, 1),
@@ -99,8 +116,10 @@ public final class RoomFittings {
         // A mech bay is bays, not one room: see VehicleBayFitting.
         register(new VehicleBayFitting());
 
-        register(new PerimeterFitting(RoomPurpose.HANGAR, FixtureGroup.of(
-                "doodad.industrial-crate-stack", 2, 2,
+        // A boat bay is worked as a hold is: the deck is kept clear for the
+        // boat, and the stores that go up and down with it are along the sides.
+        register(new PerimeterFitting(RoomPurpose.HANGAR, FixtureGroup.working(
+                "doodad.industrial-crate-stack", 2, 2, Affordance.STOW,
                 new Satellite("doodad.industrial-cable-reel", 1, 1))));
 
         // A range is a firing line looking down lanes, not gear round a clear
