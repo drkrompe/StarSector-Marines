@@ -378,9 +378,9 @@ public final class FortressWardStage implements GenStage {
             int[] stand = standCell(ctx, room);
             if (stand == null) continue;
             ctx.tactical.add(new TacticalNode(kind, stand[0], stand[1],
-                    room.x(), room.y(),
-                    room.x() + room.shape().width() - 1,
-                    room.y() + room.shape().height() - 1,
+                    room.originX(), room.originY(),
+                    room.originX() + room.shape().width() - 1,
+                    room.originY() + room.shape().height() - 1,
                     Faction.DEFENDER,
                     kind == TacticalNode.Kind.ARMORY ? 70 : 60, 3, false));
         }
@@ -389,8 +389,8 @@ public final class FortressWardStage implements GenStage {
     /** A walkable cell the building actually owns, never a wall or a doorway. */
     private static int[] standCell(GenContext ctx, RoomPacker.Placed room) {
         for (int[] cell : room.shape().filled()) {
-            int x = room.x() + cell[0];
-            int y = room.y() + cell[1];
+            int x = room.originX() + cell[0];
+            int y = room.originY() + cell[1];
             if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
             if (ctx.grid.isWalkable(x, y) && !ctx.grid.isDoorway(x, y)) return new int[]{ x, y };
         }
