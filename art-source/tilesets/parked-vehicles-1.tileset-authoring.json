@@ -4,6 +4,7 @@
   "idPrefix": "doodad.parked",
   "cellPx": 128,
   "alphaMin": 16,
-  "gridCell": 512,
-  "note": "A four-frame horizontal strip of parked road vehicles: utility truck, flatbed, tanker, box van, left to right. Alpha-keyed with generous spacing, so it slices cleanly at alphaMin 16 into four tight boxes of roughly 380x230; the 512 grid is the strip's own slot pitch, not the art's extent. It ships packed together with parked-vehicles-2 into mod/graphics/tilesets/parked-vehicles.png by art-source/tilesets/pack_parked_vehicles.py, which fits each frame into a 3x2-cell slot at 128 px and pads the remainder transparent rather than stretching it - a truck is not exactly three cells by two, and stretching the longer frames squashes them by a fifth. Every piece is a doodad with footprint 3x2 and heavy cover; there are no blocks here. Adopting this sheet through the page means taking over that packing, so retire the script in the same change rather than leaving two writers of one atlas."
+  "note": "A four-frame horizontal strip of parked road vehicles: utility truck, flatbed, tanker, box van, left to right. Alpha-keyed with generous spacing, so it slices cleanly at alphaMin 16 into four tight boxes of roughly 380x230; the 512 grid is the strip's own slot pitch, not the art's extent. It ships packed together with parked-vehicles-2 into mod/graphics/tilesets/parked-vehicles.png by art-source/tilesets/pack_parked_vehicles.py, which fits each frame into a 3x2-cell slot at 128 px and pads the remainder transparent rather than stretching it - a truck is not exactly three cells by two, and stretching the longer frames squashes them by a fifth. Every piece is a doodad with footprint 3x2 and heavy cover; there are no blocks here. Adopting this sheet through the page means taking over that packing, so retire the script in the same change rather than leaving two writers of one atlas.",
+  "gridCols": 4,
+  "gridRows": 1
 }
