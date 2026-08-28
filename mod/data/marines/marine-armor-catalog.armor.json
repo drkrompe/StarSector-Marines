@@ -108,7 +108,25 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "RED_ELITE", "armorCapacity": 20.0, "armorRating": 12.0, "moveSpeedMult": 0.86, "incomingAccuracyMult": 0.98 }
+      "battle": {
+        "appearanceFamily": "RED_ELITE",
+        "armorCapacity": 20.0,
+        "armorRating": 12.0,
+        "moveSpeedMult": 0.86,
+        "incomingAccuracyMult": 0.98,
+        "integralSystem": {
+          "id": "system.assault-bracing",
+          "displayName": "Assault bracing",
+          "description": "Domain-spec bracing driven off the suit's own plant, on a doctrine timer rather than a gamble. It carries the wearer through the threshold at a pace the Hegemony can train, repeat, and account for, with the frontal plate locked forward the whole way. Nothing about it is improvised, which is the entire point.",
+          "effect": "breacher-assist",
+          "resource": "cooldown",
+          "durationSeconds": 4.0,
+          "cooldownSeconds": 16.0,
+          "moveSpeedMult": 1.35,
+          "frontalResistance": 0.55,
+          "shieldedArcDegrees": 160.0
+        }
+      }
     },
     {
       "id": "armor.specter-heavy",
@@ -119,7 +137,25 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "SPECTER_HEAVY", "armorCapacity": 19.0, "armorRating": 10.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.90 }
+      "battle": {
+        "appearanceFamily": "SPECTER_HEAVY",
+        "armorCapacity": 19.0,
+        "armorRating": 10.0,
+        "moveSpeedMult": 0.94,
+        "incomingAccuracyMult": 0.90,
+        "integralSystem": {
+          "id": "system.predictive-breach",
+          "displayName": "Predictive breach",
+          "description": "The threat display picks the moment and the joints spend everything on it. The window is short and comes around again quickly; the screen is a courtesy rather than a wall. Corporate doctrine holds that the fastest way through a killing ground is to not be standing in it.",
+          "effect": "breacher-assist",
+          "resource": "cooldown",
+          "durationSeconds": 2.0,
+          "cooldownSeconds": 11.0,
+          "moveSpeedMult": 1.40,
+          "frontalResistance": 0.35,
+          "shieldedArcDegrees": 100.0
+        }
+      }
     },
     {
       "id": "armor.bulwark-heavy",
@@ -130,7 +166,25 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "BULWARK_HEAVY", "armorCapacity": 20.0, "armorRating": 11.0, "moveSpeedMult": 0.90, "incomingAccuracyMult": 0.95 }
+      "battle": {
+        "appearanceFamily": "BULWARK_HEAVY",
+        "armorCapacity": 20.0,
+        "armorRating": 11.0,
+        "moveSpeedMult": 0.90,
+        "incomingAccuracyMult": 0.95,
+        "integralSystem": {
+          "id": "system.interlock-advance",
+          "displayName": "Interlock advance",
+          "description": "Coalition breaching drill rendered in hardware: the actuators surge and the shoulder blocks interlock outward, covering a wider front than one wearer strictly needs. Member worlds standardized on the wider arc because the marine beside you may not be from your navy.",
+          "effect": "breacher-assist",
+          "resource": "cooldown",
+          "durationSeconds": 3.5,
+          "cooldownSeconds": 18.0,
+          "moveSpeedMult": 1.30,
+          "frontalResistance": 0.45,
+          "shieldedArcDegrees": 200.0
+        }
+      }
     },
     {
       "id": "armor.reliquary-heavy",
@@ -141,7 +195,25 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "RELIQUARY_HEAVY", "armorCapacity": 16.0, "armorRating": 14.0, "moveSpeedMult": 0.82, "incomingAccuracyMult": 0.97 }
+      "battle": {
+        "appearanceFamily": "RELIQUARY_HEAVY",
+        "armorCapacity": 16.0,
+        "armorRating": 14.0,
+        "moveSpeedMult": 0.82,
+        "incomingAccuracyMult": 0.97,
+        "integralSystem": {
+          "id": "system.consecrated-advance",
+          "displayName": "Consecrated advance",
+          "description": "The custody governors release and the shell walks forward behind its own fitted plate, unhurried, for a long time. A Knight in this suit is not crossing the room quickly. They are crossing it in front of somebody else.",
+          "effect": "breacher-assist",
+          "resource": "cooldown",
+          "durationSeconds": 5.0,
+          "cooldownSeconds": 28.0,
+          "moveSpeedMult": 1.12,
+          "frontalResistance": 0.70,
+          "shieldedArcDegrees": 140.0
+        }
+      }
     },
     {
       "id": "armor.lions-mantle",
@@ -152,7 +224,25 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "LIONS_MANTLE", "armorCapacity": 23.0, "armorRating": 10.0, "moveSpeedMult": 0.83, "incomingAccuracyMult": 1.01 }
+      "battle": {
+        "appearanceFamily": "LIONS_MANTLE",
+        "armorCapacity": 23.0,
+        "armorRating": 10.0,
+        "moveSpeedMult": 0.83,
+        "incomingAccuracyMult": 1.01,
+        "integralSystem": {
+          "id": "system.blazon-advance",
+          "displayName": "Blazon advance",
+          "description": "The cooling loops dump everything they have been hoarding and the guard suit advances gleaming, plate spread wide. It is a magnificent thing to walk behind and an unmissable thing to shoot at, and the loops take a very long time to forgive it.",
+          "effect": "breacher-assist",
+          "resource": "cooldown",
+          "durationSeconds": 4.5,
+          "cooldownSeconds": 30.0,
+          "moveSpeedMult": 1.28,
+          "frontalResistance": 0.60,
+          "shieldedArcDegrees": 180.0
+        }
+      }
     },
     {
       "id": "armor.foundry-breaker",
@@ -172,14 +262,14 @@
         "integralSystem": {
           "id": "system.breacher-assist",
           "displayName": "Breaching assist",
-          "description": "Industrial shoulder rams and a salvaged riot screen, wired to the same trigger. Fires the bracing hard enough to carry the rig through a doorway, and holds the screen up front while it runs. The flanks are exactly as exposed as they always were.",
+          "description": "Industrial shoulder rams and a salvaged riot screen, wired to the same trigger by somebody in a hurry. It fires hard enough to throw the rig through a doorway and no further, the screen is a sheet of scrap, and the servos need a long sulk afterwards. The flanks are exactly as exposed as they always were.",
           "effect": "breacher-assist",
           "resource": "cooldown",
-          "durationSeconds": 3.0,
-          "cooldownSeconds": 22.0,
-          "moveSpeedMult": 1.45,
-          "frontalResistance": 0.5,
-          "shieldedArcDegrees": 120.0
+          "durationSeconds": 2.5,
+          "cooldownSeconds": 26.0,
+          "moveSpeedMult": 1.42,
+          "frontalResistance": 0.30,
+          "shieldedArcDegrees": 90.0
         }
       }
     },

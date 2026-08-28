@@ -1,9 +1,10 @@
 # Integral system slate
 
-Status: DRAFT — direction for which traditions build a suit capability and what
-it should be. One system is shipped; the rest are unimplemented.
+Status: ACTIVE — direction for which patterns build a suit capability and what
+it should be. The breach family is authored; the individual systems are not.
 
 Written: 2026-08-28
+Updated: 2026-08-28 — the breach family became the assault role's signature across all six patterns; perception and firing-platform reallocated off the heavies.
 
 Read `progression-nouns.md` for the standing rules an integral system must obey,
 `equipment-lore-catalog.md` for each pattern's provenance and deliberate limits,
@@ -23,45 +24,78 @@ rather than one story at a time. It says which traditions should build a suit
 capability, what it should be, and what it must not become. It does not say how
 any of them is implemented.
 
-## The scarcity rule comes first
+## The claim is the role, not the tier
 
-Most patterns declare nothing, and that is the point. A system is a reason to
-want one particular suit; if most suits have one, the reason is gone and a
-system becomes a tax on the tier — the exact flattening the concept was written
-to avoid. The shipped catalog keeps carriers to a small minority deliberately,
-and a test pins it.
+Breaching is what an assault suit is *for*. The XIV's own catalog copy calls it
+a breach and shock pattern; the Bulwark is built for League breach formations;
+the foundry-breaker is named after the act. A capability for getting through the
+door is not a bonus bolted onto those patterns, it is the thing that makes them
+that role rather than "heavy armour" — so **all six ASSAULT patterns carry a
+breaching assist, and no other pattern does.**
 
-So this slate is a **budget, not a checklist**. Nineteen patterns should not
-converge on nineteen systems. A tradition appearing below is a candidate, not an
-entitlement, and several rows should stay unbuilt permanently.
+That is deliberately not a tier rule. Every assault pattern happens to be
+tier IV today, but a future tier-IV scout or line suit would still carry
+nothing, and a cheaper assault pattern would carry one. What a player learns is
+"assault suits breach", not "expensive suits get a trick".
 
-Two consequences worth stating plainly:
+The scarcity rule survives this and now does its work at a different level:
 
+- **One family, one role.** The breach family exists because breaching is a role
+  definition. Every other capability below is an *individual* system on one named
+  pattern, not a family the rest of its role inherits. If holding ground became a
+  family across all five line patterns, twelve of eighteen suits would carry
+  something and the whole idea would be a tax again.
+- **The budget is real and nearly spent.** Six of eighteen patterns carry a
+  system. `IntegralSystemDefTest` fires when carriers reach half the catalog,
+  which leaves room for about two more — so the individual rows below are
+  competing for those slots, not queuing for them.
 - **Do not give a faction a system so it has one.** `equipment-lore-catalog.md`
   already establishes that absence is meaningful and that a faction-color clone
   is not a reason to add an item. The same discipline applies here, harder.
-- **A tier is not a claim.** A tier-IV battlesuit with nothing but excellent
-  scalars is a perfectly good suit. Heavy is a role, not a promise of a trick.
+- **Six suits sharing an effect must be six suits.** Identical numbers under
+  different names is the palette swap this catalog exists to prevent. A test
+  refuses a renamed copy.
 
-## What the lore supports
+## The breach family
 
-Each row names the sim capability it would need, because that — not the flavour
-— is what decides whether it is one story or five. Rows sharing a capability
-should ship together or not at all.
+Authored. Every one of these is the same effect and none of them plays the same,
+because the axes a tradition is good at are the axes it spends on. Only the
+movement half runs today; the screen arrives with
+`d5-timed-directional-mitigation.md`.
+
+| Pattern | Tradition | System | The character it buys |
+| --- | --- | --- | --- |
+| `armor.heavy` | Hegemony (XIV) | **Assault bracing** | The perfected version, and the most *available* one — the longest window against the shortest recovery. Doctrine, not a gamble. |
+| `armor.bulwark-heavy` | Persean League | **Interlock advance** | The widest screen in the family, covering more front than one wearer needs, because the marine beside you may not be from your navy. No worst axis. |
+| `armor.specter-heavy` | Tri-Tachyon | **Predictive breach** | The briefest window, the quickest recycle, and the fastest crossing on the field. The screen is a courtesy. Prediction, spent rather than worn. |
+| `armor.reliquary-heavy` | Knights of Ludd | **Consecrated advance** | Barely faster than standing still, for a very long time, behind the best screen anyone has. A Knight crosses the room in front of somebody else. |
+| `armor.lions-mantle` | Sindrian Lion's Guard | **Blazon advance** | One grand gesture per engagement: long, bright, well covered, and then thirty seconds of nothing. Spectacle priced as spectacle. |
+| `armor.foundry-breaker` | Pirate / Pather | **Breaching assist** | The crude copy, and the only one without a proper designation. The biggest raw shove in the family, over almost immediately, behind a sheet of scrap, followed by the longest sulk. |
+
+Two of these are honest about being weak in the current build. The Consecrated
+and Blazon advances spend most of their design on the screen, so until the
+mitigation concept lands they under-express — the Armory correctly advertises the
+Reliquary as a twelve-percent movement boost, which is true and is not what the
+suit is for.
+
+## Individual systems
+
+Not a family. Each is one capability on one named pattern, competing for the two
+or so slots the budget has left.
 
 | Pattern | Tradition | Candidate capability | Needs from the simulation |
 | --- | --- | --- | --- |
-| `armor.foundry-breaker` | Pirate / Pather foundry cells | **Breaching assist** — shoulder rams and a salvaged screen on one trigger. *Shipped, movement half only.* | Timed directional mitigation (`d5-timed-directional-mitigation.md`) for the screen. |
-| `armor.scout` | Tri-Tachyon (Janus) | **Sensor sweep** — the suit's integrated sensor and EW package spending itself on a brief, wide read of what is actually in the room. | A shared perception contract; bounded temporary vision that is not permanent sight. |
-| `armor.specter-heavy` | Tri-Tachyon blacksite (Specter) | **Threat prediction** — continuous prediction resolved into a short window of much better reaction. | Same perception contract, or a bounded evasion window; must not become incoming-accuracy in disguise. |
-| `armor.heavy` | Hegemony (XIV) | **Brace** — powered bracing planted as a firing platform: markedly steadier, and committed to standing there. | A stance with a real movement cost; accuracy as a timed effect. |
-| `armor.lions-mantle` | Sindrian Lion's Guard | **Sustained fire** — oversized cooling spent on a burst the suit could not otherwise support. | The same stance/timing support; a weapon-side sustain the shipped model does not have. |
-| `armor.reliquary-heavy` | Knights of Ludd | **Covering the line** — a consecrated shell extending its screen over someone beside it. | Timed directional mitigation, extended to a second actor. |
-| `armor.bulwark-heavy` | Persean League | **Shared control** — the coalition standard's actual identity: designating for the fire team rather than doing something alone. | Squad-level target sharing; command authority boundaries. |
+| `armor.scout` | Tri-Tachyon (Janus) | **Sensor sweep** — the suit's integrated sensor and EW package spending itself on a brief, wide read of what is actually in the room. | A shared perception contract; bounded temporary vision that is not permanent sight. `perception-integral-systems.md`. |
+| `armor.line` or `armor.furnace-line` | Hegemony or Sindrian Diktat | **Brace** — a line suit planting as a firing platform: markedly steadier, and committed to standing there. | A stance with a real movement cost; accuracy as a timed effect. `firing-platform-integral-systems.md`, which must pick one pattern, not both. |
 
-Three of the shipped tiers appear nowhere above, on purpose: the Church's
-Palatine, the Diktat's Furnace line, and the pirate Reaver are complete as
-tradeoffs and gain nothing from a trick.
+Holding ground moved to the line role once the assault heavies took breaching,
+and the split is better for it: **assault crosses, line holds.** That reads from
+the role name alone, which the earlier allocation did not.
+
+Everything else in the catalog carries nothing, on purpose. The Church's
+Palatine, the League's Bastion, the Tri-Tachyon Aegis, the pirate Reaver, and
+every tier-I and tier-II pattern are complete as tradeoffs and gain nothing from
+a trick.
 
 ## What each of these must not become
 
@@ -76,28 +110,32 @@ likely to be violated by a *capability* rather than by a stat are:
   same reasoning applies to any suit that would go quiet.
 - **A Tri-Tachyon prediction system is not a hidden neural bonus.** The lore
   catalog says outright that no neural-interface faction bonus exists outside the
-  suit. A prediction window has to be a visible, expiring, readable effect or it
-  is exactly the hidden modifier the visible-issue law forbids.
+  suit. The Specter spends its prediction as a short, visible, expiring window;
+  it does not quietly improve the wearer's odds between activations.
 - **Consecration is not damage reduction.** The Reliquary's rating is already
-  paid for with pool and the heaviest movement. A Knight covering someone else is
-  a squad capability with a cost; it is not a second helping of armour.
+  paid for with pool and the heaviest movement, and its system adds no capacity
+  and no rating. What it buys is a timed, arc-limited screen someone else can
+  walk behind — a squad capability with a cost, not a second helping of armour.
 - **League modularity is not self-repair.** Repairability is the Bulwark's
-  identity, and the obvious mechanical reading — restore something mid-battle —
+  identity, and the obvious mechanical reading — restore something mid-battle -
   is durability, which is forbidden. The interesting half of "shared control
-  standards" is the *shared* part.
-- **Sindrian spectacle is a liability too.** If the Lion's Mantle gets a sustain
-  system, the lore's own framing says the suit should be more conspicuous while
-  it runs, not less.
+  standards" is the *shared* part, and the Interlock advance spends it on arc.
+- **Sindrian spectacle is a liability too.** The Blazon advance is the longest,
+  brightest window in the family behind the second-best screen, and it pays for
+  that with the worst recovery. If it ever gains a visual treatment, the suit
+  should be more conspicuous while it runs, not less.
 
 ## Where this leaves the board
 
 `integral-armor-systems.md` owns the shipped concept and its remaining scope.
-The mechanics this slate needs are storied separately, because each one is
+The mechanics the slate still needs are storied separately, because each is
 gated on different simulation work rather than on authoring:
-`d5-timed-directional-mitigation.md`, `integral-system-use-policy.md`,
+`d5-timed-directional-mitigation.md` — which two authored members of the breach
+family are effectively waiting on — plus `integral-system-use-policy.md`,
 `integral-system-battle-presentation.md`, `shoulder-micro-missile-pod.md`, and
-`defender-integral-systems.md`. Two concrete faction groups have stories of
-their own where the capability is well enough understood to plan:
-`perception-integral-systems.md` and `firing-platform-integral-systems.md`.
+`defender-integral-systems.md`.
 
-The remaining rows stay direction until something makes them next.
+The two individual systems have stories of their own:
+`perception-integral-systems.md` and `firing-platform-integral-systems.md`.
+Between them they may claim both remaining budget slots, and nothing after that
+gets a system without something else giving one up.
