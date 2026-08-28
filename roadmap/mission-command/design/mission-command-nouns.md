@@ -72,7 +72,9 @@ reason, issue tick, target meaning, and stability or lease state. The shared
 arbiter is the only commit path. Garrison, payload, reinforcement, scripted,
 mission-command, and future intervention writers must register ownership or
 perform an incumbent-checked handoff; direct assignment writes are not a legal
-escape hatch.
+escape hatch. A legacy mission planner that has not yet adopted frozen frames
+receives only the same scoped directive-control facade during its serial pulse;
+legacy planning input does not imply legacy mutation authority.
 
 Directive **stability** is a minimum useful execution interval. An objective
 ending, target becoming unreachable, squad loss, context expiry, explicit

@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 /** Splits the expedition between the survivor route and physical archive. */
 public final class SilentColonyCommand implements MissionCommand {
 
+    static final String ISSUER = "silent-colony";
+
     private final CivilianEvacuationPlacement placement;
     private final ColonyArchiveObjective archive;
 
@@ -28,7 +30,7 @@ public final class SilentColonyCommand implements MissionCommand {
     }
 
     @Override
-    public void tick(BattleView sim) {
+    public void tick(BattleView sim, SquadDirectiveControl directives) {
         int archiveSquad = archive.isRecovered()
                 ? -1 : firstLiveMarineSquad(sim);
         int[] survivorTarget = survivorTarget(sim);
@@ -37,34 +39,32 @@ public final class SilentColonyCommand implements MissionCommand {
                 continue;
             }
             if (squad.id == archiveSquad) {
-                assignArchive(squad);
+                assignArchive(squad, directives);
             } else if (survivorTarget != null) {
-                assignSurvivors(squad, survivorTarget);
+                assignSurvivors(squad, survivorTarget, directives);
             } else if (!archive.isRecovered()) {
-                assignArchive(squad);
+                assignArchive(squad, directives);
             } else {
-                squad.assignedObjective = null;
+                directives.releaseSquadCommand(squad.id, ISSUER,
+                        "expedition objectives complete");
             }
         }
     }
 
-    private void assignArchive(Squad squad) {
-        ObjectiveAssignment current = squad.assignedObjective;
-        if (current == null || current.kind() != AssignmentKind.CLEAR_ZONE
-                || current.targetZoneId() != archive.zoneId()) {
-            squad.assignedObjective = ObjectiveAssignment.clearZone(
-                    squad.id, archive.zoneId());
-        }
+    private void assignArchive(Squad squad,
+                               SquadDirectiveControl directives) {
+        directives.assignSquadCommand(ObjectiveAssignment.clearZone(
+                        squad.id, archive.zoneId()),
+                CommandAuthority.MISSION_COMMAND, ISSUER,
+                "recover sealed colony archive");
     }
 
-    private static void assignSurvivors(Squad squad, int[] target) {
-        ObjectiveAssignment current = squad.assignedObjective;
-        if (current == null || current.kind() != AssignmentKind.ESCORT
-                || current.targetCellX() != target[0]
-                || current.targetCellY() != target[1]) {
-            squad.assignedObjective = ObjectiveAssignment.escort(
-                    squad.id, target[0], target[1]);
-        }
+    private static void assignSurvivors(Squad squad, int[] target,
+                                        SquadDirectiveControl directives) {
+        directives.assignSquadCommand(ObjectiveAssignment.escort(
+                        squad.id, target[0], target[1]),
+                CommandAuthority.MISSION_COMMAND, ISSUER,
+                "secure and escort colony survivors");
     }
 
     private int[] survivorTarget(BattleView sim) {

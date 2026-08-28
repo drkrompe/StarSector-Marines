@@ -310,6 +310,25 @@ public class FiringSystemTest {
     }
 
     @Test
+    public void intentThroughSmokeStillFires() {
+        BattleSimulation sim = openArena(30, 10);
+        NavigationGrid grid = sim.getGrid();
+        long shooter = combatant(sim, Faction.MARINE, 5, 5);
+        long target = combatant(sim, Faction.DEFENDER, 12, 5);
+        sim.world().setAttackRange(shooter, 15f);
+        for (int x = 8; x <= 10; x++) grid.addTransientOpacityAt(grid.index(x, 5));
+
+        assertFalse(grid.hasLineOfSight(5, 5, 12, 5), "the screen still denies sight");
+
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, false);
+        systemFor(sim).tick(sim);
+
+        assertEquals(FireGate.FIRED, sim.combat().lastFireGate(shooter),
+                "smoke is obscuration: it costs the shot accuracy, not the trigger pull");
+        assertTrue(sim.world().cooldownTimer(shooter) > 0f, "the shot consumed the firing opportunity");
+    }
+
+    @Test
     public void intentAtDeadTargetDoesNotFireNoCrash() {
         BattleSimulation sim = openArena(30, 10);
         long shooter = combatant(sim, Faction.MARINE, 5, 5);

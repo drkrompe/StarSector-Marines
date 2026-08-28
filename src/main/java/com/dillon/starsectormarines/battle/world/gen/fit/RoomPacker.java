@@ -104,18 +104,31 @@ public final class RoomPacker {
      * a preference rather than a veto because a room that cannot be placed at
      * all is worse than a room placed against its neighbour.
      *
+     * <p>It also carries how many ways into a room the place wants, for the
+     * same reason: how a building sits among its neighbours and how it is
+     * entered are one question about the place, not two.
+     *
      * @param sharedSeamAllowance ring cells a room may share with earlier rooms
      *                            for free
      * @param seamPenalty score charged per shared cell beyond the allowance
+     * @param floorPerWayIn cells of floor that earn a room another way in, on a
+     *                      face it does not already have one; {@code 0} for a
+     *                      single way in however large the room
      */
-    public record Massing(int sharedSeamAllowance, int seamPenalty) {
+    public record Massing(int sharedSeamAllowance, int seamPenalty, int floorPerWayIn) {
 
-        /** A hull: share every bulkhead you can, because open space is waste. */
-        public static final Massing WEDGED = new Massing(Integer.MAX_VALUE, 0);
+        /**
+         * A hull: share every bulkhead you can, because open space is waste,
+         * and one hatch per compartment as decks have always been cut.
+         */
+        public static final Massing WEDGED = new Massing(Integer.MAX_VALUE, 0, 0);
 
         public Massing {
             if (sharedSeamAllowance < 0) {
                 throw new IllegalArgumentException("a seam allowance cannot be negative");
+            }
+            if (floorPerWayIn < 0) {
+                throw new IllegalArgumentException("floor per way in cannot be negative");
             }
         }
     }
@@ -185,6 +198,12 @@ public final class RoomPacker {
      * has room and only narrow where it genuinely does not.
      */
     private static final int NARROW_PENALTY = 3;
+
+    /**
+     * Doors are worth having on each face and not worth having twice on one.
+     * Four faces is the ceiling, and a room with fewer open faces gets fewer.
+     */
+    private static final int MAX_WAYS_IN = 4;
 
     /** Corners of the two-by-two square a route cell may be covered by. */
     private static final int[][] LANE_ANCHORS = { { 0, 0 }, { -1, 0 }, { 0, -1 }, { -1, -1 } };
@@ -291,7 +310,8 @@ public final class RoomPacker {
             Candidate candidate = candidates.get(i);
             Access access = findAccess(candidate, mayTunnel, null);
             if (access == null) continue;
-            List<Doorway> doors = commit(candidate, request.purpose(), List.of(access));
+            List<Doorway> doors = commit(candidate, request.purpose(),
+                    withFurtherWaysIn(candidate, access, mayTunnel));
             return describe(candidate, request.purpose(), doors);
         }
         return null;
@@ -462,6 +482,64 @@ public final class RoomPacker {
             if (seen.add(shape.posed(pose))) distinct.add(pose);
         }
         return distinct;
+    }
+
+    /**
+     * The ways into this room: the one that was found, plus another on a
+     * different face for every {@link #FLOOR_PER_WAY_IN} cells of floor.
+     *
+     * <p>One door is enough to make a room reachable, and reachability is all
+     * the packing was ever checking. It is not enough to make a building worth
+     * fighting over. A vehicle shed five hundred cells across with a single
+     * entrance — widened to two cells, which reads as two doors on the same
+     * wall — is cleared by holding one doorway, so an attacker never has to
+     * choose an approach and a defender never has to cover more than one. The
+     * interior might as well not be there.
+     *
+     * <p>Faces rather than count is the whole point. Another door beside the
+     * first changes nothing; a door on the far wall means the building can be
+     * entered from two sides at once, flanked, or given up from one end and
+     * held at the other. So each further way in is searched with the faces
+     * already used excluded outright.
+     *
+     * <p>Best-effort: a room wedged against its neighbours may have only one
+     * face on the open, and one way in is better than refusing to place it.
+     */
+    private List<Access> withFurtherWaysIn(Candidate candidate, Access first,
+                                           boolean mayTunnel) {
+        List<Access> accesses = new ArrayList<>();
+        accesses.add(first);
+        if (massing.floorPerWayIn() <= 0) return accesses;
+        int wanted = Math.min(MAX_WAYS_IN,
+                1 + candidate.shape().area() / massing.floorPerWayIn());
+        while (accesses.size() < wanted) {
+            Access next = findAccess(candidate, mayTunnel,
+                    doorwaysFacingAwayFrom(candidate, accesses));
+            if (next == null) break;
+            accesses.add(next);
+        }
+        return accesses;
+    }
+
+    /**
+     * This room's authored doorway cells on faces none of {@code taken} uses.
+     *
+     * <p>Empty when every face is spoken for, which {@link #findAccess} reads as
+     * "nothing is permitted" and answers with null — the caller stops there.
+     */
+    private Set<Long> doorwaysFacingAwayFrom(Candidate candidate, List<Access> taken) {
+        Set<Long> free = new HashSet<>();
+        for (int[] doorway : candidate.shape().doorways()) {
+            int dirX = doorway[2] - doorway[0];
+            int dirY = doorway[3] - doorway[1];
+            boolean used = false;
+            for (Access access : taken) {
+                if (access.dirX() == dirX && access.dirY() == dirY) used = true;
+            }
+            if (used) continue;
+            free.add(cellKey(candidate.x() + doorway[0], candidate.y() + doorway[1]));
+        }
+        return free;
     }
 
     /**

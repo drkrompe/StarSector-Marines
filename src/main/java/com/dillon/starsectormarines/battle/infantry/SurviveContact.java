@@ -11,11 +11,23 @@ import com.dillon.starsectormarines.battle.decision.goap.action.BreakContact;
 import java.util.List;
 
 /**
- * Story B — a squad whose morale has broken pulls back to cover, reconstitutes,
- * and re-enters the fight if morale recovers. Triggers on
- * {@link Predicate#MORALE_BROKEN}, lives in the {@link Priority#SURVIVAL}
- * bucket so it outranks {@link EliminateEnemiesGoal} (ENGAGEMENT) but loses
- * to {@link Priority#MISSION} goals like {@link SecureObjectiveZone} and
+ * The whole-squad tail of the morale model: every one of the squad's fire
+ * teams has broken, so there is no composed element left to plan around and
+ * the squad as a unit pulls back to cover, reconstitutes, and re-enters the
+ * fight if morale recovers.
+ *
+ * <p><b>Not the ordinary break path.</b> Cohesion breaks per fire team, and a
+ * broken team peels on its own through the morale override in
+ * {@code GoapInfantryBehavior} while its siblings keep fighting. This goal
+ * only becomes relevant once {@link Predicate#MORALE_BROKEN} trips, which now
+ * requires <em>all</em> live teams broken — see {@link Squad#moraleBroken}.
+ * By then the override is already walking every member back to cover; what
+ * this goal adds is releasing the squad's mission goal, so a garrison that
+ * is entirely finished stops holding a post it has abandoned.
+ *
+ * <p>Lives in the {@link Priority#SURVIVAL} bucket so it outranks
+ * {@link EliminateEnemiesGoal} (ENGAGEMENT) but loses to
+ * {@link Priority#MISSION} goals like {@link SecureObjectiveZone} and
  * {@link CordonForPlant}, which keeps the planter from breaking the plant
  * just because the rest of the squad's been mauled.
  *

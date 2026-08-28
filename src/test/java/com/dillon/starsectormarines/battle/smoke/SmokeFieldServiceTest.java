@@ -34,6 +34,10 @@ class SmokeFieldServiceTest {
         assertTrue(grid.isWalkable(5, 3), "smoke never changes navigation");
         assertEquals(-1, (int) grid.firstWallOnLine(1, 3, 8, 3),
                 "smoke is not a physical ballistic wall");
+        assertTrue(grid.hasLineOfFire(1.5f, 3.5f, 8.5f, 3.5f),
+                "smoke costs a shot accuracy, it never forbids one");
+        assertTrue(grid.smokeDepthOnLine(1.5f, 3.5f, 8.5f, 3.5f) > 0,
+                "the screened lane must price as obscured");
         assertEquals(Faction.MARINE, smoke.activeFields().get(0).sourceFaction());
 
         smoke.tick(1.01f);

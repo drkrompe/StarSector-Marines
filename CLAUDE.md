@@ -159,7 +159,11 @@ Do not run builds or leave generated task files there.
   keyed by the same coordinates, on the clipboard with that image's path.
   A piece becomes a doodad or a cell of a named autotile block; walls
   and corners are authored by grouping pieces into a block's slots, which the
-  packer places as one contiguous patch. Export writes a packed atlas holding only
+  packer places as one contiguous patch. A sheet whose document carries a
+  `strip` block exports as a sliced auto-strip instead: frames in a row at an
+  authored scale, addressed by frame index rather than `(col, row)`, which is
+  the shape `urban-tileset-3` and `nature-tiles` load in. Export writes a packed
+  atlas holding only
   the included pieces, its `*.tileset.json`, and a generated `*.tileset.md`
   catalog card; the atlas goes to `graphics/tilesets/` when the sheet declares
   blocks and `graphics/doodads/` when it is only props, unless the document names
@@ -213,6 +217,13 @@ Do not run builds or leave generated task files there.
   front doors onto the same domain code, never an embedded server — an editor
   holding unsaved changes and a tool writing the same document would be two
   writers. See `authoring-entry-points.md`.
+- `gradlew.bat :asset-pipeline:deriveTileMaps` → bakes `<sheet>_height.png` /
+  `<sheet>_normal.png` beside each terrain albedo listed in
+  `asset-pipeline/src/tool/resources/tilemaps/tilemaps.json`. **Re-run it after
+  re-exporting any tileset that has those companions.** They are found by naming
+  convention and sampled at the albedo's own frame coordinates, so a re-packed
+  atlas leaves them reading the relief of the sheet they replaced — silently.
+  `UrbanTileset3AlphaTest` fails when they drift out of step.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.
