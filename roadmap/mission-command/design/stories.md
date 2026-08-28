@@ -48,7 +48,7 @@ Design: `raid-command.md`
 
 | Story | State | Intent |
 |---|---|---|
-| `raid-objective-and-command-contract.md` | DRAFT | Define target, interaction, withdrawal, outcome, disclosure, and the first paired target-network command. |
+| `raid-objective-and-command-contract.md` | IN PROGRESS | Canonical-duration and live-accept the shipped primary-target objective, paired command duel, and diagnostics. |
 
 ## Extraction
 

@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.command.DefendAssignedSiteGoal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedAreaGoal;
 import com.dillon.starsectormarines.battle.command.AdvanceAssignedTrackGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.ServiceAssignedObjectiveGoal;
+import com.dillon.starsectormarines.battle.command.WithdrawAssignedGoal;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -48,6 +50,8 @@ public final class GoapMechBehavior implements UnitBehavior {
     /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. MISSION-priority role goals come first; SURVIVAL-tier {@link MechSurviveContact} wins whenever {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#MORALE_BROKEN} trips (the MISSION goals carve themselves out on that predicate too, so SURVIVAL wins outright); the ENGAGEMENT-priority ambient {@link MechEliminateEnemiesGoal} is the floor. Assault precedes the Stage 1 role goals so a mixed group with a Hound runs one shared step in which each member delegates to its own doctrine. */
     public static final List<Goal> MECH_GOALS = List.of(
             PatrolRescueFormationGoal.INSTANCE,
+            WithdrawAssignedGoal.INSTANCE,
+            ServiceAssignedObjectiveGoal.INSTANCE,
             SweepAssignedSectorGoal.INSTANCE,
             AdvanceAssignedTrackGoal.INSTANCE,
             DefendAssignedSiteGoal.INSTANCE,
