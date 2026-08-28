@@ -297,7 +297,7 @@ public final class TtkHarness {
         return new IntegralSystemDef("system.ttk-screen", "Measured screen",
                 "Held up for the whole measurement.", IntegralSystemEffect.BREACHER_ASSIST,
                 SpecialResourceMode.COOLDOWN, 1f, 2f, 0,
-                new BreacherAssistSpec(1.01f, screen.fraction(), screen.arcDegrees()));
+                new BreacherAssistSpec(1.01f, screen.fraction(), screen.arcDegrees()), null);
     }
 
     /** Per-trial counters; a class rather than locals so the impact sink lambda can write to them. */
