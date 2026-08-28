@@ -187,4 +187,33 @@ public class CompoundCaptureSystemTest {
                 service.hasAliveCompound(TacticalNode.Kind.BARRACKS, Faction.MARINE),
                 "marine side reads supply once the BARRACKS flips to marine-held");
     }
+
+    @Test
+    public void capturesThroughAnAnchorCellThatIsNotWalkable() {
+        // A node anchor is the compound's stable identity, not a promise of a
+        // standable cell: map generation is free to leave it on a wall, and a
+        // furnishing pass can drop a crate on an anchor that was clear when it
+        // was chosen. Such a cell belongs to no zone, so reading the capture
+        // zone straight off the anchor stalls the compound at DEFENDER_HELD
+        // forever — and on Conquest, where every compound must flip, that makes
+        // the mission unwinnable.
+        BattleSimulation sim = openSim();
+        sim.getGrid().setWalkable(5, 5, false);
+        sim.getZoneGraph().rebuild();
+
+        CompoundService service = new CompoundService();
+        CompoundCaptureSystem system = new CompoundCaptureSystem();
+        TacticalNode node = barracksAt(5, 5);
+        service.register(node);
+
+        // Marine stands in the room, one cell over from the blocked anchor.
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 4, 5));
+        int ticks = 2 + (int) Math.ceil(
+                CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
+        tickN(system, sim, service, ticks);
+
+        assertEquals(CompoundService.CompoundState.MARINE_HELD,
+                service.getRecord(node).state,
+                "a compound anchored on a blocked cell still captures in its own room");
+    }
 }
