@@ -1,10 +1,9 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.decision.DefenseFrontage;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -113,7 +112,8 @@ final class FrontageScene {
      */
     record Sample(int tick, String goal, int aperturePosts, int reservePosts,
                   int postsFacingThreat, int membersOnPost, float believedPressure,
-                  boolean enemyInside, float marineX, float marineY, int liveMarines) {
+                  boolean enemyInside, boolean standToLegalNow,
+                  float marineX, float marineY, int liveMarines) {
 
         int posts() { return aperturePosts + reservePosts; }
     }
@@ -165,8 +165,15 @@ final class FrontageScene {
         }
 
         float pressure = sim.getCommanderInfluence(Faction.DEFENDER).maxHostile();
+        // The squad's goal is whatever its last replan chose and so lags
+        // reality by up to one replan interval; the gate itself is evaluated
+        // now. Recording both keeps "the goal still says stand-to" from being
+        // mistaken for "the gate failed to close".
+        boolean standToLegal =
+                FrontageDefense.INSTANCE.relevance(WorldState.EMPTY, garrison, sim) > 0f;
         return new Sample(tick, goal, aperture, reserve, facingThreat, onPost,
-                pressure, enemyInside(scene), marines[0], marines[1], (int) marines[2]);
+                pressure, enemyInside(scene), standToLegal,
+                marines[0], marines[1], (int) marines[2]);
     }
 
     /** The {@link ApertureHold} the garrison is executing right now, or null when it is doing something else. */
@@ -231,15 +238,15 @@ final class FrontageScene {
     }
 
     /**
-     * Whether a marine stands in the compound's held zones — the same question
-     * the breach gate asks. Deliberately not a bounding-box test: a box calls a
-     * marine on unheld ground just outside a wall "inside" and would make the
-     * goal look like it had failed to release when it had not.
+     * Whether a marine stands in the garrison's held zones — asked of
+     * {@link FrontageDefense} itself rather than recomputed here. The scope
+     * matters: a garrison holding one structure inside a compound holds only
+     * that building, so a compound-scope answer would report a breach the goal
+     * does not see and the scene would accuse it of failing to release.
      */
     private static boolean enemyInside(Scene scene) {
         BattleSimulation sim = scene.sim();
-        List<Integer> held = GarrisonArea.garrisonZones(scene.primary(),
-                DefenseFrontage.COMPOUND_MARGIN, sim);
+        List<Integer> held = FrontageDefense.heldZones(scene.garrison(), sim);
         for (int i = 0; i < sim.getRoster().liveCount(); i++) {
             long unit = sim.getRoster().get(i);
             if (sim.identity().faction(unit) != Faction.MARINE) continue;
