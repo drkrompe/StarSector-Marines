@@ -123,6 +123,16 @@ public final class ShotService {
     private final List<PendingImpact> activeImpacts = new ArrayList<>();
     /** Projectiles that arrived this tick — parallel to {@link #shotsExpiredThisFrame} for the impact-FX dispatch in the renderer. Cleared each tick. */
     private final List<Projectile> projectilesArrivedThisFrame = new ArrayList<>();
+    /**
+     * Projectiles a point-defence emplacement stopped this frame, captured at
+     * the position they died rather than the endpoint they never reached.
+     * Parallel to {@link #projectilesArrivedThisFrame}, and the reason the
+     * intercept path is an event and not a silent removal: a round that simply
+     * vanishes is indistinguishable from one that was never there.
+     */
+    private final List<Projectile> projectilesInterceptedThisFrame = new ArrayList<>();
+    /** Death positions of {@link #projectilesInterceptedThisFrame}, index-aligned, as {x, y} pairs. Captured at removal because the projectile's own clock stops there. */
+    private final List<float[]> interceptPointsThisFrame = new ArrayList<>();
 
     // ---- Append entry points (parallel-safe) ----
 
@@ -171,6 +181,10 @@ public final class ShotService {
     public List<ShotEvent> getShotsExpiredThisFrame() { return shotsExpiredThisFrame; }
     public List<Projectile> getActiveProjectiles() { return activeProjectiles; }
     public List<Projectile> getProjectilesArrivedThisFrame() { return projectilesArrivedThisFrame; }
+    /** Projectiles stopped by point defence this frame. Drained by the renderer for the kill burst. */
+    public List<Projectile> getProjectilesInterceptedThisFrame() { return projectilesInterceptedThisFrame; }
+    /** Where each {@link #getProjectilesInterceptedThisFrame()} entry died, as {x, y}. Index-aligned. */
+    public List<float[]> getInterceptPointsThisFrame() { return interceptPointsThisFrame; }
 
     /**
      * Thread-safe snapshot of {@link #activeShots} for callers iterating during
@@ -217,6 +231,8 @@ public final class ShotService {
         shotsThisFrame.clear();
         shotsExpiredThisFrame.clear();
         projectilesArrivedThisFrame.clear();
+        projectilesInterceptedThisFrame.clear();
+        interceptPointsThisFrame.clear();
     }
 
     // ---- Tick passes ----
@@ -234,8 +250,8 @@ public final class ShotService {
     }
 
     /**
-     * Advances every in-flight {@link Projectile} by {@code dt}. Intercepted
-     * projectiles (point-defense future hook) are removed without detonating;
+     * Advances every in-flight {@link Projectile} by {@code dt}. Projectiles a
+     * point-defence emplacement marked this tick are removed without detonating;
      * expired ones with a non-null {@link Projectile#onArrival} payload fire
      * it via the supplied {@code sink} and land in
      * {@link #projectilesArrivedThisFrame} for renderer impact FX. Payloadless
@@ -245,7 +261,15 @@ public final class ShotService {
         for (int i = activeProjectiles.size() - 1; i >= 0; i--) {
             Projectile p = activeProjectiles.get(i);
             if (p.intercepted) {
-                // Future: spawn intercept FX here. For now, just remove.
+                // Engaged by a point-defence emplacement earlier this tick.
+                // Drop the round WITHOUT firing onArrival: interception is not
+                // damage, so the payload never reaches the detonation sink and
+                // no arrival record is published. It is still published as an
+                // event, at the point in the air where the warhead actually
+                // came apart, so the kill is something the player watches
+                // happen rather than a projectile that quietly stops existing.
+                projectilesInterceptedThisFrame.add(p);
+                interceptPointsThisFrame.add(new float[] {p.currentX(), p.currentY()});
                 activeProjectiles.remove(i);
                 continue;
             }

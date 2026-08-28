@@ -4,8 +4,8 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-28 — added explicit secure-compound travel exits and recorded
-the first sealed schema-7/schema-4 representative result.
+Updated: 2026-08-28 — classified secure-travel retarget provenance and
+last-alive squad-loss location/context in summary schema 5.
 
 Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -65,6 +65,10 @@ churned, or collapsed before tuning force budgets or doctrine.
   target entry, retarget, release, squad loss, execution suspension,
   observation gap, timeout, or terminal result; incomplete traces remain open
   and contact/path/quiet observations remain orthogonal context.
+- [x] Secure-travel retarget exits distinguish objective, marker, and
+  replacement-assignment changes; squad-loss exits retain measured/unknown
+  last-alive objective distance, approach progress, and published contact/front
+  context without claiming an exact casualty cell.
 - [x] Conquest capture allocation preserves in-flight and adjacent commitments
   while globally retaining useful executable force for actionable front
   resistance; published actions expose a binding distant-capture deferral
@@ -230,6 +234,28 @@ external Gradle stop during full-strength-west before it could publish the
 matrix. The isolated reinforced fixture then completed and published byte-
 stable trace and summary output. Full-strength secure-exit comparison therefore
 remains an environment-bounded evidence follow-up, not missing analyzer work.
+
+## Retarget provenance and last-alive loss follow-up
+
+Conquest summary schema 5 now classifies secure retargets as another compound,
+a changed capture marker, a replacement assignment, or unclassified observed
+transition. Squad-loss exits retain measured/unknown final-living-pulse
+distance to the objective and normalized approach closure, plus local-contact,
+track-belief-only, no-published-contact, or unknown-track context. These are
+perspective-safe pulse observations, not exact casualty positions. Trace schema
+7 remains sufficient; it does not publish normalized own-squad progress, so
+the analyzer deliberately does not claim behind/at/beyond-front placement.
+
+The isolated duplicate 6,000-tick reinforced row remained byte-stable after
+concurrent combat changes on main. It finalized 19 secure trips: two target
+entries, sixteen squad losses, and one replacement-assignment retarget, with
+no compound-target or marker change. Every lost squad's final living pulse had
+local contact and a measurable objective distance. The median was 44.8 cells
+from the capture marker at 3,957 approach-progress basis points; four losses
+were within 13.5 cells and five had crossed half their starting range. The run
+captured two compounds and held one at timeout. This isolates tactical survival
+under contact—and secondarily the final breach—as the next question; it does
+not authorize force, damage, or doctrine tuning from one seed.
 
 ## Historical construction-only baselines
 

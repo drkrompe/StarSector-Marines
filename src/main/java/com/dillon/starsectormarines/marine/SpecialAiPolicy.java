@@ -9,6 +9,13 @@ public enum SpecialAiPolicy {
     SQUAD_SMOKE_SCREEN("squad-smoke-screen"),
     CONTACT_DEMOLITION("contact-demolition"),
     /**
+     * Placed ordnance denial: the carrier sets down a static emplacement that
+     * engages hostile warheads crossing a bounded radius around it. It never
+     * selects an actor, never spots, and never joins a squad — it refuses
+     * incoming ordnance and nothing else.
+     */
+    AREA_DENIAL_EMPLACEMENT("area-denial-emplacement"),
+    /**
      * Sustained anti-hard contact work: a visible, interruptible channel
      * against an adjacent hardened actor, or against an authored breach point
      * the carrier is already standing beside. It never seeks obstacles.

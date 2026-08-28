@@ -83,6 +83,15 @@ public final class WeaponDef {
     public final float arcHeight;
     /** Whether the round exists as an interceptable in-flight projectile rather than only a resolved shot event. */
     public final boolean interceptableProjectile;
+    /**
+     * Whether a point-defence emplacement may engage this round in flight.
+     * Distinct from {@link #interceptableProjectile}, which says only <em>how
+     * the round is modelled</em> (a travelling entity rather than a resolved
+     * shot event). This says the round is ordnance a defensive gun is allowed
+     * to shoot down. A weapon opts in here; nothing derives the answer from an
+     * id list, so a new warhead is engageable the moment its data says so.
+     */
+    public final boolean pointDefenseTarget;
     /** Whether an interceptable projectile accelerates through the shared boost-then-cruise motion curve. */
     public final boolean boostRamp;
     /** Whether acquisition and firing may continue without direct line of sight. */
@@ -124,6 +133,7 @@ public final class WeaponDef {
                       float minRange, float aoeRadius, int wallDamage,
                       float wallDamageRadius, float aimDuration, float flightSec,
                       float arcHeight, boolean interceptableProjectile,
+                      boolean pointDefenseTarget,
                       boolean boostRamp, boolean indirectFire, float noLosAccuracyMult,
                       float noiseMagnitude,
                       LayeredWeaponFamily heldSpriteFamily,
@@ -161,6 +171,7 @@ public final class WeaponDef {
         this.flightSec = flightSec;
         this.arcHeight = arcHeight;
         this.interceptableProjectile = interceptableProjectile;
+        this.pointDefenseTarget = pointDefenseTarget;
         this.boostRamp = boostRamp;
         this.indirectFire = indirectFire;
         this.noLosAccuracyMult = noLosAccuracyMult;
@@ -277,6 +288,7 @@ public final class WeaponDef {
                 (float) sim.optDouble("flightSec", 0.0),
                 (float) sim.optDouble("arcHeight", 0.0),
                 sim.optBoolean("interceptableProjectile", false),
+                sim.optBoolean("pointDefenseTarget", false),
                 sim.optBoolean("boostRamp", false),
                 sim.optBoolean("indirectFire", false),
                 (float) sim.optDouble("noLosAccuracyMult", 1.0),
@@ -351,6 +363,15 @@ public final class WeaponDef {
         if (def.interceptableProjectile && !(def.roundVelocity > 0f)) {
             throw new JSONException("Weapon '" + def.id
                     + "' declares an interceptable projectile without positive roundVelocity");
+        }
+        if (def.pointDefenseTarget && !def.interceptableProjectile) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' is a point-defence target without an in-flight projectile to intercept");
+        }
+        if (def.pointDefenseTarget && !(def.aoeRadius > 0f)) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' is a point-defence target without a warhead; emplacements engage"
+                    + " ordnance, not bullets");
         }
         if (def.boostRamp && !def.interceptableProjectile) {
             throw new JSONException("Weapon '" + def.id

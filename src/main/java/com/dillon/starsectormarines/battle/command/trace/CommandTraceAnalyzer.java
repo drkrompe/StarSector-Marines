@@ -144,6 +144,10 @@ public final class CommandTraceAnalyzer {
             int episodesStarted,
             int targetEntryExits,
             int retargetExits,
+            int retargetObjectiveChanged,
+            int retargetMarkerChanged,
+            int retargetAssignmentChanged,
+            int retargetUnclassified,
             int releaseExits,
             int squadLossExits,
             int executionSuspensionExits,
@@ -152,7 +156,39 @@ public final class CommandTraceAnalyzer {
             int terminalExits,
             int episodesWithLocalContact,
             int episodesWithActivePath,
-            int episodesWithQuietTravel) {
+            int episodesWithQuietTravel,
+            int squadLossLocationsObserved,
+            int squadLossLocationsUnknown,
+            int squadLossAtLocalContact,
+            int squadLossWithTrackBeliefOnly,
+            int squadLossWithoutPublishedContact,
+            int squadLossWithUnknownTrack,
+            List<Integer> squadLossLastDistancesDecicells,
+            List<Integer> squadLossApproachProgressBasisPoints) {
+
+        public SecureTravelMetrics {
+            squadLossLastDistancesDecicells =
+                    sortedCopy(squadLossLastDistancesDecicells);
+            squadLossApproachProgressBasisPoints =
+                    sortedCopy(squadLossApproachProgressBasisPoints);
+            if (retargetObjectiveChanged + retargetMarkerChanged
+                    + retargetAssignmentChanged + retargetUnclassified
+                    != retargetExits) {
+                throw new IllegalArgumentException(
+                        "retarget provenance must classify every retarget");
+            }
+            if (squadLossLocationsObserved + squadLossLocationsUnknown
+                    != squadLossExits) {
+                throw new IllegalArgumentException(
+                        "location accounting must classify every squad loss");
+            }
+            if (squadLossAtLocalContact + squadLossWithTrackBeliefOnly
+                    + squadLossWithoutPublishedContact
+                    + squadLossWithUnknownTrack != squadLossExits) {
+                throw new IllegalArgumentException(
+                        "front context must classify every squad loss");
+            }
+        }
 
         public int episodesFinalized() {
             return targetEntryExits + retargetExits + releaseExits
@@ -165,8 +201,9 @@ public final class CommandTraceAnalyzer {
         }
 
         static SecureTravelMetrics empty() {
-            return new SecureTravelMetrics(0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0, 0, 0);
+            return new SecureTravelMetrics(0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    List.of(), List.of());
         }
     }
 
@@ -396,6 +433,34 @@ public final class CommandTraceAnalyzer {
                         secure.observationGapExits());
                 numberField(out, "timeout", secure.timeoutExits());
                 numberField(out, "terminalResult", secure.terminalExits());
+                out.append('}');
+                out.append(",\"retargetProvenance\":{");
+                rawNumberField(out, "objectiveChanged",
+                        secure.retargetObjectiveChanged());
+                numberField(out, "markerChanged",
+                        secure.retargetMarkerChanged());
+                numberField(out, "assignmentChanged",
+                        secure.retargetAssignmentChanged());
+                numberField(out, "unclassified",
+                        secure.retargetUnclassified());
+                out.append('}');
+                appendIntList(out, "squadLossLastDistancesDecicells",
+                        secure.squadLossLastDistancesDecicells());
+                appendIntList(out, "squadLossApproachProgressBasisPoints",
+                        secure.squadLossApproachProgressBasisPoints());
+                out.append(",\"squadLossFrontContext\":{");
+                rawNumberField(out, "observed",
+                        secure.squadLossLocationsObserved());
+                numberField(out, "unknown",
+                        secure.squadLossLocationsUnknown());
+                numberField(out, "localContact",
+                        secure.squadLossAtLocalContact());
+                numberField(out, "trackBeliefOnly",
+                        secure.squadLossWithTrackBeliefOnly());
+                numberField(out, "noPublishedContact",
+                        secure.squadLossWithoutPublishedContact());
+                numberField(out, "unknownTrack",
+                        secure.squadLossWithUnknownTrack());
                 out.append('}');
                 numberField(out, "withLocalContact",
                         secure.episodesWithLocalContact());
@@ -949,13 +1014,14 @@ public final class CommandTraceAnalyzer {
                     continue;
                 }
                 if (state.optInt("aliveMembers", 0) <= 0) {
-                    metrics.finish(episode, SecureTravelExit.SQUAD_LOST);
+                    metrics.finishLoss(episode);
                     active.remove(squadId);
                     completedKeys.remove(squadId);
                     continue;
                 }
 
-                metrics.observeContext(episode, state, schemaVersion);
+                metrics.observeContext(episode, state, action, sample.row,
+                        schemaVersion);
                 SecureTravelCandidate candidate = secureTravelCandidate(
                         sample.row, action, directive);
                 boolean sameCandidate = candidate != null
@@ -988,7 +1054,9 @@ public final class CommandTraceAnalyzer {
                 if (candidate != null
                         || assignmentRetargets(directive, sample.row,
                         episode.targetZone)) {
-                    metrics.finish(episode, SecureTravelExit.RETARGETED);
+                    metrics.finishRetarget(episode,
+                            retargetProvenance(episode, candidate, directive,
+                                    sample.row));
                 } else if (isExplicitRelease(directive)
                         || directive == null) {
                     metrics.finish(episode, SecureTravelExit.RELEASED);
@@ -1015,7 +1083,8 @@ public final class CommandTraceAnalyzer {
                 }
                 SecureTravelEpisode incumbent = active.get(squadId);
                 if (incumbent != null && incumbent.key.equals(candidate.key)) {
-                    metrics.observeContext(incumbent, state, schemaVersion);
+                    metrics.observeContext(incumbent, state, entry.getValue(),
+                            sample.row, schemaVersion);
                     continue;
                 }
                 if (candidate.key.equals(completedKeys.get(squadId))) continue;
@@ -1034,10 +1103,11 @@ public final class CommandTraceAnalyzer {
                 }
 
                 SecureTravelEpisode episode = new SecureTravelEpisode(
-                        candidate.key, candidate.targetZone);
+                        candidate, state);
                 active.put(squadId, episode);
                 metrics.start();
-                metrics.observeContext(episode, state, schemaVersion);
+                metrics.observeContext(episode, state, entry.getValue(),
+                        sample.row, schemaVersion);
                 if (inTargetZone) {
                     metrics.finish(episode, SecureTravelExit.TARGET_ENTRY);
                     active.remove(squadId);
@@ -1073,7 +1143,35 @@ public final class CommandTraceAnalyzer {
         if (markerX < 0 || markerY < 0 || targetZone < 0) return null;
         String key = directive.getString("issuer") + "|SECURE_COMPOUND|"
                 + targetZone + '|' + markerX + '|' + markerY;
-        return new SecureTravelCandidate(key, targetZone);
+        return new SecureTravelCandidate(key, targetZone, markerX, markerY);
+    }
+
+    private static SecureTravelRetarget retargetProvenance(
+            SecureTravelEpisode episode, SecureTravelCandidate candidate,
+            JSONObject directive, JSONObject perspective) throws Exception {
+        if (candidate != null) {
+            if (candidate.targetZone != episode.targetZone) {
+                return SecureTravelRetarget.OBJECTIVE_CHANGED;
+            }
+            if (candidate.markerX != episode.markerX
+                    || candidate.markerY != episode.markerY) {
+                return SecureTravelRetarget.MARKER_CHANGED;
+            }
+            return SecureTravelRetarget.UNCLASSIFIED;
+        }
+        if (directive == null || isRejected(directive)
+                || !perspective.getString("strategy").equals(
+                directive.getString("issuer"))) {
+            return SecureTravelRetarget.UNCLASSIFIED;
+        }
+        JSONObject assignment = directive.optJSONObject("assignment");
+        if (assignment == null) return SecureTravelRetarget.UNCLASSIFIED;
+        if (!"SECURE_COMPOUND".equals(assignment.getString("kind"))) {
+            return SecureTravelRetarget.ASSIGNMENT_CHANGED;
+        }
+        return assignment.getInt("targetZoneId") != episode.targetZone
+                ? SecureTravelRetarget.OBJECTIVE_CHANGED
+                : SecureTravelRetarget.UNCLASSIFIED;
     }
 
     private static boolean assignmentRetargets(
@@ -1526,6 +1624,24 @@ public final class CommandTraceAnalyzer {
         return Collections.unmodifiableMap(ordered);
     }
 
+    private static List<Integer> sortedCopy(List<Integer> values) {
+        List<Integer> sorted = new ArrayList<>(values);
+        Collections.sort(sorted);
+        return List.copyOf(sorted);
+    }
+
+    private static void appendIntList(StringBuilder out, String name,
+                                      List<Integer> values) {
+        out.append(',');
+        string(out, name);
+        out.append(':').append('[');
+        for (int i = 0; i < values.size(); i++) {
+            if (i > 0) out.append(',');
+            out.append(values.get(i));
+        }
+        out.append(']');
+    }
+
     private static void appendFactionInts(
             StringBuilder out, Map<Faction, Integer> values) {
         boolean first = true;
@@ -1621,19 +1737,45 @@ public final class CommandTraceAnalyzer {
         TERMINAL
     }
 
-    private record SecureTravelCandidate(String key, int targetZone) { }
+    private enum SecureTravelRetarget {
+        OBJECTIVE_CHANGED,
+        MARKER_CHANGED,
+        ASSIGNMENT_CHANGED,
+        UNCLASSIFIED
+    }
+
+    private enum SecureTravelLossContext {
+        LOCAL_CONTACT,
+        TRACK_BELIEF_ONLY,
+        NO_PUBLISHED_CONTACT,
+        UNKNOWN_TRACK
+    }
+
+    private record SecureTravelCandidate(
+            String key, int targetZone, int markerX, int markerY) { }
 
     private static final class SecureTravelEpisode {
         final String key;
         final int targetZone;
+        final int markerX;
+        final int markerY;
+        final double initialDistance;
+        double lastDistance;
         boolean localContact;
         boolean activePath;
         boolean quietTravel;
         boolean finished;
+        SecureTravelLossContext lastLossContext =
+                SecureTravelLossContext.UNKNOWN_TRACK;
 
-        private SecureTravelEpisode(String key, int targetZone) {
-            this.key = key;
-            this.targetZone = targetZone;
+        private SecureTravelEpisode(SecureTravelCandidate candidate,
+                                    JSONObject state) {
+            this.key = candidate.key;
+            this.targetZone = candidate.targetZone;
+            this.markerX = candidate.markerX;
+            this.markerY = candidate.markerY;
+            this.initialDistance = distanceToMarker(state, markerX, markerY);
+            this.lastDistance = initialDistance;
         }
     }
 
@@ -1650,13 +1792,26 @@ public final class CommandTraceAnalyzer {
         int withContact;
         int withActivePath;
         int withQuietTravel;
+        int lossLocationsObserved;
+        int lossLocationsUnknown;
+        int lossAtLocalContact;
+        int lossWithTrackBeliefOnly;
+        int lossWithoutPublishedContact;
+        int lossWithUnknownTrack;
+        final List<Integer> lossDistances = new ArrayList<>();
+        final List<Integer> lossProgress = new ArrayList<>();
 
         void start() {
             started++;
         }
 
         void observeContext(SecureTravelEpisode episode, JSONObject state,
+                            JSONObject action, JSONObject perspective,
                             int schemaVersion) {
+            double distance = distanceToMarker(state, episode.markerX,
+                    episode.markerY);
+            if (Double.isFinite(distance)) episode.lastDistance = distance;
+            episode.lastLossContext = lossContext(state, action, perspective);
             if (!episode.localContact
                     && state.optBoolean("localContact", false)) {
                 episode.localContact = true;
@@ -1689,11 +1844,94 @@ public final class CommandTraceAnalyzer {
             }
         }
 
+        void finishRetarget(SecureTravelEpisode episode,
+                            SecureTravelRetarget provenance) {
+            finish(episode, SecureTravelExit.RETARGETED);
+            switch (provenance) {
+                case OBJECTIVE_CHANGED -> retargetObjectiveChanged++;
+                case MARKER_CHANGED -> retargetMarkerChanged++;
+                case ASSIGNMENT_CHANGED -> retargetAssignmentChanged++;
+                case UNCLASSIFIED -> retargetUnclassified++;
+            }
+        }
+
+        int retargetObjectiveChanged;
+        int retargetMarkerChanged;
+        int retargetAssignmentChanged;
+        int retargetUnclassified;
+
+        void finishLoss(SecureTravelEpisode episode) {
+            finish(episode, SecureTravelExit.SQUAD_LOST);
+            if (Double.isFinite(episode.initialDistance)
+                    && Double.isFinite(episode.lastDistance)) {
+                lossLocationsObserved++;
+                lossDistances.add((int) Math.round(
+                        episode.lastDistance * 10d));
+                int progress = episode.initialDistance <= 0.0001d
+                        ? 10_000
+                        : (int) Math.round(10_000d
+                        * (episode.initialDistance - episode.lastDistance)
+                        / episode.initialDistance);
+                lossProgress.add(Math.max(0, Math.min(10_000, progress)));
+            } else {
+                lossLocationsUnknown++;
+            }
+            switch (episode.lastLossContext) {
+                case LOCAL_CONTACT -> lossAtLocalContact++;
+                case TRACK_BELIEF_ONLY -> lossWithTrackBeliefOnly++;
+                case NO_PUBLISHED_CONTACT -> lossWithoutPublishedContact++;
+                case UNKNOWN_TRACK -> lossWithUnknownTrack++;
+            }
+        }
+
         SecureTravelMetrics result() {
             return new SecureTravelMetrics(started, targetEntry, retarget,
+                    retargetObjectiveChanged, retargetMarkerChanged,
+                    retargetAssignmentChanged, retargetUnclassified,
                     release, squadLoss, suspension, observationGap, timeout,
-                    terminal, withContact, withActivePath, withQuietTravel);
+                    terminal, withContact, withActivePath, withQuietTravel,
+                    lossLocationsObserved, lossLocationsUnknown,
+                    lossAtLocalContact, lossWithTrackBeliefOnly,
+                    lossWithoutPublishedContact, lossWithUnknownTrack,
+                    lossDistances, lossProgress);
         }
+    }
+
+    private static double distanceToMarker(JSONObject state, int markerX,
+                                           int markerY) {
+        double x = state.optDouble("centroidX", Double.NaN);
+        double y = state.optDouble("centroidY", Double.NaN);
+        if (!Double.isFinite(x) || !Double.isFinite(y)) return Double.NaN;
+        double dx = x - (markerX + 0.5);
+        double dy = y - (markerY + 0.5);
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    private static SecureTravelLossContext lossContext(
+            JSONObject state, JSONObject action, JSONObject perspective) {
+        if (state.optBoolean("localContact", false)) {
+            return SecureTravelLossContext.LOCAL_CONTACT;
+        }
+        if (action == null) return SecureTravelLossContext.UNKNOWN_TRACK;
+        int effectiveTrack = action.optInt("effectiveTrack", -1);
+        JSONObject conquest = perspective.optJSONObject("conquest");
+        JSONArray tracks = conquest != null
+                ? conquest.optJSONArray("tracks") : null;
+        if (effectiveTrack < 0 || tracks == null) {
+            return SecureTravelLossContext.UNKNOWN_TRACK;
+        }
+        for (int i = 0; i < tracks.length(); i++) {
+            JSONObject track = tracks.optJSONObject(i);
+            if (track == null || track.optInt("index", -1) != effectiveTrack) {
+                continue;
+            }
+            boolean belief = track.optInt("knownHostileContacts", 0) > 0
+                    || track.optDouble("knownHostileFrontProgress", -1d)
+                    >= 0d;
+            return belief ? SecureTravelLossContext.TRACK_BELIEF_ONLY
+                    : SecureTravelLossContext.NO_PUBLISHED_CONTACT;
+        }
+        return SecureTravelLossContext.UNKNOWN_TRACK;
     }
 
     private static final class MovementEpisode {

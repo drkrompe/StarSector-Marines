@@ -171,7 +171,8 @@ public final class IntegralSystemSystem {
                     : null;
             shots.queueProjectile(new Projectile(fromX, fromY, res.endX(), res.endY(),
                     /*hasBoostRamp*/ true, /*arcHeight*/ 0f, shooterFaction,
-                    /*aerialDelivery*/ false, res.flightTime(), onArrival, weapon.id));
+                    /*aerialDelivery*/ false, res.flightTime(), onArrival, weapon.id,
+                    weapon.pointDefenseTarget));
             shots.postShot(ShotEvent.primary(fromX, fromY, 0f,
                     res.endX(), res.endY(), res.endZ(), res.hitIntended(), shooterFaction,
                     Math.max(res.flightTime(), 0.05f), weapon, 1f,

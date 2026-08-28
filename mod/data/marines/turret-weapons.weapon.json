@@ -242,6 +242,38 @@
         ]
       },
       "audio": { "fireSound": "autocannon_fire" }
+    },
+    {
+      "id": "weapon.pd-interceptor",
+      "mount": "turret-mount",
+      "catalog": {
+        "displayName": "Interceptor Cluster",
+        "modelName": "Palisade",
+        "designation": "PDI",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 9.0,
+        "damage": 0.0,
+        "accuracy": 0.78,
+        "cooldown": 0.45,
+        "penetration": 0.0,
+        "aoeRadius": 0.0
+      },
+      "render": {
+        "tracerColor": "9FE8FF"
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.34, "lifetime": 0.06, "color": "9FE8FF" },
+          { "kind": "fire", "radius": 0.14, "lifetime": 0.09 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.46, "lifetime": 0.16, "color": "BFF2FF" },
+          { "kind": "smoke", "radius": 0.28, "lifetime": 0.55 }
+        ]
+      },
+      "audio": { "fireSound": "flak_fire" }
     }
   ]
 }
