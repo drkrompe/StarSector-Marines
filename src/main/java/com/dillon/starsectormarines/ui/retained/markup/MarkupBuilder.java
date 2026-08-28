@@ -41,6 +41,7 @@ final class MarkupBuilder {
             case "button" -> UiTag.BUTTON;
             case "input" -> UiTag.INPUT;
             case "canvas" -> UiTag.CANVAS;
+            case "img" -> UiTag.IMAGE;
             default -> throw error(frame, source, "Unknown built-in element <" + source.tagName() + ">.");
         };
 
@@ -73,7 +74,7 @@ final class MarkupBuilder {
                 }
                 result.child(element((MarkupElement) child, frame));
             }
-        } else if (tag != UiTag.INPUT) {
+        } else if (tag != UiTag.INPUT && tag != UiTag.IMAGE) {
             bindText(result, source.children(), frame);
         }
         return result;
@@ -114,6 +115,15 @@ final class MarkupBuilder {
                 case "oninput" -> {
                     requireTag(tag, UiTag.INPUT, attribute, frame);
                     target.onInput(inputHandler(attribute, frame));
+                }
+                case "src" -> {
+                    requireTag(tag, UiTag.IMAGE, attribute, frame);
+                    if (attribute.isExpression()) {
+                        reactor.bind(() -> target.imageSource(
+                                attribute.expression().asAttribute(frame.scope(), frame.fileName())));
+                    } else {
+                        target.imageSource(attribute.value());
+                    }
                 }
                 case "width", "height" -> {
                     requireTag(tag, UiTag.CANVAS, attribute, frame);

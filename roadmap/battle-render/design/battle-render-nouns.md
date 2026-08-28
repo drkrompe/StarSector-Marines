@@ -69,7 +69,10 @@ of either adjacent floor cell. The collector reads the live canonical barrier
 list, culls against either neighboring cell, and emits frame and pane geometry
 over the shared boundary after the floor/wall pass. Destruction removes that
 same identity, so the next collected frame contains neither pane nor a stale
-presentation-side tombstone.
+presentation-side tombstone. Their presentation is a thin seam centered on the
+edge; it must not expand into a partial-cell facade. Wall-cell windows remain a
+separate, visibly thicker aperture treatment for structures whose facade owns
+the cell.
 
 ## Standing laws
 
