@@ -326,6 +326,132 @@ class CommandTraceAnalyzerTest {
         assertEquals(120, presence.longestMarineOnlyPresenceRunTicks());
         assertEquals(3, presence.maximumMarineUnits());
         assertEquals(2_500, presence.maximumCaptureProgressBasisPoints());
+        assertFalse(analysis.conquest().captureZoneCohorts().available(),
+                "schema 5 presence used the old anchor-zone contract");
+    }
+
+    @Test
+    void measuresCaptureZoneCohortStrengthClearanceAndExits()
+            throws Exception {
+        String a = "COMMAND_POST@20,20";
+        String b = "BARRACKS@40,40";
+        String trace = String.join("\n",
+                schemaSevenHeader(),
+                compound(0, a, "COMMAND_POST", "DEFENDER_HELD"),
+                compound(0, b, "BARRACKS", "DEFENDER_HELD"),
+                presenceV7(0, a, 5, "DEFENDER_ONLY", 0, 5, 0),
+                presenceV7(0, b, 8, "DEFENDER_ONLY", 0, 2, 0),
+                presenceV7(10, a, 5, "MIXED", 2, 5, 0),
+                cohortPerspective(12, false),
+                presenceV7(15, b, 8, "MIXED", 1, 2, 0),
+                presenceV7(20, a, 5, "MIXED", 4, 3, 0),
+                cohortPerspective(22, true),
+                presenceV7(25, b, 8, "DEFENDER_ONLY", 0, 2, 0),
+                presenceV7(30, a, 5, "MIXED", 3, 1, 0),
+                cohortPerspective(32, false).replace("\"squadId\":1",
+                        "\"squadId\":2"),
+                presenceV7(40, a, 5, "MARINE_ONLY", 3, 0, 2_500),
+                compound(70, a, "COMMAND_POST", "MARINE_HELD"),
+                presenceV7(70, a, 5, "EMPTY", 0, 0, 0),
+                timeout(100), "");
+
+        var cohorts = CommandTraceAnalyzer.analyze(trace).conquest()
+                .captureZoneCohorts();
+
+        assertTrue(cohorts.available());
+        assertEquals(2, cohorts.observed());
+        assertEquals(2, cohorts.entriesObserved());
+        assertEquals(0, cohorts.leftCensored());
+        assertEquals(2, cohorts.finalized());
+        assertEquals(0, cohorts.open());
+        assertEquals(1, cohorts.capturedExits());
+        assertEquals(1, cohorts.defenderPresentExits());
+        assertEquals(0, cohorts.emptyExits());
+        assertEquals(1, cohorts.uncontestedObserved());
+        assertEquals(1, cohorts.withZoneMemberAdditions());
+        assertEquals(1, cohorts.withDefenderReduction());
+        assertEquals(List.of(1, 2), cohorts.entryMarineUnits());
+        assertEquals(List.of(1, 4), cohorts.peakMarineUnits());
+        assertEquals(List.of(0, 2), cohorts.zoneMemberAdditions());
+        assertEquals(List.of(0, 5),
+                cohorts.defenderUnitsClearedFromEntry());
+        assertEquals(List.of(30), cohorts.entryToUncontestedTicks());
+        assertEquals(List.of(60), cohorts.entryToCaptureTicks());
+        assertEquals(List.of(10, 30), cohorts.observedMixedTicks());
+        assertEquals(30, cohorts.longestMixedRunTicks());
+        var published = cohorts.publishedSquads();
+        assertEquals(1, published.observedCohorts());
+        assertEquals(1, published.unobservedCohorts());
+        assertEquals(4, published.inZoneSquadPulses());
+        assertEquals(1, published.cohortsWithMultipleSquads());
+        assertEquals(1, published.cohortsWithAddedSquads());
+        assertEquals(List.of(1), published.firstInZoneSquads());
+        assertEquals(List.of(2), published.peakInZoneSquads());
+        assertEquals(List.of(2), published.firstInZoneMembers());
+        assertEquals(List.of(6), published.peakInZoneMembers());
+        assertEquals(List.of(2), published.firstAssignedAliveMembers());
+        assertEquals(List.of(6), published.peakAssignedAliveMembers());
+    }
+
+    @Test
+    void captureFollowedByContinuousMarineRecaptureStartsAnotherCohort()
+            throws Exception {
+        String subject = "COMMAND_POST@20,20";
+        String trace = String.join("\n",
+                schemaSevenHeader(),
+                compound(0, subject, "COMMAND_POST", "DEFENDER_HELD"),
+                presenceV7(0, subject, 5, "DEFENDER_ONLY", 0, 2, 0),
+                presenceV7(10, subject, 5, "MIXED", 2, 2, 0),
+                presenceV7(20, subject, 5, "MARINE_ONLY", 2, 0, 2_500),
+                compound(30, subject, "COMMAND_POST", "MARINE_HELD"),
+                compound(40, subject, "COMMAND_POST", "CONTESTED"),
+                presenceV7(40, subject, 5, "MIXED", 2, 1, 0),
+                timeout(60), "");
+
+        var cohorts = CommandTraceAnalyzer.analyze(trace).conquest()
+                .captureZoneCohorts();
+
+        assertEquals(2, cohorts.observed());
+        assertEquals(1, cohorts.entriesObserved());
+        assertEquals(1, cohorts.leftCensored());
+        assertEquals(1, cohorts.capturedExits());
+        assertEquals(1, cohorts.timeoutExits());
+        assertEquals(1, cohorts.uncontestedObserved(),
+                "the mixed recapture baseline must not invent clearance");
+    }
+
+    @Test
+    void captureZoneCohortsCensorGapsTopologyChangesAndIncompleteRows()
+            throws Exception {
+        String subject = "COMMAND_POST@20,20";
+        String trace = String.join("\n",
+                schemaSevenHeader(),
+                compound(0, subject, "COMMAND_POST", "DEFENDER_HELD"),
+                presenceV7(0, subject, 5, "MIXED", 2, 2, 0),
+                presenceV7(50, subject, 5, "MIXED", 3, 2, 0),
+                "{\"stream\":\"control\",\"tick\":100,"
+                        + "\"event\":\"capture-paused\"}",
+                "{\"stream\":\"control\",\"tick\":200,"
+                        + "\"event\":\"capture-resumed\"}",
+                compound(200, subject, "COMMAND_POST", "CONTESTED"),
+                presenceV7(200, subject, 6, "MIXED", 3, 2, 0),
+                presenceV7(250, subject, 7, "MIXED", 4, 1, 0), "");
+
+        var cohorts = CommandTraceAnalyzer.analyze(trace).conquest()
+                .captureZoneCohorts();
+
+        assertEquals(3, cohorts.observed());
+        assertEquals(0, cohorts.entriesObserved());
+        assertEquals(3, cohorts.leftCensored());
+        assertEquals(2, cohorts.finalized());
+        assertEquals(1, cohorts.open());
+        assertEquals(1, cohorts.observationGapExits());
+        assertEquals(1, cohorts.zoneChangedExits());
+        assertEquals(1, cohorts.withZoneMemberAdditions());
+        assertEquals(List.of(0, 0, 1), cohorts.zoneMemberAdditions());
+        assertEquals(List.of(3, 3, 4), cohorts.peakMarineUnits());
+        assertEquals(List.of(0, 50, 100), cohorts.observedMixedTicks());
+        assertEquals(100, cohorts.longestMixedRunTicks());
     }
 
     @Test
@@ -1022,6 +1148,50 @@ class CommandTraceAnalyzerTest {
                 + ",\"occupancy\":\"" + occupancy + "\",\"marineUnits\":"
                 + marines + ",\"defenderUnits\":" + defenders
                 + ",\"captureProgressBasisPoints\":" + progress + '}';
+    }
+
+    private static String presenceV7(int tick, String subject, int zoneId,
+                                     String occupancy, int marines,
+                                     int defenders, int progress) {
+        return "{\"stream\":\"referee\",\"tick\":" + tick
+                + ",\"event\":\"compound-presence\",\"subject\":\""
+                + subject + "\",\"compoundKind\":\"COMMAND_POST\""
+                + ",\"anchorX\":20,\"anchorY\":20"
+                + ",\"captureCellX\":20,\"captureCellY\":20"
+                + ",\"captureZoneId\":" + zoneId
+                + ",\"occupancy\":\"" + occupancy + "\",\"marineUnits\":"
+                + marines + ",\"defenderUnits\":" + defenders
+                + ",\"captureProgressBasisPoints\":" + progress + '}';
+    }
+
+    private static String cohortPerspective(int tick, boolean includeSecond) {
+        String secondState = includeSecond
+                ? ",{\"squadId\":2,\"aliveMembers\":4,\"centroidX\":20.5,"
+                + "\"centroidY\":20.5,\"currentZoneId\":5,"
+                + "\"executionSuspension\":null,\"localContact\":true,"
+                + "\"activePathMembers\":0,\"membersInTargetZone\":4}"
+                : "";
+        String secondAction = includeSecond
+                ? "," + secureAction("COMPOUND_CAPTURE_PRESERVED", 5, 20, 20)
+                .replace("\"squadId\":1", "\"squadId\":2")
+                : "";
+        return "{\"stream\":\"perspective\",\"tick\":" + tick
+                + ",\"observedTick\":" + tick
+                + ",\"perspective\":\"MARINE\",\"strategy\":\"conquest\""
+                + ",\"phase\":\"LANE_ADVANCE\",\"influenceTick\":" + tick
+                + ",\"commandPoolSize\":2,\"reserveCount\":0"
+                + ",\"objectives\":[],\"directives\":[]"
+                + ",\"conquest\":{\"axis\":\"SOUTH_TO_NORTH\""
+                + ",\"phase\":\"LANE_ADVANCE\",\"remainingCompounds\":1"
+                + ",\"keepZoneId\":5,\"keepState\":\"DEFENDER_HELD\""
+                + ",\"tracks\":[],\"squads\":[{\"squadId\":1,"
+                + "\"aliveMembers\":2,\"centroidX\":20.5,"
+                + "\"centroidY\":20.5,\"currentZoneId\":5,"
+                + "\"executionSuspension\":null,\"localContact\":true,"
+                + "\"activePathMembers\":0,\"membersInTargetZone\":2}"
+                + secondState + "],\"actions\":["
+                + secureAction("COMPOUND_CAPTURE_PRESERVED", 5, 20, 20)
+                + secondAction + "]}}";
     }
 
     private static String directive(String status, int issuedTick,

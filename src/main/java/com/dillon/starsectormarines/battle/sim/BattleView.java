@@ -108,6 +108,16 @@ public interface BattleView {
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. */
     byte[] getOccupancyMap();
 
+    /**
+     * Occupancy-aware route to a cell many movers are heading for, served off
+     * the shared reverse field for that goal. Only valid inside the frozen
+     * unit-update snapshot; outside it the implementation falls back to A*.
+     * Gate the choice on {@code SharedGoalPolicy.usesSharedGoalFields} rather
+     * than calling this unconditionally — a field only pays for itself once a
+     * battle is dense enough to reuse it.
+     */
+    int[] findSharedPathToGoal(int startX, int startY, int goalX, int goalY);
+
     /** The entity id that {@code u} is currently targeting, or {@code 0L} if none. */
     long targetOf(long u);
 

@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
+import com.dillon.starsectormarines.marine.CrossingUnderFireSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.IntegralSystemEffect;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
@@ -297,7 +298,8 @@ public final class TtkHarness {
         return new IntegralSystemDef("system.ttk-screen", "Measured screen", EquipmentGrade.SERVICE,
                 "Held up for the whole measurement.", IntegralSystemEffect.BREACHER_ASSIST,
                 SpecialResourceMode.COOLDOWN, 1f, 2f, 0,
-                new BreacherAssistSpec(1.01f, screen.fraction(), screen.arcDegrees()), null);
+                new BreacherAssistSpec(1.01f, screen.fraction(), screen.arcDegrees()), null,
+                new CrossingUnderFireSpec(12f));
     }
 
     /** Per-trial counters; a class rather than locals so the impact sink lambda can write to them. */
