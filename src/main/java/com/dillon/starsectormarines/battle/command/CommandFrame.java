@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -51,13 +52,21 @@ public class CommandFrame {
             int anchorY = anchor != 0L ? sim.world().cellY(anchor) : -1;
             UnitRole role = memberCount > 0
                     ? sim.role().role(sim.squadMemberAt(squad.id, 0)) : null;
+            int activePathMembers = 0;
+            for (int memberIndex = 0; memberIndex < memberCount; memberIndex++) {
+                long member = sim.squadMemberAt(squad.id, memberIndex);
+                if (sim.world().pathIdx(member)
+                        < Paths.cellCount(sim.world().path(member))) {
+                    activePathMembers++;
+                }
+            }
             rows.add(new CommandSquadState(squad.id, squad.faction,
                     squad.aliveMembers, squad.centroidX, squad.centroidY,
                     anchorX, anchorY, ZoneQueries.squadCurrentZone(squad, sim),
                     role, WorldStateBuilder.hasActionableContact(squad, sim),
                     squad.assignmentExecutionSuspension(),
                     CommandFrameCopies.assignment(squad.assignedObjective),
-                    ownAssignments.directiveFor(squad.id)));
+                    ownAssignments.directiveFor(squad.id), activePathMembers));
         }
         rows.sort(Comparator.comparingInt(CommandSquadState::squadId));
         return new CommandFrame(sim.getSimTickIndex(), perspective, rows,

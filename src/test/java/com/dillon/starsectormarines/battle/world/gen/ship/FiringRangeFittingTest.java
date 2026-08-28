@@ -3,7 +3,10 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
+import com.dillon.starsectormarines.battle.world.gen.fit.Hookup;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
@@ -128,7 +131,7 @@ class FiringRangeFittingTest {
             for (DeckGraph.Compartment range : rooms(deck.graph(), RoomPurpose.FIRING_RANGE)) {
                 assertTrue(!range.doors().isEmpty(),
                         "seed " + seed + ": range " + range.id() + " cannot be entered");
-                for (DeckGraph.Compartment.Door door : range.doors()) {
+                for (Doorway door : range.doors()) {
                     int[] cell = range.pose().unmap(door.x() - range.left(), door.y() - range.top(),
                             canonical.width(), canonical.height());
                     assertTrue(authored.contains(key(cell[0], cell[1])),

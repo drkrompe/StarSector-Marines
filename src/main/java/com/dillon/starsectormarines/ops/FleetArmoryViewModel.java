@@ -530,13 +530,15 @@ public final class FleetArmoryViewModel {
             String id = "armor-comparison:" + armor.id();
             cards.add(new ArmorComparisonCard(
                     id, id + ":header", id + ":name", id + ":tier", id + ":class",
-                    id + ":stats", id + ":system", id + ":description",
+                    id + ":stats", id + ":system-row", id + ":system-icon", id + ":system",
+                    id + ":description",
                     "comparison-card",
                     armor.displayName(),
                     "TIER " + tierMark(armor.tier()),
                     titleCase(armor.unitClass()),
                     armorComparisonStats(id, armor),
                     IntegralSystemCopy.tile(armor),
+                    IntegralSystemCopy.iconPath(armor),
                     comparisonSystemClasses(armor),
                     armor.description()));
         }
@@ -1272,16 +1274,18 @@ public final class FleetArmoryViewModel {
     /**
      * One pattern's row in the side-by-side comparison surface: role/class,
      * tier, protection and mobility meters, its integral system if it carries
-     * one, and the provenance copy authored on the catalog entry. See
+     * one — named, quantified, and shown with its family icon — and the
+     * provenance copy authored on the catalog entry. See
      * {@code powered-assault-armor-roles.md}'s comparison-presentation
      * acceptance and {@code progression-nouns.md}'s presentation law: this
      * reads existing catalog and simulation data, never selects or mutates it.
      */
     public record ArmorComparisonCard(
             String id, String headerId, String nameId, String tierId, String classId,
-            String statsId, String systemId, String descriptionId, String classes,
+            String statsId, String systemRowId, String systemIconId, String systemId,
+            String descriptionId, String classes,
             String name, String tier, String unitClass, List<StatMeter> stats,
-            String system, String systemClasses, String description)
+            String system, String systemIcon, String systemClasses, String description)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -1292,6 +1296,8 @@ public final class FleetArmoryViewModel {
                 case "tierId" -> tierId;
                 case "classId" -> classId;
                 case "statsId" -> statsId;
+                case "systemRowId" -> systemRowId;
+                case "systemIconId" -> systemIconId;
                 case "systemId" -> systemId;
                 case "descriptionId" -> descriptionId;
                 case "classes" -> classes;
@@ -1300,6 +1306,7 @@ public final class FleetArmoryViewModel {
                 case "unitClass" -> unitClass;
                 case "stats" -> stats;
                 case "system" -> system;
+                case "systemIcon" -> systemIcon;
                 case "systemClasses" -> systemClasses;
                 case "description" -> description;
                 default -> throw new IllegalArgumentException(

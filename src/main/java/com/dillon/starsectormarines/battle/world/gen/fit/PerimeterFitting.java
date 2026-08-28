@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.world.gen.ship.fit;
+package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -31,13 +31,13 @@ public final class PerimeterFitting implements RoomFitting {
     }
 
     @Override
-    public void fit(CompartmentFloor floor) {
+    public void fit(RoomFloor floor) {
         // Everything that is not the wall band is lane, so nothing later can
         // encroach on the clearance this room exists to keep.
         int band = group.depth();
         floor.reserveLane(band, band,
                 Math.max(0, floor.width() - 2 * band), Math.max(0, floor.height() - 2 * band));
-        for (DeckGraph.Compartment.Door door : floor.localDoors()) {
+        for (Doorway door : floor.localDoors()) {
             floor.reserveLane(door.x() - 1, door.y() - 1, 3, 3);
         }
 
@@ -52,7 +52,7 @@ public final class PerimeterFitting implements RoomFitting {
         }
     }
 
-    private void place(CompartmentFloor floor, int x, int y) {
+    private void place(RoomFloor floor, int x, int y) {
         if (!floor.place(group.anchor(), x, y)) return;
         for (AisleFitting.FixtureGroup.Satellite satellite : group.satellites()) {
             floor.place(satellite.id(), x + satellite.along(), y + satellite.across());

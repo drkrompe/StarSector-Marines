@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.Analysis;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.ConquestMetrics;
+import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.CommandInactivityMetrics;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.FactionMetrics;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.RunMetrics;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.Termination;
@@ -71,7 +72,7 @@ class ConquestCommandBalanceReportTest {
                 + "0123456789abcdef0123456789abcdef";
         ConquestCommandBalanceTest.ReportRow row =
                 new ConquestCommandBalanceTest.ReportRow(
-                        "fixture", sha, fixture, analysis);
+                        "fixture", sha, fixture, 204, 17, analysis);
 
         String json = ConquestCommandBalanceTest.summaryJson(
                 List.of(row), 600, false);
@@ -79,13 +80,23 @@ class ConquestCommandBalanceReportTest {
                 List.of(row), 600, false);
 
         assertTrue(json.contains("\"schedulerMode\":\"SERIAL_DETERMINISTIC\""));
+        assertTrue(json.contains("\"schemaVersion\":3"));
         assertTrue(json.contains("\"maxTicks\":600"));
         assertTrue(json.contains("\"repeatCount\":2"));
         assertTrue(json.contains("\"canonicalMatrix\":false"));
         assertTrue(json.contains("\"fixtureSha256\":\"" + sha + "\""));
+        assertTrue(json.contains("\"transportSeatCapacity\":112"));
+        assertTrue(json.contains("\"marineCommitments\":204"));
+        assertTrue(json.contains("\"marineSquads\":17"));
+        assertTrue(json.contains("\"commandInactivity\":{"
+                + "\"lifecycleSquadPulses\":1"));
+        assertTrue(json.contains("\"genuineIdleSquadTicks\":300"));
         assertTrue(markdown.contains("Evidence mode: ad hoc override"));
+        assertTrue(markdown.contains("production launch fixtures"));
         assertTrue(markdown.contains("mobilization latencies: [75, 150]"));
         assertTrue(markdown.contains("Marine physical progress:"));
+        assertTrue(markdown.contains("useful active-path movement 3 / 225"));
+        assertTrue(markdown.contains("genuine idle 4 / 300"));
         assertTrue(markdown.contains("peak live members"));
         assertTrue(markdown.contains("Capture-zone presence:"));
         assertTrue(markdown.contains("territorial progress: OBSERVED"));
@@ -118,6 +129,9 @@ class ConquestCommandBalanceReportTest {
 
     private static FactionMetrics factionMetrics(List<Integer> latencies) {
         return new FactionMetrics(3, 1, 0, 0, 0, 2,
-                0, 0, 0, 0, 75L, latencies, 0, 6_000);
+                15, 1_125, 0, 15, 0, 75L, latencies, 0, 6_000,
+                null, new CommandInactivityMetrics(
+                1, 75, 2, 150, 3, 225, 3, 225,
+                4, 300, 2, 150));
     }
 }

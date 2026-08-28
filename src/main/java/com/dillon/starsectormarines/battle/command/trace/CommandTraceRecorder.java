@@ -38,6 +38,9 @@ import java.util.Map;
  */
 public final class CommandTraceRecorder {
 
+    private static final double CANONICAL_FLOAT_SCALE = 10_000d;
+    private static final double CANONICAL_POSITION_SCALE = 10d;
+
     private final Map<Faction, Integer> lastPerspectiveTick =
             new EnumMap<>(Faction.class);
     private final Map<String, String> lastCompoundState = new HashMap<>();
@@ -57,7 +60,7 @@ public final class CommandTraceRecorder {
     public CommandTraceRecorder(String fixtureKind, String schedulerMode,
                                 int startTick) {
         StringBuilder header = begin("run", startTick);
-        numberField(header, "schemaVersion", 4);
+        numberField(header, "schemaVersion", 6);
         nullableField(header, "fixtureKind", fixtureKind);
         field(header, "schedulerMode", schedulerMode);
         appendLine(end(header));
@@ -509,11 +512,12 @@ public final class CommandTraceRecorder {
         out.append('{');
         rawNumberField(out, "squadId", squad.squadId());
         numberField(out, "aliveMembers", squad.aliveMembers());
-        floatField(out, "centroidX", squad.centroidX());
-        floatField(out, "centroidY", squad.centroidY());
+        positionField(out, "centroidX", squad.centroidX());
+        positionField(out, "centroidY", squad.centroidY());
         numberField(out, "currentZoneId", squad.currentZoneId());
         nullableField(out, "executionSuspension", squad.executionSuspension());
         booleanField(out, "localContact", squad.localContact());
+        numberField(out, "activePathMembers", squad.activePathMembers());
         out.append('}');
     }
 
@@ -798,8 +802,8 @@ public final class CommandTraceRecorder {
             out.append('{');
             rawNumberField(out, "squadId", squad.squadId());
             numberField(out, "aliveMembers", squad.aliveMembers());
-            floatField(out, "centroidX", squad.centroidX());
-            floatField(out, "centroidY", squad.centroidY());
+            positionField(out, "centroidX", squad.centroidX());
+            positionField(out, "centroidY", squad.centroidY());
             numberField(out, "currentZoneId", squad.currentZoneId());
             nullableField(out, "executionSuspension",
                     squad.executionSuspension());
@@ -898,8 +902,8 @@ public final class CommandTraceRecorder {
             out.append('{');
             rawNumberField(out, "squadId", squad.squadId());
             numberField(out, "aliveMembers", squad.aliveMembers());
-            floatField(out, "centroidX", squad.centroidX());
-            floatField(out, "centroidY", squad.centroidY());
+            positionField(out, "centroidX", squad.centroidX());
+            positionField(out, "centroidY", squad.centroidY());
             numberField(out, "currentZoneId", squad.currentZoneId());
             nullableField(out, "executionSuspension",
                     squad.executionSuspension());
@@ -1086,9 +1090,24 @@ public final class CommandTraceRecorder {
     }
 
     private static void floatField(StringBuilder out, String name, float value) {
+        canonicalFloatField(out, name, value, CANONICAL_FLOAT_SCALE);
+    }
+
+    private static void positionField(StringBuilder out, String name,
+                                      float value) {
+        canonicalFloatField(out, name, value, CANONICAL_POSITION_SCALE);
+    }
+
+    private static void canonicalFloatField(StringBuilder out, String name,
+                                            float value, double scale) {
         out.append(',');
         name(out, name);
-        out.append(Float.toString(value));
+        // Trace floats are evidence, not simulation state. Canonicalize scalar
+        // metrics at basis-point precision and physical centroids at a tenth of
+        // a cell so insignificant accumulation drift cannot make otherwise
+        // identical commander evidence byte-different.
+        double canonical = Math.round((double) value * scale) / scale;
+        out.append(Double.toString(canonical));
     }
 
     private static void name(StringBuilder out, String name) {
