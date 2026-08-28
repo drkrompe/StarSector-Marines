@@ -57,5 +57,6 @@ Design: `extraction-command.md`
 | Story | State | Intent |
 |---|---|---|
 | `generic-extraction-corridor-command.md` | IN PROGRESS | Ship and accept stable Marine payload/escort/screen command for generic Extraction. |
+| `generic-extraction-interdiction-command.md` | IN PROGRESS | Ship and accept bounded source-alarm security and belief-driven defender interdiction. |
 | `rescue-corridor-command-picture.md` | DRAFT | Pair Marine corridor command with an honest swarm-pressure director. |
 | `silent-colony-expedition-branches.md` | DRAFT | Stabilize archive and survivor branches before choosing the opposing director shape. |

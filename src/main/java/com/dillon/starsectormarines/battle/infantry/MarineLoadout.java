@@ -27,7 +27,7 @@ public final class MarineLoadout {
     public final String campaignSoldierId;
     public final CampaignSquadTag campaignSquad;
     public final LayeredArmorFamily armorFamily;
-    public final float armorPool;
+    public final float armorCapacity;
     public final float armorRating;
     public final float armorMoveSpeedMult;
     public final float armorIncomingAccuracyMult;
@@ -76,7 +76,7 @@ public final class MarineLoadout {
                          EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
                          String specialEquipmentId, int secondaryAmmo,
                          String campaignSoldierId, LayeredArmorFamily armorFamily,
-                         float armorPool, float armorRating,
+                         float armorCapacity, float armorRating,
                          float armorMoveSpeedMult, float armorIncomingAccuracyMult,
                          CampaignSquadTag campaignSquad) {
         this.campaignSquad = campaignSquad;
@@ -89,7 +89,7 @@ public final class MarineLoadout {
         this.secondaryAmmo = secondaryAmmo;
         this.campaignSoldierId = campaignSoldierId;
         this.armorFamily = armorFamily;
-        this.armorPool = armorPool;
+        this.armorCapacity = armorCapacity;
         this.armorRating = armorRating;
         this.armorMoveSpeedMult = armorMoveSpeedMult;
         this.armorIncomingAccuracyMult = armorIncomingAccuracyMult;
@@ -100,10 +100,10 @@ public final class MarineLoadout {
             UnitRole role, Objective objective, WeaponDef primary,
             EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
             SpecialEquipmentDef special, String campaignSoldierId,
-            LayeredArmorFamily armorFamily, float armorPool, float armorRating,
+            LayeredArmorFamily armorFamily, float armorCapacity, float armorRating,
             float armorMoveSpeedMult, float armorIncomingAccuracyMult) {
         return fromCatalog(role, objective, primary, equipmentGrade, soldierProfile,
-                special, campaignSoldierId, armorFamily, armorPool, armorRating,
+                special, campaignSoldierId, armorFamily, armorCapacity, armorRating,
                 armorMoveSpeedMult, armorIncomingAccuracyMult, null);
     }
 
@@ -111,13 +111,13 @@ public final class MarineLoadout {
             UnitRole role, Objective objective, WeaponDef primary,
             EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
             SpecialEquipmentDef special, String campaignSoldierId,
-            LayeredArmorFamily armorFamily, float armorPool, float armorRating,
+            LayeredArmorFamily armorFamily, float armorCapacity, float armorRating,
             float armorMoveSpeedMult, float armorIncomingAccuracyMult,
             CampaignSquadTag campaignSquad) {
         return new MarineLoadout(role, objective, primary != null ? primary.id : null,
                 equipmentGrade, soldierProfile, special != null ? special.id() : null,
                 special != null ? special.startingAmmo() : 0, campaignSoldierId,
-                armorFamily, armorPool, armorRating, armorMoveSpeedMult,
+                armorFamily, armorCapacity, armorRating, armorMoveSpeedMult,
                 armorIncomingAccuracyMult, campaignSquad);
     }
 
@@ -147,7 +147,7 @@ public final class MarineLoadout {
         marine.campaignSquadId(campaignSquad != null ? campaignSquad.squadId : null);
         if (armorFamily != null) {
             marine.layeredArmorFamily(armorFamily);
-            marine.armor(armorPool, armorRating,
+            marine.armor(armorCapacity, armorRating,
                     armorMoveSpeedMult, armorIncomingAccuracyMult);
         }
     }

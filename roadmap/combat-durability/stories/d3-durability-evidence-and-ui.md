@@ -22,7 +22,7 @@ second simulation authority.
 - Add armor and structure bars to battle presentation plus a bounded armor-
   break cue.
 - Replace Armory and Mech Lab damage-block / anti-armor-multiplier language
-  with armor pool, rating, structure, and penetration.
+  with armor capacity, rating, structure, and penetration.
 - Keep historical career totals readable; new split fields begin at zero when
   loading older saves.
 

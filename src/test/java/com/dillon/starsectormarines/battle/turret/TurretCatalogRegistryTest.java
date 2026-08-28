@@ -170,7 +170,7 @@ class TurretCatalogRegistryTest {
     private static void assertKind(
             StructureDef structure, String displayName,
             float range, float damage, float penetration, float accuracy, float cooldown,
-            float maxStructure, float armorPool, float armorRating,
+            float maxStructure, float armorCapacity, float armorRating,
             float turnRate, float visualCells, float projectileVisualCells, int ammo,
             int burstCount, float burstSpacing, float aoeRadius, int wallDamage,
             float wallDamageRadius, float arcHeight, float flightSec, float hitSpread,
@@ -187,7 +187,7 @@ class TurretCatalogRegistryTest {
         assertEquals(accuracy, weapon.accuracy, EPS);
         assertEquals(cooldown, weapon.cooldown, EPS);
         assertEquals(maxStructure, structure.maxStructure, EPS);
-        assertEquals(armorPool, structure.armorPool, EPS);
+        assertEquals(armorCapacity, structure.armorCapacity, EPS);
         assertEquals(armorRating, structure.armorRating, EPS);
         assertEquals(turnRate, mount.turnRateDegPerSec, EPS);
         assertEquals(visualCells, mount.visualCells, EPS);
@@ -267,7 +267,7 @@ class TurretCatalogRegistryTest {
                   "structures": [{
                     "id": "%s", "mount": "%s",
                     "catalog": { "displayName": "Test" },
-                    "durability": { "structure": 1.0, "armorPool": 1.0, "armorRating": 1.0 },
+                    "durability": { "structure": 1.0, "armorCapacity": 1.0, "armorRating": 1.0 },
                     "physics": { "radius": 0.5, "hitHalfHeight": 0.5,
                                  "footprintCells": [%d, %d] },
                     "forceScore": 1.0

@@ -34,7 +34,7 @@ public enum MechVariant {
     public final String id;
     public final String displayName;
     public final float maxStructure;
-    public final float armorPool;
+    public final float armorCapacity;
     public final float armorRating;
     public final float moveSpeed;
     public final float accuracy;
@@ -50,7 +50,7 @@ public enum MechVariant {
     public final MechRole defaultRole;
 
     MechVariant(String id, String displayName, float maxStructure,
-                float armorPool, float armorRating, float moveSpeed,
+                float armorCapacity, float armorRating, float moveSpeed,
                 float accuracy, float visionRange, float renderScale,
                 float moraleImpact, float radius, float hitHalfHeight,
                 int chassisAppearance, MechWeaponComponent arms,
@@ -59,7 +59,7 @@ public enum MechVariant {
         this.id = id;
         this.displayName = displayName;
         this.maxStructure = maxStructure;
-        this.armorPool = armorPool;
+        this.armorCapacity = armorCapacity;
         this.armorRating = armorRating;
         this.moveSpeed = moveSpeed;
         this.accuracy = accuracy;
@@ -86,7 +86,7 @@ public enum MechVariant {
     public EntitySpec applyTo(EntitySpec spec) {
         spec.mechVariant = this;
         spec.health(maxStructure)
-                .armor(armorPool, armorRating)
+                .armor(armorCapacity, armorRating)
                 .moveSpeed(moveSpeed)
                 .accuracy(accuracy)
                 .attackRange(maxWeaponRange())

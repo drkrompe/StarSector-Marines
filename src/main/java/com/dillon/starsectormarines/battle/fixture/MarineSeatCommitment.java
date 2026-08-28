@@ -20,7 +20,7 @@ public record MarineSeatCommitment(
         SoldierProfile soldierProfile,
         String specialEquipmentId,
         LayeredArmorFamily armorFamily,
-        float armorPool,
+        float armorCapacity,
         float armorRating,
         float armorMoveSpeedMult,
         float armorIncomingAccuracyMult,
@@ -36,7 +36,7 @@ public record MarineSeatCommitment(
         }
         equipmentGrade = Objects.requireNonNull(equipmentGrade, "equipmentGrade");
         soldierProfile = Objects.requireNonNull(soldierProfile, "soldierProfile");
-        requireFiniteNonNegative(armorPool, "armorPool");
+        requireFiniteNonNegative(armorCapacity, "armorCapacity");
         requireFiniteNonNegative(armorRating, "armorRating");
         requireFinitePositive(armorMoveSpeedMult, "armorMoveSpeedMult");
         requireFinitePositive(armorIncomingAccuracyMult,
@@ -80,7 +80,7 @@ public record MarineSeatCommitment(
                 loadout.soldierProfile,
                 specialEquipmentId,
                 loadout.armorFamily,
-                loadout.armorPool,
+                loadout.armorCapacity,
                 loadout.armorRating,
                 loadout.armorMoveSpeedMult,
                 loadout.armorIncomingAccuracyMult,
@@ -111,7 +111,7 @@ public record MarineSeatCommitment(
                         ? SpecialEquipmentRegistry.require(specialEquipmentId) : null,
                 campaignSoldierId,
                 armorFamily,
-                armorPool,
+                armorCapacity,
                 armorRating,
                 armorMoveSpeedMult,
                 armorIncomingAccuracyMult,

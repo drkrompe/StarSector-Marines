@@ -37,7 +37,7 @@ needing an arbitrary bonus against every unit classified as hardened.
 - **Armor break** — the one-time transition from positive armor to no armor.
   It is a simulation event that may drive morale, AI, telemetry, audio, and
   presentation; those consumers do not independently infer the transition.
-- **Durability profile** — the spawn-time structure, armor pool, and armor
+- **Durability profile** — the spawn-time structure, armor capacity, and armor
   rating supplied by the owning platform or issued armor pattern.
 - **Resolved damage** — actual armor and structure removed, each clamped to
   the pool that existed. Requested damage and resisted energy are not credited
@@ -86,7 +86,7 @@ incoming-damage modifiers.
    platform, drone hub, or future vehicle also supplies its chassis durability
    profile.
 2. Progression supplies a deployed marine's chosen armor pattern. The pattern
-   owns armor pool, rating, movement tradeoff, and silhouette/evasion tradeoff;
+   owns armor capacity, rating, movement tradeoff, and silhouette/evasion tradeoff;
    it does not resolve damage.
 3. A weapon definition supplies one or more damage-and-penetration payloads.
    Ballistics decides whether a contact or area payload applies; mounts and
@@ -144,7 +144,7 @@ armor, structure, rating, and penetration presentation.
 
 ## Standing laws
 
-- Structure, armor pool, and armor rating are distinct axes.
+- Structure, armor capacity, and armor rating are distinct axes.
 - Every damage payload keeps damage and penetration as distinct axes.
 - Armor presence and current armor state replace target-type damage bonuses.
 - Consumers use the shared calculation, current pools, and real armor-break

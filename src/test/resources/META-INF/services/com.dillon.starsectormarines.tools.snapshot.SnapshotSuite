@@ -2,3 +2,4 @@ com.dillon.starsectormarines.ops.battleview.ArmorySnapshotSuite
 com.dillon.starsectormarines.ops.TurretSnapshotSuite
 com.dillon.starsectormarines.ops.UiSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckSnapshotSuite
+com.dillon.starsectormarines.ops.battleview.DurabilityBarSnapshotSuite

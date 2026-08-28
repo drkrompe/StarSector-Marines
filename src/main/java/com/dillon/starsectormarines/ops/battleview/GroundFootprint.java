@@ -8,7 +8,7 @@ import java.awt.Color;
  * Emits the single-cell ground pad painted under a map turret or drone hub — a
  * solid {@code ROAD_FILL} quad that visually seats the structure on the road
  * surface. Layer-agnostic emit helper (the caller picks the layer + supplies the
- * cell's screen-space origin), the footprint analog of {@link HpBarDecor}.
+ * cell's screen-space origin), the footprint analog of {@link DurabilityBarDecor}.
  *
  * <p>The pad color is intrinsic to the footprint and identical for every
  * footprint-drawer, so it lives here rather than per-{@link RenderAppearance}
