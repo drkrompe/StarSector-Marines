@@ -461,6 +461,8 @@ public final class SquadStateDumper {
                             ? squadState.executionSuspension() : JSONObject.NULL);
             state.put("localContact", squadState.localContact());
             state.put("activePathMembers", squadState.activePathMembers());
+            state.put("membersInTargetZone",
+                    squadState.membersInTargetZone());
             out.put("squadState", state);
         }
 

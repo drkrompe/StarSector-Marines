@@ -4,9 +4,8 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-28 — promoted representative 17- and 34-squad V3 Conquest
-launch fixtures into the canonical matrix, made commitment shape explicit in
-its reports, and established the first byte-stable full-company baseline.
+Updated: 2026-08-28 — unified Conquest command and capture around the resolved
+capture room and added perspective-safe any-member target-zone evidence.
 
 Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -107,13 +106,15 @@ early terminal results—and may take several minutes. A max-tick or external-
 fixture override is labelled ad hoc in the report; `summary.json` is the full
 machine-readable evidence and `summary.md` is its human overview.
 
-Command-trace schema 6 canonicalizes diagnostic scalar floats to basis-point
+Command-trace schema 7 canonicalizes diagnostic scalar floats to basis-point
 precision and published squad centroids to one tenth of a cell. The simulation
 and commander still consume their unmodified values. This boundary keeps
 sub-cell integration drift from masquerading as a different command decision
 while retaining much finer spatial resolution than any objective zone or
-movement marker requires. Schema 6 also publishes the count of squad members
-with an unexhausted movement path. The offline analyzer applies strict
+movement marker requires. Schema 6 added the count of squad members with an
+unexhausted movement path. Schema 7 adds the authoritative compound capture
+cell/zone and the perspective-safe count of own squad members in their current
+assigned target zone. The offline analyzer applies strict
 lifecycle → suspension → contact → active-path → genuine-idle precedence to
 command-unassigned actions; schema 5 and older rows remain explicitly
 unclassified rather than being reinterpreted without the missing path fact.
@@ -176,6 +177,40 @@ Conquest investigation should instead focus on why secure-compound assignments
 so rarely cross into their exact target zones, using the existing movement,
 contact, suspension, and neutral presence evidence without feeding referee
 occupancy back into command.
+
+## Capture-room authority follow-up
+
+The low target-zone count exposed two implementation gaps and one measurement
+gap. Compound capture resolved the nearest standable cell inside the footprint,
+while command targets, markers, and evidence still used the raw node anchor.
+Multi-room compounds then allowed the hold action to post members outside the
+one room that actually captures. Finally, target arrival sampled only the
+squad leader, so an assault could make real capture progress without recording
+an entry.
+
+The capture-room resolver is now shared authority across capture, both
+Conquest commanders, assignment rebinding, action markers, and trace presence.
+Intermediate room travel remains cautious, but the final room hop commits
+through route contact and subsequent hold posts stay inside the capture room.
+Schema 7 records how many members of the perspective's own squad occupy its
+assigned target zone; exact mixed or hostile occupancy remains neutral referee
+evidence and is not available to command.
+
+Focused coverage and the full unit suite pass. A 6,000-tick reinforced-south
+run reached marine-only capture presence, peaked at seven marines and 7,500
+capture-progress basis points, captured the barracks at tick 2,490, and later
+lost it at tick 5,670. Three Marine command squad-pulses recorded at least one
+member in the assigned target zone, totaling eleven member observations. The
+paired full-strength-west replay completed byte-stably at a shorter 4,000-tick
+diagnostic bound but had not yet reached a compound; two attempted 6,000-tick
+full-strength replays were stopped externally at similar wall time, so that
+partial window is not a balance conclusion.
+
+The next evidence seam is explicit secure-travel episode completion. Finalize
+an episode on target entry, retarget, release, squad loss, execution
+suspension, observation gap, timeout, or terminal result, while retaining
+contact, active path, and quiet travel as orthogonal context. Then rerun the
+representative-duration matrix before changing allocation or tactical tuning.
 
 ## Historical construction-only baselines
 

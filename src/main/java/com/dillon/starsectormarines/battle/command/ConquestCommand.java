@@ -194,13 +194,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private static final float EXTERIOR_DOMINANCE_RATIO = 2.0f;
     /**
      * Per-compound capture targets, built once at init. Each caches the
-     * compound's anchor zone (the {@code SECURE_COMPOUND} push/hold target,
-     * matching where {@code CompoundCaptureSystem} samples occupancy), its
+     * compound's resolved capture room (the {@code SECURE_COMPOUND} push/hold
+     * target matching where {@code CompoundCaptureSystem} samples occupancy), its
      * garrison zones (the AABB-gated rooms used for the contested test), and
      * the size-scaled squad quota. Topology is static after spawn settle, so
      * the garrison-zone set is frozen here; objective state and faction-local
-     * contact evidence refresh each command frame. Compounds whose anchor sits
-     * on a wall cell (rare) are skipped.
+     * contact evidence refresh each command frame.
      */
     private final List<CompoundTarget> compoundTargets = new ArrayList<>();
 
@@ -208,7 +207,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private volatile ConquestFrontSnapshot frontSnapshot;
 
     private record CompoundTarget(CompoundService.CompoundState state,
-                                  TacticalNode node, int anchorZoneId,
+                                  TacticalNode node, int captureCellX,
+                                  int captureCellY, int captureZoneId,
                                   int[] garrisonZones, int desiredSquads) {}
 
     /** Mutable working copy; never exposes or mutates a live {@code Squad}. */
@@ -225,6 +225,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final boolean localContact;
         final String executionSuspension;
         final int activePathMembers;
+        final int[] memberZoneIds;
         final ObjectiveAssignment originalAssignment;
         ObjectiveAssignment assignedObjective;
 
@@ -241,6 +242,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             localContact = state.localContact();
             executionSuspension = state.executionSuspension();
             activePathMembers = state.activePathMembers();
+            memberZoneIds = state.memberZoneIds();
             originalAssignment = state.assignment();
             assignedObjective = state.assignment();
         }
@@ -329,7 +331,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         IntOpenHashSet deferredCaptures = new IntOpenHashSet();
         if (keepConvergence) {
             for (PlanningSquad squad : squads) {
-                if (reachableZone(squad, keep.anchorZoneId, frame)) {
+                if (reachableZone(squad, keep.captureZoneId, frame)) {
                     commitCapture(squad, keep, committed, directives,
                             AssignmentReason.KEEP_APPROACH);
                 } else {
@@ -482,9 +484,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
         for (PlanningSquad squad : squads) {
             ObjectiveAssignment a = squad.assignedObjective;
             if (a == null || a.kind() != AssignmentKind.SECURE_COMPOUND) continue;
-            int idx = targetIndexForAnchorZone(a.targetZoneId());
+            int idx = targetIndexForCaptureZone(a.targetZoneId());
             if (idx < 0 || slots[idx] <= 0) continue;
-            if (!reachableZone(squad, compoundTargets.get(idx).anchorZoneId, frame)) {
+            if (!reachableZone(squad, compoundTargets.get(idx).captureZoneId, frame)) {
                 continue;
             }
             slots[idx]--;
@@ -503,7 +505,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 if (slots[i] <= 0) break;
                 if (committed.contains(squad.id)) continue;
                 if (!squadAdjacentToCompound(squad, t, frame)) continue;
-                if (!reachableZone(squad, t.anchorZoneId, frame)) continue;
+                if (!reachableZone(squad, t.captureZoneId, frame)) continue;
                 commitCapture(squad, t, committed, directives,
                         AssignmentReason.COMPOUND_ASSAULT_ADJACENT);
                 slots[i]--;
@@ -531,7 +533,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 }
                 for (int i = 0; i < n; i++) {
                     if (slots[i] <= 0 || contested[i]) continue;
-                    if (!reachableZone(squad, compoundTargets.get(i).anchorZoneId,
+                    if (!reachableZone(squad, compoundTargets.get(i).captureZoneId,
                             frame)) continue;
                     float d = distSq(squad, compoundTargets.get(i));
                     int actionableRank = actionable ? 1 : 0;
@@ -567,7 +569,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     if (slots[i] <= 0 || contested[i]) continue;
                     CompoundTarget t = compoundTargets.get(i);
                     if (squadAdjacentToCompound(squad, t, frame)) continue;
-                    if (!reachableZone(squad, t.anchorZoneId, frame)) continue;
+                    if (!reachableZone(squad, t.captureZoneId, frame)) continue;
                     deferredCaptures.add(squad.id);
                     break;
                 }
@@ -603,9 +605,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
         ObjectiveAssignment cur = squad.assignedObjective;
         if (cur == null
                 || cur.kind() != AssignmentKind.SECURE_COMPOUND
-                || cur.targetZoneId() != t.anchorZoneId) {
+                || cur.targetZoneId() != t.captureZoneId) {
             squad.assignedObjective = ObjectiveAssignment.secureCompound(
-                    squad.id, t.anchorZoneId, t.node);
+                    squad.id, t.captureZoneId, t.node);
         }
         putCompoundDirective(squad, t, directives, reason);
     }
@@ -633,9 +635,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 && squad.anchorCellY <= t.node.compoundBottom() + 1;
     }
 
-    private int targetIndexForAnchorZone(int anchorZoneId) {
+    private int targetIndexForCaptureZone(int captureZoneId) {
         for (int i = 0; i < compoundTargets.size(); i++) {
-            if (compoundTargets.get(i).anchorZoneId == anchorZoneId) return i;
+            if (compoundTargets.get(i).captureZoneId == captureZoneId) return i;
         }
         return -1;
     }
@@ -692,7 +694,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                                       Map<Integer, SquadDirective> directives,
                                       AssignmentReason reason) {
         int preferred = stripFor(squad);
-        int effective = trackForZone(target.anchorZoneId);
+        int effective = trackForZone(target.captureZoneId);
         directives.put(squad.id, directive(squad, preferred, effective, reason));
     }
 
@@ -709,6 +711,15 @@ public final class ConquestCommand implements ConquestFrontCommand,
             targetCellY = assignment.targetCellY();
             markerCellX = targetCellX;
             markerCellY = targetCellY;
+            if (markerCellX < 0
+                    && assignment.kind() == AssignmentKind.SECURE_COMPOUND) {
+                CompoundTarget target = compoundTarget(
+                        assignment.targetZoneId());
+                if (target != null) {
+                    markerCellX = target.captureCellX;
+                    markerCellY = target.captureCellY;
+                }
+            }
             if (markerCellX < 0 && assignment.targetNode() != null) {
                 markerCellX = assignment.targetNode().anchorX;
                 markerCellY = assignment.targetNode().anchorY;
@@ -823,16 +834,17 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private void refreshCompoundTargets(ConquestCommandFrame frame) {
         compoundTargets.clear();
         for (ConquestCommandFacts.Compound fact : frame.facts().compounds()) {
-            int anchorZone = fact.anchorZoneId();
-            if (anchorZone < 0) continue;
+            int captureZone = fact.captureZoneId();
+            if (captureZone < 0) continue;
             int[] garrisonZones = fact.garrisonZoneIds();
-            if (garrisonZones.length == 0) garrisonZones = new int[]{anchorZone};
+            if (garrisonZones.length == 0) garrisonZones = new int[]{captureZone};
             int desiredSquads = garrisonZones.length >= LARGE_COMPOUND_ROOMS ? 2 : 1;
             compoundTargets.add(new CompoundTarget(fact.state(), fact.node(),
-                    anchorZone, garrisonZones, desiredSquads));
+                    fact.captureCellX(), fact.captureCellY(), captureZone,
+                    garrisonZones, desiredSquads));
         }
         compoundTargets.sort(Comparator
-                .comparingInt((CompoundTarget target) -> target.anchorZoneId)
+                .comparingInt((CompoundTarget target) -> target.captureZoneId)
                 .thenComparingInt(target -> target.node.anchorX)
                 .thenComparingInt(target -> target.node.anchorY));
     }
@@ -1204,23 +1216,34 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
         return new ConquestFrontSnapshot(frame.tick(),
                 influenceTick, axis, phase, remainingCompounds,
-                keep != null ? keep.anchorZoneId : -1,
+                keep != null ? keep.captureZoneId : -1,
                 keep != null ? keep.state : null,
-                tracks, squadStates(allSquads),
+                tracks, squadStates(allSquads, directives),
                 new ArrayList<>(directives.values()));
     }
 
     private static List<ConquestFrontSnapshot.SquadState> squadStates(
-            Map<Integer, PlanningSquad> squads) {
+            Map<Integer, PlanningSquad> squads,
+            Map<Integer, SquadDirective> directives) {
         List<ConquestFrontSnapshot.SquadState> states = new ArrayList<>(squads.size());
         for (PlanningSquad squad : squads.values()) {
+            SquadDirective directive = directives.get(squad.id);
+            int targetZone = directive != null ? directive.targetZoneId() : -1;
             states.add(new ConquestFrontSnapshot.SquadState(
                     squad.id, squad.aliveMembers, squad.centroidX,
                     squad.centroidY, squad.currentZoneId,
                     squad.executionSuspension, squad.localContact,
-                    squad.activePathMembers));
+                    squad.activePathMembers,
+                    membersInZone(squad.memberZoneIds, targetZone)));
         }
         return states;
+    }
+
+    private static int membersInZone(int[] memberZoneIds, int targetZone) {
+        if (targetZone < 0) return 0;
+        int count = 0;
+        for (int zoneId : memberZoneIds) if (zoneId == targetZone) count++;
+        return count;
     }
 
     private List<CommandProposal> buildProposals(
@@ -1317,7 +1340,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
     private CompoundTarget compoundTarget(int zoneId) {
         for (CompoundTarget target : compoundTargets) {
-            if (target.anchorZoneId == zoneId) return target;
+            if (target.captureZoneId == zoneId) return target;
         }
         return null;
     }

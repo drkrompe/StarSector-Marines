@@ -1,10 +1,9763 @@
 {
-  "sheet": "art-source/tilesets/Floors_Tiles.raw.png",
-  "sheetName": "Floors_Tiles",
-  "idPrefix": "doodad.floors",
-  "cellPx": 56,
   "alphaMin": 40,
-  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the layout below. 1225x1284 at 25x26. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Most of its cells are ground variants selected by pool membership rather than props, so adopting it means authoring blocks, not doodads.",
+  "blocks": [],
+  "cellPx": 56,
+  "entries": [
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-a",
+      "included": true,
+      "rect": [
+        0,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-b",
+      "included": true,
+      "rect": [
+        49,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-c",
+      "included": true,
+      "rect": [
+        98,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-d",
+      "included": true,
+      "rect": [
+        147,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-e",
+      "included": true,
+      "rect": [
+        196,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-f",
+      "included": true,
+      "rect": [
+        245,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-g",
+      "included": true,
+      "rect": [
+        294,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-h",
+      "included": true,
+      "rect": [
+        343,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-i",
+      "included": true,
+      "rect": [
+        392,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-j",
+      "included": true,
+      "rect": [
+        441,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-k",
+      "included": true,
+      "rect": [
+        490,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-l",
+      "included": true,
+      "rect": [
+        539,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-m",
+      "included": true,
+      "rect": [
+        588,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-n",
+      "included": true,
+      "rect": [
+        637,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-o",
+      "included": true,
+      "rect": [
+        686,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-p",
+      "included": true,
+      "rect": [
+        735,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-q",
+      "included": true,
+      "rect": [
+        784,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-r",
+      "included": true,
+      "rect": [
+        833,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-s",
+      "included": true,
+      "rect": [
+        882,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-t",
+      "included": true,
+      "rect": [
+        931,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-u",
+      "included": true,
+      "rect": [
+        980,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-v",
+      "included": true,
+      "rect": [
+        1029,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-w",
+      "included": true,
+      "rect": [
+        1078,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-x",
+      "included": true,
+      "rect": [
+        1127,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-y",
+      "included": true,
+      "rect": [
+        1176,
+        0,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-z",
+      "included": true,
+      "rect": [
+        0,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-aa",
+      "included": true,
+      "rect": [
+        49,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ab",
+      "included": true,
+      "rect": [
+        98,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ac",
+      "included": true,
+      "rect": [
+        147,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ad",
+      "included": true,
+      "rect": [
+        196,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ae",
+      "included": true,
+      "rect": [
+        245,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-af",
+      "included": true,
+      "rect": [
+        294,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ag",
+      "included": true,
+      "rect": [
+        343,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ah",
+      "included": true,
+      "rect": [
+        392,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ai",
+      "included": true,
+      "rect": [
+        441,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-aj",
+      "included": true,
+      "rect": [
+        490,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ak",
+      "included": true,
+      "rect": [
+        539,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-al",
+      "included": true,
+      "rect": [
+        588,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-am",
+      "included": true,
+      "rect": [
+        637,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-an",
+      "included": true,
+      "rect": [
+        686,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ao",
+      "included": true,
+      "rect": [
+        735,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ap",
+      "included": true,
+      "rect": [
+        784,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-aq",
+      "included": true,
+      "rect": [
+        833,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ar",
+      "included": true,
+      "rect": [
+        882,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-as",
+      "included": true,
+      "rect": [
+        931,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-at",
+      "included": true,
+      "rect": [
+        980,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-au",
+      "included": true,
+      "rect": [
+        1029,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-av",
+      "included": true,
+      "rect": [
+        1078,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-aw",
+      "included": true,
+      "rect": [
+        1127,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ax",
+      "included": true,
+      "rect": [
+        1176,
+        49,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ay",
+      "included": true,
+      "rect": [
+        0,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-az",
+      "included": true,
+      "rect": [
+        49,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ba",
+      "included": true,
+      "rect": [
+        98,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bb",
+      "included": true,
+      "rect": [
+        147,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bc",
+      "included": true,
+      "rect": [
+        196,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bd",
+      "included": true,
+      "rect": [
+        245,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-be",
+      "included": true,
+      "rect": [
+        294,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bf",
+      "included": true,
+      "rect": [
+        343,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bg",
+      "included": true,
+      "rect": [
+        392,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bh",
+      "included": true,
+      "rect": [
+        441,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bi",
+      "included": true,
+      "rect": [
+        490,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bj",
+      "included": true,
+      "rect": [
+        539,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bk",
+      "included": true,
+      "rect": [
+        588,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bl",
+      "included": true,
+      "rect": [
+        637,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bm",
+      "included": true,
+      "rect": [
+        686,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bn",
+      "included": true,
+      "rect": [
+        735,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bo",
+      "included": true,
+      "rect": [
+        784,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bp",
+      "included": true,
+      "rect": [
+        833,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bq",
+      "included": true,
+      "rect": [
+        882,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-br",
+      "included": true,
+      "rect": [
+        931,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bs",
+      "included": true,
+      "rect": [
+        980,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bt",
+      "included": true,
+      "rect": [
+        1029,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bu",
+      "included": true,
+      "rect": [
+        1078,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bv",
+      "included": true,
+      "rect": [
+        1127,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bw",
+      "included": true,
+      "rect": [
+        1176,
+        99,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bx",
+      "included": true,
+      "rect": [
+        0,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-by",
+      "included": true,
+      "rect": [
+        49,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-bz",
+      "included": true,
+      "rect": [
+        98,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ca",
+      "included": true,
+      "rect": [
+        147,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cb",
+      "included": true,
+      "rect": [
+        196,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cc",
+      "included": true,
+      "rect": [
+        245,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cd",
+      "included": true,
+      "rect": [
+        294,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ce",
+      "included": true,
+      "rect": [
+        343,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cf",
+      "included": true,
+      "rect": [
+        392,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cg",
+      "included": true,
+      "rect": [
+        441,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ch",
+      "included": true,
+      "rect": [
+        490,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ci",
+      "included": true,
+      "rect": [
+        539,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cj",
+      "included": true,
+      "rect": [
+        588,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ck",
+      "included": true,
+      "rect": [
+        637,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cl",
+      "included": true,
+      "rect": [
+        686,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cm",
+      "included": true,
+      "rect": [
+        735,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cn",
+      "included": true,
+      "rect": [
+        784,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-co",
+      "included": true,
+      "rect": [
+        833,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cp",
+      "included": true,
+      "rect": [
+        882,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cq",
+      "included": true,
+      "rect": [
+        931,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cr",
+      "included": true,
+      "rect": [
+        980,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cs",
+      "included": true,
+      "rect": [
+        1029,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ct",
+      "included": true,
+      "rect": [
+        1078,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cu",
+      "included": true,
+      "rect": [
+        1127,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cv",
+      "included": true,
+      "rect": [
+        1176,
+        148,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cw",
+      "included": true,
+      "rect": [
+        0,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cx",
+      "included": true,
+      "rect": [
+        49,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cy",
+      "included": true,
+      "rect": [
+        98,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-cz",
+      "included": true,
+      "rect": [
+        147,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-da",
+      "included": true,
+      "rect": [
+        196,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-db",
+      "included": true,
+      "rect": [
+        245,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dc",
+      "included": true,
+      "rect": [
+        294,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dd",
+      "included": true,
+      "rect": [
+        343,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-de",
+      "included": true,
+      "rect": [
+        392,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-df",
+      "included": true,
+      "rect": [
+        441,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dg",
+      "included": true,
+      "rect": [
+        490,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dh",
+      "included": true,
+      "rect": [
+        539,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-di",
+      "included": true,
+      "rect": [
+        588,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dj",
+      "included": true,
+      "rect": [
+        637,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dk",
+      "included": true,
+      "rect": [
+        686,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dl",
+      "included": true,
+      "rect": [
+        735,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dm",
+      "included": true,
+      "rect": [
+        784,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dn",
+      "included": true,
+      "rect": [
+        833,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-do",
+      "included": true,
+      "rect": [
+        882,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dp",
+      "included": true,
+      "rect": [
+        931,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dq",
+      "included": true,
+      "rect": [
+        980,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dr",
+      "included": true,
+      "rect": [
+        1029,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ds",
+      "included": true,
+      "rect": [
+        1078,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dt",
+      "included": true,
+      "rect": [
+        1127,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-du",
+      "included": true,
+      "rect": [
+        1176,
+        198,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dv",
+      "included": true,
+      "rect": [
+        0,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dw",
+      "included": true,
+      "rect": [
+        49,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dx",
+      "included": true,
+      "rect": [
+        98,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dy",
+      "included": true,
+      "rect": [
+        147,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-dz",
+      "included": true,
+      "rect": [
+        196,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ea",
+      "included": true,
+      "rect": [
+        245,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-eb",
+      "included": true,
+      "rect": [
+        294,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ec",
+      "included": true,
+      "rect": [
+        343,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ed",
+      "included": true,
+      "rect": [
+        392,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ee",
+      "included": true,
+      "rect": [
+        441,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ef",
+      "included": true,
+      "rect": [
+        490,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-eg",
+      "included": true,
+      "rect": [
+        539,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-eh",
+      "included": true,
+      "rect": [
+        588,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ei",
+      "included": true,
+      "rect": [
+        637,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ej",
+      "included": true,
+      "rect": [
+        686,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ek",
+      "included": true,
+      "rect": [
+        735,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-el",
+      "included": true,
+      "rect": [
+        784,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-em",
+      "included": true,
+      "rect": [
+        833,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-en",
+      "included": true,
+      "rect": [
+        882,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-eo",
+      "included": true,
+      "rect": [
+        931,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ep",
+      "included": true,
+      "rect": [
+        980,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-eq",
+      "included": true,
+      "rect": [
+        1029,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-er",
+      "included": true,
+      "rect": [
+        1078,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-es",
+      "included": true,
+      "rect": [
+        1127,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-et",
+      "included": true,
+      "rect": [
+        1176,
+        247,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-eu",
+      "included": true,
+      "rect": [
+        0,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ev",
+      "included": true,
+      "rect": [
+        49,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ew",
+      "included": true,
+      "rect": [
+        98,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ex",
+      "included": true,
+      "rect": [
+        147,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ey",
+      "included": true,
+      "rect": [
+        196,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ez",
+      "included": true,
+      "rect": [
+        245,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fa",
+      "included": true,
+      "rect": [
+        294,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fb",
+      "included": true,
+      "rect": [
+        343,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fc",
+      "included": true,
+      "rect": [
+        392,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fd",
+      "included": true,
+      "rect": [
+        441,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fe",
+      "included": true,
+      "rect": [
+        490,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ff",
+      "included": true,
+      "rect": [
+        539,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fg",
+      "included": true,
+      "rect": [
+        588,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fh",
+      "included": true,
+      "rect": [
+        637,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fi",
+      "included": true,
+      "rect": [
+        686,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fj",
+      "included": true,
+      "rect": [
+        735,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fk",
+      "included": true,
+      "rect": [
+        784,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fl",
+      "included": true,
+      "rect": [
+        833,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fm",
+      "included": true,
+      "rect": [
+        882,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fn",
+      "included": true,
+      "rect": [
+        931,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fo",
+      "included": true,
+      "rect": [
+        980,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fp",
+      "included": true,
+      "rect": [
+        1029,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fq",
+      "included": true,
+      "rect": [
+        1078,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fr",
+      "included": true,
+      "rect": [
+        1127,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fs",
+      "included": true,
+      "rect": [
+        1176,
+        296,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ft",
+      "included": true,
+      "rect": [
+        0,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fu",
+      "included": true,
+      "rect": [
+        49,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fv",
+      "included": true,
+      "rect": [
+        98,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fw",
+      "included": true,
+      "rect": [
+        147,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fx",
+      "included": true,
+      "rect": [
+        196,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fy",
+      "included": true,
+      "rect": [
+        245,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-fz",
+      "included": true,
+      "rect": [
+        294,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ga",
+      "included": true,
+      "rect": [
+        343,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gb",
+      "included": true,
+      "rect": [
+        392,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gc",
+      "included": true,
+      "rect": [
+        441,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gd",
+      "included": true,
+      "rect": [
+        490,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ge",
+      "included": true,
+      "rect": [
+        539,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gf",
+      "included": true,
+      "rect": [
+        588,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gg",
+      "included": true,
+      "rect": [
+        637,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gh",
+      "included": true,
+      "rect": [
+        686,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gi",
+      "included": true,
+      "rect": [
+        735,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gj",
+      "included": true,
+      "rect": [
+        784,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gk",
+      "included": true,
+      "rect": [
+        833,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gl",
+      "included": true,
+      "rect": [
+        882,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gm",
+      "included": true,
+      "rect": [
+        931,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gn",
+      "included": true,
+      "rect": [
+        980,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-go",
+      "included": true,
+      "rect": [
+        1029,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gp",
+      "included": true,
+      "rect": [
+        1078,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gq",
+      "included": true,
+      "rect": [
+        1127,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gr",
+      "included": true,
+      "rect": [
+        1176,
+        346,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gs",
+      "included": true,
+      "rect": [
+        0,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gt",
+      "included": true,
+      "rect": [
+        49,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gu",
+      "included": true,
+      "rect": [
+        98,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gv",
+      "included": true,
+      "rect": [
+        147,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gw",
+      "included": true,
+      "rect": [
+        196,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gx",
+      "included": true,
+      "rect": [
+        245,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gy",
+      "included": true,
+      "rect": [
+        294,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-gz",
+      "included": true,
+      "rect": [
+        343,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ha",
+      "included": true,
+      "rect": [
+        392,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hb",
+      "included": true,
+      "rect": [
+        441,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hc",
+      "included": true,
+      "rect": [
+        490,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hd",
+      "included": true,
+      "rect": [
+        539,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-he",
+      "included": true,
+      "rect": [
+        588,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hf",
+      "included": true,
+      "rect": [
+        637,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hg",
+      "included": true,
+      "rect": [
+        686,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hh",
+      "included": true,
+      "rect": [
+        735,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hi",
+      "included": true,
+      "rect": [
+        784,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hj",
+      "included": true,
+      "rect": [
+        833,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hk",
+      "included": true,
+      "rect": [
+        882,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hl",
+      "included": true,
+      "rect": [
+        931,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hm",
+      "included": true,
+      "rect": [
+        980,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hn",
+      "included": true,
+      "rect": [
+        1029,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ho",
+      "included": true,
+      "rect": [
+        1078,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hp",
+      "included": true,
+      "rect": [
+        1127,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hq",
+      "included": true,
+      "rect": [
+        1176,
+        395,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hr",
+      "included": true,
+      "rect": [
+        0,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hs",
+      "included": true,
+      "rect": [
+        49,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ht",
+      "included": true,
+      "rect": [
+        98,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hu",
+      "included": true,
+      "rect": [
+        147,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hv",
+      "included": true,
+      "rect": [
+        196,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hw",
+      "included": true,
+      "rect": [
+        245,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hx",
+      "included": true,
+      "rect": [
+        294,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hy",
+      "included": true,
+      "rect": [
+        343,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-hz",
+      "included": true,
+      "rect": [
+        392,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ia",
+      "included": true,
+      "rect": [
+        441,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ib",
+      "included": true,
+      "rect": [
+        490,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ic",
+      "included": true,
+      "rect": [
+        539,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-id",
+      "included": true,
+      "rect": [
+        588,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ie",
+      "included": true,
+      "rect": [
+        637,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-if",
+      "included": true,
+      "rect": [
+        686,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ig",
+      "included": true,
+      "rect": [
+        735,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ih",
+      "included": true,
+      "rect": [
+        784,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ii",
+      "included": true,
+      "rect": [
+        833,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ij",
+      "included": true,
+      "rect": [
+        882,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ik",
+      "included": true,
+      "rect": [
+        931,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-il",
+      "included": true,
+      "rect": [
+        980,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-im",
+      "included": true,
+      "rect": [
+        1029,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-in",
+      "included": true,
+      "rect": [
+        1078,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-io",
+      "included": true,
+      "rect": [
+        1127,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ip",
+      "included": true,
+      "rect": [
+        1176,
+        444,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-iq",
+      "included": true,
+      "rect": [
+        0,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ir",
+      "included": true,
+      "rect": [
+        49,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-is",
+      "included": true,
+      "rect": [
+        98,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-it",
+      "included": true,
+      "rect": [
+        147,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-iu",
+      "included": true,
+      "rect": [
+        196,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-iv",
+      "included": true,
+      "rect": [
+        245,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-iw",
+      "included": true,
+      "rect": [
+        294,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ix",
+      "included": true,
+      "rect": [
+        343,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-iy",
+      "included": true,
+      "rect": [
+        392,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-iz",
+      "included": true,
+      "rect": [
+        441,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ja",
+      "included": true,
+      "rect": [
+        490,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jb",
+      "included": true,
+      "rect": [
+        539,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jc",
+      "included": true,
+      "rect": [
+        588,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jd",
+      "included": true,
+      "rect": [
+        637,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-je",
+      "included": true,
+      "rect": [
+        686,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jf",
+      "included": true,
+      "rect": [
+        735,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jg",
+      "included": true,
+      "rect": [
+        784,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jh",
+      "included": true,
+      "rect": [
+        833,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ji",
+      "included": true,
+      "rect": [
+        882,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jj",
+      "included": true,
+      "rect": [
+        931,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jk",
+      "included": true,
+      "rect": [
+        980,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jl",
+      "included": true,
+      "rect": [
+        1029,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jm",
+      "included": true,
+      "rect": [
+        1078,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jn",
+      "included": true,
+      "rect": [
+        1127,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jo",
+      "included": true,
+      "rect": [
+        1176,
+        494,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jp",
+      "included": true,
+      "rect": [
+        0,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jq",
+      "included": true,
+      "rect": [
+        49,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jr",
+      "included": true,
+      "rect": [
+        98,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-js",
+      "included": true,
+      "rect": [
+        147,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jt",
+      "included": true,
+      "rect": [
+        196,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ju",
+      "included": true,
+      "rect": [
+        245,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jv",
+      "included": true,
+      "rect": [
+        294,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jw",
+      "included": true,
+      "rect": [
+        343,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jx",
+      "included": true,
+      "rect": [
+        392,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jy",
+      "included": true,
+      "rect": [
+        441,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-jz",
+      "included": true,
+      "rect": [
+        490,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ka",
+      "included": true,
+      "rect": [
+        539,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kb",
+      "included": true,
+      "rect": [
+        588,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kc",
+      "included": true,
+      "rect": [
+        637,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kd",
+      "included": true,
+      "rect": [
+        686,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ke",
+      "included": true,
+      "rect": [
+        735,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kf",
+      "included": true,
+      "rect": [
+        784,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kg",
+      "included": true,
+      "rect": [
+        833,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kh",
+      "included": true,
+      "rect": [
+        882,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ki",
+      "included": true,
+      "rect": [
+        931,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kj",
+      "included": true,
+      "rect": [
+        980,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kk",
+      "included": true,
+      "rect": [
+        1029,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kl",
+      "included": true,
+      "rect": [
+        1078,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-km",
+      "included": true,
+      "rect": [
+        1127,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kn",
+      "included": true,
+      "rect": [
+        1176,
+        543,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ko",
+      "included": true,
+      "rect": [
+        0,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kp",
+      "included": true,
+      "rect": [
+        49,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kq",
+      "included": true,
+      "rect": [
+        98,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kr",
+      "included": true,
+      "rect": [
+        147,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ks",
+      "included": true,
+      "rect": [
+        196,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kt",
+      "included": true,
+      "rect": [
+        245,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ku",
+      "included": true,
+      "rect": [
+        294,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kv",
+      "included": true,
+      "rect": [
+        343,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kw",
+      "included": true,
+      "rect": [
+        392,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kx",
+      "included": true,
+      "rect": [
+        441,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ky",
+      "included": true,
+      "rect": [
+        490,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-kz",
+      "included": true,
+      "rect": [
+        539,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-la",
+      "included": true,
+      "rect": [
+        588,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lb",
+      "included": true,
+      "rect": [
+        637,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lc",
+      "included": true,
+      "rect": [
+        686,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ld",
+      "included": true,
+      "rect": [
+        735,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-le",
+      "included": true,
+      "rect": [
+        784,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lf",
+      "included": true,
+      "rect": [
+        833,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lg",
+      "included": true,
+      "rect": [
+        882,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lh",
+      "included": true,
+      "rect": [
+        931,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-li",
+      "included": true,
+      "rect": [
+        980,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lj",
+      "included": true,
+      "rect": [
+        1029,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lk",
+      "included": true,
+      "rect": [
+        1078,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ll",
+      "included": true,
+      "rect": [
+        1127,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lm",
+      "included": true,
+      "rect": [
+        1176,
+        593,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ln",
+      "included": true,
+      "rect": [
+        0,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lo",
+      "included": true,
+      "rect": [
+        49,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lp",
+      "included": true,
+      "rect": [
+        98,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lq",
+      "included": true,
+      "rect": [
+        147,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lr",
+      "included": true,
+      "rect": [
+        196,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ls",
+      "included": true,
+      "rect": [
+        245,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lt",
+      "included": true,
+      "rect": [
+        294,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lu",
+      "included": true,
+      "rect": [
+        343,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lv",
+      "included": true,
+      "rect": [
+        392,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lw",
+      "included": true,
+      "rect": [
+        441,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lx",
+      "included": true,
+      "rect": [
+        490,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ly",
+      "included": true,
+      "rect": [
+        539,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-lz",
+      "included": true,
+      "rect": [
+        588,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ma",
+      "included": true,
+      "rect": [
+        637,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mb",
+      "included": true,
+      "rect": [
+        686,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mc",
+      "included": true,
+      "rect": [
+        735,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-md",
+      "included": true,
+      "rect": [
+        784,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-me",
+      "included": true,
+      "rect": [
+        833,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mf",
+      "included": true,
+      "rect": [
+        882,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mg",
+      "included": true,
+      "rect": [
+        931,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mh",
+      "included": true,
+      "rect": [
+        980,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mi",
+      "included": true,
+      "rect": [
+        1029,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mj",
+      "included": true,
+      "rect": [
+        1078,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mk",
+      "included": true,
+      "rect": [
+        1127,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ml",
+      "included": true,
+      "rect": [
+        1176,
+        642,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mm",
+      "included": true,
+      "rect": [
+        0,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mn",
+      "included": true,
+      "rect": [
+        49,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mo",
+      "included": true,
+      "rect": [
+        98,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mp",
+      "included": true,
+      "rect": [
+        147,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mq",
+      "included": true,
+      "rect": [
+        196,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mr",
+      "included": true,
+      "rect": [
+        245,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ms",
+      "included": true,
+      "rect": [
+        294,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mt",
+      "included": true,
+      "rect": [
+        343,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mu",
+      "included": true,
+      "rect": [
+        392,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mv",
+      "included": true,
+      "rect": [
+        441,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mw",
+      "included": true,
+      "rect": [
+        490,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mx",
+      "included": true,
+      "rect": [
+        539,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-my",
+      "included": true,
+      "rect": [
+        588,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-mz",
+      "included": true,
+      "rect": [
+        637,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-na",
+      "included": true,
+      "rect": [
+        686,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nb",
+      "included": true,
+      "rect": [
+        735,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nc",
+      "included": true,
+      "rect": [
+        784,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nd",
+      "included": true,
+      "rect": [
+        833,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ne",
+      "included": true,
+      "rect": [
+        882,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nf",
+      "included": true,
+      "rect": [
+        931,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ng",
+      "included": true,
+      "rect": [
+        980,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nh",
+      "included": true,
+      "rect": [
+        1029,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ni",
+      "included": true,
+      "rect": [
+        1078,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nj",
+      "included": true,
+      "rect": [
+        1127,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nk",
+      "included": true,
+      "rect": [
+        1176,
+        691,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nl",
+      "included": true,
+      "rect": [
+        0,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nm",
+      "included": true,
+      "rect": [
+        49,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nn",
+      "included": true,
+      "rect": [
+        98,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-no",
+      "included": true,
+      "rect": [
+        147,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-np",
+      "included": true,
+      "rect": [
+        196,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nq",
+      "included": true,
+      "rect": [
+        245,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nr",
+      "included": true,
+      "rect": [
+        294,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ns",
+      "included": true,
+      "rect": [
+        343,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nt",
+      "included": true,
+      "rect": [
+        392,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nu",
+      "included": true,
+      "rect": [
+        441,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nv",
+      "included": true,
+      "rect": [
+        490,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nw",
+      "included": true,
+      "rect": [
+        539,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nx",
+      "included": true,
+      "rect": [
+        588,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ny",
+      "included": true,
+      "rect": [
+        637,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-nz",
+      "included": true,
+      "rect": [
+        686,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-oa",
+      "included": true,
+      "rect": [
+        735,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ob",
+      "included": true,
+      "rect": [
+        784,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-oc",
+      "included": true,
+      "rect": [
+        833,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-od",
+      "included": true,
+      "rect": [
+        882,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-oe",
+      "included": true,
+      "rect": [
+        931,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-of",
+      "included": true,
+      "rect": [
+        980,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-og",
+      "included": true,
+      "rect": [
+        1029,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-oh",
+      "included": true,
+      "rect": [
+        1078,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-oi",
+      "included": true,
+      "rect": [
+        1127,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-oj",
+      "included": true,
+      "rect": [
+        1176,
+        741,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ok",
+      "included": true,
+      "rect": [
+        0,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ol",
+      "included": true,
+      "rect": [
+        49,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-om",
+      "included": true,
+      "rect": [
+        98,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-on",
+      "included": true,
+      "rect": [
+        147,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-oo",
+      "included": true,
+      "rect": [
+        196,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-op",
+      "included": true,
+      "rect": [
+        245,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-oq",
+      "included": true,
+      "rect": [
+        294,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-or",
+      "included": true,
+      "rect": [
+        343,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-os",
+      "included": true,
+      "rect": [
+        392,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ot",
+      "included": true,
+      "rect": [
+        441,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ou",
+      "included": true,
+      "rect": [
+        490,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ov",
+      "included": true,
+      "rect": [
+        539,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ow",
+      "included": true,
+      "rect": [
+        588,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ox",
+      "included": true,
+      "rect": [
+        637,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-oy",
+      "included": true,
+      "rect": [
+        686,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-oz",
+      "included": true,
+      "rect": [
+        735,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pa",
+      "included": true,
+      "rect": [
+        784,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pb",
+      "included": true,
+      "rect": [
+        833,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pc",
+      "included": true,
+      "rect": [
+        882,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pd",
+      "included": true,
+      "rect": [
+        931,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pe",
+      "included": true,
+      "rect": [
+        980,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pf",
+      "included": true,
+      "rect": [
+        1029,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pg",
+      "included": true,
+      "rect": [
+        1078,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ph",
+      "included": true,
+      "rect": [
+        1127,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pi",
+      "included": true,
+      "rect": [
+        1176,
+        790,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pj",
+      "included": true,
+      "rect": [
+        0,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pk",
+      "included": true,
+      "rect": [
+        49,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pl",
+      "included": true,
+      "rect": [
+        98,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pm",
+      "included": true,
+      "rect": [
+        147,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pn",
+      "included": true,
+      "rect": [
+        196,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-po",
+      "included": true,
+      "rect": [
+        245,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pp",
+      "included": true,
+      "rect": [
+        294,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pq",
+      "included": true,
+      "rect": [
+        343,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pr",
+      "included": true,
+      "rect": [
+        392,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ps",
+      "included": true,
+      "rect": [
+        441,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pt",
+      "included": true,
+      "rect": [
+        490,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pu",
+      "included": true,
+      "rect": [
+        539,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pv",
+      "included": true,
+      "rect": [
+        588,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pw",
+      "included": true,
+      "rect": [
+        637,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-px",
+      "included": true,
+      "rect": [
+        686,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-py",
+      "included": true,
+      "rect": [
+        735,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-pz",
+      "included": true,
+      "rect": [
+        784,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qa",
+      "included": true,
+      "rect": [
+        833,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qb",
+      "included": true,
+      "rect": [
+        882,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qc",
+      "included": true,
+      "rect": [
+        931,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qd",
+      "included": true,
+      "rect": [
+        980,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qe",
+      "included": true,
+      "rect": [
+        1029,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qf",
+      "included": true,
+      "rect": [
+        1078,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qg",
+      "included": true,
+      "rect": [
+        1127,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qh",
+      "included": true,
+      "rect": [
+        1176,
+        840,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qi",
+      "included": true,
+      "rect": [
+        0,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qj",
+      "included": true,
+      "rect": [
+        49,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qk",
+      "included": true,
+      "rect": [
+        98,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ql",
+      "included": true,
+      "rect": [
+        147,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qm",
+      "included": true,
+      "rect": [
+        196,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qn",
+      "included": true,
+      "rect": [
+        245,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qo",
+      "included": true,
+      "rect": [
+        294,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qp",
+      "included": true,
+      "rect": [
+        343,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qq",
+      "included": true,
+      "rect": [
+        392,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qr",
+      "included": true,
+      "rect": [
+        441,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qs",
+      "included": true,
+      "rect": [
+        490,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qt",
+      "included": true,
+      "rect": [
+        539,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qu",
+      "included": true,
+      "rect": [
+        588,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qv",
+      "included": true,
+      "rect": [
+        637,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qw",
+      "included": true,
+      "rect": [
+        686,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qx",
+      "included": true,
+      "rect": [
+        735,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qy",
+      "included": true,
+      "rect": [
+        784,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-qz",
+      "included": true,
+      "rect": [
+        833,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ra",
+      "included": true,
+      "rect": [
+        882,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rb",
+      "included": true,
+      "rect": [
+        931,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rc",
+      "included": true,
+      "rect": [
+        980,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rd",
+      "included": true,
+      "rect": [
+        1029,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-re",
+      "included": true,
+      "rect": [
+        1078,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rf",
+      "included": true,
+      "rect": [
+        1127,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rg",
+      "included": true,
+      "rect": [
+        1176,
+        889,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rh",
+      "included": true,
+      "rect": [
+        0,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ri",
+      "included": true,
+      "rect": [
+        49,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rj",
+      "included": true,
+      "rect": [
+        98,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rk",
+      "included": true,
+      "rect": [
+        147,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rl",
+      "included": true,
+      "rect": [
+        196,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rm",
+      "included": true,
+      "rect": [
+        245,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rn",
+      "included": true,
+      "rect": [
+        294,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ro",
+      "included": true,
+      "rect": [
+        343,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rp",
+      "included": true,
+      "rect": [
+        392,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rq",
+      "included": true,
+      "rect": [
+        441,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rr",
+      "included": true,
+      "rect": [
+        490,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rs",
+      "included": true,
+      "rect": [
+        539,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rt",
+      "included": true,
+      "rect": [
+        588,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ru",
+      "included": true,
+      "rect": [
+        637,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rv",
+      "included": true,
+      "rect": [
+        686,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rw",
+      "included": true,
+      "rect": [
+        735,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rx",
+      "included": true,
+      "rect": [
+        784,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ry",
+      "included": true,
+      "rect": [
+        833,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-rz",
+      "included": true,
+      "rect": [
+        882,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sa",
+      "included": true,
+      "rect": [
+        931,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sb",
+      "included": true,
+      "rect": [
+        980,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sc",
+      "included": true,
+      "rect": [
+        1029,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sd",
+      "included": true,
+      "rect": [
+        1078,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-se",
+      "included": true,
+      "rect": [
+        1127,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sf",
+      "included": true,
+      "rect": [
+        1176,
+        938,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sg",
+      "included": true,
+      "rect": [
+        0,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sh",
+      "included": true,
+      "rect": [
+        49,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-si",
+      "included": true,
+      "rect": [
+        98,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sj",
+      "included": true,
+      "rect": [
+        147,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sk",
+      "included": true,
+      "rect": [
+        196,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sl",
+      "included": true,
+      "rect": [
+        245,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sm",
+      "included": true,
+      "rect": [
+        294,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sn",
+      "included": true,
+      "rect": [
+        343,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-so",
+      "included": true,
+      "rect": [
+        392,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sp",
+      "included": true,
+      "rect": [
+        441,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sq",
+      "included": true,
+      "rect": [
+        490,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sr",
+      "included": true,
+      "rect": [
+        539,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ss",
+      "included": true,
+      "rect": [
+        588,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-st",
+      "included": true,
+      "rect": [
+        637,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-su",
+      "included": true,
+      "rect": [
+        686,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sv",
+      "included": true,
+      "rect": [
+        735,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sw",
+      "included": true,
+      "rect": [
+        784,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sx",
+      "included": true,
+      "rect": [
+        833,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sy",
+      "included": true,
+      "rect": [
+        882,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-sz",
+      "included": true,
+      "rect": [
+        931,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ta",
+      "included": true,
+      "rect": [
+        980,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tb",
+      "included": true,
+      "rect": [
+        1029,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tc",
+      "included": true,
+      "rect": [
+        1078,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-td",
+      "included": true,
+      "rect": [
+        1127,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-te",
+      "included": true,
+      "rect": [
+        1176,
+        988,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tf",
+      "included": true,
+      "rect": [
+        0,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tg",
+      "included": true,
+      "rect": [
+        49,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-th",
+      "included": true,
+      "rect": [
+        98,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ti",
+      "included": true,
+      "rect": [
+        147,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tj",
+      "included": true,
+      "rect": [
+        196,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tk",
+      "included": true,
+      "rect": [
+        245,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tl",
+      "included": true,
+      "rect": [
+        294,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tm",
+      "included": true,
+      "rect": [
+        343,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tn",
+      "included": true,
+      "rect": [
+        392,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-to",
+      "included": true,
+      "rect": [
+        441,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tp",
+      "included": true,
+      "rect": [
+        490,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tq",
+      "included": true,
+      "rect": [
+        539,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tr",
+      "included": true,
+      "rect": [
+        588,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ts",
+      "included": true,
+      "rect": [
+        637,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tt",
+      "included": true,
+      "rect": [
+        686,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tu",
+      "included": true,
+      "rect": [
+        735,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tv",
+      "included": true,
+      "rect": [
+        784,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tw",
+      "included": true,
+      "rect": [
+        833,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tx",
+      "included": true,
+      "rect": [
+        882,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ty",
+      "included": true,
+      "rect": [
+        931,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-tz",
+      "included": true,
+      "rect": [
+        980,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ua",
+      "included": true,
+      "rect": [
+        1029,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ub",
+      "included": true,
+      "rect": [
+        1078,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uc",
+      "included": true,
+      "rect": [
+        1127,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ud",
+      "included": true,
+      "rect": [
+        1176,
+        1037,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ue",
+      "included": true,
+      "rect": [
+        0,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uf",
+      "included": true,
+      "rect": [
+        49,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ug",
+      "included": true,
+      "rect": [
+        98,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uh",
+      "included": true,
+      "rect": [
+        147,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ui",
+      "included": true,
+      "rect": [
+        196,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uj",
+      "included": true,
+      "rect": [
+        245,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uk",
+      "included": true,
+      "rect": [
+        294,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ul",
+      "included": true,
+      "rect": [
+        343,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-um",
+      "included": true,
+      "rect": [
+        392,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-un",
+      "included": true,
+      "rect": [
+        441,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uo",
+      "included": true,
+      "rect": [
+        490,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-up",
+      "included": true,
+      "rect": [
+        539,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uq",
+      "included": true,
+      "rect": [
+        588,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ur",
+      "included": true,
+      "rect": [
+        637,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-us",
+      "included": true,
+      "rect": [
+        686,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ut",
+      "included": true,
+      "rect": [
+        735,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uu",
+      "included": true,
+      "rect": [
+        784,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uv",
+      "included": true,
+      "rect": [
+        833,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uw",
+      "included": true,
+      "rect": [
+        882,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ux",
+      "included": true,
+      "rect": [
+        931,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uy",
+      "included": true,
+      "rect": [
+        980,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-uz",
+      "included": true,
+      "rect": [
+        1029,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-va",
+      "included": true,
+      "rect": [
+        1078,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vb",
+      "included": true,
+      "rect": [
+        1127,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vc",
+      "included": true,
+      "rect": [
+        1176,
+        1086,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vd",
+      "included": true,
+      "rect": [
+        0,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ve",
+      "included": true,
+      "rect": [
+        49,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vf",
+      "included": true,
+      "rect": [
+        98,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vg",
+      "included": true,
+      "rect": [
+        147,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vh",
+      "included": true,
+      "rect": [
+        196,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vi",
+      "included": true,
+      "rect": [
+        245,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vj",
+      "included": true,
+      "rect": [
+        294,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vk",
+      "included": true,
+      "rect": [
+        343,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vl",
+      "included": true,
+      "rect": [
+        392,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vm",
+      "included": true,
+      "rect": [
+        441,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vn",
+      "included": true,
+      "rect": [
+        490,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vo",
+      "included": true,
+      "rect": [
+        539,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vp",
+      "included": true,
+      "rect": [
+        588,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vq",
+      "included": true,
+      "rect": [
+        637,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vr",
+      "included": true,
+      "rect": [
+        686,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vs",
+      "included": true,
+      "rect": [
+        735,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vt",
+      "included": true,
+      "rect": [
+        784,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vu",
+      "included": true,
+      "rect": [
+        833,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vv",
+      "included": true,
+      "rect": [
+        882,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vw",
+      "included": true,
+      "rect": [
+        931,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vx",
+      "included": true,
+      "rect": [
+        980,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vy",
+      "included": true,
+      "rect": [
+        1029,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-vz",
+      "included": true,
+      "rect": [
+        1078,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wa",
+      "included": true,
+      "rect": [
+        1127,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wb",
+      "included": true,
+      "rect": [
+        1176,
+        1136,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wc",
+      "included": true,
+      "rect": [
+        0,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wd",
+      "included": true,
+      "rect": [
+        49,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-we",
+      "included": true,
+      "rect": [
+        98,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wf",
+      "included": true,
+      "rect": [
+        147,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wg",
+      "included": true,
+      "rect": [
+        196,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wh",
+      "included": true,
+      "rect": [
+        245,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wi",
+      "included": true,
+      "rect": [
+        294,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wj",
+      "included": true,
+      "rect": [
+        343,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wk",
+      "included": true,
+      "rect": [
+        392,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wl",
+      "included": true,
+      "rect": [
+        441,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wm",
+      "included": true,
+      "rect": [
+        490,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wn",
+      "included": true,
+      "rect": [
+        539,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wo",
+      "included": true,
+      "rect": [
+        588,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wp",
+      "included": true,
+      "rect": [
+        637,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wq",
+      "included": true,
+      "rect": [
+        686,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wr",
+      "included": true,
+      "rect": [
+        735,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ws",
+      "included": true,
+      "rect": [
+        784,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wt",
+      "included": true,
+      "rect": [
+        833,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wu",
+      "included": true,
+      "rect": [
+        882,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wv",
+      "included": true,
+      "rect": [
+        931,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-ww",
+      "included": true,
+      "rect": [
+        980,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wx",
+      "included": true,
+      "rect": [
+        1029,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wy",
+      "included": true,
+      "rect": [
+        1078,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-wz",
+      "included": true,
+      "rect": [
+        1127,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xa",
+      "included": true,
+      "rect": [
+        1176,
+        1185,
+        49,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xb",
+      "included": true,
+      "rect": [
+        0,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xc",
+      "included": true,
+      "rect": [
+        49,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xd",
+      "included": true,
+      "rect": [
+        98,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xe",
+      "included": true,
+      "rect": [
+        147,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xf",
+      "included": true,
+      "rect": [
+        196,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xg",
+      "included": true,
+      "rect": [
+        245,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xh",
+      "included": true,
+      "rect": [
+        294,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xi",
+      "included": true,
+      "rect": [
+        343,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xj",
+      "included": true,
+      "rect": [
+        392,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xk",
+      "included": true,
+      "rect": [
+        441,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xl",
+      "included": true,
+      "rect": [
+        490,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xm",
+      "included": true,
+      "rect": [
+        539,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xn",
+      "included": true,
+      "rect": [
+        588,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xo",
+      "included": true,
+      "rect": [
+        637,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xp",
+      "included": true,
+      "rect": [
+        686,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xq",
+      "included": true,
+      "rect": [
+        735,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xr",
+      "included": true,
+      "rect": [
+        784,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xs",
+      "included": true,
+      "rect": [
+        833,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xt",
+      "included": true,
+      "rect": [
+        882,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xu",
+      "included": true,
+      "rect": [
+        931,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xv",
+      "included": true,
+      "rect": [
+        980,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xw",
+      "included": true,
+      "rect": [
+        1029,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xx",
+      "included": true,
+      "rect": [
+        1078,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xy",
+      "included": true,
+      "rect": [
+        1127,
+        1235,
+        49,
+        49
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.floors.piece-000-xz",
+      "included": true,
+      "rect": [
+        1176,
+        1235,
+        49,
+        49
+      ]
+    }
+  ],
   "gridCols": 25,
-  "gridRows": 26
+  "gridRows": 26,
+  "idPrefix": "doodad.floors",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Do not re-slice this sheet with apply=true: slicing finds the plate as one fused piece again and reports every cut cell as no longer found, so a re-slice discards the cut and anything authored onto it. Cut once, then annotate. 1225x1284 at 25x26. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Most of its cells are ground variants selected by pool membership rather than props, so adopting it means authoring blocks, not doodads.",
+  "sheet": "art-source/tilesets/Floors_Tiles.raw.png",
+  "sheetName": "Floors_Tiles"
 }

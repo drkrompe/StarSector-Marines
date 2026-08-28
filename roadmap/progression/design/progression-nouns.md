@@ -312,9 +312,11 @@ reward. None of those fields is a loot-table weight, and a definition's contents
 never rolled from a pool: every selection resolves the same ordered twelve-billet
 Weapon or Armor issue, including any leader-specific and special-equipment placements.
 
-Legacy recipes, printed counts, and fabrication materials remain save-migration
-input and compatibility state for retired fire-team APIs, not live Fleet Armory
-authority. Existing victory milestones grant template cards, including the
+Legacy recipe ids remain save-migration input, not live Fleet Armory authority.
+The print-stock economy they fed — owned counts, per-soldier allocation against
+those counts, and fabrication materials — has been deleted along with the
+retired fire-team refit APIs that were its only readers. Equipment is owned as
+permanent template cards, and an issue spends fleet cargo. Existing victory milestones grant template cards, including the
 Shattercap after two victories. A deterministic safety net now keeps permanent
 collection breadth at or above 21 cards after five victories, 25 after fifteen,
 29 after thirty, and 30 after forty. Cards already learned or still carried in
