@@ -29,13 +29,17 @@ marker is stripped when pairing the sheet with its tileset, so
 ## 2. Measure it
 
 ```bash
-python art-source/tilesets/measure_sheet.py art-source/tilesets/<name>.raw.png --cells 10x10
+tools/authoring.sh tileset_measure '{"sheet":"<name>","gridCols":10,"gridRows":10}'
 ```
 
-Pass `--cells COLSxROWS` whenever the sheet was generated to a layout you asked
+This needs no Python and no server — see the `authoring-tools` skill for the
+rest of the tool surface. `art-source/tilesets/measure_sheet.py` measures the
+same things for a sheet that is not yet in the project.
+
+Pass `gridCols`/`gridRows` whenever the sheet was generated to a layout you asked
 for — which is most of the time, since you chose the layout in the prompt. Cells
 need not be square: a 20-frame strip is `20x1`, and the split cuts exactly that
-grid. **The script will not detect the grid** — seam-energy and autocorrelation
+grid. **Nothing detects the grid for you** — seam-energy and autocorrelation
 were both tried against sheets whose grids were known, and both read noise, so
 it verifies a stated grid rather than inventing one. If you do not know the
 layout, ask; do not guess a number into the seed.
@@ -51,8 +55,14 @@ is, and the two kinds are annotated completely differently:
 
 ## 3. Write the seed
 
-`--write` drops a draft next to the sheet. Its `note` is a placeholder; replacing
-it is the work.
+The measurement comes back with a drafted seed. Its `note` is a placeholder;
+replacing it is the work. Write the finished seed with:
+
+```bash
+tools/authoring.sh tileset_write_document @seed-call.json
+```
+
+where the file holds `{"name": "<name>", "document": { ... }}`.
 
 ```json
 {
@@ -113,12 +123,23 @@ gradlew.bat layerAuthoring
 Tilesets page → pick the sheet from the project list → **Open**. A seeded
 document slices on open. From there it is annotation, which is a person's job:
 
-- For a fused plate: select the single piece, **Split selected on grid**, then
-  **Group selected as block** for any wall or corner set. Slot names read as
-  *"the exterior is on this side"*, not "the neighbour is a wall" — a mirrored
-  assignment still loads and still resolves, so the preview drawing each block as
-  a room is the only thing that catches it.
+- For a fused plate: cut it into its cells, then **Group selected as block** for
+  any wall or corner set. Slot names read as *"the exterior is on this side"*,
+  not "the neighbour is a wall" — a mirrored assignment still loads and still
+  resolves, so the preview drawing each block as a room is the only thing that
+  catches it.
 - For a prop sheet: set each piece's footprint, cover, id, note and tags.
+
+Cutting the plate is mechanical, so it does not need the window:
+
+```bash
+tools/authoring.sh tileset_split_on_grid '{"name":"<name>","apply":true}'
+```
+
+That cuts the document's stated `gridCols` x `gridRows`, and previews the parts
+until you pass `apply=true`. Slice the sheet first — a fused plate slices to one
+piece, which is the piece to cut. **Split selected on grid** in the page does
+the same thing. Grouping into blocks is still the page's.
 
 Export writes the packed atlas, its tileset, and a `*.tileset.md` catalog card.
 
