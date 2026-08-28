@@ -20,7 +20,8 @@ public enum IntegralSystemEffect {
      * cooldown. Answers how a heavy suit crosses the doorway it exists to cross
      * without widening anyone's armour capacity.
      */
-    BREACHER_ASSIST("breacher-assist"),
+    BREACHER_ASSIST("breacher-assist", "Breach assist",
+            "graphics/ui/armory/system-breach-assist.png"),
 
     /**
      * A small salvo fired from the suit's own shoulder mount against a
@@ -28,12 +29,26 @@ public enum IntegralSystemEffect {
      * suit can put something downrange on its own, the opposite half of the
      * model from {@link #BREACHER_ASSIST} ({@code integral-armor-systems.md}).
      */
-    MISSILE_POD("missile-pod");
+    MISSILE_POD("missile-pod", "Missile pod",
+            "graphics/ui/armory/system-missile-pod.png");
 
     public final String key;
 
-    IntegralSystemEffect(String key) {
+    /**
+     * The family name every pattern's take on this effect shares. Six suits
+     * carry a breach assist and each calls its own version something else; the
+     * family is what lets a player see they are the same capability rather than
+     * six unrelated tricks ({@code integral-system-slate.md}).
+     */
+    public final String displayName;
+
+    /** One icon per family. A pattern's own version is told apart by name and grade, not by art. */
+    public final String iconPath;
+
+    IntegralSystemEffect(String key, String displayName, String iconPath) {
         this.key = key;
+        this.displayName = displayName;
+        this.iconPath = iconPath;
     }
 
     public static IntegralSystemEffect fromKey(String key, String armorId) throws JSONException {
