@@ -216,7 +216,7 @@ public final class BarracksBattleScene implements AutoCloseable {
                     SquadExperienceStandard.profileFor(soldier),
                     soldier.specialEquipmentDef(),
                     soldier.id(), soldier.armorDef().appearanceFamily(),
-                    soldier.armorDef().armorPool(), soldier.armorDef().armorRating(),
+                    soldier.armorDef().armorCapacity(), soldier.armorDef().armorRating(),
                     soldier.armorDef().moveSpeedMult(),
                     soldier.armorDef().incomingAccuracyMult(), null).seedInto(spec);
             long actor = sim.spawn(spec);

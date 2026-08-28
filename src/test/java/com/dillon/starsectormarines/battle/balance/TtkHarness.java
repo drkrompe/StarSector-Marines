@@ -247,7 +247,7 @@ public final class TtkHarness {
                 defender.type(), cellX, FIRING_ROW);
         MarineArmorPattern armor = defender.armor();
         if (armor != null) {
-            spec.armor(armor.armorPool, armor.armorRating, armor.moveSpeedMult,
+            spec.armor(armor.armorCapacity, armor.armorRating, armor.moveSpeedMult,
                     armor.incomingAccuracyMult);
         }
         return spec;

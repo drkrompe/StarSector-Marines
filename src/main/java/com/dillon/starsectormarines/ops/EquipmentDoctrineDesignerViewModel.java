@@ -248,7 +248,7 @@ public final class EquipmentDoctrineDesignerViewModel {
                         armorFlavor(armor), armorStats(prefix, armor),
                         "designer-stat-fill armor-stat-fill",
                         "Armor  ·  " + armor.displayName(),
-                        "Protection  ·  " + Math.round(armor.armorPool()) + " / "
+                        "Protection  ·  " + Math.round(armor.armorCapacity()) + " / "
                                 + Math.round(armor.armorRating()),
                         "Evasion  ·  " + signedPercent(1f - armor.incomingAccuracyMult()),
                         "Move  ·  " + signedPercent(armor.moveSpeedMult() - 1f),
@@ -500,8 +500,8 @@ public final class EquipmentDoctrineDesignerViewModel {
         float evasion = 1f - armor.incomingAccuracyMult();
         return List.of(
                 statMeter(cardId + ":pool", "POOL",
-                        String.format(Locale.ROOT, "%.0f", armor.armorPool()),
-                        armor.armorPool(), maximumArmorPool()),
+                        String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
+                        armor.armorCapacity(), maximumArmorPool()),
                 statMeter(cardId + ":rating", "RATING",
                         String.format(Locale.ROOT, "%.0f", armor.armorRating()),
                         armor.armorRating(), maximumArmorRating()),
@@ -562,7 +562,7 @@ public final class EquipmentDoctrineDesignerViewModel {
     private static float maximumArmorPool() {
         float maximum = 1f;
         for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, armor.armorPool());
+            maximum = Math.max(maximum, armor.armorCapacity());
         }
         return maximum;
     }

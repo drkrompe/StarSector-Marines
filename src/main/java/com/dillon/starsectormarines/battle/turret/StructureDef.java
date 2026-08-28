@@ -13,7 +13,7 @@ public final class StructureDef {
     public final String id;
     public final String displayName;
     public final float maxStructure;
-    public final float armorPool;
+    public final float armorCapacity;
     public final float armorRating;
     public final float radius;
     public final float hitHalfHeight;
@@ -24,14 +24,14 @@ public final class StructureDef {
     public final TurretMountDef mount;
 
     private StructureDef(String id, String displayName,
-                         float maxStructure, float armorPool, float armorRating,
+                         float maxStructure, float armorCapacity, float armorRating,
                          float radius, float hitHalfHeight,
                          int footprintCellsX, int footprintCellsY, float forceScore,
                          String mountId, TurretMountDef mount) {
         this.id = id;
         this.displayName = displayName;
         this.maxStructure = maxStructure;
-        this.armorPool = armorPool;
+        this.armorCapacity = armorCapacity;
         this.armorRating = armorRating;
         this.radius = radius;
         this.hitHalfHeight = hitHalfHeight;
@@ -53,13 +53,13 @@ public final class StructureDef {
         JSONObject durability = json.getJSONObject("durability");
         JSONObject physics = json.getJSONObject("physics");
         float maxStructure = (float) durability.getDouble("structure");
-        float armorPool = (float) durability.getDouble("armorPool");
+        float armorCapacity = (float) durability.getDouble("armorCapacity");
         float armorRating = (float) durability.getDouble("armorRating");
         float radius = (float) physics.getDouble("radius");
         float hitHalfHeight = (float) physics.getDouble("hitHalfHeight");
         float forceScore = (float) json.getDouble("forceScore");
         TurretMountDef.requirePositiveFinite(maxStructure, id, "structure");
-        TurretMountDef.requirePositiveFinite(armorPool, id, "armorPool");
+        TurretMountDef.requirePositiveFinite(armorCapacity, id, "armorCapacity");
         TurretMountDef.requirePositiveFinite(armorRating, id, "armorRating");
         TurretMountDef.requirePositiveFinite(radius, id, "radius");
         TurretMountDef.requirePositiveFinite(hitHalfHeight, id, "hitHalfHeight");
@@ -76,7 +76,7 @@ public final class StructureDef {
         }
         return new StructureDef(
                 id, TurretMountDef.requireText(catalog, "displayName"),
-                maxStructure, armorPool, armorRating, radius, hitHalfHeight,
+                maxStructure, armorCapacity, armorRating, radius, hitHalfHeight,
                 footprintCellsX, footprintCellsY, forceScore, mountId, mount);
     }
 }

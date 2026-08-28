@@ -379,7 +379,7 @@ public final class UnitRosterService {
         // {IDENTITY, POSITION, HEALTH, VISION, ROLE} (VISION + ROLE
         // universal — sight stats + the behavior-dispatch role; both removed on
         // death); on top of that:
-        //   - ARMOR iff the spec supplies a positive maximum armor pool. Presence
+        //   - ARMOR iff the spec supplies a positive maximum armor capacity. Presence
         //     remains after depletion and means the actor has the armor capability.
         //   - COMBAT iff the unit is a combatant. A non-combatant (civilian /
         //     engineer / scientist; UnitType.combatant == false) never fires and is

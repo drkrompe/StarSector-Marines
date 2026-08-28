@@ -66,7 +66,7 @@ public final class InfantryLoadoutRolls {
                     defenderPrimary(type, rng),
                     defenderEquipmentGrade(type, resolvedRisk, rng),
                     defenderProfile(type, resolvedRisk, rng), special, null,
-                    armor.layeredFamily(), armor.armorPool, armor.armorRating,
+                    armor.layeredFamily(), armor.armorCapacity, armor.armorRating,
                     armor.moveSpeedMult, armor.incomingAccuracyMult);
         }
         return roster;
@@ -86,7 +86,7 @@ public final class InfantryLoadoutRolls {
         return MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
                 issue.pickPrimaryDef(rng), issue.pickGrade(risk, rng),
                 defenderProfile(issue.unitType(), risk != null ? risk : RiskLevel.LOW, rng),
-                special, null, armor.appearanceFamily(), armor.armorPool(), armor.armorRating(),
+                special, null, armor.appearanceFamily(), armor.armorCapacity(), armor.armorRating(),
                 armor.moveSpeedMult(), armor.incomingAccuracyMult());
     }
 

@@ -13,7 +13,7 @@ public record MarineArmorCatalogDef(
         int tier,
         String iconPath,
         LayeredArmorFamily appearanceFamily,
-        float armorPool,
+        float armorCapacity,
         float armorRating,
         float moveSpeedMult,
         float incomingAccuracyMult) {
@@ -40,7 +40,7 @@ public record MarineArmorCatalogDef(
                 tier,
                 requireText(catalog, "iconPath", id),
                 appearanceFamily,
-                nonNegative(battle, "armorPool", id),
+                nonNegative(battle, "armorCapacity", id),
                 nonNegative(battle, "armorRating", id),
                 positive(battle, "moveSpeedMult", id),
                 nonNegative(battle, "incomingAccuracyMult", id));
