@@ -1,6 +1,8 @@
 # Extraction command
 
-Status: ACTIVE — generic Extraction has paired corridor/interdiction commanders and Civilian Rescue has an asymmetric corridor/swarm command picture; live acceptance and Silent Colony remain open.
+Status: ACTIVE — generic Extraction has paired corridor/interdiction commanders,
+Civilian Rescue has an asymmetric corridor/swarm command picture, and Silent
+Colony has stable Marine expedition branches; live acceptance remains open.
 
 Written: 2026-08-27
 
@@ -141,6 +143,21 @@ pulses, and rebalances only for loss, completion, or bounded emergency. Archive
 recovery may rejoin survivor escort; an empty survivor branch may reinforce the
 archive. Opposition may remain scripted or gain a bounded security-network
 director after the Marine branches are stable.
+
+The production Marine planner now consumes the two owning-side payload
+projections through a frozen Silent Colony frame. It assigns one reachable
+element to each live branch when possible, uses route cost and surviving squad
+strength for deterministic initial allocation, and retains membership until
+loss or objective transition. Archive recovery transfers its squads into
+survivor escort; an exhausted survivor cohort transfers its squads into archive
+recovery. Landing sorties carry expedition ownership at squad birth, while
+external authorities and active player leases remain intact.
+
+The selected-squad panel and state dump publish both objective phases and
+progress, branch membership and reasons, target, and faction-known pressure.
+They do not disclose the frozen threat seed or exact automated-defense cells.
+Mission-duration evidence and live acceptance remain open, as does the later
+choice between scripted opposition and a bounded security-network director.
 
 The survivor cohort and sealed archive publish two distinct payload projections.
 The survivor branch retains cohort/egress semantics; the archive remains a

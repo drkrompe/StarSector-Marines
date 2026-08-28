@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandPicture;
+import com.dillon.starsectormarines.battle.command.ExtractionObjectiveFacts;
+import com.dillon.starsectormarines.battle.command.SilentColonyCommandSnapshot;
+import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
@@ -63,6 +66,36 @@ class SquadPlanDebugPanelTest {
                 SquadPlanDebugPanel.openingRoleSummary(intent));
         assertEquals("Scenario place Bandit depot   cell:24,10 zone:3",
                 SquadPlanDebugPanel.openingPlaceSummary(picture));
+    }
+
+    @Test
+    void silentColonySummaryNamesBranchObjectivesAndKnownPressure() {
+        ExtractionObjectiveFacts survivors = objective("COLONY-SURVIVORS",
+                ExtractionPayloadObjective.Kind.COHORT, "IN_TRANSIT",
+                8, 7, 30, 20, 15, 12, 8, 6, 2, 0, 0.25f);
+        ExtractionObjectiveFacts archive = objective("COLONY-ARCHIVE",
+                ExtractionPayloadObjective.Kind.ARCHIVE, "SECURING",
+                32, 20, -1, -1, 32, 20, 1, 1, -1, 0, 0.4f);
+        SilentColonyCommandSnapshot.SquadIntent intent =
+                new SilentColonyCommandSnapshot.SquadIntent(7,
+                        SilentColonyCommandSnapshot.Role.ARCHIVE_RECOVERY,
+                        SilentColonyCommandSnapshot.Reason
+                                .INITIAL_ROUTE_AND_STRENGTH,
+                        SilentColonyCommandSnapshot.Reason
+                                .RECOVER_SEALED_ARCHIVE,
+                        AssignmentKind.SWEEP_SECTOR, 32, 20, false);
+        SilentColonyCommandSnapshot snapshot =
+                new SilentColonyCommandSnapshot(75, 60, Faction.MARINE,
+                        SilentColonyCommandSnapshot.Phase.DIVIDED_EXPEDITION,
+                        survivors, archive, 3, 2, 1, 2, List.of(intent));
+
+        assertEquals("Expedition branch ARCHIVE_RECOVERY"
+                        + "   Reason RECOVER_SEALED_ARCHIVE",
+                SquadPlanDebugPanel.silentColonyRoleSummary(intent));
+        assertEquals("Archive SECURING 40%   Survivors IN_TRANSIT 6/8",
+                SquadPlanDebugPanel.silentColonyObjectiveSummary(snapshot));
+        assertEquals("Known pressure 2   Branches A1/S2",
+                SquadPlanDebugPanel.silentColonyPressureSummary(snapshot));
     }
 
     @Test
@@ -316,6 +349,18 @@ class SquadPlanDebugPanelTest {
         }
         return new BattleSimulation(grid,
                 new CellTopology(grid.getWidth(), grid.getHeight()));
+    }
+
+    private static ExtractionObjectiveFacts objective(
+            String id, ExtractionPayloadObjective.Kind kind, String phase,
+            int sourceX, int sourceY, int egressX, int egressY,
+            int payloadX, int payloadY, int initial, int active,
+            int boarded, int lost, float progress) {
+        return new ExtractionObjectiveFacts(id, id, kind, phase,
+                sourceX, sourceY, egressX, egressY, payloadX, payloadY,
+                -1, -1, initial, active, boarded, lost, progress,
+                false, -1, -1, false, false, false,
+                ExtractionPayloadObjective.Failure.NONE);
     }
 
     private static SquadContactPicture picture(float axisX, float axisY,
