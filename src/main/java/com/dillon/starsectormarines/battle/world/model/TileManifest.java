@@ -155,17 +155,17 @@ public final class TileManifest {
                 TURRET_BOW_ROW_ORIGIN + (1 - relY));
     }
 
-    /** Top-left cell of the clean-wall 3×3 autotile block. */
+    /**
+     * Top-left cell of the clean-wall 3×3 autotile block, as the sheet was
+     * hand-cut. The authoritative origin is the {@code urban.wall}
+     * {@link com.dillon.starsectormarines.battle.world.tiles.GridBlockDef}'s,
+     * because the atlas is packed by the tileset exporter and the block is
+     * placed wherever the pack put it. This constant only serves
+     * {@link #pickWallTile}, which exists for the case where there is no
+     * registry to ask.
+     */
     private static final int WALL_COL_ORIGIN = 3;
     private static final int WALL_ROW_ORIGIN = 0;
-
-    /**
-     * Overhead-door overlay stamped on top of the floor for doorway cells (the
-     * cells {@link com.dillon.starsectormarines.battle.world.gen.UrbanMapGenerator#punchDoorway
-     * punches} through building perimeters). Source art is mostly transparent
-     * with a slim overhead bar — units walk underneath cleanly.
-     */
-    public static final TileFrame DOOR_OPEN = new TileFrame(7, 2);
 
     /**
      * Returns the wall tile for a cell given which cardinal neighbors are also

@@ -13,11 +13,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Runtime catalog of the <em>generation mapping</em> — the "how tiles map to
@@ -204,6 +206,19 @@ public final class GenMappingRegistry {
     /** The raw doodad ids for {@code poolId} (empty if none authored). */
     public List<String> doodadPoolIds(String poolId) {
         return doodadPoolIds.getOrDefault(poolId, List.of());
+    }
+
+    /**
+     * Every authored pool name, in ingest order.
+     *
+     * <p>What separates a prop from the rest of a sheet is that a pool names it:
+     * a doodad a pool can scatter is something a marine walks up to, while a
+     * deck marking is art laid by id and nothing else. That distinction has no
+     * other home — a {@link DoodadDef} does not know whether anything scatters
+     * it — so the pools are where it has to be asked.
+     */
+    public Set<String> doodadPoolNames() {
+        return Collections.unmodifiableSet(doodadPoolIds.keySet());
     }
 
     public CatalogSource sourceOfDoodadPool(String poolId) {
