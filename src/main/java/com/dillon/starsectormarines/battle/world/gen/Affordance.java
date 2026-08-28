@@ -43,7 +43,54 @@ public enum Affordance {
     FABRICATE,
 
     /** A firing lane. Somewhere marines who would otherwise be idle shoot. */
-    PRACTICE;
+    PRACTICE,
+
+    /**
+     * The heads. Somewhere everybody aboard goes, several times a watch, and
+     * never far from where they sleep.
+     *
+     * <p>The most ordinary job on a ship and, for that reason, the one that does
+     * most for how a deck reads: a berthing block's washroom is a few cells
+     * away, so it fills the gap between the jobs that are a hundred cells away
+     * and keeps a watch in the part of the ship it actually lives in.
+     */
+    WASH,
+
+    /**
+     * A treatment station or a ward bed. Somewhere a sick berth is kept, whether
+     * or not there is anybody in it.
+     *
+     * <p>Distinct from {@link #REST}, which is a bunk. A bed in a ward is
+     * somebody's <em>work</em> — it is checked, made up, and its readings taken
+     * — and a ship keeps her sick berth ready rather than staffing it only when
+     * a casualty arrives.
+     */
+    TREAT,
+
+    /**
+     * A console kept manned. The bridge watch, and the control room that watches
+     * the machinery.
+     *
+     * <p>Distinct from {@link #READOUT}, which is a reading taken and acted on.
+     * A watch station is occupied because it must be occupied; the point is the
+     * continuous presence rather than the individual look.
+     */
+    WATCH,
+
+    /**
+     * The armoury counter. Weapons drawn and handed back, and the paperwork that
+     * goes with them.
+     */
+    ISSUE,
+
+    /**
+     * Machinery kept running: the plant, the drive, the pumps and the pipework.
+     *
+     * <p>Distinct from {@link #SERVICE}, which is work on a machine standing in
+     * a berth and exists only while something is parked there. This is the ship
+     * herself, and it is there whether or not anything is embarked.
+     */
+    TEND;
 
     /**
      * Whether doing this is work, as opposed to what somebody does when they
@@ -59,8 +106,8 @@ public enum Affordance {
      */
     public boolean duty() {
         return switch (this) {
-            case SERVICE, FABRICATE, STOW, READOUT -> true;
-            case REST, MESS, PRACTICE -> false;
+            case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND -> true;
+            case REST, MESS, PRACTICE, WASH -> false;
         };
     }
 }

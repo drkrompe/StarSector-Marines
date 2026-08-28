@@ -49,6 +49,10 @@ public final class CompartmentFillStage implements GenStage {
             int work = ctx.fixtureTasks.size();
             RoomFloor floor = new RoomFloor(ctx, compartment, fit);
             fitting.fit(floor);
+            // Work nobody can walk to goes before the room is judged on whether
+            // it can be walked through, because otherwise it reads as exactly
+            // that failure and takes the whole fill with it.
+            floor.dropUnreachableWork();
             if (floor.circulationSurvives()) {
                 // Deck the fill wants shut is closed only now, because a fill
                 // that is thrown away must not leave a strip of the room that

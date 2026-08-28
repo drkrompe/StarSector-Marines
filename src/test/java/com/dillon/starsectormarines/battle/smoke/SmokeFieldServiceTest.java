@@ -70,13 +70,48 @@ class SmokeFieldServiceTest {
     void generatedSmokeAssetsShipWithTransparentCorners() throws Exception {
         for (Path path : new Path[]{
                 Path.of("mod/graphics/ui/armory/special-smoke-grenades.png"),
-                Path.of("mod/graphics/battle/fx/smoke-field-puff.png")}) {
+                Path.of("mod/graphics/battle/fx/smoke-field-sheet.png")}) {
             assertTrue(Files.isRegularFile(path));
             BufferedImage image = ImageIO.read(path.toFile());
             assertTrue(image.getColorModel().hasAlpha(), path + " must preserve alpha");
             assertEquals(0, image.getRGB(0, 0) >>> 24,
                     path + " must not carry a baked background");
         }
+    }
+
+    /**
+     * The field sheet is derived from the wreck plume's own frames by
+     * {@code art-source/fx/build_smoke_field.py}. Nothing at runtime reads the
+     * two together, so a re-authored source sheet would leave the screen
+     * playing the silhouette of art that no longer ships — the same silent
+     * drift the terrain companion maps are guarded against.
+     */
+    @Test
+    void theFieldSheetStaysInStepWithTheWreckPlumeItIsDerivedFrom() throws Exception {
+        BufferedImage source = ImageIO.read(
+                Path.of("mod/graphics/particle/smokeAndFire.png").toFile());
+        BufferedImage derived = ImageIO.read(
+                Path.of("mod/graphics/battle/fx/smoke-field-sheet.png").toFile());
+        assertEquals(derived.getWidth(), source.getWidth(),
+                "derived sheet keeps the source's 4-column frame pitch");
+
+        for (int y = 0; y < derived.getHeight(); y++) {
+            for (int x = 0; x < derived.getWidth(); x++) {
+                int from = source.getRGB(x, y);
+                int to = derived.getRGB(x, y);
+                assertEquals(from >>> 24, to >>> 24,
+                        "puff silhouette drifted at " + x + "," + y
+                                + " — re-run build_smoke_field.py");
+                if ((to >>> 24) == 0) continue;
+                assertTrue(luminance(to) > luminance(from),
+                        "the screen must read brighter than the soot it came from at "
+                                + x + "," + y);
+            }
+        }
+    }
+
+    private static int luminance(int argb) {
+        return ((argb >> 16) & 0xFF) + ((argb >> 8) & 0xFF) + (argb & 0xFF);
     }
 
     private static NavigationGrid openGrid(int width, int height) {

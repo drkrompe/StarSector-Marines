@@ -167,6 +167,11 @@ class TilesetStripExportTest {
         tile.validOn = List.of("layer:ground", "!x.water");
         document.entries.add(tile);
 
+        TilesetExport.Entry field = entry(new SheetSlicer.Piece(40, 2, 30, 40), "x.grass");
+        field.spriteBorderX = 3;
+        field.spriteBorderY = 6;
+        document.entries.add(field);
+
         TilesetDocument read = TilesetDocument.fromJson(document.toJson());
         assertTrue(read.isStrip());
         assertEquals(SPEC, read.strip);
@@ -177,6 +182,64 @@ class TilesetStripExportTest {
         assertEquals("light", back.cover);
         assertFalse(back.passable);
         assertEquals(List.of("layer:ground", "!x.water"), back.validOn);
+        assertEquals(0, back.spriteBorderX, "a piece drawn without a border keeps none");
+        assertEquals(3, read.entries.get(1).spriteBorderX);
+        assertEquals(6, read.entries.get(1).spriteBorderY);
+    }
+
+    /**
+     * A field sprite's own border is not part of the surface it paves.
+     *
+     * <p>The generated ground frames arrive as slabs — a lit rim, a shadowed
+     * skirt, a darker column down each side. Repeat one across a map and those
+     * rule a dark lattice over the ground, one line per cell, which is not a
+     * subtle artefact and which no id, frame count or opacity figure can see.
+     *
+     * <p>The frame below is that failure in miniature: a flat interior inside a
+     * dark border. Without the treatment its edge column is the border's colour
+     * and its neighbour in a tiling is the same colour again, so the two make a
+     * double-width dark line down the join. With it, every edge reads as
+     * interior and there is no join to see.
+     */
+    @Test
+    void aFieldsOwnBorderIsReplacedByItsInteriorSoTheFieldTiles() {
+        int raw = 4;
+        BufferedImage source = new BufferedImage(80, 160, BufferedImage.TYPE_INT_ARGB);
+        fill(source, 8, 8, 64, 128, 0xFF202020);
+        fill(source, 8 + 3 * raw, 8 + 6 * raw, 64 - 6 * raw, 128 - 12 * raw, 0xFFA0A0A0);
+        SheetSlicer.Piece piece = new SheetSlicer.Piece(8, 8, 64, 128);
+
+        TilesetExport.Entry untreated = entry(piece, "x.field");
+        BufferedImage plain = TilesetExport.stripAtlas(source, List.of(untreated), SPEC);
+        assertEquals(0x202020, plain.getRGB(untreated.frameX, untreated.frameY) & 0xFFFFFF,
+                "the miniature is meant to arrive with its border intact");
+
+        TilesetExport.Entry treated = entry(piece, "x.field");
+        treated.spriteBorderX = 3;
+        treated.spriteBorderY = 6;
+        BufferedImage exported = TilesetExport.stripAtlas(source, List.of(treated), SPEC);
+        for (int y = 0; y < treated.frameHeight; y++) {
+            for (int x = 0; x < treated.frameWidth; x++) {
+                int argb = exported.getRGB(treated.frameX + x, treated.frameY + y);
+                assertTrue((argb & 0xFF) >= 0x80, "the field is still dark at " + x + "," + y
+                        + " (" + Integer.toHexString(argb) + "), so its border survived and "
+                        + "tiles as a line down every join");
+                assertEquals(0xFF, argb >>> 24, "the treatment moved alpha at " + x + "," + y
+                        + ", which moves the frame boxes the loader finds");
+            }
+        }
+    }
+
+    /** A border with no interior left to mirror is a mistake, not a treatment. */
+    @Test
+    void aBorderWiderThanTheFrameIsRefused() {
+        BufferedImage source = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
+        fill(source, 8, 8, 40, 40, 0xFF808080);
+        TilesetExport.Entry entry = entry(new SheetSlicer.Piece(8, 8, 40, 40), "x.field");
+        entry.spriteBorderX = 6;
+        IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+                () -> TilesetExport.stripAtlas(source, List.of(entry), SPEC));
+        assertTrue(refused.getMessage().contains("nothing"), refused.getMessage());
     }
 
     /**

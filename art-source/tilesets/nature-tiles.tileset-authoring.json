@@ -1,7 +1,7 @@
 {
   "alphaMin": 40,
   "blocks": [],
-  "cellPx": 80,
+  "cellPx": 56,
   "entries": [
     {
       "cover": "none",
@@ -9,13 +9,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c0r0",
+      "id": "nature.grass-1",
       "included": true,
+      "layer": "ground",
+      "name": "grass",
+      "note": "grass field \u2014 primary outdoor surface, hash-paired with grass-2",
       "rect": [
-        0,
-        0,
-        109,
-        724
+        19,
+        299,
+        103,
+        108
+      ],
+      "spriteBorderPx": [
+        6,
+        7
       ]
     },
     {
@@ -24,13 +31,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c1r0",
+      "id": "nature.grass-2",
       "included": true,
+      "layer": "ground",
+      "name": "grass-alt",
+      "note": "grass field, second variant \u2014 the pair is picked per cell by TileManifest",
       "rect": [
-        109,
-        0,
-        108,
-        724
+        141,
+        299,
+        103,
+        108
+      ],
+      "spriteBorderPx": [
+        4,
+        9
       ]
     },
     {
@@ -39,13 +53,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c2r0",
+      "id": "nature.dirt-1",
       "included": true,
+      "layer": "ground",
+      "name": "dirt",
+      "note": "bare dirt field \u2014 hash-paired with dirt-2",
       "rect": [
-        217,
-        0,
-        109,
-        724
+        262,
+        299,
+        105,
+        108
+      ],
+      "spriteBorderPx": [
+        4,
+        8
       ]
     },
     {
@@ -54,13 +75,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c3r0",
+      "id": "nature.dirt-2",
       "included": true,
+      "layer": "ground",
+      "name": "dirt-alt",
+      "note": "bare dirt field, second variant",
       "rect": [
-        326,
-        0,
-        108,
-        724
+        386,
+        299,
+        104,
+        108
+      ],
+      "spriteBorderPx": [
+        4,
+        8
       ]
     },
     {
@@ -69,13 +97,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c4r0",
+      "id": "nature.sand",
       "included": true,
+      "layer": "ground",
+      "name": "sand",
+      "note": "sand field with dune grass \u2014 defined but not currently dispatched to; the SAND ground kind maps to floors.sand",
       "rect": [
-        434,
-        0,
-        109,
-        724
+        508,
+        299,
+        105,
+        108
+      ],
+      "spriteBorderPx": [
+        5,
+        8
       ]
     },
     {
@@ -84,13 +119,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c5r0",
+      "id": "nature.water-1",
       "included": true,
+      "layer": "ground",
+      "name": "water",
+      "note": "shallow water with reeds \u2014 defined but not currently dispatched to; the WATER ground kind maps to water.water",
       "rect": [
-        543,
-        0,
-        109,
-        724
+        631,
+        299,
+        105,
+        108
+      ],
+      "spriteBorderPx": [
+        5,
+        8
       ]
     },
     {
@@ -99,13 +141,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c6r0",
+      "id": "nature.water-2",
       "included": true,
+      "layer": "ground",
+      "name": "water-alt",
+      "note": "open water \u2014 second water variant, likewise not dispatched to today",
       "rect": [
-        652,
-        0,
-        108,
-        724
+        754,
+        299,
+        104,
+        108
+      ],
+      "spriteBorderPx": [
+        5,
+        7
       ]
     },
     {
@@ -114,13 +163,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c7r0",
+      "id": "nature.shrub-1",
       "included": true,
+      "layer": "plant",
+      "name": "shrub",
+      "note": "broad low rosette \u2014 the widest plant on the sheet",
       "rect": [
-        760,
-        0,
-        109,
-        724
+        876,
+        316,
+        93,
+        76
+      ],
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
       ]
     },
     {
@@ -129,13 +185,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c8r0",
+      "id": "nature.shrub-2",
       "included": true,
+      "layer": "plant",
+      "name": "shrub-alt",
+      "note": "small spiky shrub \u2014 the smallest plant, reads as scrub at cell size",
       "rect": [
-        869,
-        0,
-        108,
-        724
+        986,
+        330,
+        68,
+        56
+      ],
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
       ]
     },
     {
@@ -144,13 +207,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c9r0",
+      "id": "nature.tuft-1",
       "included": true,
+      "layer": "plant",
+      "name": "grass-tuft",
+      "note": "upright grass tuft",
       "rect": [
-        977,
-        0,
-        109,
-        724
+        1075,
+        319,
+        72,
+        72
+      ],
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
       ]
     },
     {
@@ -159,13 +229,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c10r0",
+      "id": "nature.tuft-2",
       "included": true,
+      "layer": "plant",
+      "name": "grass-tuft-alt",
+      "note": "wider grass tuft, second variant",
       "rect": [
-        1086,
-        0,
-        109,
-        724
+        1163,
+        314,
+        85,
+        77
+      ],
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
       ]
     },
     {
@@ -174,13 +251,20 @@
         1,
         1
       ],
-      "id": "doodad.nature.c11r0",
+      "id": "nature.shrub-3",
       "included": true,
+      "layer": "plant",
+      "name": "shrub-variant",
+      "note": "young palm \u2014 the one plant with a visible trunk",
       "rect": [
-        1195,
-        0,
-        108,
-        724
+        1260,
+        302,
+        88,
+        97
+      ],
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
       ]
     },
     {
@@ -189,13 +273,21 @@
         1,
         1
       ],
-      "id": "doodad.nature.c12r0",
+      "id": "nature.rock-small-1",
       "included": true,
+      "layer": "rock",
+      "name": "rocks-small",
+      "note": "MISLABELLED: this frame is a sixth plant, a tall grass tuft, not a rock. The sheet carries six plants and seven rock groups; the tileset was written for five and eight, so every id from this frame on names the picture before it. The id is live in three rockPool entries of urban.mapping.json, which is why it is recorded here rather than quietly corrected: renaming it is a content change with its own review, not a re-export.",
       "rect": [
-        1303,
-        0,
-        109,
-        724
+        1357,
+        309,
+        88,
+        91
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
       ]
     },
     {
@@ -204,13 +296,21 @@
         1,
         1
       ],
-      "id": "doodad.nature.c13r0",
+      "id": "nature.rock-small-2",
       "included": true,
+      "layer": "rock",
+      "name": "rocks-small-2",
+      "note": "three separate pebbles, widely scattered \u2014 one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
       "rect": [
-        1412,
-        0,
-        108,
-        724
+        1486,
+        336,
+        56,
+        50
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
       ]
     },
     {
@@ -219,95 +319,155 @@
         1,
         1
       ],
-      "id": "doodad.nature.c14r0",
+      "id": "nature.rock-small-3",
       "included": true,
+      "layer": "rock",
+      "name": "rocks-small-3",
+      "note": "three small stones, one larger \u2014 a tighter scatter than rock-small-2",
       "rect": [
-        1520,
-        0,
-        109,
-        724
+        1572,
+        331,
+        67,
+        55
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
       ]
     },
     {
-      "cover": "none",
+      "cover": "light",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.nature.c15r0",
+      "id": "nature.rock-medium-1",
       "included": true,
+      "layer": "rock",
+      "name": "rock-medium",
+      "note": "a boulder with two stones at its foot \u2014 light cover, still walkable",
       "rect": [
-        1629,
-        0,
-        109,
-        724
+        1662,
+        324,
+        74,
+        64
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
       ]
     },
     {
-      "cover": "none",
+      "cover": "light",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.nature.c16r0",
+      "id": "nature.rock-medium-2",
       "included": true,
+      "layer": "rock",
+      "name": "rock-medium-2",
+      "note": "a single tilted boulder with a detached pebble \u2014 light cover, still walkable",
       "rect": [
-        1738,
-        0,
-        108,
-        724
+        1754,
+        317,
+        73,
+        77
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
       ]
     },
     {
-      "cover": "none",
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.nature.c17r0",
+      "id": "nature.rock-large-1",
       "included": true,
+      "layer": "rock",
+      "name": "rock-large",
+      "note": "a boulder pair taller than a marine \u2014 heavy cover and impassable, but a fixture rather than a wall: no wall art and no destructible HP",
+      "passable": false,
       "rect": [
-        1846,
-        0,
-        109,
-        724
+        1835,
+        311,
+        94,
+        88
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
       ]
     },
     {
-      "cover": "none",
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.nature.c18r0",
+      "id": "nature.rock-large-2",
       "included": true,
+      "layer": "rock",
+      "name": "rock-large-2",
+      "note": "a leaning slab over a low stone \u2014 heavy cover, impassable",
+      "passable": false,
       "rect": [
-        1955,
-        0,
-        108,
-        724
+        1944,
+        310,
+        89,
+        85
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
       ]
     },
     {
-      "cover": "none",
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.nature.c19r0",
+      "id": "nature.rock-large-3",
       "included": true,
+      "layer": "rock",
+      "name": "rock-large-3",
+      "note": "the tallest stack on the sheet \u2014 heavy cover, impassable",
+      "passable": false,
       "rect": [
-        2063,
-        0,
-        109,
-        724
+        2048,
+        303,
+        98,
+        99
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
       ]
     }
   ],
-  "gridCols": 20,
+  "gridCols": 1,
   "gridRows": 1,
-  "idPrefix": "doodad.nature",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 20x1 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Cut once, then annotate: slicing finds the plate as one fused piece again, so re-slicing has nothing to add. 2172x724 as a 20x1 strip, so its cells are 109x724 - far from square, which the grid split handles. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Note it loads as a sliced sheet addressed by frame index rather than as col/row doodads, so re-exporting it through this tool would change its shape in the registry, not just its coordinates.",
+  "idPrefix": "nature",
+  "note": "Twenty frames in a row: seven repeating ground fields, six plants and seven rock groups, drawn by ImageGen against black at roughly twice the size they ship at. It loads as an auto-strip \u2014 the game finds the frames by alpha at load and a tile pins the frame index it resolves to \u2014 so order IS the address and moving a piece renames every piece after it. Its alpha was keyed in by art-source/tilesets/key_background.py, per band: the seven fields are keyed solid, because a field is a rectangle where it is drawn and every pixel a key carves off its rim is a puncture the tiling repeats; the plants and rocks are keyed at a much lower threshold, because their own black outlines sit inside the range the fields call background. A rock is several stones, so its band spans the daylight inside it.\n\nTHIS SHEET IS NOT RE-EXPORTABLE YET, and the reason is not its alpha. Five of its twenty frames do not take their picture from this plate at all: grass-1, grass-2, dirt-1, dirt-2 and sand are tileable materials from art-source/tilesets/atlas-material-source/game-buffs-*, pasted into the shipped atlas by art-source/tilesets/texture-atlases.json after the fact, at pinned pixel rectangles, and cut to the exact pixel size of the frame they fill. Exporting from this document alone would replace them with the ImageGen fields underneath, which are busier, visibly repeat, and were deliberately replaced. See nature-tiles-material-provenance.md.\n\nThe ids below are live: urban.mapping.json names every plant and rock in its NATURE_* pools and TileManifest.pickNatureGrassTileId / pickNatureDirtTileId name the four field variants. The atlas has derived nature-tiles_height.png and _normal.png beside it, sampled at the same pixels; re-run 'gradlew.bat :asset-pipeline:deriveTileMaps' after any export or they read the relief of the sheet they replaced.",
+  "outputSheet": "graphics/tilesets/nature-tiles.png",
   "sheet": "art-source/tilesets/nature-tiles.raw.png",
-  "sheetName": "nature-tiles"
+  "sheetName": "nature-tiles",
+  "strip": {
+    "alphaThreshold": 16,
+    "gutterPx": 8,
+    "marginPx": 2,
+    "minGap": 4,
+    "mode": "auto-strip",
+    "scale": 1.9
+  }
 }

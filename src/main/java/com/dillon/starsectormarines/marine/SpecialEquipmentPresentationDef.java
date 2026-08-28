@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,7 +13,7 @@ public record SpecialEquipmentPresentationDef(
         SpecialUsePose usePose,
         EquipmentLayerDef carrierLayer,
         Thrown thrown,
-        String fieldSpritePath,
+        Field field,
         Deployed deployed,
         LayerClips layerClips,
         Preview preview) implements Serializable {
@@ -22,6 +23,22 @@ public record SpecialEquipmentPresentationDef(
 
     public record Thrown(String spritePath, float widthCells,
                          float heightCells) implements Serializable {
+    }
+
+    /**
+     * Flipbook the deployed field's puffs play, plus the tint each draw
+     * multiplies onto it. Frames are addressed on a {@code columns} x
+     * {@code rows} grid in image order; frame pixel size is derived from the
+     * loaded sheet rather than restated here, so re-deriving the art at a
+     * different resolution needs no data change.
+     *
+     * <p>The tint can only darken — it multiplies. Art bright enough to read
+     * as a white obscurant is the deriving script's job, not this field's.
+     */
+    public record Field(String sheetPath, int columns, int rows,
+                        int firstFrame, int frameCount, float framesPerSecond,
+                        float tintRed, float tintGreen, float tintBlue)
+            implements Serializable {
     }
 
     public record Preview(String state, float phase) implements Serializable {
@@ -49,7 +66,8 @@ public record SpecialEquipmentPresentationDef(
             thrown = new Thrown(requireText(thrownJson, "sprite", equipmentId),
                     widthCells, heightCells);
         }
-        String fieldSprite = optionalText(json, "fieldSprite");
+        JSONObject fieldJson = json.optJSONObject("field");
+        Field field = fieldJson != null ? parseField(fieldJson, equipmentId) : null;
         JSONObject deployedJson = json.optJSONObject("deployed");
         Deployed deployed = null;
         if (deployedJson != null) {
@@ -81,8 +99,42 @@ public record SpecialEquipmentPresentationDef(
                         optionalText(layerClipsJson, "firing"))
                 : null;
         return new SpecialEquipmentPresentationDef(
-                armoryIcon, aimSprite, usePose, carrier, thrown, fieldSprite,
+                armoryIcon, aimSprite, usePose, carrier, thrown, field,
                 deployed, layerClips, preview);
+    }
+
+    private static Field parseField(JSONObject json, String equipmentId)
+            throws JSONException {
+        String sheet = requireText(json, "sheet", equipmentId);
+        int columns = positiveInt(json, "columns", equipmentId);
+        int rows = positiveInt(json, "rows", equipmentId);
+        int firstFrame = json.getInt("firstFrame");
+        int frameCount = positiveInt(json, "frameCount", equipmentId);
+        if (firstFrame < 0 || firstFrame + frameCount > columns * rows) {
+            throw new JSONException("Special equipment '" + equipmentId
+                    + "' field frames " + firstFrame + ".." + (firstFrame + frameCount - 1)
+                    + " fall outside its " + columns + "x" + rows + " sheet");
+        }
+        float fps = positive(json, "framesPerSecond", equipmentId);
+        JSONArray tint = json.optJSONArray("tint");
+        if (tint == null || tint.length() != 3) {
+            throw new JSONException("Special equipment '" + equipmentId
+                    + "' field tint must be three components");
+        }
+        return new Field(sheet, columns, rows, firstFrame, frameCount, fps,
+                unit((float) tint.getDouble(0), equipmentId),
+                unit((float) tint.getDouble(1), equipmentId),
+                unit((float) tint.getDouble(2), equipmentId));
+    }
+
+    private static int positiveInt(JSONObject json, String key, String equipmentId)
+            throws JSONException {
+        int value = json.getInt(key);
+        if (value <= 0) {
+            throw new JSONException("Special equipment '" + equipmentId + "' " + key
+                    + " must be positive");
+        }
+        return value;
     }
 
     private static float positive(JSONObject json, String key, String equipmentId)
@@ -98,7 +150,7 @@ public record SpecialEquipmentPresentationDef(
     private static float unit(float value, String equipmentId) throws JSONException {
         if (value < 0f || value > 1f) {
             throw new JSONException("Special equipment '" + equipmentId
-                    + "' preview phase must be between 0 and 1");
+                    + "' unit value must be between 0 and 1");
         }
         return value;
     }
