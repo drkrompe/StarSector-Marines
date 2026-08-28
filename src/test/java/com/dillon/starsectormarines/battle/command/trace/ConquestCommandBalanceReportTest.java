@@ -80,7 +80,7 @@ class ConquestCommandBalanceReportTest {
                 List.of(row), 600, false);
 
         assertTrue(json.contains("\"schedulerMode\":\"SERIAL_DETERMINISTIC\""));
-        assertTrue(json.contains("\"schemaVersion\":3"));
+        assertTrue(json.contains("\"schemaVersion\":4"));
         assertTrue(json.contains("\"maxTicks\":600"));
         assertTrue(json.contains("\"repeatCount\":2"));
         assertTrue(json.contains("\"canonicalMatrix\":false"));
@@ -91,6 +91,12 @@ class ConquestCommandBalanceReportTest {
         assertTrue(json.contains("\"commandInactivity\":{"
                 + "\"lifecycleSquadPulses\":1"));
         assertTrue(json.contains("\"genuineIdleSquadTicks\":300"));
+        assertTrue(json.contains("\"secureTravelEpisodes\":{"
+                + "\"started\":0,\"finalized\":0,\"open\":0,\"exits\":{"
+                + "\"targetEntry\":0,\"retarget\":0,\"release\":0,"
+                + "\"squadLoss\":0,\"executionSuspension\":0,"
+                + "\"observationGap\":0,\"timeout\":0,"
+                + "\"terminalResult\":0}"));
         assertTrue(markdown.contains("Evidence mode: ad hoc override"));
         assertTrue(markdown.contains("production launch fixtures"));
         assertTrue(markdown.contains("mobilization latencies: [75, 150]"));
@@ -98,6 +104,10 @@ class ConquestCommandBalanceReportTest {
         assertTrue(markdown.contains("useful active-path movement 3 / 225"));
         assertTrue(markdown.contains("genuine idle 4 / 300"));
         assertTrue(markdown.contains("peak live members"));
+        assertTrue(markdown.contains("Marine secure-travel episodes: "
+                + "0/0 finalized, 0 open; exits: target entry 0"));
+        assertTrue(markdown.contains("Context may overlap: local contact 0, "
+                + "active path 0, quiet travel 0"));
         assertTrue(markdown.contains("Capture-zone presence:"));
         assertTrue(markdown.contains("territorial progress: OBSERVED"));
         assertFalse(markdown.contains("response latencies"));

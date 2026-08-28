@@ -27,11 +27,12 @@ import java.nio.file.Paths;
 public class FortressPreviewTest {
 
     private static final Path OUT_DIR = Paths.get("build/map-previews");
-    private static final int CELL_PX = 18;
-    private static final int MAP_W = 180;
-    private static final int MAP_H = 140;
+    private static final int CELL_PX = 14;
+    /** Production Conquest size, so the band is the depth it really is. */
+    private static final int MAP_W = 240;
+    private static final int MAP_H = 160;
     /** Rows past the band's far edge, so the wall and its kill zone stay in frame. */
-    private static final int BUFFER_ROWS = 20;
+    private static final int BUFFER_ROWS = 16;
 
     private static HeadlessBattleMapRenderer battleMaps;
 

@@ -31,19 +31,29 @@ public final class CommandTopology {
     private final int[] zoneByCell;
     private final List<Zone> zones;
 
+    /**
+     * Connected-component id per cell, {@code -1} where non-walkable. Computed
+     * once here because the grid is frozen for the whole pulse, which turns
+     * every reachability question into an array compare instead of a search —
+     * see {@link #reachable}.
+     */
+    private final int[] componentByCell;
+
     private CommandTopology(NavigationGrid grid, int[] zoneByCell,
-                            List<Zone> zones) {
+                            List<Zone> zones, int[] componentByCell) {
         this.grid = grid;
         this.zoneByCell = zoneByCell;
         this.zones = List.copyOf(zones);
+        this.componentByCell = componentByCell;
     }
 
     public static CommandTopology freeze(BattleView sim) {
         NavigationGrid live = sim.getGrid();
         NavigationGrid copy = new NavigationGrid(live.getWidth(), live.getHeight());
+        CellTag[] tags = CellTag.values();
         for (int y = 0; y < live.getHeight(); y++) {
             for (int x = 0; x < live.getWidth(); x++) {
-                for (CellTag tag : CellTag.values()) {
+                for (CellTag tag : tags) {
                     copy.setTag(x, y, tag, live.hasTag(x, y, tag));
                 }
                 for (Direction direction : Direction.ALL) {
@@ -63,7 +73,8 @@ public final class CommandTopology {
             zones.add(new Zone(zone.getZoneId(), cells,
                     graph.adjacentZones(zone.getZoneId())));
         }
-        return new CommandTopology(copy, zoneByCell, zones);
+        return new CommandTopology(copy, zoneByCell, zones,
+                GridPathfinder.labelConnectedComponents(copy));
     }
 
     public int width() { return grid.getWidth(); }
@@ -100,9 +111,17 @@ public final class CommandTopology {
         return false;
     }
 
+    /**
+     * Whether a route exists between two cells on the frozen grid.
+     *
+     * <p>Answered from the precomputed component labeling rather than by running
+     * a search. This is the same answer {@code GridPathfinder.findPath(...).length > 0}
+     * gives — connectivity does not depend on step costs — for a fraction of the
+     * cost: a commander pulse asks this a few hundred times over one frozen grid,
+     * and every ask used to be a full A*.
+     */
     public boolean reachable(int startX, int startY, int targetX, int targetY) {
-        return GridPathfinder.findPath(grid, startX, startY,
-                targetX, targetY).length > 0;
+        return sameComponent(startX, startY, targetX, targetY);
     }
 
     /** Frozen-grid route length, or {@code Integer.MAX_VALUE} when unreachable. */
@@ -111,6 +130,12 @@ public final class CommandTopology {
             return Integer.MAX_VALUE;
         }
         if (startX == targetX && startY == targetY) return 0;
+        // Settle the unreachable case without searching. This is where a search
+        // costs the most, not the least: A* only reports failure after draining
+        // the entire reachable region.
+        if (!sameComponent(startX, startY, targetX, targetY)) {
+            return Integer.MAX_VALUE;
+        }
         int length = GridPathfinder.findPath(grid, startX, startY,
                 targetX, targetY).length;
         return length > 0 ? length : Integer.MAX_VALUE;
@@ -121,6 +146,20 @@ public final class CommandTopology {
         if (!inBounds(startX, startY) || !inBounds(targetX, targetY)) {
             return GridPathfinder.EMPTY_PATH;
         }
+        if (!sameComponent(startX, startY, targetX, targetY)) {
+            return GridPathfinder.EMPTY_PATH;
+        }
         return GridPathfinder.findPath(grid, startX, startY, targetX, targetY);
+    }
+
+    /**
+     * Both cells walkable and mutually reachable. A non-walkable endpoint lands
+     * on {@code -1} and fails, matching the pathfinder's own refusal to start or
+     * end off the walkable set.
+     */
+    private boolean sameComponent(int startX, int startY, int targetX, int targetY) {
+        if (!inBounds(startX, startY) || !inBounds(targetX, targetY)) return false;
+        int start = componentByCell[startY * width() + startX];
+        return start >= 0 && start == componentByCell[targetY * width() + targetX];
     }
 }
