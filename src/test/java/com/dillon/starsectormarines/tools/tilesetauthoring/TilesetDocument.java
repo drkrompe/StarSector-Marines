@@ -53,6 +53,20 @@ public final class TilesetDocument {
     public int gridCols = 1;
     public int gridRows = 1;
     /**
+     * Where the stated grid actually sits, per axis, in sheet pixels.
+     *
+     * <p>Null until something has measured the sheet, in which case the cut
+     * falls back to dividing the canvas — see {@link #cut}. The two halves of an
+     * axis are set together or not at all; the two axes are independent, because
+     * a plate's columns can be measurable while its rows are not. See
+     * {@link GridCut} for why a cut is an origin and a pitch rather than a
+     * rectangle, and {@link GridFit} for what may and may not be measured.
+     */
+    public Double gridOriginX;
+    public Double gridPitchX;
+    public Double gridOriginY;
+    public Double gridPitchY;
+    /**
      * Where the packed atlas is written, relative to {@code mod/}. Empty derives
      * it from what the sheet contains — see {@link #defaultOutputSheet}.
      */
@@ -114,6 +128,16 @@ public final class TilesetDocument {
         root.put("alphaMin", alphaMin);
         root.put("gridCols", gridCols);
         root.put("gridRows", gridRows);
+        JSONObject cut = new JSONObject();
+        if (gridOriginX != null && gridPitchX != null) {
+            cut.put("originX", gridOriginX);
+            cut.put("pitchX", gridPitchX);
+        }
+        if (gridOriginY != null && gridPitchY != null) {
+            cut.put("originY", gridOriginY);
+            cut.put("pitchY", gridPitchY);
+        }
+        if (cut.length() > 0) root.put("cut", cut);
         if (!outputSheet.isEmpty()) root.put("outputSheet", outputSheet);
         root.put("entries", array);
         return root;
@@ -128,6 +152,17 @@ public final class TilesetDocument {
         doc.alphaMin = root.optInt("alphaMin", SheetSlicer.DEFAULT_ALPHA_MIN);
         doc.gridCols = Math.max(1, root.optInt("gridCols", 1));
         doc.gridRows = Math.max(1, root.optInt("gridRows", 1));
+        JSONObject cut = root.optJSONObject("cut");
+        if (cut != null) {
+            if (cut.has("originX") && cut.has("pitchX")) {
+                doc.gridOriginX = cut.getDouble("originX");
+                doc.gridPitchX = cut.getDouble("pitchX");
+            }
+            if (cut.has("originY") && cut.has("pitchY")) {
+                doc.gridOriginY = cut.getDouble("originY");
+                doc.gridPitchY = cut.getDouble("pitchY");
+            }
+        }
         doc.outputSheet = root.optString("outputSheet", "");
         doc.note = root.optString("note", "");
         JSONArray blockArray = root.optJSONArray("blocks");
@@ -294,14 +329,54 @@ public final class TilesetDocument {
         return Math.max(1, Math.round(pixels / (float) cellPx));
     }
 
+    /**
+     * The cut this document states, placed on a sheet of the given size.
+     *
+     * <p>An axis nobody has measured falls back to dividing the canvas, which is
+     * what a stated layout alone can say. An axis that has been measured keeps
+     * its measured origin and pitch, so re-cutting the sheet reproduces the same
+     * cells without measuring it again.
+     */
+    public GridCut cut(int sheetWidth, int sheetHeight) {
+        GridCut cut = GridCut.dividing(sheetWidth, sheetHeight,
+                Math.max(1, gridCols), Math.max(1, gridRows));
+        if (gridOriginX != null && gridPitchX != null && gridPitchX > 0) {
+            cut = cut.withColumnAxis(gridOriginX, gridPitchX);
+        }
+        if (gridOriginY != null && gridPitchY != null && gridPitchY > 0) {
+            cut = cut.withRowAxis(gridOriginY, gridPitchY);
+        }
+        return cut;
+    }
+
+    /**
+     * Record a cut, keeping only the placement.
+     *
+     * <p>The counts stay where they are: they are stated by an operator and a
+     * measurement never revises them.
+     */
+    public void setCut(GridCut cut) {
+        gridOriginX = cut.originX();
+        gridPitchX = cut.pitchX();
+        gridOriginY = cut.originY();
+        gridPitchY = cut.pitchY();
+    }
+
     /** One cell's width in source pixels, given the sheet this document annotates. */
     public int cellPxX(int sheetWidth) {
-        return Math.max(1, Math.round(sheetWidth / (float) Math.max(1, gridCols)));
+        return whole(gridPitchX, sheetWidth, gridCols);
     }
 
     /** One cell's height in source pixels. Not the same number as {@link #cellPxX}. */
     public int cellPxY(int sheetHeight) {
-        return Math.max(1, Math.round(sheetHeight / (float) Math.max(1, gridRows)));
+        return whole(gridPitchY, sheetHeight, gridRows);
+    }
+
+    /** A measured pitch where there is one, and the canvas division where there is not. */
+    private static int whole(Double measured, int extent, int count) {
+        double pitch = measured != null && measured > 0
+                ? measured : extent / (double) Math.max(1, count);
+        return Math.max(1, (int) Math.round(pitch));
     }
 
     /**
