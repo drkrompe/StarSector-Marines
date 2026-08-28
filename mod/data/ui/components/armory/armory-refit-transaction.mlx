@@ -61,6 +61,7 @@
                 </div>
               </div>
               <div id="{marine.armorDeltaId}" class="{marine.deltaClasses}">{marine.armorDelta}</div>
+              <div id="{marine.systemId}" class="{marine.systemClasses}">{marine.system}</div>
               <div id="{marine.careerId}" class="marine-career label surface-dark tone-muted">{marine.career}</div>
             </div>
           </div>
@@ -69,6 +70,7 @@
         <div id="{marine.primaryDescriptionId}" class="marine-equipment-tooltip label tooltip-hidden">{marine.primary}  //  {marine.primaryDescription}</div>
         <div id="{marine.armorDescriptionId}" class="marine-equipment-tooltip armor-equipment-tooltip label tooltip-hidden">{marine.armor}  //  {marine.armorDescription}</div>
         <div id="{marine.specialDescriptionId}" class="marine-equipment-tooltip special-equipment-tooltip label tooltip-hidden">{marine.special}  //  {marine.specialDescription}</div>
+        <div id="{marine.systemDescriptionId}" class="marine-equipment-tooltip system-equipment-tooltip label tooltip-hidden">{marine.system}  //  {marine.systemDescription}</div>
       </div>
     </div>
 
@@ -168,6 +170,7 @@
   }
   .armor-equipment-tooltip { border-color: #dfb84d; }
   .special-equipment-tooltip { border-color: #71d6c1; }
+  .system-equipment-tooltip { border-color: #c79ce8; }
   .marine-equipment-tooltip.tooltip-hidden {
     width: 0px;
     height: 0px;
