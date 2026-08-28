@@ -21,7 +21,9 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Post-movement separation pass. It pushes overlapping ground units apart
@@ -438,30 +440,45 @@ public final class SeparationSystem {
 
     private void accumulateSquadFormations(long[] dense, int liveCount, float dt) {
         ensureFormationCapacity(liveCount);
+        // One grouping pass over the roster, not one full scan per squad. A
+        // late-battle Conquest fields a few hundred squads against a few
+        // hundred units, so the old per-squad rescan was the single most
+        // expensive thing this phase did.
+        Map<Integer, List<Long>> membersBySquad = groupCombatantsBySquad(dense, liveCount);
         for (Squad squad : roster.getSquads()) {
             FormationProfile profile = formationProfile(squad);
             if (profile == null) continue;
+            List<Long> members = membersBySquad.get(squad.id);
+            if (members == null) continue;
             if (profile == FormationProfile.MECH) {
-                int count = gatherMovingFormationMembers(squad.id, dense, liveCount);
+                int count = gatherMovingFormationMembers(members);
                 accumulateFormation(count, profile, dt,
                         Float.NaN, Float.NaN, Float.NaN, Float.NaN);
             } else {
-                accumulateInfantryFireTeams(squad.id, dense, liveCount, dt);
+                accumulateInfantryFireTeams(members, dt);
             }
         }
     }
 
-    private void accumulateInfantryFireTeams(int squadId, long[] dense,
-                                              int liveCount, float dt) {
-        List<Long> allMembers = new ArrayList<>();
+    /**
+     * Squadded combatants keyed by squad id, each list in dense-roster order —
+     * the order a per-squad scan of the dense array produced, which formation
+     * slotting and its tie-breaks depend on. Squads with no live squadded
+     * combatant are absent rather than empty, so a caller skipping a null is
+     * skipping exactly what the old empty-scan path skipped.
+     */
+    private Map<Integer, List<Long>> groupCombatantsBySquad(long[] dense, int liveCount) {
+        Map<Integer, List<Long>> bySquad = new HashMap<>();
         for (int i = 0; i < liveCount; i++) {
             long member = dense[i];
-            if (roster.combat().has(member)
-                    && roster.squad().hasSquad(member)
-                    && roster.squad().squadId(member) == squadId) {
-                allMembers.add(member);
-            }
+            if (!roster.combat().has(member) || !roster.squad().hasSquad(member)) continue;
+            bySquad.computeIfAbsent(roster.squad().squadId(member),
+                    id -> new ArrayList<>()).add(member);
         }
+        return bySquad;
+    }
+
+    private void accumulateInfantryFireTeams(List<Long> allMembers, float dt) {
         List<List<Long>> movingTeams = new ArrayList<>();
         for (FireTeamGroups.Team team : FireTeamGroups.organize(allMembers, roster.squad())) {
             List<Long> moving = new ArrayList<>();
@@ -581,16 +598,11 @@ public final class SeparationSystem {
         }
     }
 
-    private int gatherMovingFormationMembers(int squadId, long[] dense,
-                                             int liveCount) {
+    private int gatherMovingFormationMembers(List<Long> squadMembers) {
         int count = 0;
-        for (int i = 0; i < liveCount; i++) {
-            long member = dense[i];
-            if (!roster.combat().has(member)
-                    || !entityWorld.has(member, components.MOVEMENT)
+        for (long member : squadMembers) {
+            if (!entityWorld.has(member, components.MOVEMENT)
                     || !hasActivePath(member)
-                    || !roster.squad().hasSquad(member)
-                    || roster.squad().squadId(member) != squadId
                     || (world.hasMechLoadout(member)
                     && world.mechLoadout(member).collisionEscapeActive)) continue;
             formationMembers[count++] = member;
