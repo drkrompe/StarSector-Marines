@@ -8,12 +8,17 @@ import java.util.List;
 /**
  * Where a sheet's stated grid really sits, measured from the art.
  *
- * <p>A tileable plate is drawn cell against cell, so the boundary between two
- * cells is a line the art changes across. Summing that change down the whole
- * sheet — {@code sum_y |I[y][x] - I[y][x-1]|} for a column line — makes the real
- * boundaries stand out as peaks. Given a <em>stated</em> cell count, an origin
- * and a pitch can be fitted to those peaks: two parameters against
- * {@code count - 1} observations.
+ * <p><b>A plate that separates its cells with a dark gutter has its boundary in
+ * the middle of that gap, so its grid is fitted to the gutters; a plate drawn
+ * cell against cell has no gap, so its grid is fitted to where the art
+ * changes.</b> Which one a sheet is, is a fact about the art and is measured
+ * rather than configured: see {@link Boundary} for the two features and
+ * {@link #fitAxis} for the choice between them.
+ *
+ * <p>Either feature reduces to one profile along the axis whose peaks are the
+ * boundaries, so both are fitted the same way. Given a <em>stated</em> cell
+ * count, an origin and a pitch can be fitted to those peaks: two parameters
+ * against {@code count - 1} observations.
  *
  * <p><b>The cell count stays stated and this must never learn to guess it.</b>
  * Detecting the count was tried in this project and deleted: seam energy ranked
@@ -24,12 +29,11 @@ import java.util.List;
  *
  * <p><b>A fit is a measurement offered to an operator, never a decision taken
  * for them.</b> Real sheets fail this in several different ways — a plate whose
- * lower rows are empty gives no seams to fit there, and a strip of props with
- * gutters between them has its boundaries in the gaps rather than on any edge —
- * so every fit reports how many real seams it found and how far they sit from
- * the straight line through them, and {@link Axis#trustworthy()} answers
- * honestly. A caller that applies an untrustworthy axis anyway must be doing so
- * because it was told to.
+ * lower rows are empty gives no seams to fit there, and a strip of props whose
+ * frames vary in width has no single pitch at all — so every fit reports how
+ * many real seams it found and how far they sit from the straight line through
+ * them, and {@link Axis#trustworthy()} answers honestly. A caller that applies
+ * an untrustworthy axis anyway must be doing so because it was told to.
  */
 public final class GridFit {
 
@@ -53,12 +57,44 @@ public final class GridFit {
     private static final double RESIDUAL_TOLERANCE_FRACTION = 0.04;
 
     /**
+     * The feature in the art a fit put the grid lines on.
+     *
+     * <p>The two are not variants of one objective, they are two different
+     * things a plate can do at a cell boundary, and confusing them is the bug
+     * this distinction exists to fix. A gutter has a bright-to-dark edge on each
+     * side of it, so a fit that chases change lands on one of those edges — a
+     * few pixels <em>inside</em> the neighbouring cell's art, which is a visible
+     * sliver in every exported tile.
+     */
+    public enum Boundary {
+
+        /** The dark gap a plate leaves between its cells; the line goes in the gap. */
+        GUTTER("the gutters between cells"),
+
+        /** Where the art changes, for a plate drawn cell against cell with no gap. */
+        CHANGE("where the art changes");
+
+        private final String description;
+
+        Boundary(String description) {
+            this.description = description;
+        }
+
+        @Override
+        public String toString() {
+            return description;
+        }
+    }
+
+    /**
      * One measured boundary.
      *
      * @param index    which grid line this is, 1 .. count-1
-     * @param position where the art actually changes, in sheet pixels
-     * @param strong   whether the change is clearly above the sheet's background
-     *                 gradient rather than a peak in noise
+     * @param position where the {@link Boundary} the axis was fitted to actually
+     *                 is, in sheet pixels — the middle of a gutter, or the line
+     *                 the art changes across
+     * @param strong   whether that feature is clearly above the sheet's own
+     *                 background level rather than a peak in noise
      */
     public record Seam(int index, int position, double energy, boolean strong) {}
 
@@ -70,7 +106,7 @@ public final class GridFit {
      * straight line badly no matter where it is placed, and that shows up here
      * rather than in a silently wrong cut.
      */
-    public record Axis(int count, double origin, double pitch, List<Seam> seams,
+    public record Axis(int count, Boundary onto, double origin, double pitch, List<Seam> seams,
                        double maxResidual, double rmsResidual) {
 
         /** How many of the measured boundaries sit on a real seam rather than on noise. */
@@ -121,9 +157,10 @@ public final class GridFit {
         public String describe(String axisName) {
             if (count < 2) return axisName + ": 1 cell, nothing to fit";
             return String.format(
-                    "%s: %d cells from %.2f every %.2f px; %d of %d boundaries on a real seam, "
-                            + "worst %.1f px off the line, rms %.1f (tolerance %.1f) — %s",
-                    axisName, count, origin, pitch, strongSeams(), count - 1,
+                    "%s: %d cells from %.2f every %.2f px, fitted to %s; %d of %d boundaries on a "
+                            + "real seam, worst %.1f px off the line, rms %.1f (tolerance %.1f) "
+                            + "— %s",
+                    axisName, count, origin, pitch, onto, strongSeams(), count - 1,
                     maxResidual, rmsResidual, residualTolerance(),
                     trustworthy() ? "usable" : "NOT usable, look before applying it");
         }
@@ -155,8 +192,32 @@ public final class GridFit {
     public static Measured measure(BufferedImage sheet, GridCut stated) {
         double[][] luminance = luminance(sheet);
         return new Measured(
-                fit(columnEnergy(luminance), stated.cols()),
-                fit(rowEnergy(luminance), stated.rows()));
+                fitAxis(columnEnergy(luminance), columnProfile(luminance), stated.cols()),
+                fitAxis(rowEnergy(luminance), rowProfile(luminance), stated.rows()));
+    }
+
+    /**
+     * One axis fitted to whichever boundary the plate actually draws.
+     *
+     * <p>The gutter fit is tried first and kept when the plate turns out to have
+     * gutters — when most of the stated boundaries land in a real trough, which
+     * is the same evidence {@link Axis#trustworthy()} wants and is measured by
+     * {@link #gutterEnergy}. A plate drawn edge to edge has no trough to find,
+     * so that test fails on it and the fit falls back to where the art changes.
+     *
+     * <p>Note what this is <em>not</em>: it is not a race between two objectives
+     * settled by whichever residual came out smaller. Both fit their own feature
+     * well on a sheet that has both, and the smaller number would then be an
+     * accident of which feature is sharper rather than a statement about where
+     * the cells meet. The question asked here is about the art — does this plate
+     * leave a gap between its cells? — and only its answer selects the fit.
+     */
+    static Axis fitAxis(double[] change, double[] profile, int count) {
+        if (count < 2) return fit(change, count, Boundary.CHANGE);
+        Axis gutters = fit(gutterEnergy(profile, profile.length / (double) count), count,
+                Boundary.GUTTER);
+        if (gutters.strongSeams() >= MIN_STRONG_FRACTION * (count - 1)) return gutters;
+        return fit(change, count, Boundary.CHANGE);
     }
 
     /**
@@ -189,6 +250,64 @@ public final class GridFit {
         return energy;
     }
 
+    /** How bright each column of the sheet is on average. */
+    public static double[] columnProfile(double[][] luminance) {
+        int height = luminance.length;
+        int width = height == 0 ? 0 : luminance[0].length;
+        double[] profile = new double[width];
+        for (double[] row : luminance) {
+            for (int x = 0; x < width; x++) profile[x] += row[x];
+        }
+        if (height > 0) {
+            for (int x = 0; x < width; x++) profile[x] /= height;
+        }
+        return profile;
+    }
+
+    /** How bright each row of the sheet is on average. */
+    public static double[] rowProfile(double[][] luminance) {
+        int height = luminance.length;
+        int width = height == 0 ? 0 : luminance[0].length;
+        double[] profile = new double[height];
+        for (int y = 0; y < height; y++) {
+            double[] row = luminance[y];
+            double sum = 0;
+            for (int x = 0; x < width; x++) sum += row[x];
+            profile[y] = width == 0 ? 0 : sum / width;
+        }
+        return profile;
+    }
+
+    /**
+     * How deep a dark gap runs at each line, with lit art on both sides of it.
+     *
+     * <p>Depth is measured against the brightest art within half a cell either
+     * side rather than against the sheet as a whole, and both sides have to
+     * supply it. That is what a gutter <em>is</em> — a dip between two lit cells
+     * — and stating it that way makes this zero in two places where a plain
+     * "how dark is this line" would be maximal and wrong: across an empty region
+     * of a plate, which is uniformly dark and has no gap in it however dark it
+     * is, and outside the art in the sheet's own margin.
+     *
+     * @param nominal the stated cell size on this axis, which sets how far away
+     *                the art bounding a gutter is allowed to be
+     */
+    public static double[] gutterEnergy(double[] profile, double nominal) {
+        int extent = profile.length;
+        int half = Math.max(2, (int) Math.round(nominal / 2));
+        double[] energy = new double[extent];
+        for (int at = 0; at < extent; at++) {
+            double left = 0;
+            for (int x = Math.max(0, at - half); x < at; x++) left = Math.max(left, profile[x]);
+            double right = 0;
+            for (int x = at + 1; x < Math.min(extent, at + half + 1); x++) {
+                right = Math.max(right, profile[x]);
+            }
+            energy[at] = Math.max(0, Math.min(left, right) - profile[at]);
+        }
+        return energy;
+    }
+
     /**
      * The sheet as brightness, with transparency composited onto black.
      *
@@ -214,7 +333,12 @@ public final class GridFit {
     }
 
     /**
-     * Place {@code count} cells on one axis of measured seam energy.
+     * Place {@code count} cells on one axis of measured boundary energy.
+     *
+     * <p>Objective-agnostic: {@code energy} peaks wherever the boundary that
+     * {@code onto} names is, and everything below is about placing a regular
+     * line through peaks. Which energy to hand it is {@link #fitAxis}'s
+     * question.
      *
      * <p>Three steps, each answering a failure of the one before it. A coarse
      * sweep over origin and pitch finds the phase, scored against a capped and
@@ -226,10 +350,10 @@ public final class GridFit {
      * refitted through the snapped positions. What that line does not explain is
      * reported rather than smoothed away.
      */
-    public static Axis fit(double[] energy, int count) {
+    public static Axis fit(double[] energy, int count, Boundary onto) {
         int extent = energy.length;
         if (count < 2 || extent < 2) {
-            return new Axis(count, 0, Math.max(1, extent), List.of(), 0, 0);
+            return new Axis(count, onto, 0, Math.max(1, extent), List.of(), 0, 0);
         }
         double nominal = extent / (double) count;
         double[] scored = prepared(energy, count, nominal);
@@ -248,7 +372,7 @@ public final class GridFit {
             pitch = line[1];
             snapped = found;
         }
-        if (snapped.isEmpty()) return new Axis(count, origin, pitch, List.of(), 0, 0);
+        if (snapped.isEmpty()) return new Axis(count, onto, origin, pitch, List.of(), 0, 0);
 
         double background = medianOfPositive(energy);
         List<Seam> seams = new ArrayList<>(snapped.size());
@@ -263,7 +387,7 @@ public final class GridFit {
             seams.add(new Seam(index, position, energy[position],
                     energy[position] >= STRONG_SEAM_FACTOR * background));
         }
-        return new Axis(count, origin, pitch, List.copyOf(seams),
+        return new Axis(count, onto, origin, pitch, List.copyOf(seams),
                 worst, Math.sqrt(squares / snapped.size()));
     }
 

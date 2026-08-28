@@ -47,7 +47,7 @@ import java.util.List;
  *   <li><b>Lifetime</b> — a finite time standing, after which it is retired
  *       through the same removal path an explosion would have used, leaving
  *       the boundary exactly as it was found.</li>
- *   <li><b>Structure</b> — the profile carries a small structure pool that
+ *   <li><b>Structure</b> — the profile carries a little structure that
  *       blast wall-damage depletes, so a squad that cannot shoot through a
  *       barricade can still blow it apart.</li>
  * </ul>

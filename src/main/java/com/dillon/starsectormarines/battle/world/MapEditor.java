@@ -122,7 +122,7 @@ public final class MapEditor {
      * rather than trusted to callers: <b>a runtime-placed feature may not make
      * the navigation grid less permissive.</b> A profile that
      * {@linkplain SharedEdgeBarrier.Kind#blocksMovement blocks movement} is
-     * refused outright. What remains — cover, presentation, a structure pool
+     * refused outright. What remains — cover, presentation, structure
      * that explosions can deplete — is invisible to walkability, to zones, to
      * the navigation mesh, and to retained paths, so nothing derived needs
      * invalidating and no flush is required.
@@ -145,7 +145,7 @@ public final class MapEditor {
 
     /**
      * Removes a runtime-placed feature that ran out its clock, by spending its
-     * whole structure pool through the ordinary destruction path. Expiry and
+     * whole structure through the ordinary destruction path. Expiry and
      * being blown apart therefore leave the map in exactly the same state —
      * there is one removal path, not two.
      */
