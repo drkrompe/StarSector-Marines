@@ -67,6 +67,8 @@ public final class HighlightOverlay {
     public static final String SRC_EXTRACTION_ACTIONS = "extraction-actions";
     public static final String SRC_EXTRACTION_SELECTED_ACTION =
             "extraction-selected-action";
+    public static final String SRC_RESCUE_SWARM_APPROACHES =
+            "rescue-swarm-approaches";
 
     /** Suggested palette so unrelated sources don't visually collide. */
     public static final Color COLOR_ACTION_CELLS   = new Color(0x40, 0xE0, 0xFF, 0xFF);  // cyan

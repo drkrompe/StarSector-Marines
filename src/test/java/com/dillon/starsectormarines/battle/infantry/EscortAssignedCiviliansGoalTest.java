@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
+import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
@@ -280,6 +281,9 @@ class EscortAssignedCiviliansGoalTest {
                         PointOfInterest.Kind.RESIDENTIAL,
                         9, 6, 13, 10, 11, 8, 11, 8)), 412L);
         assertNotNull(payload);
+        long cohortEscort = addMarine(sim,
+                payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY);
         long marine = addMarine(sim, payload.placement.shelterApproachX,
                 payload.placement.shelterApproachY);
         sim.advance(BattleSimulation.TICK_DT);
@@ -290,6 +294,7 @@ class EscortAssignedCiviliansGoalTest {
         for (int i = 0; i < payload.size(); i++) {
             sim.world().setCellPos(payload.entityId(i), civilianX, civilianY);
         }
+        payload.objective.tick(sim);
         int[] route = GridPathfinder.findPath(sim.getGrid(), civilianX, civilianY,
                 payload.placement.liftX, payload.placement.liftY);
         assertTrue(Paths.cellCount(route) > RescueEscortCommand.ADVANCE_SCREEN_CELLS);
@@ -303,7 +308,13 @@ class EscortAssignedCiviliansGoalTest {
         sim.world().setTargetId(marine, threat);
 
         Squad squad = sim.getSquad(sim.squad().squadId(marine));
-        new RescueEscortCommand(payload.placement).tick(sim);
+        RescueEscortCommand command = new RescueEscortCommand(payload.placement);
+        command.tick(sim);
+        assertEquals(RescueCommandSnapshot.Role.COHORT_ESCORT,
+                command.rescueSnapshot().intentFor(
+                        sim.squad().squadId(cohortEscort)).role());
+        assertEquals(RescueCommandSnapshot.Role.LEAD_SCREEN,
+                command.rescueSnapshot().intentFor(squad.id).role());
         EscortAssignedCivilians.INSTANCE.execute(marine, squad, sim);
 
         assertFalse(Paths.isEmpty(sim.movement().path(marine)),

@@ -25,6 +25,8 @@ import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot;
+import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
+import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -190,6 +192,8 @@ public final class SquadStateDumper {
                 squad, commander, sim));
         o.put("extractionDefenseCommand", buildExtractionDefenseCommandJson(
                 squad, commander, sim));
+        o.put("rescueCommand", buildRescueCommandJson(squad, commander, sim));
+        o.put("swarmPressureDirector", buildSwarmPressureJson(sim));
         o.put("currentCommanderInfluence", buildCommanderInfluenceJson(
                 squad.faction, sim));
         // Garrison-specific flags — load-bearing for "why won't this squad fire" diagnostics.
@@ -606,6 +610,105 @@ public final class SquadStateDumper {
             intent.put("localContact", selected.localContact());
             out.put("squadIntent", intent);
         }
+        return out;
+    }
+
+    private static Object buildRescueCommandJson(
+            Squad squad, CommanderSnapshot<?> commander,
+            BattleSimulation sim) throws Exception {
+        RescueCommandSnapshot snapshot = commander != null
+                && commander.detail() instanceof RescueCommandSnapshot rescue
+                ? rescue : null;
+        if (snapshot == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("tick", snapshot.tick());
+        out.put("ageTicks", Math.max(0, sim.simTickIndex - snapshot.tick()));
+        out.put("perspective", snapshot.perspective().name());
+        out.put("phase", snapshot.phase());
+        out.put("payloadId", snapshot.payloadId());
+        out.put("payloadName", snapshot.payloadName());
+        out.put("shelterCellX", snapshot.shelterCellX());
+        out.put("shelterCellY", snapshot.shelterCellY());
+        out.put("cohortCellX", snapshot.cohortCellX());
+        out.put("cohortCellY", snapshot.cohortCellY());
+        out.put("corridorGuideCellX", snapshot.corridorGuideCellX());
+        out.put("corridorGuideCellY", snapshot.corridorGuideCellY());
+        out.put("liftCellX", snapshot.liftCellX());
+        out.put("liftCellY", snapshot.liftCellY());
+        out.put("initialCivilians", snapshot.initialCivilians());
+        out.put("activeCivilians", snapshot.activeCivilians());
+        out.put("boardedCivilians", snapshot.boardedCivilians());
+        out.put("lostCivilians", snapshot.lostCivilians());
+        out.put("progress", snapshot.progress());
+        out.put("escortPresent", snapshot.escortPresent());
+        out.put("controllingSquadId", snapshot.controllingSquadId());
+        out.put("knownPressureContacts", snapshot.knownPressureContacts());
+        out.put("complete", snapshot.complete());
+        out.put("failed", snapshot.failed());
+        out.put("failure", snapshot.failure().name());
+        RescueCommandSnapshot.SquadIntent selected =
+                snapshot.intentFor(squad.id);
+        if (selected == null) {
+            out.put("squadIntent", JSONObject.NULL);
+        } else {
+            JSONObject intent = new JSONObject();
+            intent.put("role", selected.role().name());
+            intent.put("reason", selected.reason());
+            intent.put("assignmentKind", selected.assignmentKind() != null
+                    ? selected.assignmentKind().name() : JSONObject.NULL);
+            intent.put("targetCellX", selected.targetCellX());
+            intent.put("targetCellY", selected.targetCellY());
+            intent.put("localContact", selected.localContact());
+            intent.put("locallySlowed", selected.locallySlowed());
+            out.put("squadIntent", intent);
+        }
+        return out;
+    }
+
+    private static Object buildSwarmPressureJson(BattleSimulation sim)
+            throws Exception {
+        SwarmPressureSnapshot snapshot = sim.getSwarmPressureSnapshot();
+        if (snapshot == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("revision", snapshot.revision());
+        out.put("tick", snapshot.tick());
+        out.put("ageTicks", Math.max(0, sim.simTickIndex - snapshot.tick()));
+        out.put("perspective", "SWARM");
+        out.put("director", "rescue-swarm-pressure");
+        out.put("phase", snapshot.phase().name());
+        out.put("pressureReason", snapshot.pressureReason());
+        out.put("targetPopulation", snapshot.targetPopulation());
+        out.put("populationFloor", snapshot.populationFloor());
+        out.put("liveRunners", snapshot.liveRunners());
+        out.put("waveIndex", snapshot.waveIndex());
+        JSONArray approaches = new JSONArray();
+        for (SwarmPressureSnapshot.ApproachState approach
+                : snapshot.approaches()) {
+            approaches.put(new JSONObject()
+                    .put("approach", approach.approach().name())
+                    .put("liveRunners", approach.liveRunners())
+                    .put("ownedWaveRunners", approach.ownedWaveRunners()));
+        }
+        out.put("approaches", approaches);
+        JSONArray targets = new JSONArray();
+        for (SwarmPressureSnapshot.TargetState target
+                : snapshot.targetContexts()) {
+            targets.put(new JSONObject()
+                    .put("context", target.context().name())
+                    .put("runnerCount", target.runnerCount()));
+        }
+        out.put("targetContexts", targets);
+        JSONArray wave = new JSONArray();
+        for (SwarmPressureSnapshot.WaveIntent intent : snapshot.ownedWave()) {
+            wave.put(new JSONObject()
+                    .put("runnerId", intent.runnerId())
+                    .put("approach", intent.approach().name())
+                    .put("spawnCellX", intent.spawnCellX())
+                    .put("spawnCellY", intent.spawnCellY())
+                    .put("targetContext", intent.targetContext().name())
+                    .put("reason", intent.reason()));
+        }
+        out.put("ownedWave", wave);
         return out;
     }
 

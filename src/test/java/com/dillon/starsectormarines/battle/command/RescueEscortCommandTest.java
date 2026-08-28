@@ -1,13 +1,9 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
-import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -16,9 +12,12 @@ import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,241 +25,156 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RescueEscortCommandTest {
 
     @Test
-    void commandTransitionsFromShelterReliefToMovingCohort() {
+    void commandTransitionsFromShelterReliefToPublishedCohortCorridor() {
         BattleSimulation sim = simulation();
-        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(residential()), 41L);
-        assertNotNull(payload);
-        Squad squad = addMarineSquad(sim, 2, 2);
-        RescueEscortCommand command =
-                new RescueEscortCommand(payload.placement);
+        CivilianEvacuationPayload payload = install(sim);
+        Squad escort = addMarineSquad(sim, 2, 2);
+        Squad screen = addMarineSquad(sim, 2, 4);
+        RescueEscortCommand command = new RescueEscortCommand(payload.placement);
 
         command.tick(sim);
 
-        assertEscortTarget(squad, payload.placement.shelterApproachX,
+        assertEscortTarget(escort, payload.placement.shelterApproachX,
                 payload.placement.shelterApproachY);
+        assertEquals("AT_SOURCE", command.rescueSnapshot().phase());
+        assertEquals(RescueCommandSnapshot.Role.COHORT_ESCORT,
+                command.rescueSnapshot().intentFor(escort.id).role());
 
-        long leader = sim.resolveUnit(squad.leaderId);
+        long leader = sim.resolveUnit(escort.leaderId);
         sim.world().setCellPos(leader,
                 payload.placement.shelterApproachX,
                 payload.placement.shelterApproachY);
         sim.advance(BattleSimulation.TICK_DT);
-        assertTrue(sim.isCivilianEvacuationTriggered());
         for (int i = 0; i < payload.size(); i++) {
             sim.world().setCellPos(payload.entityId(i), 15, 8);
         }
-
+        payload.objective.tick(sim);
         command.tick(sim);
 
-        int[] route = GridPathfinder.findPath(sim.getGrid(), 15, 8,
-                payload.placement.liftX, payload.placement.liftY);
-        int targetCell = Math.min(RescueEscortCommand.ADVANCE_SCREEN_CELLS,
-                Paths.cellCount(route) - 1);
-        assertEscortTarget(squad, Paths.cellX(route, targetCell),
-                Paths.cellY(route, targetCell));
+        RescueCommandSnapshot moving = command.rescueSnapshot();
+        assertEquals("IN_TRANSIT", moving.phase());
+        assertEquals(15, moving.cohortCellX());
+        assertEquals(8, moving.cohortCellY());
+        assertEquals(RescueCommandSnapshot.Role.LEAD_SCREEN,
+                moving.intentFor(screen.id).role());
+        assertTrue(moving.corridorGuideCellX() != moving.cohortCellX()
+                        || moving.corridorGuideCellY() != moving.cohortCellY(),
+                "moving picture exposes a route-relative screen guide");
     }
 
     @Test
-    void mobileSquadsReceiveSeparatedSlotsBeforeShelterRelief() {
+    void mobileSquadsReceiveStableSeparatedScreenRoles() {
         BattleSimulation sim = simulation();
-        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(residential()), 46L);
-        assertNotNull(payload);
+        CivilianEvacuationPayload payload = install(sim);
         List<Squad> squads = addMarineSquads(sim, 5);
-
-        new RescueEscortCommand(payload.placement).tick(sim);
-
-        assertEscortTarget(squads.get(0),
-                payload.placement.shelterApproachX,
-                payload.placement.shelterApproachY);
-        assertSeparatedEscortTargets(squads);
-    }
-
-    @Test
-    void mobileSquadsKeepSeparatedSlotsAroundTheMovingEscortScreen() {
-        BattleSimulation sim = simulation();
-        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(residential()), 47L);
-        assertNotNull(payload);
-        List<Squad> squads = addMarineSquads(sim, 5);
-        long lead = sim.resolveUnit(squads.get(0).leaderId);
-        sim.world().setCellPos(lead,
-                payload.placement.shelterApproachX,
-                payload.placement.shelterApproachY);
-        sim.advance(BattleSimulation.TICK_DT);
-        assertTrue(sim.isCivilianEvacuationTriggered());
-        for (int i = 0; i < payload.size(); i++) {
-            sim.world().setCellPos(payload.entityId(i), 15, 8);
-        }
-
-        new RescueEscortCommand(payload.placement).tick(sim);
-
-        assertSeparatedEscortTargets(squads);
-    }
-
-    @Test
-    void commandClearsEscortWhenNoActiveCiviliansRemain() {
-        BattleSimulation sim = simulation();
-        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(residential()), 42L);
-        assertNotNull(payload);
-        Squad squad = addMarineSquad(sim,
-                payload.placement.shelterApproachX,
-                payload.placement.shelterApproachY);
-        sim.advance(BattleSimulation.TICK_DT);
-        RescueEscortCommand command =
-                new RescueEscortCommand(payload.placement);
-        CivilianEvacuationTracker tracker =
-                sim.getCivilianEvacuationTracker();
-        for (int i = 0; i < tracker.registeredCount(); i++) {
-            tracker.markEvacuated(tracker.entityIdAt(i));
-        }
-
-        command.tick(sim);
-
-        assertNull(squad.assignedObjective);
-    }
-
-    @Test
-    void engagedEscortAdvancesInTimedNonRegressingBounds() {
-        BattleSimulation sim = simulation();
-        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(residential()), 43L);
-        assertNotNull(payload);
-        Squad squad = addMarineSquad(sim,
-                payload.placement.shelterApproachX,
-                payload.placement.shelterApproachY);
-        sim.advance(BattleSimulation.TICK_DT);
-        for (int i = 0; i < payload.size(); i++) {
-            sim.world().setCellPos(payload.entityId(i), 15, 8);
-        }
-        squad.alertLevel = SquadAlertLevel.ENGAGED;
-        sim.spawn(new EntitySpec("nearby-runner", Faction.DEFENDER,
-                UnitType.SWARM_RUNNER,
-                payload.placement.shelterApproachX + 1,
-                payload.placement.shelterApproachY));
         RescueEscortCommand command = new RescueEscortCommand(payload.placement);
-        int[] route = GridPathfinder.findPath(sim.getGrid(), 15, 8,
-                payload.placement.liftX, payload.placement.liftY);
 
         command.tick(sim);
-        assertEscortTarget(squad,
-                Paths.cellX(route, RescueEscortCommand.ENGAGED_BOUND_CELLS),
-                Paths.cellY(route, RescueEscortCommand.ENGAGED_BOUND_CELLS));
-
-        sim.simTickIndex += RescueEscortCommand.ENGAGED_BOUND_TICKS - 1;
+        Set<RescueCommandSnapshot.Role> firstRoles = roles(command);
+        assertSeparatedEscortTargets(squads);
         command.tick(sim);
-        assertEscortTarget(squad,
-                Paths.cellX(route, RescueEscortCommand.ENGAGED_BOUND_CELLS),
-                Paths.cellY(route, RescueEscortCommand.ENGAGED_BOUND_CELLS));
 
-        sim.simTickIndex++;
-        command.tick(sim);
-        int secondBound = RescueEscortCommand.ENGAGED_BOUND_CELLS * 2;
-        assertEscortTarget(squad, Paths.cellX(route, secondBound),
-                Paths.cellY(route, secondBound));
+        assertEquals(firstRoles, roles(command));
+        assertSeparatedEscortTargets(squads);
     }
 
     @Test
-    void engagedAlertWithOnlyADistantAttackerDoesNotThrottleProgress() {
+    void authoredGuardsRemainExternalWithTheirOwnPosts() {
         BattleSimulation sim = simulation();
-        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(residential()), 48L);
-        assertNotNull(payload);
-        Squad squad = addMarineSquad(sim,
+        CivilianEvacuationPayload payload = install(sim);
+        Squad shelter = addMarineSquad(sim, 10, 7);
+        shelter.rescueShelterGuard = true;
+        Squad pickup = addMarineSquad(sim, 30, 20);
+        pickup.rescuePickupGuard = true;
+        sim.assignSquadCommand(ObjectiveAssignment.escort(shelter.id, 10, 7),
+                CommandAuthority.GARRISON, "test-shelter", "hold");
+        sim.assignSquadCommand(ObjectiveAssignment.escort(pickup.id, 30, 20),
+                CommandAuthority.PAYLOAD, "test-pickup", "hold");
+        RescueEscortCommand command = new RescueEscortCommand(payload.placement);
+
+        command.tick(sim);
+
+        assertEscortTarget(shelter, 10, 7);
+        assertEscortTarget(pickup, 30, 20);
+        assertEquals(RescueCommandSnapshot.Role.SHELTER_GUARD,
+                command.rescueSnapshot().intentFor(shelter.id).role());
+        assertEquals(RescueCommandSnapshot.Role.PICKUP_GUARD,
+                command.rescueSnapshot().intentFor(pickup.id).role());
+        assertEquals(0, command.rescueSnapshot().squadIntents().stream()
+                .filter(intent -> intent.squadId() == shelter.id
+                        && intent.reason().startsWith("SHELTER_RELIEF"))
+                .count());
+    }
+
+    @Test
+    void missingAuthoredGuardPostIsNotInventedByMissionCommand() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = install(sim);
+        Squad pickup = addMarineSquad(sim, 2, 2);
+        pickup.rescuePickupGuard = true;
+        RescueEscortCommand command = new RescueEscortCommand(payload.placement);
+
+        command.tick(sim);
+
+        assertNull(pickup.assignedObjective);
+        RescueCommandSnapshot.SquadIntent intent =
+                command.rescueSnapshot().intentFor(pickup.id);
+        assertEquals(RescueCommandSnapshot.Role.PICKUP_GUARD, intent.role());
+        assertEquals("AUTHORED_PICKUP_GUARD", intent.reason());
+    }
+
+    @Test
+    void terminalCohortReleasesMissionOwnedEscort() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = install(sim);
+        Squad escort = addMarineSquad(sim,
                 payload.placement.shelterApproachX,
                 payload.placement.shelterApproachY);
-        sim.advance(BattleSimulation.TICK_DT);
-        assertTrue(sim.isCivilianEvacuationTriggered());
+        RescueEscortCommand command = new RescueEscortCommand(payload.placement);
+        command.tick(sim);
         for (int i = 0; i < payload.size(); i++) {
-            sim.world().setCellPos(payload.entityId(i), 15, 8);
+            sim.getCivilianEvacuationTracker().markEvacuated(payload.entityId(i));
         }
-        squad.alertLevel = SquadAlertLevel.ENGAGED;
-        sim.spawn(new EntitySpec("distant-runner", Faction.DEFENDER,
-                UnitType.SWARM_RUNNER, 35, 25));
-        RescueEscortCommand command = new RescueEscortCommand(
-                payload.placement);
-        int[] route = GridPathfinder.findPath(sim.getGrid(), 15, 8,
-                payload.placement.liftX, payload.placement.liftY);
+        payload.objective.tick(sim);
 
         command.tick(sim);
 
-        assertEscortTarget(squad,
-                Paths.cellX(route, RescueEscortCommand.ADVANCE_SCREEN_CELLS),
-                Paths.cellY(route, RescueEscortCommand.ADVANCE_SCREEN_CELLS));
+        assertNull(escort.assignedObjective);
+        assertTrue(command.rescueSnapshot().complete());
+        assertEquals(RescueCommandSnapshot.Role.RELEASED,
+                command.rescueSnapshot().intentFor(escort.id).role());
     }
 
     @Test
-    void nearbyAttackerThrottlesOnlyTheRelatedSquad() {
+    void snapshotReportsOnlyFactionKnownPressure() {
         BattleSimulation sim = simulation();
-        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(residential()), 49L);
-        assertNotNull(payload);
-        Squad clearSquad = addMarineSquad(sim, 35, 25);
-        Squad pressuredSquad = addMarineSquad(sim,
-                payload.placement.shelterApproachX,
-                payload.placement.shelterApproachY);
-        clearSquad.alertLevel = SquadAlertLevel.ENGAGED;
-        pressuredSquad.alertLevel = SquadAlertLevel.ENGAGED;
-        sim.spawn(new EntitySpec("local-runner", Faction.DEFENDER,
-                UnitType.SWARM_RUNNER,
-                payload.placement.shelterApproachX + 1,
-                payload.placement.shelterApproachY));
-        sim.advance(BattleSimulation.TICK_DT);
-        assertTrue(sim.isCivilianEvacuationTriggered());
-        for (int i = 0; i < payload.size(); i++) {
-            sim.world().setCellPos(payload.entityId(i), 15, 8);
-        }
-        RescueEscortCommand command = new RescueEscortCommand(
-                payload.placement);
-        int[] route = GridPathfinder.findPath(sim.getGrid(), 15, 8,
-                payload.placement.liftX, payload.placement.liftY);
+        CivilianEvacuationPayload payload = install(sim);
+        Squad escort = addMarineSquad(sim, 2, 2);
+        sim.spawn(new EntitySpec("unseen-runner", Faction.DEFENDER,
+                UnitType.SWARM_RUNNER, 39, 29));
+        RescueEscortCommand command = new RescueEscortCommand(payload.placement);
 
         command.tick(sim);
 
-        assertEscortTarget(clearSquad,
-                Paths.cellX(route, RescueEscortCommand.ADVANCE_SCREEN_CELLS),
-                Paths.cellY(route, RescueEscortCommand.ADVANCE_SCREEN_CELLS));
-        ObjectiveAssignment pressured = pressuredSquad.assignedObjective;
-        assertNotNull(pressured);
-        assertTrue(pressured.targetCellX()
-                        != clearSquad.assignedObjective.targetCellX()
-                        || pressured.targetCellY()
-                        != clearSquad.assignedObjective.targetCellY(),
-                "the locally pressured squad keeps its own bounded formation slot");
+        assertEquals(0, command.rescueSnapshot().knownPressureContacts());
+        assertFalse(command.rescueSnapshot().intentFor(escort.id).localContact());
     }
 
-    @Test
-    void pickupGuardsKeepTheirAuthoredPerimeterPosts() {
-        BattleSimulation sim = simulation();
-        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(residential()), 44L);
-        assertNotNull(payload);
-        Squad guard = addMarineSquad(sim, 2, 2);
-        guard.rescuePickupGuard = true;
-        int postX = payload.placement.formationX(0);
-        int postY = payload.placement.formationY(0);
-        guard.assignedObjective = ObjectiveAssignment.escort(
-                guard.id, postX, postY);
-
-        new RescueEscortCommand(payload.placement).tick(sim);
-
-        assertEscortTarget(guard, postX, postY);
+    private static Set<RescueCommandSnapshot.Role> roles(
+            RescueEscortCommand command) {
+        Set<RescueCommandSnapshot.Role> result = new HashSet<>();
+        for (RescueCommandSnapshot.SquadIntent intent
+                : command.rescueSnapshot().squadIntents()) {
+            result.add(intent.role());
+        }
+        return result;
     }
 
-    @Test
-    void pickupGuardWithoutAnAuthoredPostFallsBackToTheLift() {
-        BattleSimulation sim = simulation();
+    private static CivilianEvacuationPayload install(BattleSimulation sim) {
         CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
-                sim, List.of(residential()), 45L);
+                sim, List.of(residential()), 41L);
         assertNotNull(payload);
-        Squad guard = addMarineSquad(sim, 2, 2);
-        guard.rescuePickupGuard = true;
-
-        new RescueEscortCommand(payload.placement).tick(sim);
-
-        assertEscortTarget(guard, payload.placement.liftX,
-                payload.placement.liftY);
+        return payload;
     }
 
     private static void assertEscortTarget(Squad squad, int x, int y) {
@@ -287,7 +201,7 @@ class RescueEscortCommandTest {
                                                 int count) {
         List<Squad> squads = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            squads.add(addMarineSquad(sim, 2, 2 + i));
+            squads.add(addMarineSquad(sim, 2, 2 + i * 2));
         }
         return squads;
     }
