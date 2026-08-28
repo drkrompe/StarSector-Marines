@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import javax.imageio.ImageIO;
@@ -116,10 +118,22 @@ public final class TilesetOperations {
      * the parts: a plate's id, note and footprint describe the plate, and every
      * cell inheriting one description would read as many answers where there is
      * one.
+     *
+     * <p>Each part is named for where it sits — see {@link #gridId} — so the
+     * plate's own id is not part of its cells' names and the {@code idPrefix} the
+     * document states is.
+     *
+     * @throws IllegalArgumentException if a part's positional id is one the sheet
+     *                                  already uses
      */
     public static List<TilesetExport.Entry> splitOnGrid(List<TilesetExport.Entry> entries,
                                                         Predicate<TilesetExport.Entry> selected,
-                                                        int cols, int rows) {
+                                                        String idPrefix, int cols, int rows) {
+        Set<String> taken = new LinkedHashSet<>();
+        for (TilesetExport.Entry entry : entries) {
+            if (!selected.test(entry)) taken.add(entry.id);
+        }
+        List<String> collisions = new ArrayList<>();
         List<TilesetExport.Entry> replaced = new ArrayList<>();
         for (TilesetExport.Entry entry : entries) {
             if (!selected.test(entry)) {
@@ -128,29 +142,48 @@ public final class TilesetOperations {
             }
             int part = 0;
             for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cols, rows)) {
-                TilesetExport.Entry split = new TilesetExport.Entry(
-                        piece, entry.id + "-" + partSuffix(part++));
+                String id = gridId(idPrefix, part % cols, part / cols);
+                part++;
+                if (!taken.add(id)) collisions.add(id);
+                TilesetExport.Entry split = new TilesetExport.Entry(piece, id);
                 split.cover = entry.cover;
                 split.footprintX = 1;
                 split.footprintY = 1;
                 replaced.add(split);
             }
         }
+        if (!collisions.isEmpty()) throw new IllegalArgumentException(collisionMessage(collisions));
         return replaced;
     }
 
     /**
-     * A part's name suffix: {@code a}…{@code z}, then {@code aa}, {@code ab}, and
-     * on. Real plates run well past 26 cells — a 25x26 floor sheet is 650 — and
-     * stepping one character further off {@code 'a'} walks out of the alphabet
-     * into punctuation.
+     * A cut cell's name: {@code <idPrefix>.c<col>r<row>}, zero-based, column
+     * first.
+     *
+     * <p>The id has to say where on the plate the cell is. A table row and a cell
+     * in the picture are otherwise impossible to line up — a 10x10 plate cut into
+     * a hundred serial names gives a person and a model no way to point at the
+     * same cell out loud — and column-then-row is the order the grid is stated in
+     * everywhere else here.
      */
-    static String partSuffix(int index) {
-        StringBuilder suffix = new StringBuilder();
-        for (int n = index; ; n = n / 26 - 1) {
-            suffix.insert(0, (char) ('a' + n % 26));
-            if (n < 26) return suffix.toString();
-        }
+    public static String gridId(String idPrefix, int col, int row) {
+        return idPrefix + ".c" + col + "r" + row;
+    }
+
+    /**
+     * Why a split that would rename a piece out of existence is refused.
+     *
+     * <p>A positional id cannot be stepped past to make room the way
+     * {@link TilesetDocument#reconcile} steps its serial ones: the number in it
+     * is the cell's address, so a part renamed to dodge a clash would name the
+     * wrong cell. The cut is refused whole instead of half-applied.
+     */
+    private static String collisionMessage(List<String> collisions) {
+        return "the sheet already holds " + collisions.size()
+                + " of the ids this cut would create: " + String.join(", ", collisions)
+                + ". A cut cell's id says which cell it is, so it cannot be renumbered to "
+                + "make room. Rename or remove the pieces holding those ids, or cut the "
+                + "plate on a sheet of its own.";
     }
 
     /**
