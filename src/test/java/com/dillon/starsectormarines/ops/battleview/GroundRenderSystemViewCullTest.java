@@ -73,9 +73,9 @@ class GroundRenderSystemViewCullTest {
                 "frame must remain centered on the shared edge");
         assertEquals(edgeX, (glass.centerX() + glass.width()) * 0.5f, 0.001f,
                 "pane must remain centered on the shared edge");
-        assertEquals(cell * 0.10f, frame.width() - frame.centerX(), 0.001f,
-                "edge frame is a thin seam, not a partial cell wall");
-        assertEquals(cell * 0.04f, glass.width() - glass.centerX(), 0.001f,
+        assertEquals(cell * 0.30f, frame.width() - frame.centerX(), 0.001f,
+                "edge frame is widened for distance readability");
+        assertEquals(cell * 0.12f, glass.width() - glass.centerX(), 0.001f,
                 "glass stays visibly narrower than its frame");
         assertEquals(cell * 0.84f, frame.height() - frame.centerY(), 0.001f);
         assertEquals(cell * 0.68f, glass.height() - glass.centerY(), 0.001f);
@@ -86,7 +86,7 @@ class GroundRenderSystemViewCullTest {
     }
 
     @Test
-    void northWindowEdgeUsesTheSameThinGeometryRotated() {
+    void northWindowEdgeUsesTheSameReadableGeometryRotated() {
         NavigationGrid grid = new NavigationGrid(1, 2);
         grid.setWalkableFloor(0, 0);
         grid.setWalkableFloor(0, 1);
@@ -104,8 +104,8 @@ class GroundRenderSystemViewCullTest {
         float edgeY = cam.cellToScreenY(1f);
         assertEquals(edgeY, (frame.centerY() + frame.height()) * 0.5f, 0.001f);
         assertEquals(edgeY, (glass.centerY() + glass.height()) * 0.5f, 0.001f);
-        assertEquals(cell * 0.10f, frame.height() - frame.centerY(), 0.001f);
-        assertEquals(cell * 0.04f, glass.height() - glass.centerY(), 0.001f);
+        assertEquals(cell * 0.30f, frame.height() - frame.centerY(), 0.001f);
+        assertEquals(cell * 0.12f, glass.height() - glass.centerY(), 0.001f);
         assertEquals(cell * 0.84f, frame.width() - frame.centerX(), 0.001f);
         assertEquals(cell * 0.68f, glass.width() - glass.centerX(), 0.001f);
     }
