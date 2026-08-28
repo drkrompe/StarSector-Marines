@@ -49,6 +49,10 @@ import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ConquestDefenderStartingForce;
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
+import com.dillon.starsectormarines.battle.command.RaidCommand;
+import com.dillon.starsectormarines.battle.command.RaidCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.RaidDefenderCommand;
+import com.dillon.starsectormarines.battle.command.RaidDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommand;
@@ -91,6 +95,7 @@ import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective
 import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -250,6 +255,13 @@ public final class BattleSetup {
 
     public static BattleSimulation createSabotage(long seed) {
         return createSabotage(seed, defaultManifest(), false);
+    }
+
+    public static BattleSimulation createRaid(long seed) {
+        RiskLevel risk = RiskLevel.MEDIUM;
+        return createRaid(seed, defaultManifest(), false,
+                OperationTier.forRisk(risk), risk, TargetProfile.NEUTRAL,
+                FlybyRoster.EMPTY, FlybyRoster.EMPTY);
     }
 
     /** Back-compat overload — assumes no heavy armor on the defender side. */
@@ -435,6 +447,17 @@ public final class BattleSetup {
         }
     }
 
+    /** Dedicated Raid factory; target seizure and egress replace elimination. */
+    public static BattleSimulation createRaid(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                MissionType.RAID, profile, marineFighterSupport,
+                enemyFighterSupport);
+    }
+
     /**
      * Slot 0 of each shuttle gets a PLANTER assigned to a charge site (paired
      * by shuttle index, wrapping around if shuttle count and site count differ).
@@ -510,11 +533,9 @@ public final class BattleSetup {
     }
 
     /**
-     * Catch-all factory for mission types without a dedicated builder (ASSAULT,
-     * RAID, EXTRACTION). The {@code type} parameter only affects defender roster
-     * sizing/composition — objectives are the same "eliminate the other side"
-     * pair for all three; per-type objective wiring lands when those mission
-     * types get their own factories.
+     * Catch-all construction pipeline shared by Assault, Raid, and Extraction.
+     * Raid enters through {@link #createRaid} and replaces the generic Marine
+     * objective below; Extraction remains the only elimination placeholder.
      */
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
                                                      boolean enemyHasHeavyArmor, RiskLevel risk,
@@ -563,15 +584,25 @@ public final class BattleSetup {
                 marineFighterSupport, enemyFighterSupport, groundRoster);
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
+        RaidTargetLayout raidLayout = type == MissionType.RAID
+                ? RaidTargetLayout.select(map, lzCells) : null;
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
         sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
 
-        // Default ASSAULT objectives — eliminate the other side. Mission-specific
-        // setups (sabotage, raid, extraction) will swap or add to this pair.
-        sim.addObjective(new EliminateFactionObjective(Faction.MARINE, Faction.DEFENDER));
+        if (raidLayout != null) {
+            int targetZone = sim.getZoneGraph().zoneIdAt(
+                    raidLayout.targetCellX(), raidLayout.targetCellY());
+            sim.addObjective(new RaidObjective(raidLayout.targetId(),
+                    raidLayout.targetName(), raidLayout.targetCellX(),
+                    raidLayout.targetCellY(), targetZone,
+                    raidLayout.egressCellX(), raidLayout.egressCellY()));
+        } else {
+            sim.addObjective(new EliminateFactionObjective(
+                    Faction.MARINE, Faction.DEFENDER));
+        }
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
 
         // Marines: one Shuttle per assignment, each flying assignment.cycles sorties.
@@ -608,19 +639,32 @@ public final class BattleSetup {
         // pegged to the highest-priority posts; leftovers form patrol squads).
         // Legacy maps with no tactical layer fall back to the single-cluster
         // spawn around the defender anchor.
-        int assaultMobileMembers = type == MissionType.ASSAULT
-                ? Math.min(Math.max(0, defenders.roster().totalCount - 2),
-                        defenders.roster().patrolSquadSize)
-                : 0;
+        int assaultMobileMembers = switch (type) {
+            case ASSAULT -> Math.min(Math.max(0,
+                    defenders.roster().totalCount - 2),
+                    defenders.roster().patrolSquadSize);
+            case RAID -> Math.min(Math.max(0,
+                    defenders.roster().totalCount - 2),
+                    defenders.roster().patrolSquadSize * 3);
+            default -> 0;
+        };
         allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                 assaultMobileMembers);
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
+                ? captureDefenderMobileSquads(sim) : Set.of();
+        Set<Integer> raidMobileSquads = type == MissionType.RAID
                 ? captureDefenderMobileSquads(sim) : Set.of();
         if (type == MissionType.ASSAULT) {
             claimSetupGarrisons(sim, "assault-setup-garrison",
                     "authored Assault strongpoint garrison");
             claimMissionMobileSquads(sim, assaultMobileSquads,
                     "assault-defender", "initial Assault mobile security");
+        }
+        if (type == MissionType.RAID) {
+            claimSetupGarrisons(sim, "raid-setup-garrison",
+                    "authored Raid strongpoint garrison");
+            claimMissionMobileSquads(sim, raidMobileSquads,
+                    "raid-defender", "initial Raid mobile security");
         }
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
@@ -632,6 +676,13 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.DEFENDER,
                     new AssaultDefenderCommand(assaultMobileSquads),
                     AssaultDefenderCommandDisclosure.INSTANCE);
+        }
+        if (type == MissionType.RAID) {
+            sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(),
+                    RaidCommandDisclosure.INSTANCE);
+            sim.setAutonomousCommander(Faction.DEFENDER,
+                    new RaidDefenderCommand(raidMobileSquads),
+                    RaidDefenderCommandDisclosure.INSTANCE);
         }
         return sim;
     }

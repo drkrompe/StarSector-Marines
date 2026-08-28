@@ -56,7 +56,10 @@ commander is also shipped. Assault now supplies the next paired production
 duel: Marines search persistent two-dimensional sectors while defenders preserve
 authored strongpoints, spread routine area security, and mobilize a belief-driven
 bounded reserve. Its live acceptance and canonical-duration evidence review are
-still pending.
+still pending. Raid now replaces elimination with one stable high-value target,
+uncontested seizure, and survivor egress; its paired commanders, fixture,
+selected-squad diagnostics, and argument-selected headless evidence are in
+production, with canonical-duration and live review remaining.
 Each mission keeps its own strategy geometry. See `conquest-command.md`,
 `sabotage-command.md`, `assault-command.md`, `raid-command.md`,
 `extraction-command.md`, `ai-nouns.md`, `reinforcement-nouns.md`, and
@@ -128,8 +131,8 @@ ownership, directives, panel/dump/overlay views, and forced-serial trace evidenc
 Review a canonical-duration `commanderEvidence -Pmission=assault` run and the
 deferred live play pass before retiring its two implementation stories.
 Opening Operations remains the smallest later command-duel proof. Raid's first
-step is its objective-and-egress contract; generic Extraction likewise needs a
-payload/cohort-and-egress contract before commander implementation. Each mission
+contract is ready for canonical-duration and live review; generic Extraction
+still needs a payload/cohort-and-egress contract before commander implementation. Each mission
 adapts the same knowledge, ownership, cadence, and diagnostic contracts through
 its own geometry. The grouped work lives in the Mission Command `stories.md`.
 

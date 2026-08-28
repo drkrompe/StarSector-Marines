@@ -90,6 +90,16 @@ public final class BattleFixtureJson {
                     wingsToJson(assault.enemyFighterSupport()));
             return root;
         }
+        if (fixture instanceof RaidBattleFixture raid) {
+            encodeCommon(root, raid.kind(), raid.seed(), raid.manifest(),
+                    raid.enemyHasHeavyArmor(), raid.risk(), raid.targetProfile());
+            root.put("tier", raid.tier().name());
+            root.put("marineFighterSupport",
+                    wingsToJson(raid.marineFighterSupport()));
+            root.put("enemyFighterSupport",
+                    wingsToJson(raid.enemyFighterSupport()));
+            return root;
+        }
         throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
     }
 
@@ -156,6 +166,7 @@ public final class BattleFixtureJson {
             case ConquestBattleFixture.KIND -> decodeConquestV2(root);
             case SabotageBattleFixture.KIND -> decodeSabotage(root);
             case AssaultBattleFixture.KIND -> decodeAssault(root);
+            case RaidBattleFixture.KIND -> decodeRaid(root);
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture kind: " + kind);
         };
@@ -227,6 +238,18 @@ public final class BattleFixtureJson {
     private static AssaultBattleFixture decodeAssault(
             JSONObject root) throws Exception {
         return new AssaultBattleFixture(
+                root.getLong("seed"),
+                shuttlesFromJson(root.getJSONArray("shuttles")),
+                root.getBoolean("enemyHasHeavyArmor"),
+                enumValue(OperationTier.class, root.getString("tier"), "tier"),
+                enumValue(RiskLevel.class, root.getString("risk"), "risk"),
+                targetProfileFromJson(root.getJSONObject("targetProfile")),
+                wingsFromJson(root.getJSONArray("marineFighterSupport")),
+                wingsFromJson(root.getJSONArray("enemyFighterSupport")));
+    }
+
+    private static RaidBattleFixture decodeRaid(JSONObject root) throws Exception {
+        return new RaidBattleFixture(
                 root.getLong("seed"),
                 shuttlesFromJson(root.getJSONArray("shuttles")),
                 root.getBoolean("enemyHasHeavyArmor"),

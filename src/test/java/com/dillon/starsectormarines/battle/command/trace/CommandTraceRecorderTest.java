@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
+import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -251,6 +252,34 @@ class CommandTraceRecorderTest {
         assertTrue(!line.contains("\"progress\""));
         assertTrue(!line.contains("\"planterOnSite\""));
         assertTrue(!line.contains("\"activeKitDrops\""));
+    }
+
+    @Test
+    void raidTracePublishesMissionPhaseAndCanonicalSquadIntents() {
+        RaidCommandSnapshot detail = new RaidCommandSnapshot(75,
+                Faction.MARINE, "EGRESS", "RAID-01", "depot",
+                30, 20, 4, 5, 6, 6f, 6f, true,
+                false, -1, List.of(
+                new RaidCommandSnapshot.SquadIntent(9, "WITHDRAWAL",
+                        "TARGET_SECURED_WITHDRAW", AssignmentKind.WITHDRAW,
+                        6, 6),
+                new RaidCommandSnapshot.SquadIntent(2, "WITHDRAWAL",
+                        "TARGET_SECURED_WITHDRAW", AssignmentKind.WITHDRAW,
+                        4, 6)));
+        CommanderSnapshot<RaidCommandSnapshot> snapshot =
+                new CommanderSnapshot<>(Faction.MARINE, "raid-attacker",
+                        "EGRESS", 75, 60, 2, 0, List.of(), List.of(), detail);
+        CommandTraceRecorder recorder = new CommandTraceRecorder(
+                "RAID", "SERIAL_DETERMINISTIC", 0);
+
+        recorder.recordPerspective(snapshot);
+
+        String line = recorder.canonicalJsonLines().lines().toList().get(1);
+        assertTrue(line.contains("\"raid\":{\"phase\":\"EGRESS\""));
+        assertTrue(line.contains("\"targetId\":\"RAID-01\""));
+        assertTrue(line.contains("\"assignmentKind\":\"WITHDRAW\""));
+        assertTrue(line.indexOf("\"squadId\":2")
+                < line.indexOf("\"squadId\":9"));
     }
 
     @Test
