@@ -119,6 +119,7 @@ public final class BarracksScreen implements Screen {
         props.put("selectedSquadSummary", viewModel.selectedSquadSummary());
         props.put("quartersStatus", viewModel.quartersStatus());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
+                context::shipHasRoom,
                 this::close,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> { },
