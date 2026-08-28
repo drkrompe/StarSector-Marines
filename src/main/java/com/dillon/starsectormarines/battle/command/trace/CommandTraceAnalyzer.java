@@ -947,7 +947,7 @@ public final class CommandTraceAnalyzer {
                     trace.headerSeen = true;
                     int schemaVersion = row.getInt("schemaVersion");
                     if (schemaVersion != 2 && schemaVersion != 3
-                            && schemaVersion != 4) {
+                            && schemaVersion != 4 && schemaVersion != 5) {
                         throw new IllegalArgumentException(
                                 "Unsupported command trace schemaVersion: "
                                         + schemaVersion);

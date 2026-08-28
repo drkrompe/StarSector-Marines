@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -45,6 +47,26 @@ class GroundRenderSystemViewCullTest {
                 "zoomed collect should skip most of the grid, was " + emitted);
         assertTrue(view.width() * view.height() < GRID * GRID);
         assertTrue(view.contains((int) cam.panCellX(), (int) cam.panCellY()));
+    }
+
+    @Test
+    void intactWindowEdgeEmitsFrameAndGlassThenDisappears() {
+        NavigationGrid grid = new NavigationGrid(2, 1);
+        grid.setWalkableFloor(0, 0);
+        grid.setWalkableFloor(1, 0);
+        grid.placeEdgeBarrier(0, 0, Direction.E,
+                SharedEdgeBarrier.Kind.WINDOW);
+        BattleSimulation sim = new BattleSimulation(grid,
+                new CellTopology(2, 1));
+        BattleCamera cam = new BattleCamera(2, 1);
+        cam.setViewport(0f, 0f, 200f, 100f, 100f);
+
+        assertEquals(3, collectGround(sim, cam),
+                "backing fill + window frame + glass");
+
+        assertTrue(sim.damageEdgeBarrier(0, 0, Direction.E, 40));
+        assertEquals(1, collectGround(sim, cam),
+                "destroyed window leaves only the floor backing");
     }
 
     private static int collectGround(BattleSimulation sim, BattleCamera cam) {

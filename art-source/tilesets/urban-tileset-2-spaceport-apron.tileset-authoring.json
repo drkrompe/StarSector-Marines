@@ -4,6 +4,7 @@
   "idPrefix": "doodad.apron",
   "cellPx": 32,
   "alphaMin": 40,
-  "gridCell": 104,
-  "note": "Not a tileset. This is a patch source that art-source/tilesets/normalize_spaceport_apron.py composites into urban-tileset-2.png; it has no tileset of its own and nothing here to annotate. Seeded only so it stops appearing at the top of the queue as untouched raw art."
+  "note": "Not a tileset. This is a patch source that art-source/tilesets/normalize_spaceport_apron.py composites into urban-tileset-2.png; it has no tileset of its own and nothing here to annotate. Seeded so it stops appearing as untouched raw art.",
+  "gridCols": 1,
+  "gridRows": 1
 }

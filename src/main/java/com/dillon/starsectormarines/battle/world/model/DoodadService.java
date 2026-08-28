@@ -150,8 +150,9 @@ public final class DoodadService {
     private void maxMergeGridFacing(int x, int y, int facing, int cover,
                                     float ballisticHalfHeight) {
         if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return;
-        int existing = grid.getCoverAtFacing(x, y, facing);
-        float existingHeight = grid.getCoverCatchHalfHeightAtFacing(x, y, facing);
+        int existing = grid.getCellCoverAtFacing(x, y, facing);
+        float existingHeight = grid.getCellCoverCatchHalfHeightAtFacing(
+                x, y, facing);
         if (cover < existing) return;
         grid.setCoverAtFacing(x, y, facing, cover,
                 cover > existing

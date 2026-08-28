@@ -4,8 +4,10 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -148,6 +150,32 @@ public class SeparationSystemTest {
         }
         assertTrue(pressedAgainstWall,
                 "no unit pressed close enough to the wall to actually exercise the walkability guard");
+    }
+
+    @Test
+    public void overlapResolutionCannotPushAUnitThroughAWindowEdge() {
+        NavigationGrid grid = new NavigationGrid(2, 1);
+        grid.setWalkableFloor(0, 0);
+        grid.setWalkableFloor(1, 0);
+        grid.placeEdgeBarrier(0, 0, Direction.E,
+                SharedEdgeBarrier.Kind.WINDOW);
+        BattleSimulation sim = new BattleSimulation(
+                grid, new CellTopology(2, 1));
+        SeparationSystem separation = separationFor(sim);
+        long left = sim.spawn(new EntitySpec(
+                "left", Faction.MARINE, UnitType.MARINE, 0, 0));
+        long againstPane = sim.spawn(new EntitySpec(
+                "pane", Faction.MARINE, UnitType.MARINE, 0, 0));
+        sim.world().setPos(left, 0.80f, 0.5f);
+        sim.world().setPos(againstPane, 0.98f, 0.5f);
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        separation.tick(BattleSimulation.TICK_DT);
+
+        assertEquals(0.98f, sim.world().x(againstPane), 0f,
+                "separation must not bypass a closed shared edge");
+        assertTrue(sim.world().x(left) < 0.80f,
+                "the unconstrained unit should still absorb its half of the push");
     }
 
     /**
