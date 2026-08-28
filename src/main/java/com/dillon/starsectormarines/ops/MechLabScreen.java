@@ -124,6 +124,8 @@ public final class MechLabScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("contextLabel", ShipBreadcrumb.of(context.companyDeck().ship(),
+                context.companyDeck().room(RoomPurpose.VEHICLE_BAY)));
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());

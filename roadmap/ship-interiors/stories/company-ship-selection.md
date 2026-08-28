@@ -5,7 +5,8 @@ Status: PROPOSED
 Written: 2026-08-27
 
 Read `ship-interiors-nouns.md` and `company-ship.md` before implementing this
-story. Depends on `company-ship-deck-adoption.md`: there has to be a real deck
+story. Depends on the room views being deck-hosted, which they now are — see
+`ship-interiors-nouns.md`: there has to be a real deck
 to choose before choosing one means anything.
 
 Let the player pick which ship in their fleet the company lives aboard, and let
