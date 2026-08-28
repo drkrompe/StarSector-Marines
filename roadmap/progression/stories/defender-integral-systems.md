@@ -21,9 +21,13 @@ That was the right call while the player-side model was unproven — a capabilit
 that fires badly on twelve defenders is a much worse first impression than one
 that does not fire at all. It stops being the right call now, for two reasons:
 
-- **The asymmetry is visible and it favours the player.** The foundry-breaker is
-  a *pirate and Pather* pattern. The faction that builds them is the faction that
-  cannot use them. A player who has read the suit's own description will notice.
+- **The asymmetry is visible and it favours the player.** It is now six patterns
+  wide, not one. Every faction that fields a heavy breach suit — Hegemony XIV,
+  League Bulwark, Tri-Tachyon Specter, Knightly Reliquary, Sindrian Lion's
+  Mantle, and the pirate foundry-breaker — builds the capability and cannot use
+  it. The pirate case is the sharpest, since the rig is named after the act, but
+  a player who breaches a Hegemony position with a captured XIV that the Hegemony
+  never braced will notice too.
 - **It quietly weakens the equipment fantasy.** Recovering a suit is supposed to
   be taking something that worked. If it only works once you own it, the recovery
   is a stat transfer rather than a capture.
@@ -52,10 +56,12 @@ same data path the player uses.
 
 - Threading the pattern's declared system through defender loadout rolls into
   the same spawn path the player side uses.
-- Checking the roster weights that already exist: the foundry-breaker appears at
-  25% weight in high-defense outlaw tables, which means a hard pirate fight would
-  suddenly contain several charging rigs. Whether that is exciting or absurd is a
-  measurement, not a guess.
+- Checking the roster weights that already exist. The foundry-breaker appears at
+  25% weight in high-defense outlaw tables, so a hard pirate fight would suddenly
+  contain several charging rigs, and the state factions weight their own heavies
+  similarly. Whether that is exciting or absurd is a measurement, not a guess —
+  and it now has to be taken six times, because the six versions differ most in
+  how often they come around.
 - Mission-harness evidence for a fight with system-carrying defenders on both
   the winning and losing side of it.
 
