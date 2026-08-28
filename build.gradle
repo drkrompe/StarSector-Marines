@@ -85,6 +85,24 @@ dependencies {
     )
 }
 
+// Every Test task here runs the same test source set, so every one of them
+// loads the shipped catalogs up front and can reach the headless renderers.
+// Gradle defaults a Test task to 512m, which those sit right on the edge of:
+// mod/graphics is 23MB of PNG on disk but decodes to far more, since a
+// 1254x1254 sheet alone is 6MB of ARGB once it is a BufferedImage, and the
+// ~620 classes share one JVM (maxParallelForks = 1, no forkEvery) whose sprite
+// caches live as long as it does. The symptom is not an obvious one - ImageIO
+// wraps the OutOfMemoryError as an ordinary IIOException, so it surfaces as an
+// unrelated sheet "failing to read", and only when a sibling session is
+// competing for the machine. A cap, not a reservation, so idle runs cost
+// nothing. Set once for all Test tasks rather than per task: two sessions
+// diagnosing this independently both added it to `test` alone, leaving the
+// value duplicated there and still missing from `commanderEvidence`, which
+// renders review frames through the very renderer that was running out.
+tasks.withType(Test).configureEach {
+    maxHeapSize = '2g'
+}
+
 test {
     useJUnitPlatform {
         excludeTags 'battle-profile', 'commander-balance',
@@ -96,12 +114,6 @@ test {
         // gradle console so devs don't have to dig through the XML report.
         showStandardStreams = true
     }
-    // ~620 test classes share one forked JVM (maxParallelForks = 1, no forkEvery),
-    // and the headless renderers hold decoded sprite caches for the life of that
-    // JVM. The default 512m is now marginal: it survives on an idle machine and
-    // OOMs inside sprite loading when it is not, which surfaces as an unrelated
-    // assertion in whichever memory-hungry test happens to run at the edge.
-    maxHeapSize = '2g'
     // EngineSlotPreviewTest loads vanilla .ship files + sprites from the
     // game install; forward the project-level `starsectorDir` gradle property
     // so the test can find them. Same source of truth the build.gradle root
@@ -133,14 +145,6 @@ test {
     inputs.dir('src/liveTest/catalog-smoke')
             .withPropertyName('catalogSmokeFixture')
             .withPathSensitivity(PathSensitivity.RELATIVE)
-    // Gradle defaults a Test task to 512m, which the headless renderers sit
-    // right on the edge of: mod/graphics is 23MB of PNG on disk but decodes to
-    // far more, since a 1254x1254 sheet alone is 6MB of ARGB once it is a
-    // BufferedImage. The symptom is not an obvious one — ImageIO wraps the
-    // OutOfMemoryError as an IIOException, so it surfaces as an unrelated sheet
-    // "failing to read", and only when a sibling session is competing for the
-    // machine. A cap, not a reservation, so idle runs cost nothing.
-    maxHeapSize = '2g'
     // Opt-in gate for the ecs-migration Phase-0 access micro-bench
     // (EcsAccessBenchTest). Off by default so the normal suite stays fast for
     // concurrent sessions; run on demand with `-Decs.bench=true`.

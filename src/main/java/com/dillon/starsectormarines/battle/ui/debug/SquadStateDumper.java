@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.AudibleBearing;
+import com.dillon.starsectormarines.battle.squad.FireTeamMorale;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -130,6 +131,21 @@ public final class SquadStateDumper {
         o.put("currentZone", ZoneQueries.squadCurrentZone(squad, sim));
         o.put("morale", squad.morale);
         o.put("moraleBroken", squad.moraleBroken);
+        // Cohesion is held per fire team; the two squad values above are
+        // aggregates, so a dump without the teams cannot show which element
+        // peeled.
+        JSONArray fireTeams = new JSONArray();
+        for (FireTeamMorale team : squad.fireTeamMorale()) {
+            JSONObject entry = new JSONObject();
+            entry.put("teamIndex", team.teamIndex);
+            entry.put("aliveMembers", team.aliveMembers);
+            entry.put("originalSize", team.originalSize);
+            entry.put("morale", team.morale);
+            entry.put("broken", team.broken);
+            entry.put("timeSinceUnderFire", team.timeSinceUnderFire);
+            fireTeams.put(entry);
+        }
+        o.put("fireTeams", fireTeams);
         o.put("timeSinceContact", squad.timeSinceContact);
         o.put("timeSinceReplan", squad.timeSinceReplan);
         JSONArray contacts = new JSONArray();

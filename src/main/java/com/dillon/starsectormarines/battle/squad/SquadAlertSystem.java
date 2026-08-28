@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.List;
+import java.util.function.LongPredicate;
 
 /**
  * Serial tick consumer that refreshes {@link SquadAlertLevel} on every
@@ -106,6 +107,11 @@ public final class SquadAlertSystem {
     private final LongBucket awarenessCandidates = new LongBucket();
     /** Serial-pass scratch reused by hostile-shot endpoint queries. */
     private final LongBucket underFireCandidates = new LongBucket();
+    /**
+     * Belief expiry test handed to every squad at tick start. Held as a field
+     * so the per-squad loop does not mint a capture each tick.
+     */
+    private final LongPredicate beliefIdentityResolves = this::identityResolves;
 
     public SquadAlertSystem(NavigationService navigation,
                             UnitRosterService roster,
@@ -115,6 +121,16 @@ public final class SquadAlertSystem {
         this.roster = roster;
         this.shots = shots;
         this.noiseEvents = noiseEvents;
+    }
+
+    /**
+     * Whether a remembered contact identity still names something a squad can
+     * act on. Mirrors {@code BattleSimulation.resolveUnit}: a live unit, or a
+     * targetable convoy vehicle, which carries no identity component and so
+     * must not be tested through one.
+     */
+    private boolean identityResolves(long unitId) {
+        return roster.isLive(unitId) || roster.convoy().isTargetable(unitId);
     }
 
     public void tick(float dt, int simTick) {
@@ -132,7 +148,7 @@ public final class SquadAlertSystem {
         // don't leak into next tick.
         for (Squad squad : roster.getSquads()) {
             squad._directContactStartedThisTick = false;
-            squad.beginBeliefTick(dt, simTick);
+            squad.beginBeliefTick(dt, simTick, beliefIdentityResolves);
             squad.aliveMembers = 0;
             squad.centroidX = 0f;
             squad.centroidY = 0f;

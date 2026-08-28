@@ -74,7 +74,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyMeans;
-import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyDeploymentPolicy;
+import com.dillon.starsectormarines.battle.command.reinforcement.DeliveryDeploymentPolicy;
 import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
 import com.dillon.starsectormarines.battle.command.reinforcement.FrontLineReinforcementTrigger;
 import com.dillon.starsectormarines.battle.command.reinforcement.GarrisonDepletedTrigger;
@@ -1519,7 +1519,7 @@ public final class BattleSetup {
                                                   TraversalAxis axis,
                                                   GroundRosterProfile groundRoster,
                                                   RiskLevel risk,
-                                                  ConvoyDeploymentPolicy convoyPolicy) {
+                                                  DeliveryDeploymentPolicy deliveryPolicy) {
         ReinforcementService rs = sim.getReinforcementService();
         if (missionType == MissionType.CONQUEST && map.biomeMap != null
                 && map.tacticalMap != null && map.tacticalMap.size() > 0) {
@@ -1535,8 +1535,9 @@ public final class BattleSetup {
             rs.addTrigger(new ObjectiveLostTrigger());
         }
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
-                convoyPolicy));
-        rs.addMeans(new ShuttleMeans(axis, groundRoster, risk));
+                deliveryPolicy));
+        rs.addMeans(new ShuttleMeans(axis, groundRoster, risk,
+                deliveryPolicy, map.landingPads));
         rs.addMeans(new WalkInMeans(axis, groundRoster, risk));
     }
 

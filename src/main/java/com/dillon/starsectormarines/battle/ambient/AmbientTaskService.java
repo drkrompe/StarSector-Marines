@@ -24,8 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>An active assignment temporarily owns an actor's movement and layered
  * appearance. The ordinary unit dispatcher skips that actor. A route's threat
- * policy may release the assignment before the dispatch, after which the
- * actor's existing role immediately resumes normal battle behavior. Embedded
+ * policy may stand the assignment down before the dispatch, after which the
+ * actor's existing role immediately resumes normal battle behavior; the work is
+ * remembered and taken up again once the disturbance has been gone a while. Embedded
  * scenes may use {@link #seek(float)} for a pure pose or advance their bounded
  * simulation when an authored task has physical actions. Live advancement owns
  * destinations, never positions: task-point claims select an exclusive place,
@@ -71,8 +72,19 @@ public final class AmbientTaskService {
      */
     private static final float PATIENCE_SECONDS = 6f;
 
+    /**
+     * How long a stood-down actor must go undisturbed before going back to work.
+     *
+     * <p>Not zero. A threat that has stepped one cell outside the radius has not
+     * really passed, and resuming on the same frame it clears would have somebody
+     * turn back to their bench in the middle of a firefight that is still moving
+     * around them.
+     */
+    private static final float CALM_SECONDS = 4f;
+
     private final Map<Long, AmbientTaskRoute> assignments = new ConcurrentHashMap<>();
     private final Map<Long, Progress> progress = new ConcurrentHashMap<>();
+    private final Map<Long, StoodDown> stoodDown = new ConcurrentHashMap<>();
     private final Map<Long, Long> liveFireTargets = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> primaryFireWindows = new ConcurrentHashMap<>();
     private final Map<Long, AmbientTaskPose> livePoses = new ConcurrentHashMap<>();
@@ -123,6 +135,7 @@ public final class AmbientTaskService {
         }
         navigation.clearPath(actorId);
         taskPoints.release(actorId);
+        stoodDown.remove(actorId);
         assignments.put(actorId, route);
         progress.put(actorId, new Progress(route));
         if (targetId != 0L) liveFireTargets.put(actorId, targetId);
@@ -134,6 +147,7 @@ public final class AmbientTaskService {
     }
 
     public void release(long actorId) {
+        stoodDown.remove(actorId);
         assignments.remove(actorId);
         progress.remove(actorId);
         liveFireTargets.remove(actorId);
@@ -141,6 +155,55 @@ public final class AmbientTaskService {
         livePoses.remove(actorId);
         taskPoints.release(actorId);
         if (roster.isLive(actorId) && world.hasMovement(actorId)) navigation.clearPath(actorId);
+    }
+
+    /**
+     * Hand an actor back to its ordinary behaviour without forgetting the work
+     * it was doing.
+     *
+     * <p>Standing down is a suspension rather than a dismissal. Leaving is the
+     * easy half and was the whole of it: a crew member who yielded once never
+     * came back, so a stray round on a firing range took a marine off the ship's
+     * books permanently and left them standing in the butts for the rest of the
+     * voyage. What interrupts ambient work is almost always transient — somebody
+     * armed walking past, a knock that sets a fallback timer running — and a
+     * model in which every one of those is final turns a lively deck into a
+     * gradually accumulating set of statues.
+     */
+    private void standDown(long actorId, AmbientTaskRoute route) {
+        Long target = liveFireTargets.get(actorId);
+        assignments.remove(actorId);
+        progress.remove(actorId);
+        liveFireTargets.remove(actorId);
+        primaryFireWindows.remove(actorId);
+        livePoses.remove(actorId);
+        taskPoints.release(actorId);
+        if (roster.isLive(actorId) && world.hasMovement(actorId)) navigation.clearPath(actorId);
+        stoodDown.put(actorId, new StoodDown(route, target == null ? 0L : target));
+    }
+
+    /** Back to work, once whatever interrupted it has been gone a while. */
+    private void resumeIfCalm(long actorId, float dt) {
+        StoodDown waiting = stoodDown.get(actorId);
+        if (waiting == null) return;
+        if (!roster.isLive(actorId)) {
+            stoodDown.remove(actorId);
+            return;
+        }
+        if (isThreatened(actorId, waiting.route())) {
+            waiting.calmSeconds = 0f;
+            return;
+        }
+        waiting.calmSeconds += dt;
+        if (waiting.calmSeconds < CALM_SECONDS) return;
+        // The live-fire target may not have survived what interrupted the work.
+        long target = roster.isLive(waiting.target()) ? waiting.target() : 0L;
+        assignInternal(actorId, waiting.route(), target);
+    }
+
+    /** Whether this actor is working or merely waiting to go back to it. */
+    public boolean isStoodDown(long actorId) {
+        return stoodDown.containsKey(actorId);
     }
 
     public boolean isControlling(long actorId) {
@@ -158,9 +221,16 @@ public final class AmbientTaskService {
         for (int index = 0; index < roster.liveCount(); index++) {
             long actorId = roster.get(index);
             AmbientTaskRoute route = assignments.get(actorId);
-            if (route == null) continue;
-            if (!roster.isLive(actorId) || isThreatened(actorId, route)) {
+            if (route == null) {
+                resumeIfCalm(actorId, dt);
+                continue;
+            }
+            if (!roster.isLive(actorId)) {
                 release(actorId);
+                continue;
+            }
+            if (isThreatened(actorId, route)) {
+                standDown(actorId, route);
                 continue;
             }
             Progress state = progress.computeIfAbsent(actorId, key -> new Progress(route));
@@ -671,6 +741,35 @@ public final class AmbientTaskService {
     }
 
     private record RouteSample(AmbientTaskPose pose, int destinationIndex, boolean dwelling) { }
+
+    /**
+     * Work an actor has stepped away from, and how long it has been quiet since.
+     *
+     * <p>Held rather than the route alone because a live-fire assignment has a
+     * target as well, and a firing detail that came back to a range without one
+     * would be miming.
+     */
+    private static final class StoodDown {
+
+        private final AmbientTaskRoute route;
+        private final long target;
+
+        /** Seconds since the last time anything threatening was in reach. */
+        private float calmSeconds;
+
+        private StoodDown(AmbientTaskRoute route, long target) {
+            this.route = route;
+            this.target = target;
+        }
+
+        private AmbientTaskRoute route() {
+            return route;
+        }
+
+        private long target() {
+            return target;
+        }
+    }
 
     /**
      * Where one actor has got to on its rotation.
