@@ -7,8 +7,8 @@ import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.TrackSt
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
-import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyDeployment;
-import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyDeploymentPolicy;
+import com.dillon.starsectormarines.battle.command.reinforcement.DeliveryDeployment;
+import com.dillon.starsectormarines.battle.command.reinforcement.DeliveryDeploymentPolicy;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementRequest;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -29,7 +29,7 @@ import java.util.TreeSet;
 /** Defender-side Conquest command: faction-honest first contact mobilizes a bounded patrol reserve. */
 public final class ConquestDefenderCommand implements ConquestFrontCommand,
         AutonomousMissionCommand<ConquestCommandFrame, ConquestFrontSnapshot>,
-        ConvoyDeploymentPolicy {
+        DeliveryDeploymentPolicy {
 
     static final int MIN_MOBILE_RESERVE = 1;
     static final int MAX_RESPONDERS_PER_TRACK = 2;
@@ -414,12 +414,12 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     }
 
     @Override
-    public ConvoyDeployment deploymentFor(ReinforcementRequest request) {
+    public DeliveryDeployment deploymentFor(ReinforcementRequest request) {
         int sourceX = request.hasObjective() ? request.objectiveX : request.rallyX;
         int sourceY = request.hasObjective() ? request.objectiveY : request.rallyY;
         int track = trackLayout.trackForCell(sourceX, sourceY);
         if (track < 0 || track >= trackLayout.trackCount()) {
-            return ConvoyDeployment.legacy(request);
+            return DeliveryDeployment.legacy(request);
         }
 
         int requestedForward = Math.round(trackLayout.forwardCoordinate(
@@ -451,7 +451,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 Math.min(trackLayout.lateralEndInclusive(track), lateral));
         int hintX = trackLayout.cellX(lateral, minimumForward);
         int hintY = trackLayout.cellY(lateral, minimumForward);
-        return new ConvoyDeployment(hintX, hintY, minimumForward,
+        return new DeliveryDeployment(hintX, hintY, minimumForward,
                 true, request.hasObjective(),
                 SquadCommandClaim.mission(strategyId(),
                         "convoy relief " + request.reason.name()));

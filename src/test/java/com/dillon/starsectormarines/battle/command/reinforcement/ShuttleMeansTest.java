@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -8,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -161,7 +164,7 @@ public class ShuttleMeansTest {
     public void theLandingZoneFollowsTheSafeBandRatherThanTheRally() {
         BattleSimulation sim = openSim();
         sim.getCompoundService().register(commandPost(2, 2));
-        ConvoyDeploymentPolicy rearBand = request -> new ConvoyDeployment(
+        DeliveryDeploymentPolicy rearBand = request -> new DeliveryDeployment(
                 2, 10, 0, true, false, null);
         ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
                 null, RiskLevel.LOW, rearBand, List.of());
@@ -175,5 +178,92 @@ public class ShuttleMeansTest {
         assertTrue(mission.lzY > 5,
                 "the drop belongs in the safe band at y=10, not on the rally at y=1;"
                         + " landed at " + mission.lzX + "," + mission.lzY);
+    }
+
+    private static TacticalNode airbase(int x, int y) {
+        return new TacticalNode(TacticalNode.Kind.AIRBASE, x, y,
+                x - 2, y - 2, x + 2, y + 2, Faction.DEFENDER, 65, 3);
+    }
+
+    /**
+     * A sortie flown off an authored field is loaded on the ground: it waits on
+     * its pad while a squad marches out from the defender rear to board it.
+     */
+    @Test
+    public void anAirfieldSortieWaitsOnItsPadForASquadToMarchOut() {
+        BattleSimulation sim = openSim();
+        sim.setTacticalMap(new TacticalMap(List.of(commandPost(2, 2), airbase(3, 9))));
+        LandingPad pad = LandingPad.garrison(3, 9, LandingPad.Approach.SOUTH);
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, null, List.of(pad));
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 3, 3);
+
+        means.dispatch(sim, req);
+
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertEquals(ShuttleState.LOADING, mission.state,
+                "the craft holds on its hardstand rather than flying in loaded");
+        assertEquals(0, mission.marinesRemaining, "nobody is aboard yet");
+        assertTrue(mission.embarkSquadId != com.dillon.starsectormarines.battle.squad.Squad.NO_SQUAD,
+                "the sortie knows which squad it is waiting for");
+        assertTrue(sim.getSquad(mission.embarkSquadId) != null,
+                "and that squad was actually put on the map");
+    }
+
+    /**
+     * Once the squad reaches the ramp it is taken aboard and the sortie lifts.
+     *
+     * <p>The pad sits on the defender rear edge here, so the marching squad
+     * spawns within reach on the first tick — the walk itself is ordinary
+     * squad movement and is not what this is testing.
+     */
+    @Test
+    public void reachingTheRampLoadsTheSortieAndItLifts() {
+        BattleSimulation sim = openSim();
+        sim.setTacticalMap(new TacticalMap(List.of(
+                commandPost(2, 2), airbase(6, H - 2))));
+        LandingPad pad = LandingPad.garrison(6, H - 2, LandingPad.Approach.SOUTH);
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, null, List.of(pad));
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 6, 2);
+
+        means.dispatch(sim, req);
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertEquals(ShuttleState.LOADING, mission.state);
+
+        for (int i = 0; i < 30 && mission.state == ShuttleState.LOADING; i++) {
+            sim.advance(1f / 30f);
+        }
+
+        assertTrue(mission.marinesRemaining > 0,
+                "somebody got aboard: " + mission.marinesRemaining);
+        assertFalse(mission.state == ShuttleState.LOADING,
+                "a loaded sortie leaves the pad");
+    }
+
+    /**
+     * Taking the field ends air delivery, whoever still holds the headquarters.
+     */
+    @Test
+    public void losingTheAirfieldEndsAirDelivery() {
+        BattleSimulation sim = openSim();
+        sim.setTacticalMap(new TacticalMap(List.of(commandPost(2, 2))));
+        LandingPad pad = LandingPad.garrison(3, 9, LandingPad.Approach.SOUTH);
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, null, List.of(pad));
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 5, 5);
+
+        assertFalse(means.canFulfill(sim, req),
+                "no defender-held airbase on a map that has an airfield means no lift");
+
+        sim.getCompoundService().register(airbase(3, 9));
+        assertTrue(means.canFulfill(sim, req),
+                "and holding the field restores it");
     }
 }
