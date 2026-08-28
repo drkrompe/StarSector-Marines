@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — experience became armour-sourced rather than per-marine earned, and career evidence gained a squad grain.
+Updated: 2026-08-27 — experience became armour-sourced rather than per-marine earned, career evidence gained a squad grain, and the band span was measured rather than widened.
 
 ## Purpose
 
@@ -161,6 +161,18 @@ lead" bonus: the built-in squad definitions already issue the leader's billet
 scarcer armour, so an NCO comes out steadier through the visible mechanism.
 Because armour tier now sets a band, any issue path that picks a pattern for
 looks alone is choosing combat quality and must say so.
+
+**A band is worth about an equipment-grade step.** That calibration is measured,
+not asserted: against an unarmored marine the Green-to-Elite span is roughly
+1.7x time-to-kill, while the Surplus-to-Masterwork grade span is roughly 3.5x,
+and a single band step sits inside the range the grade steps occupy. The band
+ladder was once described as a 1.23x effect, which is the accuracy multiplier
+read alone; end to end it also carries cooldown, spread, and the one-off reflex
+delay before the first shot at a newly acquired threat. `TtkReportTest` publishes
+the isolated band table with aptitude pinned and fails if the span flattens into
+noise or grows past the grade span — the latter matters because the armour
+pattern already sets the band, so letting bands outweigh equipment would collapse
+the two levers the player reads into one.
 
 Rank-and-file marines are otherwise interchangeable, and the company's growth is
 what the Armory has collected and can issue rather than a per-marine ladder.
@@ -552,9 +564,6 @@ signal only when it materially improves play.
 
 The following are direction, not current behavior:
 
-- Widen the experience band span so an issued standard is a felt difference
-  next to equipment grade, and re-verify risk-scaled defender rosters against
-  the wider span.
 - Give defender formations the same readable loadout vocabulary the player's
   squads use, so hostile quality can be judged before contact.
 - Expand primary families and special-equipment options while preserving the

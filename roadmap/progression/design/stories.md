@@ -1,16 +1,14 @@
 # Progression open work
 
-Status: ACTIVE — 13 open stories
+Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-27 — card-sourced experience shipped and folded; added S12 squad career standing, narrowed S4 to the band span, and unblocked the XP authority cleanup.
+Updated: 2026-08-27 — card-sourced experience and the squad career record shipped and folded; S4 closed by measurement; the XP authority cleanup is unblocked.
 
 Read `progression-nouns.md` before changing a progression story.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
-| `s1-lethality-feel-pass.md` | Ready | Play acceptance for the shipped lethality and grade pass; do this before further numerical tuning. |
-| `s12-squad-career-standing.md` | Ready | Squad-grain career evidence and the company standing. Shares its attribution seam with `c6-after-action-by-fireteam.md`. |
-| `s4-performance-derived-experience.md` | Ready | Narrowed to the experience band span; performance-derived awards withdrawn. The shipped issued-band model is invisible in play until this lands. Slug retained for citations. |
+| `s1-lethality-feel-pass.md` | Ready | Verify the shipped lethality and grade pass through the TTK harness and mission evidence. Its original play-acceptance wording is stale: tuning is settled from measured output, not from a described play impression. |
 | `xp-authority-cleanup.md` | Ready | Unblocked now that bands are issued; also owns the disposal of the now-inert per-marine XP field. |
 | `s2e-close-contact-boarding-tools.md` | Planned | Adds typed thermal/arc breachers and vibro/monofilament contact weapons without a universal melee system. |
 | `s2f-combat-stim-injectors.md` | Planned | Adds finite, temporary handling utility while keeping neural/HUD interfaces out of hidden stat and knowledge bonuses. |
