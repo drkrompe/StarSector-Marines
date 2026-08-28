@@ -1,27 +1,13 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
-import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.ops.battleview.BattleRenderHostProfile;
-import com.dillon.starsectormarines.ops.battleview.BattleSceneFrame;
-import com.dillon.starsectormarines.ops.battleview.BattleSceneHostPass;
-import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
-import com.dillon.starsectormarines.ops.battleview.RenderContext;
-import com.dillon.starsectormarines.ops.battleview.RenderLayer;
-import com.dillon.starsectormarines.render2d.BattleCamera;
-import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
-import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
+import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.tools.snapshot.AnimatedGifWriter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,7 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -47,15 +32,6 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private static final int DEFAULT_FRAME_DELAY_MILLIS = 125;
     private static final int DEFAULT_WIDTH = 960;
     private static final int DEFAULT_HEIGHT = 640;
-    private static final int HEADER_HEIGHT = 30;
-    private static final Color MARINE_MARKER = new Color(68, 214, 255, 235);
-    private static final Color DEFENDER_MARKER = new Color(255, 83, 83, 235);
-    private static final Color CIVILIAN_MARKER = new Color(255, 218, 73, 235);
-    private static final EnumSet<RenderLayer> REVIEW_LAYERS = EnumSet.of(
-            RenderLayer.GROUND, RenderLayer.VEHICLES, RenderLayer.DOODADS,
-            RenderLayer.UNITS, RenderLayer.HAZARDS, RenderLayer.SMOKE,
-            RenderLayer.DRONES, RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
-            RenderLayer.CONVOY, RenderLayer.SHUTTLES);
 
     private final BattleSimulation simulation;
     private final String fixtureId;
@@ -67,6 +43,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private final Path frames;
     private final AnimatedGifWriter gif;
     private final List<Frame> captured = new ArrayList<>();
+    private BattleReviewFrameRenderer frameRenderer;
     private int nextTick;
     private int lastTick = -1;
     private boolean closed;
@@ -140,9 +117,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private void capture() throws IOException {
         int tick = simulation.getSimTickIndex();
         if (tick == lastTick) return;
-        BufferedImage image = renderer().renderHostPass(
-                pass(simulation), width, height);
-        annotate(image, tick);
+        BufferedImage image = frames().render(simulation, caption(tick));
         String filename = String.format(Locale.ROOT,
                 "frame-%04d-tick-%06d.png", captured.size(), tick);
         Path frame = frames.resolve(filename);
@@ -154,112 +129,26 @@ final class CommanderEvidenceCapture implements AutoCloseable {
         lastTick = tick;
     }
 
-    private void annotate(BufferedImage image, int tick) {
-        Graphics2D graphics = image.createGraphics();
-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
-        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        drawUnitMarkers(graphics);
-        graphics.setColor(new Color(0, 0, 0, 205));
-        graphics.fillRect(0, 0, image.getWidth(), HEADER_HEIGHT);
-        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-        graphics.setColor(Color.WHITE);
+    /** Caption band text: which fixture, where in the run, and what each side has left. */
+    private String caption(int tick) {
         String state = simulation.isComplete()
-                ? "  •  " + (simulation.getWinner() == null
+                ? "  \u2022  " + (simulation.getWinner() == null
                 ? "COMPLETE" : simulation.getWinner() + " WIN") : "";
-        String label = fixtureId + "  •  tick " + tick
-                + "  •  " + String.format(Locale.ROOT, "%.1fs",
+        return fixtureId + "  \u2022  tick " + tick
+                + "  \u2022  " + String.format(Locale.ROOT, "%.1fs",
                 tick * BattleSimulation.TICK_DT)
-                + "  •  M " + simulation.getRoster()
-                .factionLiveCount(Faction.MARINE)
-                + " / D " + simulation.getRoster()
-                .factionLiveCount(Faction.DEFENDER)
-                + " / C " + simulation.getRoster()
-                .factionLiveCount(Faction.CIVILIAN) + state;
-        graphics.drawString(label, 12, 20);
-        graphics.dispose();
+                + "  \u2022  M " + simulation.getRoster().factionLiveCount(Faction.MARINE)
+                + " / D " + simulation.getRoster().factionLiveCount(Faction.DEFENDER)
+                + " / C " + simulation.getRoster().factionLiveCount(Faction.CIVILIAN)
+                + state;
     }
 
-    private void drawUnitMarkers(Graphics2D graphics) {
-        BattleCamera camera = cameraFor(width, height, simulation);
-        float radius = Math.max(2.5f,
-                Math.min(4.5f, camera.cellPxSize() * 0.7f));
-        graphics.setStroke(new BasicStroke(1.25f));
-        for (int index = 0; index < simulation.getRoster().liveCount(); index++) {
-            long entity = simulation.getRoster().get(index);
-            Faction faction = simulation.identity().faction(entity);
-            Color color = markerColor(faction);
-            if (color == null) continue;
-            float centerX = camera.cellToScreenX(
-                    simulation.world().renderX(entity));
-            float centerY = height - camera.cellToScreenY(
-                    simulation.world().renderY(entity));
-            int diameter = Math.round(radius * 2f);
-            int left = Math.round(centerX - radius);
-            int top = Math.round(centerY - radius);
-            graphics.setColor(new Color(0, 0, 0, 220));
-            graphics.drawOval(left, top, diameter, diameter);
-            graphics.setColor(color);
-            graphics.fillOval(left + 1, top + 1,
-                    Math.max(1, diameter - 2), Math.max(1, diameter - 2));
+    private BattleReviewFrameRenderer frames() {
+        if (frameRenderer == null) {
+            frameRenderer = new BattleReviewFrameRenderer(
+                    Path.of("mod").toAbsolutePath().normalize(), width, height);
         }
-    }
-
-    private static Color markerColor(Faction faction) {
-        return switch (faction) {
-            case MARINE -> MARINE_MARKER;
-            case DEFENDER -> DEFENDER_MARKER;
-            case CIVILIAN -> CIVILIAN_MARKER;
-            default -> null;
-        };
-    }
-
-    private static BattleSceneHostPass pass(BattleSimulation simulation) {
-        return new BattleSceneHostPass() {
-            @Override
-            public BattleSceneFrame prepare(CanvasHostViewport viewport,
-                                            float alphaMult) {
-                BattleCamera camera = cameraFor(viewport.width(),
-                        viewport.height(), simulation);
-                RenderContext context = new RenderContext(simulation, camera,
-                        null, alphaMult, 0f, false,
-                        new HighlightOverlay(), new Selection(),
-                        BattleRenderHostProfile.EMBEDDED_SCENE);
-                return new BattleSceneFrame(context, REVIEW_LAYERS);
-            }
-
-            @Override
-            public void draw(CanvasHostViewport viewport, float alphaMult) {
-                throw new IllegalStateException(
-                        "Visual evidence requires the headless scene drain");
-            }
-        };
-    }
-
-    private static BattleCamera cameraFor(float viewportWidth,
-                                          float viewportHeight,
-                                          BattleSimulation simulation) {
-        int gridWidth = simulation.getGrid().getWidth();
-        int gridHeight = simulation.getGrid().getHeight();
-        float mapHeight = viewportHeight - HEADER_HEIGHT;
-        float cellPx = Math.min(viewportWidth / gridWidth,
-                mapHeight / gridHeight);
-        BattleCamera camera = new BattleCamera(gridWidth, gridHeight);
-        camera.setViewport(0f, 0f, viewportWidth, mapHeight, cellPx);
-        return camera;
-    }
-
-    private static HeadlessUiRenderer renderer() {
-        return RendererHolder.RENDERER;
-    }
-
-    private static final class RendererHolder {
-        private static final Path MOD_ROOT = Path.of("mod")
-                .toAbsolutePath().normalize();
-        private static final HeadlessUiRenderer RENDERER =
-                new HeadlessUiRenderer(
-                        new HeadlessBattleSceneRenderer(MOD_ROOT, true), MOD_ROOT);
+        return frameRenderer;
     }
 
     private boolean enabled() {

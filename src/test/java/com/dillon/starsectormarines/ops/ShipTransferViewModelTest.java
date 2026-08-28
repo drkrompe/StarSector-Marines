@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,10 +36,28 @@ class ShipTransferViewModelTest {
     private static final List<ShipTransferViewModel.Candidate> FLEET =
             List.of(TRANSPORT, LINER);
 
+    /** A company's standing with respect to quarters, as a mutable fixture. */
+    private static final class Quarters {
+        private CompanyShipDesignation.Home standing = CompanyShipDesignation.Home.NONE;
+
+        CompanyShipDesignation.Home get() {
+            return standing;
+        }
+
+        void moveAboard(String shipId) {
+            standing = new CompanyShipDesignation.Home(shipId, null, false);
+        }
+
+        void displace(String formerShipName, boolean lostInAction) {
+            standing = new CompanyShipDesignation.Home(null, formerShipName, lostInAction);
+        }
+    }
+
     /** A company that has not chosen: no home, and a transfer that records one. */
     private static ShipTransferViewModel founding(Reactor reactor) {
-        AtomicReference<String> home = new AtomicReference<>(null);
-        return new ShipTransferViewModel(reactor, () -> FLEET, home::get, home::set);
+        Quarters quarters = new Quarters();
+        return new ShipTransferViewModel(
+                reactor, () -> FLEET, quarters::get, quarters::moveAboard);
     }
 
     @Test
@@ -72,14 +89,14 @@ class ShipTransferViewModelTest {
     @DisplayName("choosing gives the company a home, and the screen becomes a transfer")
     void choosingAShipTurnsFoundingIntoTransfer() {
         Reactor reactor = new Reactor();
-        AtomicReference<String> home = new AtomicReference<>(null);
+        Quarters quarters = new Quarters();
         ShipTransferViewModel viewModel = new ShipTransferViewModel(
-                reactor, () -> FLEET, home::get, home::set);
+                reactor, () -> FLEET, quarters::get, quarters::moveAboard);
 
         viewModel.select(TRANSPORT.id());
         viewModel.commit();
 
-        assertEquals(TRANSPORT.id(), home.get(), "the choice is recorded");
+        assertEquals(TRANSPORT.id(), quarters.get().shipId(), "the choice is recorded");
         assertEquals("THE COMPANY LIVES HERE", viewModel.transferLabel().get());
         assertTrue(viewModel.roomTitle().get().contains("TRANSFER"));
         assertEquals("HOME", row(viewModel, TRANSPORT.id()).cost());
@@ -89,9 +106,10 @@ class ShipTransferViewModelTest {
     @DisplayName("once there is a home, a hull is judged on what leaving would cost")
     void transferNamesWhatAMoveWouldGiveUp() {
         Reactor reactor = new Reactor();
-        AtomicReference<String> home = new AtomicReference<>(TRANSPORT.id());
+        Quarters quarters = new Quarters();
+        quarters.moveAboard(TRANSPORT.id());
         ShipTransferViewModel viewModel = new ShipTransferViewModel(
-                reactor, () -> FLEET, home::get, home::set);
+                reactor, () -> FLEET, quarters::get, quarters::moveAboard);
         viewModel.select(LINER.id());
 
         assertTrue(viewModel.verdict().get().contains("give up"),
@@ -103,26 +121,76 @@ class ShipTransferViewModelTest {
     @DisplayName("the company is never moved onto the ship it is already on")
     void committingToTheCurrentShipDoesNothing() {
         Reactor reactor = new Reactor();
-        AtomicReference<String> home = new AtomicReference<>(TRANSPORT.id());
-        ShipTransferViewModel viewModel = new ShipTransferViewModel(
-                reactor, () -> FLEET, home::get, ship -> home.set(null));
+        Quarters quarters = new Quarters();
+        quarters.moveAboard(TRANSPORT.id());
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(reactor, () -> FLEET,
+                quarters::get, ship -> quarters.displace("SOMEWHERE ELSE", false));
 
         viewModel.select(TRANSPORT.id());
         viewModel.commit();
 
-        assertEquals(TRANSPORT.id(), home.get(), "committing to home should not move anybody");
+        assertEquals(TRANSPORT.id(), quarters.get().shipId(),
+                "committing to home should not move anybody");
     }
 
     @Test
     @DisplayName("a fleet with nothing in it leaves the company nowhere rather than failing")
     void anEmptyFleetIsAnsweredRatherThanRefused() {
         ShipTransferViewModel viewModel = new ShipTransferViewModel(
-                new Reactor(), List::of, () -> null, ship -> { });
+                new Reactor(), List::of,
+                () -> CompanyShipDesignation.Home.NONE, ship -> { });
 
         assertNull(viewModel.selectedPlan());
         assertTrue(viewModel.candidateRows().get().isEmpty());
         assertTrue(viewModel.facilityCells().get().isEmpty());
         assertFalse(viewModel.selectedSummary().get().isBlank());
+    }
+
+    @Test
+    @DisplayName("a company that lost its ship is told so, and told she was lost")
+    void aLostShipIsNamedAndDistinguishedFromOneLetGo() {
+        Quarters quarters = new Quarters();
+        quarters.displace("SABRE", true);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(
+                new Reactor(), () -> FLEET, quarters::get, quarters::moveAboard);
+
+        assertTrue(viewModel.roomTitle().get().contains("DISPLACED"),
+                "a company that had a home is not founding a company: "
+                        + viewModel.roomTitle().get());
+        String copy = viewModel.roomCopy().get();
+        assertTrue(copy.startsWith("SABRE"), "she is named: " + copy);
+        assertTrue(copy.contains("was lost"), "losing her is not selling her: " + copy);
+        // Displaced or founding, there is nothing to measure a hull against.
+        assertEquals("QUARTER THE COMPANY HERE", viewModel.transferLabel().get());
+    }
+
+    @Test
+    @DisplayName("a ship let go is not reported as a casualty")
+    void aShipLetGoReadsDifferentlyFromOneLost() {
+        Quarters quarters = new Quarters();
+        quarters.displace("SABRE", false);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(
+                new Reactor(), () -> FLEET, quarters::get, quarters::moveAboard);
+
+        String copy = viewModel.roomCopy().get();
+        assertTrue(copy.contains("is gone"), copy);
+        assertFalse(copy.contains("was lost"), copy);
+    }
+
+    @Test
+    @DisplayName("choosing again puts the loss behind them")
+    void quarteringAgainClearsTheDisplacement() {
+        Quarters quarters = new Quarters();
+        quarters.displace("SABRE", true);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(
+                new Reactor(), () -> FLEET, quarters::get, quarters::moveAboard);
+
+        viewModel.select(TRANSPORT.id());
+        viewModel.commit();
+
+        assertEquals(TRANSPORT.id(), quarters.get().shipId());
+        assertFalse(quarters.get().displaced(), "they have a home again");
+        assertTrue(viewModel.roomTitle().get().contains("TRANSFER"));
     }
 
     private static ShipTransferViewModel.CandidateRow row(

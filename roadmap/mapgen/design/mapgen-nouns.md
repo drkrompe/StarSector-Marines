@@ -4,10 +4,11 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — shipped shared-edge windows for Conquest bunkers,
+Updated: 2026-08-28 — pointed at the compound-program direction; shipped
+shared-edge windows for Conquest bunkers,
 widened compound firing aprons while preserving functional parcel members,
-added role-readable compound dressing, guaranteed standable interior anchors,
-and made pocket sealing yield to a compound.
+added role-readable compound dressing and workstation groups, guaranteed
+standable interior anchors, and made pocket sealing yield to a compound.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -126,6 +127,13 @@ grid, after the last stage to touch it. An anchor that fails the guarantee does
 not merely look wrong: mission layouts filter candidate sites on it, and
 room-scoped objectives resolve no room at all from a blocked or doorway cell.
 
+A compound's wings are sized by the partition rather than by their purpose, and
+a purpose that needs a minimum footprint therefore has no way to ask for one.
+`compound-programs.md` holds the direction that inverts this — a program that
+sizes the place, as a deck's does — together with the measurement that motivates
+it and the parts of the deck model that deliberately do not transfer. Nothing in
+it is implemented; the model below is still what generation does.
+
 Parcel ownership is established before content fills. A filler may own one leaf
 or an already-claimed compound, but it must not infer a multi-leaf building by
 overwriting roads or neighboring fills after dispatch. Cross-leaf structures
@@ -148,6 +156,10 @@ Compound dressing is clustered by role and place: logistics props explain each
 military wing, while planters and seating define shared domestic space. Hard
 fixtures and visual-only clutter both preserve gates, building thresholds,
 two-cell circulation, road reservations, and final walkable connectivity.
+Purpose-built interiors express their function through grouped equipment rather
+than a single symbolic prop: command rooms organize console banks around a
+planning focus, server rooms organize repeated racks around a service aisle,
+and both retain doorway, firing-position, and room-connectivity obligations.
 
 ## City, station, and ship families
 
