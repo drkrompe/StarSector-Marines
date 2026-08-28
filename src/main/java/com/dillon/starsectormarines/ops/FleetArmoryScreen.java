@@ -207,6 +207,7 @@ public final class FleetArmoryScreen implements Screen {
 
     private void putPageNavigation(Map<String, Object> props) {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
+                context::shipHasRoom,
                 dismissDialog,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),

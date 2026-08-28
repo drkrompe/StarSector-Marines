@@ -410,6 +410,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedSquadSummary", viewModel.selectedSquadSummary());
         props.put("quartersStatus", viewModel.quartersStatus());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
+                MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         return props;
     }
@@ -479,6 +480,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     private static void putArmoryPageNavigation(Map<String, Object> props) {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
+                MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { });
     }
 
@@ -515,6 +517,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
+                MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { });
         return props;
     }
