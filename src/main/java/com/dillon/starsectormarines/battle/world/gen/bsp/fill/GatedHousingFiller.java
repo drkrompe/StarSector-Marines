@@ -40,6 +40,7 @@ public final class GatedHousingFiller implements CompoundFiller {
     private static final GroundKind YARD_GROUND = GroundKind.COURTYARD;
     private static final int WALL_HP = 80;
     private static final int BRIDGE_SCAN_DEPTH = 5;
+    static final int BUILDING_SETBACK = 2;
     static final int GATE_WIDTH = 2;
 
     private static final BuildingShellCore.BuildingConfig MAIN_HOUSE_CONFIG = new BuildingShellCore.BuildingConfig(
@@ -84,7 +85,7 @@ public final class GatedHousingFiller implements CompoundFiller {
         absorbConcaveNotches(compound, inCompound);
 
         boolean[][] courtyardCells = repaintYard(
-                compound, inCompound, memberCells, grid, topology);
+                inCompound, memberCells, grid, topology);
         carveSubBuildings(compound, courtyardCells, grid, topology, doodads, pois, rng);
         paintWallRing(inCompound, roadReservation, grid, topology);
         punchSingleGate(compound, inCompound, roadCells, grid, topology, rng);
@@ -173,33 +174,17 @@ public final class GatedHousingFiller implements CompoundFiller {
         }
     }
 
-    private boolean[][] repaintYard(Compound compound, boolean[][] inCompound,
-                                    boolean[][] memberCells, NavigationGrid grid,
-                                    CellTopology topology) {
+    private boolean[][] repaintYard(boolean[][] inCompound, boolean[][] memberCells,
+                                    NavigationGrid grid, CellTopology topology) {
         int w = inCompound.length;
         int h = inCompound[0].length;
         boolean[][] courtyard = new boolean[w][h];
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (!inCompound[x][y]) continue;
-                if (memberCells[x][y]) continue;
                 grid.setWalkableFloor(x, y);
                 topology.setGroundKind(x, y, YARD_GROUND);
-                courtyard[x][y] = true;
-            }
-        }
-        for (BlockLeaf m : compound.members) {
-            for (int x = m.left; x <= m.right; x++) {
-                grid.setWalkableFloor(x, m.top);
-                grid.setWalkableFloor(x, m.bottom);
-                topology.setGroundKind(x, m.top,    YARD_GROUND);
-                topology.setGroundKind(x, m.bottom, YARD_GROUND);
-            }
-            for (int y = m.top + 1; y <= m.bottom - 1; y++) {
-                grid.setWalkableFloor(m.left,  y);
-                grid.setWalkableFloor(m.right, y);
-                topology.setGroundKind(m.left,  y, YARD_GROUND);
-                topology.setGroundKind(m.right, y, YARD_GROUND);
+                courtyard[x][y] = !memberCells[x][y];
             }
         }
         return courtyard;
@@ -209,10 +194,10 @@ public final class GatedHousingFiller implements CompoundFiller {
                                    NavigationGrid grid, CellTopology topology,
                                    List<Doodad> doodads, List<PointOfInterest> pois, Random rng) {
         for (BlockLeaf m : compound.members) {
-            int subL = m.left   + 1;
-            int subT = m.top    + 1;
-            int subR = m.right  - 1;
-            int subB = m.bottom - 1;
+            int subL = m.left   + BUILDING_SETBACK;
+            int subT = m.top    + BUILDING_SETBACK;
+            int subR = m.right  - BUILDING_SETBACK;
+            int subB = m.bottom - BUILDING_SETBACK;
             if (subR - subL < 1 || subB - subT < 1) continue;
             BlockLeaf inset = new BlockLeaf(subL, subT, subR, subB, false);
             inset.kind = m.kind;
