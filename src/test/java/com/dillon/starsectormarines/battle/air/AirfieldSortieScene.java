@@ -12,14 +12,19 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortressAirfield;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * A garrison airfield, a shuttle on its hardstand, and the crew that has to
@@ -51,14 +56,9 @@ final class AirfieldSortieScene {
     static final int WIDTH = 64;
     static final int HEIGHT = 48;
 
-    /** The apron, laid across the middle of the map with room to walk in from the north. */
-    private static final int APRON_LEFT = 20;
-    private static final int APRON_RIGHT = 43;
-    private static final int APRON_BOTTOM = 26;
-    private static final int APRON_TOP = 33;
-    /** One hardstand is enough to watch a sortie; four would only repeat it. */
-    private static final int PAD_X = 31;
-    private static final int PAD_Y = 30;
+    /** The band the apron is allowed to sit in, so the crew has ground to cross. */
+    private static final int FIELD_BAND_BOTTOM = 18;
+    private static final int FIELD_BAND_TOP = 30;
 
     /** Far from the field, so the delivery is a flight rather than a hop. */
     private static final int RALLY_X = 32;
@@ -88,32 +88,41 @@ final class AirfieldSortieScene {
     static Scene build(long seed, boolean opposed) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology topology = new CellTopology(WIDTH, HEIGHT);
+        boolean[][] ground = new boolean[WIDTH][HEIGHT];
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 grid.setWalkableFloor(x, y);
                 topology.setGroundKind(x, y, GroundKind.DIRT);
-            }
-        }
-        for (int x = APRON_LEFT; x <= APRON_RIGHT; x++) {
-            for (int y = APRON_BOTTOM; y <= APRON_TOP; y++) {
-                topology.setGroundKind(x, y, GroundKind.STONE);
-            }
-        }
-        for (int x = PAD_X - 2; x <= PAD_X + 2; x++) {
-            for (int y = PAD_Y - 2; y <= PAD_Y + 2; y++) {
-                topology.setGroundKind(x, y, GroundKind.STRIPED);
+                topology.setRoomPurpose(x, y, RoomPurpose.GENERIC);
+                ground[x][y] = x >= 2 && y >= 2 && x < WIDTH - 2 && y < HEIGHT - 2;
             }
         }
 
+        // The field is authored by the production airfield rather than drawn
+        // here. A scene that hand-rolls an apron records a scene's idea of one,
+        // and the whole value of watching this is that it is the field the
+        // generator actually lays down — hardstands, bowsers, fuel point, mast.
+        GenContext gen = new GenContext(grid, topology, new Random(seed), WIDTH, HEIGHT, seed);
+        // Sited in the middle band rather than wherever it fits. In a ward the
+        // field is in the rear and the crew comes from the rear edge, so the
+        // walk is short; here it is the subject, and a scene that put the pad
+        // beside the spawn would record five marines stepping aboard and
+        // nothing else.
+        FortressAirfield field = FortressAirfield.site(gen, ground,
+                TraversalAxis.SOUTH_TO_NORTH, 2, FIELD_BAND_BOTTOM,
+                WIDTH - 3, FIELD_BAND_TOP);
+        if (field == null) throw new IllegalStateException("no room for an airfield");
+        field.author(gen, TraversalAxis.SOUTH_TO_NORTH);
+
         BattleSimulation sim = serialSimulation(grid, topology, seed);
-        TacticalNode airbase = new TacticalNode(TacticalNode.Kind.AIRBASE,
-                PAD_X, PAD_Y, APRON_LEFT, APRON_BOTTOM, APRON_RIGHT, APRON_TOP,
-                Faction.DEFENDER, 65, 3);
         // The command post is the other half of the supply gate. It sits well
         // clear of the field so the recording is about the airfield alone.
         TacticalNode commandPost = new TacticalNode(TacticalNode.Kind.COMMAND_POST,
-                8, 40, 6, 38, 10, 42, Faction.DEFENDER, 70, 3);
-        sim.setTacticalMap(new TacticalMap(List.of(airbase, commandPost)));
+                6, 6, 4, 4, 8, 8, Faction.DEFENDER, 70, 3);
+        List<TacticalNode> nodes = new ArrayList<>(gen.tactical);
+        nodes.add(commandPost);
+        sim.setTacticalMap(new TacticalMap(nodes));
+        for (Doodad doodad : gen.doodads) sim.addDoodad(doodad);
 
         // Both variants need marines on the map, because the simulation stops
         // the instant a side is absent — one faction present is a finished
@@ -125,7 +134,7 @@ final class AirfieldSortieScene {
 
         ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
                 null, RiskLevel.LOW, null,
-                List.of(LandingPad.garrison(PAD_X, PAD_Y, LandingPad.Approach.SOUTH)));
+                List.copyOf(gen.landingPads));
         means.dispatch(sim, new ReinforcementRequest(Faction.DEFENDER,
                 ReinforcementRequest.Reason.GARRISON_DEPLETED,
                 ReinforcementRequest.Strength.SMALL, RALLY_X, RALLY_Y));
