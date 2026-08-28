@@ -505,7 +505,18 @@ a defender's use of a system is too strong or too weak, the fix is the authored
 numbers or the policy, never a second set of numbers or a branch in the sweep.
 That also means a system is not a difficulty lever — it composes with the
 weighting a roster already had, and no table should start reaching for
-system-carrying patterns to make a fight harder. Whether a hostile pattern's
+system-carrying patterns to make a fight harder. Measurement bears that out: a
+defender who now carries what their pattern declares does not measurably harden
+a fight, and the reason is instructive. **A use policy names a moment, and some
+moments belong to one side.** Crossing ground under fire is an attacker's
+moment, so the breach family a defender wears is real, is offered the same
+decision the player's marines are offered, and — while that defender holds a
+line rather than crossing one — correctly declines to spend itself. What
+defenders actually gain from adoption is the capability whose moment they do
+reach. That is the intended shape rather than a gap to close: a defender who
+charged a doorway because the suit could would be spending it at an obviously
+wrong moment, which is the failure the policy exists to prevent. Whether a
+hostile pattern's
 system is readable before contact remains open: reading it at a distance makes a
 fight plannable, and discovering it when a rig comes through a door is more in
 keeping with how the rest of the equipment model treats recovery.
