@@ -41,8 +41,13 @@ public final class SmokeRenderSystem implements RenderSystem {
             }
         }
 
-        SpriteAPI puffSprite = sprites.smokePuffSprite();
-        if (puffSprite == null) return;
+        SpriteAPI fieldSheet = sprites.smokeFieldSheet();
+        if (fieldSheet == null) return;
+        SpecialEquipmentPresentationDef.Field recipe = equipment.presentation().field();
+        int framePxW = (int) (fieldSheet.getWidth() / recipe.columns());
+        int framePxH = (int) (fieldSheet.getHeight() / recipe.rows());
+        if (framePxW <= 0 || framePxH <= 0) return;
+
         for (SmokeFieldService.SmokeFieldView field : ctx.sim.smokeFields().activeFields()) {
             float elapsed = field.totalDuration() - field.remaining();
             float fadeIn = Math.min(1f, elapsed / 0.7f);
@@ -56,13 +61,38 @@ public final class SmokeRenderSystem implements RenderSystem {
                 float y = field.y() + (float) Math.sin(angle) * radial;
                 float diameter = field.radius() * cellPx
                         * (i == 0 ? 1.55f : 0.90f + 0.45f * hash01(field.id() + 31, i));
-                out.addSprite(RenderLayer.SMOKE, puffSprite,
+                // Each puff runs the flipbook on its own clock: its own phase
+                // offset and a mild rate spread. Played in lockstep the whole
+                // field would billow and thin as one object, which is what
+                // reads as a decal rather than smoke.
+                float rate = recipe.framesPerSecond() * (0.75f + 0.5f * hash01(field.id() + 61, i));
+                float cycle = elapsed * rate + hash01(field.id() + 79, i) * recipe.frameCount();
+                int frame = recipe.firstFrame() + pingPong((int) cycle, recipe.frameCount());
+                out.addSheetQuad(RenderLayer.SMOKE, fieldSheet,
+                        (frame % recipe.columns()) * framePxW,
+                        (frame / recipe.columns()) * framePxH,
+                        framePxW, framePxH,
                         camera.cellToScreenX(x), camera.cellToScreenY(y),
                         diameter, diameter,
                         hash01(field.id() + 47, i) * 360f,
-                        0.70f, 0.73f, 0.75f, alpha * (i == 0 ? 0.72f : 0.48f));
+                        recipe.tintRed(), recipe.tintGreen(), recipe.tintBlue(),
+                        alpha * (i == 0 ? 0.72f : 0.48f));
             }
         }
+    }
+
+    /**
+     * Frame offset within a {@code frames}-long band, played forward then
+     * back. The sheet's frames are a puff dissipating, so looping them
+     * would snap a vanished puff back to full size once a cycle; bouncing
+     * makes the same art read as one cloud boiling, and never empties a
+     * puff for longer than the turn at the thin end.
+     */
+    private static int pingPong(int step, int frames) {
+        if (frames <= 1) return 0;
+        int span = (frames - 1) * 2;
+        int wrapped = ((step % span) + span) % span;
+        return wrapped < frames ? wrapped : span - wrapped;
     }
 
     private static float hash01(long id, int index) {
