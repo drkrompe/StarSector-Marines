@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
@@ -603,7 +604,7 @@ public final class FleetArmoryViewModel {
                     weaponStats(id, billet, soldier),
                     billet != null ? armorCatalog.displayName() + "  ·  Tier "
                             + tierMark(armorCatalog.tier()) : "No armor",
-                    armorStats(id, billet), armorCatalog != null ? armorCatalog.description() : "",
+                    armorStats(id, billet), armorDescription(armorCatalog),
                     special != null ? special.displayName() : "No specialty equipment",
                     special != null ? special.catalogDescription()
                             : "This billet carries no specialty equipment beyond its primary weapon.",
@@ -984,6 +985,21 @@ public final class FleetArmoryViewModel {
         return String.format(Locale.ROOT,
                 "DMG %+.1f  ·  RNG %+.0f  ·  ACC %+.0f%%  ·  DPS %+.1f",
                 damage, range, accuracy, dps);
+    }
+
+    /**
+     * The suit's copy, plus its integral system when it carries one. A player
+     * has to be able to see what a suit does before they issue it — a squad's
+     * fighting quality is fully determined by visible issue
+     * ({@code progression-nouns.md}), and a capability nobody can read before
+     * committing to it would be exactly the hidden modifier that law forbids.
+     */
+    private static String armorDescription(MarineArmorCatalogDef armor) {
+        if (armor == null) return "";
+        if (!armor.hasIntegralSystem()) return armor.description();
+        IntegralSystemDef system = armor.integralSystem();
+        return armor.description() + "  //  " + system.displayName().toUpperCase(Locale.ROOT)
+                + "  //  " + system.description();
     }
 
     private static List<StatMeter> armorStats(String cardId, FireTeamBillet billet) {

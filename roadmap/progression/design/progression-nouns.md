@@ -72,6 +72,13 @@ legibility.
   appearance package. A pattern realizes one assault-armor role and may carry
   equipment provenance. Unlike weapon grade, it changes survivability and
   movement tradeoffs as its own kit choice.
+- **Integral system** — a capability the suit itself carries, declared by at
+  most one per armour pattern and by most patterns not at all. It is authored
+  per pattern rather than per role, so which concrete suit was recovered is
+  what surprises the player, and it never spends the billet's carried special
+  item. An integral system must express itself as behavior — movement,
+  protection with a clock on it, a delivered payload, perception — never as
+  durability.
 - **Equipment template card** — permanent collected capability for one primary
   family-and-grade, armor pattern, or special item. It gates authoring and issue,
   is never consumed, and is distinct from a reusable squad definition.
@@ -181,7 +188,13 @@ express themselves as a four-lever tradeoff — the tier-1 field kit is faster a
 harder to hit than the tier-4 walking tank that pays a fifth of its speed for
 plate — and that tradeoff shape is the thing to extend. A late-game suit earns
 its place through what it can do, so growth belongs in authored capability
-rather than in a wider pool; `integral-armor-systems.md` carries that direction.
+rather than in a wider capacity. That is what an **integral system** is for, and
+the rule is enforced where an author will meet it: the armour catalog refuses a
+system that declares added capacity, rating, or hit points by name, and refuses
+a cooldown that never expires, a resistance of 1, or an all-round arc. A
+capability that cannot be turned aside, waited out, or flanked is a durability
+increase wearing a costume. `integral-armor-systems.md` carries the remaining
+direction.
 
 That compound is why no individual lever needs to be dramatic:
 
@@ -637,6 +650,9 @@ The following are direction, not current behavior:
   laser labels do not create parallel stat clones.
 - Assault-armor role is not quality: a rare high-end recon suit may remain
   light, while a crude industrial battlesuit may remain heavy.
+- An integral system is behavior with a bound on it, authored per pattern and
+  carried by few. It never adds durability, never spends the carried special
+  item, and never becomes an authority the player cannot read before issue.
 - A heavy battlesuit remains a one-person infantry billet using infantry
   weapons, cover, pathing, and casualty authority. Mech chassis, mounts,
   lances, and support delivery remain Mechs authority.

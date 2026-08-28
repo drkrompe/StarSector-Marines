@@ -54,6 +54,22 @@ worktree.
    git branch -d session/<unique-name>
    ```
 
+### Standing authorization to integrate
+
+For any task in which the user has authorized repository changes, the repository
+owner gives standing authorization to complete the entire local Git workflow:
+stage the session's owned paths, commit the verified change, merge the latest
+local `main` into the session branch, fast-forward local `main`, and clean up the
+merged session worktree and branch. **Do not pause to ask for a separate
+"merge it?" confirmation. Always merge a green, self-contained change into
+local `main` when the workflow above permits it.**
+
+This standing authorization does not turn a read-only diagnosis, explanation,
+review, or status request into permission to edit files. It also does not
+authorize pushing remotes, deploying the mod, publishing artifacts, or
+discarding unrelated work. Those actions still require scope from the user's
+request or another explicit project instruction.
+
 Integrate at every coherent commit chain, not once at the end of a session.
 A session that has reached a green, self-contained state should merge to `main`
 before starting the next chunk, then keep working in the same worktree. Banking
