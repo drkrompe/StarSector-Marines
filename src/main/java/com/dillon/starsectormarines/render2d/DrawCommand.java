@@ -80,6 +80,7 @@ public final class DrawCommand {
     public float height() { return h; }
     public float angleDegrees() { return angleDeg; }
     public boolean flippedVertically() { return flipV; }
+    public PolyMesh polygon() { return poly; }
     public float red() { return r; }
     public float green() { return g; }
     public float blue() { return b; }
