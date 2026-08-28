@@ -11,6 +11,8 @@ import org.json.JSONObject;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 
@@ -82,11 +84,8 @@ class FrontageSceneTest {
         assertTrue(standingTo.stream().anyMatch(s -> s.membersOnPost() > 0),
                 "members must actually reach their posts, not just be assigned them");
 
-        List<Sample> breached = samples.stream().filter(Sample::enemyInside).toList();
-        assertFalse(breached.isEmpty(), "the assault must enter a held zone during the scene");
-        assertTrue(breached.stream().noneMatch(Sample::frontageRelevant),
-                "once marines are inside, the frontage goal must yield to room behaviors; "
-                        + "currentGoal may trail until the periodic replan");
+        assertTrue(samples.stream().anyMatch(Sample::enemyInside),
+                "this scene is only evidence of the hand-off if the compound is entered");
     }
 
     @Test
@@ -135,27 +134,51 @@ class FrontageSceneTest {
     }
 
     @Test
+    void thePerimeterGarrisonFallsBackInsteadOfStandingDown() {
+        Scene scene = FrontageScene.build(SEED, GARRISON_SQUADS, GARRISON_SIZE,
+                ASSAULT_SQUADS, ASSAULT_SIZE, Approach.SOUTH);
+        List<Sample> samples = FrontageScene.play(scene, TICKS, SAMPLE_PERIOD);
+
+        List<Sample> breached = samples.stream().filter(Sample::enemyInside).toList();
+        assertFalse(breached.isEmpty(), "the assault must enter the compound during the scene");
+
+        assertTrue(breached.stream().noneMatch(s -> "COMPOUND".equals(s.perimeterLayer())),
+                "nobody should still be manning the outer wall once the compound is entered");
+        long fellBack = breached.stream()
+                .filter(s -> "STRUCTURE".equals(s.perimeterLayer())).count();
+        System.out.printf("perimeter garrison: %d of %d breached samples held an inner layer%n",
+                fellBack, breached.size());
+        assertTrue(fellBack > 0,
+                "losing the wall should move the garrison to the next envelope in, "
+                        + "not end its defense");
+    }
+
+    @Test
     void theGarrisonsHoldDifferentLayers() {
         Scene scene = FrontageScene.build(SEED, GARRISON_SQUADS, GARRISON_SIZE,
                 ASSAULT_SQUADS, ASSAULT_SIZE, Approach.SOUTH);
         List<Sample> samples = FrontageScene.play(scene, TICKS, SAMPLE_PERIOD);
 
-        // Exactly one squad should be holding the compound's own perimeter; the
-        // rest hold the shells of the buildings they garrison. If every squad
-        // took compound scope they would all derive the same wall and compete
-        // for the same apertures.
-        Map<Integer, String> scopeBySquad = new LinkedHashMap<>();
+        // A bounded few squads hold the compound's perimeter and the rest hold
+        // the shells of the buildings they garrison. If every squad took the
+        // compound they would all derive the same wall, and an assault through
+        // it would find the buildings empty.
+        Map<Integer, Set<String>> scopeBySquad = new LinkedHashMap<>();
         for (Sample sample : samples) {
             for (FrontageScene.SquadSample row : sample.garrisons()) {
-                if (row.aperturePosts() > 0) scopeBySquad.put(row.squadId(), row.scope());
+                if ("none".equals(row.layer())) continue;
+                scopeBySquad.computeIfAbsent(row.squadId(), id -> new LinkedHashSet<>())
+                        .add(row.layer());
             }
         }
-        long compoundScoped = scopeBySquad.values().stream().filter("COMPOUND"::equals).count();
-        System.out.printf("garrison scopes: %s%n", scopeBySquad);
-        assertEquals(1, compoundScoped,
-                "exactly one garrison holds the perimeter, got " + scopeBySquad);
-        assertTrue(scopeBySquad.size() > 1,
-                "more than one garrison should have manned something, got " + scopeBySquad);
+        long onPerimeter = scopeBySquad.values().stream()
+                .filter(layers -> layers.contains("COMPOUND")).count();
+        System.out.printf("garrison layers: %s%n", scopeBySquad);
+        assertTrue(onPerimeter >= 1 && onPerimeter <= FrontageDefense.MAX_PERIMETER_GARRISONS,
+                "between one and " + FrontageDefense.MAX_PERIMETER_GARRISONS
+                        + " garrisons man the wall, got " + scopeBySquad);
+        assertTrue(scopeBySquad.size() > onPerimeter,
+                "somebody must still be holding the buildings, got " + scopeBySquad);
     }
 
     @Test
@@ -213,7 +236,8 @@ class FrontageSceneTest {
         assertEquals(ASSAULT_SQUADS, root.getJSONObject("force").getInt("assaultSquads"));
         assertTrue(root.getJSONObject("frontage").getInt("apertures") > 0);
         assertEquals(samples.size(), root.getJSONArray("timeline").length());
-        assertFalse(root.getJSONObject("events").getBoolean("standToWhileBreached"));
+        assertFalse(root.getJSONObject("events").getBoolean("heldOuterWallWhileBreached"));
+        assertTrue(root.getJSONObject("events").getBoolean("fellBackWhileBreached"));
         System.out.println("scene report: " + report);
     }
 
