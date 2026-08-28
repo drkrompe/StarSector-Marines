@@ -58,4 +58,4 @@ Design: `extraction-command.md`
 |---|---|---|
 | `generic-extraction-corridor-command.md` | IN PROGRESS | Ship and accept stable Marine payload/escort/screen command for generic Extraction. |
 | `generic-extraction-interdiction-command.md` | IN PROGRESS | Ship and accept bounded source-alarm security and belief-driven defender interdiction. |
-| `silent-colony-expedition-branches.md` | DRAFT | Stabilize archive and survivor branches before choosing the opposing director shape. |
+| `silent-colony-expedition-branches.md` | IN PROGRESS | Add headless/live acceptance for the stable Marine archive and survivor branches before choosing the opposing director shape. |

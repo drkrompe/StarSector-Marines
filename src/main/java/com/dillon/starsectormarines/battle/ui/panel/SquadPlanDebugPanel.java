@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandPicture;
+import com.dillon.starsectormarines.battle.command.SilentColonyCommandSnapshot;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -317,6 +318,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (directive != null) lines += 3;
         if (activeDirective != null && !activeDirective.equals(directive)) lines += 1;
         if (commander != null && openingOperationPicture(commander) != null) lines += 2;
+        if (commander != null && silentColonySnapshot(commander) != null) lines += 3;
         if (commander != null && conquestSnapshot(commander) != null) lines += 3;
         if (commander != null && assaultSnapshot(commander) != null) lines += 2;
         if (commander != null && assaultDefenseSnapshot(commander) != null) lines += 2;
@@ -588,6 +590,23 @@ public final class SquadPlanDebugPanel implements HudPanel {
                         lineX, lineY, DETAIL_VALUE_FG, alphaMult,
                         vpBottomY, vpTopY);
             }
+            SilentColonyCommandSnapshot silent =
+                    silentColonySnapshot(commander);
+            if (silent != null) {
+                SilentColonyCommandSnapshot.SquadIntent intent =
+                        silent.intentFor(s.id);
+                lineY = drawLineIfVisible(font, silentColonyRoleSummary(intent),
+                        lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                        vpBottomY, vpTopY);
+                lineY = drawLineIfVisible(font,
+                        silentColonyObjectiveSummary(silent),
+                        lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                        vpBottomY, vpTopY);
+                lineY = drawLineIfVisible(font,
+                        silentColonyPressureSummary(silent),
+                        lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                        vpBottomY, vpTopY);
+            }
             ConquestFrontSnapshot conquest = conquestSnapshot(commander);
             if (conquest != null) {
                 ConquestFrontSnapshot.SquadDirective conquestDirective =
@@ -853,6 +872,37 @@ public final class SquadPlanDebugPanel implements HudPanel {
         return String.format("Scenario place %s   cell:%d,%d zone:%d",
                 picture.placeName(), picture.placeCellX(),
                 picture.placeCellY(), picture.placeZoneId());
+    }
+
+    private static SilentColonyCommandSnapshot silentColonySnapshot(
+            CommanderSnapshot<?> snapshot) {
+        return snapshot.detail() instanceof SilentColonyCommandSnapshot silent
+                ? silent : null;
+    }
+
+    static String silentColonyRoleSummary(
+            SilentColonyCommandSnapshot.SquadIntent intent) {
+        return intent == null
+                ? "Expedition branch —   Reason —"
+                : String.format("Expedition branch %s   Reason %s",
+                intent.role(), intent.assignmentReason());
+    }
+
+    static String silentColonyObjectiveSummary(
+            SilentColonyCommandSnapshot snapshot) {
+        return String.format("Archive %s %.0f%%   Survivors %s %d/%d",
+                snapshot.archive().phase(), snapshot.archive().progress() * 100f,
+                snapshot.survivors().phase(),
+                snapshot.survivors().activeElements(),
+                snapshot.survivors().initialElements());
+    }
+
+    static String silentColonyPressureSummary(
+            SilentColonyCommandSnapshot snapshot) {
+        return String.format("Known pressure %d   Branches A%d/S%d",
+                snapshot.knownPressureContacts(),
+                snapshot.archiveBranchSquads(),
+                snapshot.survivorBranchSquads());
     }
 
     private static AssaultSearchSnapshot assaultSnapshot(
