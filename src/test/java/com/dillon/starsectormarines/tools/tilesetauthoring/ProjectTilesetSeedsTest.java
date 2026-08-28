@@ -1,11 +1,16 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -91,5 +96,76 @@ class ProjectTilesetSeedsTest {
                         .filter(s -> s.rawSheet() != null && !s.isAnnotated())
                         .map(TilesetLibrary.Sheet::name).toList(),
                 "the queue should be seeded");
+    }
+
+    /**
+     * Nothing a checked-in document says goes missing when it is written back.
+     *
+     * <p>This is the round-trip law asked of the project's own content rather
+     * than of an example. A field the model cannot hold does not fail anything
+     * when it is read — it simply is not there when the document is next
+     * written, and every tool that touches a sheet rewrites the whole document.
+     * What goes missing that way is exactly the part nothing at runtime reads
+     * and therefore nothing at runtime misses: a description, a layer, the fact
+     * that a sheet is a strip at all.
+     *
+     * <p>Stated as "nothing is lost" rather than "nothing changes", because the
+     * writer legitimately adds: a hand-written seed says nothing about blocks
+     * and comes back with an empty list of them. An addition is not a loss, and
+     * requiring byte equality would make every hand-written seed illegal.
+     */
+    @Test
+    void everyDocumentSurvivesBeingReadAndWrittenBack() throws Exception {
+        for (Path seed : seeds()) {
+            JSONObject onDisk = new JSONObject(Files.readString(seed, StandardCharsets.UTF_8));
+            JSONObject rewritten = TilesetDocument.fromJson(onDisk).toJson();
+            List<String> lost = new ArrayList<>();
+            collectLosses(onDisk, rewritten, "", lost);
+            assertEquals(List.of(), lost, seed.getFileName()
+                    + " does not survive a read and a write: opening the sheet and saving it "
+                    + "would drop or change what is listed here");
+        }
+    }
+
+    /** Every value the document states, that a rewrite does not state the same way. */
+    private static void collectLosses(Object before, Object after, String at, List<String> lost)
+            throws JSONException {
+        if (before instanceof JSONObject object) {
+            if (!(after instanceof JSONObject written)) {
+                lost.add(at + " is no longer an object");
+                return;
+            }
+            for (Iterator<String> it = object.keys(); it.hasNext(); ) {
+                String key = it.next();
+                String path = at.isEmpty() ? key : at + "." + key;
+                if (!written.has(key)) {
+                    lost.add(path);
+                    continue;
+                }
+                collectLosses(object.get(key), written.get(key), path, lost);
+            }
+            return;
+        }
+        if (before instanceof JSONArray array) {
+            if (!(after instanceof JSONArray written) || written.length() != array.length()) {
+                lost.add(at + " changed length");
+                return;
+            }
+            for (int i = 0; i < array.length(); i++) {
+                collectLosses(array.get(i), written.get(i), at + "[" + i + "]", lost);
+            }
+            return;
+        }
+        // Numerically, because JSON does not distinguish 0 from 0.0 and the
+        // reader gives a measured origin a double whichever way it was written.
+        if (before instanceof Number left && after instanceof Number right) {
+            if (left.doubleValue() != right.doubleValue()) {
+                lost.add(at + ": " + before + " -> " + after);
+            }
+            return;
+        }
+        if (!String.valueOf(before).equals(String.valueOf(after))) {
+            lost.add(at + ": " + before + " -> " + after);
+        }
     }
 }
