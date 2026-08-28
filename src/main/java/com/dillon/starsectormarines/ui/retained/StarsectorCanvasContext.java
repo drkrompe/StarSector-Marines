@@ -31,6 +31,19 @@ final class StarsectorCanvasContext extends CanvasContext {
     }
 
     @Override
+    protected void drawFillQuad(float x0, float y0, float x1, float y1,
+                                float x2, float y2, float x3, float y3,
+                                Color color) {
+        CanvasMetrics metrics = metrics();
+        StarsectorUiPaintTarget.fillQuadGl(
+                metrics.toDocumentX(x0), metrics.toDocumentY(y0),
+                metrics.toDocumentX(x1), metrics.toDocumentY(y1),
+                metrics.toDocumentX(x2), metrics.toDocumentY(y2),
+                metrics.toDocumentX(x3), metrics.toDocumentY(y3),
+                viewport, color, alphaMult());
+    }
+
+    @Override
     protected void drawLine(float x1, float y1, float x2, float y2,
                             Color color, float strokeWidth) {
         CanvasMetrics metrics = metrics();

@@ -4,8 +4,8 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-27 — moved under Mission Command as the shared argument-driven
-evidence story; launch-fidelity Conquest evidence remains.
+Updated: 2026-08-28 — added cadence-based PNG and GIF visual replay to every
+argument-selected mission evidence adapter; launch-fidelity Conquest evidence remains.
 
 Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -40,6 +40,12 @@ churned, or collapsed before tuning force budgets or doctrine.
 - Make opt-in canonical battle-long command/referee JSONL available through the
   in-battle dump tool so a visual anomaly and an offline trace can be compared
   at the same command tick.
+- Sample the first deterministic replay at an argument-selected tick cadence,
+  retain numbered neutral-observer PNG frames, and assemble a looping GIF for
+  quick spatial review without launching Starsector or adding another Gradle
+  task. Add neutral faction markers so forces remain legible at whole-map scale.
+  Always include initial and final state, and keep rendering read-only so the
+  uncaptured replay remains the determinism oracle.
 
 ## Acceptance
 
@@ -68,6 +74,9 @@ churned, or collapsed before tuning force budgets or doctrine.
 - [x] A battle-long canonical JSONL stream separates published perspective
   events from labelled neutral compound and terminal events and can be dumped
   from the live debug panel.
+- [x] Every mission selected through `commanderEvidence` can emit cadence-based
+  PNG frames, a manifest, and a looping review GIF from the production scene
+  renderer; ordinary evidence runs remain render-free.
 
 ## Canonical Conquest matrix
 

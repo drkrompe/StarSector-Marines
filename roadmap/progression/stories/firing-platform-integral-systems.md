@@ -1,10 +1,10 @@
 # Firing-platform integral systems
 
-> Powered bracing is in the XIV suit's description. What it currently braces
-> against is a fifth of the wearer's movement speed, permanently, for nothing.
+> Assault suits cross the room. Nothing in the catalog is built to hold one.
 
 Status: PLANNED — needs a timed stance with a real movement cost.
 Written: 2026-08-28
+Updated: 2026-08-28 — reallocated from the XIV and Lion's Mantle to the line role, after the assault heavies took the breach family.
 
 Read `progression-nouns.md`, `integral-system-slate.md`, and
 `integral-armor-systems.md` before implementing. Depends on
@@ -12,24 +12,43 @@ Read `progression-nouns.md`, `integral-system-slate.md`, and
 
 ## Problem
 
-Two state traditions are authored around holding ground and shooting, and
-neither can express it. The Hegemony XIV battlesuit is a Domain-spec breach and
-shock pattern with powered bracing; the Sindrian Lion's Mantle is prestige armor
-built around oversized cooling and lavish plate support. Both currently pay for
-those descriptions in movement speed and receive, in exchange, armour numbers.
+Every assault pattern now carries a breaching assist, and the whole family is
+about *getting somewhere*: a window of speed behind a screen, spent crossing
+ground that is expensive to cross. That is one half of how infantry armour
+earns its keep and the catalog has no expression of the other half.
 
-That is the shape `progression-nouns.md` warns about: late equipment getting
-thicker rather than more interesting. It is also a missed contrast. The shipped
-breacher assist is a capability for *crossing* ground. A capability for *holding*
-it is the natural opposite, and the two together would make heavy patterns feel
-like different answers to the same problem instead of one answer at different
-prices.
+Two line traditions are authored around standing still and shooting, and neither
+can express it. The Hegemony's Legionary is standardized, pressure-sealed, and
+built for campaign repair — a suit for being somewhere a long time. The Diktat's
+Furnace line pairs a deep pool with ordinary resistance, real weight, and a
+conspicuous profile, which describes a suit that expects to be shot at while it
+works. Both currently differ from their peers only in the four scalars.
+
+The split that falls out of this is worth stating because it reads straight off
+the role name: **assault crosses, line holds.** The earlier plan put bracing on
+the XIV, which was defensible when the XIV had nothing else, and is now
+redundant — it would give one pattern both halves and leave the line role with
+neither.
 
 ## Goal
 
 A suit whose identity is standing and shooting can commit to doing so: a timed
 stance that materially improves the wearer's fire and materially costs their
 mobility while it runs.
+
+## Pick one pattern, not both
+
+The slate's budget has room for about two more carriers across the whole
+catalog, and `perception-integral-systems.md` wants one of them. This story
+therefore authors a brace on **one** line pattern and leaves the other alone.
+
+The Legionary is the better fit for bracing as hardware — it is the pattern with
+standardized fittings and a repair culture, and a brace is a mechanism that gets
+serviced. The Furnace line is the better fit for the *fantasy* — a Sindrian state
+suit planting itself in a doorway and refusing to move is a stronger image, and
+its conspicuousness gives the stance an authored drawback the Legionary lacks.
+Deciding between them belongs in this story, on the strength of what the shipped
+infantry combat stats can actually express, not in the slate.
 
 ## The cost is the design
 
@@ -44,8 +63,8 @@ trade the player and the AI can both get wrong:
   self-releasing commitments over sticky binary gates, and a stance is exactly
   the kind of thing that becomes a sticky gate if nobody watches.
 - **Readable by the enemy.** A braced marine is a stationary target and should
-  look like one. This is the honest counterweight, and for the Lion's Mantle the
-  lore asks for it explicitly: spectacle is supposed to be a liability.
+  look like one. This is the honest counterweight, and the Furnace line's lore
+  asks for it: a conspicuous target profile is already part of what that suit is.
 
 ## Standing rules
 
@@ -57,10 +76,10 @@ trade the player and the AI can both get wrong:
   the wearer hits is behavior. Reducing what hits the wearer is close enough to
   durability that it needs a specific argument, and probably belongs to
   mitigation instead.
-- **The two patterns should not converge.** Hegemony bracing and Sindrian cooling
-  are different ideas — steadier fire versus fire the suit could not otherwise
-  sustain — and if they end up as the same effect at different numbers, only one
-  of them should exist.
+- **It must not read as a second breaching assist.** The breach family already
+  owns timed movement. A stance that mostly makes you faster afterwards, or that
+  is really a repositioning tool, is a seventh member of the wrong family.
+  Committing to a spot is the entire distinction.
 
 ## Scope
 
@@ -68,7 +87,7 @@ trade the player and the AI can both get wrong:
   authored rather than implied.
 - Movement composed through the same untouched-base recomputation the breacher
   assist uses, so a stance and a boost cannot compound or leave a remainder.
-- Whichever of accuracy or weapon sustain the two patterns actually need, decided
+- Whichever of accuracy or weapon sustain the chosen pattern actually needs, decided
   in this story from what the shipped infantry combat stats can express.
 - An authored use policy for "hold this position and shoot", which is the second
   policy `integral-system-use-policy.md` needs to prove its dispatch.
@@ -78,7 +97,8 @@ trade the player and the AI can both get wrong:
 ## Out of scope
 
 - Suppression, morale, and area-denial mechanics.
-- Any change to the shipped armour scalars of either pattern.
+- Any change to the shipped armour scalars of either pattern, and any change to
+  the breach family the assault heavies now carry.
 - Mech bracing, which is chassis behavior and belongs to `mechs-nouns.md`.
 - Cover interaction beyond what a stationary marine already gets.
 
@@ -97,6 +117,6 @@ trade the player and the AI can both get wrong:
 - Whether bracing should be interruptible — a braced marine taking heavy fire is
   a good candidate for breaking stance early, and is also the beginning of a
   reaction system that nothing else here has.
-- Whether the Lion's Mantle's conspicuousness should be mechanical or purely
-  visual. Mechanical is more honest to the lore and is a threat-weighting change
-  with reach well beyond this story.
+- Whether a braced marine should be mechanically easier to hit, or only look it.
+  Mechanical is more honest to the Furnace line's lore and is a threat-weighting
+  change with reach well beyond this story.

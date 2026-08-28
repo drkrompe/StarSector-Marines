@@ -4,7 +4,7 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — shipped Civilian Rescue's Marine corridor commander and separately disclosed swarm-pressure director.
+Updated: 2026-08-28 — added cadence-based neutral visual replay to the shared headless evidence contract.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
 meaning and faction-honest knowledge into stable squad assignments. It is the
@@ -128,6 +128,16 @@ traces. `commanderEvidence -Pmission=<id>` selects the mission adapter;
 adapter rather than another Gradle task. Metrics describe what the trace proves:
 command-unassigned does not automatically mean physically idle, and a single
 seed is not a balance target.
+
+An opt-in **visual replay** samples the first deterministic replay at a requested
+tick cadence, renders the production battle scene through the GL-free Java2D
+drain, and retains both numbered PNG frames and one looping review GIF. It always
+includes tick zero and the terminal or bounded final tick. The image is an
+explicit neutral-observer artifact: it may show the whole battlefield for
+offline review and adds high-contrast faction markers over live entities, but it
+is never commander input or player-facing intelligence. GL-owned custom and
+ribbon decorations may be omitted by the Java2D drain. Rendering is read-only
+and the second replay must still match the captured first replay byte-for-byte.
 
 ## Mission catalog
 
