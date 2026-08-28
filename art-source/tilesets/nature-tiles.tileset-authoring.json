@@ -1,10 +1,313 @@
 {
-  "sheet": "art-source/tilesets/nature-tiles.raw.png",
-  "sheetName": "nature-tiles",
-  "idPrefix": "doodad.nature",
-  "cellPx": 80,
   "alphaMin": 40,
-  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the layout below. 2172x724 as a 20x1 strip, so its cells are 109x724 - far from square, which the grid split handles. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Note it loads as a sliced sheet addressed by frame index rather than as col/row doodads, so re-exporting it through this tool would change its shape in the registry, not just its coordinates.",
+  "blocks": [],
+  "cellPx": 80,
+  "entries": [
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c0r0",
+      "included": true,
+      "rect": [
+        0,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c1r0",
+      "included": true,
+      "rect": [
+        109,
+        0,
+        108,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c2r0",
+      "included": true,
+      "rect": [
+        217,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c3r0",
+      "included": true,
+      "rect": [
+        326,
+        0,
+        108,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c4r0",
+      "included": true,
+      "rect": [
+        434,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c5r0",
+      "included": true,
+      "rect": [
+        543,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c6r0",
+      "included": true,
+      "rect": [
+        652,
+        0,
+        108,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c7r0",
+      "included": true,
+      "rect": [
+        760,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c8r0",
+      "included": true,
+      "rect": [
+        869,
+        0,
+        108,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c9r0",
+      "included": true,
+      "rect": [
+        977,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c10r0",
+      "included": true,
+      "rect": [
+        1086,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c11r0",
+      "included": true,
+      "rect": [
+        1195,
+        0,
+        108,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c12r0",
+      "included": true,
+      "rect": [
+        1303,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c13r0",
+      "included": true,
+      "rect": [
+        1412,
+        0,
+        108,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c14r0",
+      "included": true,
+      "rect": [
+        1520,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c15r0",
+      "included": true,
+      "rect": [
+        1629,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c16r0",
+      "included": true,
+      "rect": [
+        1738,
+        0,
+        108,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c17r0",
+      "included": true,
+      "rect": [
+        1846,
+        0,
+        109,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c18r0",
+      "included": true,
+      "rect": [
+        1955,
+        0,
+        108,
+        724
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.nature.c19r0",
+      "included": true,
+      "rect": [
+        2063,
+        0,
+        109,
+        724
+      ]
+    }
+  ],
   "gridCols": 20,
-  "gridRows": 1
+  "gridRows": 1,
+  "idPrefix": "doodad.nature",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 20x1 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Cut once, then annotate: slicing finds the plate as one fused piece again, so re-slicing has nothing to add. 2172x724 as a 20x1 strip, so its cells are 109x724 - far from square, which the grid split handles. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Note it loads as a sliced sheet addressed by frame index rather than as col/row doodads, so re-exporting it through this tool would change its shape in the registry, not just its coordinates.",
+  "sheet": "art-source/tilesets/nature-tiles.raw.png",
+  "sheetName": "nature-tiles"
 }

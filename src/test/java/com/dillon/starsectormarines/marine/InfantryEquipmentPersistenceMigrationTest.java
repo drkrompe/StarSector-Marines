@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,21 +68,14 @@ class InfantryEquipmentPersistenceMigrationTest {
     }
 
     @Test
-    void legacyArmoryStockKeysMoveToStableCatalogIds() throws Exception {
+    void legacyRecipeKeysMoveToStableCatalogIds() throws Exception {
         MarineArmory armory = new MarineArmory();
-        Map<String, Integer> printed = new HashMap<>();
-        printed.put("primary:DMR:MASTERWORK", 2);
-        printed.put("secondary:ROCKET_LAUNCHER", 3);
-        Set<String> recipes = new HashSet<>(printed.keySet());
-        set(armory, "printedGear", printed);
+        Set<String> recipes = new HashSet<>(List.of(
+                "primary:DMR:MASTERWORK", "secondary:ROCKET_LAUNCHER"));
         set(armory, "unlockedRecipes", recipes);
 
         resolve(armory);
 
-        assertEquals(2, armory.ownedPrimary(WeaponRegistry.DMR_ID,
-                EquipmentGrade.MASTERWORK));
-        assertEquals(3, armory.ownedSecondary(
-                SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID));
         assertTrue(armory.unlockedRecipes().contains(MarineArmory.primaryKey(
                 WeaponRegistry.DMR_ID, EquipmentGrade.MASTERWORK)));
         assertTrue(armory.unlockedRecipes().contains(MarineArmory.secondaryKey(

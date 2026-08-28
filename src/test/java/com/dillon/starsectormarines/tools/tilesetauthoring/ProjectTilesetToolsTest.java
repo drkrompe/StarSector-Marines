@@ -121,7 +121,8 @@ class ProjectTilesetToolsTest {
             throws Exception {
         String name = aSheetDeclaringBlocks();
         seedFromCheckout(root, name);
-        call(root, "tileset_slice", forSheet(name).put("apply", true));
+        // Deliberately not re-sliced: a sheet that declares blocks is a cut plate,
+        // and its document already holds the cells the blocks are assigned from.
 
         JSONObject exported = structured(call(root, "tileset_export", forSheet(name)));
 
@@ -189,6 +190,64 @@ class ProjectTilesetToolsTest {
             assertTrue(card.contains("`" + entry.id + "`"),
                     "the card is what makes an id usable by a reader who cannot open the "
                             + "atlas, so every exported id has to appear on it: " + entry.id);
+        }
+    }
+
+    // ------------------------------------------------------------- re-slicing
+
+    /**
+     * The failure this guard exists for, against the sheet it happened to.
+     *
+     * <p>A cut plate has no alpha gutters, so re-slicing finds it whole again and
+     * every cut cell reconciles to nothing. Written through, that discards the
+     * cut and the block assignments made on it — judgements checked against the
+     * art by eye, which nothing can re-derive.
+     */
+    @Test
+    void reSlicingACutPlateIsRefusedRatherThanDiscardingItsCells(@TempDir Path root)
+            throws Exception {
+        String name = aSheetDeclaringBlocks();
+        seedFromCheckout(root, name);
+        Path path = TilesetDocument.pathFor(root, name);
+        String before = Files.readString(path);
+        long assignedSlots = TilesetDocument.read(path).entries.stream()
+                .filter(TilesetExport.Entry::isBlockMember).count();
+        assertTrue(assignedSlots > 0, name + " should carry block assignments to protect");
+
+        JSONObject refused = attempt(root, "tileset_slice", forSheet(name).put("apply", true));
+
+        assertTrue(refused.optBoolean("isError", false), "applying should have been refused");
+        assertTrue(textOf(refused).contains("force=true"),
+                "a refusal has to name the way past it: " + textOf(refused));
+        assertEquals(before, Files.readString(path), "a refused apply writes nothing");
+
+        JSONObject forced = structured(call(root, "tileset_slice",
+                forSheet(name).put("apply", true).put("force", true)));
+        assertTrue(forced.getBoolean("applied"), "force is the stated way to apply anyway");
+        assertEquals(0, TilesetDocument.read(path).entries.stream()
+                        .filter(TilesetExport.Entry::isBlockMember).count(),
+                "forcing really does discard the cut, which is why it has to be asked for");
+    }
+
+    /**
+     * The workflow {@code apply} exists for, unimpeded.
+     *
+     * <p>On an alpha-keyed sheet the pieces are mechanically derived, so tuning
+     * the threshold is meant to drop and re-find them freely. A guard that made
+     * a sweep ask permission would be worse than the loss it prevents.
+     */
+    @Test
+    void tuningTheThresholdOnAKeyedSheetIsNeverRefused(@TempDir Path root) throws Exception {
+        String name = anAlphaKeyedSheetOfOnlyProps();
+        seedFromCheckout(root, name);
+        Path path = TilesetDocument.pathFor(root, name);
+        int documentAlpha = TilesetDocument.read(path).alphaMin;
+
+        for (int alphaMin : List.of(documentAlpha, documentAlpha * 4, 200, documentAlpha)) {
+            JSONObject swept = structured(call(root, "tileset_slice",
+                    forSheet(name).put("alphaMin", alphaMin).put("apply", true)));
+            assertTrue(swept.getBoolean("applied"),
+                    "a threshold sweep must not need permission, at alpha " + alphaMin);
         }
     }
 
@@ -366,9 +425,25 @@ class ProjectTilesetToolsTest {
                 .put("params", new JSONObject().put("name", tool).put("arguments", arguments)));
         assertFalse(response.has("error"), "protocol error from " + tool + ": " + response);
         JSONObject result = response.getJSONObject("result");
-        assertFalse(result.optBoolean("isError", false), tool + " failed: "
-                + result.getJSONArray("content").getJSONObject(0).getString("text"));
+        assertFalse(result.optBoolean("isError", false), tool + " failed: " + textOf(result));
         return result;
+    }
+
+    /** One {@code tools/call} whose result may be a refusal rather than an answer. */
+    private static JSONObject attempt(Path root, String tool, JSONObject arguments)
+            throws Exception {
+        McpServer server = new McpServer(
+                new McpToolCatalog(new TilesetMcpToolProvider().tools()),
+                new McpToolContext(root, root.resolve("core")), "test", "0.0.1");
+        JSONObject response = server.handle(new JSONObject()
+                .put("jsonrpc", "2.0").put("id", 1).put("method", "tools/call")
+                .put("params", new JSONObject().put("name", tool).put("arguments", arguments)));
+        assertFalse(response.has("error"), "protocol error from " + tool + ": " + response);
+        return response.getJSONObject("result");
+    }
+
+    private static String textOf(JSONObject result) throws JSONException {
+        return result.getJSONArray("content").getJSONObject(0).getString("text");
     }
 
     private static JSONObject structured(JSONObject result) throws JSONException {
