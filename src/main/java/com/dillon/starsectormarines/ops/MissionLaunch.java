@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.fixture.CivilianRescueBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture;
+import com.dillon.starsectormarines.battle.fixture.ExtractionBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.SabotageBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -209,8 +210,16 @@ public final class MissionLaunch {
                 sim = raidFixture.build();
                 fixture = raidFixture;
                 break;
-            case ASSAULT:
             case EXTRACTION:
+                ExtractionBattleFixture extractionFixture =
+                        ExtractionBattleFixture.fromFactoryInputs(seed,
+                                det.shuttleManifest, enemyHasHeavyArmor,
+                                m.tier, m.risk, profile, det.marineWings,
+                                m.enemyFighterSupport);
+                sim = extractionFixture.build();
+                fixture = extractionFixture;
+                break;
+            case ASSAULT:
             default:
                 sim = BattleSetup.createPlaceholder(seed, det.shuttleManifest,
                         enemyHasHeavyArmor, m.tier, m.risk, m.type, profile,

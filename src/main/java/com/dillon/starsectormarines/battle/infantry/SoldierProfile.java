@@ -1,6 +1,14 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-/** Immutable individual combat profile: innate aptitude plus earned XP. */
+/**
+ * Immutable individual combat profile: innate aptitude plus the experience band
+ * this marine deploys at.
+ *
+ * <p>The band is <em>issued</em> rather than earned — {@code SquadExperienceStandard}
+ * resolves it from the kit the marine carries ({@code progression-nouns.md}). The
+ * field remains an XP integer because {@link ExperienceTier} bands are defined by
+ * XP thresholds, not because a rank-and-file marine accumulates one.
+ */
 public record SoldierProfile(SoldierAptitude aptitude, int experienceXp) {
 
     /** Neutral compatibility profile for old spawn sites and non-soldier users. */

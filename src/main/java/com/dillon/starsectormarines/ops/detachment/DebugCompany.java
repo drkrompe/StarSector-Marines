@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -67,7 +69,7 @@ public final class DebugCompany {
         int count = normalizeSquads(squads);
         Random rng = loadoutRandom != null ? loadoutRandom : new Random();
         List<SquadWeaponDoctrine> weapons = randomizedWeaponDoctrines(count, rng);
-        List<SquadArmorDoctrine> armor = randomizedArmorDoctrines(count, rng);
+        List<SquadArmorDoctrine> armor = randomizedArmorDoctrines(count, rng, resolved.plan);
         MarineRoster roster = new MarineRoster();
         stockArmory(roster.armory(), resolved, weapons, armor);
         for (int s = 0; s < count; s++) {
@@ -166,9 +168,34 @@ public final class DebugCompany {
         return shuffledBatches(SquadEquipmentDoctrines.weaponDoctrines(), count, rng);
     }
 
+    /**
+     * Armour decides the experience band, so the draw is bounded by what the
+     * stage has collected ({@code progression-nouns.md}). Flavour stays
+     * randomized — which faction's kit at that ceiling — while the stage keeps
+     * meaning what it says about company quality.
+     */
     private static List<SquadArmorDoctrine> randomizedArmorDoctrines(
-            int count, Random rng) {
-        return shuffledBatches(SquadEquipmentDoctrines.armorDoctrines(), count, rng);
+            int count, Random rng, DebugBilletPlan plan) {
+        List<SquadArmorDoctrine> admissible = new ArrayList<>();
+        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
+            if (bestArmorTier(doctrine) == plan.maxArmorTier()) admissible.add(doctrine);
+        }
+        if (admissible.isEmpty()) {
+            throw new IllegalStateException("No authored armor doctrine tops out at tier "
+                    + plan.maxArmorTier() + "; the stage ladder has outrun the catalog");
+        }
+        return shuffledBatches(admissible, count, rng);
+    }
+
+    /** The best-protected billet in a doctrine — what the squad reads as. */
+    static int bestArmorTier(SquadArmorDoctrine doctrine) {
+        int best = 0;
+        for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+            MarineArmorCatalogDef def = MarineArmorCatalogRegistry.installed() == null ? null
+                    : MarineArmorCatalogRegistry.installed().get(doctrine.issueId(billet));
+            if (def != null) best = Math.max(best, def.tier());
+        }
+        return best;
     }
 
     /** A shuffle bag gives small debug companies variety without forbidding repeats at scale. */

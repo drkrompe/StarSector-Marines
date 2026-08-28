@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.SquadExperienceStandard;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 
@@ -208,8 +209,11 @@ public final class BarracksBattleScene implements AutoCloseable {
             EntitySpec spec = new EntitySpec(soldier.name(), Faction.MARINE,
                     UnitType.MARINE, (int) Math.floor(berth.worldX()),
                     (int) Math.floor(berth.worldY()));
+            // The range should show a marine shooting the way they would on an
+            // operation, so the band comes from issued armour here too.
             MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
-                    soldier.primaryDef(), soldier.primaryGrade(), soldier.profile(),
+                    soldier.primaryDef(), soldier.primaryGrade(),
+                    SquadExperienceStandard.profileFor(soldier),
                     soldier.specialEquipmentDef(),
                     soldier.id(), soldier.armorDef().appearanceFamily(),
                     soldier.armorDef().armorPool(), soldier.armorDef().armorRating(),

@@ -3,8 +3,17 @@ package com.dillon.starsectormarines.ops.detachment;
 import com.dillon.starsectormarines.marine.MarineSquad;
 
 /**
- * How one squad's twelve billets are experienced — the quality axis of a
- * {@link DebugCompanyStage}, separated from both force size and equipment.
+ * What one squad has managed to collect — the quality axis of a
+ * {@link DebugCompanyStage}, separated from force size.
+ *
+ * <p><b>Quality is armour now.</b> Experience is issued with the armour pattern
+ * ({@code progression-nouns.md}), so a plan expresses a company's standing as
+ * the best suits it owns rather than as authored XP. {@link #maxArmorTier} is
+ * that statement: a company on its first contract has collected nothing above a
+ * scratch security kit, and one at the top of the ladder fields battlesuits.
+ * {@link DebugCompany} draws each squad's armour doctrine from the faction
+ * catalog <em>within</em> that ceiling, so flavour stays randomized while the
+ * stage keeps meaning what it says.
  *
  * <p>Split out when the stage ladder grew past three points: five stages each
  * carrying their own copy of a billet plan was five copies of the same three
@@ -20,9 +29,13 @@ import com.dillon.starsectormarines.marine.MarineSquad;
  */
 public enum DebugBilletPlan {
 
-    /** A green squad on its first operation. */
+    /**
+     * A new game: nothing worth having has been collected yet, beyond whatever
+     * low-tier protection happened to be on a market shelf.
+     */
     STARTER_ISSUE {
         @Override public int experienceXp(int billet) { return 0; }
+        @Override public int maxArmorTier() { return 2; }
     },
 
     /**
@@ -32,6 +45,7 @@ public enum DebugBilletPlan {
      * actually produces.
      */
     SEASONED {
+        @Override public int maxArmorTier() { return 3; }
         @Override public int experienceXp(int billet) {
             if (billet == 0) return 400;                 // Sergeant — squad leader
             if (billet % TEAM == 0) return 200;          // the other two team leads
@@ -42,6 +56,7 @@ public enum DebugBilletPlan {
 
     /** An elite sergeant over veterans and seasoned team leaders. */
     HARDENED {
+        @Override public int maxArmorTier() { return 4; }
         @Override public int experienceXp(int billet) {
             if (billet == 0) return 900;                 // Elite sergeant
             if (billet % TEAM == 0) return 500;
@@ -54,6 +69,16 @@ public enum DebugBilletPlan {
     private static final int REPLACEMENTS = MarineSquad.CAPACITY - 2;
     /** Local alias so the billet plans read in fire teams. */
     private static final int TEAM = MarineSquad.TEAM_SIZE;
-    /** Experience for one billet, keyed on position within the squad (0-based). */
+    /**
+     * Experience for one billet, keyed on position within the squad (0-based).
+     *
+     * @deprecated Inert for combat since bands became issued with the armour
+     *     pattern. Retained only because it still writes the persisted service
+     *     number; `xp-authority-cleanup.md` owns its disposal.
+     */
+    @Deprecated
     public abstract int experienceXp(int billet);
+
+    /** The best armour tier this company has collected; the ceiling on its band. */
+    public abstract int maxArmorTier();
 }

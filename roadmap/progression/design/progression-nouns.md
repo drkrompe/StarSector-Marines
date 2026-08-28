@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — experience became squad-definition-sourced rather than per-marine earned, and career evidence gained a squad grain.
+Updated: 2026-08-27 — experience became armour-sourced rather than per-marine earned, and career evidence gained a squad grain.
 
 ## Purpose
 
@@ -25,18 +25,18 @@ legibility.
 - **Marine** — a named, persistent rank-and-file campaign soldier. `MarineRoster`
   is the authority for that identity, status, assigned kit, and career.
 - **Profile** — a marine's battle-ready individual quality: immutable aptitude
-  plus the experience band issued with the squad's loadout definition,
-  represented at the battle seam by `SoldierProfile`.
+  plus the experience band issued with their armour, represented at the battle
+  seam by `SoldierProfile`.
 - **Aptitude** — an innate, permanent marksmanship disposition. It is not an
   upgrade track and is not rerolled by experience.
 - **Experience** — a marine's Green, Regular, Veteran, or Elite band. It is
-  sourced from the squad loadout definition the marine is issued, not
-  accumulated by that marine. It changes infantry combat performance and
-  new-threat registration; it is separate from captain XP and rank.
-- **Experience standard** — the distribution of experience bands a squad
-  loadout definition declares, stated separately for its rank-and-file billets
-  and its leader billet. It is the definition's declared quality, never a
-  record of what any marine did.
+  issued with the armour pattern the marine wears, not accumulated by that
+  marine. It changes infantry combat performance and new-threat registration;
+  it is separate from captain XP and rank.
+- **Experience standard** — the band an armour tier fields. The four authored
+  armour tiers map one-to-one onto the four bands, so a squad's standard is a
+  direct reading of the suits it was issued, never a record of what anyone
+  did.
 - **Career** — persisted lifetime service evidence: deployments, wins, fired
   and landed rounds, dealt and taken damage, kills, and wounds. A marine holds
   one; a squad holds one. Both are cumulative totals, not per-mission journals.
@@ -146,13 +146,26 @@ Aptitude is innate, persisted per marine, and fixed for that marine's life. It
 is the only quality axis an individual rank-and-file marine carries, and it is
 what keeps two squads issued the same definition from resolving identically.
 
-Experience is sourced from the squad loadout definition rather than accumulated
-by the individual. A definition declares an experience standard; issuing it
-resolves each billet to a band, and `SoldierProfile` carries that band into
-battle. A high-standard definition means the company put its best people behind
-its best kit. Rank-and-file marines are otherwise interchangeable, and the
-company's growth is what the Armory has collected and can issue rather than a
-per-marine ladder.
+Experience is issued with the armour pattern rather than accumulated by the
+individual. Armour tier is the source because it is the one quality axis
+authored across all four steps, carrying no grade axis of its own, and because
+it is what the player can see: the pattern drives the layered appearance family,
+so a squad's band is legible from the deck. A marine in a heavy battlesuit is,
+by construction, one of the people the company put its best kit on.
+
+The primary deliberately does not feed the band. A primary's access tier is
+authored as a strict function of equipment grade, so sourcing experience there
+would fuse two axes this domain keeps separate — grade supplies quality, profile
+supplies person. For the same reason there is no hidden "promoted because they
+lead" bonus: the built-in squad definitions already issue the leader's billet
+scarcer armour, so an NCO comes out steadier through the visible mechanism.
+Because armour tier now sets a band, any issue path that picks a pattern for
+looks alone is choosing combat quality and must say so.
+
+Rank-and-file marines are otherwise interchangeable, and the company's growth is
+what the Armory has collected and can issue rather than a per-marine ladder.
+Enlisted stripes follow the same source: a squad leader wears sergeant's stripes
+when the suit they were issued fields them at the veteran band or better.
 
 That makes collection and issue the player's progression axis: which definitions
 the Armory owns, and which squads carry them. Casualties still cost bodies,

@@ -54,19 +54,44 @@ public final class CivilianEvacuationPayload {
             int representativeCount, boolean requireAnyEvacuated) {
         return map == null ? null
                 : install(sim, map.pointsOfInterest, seed,
-                representativeCount, requireAnyEvacuated);
+                representativeCount, requireAnyEvacuated,
+                CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
+                "civilian cohort");
+    }
+
+    public static CivilianEvacuationPayload install(
+            BattleSimulation sim, MapResult map, long seed,
+            int representativeCount, boolean requireAnyEvacuated,
+            String payloadId, String payloadName) {
+        return map == null ? null
+                : install(sim, map.pointsOfInterest, seed,
+                representativeCount, requireAnyEvacuated,
+                payloadId, payloadName);
     }
 
     public static CivilianEvacuationPayload install(
             BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
             long seed) {
-        return install(sim, pointsOfInterest, seed, V1_TYPES.length, true);
+        return install(sim, pointsOfInterest, seed, V1_TYPES.length, true,
+                CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
+                "civilian cohort");
     }
 
     public static CivilianEvacuationPayload install(
             BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
             long seed, int representativeCount,
             boolean requireAnyEvacuated) {
+        return install(sim, pointsOfInterest, seed, representativeCount,
+                requireAnyEvacuated,
+                CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
+                "civilian cohort");
+    }
+
+    private static CivilianEvacuationPayload install(
+            BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
+            long seed, int representativeCount,
+            boolean requireAnyEvacuated, String payloadId,
+            String payloadName) {
         if (sim == null) return null;
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
@@ -96,7 +121,8 @@ public final class CivilianEvacuationPayload {
         }
 
         CivilianEvacuationObjective objective =
-                new CivilianEvacuationObjective(tracker,
+                new CivilianEvacuationObjective(tracker, payloadId,
+                        payloadName, placement.shelterX, placement.shelterY,
                         placement.liftX, placement.liftY,
                         CivilianEvacuationPlacement.LIFT_ZONE_RADIUS,
                         requireAnyEvacuated);

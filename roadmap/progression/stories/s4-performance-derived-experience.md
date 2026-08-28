@@ -3,12 +3,12 @@
 > A band the player collected and issued should be a felt difference, not a
 > rounding error beside the rifle.
 
-Status: READY — required before `s11-card-sourced-experience.md` pays off.
+Status: READY — required before the shipped issued-band model pays off.
 Written: 2026-08-22
 Updated: 2026-08-27 — performance-derived awards dropped; experience is now
-issued with the squad loadout definition rather than earned per marine, so this
-story narrows to the band span alone. The slug is retained so existing
-citations resolve.
+issued with the armour pattern rather than earned per marine, so this story
+narrows to the band span alone. The slug is retained so existing citations
+resolve.
 
 Read `progression-nouns.md` before changing this story.
 
@@ -19,11 +19,10 @@ end to end. Against the roughly 3x effective-DPS span that equipment grade
 covers after S1, the experience band is statistical noise.
 
 That was already thin when experience was earned. It is disqualifying now that
-experience is **issued**: `s11-card-sourced-experience.md` makes a definition's
-declared standard one of the two things the player reads to judge a formation,
-and `progression-nouns.md` requires that what the player reads determines how
-the squad fights. A standard the player can see but cannot feel breaks that law
-in practice even while satisfying it on paper.
+experience is **issued**: a squad's armour pattern is one of the two things the
+player reads to judge a formation, and `progression-nouns.md` requires that what
+the player reads determines how the squad fights. A band the player can see but
+cannot feel breaks that law in practice while satisfying it on paper.
 
 ## What this story no longer covers
 
@@ -67,7 +66,7 @@ two-round kill to three. Measure before choosing final values.
 
 - Aptitude, which stays innate and per marine.
 - Trait acquisition — `s10-trait-mechanics.md`.
-- The standard's authoring and resolution — `s11-card-sourced-experience.md`.
+- The band's source and resolution, which shipped; see `progression-nouns.md`.
 - A fifth band above Elite. It was proposed as a long-campaign chase for an
   earned ladder; with bands issued, another band is a catalog decision for the
   definitions rather than a progression capstone. Revisit only if the four
