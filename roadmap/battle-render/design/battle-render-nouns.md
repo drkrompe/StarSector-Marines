@@ -4,8 +4,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — the durability bar becomes one segmented gauge over both
-pools, and decoration may be withheld until it carries news.
+Updated: 2026-08-27 — the durability bar gives each pool its own celled row, and
+decoration may be withheld until it carries news.
 
 ## Vocabulary
 
@@ -21,8 +21,8 @@ pools, and decoration may be withheld until it carries news.
 - A **sheet quad** is a sub-rectangle batched from a shared sheet; a **sprite** is a whole texture rendered through the host API. They are presentation forms, not simulation identity.
 - A **render appearance** is a type-shared render-side description of what an entity kind can draw. Dynamic pose, health, visibility, and interpolation remain current simulation inputs.
 - An **allegiance** is the presentation reading of a unit's simulation faction from the player's chair: player, ally, neutral, or enemy. Faction is the side a unit fights for; allegiance is how the person watching should read it. The number of ownership buckets a player can distinguish at a glance stays four however many factions the simulation fields.
-- A **durability bar** is the ownership-coded gauge above an entity reporting its remaining combat durability. Armor and structure share one band measured against the entity's total authored durability, armor occupying the outer end of the run because it is spent first. It is a per-frame read of current pools, never a second durability authority.
-- A **segment** is one fixed quantity of durability marked off along a bar. The quantity is the same on every bar in the battle, so segment count and density read magnitude directly: a militiaman carries none, an emplacement a handful, a heavy mech a dense comb. Segments measure the entity, not the bar — a longer bar shows the same segments further apart.
+- A **durability bar** is the ownership-coded gauge above an entity reporting its remaining combat durability. It carries one **row** per pool — structure below, armor above it, since armor is spent first — and each row fills against its own maximum, so a pool at full reads as full whatever the other is doing. It is a per-frame read of current pools, never a second durability authority.
+- A **notch** is one fixed quantity of a pool marked off along its row. It is deliberately not called a cell: cells are the simulation's grid, and a notch measures durability, not space. The quantity is per pool and identical for every entity in the battle, so notch count and density read magnitude directly: a marine is one notch, an emplacement a handful, a heavy mech a full comb. Notches measure the entity, not the bar — a longer bar shows the same notches further apart. Armor and structure take different quantities because the authored pools differ in size; forcing one scale on both leaves the larger pool illegible.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
 - An **embedded scene host** is a bounded consumer of the ordinary battle camera,
   simulation view, and selected render layers. It owns its viewport and framing,
@@ -75,8 +75,8 @@ Ground is a dense, cell-backed surface. Current camera culling range-loops the v
     snapshot of an embedded battle scene must collect the same simulation,
     camera, selected render systems, command order, and authored assets as live.
 11. Ownership coding is redundant by construction. An allegiance is carried on hue *and* at least one non-color channel, so a busy field, a colorblind reader, and a pulled-back camera all still resolve whose unit it is. Decoration measured in screen pixels stays legible at any zoom; decoration measured in cells does not.
-12. Armor and structure are one gauge, not two. They share a band, a scale, and a drain direction, because a player reading a fight tracks how much life is left rather than which pool it currently sits in. The scale is total authored durability, which is what lets one segment mean the same quantity on every bar on the field.
-13. A quantised scale degrades by dropping a tier, never by smearing one. A divider tier too fine to resolve at the current bar length is omitted whole, so the bar falls back to coarser marks and then to none instead of turning into noise.
+12. Each pool reports on its own row against its own maximum. A reader asking "is the hull hurt?" must not have to subtract the armor pool to find out, and a pool's row stays comparable with the same pool on every other unit on the field.
+13. A quantised scale degrades by dropping a tier, never by smearing one, and it drops for the whole bar at once. A divider tier too fine to resolve at the current bar length is omitted entirely, so the bar falls back to coarser notches and then to none instead of turning into noise — and one row never ends up visibly finer than the row above it over a rounding error.
 14. Decoration may be withheld until it carries news. An emplacement shows no bar until recorded fact says it has been fired on, so a quiet turret line reads as terrain rather than as a row of gauges. Withholding keys on something the simulation already records; the renderer never maintains its own idea of what has happened.
 
 ## Boundaries and extension paths

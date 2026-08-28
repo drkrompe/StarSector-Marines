@@ -630,7 +630,7 @@ public final class UnitRenderService implements RenderSystem {
      * shared {@link DurabilityBarDecor}. The {@code drawsDurabilityBar} tag is the
      * combatant-and-not-drone check.
      *
-     * <p>Armor is an optional live-only pool, so the armored overload runs only for
+     * <p>Armor is an optional live-only pool, so the armored row is emitted only for
      * an entity that actually carries one. Ownership styling comes from
      * {@link Allegiance}, resolved per entity from its simulation faction.
      *
