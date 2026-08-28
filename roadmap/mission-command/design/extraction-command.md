@@ -62,13 +62,15 @@ and local-contact state. The selected-squad overlay, squad dump, and
 perspective trace all consume that picture. `commanderEvidence
 -Pmission=extraction` replays the production fixture twice under forced-serial
 scheduling. With paired command active, the current canonical fixture reaches
-an explained defender win at tick 5,079 before uncontested source control; it
-proves quiet security, ownership, redaction, and deterministic terminal law.
-The paired alarm-response fixture deliberately concentrates eight six-seat
+an explained defender win at tick 5,304 after the package advances 32 percent;
+it proves ownership, redaction, source-perimeter fallback, belief-driven
+interdiction, and deterministic terminal law. The paired alarm-response fixture
+deliberately concentrates twelve six-seat
 shuttles into one sortie. It is branch evidence rather than a balance target:
-Marines complete extraction at tick 8,712 while surviving defender patrols
-publish six source-perimeter response pictures and eight belief-driven
-interdiction pictures after the alarm. Both fixtures replay byte-identically.
+Marines complete extraction at tick 9,183 while defenders publish the alarm
+interdiction phase. Across the matrix, defenders publish both belief-driven
+interdiction and source-perimeter fallback when no contact is actionable. Both
+fixtures replay byte-identically.
 `-Pfixture` and `-PmaxTicks` continue to select labelled ad hoc evidence rather
 than adding a mission-specific Gradle task.
 
@@ -126,10 +128,10 @@ not replace any of those laws.
 The existing `commanderEvidence -Pmission=extraction` selector runs both generic
 Extraction and Rescue adapters; no scenario-specific Gradle task is required.
 The canonical Rescue fixture uses two six-seat Aeroshuttles, completes with all
-eight civilians boarded at tick 3,669, publishes 48 Marine command pictures and
-162 swarm-director revisions, and replays byte-identically. This is deterministic
-correctness evidence, not a pressure or balance target; live pressure tuning
-remains in the campaign Rescue acceptance story.
+six surviving civilians boarded at tick 3,502, publishes 46 Marine command
+pictures and 156 swarm-director revisions, and replays byte-identically. This is
+deterministic correctness evidence, not a pressure or balance target; live
+pressure tuning remains in the campaign Rescue acceptance story.
 
 ## Silent Colony
 
