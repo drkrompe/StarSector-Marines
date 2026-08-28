@@ -186,6 +186,15 @@ assignment that answers with what each slot it filled means. An authoring
 surface that lets a piece be put into a slot owes that reading back to whoever
 made the assignment, because afterwards there is nothing left to ask.
 
+The pass is reachable both from a window and headlessly, over one shared domain
+layer: the editor is a view over that code rather than the code itself, and a
+tool and the page must never become two implementations of the same act. They
+must also never be two writers — the tools read and write files, and the editor
+reopens them — which is why the tools are a separate entry point rather than a
+server inside the running workbench. The mechanical half is all a tool may do:
+what a sheet is for, what a piece is, and which pieces form a block are
+judgements a tool records and never invents. See `authoring-entry-points.md`.
+
 Raw sheets, masters, authoring documents and derivation scripts are pre-pack
 input and live outside `mod/`, which is synchronized wholesale into every
 install. They stay version-controlled: a sheet has to remain re-derivable and
