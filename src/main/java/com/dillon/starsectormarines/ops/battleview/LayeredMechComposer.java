@@ -22,6 +22,12 @@ final class LayeredMechComposer {
                     float width, float height, float angleDegrees, float alpha);
     }
 
+    /** Screen-space projection of the fixed-tick procedural gait state. */
+    record GaitPose(float leftFootX, float leftFootY, float leftFootFacing,
+                    float rightFootX, float rightFootY, float rightFootFacing,
+                    float waistX, float waistY,
+                    float leftFootLift, float rightFootLift) { }
+
     static void emit(DrawList out, LayeredMechAssets assets,
                      float actorX, float actorY, float hullWidth,
                      float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
@@ -31,7 +37,7 @@ final class LayeredMechComposer {
                      float alpha) {
         emit(drawListSink(out), assets, actorX, actorY, hullWidth, hipFacingDeg, torsoFacingDeg,
                 locomotionPhase, chaingunPhase, srmPhase, lrmPhase, flags, chassis,
-                arms, leftShoulder, rightShoulder, alpha, null);
+                arms, leftShoulder, rightShoulder, alpha, null, null);
     }
 
     static void emit(DrawList out, LayeredMechAssets assets,
@@ -44,7 +50,20 @@ final class LayeredMechComposer {
         emit(drawListSink(out), assets, actorX, actorY, hullWidth,
                 hipFacingDeg, torsoFacingDeg, locomotionPhase,
                 chaingunPhase, srmPhase, lrmPhase, flags, chassis, arms,
-                leftShoulder, rightShoulder, alpha, authoredPose);
+                leftShoulder, rightShoulder, alpha, authoredPose, null);
+    }
+
+    static void emit(DrawList out, LayeredMechAssets assets,
+                     float actorX, float actorY, float hullWidth,
+                     float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
+                     float chaingunPhase, float srmPhase, float lrmPhase,
+                     int flags, int chassis, int arms,
+                     int leftShoulder, int rightShoulder,
+                     float alpha, LayerPose authoredPose, GaitPose gaitPose) {
+        emit(drawListSink(out), assets, actorX, actorY, hullWidth,
+                hipFacingDeg, torsoFacingDeg, locomotionPhase,
+                chaingunPhase, srmPhase, lrmPhase, flags, chassis, arms,
+                leftShoulder, rightShoulder, alpha, authoredPose, gaitPose);
     }
 
     static void emit(Sink out, LayeredMechAssets assets,
@@ -56,7 +75,7 @@ final class LayeredMechComposer {
                      float alpha) {
         emit(out, assets, actorX, actorY, hullWidth, hipFacingDeg, torsoFacingDeg,
                 locomotionPhase, chaingunPhase, srmPhase, lrmPhase, flags, chassis,
-                arms, leftShoulder, rightShoulder, alpha, null);
+                arms, leftShoulder, rightShoulder, alpha, null, null);
     }
 
     static void emit(Sink out, LayeredMechAssets assets,
@@ -65,7 +84,7 @@ final class LayeredMechComposer {
                      float chaingunPhase, float srmPhase, float lrmPhase,
                      int flags, int chassis, int arms,
                      int leftShoulder, int rightShoulder,
-                     float alpha, LayerPose authoredPose) {
+                     float alpha, LayerPose authoredPose, GaitPose gaitPose) {
         boolean moving = (flags & LayeredMechAppearance.FLAG_MOVING) != 0;
         boolean turning = (flags & LayeredMechAppearance.FLAG_TURNING) != 0;
         boolean stepping = moving || turning;
@@ -73,11 +92,11 @@ final class LayeredMechComposer {
                 ? LayeredMechAppearance.mechanicalFootReveal(locomotionPhase, false) : 0f;
         float rightStep = stepping
                 ? LayeredMechAppearance.mechanicalFootReveal(locomotionPhase, true) : 0f;
-        float waistSway = moving
+        float waistSway = moving && gaitPose == null
                 ? LayeredMechAppearance.walkingWaistSway(locomotionPhase, chassis) : 0f;
         float[] waistOffset = rotate(waistSway * hullWidth, 0f, hipFacingDeg);
-        float upperX = actorX + waistOffset[0];
-        float upperY = actorY + waistOffset[1];
+        float upperX = gaitPose != null ? gaitPose.waistX() : actorX + waistOffset[0];
+        float upperY = gaitPose != null ? gaitPose.waistY() : actorY + waistOffset[1];
 
         // The light chassis expose articulated bones between their waist and
         // feet. Each bone rotates and stretches to the live foot anchor;
@@ -89,7 +108,12 @@ final class LayeredMechComposer {
         float rightFootY = footY - footStepReach * rightStep;
         LayerTransform leftFoot = layer(authoredPose, "left-foot");
         LayerTransform rightFoot = layer(authoredPose, "right-foot");
-        if (leftFoot != null) {
+        if (gaitPose != null) {
+            emitFoot(out, assets.foot, gaitPose.leftFootX(), gaitPose.leftFootY(),
+                    hullWidth, gaitPose.leftFootFacing(), gaitPose.leftFootLift(), alpha);
+            emitFoot(out, assets.foot, gaitPose.rightFootX(), gaitPose.rightFootY(),
+                    hullWidth, gaitPose.rightFootFacing(), gaitPose.rightFootLift(), alpha);
+        } else if (leftFoot != null) {
             emitAuthored(out, assets.foot, leftFoot, actorX, actorY, hullWidth,
                     hipFacingDeg, alpha);
             leftFootY = leftFoot.offsetY();
@@ -97,7 +121,10 @@ final class LayeredMechComposer {
             emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
                     -footX, leftFootY, 0f, alpha);
         }
-        if (rightFoot != null) {
+        if (gaitPose != null) {
+            // Both solved feet were emitted together above to preserve their
+            // canonical below-body layer order.
+        } else if (rightFoot != null) {
             emitAuthored(out, assets.foot, rightFoot, actorX, actorY, hullWidth,
                     hipFacingDeg, alpha);
             rightFootY = rightFoot.offsetY();
@@ -108,7 +135,7 @@ final class LayeredMechComposer {
 
         LayerTransform leftThigh = layer(authoredPose, "left-thigh");
         LayerTransform rightThigh = layer(authoredPose, "right-thigh");
-        if (leftThigh != null && rightThigh != null) {
+        if (gaitPose == null && leftThigh != null && rightThigh != null) {
             emitAuthored(out, assets.thighBone, leftThigh, upperX, upperY, hullWidth,
                     hipFacingDeg, alpha);
             emitAuthored(out, assets.thighBone, rightThigh, upperX, upperY, hullWidth,
@@ -117,7 +144,8 @@ final class LayeredMechComposer {
 
         LayerTransform chassisTransform = layer(authoredPose, "chassis");
         float upperFacingDeg = torsoFacingDeg
-                + (chassisTransform != null ? chassisTransform.angleDegrees() : 0f);
+                + (gaitPose == null && chassisTransform != null
+                ? chassisTransform.angleDegrees() : 0f);
 
         float cgKick = 0.025f * LayeredMechAppearance.recoil(chaingunPhase);
         emitArms(out, assets, chassis, arms, upperX, upperY, hullWidth,
@@ -135,7 +163,10 @@ final class LayeredMechComposer {
         }
 
         LayeredSpriteCache chassisSprite = selectChassis(assets, chassis);
-        if (chassisTransform != null) {
+        if (gaitPose != null) {
+            emitCentered(out, chassisSprite, upperX, upperY, hullWidth, torsoFacingDeg,
+                    0f, 0f, 0f, alpha);
+        } else if (chassisTransform != null) {
             emitAuthored(out, chassisSprite, chassisTransform, upperX, upperY, hullWidth,
                     torsoFacingDeg, alpha);
         } else {
@@ -145,7 +176,14 @@ final class LayeredMechComposer {
 
         // Surface linkages originate at the waist and stop one foot-radius
         // short of the pad, preserving the pad's lower layer and clean outline.
-        if (leftThigh == null && rightThigh == null
+        if (gaitPose != null
+                && (chassis == LayeredMechAppearance.CHASSIS_HOUND
+                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO)) {
+            emitConnectionTo(out, assets.thighBone, upperX, upperY,
+                    gaitPose.leftFootX(), gaitPose.leftFootY(), hullWidth, alpha);
+            emitConnectionTo(out, assets.thighBone, upperX, upperY,
+                    gaitPose.rightFootX(), gaitPose.rightFootY(), hullWidth, alpha);
+        } else if (leftThigh == null && rightThigh == null
                 && (chassis == LayeredMechAppearance.CHASSIS_HOUND
                 || chassis == LayeredMechAppearance.CHASSIS_SIROCCO)) {
             emitConnection(out, assets.thighBone, upperX, upperY, hullWidth, hipFacingDeg,
@@ -337,6 +375,37 @@ final class LayeredMechComposer {
                 actorX + offset[0], actorY + offset[1],
                 sprite.pxWidth * scale, sprite.pxHeight * scale,
                 facingDeg + relativeAngle, alpha);
+    }
+
+    private static void emitFoot(Sink out, LayeredSpriteCache sprite,
+                                 float centerX, float centerY, float hullWidth,
+                                 float facingDeg, float lift, float alpha) {
+        float scale = hullWidth / SOURCE_REFERENCE_PX;
+        float liftScale = 1f + Math.max(0f, lift) * 0.045f;
+        out.sprite(sprite, centerX, centerY,
+                sprite.pxWidth * scale * liftScale,
+                sprite.pxHeight * scale * liftScale,
+                facingDeg, alpha);
+    }
+
+    /** Rotates and length-scales a north-authored sprite between two screen points. */
+    private static void emitConnectionTo(Sink out, LayeredSpriteCache sprite,
+                                         float waistX, float waistY,
+                                         float footX, float footY,
+                                         float hullWidth, float alpha) {
+        float dx = footX - waistX;
+        float dy = footY - waistY;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        if (distance <= 0.001f) return;
+        float visibleLength = Math.max(0.01f, distance - 0.08f * hullWidth);
+        float endpointRatio = visibleLength / distance;
+        float angle = (float) Math.toDegrees(Math.atan2(-dx, dy));
+        float scale = hullWidth / SOURCE_REFERENCE_PX;
+        out.sprite(sprite,
+                waistX + dx * endpointRatio * 0.5f,
+                waistY + dy * endpointRatio * 0.5f,
+                sprite.pxWidth * scale, visibleLength,
+                angle, alpha);
     }
 
     /** Rotates and length-scales a north-authored sprite from the waist to an endpoint. */

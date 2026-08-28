@@ -134,6 +134,8 @@ public final class BattleComponents {
     public static final int MECH_LOCOMOTION_ANGULAR_VELOCITY = 1;
     /** Field 2: maximum chassis turn rate in degrees/sec (FLOAT). */
     public static final int MECH_LOCOMOTION_TURN_RATE = 2;
+    /** {@link #MECH_GAIT_STATE} field 0: persistent planted-foot state (OBJECT). */
+    public static final int MECH_GAIT_STATE_STATE = 0;
 
     /** {@link #HEALTH} field 0: current hp (FLOAT). */
     public static final int HEALTH_HP = 0;
@@ -416,6 +418,8 @@ public final class BattleComponents {
      * simulation-authoritative: path movement reads it to pivot before stepping.
      */
     public final ComponentType MECH_LOCOMOTION;
+    /** Live-only persistent planted-foot and waist presentation state. */
+    public final ComponentType MECH_GAIT_STATE;
     /** Dead-archetype marker — pure presence tag, no columns. */
     public final ComponentType CORPSE;
     /**
@@ -996,6 +1000,7 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         INTEGRAL_SYSTEM = world.register(36, "IntegralSystem",
                 FieldKind.OBJECT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT);
+        MECH_GAIT_STATE = world.register(37, "MechGaitState", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(
