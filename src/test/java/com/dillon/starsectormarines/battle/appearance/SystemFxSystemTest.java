@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.combat.MitigationService;
+import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
@@ -32,7 +33,7 @@ class SystemFxSystemTest {
     private static final float DURATION = 3f;
     private static final float COOLDOWN = 22f;
     private static final float BOOST = 1.45f;
-    private static final float RESISTANCE = 0.5f;
+    private static final float SOAK = 20f;
     private static final float ARC = 120f;
     private static final float TICK = 0.1f;
 
@@ -67,7 +68,7 @@ class SystemFxSystemTest {
         assertTrue(fx.isRunning(breacher));
         assertEquals(1f, fx.intensity(breacher), 1e-4f, "a freshly opened window is wide open");
         assertEquals(42f, fx.arcFacingDegrees(breacher), 1e-4f);
-        assertEquals(RESISTANCE, fx.arcFraction(breacher), 1e-4f);
+        assertEquals(1f, fx.soakFraction(breacher), 1e-4f, "and an unspent pool is a full one");
     }
 
     /**
@@ -105,7 +106,7 @@ class SystemFxSystemTest {
         SystemFxService fx = roster.systemFx();
         assertEquals(screens.facingDegrees(breacher), fx.arcFacingDegrees(breacher), 1e-4f);
         assertEquals(screens.arcDegrees(breacher), fx.arcDegrees(breacher), 1e-4f);
-        assertEquals(screens.fraction(breacher), fx.arcFraction(breacher), 1e-4f);
+        assertEquals(screens.soakFraction(breacher), fx.soakFraction(breacher), 1e-4f);
     }
 
     /** The window closing is the second thing a viewer has to be able to read. */
@@ -146,7 +147,9 @@ class SystemFxSystemTest {
         assertFalse(fx.isRunning(breacher), "and nothing lingers");
         assertEquals(0f, fx.intensity(breacher), 1e-6f);
         assertEquals(0f, fx.arcDegrees(breacher), 1e-6f);
-        assertEquals(0f, fx.arcFraction(breacher), 1e-6f);
+        assertEquals(0f, fx.soakFraction(breacher), 1e-6f);
+        assertEquals(0f, fx.breakFlash(breacher), 1e-6f,
+                "a window that simply ran out did not shatter");
     }
 
     /**
@@ -207,9 +210,9 @@ class SystemFxSystemTest {
         presentation.tick();
         float boosted = roster.movement().moveSpeed(breacher);
         // Straight ahead is inside the arc; the flank is outside it.
-        float ahead = roster.mitigations().fractionAgainst(breacher, 0f, 0f, 0f, 5f);
-        float flank = roster.mitigations().fractionAgainst(breacher, 0f, 0f, 5f, 0f);
-        assertEquals(RESISTANCE, ahead, 1e-6f, "fixture assumption: the front is covered");
+        float ahead = roster.mitigations().soakAgainst(breacher, 0f, 0f, 0f, 5f);
+        float flank = roster.mitigations().soakAgainst(breacher, 0f, 0f, 5f, 0f);
+        assertEquals(SOAK, ahead, 1e-6f, "fixture assumption: the front is covered");
         assertEquals(0f, flank, 1e-6f, "fixture assumption: the flank is not");
 
         roster.entityWorld().setFloat(breacher, components.SYSTEM_FX,
@@ -219,12 +222,88 @@ class SystemFxSystemTest {
         roster.entityWorld().setFloat(breacher, components.SYSTEM_FX,
                 BattleComponents.SYSTEM_FX_ARC_FACING_DEGREES, 180f);
         roster.entityWorld().setFloat(breacher, components.SYSTEM_FX,
-                BattleComponents.SYSTEM_FX_ARC_FRACTION, 0.99f);
+                BattleComponents.SYSTEM_FX_SOAK_FRACTION, 0.99f);
+        roster.entityWorld().setFloat(breacher, components.SYSTEM_FX,
+                BattleComponents.SYSTEM_FX_BREAK_FLASH, 1f);
 
         assertEquals(boosted, roster.movement().moveSpeed(breacher), 1e-6f);
-        assertEquals(ahead, roster.mitigations().fractionAgainst(breacher, 0f, 0f, 0f, 5f), 1e-6f);
-        assertEquals(flank, roster.mitigations().fractionAgainst(breacher, 0f, 0f, 5f, 0f), 1e-6f);
+        assertEquals(ahead, roster.mitigations().soakAgainst(breacher, 0f, 0f, 0f, 5f), 1e-6f);
+        assertEquals(flank, roster.mitigations().soakAgainst(breacher, 0f, 0f, 5f, 0f), 1e-6f);
         assertTrue(roster.integralSystems().isActive(breacher));
+    }
+
+    /**
+     * The pool is the thing the treatment now reads off, so spending it has to
+     * show. A screen with a sliver left must be drawn as one.
+     */
+    @Test
+    void theDrawnScreenFadesWithWhatIsLeftInThePool() {
+        UnitRosterService roster = roster();
+        long breacher = roster.spawn(marine().integralSystem(breacherAssist()));
+        SystemFxSystem presentation = new SystemFxSystem(roster);
+        SystemFxService fx = roster.systemFx();
+        MitigationService screens = roster.mitigations();
+
+        roster.integralSystems().activate(breacher);
+        presentation.tick();
+        assertEquals(1f, fx.soakFraction(breacher), 1e-4f);
+
+        screens.absorb(breacher, SOAK * 0.75f);
+        presentation.tick();
+
+        assertEquals(0.25f, fx.soakFraction(breacher), 1e-3f);
+        assertTrue(fx.isRunning(breacher), "a nearly-spent screen is still a screen");
+    }
+
+    /**
+     * A screen ends two ways and they must not look alike. A window running out
+     * is a treatment simply stopping; a pool beaten to nothing is an event, and
+     * it is the outcome the soak pool exists to produce.
+     */
+    @Test
+    void breakingIsMarkedApartFromTheWindowRunningOut() {
+        UnitRosterService roster = roster();
+        long breacher = roster.spawn(marine().integralSystem(breacherAssist()));
+        SystemFxSystem presentation = new SystemFxSystem(roster);
+        SystemFxService fx = roster.systemFx();
+
+        roster.integralSystems().activate(breacher);
+        presentation.tick();
+        assertEquals(0f, fx.breakFlash(breacher), 1e-6f);
+
+        roster.mitigations().absorb(breacher, SOAK);
+        presentation.tick();
+
+        assertEquals(1f, fx.breakFlash(breacher), 1e-4f, "the shatter is marked the same tick");
+        assertEquals(0f, fx.arcDegrees(breacher), 1e-6f, "and the screen it marks is gone");
+        assertTrue(roster.integralSystems().isActive(breacher),
+                "fixture assumption: the window itself has not run out");
+    }
+
+    /** The shatter is drawn after the screen is gone, which is the only way it can be seen at all. */
+    @Test
+    void theShatterOutlivesTheScreenAndThenDrains() {
+        UnitRosterService roster = roster();
+        long breacher = roster.spawn(marine().integralSystem(breacherAssist()));
+        SystemFxSystem presentation = new SystemFxSystem(roster);
+        SystemFxService fx = roster.systemFx();
+        MitigationSystem sweep = new MitigationSystem(roster);
+
+        roster.integralSystems().activate(breacher);
+        roster.mitigations().absorb(breacher, SOAK);
+        presentation.tick();
+        float first = fx.breakFlash(breacher);
+
+        sweep.tick(TICK);
+        presentation.tick();
+        float second = fx.breakFlash(breacher);
+        assertTrue(second > 0f && second < first, "the mark fades rather than blinking off");
+
+        for (int i = 0; i < 20; i++) {
+            sweep.tick(TICK);
+            presentation.tick();
+        }
+        assertEquals(0f, fx.breakFlash(breacher), 1e-6f);
     }
 
     private static void drain(UnitRosterService roster, SystemFxSystem presentation,
@@ -253,7 +332,7 @@ class SystemFxSystemTest {
                 "system.test-assist", "Breaching assist", EquipmentGrade.SERVICE, "Rams and a screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 DURATION, COOLDOWN, 0,
-                new BreacherAssistSpec(BOOST, RESISTANCE, arcDegrees), null, null,
+                new BreacherAssistSpec(BOOST, SOAK, arcDegrees), null, null,
                 new CrossingUnderFireSpec(12f));
     }
 

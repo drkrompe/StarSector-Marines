@@ -31,12 +31,14 @@ public enum RenderLayer {
     HIGHLIGHTS,
     /** Fog-of-war darkening between terrain and units. */
     FOG,
-    /** Turret bodies → hub bodies → dead → live infantry → HP bars (bars last = on top). */
+    /** Turret bodies → hub bodies → dead → live infantry → HP bars (bars last = on top).
+     *  A marine running an integral system draws their own head and body once
+     *  more immediately underneath, as the halo the treatment is made of, so
+     *  that copy lives in this layer rather than over it. */
     UNITS,
     /** Simulation-owned field effects, above the bodies producing them: armed
-     *  demolition packs and their known blast footprints, a point-defence
-     *  emplacement's bubble and engagements, and the screen a running integral
-     *  system holds up. */
+     *  demolition packs and their known blast footprints, and a point-defence
+     *  emplacement's bubble and engagements. */
     HAZARDS,
     /** Simulation-owned smoke clouds. Above units so opacity reads honestly. */
     SMOKE,

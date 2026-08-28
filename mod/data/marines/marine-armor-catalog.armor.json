@@ -165,7 +165,7 @@
           "durationSeconds": 4.0,
           "cooldownSeconds": 16.0,
           "moveSpeedMult": 1.35,
-          "frontalResistance": 0.55,
+          "screenSoak": 17.0,
           "shieldedArcDegrees": 160.0
         }
       }
@@ -197,7 +197,7 @@
           "durationSeconds": 2.0,
           "cooldownSeconds": 11.0,
           "moveSpeedMult": 1.40,
-          "frontalResistance": 0.35,
+          "screenSoak": 4.5,
           "shieldedArcDegrees": 100.0
         }
       }
@@ -229,7 +229,7 @@
           "durationSeconds": 3.5,
           "cooldownSeconds": 18.0,
           "moveSpeedMult": 1.30,
-          "frontalResistance": 0.45,
+          "screenSoak": 10.0,
           "shieldedArcDegrees": 200.0
         }
       }
@@ -261,7 +261,7 @@
           "durationSeconds": 5.0,
           "cooldownSeconds": 28.0,
           "moveSpeedMult": 1.12,
-          "frontalResistance": 0.70,
+          "screenSoak": 27.0,
           "shieldedArcDegrees": 140.0
         }
       }
@@ -293,7 +293,7 @@
           "durationSeconds": 4.5,
           "cooldownSeconds": 30.0,
           "moveSpeedMult": 1.28,
-          "frontalResistance": 0.60,
+          "screenSoak": 18.5,
           "shieldedArcDegrees": 180.0
         }
       }
@@ -325,7 +325,7 @@
           "durationSeconds": 2.5,
           "cooldownSeconds": 26.0,
           "moveSpeedMult": 1.42,
-          "frontalResistance": 0.30,
+          "screenSoak": 4.0,
           "shieldedArcDegrees": 90.0
         }
       }
