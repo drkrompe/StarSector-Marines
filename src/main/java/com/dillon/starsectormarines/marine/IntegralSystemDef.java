@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,13 +27,15 @@ import java.io.Serializable;
 public record IntegralSystemDef(
         String id,
         String displayName,
+        EquipmentGrade grade,
         String description,
         IntegralSystemEffect effect,
         SpecialResourceMode resourceMode,
         float durationSeconds,
         float cooldownSeconds,
         int startingAmmo,
-        BreacherAssistSpec breacherAssist) implements Serializable {
+        BreacherAssistSpec breacherAssist,
+        MissilePodSpec missilePod) implements Serializable {
 
     /**
      * Keys that would express an integral system as durability. Rejected by
@@ -48,6 +51,7 @@ public record IntegralSystemDef(
     public static IntegralSystemDef parse(JSONObject json, String armorId) throws JSONException {
         rejectDurability(json, armorId);
         String id = requireText(json, "id", armorId);
+        EquipmentGrade grade = parseGrade(requireText(json, "grade", armorId), id, armorId);
         IntegralSystemEffect effect = IntegralSystemEffect.fromKey(
                 requireText(json, "effect", armorId), armorId);
         SpecialResourceMode resourceMode = SpecialResourceMode.fromKey(
@@ -81,26 +85,74 @@ public record IntegralSystemDef(
             }
         }
 
-        BreacherAssistSpec breacher = switch (effect) {
+        BreacherAssistSpec breacher = null;
+        MissilePodSpec missilePod = null;
+        switch (effect) {
             case BREACHER_ASSIST -> {
                 if (resourceMode != SpecialResourceMode.COOLDOWN) {
                     throw new JSONException("Integral system '" + id + "' on armor '" + armorId
                             + "' is a breacher assist and must be cooldown-gated");
                 }
-                yield BreacherAssistSpec.parse(json, armorId, id);
+                breacher = BreacherAssistSpec.parse(json, armorId, id);
             }
-        };
+            case MISSILE_POD -> {
+                if (resourceMode != SpecialResourceMode.AMMUNITION) {
+                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
+                            + "' is a missile pod and must be ammunition-gated");
+                }
+                missilePod = MissilePodSpec.parse(json, armorId, id);
+            }
+        }
 
         return new IntegralSystemDef(
                 id,
                 requireText(json, "displayName", armorId),
+                grade,
                 requireText(json, "description", armorId),
                 effect,
                 resourceMode,
                 durationSeconds,
                 cooldownSeconds,
                 startingAmmo,
-                breacher);
+                breacher,
+                missilePod);
+    }
+
+    /**
+     * The family this system belongs to, and the name a player reads across
+     * every pattern that carries one.
+     */
+    public String familyName() {
+        return effect.displayName;
+    }
+
+    /**
+     * <b>Grade here is description, not arithmetic.</b> It says how well this
+     * tradition builds the thing — welded scrap through to artisan restoration —
+     * on the same ladder a weapon's manufacture already uses, so a player who
+     * reads "Service" on a rifle reads the same word the same way here. Unlike a
+     * weapon family, an integral system does <em>not</em> consume
+     * {@link EquipmentGrade}'s stat multipliers: a system's numbers are authored
+     * outright, and scaling them by grade as well would price the same quality
+     * twice. Two systems at the same grade may be nothing alike, and a
+     * Masterwork one is not automatically the strongest — the family is
+     * side-grades ({@code integral-system-slate.md}).
+     */
+    private static EquipmentGrade parseGrade(String key, String systemId, String armorId)
+            throws JSONException {
+        for (EquipmentGrade candidate : EquipmentGrade.values()) {
+            if (candidate.name().equalsIgnoreCase(key)
+                    || candidate.displayName.equalsIgnoreCase(key)) {
+                return candidate;
+            }
+        }
+        StringBuilder known = new StringBuilder();
+        for (EquipmentGrade candidate : EquipmentGrade.values()) {
+            if (known.length() > 0) known.append(", ");
+            known.append(candidate.displayName.toLowerCase());
+        }
+        throw new JSONException("Integral system '" + systemId + "' on armor '" + armorId
+                + "' declares unknown grade '" + key + "'. Known grades: " + known);
     }
 
     /** Ammunition-gated systems run out; cooldown-gated ones only make you wait. */

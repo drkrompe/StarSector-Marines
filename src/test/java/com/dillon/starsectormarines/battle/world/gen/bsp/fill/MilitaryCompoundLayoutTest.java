@@ -34,6 +34,10 @@ class MilitaryCompoundLayoutTest {
     private static final BlockLeaf BARRACKS = new BlockLeaf(20, 3, 31, 14, false);
     private static final BlockLeaf ARMORY = new BlockLeaf(3, 20, 14, 31, false);
     private static final BlockLeaf VEHICLE_BAY = new BlockLeaf(20, 20, 31, 31, false);
+    private static final List<String> EXTERIOR_SERVICE_IDS = List.of(
+            "doodad.industrial-generator", "doodad.industrial-cable-reel",
+            "doodad.industrial-pallet-stack", "doodad.industrial-drum-cluster",
+            "doodad.industrial-crate-stack", "doodad.industrial-pipe-bundle");
 
     @Test
     void roleBuildingsUseDistinctFixturesAndFaceTheSharedParadeGround() {
@@ -80,6 +84,30 @@ class MilitaryCompoundLayoutTest {
                 assertFalse(ctx.topology.isFixture(x, y), "fixture on reserved road at " + x + "," + y);
             }
         }
+    }
+
+    @Test
+    void roleApronsReceiveReadableServiceClustersWithoutBecomingObstacles() {
+        GenContext ctx = filled(23L);
+        boolean[][] reservation = ctx.get(BspKeys.ROAD_RESERVATION);
+        int exteriorProps = 0;
+
+        for (Doodad doodad : ctx.doodads) {
+            if (!matchesAny(doodad, EXTERIOR_SERVICE_IDS)
+                    || inAnyBuilding(doodad.cellX, doodad.cellY, ctx.pois)) continue;
+            exteriorProps++;
+            assertEquals(CellTopology.GroundKind.STONE,
+                    ctx.topology.getGroundKind(doodad.cellX, doodad.cellY));
+            assertTrue(ctx.grid.isWalkable(doodad.cellX, doodad.cellY),
+                    "service clutter remains visual so both apron lanes stay open");
+            assertFalse(ctx.topology.isFixture(doodad.cellX, doodad.cellY));
+            assertFalse(ctx.grid.isDoorway(doodad.cellX, doodad.cellY));
+            assertFalse(reservation[doodad.cellX][doodad.cellY]);
+            assertFalse(nearDoorway(ctx.grid, doodad.cellX, doodad.cellY, 2));
+        }
+
+        assertEquals(10, exteriorProps,
+                "command, barracks, armory, and vehicle bay each receive a role-sized cluster");
     }
 
     @Test
@@ -239,6 +267,13 @@ class MilitaryCompoundLayoutTest {
     private static boolean matches(Doodad doodad, DoodadDef def) {
         return doodad.sheetPath.equals(def.sheetPath)
                 && doodad.tile.col == def.col && doodad.tile.row == def.row;
+    }
+
+    private static boolean matchesAny(Doodad doodad, List<String> ids) {
+        for (String id : ids) {
+            if (matches(doodad, TileRegistry.installed().doodad(id))) return true;
+        }
+        return false;
     }
 
     private static void assertRolePurpose(CellTopology topology, BlockLeaf leaf, RoomPurpose purpose) {

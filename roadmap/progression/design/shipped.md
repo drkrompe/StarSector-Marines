@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-08-27 — folded card-sourced experience, the squad career record, and the measured band-span calibration.
+Updated: 2026-08-28 — folded the shoulder micro-missile pod.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -20,3 +20,4 @@ Updated: 2026-08-27 — folded card-sourced experience, the squad career record,
 | `s12-squad-career-standing.md` | 2026-08-27 | this commit | `progression-nouns.md` — squad-grain career evidence, frozen deployment attribution, and the never-a-quality-input law; `company-view-nouns.md` — the Barracks service record |
 | `xp-authority-cleanup.md` | 2026-08-27 | this commit | `progression-nouns.md` — issued armour as the sole experience authority, and seniority as deployments served |
 | `s11-card-sourced-experience.md` | 2026-08-27 | this commit | `progression-nouns.md` — aptitude and experience: bands issued with the armour pattern, the rejected weapon-grade source, no hidden leader promotion, and stripes following issued armour |
+| `shoulder-micro-missile-pod.md` | 2026-08-28 | this commit | `integral-armor-systems.md` — the second first system, shipped as `system.predictive-volley` on `armor.aegis-composite`, firing `weapon.micro-missile`; `integral-system-slate.md` — the allocation reasoning; `equipment-lore-catalog.md` — the pattern's and weapon's provenance |
