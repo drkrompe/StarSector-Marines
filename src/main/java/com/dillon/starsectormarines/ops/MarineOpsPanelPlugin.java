@@ -128,6 +128,13 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
             screens.get(id).attach(position, ctx, dismissDialog);
             updateIntelAudio(id);
         }
+        // The ship runs before the page does, and regardless of which page it
+        // is. Time aboard belongs to the ship: leave the berthing screen for
+        // the lab and the marine who was walking to the mess should be eating
+        // when you come back, not still walking. Ticking this from the current
+        // screen instead would stop the crew the moment nobody was watching
+        // them, which is the difference between a ship and a diorama.
+        ctx.companyDeck().advance(amount);
         screens.get(id).advance(amount);
     }
 
