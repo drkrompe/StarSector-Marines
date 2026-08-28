@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -183,11 +184,18 @@ public final class FrontageDefense implements Goal {
         int alive = Math.max(1, squad.aliveMembers);
         int reserve = alive >= MIN_SQUAD_FOR_RESERVE
                 ? Math.max(1, Math.round(alive * RESERVE_FRACTION)) : 0;
-        int onPost = Math.max(1, alive - reserve);
+        // The reserve is there so one threatened facing cannot strip the rest
+        // of the envelope. It must never be the reason a threatened facing has
+        // nobody on it: a squad that cannot picket every side it believes is
+        // under threat gives up reserve bodies until it can, or until it runs
+        // out. Under a four-sided assault an attrited garrison hits this, and
+        // holding two back while a wall stands empty is the wrong trade.
+        int facings = threatenedFacings(threatened);
+        int onPost = Math.max(1, Math.max(alive - reserve, Math.min(alive, facings)));
 
         List<ApertureHold.Post> posts = new ArrayList<>(alive);
         Set<Long> taken = new HashSet<>(claimed);
-        for (Aperture aperture : threatened) {
+        for (Aperture aperture : picketThenMass(threatened)) {
             if (posts.size() >= onPost) break;
             if (!taken.add(key(aperture.stanceX(), aperture.stanceY()))) continue;
             posts.add(new ApertureHold.Post(aperture.stanceX(), aperture.stanceY(),
@@ -302,6 +310,44 @@ public final class FrontageDefense implements Goal {
         TacticalNode node = heldNode(squad, sim);
         if (node == null) return List.of();
         return zonesFor(node, layersFor(squad, sim).get(0), sim);
+    }
+
+    /** How many distinct facings carry believed threat right now. */
+    private static int threatenedFacings(List<Aperture> threatened) {
+        Set<DefenseFrontage.Facing> facings = new LinkedHashSet<>();
+        for (Aperture aperture : threatened) facings.add(aperture.facing());
+        return facings.size();
+    }
+
+    /**
+     * Reorder threatened apertures so every threatened facing gets a post
+     * before any facing gets a second one, then fall back to plain threat
+     * order.
+     *
+     * <p>Straight threat order is wrong the moment an attack comes from more
+     * than one side. The believed-pressure field ranks a whole wall above
+     * another, so a squad filling its posts from the top of one global list
+     * puts every body on whichever side happens to read hotter and leaves the
+     * other approach with nobody facing it — measured at a third of the
+     * contested samples in a two-sided assault before this pass existed. A
+     * picket on each threatened approach and the mass on the dangerous one is
+     * the reading a defender should make, and it costs the hot side one post
+     * per other threatened facing.
+     */
+    private static List<Aperture> picketThenMass(List<Aperture> threatened) {
+        List<Aperture> ordered = new ArrayList<>(threatened.size());
+        Set<DefenseFrontage.Facing> picketed = new LinkedHashSet<>();
+        Set<Long> chosen = new HashSet<>();
+        for (Aperture aperture : threatened) {
+            if (!picketed.add(aperture.facing())) continue;
+            ordered.add(aperture);
+            chosen.add(key(aperture.x(), aperture.y()));
+        }
+        for (Aperture aperture : threatened) {
+            if (chosen.contains(key(aperture.x(), aperture.y()))) continue;
+            ordered.add(aperture);
+        }
+        return ordered;
     }
 
     /**

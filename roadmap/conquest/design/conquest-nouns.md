@@ -4,8 +4,8 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — named the compound capture room, its footprint-bounded
-resolution, and the reachability guarantee generation owes it.
+Updated: 2026-08-28 — made the footprint-resolved capture room authoritative
+across capture, command, execution, presentation, and evidence.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -90,6 +90,13 @@ mission rather than a cosmetic defect. Bounding the search to the compound's
 own footprint is what keeps the room its own: a compound never captures in a
 neighbour's room or out on the parade ground.
 
+The resolved capture cell and its live zone identity are the compound's
+authoritative tactical target. Command assignment, reachability, keep
+convergence, action markers, capture progress, and trace evidence all consume
+that same resolution. The raw tactical-node anchor remains map-authored
+identity and may be blocked or furnished; it is never a substitute capture
+zone.
+
 Having a capture room is not sufficient; marines have to be able to walk into
 it. Every compound is therefore reachable from the marine spawn, and generation
 owes that guarantee rather than the battle layer coping with its absence — no
@@ -118,6 +125,13 @@ any objective's threshold may commit without consuming the distant budget.
 Explicit keep convergence remains the culminating exception. This prevents
 both accidental capture avoidance and the assault force abandoning the fight
 for distant buildings.
+
+Travel through intermediate rooms remains cautious and may yield to contact.
+The final hop into the assigned capture room is a committed assault: route
+contact does not leave a squad indefinitely waiting outside the objective.
+Once inside, hold posts are chosen only from that capture room, even when the
+compound footprint contains several garrison rooms. Local engagement doctrine
+still governs threats; commitment changes entry, not target knowledge.
 
 The broader front is organized into lateral **tracks**. A squad keeps a sticky
 preferred track so the assault remains readable, but the track is a coordination
@@ -150,15 +164,15 @@ commander's authority, while local squad doctrine decides how to prosecute the
 contact.
 
 The front snapshot also carries frozen own-squad physical observations from the
-same command frame: live strength, centroid, current zone, local contact, and
-execution suspension. These facts explain whether an executable order is
-closing on its published marker or has reached its target zone without exposing
-opposing live positions. Exact occupancy of a compound's anchor capture zone is
-objective/referee evidence instead. An adjacent assault commitment, entry into
-the broader authored footprint, and presence in the actual capture zone are not
-interchangeable claims. The current trace reports the first and third;
-footprint entry remains a separate future measure rather than something
-inferred from either one.
+same command frame: live strength, centroid, leader zone, each member's zone,
+local contact, and execution suspension. These facts explain whether an
+executable order is closing on its published marker or whether any squad member
+has reached its assigned target zone without exposing opposing live positions.
+Exact whole-zone occupancy and capture progress remain objective/referee
+evidence. An adjacent assault commitment, entry into the broader authored
+footprint, own-member presence in the actual capture zone, and neutral capture
+presence are not interchangeable claims. Footprint entry remains a separate
+future measure rather than something inferred from any of them.
 
 Conquest debug presentation projects one front snapshot at a time. It may draw
 the side's three track extents, friendly body and lead fronts, known-hostile

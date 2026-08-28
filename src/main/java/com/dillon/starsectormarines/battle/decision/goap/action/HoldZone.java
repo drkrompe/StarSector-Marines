@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
-import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -42,7 +41,7 @@ import java.util.List;
  *
  * <p><b>Per-member spread.</b> When no enemies are in the zone, members
  * fan out to distinct hold cells ({@link #pickHoldCells}, farthest-point
- * sampled across the compound's {@link GarrisonArea garrison rooms}) bound
+ * sampled across the compound's singular capture room) bound
  * via {@link #roles}, rather than all freezing at the first cell they reach
  * inside the zone. Without this the whole squad piled onto the doorway /
  * anchor approach because {@code hold()} froze each member in place the
@@ -52,16 +51,10 @@ import java.util.List;
  */
 public final class HoldZone extends AbstractZoneAction {
 
-    /**
-     * Cells of slack around the compound footprint when resolving its garrison
-     * rooms for hold-cell placement — matches the capture pass's gate margin.
-     */
-    private static final int HOLD_GARRISON_MARGIN = 2;
-
     private final TacticalNode compoundNode;
     /**
-     * Per-member hold cells, distinct and spread across the compound's garrison
-     * rooms (parallel x/y arrays). Picked once at plan-synthesis time
+     * Per-member hold cells, distinct and spread across the compound's capture
+     * room (parallel x/y arrays). Picked once at plan-synthesis time
      * ({@link #pickHoldCells}); a member is bound to index {@code i} via the
      * {@code "hold:i"} role slot. Always holds at least one cell (anchor
      * fallback), so it is never null/empty in practice.
@@ -261,14 +254,9 @@ public final class HoldZone extends AbstractZoneAction {
         ZoneGraph zones = sim.getZoneGraph();
         int width = grid.getWidth();
 
-        List<Integer> rooms = GarrisonArea.garrisonZones(node, HOLD_GARRISON_MARGIN, sim);
-        if (rooms.isEmpty() && zones.zoneById(targetZone) != null) {
-            rooms = List.of(targetZone);
-        }
         List<int[]> cand = new ArrayList<>();
-        for (int zoneId : rooms) {
-            NavigationZone z = zones.zoneById(zoneId);
-            if (z == null) continue;
+        NavigationZone z = zones.zoneById(targetZone);
+        if (z != null) {
             for (int idx : z.getCellIndices()) {
                 cand.add(new int[]{ idx % width, idx / width });
             }

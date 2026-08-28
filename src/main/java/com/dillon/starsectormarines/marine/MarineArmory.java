@@ -17,11 +17,8 @@ import java.util.UUID;
 /** Persisted equipment-template ownership and reusable squad definitions. */
 public final class MarineArmory implements Serializable {
 
-    /** Legacy save data retained only to migrate the former print-stock economy. */
-    private int fabricationMaterials;
     private int victories;
     private int highRiskVictories;
-    private Map<String, Integer> printedGear = new HashMap<>();
     private Set<String> unlockedRecipes = new HashSet<>();
     /** Permanent collectible equipment templates used by all live issue paths. */
     private Set<String> ownedEquipmentTemplateIds = new HashSet<>();
@@ -39,7 +36,6 @@ public final class MarineArmory implements Serializable {
         seedStarterCards();
     }
 
-    public int fabricationMaterials() { return fabricationMaterials; }
     public int victories() { return victories; }
     public int highRiskVictories() { return highRiskVictories; }
     /** Legacy recipe ids retained for save compatibility and old fire-team APIs. */
@@ -315,10 +311,6 @@ public final class MarineArmory implements Serializable {
         return false;
     }
 
-    public void addFabricationMaterials(int amount) {
-        fabricationMaterials = Math.max(0, fabricationMaterials + amount);
-    }
-
     public boolean isPrimaryUnlocked(String weaponId, EquipmentGrade grade) {
         return ownsPrimaryTemplate(weaponId, grade);
     }
@@ -374,66 +366,6 @@ public final class MarineArmory implements Serializable {
         acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(armorId));
     }
 
-    public int ownedPrimary(String weaponId, EquipmentGrade grade) {
-        return printedGear.getOrDefault(primaryKey(weaponId, grade), 0);
-    }
-    public int ownedPrimary(WeaponDef weapon, EquipmentGrade grade) {
-        return weapon != null ? ownedPrimary(weapon.id, grade) : 0;
-    }
-
-    public int ownedSecondary(String specialEquipmentId) {
-        return printedGear.getOrDefault(secondaryKey(specialEquipmentId), 0);
-    }
-    public int ownedSecondary(SpecialEquipmentDef special) {
-        return special != null ? ownedSecondary(special.id()) : 0;
-    }
-
-    public int ownedArmor(MarineArmorPattern armor) {
-        return printedGear.getOrDefault(armorKey(armor), 0);
-    }
-
-    public boolean printPrimary(String weaponId, EquipmentGrade grade) {
-        if (WeaponRegistry.STARTER_PRIMARY_ID.equals(weaponId)) return false;
-        String key = primaryKey(weaponId, grade);
-        return print(key, primaryFabricationCost(grade));
-    }
-    public boolean printPrimary(WeaponDef weapon, EquipmentGrade grade) {
-        return weapon != null && printPrimary(weapon.id, grade);
-    }
-
-    public boolean printSecondary(String specialEquipmentId) {
-        return print(secondaryKey(specialEquipmentId), secondaryFabricationCost(specialEquipmentId));
-    }
-    public boolean printSecondary(SpecialEquipmentDef special) {
-        return special != null && printSecondary(special.id());
-    }
-
-    public boolean printArmor(MarineArmorPattern armor) {
-        return print(armorKey(armor), armorFabricationCost(armor));
-    }
-
-    public boolean canPrintPrimary(String weaponId, EquipmentGrade grade) {
-        return !WeaponRegistry.STARTER_PRIMARY_ID.equals(weaponId)
-                && isPrimaryUnlocked(weaponId, grade)
-                && fabricationMaterials >= primaryFabricationCost(grade);
-    }
-    public boolean canPrintPrimary(WeaponDef weapon, EquipmentGrade grade) {
-        return weapon != null && canPrintPrimary(weapon.id, grade);
-    }
-
-    public boolean canPrintSecondary(String specialEquipmentId) {
-        return isSecondaryUnlocked(specialEquipmentId)
-                && fabricationMaterials >= secondaryFabricationCost(specialEquipmentId);
-    }
-    public boolean canPrintSecondary(SpecialEquipmentDef special) {
-        return special != null && canPrintSecondary(special.id());
-    }
-
-    public boolean canPrintArmor(MarineArmorPattern armor) {
-        return isArmorUnlocked(armor)
-                && fabricationMaterials >= armorFabricationCost(armor);
-    }
-
     /** Awards permanent template cards at stable operation milestones. */
     public void recordVictory(boolean highRisk) {
         recordVictory(highRisk, Set.of());
@@ -464,18 +396,6 @@ public final class MarineArmory implements Serializable {
         EquipmentCollectionCurve.repair(this, victories, acquiredOrCarriedTemplateIds);
     }
 
-    /** Fatigues remain counted stock; the FR-1 service rifle itself is unlimited fleet issue. */
-    public void ensureBasicIssue(int soldierCount) {
-        putAtLeast(armorKey(MarineArmorPattern.ARMORLESS), soldierCount);
-    }
-
-    private boolean print(String key, int cost) {
-        if (!unlockedRecipes.contains(key) || fabricationMaterials < cost) return false;
-        fabricationMaterials -= cost;
-        printedGear.merge(key, 1, Integer::sum);
-        return true;
-    }
-
     private void seedStarterIssue() {
         unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
         unlockPrimary(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE);
@@ -493,19 +413,6 @@ public final class MarineArmory implements Serializable {
         unlockArmor(MarineArmorPattern.MILITIA);
         unlockArmor(MarineArmorPattern.CHARCOAL);
         unlockArmor(MarineArmorPattern.ARMY_GREEN);
-        printedGear.put(primaryKey(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE), 12);
-        printedGear.put(primaryKey(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SURPLUS), 1);
-        printedGear.put(primaryKey(WeaponRegistry.SMG_ID, EquipmentGrade.SERVICE), 3);
-        printedGear.put(primaryKey(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.SERVICE), 3);
-        printedGear.put(primaryKey(WeaponRegistry.DMR_ID, EquipmentGrade.SERVICE), 3);
-        printedGear.put(secondaryKey(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 2);
-        printedGear.put(secondaryKey(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), 1);
-        printedGear.put(secondaryKey(SpecialEquipmentRegistry.SMOKE_GRENADE_ID), 2);
-        printedGear.put(secondaryKey(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), 2);
-        printedGear.put(armorKey(MarineArmorPattern.ARMORLESS), 12);
-        printedGear.put(armorKey(MarineArmorPattern.MILITIA), 3);
-        printedGear.put(armorKey(MarineArmorPattern.CHARCOAL), 6);
-        printedGear.put(armorKey(MarineArmorPattern.ARMY_GREEN), 4);
     }
 
     private void seedStarterCards() {
@@ -592,28 +499,7 @@ public final class MarineArmory implements Serializable {
         return -1;
     }
 
-    private void putAtLeast(String key, int count) {
-        if (printedGear.getOrDefault(key, 0) < count) printedGear.put(key, count);
-    }
-
-    public static int primaryFabricationCost(EquipmentGrade grade) {
-        if (grade == null) return 2;
-        return switch (grade) {
-            case SURPLUS -> 1;
-            case SERVICE -> 2;
-            case MILSPEC -> 4;
-            case MASTERWORK -> 8;
-        };
-    }
-
-    public static int secondaryFabricationCost(String specialEquipmentId) {
-        return 5;
-    }
     public static int secondaryFabricationCost(SpecialEquipmentDef special) { return 5; }
-
-    public static int armorFabricationCost(MarineArmorPattern armor) {
-        return armor == MarineArmorPattern.ARMORLESS ? 1 : 3;
-    }
 
     public static String primaryKey(String weaponId, EquipmentGrade grade) {
         return "primary:" + weaponId + ":" + grade.name();
@@ -632,7 +518,6 @@ public final class MarineArmory implements Serializable {
     }
 
     private Object readResolve() {
-        if (printedGear == null) printedGear = new HashMap<>();
         if (unlockedRecipes == null) unlockedRecipes = new HashSet<>();
         if (ownedEquipmentTemplateIds == null) ownedEquipmentTemplateIds = new HashSet<>();
         if (templateCards == null) templateCards = new ArrayList<>();
@@ -651,16 +536,10 @@ public final class MarineArmory implements Serializable {
         // Existing saves predate the recruit-grade field rifle recipe.
         unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
         unlockPrimary(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.SERVICE);
-        putAtLeast(primaryKey(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.SERVICE), 3);
         unlockArmor(MarineArmorPattern.MILITIA);
-        putAtLeast(armorKey(MarineArmorPattern.MILITIA), MarineSquad.TEAMS_PER_SQUAD);
         unlockSecondary(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID);
-        putAtLeast(secondaryKey(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), 1);
         unlockSecondary(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
-        putAtLeast(secondaryKey(SpecialEquipmentRegistry.SMOKE_GRENADE_ID), 2);
         unlockSecondary(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
-        putAtLeast(secondaryKey(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), 2);
-        fabricationMaterials = Math.max(0, fabricationMaterials);
         victories = Math.max(0, victories);
         highRiskVictories = Math.max(0, highRiskVictories);
         repairFixedVictoryMilestones();
@@ -673,8 +552,6 @@ public final class MarineArmory implements Serializable {
             String specialId = SpecialEquipmentRegistry.legacyId(legacyName);
             String legacy = "secondary:" + legacyName;
             String stable = secondaryKey(specialId);
-            Integer owned = printedGear.remove(legacy);
-            if (owned != null) printedGear.merge(stable, owned, Math::max);
             if (unlockedRecipes.remove(legacy)) unlockedRecipes.add(stable);
         }
     }
@@ -686,8 +563,6 @@ public final class MarineArmory implements Serializable {
             for (EquipmentGrade grade : EquipmentGrade.values()) {
                 String legacy = "primary:" + legacyName + ":" + grade.name();
                 String stable = primaryKey(weaponId, grade);
-                Integer owned = printedGear.remove(legacy);
-                if (owned != null) printedGear.merge(stable, owned, Math::max);
                 if (unlockedRecipes.remove(legacy)) unlockedRecipes.add(stable);
             }
         }

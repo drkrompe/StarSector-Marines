@@ -98,6 +98,24 @@ public class HoldZoneTest {
     }
 
     @Test
+    public void multiRoomCompoundHoldPostsStayInTheCaptureRoom() {
+        BattleSimulation sim = roomSim();
+        int roomZone = sim.getZoneGraph().zoneIdAt(5, 5);
+        TacticalNode multiRoomIdentity = new TacticalNode(
+                TacticalNode.Kind.COMMAND_POST, 5, 5,
+                0, 0, W - 1, H - 1, Faction.DEFENDER, 100, 4);
+
+        int[][] cells = HoldZone.pickHoldCells(
+                multiRoomIdentity, roomZone, 8, sim);
+
+        for (int i = 0; i < cells[0].length; i++) {
+            assertEquals(roomZone, sim.getZoneGraph().zoneIdAt(
+                            cells[0][i], cells[1][i]),
+                    "pre-capture posts cannot strand members in another garrison zone");
+        }
+    }
+
+    @Test
     public void rolesBindEachMemberToADistinctHoldCell() {
         BattleSimulation sim = roomSim();
         TacticalNode node = roomNode();

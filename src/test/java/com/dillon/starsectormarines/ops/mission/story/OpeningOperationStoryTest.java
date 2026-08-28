@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -69,8 +71,10 @@ class OpeningOperationStoryTest {
         // starting issue. Either one used to make the job disappear.
         MarineRoster grown = new MarineRoster();
         grown.bootstrapInitialComplement(36);
-        assertTrue(grown.allocateArmor(
-                soldierIds(grown).get(0), MarineArmorPattern.CHARCOAL));
+        assertEquals(SquadEquipmentResult.APPLIED, grown.applySquadEquipment(
+                grown.squads().get(0).id(),
+                SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS,
+                SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR));
 
         assertTrue(RELIEF.isEligible(context(grown, seedOffering(RELIEF))),
                 "a company well past the old green gate is still shown the job");

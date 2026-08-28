@@ -76,6 +76,20 @@ public class MarineRoster implements Serializable {
     /** Evidence from the last engagement, pending confirmation she is gone. */
     private boolean companyShipCasualty;
     /**
+     * Whether the player held the field in the engagement she was lost in.
+     * Boats can pick people out of the water on a field you still own; a rout
+     * leaves nobody to come back for them.
+     */
+    private boolean companyShipCasualtyHeldField;
+    /**
+     * How much she could carry, recorded while she is still in the fleet. A
+     * ship that is gone cannot be asked how deep her holds were, and what she
+     * was carrying goes down with her.
+     */
+    private int companyShipHold;
+    /** Marines who went down with the ship the company lost. */
+    private int formerShipMarinesLost;
+    /**
      * Fixes every deck this company will ever generate. Combined with the ship
      * it is generating for, so each hull has its own stable layout and a ship
      * the company returns to is the ship they left.
@@ -158,12 +172,21 @@ public class MarineRoster implements Serializable {
     }
 
     /** Quarter the company aboard a ship, which is also how a loss is put behind them. */
-    public void setCompanyShip(String companyShipId, String companyShipName) {
+    public void setCompanyShip(String companyShipId, String companyShipName,
+                               int companyShipHold) {
         this.companyShipId = companyShipId;
         this.companyShipName = companyShipName;
+        this.companyShipHold = Math.max(0, companyShipHold);
         this.formerShipName = null;
         this.formerShipLostInAction = false;
+        this.formerShipMarinesLost = 0;
         this.companyShipCasualty = false;
+        this.companyShipCasualtyHeldField = false;
+    }
+
+    /** @see #companyShipHold */
+    public int companyShipHold() {
+        return companyShipHold;
     }
 
     /**
@@ -173,12 +196,15 @@ public class MarineRoster implements Serializable {
      * the same as being handed one, and where the company goes next is the
      * player's decision for the same reason the first one was.
      */
-    public void reportCompanyShipGone() {
+    public void reportCompanyShipGone(int marinesLost) {
         formerShipName = companyShipName;
         formerShipLostInAction = companyShipCasualty;
+        formerShipMarinesLost = Math.max(0, marinesLost);
         companyShipId = null;
         companyShipName = null;
+        companyShipHold = 0;
         companyShipCasualty = false;
+        companyShipCasualtyHeldField = false;
     }
 
     /** @see #formerShipName */
@@ -191,9 +217,30 @@ public class MarineRoster implements Serializable {
         return formerShipLostInAction;
     }
 
+    /** @see #formerShipMarinesLost */
+    public int formerShipMarinesLost() {
+        return formerShipMarinesLost;
+    }
+
     /** @see #companyShipCasualty */
-    public void reportCompanyShipCasualty() {
+    public boolean companyShipCasualty() {
+        return companyShipCasualty;
+    }
+
+    /** @see #companyShipCasualtyHeldField */
+    public boolean companyShipCasualtyHeldField() {
+        return companyShipCasualtyHeldField;
+    }
+
+    /**
+     * She did not come through an engagement.
+     *
+     * @param heldTheField whether the player still owned the field afterwards,
+     *     which is what decides whether anybody was picked up
+     */
+    public void reportCompanyShipCasualty(boolean heldTheField) {
         companyShipCasualty = true;
+        companyShipCasualtyHeldField = heldTheField;
     }
 
     /** @see #deckSeed */
@@ -648,7 +695,6 @@ public class MarineRoster implements Serializable {
             squad.add(recruit.id());
             recruits.add(recruit);
         }
-        armory.ensureBasicIssue(activeSoldierCount());
         refreshLeadership();
         return Collections.unmodifiableList(recruits);
     }
@@ -665,7 +711,6 @@ public class MarineRoster implements Serializable {
         if (target == null) target = createSquad();
         MarineSoldier recruit = createRecruit();
         target.add(recruit.id());
-        armory.ensureBasicIssue(activeSoldierCount());
         refreshLeadership();
         return recruit;
     }
@@ -802,129 +847,7 @@ public class MarineRoster implements Serializable {
             MarineSoldier recruit = createRecruit();
             assignToSquad(recruit);
         }
-        armory.ensureBasicIssue(activeSoldierCount());
         refreshLeadership();
-    }
-
-    public boolean allocatePrimary(String soldierId, String weaponId, EquipmentGrade grade) {
-        MarineSoldier soldier = soldierById(soldierId);
-        if (!canAllocatePrimary(soldierId, weaponId, grade)) return false;
-        soldier.setPrimary(weaponId, grade);
-        return true;
-    }
-    public boolean allocatePrimary(String soldierId, WeaponDef weapon,
-                                   EquipmentGrade grade) {
-        return weapon != null && allocatePrimary(soldierId, weapon.id, grade);
-    }
-
-    public boolean canAllocatePrimary(String soldierId, String weaponId, EquipmentGrade grade) {
-        MarineSoldier soldier = soldierById(soldierId);
-        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
-                || isStationed(soldierId)
-                || !armory.isPrimaryUnlocked(weaponId, grade)) return false;
-        if (WeaponRegistry.STARTER_PRIMARY_ID.equals(weaponId)
-                && grade == EquipmentGrade.SERVICE) return true;
-        int allocated = 0;
-        for (MarineSoldier other : soldiers) {
-            if (other != soldier && holdsAllocatedGear(other)
-                    && Objects.equals(other.primaryId(), weaponId)
-                    && other.primaryGrade() == grade) allocated++;
-        }
-        return allocated < armory.ownedPrimary(weaponId, grade);
-    }
-    public boolean canAllocatePrimary(String soldierId,
-                                      WeaponDef weapon,
-                                      EquipmentGrade grade) {
-        return weapon != null && canAllocatePrimary(soldierId, weapon.id, grade);
-    }
-
-    public boolean allocateSecondary(String soldierId, String specialEquipmentId) {
-        MarineSoldier soldier = soldierById(soldierId);
-        if (!canAllocateSecondary(soldierId, specialEquipmentId)) return false;
-        if (specialEquipmentId == null) {
-            soldier.setSpecialEquipment(null);
-            return true;
-        }
-        soldier.setSpecialEquipment(specialEquipmentId);
-        return true;
-    }
-    public boolean allocateSecondary(String soldierId, SpecialEquipmentDef special) {
-        return special != null && allocateSecondary(soldierId, special.id());
-    }
-
-    public boolean canAllocateSecondary(String soldierId, String specialEquipmentId) {
-        MarineSoldier soldier = soldierById(soldierId);
-        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
-                || isStationed(soldierId)) return false;
-        if (specialEquipmentId == null) return true;
-        if (!armory.isSecondaryUnlocked(specialEquipmentId)) return false;
-        int allocated = 0;
-        for (MarineSoldier other : soldiers) {
-            if (other != soldier && holdsAllocatedGear(other)
-                    && Objects.equals(other.specialEquipmentId(),
-                    specialEquipmentId)) allocated++;
-        }
-        return allocated < armory.ownedSecondary(specialEquipmentId);
-    }
-    public boolean canAllocateSecondary(String soldierId, SpecialEquipmentDef special) {
-        return special != null && canAllocateSecondary(soldierId, special.id());
-    }
-
-    public boolean allocateArmor(String soldierId, MarineArmorPattern armor) {
-        MarineSoldier soldier = soldierById(soldierId);
-        if (!canAllocateArmor(soldierId, armor)) return false;
-        soldier.setArmor(armor);
-        // Armour sets the experience band, and stripes follow the band, so an
-        // armour change is a leadership change ({@code progression-nouns.md}).
-        refreshLeadership();
-        return true;
-    }
-
-    public boolean canAllocateArmor(String soldierId, MarineArmorPattern armor) {
-        MarineSoldier soldier = soldierById(soldierId);
-        if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
-                || isStationed(soldierId)
-                || !armory.isArmorUnlocked(armor)) return false;
-        int allocated = 0;
-        for (MarineSoldier other : soldiers) {
-            if (other != soldier && holdsAllocatedGear(other)
-                    && other.armor() == armor) allocated++;
-        }
-        return allocated < armory.ownedArmor(armor);
-    }
-
-    /** UI helper: walk the owned/unlocked primary catalog, wrapping at the end. */
-    public boolean cyclePrimary(String soldierId) {
-        MarineSoldier soldier = soldierById(soldierId);
-        if (soldier == null) return false;
-        List<String> weapons = EquipmentTemplateCatalog.playerPrimaryIds().stream()
-                .filter(id -> !WeaponRegistry.STARTER_PRIMARY_ID.equals(id)).toList();
-        EquipmentGrade[] grades = EquipmentGrade.values();
-        int familyIndex = weapons.indexOf(soldier.primaryId());
-        int start = familyIndex < 0 ? 0
-                : 1 + familyIndex * grades.length + soldier.primaryGrade().ordinal();
-        int total = 1 + weapons.size() * grades.length;
-        for (int offset = 1; offset <= total; offset++) {
-            int index = (start + offset) % total;
-            String weaponId = index == 0 ? WeaponRegistry.STARTER_PRIMARY_ID
-                    : weapons.get((index - 1) / grades.length);
-            EquipmentGrade grade = index == 0 ? EquipmentGrade.SERVICE
-                    : grades[(index - 1) % grades.length];
-            if (allocatePrimary(soldierId, weaponId, grade)) return true;
-        }
-        return false;
-    }
-
-    /** UI helper: walk owned/unlocked armor patterns, wrapping at the end. */
-    public boolean cycleArmor(String soldierId) {
-        MarineSoldier soldier = soldierById(soldierId);
-        if (soldier == null) return false;
-        MarineArmorPattern[] patterns = MarineArmorPattern.values();
-        for (int offset = 1; offset <= patterns.length; offset++) {
-            MarineArmorPattern next = patterns[(soldier.armor().ordinal() + offset) % patterns.length];
-            if (allocateArmor(soldierId, next)) return true;
-        }
-        return false;
     }
 
     /** Headless/debug preview with no cargo constraint. Campaign callers provide resources. */
@@ -976,21 +899,20 @@ public class MarineRoster implements Serializable {
                     weapon.specialEquipmentId(), armor.issueId(index)));
         }
         if (squad.stationed()) {
-            return new SquadEquipmentPreview(
-                    SquadEquipmentResult.STATIONED, billets, Collections.emptyList());
+            return new SquadEquipmentPreview(SquadEquipmentResult.STATIONED, billets);
         }
 
         List<String> memberIds = manningMemberIds(squad);
         if (memberIds.size() != MarineSquad.CAPACITY) {
             return new SquadEquipmentPreview(
-                    SquadEquipmentResult.SQUAD_NOT_READY, billets, Collections.emptyList());
+                    SquadEquipmentResult.SQUAD_NOT_READY, billets);
         }
         List<MarineSoldier> members = new ArrayList<>();
         for (String memberId : memberIds) {
             MarineSoldier soldier = soldierById(memberId);
             if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE) {
                 return new SquadEquipmentPreview(
-                        SquadEquipmentResult.SQUAD_NOT_READY, billets, Collections.emptyList());
+                        SquadEquipmentResult.SQUAD_NOT_READY, billets);
             }
             members.add(soldier);
         }
@@ -1025,8 +947,7 @@ public class MarineRoster implements Serializable {
                 ? SquadEquipmentResult.MISSING_TEMPLATE
                 : available.covers(cost)
                 ? SquadEquipmentResult.APPLIED : SquadEquipmentResult.INSUFFICIENT_CARGO;
-        return new SquadEquipmentPreview(result, billets, Collections.emptyList(),
-                cost, available);
+        return new SquadEquipmentPreview(result, billets, cost, available);
     }
 
     /** Headless/debug apply with no cargo constraint. Campaign callers provide resources. */
@@ -1081,107 +1002,7 @@ public class MarineRoster implements Serializable {
     }
 
     private static SquadEquipmentPreview squadEquipmentFailure(SquadEquipmentResult result) {
-        return new SquadEquipmentPreview(result, Collections.emptyList(), Collections.emptyList());
-    }
-
-    /** Company-wide use and free-stock capacity for one reusable design. */
-    public FireTeamTemplateAvailability fireTeamTemplateAvailability(String cardId) {
-        FireTeamTemplateCard card = armory.templateCardById(cardId);
-        if (card == null) return new FireTeamTemplateAvailability(0, 0, false);
-
-        int fielded = 0;
-        for (MarineSquad squad : squads) {
-            for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
-                if (card.id().equals(squad.teamTemplateCardId(team))) fielded++;
-            }
-        }
-        boolean unlocked = recipesUnlocked(card);
-        if (!unlocked) return new FireTeamTemplateAvailability(fielded, 0, false);
-
-        TemplateRequirements required = requirements(card);
-        int ready = Integer.MAX_VALUE;
-        for (Map.Entry<PrimaryIssue, Integer> entry : required.primaries.entrySet()) {
-            int free = freePrimary(entry.getKey());
-            if (free != FireTeamGearDelta.UNLIMITED) {
-                ready = Math.min(ready, free / entry.getValue());
-            }
-        }
-        for (Map.Entry<MarineArmorPattern, Integer> entry : required.armor.entrySet()) {
-            ready = Math.min(ready, freeArmor(entry.getKey()) / entry.getValue());
-        }
-        for (Map.Entry<String, Integer> entry : required.secondaries.entrySet()) {
-            ready = Math.min(ready, freeSecondary(entry.getKey()) / entry.getValue());
-        }
-        if (ready == Integer.MAX_VALUE) ready = 0;
-        return new FireTeamTemplateAvailability(fielded, Math.max(0, ready), true);
-    }
-
-    /**
-     * Previews the exact transaction used by {@link #applyFireTeamTemplate}.
-     * Free stock is reported before the target team returns its current issue.
-     */
-    public FireTeamRefitPreview previewFireTeamTemplate(String squadId, int teamIndex,
-                                                        String templateCardId) {
-        return previewRefits(List.of(new RefitRequest(squadId, teamIndex, templateCardId)));
-    }
-
-    /**
-     * Assigns one reusable template to one complete, ready fire team.
-     * The preview and mutation share one inventory calculation, and mutation
-     * begins only after that entire transaction succeeds.
-     */
-    public FireTeamTemplateResult applyFireTeamTemplate(String squadId, int teamIndex,
-                                                        String templateCardId) {
-        RefitRequest request = new RefitRequest(squadId, teamIndex, templateCardId);
-        FireTeamRefitPreview preview = previewRefits(List.of(request));
-        if (!preview.canApply()) return preview.result();
-        materializeRefits(List.of(request));
-        return FireTeamTemplateResult.APPLIED;
-    }
-
-    /** Evaluates two teams exchanging their assigned templates as one net transaction. */
-    public FireTeamRefitPreview previewFireTeamTemplateSwap(
-            String firstSquadId, int firstTeamIndex,
-            String secondSquadId, int secondTeamIndex) {
-        if (firstSquadId != null && firstSquadId.equals(secondSquadId)
-                && firstTeamIndex == secondTeamIndex) {
-            return new FireTeamRefitPreview(
-                    FireTeamTemplateResult.INVALID_FIRE_TEAM, Collections.emptyList());
-        }
-        MarineSquad first = squadById(firstSquadId);
-        MarineSquad second = squadById(secondSquadId);
-        if (first == null || second == null) {
-            return new FireTeamRefitPreview(
-                    FireTeamTemplateResult.INVALID_FIRE_TEAM, Collections.emptyList());
-        }
-        String firstCardId = first.teamTemplateCardId(firstTeamIndex);
-        String secondCardId = second.teamTemplateCardId(secondTeamIndex);
-        if (firstCardId == null || secondCardId == null) {
-            return new FireTeamRefitPreview(
-                    FireTeamTemplateResult.UNKNOWN_TEMPLATE, Collections.emptyList());
-        }
-        return previewRefits(List.of(
-                new RefitRequest(firstSquadId, firstTeamIndex, secondCardId),
-                new RefitRequest(secondSquadId, secondTeamIndex, firstCardId)));
-    }
-
-    /** Atomically exchanges the assigned designs and materialized issue of two teams. */
-    public FireTeamTemplateResult swapFireTeamTemplates(
-            String firstSquadId, int firstTeamIndex,
-            String secondSquadId, int secondTeamIndex) {
-        MarineSquad first = squadById(firstSquadId);
-        MarineSquad second = squadById(secondSquadId);
-        if (first == null || second == null) return FireTeamTemplateResult.INVALID_FIRE_TEAM;
-        String firstCardId = first.teamTemplateCardId(firstTeamIndex);
-        String secondCardId = second.teamTemplateCardId(secondTeamIndex);
-        List<RefitRequest> requests = List.of(
-                new RefitRequest(firstSquadId, firstTeamIndex, secondCardId),
-                new RefitRequest(secondSquadId, secondTeamIndex, firstCardId));
-        FireTeamRefitPreview preview = previewFireTeamTemplateSwap(
-                firstSquadId, firstTeamIndex, secondSquadId, secondTeamIndex);
-        if (!preview.canApply()) return preview.result();
-        materializeRefits(requests);
-        return FireTeamTemplateResult.APPLIED;
+        return new SquadEquipmentPreview(result, Collections.emptyList());
     }
 
     /** Number of squads whose current Alpha/Bravo/Charlie assignments match this plan. */
@@ -1202,173 +1023,6 @@ public class MarineRoster implements Serializable {
         return fielded;
     }
 
-    /** Previews all three template assignments as one squad-wide inventory transaction. */
-    public SquadArrangementPreview previewSquadArrangement(String squadId,
-                                                            String arrangementId) {
-        SquadArrangement arrangement = armory.squadArrangementById(arrangementId);
-        if (arrangement == null) {
-            return new SquadArrangementPreview(
-                    FireTeamTemplateResult.UNKNOWN_ARRANGEMENT, Collections.emptyList());
-        }
-        FireTeamRefitPreview preview = previewRefits(arrangementRequests(squadId, arrangement));
-        return new SquadArrangementPreview(preview.result(), preview.gear());
-    }
-
-    /** Applies Alpha, Bravo and Charlie together, or leaves the whole squad untouched. */
-    public FireTeamTemplateResult applySquadArrangement(String squadId,
-                                                        String arrangementId) {
-        SquadArrangement arrangement = armory.squadArrangementById(arrangementId);
-        if (arrangement == null) return FireTeamTemplateResult.UNKNOWN_ARRANGEMENT;
-        List<RefitRequest> requests = arrangementRequests(squadId, arrangement);
-        FireTeamRefitPreview preview = previewRefits(requests);
-        if (!preview.canApply()) return preview.result();
-        materializeRefits(requests);
-        return FireTeamTemplateResult.APPLIED;
-    }
-
-    private List<RefitRequest> arrangementRequests(String squadId,
-                                                   SquadArrangement arrangement) {
-        List<RefitRequest> requests = new ArrayList<>();
-        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
-            requests.add(new RefitRequest(squadId, team, arrangement.templateId(team)));
-        }
-        return requests;
-    }
-
-    private FireTeamRefitPreview previewRefits(List<RefitRequest> requests) {
-        if (requests == null || requests.isEmpty()) {
-            return new FireTeamRefitPreview(
-                    FireTeamTemplateResult.INVALID_FIRE_TEAM, Collections.emptyList());
-        }
-
-        List<RefitPlan> plans = new ArrayList<>();
-        Set<String> targetIds = new HashSet<>();
-        for (RefitRequest request : requests) {
-            MarineSquad squad = squadById(request.squadId);
-            if (squad == null || squad.reserve() || request.teamIndex < 0
-                    || request.teamIndex >= MarineSquad.TEAMS_PER_SQUAD) {
-                return new FireTeamRefitPreview(
-                        FireTeamTemplateResult.INVALID_FIRE_TEAM, Collections.emptyList());
-            }
-            if (squad.stationed()) {
-                return new FireTeamRefitPreview(
-                        FireTeamTemplateResult.STATIONED, Collections.emptyList());
-            }
-            FireTeamTemplateCard card = armory.templateCardById(request.cardId);
-            if (card == null) {
-                return new FireTeamRefitPreview(
-                        FireTeamTemplateResult.UNKNOWN_TEMPLATE, Collections.emptyList());
-            }
-            List<String> memberIds = teamMemberIds(squad, request.teamIndex);
-            if (memberIds.size() != MarineSquad.TEAM_SIZE) {
-                return new FireTeamRefitPreview(
-                        FireTeamTemplateResult.TEAM_NOT_READY, Collections.emptyList());
-            }
-            List<MarineSoldier> team = new ArrayList<>();
-            for (String memberId : memberIds) {
-                MarineSoldier soldier = soldierById(memberId);
-                if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE
-                        || !targetIds.add(memberId)) {
-                    return new FireTeamRefitPreview(
-                            FireTeamTemplateResult.TEAM_NOT_READY, Collections.emptyList());
-                }
-                team.add(soldier);
-            }
-            plans.add(new RefitPlan(squad, request.teamIndex, team, card));
-        }
-
-        Map<PrimaryIssue, Integer> requiredPrimaries = new HashMap<>();
-        Map<MarineArmorPattern, Integer> requiredArmor = new HashMap<>();
-        Map<String, Integer> requiredSecondaries = new HashMap<>();
-        Map<PrimaryIssue, Integer> returnedPrimaries = new HashMap<>();
-        Map<MarineArmorPattern, Integer> returnedArmor = new HashMap<>();
-        Map<String, Integer> returnedSecondaries = new HashMap<>();
-        boolean unlocked = true;
-
-        for (RefitPlan plan : plans) {
-            TemplateRequirements required = requirements(plan.card);
-            mergeCounts(requiredPrimaries, required.primaries);
-            mergeCounts(requiredArmor, required.armor);
-            mergeCounts(requiredSecondaries, required.secondaries);
-            unlocked &= recipesUnlocked(plan.card);
-            for (MarineSoldier soldier : plan.team) {
-                returnedPrimaries.merge(new PrimaryIssue(
-                        soldier.primaryId(), soldier.primaryGrade()), 1, Integer::sum);
-                returnedArmor.merge(soldier.armor(), 1, Integer::sum);
-                if (soldier.specialEquipmentId() != null) {
-                    returnedSecondaries.merge(soldier.specialEquipmentId(), 1, Integer::sum);
-                }
-            }
-        }
-
-        List<FireTeamGearDelta> gear = new ArrayList<>();
-        for (String weaponId : EquipmentTemplateCatalog.playerPrimaryIds()) {
-            for (EquipmentGrade grade : EquipmentGrade.values()) {
-                PrimaryIssue issue = new PrimaryIssue(weaponId, grade);
-                int returned = returnedPrimaries.getOrDefault(issue, 0);
-                int required = requiredPrimaries.getOrDefault(issue, 0);
-                if (returned == 0 && required == 0) continue;
-                gear.add(new FireTeamGearDelta(FireTeamGearDelta.Kind.PRIMARY,
-                        WeaponRegistry.require(weaponId).catalogName(grade.tier),
-                        freePrimary(issue), returned, required));
-            }
-        }
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
-            int returned = returnedArmor.getOrDefault(armor, 0);
-            int required = requiredArmor.getOrDefault(armor, 0);
-            if (returned == 0 && required == 0) continue;
-            gear.add(new FireTeamGearDelta(FireTeamGearDelta.Kind.ARMOR,
-                    armor.displayName, freeArmor(armor), returned, required));
-        }
-        for (SpecialEquipmentDef special : SpecialEquipmentRegistry.installed().all()) {
-            int returned = returnedSecondaries.getOrDefault(special.id(), 0);
-            int required = requiredSecondaries.getOrDefault(special.id(), 0);
-            if (returned == 0 && required == 0) continue;
-            gear.add(new FireTeamGearDelta(FireTeamGearDelta.Kind.SPECIAL,
-                    special.displayName(), freeSecondary(special.id()), returned, required));
-        }
-
-        FireTeamTemplateResult result = unlocked ? insufficiency(gear)
-                : FireTeamTemplateResult.LOCKED_RECIPE;
-        return new FireTeamRefitPreview(result, gear);
-    }
-
-    private FireTeamTemplateResult insufficiency(List<FireTeamGearDelta> gear) {
-        for (FireTeamGearDelta delta : gear) {
-            if (delta.kind() == FireTeamGearDelta.Kind.PRIMARY && !delta.sufficient()) {
-                return FireTeamTemplateResult.INSUFFICIENT_PRIMARIES;
-            }
-        }
-        for (FireTeamGearDelta delta : gear) {
-            if (delta.kind() == FireTeamGearDelta.Kind.ARMOR && !delta.sufficient()) {
-                return FireTeamTemplateResult.INSUFFICIENT_ARMOR;
-            }
-        }
-        for (FireTeamGearDelta delta : gear) {
-            if (delta.kind() == FireTeamGearDelta.Kind.SPECIAL && !delta.sufficient()) {
-                return FireTeamTemplateResult.INSUFFICIENT_SECONDARIES;
-            }
-        }
-        return FireTeamTemplateResult.APPLIED;
-    }
-
-    private void materializeRefits(List<RefitRequest> requests) {
-        for (RefitRequest request : requests) {
-            MarineSquad squad = squadById(request.squadId);
-            FireTeamTemplateCard card = armory.templateCardById(request.cardId);
-            List<String> members = teamMemberIds(squad, request.teamIndex);
-            for (int i = 0; i < members.size(); i++) {
-                MarineSoldier soldier = soldierById(members.get(i));
-                FireTeamBillet billet = card.billet(i);
-                soldier.setPrimary(billet.primaryId(), billet.grade());
-                soldier.setSpecialEquipment(billet.specialEquipmentId());
-                soldier.setArmor(billet.armor());
-            }
-            squad.setTeamTemplateCardId(request.teamIndex, card.id());
-        }
-        refreshLeadership();
-    }
-
     private boolean recipesUnlocked(FireTeamTemplateCard card) {
         for (FireTeamBillet billet : card.billets()) {
             if (!armory.isPrimaryUnlocked(billet.primaryId(), billet.grade())
@@ -1378,67 +1032,6 @@ public class MarineRoster implements Serializable {
         }
         return true;
     }
-
-    private TemplateRequirements requirements(FireTeamTemplateCard card) {
-        Map<PrimaryIssue, Integer> primaries = new HashMap<>();
-        Map<MarineArmorPattern, Integer> armor = new HashMap<>();
-        Map<String, Integer> secondaries = new HashMap<>();
-        for (FireTeamBillet billet : card.billets()) {
-            primaries.merge(new PrimaryIssue(
-                    billet.primaryId(), billet.grade()), 1, Integer::sum);
-            armor.merge(billet.armor(), 1, Integer::sum);
-            if (billet.specialEquipmentId() != null) {
-                secondaries.merge(billet.specialEquipmentId(), 1, Integer::sum);
-            }
-        }
-        return new TemplateRequirements(primaries, armor, secondaries);
-    }
-
-    private int freePrimary(PrimaryIssue issue) {
-        if (WeaponRegistry.STARTER_PRIMARY_ID.equals(issue.weaponId)
-                && issue.grade == EquipmentGrade.SERVICE) {
-            return FireTeamGearDelta.UNLIMITED;
-        }
-        int allocated = 0;
-        for (MarineSoldier soldier : soldiers) {
-            if (holdsAllocatedGear(soldier)
-                    && Objects.equals(soldier.primaryId(), issue.weaponId)
-                    && soldier.primaryGrade() == issue.grade) allocated++;
-        }
-        return Math.max(0, armory.ownedPrimary(issue.weaponId, issue.grade) - allocated);
-    }
-
-    private int freeArmor(MarineArmorPattern armor) {
-        int allocated = 0;
-        for (MarineSoldier soldier : soldiers) {
-            if (holdsAllocatedGear(soldier) && soldier.armor() == armor) allocated++;
-        }
-        return Math.max(0, armory.ownedArmor(armor) - allocated);
-    }
-
-    private int freeSecondary(String specialEquipmentId) {
-        int allocated = 0;
-        for (MarineSoldier soldier : soldiers) {
-            if (holdsAllocatedGear(soldier)
-                    && Objects.equals(soldier.specialEquipmentId(),
-                    specialEquipmentId)) allocated++;
-        }
-        return Math.max(0, armory.ownedSecondary(specialEquipmentId) - allocated);
-    }
-
-    private static <K> void mergeCounts(Map<K, Integer> target, Map<K, Integer> source) {
-        for (Map.Entry<K, Integer> entry : source.entrySet()) {
-            target.merge(entry.getKey(), entry.getValue(), Integer::sum);
-        }
-    }
-
-    private record PrimaryIssue(String weaponId, EquipmentGrade grade) {}
-    private record TemplateRequirements(Map<PrimaryIssue, Integer> primaries,
-                                        Map<MarineArmorPattern, Integer> armor,
-                                        Map<String, Integer> secondaries) {}
-    private record RefitRequest(String squadId, int teamIndex, String cardId) {}
-    private record RefitPlan(MarineSquad squad, int teamIndex,
-                             List<MarineSoldier> team, FireTeamTemplateCard card) {}
 
     public void applySoldierOutcome(Set<String> survivors, Set<String> fallen) {
         if (fallen != null) {
@@ -1538,11 +1131,6 @@ public class MarineRoster implements Serializable {
             if (soldier.status() == MarineSoldierStatus.ACTIVE) count++;
         }
         return count;
-    }
-
-    private static boolean holdsAllocatedGear(MarineSoldier soldier) {
-        return soldier.status() == MarineSoldierStatus.ACTIVE
-                || soldier.status() == MarineSoldierStatus.WIA;
     }
 
     private static SoldierAptitude aptitudeFor(int number) {

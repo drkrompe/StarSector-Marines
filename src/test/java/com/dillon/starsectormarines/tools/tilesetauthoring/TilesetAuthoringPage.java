@@ -33,15 +33,24 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Turns a raw art sheet into a tileset the game can load.
@@ -106,6 +115,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     /** Explicit atlas destination from the document; empty derives it from content. */
     private String outputSheet = "";
     private boolean dirty;
+    /** True while the table is being set from the canvas, so it does not answer back. */
+    private boolean syncingSelection;
 
     public TilesetAuthoringPage(AuthoringPageContext context) {
         this.context = context;
@@ -171,6 +182,11 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             }
         });
         bar.addSeparator();
+        bar.add(new AbstractAction("Copy selection for LLM") {
+            @Override public void actionPerformed(ActionEvent e) {
+                copySelectionForModel();
+            }
+        });
         JButton export = new JButton(new AbstractAction("Export tileset") {
             @Override public void actionPerformed(ActionEvent e) {
                 export();
@@ -182,10 +198,25 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         table.getSelectionModel().addListSelectionListener(e -> {
             model.selectedRows = table.getSelectedRows();
-            view.highlight = table.getSelectedRow();
-            view.repaint();
+            if (!syncingSelection) view.showSelection(model.selectedRows);
             describeSelectedSlot();
         });
+        // The picture is the surface the work happens on, so a selection made
+        // there drives the table rather than the other way round. The guard is
+        // what keeps the two from answering each other forever.
+        view.onSelectionChanged = () -> {
+            syncingSelection = true;
+            try {
+                table.clearSelection();
+                int[] rows = view.selection();
+                for (int row : rows) table.addRowSelectionInterval(row, row);
+                if (rows.length > 0) {
+                    table.scrollRectToVisible(table.getCellRect(rows[0], 0, true));
+                }
+            } finally {
+                syncingSelection = false;
+            }
+        };
 
         JScrollPane tableScroll = new JScrollPane(table);
         tableScroll.setPreferredSize(new Dimension(520, 260));
@@ -341,6 +372,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             outputSheet = document.outputSheet;
             model.setEntries(document.entries);
             view.setEntries(document.entries);
+            syncGrid();
             dirty = false;
             context.stateChanged();
             if (!sheetNote.isEmpty()) {
@@ -473,6 +505,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 pieces, model.entries, idPrefix.getText().trim(), cellPxX(), cellPxY());
         model.setEntries(reconciled.entries());
         view.setEntries(reconciled.entries());
+        syncGrid();
         markDirty();
         context.reportStatus("Re-sliced: " + reconciled.summary());
         report();
@@ -488,31 +521,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         int cols = (Integer) gridCols.getValue();
         int gridDown = (Integer) gridRows.getValue();
         if (cols == 1 && gridDown == 1) {
-            AuthoringMessages.info(root, "Split on grid",
-                    "The grid is 1 x 1, so splitting would change nothing. Set it to the "
-                            + "layout the sheet was generated to — a 20-frame strip is 20 x 1 "
-                            + "— and the cells need not be square.");
+            AuthoringMessages.info(root, "Split on grid", TilesetOperations.DEGENERATE_GRID_MESSAGE);
             return;
         }
-        List<TilesetExport.Entry> replaced = new ArrayList<>();
-        for (TilesetExport.Entry entry : model.entries) {
-            if (!model.isSelected(entry)) {
-                replaced.add(entry);
-                continue;
-            }
-            int part = 0;
-            for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cols, gridDown)) {
-                TilesetExport.Entry split = new TilesetExport.Entry(
-                        piece, entry.id + "-" + (char) ('a' + part++));
-                split.cover = entry.cover;
-                // A plate's cells are one cell each by construction.
-                split.footprintX = 1;
-                split.footprintY = 1;
-                replaced.add(split);
-            }
-        }
+        List<TilesetExport.Entry> replaced =
+                TilesetOperations.splitOnGrid(model.entries, model::isSelected, cols, gridDown);
         model.setEntries(replaced);
         view.setEntries(replaced);
+        syncGrid();
         markDirty();
         report();
         refreshPreview();
@@ -567,14 +583,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                             + " has only " + slots.size() + " slots.");
             return;
         }
-        for (int i = 0; i < selected.size(); i++) {
-            TilesetExport.Entry entry = selected.get(i);
-            entry.blockId = blockId;
-            entry.slot = slots.get(i);
-            entry.included = true;
-        }
-        blocks.removeIf(spec -> spec.id.equals(blockId));
-        blocks.add(new TilesetExport.BlockSpec(blockId, chosen, fillRgb));
+        Map<String, TilesetExport.Entry> bySlot = new LinkedHashMap<>();
+        for (int i = 0; i < selected.size(); i++) bySlot.put(slots.get(i), selected.get(i));
+        TilesetOperations.setBlock(model.entries, blocks, blockId, chosen, fillRgb, bySlot);
         pruneEmptyBlocks();
         model.fireTableDataChanged();
         markDirty();
@@ -590,6 +601,56 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         row.add(new JLabel(text));
         row.add(field);
         return row;
+    }
+
+    /** Tell the canvas the stated cut, which is what makes a cell's coordinate mean something. */
+    private void syncGrid() {
+        view.setGrid((Integer) gridCols.getValue(), (Integer) gridRows.getValue());
+    }
+
+    /**
+     * Put the selection somewhere a model can look at it.
+     *
+     * <p>Two artifacts because the reader needs two things and neither
+     * substitutes for the other: an image, because the question is about art and
+     * nothing else conveys it, and a table under the same coordinates, because
+     * the reader's first duty is not to trample annotation that is already
+     * there. The image goes to a file and the text to the clipboard with that
+     * file's path in it, so one paste carries both — the path is readable
+     * directly by a session on this machine, and the file is there to attach
+     * for one that is not.
+     */
+    private void copySelectionForModel() {
+        if (source == null || model.entries.isEmpty()) {
+            AuthoringMessages.info(root, "Copy selection", "Open a sheet first.");
+            return;
+        }
+        List<TilesetSelectionReport.Cell> cells = TilesetSelectionReport.cells(
+                model.entries, model.selectedRows,
+                (Integer) gridCols.getValue(), (Integer) gridRows.getValue());
+        if (cells.isEmpty()) {
+            AuthoringMessages.info(root, "Copy selection",
+                    "Nothing is selected. Click a cell on the sheet, or drag a box across "
+                            + "several; ctrl-click adds one and shift-click extends the run.");
+            return;
+        }
+        String name = sheetNameOrDefault();
+        try {
+            Path directory = context.projectRoot().resolve("build").resolve("tileset-authoring");
+            Files.createDirectories(directory);
+            Path image = directory.resolve(name + "-selection.png");
+            ImageIO.write(TilesetSelectionReport.contactSheet(source,
+                    name + " — " + cells.size() + " selected", cells), "png", image.toFile());
+
+            String text = TilesetSelectionReport.markdown(name, sheetNote,
+                    model.entries.size(), cells, image.toString());
+            Toolkit.getDefaultToolkit().getSystemClipboard()
+                    .setContents(new StringSelection(text), null);
+            context.reportStatus(cells.size() + " cells copied; image at " + image);
+        } catch (Exception failure) {
+            AuthoringMessages.error(root, "Copy selection failed",
+                    "Could not write the selection image or reach the clipboard.", failure);
+        }
     }
 
     private List<TilesetExport.Entry> selectedEntries() {
@@ -708,11 +769,67 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     }
 
     /** The sheet with every detected piece outlined, so the slicing can be checked by eye. */
+    /**
+     * The sheet, with the cut drawn on it and selectable.
+     *
+     * <p>This is the surface the work actually happens on. The table beside it
+     * lists the same pieces, but a row there cannot be recognised — the id of a
+     * cut cell is a placeholder, and 100 of them in a scroll pane say nothing
+     * about which is the crate you were looking at. So selection starts here,
+     * on the picture, and the table follows.
+     *
+     * <p>Each cell is labelled with its {@code col,row}, which is the whole
+     * point of the label: it gives a person and a model the same name for the
+     * same cell. Without it the only way to point at a piece is prose about
+     * where it sits, and prose about position is exactly what stops being true
+     * the moment either party miscounts.
+     */
     private static final class SheetView extends JComponent {
 
         private BufferedImage sheet;
         private List<TilesetExport.Entry> entries = List.of();
-        private int highlight = -1;
+        private final SheetSelection selection = new SheetSelection();
+        private Runnable onSelectionChanged = () -> {};
+        private int gridCols;
+        private int gridRows;
+        private Point pressedAt;
+        private Rectangle band;
+
+        SheetView() {
+            MouseAdapter mouse = new MouseAdapter() {
+                @Override public void mousePressed(MouseEvent e) {
+                    pressedAt = e.getPoint();
+                    band = null;
+                    requestFocusInWindow();
+                }
+
+                @Override public void mouseDragged(MouseEvent e) {
+                    if (pressedAt == null) return;
+                    band = new Rectangle(pressedAt);
+                    band.add(e.getPoint());
+                    repaint();
+                }
+
+                @Override public void mouseReleased(MouseEvent e) {
+                    if (pressedAt == null) return;
+                    // A drag of a couple of pixels is a click with a shaky hand,
+                    // not a band select over one cell.
+                    boolean dragged = band != null
+                            && (band.width > DRAG_SLOP || band.height > DRAG_SLOP);
+                    if (dragged) {
+                        selectWithin(band, e);
+                    } else {
+                        clickAt(e);
+                    }
+                    pressedAt = null;
+                    band = null;
+                    repaint();
+                }
+            };
+            addMouseListener(mouse);
+            addMouseMotionListener(mouse);
+            setFocusable(true);
+        }
 
         void setSheet(BufferedImage sheet) {
             this.sheet = sheet;
@@ -723,8 +840,62 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
         void setEntries(List<TilesetExport.Entry> entries) {
             this.entries = entries;
-            this.highlight = -1;
+            selection.clear();
             repaint();
+        }
+
+        /** The stated cut, which is what makes a cell's coordinate meaningful. */
+        void setGrid(int cols, int rows) {
+            this.gridCols = cols;
+            this.gridRows = rows;
+            repaint();
+        }
+
+        /** Set from outside — the table — without calling back and starting a loop. */
+        void showSelection(int[] rows) {
+            selection.set(rows);
+            repaint();
+        }
+
+        int[] selection() {
+            return selection.toArray();
+        }
+
+        private void clickAt(MouseEvent e) {
+            selection.click(entryAt(e.getX(), e.getY()), isToggle(e), e.isShiftDown());
+            onSelectionChanged.run();
+        }
+
+        private void selectWithin(Rectangle area, MouseEvent e) {
+            selection.band(entries, area, isAdditive(e));
+            onSelectionChanged.run();
+        }
+
+        private static boolean isToggle(MouseEvent e) {
+            return e.isControlDown() || e.isMetaDown();
+        }
+
+        private static boolean isAdditive(MouseEvent e) {
+            return isToggle(e) || e.isShiftDown();
+        }
+
+        /** Topmost piece under the point, or -1. Later entries win, matching what is drawn. */
+        private int entryAt(int x, int y) {
+            for (int i = entries.size() - 1; i >= 0; i--) {
+                SheetSlicer.Piece p = entries.get(i).piece;
+                if (x >= p.x() && y >= p.y()
+                        && x < p.x() + p.width() && y < p.y() + p.height()) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        /** How this cell is named out loud: its grid coordinate, or failing that its index. */
+        private String labelFor(int index) {
+            boolean isGrid = gridCols > 0 && gridRows > 0
+                    && gridCols * gridRows == entries.size();
+            return isGrid ? (index % gridCols) + "," + (index / gridCols) : "#" + index;
         }
 
         @Override
@@ -735,20 +906,44 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             g.setColor(new Color(0x10, 0x14, 0x1a));
             g.fillRect(0, 0, getWidth(), getHeight());
             if (sheet != null) g.drawImage(sheet, 0, 0, null);
+            g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
             for (int i = 0; i < entries.size(); i++) {
                 TilesetExport.Entry entry = entries.get(i);
                 SheetSlicer.Piece p = entry.piece;
+                boolean picked = selection.contains(i);
+                if (picked) {
+                    g.setColor(SELECTED_WASH);
+                    g.fillRect(p.x(), p.y(), p.width(), p.height());
+                }
                 g.setColor(!entry.included ? new Color(0x55, 0x5a, 0x62)
-                        : i == highlight ? new Color(0x6b, 0xe0, 0xff)
+                        : picked ? new Color(0x6b, 0xe0, 0xff)
                         : new Color(0xff, 0x5c, 0x5c));
                 g.drawRect(p.x() - 1, p.y() - 1, p.width() + 1, p.height() + 1);
-                if (i == highlight) {
-                    g.drawRect(p.x() - 2, p.y() - 2, p.width() + 3, p.height() + 3);
+                if (picked) g.drawRect(p.x() - 2, p.y() - 2, p.width() + 3, p.height() + 3);
+                // A label larger than the cell it names is worse than no label.
+                if (p.width() >= LABEL_MIN_PX && p.height() >= LABEL_MIN_PX) {
+                    String label = labelFor(i);
+                    int width = g.getFontMetrics().stringWidth(label) + 6;
+                    g.setColor(LABEL_BACKDROP);
+                    g.fillRect(p.x() + 1, p.y() + 1, width, 14);
+                    g.setColor(picked ? new Color(0x9f, 0xef, 0xff) : new Color(0xff, 0xe6, 0x78));
+                    g.drawString(label, p.x() + 4, p.y() + 12);
                 }
+            }
+            if (band != null) {
+                g.setColor(new Color(0x6b, 0xe0, 0xff));
+                g.drawRect(band.x, band.y, band.width, band.height);
             }
             g.dispose();
         }
     }
+
+    /** Pixels of movement below which a press-and-release is a click. */
+    private static final int DRAG_SLOP = 4;
+    /** Cell edge below which a coordinate label would cover the art it names. */
+    private static final int LABEL_MIN_PX = 26;
+    private static final Color SELECTED_WASH = new Color(0x6b, 0xe0, 0xff, 48);
+    private static final Color LABEL_BACKDROP = new Color(0x00, 0x00, 0x00, 170);
 
     /** Editable view of the sliced pieces: role, id, footprint, cover, and whether it ships. */
     private final class EntryTableModel extends AbstractTableModel {

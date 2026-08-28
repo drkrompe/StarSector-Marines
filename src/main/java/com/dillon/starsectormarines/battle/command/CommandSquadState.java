@@ -18,5 +18,14 @@ public record CommandSquadState(
         String executionSuspension,
         ObjectiveAssignment assignment,
         CommandDirective directive,
-        int activePathMembers) {
+        int activePathMembers,
+        int[] memberZoneIds) {
+
+    public CommandSquadState {
+        memberZoneIds = memberZoneIds.clone();
+    }
+
+    @Override public int[] memberZoneIds() {
+        return memberZoneIds.clone();
+    }
 }

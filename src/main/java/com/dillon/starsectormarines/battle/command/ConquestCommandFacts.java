@@ -14,7 +14,9 @@ public final class ConquestCommandFacts {
     public record Compound(
             CompoundService.CompoundState state,
             TacticalNode node,
-            int anchorZoneId,
+            int captureCellX,
+            int captureCellY,
+            int captureZoneId,
             int[] garrisonZoneIds) {
 
         public Compound {
@@ -37,11 +39,12 @@ public final class ConquestCommandFacts {
         List<Compound> facts = new ArrayList<>();
         for (CompoundService.Record record : sim.getCompoundService().getRecords()) {
             TacticalNode node = CommandFrameCopies.node(record.node);
-            int anchorZone = sim.getZoneGraph().zoneIdAt(
-                    record.node.anchorX, record.node.anchorY);
+            int captureZone = sim.getCompoundService()
+                    .captureZoneId(record, sim);
             List<Integer> garrison = GarrisonArea.garrisonZones(record.node,
                     ConquestCommand.GARRISON_MARGIN, sim);
-            facts.add(new Compound(record.state, node, anchorZone,
+            facts.add(new Compound(record.state, node,
+                    record.captureCellX, record.captureCellY, captureZone,
                     garrison.stream().mapToInt(Integer::intValue).toArray()));
         }
         return new ConquestCommandFacts(facts);

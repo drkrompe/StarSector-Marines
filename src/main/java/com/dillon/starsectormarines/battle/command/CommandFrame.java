@@ -53,8 +53,11 @@ public class CommandFrame {
             UnitRole role = memberCount > 0
                     ? sim.role().role(sim.squadMemberAt(squad.id, 0)) : null;
             int activePathMembers = 0;
+            int[] memberZoneIds = new int[memberCount];
             for (int memberIndex = 0; memberIndex < memberCount; memberIndex++) {
                 long member = sim.squadMemberAt(squad.id, memberIndex);
+                memberZoneIds[memberIndex] = sim.getZoneGraph().zoneIdAt(
+                        sim.world().cellX(member), sim.world().cellY(member));
                 if (sim.world().pathIdx(member)
                         < Paths.cellCount(sim.world().path(member))) {
                     activePathMembers++;
@@ -66,7 +69,8 @@ public class CommandFrame {
                     role, WorldStateBuilder.hasActionableContact(squad, sim),
                     squad.assignmentExecutionSuspension(),
                     CommandFrameCopies.assignment(squad.assignedObjective),
-                    ownAssignments.directiveFor(squad.id), activePathMembers));
+                    ownAssignments.directiveFor(squad.id), activePathMembers,
+                    memberZoneIds));
         }
         rows.sort(Comparator.comparingInt(CommandSquadState::squadId));
         return new CommandFrame(sim.getSimTickIndex(), perspective, rows,
