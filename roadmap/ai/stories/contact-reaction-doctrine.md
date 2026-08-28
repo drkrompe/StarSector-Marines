@@ -4,7 +4,10 @@ Status: IN PROGRESS — live battle found and implementation closes the contact-
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — automated coverage now protects dispersed contact locality, actionable belief validity, movement resumption after a cleared contact, fixing movement, and flank handoff.
+Updated: 2026-08-28 — automated coverage protects dispersed contact locality,
+actionable belief validity, movement resumption after cleared contact, fixing
+movement, flank handoff, and the mission-plan handoff into cooldown-staggered
+post-shot cover movement under RECEIVE.
 
 Read `ai-nouns.md` before running this acceptance.
 
@@ -39,6 +42,10 @@ Read `ai-nouns.md` before running this acceptance.
 - [ ] Select the squad and create a state dump during both initiatives. Confirm
   the UI and JSON agree on initiative, engageable members, engageable teams,
   total live teams, and whether the advancing hard hold is active.
+- [ ] While an advancing squad receives contact, confirm its legal shooters
+  cancel the long objective route, fire stanced, and stagger only into strictly
+  better nearby directional cover between bursts. Squads with no better cover
+  should remain planted rather than resume the objective or chase.
 
 ## Out of scope
 

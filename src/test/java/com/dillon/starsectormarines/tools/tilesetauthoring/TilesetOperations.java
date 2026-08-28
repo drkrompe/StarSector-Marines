@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
+import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
+import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -40,10 +42,26 @@ public final class TilesetOperations {
 
     private TilesetOperations() {}
 
-    /** Where an export put things, so the caller can say what it wrote. */
+    /**
+     * Where an export put things, so the caller can say what it wrote.
+     *
+     * <p>A grid sheet reports its extent in cells and counts its doodads and
+     * blocks. A sliced strip has none of those: {@code columns} and {@code rows}
+     * are its pixel extent and {@code doodads} is its frame count, because a
+     * frame is neither a cell nor a prop. {@link #extent} phrases whichever it
+     * is, so a caller does not have to know.
+     */
     public record ExportResult(Path atlasPath, Path tilesetPath, Path cardPath,
                                String sheetPath, int columns, int rows,
-                               int doodads, int blocks) {}
+                               int doodads, int blocks, boolean strip) {
+
+        public String extent() {
+            return strip
+                    ? columns + "x" + rows + " px, " + doodads + " frames"
+                    : columns + "x" + rows + " cells, " + doodads + " doodads, "
+                            + blocks + " blocks";
+        }
+    }
 
     /**
      * Read the raw sheet a document annotates.
@@ -397,6 +415,11 @@ public final class TilesetOperations {
                 .resolve(name + ".tileset.json");
         Path cardPath = tilesetPath.resolveSibling(name + ".tileset.md");
 
+        if (document.isStrip()) {
+            return exportStrip(document, sheet, name, sheetPath,
+                    atlasPath, tilesetPath, cardPath);
+        }
+
         BufferedImage atlas =
                 TilesetExport.atlas(sheet, document.entries, document.blocks, document.cellPx);
         TilesetExport.write(atlas,
@@ -411,7 +434,57 @@ public final class TilesetOperations {
             if (entry.included && !entry.isBlockMember()) doodads++;
         }
         return new ExportResult(atlasPath, tilesetPath, cardPath, sheetPath,
-                packing.columns(), packing.rows(), doodads, packing.blockOrigins().size());
+                packing.columns(), packing.rows(), doodads, packing.blockOrigins().size(), false);
+    }
+
+    /**
+     * Export the sheet as a strip, and prove the loader finds the frames back.
+     *
+     * <p>A sliced sheet's addresses are the frame indices the loader assigns by
+     * scanning the atlas it has just been handed, so nothing in the tileset can
+     * be checked against the atlas by reading it: a piece that fused with its
+     * neighbour or split down an internal gap renumbers every frame after it and
+     * leaves a document that still loads, still validates, and draws the wrong
+     * tile everywhere. The only check that means anything is to run the loader's
+     * own slicer over the atlas before it is written and require the frames it
+     * finds to be the frames that were packed.
+     */
+    private static ExportResult exportStrip(TilesetDocument document, BufferedImage sheet,
+                                            String name, String sheetPath, Path atlasPath,
+                                            Path tilesetPath, Path cardPath)
+            throws IOException, JSONException {
+        TilesetExport.StripSpec spec = document.strip;
+        TilesetExport.StripPacking packing = TilesetExport.packStrip(document.entries, spec);
+        BufferedImage atlas = TilesetExport.stripAtlas(sheet, document.entries, spec);
+        verifySliceable(atlas, packing);
+        TilesetExport.write(atlas,
+                TilesetExport.slicedTileset(sheetPath, document.entries, spec),
+                atlasPath, tilesetPath);
+        Files.writeString(cardPath,
+                TilesetCatalogCard.renderStrip(name, sheetPath, spec, packing.frames()));
+        return new ExportResult(atlasPath, tilesetPath, cardPath, sheetPath,
+                atlas.getWidth(), atlas.getHeight(), packing.frames().size(), 0, true);
+    }
+
+    /** Refuse to write a strip whose frames the loader would not find where they were put. */
+    private static void verifySliceable(BufferedImage atlas, TilesetExport.StripPacking packing)
+            throws IOException {
+        SpriteSheetFrames found = SpriteSheetSlicer.slice(atlas);
+        if (found.frames.length != packing.frames().size()) {
+            throw new IOException("the packed strip holds " + packing.frames().size()
+                    + " pieces but slices into " + found.frames.length + " frames, so every "
+                    + "id from the first difference on would name a different picture");
+        }
+        for (int i = 0; i < found.frames.length; i++) {
+            SpriteSheetFrames.Frame frame = found.frames[i];
+            TilesetExport.Entry entry = packing.frames().get(i);
+            if (frame.x < entry.frameX || frame.x + frame.w > entry.frameX + entry.frameWidth) {
+                throw new IOException("frame " + i + " (" + entry.id + ") slices to x "
+                        + frame.x + ".." + (frame.x + frame.w) + ", outside the "
+                        + entry.frameX + ".." + (entry.frameX + entry.frameWidth)
+                        + " it was packed into");
+            }
+        }
     }
 
     /**

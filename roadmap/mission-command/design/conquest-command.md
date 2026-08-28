@@ -4,8 +4,8 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — added observed retarget provenance and last-alive
-objective-distance/front-context evidence.
+Updated: 2026-08-28 — the lane-stage standoff reads the squad's own corridor,
+and a front believed off that line no longer withholds the order.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `conquest-nouns.md` for territory, compounds, supply, keep, and victory law.
@@ -26,8 +26,15 @@ front squad while actionable resistance exists when force size permits.
 
 When belief shows open-ground resistance but no discrete room is assignable,
 an advance-track order stages behind the hostile frontier, bounded by friendly
-lead, safe stride, reachability, and no-backtracking law. Local contact then
-hands execution to squad doctrine.
+lead, safe stride, reachability, and no-backtracking law. The frontier that
+sets a squad's standoff is read from the corridor along that squad's own line
+of advance rather than from the full width of its track: a track spans tens of
+cells laterally, and a contact at its far edge is not in front of the squad. A
+front believed in the track but not in that corridor drops the standoff and
+lets the remaining bounds size the step — knowing the lane is contested
+elsewhere is a reason to advance in step with the friendly line, never a reason
+to stand still. A track with no believed front at all still declines to stage.
+Local contact then hands execution to squad doctrine.
 
 When only the canonical keep remains, all available assault squads converge
 across track boundaries. If the keep is held and one earlier compound is the

@@ -4,7 +4,7 @@ Status: ACTIVE — shared observation composes current player visibility across 
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — temporary sources split into the host-projected and simulation-carried channels as the Janus sensor sweep joined them.
+Updated: 2026-08-28 — recorded that smoke occludes sight only while direct fire grades it, and split temporary sources into the host-projected and simulation-carried channels as the Janus sensor sweep joined them.
 
 Read `stories.md` for open work.
 
@@ -148,3 +148,9 @@ Fog responds by invalidating and recasting affected observation footprints,
 including stationary contributors, so player reveal reflects the same
 occlusion. It must not maintain a private smoke list or grant the player a
 different view through the cloud than battle AI receives.
+
+That occlusion is a sight rule and stops there. A cloud denies perception, fog
+reveal, and fresh target acquisition, but it does not gate direct fire — see
+`ballistics-nouns.md`, where smoke is graded obscuration on the round's
+accuracy. Fog must not acquire a second opinion about what a cloud does to a
+shot.
