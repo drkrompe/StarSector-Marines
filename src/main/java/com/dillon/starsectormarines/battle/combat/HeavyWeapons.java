@@ -150,7 +150,8 @@ public class HeavyWeapons {
                         fromX, fromY, res.endX(), res.endY(),
                         weapon.boostRamp, /*arcHeight*/ 0f,
                         shooterFaction, /*aerialDelivery*/ false,
-                        res.flightTime(), onArrival));
+                        res.flightTime(), onArrival, weapon.id,
+                        weapon.pointDefenseTarget));
             } else if (onArrival != null) {
                 detonations.queue(onArrival);
             }
@@ -191,7 +192,8 @@ public class HeavyWeapons {
                 fromX, fromY, ep.x(), ep.y(),
                 weapon.boostRamp, weapon.arcHeight,
                 shooterFaction, /*aerialDelivery*/ true,
-                weapon.flightSec, onArrival));
+                weapon.flightSec, onArrival, weapon.id,
+                weapon.pointDefenseTarget));
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
         shots.postShot(new ShotEvent(shooter, fromX, fromY, ep.x(), ep.y(), hit,
                 shooterFaction, lifetime, null, null, null, weapon, moraleImpact));

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.contact.CloseContactService;
+import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
@@ -165,6 +166,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SmokeFieldService smokeFields;
     /** Contact-demolition reservations, target attachments, and fuse lifecycle. */
     private final SatchelChargeService satchelCharges;
+    /** Owner of carrier-placed point-defence emplacements: placement queue, live pods, and their remaining lifetime / engagement budget. Ticked at the SATCHELS phase, immediately before the projectile advance it marks rounds for. */
+    private final PointDefenseService pointDefense;
     private final CloseContactService closeContact;
     /** Committed anti-personnel grenade footprints used for squad overkill prevention. */
     private final com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades;
@@ -459,6 +462,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.grid = navigation.getGrid();
         this.smokeFields = new SmokeFieldService(this.grid);
         this.satchelCharges = new SatchelChargeService();
+        this.pointDefense = new PointDefenseService();
         this.closeContact = new CloseContactService();
         this.fragGrenades = new com.dillon.starsectormarines.battle.grenade.FragGrenadeService();
         this.topology = navigation.getTopology();
@@ -608,6 +612,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public NavigationGrid getGrid() { return grid; }
     @Override public SmokeFieldService smokeFields() { return smokeFields; }
     @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
+    @Override public PointDefenseService pointDefense() { return pointDefense; }
     @Override public CloseContactService closeContact() { return closeContact; }
     @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
@@ -1594,6 +1599,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
         satchelCharges.tick(TICK_DT, this);
+        // Point-defence emplacements mint, age, and engage here — deliberately
+        // ahead of shots.tickProjectiles below, so a round marked intercepted
+        // this tick is dropped on the same beat it would have detonated.
+        pointDefense.tick(TICK_DT, this);
         closeContact.tick(this);
         com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
         tickProfile.lap(TickProfile.Phase.SATCHELS);

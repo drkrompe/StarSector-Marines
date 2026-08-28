@@ -61,9 +61,28 @@ legibility.
   a quality tier, or a set bonus.
 - **Special equipment** — one optional billet item carried alongside the
   marine's primary. Rocket launchers, anti-materiel rifles, fragmentation
-  grenades, and close-contact tools activate weapon definitions; smoke and
-  satchel charges activate utility behavior. “Secondary” remains a transitional
-  code/catalog name, not the enduring player-facing category.
+  grenades, and close-contact tools activate weapon definitions; smoke, satchel
+  charges, and deployables activate utility behavior. “Secondary” remains a
+  transitional code/catalog name, not the enduring player-facing category.
+- **Deployable** — a special item whose activation leaves a persistent object
+  standing in the world rather than throwing, planting, reaching, or firing
+  something. The carried item is spent; the placed object then has a life of its
+  own, with its own position, durability, and expiry. A thrown grenade and an
+  attached satchel are not deployables: neither is a thing that remains and acts.
+- **Placed emplacement** — the object a deployable leaves behind. It is an
+  ordinary static-emplacement actor — it draws, it is targeted, it takes damage
+  through the ordinary durability pipeline, and it dies — and it takes its
+  survivability, geometry, force value, magazine, and gun from the shipped
+  emplacement catalogs rather than from the backpack that carried it. It is
+  never a squad member and never a second soldier.
+- **Ordnance interception** — removing a hostile warhead from flight before it
+  arrives. It is deliberately not damage: nothing is applied to anything, the
+  round's payload never reaches the detonation authority, and no attacker is
+  credited. Distinct from *physical interception*, which is a shot stopped by
+  cover or by a body it ran into.
+- **Point-defence target** — a round whose weapon data declares it may be
+  engaged in flight. The property belongs to the weapon, never to a list held by
+  whatever is shooting it down.
 - **Contact reach** — the distance at which a close-contact item may act, plus
   the requirement that the carrier could physically cross the boundary between
   its cell and the contact's. Reach is not a very short weapon range: a target
@@ -429,7 +448,10 @@ hidden universal combat bonus.
 Each billet has at most one special-equipment slot. The item is a stable
 loadout identity with a typed activation: weapon-like specials reference the
 weapon catalog that owns their payload and any traveling round, while utility
-specials own their battle action without becoming zero-damage weapons.
+specials own their battle action without becoming zero-damage weapons. A
+deployable is a utility activation whose action is a placement; the gun on the
+thing it places belongs to the emplacement catalogs, not to the carried item,
+so that gun is a real weapon definition rather than an exception to this law.
 Progression owns template ownership, assignment, cargo issue value, and
 reachability; battle AI owns when legal
 issued equipment is used. The same use policy is faction-neutral even when
@@ -452,12 +474,14 @@ names, but roster data uses semantic armor ids (`field-fatigues`, `scout`,
 `combat`, `line`, `heavy`, `outlaw`, `militia`) so the next visual/content pass
 can change colors without changing doctrine identity.
 
-The seven built-in identities are the rocket launcher, anti-materiel
+The built-in identities are the rocket launcher, anti-materiel
 rifle, Wayfarer smoke grenades, Breachhand mag-clamp satchel, Shattercap
-fragmentation grenades, the Emberjaw thermal breacher, and the Quillon
-vibro-blade. The first two are direct-fire activations, Shattercap
-is an arcing weapon activation, smoke and satchels are utility activations, and
-the last two share one close-contact activation,
+fragmentation grenades, the Emberjaw thermal breacher, the Quillon
+vibro-blade, and the Palisade interceptor pod. The first two are direct-fire
+activations, Shattercap
+is an arcing weapon activation, smoke and satchels are utility activations,
+the pod is a deployable activation, and
+the breacher and blade share one close-contact activation,
 but only the item definition owns loadout identity, catalog copy, resource
 mode, initial ammunition, Armory art, activation type, AI policy, use-pose
 profile, and local presentation recipe; the
@@ -608,6 +632,57 @@ Both use the shipped contact-work pose rather than introducing a new one.
 Presentation carries the strike's audio, its impact effects, and the localized
 noise a nearby squad may hear; it never decides whether the contact landed.
 
+### Deployables and placed emplacements
+
+A deployable is the third thing a special slot can be. The first two are
+offence and utility; this one is denial, and denial is the only one of the three
+that changes what the opponent is able to do rather than what the carrier can
+do. Making the slot a real three-way choice is the point of the category, so a
+deployable must not also be a good weapon.
+
+**A placed emplacement is not a second soldier.** It refuses one class of thing
+and does nothing else. It selects no actor, takes no objective, spots for
+nobody, joins no squad, and runs no decision cadence — the tier law is
+untouched, because nothing about it decides anything. What it does is a physical
+test against objects already in the world, never a belief query, so it can never
+engage ordnance it could not physically have reached.
+
+**A placed emplacement is bounded on every axis, and can fail.** It engages
+within a finite radius, at a finite rate, from a finite magazine, for a finite
+time, and it stands in the open where both sides can see it and shoot it. The
+rate bound is the load-bearing one: a salvo tighter than the engagement interval
+saturates the mount and the surplus lands. This is the growth law applied to a
+placed object — a defence that cannot be flanked, saturated, outlasted, or
+destroyed is a ban on a weapon class wearing the costume of a capability.
+
+The first deployable is the **Palisade interceptor pod**: a folding cluster gun
+a marine sets down where they are standing, which shoots down incoming warheads
+crossing its bubble until its rounds or its cell run out. Placement is a short
+committed channel and spends one carried pod. It is placed reactively — when
+hostile ordnance is already in the air and headed for the ground the carrier is
+on — so it costs nothing in a battle where nobody is firing missiles, and a
+carrier standing inside a friendly pod's existing bubble declines rather than
+stacking a second. Like every other executor, the placement authors no path,
+clears none, and never retargets its carrier.
+
+Placement never seals the cell it stands on. A carried pod sits on the floor its
+carrier was standing on; closing that cell would both trap the carrier and shut
+a navigation edge under existing paths. Only an emplacement that actually sealed
+a cell re-opens one when it dies.
+
+**Which rounds may be engaged is the weapon's declaration, not the
+emplacement's.** A weapon definition opts itself in, and the shipped warhead
+families — the mech LRM and SRM, the shoulder micro-missile, and the marine
+rocket — do. Nothing anywhere holds a list of engageable ids, so a warhead
+authored later is engageable the moment its own data says so, and a bullet never
+becomes engageable by accident.
+
+**Interception is not damage.** An engaged round is removed before it arrives:
+its payload never reaches the detonation authority, no damage figure is computed
+for anyone, and nothing is credited as damage prevented. Interceptions are their
+own telemetry quantity, credited to the marine who placed the pod so the record
+survives the pod.
+
 ### Telemetry and career
 
 `CombatTelemetryService` records combat evidence at the shared firing and
@@ -618,7 +693,10 @@ requested damage value; overkill is not credited output. Friendly fire is
 separate and never grants a kill. One arriving round counts once even if its
 explosion harms many targets, while each defeated victim is still a kill.
 Unattributed damage records what happened to the target without inventing an
-attacker.
+attacker. Ordnance a placed emplacement engaged in flight is counted as its own
+quantity rather than converted into damage prevented, for the same reason
+mitigated damage is: an engaged round never detonated, so there is no damage
+figure to net out and nothing to attribute.
 
 Telemetry survives a combatant's death transition. At mission end,
 the gathered report is immutable and detached from battle entity handles.

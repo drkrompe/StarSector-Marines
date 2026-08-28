@@ -59,7 +59,19 @@ public final class Projectile {
     public final PendingDetonation onArrival;
     /** Stable weapon id for tactics that must distinguish one in-flight ordnance family. */
     public final String sourceWeaponId;
-    /** When set, the projectile is removed on the next tick without detonating. Reserved for the point-defense intercept path — not yet wired. */
+    /**
+     * Whether a point-defence emplacement may engage this round — copied from
+     * the authoring weapon's {@code sim.pointDefenseTarget} at launch so the
+     * intercept scan never re-resolves the registry per tick. False for every
+     * round whose data does not opt in.
+     */
+    public final boolean pointDefenseTarget;
+    /**
+     * Set by the point-defence intercept pass; the next
+     * {@link ShotService#tickProjectiles} drops the round without firing
+     * {@link #onArrival}. Interception is not damage — a marked projectile
+     * never reaches the damage path at all.
+     */
     public boolean intercepted;
 
     /**
@@ -113,6 +125,15 @@ public final class Projectile {
                       Faction shooterFaction, boolean aerialDelivery,
                       float totalFlightTime, PendingDetonation onArrival,
                       String sourceWeaponId) {
+        this(fromX, fromY, toX, toY, hasBoostRamp, arcHeight, shooterFaction,
+                aerialDelivery, totalFlightTime, onArrival, sourceWeaponId, false);
+    }
+
+    public Projectile(float fromX, float fromY, float toX, float toY,
+                      boolean hasBoostRamp, float arcHeight,
+                      Faction shooterFaction, boolean aerialDelivery,
+                      float totalFlightTime, PendingDetonation onArrival,
+                      String sourceWeaponId, boolean pointDefenseTarget) {
         this.fromX = fromX;
         this.fromY = fromY;
         this.toX = toX;
@@ -125,6 +146,7 @@ public final class Projectile {
         this.remainingTime = totalFlightTime;
         this.onArrival = onArrival;
         this.sourceWeaponId = sourceWeaponId;
+        this.pointDefenseTarget = pointDefenseTarget;
         this.intercepted = false;
     }
 

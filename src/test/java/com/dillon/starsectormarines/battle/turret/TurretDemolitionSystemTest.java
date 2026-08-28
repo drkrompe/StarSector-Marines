@@ -46,6 +46,10 @@ public class TurretDemolitionSystemTest {
         BattleSimulation sim = openArena(20, 20);
         long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER,
                 TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 10));
+        // BattleSetup seals a map turret's mount cell before the sim exists;
+        // the demolition handler only re-opens a cell the turret actually
+        // sealed, so the arena has to match production here.
+        sim.getGrid().setWalkable(10, 10, false);
         int wrecksBefore = sim.getSmokingWrecks().size();
 
         // Lethal hit, routed through the production damage path so the death
