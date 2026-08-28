@@ -136,7 +136,14 @@ Do not run builds or leave generated task files there.
   and a fused plate is cut into exactly that grid — but footprints are edited
   there rather than inferred, because
   how much deck a piece covers is a judgement about the object, not a measurement
-  of the art. A piece becomes a doodad or a cell of a named autotile block; walls
+  of the art. Pieces are picked on the sheet itself — click, ctrl-click to add,
+  shift-click to run, drag a box — and the table follows, because a cut cell's id
+  cannot be recognised in a list of a hundred. Each cell carries its `col,row` on
+  the picture, which is what lets a person and a model name the same cell.
+  **Copy selection for LLM** writes a labelled contact sheet of the picked cells
+  under `build/tileset-authoring/` and puts a table of their current annotation,
+  keyed by the same coordinates, on the clipboard with that image's path.
+  A piece becomes a doodad or a cell of a named autotile block; walls
   and corners are authored by grouping pieces into a block's slots, which the
   packer places as one contiguous patch. Export writes a packed atlas holding only
   the included pieces, its `*.tileset.json`, and a generated `*.tileset.md`
