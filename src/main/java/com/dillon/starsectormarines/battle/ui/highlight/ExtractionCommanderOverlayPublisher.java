@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ui.highlight;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
+import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -26,8 +27,15 @@ public final class ExtractionCommanderOverlayPublisher {
         ExtractionCommandSnapshot snapshot = commander != null
                 && commander.detail() instanceof ExtractionCommandSnapshot extraction
                 ? extraction : null;
-        if (snapshot == null) {
+        ExtractionDefenseSnapshot defense = commander != null
+                && commander.detail() instanceof ExtractionDefenseSnapshot extraction
+                ? extraction : null;
+        if (snapshot == null && defense == null) {
             clear(overlay);
+            return;
+        }
+        if (defense != null) {
+            publishDefense(overlay, defense, selectedSquadId);
             return;
         }
         overlay.put(HighlightOverlay.SRC_EXTRACTION_SOURCE,
@@ -51,6 +59,31 @@ public final class ExtractionCommanderOverlayPublisher {
         List<CellHighlight> actions = new ArrayList<>();
         List<CellHighlight> selected = new ArrayList<>();
         for (ExtractionCommandSnapshot.SquadIntent intent
+                : snapshot.squadIntents()) {
+            if (intent.targetCellX() < 0 || intent.targetCellY() < 0) continue;
+            actions.add(new CellHighlight(intent.targetCellX(),
+                    intent.targetCellY(), ACTION));
+            if (intent.squadId() == selectedSquadId) {
+                selected.add(new CellHighlight(intent.targetCellX() - 1,
+                        intent.targetCellY() - 1, 3, 3, SELECTED));
+            }
+        }
+        overlay.put(HighlightOverlay.SRC_EXTRACTION_ACTIONS, actions);
+        overlay.put(HighlightOverlay.SRC_EXTRACTION_SELECTED_ACTION, selected);
+    }
+
+    private static void publishDefense(HighlightOverlay overlay,
+                                       ExtractionDefenseSnapshot snapshot,
+                                       int selectedSquadId) {
+        overlay.put(HighlightOverlay.SRC_EXTRACTION_SOURCE,
+                List.of(new CellHighlight(snapshot.sourceCellX() - 2,
+                        snapshot.sourceCellY() - 2, 5, 5, SOURCE)));
+        overlay.clear(HighlightOverlay.SRC_EXTRACTION_PAYLOAD);
+        overlay.clear(HighlightOverlay.SRC_EXTRACTION_GUIDE);
+        overlay.clear(HighlightOverlay.SRC_EXTRACTION_EGRESS);
+        List<CellHighlight> actions = new ArrayList<>();
+        List<CellHighlight> selected = new ArrayList<>();
+        for (ExtractionDefenseSnapshot.SquadIntent intent
                 : snapshot.squadIntents()) {
             if (intent.targetCellX() < 0 || intent.targetCellY() < 0) continue;
             actions.add(new CellHighlight(intent.targetCellX(),

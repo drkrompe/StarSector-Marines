@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -9,12 +10,16 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
+import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ops.loot.LootSettlementPlan;
@@ -141,9 +146,20 @@ public class MarineOpsContext {
      */
     public CompanyDeck companyDeck() {
         if (companyDeck == null) {
-            companyDeck = new CompanyDeck(CompanyShip.founding(), COMPANY_DECK_SEED);
+            companyDeck = new CompanyDeck(CompanyShip.founding(), COMPANY_DECK_SEED,
+                    new BattleSprites(), MarineOpsContext::companyLance);
         }
         return companyDeck;
+    }
+
+    /** The machines parked in the company ship's berths: whatever the player owns. */
+    private static List<MechVariant> companyLance() {
+        List<MechVariant> lance = new ArrayList<>();
+        CampaignMechSquad squad = new MechBay().activeSquad();
+        if (squad != null) {
+            for (CampaignMech mech : squad.mechs()) lance.add(mech.variant());
+        }
+        return lance;
     }
 
     /** What the company ship has, for the room screens' navigation shell. */

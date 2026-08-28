@@ -47,8 +47,22 @@ class ExtractionObjectiveEvidenceTest {
                 "\"payloadId\":\"EXTRACTION-01\""));
         assertTrue(first.trace().contains(
                 "\"strategy\":\"extraction-attacker\""));
+        assertTrue(first.trace().contains(
+                "\"strategy\":\"extraction-defender\""));
         assertTrue(first.trace().contains("\"extraction\":{"));
+        assertTrue(first.trace().contains("\"extractionDefense\":{"));
         assertTrue(first.trace().contains("\"role\":\"PAYLOAD_ELEMENT\""));
+        for (String line : first.trace().lines().filter(row ->
+                row.contains("\"strategy\":\"extraction-defender\""))
+                .toList()) {
+            assertTrue(!line.contains("\"egressCellX\"")
+                            && !line.contains("\"payloadCellX\"")
+                            && !line.contains("\"corridorGuideCellX\"")
+                            && !line.contains("\"progress\"")
+                            && !line.contains("\"controllingSquadId\""),
+                    "defender perspective leaked hidden extraction truth: "
+                            + line);
+        }
 
         Path output = Path.of(System.getProperty(
                 "extraction.command.evidence.outputDir",
