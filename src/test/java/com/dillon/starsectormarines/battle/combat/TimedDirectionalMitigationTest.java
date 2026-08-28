@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
+import com.dillon.starsectormarines.marine.CrossingUnderFireSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.IntegralSystemEffect;
 import com.dillon.starsectormarines.marine.SpecialResourceMode;
@@ -400,6 +401,7 @@ class TimedDirectionalMitigationTest {
     private static IntegralSystemDef screenSource(float fraction, float arcDegrees) {
         return new IntegralSystemDef("system.test-screen", "Test screen", EquipmentGrade.SERVICE, "A screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
-                3f, 9f, 0, new BreacherAssistSpec(1.1f, fraction, arcDegrees), null);
+                3f, 9f, 0, new BreacherAssistSpec(1.1f, fraction, arcDegrees), null,
+                new CrossingUnderFireSpec(12f));
     }
 }

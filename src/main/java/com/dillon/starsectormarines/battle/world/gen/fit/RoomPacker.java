@@ -248,6 +248,72 @@ public final class RoomPacker {
     }
 
     /**
+     * Join circulation that runs close together but is walked between the long
+     * way round, and keep doing it until no cut left earns itself.
+     *
+     * <p>Run after everything is placed, because the defect is not in any one
+     * placement. Each passage took the cheapest honest route to whatever was
+     * already connected when it was cut, which makes the finished network a
+     * tree: every branch a dead end, and two rooms a few cells apart on
+     * different branches walked between by going back to the spine and out
+     * again. Only the finished network can be asked where that hurts.
+     *
+     * <p>What the cut may cross is the same law as any other passage — never a
+     * cell a compartment stands behind, never along a bulkhead, two abreast
+     * where the space allows. A loop is a hallway that happens to have ends at
+     * both ends; it is not a licence to open rooms.
+     *
+     * @return how many links were cut
+     */
+    public int openLoops(CirculationLoops.Policy policy) {
+        int cuts = 0;
+        while (true) {
+            CirculationLoops.Link link = CirculationLoops.best(
+                    routableGrid(null), circulationGrid(), throughableGrid(), policy);
+            if (link == null) return cuts;
+            carveLink(link);
+            cuts++;
+        }
+    }
+
+    /** Connective walkable space as it stands. Thresholds are deliberately not in it. */
+    private boolean[][] circulationGrid() {
+        boolean[][] grid = new boolean[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                grid[x][y] = passage[x + 1][y + 1];
+            }
+        }
+        return grid;
+    }
+
+    /** Cells a passage crossing structure may emerge into. */
+    private boolean[][] throughableGrid() {
+        boolean[][] grid = new boolean[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                grid[x][y] = !claimed[x + 1][y + 1] || passage[x + 1][y + 1];
+            }
+        }
+        return grid;
+    }
+
+    /**
+     * Cut one link in. The same lane stamping the room passages use, so a loop
+     * is the same width as the halls it joins rather than a foot-track between
+     * them.
+     */
+    private void carveLink(CirculationLoops.Link link) {
+        int[] anchor = null;
+        for (int[] cell : link.route()) {
+            boolean crossing = claimed[cell[0] + 1][cell[1] + 1];
+            carveLane(cell[0], cell[1]);
+            anchor = stampLane(null, cell[0], cell[1], anchor, crossing);
+        }
+        rebuildSums();
+    }
+
+    /**
      * Place a room where the deck can serve the doors it asked for, preferring
      * the position that serves the most of them.
      *
@@ -582,14 +648,20 @@ public final class RoomPacker {
      * standing open for six cells at a stretch. Structure that no room backs
      * onto — the spine bulkhead away from any compartment, plating, the walls
      * of a pocket — is still crossable, which is all a passage actually needs.
+     *
+     * @param candidate the room being placed, or null when the route belongs to
+     *     no room. A loop cut between two finished passages has nothing
+     *     uncommitted to hide from the masks, so there is nothing to exclude.
      */
     private int stepCost(Candidate candidate, int x, int y) {
         if (!inBounds(x, y) || !outside[x + 1][y + 1] || floor[x + 1][y + 1]) return -1;
-        int localX = x - candidate.x();
-        int localY = y - candidate.y();
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                if (candidate.shape().contains(localX + dx, localY + dy)) return -1;
+        if (candidate != null) {
+            int localX = x - candidate.x();
+            int localY = y - candidate.y();
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    if (candidate.shape().contains(localX + dx, localY + dy)) return -1;
+                }
             }
         }
         if (!claimed[x + 1][y + 1]) return OPEN_COST;
@@ -778,7 +850,14 @@ public final class RoomPacker {
         for (int[] cell : shape.wall()) {
             int x = candidate.x() + cell[0];
             int y = candidate.y() + cell[1];
-            if (inBounds(x, y)) claimed[x + 1][y + 1] = true;
+            if (!inBounds(x, y)) continue;
+            claimed[x + 1][y + 1] = true;
+            // A claimed bulkhead is real navigation structure, not merely a
+            // promise that another packed room will stay away. Fortress rooms
+            // can inherit live city floor under this ring; leaving it walkable
+            // joins the room to the yard even when its threshold is a doorway.
+            ctx.grid.setWalkable(x, y, false);
+            ctx.grid.setDoorway(x, y, false);
         }
     }
 
@@ -793,7 +872,7 @@ public final class RoomPacker {
         }
         // The door itself is a threshold, not circulation: leaving it out of the
         // passage mask is what stops the next room treating it as a hallway.
-        carve(access.doorX(), access.doorY(), RoomPurpose.CORRIDOR, palette.threshold());
+        carveDoorway(access.doorX(), access.doorY());
         List<Doorway> doors = new ArrayList<>();
         doors.add(new Doorway(access.doorX(), access.doorY()));
         Doorway widened = widenDoorway(candidate, access);
@@ -871,10 +950,26 @@ public final class RoomPacker {
             int outsideX = nx + access.dirX();
             int outsideY = ny + access.dirY();
             if (!inBounds(outsideX, outsideY) || !floor[outsideX + 1][outsideY + 1]) continue;
-            carve(nx, ny, RoomPurpose.CORRIDOR, palette.threshold());
+            carveDoorway(nx, ny);
             return new Doorway(nx, ny);
         }
         return null;
+    }
+
+    /**
+     * Cut a threshold and publish it to the navigation-zone layer.
+     *
+     * <p>A walkable wall opening without the doorway tag is ordinary floor to
+     * {@code ZoneDetector}: it flood-fills the room and the surrounding deck or
+     * yard into one zone. That made every packed fortress strongpoint share the
+     * outdoor zone, so one unit anywhere outside contested every compound at
+     * once. The room packer already owns the exact doorway cells; marking them
+     * here keeps each packed room a distinct tactical/capture zone while the
+     * portal graph still connects it to circulation.
+     */
+    private void carveDoorway(int x, int y) {
+        carve(x, y, RoomPurpose.CORRIDOR, palette.threshold());
+        ctx.grid.setDoorway(x, y, true);
     }
 
     private void carve(int x, int y, RoomPurpose purpose, GroundKind kind) {

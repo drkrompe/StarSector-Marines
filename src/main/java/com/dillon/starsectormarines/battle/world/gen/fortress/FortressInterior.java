@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fortress;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
@@ -14,6 +16,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,6 +49,35 @@ public final class FortressInterior {
 
     /** The open ground between the buildings: parade square, vehicle park, verge. */
     private static final GroundKind YARD = GroundKind.DIRT;
+
+    /**
+     * Rooms a garrison lives and works in, which are the ones given windows.
+     *
+     * <p>The distinction an ordinary building shell already draws, kept rather
+     * than reinvented: a magazine, a parts cage and a machinery space have no
+     * reason to open onto the yard, and a keep's inner chamber is the last
+     * place a defender wants a hole in the wall. What is left is where people
+     * are — and a window is what they fight from, so this decides how
+     * defensible each building is as much as how it looks.
+     */
+    private static final Set<RoomPurpose> WINDOWED = EnumSet.of(
+            RoomPurpose.BARRACKS, RoomPurpose.MESS_HALL, RoomPurpose.CONTROL_ROOM,
+            RoomPurpose.KEEP_ENTRY, RoomPurpose.VEHICLE_BAY);
+
+    /**
+     * Cells between one window and the next along a facade.
+     *
+     * <p>A rhythm rather than one aperture per wall. An ordinary building
+     * centres a single window on each run of eligible room, which suits a
+     * shopfront and reads as nothing at all on a barracks block forty cells
+     * long. The spacing also decides the fight, because every window is a
+     * firing position: a facade of them is a defended building, and a blank one
+     * is a box the garrison can only shoot out of through its door.
+     */
+    private static final int WINDOW_PITCH = 5;
+
+    /** Shortest facade run worth an aperture, so a stub of wall stays solid. */
+    private static final int MIN_FACADE_RUN = 3;
 
     /**
      * How well a garrison keeps its own buildings. A working arrangement rather
@@ -95,6 +127,7 @@ public final class FortressInterior {
         metalYard(ctx, ground, placed);
         stampWalls(ctx, placed);
         furnish(ctx, placed);
+        stampWindows(ctx, placed);
         return new Result(placed, unplaced);
     }
 
@@ -231,6 +264,13 @@ public final class FortressInterior {
                 if (!footprint.contains(cellKey(x + 1, y))) mask |= CellTopology.WALL_DIR_E;
                 if (!footprint.contains(cellKey(x - 1, y))) mask |= CellTopology.WALL_DIR_W;
                 ctx.topology.orWallDirMask(x, y, mask);
+                // The room's own ground goes under its wall. Nothing draws it
+                // while the wall stands, but a wall does not always stand: cut
+                // a window through this cell and the ground beneath is what
+                // shows in the opening, and breach it and the rubble sits on
+                // whatever was there. Leaving the yard under a building's wall
+                // puts a patch of mud in the middle of it either way.
+                ctx.topology.setGroundKind(x, y, PALETTE.roomFloor());
                 hint(ctx, x, y);
             }
         }
@@ -248,6 +288,119 @@ public final class FortressInterior {
 
     private static long cellKey(int x, int y) {
         return ((long) x << 32) ^ (y & 0xFFFFFFFFL);
+    }
+
+    /**
+     * Open firing windows along each building's facades.
+     *
+     * <p>The same feature an ordinary building shell authors, authored the same
+     * way: the cell becomes walkable floor and the window is a
+     * {@link com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier} on its
+     * outward edge, rather than a see-through wall cell. That is what lets one
+     * feature describe itself identically to movement, sight, fire and cover —
+     * a defender stands in the opening and shoots through it, and nobody walks
+     * through it.
+     *
+     * <p>Windows face the yard, never the room next door. Two buildings the
+     * packing wedged together share a single ring cell, and an aperture there
+     * would be a window between a barracks and a magazine, so an outward cell
+     * belonging to another building's floor disqualifies it.
+     *
+     * <p>Runs after the fill rather than before. A fitting may shut the floor
+     * behind a stretch of wall, and a window onto a sealed cell is an opening
+     * nothing can reach or fire from; requiring the inward cell to still be
+     * walkable when the aperture is cut is what keeps the two in step.
+     */
+    private static void stampWindows(GenContext ctx, List<RoomPacker.Placed> placed) {
+        Set<Long> occupied = new HashSet<>();
+        for (RoomPacker.Placed room : placed) {
+            for (int[] cell : room.shape().filled()) {
+                occupied.add(cellKey(room.originX() + cell[0], room.originY() + cell[1]));
+            }
+        }
+        for (RoomPacker.Placed room : placed) {
+            if (!WINDOWED.contains(room.purpose())) continue;
+            Set<Long> floor = new HashSet<>();
+            for (int[] cell : room.shape().filled()) {
+                floor.add(cellKey(room.originX() + cell[0], room.originY() + cell[1]));
+            }
+            for (Direction outward : new Direction[]{ Direction.N, Direction.S,
+                    Direction.E, Direction.W }) {
+                stampFacade(ctx, room, floor, occupied, outward);
+            }
+        }
+    }
+
+    /**
+     * Cut one facade's windows.
+     *
+     * <p>The facade is walked as runs of eligible wall rather than as the side
+     * of a rectangle, because a packed room need not be one and a run may be
+     * interrupted by a door, by the building next door, or by the wall turning
+     * a corner. Each run is given apertures on a fixed pitch, centred within
+     * the run so a wall's windows sit symmetrically on it instead of crowding
+     * whichever end the walk happened to start from.
+     */
+    private static void stampFacade(GenContext ctx, RoomPacker.Placed room, Set<Long> floor,
+                                    Set<Long> occupied, Direction outward) {
+        // Step along the facade, which runs at right angles to the way it faces.
+        int stepX = outward.dy;
+        int stepY = outward.dx;
+        List<List<int[]>> runs = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        for (int[] cell : room.shape().wall()) {
+            int x = room.originX() + cell[0];
+            int y = room.originY() + cell[1];
+            if (!eligible(ctx, x, y, floor, occupied, outward)) continue;
+            if (seen.contains(cellKey(x, y))) continue;
+            // Start from a run's first cell, so it is collected once and in
+            // order however the ring happened to list its cells.
+            if (eligible(ctx, x - stepX, y - stepY, floor, occupied, outward)) continue;
+            List<int[]> run = new ArrayList<>();
+            for (int cx = x, cy = y; eligible(ctx, cx, cy, floor, occupied, outward);
+                    cx += stepX, cy += stepY) {
+                run.add(new int[]{ cx, cy });
+                seen.add(cellKey(cx, cy));
+            }
+            runs.add(run);
+        }
+        for (List<int[]> facade : runs) {
+            if (facade.size() < MIN_FACADE_RUN) continue;
+            int count = 1 + (facade.size() - 1) / WINDOW_PITCH;
+            int first = (facade.size() - 1 - (count - 1) * WINDOW_PITCH) / 2;
+            for (int i = 0; i < count; i++) {
+                int[] cell = facade.get(first + i * WINDOW_PITCH);
+                openWindow(ctx, cell[0], cell[1], outward);
+            }
+        }
+    }
+
+    /** Whether this cell is wall this building could open onto ground beyond. */
+    private static boolean eligible(GenContext ctx, int x, int y, Set<Long> floor,
+                                    Set<Long> occupied, Direction outward) {
+        if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) return false;
+        if (ctx.grid.isWalkable(x, y) || ctx.grid.isDoorway(x, y)) return false;
+        int insideX = x - outward.dx;
+        int insideY = y - outward.dy;
+        int outsideX = x + outward.dx;
+        int outsideY = y + outward.dy;
+        if (!floor.contains(cellKey(insideX, insideY))) return false;
+        if (!ctx.grid.inBounds(outsideX, outsideY)) return false;
+        if (!ctx.grid.isWalkable(insideX, insideY)) return false;
+        if (!ctx.grid.isWalkable(outsideX, outsideY)) return false;
+        return !occupied.contains(cellKey(outsideX, outsideY));
+    }
+
+    /** Turn one wall cell into a window onto the ground beyond it. */
+    private static void openWindow(GenContext ctx, int x, int y, Direction outward) {
+        int outsideX = x + outward.dx;
+        int outsideY = y + outward.dy;
+        if (ctx.grid.getEdgeBarrier(x, y, outward) != null) return;
+        if (!ctx.grid.isEdgePassable(outsideX, outsideY, outward.opposite())) return;
+        ctx.grid.setWalkableFloor(x, y);
+        ctx.topology.setWallDirMask(x, y, 0);
+        ctx.topology.setWindow(x, y, false);
+        ctx.grid.placeEdgeBarrier(x, y, outward, SharedEdgeBarrier.Kind.WINDOW);
     }
 
     /**

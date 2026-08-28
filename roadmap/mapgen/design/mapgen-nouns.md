@@ -255,7 +255,11 @@ face, standing as an invisible obstruction with its furniture apparently in the
 open. A host that packs rooms onto a map authors the wall its packing implies,
 and gives that wall ground to stand on: a floor laid flush to the edge of its
 envelope puts the ring outside it, on ground the host does not own and may not
-close.
+close. The same goes for what a wall carries: an ordinary building shell opens
+firing windows along its facades, and a packed one that does not is a building
+its garrison can only shoot out of through the door. A window is a shared-edge
+barrier on a standable cell rather than a see-through wall cell, which is what
+lets one feature describe itself identically to movement, sight, fire and cover.
 
 A stage that replaces what an earlier stage built owns everything the earlier one
 recorded, not only what it drew: decorative placements, points of interest,
