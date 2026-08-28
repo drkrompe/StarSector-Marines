@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -67,18 +69,22 @@ class CampaignMarineDeploymentTest {
     @Test
     void freezesPersistentIdentityProgressionAndAllocatedVisuals() {
         MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(1);
-        MarineSoldier soldier = roster.activeSoldiers().get(0);
-        assertTrue(roster.allocateArmor(soldier.id(), MarineArmorPattern.CHARCOAL));
-        assertTrue(roster.allocatePrimary(soldier.id(), WeaponRegistry.require(WeaponRegistry.DMR_ID),
-                EquipmentGrade.SERVICE));
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        // Issued through the live doctrine path. A uniform Bastion schedule
+        // puts the same pattern on every billet, so whichever marine takes the
+        // seat is wearing the armour the freeze is supposed to carry.
+        assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
+                roster.squads().get(0).id(),
+                SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS,
+                SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR));
 
         CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(roster, 1);
         MarineLoadout seat = deployment.seat(0);
 
         assertNotNull(seat);
-        assertEquals(soldier.id(), seat.campaignSoldierId);
-        assertEquals(WeaponRegistry.require(WeaponRegistry.DMR_ID), seat.primaryDef());
+        MarineSoldier soldier = roster.soldierById(seat.campaignSoldierId);
+        assertNotNull(soldier);
+        assertEquals(soldier.primaryDef(), seat.primaryDef());
         // Experience is issued with the armour: Bastion line armor is a
         // tier-3 pattern, so the seat freezes at the veteran band.
         assertEquals(ExperienceTier.VETERAN.minimumXp, seat.soldierProfile.experienceXp());
