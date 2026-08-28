@@ -65,7 +65,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private final TraversalAxis axis;
     private final GroundRosterProfile groundRoster;
     private final RiskLevel risk;
-    private final ConvoyDeploymentPolicy deploymentPolicy;
+    private final DeliveryDeploymentPolicy deploymentPolicy;
     /**
      * Per-battle terrain cost field, baked lazily on first dispatch. Ground kinds
      * are effectively static (rubble appears only on wall breach); a slightly
@@ -83,7 +83,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
 
     public ConvoyMeans(RoadGraph graph, TraversalAxis axis,
                        GroundRosterProfile groundRoster, RiskLevel risk,
-                       ConvoyDeploymentPolicy deploymentPolicy) {
+                       DeliveryDeploymentPolicy deploymentPolicy) {
         this.graph = graph;
         this.axis = axis;
         this.groundRoster = groundRoster;
@@ -113,10 +113,10 @@ public final class ConvoyMeans implements ReinforcementMeans {
     @Override
     public ReinforcementDispatchResult dispatch(BattleControl sim,
                                                 ReinforcementRequest req) {
-        ConvoyDeployment deployment = deploymentPolicy != null
+        DeliveryDeployment deployment = deploymentPolicy != null
                 ? deploymentPolicy.deploymentFor(req)
-                : ConvoyDeployment.legacy(req);
-        if (deployment == null) deployment = ConvoyDeployment.legacy(req);
+                : DeliveryDeployment.legacy(req);
+        if (deployment == null) deployment = DeliveryDeployment.legacy(req);
         int rx = deployment.hintX();
         int ry = deployment.hintY();
         int gw = sim.getGrid().getWidth();
@@ -231,7 +231,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
                              VehicleClearance clearance) { }
 
     /** Proves both travel legs before a world actor is created. */
-    private RoutePlan routePlan(BattleControl sim, ConvoyDeployment deployment,
+    private RoutePlan routePlan(BattleControl sim, DeliveryDeployment deployment,
                                 int hintX, int hintY) {
         int width = sim.getGrid().getWidth();
         int height = sim.getGrid().getHeight();
