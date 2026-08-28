@@ -163,6 +163,28 @@ class BattleFixtureJsonTest {
     }
 
     @Test
+    void roundTripsEveryRaidFactoryInputInAuthoredOrder() throws Exception {
+        RaidBattleFixture fixture = new RaidBattleFixture(
+                141_418L,
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 3, 6)),
+                true, OperationTier.ESTABLISHED, RiskLevel.HIGH,
+                new TargetProfile(6, 5, 4, 2, "independent",
+                        EnumSet.of(EconomicFunction.SPACEPORT,
+                                EconomicFunction.HEAVY_INDUSTRY)),
+                List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
+                        Faction.MARINE, 1, 6f, 20f)),
+                List.of(new FighterWingCommitment(FighterProfile.TALON,
+                        Faction.DEFENDER, 2, 8f, 18f)));
+
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        BattleFixture decoded = BattleFixtureJson.fromJson(encoded);
+
+        assertEquals(fixture, decoded);
+        assertEquals(encoded.toString(),
+                BattleFixtureJson.toJson(decoded).toString());
+    }
+
+    @Test
     void roundTripsAssaultLaunchOverlayAroundV2Construction() throws Exception {
         AssaultBattleFixture construction = new AssaultBattleFixture(
                 91_441L,

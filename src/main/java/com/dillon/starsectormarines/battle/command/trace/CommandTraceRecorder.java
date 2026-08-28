@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
+import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -297,6 +298,8 @@ public final class CommandTraceRecorder {
             sabotage(out, sabotage);
         } else if (snapshot.detail() instanceof SabotageDefenseSnapshot defense) {
             sabotageDefense(out, defense);
+        } else if (snapshot.detail() instanceof RaidCommandSnapshot raid) {
+            raid(out, raid);
         }
         return end(out);
     }
@@ -447,6 +450,42 @@ public final class CommandTraceRecorder {
         for (int i = 0; i < actions.size(); i++) {
             if (i > 0) out.append(',');
             sabotageAction(out, actions.get(i));
+        }
+        out.append("]}");
+    }
+
+    private static void raid(StringBuilder out, RaidCommandSnapshot snapshot) {
+        out.append(",\"raid\":{");
+        rawField(out, "phase", snapshot.phase());
+        field(out, "targetId", snapshot.targetId());
+        field(out, "targetName", snapshot.targetName());
+        numberField(out, "targetCellX", snapshot.targetCellX());
+        numberField(out, "targetCellY", snapshot.targetCellY());
+        numberField(out, "targetZoneId", snapshot.targetZoneId());
+        numberField(out, "egressCellX", snapshot.egressCellX());
+        numberField(out, "egressCellY", snapshot.egressCellY());
+        floatField(out, "serviceProgress", snapshot.serviceProgress());
+        floatField(out, "serviceDuration", snapshot.serviceDuration());
+        booleanField(out, "targetSecured", snapshot.targetSecured());
+        booleanField(out, "alarmActive", snapshot.alarmActive());
+        numberField(out, "alarmRaisedTick", snapshot.alarmRaisedTick());
+        List<RaidCommandSnapshot.SquadIntent> intents =
+                new ArrayList<>(snapshot.squadIntents());
+        intents.sort(Comparator.comparingInt(
+                RaidCommandSnapshot.SquadIntent::squadId));
+        out.append(",\"actions\":[");
+        for (int i = 0; i < intents.size(); i++) {
+            if (i > 0) out.append(',');
+            RaidCommandSnapshot.SquadIntent intent = intents.get(i);
+            out.append('{');
+            rawNumberField(out, "squadId", intent.squadId());
+            field(out, "role", intent.role());
+            field(out, "reason", intent.reason());
+            nullableField(out, "assignmentKind", intent.assignmentKind() != null
+                    ? intent.assignmentKind().name() : null);
+            numberField(out, "targetCellX", intent.targetCellX());
+            numberField(out, "targetCellY", intent.targetCellY());
+            out.append('}');
         }
         out.append("]}");
     }

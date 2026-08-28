@@ -13,7 +13,8 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  * field. {@code CLEAR_ZONE} populates {@link #targetZoneId} (the zone to
  * push into), {@code SWEEP_SECTOR}/{@code DEFEND_TRACK}/{@code ADVANCE_TRACK}
  * populate the exact-cell pair, and
- * {@code HOLD_NODE} populates {@link #targetNode}. Consumers read the field
+ * {@code HOLD_NODE} populates {@link #targetNode}; {@code RUSH_OBJECTIVE}
+ * and {@code WITHDRAW} carry exact cells. Consumers read the field
  * appropriate to {@link #kind} — assigning
  * a node to a {@code CLEAR_ZONE} task has no defined meaning and is ignored.
  *
@@ -96,6 +97,20 @@ public record ObjectiveAssignment(
     public static ObjectiveAssignment rushObjective(int squadId, int objectiveId, int zoneId) {
         return new ObjectiveAssignment(squadId, AssignmentKind.RUSH_OBJECTIVE,
                 zoneId, null, objectiveId, UNSCOPED, UNSCOPED);
+    }
+
+    /** Objective interaction at an authored exact cell, with a zone hint. */
+    public static ObjectiveAssignment rushObjective(int squadId, int objectiveId,
+                                                     int zoneId, int cellX,
+                                                     int cellY) {
+        return new ObjectiveAssignment(squadId, AssignmentKind.RUSH_OBJECTIVE,
+                zoneId, null, objectiveId, cellX, cellY);
+    }
+
+    /** Mission-authored egress; carries no hostile position or identity. */
+    public static ObjectiveAssignment withdraw(int squadId, int cellX, int cellY) {
+        return new ObjectiveAssignment(squadId, AssignmentKind.WITHDRAW,
+                UNSCOPED, null, UNSCOPED, cellX, cellY);
     }
 
     /** Exact-cell escort/rally assignment; the action maintains its own standoff radius. */

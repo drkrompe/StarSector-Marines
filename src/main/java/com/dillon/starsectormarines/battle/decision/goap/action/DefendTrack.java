@@ -30,8 +30,10 @@ public final class DefendTrack implements Action {
         if (assignmentKind != AssignmentKind.DEFEND_TRACK
                 && assignmentKind != AssignmentKind.ADVANCE_TRACK
                 && assignmentKind != AssignmentKind.DEFEND_SITE
-                && assignmentKind != AssignmentKind.DEFEND_AREA) {
-            throw new IllegalArgumentException("defensive rally kind required");
+                && assignmentKind != AssignmentKind.DEFEND_AREA
+                && assignmentKind != AssignmentKind.RUSH_OBJECTIVE
+                && assignmentKind != AssignmentKind.WITHDRAW) {
+            throw new IllegalArgumentException("exact-cell command kind required");
         }
         this.assignmentKind = assignmentKind;
         this.targetX = targetX;
@@ -43,6 +45,8 @@ public final class DefendTrack implements Action {
             case ADVANCE_TRACK -> "AdvanceTrack";
             case DEFEND_SITE -> "DefendSite";
             case DEFEND_AREA -> "DefendArea";
+            case RUSH_OBJECTIVE -> "ServiceObjective";
+            case WITHDRAW -> "Withdraw";
             default -> "DefendTrack";
         };
     }
