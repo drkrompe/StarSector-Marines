@@ -35,8 +35,11 @@ decision.
 The navigation foundation is present: shared-edge mutation is reciprocal, A*
 and diagonal constraints honor the closure, zone flooding and doorway portals
 respect it, and runtime opening rebuilds topology and retained path fields at
-the ordinary end-of-tick boundary. No generator publishes a production barrier
-yet, so the shipped maps remain unchanged.
+the ordinary end-of-tick boundary. The derived greedy navigation mesh also
+preserves closed edges as region seams and publishes one immutable replacement
+snapshot at that same boundary after cell, wreck, or barrier mutation. No
+generator publishes a production barrier yet, so the shipped maps remain
+unchanged.
 
 ## Remaining scope
 
