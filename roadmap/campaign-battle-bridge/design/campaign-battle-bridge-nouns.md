@@ -4,7 +4,7 @@ Status: ACTIVE — target-profile transport is campaign-free, while ground consu
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced work sequencing with durable consumer, target-market, and authored-Conquest force boundaries.
+Updated: 2026-08-28 — named faction identity as a terrain-independent axis and added the defender-faction override.
 
 Read `stories.md` for open work.
 
@@ -35,6 +35,10 @@ need.
   scenarios. It is a baseline world, not an arbitrary fallback world.
 - A **consumer** is a battle or generation policy that elects to read a profile
   signal. Consumers own their own balance and presentation decisions.
+- A **defender-faction override** is a mission-authored replacement for the
+  profile's faction identity, applied once at the launch boundary. It says who
+  holds the target world for this launch; it says nothing about what the target
+  world is.
 
 `TargetProfileResolver` owns the one-way conversion from the live vanilla
 market to the profile. `MissionLaunch` owns taking that snapshot at the mission
@@ -104,6 +108,32 @@ cover, walkability, sightlines, and connectivity true on the navigation map.
 The bridge carries only the economic signal; the economic-districts feature
 owns the district-content program.
 
+### Faction identity is an axis of its own
+
+Faction identity is the one profile signal no generation stage reads. It has
+exactly one consumer — the resolution of the battle-frozen ground roster — while
+terrain follows scale, hardening, port capacity, and economic functions. That
+separation is not incidental; it is the property that makes the defending
+faction a *controlled* variable. Two launches on the same seed with different
+faction identities are the same battlefield with different troops standing on
+it, so anything that differs between them is attributable to doctrine rather
+than to a reroll of the map.
+
+A mission may therefore name a defender-faction override, and the launch
+boundary rewrites only the profile's faction identity before handing the
+snapshot inward. There is one such application point, and there is deliberately
+no second resolve path and no faction parameter threaded through battle setup:
+the guarantee above is only worth as much as the number of places that can
+break it. A mission with no override is byte-identical to one that never had
+the concept.
+
+Comparing defenders is only a comparison when the battlefield holds still, so a
+mission built for that purpose also pins its generation seed; ordinary missions
+keep rerolling their map on each launch. The debug board carries such a group
+for Conquest, derived from the roster catalog rather than from a faction list
+written in code, so a newly catalogued doctrine becomes comparable without a
+code change.
+
 ## Laws for future consumers
 
 1. Keep the procedural core campaign-free. Add a plain profile signal and map
@@ -121,6 +151,10 @@ owns the district-content program.
 6. Treat numeric encounter tuning as manual acceptance. Record representative
    in-game observations; do not substitute a new automated test for that
    judgment.
+7. Leave faction identity out of generation. A stage that wants to vary terrain
+   by owner is asking for a new descriptive signal — architectural style, say —
+   not for the faction id, which would silently cost the bridge its one
+   controlled axis.
 
 ## Extension boundary
 

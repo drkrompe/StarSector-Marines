@@ -76,6 +76,22 @@ public final class Mission {
     public final String targetIndustryId;
     /** Faction whose equipment flavors post-battle recovery; null when unknown. */
     public final String targetFactionId;
+    /**
+     * Faction id to stand up as the defender instead of the one the target
+     * market actually belongs to; null for every ordinary mission, where the
+     * market's own owner defends. Applied once, at the launch boundary, onto the
+     * resolved {@code TargetProfile} — it replaces only that profile's faction
+     * id, and no generator stage reads that field, so an override changes who
+     * defends and leaves the terrain alone. See {@code campaign-battle-bridge-nouns.md}.
+     */
+    public final String defenderFactionOverride;
+    /**
+     * Fixed battle seed, or null to seed the battle off the wall clock (the
+     * ordinary case — a relaunched mission should be a fresh map). Pinned only
+     * where the point of the mission is comparing two launches on one
+     * battlefield.
+     */
+    public final Long battleSeed;
 
     /**
      * Campaign-tier contract id this mission resolves a phase of; {@code -1} for
@@ -151,6 +167,8 @@ public final class Mission {
         this.targetPlanetName = b.targetPlanetName;
         this.targetIndustryId = b.targetIndustryId;
         this.targetFactionId  = b.targetFactionId;
+        this.defenderFactionOverride = b.defenderFactionOverride;
+        this.battleSeed       = b.battleSeed;
         this.contractId        = b.contractId;
         this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
         this.campaignEventMarketId = this.campaignEventId > 0L
@@ -202,6 +220,8 @@ public final class Mission {
         private String targetPlanetName;
         private String targetIndustryId;
         private String targetFactionId;
+        private String defenderFactionOverride;
+        private Long battleSeed;
 
         private long contractId = -1L;
         private long campaignEventId = -1L;
@@ -240,6 +260,8 @@ public final class Mission {
             this.targetPlanetName = m.targetPlanetName;
             this.targetIndustryId = m.targetIndustryId;
             this.targetFactionId = m.targetFactionId;
+            this.defenderFactionOverride = m.defenderFactionOverride;
+            this.battleSeed = m.battleSeed;
             this.contractId = m.contractId;
             this.campaignEventId = m.campaignEventId;
             this.campaignEventMarketId = m.campaignEventMarketId;
@@ -351,6 +373,18 @@ public final class Mission {
 
         public Builder targetFactionId(String targetFactionId) {
             this.targetFactionId = targetFactionId;
+            return this;
+        }
+
+        /** @param defenderFactionOverride faction to defend instead of the market's owner; null to leave it alone. */
+        public Builder defenderFactionOverride(String defenderFactionOverride) {
+            this.defenderFactionOverride = defenderFactionOverride;
+            return this;
+        }
+
+        /** @param battleSeed fixed generation seed; null restores wall-clock seeding. */
+        public Builder battleSeed(Long battleSeed) {
+            this.battleSeed = battleSeed;
             return this;
         }
 

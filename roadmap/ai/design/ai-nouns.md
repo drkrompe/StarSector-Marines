@@ -518,6 +518,14 @@ authorizes an unbounded chase or abandonment of the mission route; if no legal
 position exists inside the maneuver leash, the member continues its assigned
 advance.
 
+While an advancing squad is committed to either kind of contact, a legal
+shooter plants and fires from a stanced posture instead of continuing the
+mission route. A successful shot may author the ordinary cooldown-staggered
+move to strictly better directional cover; subsequent mission-action ticks
+preserve that short cover move but continue to suppress the objective route.
+This lets a receiving line improve accidental contact positions between bursts
+without turning RECEIVE into a pursuit or moving the whole squad in lockstep.
+
 Fireteams are the infantry maneuver unit. They can receive distinct roles in a
 shared squad step: a recoverable ambush can displace the exposed team while a
 sibling covers, and a committed advance can bound rather than send every
