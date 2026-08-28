@@ -499,10 +499,26 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
     private void slice() {
         if (source == null) return;
+        String prefix = idPrefix.getText().trim();
+        List<SheetSlicer.Piece> bounds = new ArrayList<>();
+        for (TilesetExport.Entry entry : model.entries) bounds.add(entry.piece);
+
         List<SheetSlicer.Piece> pieces = SheetSlicer.slice(
                 source, (Integer) alphaMin.getValue(), SheetSlicer.DEFAULT_MIN_AREA);
         TilesetDocument.Reconciliation reconciled = TilesetDocument.reconcile(
-                pieces, model.entries, idPrefix.getText().trim(), cellPxX(), cellPxY());
+                pieces, model.entries, prefix, cellPxX(), cellPxY());
+        List<TilesetOperations.AtRisk> atRisk =
+                TilesetOperations.atRisk(reconciled.lost(), prefix);
+        if (!atRisk.isEmpty() && !AuthoringMessages.confirm(root, "Re-slice",
+                "Re-slicing " + sheetNameOrDefault() + ": "
+                        + TilesetOperations.discardWarning(atRisk),
+                "Discard and re-slice")) {
+            // Reconciling already moved each carried annotation onto its newly
+            // found bounds; a declined re-slice leaves the table as it was.
+            for (int i = 0; i < bounds.size(); i++) model.entries.get(i).piece = bounds.get(i);
+            context.reportStatus("Re-slice declined; nothing changed");
+            return;
+        }
         model.setEntries(reconciled.entries());
         view.setEntries(reconciled.entries());
         syncGrid();

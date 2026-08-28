@@ -124,7 +124,7 @@ class TilesetDocumentTest {
 
         assertEquals(1, result.carried());
         assertEquals(1, result.added());
-        assertEquals(List.of("doodad.ship.speck"), result.lost(),
+        assertEquals(List.of("doodad.ship.speck"), result.lostIds(),
                 "a piece that no longer exists is named, not silently dropped");
         assertTrue(result.summary().contains("doodad.ship.speck"));
 
@@ -166,7 +166,7 @@ class TilesetDocumentTest {
 
         assertEquals(0, result.carried());
         assertEquals(1, result.added());
-        assertEquals(List.of("doodad.ship.left", "doodad.ship.right"), result.lost());
+        assertEquals(List.of("doodad.ship.left", "doodad.ship.right"), result.lostIds());
     }
 
     @Test

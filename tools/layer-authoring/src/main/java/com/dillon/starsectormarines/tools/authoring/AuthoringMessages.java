@@ -56,6 +56,25 @@ public final class AuthoringMessages {
         show(parent, title, body + "\n\n" + describe(failure), JOptionPane.ERROR_MESSAGE);
     }
 
+    /**
+     * Ask before doing something that cannot be undone, and say what it is.
+     *
+     * <p>The affirmative button is labelled with the act rather than with "OK":
+     * the dialogs that need this one are the ones where the body is a paragraph
+     * about what would be destroyed, and a person who reads only the buttons
+     * should still be told which one destroys it.
+     *
+     * @return whether the operator chose to go ahead
+     */
+    public static boolean confirm(Component parent, String title, String body,
+                                  String proceedLabel) {
+        Object[] options = {proceedLabel, "Cancel"};
+        int chosen = JOptionPane.showOptionDialog(parent, panel(title, body), title,
+                JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                options, options[1]);
+        return chosen == 0;
+    }
+
     public static void show(Component parent, String title, String body, int messageType) {
         JOptionPane.showMessageDialog(parent, panel(title, body), title, messageType);
     }
