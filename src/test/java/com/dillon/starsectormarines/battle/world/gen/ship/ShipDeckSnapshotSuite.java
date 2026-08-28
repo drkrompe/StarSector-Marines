@@ -213,7 +213,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         for (VanillaHullSilhouettes.Hull hull : hulls) {
             interiors.add(ShipInterior.of(new CompanyShip(hull.hullClass(), hull.role(),
                     hull.minCrew(), hull.maxCrew(), hull.cargo(),
-                    hull.silhouette().aspect()), SEED));
+                    hull.silhouette()), SEED));
         }
 
         int margin = 24;

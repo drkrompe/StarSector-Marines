@@ -12,11 +12,13 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.VanillaHullSilhouettes;
 import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
+import com.dillon.starsectormarines.ops.battleview.DeckPlanCanvas;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
@@ -37,6 +39,8 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -53,6 +57,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> BARRACKS_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/shipboard-barracks.mlx");
+    /**
+     * The fleet the transfer evidence is drawn from: a plausible mid-campaign
+     * mix, best home first, with hulls that would cost the company something
+     * deliberately included.
+     */
+    private static final String[] TRANSFER_FLEET = {
+            "valkyrie", "legion", "starliner", "eagle", "atlas", "wolf" };
+
+    private static final List<String> SHIP_TRANSFER_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/ship-transfer.mlx");
     private static final List<String> OVERVIEW_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-overview.mlx",
@@ -97,6 +112,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("barracks-wide.png",
                         renderBarracks(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("ship-transfer-wide.png",
+                        renderShipTransfer(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 0)),
+                new SnapshotArtifact("ship-transfer-costly-wide.png",
+                        renderShipTransfer(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2)),
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -162,6 +183,88 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             return renderRelative(renderer, document, width, height, uiScale);
         }
+    }
+
+    /**
+     * The transfer screen, driven by the same view model the game drives.
+     *
+     * <p>The fleet is a fixture because a snapshot has no campaign to read one
+     * from, but the ships in it are real hulls and every row, cell, verdict and
+     * plan is produced by the production code from their generated decks. A
+     * screenshot assembled from authored strings would prove only that the
+     * layout compiles.
+     *
+     * @param selected which candidate to show; one shot is the ship they live
+     *     on and the other a hull that would cost them something, since that
+     *     second reading is what the screen exists for
+     */
+    private static BufferedImage renderShipTransfer(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, int selected) throws Exception {
+        Reactor reactor = new Reactor();
+        List<ShipTransferViewModel.Candidate> fleet = transferFleet(context);
+        if (fleet.isEmpty()) return renderer.renderRelative(new UiDocument(null),
+                width, height, 1f, MarineOpsUiViewport.REFERENCE_WIDTH,
+                MarineOpsUiViewport.REFERENCE_HEIGHT);
+        String home = fleet.get(0).id();
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(
+                reactor, () -> fleet, () -> home, moved -> { });
+        viewModel.select(fleet.get(Math.min(selected, fleet.size() - 1)).id());
+
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), SHIP_TRANSFER_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, "ship-transfer", props(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("transfer-plan"),
+                    new DeckPlanCanvas(viewModel::selectedPlan,
+                            viewModel::selectedOutline));
+            return renderRelative(renderer, document, width, height, 1f);
+        }
+    }
+
+    /**
+     * A fleet of real vanilla hulls, read the way the game reads them: their
+     * own collision outlines and their own complements, so the decks drawn are
+     * decks the generator would really produce.
+     */
+    private static List<ShipTransferViewModel.Candidate> transferFleet(
+            SnapshotContext context) throws Exception {
+        VanillaHullSilhouettes vanilla = new VanillaHullSilhouettes(context.starsectorCore());
+        if (!vanilla.available()) return List.of();
+        List<ShipTransferViewModel.Candidate> fleet = new ArrayList<>();
+        for (String hullId : TRANSFER_FLEET) {
+            VanillaHullSilhouettes.Hull hull = vanilla.read(hullId);
+            if (hull == null) continue;
+            fleet.add(new ShipTransferViewModel.Candidate(hullId,
+                    hullId.toUpperCase(Locale.ROOT),
+                    hull.hullClass().name().toLowerCase(Locale.ROOT) + ", "
+                            + hull.role().name().toLowerCase(Locale.ROOT).replace('_', ' '),
+                    hull.lift(), hull.cargo(),
+                    new CompanyShip(hull.hullClass(), hull.role(), hull.minCrew(),
+                            hull.maxCrew(), hull.cargo(), hull.silhouette())));
+        }
+        return List.copyOf(fleet);
+    }
+
+    private static Map<String, Object> props(ShipTransferViewModel viewModel) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("candidateRows", viewModel.candidateRows());
+        props.put("facilityCells", viewModel.facilityCells());
+        props.put("selectedName", viewModel.selectedName());
+        props.put("selectedSummary", viewModel.selectedSummary());
+        props.put("verdict", viewModel.verdict());
+        props.put("transferLabel", viewModel.transferLabel());
+        props.put("transferClasses", viewModel.transferClasses());
+        props.put("transferAction", (Runnable) () -> { });
+        props.put("contextLabel", "COMPANY FLEET / TRANSFER");
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_TRANSFER,
+                MarineOpsPageNav.ANY_SHIP,
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+        return props;
     }
 
     private static BufferedImage renderFleetArmoryWorkspace(
