@@ -35,12 +35,20 @@ python art-source\tilesets\normalize_spaceport_apron.py
 .\gradlew.bat :asset-pipeline:deriveTileMaps
 ```
 
-`atlas-material-source/` contains the small checked-in authoring inputs used by
-`texture-atlases.json`. They are wrap-aware FFmpeg downsamples of selected Game
-Buffs 4K materials: 52x52 grass and dirt plus 45x47 sand for `nature-tiles`,
-and 52x52 sand and stone for `Floors_Tiles`. Every hash-selected variant in a
-material pool uses the same imported source so unlike variants cannot expose a
-join.
+`atlas-material-source/` contains the small checked-in authoring inputs for the
+frames whose picture is a surface rather than drawn art. They are wrap-aware
+FFmpeg downsamples of selected Game Buffs 4K materials: 52x52 grass and dirt
+plus 45x47 sand for `nature-tiles`, and 52x52 sand and stone for
+`Floors_Tiles`. Every hash-selected variant in a material pool uses the same
+imported source so unlike variants cannot expose a join.
+
+Which producer reads them differs by sheet, and that is the distinction to keep
+straight. `nature-tiles` names its materials on its own authoring entries, so
+its export places them and nothing runs afterwards. `Floors_Tiles` is still a
+fixed-grid sheet produced by `normalize_tilesets.py`, so its materials are still
+pasted in by `texture-atlases.json` at `cell` addresses. A sheet must never be
+claimed by both: `KeyedSheetsAreExportedNotNormalizedTest` fails the build if a
+keyed sheet's atlas is named in the manifest.
 
 ## Individual-material atlas packer
 
@@ -97,7 +105,7 @@ python -m unittest discover `
 | `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGBA, keyed) | Exported from `urban-tileset-3.tileset-authoring.json` as an auto-strip; withdrawn from `normalize_tilesets.py` |
 | `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) + `atlas-material-source/` (52x52 RGBA) | 25x26 topology retained at 56px per cell; sand and stone fields use manifest-packed seamless materials |
 | `Water_tiles.png` | `Water_tiles.raw.png` (1254x1254 RGB) | Strong macro-layout preservation; some edge spill into empty cells |
-| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGBA, keyed) + `atlas-material-source/` (52x52 and 45x47 RGBA) | Withdrawn from `normalize_tilesets.py` and annotated in `nature-tiles.tileset-authoring.json`, but **not yet exported**: five of its twenty frames take their picture from the material library rather than from the plate, so the document alone cannot reproduce the atlas. See `nature-tiles-material-provenance.md` |
+| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGBA, keyed) + `atlas-material-source/` (52x52 and 45x47 RGBA) | Exported from `nature-tiles.tileset-authoring.json` as an auto-strip; withdrawn from `normalize_tilesets.py`. Its five field frames declare a `material` and are exported at the material's own size plus the renderer's ground inset wrapped round it, so the sheet has one producer. See `nature-tiles-material-provenance.md` |
 
 ## Shared prompt frame
 
