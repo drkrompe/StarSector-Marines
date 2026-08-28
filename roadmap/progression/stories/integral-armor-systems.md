@@ -4,11 +4,11 @@
 > doorway behind a shield is a different soldier; a breacher with more hit
 > points is the same soldier taking longer to kill.
 
-Status: IN PROGRESS — declared, carried into battle, and running: the breacher
-assist activates, boosts, expires, and goes on cooldown. The directional
-mitigation, an authored AI policy, presentation, and the missile pod remain.
+Status: IN PROGRESS — declared, carried into battle, running, and legible in
+the Armory before issue. The directional mitigation, an authored AI policy,
+battle presentation, and the missile pod remain.
 Written: 2026-08-27
-Updated: 2026-08-27 — battle activation landed; what is left is the shield half, the use policy, presentation, and the pod.
+Updated: 2026-08-28 — Armory legibility landed; what is left is the shield half, the use policy, battle presentation, and the pod.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -117,6 +117,21 @@ exactly the suit it was, and cannot be spent again until its cooldown drains.
 Movement is recomputed from an untouched base speed rather than scaled in
 place, so repeated runs cannot compound and a second effect will not inherit
 the first one's remainder.
+
+A suit's system is legible before it is issued. The doctrine designer's tile —
+the screen where a pattern is actually chosen — spends its one non-meter line
+on the system's mechanics, because the four scalars beneath it cannot express
+what makes a late pattern worth wanting. The fire-team card carries a system
+line level with the billet's carried special item, so the screen shows at a
+glance that the two are separate issues, and hovering it gives the authored
+prose. What those screens quote is what the simulation applies, not what the
+catalog declares: the frontal screen is authored but not yet simulated, so it
+is not advertised, and a test pins the advertised boost to the measured one.
+
+The barracks reports systems per formation rather than per marine. Its muster
+row is a fixed 208px name-and-detail pair that already truncates a long pattern
+name, so an individual suit's capability is spelled out in the Armory and the
+barracks says only how many of the formation carry one.
 
 - **The directional resistance.** `combat-durability-nouns.md` still owes the
   bounded, timed, arc-limited mitigation concept this leans on, and telemetry
