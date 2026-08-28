@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — experience became armour-sourced rather than per-marine earned, career evidence gained a squad grain, and the band span was measured rather than widened.
+Updated: 2026-08-27 — experience became armour-sourced rather than per-marine earned, career evidence gained a squad grain, the campaign arc was pinned by measurement, and late-game growth was directed at capability rather than durability.
 
 ## Purpose
 
@@ -161,6 +161,29 @@ lead" bonus: the built-in squad definitions already issue the leader's billet
 scarcer armour, so an NCO comes out steadier through the visible mechanism.
 Because armour tier now sets a band, any issue path that picks a pattern for
 looks alone is choosing combat quality and must say so.
+
+**The arc ends in super soldiers.** A company opens on raw numbers in bad kit,
+scraping a living out of weight of fire, and should end as something that reads
+like a different species of soldier. That is an intent about the *compound*, not
+about any single lever: band, equipment grade, and armour all move together
+because the armour pattern is what sets the band to begin with. Measured as the
+exchange between the two ends — an endgame marine killing an opening one against
+an opening marine killing an endgame one — the asymmetry is roughly fifteen to
+one with the weapon family held constant, so upgrading families across the arc
+widens it further. `TtkReportTest` publishes that matchup and fails if the arc
+flattens into a linear ladder.
+
+**The arc is bought with capability, not durability.** Roughly 5.7x of that
+asymmetry is shooter-side and only about 2.6x is target armour, and that ordering
+is deliberate: the design wants firefights to stay lethal, so late equipment
+should get more interesting rather than harder to kill. Armour patterns already
+express themselves as a four-lever tradeoff — the tier-1 field kit is faster and
+harder to hit than the tier-4 walking tank that pays a fifth of its speed for
+plate — and that tradeoff shape is the thing to extend. A late-game suit earns
+its place through what it can do, so growth belongs in authored capability
+rather than in a wider pool; `integral-armor-systems.md` carries that direction.
+
+That compound is why no individual lever needs to be dramatic:
 
 **A band is worth about an equipment-grade step.** That calibration is measured,
 not asserted: against an unarmored marine the Green-to-Elite span is roughly
