@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ambient;
 
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -41,12 +42,12 @@ public enum CrewRole {
      * Services the machines a vehicle bay berths. Welding on whatever is parked
      * is the work; the parts run and the readout are what the work needs.
      */
-    MECH_TECH(RoomPurpose.CREW_QUARTERS,
+    MECH_TECH(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
             List.of(Affordance.SERVICE, Affordance.STOW, Affordance.READOUT),
             List.of(Affordance.REST)),
 
     /** Makes and repairs the parts a bay consumes, at the bench rather than the machine. */
-    MACHINIST(RoomPurpose.CREW_QUARTERS,
+    MACHINIST(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
             List.of(Affordance.FABRICATE, Affordance.STOW),
             List.of(Affordance.REST)),
 
@@ -54,17 +55,20 @@ public enum CrewRole {
      * Off watch: eating and keeping their shooting in around the ship, sleeping
      * and squaring their kit away in their own berthing.
      */
-    MARINE(RoomPurpose.BARRACKS,
+    MARINE(RoomPurpose.BARRACKS, UnitType.MARINE,
             List.of(Affordance.MESS, Affordance.PRACTICE),
             List.of(Affordance.REST, Affordance.STOW));
 
     private final RoomPurpose quarters;
+    private final UnitType unit;
     private final List<Affordance> onWatch;
     private final List<Affordance> offWatch;
     private final List<Affordance> jobs;
 
-    CrewRole(RoomPurpose quarters, List<Affordance> onWatch, List<Affordance> offWatch) {
+    CrewRole(RoomPurpose quarters, UnitType unit,
+             List<Affordance> onWatch, List<Affordance> offWatch) {
         this.quarters = quarters;
+        this.unit = unit;
         this.onWatch = List.copyOf(onWatch);
         this.offWatch = List.copyOf(offWatch);
         List<Affordance> all = new ArrayList<>(this.onWatch);
@@ -84,6 +88,17 @@ public enum CrewRole {
      */
     public RoomPurpose quarters() {
         return quarters;
+    }
+
+    /**
+     * Who this role turns up as.
+     *
+     * <p>Presentation, but not only presentation: a marine on a range is armed
+     * and an engineer is not, so the unit a role spawns as decides whether a
+     * practice stop can put rounds downrange at all.
+     */
+    public UnitType unit() {
+        return unit;
     }
 
     /** The jobs this role works in a compartment that is somebody's workplace. */

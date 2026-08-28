@@ -44,7 +44,9 @@ which is presentation only.
   a separate one, which is a `DeckSizing` decision rather than a fill defect.
   Firing lanes are done and come from the range's own outline rather than a
   count — the footprint narrows where the firing line goes, so a reshaped recipe
-  moves the lanes with it.
+  moves the lanes with it. The lane itself is shut to movement rather than
+  reserved, so the beaten zone is a fact about the deck and not only about the
+  fill.
 - Fixtures are placed as **fixture groups** — an anchor, its satellites, and a
   shared orientation — not as independent points. A berth is a bunk with its
   footlocker and personal clutter; a fabrication station is a bench with its

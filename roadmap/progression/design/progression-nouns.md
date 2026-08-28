@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — connected faction armor side-grades to defender issue and broadened the tier-I frontier baseline.
+Updated: 2026-08-27 — experience became squad-definition-sourced rather than per-marine earned, and career evidence gained a squad grain.
 
 ## Purpose
 
@@ -25,15 +25,25 @@ legibility.
 - **Marine** — a named, persistent rank-and-file campaign soldier. `MarineRoster`
   is the authority for that identity, status, assigned kit, and career.
 - **Profile** — a marine's battle-ready individual quality: immutable aptitude
-  plus earned XP, represented at the battle seam by `SoldierProfile`.
+  plus the experience band issued with the squad's loadout definition,
+  represented at the battle seam by `SoldierProfile`.
 - **Aptitude** — an innate, permanent marksmanship disposition. It is not an
   upgrade track and is not rerolled by experience.
-- **Experience** — earned soldier XP and the derived Green, Regular, Veteran,
-  or Elite tier. It changes infantry combat performance and new-threat
-  registration; it is separate from captain XP and rank.
-- **Career** — a marine's persisted lifetime service evidence: deployments,
-  wins, fired and landed rounds, dealt and taken damage, kills, and wounds.
-  It is cumulative, not a per-mission journal.
+- **Experience** — a marine's Green, Regular, Veteran, or Elite band. It is
+  sourced from the squad loadout definition the marine is issued, not
+  accumulated by that marine. It changes infantry combat performance and
+  new-threat registration; it is separate from captain XP and rank.
+- **Experience standard** — the distribution of experience bands a squad
+  loadout definition declares, stated separately for its rank-and-file billets
+  and its leader billet. It is the definition's declared quality, never a
+  record of what any marine did.
+- **Career** — persisted lifetime service evidence: deployments, wins, fired
+  and landed rounds, dealt and taken damage, kills, and wounds. A marine holds
+  one; a squad holds one. Both are cumulative totals, not per-mission journals.
+- **Squad career** — a squad's own lifetime record, accumulated from every
+  marine who has served in it. It belongs to the formation rather than its
+  current membership: it survives replacement, and it survives a total loss and
+  reconstitution under the same squad identity.
 - **Equipment family** — the weapon's tactical identity: engagement band,
   firing pattern, baseline behavior, and family presentation. A family is not
   a quality tier or merely a technology label.
@@ -100,6 +110,15 @@ content must preserve this separation. A high-grade weapon is still its family,
 a gauss label does not earn a redundant family, and a skilled soldier does not
 become a bespoke carrier type.
 
+A second standing law governs legibility: **a squad's fighting quality is fully
+determined by what the player can see**. Two squads carrying the same loadout
+definition and the same armor pattern fight the same, and no hidden per-squad
+or per-marine modifier may separate them. Innate aptitude varies within a
+declared band and is readable on the marine; it is bounded expressly so it
+cannot overturn the band the player read. This is what makes threat assessment
+a skill rather than a guess, and it applies to defender formations as much as
+to the player's own.
+
 The shipped primary catalog now covers five player-facing decisions. The Rook
 is the rugged chemical-slug baseline, the Lancer is the flexible pulse burst,
 and the Longbow is the deliberate gauss/rail marksman weapon. The Rattler is a
@@ -123,10 +142,23 @@ claims about vanilla canon and not a reason to create equivalent faction clones.
 
 ### Aptitude and experience
 
-Aptitude is innate and remains fixed for a marine's life. XP is persisted on
-the marine and derives the experience tier through `ExperienceTier`. Current
-mission resolution still awards a flat survivor XP amount by outcome/risk;
-performance-derived awards are planned work, not current behavior.
+Aptitude is innate, persisted per marine, and fixed for that marine's life. It
+is the only quality axis an individual rank-and-file marine carries, and it is
+what keeps two squads issued the same definition from resolving identically.
+
+Experience is sourced from the squad loadout definition rather than accumulated
+by the individual. A definition declares an experience standard; issuing it
+resolves each billet to a band, and `SoldierProfile` carries that band into
+battle. A high-standard definition means the company put its best people behind
+its best kit. Rank-and-file marines are otherwise interchangeable, and the
+company's growth is what the Armory has collected and can issue rather than a
+per-marine ladder.
+
+That makes collection and issue the player's progression axis: which definitions
+the Armory owns, and which squads carry them. Casualties still cost bodies,
+credits, and recovery time, but replacing a marine does not degrade the squad's
+declared quality. Named identity continues to carry weight for captains and for
+the enlisted leader billet, not for the rank and file.
 
 Experience already has a behavioral meaning beyond output. For infantry
 training archetypes, `FiringSystem` holds the first primary shot against a
@@ -140,6 +172,11 @@ bounded rate but is presentation state, never another fire gate. Sustained
 cadence remains a weapon-and-handling concern. This applies to trained humanoid
 infantry, not to mechs, turrets, drones, or fauna. Experience changes first
 action without becoming another permanent damage multiplier.
+
+Because the band is issued rather than earned, the same experience vocabulary
+describes defender formations, whose bands already resolve from unit type and
+risk. Player and defender quality therefore read on the same scale, which is
+what lets a player learn to judge a hostile formation on sight.
 
 ### Kit and armory
 
@@ -448,6 +485,14 @@ deployment is not inferred from having fired, and a fallen marine retains the
 record of their final mission. Career retention is deliberately lifetime totals
 rather than a per-mission journal.
 
+The same fold credits the squad a marine deployed with, accumulating a squad
+career from the frozen deployment tag rather than from current membership. A
+squad's record therefore survives replacement, and survives a total loss and
+reconstitution under the same identity: the formation is the thing with a
+history, and the marines rotate through it. Because rank-and-file experience is
+issued rather than earned, career evidence is a record and a presentation
+input; it is never fed back as a quality dial.
+
 The standing law is **outcome declares participation; telemetry supplies
 evidence**. Telemetry must never become the authority for campaign identity,
 casualty disposition, or deployment membership.
@@ -482,17 +527,23 @@ Progression information must be readable where the player assigns equipment,
 chooses personnel, and observes combat. It must remain presentation-only:
 simulation determinism and combat results cannot depend on UI or render state.
 Equipment signal belongs to grade capability, while person-driven signal
-belongs to the marine's profile, career, and current contribution. Avoid
-stacking redundant battlefield overlays; start with the closest decision
-surface and add in-world signal only when it materially improves play.
+belongs to the marine's profile, career, and current contribution. Because
+quality is issued with a definition, that definition's declared standard is
+itself a presentation obligation: where a squad's loadout is shown, its
+experience standard is shown with it, and battle presentation should let the
+same distinction be read from a silhouette. Avoid stacking redundant
+battlefield overlays; start with the closest decision surface and add in-world
+signal only when it materially improves play.
 
 ## Growth directions
 
 The following are direction, not current behavior:
 
-- Replace flat survivor XP with deterministic, bounded performance-derived
-  awards from frozen outcomes, while preserving meaningful participation and
-  learning from losses.
+- Widen the experience band span so an issued standard is a felt difference
+  next to equipment grade, and re-verify risk-scaled defender rosters against
+  the wider span.
+- Give defender formations the same readable loadout vocabulary the player's
+  squads use, so hostile quality can be judged before contact.
 - Expand primary families and special-equipment options while preserving the
   complete-template, explicit-exclusion, faction-source, and collection-floor
   laws. `stories.md` owns the concrete contact-tool, stim, grenade, and
@@ -501,14 +552,21 @@ The following are direction, not current behavior:
   operational gates while keeping advanced progression operation-shaped.
 - Make grade, aptitude, experience, career, and captain traits legible in
   campaign and battle surfaces without changing simulation authority.
+- Surface squad careers as a company-wide standing worth reading, including
+  awards drawn from evidence the sim already separates, such as friendly-fire
+  damage.
 - Give only traits with an observable, domain-appropriate consequence a
   mechanic, and define a deliberate acquisition model before promising
   level-up rewards.
 
 ## Invariants for future work
 
-- Aptitude is permanent; experience is earned; captain rank is a separate
-  leadership progression.
+- Aptitude is permanent and per marine; experience is issued with the squad
+  loadout definition; captain rank is a separate leadership progression. None
+  of the three is a synonym for another.
+- A squad's fighting quality is fully determined by visible issue. A hidden
+  modifier that separates two identically equipped squads is a defect, not a
+  feature.
 - Family, delivery mechanism, grade, profile, armor role, armor pattern, and
   provenance stay composable rather than being fused into faction-specific
   unit variants.
@@ -533,13 +591,16 @@ The following are direction, not current behavior:
   remain typed code, and presentation state never becomes simulation input.
 - Live carrier art and preview carrier art resolve the same actor-local recipe;
   a UI mannequin may choose a pose but must not own a second placement table.
-- Career totals are lifetime evidence; adding a per-mission history requires a
-  new retention and UI commitment.
+- Career totals are lifetime evidence at both the marine and squad grain;
+  adding a per-mission history requires a new retention and UI commitment.
+- A squad career belongs to the formation and is never reset by replacement,
+  by total loss, or by reconstitution under the same identity.
 - All combat telemetry may inform balance; only identity-bound campaign rows
   may affect campaign careers or rewards.
 - Attribution measures resolved outcomes, not requested damage or visual
   effects. Resolved armor and structure loss may be reported separately while
   remaining one aggregate career contribution.
-- Persistent experience is awarded from a frozen campaign outcome; battle-local
-  state must not become a second progression authority.
+- Career evidence is folded from a frozen campaign outcome; battle-local state
+  must not become a second career authority, and career totals must never be
+  read back as a combat-quality input.
 - Presentation conveys existing quality but never changes sim state.

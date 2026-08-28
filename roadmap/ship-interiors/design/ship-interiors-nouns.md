@@ -373,7 +373,24 @@ technicians on a rotation that includes the terminal.
 Threat policy is a parameter of the route and a home deck's crew yield only to
 **hostiles**. Yielding to any combatant sounds safer and is wrong here: the
 machines a technician services are armed, so the crew of a bay would flee the
-mechs they are welding and stand around the edges of the room permanently.
+mechs they are welding and stand around the edges of the room permanently. The
+same rule decides who a range target belongs to. A target frame is a combatant
+as far as the roster is concerned, so a hostile one would have the firing detail
+flee the paper it came to shoot at — it is the deck's own equipment, and it takes
+the deck's own side.
+
+A practice stop is the one job that **resolves** rather than only posing. The
+fitting already bound each firing point to the butts it faces, so the stop's
+focus is the target: the host spawns one frame per set of butts and the shooter
+fires down its own lane through the ordinary shot pipeline. Nothing is authored
+and nothing is drawn from a campaign inventory — the shooters are the deck's own
+roster and the target is a frame the scene owns.
+
+A deck is not a mission. A simulation with no registered objectives installs the
+backstop pair, and a deck carrying nobody but its own crew therefore wins the
+moment it is built and stops ticking — so a deck view disables mission
+completion, and a boarding action hosted on the same scene registers its own
+objectives instead.
 
 A fill that would seal its compartment is refused, and a refused fill publishes
 **nothing** — not its fixtures, not its berths, not its work. Rolling back only
@@ -408,6 +425,17 @@ A firing range is the standing example of the argued case, and the only room so
 far whose empty deck *is* the room. The stretch between the firing line and the
 butts is marked, reserved before anything is placed, and kept clear of fixtures
 in both directions — nothing may stand in it, and nothing may open onto it.
+
+That deck is **shut** rather than merely reserved. A reservation is a rule about
+furniture: it stops the fill standing anything in the lane and leaves everybody
+else free to walk down it, which for a beaten zone is the whole failure. Shut
+deck is closed to movement and open to sight and shot — see-through, carrying no
+edge cover, and tagged a fixture rather than a wall so nothing seeds it with
+destructible hit points. That is the treatment water already gets, and for the
+same reason: what stops the deck here is not a wall. Shutting is recorded during
+the fill and applied only once the fill is known to be kept, because deck closed
+off by a discarded fill would stay closed — a strip through a room that nothing
+can cross and nothing explains.
 
 Density varies on purpose. Work areas are dense and cluttered; transit is clear
 and legible; the boundary between them is visible from the fixtures alone,

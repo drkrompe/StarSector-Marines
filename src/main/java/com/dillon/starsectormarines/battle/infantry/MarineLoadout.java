@@ -144,6 +144,7 @@ public final class MarineLoadout {
             marine.specialEquipment(special, secondaryAmmo);
         }
         marine.campaignSoldierId(campaignSoldierId);
+        marine.campaignSquadId(campaignSquad != null ? campaignSquad.squadId : null);
         if (armorFamily != null) {
             marine.layeredArmorFamily(armorFamily);
             marine.armor(armorPool, armorRating,

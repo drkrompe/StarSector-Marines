@@ -1,7 +1,8 @@
 # Cleanup — One persistent XP authority
 
-Status: PROPOSED — evaluate after `s4-performance-derived-experience.md` settles awards.
+Status: READY — unblocked; `s11-card-sourced-experience.md` removed the award model this was waiting on.
 Written: 2026-08-23
+Updated: 2026-08-27 — rank-and-file XP is no longer a progression dial, so the second authority is now plainly obsolete rather than pending a decision.
 
 Read `progression-nouns.md` before accepting or implementing this cleanup.
 
@@ -12,15 +13,21 @@ Production progression applies persisted XP through `MissionResolver` and
 `CombatService.addExperience` instead mutates a battle-local `SoldierProfile`;
 it has test callers but no production caller.
 
-That unused seam makes a second XP authority appear legitimate even though the
-standing law is that campaign-persistent experience is awarded from the frozen
-outcome. S4 must settle the award model before this cleanup chooses whether the
-method is obsolete or has a deliberately non-campaign role.
+That unused seam made a second XP authority appear legitimate. With experience
+now issued from the squad loadout definition rather than accumulated per marine,
+there is no campaign award model for it to belong to: the method is obsolete
+unless a bounded non-campaign purpose is documented and tested.
+
+This cleanup now also owns the disposal of `MarineSoldier.experienceXp` itself.
+It stops being a mechanical input; decide explicitly whether it remains a
+displayed service statistic or is removed, and record which.
 
 ## Acceptance
 
-- After S4, either remove `CombatService.addExperience` and its obsolete test
-  surface, or document and test a bounded non-campaign purpose for it.
-- No battle-local caller can bypass the frozen-outcome award model to change a
-  campaign marine's persistent XP.
-- Debug fixtures may author starting XP, but are not an award authority.
+- Either remove `CombatService.addExperience` and its obsolete test surface, or
+  document and test a bounded non-campaign purpose for it.
+- `MarineSoldier.experienceXp` is explicitly kept as a displayed statistic or
+  removed; it is not left as an inert field with no stated role.
+- No battle-local caller can change a campaign marine's persisted quality.
+- Debug fixtures may author starting bands, but are not an authority over
+  campaign quality.

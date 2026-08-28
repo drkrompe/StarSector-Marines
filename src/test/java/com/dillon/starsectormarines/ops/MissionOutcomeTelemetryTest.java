@@ -28,7 +28,7 @@ class MissionOutcomeTelemetryTest {
 
     private static CombatTelemetryRow row(String soldierId, int kills) {
         return new CombatTelemetryRow(1L, "marine", Faction.MARINE, UnitType.MARINE,
-                soldierId, true, 20, 7, 90f, 0f, 12f, kills, 0);
+                soldierId, null, true, 20, 7, 90f, 0f, 12f, kills, 0);
     }
 
     @Test
