@@ -17,6 +17,8 @@ public enum ScreenId {
     BARRACKS,
     /** Which ship in the fleet the company lives aboard; safe without a planet. */
     SHIP_TRANSFER,
+    /** The whole company ship, running, with the camera in the player's hands. */
+    SHIP_VIEW,
     /** Dev-only retained document and host-capability proof; safe without a planet. */
     UI_WORKBENCH,
     MISSION_SELECT,

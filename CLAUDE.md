@@ -95,6 +95,11 @@ Do not run builds or leave generated task files there.
   at compile time.
 - `gradlew.bat build` → `mod/jars/StarsectorMarines.jar` (directly into the mod folder; no
   intermediate copy step).
+- Tests read data off disk rather than off the classpath, so a checked-in file a
+  test opens at runtime must be declared with `inputs.dir` in `build.gradle`'s
+  `test {}` block, or `:test` reports UP-TO-DATE with the change unverified.
+  Never declare a build output (`mod/jars`, `mod/sounds`) that way — a suite that
+  re-runs on every build is a suite people start skipping.
 - `gradlew.bat commanderEvidence -Pmission=conquest` → runs the selected
   mission's documented construction-fixture matrix twice in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
@@ -136,7 +141,16 @@ Do not run builds or leave generated task files there.
   and a fused plate is cut into exactly that grid — but footprints are edited
   there rather than inferred, because
   how much deck a piece covers is a judgement about the object, not a measurement
-  of the art. Pieces are picked on the sheet itself — click, ctrl-click to add,
+  of the art.
+  **Fit grid to art** measures where that stated grid actually sits — generated
+  art sits inside a margin and is rarely drawn to a pitch that divides its own
+  pixel size evenly — and reports how many boundaries landed on a real seam and
+  how far they lie from the line through them. It applies only the axes that
+  measured well, and its dialog's fields are editable so the measurement can be
+  overridden. The cell *count* is never measured; only the placement is.
+  A fitted cut moves the plate's existing cells onto new rectangles, keeping
+  every id, block slot and annotation.
+  Pieces are picked on the sheet itself — click, ctrl-click to add,
   shift-click to run, drag a box — and the table follows, because a cut cell's id
   cannot be recognised in a list of a hundred. Each cell carries its `col,row` on
   the picture, which is what lets a person and a model name the same cell.
@@ -163,26 +177,42 @@ Do not run builds or leave generated task files there.
   if a later replacement fails.
 - `tools/authoring.sh <tool> [json]` (or `tools/authoring.cmd`) → call one
   authoring tool and exit. This is the **default** way to reach the authoring
-  tools headlessly — list/measure/read/write/slice/split/export a tileset, declare
+  tools headlessly — list/measure/read/write/slice/fit/split/export a tileset,
+  declare
   or dissolve one of its autotile blocks, render its map-preview comparison, run the snapshot catalog — with no workbench window
   and nothing to start first. `--list` names the tools, `--describe <tool>`
   prints its schema, `--json` returns the structured result. Arguments are one
   JSON object, inline or as `@file` or `-` for stdin; from PowerShell quote the
   `@file` or use `-`, because a bare `@token` is its splatting operator. Exit
-  status is 1 when the tool reports a failure and 2 on a usage mistake. See the
-  `authoring-tools` skill.
+  status is 1 when the tool reports a failure and 2 on a usage mistake, and 3
+  when the freshness build below failed, in which case nothing was called.
+  See the `authoring-tools` skill.
+- **Always go through `tools/`, never through `build/authoring/`.** The
+  generated launchers run whatever was compiled last, and nothing in their
+  output says how old that is. The checked-in wrappers exist to close that:
+  each runs `installAuthoringTools` before handing over, so a call cannot use
+  classes older than the working tree, and refuses to call anything at all if
+  that build fails. It costs about 0.7s per call against a warm daemon (0.85s
+  total, against 0.15s for the launcher alone), which is the right trade for
+  tools that rewrite hand-authored documents — a stale call has already
+  destroyed a hand-cut tileset once, silently, by running a safety guard's
+  pre-guard classes. Build chatter goes to stderr; stdout stays the tool result.
 - `gradlew.bat installAuthoringTools` → writes the generated launchers under
   `build/authoring/` and prints the `.mcp.json` snippet that registers the same
-  tools as an MCP stdio server. The wrappers above run this for you when the
-  output is missing; run it yourself after a dependency change or a `clean`,
-  since the launchers embed an absolute classpath and are therefore generated
-  rather than checked in. Prefer the shell wrapper over MCP registration unless
-  a session already has the server: an MCP stdio server must be registered
-  before the session that wants it starts, which is exactly the constraint a
-  one-shot command removes. Both entry points are separate front doors onto the
-  same domain code, never an embedded server — an editor holding unsaved changes
-  and a tool writing the same document would be two writers. See
-  `authoring-entry-points.md`.
+  tools as an MCP stdio server. The wrappers above run it for you on every call,
+  so there is no longer anything to remember after a dependency change or a
+  `clean`; run it by hand only to see that snippet. The launchers embed an
+  absolute classpath and are therefore generated rather than checked in.
+  Register `tools/authoring-mcp.cmd`, not the launcher it execs — the wrapper
+  is what rebuilds first. Even so, an MCP server holds its classes for a whole
+  session: **after changing tool code, restart the server or use
+  `tools/authoring.sh`**, which rebuilds per call. Prefer the shell wrapper over
+  MCP registration unless a session already has the server: an MCP stdio server
+  must be registered before the session that wants it starts, which is exactly
+  the constraint a one-shot command removes. Both entry points are separate
+  front doors onto the same domain code, never an embedded server — an editor
+  holding unsaved changes and a tool writing the same document would be two
+  writers. See `authoring-entry-points.md`.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.

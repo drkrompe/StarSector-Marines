@@ -1,0 +1,27 @@
+<template props="roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+  <div id="ship-view-root" class="ship-view-root">
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="{contextLabel}" />
+
+    <div id="ship-view-room-bar" class="panel ship-view-room-bar">
+      <div id="ship-view-room-title" class="label heading tone-edge">{roomTitle}</div>
+      <div id="ship-view-room-copy" class="label tone-muted">{roomCopy}</div>
+    </div>
+
+    <div id="ship-view-stage" class="panel ship-view-stage">
+      <canvas id="ship-view-deck" class="ship-view-deck" width="1600" height="900" />
+    </div>
+  </div>
+</template>
+
+<style>
+  .ship-view-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+
+  .ship-view-room-bar { flex-direction: row; height: 42px; padding: 8px 10px; gap: 12px; }
+  #ship-view-room-title { width: 330px; }
+  #ship-view-room-copy { width: 0px; flex-grow: 1; text-align: right; }
+
+  .ship-view-stage { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; padding: 7px; overflow: hidden; }
+  .ship-view-deck { width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
+</style>
