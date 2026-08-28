@@ -1,8 +1,10 @@
 # Mission-command nouns
 
-Status: ACTIVE — the shared autonomous command architecture is in production for Conquest, Sabotage, and Assault; Raid and Extraction still require mission-owned objective contracts.
+Status: ACTIVE — the shared autonomous command architecture is in production for Conquest, Sabotage, Assault, and Raid; generic Extraction still requires a mission-owned objective contract.
 
 Written: 2026-08-27
+
+Updated: 2026-08-27 — added Raid's paired primary-target strike-and-egress adapter and evidence selection.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
 meaning and faction-honest knowledge into stable squad assignments. It is the
@@ -134,7 +136,7 @@ seed is not a balance target.
 | Conquest | Directional tracks converging on territorial compounds and the keep | Paired production duel; live/evidence acceptance remains | `conquest-command.md` |
 | Sabotage | Three named-site task groups with planter logistics and site security | Paired production duel shipped | `sabotage-command.md` |
 | Assault | Two-dimensional search sectors versus strongpoint security areas | Paired production duel; live/evidence acceptance remains | `assault-command.md` |
-| Raid | Target network plus ingress and egress; objective law not yet authored | Design prerequisite | `raid-command.md` |
+| Raid | Primary high-value target plus authored ingress/egress corridor | Paired production duel; canonical/live acceptance remains | `raid-command.md` |
 | Extraction | Payload/cohort corridor, with scenario-specific branches or directors | Family design; generic objective law incomplete | `extraction-command.md` |
 
 Opening Operations reuse the Assault battle type but keep scenario-specific

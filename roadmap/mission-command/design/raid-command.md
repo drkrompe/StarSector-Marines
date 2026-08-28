@@ -1,39 +1,57 @@
 # Raid command
 
-Status: DRAFT — Raid still uses the generic elimination placeholder and needs an authoritative strike-and-egress objective before commander migration.
+Status: ACTIVE — Raid has an authoritative primary-target strike-and-egress objective and paired production commanders; canonical-duration and live acceptance remain.
 
 Written: 2026-08-27
 
+Updated: 2026-08-27 — shipped the first primary-target contract, paired command duel, diagnostics, fixture, and argument-selected evidence adapter.
+
 Read `mission-command-nouns.md` for the shared architecture.
 
-Raid should be an objective strike with withdrawal pressure, not a smaller
+Raid is an objective strike with withdrawal pressure, not a smaller
 Assault and not Sabotage with a different label. Its intended command shape is
 a **target network** connected to an **ingress/egress corridor**. Attackers
 breach toward valuable authored targets, perform a bounded interaction or
 seizure, then preserve enough force and payload to withdraw. Defenders protect
 the network, respond to legal alarms or beliefs, and threaten the return path.
 
-The mission objective owner must first define target identity, interaction and
-completion, what—if anything—is carried out, when withdrawal becomes legal,
-and terminal success/failure. Campaign disruption and loot consequences cannot
-substitute for battle objective law. Until that contract exists, production
-Raid remains an explicitly documented placeholder and must not receive an
-omniscient commander optimized around elimination.
+The first production network contains one primary target. Construction selects
+a stable, reachable, non-residential high-value point in the defender half and
+uses the first authored landing pad as egress. A settled Marine combatant must
+hold the target's five-cell-diameter interaction pocket uncontested for six
+continuous simulated seconds; interruption resets service progress. Completion
+latches an abstract recovered package, after which any settled surviving Marine
+combatant in the seven-cell-diameter egress pocket completes the mission. Raid
+therefore succeeds without eliminating the defender. The defender retains a
+separate elimination objective, and campaign loot/disruption consumes ordinary
+Marine victory rather than becoming battle-time objective input.
+
+The abstract package deliberately has no individual carrier. Carrier identity,
+transfer, and death would create a second hidden objective contract; a later
+story may add that only with explicit presentation and recovery law.
 
 ## Intended attacker picture
 
-The attacker picture should distinguish approach, breach, service/seizure,
-consolidation, and egress phases. It should publish target priority, assigned
-strike/security elements, route context, carried objective state when legal,
-fallback/egress assignments, and reasons. Local contact doctrine decides how a
-squad fights along the route.
+The first attacker picture has `APPROACH`, `SERVICE`, `EGRESS`, and `COMPLETE`
+phases. Approach includes the tactical breach; the explicit service order stays
+relevant even after the target room is clear. One closest reachable squad is the
+service element while other available squads take spread cordon positions.
+After seizure, every available squad receives a spread withdrawal rally around
+egress. Local contact doctrine may interrupt exact-cell movement to fight, then
+the surviving assignment resumes.
 
 ## Intended defender picture
 
-The defender should preserve fixed target guards, distribute routine security,
-hold a bounded response force, and react only to legally disclosed target alarms
-or faction beliefs. It may cut likely egress from authored route geometry but
-may not learn the raider's exact location or payload through mission truth.
+The defender preserves authored garrisons outside mission-command ownership.
+Its mobile pool keeps one routine target guard and holds the remainder in
+reserve. The first legal uncontested service tick raises a latched,
+identity-free target alarm; alarm or target loss mobilizes at most three mobile
+squads around the known installation. Defender disclosure includes target
+geometry, alarm, and seized state, but excludes attacker egress, progress,
+identity, and position.
 
-`raid-objective-and-command-contract.md` owns the prerequisite and first paired
-implementation slice.
+The post-commit Raid snapshot is the sole source for selected-squad intent,
+target/egress overlays, dumps, and perspective trace detail. Forced-serial
+duplicate evidence is selected with `commanderEvidence -Pmission=raid`; Raid did
+not add another Gradle task. `raid-objective-and-command-contract.md` retains the
+remaining canonical-duration and live acceptance work.

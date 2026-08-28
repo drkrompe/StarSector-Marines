@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.battle.ambient.JobSite;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.List;
@@ -50,7 +51,7 @@ public final class DeckGraph {
      */
     public record Compartment(int id, RoomShape shape, int originX, int originY,
                               RoomPose pose, DeckSide side, DeckZone zone,
-                              RoomPurpose purpose, List<Door> doors) {
+                              RoomPurpose purpose, List<Door> doors) implements JobSite {
 
         public Compartment {
             doors = List.copyOf(doors);

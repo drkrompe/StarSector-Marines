@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.CommanderInfluenceOverla
 import com.dillon.starsectormarines.battle.ui.highlight.ConquestCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.AssaultCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SabotageCommanderOverlayPublisher;
+import com.dillon.starsectormarines.battle.ui.highlight.RaidCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
@@ -495,10 +496,14 @@ public class BattleScreen implements Screen, BattleUiContext {
             SabotageCommanderOverlayPublisher.publish(highlights,
                     sim.getCommanderSnapshot(debugConquestPerspective),
                     selection.getSelectedSquadId());
+            RaidCommanderOverlayPublisher.publish(highlights,
+                    sim.getCommanderSnapshot(debugConquestPerspective),
+                    selection.getSelectedSquadId());
         } else {
             ConquestCommanderOverlayPublisher.clear(highlights);
             AssaultCommanderOverlayPublisher.clear(highlights);
             SabotageCommanderOverlayPublisher.clear(highlights);
+            RaidCommanderOverlayPublisher.clear(highlights);
         }
         // Roof alpha lerp runs on real dt (not sim-scaled) so the fog-of-war
         // fade keeps animating even when the sim is paused — matches how the

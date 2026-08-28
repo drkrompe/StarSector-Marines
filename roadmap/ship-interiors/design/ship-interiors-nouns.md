@@ -361,14 +361,14 @@ jobs there, and only in its own quarters — so a marine cannot turn in in the
 ratings' bunkroom, and a technician has no business in the marines' berthing at
 all, however much of it stows things.
 
-A **shift** is one crew member's loop through their role's jobs in one
-compartment, and it is derived, never listed. The order is the role's, not a
-priority: a route that always ran to the nearest free job would bunch every
-technician at one end of a bay. Members of a watch start on different jobs and
-different phases so a shift coming on spreads across the room instead of
-queueing, and a compartment takes on only as many of a role as its *scarcest*
-job can sustain — a bay with eight berths and one terminal cannot occupy eight
-technicians on a rotation that includes the terminal.
+A **shift** is one crew member's loop through their role's jobs, and it is
+derived, never listed. It is not a per-compartment thing: a marine's four jobs
+live in three compartments, so a shift reaches the mess and the range as well as
+the berthing it is posted to. `ai-nouns.md` is canonical for the shift, the role
+and the job site, because none of that model is shipboard — a compartment is
+simply this map family's job site, and a building interior on a surface map
+answers the same three questions. What is shipboard is which purposes a deck
+programs and what its fittings publish.
 
 Threat policy is a parameter of the route and a home deck's crew yield only to
 **hostiles**. Yielding to any combatant sounds safer and is wrong here: the
