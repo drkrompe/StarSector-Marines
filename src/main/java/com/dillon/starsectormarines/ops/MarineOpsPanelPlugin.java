@@ -96,6 +96,10 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.RESULTS,        new ResultsScreen());
         screens.put(ScreenId.LOOT,           new LootScreen());
         if (seed != null) seed.accept(ctx);
+        // A company with nowhere to live has nowhere to be shown. Every room
+        // view is a camera on the company ship, so until the player has chosen
+        // one there is no operations screen to open — the choice is the screen.
+        if (!CompanyShipDesignation.quartered()) ctx.goTo(ScreenId.SHIP_TRANSFER);
     }
 
     public void setOnBack(Runnable dismissDialog) {

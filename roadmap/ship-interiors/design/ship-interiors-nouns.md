@@ -403,6 +403,24 @@ host can take a backdrop pass and an actor pass off one settled frame, and
 catch-up after a long absence is bounded rather than replayed — ambient work is
 a rotation with no history to lose.
 
+**The company is quartered, and quartering is a choice.** A company that has
+not been given a ship has no home, and the operations screens say so by being
+unavailable until the player gives it one - every room view is a camera on the
+company ship, so before there is one there is no screen to open. Quartering them
+somewhere on their behalf would turn the first real decision about what the
+company is for into a default they never saw.
+
+Never chosen and no longer there are different states. A company whose ship has
+left the fleet had a home and lost it, and has to end up somewhere rather than
+nowhere, so the best remaining hull takes them in. That distinction is why the
+absence of a designation can be trusted to mean founding.
+
+**Founding and transfer are the same question asked twice.** What will this hull
+not do for us. With a home to measure against, the answer is what moving would
+give up; without one, it is simply what she lacks. One screen answers both, and
+a candidate is read the same way either time - as a generated deck, from the
+generator and the seed her real interior would use.
+
 **A room screen says where it is by asking.** The heading over a room view is
 the ship, the compartment's longitudinal zone and side of the spine, and its
 purpose - read off the deck rather than written on the page. A literal
