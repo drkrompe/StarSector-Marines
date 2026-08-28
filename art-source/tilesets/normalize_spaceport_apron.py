@@ -15,7 +15,11 @@ from PIL import Image, ImageFilter
 
 
 HERE = Path(__file__).resolve().parent
-TILESETS = HERE.parent
+# Raw art lives outside mod/, so the shipped folder never carries pre-pack
+# inputs. Outputs are addressed from the repository root rather than from
+# a sibling directory.
+REPO_ROOT = HERE.parent.parent
+TILESETS = REPO_ROOT / "mod" / "graphics" / "tilesets"
 GENERATED = HERE / "urban-tileset-2-spaceport-apron.raw.png"
 SOURCE = TILESETS / "urban-tileset-2.png"
 OUTPUT = TILESETS / "urban-tileset-2.png"

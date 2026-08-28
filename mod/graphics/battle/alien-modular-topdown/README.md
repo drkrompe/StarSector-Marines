@@ -9,10 +9,10 @@ so its three talons stay readable. Aliens never draw firearm layers;
 the corpse sheet.
 
 Runtime layers are `body.png`, `head.png`, `foot.png`, and `fore-claw.png`. The
-accepted built-in ImageGen outputs are retained under `sources/`;
+accepted built-in ImageGen outputs are retained under `art-source/alien-modular-topdown/sources/`;
 `build_assets.py` crops their alpha, normalizes body/head/foot to the marine
 compositor's 150/72/38 px registration widths, normalizes the claw to 96 px
 high, and emits ignored idle/impact/retraction composition previews under
 `build/sprite-previews/alien/`.
 
-Run `python build_assets.py` after changing a retained source.
+Run `python art-source/alien-modular-topdown/build_assets.py` from the repository root after changing a retained source.

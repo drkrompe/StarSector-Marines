@@ -108,8 +108,11 @@ def compose(body: Image.Image, head: Image.Image, weapon: Image.Image,
 
 
 def main() -> None:
-    directory = Path(__file__).resolve().parent
-    source_root = directory / "sources"
+    here = Path(__file__).resolve().parent
+    repository = here.parent.parent
+    directory = (repository / "mod" / "graphics" / "battle"
+                 / "marine-modular-topdown" / "variants")
+    source_root = here / "sources"
 
     families = {
         "armorless": ("armorless-body.png", "armorless-head.png"),
@@ -161,8 +164,7 @@ def main() -> None:
     surplus_rifle.save(grade_root / "surplus" / "rifle.png", optimize=True)
     masterwork_dmr.save(grade_root / "masterwork" / "dmr.png", optimize=True)
 
-    project_root = directory.parents[4]
-    previews = project_root / "build" / "sprite-previews" / "infantry"
+    previews = repository / "build" / "sprite-previews" / "infantry"
     previews.mkdir(parents=True, exist_ok=True)
     rocket_pivot = (rocket.width // 2, ROCKET_WEAPON_PIVOT_Y)
     combinations = (
