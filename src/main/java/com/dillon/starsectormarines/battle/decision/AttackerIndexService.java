@@ -68,7 +68,7 @@ public final class AttackerIndexService {
             long u = rosterService.get(i);
             if (!rosterService.identity().type(u).combatant) continue; // non-combatants carry no COMBAT.targetId
             long targetId = world.targetId(u);
-            if (!rosterService.isLive(targetId)) continue;
+            if (!rosterService.isAliveById(targetId)) continue;
             LongArrayList bucket = attackersByTarget.get(targetId);
             if (bucket == null) {
                 bucket = pool.isEmpty()
