@@ -239,7 +239,7 @@ tasks.register('profileBattleFixture', Test) {
     ['battle.profile.warmupTicks', 'battle.profile.prerollTicks',
      'battle.profile.sliceTicks', 'battle.profile.minimumMillis',
      'battle.unitUpdate.minimumParallelUnits',
-     'battle.pathfinding.sharedSwarmGoals',
+     'battle.pathfinding.sharedGoalFields',
      'battle.pathfinding.minimumSharedGoalUnits'].each { propertyName ->
         def propertyValue = System.getProperty(propertyName, '')
         if (!propertyValue.isBlank()) {
