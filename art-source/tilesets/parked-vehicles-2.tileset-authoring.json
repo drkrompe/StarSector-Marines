@@ -4,6 +4,7 @@
   "idPrefix": "doodad.parked",
   "cellPx": 128,
   "alphaMin": 16,
-  "gridCell": 512,
-  "note": "A two-frame horizontal strip continuing parked-vehicles-1: cargo truck, then an armoured APC in militia green. Same slice settings and same slot pitch as that sheet, and the same packer writes both into the one mod/graphics/tilesets/parked-vehicles.png atlas, so the two are annotated and adopted together or not at all - the atlas layout is positional and re-exporting half of it would move the other half's cells out from under the tileset definition. Every piece is a doodad with footprint 3x2 and heavy cover; there are no blocks here."
+  "note": "A two-frame horizontal strip continuing parked-vehicles-1: cargo truck, then an armoured APC in militia green. Same slice settings and same slot pitch as that sheet, and the same packer writes both into the one mod/graphics/tilesets/parked-vehicles.png atlas, so the two are annotated and adopted together or not at all - the atlas layout is positional and re-exporting half of it would move the other half's cells out from under the tileset definition. Every piece is a doodad with footprint 3x2 and heavy cover; there are no blocks here.",
+  "gridCols": 2,
+  "gridRows": 1
 }

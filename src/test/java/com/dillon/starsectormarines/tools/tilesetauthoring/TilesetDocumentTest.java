@@ -27,7 +27,8 @@ class TilesetDocumentTest {
         doc.idPrefix = "doodad.ship";
         doc.cellPx = 64;
         doc.alphaMin = 55;
-        doc.gridCell = 104;
+        doc.gridCols = 12;
+        doc.gridRows = 4;
 
         TilesetExport.Entry console = entry("doodad.ship.console", 10, 10, 200, 100);
         console.footprintX = 2;
@@ -50,7 +51,8 @@ class TilesetDocumentTest {
         assertEquals("doodad.ship", reopened.idPrefix);
         assertEquals(64, reopened.cellPx);
         assertEquals(55, reopened.alphaMin, "the threshold that found these pieces is part of the pass");
-        assertEquals(104, reopened.gridCell);
+        assertEquals(12, reopened.gridCols);
+        assertEquals(4, reopened.gridRows);
         assertEquals(2, reopened.entries.size());
 
         TilesetExport.Entry console = reopened.entries.get(0);
@@ -93,7 +95,7 @@ class TilesetDocumentTest {
                 new SheetSlicer.Piece(302, 12, 86, 86));
 
         TilesetDocument.Reconciliation result = TilesetDocument.reconcile(
-                resliced, new ArrayList<>(List.of(console, crate)), "doodad.ship", 104);
+                resliced, new ArrayList<>(List.of(console, crate)), "doodad.ship", 104, 104);
 
         assertEquals(2, result.carried());
         assertEquals(0, result.added());
@@ -118,7 +120,7 @@ class TilesetDocumentTest {
                 new SheetSlicer.Piece(300, 10, 104, 104));
 
         TilesetDocument.Reconciliation result = TilesetDocument.reconcile(
-                resliced, new ArrayList<>(List.of(kept, gone)), "doodad.ship", 104);
+                resliced, new ArrayList<>(List.of(kept, gone)), "doodad.ship", 104, 104);
 
         assertEquals(1, result.carried());
         assertEquals(1, result.added());
@@ -142,7 +144,7 @@ class TilesetDocumentTest {
                 new SheetSlicer.Piece(300, 10, 90, 90));
 
         TilesetDocument.Reconciliation result = TilesetDocument.reconcile(
-                resliced, new ArrayList<>(List.of(carried)), "doodad.ship", 104);
+                resliced, new ArrayList<>(List.of(carried)), "doodad.ship", 104, 104);
 
         List<String> ids = result.entries().stream().map(e -> e.id).toList();
         assertEquals(2, ids.stream().distinct().count(), "ids stay unique: " + ids);
@@ -160,7 +162,7 @@ class TilesetDocumentTest {
         List<SheetSlicer.Piece> resliced = List.of(new SheetSlicer.Piece(10, 10, 190, 90));
 
         TilesetDocument.Reconciliation result = TilesetDocument.reconcile(
-                resliced, new ArrayList<>(List.of(left, right)), "doodad.ship", 104);
+                resliced, new ArrayList<>(List.of(left, right)), "doodad.ship", 104, 104);
 
         assertEquals(0, result.carried());
         assertEquals(1, result.added());
