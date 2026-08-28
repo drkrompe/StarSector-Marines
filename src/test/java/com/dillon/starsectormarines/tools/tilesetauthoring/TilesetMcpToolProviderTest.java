@@ -119,7 +119,7 @@ class TilesetMcpToolProviderTest {
                 .getJSONObject("result");
         JSONArray tools = listing.getJSONArray("tools");
 
-        assertEquals(7, tools.length(), "the tileset provider contributes seven tools: " + tools);
+        assertEquals(9, tools.length(), "the tileset provider contributes nine tools: " + tools);
         for (int i = 0; i < tools.length(); i++) {
             JSONObject tool = tools.getJSONObject(i);
             assertTrue(tool.getString("name").startsWith("tileset_"),
