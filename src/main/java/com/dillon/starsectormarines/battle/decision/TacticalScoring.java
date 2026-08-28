@@ -953,10 +953,10 @@ public final class TacticalScoring {
         World world = roster.world();
         float armor = world.hasArmor(target) ? world.armor(target) : 0f;
         float rating = world.hasArmor(target) ? world.armorRating(target) : 0f;
-        float mitigation = roster.mitigations().fractionAgainst(
+        float mitigationSoak = roster.mitigations().soakAgainst(
                 target, world.x(target), world.y(target), sourceX, sourceY);
         DurabilityModel.Resolution result = new DurabilityModel.Resolution();
-        DurabilityModel.resolveInto(damage, penetration, mitigation, armor, rating,
+        DurabilityModel.resolveInto(damage, penetration, mitigationSoak, armor, rating,
                 world.hp(target), result);
         return result.armorDamage() + result.structureDamage();
     }
