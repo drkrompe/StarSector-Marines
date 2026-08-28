@@ -101,7 +101,7 @@ public final class UnitRenderService implements RenderSystem {
         sweepHubBodies(ctx, out);
         sweepDeadSprites(ctx, out);
         sweepLiveSprites(ctx, out);
-        sweepHpBars(ctx, out);
+        sweepDurabilityBars(ctx, out);
     }
 
     /**
@@ -621,15 +621,20 @@ public final class UnitRenderService implements RenderSystem {
     }
 
     /**
-     * HP bars for combatants (drones excluded — they bar themselves in the DRONES
-     * layer). Runs <b>last</b> so bars paint over every body in the layer — the
-     * per-stratum sweep that dissolves the old per-entity decorator ordering trap.
-     * Faithful port of the inline bar loop: same combatant/visibility gating + fade
-     * alpha, same per-kind {@code barY} (turret/hub sit higher by their visual
-     * extent), via the shared {@link HpBarDecor}. The {@code drawsHpBar} tag is the
+     * Durability bars for combatants (drones excluded — they bar themselves in the
+     * DRONES layer). Runs <b>last</b> so bars paint over every body in the layer —
+     * the per-stratum sweep that dissolves the old per-entity decorator ordering
+     * trap. Same combatant/visibility gating + fade alpha as the bodies, same
+     * per-kind {@code barY} (turret/hub sit higher by their visual extent), via the
+     * shared {@link DurabilityBarDecor}. The {@code drawsDurabilityBar} tag is the
      * combatant-and-not-drone check.
+     *
+     * <p>Armor is an optional live-only pool, so the armored overload runs only for
+     * an entity that actually carries one; armorless bodies get the structure band
+     * alone and read as visibly slimmer. Ownership styling comes from
+     * {@link Allegiance}, resolved per entity from its simulation faction.
      */
-    private void sweepHpBars(RenderContext ctx, DrawList out) {
+    private void sweepDurabilityBars(RenderContext ctx, DrawList out) {
         if (!ctx.hostProfile.unitDecorationsVisible()) return;
         BattleCamera cam = ctx.camera;
         World world = ctx.sim.world();
@@ -642,7 +647,7 @@ public final class UnitRenderService implements RenderSystem {
 
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             long u = ctx.sim.liveUnitAt(i);
-            if (!RenderAppearance.of(ctx.sim.identity().type(u)).drawsHpBar) continue;
+            if (!RenderAppearance.of(ctx.sim.identity().type(u)).drawsDurabilityBar) continue;
             byte uv = vis.getUnitVisibility(i);
             if (uv == FogOfWarService.VIS_HIDDEN) continue;
             float barAlpha = alphaMult;
@@ -658,8 +663,15 @@ public final class UnitRenderService implements RenderSystem {
             } else {
                 barY = cy + half + BattleRenderer.HP_BAR_GAP;
             }
-            HpBarDecor.emit(out, RenderLayer.UNITS, cx, barY, unitSize,
-                    world.hp(u) / world.maxHp(u), barAlpha);
+            Allegiance owner = Allegiance.of(ctx.sim.identity().faction(u));
+            float hpFrac = world.hp(u) / world.maxHp(u);
+            if (world.hasArmor(u)) {
+                DurabilityBarDecor.emit(out, RenderLayer.UNITS, owner, cx, barY, unitSize,
+                        hpFrac, world.armor(u) / world.maxArmor(u), barAlpha);
+            } else {
+                DurabilityBarDecor.emit(out, RenderLayer.UNITS, owner, cx, barY, unitSize,
+                        hpFrac, barAlpha);
+            }
         }
     }
 }

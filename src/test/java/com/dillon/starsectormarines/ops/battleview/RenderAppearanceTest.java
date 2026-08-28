@@ -53,7 +53,7 @@ public class RenderAppearanceTest {
         for (UnitType t : UnitType.values()) {
             boolean expected = t.combatant && t != UnitType.DRONE
                     && t != UnitType.RANGE_TARGET;
-            assertEquals(expected, RenderAppearance.of(t).drawsHpBar, "drawsHpBar for " + t);
+            assertEquals(expected, RenderAppearance.of(t).drawsDurabilityBar, "drawsDurabilityBar for " + t);
         }
     }
 
@@ -71,7 +71,7 @@ public class RenderAppearanceTest {
             RenderAppearance app = RenderAppearance.of(t);
             assertEquals(SpriteKind.WHOLE_SPRITE, app.spriteKind, "spriteKind for " + t);
             assertTrue(app.drawsFootprint, "drawsFootprint for " + t);
-            assertTrue(app.drawsHpBar, "drawsHpBar for " + t);
+            assertTrue(app.drawsDurabilityBar, "drawsDurabilityBar for " + t);
             assertFalse(app.hasDeathPose, "hasDeathPose for " + t);
         }
     }
@@ -80,7 +80,7 @@ public class RenderAppearanceTest {
     public void dronesAreNotDrawnByTheUnitsSystem() {
         RenderAppearance app = RenderAppearance.of(UnitType.DRONE);
         assertEquals(SpriteKind.NONE, app.spriteKind);
-        assertFalse(app.drawsHpBar, "drones bar themselves in the DRONES layer");
+        assertFalse(app.drawsDurabilityBar, "drones bar themselves in the DRONES layer");
         assertFalse(app.drawsFootprint);
     }
 
@@ -88,7 +88,7 @@ public class RenderAppearanceTest {
     public void rangeTargetsRemainInvisibleSimulationFixtures() {
         RenderAppearance app = RenderAppearance.of(UnitType.RANGE_TARGET);
         assertEquals(SpriteKind.NONE, app.spriteKind);
-        assertFalse(app.drawsHpBar);
+        assertFalse(app.drawsDurabilityBar);
         assertFalse(app.drawsFootprint);
         assertFalse(app.hasDeathPose);
     }
@@ -98,7 +98,7 @@ public class RenderAppearanceTest {
         RenderAppearance marine = RenderAppearance.of(UnitType.MARINE);
         assertEquals(SpriteKind.SHEET, marine.spriteKind);
         assertFalse(marine.drawsFootprint);
-        assertTrue(marine.drawsHpBar);
+        assertTrue(marine.drawsDurabilityBar);
         assertTrue(marine.hasDeathPose);
         assertEquals(UnitType.FrameLayout.WNES_WEAPON_UP, marine.frameLayout);
 
@@ -114,7 +114,7 @@ public class RenderAppearanceTest {
         for (UnitType t : new UnitType[]{UnitType.CIVILIAN, UnitType.ENGINEER, UnitType.SCIENTIST}) {
             RenderAppearance app = RenderAppearance.of(t);
             assertEquals(SpriteKind.SHEET, app.spriteKind, "spriteKind for " + t);
-            assertFalse(app.drawsHpBar, "drawsHpBar for " + t);
+            assertFalse(app.drawsDurabilityBar, "drawsDurabilityBar for " + t);
             assertFalse(app.hasDeathPose, "hasDeathPose for " + t);
         }
     }
