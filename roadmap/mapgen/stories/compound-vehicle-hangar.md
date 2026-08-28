@@ -1,12 +1,17 @@
 # Compound vehicle hangar
 
-Status: IN PROGRESS
+Status: BLOCKED on a compound program
 
 Written: 2026-08-28
 
-Read `mapgen-nouns.md` before implementing this story, especially Tactical
-space and the parcel-ownership paragraph. `ship-interiors-nouns.md` owns the
-deck family this borrows its fill method from; nothing here changes it.
+Updated: 2026-08-28 — the fill machinery is shipped and family-neutral, but
+measurement showed a hangar has nowhere to go: compound parcels are not sized
+for a machine. The blocking model is `compound-programs.md`; this story is its
+first consumer and resumes at that document's step 3.
+
+Read `compound-programs.md` first, then `mapgen-nouns.md` for the parcel-
+ownership paragraph. `ship-interiors-nouns.md` owns the deck family this
+borrows its fill method from; nothing here changes it.
 
 Give a military compound a vehicle hangar that is a real place — bays sized for
 a machine, a door a machine can drive through, and berths whose occupants come
@@ -20,16 +25,19 @@ every three cells along one wall and cable reels every four along the other.
 Nothing in that room establishes the scale of the machine it exists to hold,
 and nothing is held in it.
 
-Two structural facts underneath the dressing are the actual defect:
+Three structural facts underneath the dressing are the actual defect:
 
+- The role is unreachable. A `MILITARY_BASE` grows to three members and the
+  role order puts `VEHICLE_BAY` fourth, so no generated compound has ever had
+  one.
+- The parcel is the wrong size. Even reached, the role takes the *smallest*
+  wing. Only 29% of compounds have any non-seed wing that could hold a bay and
+  its apron. The measurement is recorded in `compound-programs.md`.
 - A compound sub-building's doorway is one cell, punched at a random position
   on a side **after** the layout has been chosen. Nothing drives through a
   one-cell door, and the fill has no say in where the door lands.
-- Nothing is berthed. `Gantry` — the authored machine berth — is already
-  family-neutral and already published on `MapResult`, and no city map has ever
-  produced one.
 
-The ship deck solved both for the mech bay. The bay module, the reserved
+The ship deck solved the last of those for the mech bay. The bay module, the reserved
 service lane, the framed structure, the painted deck, and the berth-with-no-
 occupant are not ship ideas; they are how you draw a room for a machine. What
 is ship-specific is only the compartment the fill is handed.
@@ -45,19 +53,16 @@ module would be a second answer to a question already answered, and would go
 stale the first time a larger chassis shipped.
 
 Sharing it means the fitting machinery moves out of `gen.ship.fit` to a
-family-neutral home rather than being duplicated. That move is scoped here
-because this story is what forces it; it is a relocation and a seam, not a
-redesign.
+family-neutral home rather than being duplicated. That move is **shipped**: the
+fittings, the floor and the room shape live in `gen.fit` behind
+`FurnishableRoom`, and `DeckGraph.Compartment` is the ship family's
+implementation of it. A compound sub-building supplies the other.
+
+It is also the reason this story stopped where it did. With the module shared
+and the surface neutral, the only thing missing is a room worth putting a bay
+in — which is a claim problem, not a fill problem.
 
 ## Scope
-
-**Lift the fill surface out of the ship family.** `CompartmentFloor`,
-`RoomFitting`, `RoomFittings`, `RoomFit`, `RoomShape`, `RoomPose`, `Hookup` and
-the authored fittings move to a neutral fitting package. `CompartmentFloor`
-stops naming a deck compartment and takes a **furnishable room**: a footprint,
-a pose, its doors, and its purpose. `DeckGraph.Compartment` supplies one; so
-does a carved compound sub-building. Dispatch stays keyed on `RoomPurpose`,
-which both families already label.
 
 **Furnish a compound sub-building through a fitting.** `MilitaryBaseFiller`'s
 `VEHICLE_BAY` member routes to a fitting instead of a `BuildingLayouts` recipe,
@@ -101,8 +106,8 @@ roster, exactly as it is on the deck.
 
 ## Acceptance
 
-- A `MILITARY_BASE` compound whose `VEHICLE_BAY` member is large enough comes
-  out with at least one five-by-seven berth, and the berth's cells are clear.
+- A `MILITARY_BASE` compound that owes a motor pool comes out with at least one
+  five-by-seven berth, and the berth's cells are clear.
 - The hangar has an opening at least one bay wide, and a machine-width path
   runs from every berth through that opening to the parade ground.
 - Berth count scales with the member footprint, and nothing else records the
@@ -112,12 +117,12 @@ roster, exactly as it is on the deck.
   fill's rollback leaves a published berth behind.
 - A member too small for one bay is left as an ordinary fitted building rather
   than a hangar with no berths.
-- Ship deck evidence is byte-identical across the relocation commit.
 - No occurrence of a `VehicleType` constant anywhere under generation.
 
 ## Out of scope
 
-Spawning anything into a berth, sourcing reinforcement from a surviving hangar,
+The compound program itself, which is `compound-programs.md` and its own
+stories. Spawning anything into a berth, sourcing reinforcement from a surviving hangar,
 and any change to Conquest capture or `reinforcement-nouns.md`. Those are the
 battle-tier consumer, deliberately held back so the map work lands on its own.
 `ARMORY` and `BARRACKS` members keep their current fills; they follow the same

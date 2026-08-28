@@ -54,6 +54,11 @@ public final class GroundRenderSystem implements RenderSystem {
     private static final float CROSSWALK_ALPHA       = 0.85f;
     private static final float CROSSWALK_INSET_FRAC  = 0.08f;
 
+    /** Shared-edge windows are seams between cells, not miniature wall cells. */
+    private static final float EDGE_WINDOW_FRAME_THICKNESS_FRAC = 0.10f;
+    private static final float EDGE_WINDOW_GLASS_THICKNESS_FRAC = 0.04f;
+    private static final float EDGE_WINDOW_END_INSET_FRAC = 0.08f;
+
     private static final int GROUND_TILE_EDGE_INSET_PX       = FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
     private static final int GROUND_SMALL_TILE_EDGE_INSET_PX = FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
 
@@ -262,9 +267,9 @@ public final class GroundRenderSystem implements RenderSystem {
     /** Sparse shared-edge features paint over both adjacent floor cells. */
     private void emitEdgeBarriers(NavigationGrid grid, VisibleCellRect view) {
         float cell = cam.cellPxSize();
-        float frameThickness = cell * 0.16f;
-        float glassThickness = cell * 0.07f;
-        float endInset = cell * 0.10f;
+        float frameThickness = cell * EDGE_WINDOW_FRAME_THICKNESS_FRAC;
+        float glassThickness = cell * EDGE_WINDOW_GLASS_THICKNESS_FRAC;
+        float endInset = cell * EDGE_WINDOW_END_INSET_FRAC;
         for (SharedEdgeBarrier barrier : grid.getEdgeBarriers()) {
             int x = barrier.cellX();
             int y = barrier.cellY();
