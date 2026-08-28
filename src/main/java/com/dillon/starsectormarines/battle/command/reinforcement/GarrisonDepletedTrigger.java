@@ -80,6 +80,7 @@ public final class GarrisonDepletedTrigger implements ReinforcementTrigger {
     private static boolean isCompound(TacticalNode.Kind kind) {
         return kind == TacticalNode.Kind.COMMAND_POST
                 || kind == TacticalNode.Kind.BARRACKS
-                || kind == TacticalNode.Kind.ARMORY;
+                || kind == TacticalNode.Kind.ARMORY
+                || kind == TacticalNode.Kind.AIRBASE;
     }
 }
