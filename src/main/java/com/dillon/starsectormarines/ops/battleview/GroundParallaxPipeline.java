@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.GlErrors;
 import com.dillon.starsectormarines.render2d.ShaderProgram;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -18,7 +19,6 @@ import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
-import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_PROJECTION;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
@@ -46,7 +46,6 @@ import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnd;
 import static org.lwjgl.opengl.GL11.glGenTextures;
-import static org.lwjgl.opengl.GL11.glGetError;
 import static org.lwjgl.opengl.GL11.glGetInteger;
 import static org.lwjgl.opengl.GL11.glLoadIdentity;
 import static org.lwjgl.opengl.GL11.glMatrixMode;
@@ -583,8 +582,9 @@ public final class GroundParallaxPipeline {
         int tex = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, tex);
         ByteBuffer empty = BufferUtils.createByteBuffer(fboPxW * fboPxH * 4);
+        GlErrors.clear();
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, fboPxW, fboPxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
-        checkGL("glTexImage2D (ground parallax FBO)");
+        GlErrors.check("glTexImage2D (ground parallax FBO)");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -607,13 +607,6 @@ public final class GroundParallaxPipeline {
             return new int[]{0, 0};
         }
         return new int[]{fbo, tex};
-    }
-
-    private static void checkGL(String label) {
-        int err = glGetError();
-        if (err != GL_NO_ERROR) {
-            LOG.error("GL error at " + label + ": 0x" + Integer.toHexString(err));
-        }
     }
 
     private void uploadLights(BattleCamera camera) {
