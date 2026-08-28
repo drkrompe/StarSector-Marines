@@ -12,6 +12,12 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
  * detonation, a roof cracked open above it, a destroyed turret-mount or drone
  * hub flipped to walkable rubble.
  *
+ * <p>Almost all of it is destruction, which is the easy direction: the grid
+ * only ever becomes more permissive, so nothing derived from it can be
+ * invalidated by the change. The single construction op,
+ * {@link #placeDeployedBarrier}, carries the rule that makes construction
+ * safe — see its contract.
+ *
  * <p>Each op is inherently cross-domain — it touches navigation walkability,
  * {@link CellTopology} state, and (for roof cave-ins) a decal FX sink — so
  * neither {@link NavigationService} nor {@link CellTopology} is the natural
@@ -79,19 +85,74 @@ public final class MapEditor {
     }
 
     /**
-     * Damages one authored shared-edge feature. Destruction removes its
-     * presentation/cover identity first, then opens the owned edge through the
-     * navigation service so every derived topology layer advances at the
-     * ordinary batched flush boundary.
+     * Damages one shared-edge feature. Destruction removes its
+     * presentation/cover identity first, then — for a profile that had closed
+     * its transition — opens the owned edge through the navigation service so
+     * every derived topology layer advances at the ordinary batched flush
+     * boundary. A profile that never blocked movement skips that flush
+     * entirely: there is no closed edge to reopen, and asking for a zone,
+     * mesh, and retained-path rebuild that changes nothing is pure cost.
      */
     public boolean damageEdgeBarrier(int x, int y, Direction direction,
                                      int amount) {
         SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, direction);
         if (barrier == null) return false;
+        boolean blockedMovement = barrier.kind().blocksMovement();
         if (!grid.damageEdgeBarrier(x, y, direction, amount)) return false;
-        navigation.openSharedEdge(
-                barrier.cellX(), barrier.cellY(), barrier.direction());
+        if (blockedMovement) {
+            navigation.openSharedEdge(
+                    barrier.cellX(), barrier.cellY(), barrier.direction());
+        }
         return true;
+    }
+
+    /**
+     * The runtime construction seam, and the whole of it.
+     *
+     * <p>Every other operation on this coordinator only ever makes the world
+     * <em>more</em> permissive: a breached wall stays walkable, a demolished
+     * mount becomes rubble, a broken barrier opens its edge. That asymmetry is
+     * what lets destruction be cheap — a path that was valid stays valid, a
+     * zone that was connected stays connected, and a unit standing anywhere
+     * legal is still standing somewhere legal. Construction has no such
+     * guarantee for free: closing a transition under existing paths can strand
+     * a unit and invalidate a route a squad is halfway through.
+     *
+     * <p>So construction is admitted on exactly one condition, enforced here
+     * rather than trusted to callers: <b>a runtime-placed feature may not make
+     * the navigation grid less permissive.</b> A profile that
+     * {@linkplain SharedEdgeBarrier.Kind#blocksMovement blocks movement} is
+     * refused outright. What remains — cover, presentation, a structure pool
+     * that explosions can deplete — is invisible to walkability, to zones, to
+     * the navigation mesh, and to retained paths, so nothing derived needs
+     * invalidating and no flush is required.
+     *
+     * <p>Returns {@code null} when the edge cannot take a feature right now
+     * (off-map, either side unwalkable, transition already closed, or already
+     * occupied by another feature). A live placement declines; it does not
+     * throw.
+     */
+    public SharedEdgeBarrier placeDeployedBarrier(int x, int y, Direction direction,
+                                                  SharedEdgeBarrier.Kind kind) {
+        if (kind == null) return null;
+        if (kind.blocksMovement()) {
+            throw new IllegalArgumentException("Runtime construction may not close a"
+                    + " navigation transition; barrier kind '" + kind
+                    + "' blocks movement and is generation-only");
+        }
+        return grid.tryPlaceEdgeBarrier(x, y, direction, kind);
+    }
+
+    /**
+     * Removes a runtime-placed feature that ran out its clock, by spending its
+     * whole structure pool through the ordinary destruction path. Expiry and
+     * being blown apart therefore leave the map in exactly the same state —
+     * there is one removal path, not two.
+     */
+    public boolean retireDeployedBarrier(SharedEdgeBarrier barrier) {
+        if (barrier == null) return false;
+        return damageEdgeBarrier(barrier.cellX(), barrier.cellY(),
+                barrier.direction(), barrier.maxStructure());
     }
 
     private void peelRoofAround(int wallX, int wallY) {
