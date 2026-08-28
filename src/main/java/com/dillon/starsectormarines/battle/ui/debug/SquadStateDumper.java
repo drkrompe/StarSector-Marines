@@ -447,6 +447,23 @@ public final class SquadStateDumper {
         out.put("keepState", snapshot.keepState() != null
                 ? snapshot.keepState().name() : JSONObject.NULL);
 
+        ConquestFrontSnapshot.SquadState squadState = snapshot.squadFor(squad.id);
+        if (squadState == null) {
+            out.put("squadState", JSONObject.NULL);
+        } else {
+            JSONObject state = new JSONObject();
+            state.put("aliveMembers", squadState.aliveMembers());
+            state.put("centroidX", squadState.centroidX());
+            state.put("centroidY", squadState.centroidY());
+            state.put("currentZoneId", squadState.currentZoneId());
+            state.put("executionSuspension",
+                    squadState.executionSuspension() != null
+                            ? squadState.executionSuspension() : JSONObject.NULL);
+            state.put("localContact", squadState.localContact());
+            state.put("activePathMembers", squadState.activePathMembers());
+            out.put("squadState", state);
+        }
+
         ConquestFrontSnapshot.SquadDirective directive =
                 snapshot.directiveFor(squad.id);
         if (directive == null) {
