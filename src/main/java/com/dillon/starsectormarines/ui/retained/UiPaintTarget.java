@@ -28,4 +28,13 @@ public interface UiPaintTarget {
     void text(BitmapFont font, String text, Rect lineBox, Color color, float alphaMult);
 
     CanvasContext canvasContext(CanvasMetrics metrics, Rect visibleBounds, float alphaMult);
+
+    /**
+     * Resolves one image asset path for this backend, or null when it cannot
+     * be loaded. The default answer is null so a backend that has no image
+     * story simply paints no images rather than failing a whole document.
+     */
+    default UiImage image(String path) {
+        return null;
+    }
 }

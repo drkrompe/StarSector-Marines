@@ -5,5 +5,6 @@ public enum UiTag {
     DIV,
     BUTTON,
     INPUT,
-    CANVAS
+    CANVAS,
+    IMAGE
 }

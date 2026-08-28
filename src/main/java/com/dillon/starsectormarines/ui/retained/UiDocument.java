@@ -23,6 +23,7 @@ public final class UiDocument {
     private final UiLayoutEngine layout = new UiLayoutEngine(text);
     private final UiPainter painter = new UiPainter();
     private final CanvasRegistry canvases = new CanvasRegistry(this);
+    private UiImageResolver images = UiSpriteCache.shared();
     private Rect viewport = Rect.EMPTY;
     private List<UiElement> hovered = List.of();
     private UiElement pressed;
@@ -84,10 +85,20 @@ public final class UiDocument {
         refreshHoverAfterLayout();
     }
 
+    /**
+     * Replaces the resolver the host paint pass uses to turn an {@code <img>}
+     * source into a drawable sprite. Defaults to the shared Starsector texture
+     * cache; a non-host backend answers images from its own target instead.
+     */
+    public UiDocument images(UiImageResolver resolver) {
+        images = resolver;
+        return this;
+    }
+
     public void render(UiViewport viewport, float alphaMult) {
         synchronizeStyles();
         painter.paint(root, this.viewport, alphaMult, canvases, text,
-                new StarsectorUiPaintTarget(viewport));
+                new StarsectorUiPaintTarget(viewport, images));
     }
 
     /** Paints through a non-host backend such as the headless UX renderer. */

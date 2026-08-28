@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
 import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.UiImage;
 import com.dillon.starsectormarines.ui.retained.UiPaintTarget;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -244,6 +245,18 @@ public final class HeadlessUiRenderer {
                     visibleBounds, alphaMult, hostPassRenderer);
         }
 
+        /**
+         * Intrinsic size straight from the file on disk. The live sprite stays
+         * null on purpose: this backend draws from the asset path, and the
+         * painter only needs the aspect ratio from here.
+         */
+        @Override
+        public UiImage image(String path) {
+            BufferedImage source = resources.imageOrNull(path);
+            return source == null ? null
+                    : new UiImage(null, source.getWidth(), source.getHeight());
+        }
+
         private void withAlpha(Color color, float alphaMult, Runnable draw) {
             var previous = graphics.getComposite();
             graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
@@ -441,6 +454,15 @@ public final class HeadlessUiRenderer {
                     throw new IllegalStateException("Could not load " + path, failure);
                 }
             });
+        }
+
+        /** The same load, but a missing or unreadable asset is an answer rather than a failure. */
+        private BufferedImage imageOrNull(String resourcePath) {
+            try {
+                return image(resourcePath);
+            } catch (RuntimeException failure) {
+                return null;
+            }
         }
 
         private void installFontMetrics(BitmapFont font) {
