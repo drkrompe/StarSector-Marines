@@ -4,7 +4,8 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — added cadence-based neutral visual replay to the shared headless evidence contract.
+Updated: 2026-08-28 — made perspective travel evidence an explicit,
+single-exit lifecycle with separately reported tactical context.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
 meaning and faction-honest knowledge into stable squad assignments. It is the
@@ -128,6 +129,16 @@ traces. `commanderEvidence -Pmission=<id>` selects the mission adapter;
 adapter rather than another Gradle task. Metrics describe what the trace proves:
 command-unassigned does not automatically mean physically idle, and a single
 seed is not a balance target.
+
+A perspective **travel episode** begins when an executable assignment first
+publishes a measurable destination and ends at its first observable boundary.
+Arrival, retarget, release, own-squad loss, execution suspension, capture gap,
+timeout, and terminal result are distinct exits; an incomplete live trace
+leaves the episode open rather than inventing an outcome. Contact, active-path
+movement, and quiet travel are overlapping context on that episode, never
+alternative exit reasons. A rejected proposal does not end its still-effective
+incumbent, and reissuing the same semantic destination does not create a new
+trip.
 
 An opt-in **visual replay** samples the first deterministic replay at a requested
 tick cadence, renders the production battle scene through the GL-free Java2D
