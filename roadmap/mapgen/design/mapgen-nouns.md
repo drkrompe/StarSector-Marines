@@ -4,7 +4,8 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — pointed at the compound-program direction; shipped
+Updated: 2026-08-28 — added the Conquest fortress ward, family-neutral room
+fittings, and the obligations a replacing stage carries; shipped
 shared-edge windows for Conquest bunkers and ordinary building shells,
 widened compound firing aprons while preserving functional parcel members,
 added role-readable compound dressing and authored multi-cell civic room
@@ -136,12 +137,12 @@ grid, after the last stage to touch it. An anchor that fails the guarantee does
 not merely look wrong: mission layouts filter candidate sites on it, and
 room-scoped objectives resolve no room at all from a blocked or doorway cell.
 
-A compound's wings are sized by the partition rather than by their purpose, and
-a purpose that needs a minimum footprint therefore has no way to ask for one.
+An ordinary compound's wings are sized by the partition rather than by their
+purpose, and a purpose that needs a minimum footprint has no way to ask for one.
 `compound-programs.md` holds the direction that inverts this — a program that
-sizes the place, as a deck's does — together with the measurement that motivates
-it and the parts of the deck model that deliberately do not transfer. Nothing in
-it is implemented; the model below is still what generation does.
+sizes the place, as a deck's does — with the measurement that motivates it and
+the parts of the deck model that deliberately do not transfer. The Conquest
+fortress ward is built that way already; every other compound is not.
 
 Parcel ownership is established before content fills. A filler may own one leaf
 or an already-claimed compound, but it must not infer a multi-leaf building by
@@ -189,6 +190,31 @@ City recipes compose a trunk, parcels, circulation, zoning, purpose-specific
 fillers, tactical linking, and final validation. The conquest recipe also
 places its fortress and defense structure, while legacy/preview city generation
 can use the same spatial vocabulary without importing campaign concerns.
+
+A **ward** is the exception to parcel-first fill, and the conquest fortress is
+the one place that has it. Rather than being filled leaf by leaf and then walled,
+its band is laid out from a program of authored building footprints, packed into
+depth bands measured from the attacker's approach, furnished by the shared room
+fittings, and opened as parade ground wherever packing leaves ground over — and
+the wall is drawn around that result. The order is the point: a wall stamped
+first can only ever enclose whatever the fill happened to leave, however good the
+wall is. `compound-programs.md` owns the model, the measurements behind its
+sizing rules, and what remains before an ordinary compound can be built the same
+way.
+
+**Room fittings are family-neutral.** A furnishable room is a floor, a pose, its
+doors, and its purpose; a deck compartment and a packed fortress building both
+present one, and the same authored fitting furnishes either. A machine berth is
+likewise a map fact rather than a shipboard one — a fortress vehicle shed
+publishes the same berths a mech bay does, and what occupies one remains the
+host's decision from a roster.
+
+A stage that replaces what an earlier stage built owns everything the earlier one
+recorded, not only what it drew: decorative placements, points of interest,
+tactical nodes, and authored shared-edge identities all belong to the ground being
+replaced. Because an edge carries exactly one authored identity, a leftover
+window is not merely scenery whose building is gone — it is an edge the next
+stage cannot author on.
 
 Station recipes compose a chosen layout, partitioning, room carving, corridors,
 spawn placement, station-topology analysis, tactical linking, and finalization.

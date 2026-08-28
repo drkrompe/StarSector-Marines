@@ -465,6 +465,30 @@ public class NavigationGrid {
         return true;
     }
 
+    /**
+     * Un-author a barrier outright, opening the edge behind it.
+     *
+     * <p>For generation, where a stage demolishes what an earlier one built.
+     * {@link #damageEdgeBarrier} is the runtime story and deliberately leaves
+     * the edge closed for the coordinator to open exactly once; during
+     * generation there is no coordinator, the ground is being reset anyway, and
+     * a window left on an edge whose building no longer exists is both scenery
+     * nobody can explain and an edge the next stage cannot author on — a single
+     * authored identity per edge means the leftover blocks its successor.
+     *
+     * @return whether an identity was there to remove
+     */
+    public boolean removeEdgeBarrier(int x, int y, Direction direction) {
+        SharedEdgeBarrier barrier = getEdgeBarrier(x, y, direction);
+        if (barrier == null) return false;
+        barrierArray(barrier.direction())[index(barrier.cellX(), barrier.cellY())] = null;
+        edgeBarriers.remove(barrier);
+        publishBarrierCover(barrier, false);
+        openSharedEdge(barrier.cellX(), barrier.cellY(), barrier.direction());
+        if (barrier.kind().blocksSight()) LosCache.clearAll();
+        return true;
+    }
+
     private SharedEdgeBarrier[] barrierArray(Direction canonicalDirection) {
         return canonicalDirection == Direction.E
                 ? eastEdgeBarriers : northEdgeBarriers;

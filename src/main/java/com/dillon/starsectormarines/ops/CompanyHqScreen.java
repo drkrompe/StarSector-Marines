@@ -124,7 +124,11 @@ public final class CompanyHqScreen implements Screen {
     }
 
     private void onShipView() {
-        if (context != null) context.goTo(ScreenId.SHIP_VIEW);
+        if (context == null) return;
+        // A company with no ship is sent to choose one rather than shown an
+        // empty page called the ship.
+        context.goTo(context.companyDeck() == null
+                ? ScreenId.SHIP_TRANSFER : ScreenId.SHIP_VIEW);
     }
 
     private void onClose() {

@@ -19,7 +19,10 @@ import java.util.List;
  * compartment as void: plausible on the plan and obviously wrong close up.
  *
  * <p>The bay module is {@link #BAY_WIDTH} by {@link #BAY_DEPTH}, as the
- * hand-authored Mech Lab had it. The middle is kept clear for the machine —
+ * hand-authored Mech Lab had it. It and the runs around it are public because a
+ * room that means to hold bays has to be sized from them: a compound hangar
+ * derives its own footprint here rather than picking dimensions that look about
+ * right and discovering the arrangement will not fit. The middle is kept clear for the machine —
  * which may be any size, so the clearance is reserved rather than filled — and
  * the flanking columns carry the tools a technician works from. A bay a walker
  * cannot fit into, or that a technician cannot get around, is not a bay.
@@ -39,11 +42,11 @@ public final class VehicleBayFitting implements RoomFitting {
     /** Cells along one gantry bay, bow to stern of the machine standing in it. */
     public static final int BAY_DEPTH = 7;
     /** Bulkhead between one bay and the next. Enough to walk a part through. */
-    private static final int BAY_GAP = 3;
+    public static final int BAY_GAP = 3;
     /** Clear deck down the middle, between the two ranks. The room's main lane. */
-    private static final int SERVICE_LANE = 2;
+    public static final int SERVICE_LANE = 2;
     /** Cells at one end given over to the fab shop. */
-    private static final int SHOP_WIDTH = 7;
+    public static final int SHOP_WIDTH = 7;
     /** Cells of bulkhead a doorway may take, which is what a machine needs to pass. */
     private static final int DOORWAY = 2;
     /**
@@ -56,7 +59,7 @@ public final class VehicleBayFitting implements RoomFitting {
      * every deck. Now the room says where its doors are, so the deck they open
      * onto can be part of the arrangement instead of an apology for it.
      */
-    private static final int VESTIBULE = DOORWAY + 1;
+    public static final int VESTIBULE = DOORWAY + 1;
 
     /**
      * The bay floor, taken from the hand-authored Mech Lab rather than invented.
