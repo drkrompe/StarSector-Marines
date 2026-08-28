@@ -1,14 +1,15 @@
 # Map generation story board
 
-Status: ACTIVE — eleven bounded station, city, economic, or cross-feature stories remain open.
+Status: ACTIVE — twelve bounded station, city, economic, or cross-feature stories remain open.
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — retired the shipped shared-edge window vertical.
+Updated: 2026-08-28 — added the compound vehicle-hangar vertical.
 
 | Story | Status | Outcome |
 |---|---|---|
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
+| `compound-vehicle-hangar.md` | IN PROGRESS | Give a military compound a hangar with machine-sized bays, a door a machine fits through, and berths whose occupants come from a roster. |
 | `cross-leaf-footprint-planning.md` | PROPOSED | Plan one coherent multi-leaf structure before roads and per-leaf fills commit the parcel layout. |
 | `station-corridor-arenas.md` | PROPOSED | Give station junctions and gates intentional tactical space without turning transit into cover soup. |
 | `station-theme-fills.md` | PROPOSED | Fill station room purposes with distinct, tactically meaningful themes. |

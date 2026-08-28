@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.world.gen.ship;
+package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
