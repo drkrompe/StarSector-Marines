@@ -36,6 +36,45 @@ class MechGaitStateTest {
                 "the swing pad advances toward its predicted landing");
         assertTrue(gait.waistOffsetX() > 0f,
                 "the waist transfers toward the planted right foot");
+        assertTrue(gait.waistOffsetY() < 0f,
+                "the waist follows the support pad longitudinally instead of leaning away from it");
+    }
+
+    @Test
+    void eachCompletedStrideBracketsTheMovingBodyBetweenItsFeet() {
+        for (MechVariant variant : MechVariant.values()) {
+            for (float hipFacing : new float[]{0f, 67f}) {
+                MechGaitState gait = MechGaitState.create(
+                        5.5f, 5.5f, hipFacing, variant);
+                float bodyX = 5.5f;
+                float bodyY = 5.5f;
+                float travelX = -(float) Math.sin(Math.toRadians(hipFacing));
+                float travelY = (float) Math.cos(Math.toRadians(hipFacing));
+                int priorSwing = MechGaitState.NO_SWING_FOOT;
+                int completedStrides = 0;
+
+                for (int tick = 0; tick < 180; tick++) {
+                    bodyX += travelX * variant.moveSpeed * BattleSimulation.TICK_DT;
+                    bodyY += travelY * variant.moveSpeed * BattleSimulation.TICK_DT;
+                    gait.advance(bodyX, bodyY, hipFacing, 0f, BattleSimulation.TICK_DT);
+                    if (priorSwing != MechGaitState.NO_SWING_FOOT
+                            && gait.swingFoot() == MechGaitState.NO_SWING_FOOT) {
+                        float leftAlongTravel = (gait.leftFootX() - bodyX) * travelX
+                                + (gait.leftFootY() - bodyY) * travelY;
+                        float rightAlongTravel = (gait.rightFootX() - bodyX) * travelX
+                                + (gait.rightFootY() - bodyY) * travelY;
+                        assertTrue(leftAlongTravel * rightAlongTravel <= 0f,
+                                variant + " touchdown must leave one pad ahead of the body"
+                                        + " and one behind it at heading " + hipFacing);
+                        completedStrides++;
+                    }
+                    priorSwing = gait.swingFoot();
+                }
+
+                assertTrue(completedStrides >= 3,
+                        variant + " sample should exercise a sustained walk");
+            }
+        }
     }
 
     @Test

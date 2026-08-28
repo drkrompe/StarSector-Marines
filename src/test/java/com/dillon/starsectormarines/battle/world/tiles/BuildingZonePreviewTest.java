@@ -5,10 +5,10 @@ import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
-import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCivicFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
@@ -22,12 +22,12 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
-import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Dev preview for the three building {@link BlockFiller} implementations
@@ -53,10 +54,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * having to launch the full {@link com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator}
  * map.
  *
- * <p>Rendering shares the same {@link TileSink}-backed path the in-game
- * renderer uses — wall autotile, interior floor autotile, DOOR_OPEN overlay,
- * STRIPED/TILE accent grounds, and doodad scatter all route through the
- * same picker + inset constants as {@link com.dillon.starsectormarines.ops.BattleScreen}.
+ * <p>Scene panels are ordinary headless battle scenes: the generated grid and
+ * topology enter {@link com.dillon.starsectormarines.battle.setup.BattleSetup},
+ * then the production ground and doodad render systems emit their normal draw
+ * commands. Only the final graphics drain is headless. Raw atlas galleries in
+ * this class remain direct image diagnostics and do not claim scene fidelity.
  *
  * <p>Output: {@code build/zone-previews/buildings-<kind>.png} — a 2×2 panel
  * showing four buildings at different sizes. Iterate via:
@@ -81,10 +83,10 @@ public class BuildingZonePreviewTest {
     /** Road frame thickness on each side of the building leaf. Two cells gives enough STREET around the carve to read its perimeter against. */
     private static final int MARGIN_CELLS = 2;
 
-    private static final Color STREET_FILL      = new Color(0x40, 0x46, 0x52);
-    private static final Color WALL_CENTER_FILL = new Color(0x18, 0x18, 0x1C);
     private static final Color LABEL_BG         = new Color(0, 0, 0, 200);
     private static final Color LABEL_FG         = new Color(0xE0, 0xE8, 0xF4);
+
+    private static HeadlessBattleMapRenderer battleMaps;
 
     /**
      * Building dimensions + seeds chosen to exercise the carve logic broadly:
@@ -129,9 +131,8 @@ public class BuildingZonePreviewTest {
     };
 
     /**
-     * Installs a disk-loaded {@link TileRegistry} so {@link #renderScene} can
-     * resolve fixed-grid blocks via {@link TileRegistry#installed()} — the same
-     * registry-block path the in-game {@code GroundRenderSystem} uses.
+     * Installs generation catalogs and prepares the ordinary headless battle
+     * drain used by every scene panel in this class.
      */
     @BeforeAll
     static void installRegistry() throws Exception {
@@ -141,14 +142,7 @@ public class BuildingZonePreviewTest {
         }
         reg.validateReferences();
         TileRegistry.install(reg);
-    }
-
-    /**
-     * Adapts a {@link GridBlockDef#resolve} {@code int[]{col,row}} result (or
-     * {@code null}, the block's enclosed/fill case) to a {@link TileManifest.TileFrame}.
-     */
-    private static TileManifest.TileFrame frame(int[] c) {
-        return c == null ? null : new TileManifest.TileFrame(c[0], c[1]);
+        battleMaps = new HeadlessBattleMapRenderer(Paths.get("mod"));
     }
 
     /**
@@ -546,11 +540,7 @@ public class BuildingZonePreviewTest {
         topology.tagDefaultWalls(grid);
 
         BufferedImage image = renderScene(
-                grid, topology, ctx.doodads,
-                ImageIO.read(Files.newInputStream(URBAN_SHEET)),
-                ImageIO.read(Files.newInputStream(ROAD_SHEET)),
-                ImageIO.read(Files.newInputStream(FLOORS_SHEET)),
-                ImageIO.read(Files.newInputStream(DOODAD_SHEET)),
+                grid, topology, ctx.pois, ctx.doodads, 83L,
                 "industrial compound · factory + fenced yard + utility · seed=83");
         Path output = OUT_DIR.resolve("industrial-compound.png");
         ImageIO.write(image, "PNG", output.toFile());
@@ -600,11 +590,7 @@ public class BuildingZonePreviewTest {
         topology.tagDefaultWalls(grid);
 
         BufferedImage image = renderScene(
-                grid, topology, ctx.doodads,
-                ImageIO.read(Files.newInputStream(URBAN_SHEET)),
-                ImageIO.read(Files.newInputStream(ROAD_SHEET)),
-                ImageIO.read(Files.newInputStream(FLOORS_SHEET)),
-                ImageIO.read(Files.newInputStream(DOODAD_SHEET)),
+                grid, topology, ctx.pois, ctx.doodads, 83L,
                 "medical campus · clinic + support wing + ambulance court · seed=83");
         Path output = OUT_DIR.resolve("medical-campus.png");
         ImageIO.write(image, "PNG", output.toFile());
@@ -658,12 +644,9 @@ public class BuildingZonePreviewTest {
         topology.tagDefaultWalls(grid);
 
         BufferedImage image = renderScene(
-                grid, topology, ctx.doodads,
-                ImageIO.read(Files.newInputStream(URBAN_SHEET)),
-                ImageIO.read(Files.newInputStream(ROAD_SHEET)),
-                ImageIO.read(Files.newInputStream(FLOORS_SHEET)),
-                ImageIO.read(Files.newInputStream(DOODAD_SHEET)),
+                grid, topology, ctx.pois, ctx.doodads, 117L,
                 "residential compound · two apartment blocks + shared courtyard · seed=117");
+        assertVisibleWindows(image, topology);
         Path output = OUT_DIR.resolve("residential-courtyard-compound.png");
         ImageIO.write(image, "PNG", output.toFile());
         System.out.println("  wrote " + output.toAbsolutePath());
@@ -686,19 +669,9 @@ public class BuildingZonePreviewTest {
     private void renderBuildingBatch(BlockFiller filler, String kindLabel,
                                      BuildingVariant[] variants) throws Exception {
         Files.createDirectories(OUT_DIR);
-        BufferedImage urban  = ImageIO.read(Files.newInputStream(URBAN_SHEET));
-        BufferedImage road   = ImageIO.read(Files.newInputStream(ROAD_SHEET));
-        BufferedImage floors = ImageIO.read(Files.newInputStream(FLOORS_SHEET));
-        BufferedImage generatedDoodads = ImageIO.read(Files.newInputStream(DOODAD_SHEET));
-        assertNotNull(urban,  "failed to load " + URBAN_SHEET);
-        assertNotNull(road,   "failed to load " + ROAD_SHEET);
-        assertNotNull(floors, "failed to load " + FLOORS_SHEET);
-        assertNotNull(generatedDoodads, "failed to load " + DOODAD_SHEET);
-
         BufferedImage[] panels = new BufferedImage[variants.length];
         for (int i = 0; i < variants.length; i++) {
-            panels[i] = renderVariant(filler, variants[i], urban, road, floors,
-                    generatedDoodads, kindLabel);
+            panels[i] = renderVariant(filler, variants[i], kindLabel);
         }
 
         BufferedImage sheet = composeContactSheet(panels, 2);
@@ -708,8 +681,6 @@ public class BuildingZonePreviewTest {
     }
 
     private static BufferedImage renderVariant(BlockFiller filler, BuildingVariant variant,
-                                               BufferedImage urban, BufferedImage road,
-                                               BufferedImage floors, BufferedImage generatedDoodads,
                                                String kindLabel) {
         int gridW = variant.leafW + MARGIN_CELLS * 2;
         int gridH = variant.leafH + MARGIN_CELLS * 2;
@@ -735,7 +706,6 @@ public class BuildingZonePreviewTest {
         GenContext ctx = new GenContext(grid, topology, new Random(variant.seed), gridW, gridH, variant.seed);
         filler.fill(leaf, ctx);
         List<PointOfInterest> pois = ctx.pois;
-        List<Doodad> doodads = ctx.doodads;
 
         // Sync WALL tags from nav walkability — matches the orchestrator's
         // post-fill pass. The wall picker reads {@code topology.isWall}, not
@@ -743,237 +713,61 @@ public class BuildingZonePreviewTest {
         topology.tagDefaultWalls(grid);
 
         String label = String.format("%s · %s · seed=%d · POIs=%d · doodads=%d",
-                kindLabel, variant.label, variant.seed, pois.size(), doodads.size());
-        return renderScene(grid, topology, doodads, urban, road, floors,
-                generatedDoodads, label);
+                kindLabel, variant.label, variant.seed, pois.size(), ctx.doodads.size());
+        return renderScene(grid, topology, pois, ctx.doodads, variant.seed, label);
     }
 
     private static BufferedImage renderScene(NavigationGrid grid, CellTopology topology,
-                                             List<Doodad> doodads,
-                                             BufferedImage urban, BufferedImage road,
-                                             BufferedImage floors, BufferedImage generatedDoodads,
-                                             String label) {
+                                             List<PointOfInterest> pois, List<Doodad> doodads,
+                                             long seed, String label) {
         int gridW = grid.getWidth();
         int gridH = grid.getHeight();
-        int imgW = gridW * DISPLAY_CELL_PX;
-        int imgH = gridH * DISPLAY_CELL_PX + 28;
-
-        BufferedImage img = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = configureGraphics(img);
-
-        FixedGridTileDrawer drawer       = new FixedGridTileDrawer(TileManifest.TILE_SIZE);
-        FixedGridTileDrawer floorsDrawer = new FixedGridTileDrawer(TileManifest.FLOORS_TILE_SIZE);
-        TileSink urbanSink  = new Graphics2DTileSink(g, urban);
-        TileSink roadSink   = new Graphics2DTileSink(g, road);
-        TileSink floorsSink = new Graphics2DTileSink(g, floors);
-        TileSink doodadSink = new Graphics2DTileSink(g, generatedDoodads);
-        TileRegistry reg = TileRegistry.installed();
-
-        // Pass 1: STREET cells get a flat gray underneath (the preview
-        // doesn't render the road autotile). Interior cells aren't
-        // underpainted — every routed picker stamps a fully opaque source
-        // cell, so a missing stamp here means a real bug, not a transparent
-        // source-pixel quirk to be papered over.
-        for (int y = 0; y < gridH; y++) {
-            for (int x = 0; x < gridW; x++) {
-                if (topology.isWall(x, y)) continue;
-                if (topology.getGroundKind(x, y) != GroundKind.STREET) continue;
-                g.setColor(STREET_FILL);
-                g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
-                        DISPLAY_CELL_PX, DISPLAY_CELL_PX);
-            }
-        }
-
-        // Pass 2: per-cell floor for non-wall cells. Mirrors the dispatch in
-        // BattleScreen.renderTiledFloorsAndWalls — INDOOR/RUBBLE on the urban
-        // sheet, STRIPED/TILE on the road sheet, with the same inset constants.
-        for (int y = 0; y < gridH; y++) {
-            for (int x = 0; x < gridW; x++) {
-                if (topology.isWall(x, y)) continue;
-                boolean nWall = isInBoundsWall(topology, x, y + 1);
-                boolean sWall = isInBoundsWall(topology, x, y - 1);
-                boolean eWall = isInBoundsWall(topology, x + 1, y);
-                boolean wWall = isInBoundsWall(topology, x - 1, y);
-
-                GroundKind kind = topology.getGroundKind(x, y);
-                switch (kind) {
-                    case INDOOR: {
-                        TileManifest.TileFrame f = frame(reg.block("urban.floor").resolve(nWall, sWall, eWall, wWall));
-                        stampCell(drawer, urbanSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
-                        break;
-                    }
-                    case STRIPED: {
-                        TileManifest.TileFrame f = frame(reg.block("road.striped").resolve(nWall, sWall, eWall, wWall));
-                        stampCell(drawer, roadSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
-                        break;
-                    }
-                    case LZ_MARKER: {
-                        TileManifest.TileFrame f = frame(reg.block("road.lz-marker")
-                                .resolve(false, false, false, false));
-                        stampCell(drawer, roadSink, f, x, y, gridH,
-                                FixedGridTileDrawer.OVERLAY_INSET_PX);
-                        break;
-                    }
-                    case TILE: {
-                        // Polished commercial floor (fl-2) on ROAD_SHEET —
-                        // mirrors the BattleScreen.TILE dispatch through
-                        // drawRoadTile.
-                        TileManifest.TileFrame f = frame(reg.block("road.tile").resolve(false, false, false, false));
-                        stampCell(drawer, roadSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
-                        break;
-                    }
-                    case COURTYARD: {
-                        g.setColor(new Color(TileManifest.COURTYARD_FILL_RGB));
-                        g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
-                                DISPLAY_CELL_PX, DISPLAY_CELL_PX);
-                        TileManifest.TileFrame f = frame(reg.block("road.courtyard")
-                                .resolve(false, false, false, false));
-                        stampCell(drawer, roadSink, f, x, y, gridH,
-                                drawer.defaultGroundInsetPx());
-                        break;
-                    }
-                    case BRICK: {
-                        // Brick paving (fl-tile-1..5) on FLOORS_SHEET — per-
-                        // cell hash variant pool. Plazas, building roofs (planned).
-                        TileManifest.TileFrame f = frame(reg.block("floors.brick").resolve(false, false, false, false, x, y));
-                        stampCell(floorsDrawer, floorsSink, f, x, y, gridH, floorsDrawer.defaultGroundInsetPx());
-                        break;
-                    }
-                    case SIDEWALK: {
-                        // Curb-side sidewalk strip — urban-tileset-3 SIDEWALK
-                        // / SIDEWALK_CORNER, same picker the production wall-
-                        // adjacent path uses. Hand-built preview scenes don't
-                        // currently emit SIDEWALK cells but kept here so the
-                        // dispatch matches BattleScreen's switch coverage.
-                        break;
-                    }
-                    case RUBBLE: {
-                        TileManifest.TileFrame f = frame(reg.block("urban.rubble").resolve(nWall, sWall, eWall, wWall));
-                        stampCell(drawer, urbanSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
-                        break;
-                    }
-                    case DIRT: {
-                        TileManifest.TileFrame f = frame(reg.block("floors.dirt")
-                                .resolve(false, false, false, false, x, y));
-                        stampCell(floorsDrawer, floorsSink, f, x, y, gridH,
-                                floorsDrawer.defaultGroundInsetPx());
-                        break;
-                    }
-                    case STONE: {
-                        TileManifest.TileFrame f = frame(reg.block("floors.stone")
-                                .resolve(false, false, false, false, x, y));
-                        stampCell(floorsDrawer, floorsSink, f, x, y, gridH,
-                                floorsDrawer.defaultGroundInsetPx());
-                        break;
-                    }
-                    case STREET:
-                        // Already painted as a flat fill in pass 1.
-                        break;
-                    default:
-                        // Other GroundKinds (GRASS/WATER/etc.) aren't
-                        // emitted by the building fillers under test — guard
-                        // surfaces a regression visibly.
-                        g.setColor(Color.MAGENTA);
-                        g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
-                                DISPLAY_CELL_PX, DISPLAY_CELL_PX);
-                        break;
-                }
-
-                // Overhead door overlay — DOOR_OPEN is an overlay sprite, not
-                // a tiling ground, so it passes inset=0 to keep the door's
-                // edge pixels intact (same rule as in-game).
-                if (grid.isDoorway(x, y) && !topology.isRubble(x, y)) {
-                    stampCell(drawer, urbanSink, TileManifest.DOOR_OPEN,
-                            x, y, gridH, FixedGridTileDrawer.OVERLAY_INSET_PX);
-                }
-            }
-        }
-
-        // Pass 3: walls. Wall direction is read straight from the per-cell
-        // mask that BuildingShellCore stamped at carve time — no neighbor
-        // query. Cells with mask=0 are interior partition walls (no
-        // exterior face); pickWallTile resolves them to the empty center
-        // cell, falling back to a solid quad below.
-        for (int y = 0; y < gridH; y++) {
-            for (int x = 0; x < gridW; x++) {
-                if (!topology.isWall(x, y)) continue;
-                int mask = topology.getWallDirMask(x, y);
-                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(mask);
-                if (tile == null) {
-                    g.setColor(WALL_CENTER_FILL);
-                    g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
-                            DISPLAY_CELL_PX, DISPLAY_CELL_PX);
-                } else {
-                    // Walls render with NO source inset — unlike ground autotiles,
-                    // wall art keeps its directional cap strokes at the cell edge
-                    // (e.g. a 1-2px horizontal line at the top of cell (4, 0)
-                    // distinguishes a south-facing wall edge from a north one).
-                    // Applying GROUND_INSET_PX_LARGE here crops those strokes
-                    // away and makes opposite-edge walls read identically.
-                    stampCell(drawer, urbanSink, tile, x, y, gridH,
-                            FixedGridTileDrawer.OVERLAY_INSET_PX);
-                }
-            }
-        }
-
-        // Pass 4: doodads. No inset — these are standalone sprites whose
-        // edge pixels are content. Source sheet is per-doodad (road sheet for
-        // LZ-style props, urban sheet for everything the building fillers emit).
-        for (Doodad d : doodads) {
-            TileSink sink = TileManifest.DOODAD_SHEET.equals(d.sheetPath)
-                    ? doodadSink : d.fromRoadSheet ? roadSink : urbanSink;
-            stampDoodad(drawer, sink, d, gridH);
-        }
-
-        drawLabel(g, gridW, gridH, label);
-        g.dispose();
-        return img;
-    }
-
-    private static void stampCell(FixedGridTileDrawer drawer, TileSink sink,
-                                  TileManifest.TileFrame f, int gridX, int gridY, int gridH,
-                                  int insetPx) {
-        if (f == null) return;
-        float dstCx = gridX * DISPLAY_CELL_PX + DISPLAY_CELL_PX / 2f;
-        float dstCy = (gridH - 1 - gridY) * DISPLAY_CELL_PX + DISPLAY_CELL_PX / 2f;
-        drawer.draw(sink, f, dstCx, dstCy, DISPLAY_CELL_PX, DISPLAY_CELL_PX, 1f, insetPx);
-    }
-
-    private static void stampDoodad(FixedGridTileDrawer drawer, TileSink sink,
-                                    Doodad doodad, int gridH) {
-        float dstW = DISPLAY_CELL_PX * doodad.footprintCellsX;
-        float dstH = DISPLAY_CELL_PX * doodad.footprintCellsY;
-        float dstCx = (doodad.cellX + doodad.footprintCellsX * 0.5f) * DISPLAY_CELL_PX;
-        float dstCy = (gridH - doodad.cellY - doodad.footprintCellsY * 0.5f)
-                * DISPLAY_CELL_PX;
-        drawer.drawSpan(sink, doodad.tile,
-                doodad.footprintCellsX, doodad.footprintCellsY,
-                dstCx, dstCy, dstW, dstH, 1f, FixedGridTileDrawer.OVERLAY_INSET_PX);
-    }
-
-    /** Floor-pass wall test: OOB is treated as open (not-wall) to match BattleScreen.isInBoundsWall. */
-    private static boolean isInBoundsWall(CellTopology t, int x, int y) {
-        if (!t.inBounds(x, y)) return false;
-        return t.isWall(x, y);
-    }
-
-    private static Graphics2D configureGraphics(BufferedImage img) {
-        Graphics2D g = img.createGraphics();
-        // BILINEAR matches Starsector's default GL texture filter.
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        return g;
-    }
-
-    private static void drawLabel(Graphics2D g, int gridW, int gridH, String text) {
-        int imgW = gridW * DISPLAY_CELL_PX;
-        g.setComposite(AlphaComposite.SrcOver);
+        MapResult map = new MapResult(grid, topology, 0, 0,
+                gridW - 1, gridH - 1, pois, doodads);
+        BufferedImage scene = battleMaps.render(map, seed, DISPLAY_CELL_PX);
+        BufferedImage labeled = new BufferedImage(scene.getWidth(), scene.getHeight() + 28,
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = labeled.createGraphics();
+        g.drawImage(scene, 0, 0, null);
         g.setColor(LABEL_BG);
-        g.fillRect(0, gridH * DISPLAY_CELL_PX, imgW, 28);
+        g.fillRect(0, scene.getHeight(), scene.getWidth(), 28);
         g.setColor(LABEL_FG);
         g.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        g.drawString(text, 8, gridH * DISPLAY_CELL_PX + 19);
+        g.drawString(label, 8, scene.getHeight() + 19);
+        g.dispose();
+        return labeled;
+    }
+
+    /** The compound fixture must visibly carry every authored firing aperture. */
+    private static void assertVisibleWindows(BufferedImage image, CellTopology topology) {
+        int glassRgb = new Color(0x3A, 0x72, 0x84).getRGB() & 0x00FFFFFF;
+        int authored = 0;
+        int visible = 0;
+        for (int y = 0; y < topology.getHeight(); y++) {
+            for (int x = 0; x < topology.getWidth(); x++) {
+                if (!topology.isWindow(x, y)) continue;
+                authored++;
+                int left = x * DISPLAY_CELL_PX;
+                int top = (topology.getHeight() - 1 - y) * DISPLAY_CELL_PX;
+                if (containsRgb(image, left, top, DISPLAY_CELL_PX, glassRgb)) visible++;
+            }
+        }
+        assertTrue(authored > 0, "compound fixture authored no firing apertures");
+        int visibleWindows = visible;
+        int authoredWindows = authored;
+        assertTrue(visible == authored,
+                () -> "headless battle preview showed " + visibleWindows + " of "
+                        + authoredWindows + " authored firing apertures");
+    }
+
+    private static boolean containsRgb(BufferedImage image, int left, int top,
+                                       int span, int rgb) {
+        for (int y = top; y < top + span; y++) {
+            for (int x = left; x < left + span; x++) {
+                if ((image.getRGB(x, y) & 0x00FFFFFF) == rgb) return true;
+            }
+        }
+        return false;
     }
 
     private static BufferedImage composeContactSheet(BufferedImage[] panels, int cols) {

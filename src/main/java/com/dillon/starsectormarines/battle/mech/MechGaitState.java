@@ -109,7 +109,7 @@ public final class MechGaitState {
                         velocityX, velocityY, speed, angularVelocityDegrees);
             }
         }
-        advanceWaist(bodyX, bodyY, hipFacing, velocityX, velocityY, speed, dt);
+        advanceWaist(bodyX, bodyY, speed, dt);
         lastBodyX = bodyX;
         lastBodyY = bodyY;
     }
@@ -158,11 +158,24 @@ public final class MechGaitState {
         swingStartY = foot == LEFT_FOOT ? leftFootY : rightFootY;
         swingStartFacing = foot == LEFT_FOOT ? leftFootFacing : rightFootFacing;
 
-        Point nominal = nominalFoot(bodyX, bodyY, hipFacing, foot);
-        float leadSeconds = stepDurationSeconds() * 0.82f;
-        float targetX = nominal.x + velocityX * leadSeconds;
-        float targetY = nominal.y + velocityY * leadSeconds;
-        Point constrained = constrainLanding(bodyX, bodyY, hipFacing, foot,
+        float duration = stepDurationSeconds();
+        float projectedBodyX = bodyX + velocityX * duration;
+        float projectedBodyY = bodyY + velocityY * duration;
+        Point nominal = nominalFoot(projectedBodyX, projectedBodyY, hipFacing, foot);
+        float targetX = nominal.x;
+        float targetY = nominal.y;
+        float speed = length(velocityX, velocityY);
+        if (speed >= MIN_BODY_SPEED) {
+            float travelX = velocityX / speed;
+            float travelY = velocityY / speed;
+            float nominalAlongTravel = (targetX - projectedBodyX) * travelX
+                    + (targetY - projectedBodyY) * travelY;
+            float desiredAhead = hullWidthCells * (isLightChassis() ? 0.08f : 0.06f);
+            targetX += travelX * (desiredAhead - nominalAlongTravel);
+            targetY += travelY * (desiredAhead - nominalAlongTravel);
+        }
+        Point constrained = constrainLanding(projectedBodyX, projectedBodyY,
+                hipFacing, foot,
                 targetX, targetY);
         swingTargetX = constrained.x;
         swingTargetY = constrained.y;
@@ -194,36 +207,27 @@ public final class MechGaitState {
         }
     }
 
-    private void advanceWaist(float bodyX, float bodyY, float hipFacing,
-                              float velocityX, float velocityY, float speed, float dt) {
-        Point rightAxis = rotate(1f, 0f, hipFacing);
-        float supportX;
-        float supportY;
+    private void advanceWaist(float bodyX, float bodyY, float speed, float dt) {
+        float targetX = 0f;
+        float targetY = 0f;
         if (swingFoot == LEFT_FOOT) {
-            supportX = rightFootX;
-            supportY = rightFootY;
+            Point target = singleSupportTarget(bodyX, bodyY, rightFootX, rightFootY);
+            targetX = target.x;
+            targetY = target.y;
         } else if (swingFoot == RIGHT_FOOT) {
-            supportX = leftFootX;
-            supportY = leftFootY;
-        } else {
-            supportX = (leftFootX + rightFootX) * 0.5f;
-            supportY = (leftFootY + rightFootY) * 0.5f;
-        }
-        float supportLateral = (supportX - bodyX) * rightAxis.x
-                + (supportY - bodyY) * rightAxis.y;
-        float maxSway = isLightChassis() ? 0.085f : 0.060f;
-        float supportWeight = swingFoot == NO_SWING_FOOT ? 0.12f : 0.30f;
-        float lateral = clamp(supportLateral * supportWeight, -maxSway, maxSway);
-        float targetX = rightAxis.x * lateral;
-        float targetY = rightAxis.y * lateral;
-        if (speed > 0.001f) {
-            float forwardShift = Math.min(isLightChassis() ? 0.055f : 0.038f,
-                    speed * (isLightChassis() ? 0.030f : 0.022f));
-            targetX += velocityX / speed * forwardShift;
-            targetY += velocityY / speed * forwardShift;
+            Point target = singleSupportTarget(bodyX, bodyY, leftFootX, leftFootY);
+            targetX = target.x;
+            targetY = target.y;
+        } else if (speed >= MIN_BODY_SPEED) {
+            Point support = closestPointOnSegment(bodyX, bodyY,
+                    leftFootX, leftFootY, rightFootX, rightFootY);
+            Point target = limitedOffset(support.x - bodyX, support.y - bodyY,
+                    hullWidthCells * (isLightChassis() ? 0.13f : 0.11f), 0.72f);
+            targetX = target.x;
+            targetY = target.y;
         }
 
-        float stiffness = isLightChassis() ? 52f : 36f;
+        float stiffness = isLightChassis() ? 64f : 44f;
         float damping = 2f * (float) Math.sqrt(stiffness);
         waistVelocityX += ((targetX - waistOffsetX) * stiffness
                 - waistVelocityX * damping) * dt;
@@ -231,6 +235,37 @@ public final class MechGaitState {
                 - waistVelocityY * damping) * dt;
         waistOffsetX += waistVelocityX * dt;
         waistOffsetY += waistVelocityY * dt;
+    }
+
+    /** Pulls the rendered mass toward the one pad carrying the chassis. */
+    private Point singleSupportTarget(float bodyX, float bodyY,
+                                      float supportX, float supportY) {
+        return limitedOffset(supportX - bodyX, supportY - bodyY,
+                hullWidthCells * (isLightChassis() ? 0.15f : 0.12f),
+                isLightChassis() ? 0.58f : 0.50f);
+    }
+
+    private static Point limitedOffset(float x, float y,
+                                       float maximum, float weight) {
+        float weightedX = x * weight;
+        float weightedY = y * weight;
+        float magnitude = length(weightedX, weightedY);
+        if (magnitude > maximum) {
+            weightedX *= maximum / magnitude;
+            weightedY *= maximum / magnitude;
+        }
+        return new Point(weightedX, weightedY);
+    }
+
+    private static Point closestPointOnSegment(float x, float y,
+                                               float ax, float ay,
+                                               float bx, float by) {
+        float dx = bx - ax;
+        float dy = by - ay;
+        float lengthSquared = dx * dx + dy * dy;
+        if (lengthSquared <= 0.000001f) return new Point(ax, ay);
+        float t = clamp(((x - ax) * dx + (y - ay) * dy) / lengthSquared, 0f, 1f);
+        return new Point(ax + dx * t, ay + dy * t);
     }
 
     private Point nominalFoot(float bodyX, float bodyY, float hipFacing, int foot) {
