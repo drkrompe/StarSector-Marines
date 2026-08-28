@@ -86,7 +86,25 @@ turning fails to express a role.
 Shuttles are the shipped proof of the air model. A transport owns a sortie:
 it waits or re-arms off-map, enters toward a landing berth, delivers the
 mission-authored passenger count, then follows an explicit post-delivery
-disposition. `LOITER_IF_ARMED` preserves bounded fire support;
+disposition.
+
+A sortie flown from an **authored airfield** has one more phase in front of
+that. The craft starts down on its own hardstand and **loads on the ground**:
+its passengers are not aboard when it spawns, but walk out to the pad and
+embark, and it lifts when it is full or when nobody else is coming. That is the
+difference between an air arm and a spawner. A sortie that arrives already
+loaded has no cost and no story — the aircraft is a delivery mechanism that
+happens to be drawn. One that has to be loaded has both: the garrison commits
+people who can be seen and shot, they cross open ground to reach the field, and
+an attacker standing on the airfield — or merely shooting across it — has
+stopped the lift without touching the aircraft.
+
+A loading craft is on the ground and is not shootable-down as an aircraft, the
+same as one that has landed. Boarding has a deadline, because the squad walking
+out to it can be killed on the way: without one, a sortie whose squad died in
+the yard would hold its hardstand for the rest of the battle and the air arm
+would quietly stop existing. Whoever reached the ramp goes; the seats their
+friends would have filled stay empty. `LOITER_IF_ARMED` preserves bounded fire support;
 `DEPART` takes off immediately even when the hull has weapons. It is an air
 entity throughout that lifecycle, not a temporary handle or a parallel id
 space. Transport survival, payload delivery, and optional mounted fire support
