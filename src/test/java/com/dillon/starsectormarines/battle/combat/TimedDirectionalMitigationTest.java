@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
@@ -254,14 +255,14 @@ class TimedDirectionalMitigationTest {
                 () -> DurabilityModel.resolveInto(10f, 1f, -0.5f, 0f, 0f, 10f, out));
     }
 
-    /** Mitigation removes damage; it never puts anything back into a pool. */
+    /** Mitigation removes damage; it never puts anything back into a capacity. */
     @Test
-    void theModelNeverRestoresAPool() {
+    void theModelNeverRestoresACapacity() {
         DurabilityModel.Resolution out = new DurabilityModel.Resolution();
         DurabilityModel.resolveInto(100f, 10f, 0.5f, 5f, 10f, 25f, out);
 
         assertEquals(50f, out.mitigatedDamage(), 1e-4f);
-        assertEquals(5f, out.armorDamage(), 1e-4f, "armour loss is still clamped to the pool");
+        assertEquals(5f, out.armorDamage(), 1e-4f, "armour loss is still clamped to the capacity");
         assertTrue(out.armorBroken(), "a mitigated hit that still exceeds the armour breaks it");
         assertTrue(out.structureDamage() > 0f && out.structureDamage() <= 25f);
     }
@@ -310,7 +311,7 @@ class TimedDirectionalMitigationTest {
 
     // ---- fixture ----
 
-    /** What one hit actually cost the target, read off the pools and telemetry. */
+    /** What one hit actually cost the target, read off armor, structure, and telemetry. */
     private record Resolved(float armorLost, float hpLost, float mitigated) {
         float total() {
             return armorLost + hpLost;
@@ -397,7 +398,7 @@ class TimedDirectionalMitigationTest {
      * they measure mitigation rather than an activation policy.
      */
     private static IntegralSystemDef screenSource(float fraction, float arcDegrees) {
-        return new IntegralSystemDef("system.test-screen", "Test screen", "A screen.",
+        return new IntegralSystemDef("system.test-screen", "Test screen", EquipmentGrade.SERVICE, "A screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 3f, 9f, 0, new BreacherAssistSpec(1.1f, fraction, arcDegrees), null);
     }

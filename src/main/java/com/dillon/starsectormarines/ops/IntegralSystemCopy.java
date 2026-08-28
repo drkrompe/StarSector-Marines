@@ -47,7 +47,23 @@ final class IntegralSystemCopy {
     static String summary(MarineArmorCatalogDef armor) {
         if (!carried(armor)) return "No integral system";
         IntegralSystemDef system = armor.integralSystem();
-        return system.displayName() + SEPARATOR + clock(system);
+        return system.familyName() + SEPARATOR + system.grade().displayName
+                + SEPARATOR + clock(system);
+    }
+
+    /**
+     * What this tradition calls its own version. Six patterns carry a breach
+     * assist and every one of them named it something else, which is good
+     * flavour and useless for comparison — so the family and the grade lead,
+     * and the authored name follows as the thing it is.
+     */
+    static String flavorName(MarineArmorCatalogDef armor) {
+        return carried(armor) ? armor.integralSystem().displayName() : "";
+    }
+
+    /** The family icon, or null when the pattern carries nothing. */
+    static String iconPath(MarineArmorCatalogDef armor) {
+        return carried(armor) ? armor.integralSystem().effect().iconPath : null;
     }
 
     /**
@@ -71,6 +87,7 @@ final class IntegralSystemCopy {
         }
         IntegralSystemDef system = armor.integralSystem();
         List<String> parts = new ArrayList<>();
+        parts.add(system.displayName());
         parts.add(system.description());
         String effect = effectDetail(system);
         if (!effect.isEmpty()) {

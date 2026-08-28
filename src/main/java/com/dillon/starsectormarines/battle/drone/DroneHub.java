@@ -45,7 +45,7 @@ public final class DroneHub {
     public static final float VISUAL_CELLS = 1.6f;
 
     public static final float HUB_MAX_STRUCTURE = 90f;
-    public static final float HUB_ARMOR_POOL = 130f;
+    public static final float HUB_ARMOR_CAPACITY = 130f;
     public static final float HUB_ARMOR_RATING = 12f;
 
     /** Cap on simultaneously-airborne drones from a single hub. Three is the sweet spot for a screen that justifies the stamper: enough that the swarm can fan out around a target on different bearings (vs. a duo always stacking), small enough that two hubs on the same map don't carpet the area with drones. */
@@ -67,7 +67,7 @@ public final class DroneHub {
     public static EntitySpec create(String id, Faction faction, int cellX, int cellY) {
         return new EntitySpec(id, faction, UnitType.DRONE_HUB_STRUCTURE, cellX, cellY)
                 .health(HUB_MAX_STRUCTURE)
-                .armor(HUB_ARMOR_POOL, HUB_ARMOR_RATING)
+                .armor(HUB_ARMOR_CAPACITY, HUB_ARMOR_RATING)
                 .attackDamage(0f)
                 .attackRange(0f)
                 .attackCooldown(1f)

@@ -7,18 +7,18 @@ import java.awt.Color;
  * an entity's remaining combat durability as a run of {@code SOLID_RECT}s in any
  * layer. Stateless and layer-agnostic; the canonical bar renderer shared by
  * {@link DroneRenderSystem} (DRONES layer) and the UNITS durability sweep. See
- * {@code combat-durability-nouns.md} for what the two pools mean.
+ * {@code combat-durability-nouns.md} for what armor and structure mean.
  *
- * <p><b>A row per pool.</b> A dark plate carries one or two rows. The lower row is
+ * <p><b>A row per capacity.</b> A dark plate carries one or two rows. The lower row is
  * structure; the upper row, present only for an entity authored with armor, is the
- * armor pool — armor above structure, because armor is what a shot chews through
+ * armor capacity — armor above structure, because armor is what a shot chews through
  * first. Each row spans the full bar and fills against its <em>own</em> maximum, so
- * a pool at full reads as full whatever the other pool is doing, and "armor gone,
+ * a capacity at full reads as full whatever the other capacity is doing, and "armor gone,
  * hull untouched" is one glance rather than an arithmetic problem.
  *
  * <p><b>Notches.</b> Dark dividers notch each row off in a fixed quantity of
- * that pool — {@link #STRUCTURE_NOTCH} of structure, {@link #ARMOR_NOTCH} of armor.
- * The two scales differ because the pools do: authored armor runs half again to
+ * that capacity — {@link #STRUCTURE_NOTCH} of structure, {@link #ARMOR_NOTCH} of armor.
+ * The two scales differ because the capacities do: authored armor runs half again to
  * twice the structure beside it, and forcing one scale on both would leave the
  * armor row an unreadable comb. Within a row the scale is absolute and identical
  * for every entity in the battle, so notch count and density read magnitude
@@ -26,7 +26,7 @@ import java.awt.Color;
  * and a tier whose spacing falls below {@link #MIN_DIVIDER_SPACING_PX} is dropped
  * whole rather than smeared — the bar degrades to majors and then to none instead
  * of going illegible. That decision is taken once for the whole bar rather than
- * per row: the two pools sit near enough to the threshold that letting them choose
+ * per row: the two capacities sit near enough to the threshold that letting them choose
  * separately makes one row visibly finer than the other over a rounding error.
  *
  * <p><b>Reading ownership.</b> {@link Allegiance} is coded on four channels at
@@ -46,13 +46,13 @@ public final class DurabilityBarDecor {
 
     /** Structure points per notch in the lower row. */
     public static final float STRUCTURE_NOTCH = 25f;
-    /** Armor points per notch in the upper row — coarser, because armor pools run larger. */
+    /** Armor points per notch in the upper row — coarser, because armor capacities run larger. */
     public static final float ARMOR_NOTCH = 50f;
     /** Every Nth divider in a row is promoted to a full-height major. */
     public static final int MAJOR_EVERY_NOTCHES = 5;
     /** A divider tier closer together than this is dropped instead of smeared. */
     private static final float MIN_DIVIDER_SPACING_PX = 2.5f;
-    /** Refuses to walk a divider tier that could never be drawn, however large the pool. */
+    /** Refuses to walk a divider tier that could never be drawn, however large the quantity. */
     private static final int MAX_DIVIDERS = 512;
 
     /** Frame thickness enclosing the rows, and the gridline between them. */
@@ -136,7 +136,7 @@ public final class DurabilityBarDecor {
 
     /**
      * Emits a structure-only bar centered at {@code cx} with its bottom edge at
-     * {@code baseY}, for an entity with no authored armor pool.
+     * {@code baseY}, for an entity with no authored armor capacity.
      */
     public static void emit(DrawList out, RenderLayer layer, Allegiance owner,
                             float cx, float baseY, float width,
@@ -145,7 +145,7 @@ public final class DurabilityBarDecor {
     }
 
     /**
-     * Emits an armor row over a structure row. Pools are absolute durability
+     * Emits an armor row over a structure row. Both rows are absolute durability
      * points, not fractions — each row needs its real magnitude to place its notch
      * dividers. Current values are clamped into their own maxima; a non-positive
      * {@code maxStructure} or {@code width} emits nothing, and a non-positive
@@ -207,7 +207,7 @@ public final class DurabilityBarDecor {
         }
     }
 
-    /** What one pool's scale can resolve across {@code rowW} pixels. */
+    /** What one row's scale can resolve across {@code rowW} pixels. */
     private static Tier tier(float rowW, float max, float notch) {
         float pxPerPoint = rowW / max;
         return new Tier(notch * pxPerPoint >= MIN_DIVIDER_SPACING_PX,
@@ -215,8 +215,8 @@ public final class DurabilityBarDecor {
     }
 
     /**
-     * One pool's row: drained track, left-anchored fill against that pool's own
-     * maximum, the friendly bevel, then the notch dividers on that pool's scale.
+     * One row's fill: drained track, left-anchored fill against that row's own
+     * maximum, the friendly bevel, then the notch dividers on that row's scale.
      */
     private static void row(DrawList out, RenderLayer layer, Style s,
                             float x0, float y0, float x1, float y1, Color fill,
