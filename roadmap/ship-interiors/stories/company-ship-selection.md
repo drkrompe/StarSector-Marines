@@ -67,7 +67,9 @@ fleet.
 ## Open questions
 
 - ~~What makes a hull a candidate.~~ Settled: every ship the player owns that is
-  not mothballed, ranked by lift. Filtering by role would hide exactly the
+  not mothballed, ranked by lift — and a hull below destroyer class is listed
+  but refused, because a one-deck boat is what a player runs squads around in
+  rather than somewhere a company lives. Filtering by role would hide exactly the
   comparison the screen exists to make — a tanker should read as a bad home,
   not be absent — and being laid up is the one state that makes a hull
   genuinely uninhabitable rather than merely a poor choice. Whether a candidate

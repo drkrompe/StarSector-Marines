@@ -453,6 +453,25 @@ standing hedge against losing everybody at once.
 The roll is fixed by the company and the ship's name rather than freshly random,
 because a loss the player can reload away is not a loss.
 
+**Some hulls are boats, and a boat is not a base.** Having an interior is not
+the same as being somewhere a company lives. A frigate is one deck: whatever
+else she is doing happens in the space the marines would be living in, and a
+company quartered there has a berth and nothing else - no armoury that locks, no
+bay, nowhere to muster. That is the hull a player runs a squad around in, and
+offering it as a home would let them wreck their own company by accident.
+
+**Lift does not decide it.** A Kite carries twenty-eight hands beyond her crew
+and a Wolf fifteen, and neither is a base; a shuttle has lift because people can
+be packed into her for a short hop, not because they can live there. The second
+deck is the line, because it is what separates somewhere the company works from
+somewhere it is merely being carried.
+
+An unsupported hull is **listed and refused**, never hidden. Absent, she reads as
+a ship the game forgot; listed with the reason on her, she teaches the player
+where the line is by showing it. That is the same treatment a bad home gets, and
+for the same reason - the comparison is the screen's whole job - with the single
+difference that the refusal is final rather than a cost.
+
 **Moving costs money; being given a home does not.** A transfer is a refit
 rather than a decision on paper - bunks, lockers, an armoury that locks and a
 bay a walker can be worked on in are not aboard a freighter until somebody

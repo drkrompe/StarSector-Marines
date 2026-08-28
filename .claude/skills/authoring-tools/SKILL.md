@@ -91,11 +91,16 @@ tools/authoring.sh tileset_write_document @/tmp/document.json
 cat document.json | tools/authoring.sh tileset_write_document -
 ```
 
-**In PowerShell, prefer `@file`.** PowerShell rewrites quotes on their way to a
-native executable, and a mangled JSON argument does not always fail loudly — it
-can parse into something that means something else. Writing the object to a
-file and passing `@path` sidesteps the whole class of problem. The Bash tool
-with single quotes is also safe.
+**In PowerShell, quote the `@file` or use `-`.** A bare `@token` is
+PowerShell's *splatting operator*: `authoring.cmd tileset_list @call.json` is a
+parser error and never reaches this program at all. Write `'@call.json'` in
+quotes, or pipe the object in and pass `-`. PowerShell also rewrites quotes on
+their way to a native executable, and a mangled JSON argument does not always
+fail loudly, so inline JSON is the form to avoid there. The Bash tool with
+single quotes is safe.
+
+If a call ever answers "your shell split one JSON object into N arguments", that
+is this hazard: the object reached the program in pieces. Quote it or use `-`.
 
 `tileset_write_document` replaces a whole document. Always
 `tileset_read_document` first, edit that object, and write it back; a partial
