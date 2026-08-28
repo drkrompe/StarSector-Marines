@@ -53,9 +53,10 @@ defines their handoff.
 The perspective front picture publishes phase, track extents, friendly body and
 lead, believed-hostile frontier and pressure, preferred/effective track,
 reserve, assignment reason, and exact commander target or labelled zone marker.
-It includes frozen own-squad position, zone, contact, and execution suspension.
-Exact capture-zone presence and ownership transitions remain neutral referee
-facts.
+It includes frozen own-squad position, leader zone, local contact, execution
+suspension, active-path count, and the count of own members in the squad's
+assigned target zone. Exact whole-zone occupancy, capture progress, and
+ownership transitions remain neutral referee facts.
 
 Conquest evidence measures assignment churn, response latency, reserve time,
 track concentration, target closure, target-zone arrival, capture-zone

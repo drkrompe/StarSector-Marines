@@ -9,9 +9,9 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 /**
  * Emits the {@link RenderLayer#DOODADS} layer — props (rocks, plants, debris,
  * parked road vehicles) painted above ground/decals/aircraft and below units. Each doodad uses
- * the full fixed-grid source rectangle and world rectangle declared by its
- * cell footprint; the drain batches them per sheet. Off-camera footprints are
- * skipped against {@link VisibleCellRect}.
+ * the canonical fixed-grid source rectangle and the placement's rotated world
+ * footprint; the drain batches them per sheet. Off-camera footprints are skipped
+ * against {@link VisibleCellRect}.
  *
  * <p>Emitted in two passes — road-sheet doodads first, then urban — so each sheet
  * forms one contiguous run for the strict-painter drain (one batch flush per
@@ -71,17 +71,20 @@ public final class DoodadRenderSystem implements RenderSystem {
         // at the grid behaves exactly as before. The quad then stretches that
         // rectangle over the prop's footprint in cells, so what an authored
         // footprint really says is how much deck the art is stretched across.
+        // Rotation keeps that source span canonical and turns the destination
+        // around the center of the already-rotated tactical footprint.
         TileManifest.TileFrame f = d.tile;
         int cell = d.sourceCellPx;
         int srcX = f.col * cell;
         int srcY = f.row * cell;
-        int sourceWidth = cell * d.footprintCellsX;
-        int sourceHeight = cell * d.footprintCellsY;
+        int sourceWidth = cell * d.sourceCellsX;
+        int sourceHeight = cell * d.sourceCellsY;
         float cx = cam.cellToScreenX(d.cellX + d.footprintCellsX * 0.5f);
         float cy = cam.cellToScreenY(d.cellY + d.footprintCellsY * 0.5f);
         out.addSheetQuad(RenderLayer.DOODADS, sheet,
                 srcX, srcY, sourceWidth, sourceHeight,
-                cx, cy, cellPx * d.footprintCellsX, cellPx * d.footprintCellsY,
+                cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY,
+                d.quarterTurns * 90f,
                 1f, 1f, 1f, alphaMult);
     }
 }

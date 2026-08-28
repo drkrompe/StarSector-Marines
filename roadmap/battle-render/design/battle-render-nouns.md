@@ -75,8 +75,9 @@ frame. The band projects from the mathematical edge into the feature's retained
 structure-owner cell rather than swelling equally into both sides. Its visible
 thickness may deliberately exceed the navigation boundary so the feature
 remains legible at distance; presentation geometry does not redefine collision.
-Wall-cell windows remain a separate aperture treatment for structures whose
-facade owns the cell.
+Ordinary building facades and Conquest bunker panes use this shared-edge path.
+Wall-cell windows remain a separate aperture treatment for heavy compound
+perimeters whose aperture genuinely occupies a thick structural cell.
 
 ## Standing laws
 

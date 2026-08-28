@@ -70,10 +70,21 @@ class CivicHeadquartersFloorPlanTest {
             assertEquals(2,
                     doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_RECEPTION),
                     "paired counters should flank the public circulation lane");
-            assertTrue(windowsFacingPurpose(topology, leaf, RoomPurpose.CIVIC_RECEPTION)
-                            + windowsFacingPurpose(topology, leaf, RoomPurpose.CONFERENCE_ROOM) >= 2,
+            assertTrue(doodads.stream().anyMatch(doodad -> doodad.quarterTurns != 0),
+                    "civic fixtures should turn to fit their rooms " + frontage);
+            for (Doodad doodad : doodads) {
+                boolean swapsAxes = (doodad.quarterTurns & 1) != 0;
+                assertEquals(swapsAxes ? doodad.sourceCellsY : doodad.sourceCellsX,
+                        doodad.footprintCellsX, "rotated footprint width " + frontage);
+                assertEquals(swapsAxes ? doodad.sourceCellsX : doodad.sourceCellsY,
+                        doodad.footprintCellsY, "rotated footprint height " + frontage);
+            }
+            assertTrue(windowsFacingPurpose(grid, topology, leaf, RoomPurpose.CIVIC_RECEPTION)
+                            + windowsFacingPurpose(grid, topology, leaf,
+                            RoomPurpose.CONFERENCE_ROOM) >= 2,
                     "public rooms retain exterior firing apertures " + frontage);
-            assertEquals(0, windowsFacingPurpose(topology, leaf, RoomPurpose.CIVIC_OFFICE),
+            assertEquals(0, windowsFacingPurpose(
+                            grid, topology, leaf, RoomPurpose.CIVIC_OFFICE),
                     "compact offices reserve their facade capacity for the fixture group " + frontage);
 
             for (int y = leaf.top + 1; y < leaf.bottom; y++) {
@@ -240,20 +251,15 @@ class CivicHeadquartersFloorPlanTest {
         return count;
     }
 
-    private static int windowsFacingPurpose(CellTopology topology, BlockLeaf leaf,
+    private static int windowsFacingPurpose(NavigationGrid grid, CellTopology topology,
+                                            BlockLeaf leaf,
                                             RoomPurpose purpose) {
         int count = 0;
-        for (int x = leaf.left; x <= leaf.right; x++) {
-            if (topology.isWindow(x, leaf.top)
-                    && topology.getRoomPurpose(x, leaf.top + 1) == purpose) count++;
-            if (topology.isWindow(x, leaf.bottom)
-                    && topology.getRoomPurpose(x, leaf.bottom - 1) == purpose) count++;
-        }
-        for (int y = leaf.top + 1; y < leaf.bottom; y++) {
-            if (topology.isWindow(leaf.left, y)
-                    && topology.getRoomPurpose(leaf.left + 1, y) == purpose) count++;
-            if (topology.isWindow(leaf.right, y)
-                    && topology.getRoomPurpose(leaf.right - 1, y) == purpose) count++;
+        for (var window : BuildingWindowTestSupport.windowsOwnedBy(grid, leaf)) {
+            var outward = BuildingWindowTestSupport.outwardFromOwner(window);
+            int insideX = window.structureCellX() - outward.dx;
+            int insideY = window.structureCellY() - outward.dy;
+            if (topology.getRoomPurpose(insideX, insideY) == purpose) count++;
         }
         return count;
     }

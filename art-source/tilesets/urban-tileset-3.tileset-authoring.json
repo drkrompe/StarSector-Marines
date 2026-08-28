@@ -1,10 +1,118 @@
 {
-  "sheet": "art-source/tilesets/urban-tileset-3.raw.png",
-  "sheetName": "urban-tileset-3",
-  "idPrefix": "doodad.urban3",
-  "cellPx": 60,
   "alphaMin": 40,
-  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the layout below. 2166x726 as a 7x1 strip, so its cells are 309x726. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Like nature-tiles it loads as a sliced frame-indexed sheet rather than col/row doodads, so re-exporting it would change its registry shape.",
+  "blocks": [],
+  "cellPx": 60,
+  "entries": [
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban3.piece-000-a",
+      "included": true,
+      "rect": [
+        0,
+        0,
+        309,
+        726
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban3.piece-000-b",
+      "included": true,
+      "rect": [
+        309,
+        0,
+        310,
+        726
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban3.piece-000-c",
+      "included": true,
+      "rect": [
+        619,
+        0,
+        309,
+        726
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban3.piece-000-d",
+      "included": true,
+      "rect": [
+        928,
+        0,
+        310,
+        726
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban3.piece-000-e",
+      "included": true,
+      "rect": [
+        1238,
+        0,
+        309,
+        726
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban3.piece-000-f",
+      "included": true,
+      "rect": [
+        1547,
+        0,
+        310,
+        726
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban3.piece-000-g",
+      "included": true,
+      "rect": [
+        1857,
+        0,
+        309,
+        726
+      ]
+    }
+  ],
   "gridCols": 7,
-  "gridRows": 1
+  "gridRows": 1,
+  "idPrefix": "doodad.urban3",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 7x1 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Do not re-slice this sheet with apply=true: slicing finds the plate as one fused piece again and reports every cut cell as no longer found, so a re-slice discards the cut and anything authored onto it. Cut once, then annotate. 2166x726 as a 7x1 strip, so its cells are 309x726. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Like nature-tiles it loads as a sliced frame-indexed sheet rather than col/row doodads, so re-exporting it would change its registry shape.",
+  "sheet": "art-source/tilesets/urban-tileset-3.raw.png",
+  "sheetName": "urban-tileset-3"
 }

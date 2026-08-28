@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.decision.DefenseFrontage;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -58,6 +60,24 @@ final class FrontageScene {
      * assault crosses the last fifteen cells in under two hundred ticks
      * measures nothing except that the walk did not finish.
      */
+    /**
+     * Compound footprints worth testing against, because a real map does not
+     * generate the tidy one. BSP leaves differ in size, a compound may have two
+     * or three members rather than four, and dropping a member leaves a
+     * concave notch that the filler absorbs into the footprint — none of which
+     * the square case exercises.
+     */
+    enum Shape {
+        /** Four equal leaves around a parade cross. The symmetric baseline. */
+        SQUARE,
+        /** Three leaves; the missing quadrant leaves a concave notch in the footprint. */
+        ELL,
+        /** Two leaves side by side — a compound much wider than it is deep. */
+        RIBBON,
+        /** Four leaves of markedly different sizes, as unequal BSP splits produce. */
+        LOPSIDED
+    }
+
     private static final BlockLeaf COMMAND = new BlockLeaf(40, 40, 53, 53, false);
     private static final BlockLeaf BARRACKS = new BlockLeaf(58, 40, 71, 53, false);
     private static final BlockLeaf ARMORY = new BlockLeaf(40, 58, 53, 71, false);
@@ -114,7 +134,13 @@ final class FrontageScene {
      * @param assaults  marine squads, spread along the approach edge
      */
     record Scene(BattleSimulation sim, TacticalNode primary, List<Squad> garrisons,
-                 List<Squad> assaults, List<TacticalNode> nodes, Approach approach) {
+                 List<Squad> assaults, List<TacticalNode> nodes, List<Approach> approaches,
+                 Map<Integer, Approach> approachBySquad) {
+
+        /** The first assaulted edge — the label a single-axis scene is named for. */
+        Approach approach() {
+            return approaches.get(0);
+        }
 
         /**
          * The garrison whose frontage is the compound perimeter, falling back to
@@ -146,7 +172,33 @@ final class FrontageScene {
                   int postsFacingThreat, int membersOnPost, float believedPressure,
                   boolean enemyInside, boolean frontageRelevant, String perimeterLayer,
                   float marineX, float marineY, int liveMarines,
-                  List<SquadSample> garrisons, Crowding crowding) {
+                  List<SquadSample> garrisons, List<AxisCoverage> axes, Crowding crowding) {
+
+        /** Aperture posts manned across every garrison at this instant. */
+        int mannedApertures() {
+            return garrisons.stream().mapToInt(SquadSample::aperturePosts).sum();
+        }
+
+        /** Posts covering the least-covered edge that still has live attackers, or -1 when none do. */
+        int coverageOfWeakestLiveAxis() {
+            return weakestAxis(false);
+        }
+
+        /** The same, restricted to edges the defender actually believes are threatened. */
+        int coverageOfWeakestBelievedAxis() {
+            return weakestAxis(true);
+        }
+
+        private int weakestAxis(boolean believedOnly) {
+            int worst = -1;
+            for (AxisCoverage axis : axes) {
+                if (axis.liveMarines() == 0) continue;
+                if (believedOnly && !axis.believed()) continue;
+                worst = worst < 0 ? axis.postsCovering()
+                        : Math.min(worst, axis.postsCovering());
+            }
+            return worst;
+        }
 
         int posts() { return aperturePosts + reservePosts; }
     }
@@ -158,6 +210,30 @@ final class FrontageScene {
      * standing to. Two squads may share a layer; overlapping posts within one
      * are still a defect.
      */
+    /**
+     * One assaulted edge at a sampled instant: how much of the assault that
+     * came in there is still alive, and how many aperture posts cover that side
+     * of the compound.
+     *
+     * <p>Measured per edge rather than against the whole marine centroid,
+     * because two assaults on opposite sides average out to the middle of the
+     * compound and a single centroid would call a defense facing neither of
+     * them well aimed.
+     */
+    record AxisCoverage(String approach, String edge, int liveMarines, int postsCovering,
+                        float believedPressure) {
+
+        /**
+         * Whether the defender has reason to man this side. Coverage of an
+         * approach nobody has observed is not something belief-driven stand-to
+         * promises, and should not be: a garrison that picketed an unobserved
+         * side would be reading the map rather than its own reports.
+         */
+        boolean believed() {
+            return believedPressure >= FrontageDefense.STAND_TO_THRESHOLD;
+        }
+    }
+
     record SquadSample(int squadId, String layer, String goal, int aperturePosts,
                        int reservePosts, int membersOnPost, boolean frontageRelevant,
                        int aliveMembers) {}
@@ -216,31 +292,68 @@ final class FrontageScene {
      *                       scene measures an assault on a frontage rather than one
      *                       column walking into one gate
      */
+    /** Assault squads on each of {@code approaches}, converging on one compound. */
+    static Scene build(long seed, int garrisonSquads, int garrisonSize,
+                       int squadsPerApproach, int assaultSize, List<Approach> approaches) {
+        return buildScene(seed, garrisonSquads, garrisonSize, squadsPerApproach,
+                assaultSize, approaches);
+    }
+
     static Scene build(long seed, int garrisonSquads, int garrisonSize,
                        int assaultSquads, int assaultSize, Approach approach) {
-        GenContext ctx = stampCompound(seed);
-        BattleSimulation sim = new BattleSimulation(ctx.grid, ctx.topology, seed);
+        return buildScene(seed, garrisonSquads, garrisonSize, assaultSquads,
+                assaultSize, List.of(approach));
+    }
+
+    private static Scene buildScene(long seed, int garrisonSquads, int garrisonSize,
+                                    int squadsPerApproach, int assaultSize,
+                                    List<Approach> approaches) {
+        return buildScene(seed, garrisonSquads, garrisonSize, squadsPerApproach,
+                assaultSize, approaches, Shape.SQUARE);
+    }
+
+    /** Build on a named compound footprint rather than the symmetric default. */
+    static Scene build(long seed, int garrisonSquads, int garrisonSize, int squadsPerApproach,
+                       int assaultSize, List<Approach> approaches, Shape shape) {
+        return buildScene(seed, garrisonSquads, garrisonSize, squadsPerApproach,
+                assaultSize, approaches, shape);
+    }
+
+    private static Scene buildScene(long seed, int garrisonSquads, int garrisonSize,
+                                    int squadsPerApproach, int assaultSize,
+                                    List<Approach> approaches, Shape shape) {
+        GenContext ctx = stampCompound(seed, shape);
+        BattleSimulation sim = serialSimulation(ctx, seed);
         List<TacticalNode> nodes = List.copyOf(ctx.tactical);
         sim.setTacticalMap(new TacticalMap(nodes));
         for (Doodad doodad : ctx.doodads) sim.addDoodad(doodad);
 
         List<TacticalNode> garrisoned = nodesByPriority(nodes);
-        if (garrisonSquads < 1 || garrisonSquads > garrisoned.size()) {
-            throw new IllegalArgumentException("compound has " + garrisoned.size()
-                    + " tactical nodes; cannot raise " + garrisonSquads + " garrisons");
+        if (garrisonSquads < 1) {
+            throw new IllegalArgumentException("a scene needs at least one garrison");
         }
+        // A smaller footprint emits fewer nodes; garrison what there is rather
+        // than refusing to build the shape or doubling squads onto one node.
+        garrisonSquads = Math.min(garrisonSquads, garrisoned.size());
         List<Squad> garrisons = new ArrayList<>(garrisonSquads);
         for (int i = 0; i < garrisonSquads; i++) {
             garrisons.add(spawnGarrison(sim, garrisoned.get(i), garrisonSize, i));
         }
 
+        if (approaches.isEmpty()) throw new IllegalArgumentException("no approach given");
         TacticalNode primary = garrisoned.get(0);
-        List<Squad> assaults = new ArrayList<>(assaultSquads);
-        for (int i = 0; i < assaultSquads; i++) {
-            assaults.add(spawnAssault(sim, primary, assaultSize, approach, i, assaultSquads));
+        List<Squad> assaults = new ArrayList<>(squadsPerApproach * approaches.size());
+        Map<Integer, Approach> approachBySquad = new LinkedHashMap<>();
+        for (Approach approach : approaches) {
+            for (int i = 0; i < squadsPerApproach; i++) {
+                Squad squad = spawnAssault(sim, primary, assaultSize, approach, i,
+                        squadsPerApproach);
+                assaults.add(squad);
+                approachBySquad.put(squad.id, approach);
+            }
         }
         return new Scene(sim, primary, List.copyOf(garrisons), List.copyOf(assaults),
-                nodes, approach);
+                nodes, List.copyOf(approaches), Map.copyOf(approachBySquad));
     }
 
     /** Run the scene, sampling the garrison every {@code samplePeriod} ticks. */
@@ -287,7 +400,7 @@ final class FrontageScene {
         return new Sample(tick, goal, aperture, reserve, facingThreat, onPost,
                 pressure, enemyInside(scene), frontageRelevant, layerName(perimeter, sim),
                 marines[0], marines[1], (int) marines[2],
-                List.copyOf(rows), crowding(scene, sim));
+                List.copyOf(rows), axisCoverage(scene, sim), crowding(scene, sim));
     }
 
     private static SquadSample squadSample(Scene scene, Squad squad, BattleSimulation sim) {
@@ -304,6 +417,81 @@ final class FrontageScene {
                 aperture, reserve, hold == null ? 0 : membersOnPost(sim, squad, hold),
                 FrontageDefense.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
                 squad.aliveMembers);
+    }
+
+    /**
+     * Per-edge coverage across every garrison currently standing to. Counts
+     * posts from all garrisons, not just the perimeter holders, because an
+     * inner building shell facing a breached side is covering that side too.
+     */
+    private static List<AxisCoverage> axisCoverage(Scene scene, BattleSimulation sim) {
+        List<DefenseFrontage.Aperture> frontage =
+                DefenseFrontage.forCompound(scene.primary(), sim);
+        List<AxisCoverage> out = new ArrayList<>(scene.approaches().size());
+        for (Approach approach : scene.approaches()) {
+            int live = 0;
+            for (Squad squad : scene.assaults()) {
+                if (scene.approachBySquad().get(squad.id) != approach) continue;
+                live += liveMembers(sim, squad);
+            }
+            int covering = 0;
+            for (Squad garrison : scene.garrisons()) {
+                ApertureHold hold = activeHold(garrison);
+                if (hold == null) continue;
+                for (ApertureHold.Post post : hold.posts()) {
+                    if (post.isReserve()) continue;
+                    if (coversEdge(post, approach)) covering++;
+                }
+            }
+            float pressure = 0f;
+            for (DefenseFrontage.Aperture aperture : frontage) {
+                if (!facesEdge(aperture.facing(), approach)) continue;
+                pressure = Math.max(pressure,
+                        DefenseFrontage.threatAt(aperture, Faction.DEFENDER, sim));
+            }
+            out.add(new AxisCoverage(approach.name(), approach.renderedEdge(), live,
+                    covering, pressure));
+        }
+        return List.copyOf(out);
+    }
+
+    /** Whether an aperture's outward facing is {@code approach}'s edge. */
+    private static boolean facesEdge(DefenseFrontage.Facing facing, Approach approach) {
+        return switch (approach) {
+            case SOUTH -> facing == DefenseFrontage.Facing.SOUTH;
+            case NORTH -> facing == DefenseFrontage.Facing.NORTH;
+            case EAST -> facing == DefenseFrontage.Facing.EAST;
+            case WEST -> facing == DefenseFrontage.Facing.WEST;
+        };
+    }
+
+    /**
+     * Whether a post faces {@code approach}. Read from the post's own outward
+     * direction — stance to watched cell — rather than from where it sits
+     * relative to the compound centre. Position is not enough: a post on the
+     * south wall standing east of centre is east of centre, and a
+     * position-based test counts it as covering an eastern assault it has its
+     * shoulder to. Aperture axes are orthogonal, so a post faces exactly one
+     * edge.
+     */
+    private static boolean coversEdge(ApertureHold.Post post, Approach approach) {
+        int dx = post.watchX() - post.standX();
+        int dy = post.watchY() - post.standY();
+        return switch (approach) {
+            case SOUTH -> dy > 0;
+            case NORTH -> dy < 0;
+            case EAST -> dx > 0;
+            case WEST -> dx < 0;
+        };
+    }
+
+    private static int liveMembers(BattleSimulation sim, Squad squad) {
+        int count = 0;
+        for (int i = 0; i < sim.getRoster().liveCount(); i++) {
+            long unit = sim.getRoster().get(i);
+            if (sim.squad().hasSquad(unit) && sim.squad().squadId(unit) == squad.id) count++;
+        }
+        return count;
     }
 
     /** The envelope a squad is holding at this instant, or {@code none} when it is not standing to. */
@@ -474,8 +662,36 @@ final class FrontageScene {
         return false;
     }
 
+    /**
+     * Build the simulation with per-unit dispatch pinned serial.
+     *
+     * <p>{@code UnitUpdateSystem} goes parallel at
+     * {@code DEFAULT_MINIMUM_PARALLEL_UNITS} (48) live units, and a scene with
+     * several squads a side is comfortably past that. Parallel dispatch makes a
+     * run irreproducible, which quietly costs this harness the property it
+     * exists for: the same seed has to produce the same battle or a difference
+     * between two runs means nothing. The commander-evidence task pins the same
+     * property for the same reason; doing it here as well keeps a scene
+     * reproducible whichever task runs it.
+     *
+     * <p>The threshold is read once, when the system is constructed, so the
+     * previous value is restored immediately afterwards rather than left set
+     * for the rest of the JVM.
+     */
+    private static BattleSimulation serialSimulation(GenContext ctx, long seed) {
+        String property = UnitUpdateSystem.MINIMUM_PARALLEL_UNITS_PROPERTY;
+        String previous = System.getProperty(property);
+        System.setProperty(property, Integer.toString(Integer.MAX_VALUE));
+        try {
+            return new BattleSimulation(ctx.grid, ctx.topology, seed);
+        } finally {
+            if (previous == null) System.clearProperty(property);
+            else System.setProperty(property, previous);
+        }
+    }
+
     /** Open ground with one production-stamped military compound in the middle. */
-    private static GenContext stampCompound(long seed) {
+    private static GenContext stampCompound(long seed, Shape shape) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology topology = new CellTopology(WIDTH, HEIGHT);
         boolean[][] road = new boolean[WIDTH][HEIGHT];
@@ -488,32 +704,84 @@ final class FrontageScene {
             }
         }
         // Reserve the inter-leaf road centrelines only where they run BETWEEN
-        // the member leaves. A reservation that continues past the compound is
-        // not a detail: paintWallRing deliberately skips reserved cells, so a
-        // full-length centreline punches a permanent hole in the perimeter on
-        // every side, the parade ground joins the street as one zone, and the
-        // compound's frontage becomes its building shells instead of its wall.
-        for (int i = COMPOUND_LEFT + 1; i <= COMPOUND_RIGHT - 1; i++) {
-            reservation[PARADE_X][i] = true;
-            reservation[i][PARADE_Y] = true;
-        }
+        // the member leaves, which means clipping them to this shape's own
+        // footprint rather than a constant. A reservation that continues past
+        // the compound is not a detail: paintWallRing deliberately skips
+        // reserved cells, so an over-long centreline punches a permanent hole
+        // in the perimeter, the parade ground joins the street as one zone, and
+        // the compound's frontage becomes its building shells instead of its
+        // wall. A shape shallower than the square baseline would hit exactly
+        // that with a fixed span.
+        int[] bounds = footprint(compound(shape));
+        for (int y = bounds[1] + 1; y <= bounds[3] - 1; y++) reservation[PARADE_X][y] = true;
+        for (int x = bounds[0] + 1; x <= bounds[2] - 1; x++) reservation[x][PARADE_Y] = true;
 
         GenContext ctx = new GenContext(grid, topology, new Random(seed), WIDTH, HEIGHT, seed);
         ctx.put(BspKeys.ROAD_CELLS, road);
         ctx.put(BspKeys.ROAD_RESERVATION, reservation);
-        new MilitaryBaseFiller().fill(compound(), ctx);
+        new MilitaryBaseFiller().fill(compound(shape), ctx);
         return ctx;
     }
 
-    private static Compound compound() {
-        List<BlockLeaf> members = new ArrayList<>(
-                List.of(COMMAND, BARRACKS, ARMORY, VEHICLE_BAY));
+    /** Union bbox of a compound's member leaves as {@code [left, top, right, bottom]}. */
+    private static int[] footprint(Compound compound) {
+        int left = Integer.MAX_VALUE;
+        int top = Integer.MAX_VALUE;
+        int right = Integer.MIN_VALUE;
+        int bottom = Integer.MIN_VALUE;
+        for (BlockLeaf leaf : compound.members) {
+            left = Math.min(left, leaf.left);
+            top = Math.min(top, leaf.top);
+            right = Math.max(right, leaf.right);
+            bottom = Math.max(bottom, leaf.bottom);
+        }
+        return new int[]{left, top, right, bottom};
+    }
+
+    private static Compound compound(Shape shape) {
+        List<BlockLeaf> members = new ArrayList<>();
         Map<BlockLeaf, Compound.Role> roles = new IdentityHashMap<>();
-        roles.put(COMMAND, Compound.Role.COMMAND);
-        roles.put(BARRACKS, Compound.Role.BARRACKS);
-        roles.put(ARMORY, Compound.Role.ARMORY);
-        roles.put(VEHICLE_BAY, Compound.Role.VEHICLE_BAY);
-        return new Compound(BlockKind.MILITARY_BASE, COMMAND, members, roles, null);
+        BlockLeaf command;
+        switch (shape) {
+            case SQUARE -> {
+                command = COMMAND;
+                members.addAll(List.of(COMMAND, BARRACKS, ARMORY, VEHICLE_BAY));
+                roles.put(COMMAND, Compound.Role.COMMAND);
+                roles.put(BARRACKS, Compound.Role.BARRACKS);
+                roles.put(ARMORY, Compound.Role.ARMORY);
+                roles.put(VEHICLE_BAY, Compound.Role.VEHICLE_BAY);
+            }
+            case ELL -> {
+                command = COMMAND;
+                members.addAll(List.of(COMMAND, BARRACKS, ARMORY));
+                roles.put(COMMAND, Compound.Role.COMMAND);
+                roles.put(BARRACKS, Compound.Role.BARRACKS);
+                roles.put(ARMORY, Compound.Role.ARMORY);
+            }
+            case RIBBON -> {
+                command = COMMAND;
+                members.addAll(List.of(COMMAND, BARRACKS));
+                roles.put(COMMAND, Compound.Role.COMMAND);
+                roles.put(BARRACKS, Compound.Role.BARRACKS);
+            }
+            case LOPSIDED -> {
+                // Sizes vary widely; the gaps between them stay on the
+                // parade lines so the wall ring is only opened where a road
+                // actually runs.
+                BlockLeaf big = new BlockLeaf(38, 38, 55, 55, false);
+                BlockLeaf narrow = new BlockLeaf(58, 40, 71, 49, false);
+                BlockLeaf squat = new BlockLeaf(40, 58, 49, 71, false);
+                BlockLeaf small = new BlockLeaf(58, 58, 65, 65, false);
+                command = big;
+                members.addAll(List.of(big, narrow, squat, small));
+                roles.put(big, Compound.Role.COMMAND);
+                roles.put(narrow, Compound.Role.BARRACKS);
+                roles.put(squat, Compound.Role.ARMORY);
+                roles.put(small, Compound.Role.VEHICLE_BAY);
+            }
+            default -> throw new IllegalArgumentException("unhandled shape " + shape);
+        }
+        return new Compound(BlockKind.MILITARY_BASE, command, members, roles, null);
     }
 
     /** Emitted nodes, highest priority first and anchor-ordered for ties — the same primary rule the garrison behaviors use. */

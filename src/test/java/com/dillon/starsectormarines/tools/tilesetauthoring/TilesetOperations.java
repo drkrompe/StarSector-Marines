@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
+
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -7,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 import javax.imageio.ImageIO;
 
@@ -85,6 +89,71 @@ public final class TilesetOperations {
     }
 
     /**
+     * What a caller is told when it asks for a {@code 1 x 1} split.
+     *
+     * <p>Shared so the window and the headless caller refuse the same thing for
+     * the same stated reason. {@code 1 x 1} is the default that means "this sheet
+     * is not a plate", not a layout anyone chose, so a split at it is a caller
+     * that has not stated the layout yet rather than one asking for one part.
+     */
+    public static final String DEGENERATE_GRID_MESSAGE =
+            "The grid is 1 x 1, so splitting would change nothing. Set it to the "
+                    + "layout the sheet was generated to — a 20-frame strip is 20 x 1 "
+                    + "— and the cells need not be square.";
+
+    /**
+     * Cut the selected entries into the stated grid, leaving the rest in place.
+     *
+     * <p>A tileable plate arrives fused into one piece because its cells are drawn
+     * edge to edge, so cutting it is an authoring decision rather than something
+     * {@link SheetSlicer#slice} could have found. Each part is one cell of the
+     * plate by construction, which is why the footprints come out {@code 1x1}
+     * instead of being guessed from pixels, and the parts land in row-major
+     * reading order so a 3x3 plate fills a block's slots without further
+     * correction.
+     *
+     * <p>Annotations other than the cover level are deliberately not carried onto
+     * the parts: a plate's id, note and footprint describe the plate, and every
+     * cell inheriting one description would read as many answers where there is
+     * one.
+     */
+    public static List<TilesetExport.Entry> splitOnGrid(List<TilesetExport.Entry> entries,
+                                                        Predicate<TilesetExport.Entry> selected,
+                                                        int cols, int rows) {
+        List<TilesetExport.Entry> replaced = new ArrayList<>();
+        for (TilesetExport.Entry entry : entries) {
+            if (!selected.test(entry)) {
+                replaced.add(entry);
+                continue;
+            }
+            int part = 0;
+            for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cols, rows)) {
+                TilesetExport.Entry split = new TilesetExport.Entry(
+                        piece, entry.id + "-" + partSuffix(part++));
+                split.cover = entry.cover;
+                split.footprintX = 1;
+                split.footprintY = 1;
+                replaced.add(split);
+            }
+        }
+        return replaced;
+    }
+
+    /**
+     * A part's name suffix: {@code a}…{@code z}, then {@code aa}, {@code ab}, and
+     * on. Real plates run well past 26 cells — a 25x26 floor sheet is 650 — and
+     * stepping one character further off {@code 'a'} walks out of the alphabet
+     * into punctuation.
+     */
+    static String partSuffix(int index) {
+        StringBuilder suffix = new StringBuilder();
+        for (int n = index; ; n = n / 26 - 1) {
+            suffix.insert(0, (char) ('a' + n % 26));
+            if (n < 26) return suffix.toString();
+        }
+    }
+
+    /**
      * Pack the document's pieces, write the atlas and its tileset, and generate
      * the catalog card beside them.
      *
@@ -118,6 +187,70 @@ public final class TilesetOperations {
         }
         return new ExportResult(atlasPath, tilesetPath, cardPath, sheetPath,
                 packing.columns(), packing.rows(), doodads, packing.blockOrigins().size());
+    }
+
+    /**
+     * Put pieces into the named slots of a block, declaring or redeclaring it.
+     *
+     * <p>The spec is replaced outright; the membership is merged, so a sheet can
+     * be grouped a few slots at a time rather than all at once. A slot holds one
+     * piece, so assigning over an occupied slot displaces whatever was there —
+     * returned rather than dropped quietly, because that is the case the caller
+     * has to look at.
+     *
+     * <p>Assignment forces the piece to ship, which is the one piece of
+     * doodad-side state a grouping settles: an excluded block cell would leave a
+     * hole the layout has no fill for. A footprint and a cover level are left
+     * alone because a block cell is one cell by definition and neither is read
+     * for it.
+     *
+     * @return the members this assignment pushed out of the block
+     */
+    public static List<TilesetExport.Entry> setBlock(List<TilesetExport.Entry> entries,
+                                                     List<TilesetExport.BlockSpec> blocks,
+                                                     String blockId, GridLayout layout,
+                                                     Integer fillRgb,
+                                                     Map<String, TilesetExport.Entry> bySlot) {
+        List<TilesetExport.Entry> displaced = new ArrayList<>();
+        for (TilesetExport.Entry entry : entries) {
+            if (!blockId.equals(entry.blockId) || bySlot.containsValue(entry)) continue;
+            if (bySlot.containsKey(entry.slot)) {
+                entry.blockId = "";
+                entry.slot = "";
+                displaced.add(entry);
+            }
+        }
+        for (Map.Entry<String, TilesetExport.Entry> assignment : bySlot.entrySet()) {
+            TilesetExport.Entry entry = assignment.getValue();
+            entry.blockId = blockId;
+            entry.slot = assignment.getKey();
+            entry.included = true;
+        }
+        blocks.removeIf(spec -> spec.id.equals(blockId));
+        blocks.add(new TilesetExport.BlockSpec(blockId, layout, fillRgb));
+        return displaced;
+    }
+
+    /**
+     * Dissolve a block, handing its cells back as doodads.
+     *
+     * <p>A released member keeps its id, footprint and annotation: it was always
+     * a piece of the sheet, and only its membership is being withdrawn.
+     *
+     * @return the members released, in document order
+     */
+    public static List<TilesetExport.Entry> removeBlock(List<TilesetExport.Entry> entries,
+                                                        List<TilesetExport.BlockSpec> blocks,
+                                                        String blockId) {
+        List<TilesetExport.Entry> released = new ArrayList<>();
+        for (TilesetExport.Entry entry : entries) {
+            if (!blockId.equals(entry.blockId)) continue;
+            entry.blockId = "";
+            entry.slot = "";
+            released.add(entry);
+        }
+        blocks.removeIf(spec -> spec.id.equals(blockId));
+        return released;
     }
 
     /**

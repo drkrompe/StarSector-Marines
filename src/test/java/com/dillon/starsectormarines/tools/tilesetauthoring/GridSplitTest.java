@@ -2,9 +2,12 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -89,6 +92,46 @@ class GridSplitTest {
                 () -> SheetSlicer.splitOnGrid(plate(100, 100), 0, 4));
         assertThrows(IllegalArgumentException.class,
                 () -> SheetSlicer.splitOnGrid(plate(100, 100), 4, -1));
+    }
+
+    @Test
+    void onlyTheSelectedPlateIsCutAndItsPartsStandWhereItStood() {
+        // The window cuts a table selection and the MCP tool cuts one named
+        // piece; both go through here, so a sheet with a plate among its props
+        // has to come back with the props untouched and in place.
+        TilesetExport.Entry prop = new TilesetExport.Entry(plate(10, 10), "doodad.crate");
+        prop.footprintX = 2;
+        TilesetExport.Entry fused = new TilesetExport.Entry(plate(100, 100), "doodad.deck");
+        fused.cover = "full";
+        TilesetExport.Entry tail = new TilesetExport.Entry(plate(4, 4), "doodad.pipe");
+
+        List<TilesetExport.Entry> replaced = TilesetOperations.splitOnGrid(
+                List.of(prop, fused, tail), entry -> entry == fused, 2, 2);
+
+        assertEquals(6, replaced.size());
+        assertSame(prop, replaced.get(0), "an untouched piece keeps its identity, not a copy");
+        assertSame(tail, replaced.get(5), "the parts stand where the plate stood");
+        assertEquals("doodad.deck-a", replaced.get(1).id);
+        assertEquals("full", replaced.get(1).cover, "a plate's cover carries onto its cells");
+        assertEquals(1, replaced.get(1).footprintX, "a cell of a plate is one cell");
+    }
+
+    @Test
+    void aPlateWiderThanTheAlphabetKeepsNamingItsParts() {
+        // Floors_Tiles is 25x26 — 650 cells. Stepping one character off 'a'
+        // walks straight out of the alphabet into punctuation.
+        assertEquals("a", TilesetOperations.partSuffix(0));
+        assertEquals("z", TilesetOperations.partSuffix(25));
+        assertEquals("aa", TilesetOperations.partSuffix(26));
+        assertEquals("ab", TilesetOperations.partSuffix(27));
+        assertEquals("ba", TilesetOperations.partSuffix(52));
+
+        Set<String> distinct = new HashSet<>();
+        for (int part = 0; part < 650; part++) {
+            String suffix = TilesetOperations.partSuffix(part);
+            assertTrue(suffix.matches("[a-z]+"), "part " + part + " named " + suffix);
+            assertTrue(distinct.add(suffix), "two cells cannot share a name: " + suffix);
+        }
     }
 
     @Test

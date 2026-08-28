@@ -136,7 +136,14 @@ Do not run builds or leave generated task files there.
   and a fused plate is cut into exactly that grid — but footprints are edited
   there rather than inferred, because
   how much deck a piece covers is a judgement about the object, not a measurement
-  of the art. A piece becomes a doodad or a cell of a named autotile block; walls
+  of the art. Pieces are picked on the sheet itself — click, ctrl-click to add,
+  shift-click to run, drag a box — and the table follows, because a cut cell's id
+  cannot be recognised in a list of a hundred. Each cell carries its `col,row` on
+  the picture, which is what lets a person and a model name the same cell.
+  **Copy selection for LLM** writes a labelled contact sheet of the picked cells
+  under `build/tileset-authoring/` and puts a table of their current annotation,
+  keyed by the same coordinates, on the clipboard with that image's path.
+  A piece becomes a doodad or a cell of a named autotile block; walls
   and corners are authored by grouping pieces into a block's slots, which the
   packer places as one contiguous patch. Export writes a packed atlas holding only
   the included pieces, its `*.tileset.json`, and a generated `*.tileset.md`
@@ -154,16 +161,28 @@ Do not run builds or leave generated task files there.
   All three pages validate before replacement; the Turrets page prepares every
   linked target before replacing files atomically and rolls back earlier files
   if a later replacement fails.
-- `gradlew.bat installAuthoringMcpServer` → writes
-  `build/mcp/starsector-authoring-mcp.cmd` and prints the `.mcp.json` snippet
-  that registers it. The server serves the authoring tools — list/measure/read/
-  write/slice/export a tileset, render its map-preview comparison, and run the
-  snapshot catalog — over MCP stdio, headlessly and without the workbench
-  window. It is a separate entry point onto the same domain code, not an
-  embedded server: an editor holding unsaved changes and a tool writing the same
-  document would be two writers. The launcher is generated rather than checked
-  in because it embeds an absolute classpath, so re-run the task after a
-  dependency change or a `clean`. See `authoring-mcp-server.md`.
+- `tools/authoring.sh <tool> [json]` (or `tools/authoring.cmd`) → call one
+  authoring tool and exit. This is the **default** way to reach the authoring
+  tools headlessly — list/measure/read/write/slice/split/export a tileset, declare
+  or dissolve one of its autotile blocks, render its map-preview comparison, run the snapshot catalog — with no workbench window
+  and nothing to start first. `--list` names the tools, `--describe <tool>`
+  prints its schema, `--json` returns the structured result. Arguments are one
+  JSON object, inline or as `@file` or `-` for stdin; prefer `@file` from
+  PowerShell, which rewrites quotes on their way to a native executable. Exit
+  status is 1 when the tool reports a failure and 2 on a usage mistake. See the
+  `authoring-tools` skill.
+- `gradlew.bat installAuthoringTools` → writes the generated launchers under
+  `build/authoring/` and prints the `.mcp.json` snippet that registers the same
+  tools as an MCP stdio server. The wrappers above run this for you when the
+  output is missing; run it yourself after a dependency change or a `clean`,
+  since the launchers embed an absolute classpath and are therefore generated
+  rather than checked in. Prefer the shell wrapper over MCP registration unless
+  a session already has the server: an MCP stdio server must be registered
+  before the session that wants it starts, which is exactly the constraint a
+  one-shot command removes. Both entry points are separate front doors onto the
+  same domain code, never an embedded server — an editor holding unsaved changes
+  and a tool writing the same document would be two writers. See
+  `authoring-entry-points.md`.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.
@@ -239,6 +258,12 @@ mod jar. Keep reusable catalog and runner code in `:layer-authoring`, keep
 mod-specific providers in the root test source set, register providers through
 `META-INF/services`, and keep renderers deterministic and independent of a
 Starsector process or OpenGL context.
+
+`gradlew.bat verifyModJarBoundary` enforces that, and `check` depends on it.
+It computes the forbidden set — everything on the tool runtime classpath that is
+not also on the shipped one, which is the workbench, the MCP host, JUnit and the
+game's own jars — and fails if any of it is in `StarsectorMarines.jar`. Nothing
+to keep in step: a new tool dependency is covered the moment it is added.
 
 The `layerAuthoring` workbench's **Snapshots** tab invokes the same catalog in
 process. It renders off the Swing event thread, confirms before replacing PNGs,

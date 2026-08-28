@@ -324,6 +324,25 @@ class CommandTraceAnalyzerTest {
     }
 
     @Test
+    void schemaSevenCountsAnyMemberEnteringTheAssignedTargetZone()
+            throws Exception {
+        String trace = String.join("\n",
+                header().replace("\"schemaVersion\":5",
+                        "\"schemaVersion\":7"),
+                physicalPerspectiveV7(75, 10f, 10f, 1, 0),
+                physicalPerspectiveV7(150, 12f, 12f, 1, 2),
+                "{\"stream\":\"referee\",\"tick\":225,"
+                        + "\"event\":\"timeout\",\"maxTicks\":225}", "");
+
+        var physical = CommandTraceAnalyzer.analyze(trace).factions()
+                .get(Faction.MARINE).physicalProgress();
+
+        assertEquals(1, physical.secureCompoundEpisodesObservedInTargetZone(),
+                "arrival is an any-member fact, not a leader-zone proxy");
+        assertEquals(List.of(75), physical.targetZoneEntryLatenciesTicks());
+    }
+
+    @Test
     void suspensionAndObservationGapCensorMovementAndEntryLatency()
             throws Exception {
         String forming = physicalPerspective(75, 10f, 10f, 1, false,
@@ -641,6 +660,17 @@ class CommandTraceAnalyzerTest {
                 + ",\"keepZoneId\":9,\"keepState\":\"DEFENDER_HELD\""
                 + ",\"tracks\":[],\"squads\":" + states
                 + ",\"actions\":[" + actions + "]}}";
+    }
+
+    private static String physicalPerspectiveV7(
+            int tick, float centroidX, float centroidY, int currentZone,
+            int membersInTargetZone) {
+        return physicalPerspective(tick, centroidX, centroidY, currentZone,
+                false, "COMPOUND_CAPTURE_PRESERVED")
+                .replace("\"localContact\":false}",
+                        "\"localContact\":false,\"activePathMembers\":0,"
+                                + "\"membersInTargetZone\":"
+                                + membersInTargetZone + "}");
     }
 
     private static String secureDirective() {
