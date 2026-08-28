@@ -21,10 +21,18 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
  * @param outline the hull's own form, or null for a ship whose shape could not
  *     be read — her deck then takes a synthetic taper, which is a plausible
  *     ship rather than a particular one
+ * @param art how this hull is drawn — the sprite path her {@code .ship} file
+ *     names — or null for a ship whose art cannot be resolved. A path and
+ *     nothing else, so carrying it here adds no dependency on how anything is
+ *     rendered. It rides with {@link #outline} because they are the same fact
+ *     read twice: the shape a deck is laid out inside and the picture of the
+ *     vessel that shape came from. Split apart, a screen that wants both has to
+ *     find the second one itself — and the one that did forgot, so the ship
+ *     view drew a deck plan floating in empty space.
  */
 public record CompanyShip(HullClass hullClass, HullRole role,
                           int minCrew, int maxCrew, int cargo, float aspect,
-                          HullSilhouette outline) {
+                          HullSilhouette outline, String art) {
 
     public CompanyShip {
         // A hull has one set of proportions. Carrying both an outline and a
@@ -41,16 +49,23 @@ public record CompanyShip(HullClass hullClass, HullRole role,
         if (!(aspect > 0f)) throw new IllegalArgumentException("a hull has a positive beam");
     }
 
+    /** A hull whose form and art are both known, which is a ship out of the fleet. */
+    public CompanyShip(HullClass hullClass, HullRole role,
+                       int minCrew, int maxCrew, int cargo,
+                       HullSilhouette outline, String art) {
+        this(hullClass, role, minCrew, maxCrew, cargo, 1f, outline, art);
+    }
+
     /** A hull whose form is known: her proportions come from her own outline. */
     public CompanyShip(HullClass hullClass, HullRole role,
                        int minCrew, int maxCrew, int cargo, HullSilhouette outline) {
-        this(hullClass, role, minCrew, maxCrew, cargo, 1f, outline);
+        this(hullClass, role, minCrew, maxCrew, cargo, 1f, outline, null);
     }
 
     /** A hull known only by her proportions, with no outline to lay a deck in. */
     public CompanyShip(HullClass hullClass, HullRole role,
                        int minCrew, int maxCrew, int cargo, float aspect) {
-        this(hullClass, role, minCrew, maxCrew, cargo, aspect, null);
+        this(hullClass, role, minCrew, maxCrew, cargo, aspect, null, null);
     }
 
     /** What this hull owes in rooms, and how much deck to lay them out on. */
