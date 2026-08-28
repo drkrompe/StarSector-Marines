@@ -96,12 +96,6 @@ test {
         // gradle console so devs don't have to dig through the XML report.
         showStandardStreams = true
     }
-    // The headless battle/armory renderers decode every authored sprite into a
-    // BufferedImage cache, and the catalog art is authored at ~1254 square, so
-    // the working set grows by several megabytes per added item. Gradle's
-    // default 512m worker heap already ran out; give the workers room so adding
-    // a piece of equipment doesn't surface as an unrelated OutOfMemoryError.
-    maxHeapSize = '2g'
     // EngineSlotPreviewTest loads vanilla .ship files + sprites from the
     // game install; forward the project-level `starsectorDir` gradle property
     // so the test can find them. Same source of truth the build.gradle root
