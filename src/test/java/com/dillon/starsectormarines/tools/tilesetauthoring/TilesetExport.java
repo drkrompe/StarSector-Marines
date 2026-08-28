@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 
 import org.json.JSONArray;
@@ -156,6 +157,26 @@ public final class TilesetExport {
          */
         public int spriteBorderX;
         public int spriteBorderY;
+        /**
+         * The tileable material file this frame's picture comes from, or empty
+         * where it is a crop of the plate.
+         *
+         * <p>Some fields are not drawn: they are a surface taken from a material
+         * library and repeated. Such a frame's picture is not on the sheet its
+         * document annotates, and a document that cannot say so cannot reproduce
+         * the atlas — exporting puts back whatever the plate has underneath,
+         * which is a valid image of the right size and wrong art. See
+         * {@code nature-tiles-material-provenance.md}.
+         *
+         * <p>Project-relative, like a document's own {@code sheet}.
+         *
+         * <p>A material-backed frame takes its <em>size</em> from the material
+         * and not from the strip's scale, because a material is a surface rather
+         * than a picture drawn at a size: resampling a seamless texture to fit a
+         * frame either loses its seams or has to wrap-pad to keep them. The frame
+         * is the material plus {@link #MATERIAL_GUARD_PX} of wrap on every side.
+         */
+        public String material = "";
         /** Assigned by {@link #pack}. */
         public int col;
         public int row;
@@ -173,6 +194,42 @@ public final class TilesetExport {
         public boolean isBlockMember() {
             return !blockId.isEmpty();
         }
+
+        /** Whether this frame's picture comes from a material rather than from the plate. */
+        public boolean hasMaterial() {
+            return !material.isEmpty();
+        }
+    }
+
+    /**
+     * How much wrapped material surrounds a material-backed frame's surface.
+     *
+     * <p>Taken from the renderer rather than restated, because it is the same
+     * number for the same reason: a ground tile is drawn inset by this much so
+     * neighbouring cells do not sample across a frame boundary, so a material
+     * placed with exactly this much of itself wrapped around it is cropped back
+     * to exactly the material when it is drawn. Any other width would either
+     * clamp the sampler onto a seam or hide part of the surface.
+     */
+    public static final int MATERIAL_GUARD_PX = FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
+
+    /**
+     * The pictures for the frames that do not take one from the plate.
+     *
+     * <p>A plate is handed to {@link #stripAtlas} as an image, and a material is
+     * another image the same export needs; resolving one is reading a file, which
+     * belongs to the caller rather than to the packer. {@link #NONE} resolves
+     * nothing, so a caller that forgets its materials is refused loudly instead
+     * of quietly sizing a frame off the plate underneath.
+     */
+    @FunctionalInterface
+    public interface Materials {
+
+        /** The material at a document-declared path, or null when it is not resolved. */
+        BufferedImage image(String source);
+
+        /** No materials at all: every declared one is unresolvable. */
+        Materials NONE = source -> null;
     }
 
     /**
@@ -358,14 +415,35 @@ public final class TilesetExport {
      * moving a piece renames every piece after it.
      */
     public static StripPacking packStrip(List<Entry> entries, StripSpec spec) {
+        return packStrip(entries, spec, Materials.NONE);
+    }
+
+    /**
+     * As {@link #packStrip(List, StripSpec)}, sizing material-backed frames from
+     * the materials {@code materials} resolves.
+     *
+     * <p>A frame whose material cannot be resolved is refused rather than sized
+     * off the plate: the plate still holds the art the material replaced, so
+     * falling back would export a valid strip of the wrong pictures.
+     */
+    public static StripPacking packStrip(List<Entry> entries, StripSpec spec,
+                                         Materials materials) {
         List<Entry> frames = new ArrayList<>();
         int cursor = spec.marginPx();
         int tallest = 0;
         for (Entry entry : entries) {
             if (!entry.included) continue;
             if (!frames.isEmpty()) cursor += spec.gutterPx();
-            entry.frameWidth = Math.max(1, (int) Math.round(entry.piece.width() / spec.scale()));
-            entry.frameHeight = Math.max(1, (int) Math.round(entry.piece.height() / spec.scale()));
+            if (entry.hasMaterial()) {
+                BufferedImage material = requireMaterial(entry, materials);
+                entry.frameWidth = material.getWidth() + 2 * MATERIAL_GUARD_PX;
+                entry.frameHeight = material.getHeight() + 2 * MATERIAL_GUARD_PX;
+            } else {
+                entry.frameWidth =
+                        Math.max(1, (int) Math.round(entry.piece.width() / spec.scale()));
+                entry.frameHeight =
+                        Math.max(1, (int) Math.round(entry.piece.height() / spec.scale()));
+            }
             entry.frameX = cursor;
             entry.frameY = spec.marginPx();
             cursor += entry.frameWidth;
@@ -376,16 +454,68 @@ public final class TilesetExport {
                 Math.max(1, tallest + 2 * spec.marginPx()), frames);
     }
 
+    /**
+     * The material a frame declares, refusing the declarations that cannot mean
+     * what they say.
+     *
+     * <p>A material is a repeating surface, so it belongs to a ground frame and
+     * to no other kind: an overlay is drawn whole and uninset, and the wrap that
+     * makes the guard invisible under a ground tile would simply be two pixels of
+     * the far side of the texture drawn round a prop. A sprite border is the
+     * complementary contradiction — it is the treatment for art drawn as a slab,
+     * and a material has no border to remove, so honouring both would mean
+     * silently ignoring one.
+     */
+    private static BufferedImage requireMaterial(Entry entry, Materials materials) {
+        if (!"ground".equals(entry.layer)) {
+            throw new IllegalArgumentException(entry.id + " is a '" + entry.layer + "' frame and "
+                    + "cannot take its picture from a material: a material is a repeating "
+                    + "surface, and only a ground frame is drawn inset enough to crop its "
+                    + "wrapped guard away");
+        }
+        if (entry.spriteBorderX > 0 || entry.spriteBorderY > 0) {
+            throw new IllegalArgumentException(entry.id + " declares both a material and a "
+                    + "sprite border of " + entry.spriteBorderX + "x" + entry.spriteBorderY
+                    + "; a border is the repair for art drawn as a slab and a material has "
+                    + "none, so one of the two would be silently ignored");
+        }
+        BufferedImage material = materials.image(entry.material);
+        if (material == null) {
+            throw new IllegalArgumentException(entry.id + " takes its picture from the material "
+                    + entry.material + ", which has not been resolved, so this strip cannot be "
+                    + "sized. Exporting from the plate alone would put back the art the "
+                    + "material replaced.");
+        }
+        return material;
+    }
+
     /** Draw every included piece into its packed frame. */
     public static BufferedImage stripAtlas(BufferedImage source, List<Entry> entries,
                                            StripSpec spec) {
-        StripPacking packing = packStrip(entries, spec);
+        return stripAtlas(source, entries, spec, Materials.NONE);
+    }
+
+    /**
+     * As {@link #stripAtlas(BufferedImage, List, StripSpec)}, drawing a
+     * material-backed frame from its material rather than from the plate.
+     *
+     * <p>A material is placed as it is: no reduction, no sharpen and no border
+     * treatment. Those are all repairs for art drawn several times larger than it
+     * ships and drawn as a sprite; a material already is the surface at the size
+     * it ships at, and resampling it would only cost it its seams.
+     */
+    public static BufferedImage stripAtlas(BufferedImage source, List<Entry> entries,
+                                           StripSpec spec, Materials materials) {
+        StripPacking packing = packStrip(entries, spec, materials);
         BufferedImage atlas = new BufferedImage(
                 packing.width(), packing.height(), BufferedImage.TYPE_INT_ARGB);
         for (Entry entry : packing.frames()) {
-            BufferedImage frame = mirrorSpriteBorder(
-                    sharpen(resample(source, entry.piece, entry.frameWidth, entry.frameHeight)),
-                    entry.spriteBorderX, entry.spriteBorderY);
+            BufferedImage frame = entry.hasMaterial()
+                    ? wrapped(requireMaterial(entry, materials))
+                    : mirrorSpriteBorder(
+                            sharpen(resample(source, entry.piece,
+                                    entry.frameWidth, entry.frameHeight)),
+                            entry.spriteBorderX, entry.spriteBorderY);
             for (int y = 0; y < entry.frameHeight; y++) {
                 for (int x = 0; x < entry.frameWidth; x++) {
                     int argb = frame.getRGB(x, y);
@@ -394,6 +524,29 @@ public final class TilesetExport {
             }
         }
         return atlas;
+    }
+
+    /**
+     * A material with {@link #MATERIAL_GUARD_PX} of itself wrapped round it.
+     *
+     * <p>Periodic rather than clamped or mirrored: the guard exists so that a
+     * sampler reaching just outside the drawn cell finds the surface continuing,
+     * which for a tileable texture is the opposite edge of the texture itself.
+     * A clamp would smear the rim and a mirror would double it, and either shows
+     * as a line at every join once the tile repeats.
+     */
+    private static BufferedImage wrapped(BufferedImage material) {
+        int width = material.getWidth();
+        int height = material.getHeight();
+        BufferedImage out = new BufferedImage(width + 2 * MATERIAL_GUARD_PX,
+                height + 2 * MATERIAL_GUARD_PX, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < out.getHeight(); y++) {
+            int sy = Math.floorMod(y - MATERIAL_GUARD_PX, height);
+            for (int x = 0; x < out.getWidth(); x++) {
+                out.setRGB(x, y, material.getRGB(Math.floorMod(x - MATERIAL_GUARD_PX, width), sy));
+            }
+        }
+        return out;
     }
 
     /**
@@ -567,18 +720,22 @@ public final class TilesetExport {
     /** The tileset document describing {@code sheetPath}'s sliced frames. */
     public static JSONObject slicedTileset(String sheetPath, List<Entry> entries, StripSpec spec)
             throws JSONException {
-        StripPacking packing = packStrip(entries, spec);
         JSONObject slice = new JSONObject();
         slice.put("mode", spec.mode());
         slice.put("alphaThreshold", spec.alphaThreshold());
         slice.put("minGap", spec.minGap());
 
+        // Frame indices, not frame boxes: what a tile pins is its position in
+        // the row, so this needs the order the pieces ship in and nothing the
+        // packer works out. Asking the packer would drag a material lookup into
+        // writing a tileset that never mentions one.
         JSONArray tiles = new JSONArray();
-        for (int frame = 0; frame < packing.frames().size(); frame++) {
-            Entry entry = packing.frames().get(frame);
+        int frame = 0;
+        for (Entry entry : entries) {
+            if (!entry.included) continue;
             JSONObject o = new JSONObject();
             o.put("id", entry.id);
-            o.put("frame", frame);
+            o.put("frame", frame++);
             o.put("layer", entry.layer);
             if (!"none".equals(entry.cover)) o.put("cover", entry.cover);
             if (!entry.passable) o.put("passable", false);

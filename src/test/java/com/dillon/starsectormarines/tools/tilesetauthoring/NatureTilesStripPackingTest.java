@@ -30,20 +30,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * What {@code nature-tiles}' authoring document packs out of its keyed raw
  * sheet, asked of the real document rather than of a synthetic one.
  *
- * <p>The sheet is not exported yet — five of its twenty frames take their
- * picture from a tileable material rather than from this plate, and until that
- * is settled the shipped atlas has a producer this document is not. See
- * {@code nature-tiles-material-provenance.md}. What can be settled now is that
- * the document describes the sheet correctly, so that when the export does
- * happen the only open question is those five frames.
+ * <p>Five of its twenty frames take their picture from a tileable material
+ * rather than from this plate and say so; the other fifteen are crops of the
+ * plate at the strip's authored scale. That declaration is what gives the sheet
+ * one producer — see {@code nature-tiles-material-provenance.md} — and the
+ * cheapest way to hold it is the assertion below that the shipped material
+ * frames are the wrapped material files, pixel for pixel.
  *
- * <p>Two things are worth checking here and nowhere else. The first is the
+ * <p>Three things are worth checking here and nowhere else. The first is the
  * binding: on a strip the frame index is the address, and the twenty ids are
  * live in {@code urban.mapping.json}, so a packing the loader splits or fuses
  * differently renames content the map already selects by. The second is the
  * sprite border, which is the difference between a ground field and a lattice
  * ruled over every cell of every outdoor map — and which nothing downstream can
- * see, because a lattice is a valid image of the right size.
+ * see, because a lattice is a valid image of the right size. The third is the
+ * provenance: a material-backed frame that quietly fell back to the plate crop
+ * underneath it would be a valid frame of a plausible size drawing the art the
+ * material was chosen to replace.
  *
  * <p>Both write the picture they were judged on to
  * {@code build/tileset-authoring/}. The number is the assertion; the picture is
@@ -139,7 +142,7 @@ class NatureTilesStripPackingTest {
         BufferedImage atlas = atlas(document);
         writeFrameComparison(atlas, document);
         TilesetExport.StripPacking packing =
-                TilesetExport.packStrip(document.entries, document.strip);
+                TilesetExport.packStrip(document.entries, document.strip, materials(document));
         SpriteSheetFrames found = SpriteSheetSlicer.slice(atlas);
         assertEquals(FRAMES.size(), packing.frames().size());
         assertEquals(packing.frames().size(), found.frames.length,
@@ -152,6 +155,57 @@ class NatureTilesStripPackingTest {
                             <= entry.frameX + entry.frameWidth,
                     FRAMES.get(i) + " slices outside the frame it was packed into");
         }
+    }
+
+    /**
+     * The shipped atlas's material-backed frames are the material files.
+     *
+     * <p>This is the material half of "one producer", and it is stated against
+     * the file that ships rather than against an export held in memory. Five of
+     * these frames used to be pasted in by {@code texture-atlases.json} after the
+     * export had written the atlas, at pixel rectangles into a sheet the packer
+     * is free to lay out differently; now the document declares where their
+     * picture comes from and the export places it. Byte identity is what says
+     * those two arrangements produced the same pixels, and it is what would go
+     * red if a material-backed frame ever silently fell back to the ImageGen
+     * field still sitting underneath it on the plate — which is a frame of a
+     * plausible size holding art nothing downstream can tell apart.
+     */
+    @Test
+    void everyMaterialBackedFrameShipsAsExactlyItsWrappedMaterial() throws Exception {
+        TilesetDocument document = TilesetDocument.read(DOCUMENT);
+        TilesetExport.Materials materials = materials(document);
+        BufferedImage shipped = ImageIO.read(SHIPPED.toFile());
+        assertNotNull(shipped, "cannot read " + SHIPPED);
+        SpriteSheetFrames frames = SpriteSheetSlicer.slice(shipped);
+        assertEquals(FRAMES.size(), frames.frames.length);
+
+        int declared = 0;
+        for (int i = 0; i < document.entries.size(); i++) {
+            TilesetExport.Entry entry = document.entries.get(i);
+            if (!entry.hasMaterial()) continue;
+            declared++;
+            BufferedImage material = materials.image(entry.material);
+            assertNotNull(material, entry.id + " names a material that cannot be read");
+            SpriteSheetFrames.Frame frame = frames.frames[i];
+            assertEquals(material.getWidth() + 2 * INSET, frame.w, entry.id
+                    + " is not its material plus the renderer's ground inset on each side");
+            assertEquals(material.getHeight() + 2 * INSET, frame.h, entry.id
+                    + " is not its material plus the renderer's ground inset on each side");
+            for (int y = 0; y < frame.h; y++) {
+                for (int x = 0; x < frame.w; x++) {
+                    int expected = material.getRGB(
+                            Math.floorMod(x - INSET, material.getWidth()),
+                            Math.floorMod(y - INSET, material.getHeight()));
+                    assertEquals(expected, shipped.getRGB(frame.x + x, frame.y + y),
+                            entry.id + " differs from " + entry.material + " at "
+                                    + x + "," + y + ": the shipped frame is not the material, "
+                                    + "so this sheet has a producer the document is not");
+                }
+            }
+        }
+        assertEquals(5, declared, "the five fields that ship as materials no longer declare one, "
+                + "so this check is not measuring anything");
     }
 
     /**
@@ -269,7 +323,14 @@ class NatureTilesStripPackingTest {
     }
 
     private static BufferedImage atlas(TilesetDocument document) throws IOException {
-        return TilesetExport.stripAtlas(rawSheet(), document.entries, document.strip);
+        return TilesetExport.stripAtlas(rawSheet(), document.entries, document.strip,
+                materials(document));
+    }
+
+    /** The material files the document's five field frames take their picture from. */
+    private static TilesetExport.Materials materials(TilesetDocument document)
+            throws IOException {
+        return TilesetOperations.readMaterials(Paths.get(""), document);
     }
 
     private static BufferedImage rawSheet() throws IOException {
@@ -294,7 +355,7 @@ class NatureTilesStripPackingTest {
         SpriteSheetFrames were = SpriteSheetSlicer.slice(shipped);
         assertEquals(FRAMES.size(), were.frames.length, "the shipped atlas no longer holds the "
                 + "frames this comparison is against");
-        TilesetExport.packStrip(document.entries, document.strip);
+        TilesetExport.packStrip(document.entries, document.strip, materials(document));
 
         List<BufferedImage> top = new ArrayList<>();
         List<BufferedImage> bottom = new ArrayList<>();
