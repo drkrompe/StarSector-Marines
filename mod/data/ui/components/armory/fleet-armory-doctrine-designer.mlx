@@ -111,7 +111,7 @@
   .billet-card-top { flex-direction: row; height: 74px; gap: 6px; overflow: hidden; }
   .billet-title { width: 0px; flex-grow: 1; height: 23px; padding: 4px 2px; }
   .designer-marine-preview { width: 98px; height: 70px; background-color: #0d1622; border-width: 1px; }
-  .billet-flavor { height: 34px; }
+  .billet-flavor { height: 34px; white-space: normal; }
   .designer-stat-group { flex-direction: column; height: 58px; gap: 2px; }
   .designer-stat-row { flex-direction: row; height: 13px; gap: 4px; }
   .designer-stat-label { width: 47px; }

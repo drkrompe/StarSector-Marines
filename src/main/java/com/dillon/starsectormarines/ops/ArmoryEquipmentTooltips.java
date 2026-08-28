@@ -35,7 +35,8 @@ final class ArmoryEquipmentTooltips {
             List<EquipmentTooltip> equipment = List.of(
                     tooltip(markup, card.primaryId(), card.primaryDescriptionId()),
                     tooltip(markup, card.armorId(), card.armorDescriptionId()),
-                    tooltip(markup, card.specialId(), card.specialDescriptionId()));
+                    tooltip(markup, card.specialId(), card.specialDescriptionId()),
+                    tooltip(markup, card.systemId(), card.systemDescriptionId()));
             bindings.add(new CardTooltips(equipment));
         }
         return new ArmoryEquipmentTooltips(List.copyOf(bindings));
