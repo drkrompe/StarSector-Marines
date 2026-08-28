@@ -69,6 +69,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         final boolean localContact;
         final String executionSuspension;
         final int activePathMembers;
+        final int[] memberZoneIds;
         final CommandDirective originalDirective;
         ObjectiveAssignment assignedObjective;
 
@@ -84,6 +85,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             localContact = state.localContact();
             executionSuspension = state.executionSuspension();
             activePathMembers = state.activePathMembers();
+            memberZoneIds = state.memberZoneIds();
             originalDirective = state.directive();
             assignedObjective = state.assignment();
         }
@@ -516,7 +518,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 remainingCompounds++;
             }
             if (compound.node().kind == TacticalNode.Kind.COMMAND_POST) {
-                keepZone = compound.anchorZoneId();
+                keepZone = compound.captureZoneId();
                 keepState = compound.state();
             }
         }
@@ -524,19 +526,28 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 influence != null ? influence.updatedTick() : -1,
                 Faction.DEFENDER, trackLayout.axis(), phase,
                 remainingCompounds, keepZone, keepState,
-                states, squadStates(squads),
+                states, squadStates(squads, directives),
                 new ArrayList<>(directives.values()));
     }
 
     private static List<ConquestFrontSnapshot.SquadState> squadStates(
-            Map<Integer, PlanningSquad> squads) {
+            Map<Integer, PlanningSquad> squads,
+            Map<Integer, SquadDirective> directives) {
         List<ConquestFrontSnapshot.SquadState> states = new ArrayList<>(squads.size());
         for (PlanningSquad squad : squads.values()) {
+            SquadDirective directive = directives.get(squad.id);
+            int targetZone = directive != null ? directive.targetZoneId() : -1;
+            int membersInTargetZone = 0;
+            if (targetZone >= 0) {
+                for (int zoneId : squad.memberZoneIds) {
+                    if (zoneId == targetZone) membersInTargetZone++;
+                }
+            }
             states.add(new ConquestFrontSnapshot.SquadState(
                     squad.id, squad.aliveMembers, squad.centroidX,
                     squad.centroidY, squad.currentZoneId,
                     squad.executionSuspension, squad.localContact,
-                    squad.activePathMembers));
+                    squad.activePathMembers, membersInTargetZone));
         }
         return states;
     }

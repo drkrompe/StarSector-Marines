@@ -741,8 +741,11 @@ public final class CommandTraceAnalyzer {
                             episodesWithClosure++;
                         }
                         boolean reachedOldZone = episode.targetZone >= 0
-                                && state.getInt("currentZoneId")
-                                == episode.targetZone;
+                                && (state.getInt("currentZoneId")
+                                == episode.targetZone
+                                || (schemaVersion >= 7
+                                && targetZone == episode.targetZone
+                                && state.getInt("membersInTargetZone") > 0));
                         if (reachedOldZone && !episode.observedInTargetZone) {
                             episode.observedInTargetZone = true;
                             episodesInZone++;
@@ -793,7 +796,9 @@ public final class CommandTraceAnalyzer {
                     episodesWithClosure++;
                 }
                 boolean inTargetZone = targetZone >= 0
-                        && state.getInt("currentZoneId") == targetZone;
+                        && (schemaVersion >= 7
+                        ? state.getInt("membersInTargetZone") > 0
+                        : state.getInt("currentZoneId") == targetZone);
                 if (inTargetZone) targetZoneTicks += intervalTicks;
                 if (inTargetZone && !episode.observedInTargetZone) {
                     episode.observedInTargetZone = true;
@@ -1077,7 +1082,7 @@ public final class CommandTraceAnalyzer {
                     int schemaVersion = row.getInt("schemaVersion");
                     if (schemaVersion != 2 && schemaVersion != 3
                             && schemaVersion != 4 && schemaVersion != 5
-                            && schemaVersion != 6) {
+                            && schemaVersion != 6 && schemaVersion != 7) {
                         throw new IllegalArgumentException(
                                 "Unsupported command trace schemaVersion: "
                                         + schemaVersion);

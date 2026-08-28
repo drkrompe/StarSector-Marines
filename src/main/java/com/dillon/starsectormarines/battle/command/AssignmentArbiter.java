@@ -400,8 +400,8 @@ public final class AssignmentArbiter {
             return assignment;
         }
         for (CompoundService.Record record : sim.getCompoundService().getRecords()) {
-            int zoneId = sim.getZoneGraph().zoneIdAt(
-                    record.node.anchorX, record.node.anchorY);
+            int zoneId = sim.getCompoundService()
+                    .captureZoneId(record, sim);
             if (zoneId == assignment.targetZoneId()) {
                 return ObjectiveAssignment.secureCompound(assignment.squadId(),
                         zoneId, record.node);
