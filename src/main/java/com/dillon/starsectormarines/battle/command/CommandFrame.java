@@ -63,10 +63,14 @@ public class CommandFrame {
             int coveredFromPrimaryMembers = primaryKnown ? 0 : -1;
             int coolingDownMembers = 0;
             int[] memberZoneIds = new int[memberCount];
+            int[] memberCellXs = new int[memberCount];
+            int[] memberCellYs = new int[memberCount];
             for (int memberIndex = 0; memberIndex < memberCount; memberIndex++) {
                 long member = sim.squadMemberAt(squad.id, memberIndex);
                 int memberX = sim.world().cellX(member);
                 int memberY = sim.world().cellY(member);
+                memberCellXs[memberIndex] = memberX;
+                memberCellYs[memberIndex] = memberY;
                 memberZoneIds[memberIndex] = sim.getZoneGraph().zoneIdAt(memberX, memberY);
                 if (sim.world().pathIdx(member)
                         < Paths.cellCount(sim.world().path(member))) {
@@ -112,7 +116,7 @@ public class CommandFrame {
                     contact.posture().name(),
                     contact.doctrine().name(),
                     contact.contactInitiative().name(), coolingDownMembers,
-                    memberZoneIds));
+                    memberZoneIds, memberCellXs, memberCellYs));
         }
         rows.sort(Comparator.comparingInt(CommandSquadState::squadId));
         return new CommandFrame(sim.getSimTickIndex(), perspective, rows,

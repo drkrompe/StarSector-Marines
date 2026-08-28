@@ -153,12 +153,19 @@ fifteen squad losses.
 
 The historical `episodesWithMarkerClosure` name is weaker than it sounds: its
 32/36 result means only that the centroid reduced initial marker distance by at
-least one cell, not that it reached the marker or doorway. Add target-portal
-occupancy to the trace next so remaining travel can be classified as never at
-portal, at portal but not entered, or entered. Then address the demonstrated
-final-hop/fireteam establishment behavior with evidence rather than changing
-capture slots or timers. Exact hostile and whole-zone occupancy remain neutral
-evidence and never commander input.
+least one cell, not that it reached the marker or doorway. Trace schema 9 and
+summary schema 8 now publish exact member occupancy on doorway cells bordering
+the assigned target zone and classify every secure-travel exit. On the same
+fixture, 22/30 trips never had a command-pulse portal observation, none were
+observed at the portal without later entering, and eight entered; three of the
+eight entries had a sampled portal occupant, while five crossed between the
+75-tick command samples. The evidence therefore does not show persistent
+doorway parking. Investigate the dominant loss/contact seam next—all fifteen
+squad-loss exits had local contact, twelve last published `HOLD`, eleven still
+had engageable members/fireteams, and none were moving—plus the deterministic
+fireteam-role rebind defect before changing capture slots or timers. Exact
+hostile and whole-zone occupancy remain neutral evidence and never commander
+input.
 Then
 close the remaining assignment-writer and live-acceptance edges in
 `autonomous-mission-command-foundation.md`. Assault's paired production
