@@ -58,23 +58,20 @@ public final class ShipViewCanvas implements CanvasProducer {
     private static final float HULL_OVERHANG = 1.06f;
 
     private final CompanyDeck ship;
-    private final String hullArt;
     private BattleCamera camera;
 
-    public ShipViewCanvas(CompanyDeck ship) {
-        this(ship, null);
-    }
-
     /**
-     * @param hullArt the hull's own sprite, drawn darkened behind the deck, or
-     *     null for a ship whose art cannot be resolved. The deck is generated
-     *     from the same {@code .ship} file the art belongs to, so the two are
-     *     the same vessel rather than a plan with a picture behind it.
+     * <p>The hull's art is read off the ship rather than passed in beside her.
+     * Taking it as a second argument made drawing the vessel something a caller
+     * had to remember, and the caller that mattered did not: the screen built
+     * this canvas from the deck alone, so the game drew a plan floating in
+     * empty space while the headless evidence — which did pass it — showed the
+     * ship. A backdrop is a fact about which vessel this is, and the deck
+     * already knows which vessel this is.
      */
-    public ShipViewCanvas(CompanyDeck ship, String hullArt) {
+    public ShipViewCanvas(CompanyDeck ship) {
         if (ship == null) throw new IllegalArgumentException("a ship is required");
         this.ship = ship;
-        this.hullArt = hullArt;
     }
 
     /**
@@ -134,6 +131,7 @@ public final class ShipViewCanvas implements CanvasProducer {
      * the two agree by construction rather than by being nudged into place.
      */
     private void drawHull(CanvasContext context, int cellsAcross, int cellsDown) {
+        String hullArt = ship.ship() == null ? null : ship.ship().art();
         if (hullArt == null || hullArt.isBlank()) return;
         float cell = camera.cellPxSize();
         context.sprite(hullArt, null,
