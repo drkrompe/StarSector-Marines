@@ -11,6 +11,12 @@
     }
   ],
   "cellPx": 32,
+  "cut": {
+    "originX": 2.305555555555543,
+    "originY": 0,
+    "pitchX": 123.25,
+    "pitchY": 125.4
+  },
   "entries": [
     {
       "cover": "none",
@@ -21,9 +27,9 @@
       "id": "doodad.urban.c0r0",
       "included": true,
       "rect": [
+        2,
         0,
-        0,
-        125,
+        124,
         125
       ]
     },
@@ -36,9 +42,9 @@
       "id": "doodad.urban.c1r0",
       "included": true,
       "rect": [
-        125,
-        0,
         126,
+        0,
+        123,
         125
       ]
     },
@@ -51,9 +57,9 @@
       "id": "doodad.urban.c2r0",
       "included": true,
       "rect": [
-        251,
+        249,
         0,
-        125,
+        123,
         125
       ]
     },
@@ -67,9 +73,9 @@
       "id": "doodad.urban.c3r0",
       "included": true,
       "rect": [
-        376,
+        372,
         0,
-        126,
+        123,
         125
       ],
       "slot": "nw"
@@ -84,9 +90,9 @@
       "id": "doodad.urban.c4r0",
       "included": true,
       "rect": [
-        502,
+        495,
         0,
-        125,
+        124,
         125
       ],
       "slot": "n"
@@ -101,9 +107,9 @@
       "id": "doodad.urban.c5r0",
       "included": true,
       "rect": [
-        627,
+        619,
         0,
-        125,
+        123,
         125
       ],
       "slot": "ne"
@@ -117,9 +123,9 @@
       "id": "doodad.urban.c6r0",
       "included": true,
       "rect": [
-        752,
+        742,
         0,
-        126,
+        123,
         125
       ]
     },
@@ -132,9 +138,9 @@
       "id": "doodad.urban.c7r0",
       "included": true,
       "rect": [
-        878,
+        865,
         0,
-        125,
+        123,
         125
       ]
     },
@@ -147,9 +153,9 @@
       "id": "doodad.urban.c8r0",
       "included": true,
       "rect": [
-        1003,
+        988,
         0,
-        126,
+        124,
         125
       ]
     },
@@ -162,9 +168,9 @@
       "id": "doodad.urban.c9r0",
       "included": true,
       "rect": [
-        1129,
+        1112,
         0,
-        125,
+        123,
         125
       ]
     },
@@ -177,9 +183,9 @@
       "id": "doodad.urban.c0r1",
       "included": true,
       "rect": [
-        0,
+        2,
         125,
-        125,
+        124,
         126
       ]
     },
@@ -192,9 +198,9 @@
       "id": "doodad.urban.c1r1",
       "included": true,
       "rect": [
-        125,
-        125,
         126,
+        125,
+        123,
         126
       ]
     },
@@ -207,9 +213,9 @@
       "id": "doodad.urban.c2r1",
       "included": true,
       "rect": [
-        251,
+        249,
         125,
-        125,
+        123,
         126
       ]
     },
@@ -223,9 +229,9 @@
       "id": "doodad.urban.c3r1",
       "included": true,
       "rect": [
-        376,
+        372,
         125,
-        126,
+        123,
         126
       ],
       "slot": "w"
@@ -240,9 +246,9 @@
       "id": "doodad.urban.c4r1",
       "included": true,
       "rect": [
-        502,
+        495,
         125,
-        125,
+        124,
         126
       ],
       "slot": "center"
@@ -257,9 +263,9 @@
       "id": "doodad.urban.c5r1",
       "included": true,
       "rect": [
-        627,
+        619,
         125,
-        125,
+        123,
         126
       ],
       "slot": "e"
@@ -273,9 +279,9 @@
       "id": "doodad.urban.c6r1",
       "included": true,
       "rect": [
-        752,
+        742,
         125,
-        126,
+        123,
         126
       ]
     },
@@ -288,9 +294,9 @@
       "id": "doodad.urban.c7r1",
       "included": true,
       "rect": [
-        878,
+        865,
         125,
-        125,
+        123,
         126
       ]
     },
@@ -303,9 +309,9 @@
       "id": "doodad.urban.c8r1",
       "included": true,
       "rect": [
-        1003,
+        988,
         125,
-        126,
+        124,
         126
       ]
     },
@@ -318,9 +324,9 @@
       "id": "doodad.urban.c9r1",
       "included": true,
       "rect": [
-        1129,
+        1112,
         125,
-        125,
+        123,
         126
       ]
     },
@@ -333,9 +339,9 @@
       "id": "doodad.urban.c0r2",
       "included": true,
       "rect": [
-        0,
+        2,
         251,
-        125,
+        124,
         125
       ]
     },
@@ -348,9 +354,9 @@
       "id": "doodad.urban.c1r2",
       "included": true,
       "rect": [
-        125,
-        251,
         126,
+        251,
+        123,
         125
       ]
     },
@@ -363,9 +369,9 @@
       "id": "doodad.urban.c2r2",
       "included": true,
       "rect": [
+        249,
         251,
-        251,
-        125,
+        123,
         125
       ]
     },
@@ -379,9 +385,9 @@
       "id": "doodad.urban.c3r2",
       "included": true,
       "rect": [
-        376,
+        372,
         251,
-        126,
+        123,
         125
       ],
       "slot": "sw"
@@ -396,9 +402,9 @@
       "id": "doodad.urban.c4r2",
       "included": true,
       "rect": [
-        502,
+        495,
         251,
-        125,
+        124,
         125
       ],
       "slot": "s"
@@ -413,9 +419,9 @@
       "id": "doodad.urban.c5r2",
       "included": true,
       "rect": [
-        627,
+        619,
         251,
-        125,
+        123,
         125
       ],
       "slot": "se"
@@ -429,9 +435,9 @@
       "id": "doodad.urban.c6r2",
       "included": true,
       "rect": [
-        752,
+        742,
         251,
-        126,
+        123,
         125
       ]
     },
@@ -444,9 +450,9 @@
       "id": "doodad.urban.c7r2",
       "included": true,
       "rect": [
-        878,
+        865,
         251,
-        125,
+        123,
         125
       ]
     },
@@ -459,9 +465,9 @@
       "id": "doodad.urban.c8r2",
       "included": true,
       "rect": [
-        1003,
+        988,
         251,
-        126,
+        124,
         125
       ]
     },
@@ -474,9 +480,9 @@
       "id": "doodad.urban.c9r2",
       "included": true,
       "rect": [
-        1129,
+        1112,
         251,
-        125,
+        123,
         125
       ]
     },
@@ -489,9 +495,9 @@
       "id": "doodad.urban.c0r3",
       "included": true,
       "rect": [
-        0,
+        2,
         376,
-        125,
+        124,
         126
       ]
     },
@@ -504,9 +510,9 @@
       "id": "doodad.urban.c1r3",
       "included": true,
       "rect": [
-        125,
-        376,
         126,
+        376,
+        123,
         126
       ]
     },
@@ -519,9 +525,9 @@
       "id": "doodad.urban.c2r3",
       "included": true,
       "rect": [
-        251,
+        249,
         376,
-        125,
+        123,
         126
       ]
     },
@@ -534,9 +540,9 @@
       "id": "doodad.urban.c3r3",
       "included": true,
       "rect": [
+        372,
         376,
-        376,
-        126,
+        123,
         126
       ]
     },
@@ -549,9 +555,9 @@
       "id": "doodad.urban.c4r3",
       "included": true,
       "rect": [
-        502,
+        495,
         376,
-        125,
+        124,
         126
       ]
     },
@@ -564,9 +570,9 @@
       "id": "doodad.urban.c5r3",
       "included": true,
       "rect": [
-        627,
+        619,
         376,
-        125,
+        123,
         126
       ]
     },
@@ -579,9 +585,9 @@
       "id": "doodad.urban.c6r3",
       "included": true,
       "rect": [
-        752,
+        742,
         376,
-        126,
+        123,
         126
       ]
     },
@@ -594,9 +600,9 @@
       "id": "doodad.urban.c7r3",
       "included": true,
       "rect": [
-        878,
+        865,
         376,
-        125,
+        123,
         126
       ]
     },
@@ -609,9 +615,9 @@
       "id": "doodad.urban.c8r3",
       "included": true,
       "rect": [
-        1003,
+        988,
         376,
-        126,
+        124,
         126
       ]
     },
@@ -624,9 +630,9 @@
       "id": "doodad.urban.c9r3",
       "included": true,
       "rect": [
-        1129,
+        1112,
         376,
-        125,
+        123,
         126
       ]
     },
@@ -639,9 +645,9 @@
       "id": "doodad.urban.c0r4",
       "included": true,
       "rect": [
-        0,
+        2,
         502,
-        125,
+        124,
         125
       ]
     },
@@ -654,9 +660,9 @@
       "id": "doodad.urban.c1r4",
       "included": true,
       "rect": [
-        125,
-        502,
         126,
+        502,
+        123,
         125
       ]
     },
@@ -669,9 +675,9 @@
       "id": "doodad.urban.c2r4",
       "included": true,
       "rect": [
-        251,
+        249,
         502,
-        125,
+        123,
         125
       ]
     },
@@ -684,9 +690,9 @@
       "id": "doodad.urban.c3r4",
       "included": true,
       "rect": [
-        376,
+        372,
         502,
-        126,
+        123,
         125
       ]
     },
@@ -699,9 +705,9 @@
       "id": "doodad.urban.c4r4",
       "included": true,
       "rect": [
+        495,
         502,
-        502,
-        125,
+        124,
         125
       ]
     },
@@ -714,9 +720,9 @@
       "id": "doodad.urban.c5r4",
       "included": true,
       "rect": [
-        627,
+        619,
         502,
-        125,
+        123,
         125
       ]
     },
@@ -729,9 +735,9 @@
       "id": "doodad.urban.c6r4",
       "included": true,
       "rect": [
-        752,
+        742,
         502,
-        126,
+        123,
         125
       ]
     },
@@ -744,9 +750,9 @@
       "id": "doodad.urban.c7r4",
       "included": true,
       "rect": [
-        878,
+        865,
         502,
-        125,
+        123,
         125
       ]
     },
@@ -759,9 +765,9 @@
       "id": "doodad.urban.c8r4",
       "included": true,
       "rect": [
-        1003,
+        988,
         502,
-        126,
+        124,
         125
       ]
     },
@@ -774,9 +780,9 @@
       "id": "doodad.urban.c9r4",
       "included": true,
       "rect": [
-        1129,
+        1112,
         502,
-        125,
+        123,
         125
       ]
     },
@@ -789,9 +795,9 @@
       "id": "doodad.urban.c0r5",
       "included": true,
       "rect": [
-        0,
+        2,
         627,
-        125,
+        124,
         125
       ]
     },
@@ -804,9 +810,9 @@
       "id": "doodad.urban.c1r5",
       "included": true,
       "rect": [
-        125,
-        627,
         126,
+        627,
+        123,
         125
       ]
     },
@@ -819,9 +825,9 @@
       "id": "doodad.urban.c2r5",
       "included": true,
       "rect": [
-        251,
+        249,
         627,
-        125,
+        123,
         125
       ]
     },
@@ -834,9 +840,9 @@
       "id": "doodad.urban.c3r5",
       "included": true,
       "rect": [
-        376,
+        372,
         627,
-        126,
+        123,
         125
       ]
     },
@@ -849,9 +855,9 @@
       "id": "doodad.urban.c4r5",
       "included": true,
       "rect": [
-        502,
+        495,
         627,
-        125,
+        124,
         125
       ]
     },
@@ -864,9 +870,9 @@
       "id": "doodad.urban.c5r5",
       "included": true,
       "rect": [
+        619,
         627,
-        627,
-        125,
+        123,
         125
       ]
     },
@@ -879,9 +885,9 @@
       "id": "doodad.urban.c6r5",
       "included": true,
       "rect": [
-        752,
+        742,
         627,
-        126,
+        123,
         125
       ]
     },
@@ -894,9 +900,9 @@
       "id": "doodad.urban.c7r5",
       "included": true,
       "rect": [
-        878,
+        865,
         627,
-        125,
+        123,
         125
       ]
     },
@@ -909,9 +915,9 @@
       "id": "doodad.urban.c8r5",
       "included": true,
       "rect": [
-        1003,
+        988,
         627,
-        126,
+        124,
         125
       ]
     },
@@ -924,9 +930,9 @@
       "id": "doodad.urban.c9r5",
       "included": true,
       "rect": [
-        1129,
+        1112,
         627,
-        125,
+        123,
         125
       ]
     },
@@ -939,9 +945,9 @@
       "id": "doodad.urban.c0r6",
       "included": true,
       "rect": [
-        0,
+        2,
         752,
-        125,
+        124,
         126
       ]
     },
@@ -954,9 +960,9 @@
       "id": "doodad.urban.c1r6",
       "included": true,
       "rect": [
-        125,
-        752,
         126,
+        752,
+        123,
         126
       ]
     },
@@ -969,9 +975,9 @@
       "id": "doodad.urban.c2r6",
       "included": true,
       "rect": [
-        251,
+        249,
         752,
-        125,
+        123,
         126
       ]
     },
@@ -984,9 +990,9 @@
       "id": "doodad.urban.c3r6",
       "included": true,
       "rect": [
-        376,
+        372,
         752,
-        126,
+        123,
         126
       ]
     },
@@ -999,9 +1005,9 @@
       "id": "doodad.urban.c4r6",
       "included": true,
       "rect": [
-        502,
+        495,
         752,
-        125,
+        124,
         126
       ]
     },
@@ -1014,9 +1020,9 @@
       "id": "doodad.urban.c5r6",
       "included": true,
       "rect": [
-        627,
+        619,
         752,
-        125,
+        123,
         126
       ]
     },
@@ -1029,9 +1035,9 @@
       "id": "doodad.urban.c6r6",
       "included": true,
       "rect": [
+        742,
         752,
-        752,
-        126,
+        123,
         126
       ]
     },
@@ -1044,9 +1050,9 @@
       "id": "doodad.urban.c7r6",
       "included": true,
       "rect": [
-        878,
+        865,
         752,
-        125,
+        123,
         126
       ]
     },
@@ -1059,9 +1065,9 @@
       "id": "doodad.urban.c8r6",
       "included": true,
       "rect": [
-        1003,
+        988,
         752,
-        126,
+        124,
         126
       ]
     },
@@ -1074,9 +1080,9 @@
       "id": "doodad.urban.c9r6",
       "included": true,
       "rect": [
-        1129,
+        1112,
         752,
-        125,
+        123,
         126
       ]
     },
@@ -1089,9 +1095,9 @@
       "id": "doodad.urban.c0r7",
       "included": true,
       "rect": [
-        0,
+        2,
         878,
-        125,
+        124,
         125
       ]
     },
@@ -1104,9 +1110,9 @@
       "id": "doodad.urban.c1r7",
       "included": true,
       "rect": [
-        125,
-        878,
         126,
+        878,
+        123,
         125
       ]
     },
@@ -1119,9 +1125,9 @@
       "id": "doodad.urban.c2r7",
       "included": true,
       "rect": [
-        251,
+        249,
         878,
-        125,
+        123,
         125
       ]
     },
@@ -1134,9 +1140,9 @@
       "id": "doodad.urban.c3r7",
       "included": true,
       "rect": [
-        376,
+        372,
         878,
-        126,
+        123,
         125
       ]
     },
@@ -1149,9 +1155,9 @@
       "id": "doodad.urban.c4r7",
       "included": true,
       "rect": [
-        502,
+        495,
         878,
-        125,
+        124,
         125
       ]
     },
@@ -1164,9 +1170,9 @@
       "id": "doodad.urban.c5r7",
       "included": true,
       "rect": [
-        627,
+        619,
         878,
-        125,
+        123,
         125
       ]
     },
@@ -1179,9 +1185,9 @@
       "id": "doodad.urban.c6r7",
       "included": true,
       "rect": [
-        752,
+        742,
         878,
-        126,
+        123,
         125
       ]
     },
@@ -1194,9 +1200,9 @@
       "id": "doodad.urban.c7r7",
       "included": true,
       "rect": [
+        865,
         878,
-        878,
-        125,
+        123,
         125
       ]
     },
@@ -1209,9 +1215,9 @@
       "id": "doodad.urban.c8r7",
       "included": true,
       "rect": [
-        1003,
+        988,
         878,
-        126,
+        124,
         125
       ]
     },
@@ -1224,9 +1230,9 @@
       "id": "doodad.urban.c9r7",
       "included": true,
       "rect": [
-        1129,
+        1112,
         878,
-        125,
+        123,
         125
       ]
     },
@@ -1239,9 +1245,9 @@
       "id": "doodad.urban.c0r8",
       "included": true,
       "rect": [
-        0,
+        2,
         1003,
-        125,
+        124,
         126
       ]
     },
@@ -1254,9 +1260,9 @@
       "id": "doodad.urban.c1r8",
       "included": true,
       "rect": [
-        125,
-        1003,
         126,
+        1003,
+        123,
         126
       ]
     },
@@ -1269,9 +1275,9 @@
       "id": "doodad.urban.c2r8",
       "included": true,
       "rect": [
-        251,
+        249,
         1003,
-        125,
+        123,
         126
       ]
     },
@@ -1284,9 +1290,9 @@
       "id": "doodad.urban.c3r8",
       "included": true,
       "rect": [
-        376,
+        372,
         1003,
-        126,
+        123,
         126
       ]
     },
@@ -1299,9 +1305,9 @@
       "id": "doodad.urban.c4r8",
       "included": true,
       "rect": [
-        502,
+        495,
         1003,
-        125,
+        124,
         126
       ]
     },
@@ -1314,9 +1320,9 @@
       "id": "doodad.urban.c5r8",
       "included": true,
       "rect": [
-        627,
+        619,
         1003,
-        125,
+        123,
         126
       ]
     },
@@ -1329,9 +1335,9 @@
       "id": "doodad.urban.c6r8",
       "included": true,
       "rect": [
-        752,
+        742,
         1003,
-        126,
+        123,
         126
       ]
     },
@@ -1344,9 +1350,9 @@
       "id": "doodad.urban.c7r8",
       "included": true,
       "rect": [
-        878,
+        865,
         1003,
-        125,
+        123,
         126
       ]
     },
@@ -1359,9 +1365,9 @@
       "id": "doodad.urban.c8r8",
       "included": true,
       "rect": [
+        988,
         1003,
-        1003,
-        126,
+        124,
         126
       ]
     },
@@ -1374,9 +1380,9 @@
       "id": "doodad.urban.c9r8",
       "included": true,
       "rect": [
-        1129,
+        1112,
         1003,
-        125,
+        123,
         126
       ]
     },
@@ -1389,9 +1395,9 @@
       "id": "doodad.urban.c0r9",
       "included": true,
       "rect": [
-        0,
+        2,
         1129,
-        125,
+        124,
         125
       ]
     },
@@ -1404,9 +1410,9 @@
       "id": "doodad.urban.c1r9",
       "included": true,
       "rect": [
-        125,
-        1129,
         126,
+        1129,
+        123,
         125
       ]
     },
@@ -1419,9 +1425,9 @@
       "id": "doodad.urban.c2r9",
       "included": true,
       "rect": [
-        251,
+        249,
         1129,
-        125,
+        123,
         125
       ]
     },
@@ -1434,9 +1440,9 @@
       "id": "doodad.urban.c3r9",
       "included": true,
       "rect": [
-        376,
+        372,
         1129,
-        126,
+        123,
         125
       ]
     },
@@ -1449,9 +1455,9 @@
       "id": "doodad.urban.c4r9",
       "included": true,
       "rect": [
-        502,
+        495,
         1129,
-        125,
+        124,
         125
       ]
     },
@@ -1464,9 +1470,9 @@
       "id": "doodad.urban.c5r9",
       "included": true,
       "rect": [
-        627,
+        619,
         1129,
-        125,
+        123,
         125
       ]
     },
@@ -1479,9 +1485,9 @@
       "id": "doodad.urban.c6r9",
       "included": true,
       "rect": [
-        752,
+        742,
         1129,
-        126,
+        123,
         125
       ]
     },
@@ -1494,9 +1500,9 @@
       "id": "doodad.urban.c7r9",
       "included": true,
       "rect": [
-        878,
+        865,
         1129,
-        125,
+        123,
         125
       ]
     },
@@ -1509,9 +1515,9 @@
       "id": "doodad.urban.c8r9",
       "included": true,
       "rect": [
-        1003,
+        988,
         1129,
-        126,
+        124,
         125
       ]
     },
@@ -1524,9 +1530,9 @@
       "id": "doodad.urban.c9r9",
       "included": true,
       "rect": [
+        1112,
         1129,
-        1129,
-        125,
+        123,
         125
       ]
     }

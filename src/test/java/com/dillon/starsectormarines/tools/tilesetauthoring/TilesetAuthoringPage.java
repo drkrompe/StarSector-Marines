@@ -112,6 +112,15 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private Path sourcePath;
     private Path documentPath;
     private String sheetNote = "";
+    /**
+     * Where the stated grid was measured to sit, or null while it is still the
+     * canvas division.
+     *
+     * <p>Carries its own counts, because a placement measured for one layout says
+     * nothing about another: restating the grid in the spinners retires it rather
+     * than reinterpreting it.
+     */
+    private GridCut placement;
     /** Explicit atlas destination from the document; empty derives it from content. */
     private String outputSheet = "";
     private boolean dirty;
@@ -159,6 +168,11 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         bar.add(new AbstractAction("Split selected on grid") {
             @Override public void actionPerformed(ActionEvent e) {
                 splitSelected();
+            }
+        });
+        bar.add(new AbstractAction("Fit grid to art…") {
+            @Override public void actionPerformed(ActionEvent e) {
+                fitGrid();
             }
         });
         bar.add(new AbstractAction("Group selected as block…") {
@@ -366,6 +380,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             alphaMin.setValue(document.alphaMin);
             gridCols.setValue(document.gridCols);
             gridRows.setValue(document.gridRows);
+            GridCut stored = document.cut(source.getWidth(), source.getHeight());
+            placement = stored.isDivisionOf(source.getWidth(), source.getHeight())
+                    ? null : stored;
             blocks.clear();
             blocks.addAll(document.blocks);
             sheetNote = document.note;
@@ -412,6 +429,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         document.alphaMin = (Integer) alphaMin.getValue();
         document.gridCols = (Integer) gridCols.getValue();
         document.gridRows = (Integer) gridRows.getValue();
+        GridCut placed = placementForStatedGrid();
+        if (placed != null) document.setCut(placed);
         document.outputSheet = outputSheet;
         document.note = sheetNote;
         document.entries = model.entries;
@@ -540,10 +559,15 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             AuthoringMessages.info(root, "Split on grid", TilesetOperations.DEGENERATE_GRID_MESSAGE);
             return;
         }
+        GridCut placed = placementForStatedGrid();
         List<TilesetExport.Entry> replaced;
         try {
-            replaced = TilesetOperations.splitOnGrid(
-                    model.entries, model::isSelected, idPrefix.getText().trim(), cols, gridDown);
+            replaced = placed != null
+                    ? TilesetOperations.splitOnGrid(
+                            model.entries, model::isSelected, idPrefix.getText().trim(), placed)
+                    : TilesetOperations.splitOnGrid(
+                            model.entries, model::isSelected, idPrefix.getText().trim(),
+                            cols, gridDown);
         } catch (IllegalArgumentException refused) {
             AuthoringMessages.info(root, "Split on grid", refused.getMessage());
             return;
@@ -554,6 +578,96 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         markDirty();
         report();
         refreshPreview();
+    }
+
+    /**
+     * The measured placement, if it is still about the grid the spinners state.
+     *
+     * <p>An origin and a pitch were fitted for a particular number of cells;
+     * restating that number makes them a measurement of something else, so they
+     * are dropped rather than reused.
+     */
+    private GridCut placementForStatedGrid() {
+        if (placement == null) return null;
+        return placement.cols() == (Integer) gridCols.getValue()
+                && placement.rows() == (Integer) gridRows.getValue() ? placement : null;
+    }
+
+    /**
+     * Measure where the stated grid really sits, show the evidence, and let it be
+     * corrected before it is kept.
+     *
+     * <p>The dialog shows both the numbers and the reason to doubt them, and its
+     * fields start on the fitted values rather than replacing the current cut
+     * behind the operator. An axis the fit disowns starts on the cut that is
+     * already in force, so keeping the dialog unchanged accepts only what
+     * measured well — but the fitted numbers are in the message, so overriding
+     * that judgement is a matter of typing them in rather than of arguing with
+     * the tool.
+     */
+    private void fitGrid() {
+        if (source == null) {
+            AuthoringMessages.info(root, "Fit grid", "Open a sheet first.");
+            return;
+        }
+        int cols = (Integer) gridCols.getValue();
+        int rows = (Integer) gridRows.getValue();
+        if (cols == 1 && rows == 1) {
+            AuthoringMessages.info(root, "Fit grid", TilesetOperations.DEGENERATE_GRID_MESSAGE);
+            return;
+        }
+        GridCut stated = current(cols, rows);
+        GridFit.Measured measured = GridFit.measure(source, stated);
+        GridCut suggested = measured.appliedTo(stated);
+
+        JTextField originX = new JTextField(String.format("%.2f", suggested.originX()), 10);
+        JTextField pitchX = new JTextField(String.format("%.4f", suggested.pitchX()), 10);
+        JTextField originY = new JTextField(String.format("%.2f", suggested.originY()), 10);
+        JTextField pitchY = new JTextField(String.format("%.4f", suggested.pitchY()), 10);
+        JPanel form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        for (String line : measured.describe().split("\n")) form.add(new JLabel(line));
+        form.add(new JLabel(" "));
+        form.add(new JLabel("The cell counts are yours; only the placement is measured."));
+        form.add(labelled("columns start at", originX));
+        form.add(labelled("columns every", pitchX));
+        form.add(labelled("rows start at", originY));
+        form.add(labelled("rows every", pitchY));
+        if (JOptionPane.showConfirmDialog(root, form, "Fit grid to art",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        GridCut chosen;
+        try {
+            chosen = new GridCut(cols, rows,
+                    Double.parseDouble(originX.getText().trim()),
+                    Double.parseDouble(pitchX.getText().trim()),
+                    Double.parseDouble(originY.getText().trim()),
+                    Double.parseDouble(pitchY.getText().trim()));
+        } catch (IllegalArgumentException bad) {
+            AuthoringMessages.error(root, "Fit grid", "That is not a usable cut: "
+                    + bad.getMessage());
+            return;
+        }
+
+        placement = chosen;
+        TilesetOperations.Recut recut =
+                TilesetOperations.recut(model.entries, idPrefix.getText().trim(), chosen);
+        model.fireTableDataChanged();
+        view.setEntries(model.entries);
+        syncGrid();
+        markDirty();
+        context.reportStatus(chosen.describe() + " — " + recut.summary());
+        report();
+        refreshPreview();
+    }
+
+    /** The cut in force: what has been measured, or the canvas divided by the stated grid. */
+    private GridCut current(int cols, int rows) {
+        GridCut divided = GridCut.dividing(source.getWidth(), source.getHeight(), cols, rows);
+        GridCut placed = placementForStatedGrid();
+        return placed == null ? divided : placed;
     }
 
     /**

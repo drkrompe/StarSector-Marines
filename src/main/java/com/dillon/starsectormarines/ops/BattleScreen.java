@@ -144,6 +144,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final float ENGINE_PITCH_CRUISE = 1.0f;
     /** Cells → OpenAL world units, for positional SFX. Must match {@code FlybyOverlay.AUDIO_WORLD_UNITS_PER_CELL}. */
     private static final float AUDIO_WORLD_UNITS_PER_CELL = BattleShotAudio.WORLD_UNITS_PER_CELL;
+    /** Radius, in cells, of the burst drawn where a point-defence emplacement stopped a warhead. Presentation only; nothing is damaged. */
+    private static final float INTERCEPT_BURST_CELLS = 0.9f;
     /** OpenAL distance the distant-boom emitter sits from the camera focus. Far enough to attenuate noticeably (read as "off in the distance") but close enough to remain audible. */
     private static final float DISTANT_BOOM_EMITTER_DISTANCE = 600f;
 
@@ -912,6 +914,18 @@ public class BattleScreen implements Screen, BattleUiContext {
             }
             ImpactDecals.spawnWeaponImpact(sim, rng, fx, s.toX, s.toY, isWall);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
+        }
+        // Warheads a point-defence emplacement stopped come apart in the air.
+        // The mount's own burst already flashed on the way in; this is the
+        // payload going off where it was hit, which is what makes an intercept
+        // read as a kill rather than as a missile that quietly stopped
+        // existing. Deliberately not routed through the damage path: the
+        // detonation is presentation, and hurts nobody.
+        List<float[]> interceptPoints = sim.getShots().getInterceptPointsThisFrame();
+        for (int i = 0, n = interceptPoints.size(); i < n; i++) {
+            float[] point = interceptPoints.get(i);
+            renderer.getImpactFx().spawnHeavyImpact(point[0], point[1], INTERCEPT_BURST_CELLS);
+            renderer.getGroundLights().spawnImpact(null, point[0], point[1]);
         }
     }
 

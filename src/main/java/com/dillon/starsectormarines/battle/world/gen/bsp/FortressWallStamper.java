@@ -144,6 +144,7 @@ public final class FortressWallStamper implements GenStage {
         List<Compound> compounds = ctx.get(BspKeys.COMPOUNDS);
         Compound keepCompound = findKeepCompound(compounds);
         boolean[][] compoundExclusion = buildCompoundExclusion(compounds, w, h);
+        markWard(compoundExclusion, ctx.get(BspKeys.FORTRESS_WARD), w, h);
         boolean[][] skip = mergeExclusions(ctx.get(BspKeys.ROAD_RESERVATION), compoundExclusion, w, h);
         boolean[][] wallMask = new boolean[w][h];
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
@@ -178,6 +179,23 @@ public final class FortressWallStamper implements GenStage {
             }
         }
         return mask;
+    }
+
+    /**
+     * Exclude the packed fortress ward the same way a compound is excluded.
+     *
+     * <p>The ward was laid out before this stage precisely so the wall would
+     * have something to enclose; a wall run through the middle of it would
+     * demolish the sheds and magazines it exists to protect. Absent on a map
+     * with no fortress band, where this is a no-op.
+     */
+    private static void markWard(boolean[][] exclusion, int[] ward, int w, int h) {
+        if (ward == null) return;
+        for (int x = Math.max(0, ward[0]); x <= Math.min(w - 1, ward[2]); x++) {
+            for (int y = Math.max(0, ward[1]); y <= Math.min(h - 1, ward[3]); y++) {
+                exclusion[x][y] = true;
+            }
+        }
     }
 
     /** The one conquest fortress base is the inner keep compound the outer ward must enclose. */
@@ -655,8 +673,18 @@ public final class FortressWallStamper implements GenStage {
                     clearBunkerFloor(grid, topology, x, y);
                     Direction front = axis == TraversalAxis.SOUTH_TO_NORTH
                             ? Direction.S : Direction.W;
-                    grid.placeEdgeBarrier(x, y, front,
-                            SharedEdgeBarrier.Kind.WINDOW);
+                    // A bunker is stamped over whatever the fill left here, and
+                    // a building demolished under it can leave its own window on
+                    // this very edge. An edge carries exactly one authored
+                    // identity, so the bunker takes the one already there rather
+                    // than authoring a second: a window is a window, and it is
+                    // reciprocal, so the firing line is unaffected. Insisting on
+                    // a fresh edge threw instead, turning a coincidence of
+                    // geometry into a map that failed to generate at all.
+                    if (grid.getEdgeBarrier(x, y, front) == null) {
+                        grid.placeEdgeBarrier(x, y, front,
+                                SharedEdgeBarrier.Kind.WINDOW);
+                    }
                     standPositions.add(new StandPosition(x, y));
                 } else if (perimeterWall) {
                     paintBunkerWall(grid, topology, x, y, wallMask);

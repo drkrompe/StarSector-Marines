@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — folded in the authoring pipeline, placement-time doodad rotation, and positional ids for cut plate cells, while keeping authored art orientation out of catalog identity.
+Updated: 2026-08-28 — a cut is now an origin and a pitch per axis rather than a division of the canvas; counts stay stated and only the placement is measured.
 
 Read `stories.md` for open work.
 
@@ -58,6 +58,11 @@ override layer: changing core generation policy remains a deliberate core edit.
   the only durable home for them.
 - A **packed atlas** is the exported sheet a tileset definition addresses. It
   contains the pieces that were kept, arranged by the packer, and nothing else.
+- A **cut** is where a plate's grid sits on its sheet: the stated
+  `cols x rows` together with, per axis, the coordinate its first line falls on
+  and the distance between lines. A cut is not a division of the canvas. It is
+  recorded on the authoring document, so re-cutting a sheet reproduces the same
+  cells without measuring it again.
 
 `TileRegistry` owns the merged asset catalog and `GenMappingRegistry` owns
 the merged use mapping. The application lifecycle loads the asset catalog
@@ -168,6 +173,32 @@ Five properties of that pass are part of the model rather than of the tool:
 - **Only kept pieces are packed.** A sheet's unused art does not reach the
   atlas, so a tileset's size reflects what the game uses rather than what was
   drawn.
+- **A grid needs an origin and a pitch, not a division of the canvas.**
+  Generated art sits inside a margin and is rarely drawn to a pitch that divides
+  its own pixel size evenly, so dividing a plate proportionally puts every
+  boundary somewhere the art does not change and leaves a sliver of the
+  neighbouring cell in each exported tile. The counts stay stated by the
+  operator; only the placement may be measured. **A plate that separates its
+  cells with a dark gutter has its boundary in the middle of that gap, so its
+  grid is measured from the gutters; a plate drawn cell against cell has no gap
+  and its boundary is where the art changes, so that is what is measured
+  instead.** Which one a sheet is, is a fact about the art and is itself
+  measured — a gutter is a trough with lit art on both sides of it, so an empty
+  region of a plate is not one however dark it is. The distinction is not
+  cosmetic: a gutter has an edge on each side, so a placement fitted to the
+  strongest change lands on one of those edges, several pixels inside the
+  neighbouring cell. **Detecting the cell count is a different and
+  ill-posed problem and stays out of the model** — it was tried here, ranked
+  "two cells" above the correct ten, and was deleted. Fitting two parameters to
+  an already-stated count is over-determined and works.
+- **A measurement is evidence offered to the operator, never a decision taken
+  for them.** Sheets fail a regular-grid fit in several distinct ways — a plate
+  whose lower rows are empty offers no boundaries to fit there, and a strip of
+  props whose frames vary in width has no single pitch at all — so a fit reports
+  how many of the stated boundaries landed on a real feature of the art and how
+  far those lie from the straight line through them, and disowns itself when
+  either is poor. An axis that disowns itself keeps the cut already in force.
+  Applying it anyway is possible and is an explicit act.
 - **A cut cell is named for where it sits.** Splitting a fused plate names its
   cells `<idPrefix>.c<col>r<row>`, zero-based and column first, because the
   annotation pass is a person and a model looking at the same picture and a
@@ -186,6 +217,10 @@ Five properties of that pass are part of the model rather than of the tool:
   Dropping and re-finding pieces that carry nothing but their bounds stays free:
   that is what tuning a threshold is, and excluding a speck and then raising the
   threshold until it vanishes is the sweep working rather than work being lost.
+  For the same reason, correcting a plate's cut moves its existing cells onto
+  new rectangles rather than slicing and splitting again: a cell's id is its
+  address and its block membership is on the entry, and a round trip through the
+  slicer would take both.
 
 The pass is entered from the project rather than from a file chooser: raw
 sheets, their authoring documents and the exported tilesets are paired by name,

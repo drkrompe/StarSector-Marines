@@ -47,6 +47,7 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                 new ReadDocument(),
                 new WriteDocument(),
                 new SliceSheet(),
+                new FitGrid(),
                 new SplitOnGrid(),
                 new SetBlock(),
                 new RemoveBlock(),
@@ -430,6 +431,142 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
         }
     }
 
+    /**
+     * Measure where a stated grid actually sits, and move the sheet's cells onto
+     * it.
+     *
+     * <p>Read-only unless asked to apply, and it applies only the axes that
+     * measured well. A fit is evidence for an operator, and one that quietly
+     * replaced a stated cut with a badly supported measurement would be the tool
+     * overruling the person — which is the thing this whole surface is built not
+     * to do.
+     */
+    private static final class FitGrid implements McpTool {
+
+        @Override public String name() { return "tileset_fit_grid"; }
+
+        @Override
+        public String description() {
+            return "Measure where a sheet's stated grid really sits and re-cut its cells onto "
+                    + "it. A cut is the stated cols x rows PLUS an origin and a pitch per axis: "
+                    + "generated art sits inside a margin and is rarely drawn to a pitch that "
+                    + "divides its own pixel size evenly, so dividing the canvas puts every "
+                    + "boundary in the wrong place and slivers of the next cell into every "
+                    + "tile. The cell COUNT is never measured — it cannot be read off the "
+                    + "pixels — only the placement is. Reports, per axis, how many of the "
+                    + "boundaries landed on a real seam in the art and how far those seams sit "
+                    + "from the straight line through them. Read-only unless you pass "
+                    + "apply=true, which moves each cut cell onto its new rectangle keeping its "
+                    + "id, block slot and every annotation, and applies ONLY the axes that "
+                    + "measured well unless you also pass force=true.";
+        }
+
+        @Override
+        public JSONObject inputSchema() {
+            return McpSchema.object()
+                    .requiredString("name", "The sheet's base name")
+                    .bool("apply", "Store the measured placement and re-cut the sheet's cells. "
+                            + "Default false — look at the residuals before you keep it.")
+                    .bool("force", "Apply an axis whose fit is reported as not usable. Only when "
+                            + "you have looked at why it was refused and decided anyway.")
+                    .build();
+        }
+
+        @Override
+        public McpToolResult call(JSONObject arguments, McpToolContext context) throws Exception {
+            String name = requireSheetName(arguments);
+            TilesetDocument document = documentFor(context.projectRoot(), name);
+            BufferedImage sheet = TilesetOperations.readSheet(context.projectRoot(), document);
+            GridCut stated = document.cut(sheet.getWidth(), sheet.getHeight());
+            GridFit.Measured measured = GridFit.measure(sheet, stated);
+
+            boolean force = arguments.optBoolean("force", false);
+            GridCut fitted = force
+                    ? stated.withColumnAxis(measured.columns().origin(), measured.columns().pitch())
+                            .withRowAxis(measured.rows().origin(), measured.rows().pitch())
+                    : measured.appliedTo(stated);
+
+            StringBuilder text = new StringBuilder(name).append(": ").append(stated.describe())
+                    .append("\n").append(measured.describe()).append('\n')
+                    .append(axisComparison("columns", measured.columns(),
+                            stated.originX(), stated.pitchX(), fitted.originX(), fitted.pitchX()))
+                    .append('\n')
+                    .append(axisComparison("rows", measured.rows(),
+                            stated.originY(), stated.pitchY(), fitted.originY(), fitted.pitchY()));
+
+            boolean apply = arguments.optBoolean("apply", false);
+            TilesetOperations.Recut recut = null;
+            if (apply) {
+                recut = TilesetOperations.recut(document.entries, document.idPrefix, fitted);
+                document.setCut(fitted);
+                Path path = TilesetDocument.pathFor(context.projectRoot(), name);
+                document.write(path);
+                text.append("\n").append(recut.summary()).append("\nSaved into ").append(path);
+            }
+
+            JSONObject structured = new JSONObject();
+            structured.put("stated", describeCut(stated));
+            structured.put("fitted", describeCut(fitted));
+            structured.put("columns", describeAxis(measured.columns()));
+            structured.put("rows", describeAxis(measured.rows()));
+            structured.put("applied", apply);
+            structured.put("forced", force);
+            if (recut != null) {
+                structured.put("cellsReCut", recut.moved());
+                structured.put("cellsMoved", recut.shifted());
+                structured.put("worstShiftPx", recut.maxShift());
+                structured.put("outsideTheCut", new JSONArray(recut.outside()));
+            }
+            return McpToolResult.of(text.toString(), structured);
+        }
+
+        /**
+         * What each placement costs, measured against the same seams.
+         *
+         * <p>Both cuts scored against one observed boundary set is the only
+         * comparison that means anything: a fit scored against its own peaks
+         * always wins.
+         */
+        private static String axisComparison(String axisName, GridFit.Axis axis,
+                                             double statedOrigin, double statedPitch,
+                                             double fittedOrigin, double fittedPitch) {
+            if (axis.seams().isEmpty()) {
+                return "  " + axisName + ": no seams found, so there is nothing to compare";
+            }
+            return String.format(
+                    "  %s: worst boundary %.1f px off the measured seams as stated, %.1f px as "
+                            + "fitted", axisName,
+                    axis.worstOffsetFrom(statedOrigin, statedPitch),
+                    axis.worstOffsetFrom(fittedOrigin, fittedPitch));
+        }
+
+        private static JSONObject describeCut(GridCut cut) throws JSONException {
+            return new JSONObject()
+                    .put("cols", cut.cols()).put("rows", cut.rows())
+                    .put("originX", cut.originX()).put("pitchX", cut.pitchX())
+                    .put("originY", cut.originY()).put("pitchY", cut.pitchY());
+        }
+
+        private static JSONObject describeAxis(GridFit.Axis axis) throws JSONException {
+            JSONArray seams = new JSONArray();
+            for (GridFit.Seam seam : axis.seams()) {
+                seams.put(new JSONObject().put("index", seam.index())
+                        .put("position", seam.position()).put("strong", seam.strong()));
+            }
+            return new JSONObject()
+                    .put("count", axis.count())
+                    .put("fittedTo", axis.onto().name())
+                    .put("origin", axis.origin())
+                    .put("pitch", axis.pitch())
+                    .put("strongSeams", axis.strongSeams())
+                    .put("maxResidual", axis.maxResidual())
+                    .put("rmsResidual", axis.rmsResidual())
+                    .put("residualTolerance", axis.residualTolerance())
+                    .put("trustworthy", axis.trustworthy())
+                    .put("seams", seams);
+        }
+    }
+
     private static final class SplitOnGrid implements McpTool {
 
         @Override public String name() { return "tileset_split_on_grid"; }
@@ -514,8 +651,19 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
             }
 
             int before = document.entries.size();
-            List<TilesetExport.Entry> replaced = TilesetOperations.splitOnGrid(
-                    document.entries, entry -> entry == plate, document.idPrefix, cols, rows);
+            // A measured placement is a property of the sheet, so cutting uses it
+            // where there is one. It was measured for the layout the document
+            // states, though, so a caller restating the layout gets the plate
+            // divided and has to measure again.
+            BufferedImage sheet = TilesetOperations.readSheet(context.projectRoot(), document);
+            GridCut cut = document.cut(sheet.getWidth(), sheet.getHeight());
+            boolean placed = cols == document.gridCols && rows == document.gridRows
+                    && !cut.isDivisionOf(sheet.getWidth(), sheet.getHeight());
+            List<TilesetExport.Entry> replaced = placed
+                    ? TilesetOperations.splitOnGrid(
+                            document.entries, entry -> entry == plate, document.idPrefix, cut)
+                    : TilesetOperations.splitOnGrid(
+                            document.entries, entry -> entry == plate, document.idPrefix, cols, rows);
             boolean apply = arguments.optBoolean("apply", false);
 
             // The parts replace the plate where it stood, so they are the run that
@@ -537,7 +685,15 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
             String applied = "";
             if (apply) {
                 // The parts are only meaningful next to the layout they were cut
-                // to, so the document keeps the grid that produced them.
+                // to, so the document keeps the grid that produced them. A
+                // placement measured for a different layout is not evidence about
+                // this one, so restating the layout drops it.
+                if (!placed) {
+                    document.gridOriginX = null;
+                    document.gridPitchX = null;
+                    document.gridOriginY = null;
+                    document.gridPitchY = null;
+                }
                 document.gridCols = cols;
                 document.gridRows = rows;
                 document.entries = replaced;
