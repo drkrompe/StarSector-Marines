@@ -32,7 +32,13 @@ public class TileRegistryCellLabelTest {
     @Test
     void gridSheetsResolveFoldedInCells() throws Exception {
         TileRegistry reg = loadAll();
-        assertEquals("chair-south-yellow", reg.cellLabel("graphics/tilesets/urban-tileset.png", 6, 1).name);
+        // urban-tileset is generated from its raw sheet and repacked on every
+        // export, so its coordinates are the packer's and nothing outside the
+        // tileset may hold one. Ask the registry where the chair went.
+        DoodadDef chair = reg.doodad("doodad.chair-south-yellow");
+        assertNotNull(chair, "urban-tileset no longer defines doodad.chair-south-yellow");
+        assertEquals("doodad.chair-south-yellow",
+                reg.cellLabel(chair.sheetPath, chair.col, chair.row).name);
         assertEquals("road-nw", reg.cellLabel("graphics/tilesets/urban-tileset-2.png", 12, 0).name);
         assertEquals("grass-1", reg.cellLabel("graphics/tilesets/Floors_Tiles.png", 1, 10).name);
         assertEquals("water-edge-s", reg.cellLabel("graphics/tilesets/Water_tiles.png", 8, 0).name);

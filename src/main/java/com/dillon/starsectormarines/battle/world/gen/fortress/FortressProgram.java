@@ -138,21 +138,27 @@ public final class FortressProgram {
      * fills. A fortress is as big as what it holds.
      *
      * <p>The multiplier is measured, not guessed. Swept over eight seeds with
-     * the garrison program (1256 cells of building floor), {@value #SLACK} is
-     * the tightest ground that packs every building on every seed: at 2.0 a
-     * building is left over, and at 1.8 and below eight to ten are. It is also
-     * the least wasteful of the ratios that do pack — the largest untouched
-     * square grows from 14 cells at this ratio to 25 at 3.0, which is the void
+     * the garrison program, {@value #SLACK} is the tightest ground that packs
+     * every building on every seed: at 2.2 seven buildings are left over across
+     * the sweep and at 2.0 eight are. It is also the least wasteful of the
+     * ratios that do pack — the largest untouched square stays at 17 cells here
+     * and at 2.6, and grows to 23 at 2.8 and 25 at 3.0, which is the void
      * reappearing. It has to cover the wall ring each building carries, the
-     * two-wide roadways cut between them, and the slivers packing always
-     * strands.
+     * two-wide roadways cut between them, the yard the ward's massing keeps
+     * between neighbours, and the slivers packing always strands.
+     *
+     * <p>It was re-measured when that massing arrived. Buildings held a cell
+     * apart need more ground than buildings chained into a slab, and the ratio
+     * that was tightest for the slab left a building homeless once they were
+     * spaced: a sizing rule measured under one packing policy does not survive
+     * a change to it.
      */
     public static int envelopeArea(List<FortressBuilding> program) {
         return Math.round(floorArea(program) * SLACK);
     }
 
     /** Ground per cell of building floor. Measured, not guessed — see {@link #envelopeArea}. */
-    private static final float SLACK = 2.2f;
+    private static final float SLACK = 2.4f;
 
     /**
      * The program flattened to one entry per building, largest first.
