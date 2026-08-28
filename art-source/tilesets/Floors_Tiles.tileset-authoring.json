@@ -4,6 +4,7 @@
   "idPrefix": "doodad.floors",
   "cellPx": 56,
   "alphaMin": 40,
-  "gridCell": 49,
-  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the grid size below, which yields the sheet's cells exactly. 1225x1284 raw at 49 px splits to the shipped 25x26 grid. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Most of its cells are ground variants selected by pool membership rather than props, so adopting it means authoring blocks, not doodads."
+  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the layout below. 1225x1284 at 25x26. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Most of its cells are ground variants selected by pool membership rather than props, so adopting it means authoring blocks, not doodads.",
+  "gridCols": 25,
+  "gridRows": 26
 }

@@ -173,8 +173,12 @@ public final class DeckPlanCanvas implements CanvasProducer {
         }
 
         drawEnds(context, frame);
-        drawLegend(context, present, anyOther, frame.left(),
-                height - legendHeight + SWATCH_GAP, width - frame.left() * 2f);
+        // Along the surface, not the deck. A beamy hull is centred in a narrow
+        // column, and hanging the key off its left edge would cut the key short
+        // on exactly the ships that have the most in them.
+        float margin = Math.min(width, height) * INSET;
+        drawLegend(context, present, anyOther, margin,
+                height - legendHeight + SWATCH_GAP, width - margin * 2f);
         drawReadout(context, map, frame, hovered, width, height - legendHeight);
     }
 

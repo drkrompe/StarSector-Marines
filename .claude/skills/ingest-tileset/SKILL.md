@@ -33,7 +33,9 @@ python art-source/tilesets/measure_sheet.py art-source/tilesets/<name>.raw.png -
 ```
 
 Pass `--cells COLSxROWS` whenever the sheet was generated to a layout you asked
-for. **The script will not detect the grid** — seam-energy and autocorrelation
+for — which is most of the time, since you chose the layout in the prompt. Cells
+need not be square: a 20-frame strip is `20x1`, and the split cuts exactly that
+grid. **The script will not detect the grid** — seam-energy and autocorrelation
 were both tried against sheets whose grids were known, and both read noise, so
 it verifies a stated grid rather than inventing one. If you do not know the
 layout, ask; do not guess a number into the seed.
@@ -45,7 +47,7 @@ is, and the two kinds are annotated completely differently:
 |---|---|---|
 | `alpha channel: yes`, several pieces | A cut-out prop sheet | Slicing finds the props directly. Set `alphaMin` where the piece count stops changing. |
 | `alpha channel: NO` | A fused plate | Slicing finds one piece covering everything. That is correct: it is split on the grid. |
-| `NON-SQUARE CELLS` | A strip, or a sheet whose cells are not square | The grid split takes one cell size and cannot cut it in one action. Seed it to record that, not as ready to slice. |
+| Cells are not square | A strip, or any sheet not drawn on a square grid | Ordinary for generated art. The split cuts the stated grid exactly, so it is handled like any other plate. |
 
 ## 3. Write the seed
 
@@ -59,7 +61,8 @@ it is the work.
   "idPrefix": "doodad.reactor-hall",
   "cellPx": 64,
   "alphaMin": 40,
-  "gridCell": 104,
+  "gridCols": 4,
+  "gridRows": 4,
   "note": "...",
   "blocks": [{ "id": "reactor-hall.wall", "layout": "wall-3x3", "fillRgb": "0x060A10" }]
 }
@@ -67,8 +70,8 @@ it is the work.
 
 - `cellPx` — cell size of the **exported** atlas. Keep it at or above the game
   grid so a finely drawn sheet keeps its detail.
-- `gridCell` — cell size on the **raw sheet**, in its own pixels. The measurement
-  gives you this; do not round it yourself.
+- `gridCols` / `gridRows` — the plate layout on the **raw sheet**. Stated, never
+  rounded from a pixel size, and free to be non-square.
 - `blocks` — pre-declare the walls and corners the sheet is known to contain.
   A block's cells are chosen by `GridLayout` from a four-neighbour mask, so
   facing is never a field on a piece. Layouts: `single`, `floor-3x3`,
@@ -121,7 +124,7 @@ Export writes the packed atlas, its tileset, and a `*.tileset.md` catalog card.
 
 ## Do not
 
-- Guess a `gridCell`, or accept the script's default when the grid is unknown.
+- Guess a layout, or accept the `1 x 1` default when the grid is unknown.
 - Write `TODO` into a committed note.
 - Export over a shipped tileset without saying why in the note first.
 - Add a per-piece facing field. Facing is a block layout; see

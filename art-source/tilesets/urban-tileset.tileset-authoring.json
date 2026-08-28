@@ -4,8 +4,7 @@
   "idPrefix": "doodad.urban",
   "cellPx": 32,
   "alphaMin": 40,
-  "gridCell": 125,
-  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the grid size below, which yields the sheet's cells exactly. 1254x1254 raw at 125 px splits to the shipped 10x10 grid. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Its 3x3 wall and floor patches are what the block grouping was built for: urban.wall is a wall-3x3 at origin (3,0), urban.floor a floor-3x3 at (0,0).",
+  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the layout below. 1254x1254 at 10x10. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Its 3x3 wall and floor patches are what block grouping was built for: urban.wall is a wall-3x3 at origin (3,0), urban.floor a floor-3x3 at (0,0).",
   "blocks": [
     {
       "id": "urban.wall",
@@ -16,5 +15,7 @@
       "id": "urban.floor",
       "layout": "floor-3x3"
     }
-  ]
+  ],
+  "gridCols": 10,
+  "gridRows": 10
 }
