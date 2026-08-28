@@ -205,6 +205,37 @@ public class AdvanceThreatLeashTest {
     }
 
     @Test
+    public void committedRoomEntryKeepsMovingThroughRouteContact() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                if (x != 32) grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setWalkableFloor(32, 15);
+        grid.setDoorway(32, 15, true);
+        BattleSimulation sim = new BattleSimulation(
+                grid, new CellTopology(W, H));
+        Squad squad = marineSquad(sim, 4);
+        defender(sim, "d0", 20, 15);
+        defender(sim, "d1", 22, 16);
+        observeContacts(sim);
+        long leader = squad.leaderId;
+        sim.world().setAttackRange(leader, 30f);
+        int targetZone = sim.getZoneGraph().zoneIdAt(40, 15);
+        EnterZone action = EnterZone.committedForZone(
+                sim.getZoneGraph().zoneById(targetZone), sim.getGrid());
+
+        action.execute(leader, squad, sim);
+
+        assertFalse(Paths.isEmpty(sim.world().path(leader)),
+                "a committed final hop must not park outside the room on contact");
+        assertEquals(targetZone, sim.getZoneGraph().zoneIdAt(
+                Paths.destX(sim.world().path(leader)),
+                Paths.destY(sim.world().path(leader))));
+    }
+
+    @Test
     public void committedOutOfRangeMemberMovesToFiringCellInsideAxisLeash() {
         BattleSimulation sim = openSim();
         Squad squad = marineSquad(sim, 4);

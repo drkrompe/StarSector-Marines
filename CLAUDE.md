@@ -156,8 +156,8 @@ Do not run builds or leave generated task files there.
   if a later replacement fails.
 - `tools/authoring.sh <tool> [json]` (or `tools/authoring.cmd`) → call one
   authoring tool and exit. This is the **default** way to reach the authoring
-  tools headlessly — list/measure/read/write/slice/split/export a tileset, render its
-  map-preview comparison, run the snapshot catalog — with no workbench window
+  tools headlessly — list/measure/read/write/slice/split/export a tileset, declare
+  or dissolve one of its autotile blocks, render its map-preview comparison, run the snapshot catalog — with no workbench window
   and nothing to start first. `--list` names the tools, `--describe <tool>`
   prints its schema, `--json` returns the structured result. Arguments are one
   JSON object, inline or as `@file` or `-` for stdin; prefer `@file` from
@@ -175,7 +175,7 @@ Do not run builds or leave generated task files there.
   one-shot command removes. Both entry points are separate front doors onto the
   same domain code, never an embedded server — an editor holding unsaved changes
   and a tool writing the same document would be two writers. See
-  `authoring-mcp-server.md`.
+  `authoring-entry-points.md`.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.

@@ -114,32 +114,44 @@ with usable settings, and every un-annotated seed explains itself. A new sheet
 with no seed fails the build — that is the mechanism that makes this procedure
 part of ingestion rather than a thing to remember.
 
-## 5. Hand it over
+## 5. Annotate it
+
+Slicing and cutting are mechanical; deciding what each piece *is* is not. Both
+halves are reachable from a shell, and neither needs the window:
+
+```bash
+tools/authoring.sh tileset_slice '{"name":"<name>","apply":true}'
+tools/authoring.sh tileset_split_on_grid '{"name":"<name>","apply":true}'
+tools/authoring.sh tileset_set_block @block.json
+tools/authoring.sh tileset_export '{"name":"<name>"}'
+```
+
+See the `authoring-tools` skill for the whole surface and for the argument
+forms; the same tools are served over MCP to a session that has the server
+registered. A fused plate slices to one piece, which is the piece
+`tileset_split_on_grid` cuts into the document's stated `gridCols` x `gridRows`.
+Everything that writes previews by default — pass `apply=true` to keep it.
+
+`tileset_set_block` answers with what every slot it filled *means*, and reading
+that back is the point of calling it: slot names read as **"the exterior is on
+this side"**, not "the neighbour is a wall". A mirrored assignment still loads,
+still resolves and is still opaque, so nothing downstream can detect it. Assign
+a few slots, read the meanings against the art, then `apply`.
+
+Per-piece footprint, cover, id, note and tags go in through
+`tileset_write_document`: read the document, edit that object, write it back.
+
+In the window, for a sheet in front of a person:
 
 ```bash
 gradlew.bat layerAuthoring
 ```
 
 Tilesets page → pick the sheet from the project list → **Open**. A seeded
-document slices on open. From there it is annotation, which is a person's job:
-
-- For a fused plate: cut it into its cells, then **Group selected as block** for
-  any wall or corner set. Slot names read as *"the exterior is on this side"*,
-  not "the neighbour is a wall" — a mirrored assignment still loads and still
-  resolves, so the preview drawing each block as a room is the only thing that
-  catches it.
-- For a prop sheet: set each piece's footprint, cover, id, note and tags.
-
-Cutting the plate is mechanical, so it does not need the window:
-
-```bash
-tools/authoring.sh tileset_split_on_grid '{"name":"<name>","apply":true}'
-```
-
-That cuts the document's stated `gridCols` x `gridRows`, and previews the parts
-until you pass `apply=true`. Slice the sheet first — a fused plate slices to one
-piece, which is the piece to cut. **Split selected on grid** in the page does
-the same thing. Grouping into blocks is still the page's.
+document slices on open. **Split selected on grid** and **Group selected as
+block** are those same two acts, filling slots in the selection's reading order,
+and the preview draws each block as a room — the visual counterpart of the slot
+descriptions.
 
 Export writes the packed atlas, its tileset, and a `*.tileset.md` catalog card.
 

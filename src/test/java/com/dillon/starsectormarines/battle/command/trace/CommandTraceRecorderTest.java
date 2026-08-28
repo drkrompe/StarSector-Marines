@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -49,7 +50,7 @@ class CommandTraceRecorderTest {
 
         List<String> lines = recorder.canonicalJsonLines().lines().toList();
         assertEquals(2, lines.size());
-        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":6,"
+        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":7,"
                 + "\"fixtureKind\":\"CONQUEST\","
                 + "\"schedulerMode\":\"SERIAL_DETERMINISTIC\"}", lines.get(0));
         String line = lines.get(1);
@@ -263,6 +264,35 @@ class CommandTraceRecorderTest {
         assertTrue(line.contains("\"stream\":\"referee\""));
         assertTrue(line.contains("\"event\":\"charge-site-state\""));
         assertTrue(line.contains("\"siteId\":\"SAB-01\""));
+    }
+
+    @Test
+    void compoundPresenceUsesResolvedCaptureRoomWhenAnchorIsBlocked() {
+        NavigationGrid grid = new NavigationGrid(8, 8);
+        for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 8; x++) grid.setWalkableFloor(x, y);
+        }
+        grid.setWalkable(4, 4, false);
+        BattleSimulation sim = new BattleSimulation(
+                grid, new CellTopology(8, 8));
+        TacticalNode node = new TacticalNode(TacticalNode.Kind.ARMORY,
+                4, 4, 3, 3, 5, 5, Faction.DEFENDER, 80, 4);
+        CompoundService.Record record = sim.getCompoundService().register(node);
+        sim.spawn(new EntitySpec("marine", Faction.MARINE,
+                UnitType.MARINE, 5, 4));
+        CommandTraceRecorder recorder = new CommandTraceRecorder(
+                "CONQUEST", "SERIAL_DETERMINISTIC", 0);
+
+        recorder.sample(sim);
+
+        String row = recorder.canonicalJsonLines().lines()
+                .filter(line -> line.contains("\"event\":\"compound-presence\""))
+                .findFirst().orElseThrow();
+        int captureZone = sim.getCompoundService().captureZoneId(record, sim);
+        assertTrue(row.contains("\"captureCellX\":" + record.captureCellX));
+        assertTrue(row.contains("\"captureCellY\":" + record.captureCellY));
+        assertTrue(row.contains("\"captureZoneId\":" + captureZone));
+        assertTrue(row.contains("\"occupancy\":\"MARINE_ONLY\""));
     }
 
     @Test

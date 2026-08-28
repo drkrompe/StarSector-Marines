@@ -60,7 +60,7 @@ public final class CommandTraceRecorder {
     public CommandTraceRecorder(String fixtureKind, String schedulerMode,
                                 int startTick) {
         StringBuilder header = begin("run", startTick);
-        numberField(header, "schemaVersion", 6);
+        numberField(header, "schemaVersion", 7);
         nullableField(header, "fixtureKind", fixtureKind);
         field(header, "schedulerMode", schedulerMode);
         appendLine(end(header));
@@ -208,7 +208,7 @@ public final class CommandTraceRecorder {
                 appendLine(end(out));
             }
 
-            int zoneId = sim.getZoneGraph().zoneIdAt(node.anchorX, node.anchorY);
+            int zoneId = sim.getCompoundService().captureZoneId(record, sim);
             int marines = zoneId >= 0 && zoneId < zoneCount
                     ? marineZoneCounts[zoneId] : -1;
             int defenders = zoneId >= 0 && zoneId < zoneCount
@@ -227,7 +227,9 @@ public final class CommandTraceRecorder {
             field(presence, "compoundKind", node.kind.name());
             numberField(presence, "anchorX", node.anchorX);
             numberField(presence, "anchorY", node.anchorY);
-            numberField(presence, "anchorZoneId", zoneId);
+            numberField(presence, "captureCellX", record.captureCellX);
+            numberField(presence, "captureCellY", record.captureCellY);
+            numberField(presence, "captureZoneId", zoneId);
             field(presence, "occupancy", occupancy);
             numberField(presence, "marineUnits", marines);
             numberField(presence, "defenderUnits", defenders);
@@ -518,6 +520,7 @@ public final class CommandTraceRecorder {
         nullableField(out, "executionSuspension", squad.executionSuspension());
         booleanField(out, "localContact", squad.localContact());
         numberField(out, "activePathMembers", squad.activePathMembers());
+        numberField(out, "membersInTargetZone", squad.membersInTargetZone());
         out.append('}');
     }
 
