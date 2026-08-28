@@ -4,14 +4,19 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — added the defense frontage and the standing-to garrison
-posture, which give a held place's authored apertures to whichever side holds
-it and make believed pressure, rather than local contact, the trigger for
-manning them; recorded what an aperture may open onto and what an open-sided
-envelope yields; added held layers, so a bounded few garrisons may share a
-perimeter and a garrison that loses one envelope falls back to the next; made
-allocation picket every threatened facing before massing on the hottest, with
-the reserve yielding to that rule.
+Updated: 2026-08-28 — moved cohesion from the squad to the fire team: morale is
+held, drained, and broken per team, a broken team peels to cover while its
+siblings keep executing the squad's plan, and a squad-level morale reading is
+now an aggregate that reads broken only when no composed team is left; added
+the fire team as a decision layer and recorded the cohesion law. Earlier the
+same day — added the defense frontage and the standing-to garrison posture,
+which give a held place's authored apertures to whichever side holds it and
+make believed pressure, rather than local contact, the trigger for manning
+them; recorded what an aperture may open onto and what an open-sided envelope
+yields; added held layers, so a bounded few garrisons may share a perimeter and
+a garrison that loses one envelope falls back to the next; made allocation
+picket every threatened facing before massing on the hottest, with the reserve
+yielding to that rule.
 
 AI turns an assignment and what a squad has learned into coordinated movement,
 posture, and fire intent. It is a decision system, not the authority for combat
@@ -35,6 +40,15 @@ A **unit execution** is the per-tick realization of the assigned role. It can
 move, hold, acquire a target, or author a legal fire intent, but it does not
 silently replace the squad's plan. Combat systems remain responsible for
 whether an authored shot lands and what it damages.
+
+A **fire team** is the standing organizational element between the squad and
+the individual: a small, stable billet group a marine belongs to for the whole
+battle. It is the squad's maneuver element — coordinated actions assign whole
+teams rather than scattering individuals — and it is the unit that holds
+cohesion. A team's identity is its billet index, which never changes; the
+grouping a maneuver uses may dissolve a team that has been shot below strength
+and fold its survivors into a sibling, but that is a decision about who moves
+together, not about who a marine is.
 
 An executable-assignment change is a tactical-plan interrupt: the squad replans against
 the new mission context immediately instead of finishing work authored for the
@@ -336,7 +350,9 @@ contact-reinforcement facts. An anonymous current audible bearing remains a
 valid investigation cue without inventing a hostile identity.
 
 Direct contact, alert and morale transitions, casualties, and hostile incoming
-fire are tactical interrupts. The periodic replan remains the convergence path.
+fire are tactical interrupts. Any one fire team crossing its break or clear
+threshold is such an interrupt, because the squad's role assignment has to be
+rebuilt around a team that just peeled or just rejoined. The periodic replan remains the convergence path.
 Reacquiring contact after a no-contact tick is an interrupt; merely seeing an
 additional hostile during the same contact episode is not. A remembered
 contact can guide awareness and acquisition, but advancing squads may hold on
@@ -506,7 +522,8 @@ belongs only to the squad's current defensive post or an executable hold order;
 a must-hold node named as the destination of an approach or capture assignment
 does not turn the advancing squad into its garrison before arrival. Morale
 survival behavior remains an independent higher-priority safety boundary
-elsewhere.
+elsewhere, and applies to the broken fire team rather than to the squad
+holding the ground.
 
 An advancing HOLD also publishes a contact initiative: **RECEIVE** or
 **PROSECUTE**. A defending or overmatched squad, an approaching enemy, or a
@@ -563,6 +580,35 @@ nearby cover cells. The ordinary hold returns an idle member to that home, so a
 bunker window is a durable defensive post rather than spawn-time decoration.
 Invalid or unavailable authored cells fall back to the bounded nearby picker;
 they do not make the entire garrison undeployable.
+
+### Cohesion
+
+**Morale is held by the fire team, and the fire team is what breaks.** Cohesion
+drains toward the team of the marine a round found — a hit, a kill, or a near
+miss charged to his own billet group — and recovers on that team's own account
+once nothing has shot at it recently. A team that breaks peels to cover on its
+own while its composed siblings keep executing the squad's plan; the squad
+plans around the team that peeled and takes it back when its morale clears.
+Nothing about a squad is a cohesion quantity: a squad-level morale reading is
+an aggregate over its teams, and a squad counts as broken only when it has no
+composed team left.
+
+A team's recovery ceiling is its own alive-over-original strength, so casualties
+bite where they were taken. This is deliberately harsher than a squad-wide
+ceiling: losing one marine costs a four-man team a quarter of its ceiling, and
+the survivor of a team is brittle even in a squad that is otherwise intact.
+Cohesion is a property of the men who were actually under that fire.
+
+Breaking is not the same as being ordered out. A broken team withdraws on
+emergent reality, below the squad's plan and without consuming its authority —
+the same override tier by which an individual's immediate survival preempts a
+squad, and a squad preempts command. The squad-level survival goal remains only
+for the tail case in which every team has broken, where its work is to release
+the mission goal a finished squad is no longer holding.
+
+Mechs carry no fire-team organization. Their cohesion stays per chassis with a
+tougher model — damage-threshold drain rather than per-hit, stricter break and
+clear points — and aggregates to their squad by majority.
 
 ### Frontage and standing to
 
