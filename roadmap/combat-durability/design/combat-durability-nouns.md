@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — distinguished live resolver truth from transitional decision, morale, telemetry, and presentation readers.
+Updated: 2026-08-28 — added mitigation as a durability noun and placed it in the resolution law.
 
 ## Purpose
 
@@ -39,9 +39,21 @@ needing an arbitrary bonus against every unit classified as hardened.
   presentation; those consumers do not independently infer the transition.
 - **Durability profile** — the spawn-time structure, armor capacity, and armor
   rating supplied by the owning platform or issued armor pattern.
+- **Mitigation** — a bounded fraction of post-cover damage an actor refuses,
+  for an explicit duration, across a bounded arc measured from its facing at the
+  moment of the hit. It is not a pool, it is not armor, and it never becomes
+  either. Most actors never have one.
+- **Screen** — the everyday word for a live mitigation. "Raising" one starts its
+  clock; it drops when the clock runs out.
+- **Mitigation arc** — the total angular width a screen covers, centred on the
+  wearer's facing. A hit arriving outside it is refused nothing.
+- **Mitigation facing** — the direction the screen points. It is simulation
+  state maintained from the wearer's own movement and target, never read from a
+  presentation facing.
 - **Resolved damage** — actual armor and structure removed, each clamped to
-  the pool that existed. Requested damage and resisted energy are not credited
-  as resolved damage.
+  the pool that existed, plus the mitigated damage a screen refused. Requested
+  damage and resisted energy are not credited as resolved damage; mitigated
+  damage is reported as its own quantity and never folded into either pool.
 
 ## Resolution law
 
@@ -68,17 +80,44 @@ Cover applies before armor so physical protection is neither bypassed nor
 double-counted. Wall durability remains a separate map-structure system with
 weapon-authored wall damage; wall damage is not renamed penetration.
 
+Mitigation resolves **after cover and before armor**. Cover is a property of the
+world the shot crossed; mitigation is a property of the target at that instant;
+armor is what the target is made of. A mitigated hit still spends what remains
+against armor at the ordinary efficiency rather than skipping a step, so a
+marine behind a wall *and* behind a screen is simply both, in that order. The
+arc is resolved against the bearing from the target to the hit's source, so a
+hit with no locatable source — scripted damage, a strafing run — is never
+mitigated: there is no bearing to measure, and inventing one would make a screen
+work against fire it was never facing.
+
+Two obvious shortcuts are rejected, and stay rejected. **Extra armor capacity
+while a system runs** has no facing and no visible expiry, and inflates the one
+number this model has spent the most effort keeping honest;
+`progression-nouns.md` forbids it by name and the armour catalog refuses a
+system that declares capacity. **A flat incoming-damage multiplier** has no
+facing either and is invisible: resolved damage would simply be smaller with
+nothing to say why, and a player who cannot tell a working screen from a run of
+lucky misses has been given a statistical rumour rather than a capability. That
+is why mitigated damage is reported as its own resolved quantity — the same
+number that tells the player their screen worked tells the balance harness
+whether the arc asymmetry moved.
+
 The first model deliberately has no through-armor structure bypass, damage
 types, armor regeneration, localized facings, or ablative segments. Those are
 possible extensions only after a weapon or platform demonstrates a gameplay
 need that the two-pool model cannot express.
 
 `DurabilityModel` is the shared calculation boundary for prediction and live
-application. It writes into caller-owned result scratch so the serialized
+application, and it consumes mitigation in the same call — prediction that
+ignored a raised screen would make the AI systematically wrong at exactly the
+moment the capability exists to create. It writes into caller-owned result scratch so the serialized
 damage path stays allocation-free. `ARMOR` is an optional ECS capability;
 armorless actors omit it. `DamageService` carries penetration through its SoA
 mailbox, and `DamageResolver` applies the shared result after cover and generic
-incoming-damage modifiers.
+incoming-damage modifiers. `MITIGATION` is a second optional capability, whose
+presence means "this actor carries something that can raise a screen" rather
+than "a screen is up"; `MitigationService` owns its state and the arc test, and
+`MitigationSystem` points it and drains its clock.
 
 ## Ownership and flow
 
@@ -92,10 +131,16 @@ incoming-damage modifiers.
    Ballistics decides whether a contact or area payload applies; mounts and
    carriers decide whether and when the weapon fires, but do not reinterpret
    penetration or stack mutually exclusive payloads.
-4. Ballistics and explosions decide contact and cover. The shared durability
-   calculation predicts and applies the resulting armor and structure loss.
-5. The application path emits at most one armor-break transition, records
-   resolved damage, and defeats the actor only when structure reaches zero.
+4. A capability the actor carries — today an armour pattern's integral system,
+   tomorrow anything else — may raise a screen, handing over a fraction, an arc,
+   and a duration. Combat durability owns the clock, the arc, and the expiry
+   from that point; the source does not resolve damage.
+5. Ballistics and explosions decide contact and cover. The shared durability
+   calculation predicts and applies the resulting mitigated, armor, and
+   structure loss.
+6. The application path emits at most one armor-break transition, records
+   resolved damage — mitigated separately from absorbed — and defeats the actor
+   only when structure reaches zero.
 
 The same calculation must serve live application, AI prediction, and balance
 tests. A target-type predicate such as “hardened” may remain as descriptive UI
@@ -118,6 +163,13 @@ platforms. Biological aliens or other special actors may add armor only when
 their authored identity calls for a real protective layer; unit category alone
 does not imply it.
 
+Mitigation is deliberately platform-neutral but proved on one carrier first: an
+ASSAULT armour pattern's breacher assist, whose authored frontal resistance and
+arc are the model's first real numbers. A mech, vehicle, or emplacement may
+raise a screen on the same terms whenever one is authored; nothing about the
+concept is infantry-specific, and nothing about it obliges every actor to have
+one.
+
 ## Decisions, morale, evidence, and presentation
 
 Durability-aware decisions evaluate expected armor loss, time to armor break,
@@ -135,8 +187,10 @@ never creates armor state.
 The resolver currently calculates and applies armor loss and structure loss
 separately. Some readers remain compatibility boundaries: target selection
 still contains hardened-type gates, mech morale still uses structure
-percentage as an armor-loss proxy, telemetry records only aggregate resolved
-pool loss, and armory/battle surfaces expose limited durability evidence.
+percentage as an armor-loss proxy, telemetry records aggregate resolved pool
+loss beside a separate mitigated total, and armory/battle surfaces expose
+limited durability evidence — a screen is legible in the Armory before issue but
+is drawn nowhere on the field yet.
 These transitional readers are not another durability authority and must not
 be copied into new consumers. `stories.md` owns their bounded conversion to
 current-state decisions, real armor-break morale, split evidence, and legible
@@ -153,6 +207,20 @@ armor, structure, rating, and penetration presentation.
 - Resolved damage is clamped pool loss; resisted or overkill damage is not
   credited output.
 - Cover resolves before armor; walls retain their separate durability model.
+- Mitigation resolves between them, and is reported as its own quantity. It is
+  never total (resistance stays below 1), never all-round (the arc stays below
+  360 degrees), always expiring, never a pool, and never restores one — armor
+  reaching zero stays an armor break. It does not touch accuracy: whether a shot
+  lands is upstream and already has a pattern's incoming-accuracy multiplier.
+- **Mitigations do not sum.** When more than one applies, the strongest single
+  one does. Summation is how two individually reasonable authored numbers reach
+  immunity without anyone noticing, and the arc rule cannot rescue a design that
+  has already reached 1. One live slot enforces this, at the deliberate cost that
+  a weaker screen offered under a stronger live one is dropped rather than queued
+  behind it.
+- A mitigation arc is a temporary capability with a facing. It is not an argument
+  for giving every actor a permanent facing, localized armor, or ablative
+  segments.
 - Armor does not alter hit chance. Movement and incoming-accuracy modifiers
   remain independently authored profile traits.
 - The queued damage path remains allocation-free and deterministic.
