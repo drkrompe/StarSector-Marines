@@ -26,7 +26,7 @@ class FrontageSceneTest {
 
     @Test
     void aGeneratedCompoundHasAFrontageOnEveryWall() {
-        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.SOUTH);
+        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.TOP);
         List<DefenseFrontage.Aperture> frontage =
                 DefenseFrontage.forCompound(scene.primary(), scene.sim());
 
@@ -47,9 +47,9 @@ class FrontageSceneTest {
 
     @Test
     void theGarrisonStandsToAsTheAssaultClosesAndReleasesWhenItIsInside() {
-        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.SOUTH);
+        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.TOP);
         List<Sample> samples = FrontageScene.play(scene, TICKS, SAMPLE_PERIOD);
-        print(samples, "SOUTH");
+        print(samples, "TOP");
 
         Sample first = samples.get(0);
         assertFalse("FrontageDefense".equals(first.goal()),
@@ -78,8 +78,7 @@ class FrontageSceneTest {
 
     @Test
     void thePostsGoToTheWallTheThreatIsBehind() {
-        for (Approach approach : List.of(Approach.SOUTH, Approach.NORTH,
-                Approach.EAST, Approach.WEST)) {
+        for (Approach approach : Approach.values()) {
             Scene scene = FrontageScene.build(SEED, 8, 8, approach);
             List<Sample> standing = FrontageScene.play(scene, TICKS, SAMPLE_PERIOD).stream()
                     .filter(s -> "FrontageDefense".equals(s.goal()))
@@ -104,7 +103,7 @@ class FrontageSceneTest {
 
     @Test
     void aReserveIsHeldBackOffTheWall() {
-        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.SOUTH);
+        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.TOP);
         Sample stood = firstStandTo(FrontageScene.play(scene, TICKS, SAMPLE_PERIOD));
         assertTrue(stood.reservePosts() >= 1,
                 "an eight-marine garrison should not put every body on one wall");
