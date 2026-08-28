@@ -178,8 +178,16 @@ Five properties of that pass are part of the model rather than of the tool:
   its own pixel size evenly, so dividing a plate proportionally puts every
   boundary somewhere the art does not change and leaves a sliver of the
   neighbouring cell in each exported tile. The counts stay stated by the
-  operator; only the placement may be measured, and it is measured from where
-  the art changes across a line. **Detecting the cell count is a different and
+  operator; only the placement may be measured. **A plate that separates its
+  cells with a dark gutter has its boundary in the middle of that gap, so its
+  grid is measured from the gutters; a plate drawn cell against cell has no gap
+  and its boundary is where the art changes, so that is what is measured
+  instead.** Which one a sheet is, is a fact about the art and is itself
+  measured — a gutter is a trough with lit art on both sides of it, so an empty
+  region of a plate is not one however dark it is. The distinction is not
+  cosmetic: a gutter has an edge on each side, so a placement fitted to the
+  strongest change lands on one of those edges, several pixels inside the
+  neighbouring cell. **Detecting the cell count is a different and
   ill-posed problem and stays out of the model** — it was tried here, ranked
   "two cells" above the correct ten, and was deleted. Fitting two parameters to
   an already-stated count is over-determined and works.
@@ -187,7 +195,7 @@ Five properties of that pass are part of the model rather than of the tool:
   for them.** Sheets fail a regular-grid fit in several distinct ways — a plate
   whose lower rows are empty offers no boundaries to fit there, and a strip of
   props whose frames vary in width has no single pitch at all — so a fit reports
-  how many of the stated boundaries landed on a real change in the art and how
+  how many of the stated boundaries landed on a real feature of the art and how
   far those lie from the straight line through them, and disowns itself when
   either is poor. An axis that disowns itself keeps the cut already in force.
   Applying it anyway is possible and is an explicit act.
