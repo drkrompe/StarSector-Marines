@@ -70,6 +70,7 @@ import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
+import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
@@ -214,6 +215,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
     private final IntegralSystemSystem integralSystemSystem;
+    /** Per-tick aim + drain of every raised mitigation screen. See {@code combat-durability-nouns.md}. */
+    private final MitigationSystem mitigationSystem;
     /** Death-event handler for destroyed turrets ({@code UnitType.isTurret()}) — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
     /** Death-event handler for destroyed drone hubs ({@code UnitType.isDroneHub()}) — flips hub cell to walkable rubble + cascade-kills the launched drones. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
@@ -477,6 +480,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.battleComponents = rosterService.components();
         this.equipmentDropService = new EquipmentDropService(rosterService);
         this.equipmentDropSystem = new EquipmentDropSystem(rosterService, this::clearPath, equipmentDropService);
+        this.mitigationSystem = new MitigationSystem(rosterService);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
                 // deathSink takes the dying id straight into the id-native
@@ -584,7 +588,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
-                turretFire, rng, this::spawn, this, effects, mapEditor);
+                turretFire, rng, this::spawn, this, effects);
         this.vehicleDamageResolver.setDestructionSink(groundSystem::destroyVehicle);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
@@ -1502,6 +1506,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Ahead of the per-unit dispatch so an activation this tick is already
         // reflected in MOVEMENT_MOVE_SPEED when the mover steps, and an expiry
         // has already put the speed back.
+        // Ahead of the integral sweep so a screen raised this tick spends its
+        // whole authored duration instead of losing its first tick to this drain.
+        mitigationSystem.tick(TICK_DT);
         integralSystemSystem.tick(TICK_DT, this);
         navigation.beginSharedGoalPathSnapshot();
         try {
@@ -1790,6 +1797,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public void setPath(long u, int[] newPath) {
         navigation.setPath(u, newPath);
+    }
+
+    /** Occupancy-aware hierarchical route for ordinary one-off movement. */
+    public int[] findPath(int startX, int startY, int goalX, int goalY) {
+        return navigation.findPath(startX, startY, goalX, goalY);
     }
 
     /** Shared-goal path seam for dense target-pursuit behaviors. */

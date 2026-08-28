@@ -41,6 +41,17 @@ public final class TilesetDocument {
     public int alphaMin = SheetSlicer.DEFAULT_ALPHA_MIN;
     /** Cell size used to split fused plates and to guess footprints, in source pixels. */
     public int gridCell = 104;
+    /**
+     * A standing note about the sheet itself, shown when it is opened.
+     *
+     * <p>Slice settings say how to cut a sheet up but not what is true of it —
+     * that it has no alpha channel and arrives as one fused plate, that it is a
+     * patch composited into another sheet rather than a tileset, that its frames
+     * are not square. A seed written before anyone has opened the sheet is
+     * exactly where that belongs, and without somewhere to put it the next
+     * reader re-derives it by failing.
+     */
+    public String note = "";
     public List<TilesetExport.Entry> entries = new ArrayList<>();
     /** The named autotile blocks the entries may belong to. */
     public List<TilesetExport.BlockSpec> blocks = new ArrayList<>();
@@ -64,6 +75,8 @@ public final class TilesetDocument {
                 o.put("block", entry.blockId);
                 o.put("slot", entry.slot);
             }
+            if (!entry.note.isEmpty()) o.put("note", entry.note);
+            if (!entry.tags.isEmpty()) o.put("tags", new JSONArray(entry.tags));
             array.put(o);
         }
         JSONArray blockArray = new JSONArray();
@@ -77,6 +90,7 @@ public final class TilesetDocument {
         JSONObject root = new JSONObject();
         root.put("blocks", blockArray);
         root.put("sheet", sheet);
+        if (!note.isEmpty()) root.put("note", note);
         root.put("sheetName", sheetName);
         root.put("idPrefix", idPrefix);
         root.put("cellPx", cellPx);
@@ -94,6 +108,7 @@ public final class TilesetDocument {
         doc.cellPx = root.optInt("cellPx", 64);
         doc.alphaMin = root.optInt("alphaMin", SheetSlicer.DEFAULT_ALPHA_MIN);
         doc.gridCell = root.optInt("gridCell", 104);
+        doc.note = root.optString("note", "");
         JSONArray blockArray = root.optJSONArray("blocks");
         for (int i = 0; blockArray != null && i < blockArray.length(); i++) {
             JSONObject o = blockArray.getJSONObject(i);
@@ -118,6 +133,11 @@ public final class TilesetDocument {
             entry.included = o.optBoolean("included", true);
             entry.blockId = o.optString("block", "");
             entry.slot = o.optString("slot", "");
+            entry.note = o.optString("note", "");
+            JSONArray tags = o.optJSONArray("tags");
+            for (int t = 0; tags != null && t < tags.length(); t++) {
+                entry.tags.add(tags.getString(t));
+            }
             doc.entries.add(entry);
         }
         return doc;

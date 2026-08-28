@@ -754,7 +754,8 @@ public final class TacticalScoring {
                 if (world.secondaryAimTargetId(u) != target) continue;
                 SpecialEquipmentDef sw = world.specialEquipment(u);
                 if (!sw.isDirectFireWeapon()) continue;
-                total += projectedResolvedDamage(target, sw.damage(), sw.penetration());
+                total += projectedResolvedDamage(target, sw.damage(), sw.penetration(),
+                        world.x(u), world.y(u));
             }
         }
         // Inflight rocket entities owned by the sim. The Projectile carries
@@ -775,25 +776,40 @@ public final class TacticalScoring {
             float dx = targetCx - det.endpointX;
             float dy = targetCy - det.endpointY;
             if (dx * dx + dy * dy <= det.aoeRadius * det.aoeRadius) {
-                total += projectedResolvedDamage(target, det.damage, det.penetration);
+                total += projectedResolvedDamage(target, det.damage, det.penetration,
+                        p.fromX, p.fromY);
             }
         }
         for (ShotService.PendingImpact impact : shots.snapshotActiveImpacts()) {
             if (impact.specialEquipmentDef == null || impact.victimId != target) continue;
             if (!roster.isAliveById(impact.shooterId)) continue;
             if (roster.identity().faction(impact.shooterId) != shooterFaction) continue;
-            total += projectedResolvedDamage(target, impact.damage, impact.penetration);
+            total += projectedResolvedDamage(target, impact.damage, impact.penetration,
+                    world.x(impact.shooterId), world.y(impact.shooterId));
         }
         return total;
     }
 
-    /** Shared-model projection for the temporary D1 committed-fire gate. */
-    private float projectedResolvedDamage(long target, float damage, float penetration) {
+    /**
+     * Shared-model projection for the temporary D1 committed-fire gate.
+     *
+     * <p>{@code sourceX}/{@code sourceY} is where this contribution arrives
+     * from, so a screened target is projected as the screen will actually
+     * resolve it. Predicting a raised screen away would make the AI
+     * systematically wrong at exactly the moment the capability exists to
+     * create — it would keep committing fire that a doorway breacher is
+     * refusing, and stop committing it the instant they turned.
+     */
+    private float projectedResolvedDamage(long target, float damage, float penetration,
+                                          float sourceX, float sourceY) {
         World world = roster.world();
         float armor = world.hasArmor(target) ? world.armor(target) : 0f;
         float rating = world.hasArmor(target) ? world.armorRating(target) : 0f;
+        float mitigation = roster.mitigations().fractionAgainst(
+                target, world.x(target), world.y(target), sourceX, sourceY);
         DurabilityModel.Resolution result = new DurabilityModel.Resolution();
-        DurabilityModel.resolveInto(damage, penetration, armor, rating, world.hp(target), result);
+        DurabilityModel.resolveInto(damage, penetration, mitigation, armor, rating,
+                world.hp(target), result);
         return result.armorDamage() + result.structureDamage();
     }
 
