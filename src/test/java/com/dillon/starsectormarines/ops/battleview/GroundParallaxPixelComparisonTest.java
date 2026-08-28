@@ -206,7 +206,8 @@ class GroundParallaxPixelComparisonTest {
         for (int gy = 0; gy < GRID_H; gy++) {
             for (int gx = 0; gx < GRID_W; gx++) {
                 if (isBuildingWall(gx, gy)) {
-                    stampWall(color, macro, micro, water, shore, sheets, mapping, gx, gy);
+                    stampWall(color, macro, micro, water, shore, sheets, mapping,
+                            registry.block("urban.wall"), gx, gy);
                 } else if (isBuildingInterior(gx, gy)) {
                     stampBlock(color, macro, micro, water, shore, sheets, registry.block("urban.floor"),
                             mapping.macroHeight(CellTopology.GroundKind.INDOOR), gx, gy, false, false);
@@ -228,17 +229,20 @@ class GroundParallaxPixelComparisonTest {
     private static void stampWall(BufferedImage color, float[] macro, float[] micro,
                                   float[] water, float[] shore,
                                   Map<String, BufferedImage> sheets,
-                                  GenMappingRegistry mapping, int gx, int gy) throws IOException {
+                                  GenMappingRegistry mapping, GridBlockDef wall,
+                                  int gx, int gy) throws IOException {
         boolean north = isBuildingWall(gx, gy - 1);
         boolean south = isBuildingWall(gx, gy + 1);
         boolean east = isBuildingWall(gx + 1, gy);
         boolean west = isBuildingWall(gx - 1, gy);
-        TileManifest.TileFrame frame = TileManifest.pickWallTile(north, south, east, west);
+        // Resolved through the block rather than through TileManifest's static
+        // origin: the wall's cell is wherever the tileset exporter packed it, and
+        // a hand-held (col,row) into a packed atlas goes stale without failing.
+        int[] frame = wall.resolve(north, south, east, west);
         if (frame != null) {
-            BufferedImage sheet = sheet(sheets, TileManifest.SHEET);
-            stampColor(color, sheet, frame.col * TileManifest.TILE_SIZE,
-                    frame.row * TileManifest.TILE_SIZE,
-                    TileManifest.TILE_SIZE, TileManifest.TILE_SIZE, gx, gy);
+            BufferedImage sheet = sheet(sheets, wall.sheetPath);
+            stampColor(color, sheet, frame[0] * wall.cellPx, frame[1] * wall.cellPx,
+                    wall.cellPx, wall.cellPx, gx, gy);
         }
         fillChannels(macro, micro, water, shore,
                 mapping.wallMacroHeight(), 0.5f, 0f, 0f, gx, gy);

@@ -141,11 +141,15 @@ class TilesetHintsTest {
         TilesetExport.Entry entry = doodad("doodad.ship.pipe", 0, "runs N|S along the bulkhead");
         String card = TilesetCatalogCard.render("ship", SHEET, CELL, List.of(entry), List.of());
 
+        // Measured against the header rather than against a number, because the
+        // property is "an escaped pipe adds no cell" and the doodad table gains
+        // a column whenever a doodad gains a field worth publishing.
+        int columns = -1;
         for (String line : card.split("\n")) {
+            if (line.startsWith("| id |")) columns = line.split("(?<!\\\\)\\|", -1).length;
             if (!line.contains("doodad.ship.pipe")) continue;
-            // Five columns, so six unescaped pipes, so seven fields.
-            assertEquals(7, line.split("(?<!\\\\)\\|", -1).length,
-                    "the row keeps its five cells: " + line);
+            assertEquals(columns, line.split("(?<!\\\\)\\|", -1).length,
+                    "the row keeps exactly the header's cells: " + line);
             return;
         }
         throw new AssertionError("the piece is missing from the card:\n" + card);

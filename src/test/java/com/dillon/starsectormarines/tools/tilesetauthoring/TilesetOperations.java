@@ -143,6 +143,12 @@ public final class TilesetOperations {
         if (!entry.note.isEmpty()) reasons.add("a note");
         if (!entry.tags.isEmpty()) reasons.add("tags");
         if (!"none".equals(entry.cover)) reasons.add("cover " + entry.cover);
+        if (entry.ballisticHalfHeight != null) {
+            reasons.add("half height " + entry.ballisticHalfHeight);
+        }
+        if (!entry.preferredWallSide.isEmpty()) {
+            reasons.add("wall side " + entry.preferredWallSide);
+        }
         if (entry.footprintX != 1 || entry.footprintY != 1) {
             reasons.add("footprint " + entry.footprintX + "x" + entry.footprintY);
         }
