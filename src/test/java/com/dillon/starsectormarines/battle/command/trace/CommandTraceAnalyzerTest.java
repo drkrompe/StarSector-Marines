@@ -62,6 +62,10 @@ class CommandTraceAnalyzerTest {
                 .unassignedSquadPulses());
         assertEquals(150, analysis.factions().get(Faction.MARINE)
                 .unassignedSquadTicks());
+        assertEquals(2, analysis.factions().get(Faction.MARINE)
+                .commandInactivity().unclassifiedSquadPulses());
+        assertEquals(0, analysis.factions().get(Faction.MARINE)
+                .commandInactivity().genuineIdleSquadPulses());
         assertEquals(6_667, analysis.factions().get(Faction.MARINE)
                 .peakPublishedTrackShareBasisPoints());
         assertEquals(225L, analysis.factions().get(Faction.DEFENDER)
@@ -74,6 +78,37 @@ class CommandTraceAnalyzerTest {
         assertEquals(200, analysis.conquest().longestObservedCaptureGapTicks());
         assertEquals(analysis.canonicalJson(),
                 CommandTraceAnalyzer.analyze(trace).canonicalJson());
+    }
+
+    @Test
+    void classifiesCommandUnassignedCausesWithStrictPrecedence()
+            throws Exception {
+        String trace = String.join("\n",
+                header().replace("\"schemaVersion\":5",
+                        "\"schemaVersion\":6"),
+                commandInactivityPerspective(0),
+                commandInactivityPerspective(75),
+                "{\"stream\":\"referee\",\"tick\":150,"
+                        + "\"event\":\"timeout\",\"maxTicks\":150}", "");
+
+        var metrics = CommandTraceAnalyzer.analyze(trace).factions()
+                .get(Faction.MARINE);
+        var inactivity = metrics.commandInactivity();
+
+        assertEquals(5, metrics.unassignedSquadPulses());
+        assertEquals(750, metrics.unassignedSquadTicks());
+        assertEquals(1, inactivity.lifecycleSquadPulses());
+        assertEquals(150, inactivity.lifecycleSquadTicks());
+        assertEquals(1, inactivity.executionSuspendedSquadPulses());
+        assertEquals(150, inactivity.executionSuspendedSquadTicks());
+        assertEquals(1, inactivity.localContactSquadPulses());
+        assertEquals(150, inactivity.localContactSquadTicks());
+        assertEquals(1, inactivity.usefulMovementSquadPulses());
+        assertEquals(150, inactivity.usefulMovementSquadTicks());
+        assertEquals(1, inactivity.genuineIdleSquadPulses());
+        assertEquals(150, inactivity.genuineIdleSquadTicks());
+        assertEquals(0, inactivity.unclassifiedSquadPulses());
+        assertEquals(0, inactivity.unclassifiedSquadTicks());
     }
 
     @Test
@@ -566,6 +601,46 @@ class CommandTraceAnalyzerTest {
                 + ",\"targetZoneId\":5,\"targetCellX\":-1"
                 + ",\"targetCellY\":-1,\"markerCellX\":20"
                 + ",\"markerCellY\":20}]}}";
+    }
+
+    private static String commandInactivityPerspective(int tick) {
+        String states = "[{\"squadId\":1,\"aliveMembers\":0,"
+                + "\"centroidX\":0,\"centroidY\":0,\"currentZoneId\":-1,"
+                + "\"executionSuspension\":null,\"localContact\":false,"
+                + "\"activePathMembers\":0},"
+                + "{\"squadId\":2,\"aliveMembers\":4,\"centroidX\":0,"
+                + "\"centroidY\":0,\"currentZoneId\":0,"
+                + "\"executionSuspension\":\"FORMING_UP\","
+                + "\"localContact\":true,\"activePathMembers\":4},"
+                + "{\"squadId\":3,\"aliveMembers\":4,\"centroidX\":0,"
+                + "\"centroidY\":0,\"currentZoneId\":0,"
+                + "\"executionSuspension\":null,\"localContact\":true,"
+                + "\"activePathMembers\":4},"
+                + "{\"squadId\":4,\"aliveMembers\":4,\"centroidX\":0,"
+                + "\"centroidY\":0,\"currentZoneId\":0,"
+                + "\"executionSuspension\":null,\"localContact\":false,"
+                + "\"activePathMembers\":2},"
+                + "{\"squadId\":5,\"aliveMembers\":4,\"centroidX\":0,"
+                + "\"centroidY\":0,\"currentZoneId\":0,"
+                + "\"executionSuspension\":null,\"localContact\":false,"
+                + "\"activePathMembers\":0}]";
+        StringBuilder actions = new StringBuilder();
+        for (int squad = 1; squad <= 5; squad++) {
+            if (squad > 1) actions.append(',');
+            actions.append(action("NO_ACTIONABLE_TRACK_TARGET", 0)
+                    .replace("\"squadId\":1", "\"squadId\":" + squad));
+        }
+        return "{\"stream\":\"perspective\",\"tick\":" + tick
+                + ",\"observedTick\":" + tick
+                + ",\"perspective\":\"MARINE\",\"strategy\":\"conquest\""
+                + ",\"phase\":\"LANE_ADVANCE\",\"influenceTick\":" + tick
+                + ",\"commandPoolSize\":5,\"reserveCount\":0"
+                + ",\"objectives\":[],\"directives\":[]"
+                + ",\"conquest\":{\"axis\":\"SOUTH_TO_NORTH\""
+                + ",\"phase\":\"LANE_ADVANCE\",\"remainingCompounds\":3"
+                + ",\"keepZoneId\":9,\"keepState\":\"DEFENDER_HELD\""
+                + ",\"tracks\":[],\"squads\":" + states
+                + ",\"actions\":[" + actions + "]}}";
     }
 
     private static String secureDirective() {

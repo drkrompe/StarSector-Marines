@@ -60,7 +60,7 @@ public final class CommandTraceRecorder {
     public CommandTraceRecorder(String fixtureKind, String schedulerMode,
                                 int startTick) {
         StringBuilder header = begin("run", startTick);
-        numberField(header, "schemaVersion", 5);
+        numberField(header, "schemaVersion", 6);
         nullableField(header, "fixtureKind", fixtureKind);
         field(header, "schedulerMode", schedulerMode);
         appendLine(end(header));
@@ -517,6 +517,7 @@ public final class CommandTraceRecorder {
         numberField(out, "currentZoneId", squad.currentZoneId());
         nullableField(out, "executionSuspension", squad.executionSuspension());
         booleanField(out, "localContact", squad.localContact());
+        numberField(out, "activePathMembers", squad.activePathMembers());
         out.append('}');
     }
 

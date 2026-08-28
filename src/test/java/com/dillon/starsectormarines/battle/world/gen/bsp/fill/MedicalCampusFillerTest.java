@@ -133,7 +133,7 @@ class MedicalCampusFillerTest {
         assertTrue(CompoundClaim.claim(
                 List.of(failed, onlyNeighbor), shortAdjacency,
                 CompoundClaim.DEFAULT_SPECS, new Random(4)).isEmpty());
-        assertEquals(BlockKind.BUILDING_CIVIC, failed.kind);
+        assertEquals(BlockKind.BUILDING_COMMERCIAL, failed.kind);
     }
 
     @Test

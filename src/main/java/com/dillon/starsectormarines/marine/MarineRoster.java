@@ -76,6 +76,20 @@ public class MarineRoster implements Serializable {
     /** Evidence from the last engagement, pending confirmation she is gone. */
     private boolean companyShipCasualty;
     /**
+     * Whether the player held the field in the engagement she was lost in.
+     * Boats can pick people out of the water on a field you still own; a rout
+     * leaves nobody to come back for them.
+     */
+    private boolean companyShipCasualtyHeldField;
+    /**
+     * How much she could carry, recorded while she is still in the fleet. A
+     * ship that is gone cannot be asked how deep her holds were, and what she
+     * was carrying goes down with her.
+     */
+    private int companyShipHold;
+    /** Marines who went down with the ship the company lost. */
+    private int formerShipMarinesLost;
+    /**
      * Fixes every deck this company will ever generate. Combined with the ship
      * it is generating for, so each hull has its own stable layout and a ship
      * the company returns to is the ship they left.
@@ -158,12 +172,21 @@ public class MarineRoster implements Serializable {
     }
 
     /** Quarter the company aboard a ship, which is also how a loss is put behind them. */
-    public void setCompanyShip(String companyShipId, String companyShipName) {
+    public void setCompanyShip(String companyShipId, String companyShipName,
+                               int companyShipHold) {
         this.companyShipId = companyShipId;
         this.companyShipName = companyShipName;
+        this.companyShipHold = Math.max(0, companyShipHold);
         this.formerShipName = null;
         this.formerShipLostInAction = false;
+        this.formerShipMarinesLost = 0;
         this.companyShipCasualty = false;
+        this.companyShipCasualtyHeldField = false;
+    }
+
+    /** @see #companyShipHold */
+    public int companyShipHold() {
+        return companyShipHold;
     }
 
     /**
@@ -173,12 +196,15 @@ public class MarineRoster implements Serializable {
      * the same as being handed one, and where the company goes next is the
      * player's decision for the same reason the first one was.
      */
-    public void reportCompanyShipGone() {
+    public void reportCompanyShipGone(int marinesLost) {
         formerShipName = companyShipName;
         formerShipLostInAction = companyShipCasualty;
+        formerShipMarinesLost = Math.max(0, marinesLost);
         companyShipId = null;
         companyShipName = null;
+        companyShipHold = 0;
         companyShipCasualty = false;
+        companyShipCasualtyHeldField = false;
     }
 
     /** @see #formerShipName */
@@ -191,9 +217,30 @@ public class MarineRoster implements Serializable {
         return formerShipLostInAction;
     }
 
+    /** @see #formerShipMarinesLost */
+    public int formerShipMarinesLost() {
+        return formerShipMarinesLost;
+    }
+
     /** @see #companyShipCasualty */
-    public void reportCompanyShipCasualty() {
+    public boolean companyShipCasualty() {
+        return companyShipCasualty;
+    }
+
+    /** @see #companyShipCasualtyHeldField */
+    public boolean companyShipCasualtyHeldField() {
+        return companyShipCasualtyHeldField;
+    }
+
+    /**
+     * She did not come through an engagement.
+     *
+     * @param heldTheField whether the player still owned the field afterwards,
+     *     which is what decides whether anybody was picked up
+     */
+    public void reportCompanyShipCasualty(boolean heldTheField) {
         companyShipCasualty = true;
+        companyShipCasualtyHeldField = heldTheField;
     }
 
     /** @see #deckSeed */

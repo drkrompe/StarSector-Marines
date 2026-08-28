@@ -4,14 +4,15 @@ Status: IN PROGRESS
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — founding, transfer and loss all land. The company lives
-aboard a ship the player picked out of their own fleet; every candidate is drawn
-as her own generated deck inside her own hull outline, with the passages
-threading it and the room under the cursor named. A company with no ship - never
-chosen, or displaced by a ship that did not come home - opens on the choice and
-cannot reach a room view until it has made one. What remains is whether transfer
-costs anything, and whether marines aboard a ship lost in action are lost with
-her.
+Updated: 2026-08-28 — founding, transfer, the refit fee and the toll for losing
+her all land. The company lives aboard a ship the player picked out of their own
+fleet; every candidate is drawn as her own generated deck inside her own hull
+outline, with the passages threading it and the room under the cursor named. A
+company with no ship - never chosen, or displaced by a ship that did not come
+home - opens on the choice, cannot reach a room view until it has made one, and
+moves for nothing; every later move is a refit the company pays the yard for.
+Losing her kills a share of the marines aboard and sinks the armoury, the bay's
+spares and her holds, while the squads, doctrines and machines survive.
 
 Read `ship-interiors-nouns.md` and `company-ship.md` before implementing this
 story. Depends on the room views being deck-hosted, which they now are — see
@@ -71,20 +72,30 @@ fleet.
   not be absent — and being laid up is the one state that makes a hull
   genuinely uninhabitable rather than merely a poor choice. Whether a candidate
   can hold a barracks at all is a fact the comparison shows, not a filter.
-- Whether transfer costs anything, and whether facility contents move with the
-  company or stay with the hull. Transferring is currently free and instant.
+- ~~Whether transfer costs anything.~~ Settled: a move is a refit and the
+  company pays for it, priced from its own strength and the hull being fitted
+  out. Founding and displacement are free — there is nothing to move out of,
+  and charging for the one action the player cannot decline is a tax rather
+  than friction. An unaffordable move is refused with the shortfall named
+  rather than run up as a debt.
+- Whether a facility's contents move with the company or stay with the hull.
+  They currently move, and only the rooms are compared.
 
 - Whether a hull's proportions should come from her collision polygon or from
   traced art. The polygon is the reading the running game can take and is what
   ships; the sprite trace is finer but needs pixels a mod cannot reach, so
   adopting it would mean baking a catalog. The two agree within about a tenth.
 - ~~What happens when the company ship is destroyed rather than merely
-  damaged.~~ Settled for the interior: the company is displaced rather than
-  re-homed, and told whether she was lost or let go. **Not** settled for the
-  people: whether marines quartered aboard a ship lost in action die with her is
-  still open, and it is the half with real teeth. The hook that would carry it
-  already exists - the engagement result names the ship - so the remaining
-  question is a balance decision rather than a technical one.
+  damaged.~~ Settled for the interior and for the people: the company is
+  displaced rather than re-homed, told whether she was lost or let go, and told
+  how many marines went down with her. The company keeps what it is - squads,
+  templates, doctrines, officers, machines - and loses what it had: the marines
+  aboard, the armoury's stock, the bay's spares and her holds. Holding the field
+  decides who is picked up.
+- Whether the company's named officers are at risk with her. They are not, at
+  present: a captain is the continuity the player rebuilds with, and losing the
+  ship already costs a share of the company, its kit and its stores. Worth
+  revisiting once the toll has been played against.
 
 ## Out of scope
 
