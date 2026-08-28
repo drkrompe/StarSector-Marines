@@ -64,6 +64,21 @@ story adds a spatial premise, not a second topology model.
 - Consumers read zone, frame, and spine membership from the published graph. No
   test or stage re-derives them from cell coordinates.
 
+## Known: a very large program does not fit its own deck
+
+Measured 2026-08-28 while building the candidate comparison
+(`build/snapshots/ship-decks/ship-candidates.png`). Every hull tried places the
+berthing its program owes — a Valkyrie lifts 240 and berths 243, a Legion lifts
+800 and berths 801 — except the Starliner, which lifts 1450 and berths 324, and
+loses its crew quarters entirely. `DeckSizing.planFor` sizes the deck from the
+program's own area, so the shortfall is the packer failing at that scale rather
+than a deck deliberately sized small.
+
+It surfaces here rather than being fixed here because it is a packing question,
+and because a hull that cannot fit its program is a real thing for the
+comparison to report — the question is whether 78% unplaced is the generator
+being honest or the generator giving up.
+
 ## Out of scope
 
 Compartment interiors, fixtures, ambient life, upgrades, and any adoption by an
