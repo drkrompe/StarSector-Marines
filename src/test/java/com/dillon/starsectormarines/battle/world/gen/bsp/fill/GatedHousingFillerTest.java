@@ -155,12 +155,31 @@ class GatedHousingFillerTest {
                 compounds++;
                 if (countPurpose(map.topology, inset(compound.seed),
                         RoomPurpose.RESIDENTIAL_HALL) > 0) roomedSeeds++;
+                for (BlockLeaf member : compound.members) {
+                    assertFunctionalBuilding(map.grid, inset(member));
+                }
             }
         }
         assertTrue(compounds >= 2,
                 "residential compounds should remain visible; count=" + compounds);
         assertEquals(compounds, roomedSeeds,
                 "every claimed gated-housing seed must retain its qualifying apartment plan");
+    }
+
+    private static void assertFunctionalBuilding(NavigationGrid grid,
+                                                 BlockLeaf building) {
+        boolean doorway = false;
+        boolean interior = false;
+        for (int y = building.top; y <= building.bottom; y++) {
+            for (int x = building.left; x <= building.right; x++) {
+                doorway |= grid.isDoorway(x, y);
+                interior |= grid.isWalkable(x, y) && !grid.isDoorway(x, y);
+            }
+        }
+        assertTrue(interior,
+                "claimed residential member needs a standable interior: " + building);
+        assertTrue(doorway,
+                "claimed residential member needs a doorway: " + building);
     }
 
     private static Fixture generate(long seed) {
