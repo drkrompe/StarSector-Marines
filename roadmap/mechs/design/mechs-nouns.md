@@ -175,7 +175,7 @@ support sortie, subject only to practical runtime resources.
 - Every specialist loses a meaningful capability as well as durability; a
   lighter chassis cannot be a discounted all-range Bulwark.
 - Chassis structure, armor capacity, and armor rating are separate values. Bulwark
-  remains the high-pool, high-rating anchor; Hound trades armor endurance for
+  remains the high-capacity, high-rating anchor; Hound trades armor endurance for
   mobility; Sirocco has the least protection and depends on range and a screen.
 - Mount absence is a tactical weakness. Firing, continuation, AI utility,
   resupply, and rendering must operate only on installed components.

@@ -20,7 +20,7 @@ earns its keep and the catalog has no expression of the other half.
 Two line traditions are authored around standing still and shooting, and neither
 can express it. The Hegemony's Legionary is standardized, pressure-sealed, and
 built for campaign repair — a suit for being somewhere a long time. The Diktat's
-Furnace line pairs a deep pool with ordinary resistance, real weight, and a
+Furnace line pairs a deep capacity with ordinary resistance, real weight, and a
 conspicuous profile, which describes a suit that expects to be shot at while it
 works. Both currently differ from their peers only in the four scalars.
 
