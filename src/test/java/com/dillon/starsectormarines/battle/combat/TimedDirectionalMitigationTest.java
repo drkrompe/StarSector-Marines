@@ -399,6 +399,6 @@ class TimedDirectionalMitigationTest {
     private static IntegralSystemDef screenSource(float fraction, float arcDegrees) {
         return new IntegralSystemDef("system.test-screen", "Test screen", "A screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
-                3f, 9f, 0, new BreacherAssistSpec(1.1f, fraction, arcDegrees));
+                3f, 9f, 0, new BreacherAssistSpec(1.1f, fraction, arcDegrees), null);
     }
 }
