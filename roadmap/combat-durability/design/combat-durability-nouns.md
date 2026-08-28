@@ -21,14 +21,14 @@ needing an arbitrary bonus against every unit classified as hardened.
 
 ## Vocabulary
 
-- **Structure** — the live pool whose exhaustion defeats the actor. It is
+- **Structure** — the live capacity whose exhaustion defeats the actor. It is
   biological health for infantry, hull integrity for mechs and vehicles, and
   structural integrity for emplacements. Existing battle `HEALTH` storage may
   retain its implementation name while carrying this meaning.
-- **Armor** — an optional live protection pool in front of structure. An actor
+- **Armor** — an optional live protection layer in front of structure. An actor
   with no armor capability takes structure damage directly.
 - **Armor rating** — the resistance of the current armor to ordinary weapon
-  damage. Rating is not another pool and does not change accuracy.
+  damage. Rating is not another capacity and does not change accuracy.
 - **Penetration** — a property of a damaging weapon or attack describing how
   efficiently it removes armor. It replaces target-type damage multipliers;
   it does not increase damage against exposed structure.
@@ -41,7 +41,7 @@ needing an arbitrary bonus against every unit classified as hardened.
   rating supplied by the owning platform or issued armor pattern.
 - **Mitigation** — a bounded fraction of post-cover damage an actor refuses,
   for an explicit duration, across a bounded arc measured from its facing at the
-  moment of the hit. It is not a pool, it is not armor, and it never becomes
+  moment of the hit. It is not a capacity, it is not armor, and it never becomes
   either. Most actors never have one.
 - **Screen** — the everyday word for a live mitigation. "Raising" one starts its
   clock; it drops when the clock runs out.
@@ -51,9 +51,9 @@ needing an arbitrary bonus against every unit classified as hardened.
   state maintained from the wearer's own movement and target, never read from a
   presentation facing.
 - **Resolved damage** — actual armor and structure removed, each clamped to
-  the pool that existed, plus the mitigated damage a screen refused. Requested
+  the capacity that existed, plus the mitigated damage a screen refused. Requested
   damage and resisted energy are not credited as resolved damage; mitigated
-  damage is reported as its own quantity and never folded into either pool.
+  damage is reported as its own quantity and never folded into either one.
 
 ## Resolution law
 
@@ -105,7 +105,7 @@ whether the arc asymmetry moved.
 The first model deliberately has no through-armor structure bypass, damage
 types, armor regeneration, localized facings, or ablative segments. Those are
 possible extensions only after a weapon or platform demonstrates a gameplay
-need that the two-pool model cannot express.
+need that the armour-and-structure model cannot express.
 
 `DurabilityModel` is the shared calculation boundary for prediction and live
 application, and it consumes mitigation in the same call — prediction that
@@ -150,10 +150,10 @@ vocabulary, but it is never damage authority.
 
 Infantry armor patterns remain composable equipment rather than new unit
 types. Armorless troops omit the armor capability. Scout, combat, and elite
-patterns may differ in pool and rating as well as their movement and incoming-
+patterns may differ in capacity and rating as well as their movement and incoming-
 accuracy tradeoffs.
 
-Mech variants own distinct durability profiles. The Bulwark is the high-pool,
+Mech variants own distinct durability profiles. The Bulwark is the high-capacity,
 high-rating anchor; the Hound gives up armor endurance for mobility; the
 Sirocco has the least armor and structure and depends on range and screening.
 These relationships are laws, while exact values remain balance output.
@@ -187,7 +187,7 @@ never creates armor state.
 The resolver currently calculates and applies armor loss and structure loss
 separately. Some readers remain compatibility boundaries: target selection
 still contains hardened-type gates, mech morale still uses structure
-percentage as an armor-loss proxy, telemetry records aggregate resolved pool
+percentage as an armor-loss proxy, telemetry records aggregate resolved capacity
 loss beside a separate mitigated total, and armory/battle surfaces expose
 limited durability evidence — a screen is legible in the Armory before issue but
 is drawn nowhere on the field yet.
@@ -201,15 +201,15 @@ armor, structure, rating, and penetration presentation.
 - Structure, armor capacity, and armor rating are distinct axes.
 - Every damage payload keeps damage and penetration as distinct axes.
 - Armor presence and current armor state replace target-type damage bonuses.
-- Consumers use the shared calculation, current pools, and real armor-break
+- Consumers use the shared calculation, current capacities, and real armor-break
   fact. The tracked HP-threshold morale proxy is a compatibility exception;
   no new consumer copies a private formula or infers armor break from health.
-- Resolved damage is clamped pool loss; resisted or overkill damage is not
+- Resolved damage is clamped capacity loss; resisted or overkill damage is not
   credited output.
 - Cover resolves before armor; walls retain their separate durability model.
 - Mitigation resolves between them, and is reported as its own quantity. It is
   never total (resistance stays below 1), never all-round (the arc stays below
-  360 degrees), always expiring, never a pool, and never restores one — armor
+  360 degrees), always expiring, never a capacity, and never restores one — armor
   reaching zero stays an armor break. It does not touch accuracy: whether a shot
   lands is upstream and already has a pattern's incoming-accuracy multiplier.
 - **Mitigations do not sum.** When more than one applies, the strongest single

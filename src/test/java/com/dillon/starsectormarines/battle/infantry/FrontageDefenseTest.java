@@ -221,7 +221,7 @@ class FrontageDefenseTest {
      * Put a believed marine contact at {@code (x, y)} by having it fire on the
      * garrison, then run past the influence field's fixed refresh cadence so
      * the belief has actually reached the snapshot the goal reads. Both bodies
-     * are given a deep pool so the exchange during those ticks cannot remove
+     * are given deep armor so the exchange during those ticks cannot remove
      * the contact this fixture exists to create.
      *
      * <p>{@code members} is applied last on purpose: a tick recomputes

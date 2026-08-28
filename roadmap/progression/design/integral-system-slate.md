@@ -113,7 +113,7 @@ likely to be violated by a *capability* rather than by a stat are:
   suit. The Specter spends its prediction as a short, visible, expiring window;
   it does not quietly improve the wearer's odds between activations.
 - **Consecration is not damage reduction.** The Reliquary's rating is already
-  paid for with pool and the heaviest movement, and its system adds no capacity
+  paid for with lower capacity and the heaviest movement, and its system adds no capacity
   and no rating. What it buys is a timed, arc-limited screen someone else can
   walk behind — a squad capability with a cost, not a second helping of armour.
 - **League modularity is not self-repair.** Repairability is the Bulwark's

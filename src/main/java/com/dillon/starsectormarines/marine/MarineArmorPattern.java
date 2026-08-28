@@ -23,7 +23,7 @@ public enum MarineArmorPattern {
     public final String displayName;
     public final int tier;
     public final String iconPath;
-    /** Ablative protection pool seeded in front of structure. */
+    /** Ablative protection capacity seeded in front of structure. */
     public final float armorCapacity;
     /** Resistance matched against weapon penetration while armor remains. */
     public final float armorRating;

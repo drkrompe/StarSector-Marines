@@ -24,7 +24,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  * end-of-pass {@code setAngle(0)} reset.
  *
  * <p>A vehicle is a unit with a hull: it carries the same structure and armor
- * pools as anything else that can be shot, so it wears the same ownership-coded
+ * capacities as anything else that can be shot, so it wears the same ownership-coded
  * {@link DurabilityBarDecor} gauge, emitted last in the layer so bars paint over
  * every chassis. A wreck is exempt — its bar would read empty forever, and the
  * darkened hull already says what happened to it.
@@ -123,7 +123,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
      * so a bar is never painted over by a neighbouring chassis — the same
      * per-stratum sweep the UNITS layer uses rather than per-entity decoration.
      *
-     * <p>Vehicles are always authored with both pools, so this always emits the
+     * <p>Vehicles are always authored with both capacities, so this always emits the
      * armored two-row bar. Placement follows the shared rule: the gauge spans the
      * body it belongs to and sits that body's half-extent above its center. A hull
      * is measured by its longest side so the bar clears the sprite at every

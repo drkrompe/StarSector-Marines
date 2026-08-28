@@ -82,7 +82,7 @@ public final class World {
     public float incomingAccuracyMult(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_INCOMING_ACCURACY_MULT); }
 
     // Armor is an OPTIONAL, live-only capability. Presence means the actor was
-    // authored with armor even when the current pool has reached zero; armorless
+    // authored with armor even when the current capacity has reached zero; armorless
     // actors omit it. All field reads are fail-loud without the component, so a
     // maybe-armored caller must gate on hasArmor first.
     public boolean hasArmor(long id) { return entityWorld.has(id, components.ARMOR); }
