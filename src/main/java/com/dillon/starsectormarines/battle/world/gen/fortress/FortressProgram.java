@@ -17,8 +17,8 @@ import java.util.List;
  * needs and then finding room for it.
  *
  * <p>Footprints are stated in cells because that is what makes them arguable. A
- * vehicle shed is {@value #SHED_BAYS} bays wide and one bay deep plus its apron,
- * which is why it is the size it is and why it changes if the bay module does.
+ * vehicle shed is {@value #SHED_BAYS} bays to a rank and two ranks deep, derived
+ * from the bay module rather than chosen, so it changes when the module does.
  * A magazine is squat because it is mostly wall. A barrack block is a slab
  * because bunks rank along a passage. None of these are the rectangle a
  * partition happened to leave.
@@ -27,14 +27,27 @@ public final class FortressProgram {
 
     private FortressProgram() {}
 
-    /** Bays across one vehicle shed. Three machines out of one door is a shed, not a garage. */
+    /** Machine berths per rank. Three out of one door is a motor pool, not a garage. */
     private static final int SHED_BAYS = 3;
-    /** Working apron in front of the bay mouths, inside the shed. */
-    private static final int SHED_APRON = 2;
 
+    /**
+     * A vehicle shed sized from the bay module rather than guessed at.
+     *
+     * <p>The arrangement is the deck's: two ranks of bays facing across a
+     * service lane, a vestibule at the door end and a shop at the other. Its
+     * dimensions therefore have to be the ones that arrangement needs, and
+     * stating them as arithmetic over the module is what keeps that true — a
+     * shed picked to look about right came out fifteen by nine, which the
+     * fitting could only answer with a single three-deep bay before the fill was
+     * rolled back for sealing itself. The room has to be able to hold what it is
+     * for.
+     */
     private static final RoomShape VEHICLE_SHED = RoomShape.rectangle(
-            SHED_BAYS * VehicleBayFitting.BAY_WIDTH,
-            VehicleBayFitting.BAY_DEPTH + SHED_APRON);
+            VehicleBayFitting.VESTIBULE
+                    + SHED_BAYS * VehicleBayFitting.BAY_WIDTH
+                    + (SHED_BAYS - 1) * VehicleBayFitting.BAY_GAP
+                    + VehicleBayFitting.SHOP_WIDTH,
+            2 * VehicleBayFitting.BAY_DEPTH + VehicleBayFitting.SERVICE_LANE);
 
     /**
      * The keep. An L rather than a slab, because the inner corner is what gives
@@ -74,8 +87,12 @@ public final class FortressProgram {
                 new FortressBuilding(RoomPurpose.KEEP_THRONE, KEEP, Ward.REAR, 1),
                 new FortressBuilding(RoomPurpose.ARMORY, MAGAZINE, Ward.REAR, 2),
                 new FortressBuilding(RoomPurpose.ENGINE_ROOM, GENERATOR_HALL, Ward.REAR, 1),
+                // One shed, not two. Two of them at the size the bay arrangement
+                // needs widened the ward until it swallowed the road a defender
+                // convoy commits along, and six berths under one roof is a motor
+                // pool already.
                 new FortressBuilding(RoomPurpose.VEHICLE_BAY, VEHICLE_SHED, Ward.FRONTAGE,
-                        RoomPacker.EdgeContact.ANY, 2),
+                        RoomPacker.EdgeContact.ANY, 1),
                 new FortressBuilding(RoomPurpose.KEEP_ENTRY, GATEHOUSE, Ward.FRONTAGE,
                         RoomPacker.EdgeContact.ANY, 1),
                 new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
