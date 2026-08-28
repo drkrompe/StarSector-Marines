@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -308,6 +309,14 @@ public final class FortressWardStage implements GenStage {
         for (int x = ward[0]; x <= ward[2]; x++) {
             for (int y = ward[1]; y <= ward[3]; y++) {
                 if (inCitadel(citadel, x, y, CITADEL_CLEARANCE) || roads[x][y]) continue;
+                // Before the cell stops being walkable: a barrier is an edge
+                // feature, and a window left behind by a demolished building is
+                // scenery with nothing to belong to — and worse, an authored
+                // edge the next stage cannot build on.
+                ctx.grid.removeEdgeBarrier(x, y, Direction.E);
+                ctx.grid.removeEdgeBarrier(x, y, Direction.N);
+                ctx.grid.removeEdgeBarrier(x, y, Direction.W);
+                ctx.grid.removeEdgeBarrier(x, y, Direction.S);
                 ctx.grid.setWalkable(x, y, false);
                 ctx.grid.setDoorway(x, y, false);
                 ctx.topology.setWallDirMask(x, y, 0);
