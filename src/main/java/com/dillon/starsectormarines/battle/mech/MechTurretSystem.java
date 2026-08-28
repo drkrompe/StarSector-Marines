@@ -15,7 +15,9 @@ import com.dillon.starsectormarines.engine.ecs.Query;
 /**
  * Integrates each mech's upper-torso traverse. The resulting state is both
  * rendered and consulted by the weapon paths, so acquiring a new target no
- * longer snaps a mech's guns onto it.
+ * longer snaps a mech's guns onto it. Without an active target, the torso
+ * preserves readable intent by looking first at the squad's primary remembered
+ * contact and otherwise a short horizon along its queued route.
  */
 public final class MechTurretSystem {
 
@@ -39,6 +41,7 @@ public final class MechTurretSystem {
     public void tick(float dt) {
         for (ArchetypeTable table : world.matched(mechs)) {
             boolean hasCombat = table.has(components.COMBAT);
+            boolean hasMovement = table.has(components.MOVEMENT);
             Object[] loadouts = table.objects(components.MECH_LOADOUT,
                     BattleComponents.MECH_LOADOUT_STATE).array();
             float[] posX = table.floats(components.POSITION,
@@ -49,6 +52,12 @@ public final class MechTurretSystem {
                     BattleComponents.MECH_LOCOMOTION_FACING_DEGREES).array();
             long[] combatTargets = hasCombat
                     ? table.longs(components.COMBAT, BattleComponents.COMBAT_TARGET_ID).array()
+                    : null;
+            Object[] paths = hasMovement
+                    ? table.objects(components.MOVEMENT, BattleComponents.MOVEMENT_PATH).array()
+                    : null;
+            int[] pathIdx = hasMovement
+                    ? table.ints(components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX).array()
                     : null;
 
             for (int row = 0, n = table.rowCount(); row < n; row++) {
@@ -69,6 +78,22 @@ public final class MechTurretSystem {
                     }
                 } else {
                     target = 0L;
+                    MechFacingIntent.Point intent = MechFacingIntent.rememberedContact(
+                            table.entityAt(row), roster);
+                    if (intent == null && hasMovement) {
+                        intent = MechFacingIntent.pathLookAhead(posX[row], posY[row],
+                                (int[]) paths[row], pathIdx[row]);
+                    }
+                    if (intent != null) {
+                        float dx = intent.x() - posX[row];
+                        float dy = intent.y() - posY[row];
+                        if (dx != 0f || dy != 0f) {
+                            float intentFacing = LayeredAppearance.wrapDegrees(
+                                    AirBody.facingToward(dx, dy));
+                            desired = LayeredMechAppearance.torsoFacing(
+                                    hipFacing[row], intentFacing);
+                        }
+                    }
                 }
 
                 float delta = LayeredAppearance.wrapDegrees(desired - loadout.torsoFacingDegrees);
