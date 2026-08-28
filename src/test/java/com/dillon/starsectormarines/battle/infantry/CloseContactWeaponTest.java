@@ -279,8 +279,11 @@ class CloseContactWeaponTest {
         float before = sim.world().hp(emplacement);
         assertTrue(InfantryUnitPrep.tryOpportunitySpecial(breacher, sim));
 
+        // The carrier's own fire team is what pulls him out of contact — a
+        // sibling team breaking is no reason to drop a charge he is standing
+        // on, so the squad-level readout is not what this gate consults.
         Squad squad = sim.getSquad(squadId);
-        squad.moraleBroken = true;
+        squad.fireTeamMorale(sim.squad().fireTeamIndex(breacher)).broken = true;
         runChannel(breacher, cutter(), sim);
 
         assertEquals(before, sim.world().hp(emplacement), EPS);
