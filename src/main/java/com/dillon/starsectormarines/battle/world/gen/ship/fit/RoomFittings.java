@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.ship.fit.AisleFitting.FixtureGroup;
 import com.dillon.starsectormarines.battle.world.gen.ship.fit.AisleFitting.FixtureGroup.Satellite;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -35,11 +36,13 @@ public final class RoomFittings {
         // arrangement, different room, because a bunk belongs to somebody.
         register(new BerthingFitting(RoomPurpose.CREW_QUARTERS, "doodad.chest-2"));
 
-        // Tables with their seating. A mess is chairs or it is a hall.
+        // Tables with their seating. A mess is chairs or it is a hall — and the
+        // job is at a chair rather than at the table, because a table is where
+        // four people sit and a seat is where one of them does.
         register(new AisleFitting(RoomPurpose.MESS_HALL, FixtureGroup.of(
                 "doodad.office-conference-table", 3, 2,
-                new Satellite("doodad.chair-south-green", 0, 1),
-                new Satellite("doodad.chair-south-yellow", 2, 1))));
+                new Satellite("doodad.chair-south-green", 0, 1, Affordance.MESS),
+                new Satellite("doodad.chair-south-yellow", 2, 1, Affordance.MESS))));
 
         // Racks against the bulkhead with the ready crates that get drawn from.
         register(new AisleFitting(RoomPurpose.ARMORY, FixtureGroup.of(
@@ -100,9 +103,10 @@ public final class RoomFittings {
                 "doodad.industrial-crate-stack", 2, 2,
                 new Satellite("doodad.industrial-cable-reel", 1, 1))));
 
-        register(new PerimeterFitting(RoomPurpose.FIRING_RANGE, FixtureGroup.of(
-                "doodad.sandbag-straight-n", 2, 2,
-                new Satellite("doodad.crate", 1, 1))));
+        // A range is a firing line looking down lanes, not gear round a clear
+        // middle: see FiringRangeFitting. The perimeter treatment kept the deck
+        // clear, which looked right and was clear in no particular direction.
+        register(new FiringRangeFitting());
     }
 
     private static void register(RoomFitting fitting) {
