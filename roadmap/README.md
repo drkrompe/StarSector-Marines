@@ -141,16 +141,18 @@ The corrected duplicate replay then isolated a second discontinuity: a zone
 graph rebuild renumbered every capture zone, while preservation and arbiter
 resolution treated that numeric ID as compound identity. Stable authored node
 identity now selects and rebinds the current capture zone, including when two
-compounds share a navigation zone. On the same 6,000-tick fixture, secure
-retarget exits fell from 24 to 9 and all nine remaining exits were real
-objective changes; marker-only and assignment-only retargets fell to zero.
-Exact-zone entries rose from three to five. The run observed five bounded
-cohorts: three captured, one defender-present exit, and one empty exit. Marines
-captured and held three compounds. Secure travel ended with five target
-entries, nine retargets, fourteen squad losses, and two timeouts.
+compounds share a navigation zone. After merging the newer fortress-massing
+work, the same 6,000-tick fixture produced six captures and four final Marine
+holds. Secure retarget exits fell from the broken run's 24 to 6: five genuine
+objective changes and one transition out of capture duty, with zero
+marker-only target drift. Exact-zone entries rose from three to eight. Sixteen
+bounded cohorts were observed (fourteen entries and two left-censored): six
+captured, seven defender-present exits, one empty exit, and two timeouts.
+Secure travel ended with eight target entries, six retargets, one release, and
+fifteen squad losses.
 
 The historical `episodesWithMarkerClosure` name is weaker than it sounds: its
-31/35 result means only that the centroid reduced initial marker distance by at
+32/36 result means only that the centroid reduced initial marker distance by at
 least one cell, not that it reached the marker or doorway. Add target-portal
 occupancy to the trace next so remaining travel can be classified as never at
 portal, at portal but not entered, or entered. Then address the demonstrated

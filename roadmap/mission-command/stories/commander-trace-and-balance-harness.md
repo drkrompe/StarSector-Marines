@@ -362,17 +362,19 @@ the compound first, refreshes its current zone, and explicitly permits that
 topology rebound through the command stability floor. Regressions cover both a
 renumbered in-flight capture and two compounds sharing one zone.
 
-On the same byte-stable 6,000-tick fixture, secure retarget exits fell from 24
-to 9; every remaining retarget was a real objective change, with zero
-marker-only or assignment-only exits. Exact capture-zone entries rose from
-three to five. Five bounded cohorts were observed: three captured, one exited
-with defenders present, and one exited empty. Secure travel ended with five
-entries, nine retargets, fourteen squad-loss exits, and two timeouts. The
-31/35 `episodesWithMarkerClosure` value means only one cell of progress from an
-episode's initial centroid distance; it does not prove marker or threshold
-arrival. The next trace slice should publish target-portal occupancy and
-classify never-at-portal, at-portal-not-entered, and entered episodes before
-changing final-hop tactics, capture slots, or timers.
+After merging the newer fortress-massing work, the same byte-stable 6,000-tick
+fixture produced six captures and four final Marine holds. Secure retarget
+exits fell from the broken run's 24 to 6: five genuine objective changes and
+one transition out of capture duty, with zero marker-only target drift. Exact
+capture-zone entries rose from three to eight. Sixteen bounded cohorts were
+observed (fourteen entries and two left-censored): six captured, seven exited
+with defenders present, one exited empty, and two timed out. Secure travel
+ended with eight entries, six retargets, one release, and fifteen squad-loss
+exits. The 32/36 `episodesWithMarkerClosure` value means only one cell of
+progress from an episode's initial centroid distance; it does not prove marker
+or threshold arrival. The next trace slice should publish target-portal
+occupancy and classify never-at-portal, at-portal-not-entered, and entered
+episodes before changing final-hop tactics, capture slots, or timers.
 
 ## Historical construction-only baselines
 
