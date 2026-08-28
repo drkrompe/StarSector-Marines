@@ -399,6 +399,23 @@ public final class AssignmentArbiter {
         if (assignment.kind() != AssignmentKind.SECURE_COMPOUND) {
             return assignment;
         }
+        if (assignment.targetNode() != null) {
+            for (CompoundService.Record record
+                    : sim.getCompoundService().getRecords()) {
+                if (!CommandFrameCopies.sameNodeIdentity(
+                        assignment.targetNode(), record.node)) continue;
+                int zoneId = sim.getCompoundService()
+                        .captureZoneId(record, sim);
+                return zoneId >= 0
+                        ? ObjectiveAssignment.secureCompound(
+                        assignment.squadId(), zoneId, record.node)
+                        : null;
+            }
+            // A typed compound assignment must never fall through to another
+            // compound merely because both currently share a navigation zone.
+            return null;
+        }
+        // Legacy zone-only assignments have no stable authored identity.
         for (CompoundService.Record record : sim.getCompoundService().getRecords()) {
             int zoneId = sim.getCompoundService()
                     .captureZoneId(record, sim);

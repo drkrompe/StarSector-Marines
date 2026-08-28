@@ -125,28 +125,38 @@ See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
 
-Repair and rerun Conquest's fortress capture topology before tuning capture
-allocation or broad contact doctrine. Conquest summary schema 7 now groups
-exact-room Marine presence into neutral cohorts with entry/peak strength,
-zone-member additions, defenders cleared, uncontested/capture latency, mixed
-duration, and explicit exit or censor reasons. Its first duplicate 6,000-tick
-reinforced run exposed six new fortress strongpoints sharing zone `0`, the
-giant outdoor component: one Marine entering open ground made all six read
-mixed against the same 260 defenders and produced six identical 5,885-tick
-timeout cohorts. The six genuinely reached rooms all captured within 125–155
-ticks, so this evidence does not authorize contested-compound relief or
-`ClearZone`/`HoldZone` tuning. The shared room-packing repair now publishes
-thresholds as navigation doorways, stamps claimed bulkheads as real
-non-walkable structure, and keeps the protected ward out of the outer-wall
-demolition sweep. The final narrowed duplicate replay then observed five real
-compound rooms and twelve bounded cohorts: five captured, one defender-present
-exit, four empty exits, one zone-change censor, and one timeout; ten became
-uncontested. Marines captured five rooms and held four. Secure travel recorded
-four target entries, four retargets, and fourteen squad-loss exits, while 23/24
-assignments closed marker range and three adjacent-assault commitments
-published. Exact-room capture conversion works after arrival. Investigate the
-last approach/threshold transition next—marker-closure-to-entry latency, unit
-distribution and staging at the door, and contact behavior there—before changing
+Conquest's fortress capture topology and stable command handoff are repaired;
+instrument the actual portal crossing before tuning final-hop tactics. Summary
+schema 7 groups exact-room Marine presence into neutral cohorts with entry/peak
+strength, zone-member additions, defenders cleared, uncontested/capture
+latency, mixed duration, and explicit exit or censor reasons. The first
+duplicate 6,000-tick reinforced run exposed fortress strongpoints aliased to
+the giant outdoor zone. Packed thresholds now publish as navigation doorways,
+claimed bulkheads are real non-walkable structure, protected ward space is
+excluded from outer-wall demolition, and facade windows cannot open a convex
+room corner to the yard on an unbarriered side. Exact-profile coverage asserts
+every packed strongpoint owns a bounded, distinct room zone.
+
+The corrected duplicate replay then isolated a second discontinuity: a zone
+graph rebuild renumbered every capture zone, while preservation and arbiter
+resolution treated that numeric ID as compound identity. Stable authored node
+identity now selects and rebinds the current capture zone, including when two
+compounds share a navigation zone. After merging the newer fortress-massing
+work, the same 6,000-tick fixture produced six captures and four final Marine
+holds. Secure retarget exits fell from the broken run's 24 to 6: five genuine
+objective changes and one transition out of capture duty, with zero
+marker-only target drift. Exact-zone entries rose from three to eight. Sixteen
+bounded cohorts were observed (fourteen entries and two left-censored): six
+captured, seven defender-present exits, one empty exit, and two timeouts.
+Secure travel ended with eight target entries, six retargets, one release, and
+fifteen squad losses.
+
+The historical `episodesWithMarkerClosure` name is weaker than it sounds: its
+32/36 result means only that the centroid reduced initial marker distance by at
+least one cell, not that it reached the marker or doorway. Add target-portal
+occupancy to the trace next so remaining travel can be classified as never at
+portal, at portal but not entered, or entered. Then address the demonstrated
+final-hop/fireteam establishment behavior with evidence rather than changing
 capture slots or timers. Exact hostile and whole-zone occupancy remain neutral
 evidence and never commander input.
 Then

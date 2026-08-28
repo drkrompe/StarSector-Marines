@@ -348,17 +348,33 @@ authored compounds/ward space from demolition. Focused
 coverage asserts every packed ship threshold is a navigation doorway and the
 six canonical fortress strongpoints own six bounded, distinct room zones.
 
-The final narrowed duplicate replay also completed byte-stably at 6,000 ticks.
-It observed five real compound rooms and twelve bounded cohorts: five captured,
-one exited with defenders present, four exited empty, one was censored by a zone
-change, and one timed out; ten became uncontested. Marines captured five rooms
-and held four. Secure travel recorded four target entries, four retargets, and
-fourteen squad-loss exits, while 23/24 assignments closed marker range and three
-adjacent-assault commitments published. Exact-room capture conversion therefore
-works after arrival. The next seam is the last approach/threshold transition:
-why squads that close the marker are lost or fragment before exact-zone entry.
-Inspect marker-closure-to-entry latency, unit distribution and staging at the
-door, and contact behavior there before changing capture slots or timers.
+An exact-profile regression then caught a facade-window corner case: a window
+on an irregular convex corner carried a barrier on only one outward edge and
+joined the room to the yard through the other. Window eligibility now rejects
+any candidate with another walkable non-room outward neighbor, preserving the
+authored window without collapsing capture topology.
+
+The corrected duplicate replay exposed the next command-layer discontinuity.
+A topology rebuild renumbered capture zones, but the attacker preserved an
+in-flight capture by old zone ID and the arbiter rebound a typed assignment to
+the first compound sharing that zone. Stable authored-node identity now selects
+the compound first, refreshes its current zone, and explicitly permits that
+topology rebound through the command stability floor. Regressions cover both a
+renumbered in-flight capture and two compounds sharing one zone.
+
+After merging the newer fortress-massing work, the same byte-stable 6,000-tick
+fixture produced six captures and four final Marine holds. Secure retarget
+exits fell from the broken run's 24 to 6: five genuine objective changes and
+one transition out of capture duty, with zero marker-only target drift. Exact
+capture-zone entries rose from three to eight. Sixteen bounded cohorts were
+observed (fourteen entries and two left-censored): six captured, seven exited
+with defenders present, one exited empty, and two timed out. Secure travel
+ended with eight entries, six retargets, one release, and fifteen squad-loss
+exits. The 32/36 `episodesWithMarkerClosure` value means only one cell of
+progress from an episode's initial centroid distance; it does not prove marker
+or threshold arrival. The next trace slice should publish target-portal
+occupancy and classify never-at-portal, at-portal-not-entered, and entered
+episodes before changing final-hop tactics, capture slots, or timers.
 
 ## Historical construction-only baselines
 

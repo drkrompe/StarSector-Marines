@@ -51,6 +51,25 @@ public final class FortressInterior {
     private static final GroundKind YARD = GroundKind.DIRT;
 
     /**
+     * How much of a building's wall the ward lets it share with its neighbours.
+     *
+     * <p>A hull wedges every compartment against the next, because open space
+     * inside a ship is wasted displacement. A garrison stands on open ground,
+     * and there the same wedging chains the buildings into one continuous wall:
+     * measured at production proportions the packing put unbroken runs of
+     * seventy-five cells across the ward and twenty-seven through its
+     * twenty-eight-cell depth, and left ground fifty-odd cells further to walk
+     * to than to look at.
+     *
+     * <p>The allowance is a short seam rather than none. Buildings that corner
+     * into each other and share a few cells read as a compound; buildings held
+     * apart on all sides read as sheds dropped on a field, which is the look
+     * the packing was adopted to get away from. What is bought is a way
+     * through: a run stops growing before it becomes a wall nobody can cross.
+     */
+    private static final RoomPacker.Massing MASSING = new RoomPacker.Massing(6, 4);
+
+    /**
      * Rooms a garrison lives and works in, which are the ones given windows.
      *
      * <p>The distinction an ordinary building shell already draws, kept rather
@@ -110,7 +129,8 @@ public final class FortressInterior {
         Bounds bounds = Bounds.of(ground, ctx.width, ctx.height);
         if (bounds == null) return new Result(List.of(), program);
 
-        RoomPacker packer = new RoomPacker(ctx, footings(ctx, ground, muster), muster, PALETTE);
+        RoomPacker packer = new RoomPacker(
+                ctx, footings(ctx, ground, muster), muster, PALETTE, MASSING);
         List<RoomPacker.Placed> placed = new ArrayList<>();
         List<FortressBuilding> unplaced = new ArrayList<>();
         for (FortressBuilding building : FortressProgram.expanded(program)) {
@@ -388,7 +408,22 @@ public final class FortressInterior {
         if (!ctx.grid.inBounds(outsideX, outsideY)) return false;
         if (!ctx.grid.isWalkable(insideX, insideY)) return false;
         if (!ctx.grid.isWalkable(outsideX, outsideY)) return false;
-        return !occupied.contains(cellKey(outsideX, outsideY));
+        if (occupied.contains(cellKey(outsideX, outsideY))) return false;
+        // Opening a ring cell makes the entire cell standable. A convex or
+        // irregular corner can face walkable yard on a second side; placing a
+        // barrier only on the requested facade would then leave that side open
+        // and join the room's navigation/capture zone to the yard. Windows are
+        // therefore cut only through a straight facade cell whose other
+        // non-interior cardinal neighbours remain solid.
+        for (Direction side : Direction.CARDINALS) {
+            if (side == outward) continue;
+            int nx = x + side.dx;
+            int ny = y + side.dy;
+            if (!ctx.grid.inBounds(nx, ny)) continue;
+            if (floor.contains(cellKey(nx, ny))) continue;
+            if (ctx.grid.isWalkable(nx, ny)) return false;
+        }
+        return true;
     }
 
     /** Turn one wall cell into a window onto the ground beyond it. */
