@@ -205,8 +205,9 @@ being an argument for the next ship.
   while damage arriving mid-campaign should reach the deck without rebuilding
   it.
 - Whether damaged rooms lose capacity or only look wrecked.
-- Whether transfer costs anything, and whether a facility's contents move with
-  the company or are lost with the hull.
+- Whether a facility's contents move with the company or are lost with the
+  hull. What a move costs in credits is settled — see the refit fee in
+  `ship-interiors-nouns.md`.
 - What happens to the company when its ship is destroyed rather than damaged.
 - Whether more than one deck of a ship is ever generated. The hull-size model in
   `ship-interiors-nouns.md` already says larger hulls have decks past the
