@@ -49,6 +49,7 @@ final class UiPainter {
             }
         }
         paintCanvas(element, elementAlpha, childClip, canvases, target);
+        paintImage(element, elementAlpha, childClip, target);
         for (UiElement child : element.children()) {
             paintElement(child, elementAlpha, childClip, canvases, text, target);
         }
@@ -81,6 +82,42 @@ final class UiPainter {
         Rect visible = canvasVisibleBounds(metrics, canvasClip);
         if (visible == null) return;
         producer.draw(target.canvasContext(metrics, visible, alphaMult));
+    }
+
+    /**
+     * Paints one {@code <img>} through the same canvas sprite pipeline every
+     * other textured content already uses, so live and headless backends agree
+     * without the painter itself ever touching a texture.
+     *
+     * <p>The asset is aspect-fitted and centred in the content box rather than
+     * stretched to it: an icon authored square and shown in a box that is not
+     * would otherwise read as a different symbol.
+     */
+    private static void paintImage(UiElement element, float alphaMult, Rect inheritedClip,
+                                   UiPaintTarget target) {
+        if (element.tag() != UiTag.IMAGE) return;
+        String source = element.imageSource();
+        if (source == null || source.isBlank()) return;
+        Rect content = element.box().contentBox();
+        if (content.width() <= 0f || content.height() <= 0f) return;
+        UiImage image = target.image(source);
+        if (image == null) return;
+        Rect imageClip = inheritedClip.intersect(content);
+        if (imageClip.width() <= 0f || imageClip.height() <= 0f) return;
+        CanvasMetrics metrics = new CanvasMetrics(content,
+                Math.max(1, Math.round(content.width())),
+                Math.max(1, Math.round(content.height())),
+                target.devicePixelRatio());
+        Rect visible = canvasVisibleBounds(metrics, imageClip);
+        if (visible == null) return;
+        float fit = Math.min(content.width() / image.width(), content.height() / image.height());
+        if (!(fit > 0f)) return;
+        target.clip(imageClip);
+        target.canvasContext(metrics, visible, alphaMult).sprite(source, image.liveSprite(),
+                metrics.surfaceWidth() * 0.5f, metrics.surfaceHeight() * 0.5f,
+                image.width() * fit / metrics.scaleX(),
+                image.height() * fit / metrics.scaleY(),
+                0f, Color.WHITE);
     }
 
     static Rect canvasVisibleBounds(CanvasMetrics metrics, Rect documentClip) {

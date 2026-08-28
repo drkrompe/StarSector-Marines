@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.intel.CivilianRescueIntel;
 import com.dillon.starsectormarines.intel.DefectorAsylumIntel;
 import com.dillon.starsectormarines.intel.DeadLetterIntel;
 import com.dillon.starsectormarines.intel.LastTestamentIntel;
+import com.dillon.starsectormarines.ops.CompanyShipLossListener;
 import com.dillon.starsectormarines.ops.CompanyViewAbility;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -112,6 +113,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         repairEquipmentCollectionProgression();
         deliverPendingPatronEquipmentRewards();
         ensureCaptainDiscoverySalvageListener();
+        ensureCompanyShipLossListener();
         ensureFactionEquipmentMarketStock();
         ensurePlayerEventPresenter();
         ensureCompanyViewAbility();
@@ -174,6 +176,18 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
             LOG.info("Starsector Marines: injected starter captain " + starter.name() + " [" + starter.id() + "]");
         }
         script.ensureStartingCompany();
+    }
+
+    /**
+     * Watches the player's engagements so a company ship shot out from under
+     * them reads differently from one they sold. See
+     * {@link com.dillon.starsectormarines.ops.CompanyShipLossListener}.
+     */
+    private static void ensureCompanyShipLossListener() {
+        SectorAPI sector = Global.getSector();
+        sector.getListenerManager().removeListenerOfClass(CompanyShipLossListener.class);
+        sector.getListenerManager().addListener(new CompanyShipLossListener(), true);
+        LOG.info("Starsector Marines: company ship loss listener registered");
     }
 
     private static void ensureCaptainDiscoverySalvageListener() {

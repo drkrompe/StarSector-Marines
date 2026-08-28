@@ -5,8 +5,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 Written: 2026-08-23
 
 Updated: 2026-08-28 — parked road vehicles draw as ordinary doodads, shared-
-edge windows draw from live GROUND identity, and durability bars cover every
-shootable layer.
+edge windows draw as readable bands from live GROUND identity, and durability
+bars cover every shootable layer.
 
 ## Vocabulary
 
@@ -69,7 +69,12 @@ of either adjacent floor cell. The collector reads the live canonical barrier
 list, culls against either neighboring cell, and emits frame and pane geometry
 over the shared boundary after the floor/wall pass. Destruction removes that
 same identity, so the next collected frame contains neither pane nor a stale
-presentation-side tombstone.
+presentation-side tombstone. Their presentation is a compact band centered on
+the edge. Its visible thickness may deliberately exceed the mathematical
+navigation boundary so the feature remains legible at distance; presentation
+geometry does not redefine collision. It must still read as an edge fixture,
+not expand into a cell-owned facade. Wall-cell windows remain a separate,
+visibly thicker aperture treatment for structures whose facade owns the cell.
 
 ## Standing laws
 

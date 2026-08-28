@@ -36,6 +36,31 @@ class MarkupParserTest {
 
         assertTrue(failure.getMessage().contains("bad-view.mlx:3:5"), failure.getMessage());
         assertTrue(failure.getMessage().contains("Unknown element <span>"), failure.getMessage());
+        assertTrue(failure.getMessage().contains("div, button, input, canvas, and img"),
+                failure.getMessage());
+    }
+
+    @Test
+    void imagesAreSelfClosingBuiltIns() {
+        MarkupTemplate template = MarkupParser.parse("icon-view.mlx", """
+                <template props="icon">
+                  <div id="root">
+                    <img id="badge" src="{icon}" />
+                  </div>
+                </template>
+                """);
+
+        assertEquals("img", ((MarkupElement) template.root().children().get(0)).tagName());
+
+        UiMarkupException failure = assertThrows(UiMarkupException.class, () -> MarkupParser.parse(
+                "bad-view.mlx", """
+                        <template>
+                          <div id="root">
+                            <img id="badge" src="graphics/icon.png"></img>
+                          </div>
+                        </template>
+                        """));
+        assertTrue(failure.getMessage().contains("<img> takes no children"), failure.getMessage());
     }
 
     @Test
