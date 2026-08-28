@@ -32,6 +32,7 @@ import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.RepLevel;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Factions;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -116,13 +118,14 @@ public class MarineOpsContext {
     private final Map<String, List<Mission>> missionsByClient = new HashMap<>();
 
     /**
-     * Fixes the company ship's layout. Constant rather than random because the
-     * ship a player leaves has to be the ship they come back to; it moves to
-     * company state when the ship becomes a thing the player chooses.
+     * The layout a company gets when there is no campaign to read their own
+     * seed from, which is only ever a headless caller.
      */
     private static final long COMPANY_DECK_SEED = 0x5AFE_DECEL;
 
     private CompanyDeck companyDeck;
+    /** The ship {@link #companyDeck} was generated for, so a transfer rebuilds it. */
+    private String companyDeckShipId;
 
     public MarineOpsContext(PlanetAPI planet) {
         this.planet = planet;
@@ -140,20 +143,43 @@ public class MarineOpsContext {
     }
 
     /**
-     * The company ship's interior, generated once per ops session.
+     * The company ship's interior, or null for a player who owns no ship at all.
      *
      * <p>Held here because every room screen is a camera onto the same ship:
      * building one deck per screen would let the Mech Lab and a berthing screen
      * disagree about the vessel they are both aboard. Which rooms exist is read
      * off this, so a hull with no vehicle bay has no route to a Mech Lab.
+     *
+     * <p>Rebuilt when the company moves house, and only then. The deck follows
+     * the designation rather than the session, so transferring changes what the
+     * room screens show without either screen learning that a transfer
+     * happened.
      */
     public CompanyDeck companyDeck() {
-        if (companyDeck == null) {
-            companyDeck = new CompanyDeck(CompanyShip.founding(), COMPANY_DECK_SEED,
-                    new BattleSprites(), MarineOpsContext::companyLance,
-                    MarineOpsContext::companyMarines);
-        }
+        FleetMemberAPI aboard = CompanyShipDesignation.aboard();
+        String hull = aboard == null ? null : aboard.getId();
+        if (companyDeck != null && Objects.equals(hull, companyDeckShipId)) return companyDeck;
+        if (companyDeck != null) companyDeck.dismiss();
+        companyDeckShipId = hull;
+        CompanyShip ship = CompanyShipResolver.read(aboard);
+        companyDeck = ship == null ? null : new CompanyDeck(ship, deckSeedFor(hull),
+                new BattleSprites(), MarineOpsContext::companyLance,
+                MarineOpsContext::companyMarines);
         return companyDeck;
+    }
+
+    /**
+     * The layout seed for one hull: the company's own seed mixed with the ship
+     * it is generating for.
+     *
+     * <p>Per ship rather than per company, so transferring produces a genuinely
+     * different interior, and stable per ship, so a hull the company moves back
+     * to is the one they remember rather than a fresh draw.
+     */
+    private static long deckSeedFor(String hull) {
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        long company = script == null ? COMPANY_DECK_SEED : script.roster().deckSeed();
+        return hull == null ? company : company * 31L + hull.hashCode();
     }
 
     /** The machines parked in the company ship's berths: whatever the player owns. */
@@ -198,7 +224,8 @@ public class MarineOpsContext {
 
     /** What the company ship has, for the room screens' navigation shell. */
     public boolean shipHasRoom(RoomPurpose purpose) {
-        return companyDeck().has(purpose);
+        CompanyDeck ship = companyDeck();
+        return ship != null && ship.has(purpose);
     }
 
     public Client getSelectedClient() {
