@@ -48,8 +48,14 @@ GRID_SPECS = (
     GridSpec("Water_tiles.png", "Water_tiles.raw.png", "Water_tiles.png"),
 )
 
+# urban-tileset-3 is deliberately absent: its raw sheet now carries its own
+# keyed alpha (see key_background.py) and its atlas is produced by the tileset
+# authoring export from urban-tileset-3.tileset-authoring.json. Re-adding it here
+# would make the shipped atlas this sheet's own input again — the circularity
+# that made it un-re-exportable — and running this script would silently revert
+# the export. The same is still true of urban-tileset below, which is generated
+# from its keyed raw sheet but has not been withdrawn from GRID_SPECS.
 STRIP_SPECS = (
-    StripSpec("urban-tileset-3.png", "urban-tileset-3.raw.png", "urban-tileset-3.png", 7),
     StripSpec("nature-tiles.png", "nature-tiles.raw.png", "nature-tiles.png", 20),
 )
 
@@ -58,11 +64,6 @@ STRIP_SPECS = (
 # boxes, so deriving placement from the previous output would shrink and drift
 # frames on each regeneration.
 STRIP_FRAME_BOXES = {
-    "urban-tileset-3.png": (
-        (17, 12, 56, 56), (69, 13, 110, 56), (121, 14, 161, 56),
-        (179, 15, 218, 54), (235, 19, 267, 51), (285, 21, 322, 45),
-        (347, 12, 364, 54),
-    ),
     "nature-tiles.png": (
         (8, 12, 64, 68), (72, 12, 128, 68), (136, 12, 192, 68),
         (200, 12, 256, 68), (278, 14, 327, 65), (347, 15, 394, 65),
@@ -98,7 +99,6 @@ GRID_GROUND_EDGE_CELLS = {
 }
 
 STRIP_GROUND_EDGE_FRAMES = {
-    "urban-tileset-3.png": (4, 3),
     # ImageGen's ground frames have a shallow 3px side outline but a much
     # deeper bottom shadow; sample vertical edges 6px inward.
     "nature-tiles.png": (7, (3, 6)),

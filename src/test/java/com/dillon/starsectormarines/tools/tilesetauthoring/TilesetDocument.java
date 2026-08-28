@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
+import com.dillon.starsectormarines.battle.world.tiles.TileLayer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -83,9 +84,25 @@ public final class TilesetDocument {
      * reader re-derives it by failing.
      */
     public String note = "";
+    /**
+     * Set when this sheet exports as a sliced strip instead of a cell grid.
+     *
+     * <p>The two shapes are alternatives, not settings: a strip has no
+     * {@code cellPx}, no {@code (col, row)} and no blocks, and its tiles are
+     * addressed by the frame index the loader assigns them. A sheet is one or
+     * the other, and a document that cannot say which cannot re-export a sheet
+     * that is the second kind without silently turning it into the first —
+     * which renames every id the map already selects by.
+     */
+    public TilesetExport.StripSpec strip;
     public List<TilesetExport.Entry> entries = new ArrayList<>();
     /** The named autotile blocks the entries may belong to. */
     public List<TilesetExport.BlockSpec> blocks = new ArrayList<>();
+
+    /** Whether this document describes a sliced strip rather than a cell grid. */
+    public boolean isStrip() {
+        return strip != null;
+    }
 
     /** The conventional location of a sheet's authoring document, given the project root. */
     public static Path pathFor(Path projectRoot, String sheetName) {
@@ -108,6 +125,12 @@ public final class TilesetDocument {
                 o.put("preferredWallSide", entry.preferredWallSide);
             }
             o.put("included", entry.included);
+            if (isStrip()) {
+                o.put("layer", entry.layer);
+                if (!entry.passable) o.put("passable", false);
+                if (!entry.validOn.isEmpty()) o.put("validOn", new JSONArray(entry.validOn));
+                if (!entry.label.isEmpty()) o.put("name", entry.label);
+            }
             if (entry.isBlockMember()) {
                 o.put("block", entry.blockId);
                 o.put("slot", entry.slot);
@@ -145,6 +168,16 @@ public final class TilesetDocument {
             cut.put("pitchY", gridPitchY);
         }
         if (cut.length() > 0) root.put("cut", cut);
+        if (strip != null) {
+            JSONObject stripJson = new JSONObject();
+            stripJson.put("mode", strip.mode());
+            stripJson.put("alphaThreshold", strip.alphaThreshold());
+            stripJson.put("minGap", strip.minGap());
+            stripJson.put("scale", strip.scale());
+            stripJson.put("gutterPx", strip.gutterPx());
+            stripJson.put("marginPx", strip.marginPx());
+            root.put("strip", stripJson);
+        }
         if (!outputSheet.isEmpty()) root.put("outputSheet", outputSheet);
         root.put("entries", array);
         return root;
@@ -168,6 +201,21 @@ public final class TilesetDocument {
             if (cut.has("originY") && cut.has("pitchY")) {
                 doc.gridOriginY = cut.getDouble("originY");
                 doc.gridPitchY = cut.getDouble("pitchY");
+            }
+        }
+        JSONObject strip = root.optJSONObject("strip");
+        if (strip != null) {
+            try {
+                doc.strip = new TilesetExport.StripSpec(
+                        strip.optString("mode", TilesetExport.StripSpec.AUTO_STRIP),
+                        strip.optInt("alphaThreshold", 16),
+                        strip.optInt("minGap", 4),
+                        strip.getDouble("scale"),
+                        strip.optInt("gutterPx", 8),
+                        strip.optInt("marginPx", 2));
+            } catch (IllegalArgumentException e) {
+                throw new JSONException("sheet '" + doc.sheetName + "' has an unusable strip: "
+                        + e.getMessage());
             }
         }
         doc.outputSheet = root.optString("outputSheet", "");
@@ -209,6 +257,15 @@ public final class TilesetDocument {
                 entry.preferredWallSide = WallSide.fromJson(wallSide).name();
             }
             entry.included = o.optBoolean("included", true);
+            // Parsed on read so a layer the game would reject cannot reach a
+            // document, the same reason preferredWallSide is parsed above.
+            entry.layer = TileLayer.fromJson(o.optString("layer", "ground")).name().toLowerCase();
+            entry.passable = o.optBoolean("passable", true);
+            JSONArray validOn = o.optJSONArray("validOn");
+            for (int v = 0; validOn != null && v < validOn.length(); v++) {
+                entry.validOn.add(validOn.getString(v));
+            }
+            entry.label = o.optString("name", "");
             entry.blockId = o.optString("block", "");
             entry.slot = o.optString("slot", "");
             entry.note = o.optString("note", "");
@@ -413,9 +470,24 @@ public final class TilesetDocument {
         return (hasBlocks ? "graphics/tilesets/" : "graphics/doodads/") + sheetName + ".png";
     }
 
-    /** The atlas destination this document asks for, relative to {@code mod/}. */
+    /**
+     * The atlas destination this document asks for, relative to {@code mod/}.
+     *
+     * <p>A strip lands with the tilesets when any of its frames is ground: a
+     * surface the map paves with is terrain however it is sliced, and a strip of
+     * nothing but props is a prop sheet. That is the same distinction blocks
+     * draw for a grid sheet, asked of the shape that has no blocks to ask about.
+     */
     public String resolvedOutputSheet(boolean hasBlocks) {
-        return outputSheet.isEmpty() ? defaultOutputSheet(sheetName, hasBlocks) : outputSheet;
+        if (!outputSheet.isEmpty()) return outputSheet;
+        return defaultOutputSheet(sheetName, hasBlocks || (isStrip() && hasGroundFrame()));
+    }
+
+    private boolean hasGroundFrame() {
+        for (TilesetExport.Entry entry : entries) {
+            if (entry.included && "ground".equals(entry.layer)) return true;
+        }
+        return false;
     }
 
     /** Reading-order id, stepped past any id a carried annotation already holds. */

@@ -4,7 +4,7 @@ Status: ACTIVE — 1 proposed story
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — `urban-tileset-raw-alpha.md` shipped and retired; `urban-tileset` is now generated from its keyed raw sheet.
+Updated: 2026-08-28 — `urban-tileset` and `urban-tileset-3` are both generated from their keyed raw sheets; the exporter now writes the sliced-strip shape as well as the cell grid. `nature-tiles` is the remaining fused plate: it is a strip of 20 and could follow the same path, but its cut is still approximate and its pieces are unannotated.
 
 Read `moddable-tilesets-nouns.md` before changing a moddable-tilesets story.
 
