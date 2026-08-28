@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.IntegralSystemEffect;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,7 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * What the Armory promises about a suit's integral system, and the rule that it
@@ -106,6 +109,35 @@ class IntegralSystemCopyTest {
         assertTrue(IntegralSystemCopy.detail(rig).contains(advertised),
                 "the Armory should quote the measured " + advertised + " boost, but says: "
                         + IntegralSystemCopy.detail(rig));
+    }
+
+    /**
+     * The ammunition path {@link IntegralSystemCopy} has always handled but
+     * never had a live carrier for, until the missile pod
+     * ({@code integral-armor-systems.md}). A player must be able to see
+     * the remaining uses before issue, the same visibility law the cooldown
+     * carriers already satisfy.
+     */
+    @Test
+    void theArmoryShowsRemainingUsesForAnAmmunitionGatedSystem() {
+        MarineArmorCatalogDef pattern = MarineArmorCatalogRegistry.require("armor.aegis-composite");
+        assumeTrue(pattern.hasIntegralSystem(), "fixture assumption: the Aegis carries a system");
+        IntegralSystemDef pod = pattern.integralSystem();
+        assumeTrue(pod.effect() == IntegralSystemEffect.MISSILE_POD,
+                "fixture assumption: the Aegis carries the missile pod");
+
+        String summary = IntegralSystemCopy.summary(pattern);
+        assertTrue(summary.contains(pod.displayName()), summary);
+        assertTrue(summary.contains(pod.startingAmmo() + " uses")
+                        || pod.startingAmmo() == 1 && summary.contains("1 use"),
+                "the clock should quote the authored uses rather than a duration/cooldown pair: "
+                        + summary);
+
+        String detail = IntegralSystemCopy.detail(pattern);
+        assertTrue(detail.contains(pod.description()), detail);
+        assertTrue(detail.contains("the suit carries " + pod.startingAmmo()),
+                "an ammunition-gated system should be described by its uses, not a cooldown: "
+                        + detail);
     }
 
     /** Mirrors the copy's own formatting so the assertion tracks the catalog. */

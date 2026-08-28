@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MilitaryBaseFiller;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class CompoundFillerOverlayTest {
 
-    private static final int W = 20, H = 20;
+    private static final int W = 22, H = 20;
 
     /** All-walkable STREET grid — the filler-contract starting state for a leaf's cells. */
     private static NavigationGrid openGrid() {
@@ -54,10 +56,13 @@ public class CompoundFillerOverlayTest {
         return topology;
     }
 
-    /** A two-leaf MILITARY_BASE compound (COMMAND seed + BARRACKS) — the minimal shape a compound filler paints. */
+    /**
+     * A two-leaf MILITARY_BASE compound at the production claim minima:
+     * 8x8 COMMAND seed plus 9x9 BARRACKS member.
+     */
     private static Compound militaryBase() {
         BlockLeaf seed  = new BlockLeaf(2, 2, 9, 9, false);
-        BlockLeaf other = new BlockLeaf(11, 2, 18, 9, false);
+        BlockLeaf other = new BlockLeaf(12, 2, 20, 10, false);
         List<BlockLeaf> members = new ArrayList<>(List.of(seed, other));
         Map<BlockLeaf, Compound.Role> roles = new IdentityHashMap<>();
         roles.put(seed, Compound.Role.COMMAND);
@@ -93,6 +98,29 @@ public class CompoundFillerOverlayTest {
     }
 
     @Test
+    public void minimumClaimedParcelsStillProduceFunctionalBuildings() {
+        NavigationGrid grid = openGrid();
+        GenContext ctx = ctx(grid, streetTopology());
+        ctx.put(BspKeys.ROAD_CELLS, new boolean[W][H]);
+        ctx.put(BspKeys.ROAD_RESERVATION, new boolean[W][H]);
+
+        new MilitaryBaseFiller().fill(militaryBase(), ctx);
+
+        assertEquals(2, ctx.pois.size(),
+                "every accepted member parcel must carve a hollow building");
+        for (PointOfInterest poi : ctx.pois) {
+            assertTrue(poi.right - poi.left + 1 >= 4);
+            assertTrue(poi.bottom - poi.top + 1 >= 4);
+            assertTrue(grid.isWalkable(poi.interiorAnchorX, poi.interiorAnchorY),
+                    "building interior anchor must be standable");
+            assertFalse(grid.isDoorway(poi.interiorAnchorX, poi.interiorAnchorY),
+                    "interior anchor is not the threshold");
+            assertTrue(hasDoorway(grid, poi),
+                    "accepted compound building must have an entrance");
+        }
+    }
+
+    @Test
     public void fillFailsFastWhenOverlaysUnbound() {
         GenContext ctx = ctx(openGrid(), streetTopology());
         // ROAD_CELLS / ROAD_RESERVATION deliberately left unbound.
@@ -100,5 +128,14 @@ public class CompoundFillerOverlayTest {
                 () -> new MilitaryBaseFiller().fill(militaryBase(), ctx));
         assertTrue(ex.getMessage().contains("ROAD_CELLS"),
                 "the precondition error should name the missing overlay; was: " + ex.getMessage());
+    }
+
+    private static boolean hasDoorway(NavigationGrid grid, PointOfInterest poi) {
+        for (int y = poi.top; y <= poi.bottom; y++) {
+            for (int x = poi.left; x <= poi.right; x++) {
+                if (grid.isDoorway(x, y)) return true;
+            }
+        }
+        return false;
     }
 }

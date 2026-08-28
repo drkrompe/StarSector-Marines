@@ -480,7 +480,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.battleComponents = rosterService.components();
         this.equipmentDropService = new EquipmentDropService(rosterService);
         this.equipmentDropSystem = new EquipmentDropSystem(rosterService, this::clearPath, equipmentDropService);
-        this.integralSystemSystem = new IntegralSystemSystem(rosterService);
         this.mitigationSystem = new MitigationSystem(rosterService);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
@@ -568,6 +567,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapEditor, effects, noiseEvents, this::applyPendingImpact);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
+        // Constructed here (rather than alongside the other early per-unit
+        // systems above) because a missile-pod salvo needs the same
+        // resolver/shots pipeline InfantryWeapons uses, and both exist only
+        // from this point on.
+        this.integralSystemSystem = new IntegralSystemSystem(rosterService, ballisticResolver, shots, rng);
         this.turretFire = new TurretFireSystem(
                 rng, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },

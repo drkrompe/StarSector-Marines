@@ -99,6 +99,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private BufferedImage source;
     private Path sourcePath;
     private Path documentPath;
+    private String sheetNote = "";
     private boolean dirty;
 
     public TilesetAuthoringPage(AuthoringPageContext context) {
@@ -230,6 +231,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             loadSheet(file.toPath());
             documentPath = null;
             blocks.clear();
+            sheetNote = "";
             model.setEntries(new ArrayList<>());
             slice();
         } catch (Exception failure) {
@@ -278,6 +280,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             loadSheet(sheet.rawSheet());
             documentPath = null;
             blocks.clear();
+            sheetNote = "";
             model.setEntries(new ArrayList<>());
             sheetName.setText(sheet.name());
             idPrefix.setText("doodad." + sheet.name());
@@ -316,10 +319,17 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             gridCell.setValue(document.gridCell);
             blocks.clear();
             blocks.addAll(document.blocks);
+            sheetNote = document.note;
             model.setEntries(document.entries);
             view.setEntries(document.entries);
             dirty = false;
             context.stateChanged();
+            if (!sheetNote.isEmpty()) {
+                // Whatever the seed knows about this sheet is worth reading
+                // before the first slice, not after it goes wrong.
+                JOptionPane.showMessageDialog(root, sheetNote,
+                        document.sheetName, JOptionPane.INFORMATION_MESSAGE);
+            }
             if (document.entries.isEmpty()) {
                 // A seeded document: it chose the sheet and the slice settings
                 // and left the pieces to be found. Finding them is this tool's
@@ -346,6 +356,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         document.cellPx = (Integer) cellPx.getValue();
         document.alphaMin = (Integer) alphaMin.getValue();
         document.gridCell = (Integer) gridCell.getValue();
+        document.note = sheetNote;
         document.entries = model.entries;
         document.blocks = new ArrayList<>(blocks);
         Path path = documentPath != null ? documentPath
