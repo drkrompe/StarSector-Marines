@@ -747,13 +747,24 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     and no people in it. The set now hangs off the one door every screen already
     comes through.
 
-    **Headless evidence cannot see this.** The snapshot suite builds its deck
-    with no sprite cache at all, and the headless renderer loads sheets off disk
-    its own way, so the ship-view snapshot came out fully painted — hull,
-    decking, fixtures and machines — for the whole time the game was drawing an
-    empty wireframe. That evidence proves layout and composition and says
-    nothing about whether the running mod loaded its art. Only a first frame in
-    the game does.
+    The same rule reaches the hull herself. **A hull's art rides with her
+    facts**, beside the outline her deck was laid out inside, because they are
+    the same fact read twice off the same `.ship` file — the shape and the
+    picture of the vessel that shape came from. Handed to the canvas as a
+    separate argument instead, drawing the ship became something a caller had to
+    remember, and the caller that mattered did not: the screen built the canvas
+    from the deck alone and the game drew a plan floating in empty space.
+
+    **Headless evidence cannot see either of these.** The snapshot suite builds
+    its deck with no sprite cache at all, and the headless renderer loads sheets
+    off disk its own way, so the ship-view snapshot came out fully painted —
+    hull, decking, fixtures and machines — for the whole time the game was
+    drawing an empty wireframe, and it drew the backdrop because the suite was
+    the one caller passing it. That evidence proves layout and composition and
+    says nothing about whether the running mod reached its art. Only a first
+    frame in the game does. Where evidence cannot check a wiring, close the trap
+    in the shape of the code instead: one door, one constructor, nothing for a
+    caller to remember.
 18. **A deck's form is what the ship can do when whole; damage is state laid
     over that form.** Refits change the form in both directions — a hull fitted
     with more berthing has more berths, and one whose bays were converted to
