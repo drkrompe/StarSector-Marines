@@ -425,6 +425,24 @@ the second, held until she is confirmed missing - a ship can be disabled in a
 battle and recovered off the field afterwards, and a company told their ship was
 lost while it is being towed home has been told a falsehood.
 
+**Moving costs money; being given a home does not.** A transfer is a refit
+rather than a decision on paper - bunks, lockers, an armoury that locks and a
+bay a walker can be worked on in are not aboard a freighter until somebody
+builds them - and the yard is paid out of the same purse the rest of the
+campaign spends from. The price is what makes choosing a home a choice: a free
+transfer would have the player shop the fleet every time a hull arrived a
+hundred berths larger, and the company would live wherever the spreadsheet last
+pointed. It is priced from the company's own strength and from the hull being
+fitted out, so moving a full company with its machines costs more than moving a
+handful of marines.
+
+A company with nowhere to live - newly founded, or displaced - moves for
+nothing. There is nothing to move out of, and a price on the one action the
+player has no alternative to is a tax rather than friction. A move nobody can
+pay for is refused with the shortfall named, never run up as a debt: the
+company is left standing where it was, which is what the screen was already
+showing.
+
 **Founding and transfer are the same question asked twice.** What will this hull
 not do for us. With a home to measure against, the answer is what moving would
 give up; without one, it is simply what she lacks. One screen answers both, and

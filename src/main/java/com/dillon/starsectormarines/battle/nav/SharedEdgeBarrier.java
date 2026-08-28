@@ -42,9 +42,13 @@ public final class SharedEdgeBarrier {
     private final int cellY;
     private final Direction direction;
     private final Kind kind;
+    /** Adjacent authored cell whose structure owns this edge feature. */
+    private final int structureCellX;
+    private final int structureCellY;
     private int structure;
 
-    SharedEdgeBarrier(int cellX, int cellY, Direction direction, Kind kind) {
+    SharedEdgeBarrier(int cellX, int cellY, Direction direction, Kind kind,
+                      int structureCellX, int structureCellY) {
         if (direction != Direction.E && direction != Direction.N) {
             throw new IllegalArgumentException(
                     "canonical shared-edge barriers must face east or north");
@@ -53,6 +57,8 @@ public final class SharedEdgeBarrier {
         this.cellY = cellY;
         this.direction = direction;
         this.kind = kind;
+        this.structureCellX = structureCellX;
+        this.structureCellY = structureCellY;
         this.structure = kind.structure();
     }
 
@@ -60,6 +66,8 @@ public final class SharedEdgeBarrier {
     public int cellY() { return cellY; }
     public Direction direction() { return direction; }
     public Kind kind() { return kind; }
+    public int structureCellX() { return structureCellX; }
+    public int structureCellY() { return structureCellY; }
     public int structure() { return structure; }
     public int maxStructure() { return kind.structure(); }
 
