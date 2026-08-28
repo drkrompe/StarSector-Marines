@@ -125,16 +125,17 @@ See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
 
-Capture representative full-company Conquest launches as V2 fixtures and
-replace the construction-only rows in the commander matrix before treating its
-force-concentration results as a balance verdict. The launch envelope can now
-replay persistent personnel, fighter cover, powers, and finite resources
-through the production overlay seam, while the schema-4 rerun proved the
-distant-capture reserve binds. The current canonical rows still delivered only
-one to four simultaneous marine squads and neither produced capture-zone
-entry. Keep exact capture-zone presence as neutral outcome evidence, never
-commander input. Then close the remaining assignment-writer and live-acceptance edges
-in `autonomous-mission-command-foundation.md`. Assault's paired production
+Use the new representative Conquest baseline to classify its remaining
+command-unassigned/no-actionable pulses before tuning force allocation. The
+canonical 17-squad row briefly captured one compound; the 34-squad row captured
+and held five, and both defending commanders mobilized against every observed
+threat episode. Transport undercommitment is therefore no longer the primary
+explanation. Split idle-looking pulses into destroyed/not-yet-arrived,
+form-up-suspended, local-contact, useful-motion, and genuinely idle command-pool
+cases, expose the distinction in trace/report evidence, and fix only the last
+category. Keep exact capture-zone presence as neutral outcome evidence, never
+commander input. Then close the remaining assignment-writer and live-acceptance
+edges in `autonomous-mission-command-foundation.md`. Assault's paired production
 commanders now share stable area geometry while retaining separate beliefs,
 ownership, directives, panel/dump/overlay views, and forced-serial trace evidence.
 Review a canonical-duration `commanderEvidence -Pmission=assault` run and the
