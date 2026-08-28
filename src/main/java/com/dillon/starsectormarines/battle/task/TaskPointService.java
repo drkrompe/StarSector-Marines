@@ -27,6 +27,11 @@ public final class TaskPointService {
         this.grid = grid;
     }
 
+    /** Whether a point of this id is already on the board. */
+    public boolean isRegistered(String id) {
+        return points.containsKey(id);
+    }
+
     public void register(TaskPoint point) {
         if (point == null) throw new IllegalArgumentException("task point is required");
         if (!grid.inBounds(point.cellX(), point.cellY())

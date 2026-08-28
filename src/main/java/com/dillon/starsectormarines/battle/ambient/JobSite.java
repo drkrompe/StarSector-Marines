@@ -30,4 +30,20 @@ public interface JobSite {
 
     /** Whether this site covers the given map cell. */
     boolean contains(int cellX, int cellY);
+
+    /**
+     * Roughly the middle of this site, for judging which of two places offering
+     * the same job is the nearer one to walk to.
+     *
+     * <p>Approximate on purpose. A shift picks the nearest mess once, when it
+     * is built, and the difference between a room's centre and the particular
+     * seat somebody ends up claiming is smaller than the difference between two
+     * candidate rooms. Anything more exact would mean pathfinding every
+     * compartment against every other one to answer a question about which end
+     * of the ship a thing is at.
+     */
+    int centreX();
+
+    /** @see #centreX() */
+    int centreY();
 }

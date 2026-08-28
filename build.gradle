@@ -89,7 +89,7 @@ test {
     useJUnitPlatform {
         excludeTags 'battle-profile', 'commander-balance',
                 'sabotage-command-evidence', 'assault-command-evidence',
-                'raid-command-evidence'
+                'raid-command-evidence', 'extraction-objective-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -115,6 +115,7 @@ def commanderEvidenceTags = [
         sabotage: 'sabotage-command-evidence',
         assault: 'assault-command-evidence',
         raid: 'raid-command-evidence',
+        extraction: 'extraction-objective-evidence',
 ]
 
 tasks.register('commanderEvidence', Test) {
@@ -136,6 +137,7 @@ tasks.register('commanderEvidence', Test) {
                 sabotage: 'sabotage.command.evidence',
                 assault: 'assault.command.evidence',
                 raid: 'raid.command.evidence',
+                extraction: 'extraction.objective.evidence',
         ][commanderEvidenceMission]
         systemProperty "${prefix}.outputDir",
                 layout.buildDirectory.dir(
@@ -157,7 +159,7 @@ tasks.register('commanderEvidence', Test) {
     doFirst {
         if (!commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
             throw new GradleException(
-                    'commanderEvidence requires -Pmission=conquest, sabotage, assault, or raid')
+                    'commanderEvidence requires -Pmission=conquest, sabotage, assault, raid, or extraction')
         }
     }
     testLogging {

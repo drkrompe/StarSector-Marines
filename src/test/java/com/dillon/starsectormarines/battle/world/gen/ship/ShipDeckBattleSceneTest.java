@@ -4,10 +4,14 @@ import com.dillon.starsectormarines.battle.ambient.CrewRole;
 import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.ambient.JobBoard;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.marine.CampaignMech;
@@ -23,6 +27,7 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -215,6 +220,113 @@ final class ShipDeckBattleSceneTest {
             }
             assertTrue(headings.size() > 1,
                     "every berth faced the same way, so this proves nothing about facing");
+        }
+    }
+
+    /**
+     * What a technician does in the bay depends on what is parked in it.
+     *
+     * <p>The workshop fixtures are the room's and do not move, but servicing is
+     * work on a <em>machine</em> — so it is not a job the bay has, it is a job
+     * a berth has while something stands in it. That is the whole reason a
+     * berth's job is published as live rather than authored: an empty bay would
+     * otherwise put technicians to work welding nothing, and a bay filling up
+     * would give them no more to do than an empty one.
+     *
+     * <p>The rest of the rotation is the room's own and stays whatever the fill
+     * laid down, so a technician in an empty bay fetches parts and reads
+     * terminals, which is in fact what a technician in an empty bay does.
+     */
+    @Test
+    void servicingWorkInTheBayScalesWithTheMachinesParkedInIt() {
+        MechVariant variant = new MechBay().activeSquad().mechs().get(0).variant();
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        DeckGraph graph = generator.getLastDeckGraph();
+        int berths = deck.gantries.size();
+        assertTrue(berths > 1, "the bay authored " + berths + " berths, so nothing scales");
+
+        List<Affordance> idle = bayRotation(deck, graph, List.of());
+        assertTrue(idle.containsAll(List.of(Affordance.STOW, Affordance.READOUT)),
+                "an idle bay gave a technician no parts to run and nothing to read: " + idle);
+        assertTrue(!idle.contains(Affordance.SERVICE),
+                "an empty bay put a technician to work servicing a machine that is not there");
+
+        assertEquals(List.of(), servicing(deck, graph, List.of()),
+                "an empty bay published servicing work");
+        // Per berth rather than per machine: the fitting stands a technician on
+        // more than one side of a parked machine, and how many is the bay
+        // fitting's business. What is asserted here is that the number moves one
+        // berth at a time.
+        int perBerth = servicing(deck, graph, List.of(variant)).size();
+        assertTrue(perBerth > 0, "a machine was parked and nobody could get at it");
+        assertEquals(berths * perBerth,
+                servicing(deck, graph, Collections.nCopies(berths, variant)).size(),
+                "a full bay does not offer every berth's servicing work");
+        assertTrue(bayRotation(deck, graph, List.of(variant)).contains(Affordance.SERVICE),
+                "a machine was parked and no technician's rotation included servicing it");
+    }
+
+    /** The jobs a technician posted to this deck's bay comes round to. */
+    private static List<Affordance> bayRotation(MapResult deck, DeckGraph graph,
+                                                List<MechVariant> lance) {
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(deck, graph, SEED, null)) {
+            scene.occupyGantries(lance);
+            return scene.watchBill(scene.room(RoomPurpose.VEHICLE_BAY),
+                    CrewRole.MECH_TECH).jobs();
+        }
+    }
+
+    /** The bay's live servicing jobs with that lance parked. */
+    private static List<FixtureTask> servicing(MapResult deck, DeckGraph graph,
+                                               List<MechVariant> lance) {
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(deck, graph, SEED, null)) {
+            scene.occupyGantries(lance);
+            DeckGraph.Compartment bay = scene.room(RoomPurpose.VEHICLE_BAY);
+            boolean[] berthed = new boolean[deck.gantries.size()];
+            for (int index = 0; index < Math.min(lance.size(), berthed.length); index++) {
+                berthed[index] = true;
+            }
+            return JobBoard.live(deck.fixtureTasks, bay, berthed).stream()
+                    .filter(task -> task.affordance() == Affordance.SERVICE)
+                    .toList();
+        }
+    }
+
+    /**
+     * Nobody is put down inside the ship.
+     *
+     * <p>A watch is spread across its loop on purpose, so at any given instant
+     * most of it is between jobs — and the pose sampler draws that as the
+     * straight line from one stop to the next. That is a deliberate bypass of
+     * collision for scenes which freeze time and only want a picture, and it was
+     * also, for a while, how staffing chose where to spawn people. On a
+     * generated deck the line crosses bulkheads: a seeded sweep found one shift
+     * in seventy standing in one, which is not a rendering blemish but an actor
+     * physically stuck in a wall for as long as the ship exists.
+     */
+    @Test
+    void aStaffedDeckPutsNobodyInsideABulkhead() {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            World world = scene.simulation().world();
+            int placed = 0;
+            for (DeckGraph.Compartment room : generator.getLastDeckGraph().compartments()) {
+                for (CrewRole role : CrewRole.values()) {
+                    for (long hand : scene.staff(room, role, 4)) {
+                        placed++;
+                        int cellX = world.cellX(hand);
+                        int cellY = world.cellY(hand);
+                        assertTrue(deck.grid.isWalkable(cellX, cellY),
+                                role + " posted to " + room.purpose() + " was put down at "
+                                        + cellX + "," + cellY + ", which is not floor");
+                    }
+                }
+            }
+            assertTrue(placed > 20,
+                    "only " + placed + " hands were placed, so this is not testing much");
         }
     }
 
