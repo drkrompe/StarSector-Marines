@@ -2,10 +2,10 @@
 
 The generated images use model-selected canvas sizes and a near-black matte.
 This script preserves the generated surface rendering while restoring the
-runtime atlas dimensions, fixed-grid alpha topology, and auto-strip frame
-ordering. The checked-in runtime atlases are the geometry templates and are
-overwritten in place with normalized output. Individual material replacements
-are applied afterward through ``texture-atlases.json``.
+runtime atlas dimensions and fixed-grid alpha topology. The checked-in runtime
+atlases are the geometry templates and are overwritten in place with normalized
+output. Individual material replacements are applied afterward through
+``texture-atlases.json``.
 
 Borrowing the alpha topology makes a shipped atlas its own input, so this
 script may only be pointed at a sheet whose raw plate is opaque. A sheet whose
@@ -39,44 +39,20 @@ class GridSpec:
     output: str
 
 
-@dataclass(frozen=True)
-class StripSpec:
-    source: str
-    raw: str
-    output: str
-    frames: int
-
-
 GRID_SPECS = (
     GridSpec("Floors_Tiles.png", "Floors_Tiles.raw.png", "Floors_Tiles.png"),
     GridSpec("Water_tiles.png", "Water_tiles.raw.png", "Water_tiles.png"),
 )
 
-STRIP_SPECS = (
-    StripSpec("nature-tiles.png", "nature-tiles.raw.png", "nature-tiles.png", 20),
-)
-
-# Two sheets that were once listed above are deliberately absent, and the guard
-# below is what keeps them absent. Their raw art now carries its own keyed alpha
-# and their atlases are produced by the tileset authoring export from their
-# authoring documents; this script is no longer their producer. See
-# _refuse_keyed_raw_sheets for why that is measured rather than written down.
-
-# Auto-strips need their original production placement boxes pinned explicitly.
-# The normalized alpha silhouettes do not necessarily touch every side of those
-# boxes, so deriving placement from the previous output would shrink and drift
-# frames on each regeneration.
-STRIP_FRAME_BOXES = {
-    "nature-tiles.png": (
-        (8, 12, 64, 68), (72, 12, 128, 68), (136, 12, 192, 68),
-        (200, 12, 256, 68), (278, 14, 327, 65), (347, 15, 394, 65),
-        (409, 16, 454, 65), (477, 24, 522, 69), (534, 31, 567, 69),
-        (584, 25, 619, 61), (633, 22, 674, 62), (684, 16, 725, 66),
-        (735, 20, 777, 69), (812, 34, 839, 59), (862, 31, 894, 59),
-        (912, 28, 948, 60), (963, 24, 1000, 64), (1006, 22, 1055, 67),
-        (1071, 21, 1115, 65), (1130, 19, 1177, 67),
-    ),
-}
+# Three sheets that were once listed above are deliberately absent, and the
+# guard below is what keeps them absent. Their raw art now carries its own keyed
+# alpha and their atlases are produced by the tileset authoring export from
+# their authoring documents; this script is no longer their producer. The last
+# of them took the whole auto-strip half of this script with it - the pinned
+# frame boxes, the run merging and the ground-edge band - because a strip is a
+# shape the exporter has now and every one of those was a coordinate held
+# outside the tileset that described the atlas. See _refuse_keyed_raw_sheets for
+# why the withdrawal is measured rather than written down.
 
 # Repeating ground fields must tile without the dark outline ImageGen painted
 # around isolated source sprites. Deliberately exclude wall, transition, and
@@ -99,12 +75,6 @@ GRID_GROUND_EDGE_CELLS = {
         ((6, 7), (7, 7), (8, 7)),
         2,
     ),
-}
-
-STRIP_GROUND_EDGE_FRAMES = {
-    # ImageGen's ground frames have a shallow 3px side outline but a much
-    # deeper bottom shadow; sample vertical edges 6px inward.
-    "nature-tiles.png": (7, (3, 6)),
 }
 
 # The three generated sand variants have different left/right
@@ -253,19 +223,6 @@ def _flatten_grid_pool_horizontal_bias(output: np.ndarray, output_name: str) -> 
         ).astype(np.uint8)
 
 
-def _clean_strip_ground_edges(
-    output: np.ndarray,
-    output_name: str,
-    frame_boxes: list[tuple[int, int, int, int]],
-) -> None:
-    config = STRIP_GROUND_EDGE_FRAMES.get(output_name)
-    if config is None:
-        return
-    frame_count, band = config
-    for box in frame_boxes[:frame_count]:
-        _clone_rgb_edge_band(output, box, band)
-
-
 def normalize_grid(spec: GridSpec) -> None:
     source = Image.open(TILESETS / spec.source).convert("RGBA")
     raw = Image.open(HERE / spec.raw).convert("RGB")
@@ -305,86 +262,6 @@ def normalize_grid(spec: GridSpec) -> None:
     Image.fromarray(output, "RGBA").save(TILESETS / spec.output)
 
 
-def _column_runs(mask: np.ndarray) -> list[list[int]]:
-    xs = np.where(mask.any(axis=0))[0]
-    if not len(xs):
-        return []
-    runs: list[list[int]] = []
-    start = previous = int(xs[0])
-    for value in xs[1:]:
-        x = int(value)
-        if x > previous + 1:
-            runs.append([start, previous + 1])
-            start = x
-        previous = x
-    runs.append([start, previous + 1])
-    return runs
-
-
-def _merge_to_count(runs: list[list[int]], expected: int) -> list[list[int]]:
-    if len(runs) < expected:
-        raise ValueError(f"detected {len(runs)} runs, expected at least {expected}")
-    merged = [run[:] for run in runs]
-    while len(merged) > expected:
-        gaps = [merged[i + 1][0] - merged[i][1] for i in range(len(merged) - 1)]
-        index = min(range(len(gaps)), key=gaps.__getitem__)
-        merged[index][1] = merged[index + 1][1]
-        del merged[index + 1]
-    return merged
-
-
-def _frame_boxes(mask: np.ndarray, expected: int) -> list[tuple[int, int, int, int]]:
-    boxes: list[tuple[int, int, int, int]] = []
-    for x0, x1 in _merge_to_count(_column_runs(mask), expected):
-        local = mask[:, x0:x1]
-        y0 = int(np.where(local)[0].min())
-        y1 = int(np.where(local)[0].max() + 1)
-        boxes.append((x0, y0, x1, y1))
-    return boxes
-
-
-def normalize_strip(spec: StripSpec) -> None:
-    source = Image.open(TILESETS / spec.source).convert("RGBA")
-    raw = Image.open(HERE / spec.raw).convert("RGB")
-    source_rgba = np.asarray(source)
-    raw_rgb, raw_strong, raw_alpha = _raw_layers(raw)
-
-    source_boxes = list(STRIP_FRAME_BOXES[spec.output])
-    raw_boxes = _frame_boxes(raw_strong, spec.frames)
-    output = np.zeros_like(source_rgba)
-    raw_h, raw_w = raw_strong.shape
-
-    for source_box, raw_box in zip(source_boxes, raw_boxes):
-        sx0, sy0, sx1, sy1 = source_box
-        rx0, ry0, rx1, ry1 = raw_box
-
-        # Retain dark outline pixels just outside the confident (>12) bounds.
-        pad = 3
-        rx0 = max(0, rx0 - pad)
-        ry0 = max(0, ry0 - pad)
-        rx1 = min(raw_w, rx1 + pad)
-        ry1 = min(raw_h, ry1 + pad)
-        target_size = (sx1 - sx0, sy1 - sy0)
-
-        color = Image.fromarray(raw_rgb[ry0:ry1, rx0:rx1]).resize(
-            target_size, Image.Resampling.LANCZOS
-        )
-        color = _sharpen(color)
-        alpha = Image.fromarray(raw_alpha[ry0:ry1, rx0:rx1]).resize(
-            target_size, Image.Resampling.LANCZOS
-        )
-
-        color_arr = np.asarray(color)
-        # Existing sprite strips use hard pixel-art transparency. A hard edge
-        # also prevents the auto-slicer from seeing antialiasing dust as frames.
-        alpha_arr = np.where(np.asarray(alpha) >= 72, 255, 0).astype(np.uint8)
-        output[sy0:sy1, sx0:sx1, :3] = color_arr
-        output[sy0:sy1, sx0:sx1, 3] = alpha_arr
-
-    _clean_strip_ground_edges(output, spec.output, source_boxes)
-    Image.fromarray(output, "RGBA").save(TILESETS / spec.output)
-
-
 def validate() -> None:
     for spec in GRID_SPECS:
         source = Image.open(TILESETS / spec.source).convert("RGBA")
@@ -393,15 +270,6 @@ def validate() -> None:
             raise ValueError(f"{spec.output}: size {output.size}, expected {source.size}")
         if not np.array_equal(np.asarray(output)[:, :, 3], np.asarray(source)[:, :, 3]):
             raise ValueError(f"{spec.output}: fixed-grid alpha topology changed")
-
-    for spec in STRIP_SPECS:
-        source = Image.open(TILESETS / spec.source).convert("RGBA")
-        output = Image.open(TILESETS / spec.output).convert("RGBA")
-        if output.size != source.size:
-            raise ValueError(f"{spec.output}: size {output.size}, expected {source.size}")
-        count = len(_frame_boxes(np.asarray(output)[:, :, 3] > 16, spec.frames))
-        if count != spec.frames:
-            raise ValueError(f"{spec.output}: detected {count} frames, expected {spec.frames}")
 
 
 def _refuse_keyed_raw_sheets() -> None:
@@ -426,7 +294,7 @@ def _refuse_keyed_raw_sheets() -> None:
     followed until it isn't.
     """
     keyed = []
-    for spec in (*GRID_SPECS, *STRIP_SPECS):
+    for spec in GRID_SPECS:
         with Image.open(HERE / spec.raw) as image:
             if "A" not in image.getbands():
                 continue
@@ -439,7 +307,7 @@ def _refuse_keyed_raw_sheets() -> None:
             "alpha, so its atlas is exported from its authoring document and "
             "this script is not its producer. Normalizing it would rebuild it "
             "from the alpha of the atlas it is about to overwrite, silently "
-            "reverting that export. Remove it from GRID_SPECS/STRIP_SPECS and "
+            "reverting that export. Remove it from GRID_SPECS and "
             "export it through the tileset authoring exporter instead."
         )
 
@@ -448,11 +316,9 @@ def main() -> None:
     _refuse_keyed_raw_sheets()
     for spec in GRID_SPECS:
         normalize_grid(spec)
-    for spec in STRIP_SPECS:
-        normalize_strip(spec)
     packed = pack_manifest(HERE / "texture-atlases.json")
     validate()
-    for spec in (*GRID_SPECS, *STRIP_SPECS):
+    for spec in GRID_SPECS:
         print(TILESETS / spec.output)
     for atlas in packed:
         print(f"packed {atlas.atlas_id}: {atlas.placements} placement(s)")
