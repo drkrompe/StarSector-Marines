@@ -133,6 +133,15 @@ a manned deck that was four in five actor-samples of a transport's whole crew,
 and nine in ten of a capital's: a ship where almost nobody was ever doing
 anything, and where the fault was in the clock rather than in the work.
 
+A dwell is measured against the **walk**, not against a watch. These were seconds
+long while travel was a fiction the same clock invented, and stayed seconds long
+once the walking became real — so a hand crossed a three-hundred-cell hull for
+forty seconds, spent three at the bench, and set off again, and six in ten
+actor-samples of a manned transport were somebody in a passage. A stint has to be
+long enough to read as the thing the walk was for. They are still nothing like a
+real watch: this is presentation, and what it owes is that a player looking at a
+room for half a minute sees it worked rather than sees one person arrive.
+
 **A full job is passed over, not queued for.** Where the next job on the rotation
 has no free place to do it, the actor takes the one after it; where nothing on
 the rotation is free, they carry on with the job they are already doing for
@@ -156,14 +165,41 @@ is its scarcest job: a bay with eight berths and one terminal cannot occupy eigh
 technicians on a rotation that includes the terminal, and pretending otherwise
 puts seven of them in a line.
 
-Where somebody is **based** is likewise not everywhere their loop reaches. A role
-is based at its quarters or at its work; the mess it eats in and the lane it
-shoots on are places it goes. Reading those as billets invents a population — a
+Where somebody is **based** is likewise not everywhere their loop reaches, nor
+everywhere they work. A role is based where its **trade** is — the first of its
+on-watch jobs, the one the rest of the list exists to serve — and a role with no
+trade is based at its quarters. The mess it eats in and the lane it shoots on are
+places it goes. Reading those as billets invents a population — a
 galley with eight tables becomes quarters for eight marines who sleep nowhere and
 are on no roster. So a caller deciding a **complement** asks where a role is
 based first, while a caller deliberately **posting** somebody may station them
 anywhere: a range detail is a real order, and a shift posted to a firing range is
 a real shift.
+
+Reading a role's *whole* duty list instead makes one room a station for every
+trade that could lend a hand in it. Secondary jobs are shared by design — half
+the trades aboard handle stores at some point — so a spares pocket publishing
+stowage became a billet for the storekeeper, the technician, the machinist, the
+medic, the armourer and the engine watch at once, and a hull that fills its
+leftover corners with such pockets crewed a thousand engineers. A room may still
+be several postings where several trades' own work is in it; a bay with a parts
+run is genuinely the technician's and the storekeeper's.
+
+Quarters are likewise a billet only for a role with **no** trade. A watch is
+stationed at its work and berthed wherever there is a rack, so reading a bunkroom
+as a posting counts a complement off furniture rather than off work, and counts
+it once per trade. Sleeping and washing are reached either way, because posting
+already sends every watch to the nearest place offering its off-watch jobs.
+
+**A complement is bounded by racks, not by fixtures.** What a room can keep busy
+is a fact about its fittings and says nothing about whether the map can carry the
+people to do it: three stowage points in a spares pocket are three more
+storekeepers, and a Valkyrie fitted that way crewed two hundred and seventy-six
+engineers onto ten bunks. The bound is read off the fill rather than off a stated
+figure, because the racks are the thing a player can walk up and count, and hands
+are taken on one posting at a time round the whole ship — filling each posting to
+its own capacity in turn crews the compartments at the head of the list and
+leaves the rest deserted.
 
 A shift is worked by whoever a caller hands it, which need not be anonymous. The
 same posting takes generated hands or named people carrying their own kit, and

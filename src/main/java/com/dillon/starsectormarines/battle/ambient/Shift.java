@@ -144,9 +144,30 @@ public final class Shift {
      * population: a galley with eight tables would become quarters for eight
      * marines who sleep nowhere and are on no roster.
      *
+     * <p><b>A role is based where its trade is,</b> and only there — see
+     * {@link CrewRole#trade}. Every place its rotation reaches for a secondary
+     * job is somewhere it goes. Reading those as postings makes one room a
+     * billet for every trade that could lend a hand in it: a spares cage
+     * publishing stowage became a posting for the storekeeper, the technician,
+     * the machinist, the medic, the armourer and the engine watch at once, and
+     * a ship with nineteen such pockets carried a thousand engineers.
+     *
+     * <p><b>Quarters are a billet only for a role with no work.</b> A watch is
+     * posted where its work is and berthed wherever there is a rack; reading a
+     * bunkroom as a posting for everybody who sleeps in it counts the ship's
+     * complement off her furniture instead of off her work, and counts it once
+     * per role. A hull with seven bunkrooms and seven working trades came out
+     * carrying five hundred hands - each trade filling every rack - on a ship
+     * whose whole company is sixty. What each of those roles then does aboard is
+     * bounded by what there is to do: one vehicle bay supports the technicians
+     * one bay can occupy, and a ship with no sick berth carries no medic.
+     *
      * <p>A role with no work aboard therefore has exactly one kind of billet,
      * its berthing, which is the right shape for a marine complement carried as
-     * passengers on somebody else's ship.
+     * passengers on somebody else's ship. Sleeping and washing are still
+     * <em>reached</em> either way: {@link #postedAt} sends every watch to the
+     * nearest place offering its off-watch jobs, so the ratings' bunkrooms fill
+     * up with ratings who are billeted at their work.
      *
      * <p>This bounds a <em>complement</em>, not a posting. {@link #postedAt}
      * will still build the shift a role would work anywhere it is deliberately
@@ -155,11 +176,9 @@ public final class Shift {
      */
     public static boolean basedAt(CrewRole role, JobSite posted,
                                   List<FixtureTask> authored, boolean[] berthed) {
-        if (posted.purpose() == role.quarters()) return true;
-        for (Affordance job : role.onWatch()) {
-            if (job.duty() && offers(posted, role, job, authored, berthed)) return true;
-        }
-        return false;
+        Affordance trade = role.trade();
+        if (trade != null) return offers(posted, role, trade, authored, berthed);
+        return posted.purpose() == role.quarters();
     }
 
     /** Whether this site has a live job of that kind, and it is this role's. */
