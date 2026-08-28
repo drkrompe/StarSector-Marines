@@ -79,15 +79,23 @@ final class ShipDeckBattleSceneTest {
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(deck, SEED)) {
             int across = 24;
             int down = 16;
+            // Framed on the middle of the deck, where the spine and the
+            // compartments hung off it are. A window near a corner is outside
+            // the hull, and asking whether the world drew there answers whether
+            // something paints the empty space around a ship rather than
+            // whether the ship drew.
             image = drain.renderHostPass(
                     scene.pass(ShipDeckBattleScene.DeckView.over(
-                            10, 6, across, down, CELL_PX)),
+                            (deck.grid.getWidth() - across) / 2,
+                            (deck.grid.getHeight() - down) / 2,
+                            across, down, CELL_PX)),
                     across * CELL_PX, down * CELL_PX);
         }
 
         assertNotNull(image, "the deck view produced no image");
         assertTrue(painted(image) > 0.5f,
-                "the deck view came out mostly blank, so the world layers drew nothing");
+                "the deck view came out mostly blank, so the world layers drew nothing: "
+                        + painted(image));
     }
 
     /**

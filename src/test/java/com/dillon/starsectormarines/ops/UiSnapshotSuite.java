@@ -88,6 +88,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final CompanyMeans SOLVENT = CompanyMeans.of(84, 3, 240_000);
     private static final CompanyMeans BROKE = CompanyMeans.of(84, 3, 18_000);
 
+    /** The hull the ship view is drawn on: a real transport with real art. */
+    private static final String SHIP_VIEW_HULL = "conquest";
+
     private static final List<String> SHIP_VIEW_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-view.mlx");
@@ -399,8 +402,20 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY * 3);
-        CompanyDeck ship = companyShip(List::of,
-                () -> MarineOpsContext.companyMarines(roster));
+        // A real hull, because the point of the backdrop is that the deck and
+        // the art come out of the same .ship file. A synthetic fixture would
+        // prove only that a picture can be drawn behind a plan.
+        VanillaHullSilhouettes vanilla =
+                new VanillaHullSilhouettes(context.starsectorCore());
+        VanillaHullSilhouettes.Hull hull =
+                vanilla.available() ? vanilla.read(SHIP_VIEW_HULL) : null;
+        CompanyDeck ship = hull == null
+                ? companyShip(List::of, () -> MarineOpsContext.companyMarines(roster))
+                : new CompanyDeck(new CompanyShip(hull.hullClass(), hull.role(),
+                        hull.minCrew(), hull.maxCrew(), hull.cargo(), hull.silhouette()),
+                        SHIP_SEED, null, List::of,
+                        () -> MarineOpsContext.companyMarines(roster));
+        if (hull != null) ship.advance(18f);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
         loader.reload();
@@ -417,7 +432,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("ship-view-deck"),
-                    new ShipViewCanvas(ship));
+                    new ShipViewCanvas(ship, hull == null ? null : hull.spriteName()));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
