@@ -41,6 +41,21 @@
     border-color: #ffe6a3;
   }
 
+  /* A room the ship does not have. The button stays so the player can see the
+     berth the hull lacks, rather than wondering where a page went. */
+  #marine-ops-page-routes .page-nav-absent {
+    background-color: #12181c;
+    border-color: #2b3238;
+    color: #55626b;
+    opacity: 0.55;
+  }
+
+  #marine-ops-page-routes .page-nav-absent:hover {
+    background-color: #12181c;
+    border-color: #2b3238;
+    color: #55626b;
+  }
+
   #marine-ops-page-context {
     width: 0px;
     flex-grow: 1;
