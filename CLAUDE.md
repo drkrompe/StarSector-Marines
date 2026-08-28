@@ -167,8 +167,8 @@ Do not run builds or leave generated task files there.
   or dissolve one of its autotile blocks, render its map-preview comparison, run the snapshot catalog — with no workbench window
   and nothing to start first. `--list` names the tools, `--describe <tool>`
   prints its schema, `--json` returns the structured result. Arguments are one
-  JSON object, inline or as `@file` or `-` for stdin; prefer `@file` from
-  PowerShell, which rewrites quotes on their way to a native executable. Exit
+  JSON object, inline or as `@file` or `-` for stdin; from PowerShell quote the
+  `@file` or use `-`, because a bare `@token` is its splatting operator. Exit
   status is 1 when the tool reports a failure and 2 on a usage mistake. See the
   `authoring-tools` skill.
 - `gradlew.bat installAuthoringTools` → writes the generated launchers under
