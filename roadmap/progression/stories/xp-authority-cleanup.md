@@ -1,6 +1,6 @@
 # Cleanup — One persistent XP authority
 
-Status: READY — unblocked; `s11-card-sourced-experience.md` removed the award model this was waiting on.
+Status: READY — unblocked; issued experience bands removed the award model this was waiting on.
 Written: 2026-08-23
 Updated: 2026-08-27 — rank-and-file XP is no longer a progression dial, so the second authority is now plainly obsolete rather than pending a decision.
 

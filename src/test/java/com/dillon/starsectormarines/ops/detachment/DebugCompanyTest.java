@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.marine.SquadExperienceStandard;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -112,21 +113,23 @@ class DebugCompanyTest {
     }
 
     @Test
-    void laterStagesPromoteAndRearm() {
+    void stripesAndBandsFollowTheArmourEachSquadWasIssued() {
+        // Experience is issued with the armour, so a stage no longer authors a
+        // band directly: the randomized armour doctrine each squad rolls does.
+        // What must hold is that the two agree — an NCO wearing a veteran-band
+        // suit wears sergeant's stripes, and one below that does not.
         MarineRoster established = DebugCompany.roster(DebugCompanyStage.ESTABLISHED);
-        MarineSquad squad = established.squadById(
-                DebugCompany.lineSquadIds(established).get(0));
 
-        assertSame(EnlistedRank.SERGEANT, established.squadLeader(squad).enlistedRank(),
-                "an established company's squad leader has veteran service");
-
-        MarineRoster veterans = DebugCompany.roster(DebugCompanyStage.VETERAN_COMPANY);
-        int elite = 0;
-        for (MarineSoldier soldier : veterans.activeSoldiers()) {
-            if (soldier.profile().experienceTier() == ExperienceTier.ELITE) elite++;
+        for (String squadId : DebugCompany.lineSquadIds(established)) {
+            MarineSquad squad = established.squadById(squadId);
+            MarineSoldier leader = established.squadLeader(squad);
+            assertNotNull(leader);
+            boolean veteranBand = SquadExperienceStandard.bandFor(leader).minimumXp
+                    >= ExperienceTier.VETERAN.minimumXp;
+            assertSame(veteranBand ? EnlistedRank.SERGEANT : EnlistedRank.CORPORAL,
+                    leader.enlistedRank(),
+                    "stripes track the band the leader's issued suit fields");
         }
-        assertEquals(DebugCompanyStage.VETERAN_COMPANY.squads, elite,
-                "one elite sergeant per squad");
     }
 
     @Test
@@ -171,9 +174,37 @@ class DebugCompanyTest {
         assertEquals(SquadEquipmentDoctrines.weaponDoctrines().size(),
                 weaponDoctrines.size(),
                 "the first shuffle bag exposes every faction-flavored weapon doctrine");
-        assertEquals(SquadEquipmentDoctrines.armorDoctrines().size(),
-                armorDoctrines.size(),
-                "the first shuffle bag exposes every faction-flavored armor doctrine");
+        // Armour decides the band, so a stage draws only from the doctrines that
+        // top out at what it has collected. Coverage is therefore per band.
+        Set<String> admissible = new HashSet<>();
+        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
+            if (DebugCompany.bestArmorTier(doctrine)
+                    == DebugCompanyStage.VETERAN_COMPANY.plan.maxArmorTier()) {
+                admissible.add(doctrine.id());
+            }
+        }
+        assertEquals(admissible, armorDoctrines,
+                "the first shuffle bag exposes every armor doctrine at the stage's band");
+    }
+
+    @Test
+    void theStageBandsBetweenThemReachEveryArmorDoctrine() {
+        // A doctrine no stage can draw is unreachable from the debug company,
+        // which is how an authored loadout quietly stops being exercised.
+        Set<String> reachable = new HashSet<>();
+        for (DebugBilletPlan plan : DebugBilletPlan.values()) {
+            for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
+                if (DebugCompany.bestArmorTier(doctrine) == plan.maxArmorTier()) {
+                    reachable.add(doctrine.id());
+                }
+            }
+        }
+        Set<String> authored = new HashSet<>();
+        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
+            authored.add(doctrine.id());
+        }
+        assertEquals(authored, reachable,
+                "every authored armor doctrine sits in some stage's band");
     }
 
     @Test

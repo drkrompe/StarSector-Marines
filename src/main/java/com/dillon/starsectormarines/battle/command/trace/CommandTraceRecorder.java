@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -38,6 +39,7 @@ public final class CommandTraceRecorder {
     private final Map<String, String> lastCompoundState = new HashMap<>();
     private final Map<String, String> lastCompoundPresence = new HashMap<>();
     private final Map<String, String> lastChargeSiteState = new HashMap<>();
+    private final Map<String, String> lastExtractionState = new HashMap<>();
     private final StringBuilder canonical = new StringBuilder(16_384);
     private List<CompoundService.Record> compounds = List.of();
     private int compoundCount = -1;
@@ -65,6 +67,7 @@ public final class CommandTraceRecorder {
         }
         sampleCompounds(sim);
         sampleChargeSites(sim);
+        sampleExtractionPayloads(sim);
         if (sim.isComplete() && !terminalRecorded) {
             terminalRecorded = true;
             StringBuilder out = begin("referee", sim.getSimTickIndex());
@@ -105,6 +108,7 @@ public final class CommandTraceRecorder {
         lastCompoundState.clear();
         lastCompoundPresence.clear();
         lastChargeSiteState.clear();
+        lastExtractionState.clear();
         StringBuilder out = begin("control", tick);
         field(out, "event", "capture-resumed");
         appendLine(end(out));
@@ -254,6 +258,56 @@ public final class CommandTraceRecorder {
             numberField(out, "progressBasisPoints", progress);
             booleanField(out, "planterOnSite", site.planterOnSite());
             booleanField(out, "complete", site.isComplete());
+            appendLine(end(out));
+        }
+    }
+
+    /** Full payload progress belongs only to the neutral referee stream. */
+    private void sampleExtractionPayloads(BattleSimulation sim) {
+        List<ExtractionPayloadObjective> payloads = new ArrayList<>();
+        for (Objective objective : sim.getObjectives()) {
+            if (objective instanceof ExtractionPayloadObjective payload) {
+                payloads.add(payload);
+            }
+        }
+        payloads.sort(Comparator.comparing(
+                ExtractionPayloadObjective::payloadId));
+        for (ExtractionPayloadObjective payload : payloads) {
+            int progress = Math.max(0, Math.min(10_000,
+                    Math.round(payload.normalizedProgress() * 10_000f)));
+            String signature = payload.extractionPhase().name() + "|"
+                    + payload.payloadCellX() + "|" + payload.payloadCellY()
+                    + "|" + payload.activeElements() + "|"
+                    + payload.boardedElements() + "|" + payload.lostElements()
+                    + "|" + progress + "|" + payload.alarmActive() + "|"
+                    + payload.controllingSquadId() + "|"
+                    + payload.escortPresent() + "|"
+                    + payload.failureReason().name();
+            if (signature.equals(lastExtractionState.put(
+                    payload.payloadId(), signature))) continue;
+            StringBuilder out = begin("referee", sim.getSimTickIndex());
+            field(out, "event", "extraction-payload-state");
+            field(out, "payloadId", payload.payloadId());
+            field(out, "payloadName", payload.payloadName());
+            field(out, "payloadKind", payload.payloadKind().name());
+            field(out, "phase", payload.extractionPhase().name());
+            numberField(out, "sourceCellX", payload.sourceCellX());
+            numberField(out, "sourceCellY", payload.sourceCellY());
+            numberField(out, "egressCellX", payload.egressCellX());
+            numberField(out, "egressCellY", payload.egressCellY());
+            numberField(out, "payloadCellX", payload.payloadCellX());
+            numberField(out, "payloadCellY", payload.payloadCellY());
+            numberField(out, "initialElements", payload.initialElements());
+            numberField(out, "activeElements", payload.activeElements());
+            numberField(out, "boardedElements", payload.boardedElements());
+            numberField(out, "lostElements", payload.lostElements());
+            numberField(out, "progressBasisPoints", progress);
+            booleanField(out, "alarmActive", payload.alarmActive());
+            numberField(out, "alarmRaisedTick", payload.alarmRaisedTick());
+            numberField(out, "controllingSquadId",
+                    payload.controllingSquadId());
+            booleanField(out, "escortPresent", payload.escortPresent());
+            field(out, "failure", payload.failureReason().name());
             appendLine(end(out));
         }
     }

@@ -807,6 +807,9 @@ public class MarineRoster implements Serializable {
         MarineSoldier soldier = soldierById(soldierId);
         if (!canAllocateArmor(soldierId, armor)) return false;
         soldier.setArmor(armor);
+        // Armour sets the experience band, and stripes follow the band, so an
+        // armour change is a leadership change ({@code progression-nouns.md}).
+        refreshLeadership();
         return true;
     }
 
@@ -1006,6 +1009,7 @@ public class MarineRoster implements Serializable {
             soldier.setArmor(billet.armorId());
         }
         squad.setEquipmentDoctrineIds(weaponDoctrineId, armorDoctrineId);
+        refreshLeadership();
         return SquadEquipmentResult.APPLIED;
     }
 
@@ -1295,6 +1299,7 @@ public class MarineRoster implements Serializable {
             }
             squad.setTeamTemplateCardId(request.teamIndex, card.id());
         }
+        refreshLeadership();
     }
 
     private boolean recipesUnlocked(FireTeamTemplateCard card) {
@@ -1542,8 +1547,12 @@ public class MarineRoster implements Serializable {
                 MarineSoldier teamLeader = seniorOnTeam(squad, team, onDuty);
                 if (teamLeader != null) teamLeader.setEnlistedRank(EnlistedRank.LANCE_CORPORAL);
             }
+            // Stripes follow the band the squad's kit fields its NCO at. With
+            // experience issued rather than accumulated, a marine never grows
+            // into sergeant's stripes; the company equips its way there.
             leader.setEnlistedRank(
-                    leader.experienceXp() >= ExperienceTier.VETERAN.minimumXp
+                    SquadExperienceStandard.bandFor(leader).minimumXp
+                            >= ExperienceTier.VETERAN.minimumXp
                             ? EnlistedRank.SERGEANT : EnlistedRank.CORPORAL);
         }
     }
@@ -1590,6 +1599,13 @@ public class MarineRoster implements Serializable {
      * armory. Keyed to squad structure so the pattern holds as the roster grows:
      * one anti-armor billet per squad, and the first two squads issued distinct
      * armor so they read apart on sight.
+     *
+     * <p><b>Armour tier here is load-bearing, not decoration.</b> It sets the
+     * band a marine deploys at ({@code SquadExperienceStandard}), so the two
+     * founding squads are deliberately given <em>different tier-2 patterns</em>
+     * rather than different-looking better ones: they read apart on sight and
+     * still field as regulars. Green is reserved for the cargo replacements a
+     * player has not kitted out yet, which is what makes losses cost something.
      */
     private void autoIssueRecruit(MarineSoldier recruit, int number) {
         int billet = Math.floorMod(number - 1, MarineSquad.CAPACITY) + 1;
@@ -1599,9 +1615,9 @@ public class MarineRoster implements Serializable {
             recruit.setPrimary(WeaponRegistry.DMR_ID, EquipmentGrade.SERVICE);
         }
         if (number <= MarineSquad.CAPACITY) {
-            recruit.setArmor(MarineArmorPattern.CHARCOAL);
+            recruit.setArmor(MarineArmorPattern.MILITIA);
         } else if (number <= 2 * MarineSquad.CAPACITY) {
-            recruit.setArmor(MarineArmorPattern.ARMY_GREEN);
+            recruit.setArmor(MarineArmorPattern.BLUE_SCOUT);
         }
         if (billet == MarineSquad.CAPACITY) {
             recruit.setSpecialEquipment(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);

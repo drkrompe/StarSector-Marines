@@ -130,14 +130,20 @@ class SquadLeadershipTest {
     }
 
     @Test
-    void aVeteranSquadLeaderWearsSergeantsStripes() {
+    void sergeantsStripesFollowIssuedArmourRatherThanServedTime() {
         MarineRoster roster = rosterOfOneSquad();
         MarineSquad squad = roster.squads().get(0);
-        roster.squadLeader(squad).addExperience(ExperienceTier.VETERAN.minimumXp);
+        MarineSoldier leader = roster.squadLeader(squad);
 
-        // Any membership change re-derives leadership.
+        // Time served buys nothing: experience is issued with the kit, so a
+        // hoard of XP leaves an NCO in the same stripes.
+        leader.addExperience(ExperienceTier.ELITE.minimumXp * 4);
         assertNotNull(roster.recruitToSquad(roster.reserveSquad().id()));
+        assertEquals(EnlistedRank.CORPORAL, roster.squadLeader(squad).enlistedRank());
 
+        // Putting them in a veteran-band suit does.
+        leader.setArmor(MarineArmorPattern.CHARCOAL);
+        assertNotNull(roster.recruitToSquad(roster.reserveSquad().id()));
         assertEquals(EnlistedRank.SERGEANT, roster.squadLeader(squad).enlistedRank());
     }
 
