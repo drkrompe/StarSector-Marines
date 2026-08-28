@@ -117,12 +117,6 @@ public class MarineOpsContext {
     /** Mission lists cached per client so positions stay stable across re-layouts. */
     private final Map<String, List<Mission>> missionsByClient = new HashMap<>();
 
-    /**
-     * The layout a company gets when there is no campaign to read their own
-     * seed from, which is only ever a headless caller.
-     */
-    private static final long COMPANY_DECK_SEED = 0x5AFE_DECEL;
-
     private CompanyDeck companyDeck;
     /** The ship {@link #companyDeck} was generated for, so a transfer rebuilds it. */
     private String companyDeckShipId;
@@ -162,24 +156,11 @@ public class MarineOpsContext {
         if (companyDeck != null) companyDeck.dismiss();
         companyDeckShipId = hull;
         CompanyShip ship = CompanyShipResolver.read(aboard);
-        companyDeck = ship == null ? null : new CompanyDeck(ship, deckSeedFor(hull),
+        companyDeck = ship == null ? null : new CompanyDeck(ship,
+                CompanyShipDesignation.deckSeedFor(hull),
                 new BattleSprites(), MarineOpsContext::companyLance,
                 MarineOpsContext::companyMarines);
         return companyDeck;
-    }
-
-    /**
-     * The layout seed for one hull: the company's own seed mixed with the ship
-     * it is generating for.
-     *
-     * <p>Per ship rather than per company, so transferring produces a genuinely
-     * different interior, and stable per ship, so a hull the company moves back
-     * to is the one they remember rather than a fresh draw.
-     */
-    private static long deckSeedFor(String hull) {
-        MarineRosterScript script = MarineRosterScript.getInstance();
-        long company = script == null ? COMPANY_DECK_SEED : script.roster().deckSeed();
-        return hull == null ? company : company * 31L + hull.hashCode();
     }
 
     /** The machines parked in the company ship's berths: whatever the player owns. */

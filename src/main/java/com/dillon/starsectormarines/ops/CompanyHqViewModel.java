@@ -17,12 +17,14 @@ import com.dillon.starsectormarines.campaign.PlayerEventNotice;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.event.PlayerEventTarget;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -51,6 +53,7 @@ final class CompanyHqViewModel {
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
+            Runnable openShipTransfer,
             Runnable close,
             Function<CompanyClocks.Entry, Runnable> respond) {
         int day = CampaignClock.day();
@@ -61,7 +64,7 @@ final class CompanyHqViewModel {
         List<CompanyNews.Entry> news = CompanyNews.latest(
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
         return build(standing, clocks, news, day, aboard, openBarracks, openArmory,
-                openMechLab, close, respond);
+                openMechLab, openShipTransfer, close, respond);
     }
 
     private static CompanyHqViewModel build(
@@ -73,6 +76,7 @@ final class CompanyHqViewModel {
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
+            Runnable openShipTransfer,
             Runnable close,
             Function<CompanyClocks.Entry, Runnable> respond) {
         Map<String, Object> props = baseLabels();
@@ -117,15 +121,32 @@ final class CompanyHqViewModel {
         props.put("newsEmpty", news.isEmpty()
                 ? Strings.get("companyHqNewsEmpty") : "");
 
+        props.put("shipAction", openShipTransfer);
+        props.put("shipLabel", shipLabel());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, aboard, close,
                 () -> { }, openBarracks, openArmory, openMechLab);
         return new CompanyHqViewModel(props);
+    }
+
+    /**
+     * The ship the company lives aboard, named on the button that offers to
+     * change her — so the fleet decision is legible from the company's own page
+     * without opening it.
+     */
+    private static String shipLabel() {
+        FleetMemberAPI aboard = CompanyShipDesignation.aboard();
+        if (aboard == null) return "NO SHIP  ·  CHOOSE ONE";
+        String named = aboard.getShipName();
+        String ship = named == null || named.isBlank() ? aboard.getHullId() : named;
+        return ship.toUpperCase(Locale.ROOT) + "  ·  CHANGE SHIP";
     }
 
     /** Rich deterministic fixture used by the retained UI evidence suite. */
     static CompanyHqViewModel preview() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("purpose", "FLAGSHIP  /  BRIDGE  /  COMMAND NETWORK");
+        props.put("shipAction", (Runnable) () -> { });
+        props.put("shipLabel", "VALKYRIE  ·  CHANGE SHIP");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         props.put("assessmentHeader", "BRIDGE ADJUTANT  //  DAILY ASSESSMENT");

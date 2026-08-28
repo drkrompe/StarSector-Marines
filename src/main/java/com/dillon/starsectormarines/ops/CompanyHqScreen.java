@@ -57,6 +57,7 @@ public final class CompanyHqScreen implements Screen {
                 this::onBarracks,
                 this::onArmory,
                 this::onMechLab,
+                this::onShipTransfer,
                 this::onClose,
                 this::responseAction);
         MarkupInstance candidate = markup.reloadAndBuild(
@@ -90,6 +91,7 @@ public final class CompanyHqScreen implements Screen {
                 "page-nav-mech-lab",
                 "company-hq-assessment",
                 "company-hq-main", "company-hq-sidebar", "company-hq-force",
+                "company-hq-ship",
                 "company-hq-finance", "company-hq-standing", "company-hq-board",
                 "company-hq-obligation-list", "company-hq-news-list")) {
             component.requireElement(id);
@@ -114,6 +116,10 @@ public final class CompanyHqScreen implements Screen {
 
     private void onMechLab() {
         if (context != null) context.goTo(ScreenId.MECH_LAB);
+    }
+
+    private void onShipTransfer() {
+        if (context != null) context.goTo(ScreenId.SHIP_TRANSFER);
     }
 
     private void onClose() {
