@@ -1,104 +1,535 @@
 {
-  "sheet": "graphics/tilesets/urban-tileset.png",
-  "cellPx": 32,
   "blocks": [
-    { "id": "urban.wall",      "origin": [3, 0], "layout": "wall-3x3", "fillRgb": "0x060A10" },
-    { "id": "urban.floor",     "origin": [0, 0], "layout": "floor-3x3" },
-    { "id": "urban.rubble",    "origin": [0, 4], "layout": "floor-3x3" },
-    { "id": "urban.door-open", "origin": [7, 2], "layout": "single" }
+    {
+      "fillRgb": "0x060A10",
+      "id": "urban.wall",
+      "layout": "wall-3x3",
+      "origin": [
+        3,
+        0
+      ]
+    },
+    {
+      "id": "urban.floor",
+      "layout": "floor-3x3",
+      "origin": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "urban.rubble",
+      "layout": "floor-3x3",
+      "origin": [
+        7,
+        3
+      ]
+    },
+    {
+      "id": "urban.door-open",
+      "layout": "single",
+      "origin": [
+        11,
+        0
+      ]
+    }
+  ],
+  "cellPx": 32,
+  "cells": [
+    {
+      "col": 0,
+      "description": "exterior on the north and west",
+      "name": "urban.floor nw",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "exterior on the north",
+      "name": "urban.floor n",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "exterior on the north and east",
+      "name": "urban.floor ne",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "exterior on the north and west",
+      "name": "urban.wall nw",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "exterior on the north",
+      "name": "urban.wall n",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "exterior on the north and east",
+      "name": "urban.wall ne",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "exterior on the west",
+      "name": "urban.floor w",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "enclosed \u2014 no exterior on any side",
+      "name": "urban.floor center",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "exterior on the east",
+      "name": "urban.floor e",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "exterior on the west",
+      "name": "urban.wall w",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "enclosed \u2014 no exterior on any side",
+      "name": "urban.wall center",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "exterior on the east",
+      "name": "urban.wall e",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "name": "doodad.chair-south-yellow",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "doodad.chair-south-green",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "doodad.box",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "doodad.crate",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "exterior on the south and west",
+      "name": "urban.floor sw",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "description": "exterior on the south",
+      "name": "urban.floor s",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "description": "exterior on the south and east",
+      "name": "urban.floor se",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "description": "exterior on the south and west",
+      "name": "urban.wall sw",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "description": "exterior on the south",
+      "name": "urban.wall s",
+      "row": 2
+    },
+    {
+      "col": 5,
+      "description": "exterior on the south and east",
+      "name": "urban.wall se",
+      "row": 2
+    },
+    {
+      "col": 10,
+      "name": "doodad.door-closed",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "the block's only cell",
+      "name": "urban.door-open only",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "doodad.desk-1",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "Bay-deck field paving. Addressed by VehicleBayFitting.",
+      "name": "doodad.fl-grate-1",
+      "row": 0,
+      "tags": [
+        "floor",
+        "paving"
+      ]
+    },
+    {
+      "col": 14,
+      "description": "Bay-deck perimeter stripe. Addressed by VehicleBayFitting.",
+      "name": "doodad.fl-striped-yellow",
+      "row": 0,
+      "tags": [
+        "floor",
+        "paving"
+      ]
+    },
+    {
+      "col": 15,
+      "description": "Bay-deck field paving, the alternate of the checker. Addressed by VehicleBayFitting.",
+      "name": "doodad.fl-grate-2",
+      "row": 0,
+      "tags": [
+        "floor",
+        "paving"
+      ]
+    },
+    {
+      "col": 0,
+      "name": "doodad.chest-1",
+      "row": 3
+    },
+    {
+      "col": 1,
+      "name": "doodad.chest-2",
+      "row": 3
+    },
+    {
+      "col": 2,
+      "name": "doodad.shelf-empty",
+      "row": 3
+    },
+    {
+      "col": 3,
+      "name": "doodad.shelf-1",
+      "row": 3
+    },
+    {
+      "col": 4,
+      "name": "doodad.shelf-2",
+      "row": 3
+    },
+    {
+      "col": 5,
+      "name": "doodad.shelf-3",
+      "row": 3
+    },
+    {
+      "col": 6,
+      "name": "doodad.desk-2",
+      "row": 3
+    },
+    {
+      "col": 7,
+      "description": "exterior on the north and west",
+      "name": "urban.rubble nw",
+      "row": 3
+    },
+    {
+      "col": 8,
+      "description": "exterior on the north",
+      "name": "urban.rubble n",
+      "row": 3
+    },
+    {
+      "col": 9,
+      "description": "exterior on the north and east",
+      "name": "urban.rubble ne",
+      "row": 3
+    },
+    {
+      "col": 7,
+      "description": "exterior on the west",
+      "name": "urban.rubble w",
+      "row": 4
+    },
+    {
+      "col": 8,
+      "description": "enclosed \u2014 no exterior on any side",
+      "name": "urban.rubble center",
+      "row": 4
+    },
+    {
+      "col": 9,
+      "description": "exterior on the east",
+      "name": "urban.rubble e",
+      "row": 4
+    },
+    {
+      "col": 7,
+      "description": "exterior on the south and west",
+      "name": "urban.rubble sw",
+      "row": 5
+    },
+    {
+      "col": 8,
+      "description": "exterior on the south",
+      "name": "urban.rubble s",
+      "row": 5
+    },
+    {
+      "col": 9,
+      "description": "exterior on the south and east",
+      "name": "urban.rubble se",
+      "row": 5
+    },
+    {
+      "col": 10,
+      "name": "doodad.decal-rubble-1",
+      "row": 3
+    },
+    {
+      "col": 11,
+      "name": "doodad.decal-rubble-2",
+      "row": 3
+    },
+    {
+      "col": 12,
+      "name": "doodad.decal-rubble-3",
+      "row": 3
+    },
+    {
+      "col": 13,
+      "name": "doodad.decal-rubble-4",
+      "row": 3
+    },
+    {
+      "col": 14,
+      "name": "doodad.shelf-dam-1",
+      "row": 3
+    },
+    {
+      "col": 15,
+      "name": "doodad.shelf-dam-2",
+      "row": 3
+    },
+    {
+      "col": 0,
+      "name": "doodad.desk-dam",
+      "row": 6
+    },
+    {
+      "col": 1,
+      "name": "doodad.box-dam",
+      "row": 6
+    },
+    {
+      "col": 2,
+      "name": "doodad.chair-s-yellow-dam",
+      "row": 6
+    },
+    {
+      "col": 3,
+      "name": "doodad.chair-s-green-dam",
+      "row": 6
+    }
   ],
   "doodads": [
-    { "id": "doodad.chair-south-yellow", "col": 6, "row": 1, "cover": "med",   "ballisticHalfHeight": 0.30 },
-    { "id": "doodad.chair-south-green",  "col": 7, "row": 1, "cover": "med",   "ballisticHalfHeight": 0.30 },
-    { "id": "doodad.box",                "col": 8, "row": 1, "cover": "med",   "ballisticHalfHeight": 0.28 },
-    { "id": "doodad.crate",              "col": 9, "row": 1, "cover": "med",   "ballisticHalfHeight": 0.38 },
-    { "id": "doodad.door-closed",        "col": 6, "row": 2, "cover": "med",   "ballisticHalfHeight": 0.75 },
-    { "id": "doodad.desk-1",             "col": 9, "row": 2, "cover": "med",   "ballisticHalfHeight": 0.38 },
-    { "id": "doodad.chest-1",            "col": 3, "row": 3, "cover": "med",   "ballisticHalfHeight": 0.32 },
-    { "id": "doodad.chest-2",            "col": 4, "row": 3, "cover": "med",   "ballisticHalfHeight": 0.32 },
-    { "id": "doodad.shelf-empty",        "col": 5, "row": 3, "cover": "heavy", "ballisticHalfHeight": 0.75 },
-    { "id": "doodad.shelf-1",            "col": 6, "row": 3, "cover": "heavy", "ballisticHalfHeight": 0.75 },
-    { "id": "doodad.shelf-2",            "col": 7, "row": 3, "cover": "heavy", "ballisticHalfHeight": 0.75 },
-    { "id": "doodad.shelf-3",            "col": 8, "row": 3, "cover": "heavy", "ballisticHalfHeight": 0.75 },
-    { "id": "doodad.desk-2",             "col": 9, "row": 3, "cover": "med",   "ballisticHalfHeight": 0.38 },
-    { "id": "doodad.decal-rubble-1",     "col": 0, "row": 7, "cover": "light", "ballisticHalfHeight": 0.16 },
-    { "id": "doodad.decal-rubble-2",     "col": 1, "row": 7, "cover": "light", "ballisticHalfHeight": 0.16 },
-    { "id": "doodad.decal-rubble-3",     "col": 2, "row": 7, "cover": "light", "ballisticHalfHeight": 0.16 },
-    { "id": "doodad.decal-rubble-4",     "col": 3, "row": 7, "cover": "light", "ballisticHalfHeight": 0.16 },
-    { "id": "doodad.shelf-dam-1",        "col": 4, "row": 7, "cover": "heavy", "ballisticHalfHeight": 0.55 },
-    { "id": "doodad.shelf-dam-2",        "col": 5, "row": 7, "cover": "heavy", "ballisticHalfHeight": 0.55 },
-    { "id": "doodad.desk-dam",           "col": 6, "row": 7, "cover": "med",   "ballisticHalfHeight": 0.28 },
-    { "id": "doodad.box-dam",            "col": 7, "row": 7, "cover": "med",   "ballisticHalfHeight": 0.22 },
-    { "id": "doodad.chair-s-yellow-dam", "col": 8, "row": 7, "cover": "med",   "ballisticHalfHeight": 0.22 },
-    { "id": "doodad.chair-s-green-dam",  "col": 9, "row": 7, "cover": "med",   "ballisticHalfHeight": 0.22 },
-
-    { "id": "doodad.fl-grate-1",         "col": 0, "row": 3, "cover": "none",  "ballisticHalfHeight": 0.0 },
-    { "id": "doodad.fl-striped-yellow",  "col": 1, "row": 3, "cover": "none",  "ballisticHalfHeight": 0.0 },
-    { "id": "doodad.fl-grate-2",         "col": 2, "row": 3, "cover": "none",  "ballisticHalfHeight": 0.0 }
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 6,
+      "cover": "med",
+      "id": "doodad.chair-south-yellow",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 7,
+      "cover": "med",
+      "id": "doodad.chair-south-green",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.28,
+      "col": 8,
+      "cover": "med",
+      "id": "doodad.box",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 9,
+      "cover": "med",
+      "id": "doodad.crate",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 10,
+      "cover": "med",
+      "id": "doodad.door-closed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 12,
+      "cover": "med",
+      "id": "doodad.desk-1",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "cover": "none",
+      "id": "doodad.fl-grate-1",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "cover": "none",
+      "id": "doodad.fl-striped-yellow",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "cover": "none",
+      "id": "doodad.fl-grate-2",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.32,
+      "col": 0,
+      "cover": "med",
+      "id": "doodad.chest-1",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.32,
+      "col": 1,
+      "cover": "med",
+      "id": "doodad.chest-2",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.shelf-empty",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.shelf-1",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.shelf-2",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.shelf-3",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 6,
+      "cover": "med",
+      "id": "doodad.desk-2",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.16,
+      "col": 10,
+      "cover": "light",
+      "id": "doodad.decal-rubble-1",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.16,
+      "col": 11,
+      "cover": "light",
+      "id": "doodad.decal-rubble-2",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.16,
+      "col": 12,
+      "cover": "light",
+      "id": "doodad.decal-rubble-3",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.16,
+      "col": 13,
+      "cover": "light",
+      "id": "doodad.decal-rubble-4",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.55,
+      "col": 14,
+      "cover": "heavy",
+      "id": "doodad.shelf-dam-1",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.55,
+      "col": 15,
+      "cover": "heavy",
+      "id": "doodad.shelf-dam-2",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.28,
+      "col": 0,
+      "cover": "med",
+      "id": "doodad.desk-dam",
+      "row": 6
+    },
+    {
+      "ballisticHalfHeight": 0.22,
+      "col": 1,
+      "cover": "med",
+      "id": "doodad.box-dam",
+      "row": 6
+    },
+    {
+      "ballisticHalfHeight": 0.22,
+      "col": 2,
+      "cover": "med",
+      "id": "doodad.chair-s-yellow-dam",
+      "row": 6
+    },
+    {
+      "ballisticHalfHeight": 0.22,
+      "col": 3,
+      "cover": "med",
+      "id": "doodad.chair-s-green-dam",
+      "row": 6
+    }
   ],
-  "cells": [
-    { "col": 0, "row": 0, "name": "fl-nw" },
-    { "col": 1, "row": 0, "name": "fl-n" },
-    { "col": 2, "row": 0, "name": "fl-ne" },
-    { "col": 3, "row": 0, "name": "wall-nw" },
-    { "col": 4, "row": 0, "name": "wall-n" },
-    { "col": 5, "row": 0, "name": "wall-ne" },
-    { "col": 0, "row": 1, "name": "fl-w" },
-    { "col": 1, "row": 1, "name": "fl" },
-    { "col": 2, "row": 1, "name": "fl-e" },
-    { "col": 3, "row": 1, "name": "wall-w" },
-    { "col": 5, "row": 1, "name": "wall-e" },
-    { "col": 6, "row": 1, "name": "chair-south-yellow" },
-    { "col": 7, "row": 1, "name": "chair-south-green" },
-    { "col": 8, "row": 1, "name": "box" },
-    { "col": 9, "row": 1, "name": "crate" },
-    { "col": 0, "row": 2, "name": "fl-sw" },
-    { "col": 1, "row": 2, "name": "fl-s" },
-    { "col": 2, "row": 2, "name": "fl-se" },
-    { "col": 3, "row": 2, "name": "wall-sw" },
-    { "col": 4, "row": 2, "name": "wall-s" },
-    { "col": 5, "row": 2, "name": "wall-se" },
-    { "col": 6, "row": 2, "name": "door-closed" },
-    { "col": 7, "row": 2, "name": "door-open" },
-    { "col": 8, "row": 2, "name": "wall-s-computer" },
-    { "col": 9, "row": 2, "name": "desk-1" },
-    { "col": 0, "row": 3, "name": "fl-grate-1" },
-    { "col": 1, "row": 3, "name": "fl-striped-yellow" },
-    { "col": 2, "row": 3, "name": "fl-grate-2" },
-    { "col": 3, "row": 3, "name": "chest-1" },
-    { "col": 4, "row": 3, "name": "chest-2" },
-    { "col": 5, "row": 3, "name": "shelf-empty" },
-    { "col": 6, "row": 3, "name": "shelf-1" },
-    { "col": 7, "row": 3, "name": "shelf-2" },
-    { "col": 8, "row": 3, "name": "shelf-3" },
-    { "col": 9, "row": 3, "name": "desk-2" },
-    { "col": 0, "row": 4, "name": "fl-nw-dam" },
-    { "col": 1, "row": 4, "name": "fl-n-dam" },
-    { "col": 2, "row": 4, "name": "fl-ne-dam" },
-    { "col": 3, "row": 4, "name": "wall-nw-dam" },
-    { "col": 4, "row": 4, "name": "wall-n-dam" },
-    { "col": 5, "row": 4, "name": "wall-ne-dam" },
-    { "col": 0, "row": 5, "name": "fl-w-dam" },
-    { "col": 1, "row": 5, "name": "fl-dam" },
-    { "col": 2, "row": 5, "name": "fl-e-dam" },
-    { "col": 3, "row": 5, "name": "wall-w-dam" },
-    { "col": 5, "row": 5, "name": "wall-e-dam" },
-    { "col": 6, "row": 5, "name": "wall-s-computer-dam" },
-    { "col": 0, "row": 6, "name": "fl-sw-dam" },
-    { "col": 1, "row": 6, "name": "fl-s-dam" },
-    { "col": 2, "row": 6, "name": "fl-se-dam" },
-    { "col": 3, "row": 6, "name": "wall-sw-dam" },
-    { "col": 4, "row": 6, "name": "wall-s-dam" },
-    { "col": 5, "row": 6, "name": "wall-se-dam" },
-    { "col": 0, "row": 7, "name": "decal-rubble-1" },
-    { "col": 1, "row": 7, "name": "decal-rubble-2" },
-    { "col": 2, "row": 7, "name": "decal-rubble-3" },
-    { "col": 3, "row": 7, "name": "decal-rubble-4" },
-    { "col": 4, "row": 7, "name": "shelf-dam-1" },
-    { "col": 5, "row": 7, "name": "shelf-dam-2" },
-    { "col": 6, "row": 7, "name": "desk-dam" },
-    { "col": 7, "row": 7, "name": "box-dam" },
-    { "col": 8, "row": 7, "name": "chair-s-yellow-dam" },
-    { "col": 9, "row": 7, "name": "chair-s-green-dam" }
-  ]
+  "sheet": "graphics/tilesets/urban-tileset.png"
 }

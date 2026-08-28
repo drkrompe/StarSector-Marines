@@ -727,7 +727,8 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     not have, and would make the one screen where they inspect their own
     machines disagree with the fleet it is drawn from.
 17. **A deck is seen through the battle renderer, never through a second
-    painter.** A generated deck is already a map, so authoring evidence, a
+    painter, and its art is loaded by the deck rather than by the screen.**
+    A generated deck is already a map, so authoring evidence, a
     hosted deck view, and a boarding action are one renderer over one
     simulation, differing only in camera, layer set, and whether the frame
     drains to the screen or to an image. A tool that redraws the deck its own
@@ -736,6 +737,23 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     renderer has no concept of — room purpose, zone cuts, which opening is a
     door — is a legitimate second view, but it annotates the render or
     abandons the pretence of being one.
+
+    The ship is one scene and the screens are only cameras onto it, so **which
+    sheets to load is the deck's business, not each screen's**. Screens that
+    each listed what they expected to have in shot were right until the ship was
+    framed differently: the room views loaded the ground and the crew, the Mech
+    Lab loaded the machines too, and the whole-ship view — which sees all of it
+    at once — was written loading none of them and shipped a deck with no floor
+    and no people in it. The set now hangs off the one door every screen already
+    comes through.
+
+    **Headless evidence cannot see this.** The snapshot suite builds its deck
+    with no sprite cache at all, and the headless renderer loads sheets off disk
+    its own way, so the ship-view snapshot came out fully painted — hull,
+    decking, fixtures and machines — for the whole time the game was drawing an
+    empty wireframe. That evidence proves layout and composition and says
+    nothing about whether the running mod loaded its art. Only a first frame in
+    the game does.
 18. **A deck's form is what the ship can do when whole; damage is state laid
     over that form.** Refits change the form in both directions — a hull fitted
     with more berthing has more berths, and one whose bays were converted to
@@ -809,10 +827,22 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     scrap of leftover deck is within a cell of somebody's room. The pass takes
     very nearly all of what exists (nothing on a frigate, which needs nothing;
     three to six links on a capital) and the residue is not a defect in it.
-    **The remaining lever is the packing, not the law**: a deck that leaves a
-    third of the hull as void aft while packing the bow wall-to-wall has put its
-    empty space where no corridor can use it. Do not answer a detour by letting
-    a passage open a compartment.
+    **Do not answer a detour by letting a passage open a compartment**, and do
+    not answer it by keeping deck clear beside every hall either. That second
+    one looks like the obvious fix and was measured: forbidding rooms from the
+    one or two cells beside circulation makes decks *worse*, because a room that
+    may no longer touch a hall has to tunnel its own stub to reach one, and
+    every stub reserves more deck and pushes the next room further out. It
+    multiplies dead ends rather than joining them. On an Eagle the badly
+    detoured share of near pairs went from a tenth to a quarter, nine
+    compartments went unplaced or unbuilt, and corridor grew by a third while
+    the deck stopped reading as a ship at all. A Valkyrie improved slightly on
+    the number and lost fourteen rooms and its long berthing rows doing it.
+
+    So the tight pack is right and the detours it leaves are the price of it.
+    What is still unexplained is why a third of the hull sits void aft while
+    the bow is packed wall-to-wall; that is a question about where the program
+    puts its rooms, not about how tightly it puts them.
 
 ## Boundaries
 

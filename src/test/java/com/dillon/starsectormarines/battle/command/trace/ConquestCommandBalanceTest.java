@@ -379,7 +379,7 @@ class ConquestCommandBalanceTest {
                             ? " squad; " : " squads; ")
                     .append(movement.episodesWithMarkerClosure()).append('/')
                     .append(movement.movementEpisodes())
-                    .append(" assignment episodes closed marker range; ")
+                    .append(" assignment episodes made at least one cell of marker progress; ")
                     .append(movement.secureCompoundEpisodesObservedInTargetZone())
                     .append('/').append(movement.secureCompoundEpisodes())
                     .append(" secure-compound episodes were observed in their capture zone; ")
