@@ -38,21 +38,20 @@ tier IV today, but a future tier-IV scout or line suit would still carry
 nothing, and a cheaper assault pattern would carry one. What a player learns is
 "assault suits breach", not "expensive suits get a trick".
 
-The scarcity rule survives this and now does its work at a different level:
+What decides whether a pattern carries one is what that suit is *for*, and
+nothing else:
 
 - **One family, one role.** The breach family exists because breaching is a role
-  definition. Every other capability below is an *individual* system on one named
-  pattern, not a family the rest of its role inherits. If holding ground became a
-  family across all five line patterns, twelve of eighteen suits would carry
-  something and the whole idea would be a tax again.
-- **The budget is real and nearly spent.** Six of eighteen patterns carry a
-  system. `IntegralSystemDefTest` fires when carriers reach half the catalog,
-  which leaves room for about two more — so the individual rows below are
-  competing for those slots, not queuing for them.
+  definition — an assault suit that could not get through a door would be a
+  strange assault suit. Every other capability below is an *individual* system on
+  one named pattern, because holding ground and reading a room are things
+  particular suits are built for, not things a whole role is defined by.
 - **Do not give a faction a system so it has one.** `equipment-lore-catalog.md`
-  already establishes that absence is meaningful and that a faction-color clone
-  is not a reason to add an item. The same discipline applies here, harder.
-- **Six suits sharing an effect must be six suits.** Identical numbers under
+  establishes that absence is meaningful and that a faction-color clone is not a
+  reason to add an item. A pattern with nothing distinctive to say should say
+  nothing; the Church's Palatine and the League's Bastion are complete as
+  tradeoffs and would be worse with a trick bolted on.
+- **Suits sharing an effect must be different suits.** Identical numbers under
   different names is the palette swap this catalog exists to prevent. A test
   refuses a renamed copy.
 
@@ -80,13 +79,13 @@ suit is for.
 
 ## Individual systems
 
-Not a family. Each is one capability on one named pattern, competing for the two
-or so slots the budget has left.
+Not a family. Each is one capability on one named pattern, because that pattern
+is the one built for it.
 
 | Pattern | Tradition | Candidate capability | Needs from the simulation |
 | --- | --- | --- | --- |
 | `armor.scout` | Tri-Tachyon (Janus) | **Sensor sweep** — the suit's integrated sensor and EW package spending itself on a brief, wide read of what is actually in the room. | A shared perception contract; bounded temporary vision that is not permanent sight. `perception-integral-systems.md`. |
-| `armor.line` or `armor.furnace-line` | Hegemony or Sindrian Diktat | **Brace** — a line suit planting as a firing platform: markedly steadier, and committed to standing there. | A stance with a real movement cost; accuracy as a timed effect. `firing-platform-integral-systems.md`, which must pick one pattern, not both. |
+| `armor.line` or `armor.furnace-line` | Hegemony or Sindrian Diktat | **Brace** — a line suit planting as a firing platform: markedly steadier, and committed to standing there. | A stance with a real movement cost; accuracy as a timed effect. `firing-platform-integral-systems.md` picks whichever of the two the stance actually suits. |
 
 Holding ground moved to the line role once the assault heavies took breaching,
 and the split is better for it: **assault crosses, line holds.** That reads from
@@ -137,5 +136,5 @@ family are effectively waiting on — plus `integral-system-use-policy.md`,
 
 The two individual systems have stories of their own:
 `perception-integral-systems.md` and `firing-platform-integral-systems.md`.
-Between them they may claim both remaining budget slots, and nothing after that
-gets a system without something else giving one up.
+Neither is competing with the other, and a pattern not listed here is not
+waiting in a queue — it simply has nothing a capability would add.
