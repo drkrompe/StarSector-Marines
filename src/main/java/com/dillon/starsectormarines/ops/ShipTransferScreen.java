@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ops.battleview.DeckPlanCanvas;
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.UiPointerEvent;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -47,6 +50,8 @@ public final class ShipTransferScreen implements Screen {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
+    private DeckPlanCanvas plan;
+    private UiElement planElement;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -71,9 +76,10 @@ public final class ShipTransferScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
-            built.canvases().set(candidate.requireElement("transfer-plan"),
-                    new DeckPlanCanvas(viewModel::selectedPlan,
-                            viewModel::selectedOutline));
+            plan = new DeckPlanCanvas(viewModel::selectedPlan);
+            planElement = candidate.requireElement("transfer-plan");
+            built.canvases().set(planElement, plan);
+            planElement.onPointerMove(this::pointAtDeck);
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -132,6 +138,24 @@ public final class ShipTransferScreen implements Screen {
                 "transfer-commit", "transfer-facility-cells")) {
             component.requireElement(id);
         }
+    }
+
+    /**
+     * Follow the cursor across the plan so it can name what is under it.
+     *
+     * <p>Converted here rather than in the canvas because only the document
+     * knows where the canvas sits and how its surface is scaled; the plan is
+     * told where it is being pointed at in its own coordinates and answers for
+     * itself.
+     */
+    private void pointAtDeck(UiPointerEvent event) {
+        if (document == null || plan == null || planElement == null) return;
+        CanvasMetrics metrics = document.canvasMetrics(planElement, 1f);
+        float x = metrics.toCanvasX(event.x());
+        float y = metrics.toCanvasY(event.y());
+        if (!Float.isFinite(x) || !Float.isFinite(y)) return;
+        plan.pointAt(x, y);
+        document.canvases().invalidate(planElement);
     }
 
     private void close() {

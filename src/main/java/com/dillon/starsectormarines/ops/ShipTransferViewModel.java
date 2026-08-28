@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
-import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
-import com.dillon.starsectormarines.battle.world.gen.ship.HullSilhouette;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.InteriorChange;
@@ -69,7 +67,7 @@ public final class ShipTransferViewModel {
     private final Supplier<String> home;
     private final Consumer<String> moveAboard;
     private final Map<String, ShipInterior> interiors = new HashMap<>();
-    private final Map<String, DeckGraph> plans = new HashMap<>();
+    private final Map<String, CompanyDeck> plans = new HashMap<>();
     private final MutableSignal<String> selectedShipId;
     private final MutableSignal<Integer> revision;
     private final ComputedSignal<List<CandidateRow>> candidateRows;
@@ -125,19 +123,18 @@ public final class ShipTransferViewModel {
     public Signal<String> transferLabel() { return transferLabel; }
     public Signal<String> transferClasses() { return transferClasses; }
 
-    /** The selected candidate's deck, for the plan view. Null if she has none. */
-    public DeckGraph selectedPlan() {
+    /**
+     * The selected candidate's deck, for the plan view. Null if she has none.
+     *
+     * <p>The whole deck rather than only its rooms: the plan draws the
+     * passages between them, and a fifth of a ship's walkable area is
+     * circulation.
+     */
+    public CompanyDeck selectedPlan() {
         Candidate ship = selected();
         if (ship == null) return null;
-        return plans.computeIfAbsent(ship.id(), id -> ship.ship().habitable()
-                ? new CompanyDeck(ship.ship(), CompanyShipDesignation.deckSeedFor(id)).rooms()
-                : null);
-    }
-
-    /** The selected hull's own form, for drawing the plan inside. */
-    public HullSilhouette selectedOutline() {
-        Candidate ship = selected();
-        return ship == null ? null : ship.ship().outline();
+        return plans.computeIfAbsent(ship.id(),
+                id -> new CompanyDeck(ship.ship(), CompanyShipDesignation.deckSeedFor(id)));
     }
 
     /** Show this ship. Ignored for one the player does not own. */
