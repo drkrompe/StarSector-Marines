@@ -139,7 +139,7 @@ public class BspMapSpritePreviewTest {
         System.out.println("  wrote " + out.toAbsolutePath());
     }
 
-    /** Close production-path render of the thin shared-edge windows on a forward bunker. */
+    /** Close production-path render of the shared-edge windows on a forward bunker. */
     @Test
     void renderForwardBunkerWindow() throws Exception {
         Files.createDirectories(OUT_DIR);
