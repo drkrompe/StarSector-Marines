@@ -136,8 +136,7 @@ public final class SquadStateDumper {
             JSONObject believed = new JSONObject();
             believed.put("unitId", contact.unitId());
             long liveContact = sim.resolveUnit(contact.unitId());
-            believed.put("unitName", liveContact != 0L
-                    ? sim.identity().name(liveContact) : null);
+            believed.put("unitName", identityName(liveContact, sim));
             believed.put("lastSeenCellX", contact.lastSeenCellX());
             believed.put("lastSeenCellY", contact.lastSeenCellY());
             believed.put("lastSeenTick", contact.lastSeenTick());
@@ -162,8 +161,7 @@ public final class SquadStateDumper {
             audible.put("confidence", bearing.confidence());
             audible.put("sourceUnitId", bearing.sourceUnitId());
             long liveSource = sim.resolveUnit(bearing.sourceUnitId());
-            audible.put("sourceName", liveSource != 0L
-                    ? sim.identity().name(liveSource) : null);
+            audible.put("sourceName", identityName(liveSource, sim));
             audible.put("kind", bearing.kind().name());
             o.put("audibleBearing", audible);
         }
@@ -214,8 +212,7 @@ public final class SquadStateDumper {
         o.put("fallbackInProgress", squad.fallbackInProgress);
         o.put("engagementDisciplineHold", squad.engagementDisciplineHold);
         long rejectedTarget = sim.resolveUnit(squad.engagementDisciplineTargetId);
-        o.put("engagementDisciplineTargetId", rejectedTarget != 0L
-                ? sim.identity().name(rejectedTarget) : null);
+        o.put("engagementDisciplineTargetId", identityName(rejectedTarget, sim));
         o.put("engagementDisciplineThreatDensity",
                 squad.engagementDisciplineThreatDensity);
         SquadContactPicture picture = squad.contactPicture;
@@ -237,8 +234,7 @@ public final class SquadStateDumper {
         contactPicture.put("primaryMotion", picture.primaryMotion().name());
         contactPicture.put("primaryContactId", picture.primaryContactId());
         long livePrimary = sim.resolveUnit(picture.primaryContactId());
-        contactPicture.put("primaryContactName", livePrimary != 0L
-                ? sim.identity().name(livePrimary) : null);
+        contactPicture.put("primaryContactName", identityName(livePrimary, sim));
         contactPicture.put("primaryCellX", picture.primaryCellX());
         contactPicture.put("primaryCellY", picture.primaryCellY());
         contactPicture.put("primaryConfidence", picture.primaryConfidence());
@@ -267,7 +263,7 @@ public final class SquadStateDumper {
         o.put("advanceEngageCommitted", squad.advanceEngageCommitted);
         o.put("advanceEngageLeash", squad.advanceEngageLeash);
         long advanceThreat = sim.resolveUnit(squad.advanceThreatId);
-        o.put("advanceThreatId", advanceThreat != 0L ? sim.identity().name(advanceThreat) : null);
+        o.put("advanceThreatId", identityName(advanceThreat, sim));
         o.put("advanceThreatFoes", squad.advanceThreatFoes);
         o.put("advanceThreatFriends", squad.advanceThreatFriends);
         o.put("advanceThreatAnchorX", squad.advanceThreatAnchorX);
@@ -280,7 +276,7 @@ public final class SquadStateDumper {
         o.put("boundingDestX", squad.boundingDestX);
         o.put("boundingDestY", squad.boundingDestY);
         long boundingThreat = sim.resolveUnit(squad.boundingThreatId);
-        o.put("boundingThreatId", boundingThreat != 0L ? sim.identity().name(boundingThreat) : null);
+        o.put("boundingThreatId", identityName(boundingThreat, sim));
         o.put("boundingStrideX", squad.boundingStrideX);
         o.put("boundingStrideY", squad.boundingStrideY);
         long[] boundingMembers = squad.boundingMemberIds;
@@ -303,8 +299,7 @@ public final class SquadStateDumper {
                 ? sim.identity().name(screeningMech) : null);
         o.put("mechScreenMode", squad.mechScreenMode.name());
         long screenThreat = sim.resolveUnit(squad.mechScreenThreatId);
-        o.put("mechScreenThreatId", screenThreat != 0L
-                ? sim.identity().name(screenThreat) : null);
+        o.put("mechScreenThreatId", identityName(screenThreat, sim));
         JSONArray screenTargets = new JSONArray();
         long[] screenMembers = squad.mechScreenMemberIds;
         int[] screenXs = squad.mechScreenTargetXs;
@@ -322,6 +317,11 @@ public final class SquadStateDumper {
         }
         o.put("mechScreenTargets", screenTargets);
         return o;
+    }
+
+    private static String identityName(long unit, BattleSimulation sim) {
+        return unit != 0L && sim.identity().has(unit)
+                ? sim.identity().name(unit) : null;
     }
 
     /**
