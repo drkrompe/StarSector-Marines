@@ -30,6 +30,7 @@ public final class FleetArmoryScreen implements Screen {
     private static final String SQUAD_COMPONENT = "fleet-armory";
     private static final String FIRETEAM_COMPONENT = "fleet-armory-fireteam";
     private static final String DESIGNER_COMPONENT = "fleet-armory-doctrine-designer";
+    private static final String ARMOR_COMPARISON_COMPONENT = "armory-armor-comparison";
     private static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory.mlx",
@@ -37,7 +38,8 @@ public final class FleetArmoryScreen implements Screen {
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
             "data/ui/components/armory/armory-squad-doctrine.mlx",
-            "data/ui/components/armory/armory-refit-transaction.mlx");
+            "data/ui/components/armory/armory-refit-transaction.mlx",
+            "data/ui/components/armory/armory-armor-comparison.mlx");
 
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
@@ -90,6 +92,7 @@ public final class FleetArmoryScreen implements Screen {
             case SQUADS -> SQUAD_COMPONENT;
             case FIRETEAMS -> FIRETEAM_COMPONENT;
             case DESIGNER -> DESIGNER_COMPONENT;
+            case ARMOR_COMPARISON -> ARMOR_COMPARISON_COMPONENT;
         };
         PreparedReload prepared = reloadSource
                 ? markup.prepareReload(reactor, componentName, props()) : null;
@@ -111,6 +114,7 @@ public final class FleetArmoryScreen implements Screen {
                 case SQUADS -> () -> context.returnFromFleetArmoryWorkspace();
                 case FIRETEAMS -> this::showSquadOverview;
                 case DESIGNER -> this::showFireTeams;
+                case ARMOR_COMPARISON -> this::showFireTeams;
             });
             if (view == View.FIRETEAMS) {
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
@@ -170,6 +174,9 @@ public final class FleetArmoryScreen implements Screen {
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
+        props.put("showArmorComparison", (Runnable) this::showArmorComparison);
+        props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
+        props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
@@ -180,6 +187,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> context.returnFromFleetArmoryWorkspace());
         props.put("backToSquads", (Runnable) this::showSquadOverview);
+        props.put("backToFireTeams", (Runnable) this::showFireTeams);
         if (designerViewModel != null) {
             props.put("squadName", designerViewModel.squadName());
             props.put("designerHeading", designerViewModel.heading());
@@ -199,7 +207,6 @@ public final class FleetArmoryScreen implements Screen {
             props.put("renameDisabled", designerViewModel.renameDisabled());
             props.put("delete", designerViewModel.delete());
             props.put("deleteDisabled", designerViewModel.deleteDisabled());
-            props.put("backToFireTeams", (Runnable) this::showFireTeams);
         }
         putPageNavigation(props);
         return props;
@@ -240,6 +247,12 @@ public final class FleetArmoryScreen implements Screen {
                 "designer-billet-grid", "designer-feedback",
                 "designer-marine-preview:0", "designer-marine-preview:1",
                 "designer-marine-preview:2", "designer-marine-preview:3")
+                : view == View.ARMOR_COMPARISON
+                ? List.of("armor-comparison-root", "marine-ops-page-nav",
+                "page-nav-return", "page-nav-hq", "page-nav-barracks",
+                "page-nav-armory", "page-nav-mech-lab",
+                "comparison-breadcrumb", "back-to-fireteams",
+                "comparison-intro", "comparison-list")
                 : List.of("fleet-armory-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-armory", "page-nav-mech-lab",
@@ -272,6 +285,11 @@ public final class FleetArmoryScreen implements Screen {
         viewModel.refresh();
         view = View.FIRETEAMS;
         previewAnimationSeconds = 0f;
+        if (viewport != null) installDocument(false);
+    }
+
+    private void showArmorComparison() {
+        view = View.ARMOR_COMPARISON;
         if (viewport != null) installDocument(false);
     }
 
@@ -320,5 +338,5 @@ public final class FleetArmoryScreen implements Screen {
         input = null;
     }
 
-    private enum View { SQUADS, FIRETEAMS, DESIGNER }
+    private enum View { SQUADS, FIRETEAMS, DESIGNER, ARMOR_COMPARISON }
 }
