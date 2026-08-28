@@ -7,6 +7,8 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -115,6 +117,160 @@ class UrbanTilesetAlphaTest {
      * the sheet as it has always been, not something an export introduced.
      */
     private static final Map<String, Double> BLOCK_CELLS = Map.of("urban.wall 1,1", 0.000);
+
+    /**
+     * Piece -> a rectangle {@code {x0, y0, x1, y1}} of its cell, exclusive of
+     * {@code x1/y1}, that must be see-through.
+     *
+     * <p>These are the voids a piece is drawn around: the gap a chair stands
+     * either side of, the space under a desk top, the opening below a doorway's
+     * lintel. They are the half of a silhouette that total opacity cannot see —
+     * plug one and the piece's own cut-out edge gets a little tighter somewhere
+     * else, the two cancel, and the figure stays inside tolerance while the
+     * chair draws with a black brick between its legs. Measured from the
+     * hand-maintained atlas, and every rectangle here is one it left fully
+     * transparent.
+     *
+     * <p>Each sits at least two pixels clear of the art around it, so no
+     * resampling of an outline can reach into one; a couple of stray pixels is
+     * the whole budget, and a filled pocket is an order of magnitude more.
+     */
+    private static final Map<String, int[]> VOIDS = new LinkedHashMap<>();
+
+    static {
+        // Between the legs, under the seat.
+        VOIDS.put("doodad.chair-south-yellow", new int[]{14, 27, 18, 30});
+        VOIDS.put("doodad.chair-south-green", new int[]{14, 27, 18, 30});
+        VOIDS.put("doodad.chair-s-yellow-dam", new int[]{14, 27, 18, 30});
+        VOIDS.put("doodad.chair-s-green-dam", new int[]{14, 27, 18, 30});
+        // Under the desk top, between its pedestals.
+        VOIDS.put("doodad.desk-1", new int[]{11, 25, 21, 29});
+        VOIDS.put("doodad.desk-2", new int[]{11, 25, 21, 29});
+        VOIDS.put("doodad.desk-dam", new int[]{12, 24, 20, 30});
+        // The doorway itself: an open door is a hole with a lintel over it.
+        VOIDS.put("urban.door-open/only", new int[]{0, 8, 32, 32});
+    }
+
+    /** A void may hold this many opaque pixels before it is a filled pocket. */
+    private static final int VOID_BUDGET = 2;
+
+    @Test
+    void theVoidsAPieceIsDrawnAroundStayOpen() throws Exception {
+        TileRegistry registry = loadTilesets();
+        BufferedImage atlas = readSheet();
+        for (Map.Entry<String, int[]> expected : VOIDS.entrySet()) {
+            int[] cell = placeOf(registry, expected.getKey());
+            int[] box = expected.getValue();
+            int opaque = 0;
+            for (int y = box[1]; y < box[3]; y++) {
+                for (int x = box[0]; x < box[2]; x++) {
+                    if ((atlas.getRGB(cell[0] * cellPx() + x, cell[1] * cellPx() + y) >>> 24)
+                            >= 128) {
+                        opaque++;
+                    }
+                }
+            }
+            assertTrue(opaque <= VOID_BUDGET, expected.getKey() + " has " + opaque
+                    + " opaque pixels in the void at [" + box[0] + "," + box[1] + ".."
+                    + box[2] + "," + box[3] + "), which the sheet leaves open");
+        }
+    }
+
+    /**
+     * Piece -> how much opaque area may sit detached from its main body.
+     *
+     * <p>A prop is one object. Anything opaque that is not joined to it draws as
+     * dirt floating beside it, and the two ways this sheet produces such dirt
+     * are a background speck the key admitted and a sliver of the neighbouring
+     * cell left along the cut. Neither shows up in a total, because both are
+     * smaller than the resampling noise on the outline they are competing with.
+     *
+     * <p>The default is four pixels. The rubble decals are the real exception —
+     * they are drawn as several separate stones, so the hand-maintained atlas
+     * has 52 to 162 pixels of genuine second and third body, and their budget is
+     * that with room to resample.
+     */
+    private static final int STRAY_BUDGET = 4;
+
+    private static final Map<String, Integer> SCATTERED = Map.of(
+            "doodad.decal-rubble-1", 90,
+            "doodad.decal-rubble-2", 160,
+            "doodad.decal-rubble-3", 70,
+            "doodad.decal-rubble-4", 200);
+
+    @Test
+    void nothingFloatsBesideAPiece() throws Exception {
+        TileRegistry registry = loadTilesets();
+        BufferedImage atlas = readSheet();
+        for (String id : DOODADS.keySet()) {
+            int[] cell = placeOf(registry, id);
+            boolean[][] opaque = silhouette(atlas, cellPx(), cell[0], cell[1]);
+            int stray = detachedArea(opaque);
+            int budget = SCATTERED.getOrDefault(id, STRAY_BUDGET);
+            assertTrue(stray <= budget, id + " has " + stray
+                    + " pixels of opaque art detached from its body (budget " + budget
+                    + "), which draws as dirt floating beside the piece");
+        }
+    }
+
+    /** Opaque area outside the largest connected body. */
+    private static int detachedArea(boolean[][] opaque) {
+        int height = opaque.length;
+        int width = height == 0 ? 0 : opaque[0].length;
+        int[][] seen = new int[height][width];
+        int total = 0;
+        int largest = 0;
+        int next = 1;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (!opaque[y][x] || seen[y][x] != 0) continue;
+                int area = 0;
+                Deque<int[]> stack = new ArrayDeque<>();
+                stack.push(new int[]{y, x});
+                seen[y][x] = next;
+                while (!stack.isEmpty()) {
+                    int[] at = stack.pop();
+                    area++;
+                    for (int[] step : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                        int ny = at[0] + step[0];
+                        int nx = at[1] + step[1];
+                        if (ny < 0 || ny >= height || nx < 0 || nx >= width) continue;
+                        if (!opaque[ny][nx] || seen[ny][nx] != 0) continue;
+                        seen[ny][nx] = next;
+                        stack.push(new int[]{ny, nx});
+                    }
+                }
+                next++;
+                total += area;
+                largest = Math.max(largest, area);
+            }
+        }
+        return total - largest;
+    }
+
+    private static boolean[][] silhouette(BufferedImage atlas, int cellPx, int col, int row) {
+        boolean[][] opaque = new boolean[cellPx][cellPx];
+        for (int y = 0; y < cellPx; y++) {
+            for (int x = 0; x < cellPx; x++) {
+                opaque[y][x] =
+                        (atlas.getRGB(col * cellPx + x, row * cellPx + y) >>> 24) >= 128;
+            }
+        }
+        return opaque;
+    }
+
+    /** The packed cell a doodad id or a {@code block/slot} name landed in. */
+    private static int[] placeOf(TileRegistry registry, String id) {
+        int slash = id.indexOf('/');
+        if (slash < 0) {
+            DoodadDef def = registry.doodad(id);
+            assertNotNull(def, "urban-tileset no longer defines " + id);
+            return new int[]{def.col, def.row};
+        }
+        GridBlockDef block = registry.block(id.substring(0, slash));
+        assertNotNull(block, "urban-tileset no longer defines block " + id);
+        return new int[]{block.originCol, block.originRow};
+    }
 
     @Test
     void everyDoodadKeepsTheSilhouetteTheShippedSheetHad() throws Exception {

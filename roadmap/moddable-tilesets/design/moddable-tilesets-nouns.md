@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — the alpha law now says keying a plate is an edit to the art rather than a per-sheet setting, and the fit law now says a disowned fit's residual does not measure the cut in force.
+Updated: 2026-08-28 — the alpha law now says keying a plate is an edit to the art rather than a per-sheet setting, a silhouette is checked as a shape and never as a total, and a disowned fit's residual does not measure the cut in force.
 
 Read `stories.md` for open work.
 
@@ -208,6 +208,18 @@ These properties of that pass are part of the model rather than of the tool:
   figure stayed green through the failure that made this a law: a prop keyed to
   a plausible fraction can still be one cut in half by a corridor of background
   that reached its middle.
+- **A silhouette is checked as a shape, never as a total.** How much of a cell a
+  piece covers is the one thing about its alpha that is easy to measure, and it
+  is blind to every way the shape can be wrong, because the errors are signed
+  and they cancel: a chair whose leg gap is plugged and whose outline is a
+  little tighter reports the coverage it should have and draws with a brick
+  between its legs. What has to be stated instead is structure — **the voids a
+  piece is drawn around must stay open, and nothing may float beside it.** Those
+  two say what a total cannot: the first is the half of a silhouette that is
+  absence rather than presence, and the second separates the piece from the
+  dust a key admits and the sliver of its neighbour a cut leaves behind. A void
+  is authored, not derived; it is a judgement about what the object is, and it
+  belongs with cover and half-height rather than in a threshold.
 - **A grid needs an origin and a pitch, not a division of the canvas.**
   Generated art sits inside a margin and is rarely drawn to a pitch that divides
   its own pixel size evenly, so dividing a plate proportionally puts every
