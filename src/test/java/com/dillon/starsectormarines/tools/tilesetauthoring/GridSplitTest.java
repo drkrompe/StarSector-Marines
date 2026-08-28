@@ -1,0 +1,118 @@
+package com.dillon.starsectormarines.tools.tilesetauthoring;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/**
+ * Generated art is laid out to whatever the prompt asked for, so a plate's cells
+ * are square only by coincidence. The split has to cut the stated grid exactly
+ * and tile the plate with no gap and no overlap.
+ */
+class GridSplitTest {
+
+    private static SheetSlicer.Piece plate(int w, int h) {
+        return new SheetSlicer.Piece(0, 0, w, h);
+    }
+
+    /** Every part, laid end to end, must reconstruct the plate exactly. */
+    private static void assertTiles(SheetSlicer.Piece whole, List<SheetSlicer.Piece> parts,
+                                    int cols, int rows) {
+        assertEquals(cols * rows, parts.size());
+        long area = 0;
+        for (SheetSlicer.Piece part : parts) {
+            area += (long) part.width() * part.height();
+            assertTrue(part.x() >= whole.x() && part.y() >= whole.y(), "part escapes left/top");
+            assertTrue(part.right() <= whole.right() && part.bottom() <= whole.bottom(),
+                    "part escapes right/bottom: " + part);
+        }
+        assertEquals((long) whole.width() * whole.height(), area,
+                "the parts must tile the plate exactly");
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col + 1 < cols; col++) {
+                SheetSlicer.Piece left = parts.get(row * cols + col);
+                SheetSlicer.Piece right = parts.get(row * cols + col + 1);
+                assertEquals(left.right() + 1, right.x(), "no gap or overlap between columns");
+            }
+        }
+    }
+
+    @Test
+    void aTallStripIsCutIntoItsFramesRatherThanIntoSquares() {
+        // nature-tiles: 20 frames of 109x724. The old cell-size split read this
+        // as 20x7 because it assumed one number described both axes.
+        SheetSlicer.Piece whole = plate(2172, 724);
+
+        List<SheetSlicer.Piece> parts = SheetSlicer.splitOnGrid(whole, 20, 1);
+
+        assertTiles(whole, parts, 20, 1);
+        assertEquals(724, parts.get(0).height(), "a strip frame is the full height of the plate");
+        assertTrue(parts.get(0).width() >= 108 && parts.get(0).width() <= 109);
+    }
+
+    @Test
+    void anUnevenDivisionStillTilesThePlateExactly() {
+        // 1225 does not divide by 25, and 1284 does not divide by 26.
+        SheetSlicer.Piece whole = plate(1225, 1284);
+
+        assertTiles(whole, SheetSlicer.splitOnGrid(whole, 25, 26), 25, 26);
+    }
+
+    @Test
+    void theGridIsTakenAsStatedRatherThanInferred() {
+        SheetSlicer.Piece whole = plate(1254, 1254);
+
+        assertTiles(whole, SheetSlicer.splitOnGrid(whole, 10, 10), 10, 10);
+        // The same plate cut to a different stated layout obeys the statement.
+        assertTiles(whole, SheetSlicer.splitOnGrid(whole, 4, 7), 4, 7);
+    }
+
+    @Test
+    void readingOrderIsRowMajorSoAPlateFillsABlocksSlotsInOrder() {
+        List<SheetSlicer.Piece> parts = SheetSlicer.splitOnGrid(plate(300, 300), 3, 3);
+
+        assertEquals(0, parts.get(0).x());
+        assertEquals(0, parts.get(0).y());
+        assertEquals(200, parts.get(2).x(), "third part is the top-right cell");
+        assertEquals(0, parts.get(2).y());
+        assertEquals(0, parts.get(3).x(), "fourth part starts the second row");
+        assertEquals(100, parts.get(3).y());
+    }
+
+    @Test
+    void aDegenerateGridIsRejectedRatherThanSilentlyClamped() {
+        assertThrows(IllegalArgumentException.class,
+                () -> SheetSlicer.splitOnGrid(plate(100, 100), 0, 4));
+        assertThrows(IllegalArgumentException.class,
+                () -> SheetSlicer.splitOnGrid(plate(100, 100), 4, -1));
+    }
+
+    @Test
+    void theAtlasDestinationFollowsWhatTheSheetContains() {
+        assertEquals("graphics/tilesets/reactor.png",
+                TilesetDocument.defaultOutputSheet("reactor", true));
+        assertEquals("graphics/doodads/reactor.png",
+                TilesetDocument.defaultOutputSheet("reactor", false));
+
+        TilesetDocument doc = new TilesetDocument();
+        doc.sheetName = "reactor";
+        assertEquals("graphics/tilesets/reactor.png", doc.resolvedOutputSheet(true));
+        doc.outputSheet = "graphics/props/reactor.png";
+        assertEquals("graphics/props/reactor.png", doc.resolvedOutputSheet(true),
+                "an explicit destination wins over the derived one");
+    }
+
+    @Test
+    void cellSizesAreDerivedPerAxisFromTheStatedLayout() {
+        TilesetDocument doc = new TilesetDocument();
+        doc.gridCols = 20;
+        doc.gridRows = 1;
+
+        assertEquals(109, doc.cellPxX(2172));
+        assertEquals(724, doc.cellPxY(724), "the two axes are not one number");
+    }
+}

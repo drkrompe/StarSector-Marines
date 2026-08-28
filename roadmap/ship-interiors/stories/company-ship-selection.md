@@ -4,13 +4,14 @@ Status: IN PROGRESS
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — founding and transfer both land. The company lives aboard
-a ship the player picked out of their own fleet; every candidate is drawn as her
-own generated deck inside her own hull outline, with the passages threading it
-and the room under the cursor named. A company with no ship opens on the choice
-and cannot reach a room view until it has made one. What remains is what happens
-when the company ship is destroyed rather than sold, and whether transfer costs
-anything.
+Updated: 2026-08-28 — founding, transfer and loss all land. The company lives
+aboard a ship the player picked out of their own fleet; every candidate is drawn
+as her own generated deck inside her own hull outline, with the passages
+threading it and the room under the cursor named. A company with no ship - never
+chosen, or displaced by a ship that did not come home - opens on the choice and
+cannot reach a room view until it has made one. What remains is whether transfer
+costs anything, and whether marines aboard a ship lost in action are lost with
+her.
 
 Read `ship-interiors-nouns.md` and `company-ship.md` before implementing this
 story. Depends on the room views being deck-hosted, which they now are — see
@@ -77,9 +78,13 @@ fleet.
   traced art. The polygon is the reading the running game can take and is what
   ships; the sprite trace is finer but needs pixels a mod cannot reach, so
   adopting it would mean baking a catalog. The two agree within about a tenth.
-- What happens when the company ship is destroyed rather than merely damaged.
-  This is the sharpest version of the question and the one most worth answering
-  deliberately.
+- ~~What happens when the company ship is destroyed rather than merely
+  damaged.~~ Settled for the interior: the company is displaced rather than
+  re-homed, and told whether she was lost or let go. **Not** settled for the
+  people: whether marines quartered aboard a ship lost in action die with her is
+  still open, and it is the half with real teeth. The hook that would carry it
+  already exists - the engagement result names the ship - so the remaining
+  question is a balance decision rather than a technical one.
 
 ## Out of scope
 
