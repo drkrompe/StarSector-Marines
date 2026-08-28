@@ -30,12 +30,51 @@ public final class ShipViewCanvas implements CanvasProducer {
 
     private static final Color BACKGROUND = new Color(0x08, 0x0E, 0x15);
 
+    /**
+     * What the hull is darkened to behind the deck.
+     *
+     * <p>A tint multiplies, so this cannot flatten the art into one colour —
+     * bright plating stays faintly brighter than the panel lines. That is the
+     * point rather than a limitation: the plating is most of what makes a hull
+     * recognisable, and a flat cutout of a Valkyrie is a flat cutout.
+     */
+    private static final Color HULL = new Color(0x2C, 0x39, 0x4C, 0xFF);
+
+    /**
+     * A vanilla hull sprite is drawn bow-up and the deck is generated bow-left,
+     * so the art is turned a quarter to lie along her.
+     */
+    private static final float BOW_LEFT = -90f;
+
+    /**
+     * How much larger the hull is drawn than the deck laid inside her.
+     *
+     * <p>A deck is a slice through a ship, not her outline: the plating, the
+     * spaces below and the structure the compartments are hung on all sit
+     * outside it. Drawing the art to the deck's own bounds would put her
+     * skin exactly on the walls of her rooms, which is the one place it
+     * certainly is not.
+     */
+    private static final float HULL_OVERHANG = 1.06f;
+
     private final CompanyDeck ship;
+    private final String hullArt;
     private BattleCamera camera;
 
     public ShipViewCanvas(CompanyDeck ship) {
+        this(ship, null);
+    }
+
+    /**
+     * @param hullArt the hull's own sprite, drawn darkened behind the deck, or
+     *     null for a ship whose art cannot be resolved. The deck is generated
+     *     from the same {@code .ship} file the art belongs to, so the two are
+     *     the same vessel rather than a plan with a picture behind it.
+     */
+    public ShipViewCanvas(CompanyDeck ship, String hullArt) {
         if (ship == null) throw new IllegalArgumentException("a ship is required");
         this.ship = ship;
+        this.hullArt = hullArt;
     }
 
     /**
@@ -73,10 +112,34 @@ public final class ShipViewCanvas implements CanvasProducer {
         // keeping a scale that was right for a window that is gone.
         camera.setViewport(0f, 0f, width, height, baseCell);
 
+        drawHull(context, cellsAcross, cellsDown);
+
         ShipDeckBattleScene.DeckView view = new ShipDeckBattleScene.DeckView(
                 camera.panCellX(), camera.panCellY(), camera.cellPxSize());
         if (!context.hostPass(aboard.pass(view, ShipDeckBattleScene.DECK_LAYERS))) {
             context.fillRect(0f, 0f, width, height, BACKGROUND);
         }
+    }
+
+    /**
+     * The hull herself, darkened, under the deck.
+     *
+     * <p>Drawn first so the compartments sit on top of her: what shows is the
+     * art around and between the rooms, which is where a hull's shape actually
+     * lives. A backdrop over the deck would be a picture of a ship with a plan
+     * hidden behind it.
+     *
+     * <p>Scaled to the deck's own extent, and turned to match. The sprite's
+     * long axis is her length and the deck's long axis is the same length, so
+     * the two agree by construction rather than by being nudged into place.
+     */
+    private void drawHull(CanvasContext context, int cellsAcross, int cellsDown) {
+        if (hullArt == null || hullArt.isBlank()) return;
+        float cell = camera.cellPxSize();
+        context.sprite(hullArt, null,
+                camera.cellToScreenX(cellsAcross * 0.5f),
+                camera.cellToScreenY(cellsDown * 0.5f),
+                cellsDown * cell * HULL_OVERHANG, cellsAcross * cell * HULL_OVERHANG,
+                BOW_LEFT, HULL);
     }
 }
