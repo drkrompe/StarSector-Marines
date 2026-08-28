@@ -94,10 +94,12 @@ public final class MechTurretSystem {
                     }
                 }
 
-                float delta = LayeredAppearance.wrapDegrees(desired - loadout.torsoFacingDegrees);
-                float maxStep = Math.max(0f, loadout.torsoTurnRateDegrees) * Math.max(0f, dt);
-                float step = Math.max(-maxStep, Math.min(maxStep, delta));
-                loadout.torsoFacingDegrees = LayeredAppearance.wrapDegrees(loadout.torsoFacingDegrees + step);
+                MechLocomotion.AngularStep turn = MechLocomotion.dampedTurn(
+                        loadout.torsoFacingDegrees, loadout.torsoAngularVelocityDegrees,
+                        desired, loadout.torsoTurnRateDegrees,
+                        MechLoadoutComponent.DEFAULT_TORSO_TURN_ACCELERATION_DEGREES, dt);
+                loadout.torsoFacingDegrees = turn.facingDegrees();
+                loadout.torsoAngularVelocityDegrees = turn.angularVelocityDegrees();
                 loadout.torsoAimTargetId = target;
                 loadout.torsoOnTarget = target != 0L && withinTraverse
                         && Math.abs(LayeredAppearance.wrapDegrees(targetFacing(target, posX[row], posY[row])

@@ -65,7 +65,7 @@ public final class MechLocomotionSystem {
                         // swivel the chassis off the path bearing mid-segment
                         // and trip the mover's pivot gate at the next waypoint
                         // — a per-cell stutter-step.
-                        MechLocomotion.stopTurning(world, components, id);
+                        MechLocomotion.stopTurning(world, components, id, dt);
                     }
                     continue;
                 }
@@ -75,13 +75,13 @@ public final class MechLocomotionSystem {
                         roster.world().x(target), roster.world().y(target))
                         : MechFacingIntent.rememberedContact(id, roster);
                 if (intent == null) {
-                    MechLocomotion.stopTurning(world, components, id);
+                    MechLocomotion.stopTurning(world, components, id, dt);
                     continue;
                 }
                 int dx = (int) Math.floor(intent.x()) - rowCellX;
                 int dy = (int) Math.floor(intent.y()) - rowCellY;
                 if (dx == 0 && dy == 0) {
-                    MechLocomotion.stopTurning(world, components, id);
+                    MechLocomotion.stopTurning(world, components, id, dt);
                 } else {
                     MechLocomotion.turnToward(world, components, id,
                             MechLocomotion.desiredFacing(dx, dy), dt);
