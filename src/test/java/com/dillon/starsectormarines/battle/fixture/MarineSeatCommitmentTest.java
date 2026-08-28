@@ -52,7 +52,7 @@ class MarineSeatCommitmentTest {
         assertEquals(SpecialEquipmentRegistry.SMOKE_GRENADE_ID,
                 restored.specialDef().id());
         assertEquals(LayeredArmorFamily.BLUE_SCOUT, restored.armorFamily);
-        assertEquals(63f, restored.armorPool);
+        assertEquals(63f, restored.armorCapacity);
         assertEquals(4.5f, restored.armorRating);
         assertEquals(0.92f, restored.armorMoveSpeedMult);
         assertEquals(0.81f, restored.armorIncomingAccuracyMult);

@@ -23,7 +23,7 @@ class ArmorCombatStatsTest {
         BattleSimulation sim = new BattleSimulation(grid, new CellTopology(12, 12));
         MarineArmorPattern armor = MarineArmorPattern.CHARCOAL;
         EntitySpec spec = new EntitySpec("armored", Faction.MARINE, UnitType.MARINE, 5, 5)
-                .armor(armor.armorPool, armor.armorRating,
+                .armor(armor.armorCapacity, armor.armorRating,
                         armor.moveSpeedMult, armor.incomingAccuracyMult);
         long marine = sim.spawn(spec);
 
@@ -49,7 +49,7 @@ class ArmorCombatStatsTest {
         assertTrue(scout.moveSpeedMult > 1f);
         assertTrue(scout.incomingAccuracyMult < heavy.incomingAccuracyMult);
         assertTrue(heavy.armorRating > scout.armorRating);
-        assertTrue(heavy.armorPool > scout.armorPool);
+        assertTrue(heavy.armorCapacity > scout.armorCapacity);
         assertTrue(heavy.moveSpeedMult < scout.moveSpeedMult);
     }
 
@@ -58,7 +58,7 @@ class ArmorCombatStatsTest {
         BattleSimulation sim = arena();
         MarineArmorPattern armorless = MarineArmorPattern.ARMORLESS;
         long marine = sim.spawn(new EntitySpec("armorless", Faction.MARINE,
-                UnitType.MARINE, 5, 5).armor(armorless.armorPool,
+                UnitType.MARINE, 5, 5).armor(armorless.armorCapacity,
                 armorless.armorRating, armorless.moveSpeedMult,
                 armorless.incomingAccuracyMult));
 

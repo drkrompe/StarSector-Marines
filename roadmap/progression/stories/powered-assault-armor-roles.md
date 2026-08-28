@@ -44,7 +44,7 @@ experience.
 | --- | --- | --- |
 | Light infiltration / recon | Sealed rapid-deployment armor for scouting, boarding-style movement, and fast objective work | Lowest powered protection and best movement; only patterns with an explicit concealment suite may reduce hostile-acquisition signature |
 | Standard line combat | Pressurized powered armor for hazardous worlds, hard-vacuum actions, and sustained infantry fighting | Middle protection and mobility baseline; recoil assistance, tactical relay, and jump-assist language do not create free weapon, command, or traversal bonuses |
-| Heavy mechanized battlesuit | A one-person walking tank for breach and frontline assault | Highest infantry armor pool/rating and clearest movement/handling cost; remains infantry rather than a light mech |
+| Heavy mechanized battlesuit | A one-person walking tank for breach and frontline assault | Highest infantry armor capacity/rating and clearest movement/handling cost; remains infantry rather than a light mech |
 
 `ARMORLESS` is an unpowered field kit, not a fourth powered role. The compatibility
 patterns `BLUE_SCOUT`, `MILITIA`, and `OUTLAW` are light; `CHARCOAL` and
@@ -100,7 +100,7 @@ patterns use very high crude pool, weak rating, and worsening handling as weight
 rises. No doctrine applies a faction-wide multiplier after issue.
 
 The tier-I baseline now distinguishes three forms of bad protection inside that one
-doctrine: mobile Domain-pattern fatigues with no armor pool, expired Cordon security
+doctrine: mobile Domain-pattern fatigues with no armor capacity, expired Cordon security
 shells with a little rated plate, and slow Lashplate cargo harnesses with crude pool
 but almost no resistance. They reuse the established low-end militia/outlaw
 silhouettes and are intentionally broad circulation categories rather than a new

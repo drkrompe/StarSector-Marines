@@ -355,7 +355,7 @@ Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Every currently authored pattern has a collectible card and faction
 acquisition source, and the catalog audit preserves that coverage as content is
 added.
-The pattern owns the deployed armor pool, rating, movement modifier, and
+The pattern owns the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
 removes that armor and exposed structure. Structure remains the platform's base
 pool; armor no longer adds health or applies a permanent damage-reduction

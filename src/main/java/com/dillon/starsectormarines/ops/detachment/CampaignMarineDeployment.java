@@ -121,7 +121,7 @@ public final class CampaignMarineDeployment {
                     SquadExperienceStandard.profileFor(soldier),
                     soldier.specialEquipmentDef(),
                     soldier.id(), armor.appearanceFamily(),
-                    armor.armorPool(), armor.armorRating(),
+                    armor.armorCapacity(), armor.armorRating(),
                     armor.moveSpeedMult(), armor.incomingAccuracyMult(),
                     tag(roster, owners.get(i), soldier, strengths)));
         }
@@ -239,7 +239,7 @@ public final class CampaignMarineDeployment {
                 allocation.soldierProfile, allocation.specialEquipmentId,
                 allocation.secondaryAmmo,
                 allocation.campaignSoldierId, allocation.armorFamily,
-                allocation.armorPool, allocation.armorRating,
+                allocation.armorCapacity, allocation.armorRating,
                 allocation.armorMoveSpeedMult, allocation.armorIncomingAccuracyMult,
                 allocation.campaignSquad);
     }

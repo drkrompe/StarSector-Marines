@@ -48,8 +48,8 @@ class SquadEquipmentDoctrineTest {
         assertEquals(1, lashplate.tier());
         assertEquals(LayeredArmorFamily.MILITIA, cordon.appearanceFamily());
         assertEquals(LayeredArmorFamily.OUTLAW, lashplate.appearanceFamily());
-        assertTrue(cordon.armorPool()
-                < MarineArmorCatalogRegistry.require("armor.militia").armorPool());
+        assertTrue(cordon.armorCapacity()
+                < MarineArmorCatalogRegistry.require("armor.militia").armorCapacity());
         assertTrue(lashplate.armorRating()
                 < MarineArmorCatalogRegistry.require("armor.outlaw").armorRating());
 
@@ -70,8 +70,8 @@ class SquadEquipmentDoctrineTest {
         assertTrue(corporateLine.incomingAccuracyMult()
                 < hegemonyLine.incomingAccuracyMult());
         assertTrue(churchLine.armorRating() > hegemonyLine.armorRating());
-        assertTrue(diktatLine.armorPool() > hegemonyLine.armorPool());
-        assertTrue(outlawLine.armorPool() > hegemonyLine.armorPool());
+        assertTrue(diktatLine.armorCapacity() > hegemonyLine.armorCapacity());
+        assertTrue(outlawLine.armorCapacity() > hegemonyLine.armorCapacity());
         assertTrue(outlawLine.armorRating() < hegemonyLine.armorRating());
         assertComparableProtection(hegemonyLine, List.of(corporateLine, churchLine,
                 diktatLine, outlawLine, MarineArmorCatalogRegistry.require("armor.combat")));
@@ -96,9 +96,9 @@ class SquadEquipmentDoctrineTest {
         assertEquals(LayeredArmorFamily.FOUNDRY_BREAKER,
                 foundry.appearanceFamily());
         assertTrue(specter.moveSpeedMult() > xiv.moveSpeedMult());
-        assertTrue(specter.armorPool() < xiv.armorPool());
+        assertTrue(specter.armorCapacity() < xiv.armorCapacity());
         assertTrue(reliquary.armorRating() > xiv.armorRating());
-        assertTrue(foundry.armorPool() > xiv.armorPool());
+        assertTrue(foundry.armorCapacity() > xiv.armorCapacity());
         assertTrue(foundry.armorRating() < xiv.armorRating());
         assertComparableProtection(xiv, List.of(specter, reliquary, foundry,
                 MarineArmorCatalogRegistry.require("armor.bulwark-heavy"),
@@ -118,7 +118,7 @@ class SquadEquipmentDoctrineTest {
     /** Expected aimed damage before armor breaks, including the suit's hit profile. */
     private static float expectedDamageToBreak(
             MarineArmorCatalogDef armor, float penetration) {
-        return armor.armorPool()
+        return armor.armorCapacity()
                 / DurabilityModel.armorEfficiency(penetration, armor.armorRating())
                 / armor.incomingAccuracyMult();
     }

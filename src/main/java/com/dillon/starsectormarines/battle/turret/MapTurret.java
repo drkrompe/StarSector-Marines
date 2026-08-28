@@ -51,7 +51,7 @@ public final class MapTurret {
         var weapon = structure.mount.weapon;
         return new EntitySpec(id, faction, UnitType.TURRET, cellX, cellY)
                 .health(structure.maxStructure)
-                .armor(structure.armorPool, structure.armorRating)
+                .armor(structure.armorCapacity, structure.armorRating)
                 .attackDamage(weapon.damage)
                 .attackRange(weapon.range)
                 .attackCooldown(weapon.cooldown)

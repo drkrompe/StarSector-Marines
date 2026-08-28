@@ -9,7 +9,7 @@
         "tier": 1,
         "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
       },
-      "battle": { "appearanceFamily": "ARMORLESS", "armorPool": 0.0, "armorRating": 0.0, "moveSpeedMult": 1.08, "incomingAccuracyMult": 0.92 }
+      "battle": { "appearanceFamily": "ARMORLESS", "armorCapacity": 0.0, "armorRating": 0.0, "moveSpeedMult": 1.08, "incomingAccuracyMult": 0.92 }
     },
     {
       "id": "armor.cordon-shell",
@@ -20,7 +20,7 @@
         "tier": 1,
         "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
       },
-      "battle": { "appearanceFamily": "MILITIA", "armorPool": 3.0, "armorRating": 2.0, "moveSpeedMult": 0.99, "incomingAccuracyMult": 0.99 }
+      "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 3.0, "armorRating": 2.0, "moveSpeedMult": 0.99, "incomingAccuracyMult": 0.99 }
     },
     {
       "id": "armor.lashplate-harness",
@@ -31,7 +31,7 @@
         "tier": 1,
         "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
       },
-      "battle": { "appearanceFamily": "OUTLAW", "armorPool": 5.0, "armorRating": 1.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 1.03 }
+      "battle": { "appearanceFamily": "OUTLAW", "armorCapacity": 5.0, "armorRating": 1.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 1.03 }
     },
     {
       "id": "armor.combat",
@@ -42,7 +42,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "CHARCOAL", "armorPool": 9.0, "armorRating": 8.0, "moveSpeedMult": 0.96, "incomingAccuracyMult": 0.96 }
+      "battle": { "appearanceFamily": "CHARCOAL", "armorCapacity": 9.0, "armorRating": 8.0, "moveSpeedMult": 0.96, "incomingAccuracyMult": 0.96 }
     },
     {
       "id": "armor.aegis-composite",
@@ -53,7 +53,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "AEGIS_COMPOSITE", "armorPool": 9.0, "armorRating": 7.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.91 }
+      "battle": { "appearanceFamily": "AEGIS_COMPOSITE", "armorCapacity": 9.0, "armorRating": 7.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.91 }
     },
     {
       "id": "armor.palatine",
@@ -64,7 +64,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "PALATINE", "armorPool": 8.0, "armorRating": 10.0, "moveSpeedMult": 0.91, "incomingAccuracyMult": 0.98 }
+      "battle": { "appearanceFamily": "PALATINE", "armorCapacity": 8.0, "armorRating": 10.0, "moveSpeedMult": 0.91, "incomingAccuracyMult": 0.98 }
     },
     {
       "id": "armor.furnace-line",
@@ -75,7 +75,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "FURNACE_LINE", "armorPool": 12.0, "armorRating": 7.0, "moveSpeedMult": 0.93, "incomingAccuracyMult": 0.99 }
+      "battle": { "appearanceFamily": "FURNACE_LINE", "armorCapacity": 12.0, "armorRating": 7.0, "moveSpeedMult": 0.93, "incomingAccuracyMult": 0.99 }
     },
     {
       "id": "armor.reaver",
@@ -86,7 +86,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "REAVER", "armorPool": 13.0, "armorRating": 5.0, "moveSpeedMult": 0.97, "incomingAccuracyMult": 0.96 }
+      "battle": { "appearanceFamily": "REAVER", "armorCapacity": 13.0, "armorRating": 5.0, "moveSpeedMult": 0.97, "incomingAccuracyMult": 0.96 }
     },
     {
       "id": "armor.scout",
@@ -97,7 +97,7 @@
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
       },
-      "battle": { "appearanceFamily": "BLUE_SCOUT", "armorPool": 4.0, "armorRating": 4.0, "moveSpeedMult": 1.06, "incomingAccuracyMult": 0.88 }
+      "battle": { "appearanceFamily": "BLUE_SCOUT", "armorCapacity": 4.0, "armorRating": 4.0, "moveSpeedMult": 1.06, "incomingAccuracyMult": 0.88 }
     },
     {
       "id": "armor.heavy",
@@ -108,7 +108,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "RED_ELITE", "armorPool": 20.0, "armorRating": 12.0, "moveSpeedMult": 0.86, "incomingAccuracyMult": 0.98 }
+      "battle": { "appearanceFamily": "RED_ELITE", "armorCapacity": 20.0, "armorRating": 12.0, "moveSpeedMult": 0.86, "incomingAccuracyMult": 0.98 }
     },
     {
       "id": "armor.specter-heavy",
@@ -119,7 +119,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "SPECTER_HEAVY", "armorPool": 19.0, "armorRating": 10.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.90 }
+      "battle": { "appearanceFamily": "SPECTER_HEAVY", "armorCapacity": 19.0, "armorRating": 10.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.90 }
     },
     {
       "id": "armor.bulwark-heavy",
@@ -130,7 +130,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "BULWARK_HEAVY", "armorPool": 20.0, "armorRating": 11.0, "moveSpeedMult": 0.90, "incomingAccuracyMult": 0.95 }
+      "battle": { "appearanceFamily": "BULWARK_HEAVY", "armorCapacity": 20.0, "armorRating": 11.0, "moveSpeedMult": 0.90, "incomingAccuracyMult": 0.95 }
     },
     {
       "id": "armor.reliquary-heavy",
@@ -141,7 +141,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "RELIQUARY_HEAVY", "armorPool": 16.0, "armorRating": 14.0, "moveSpeedMult": 0.82, "incomingAccuracyMult": 0.97 }
+      "battle": { "appearanceFamily": "RELIQUARY_HEAVY", "armorCapacity": 16.0, "armorRating": 14.0, "moveSpeedMult": 0.82, "incomingAccuracyMult": 0.97 }
     },
     {
       "id": "armor.lions-mantle",
@@ -152,7 +152,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "LIONS_MANTLE", "armorPool": 23.0, "armorRating": 10.0, "moveSpeedMult": 0.83, "incomingAccuracyMult": 1.01 }
+      "battle": { "appearanceFamily": "LIONS_MANTLE", "armorCapacity": 23.0, "armorRating": 10.0, "moveSpeedMult": 0.83, "incomingAccuracyMult": 1.01 }
     },
     {
       "id": "armor.foundry-breaker",
@@ -163,7 +163,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "FOUNDRY_BREAKER", "armorPool": 27.0, "armorRating": 6.0, "moveSpeedMult": 0.80, "incomingAccuracyMult": 1.00 }
+      "battle": { "appearanceFamily": "FOUNDRY_BREAKER", "armorCapacity": 27.0, "armorRating": 6.0, "moveSpeedMult": 0.80, "incomingAccuracyMult": 1.00 }
     },
     {
       "id": "armor.outlaw",
@@ -174,7 +174,7 @@
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
       },
-      "battle": { "appearanceFamily": "OUTLAW", "armorPool": 7.0, "armorRating": 4.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.94 }
+      "battle": { "appearanceFamily": "OUTLAW", "armorCapacity": 7.0, "armorRating": 4.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.94 }
     },
     {
       "id": "armor.line",
@@ -185,7 +185,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "ARMY_GREEN", "armorPool": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97 }
+      "battle": { "appearanceFamily": "ARMY_GREEN", "armorCapacity": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97 }
     },
     {
       "id": "armor.militia",
@@ -196,7 +196,7 @@
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
       },
-      "battle": { "appearanceFamily": "MILITIA", "armorPool": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96 }
+      "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96 }
     }
   ]
 }

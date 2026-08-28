@@ -427,7 +427,7 @@ public final class BattleFixtureJson {
             putNullable(encoded, "specialEquipmentId", seat.specialEquipmentId());
             putNullable(encoded, "armorFamily",
                     seat.armorFamily() != null ? seat.armorFamily().name() : null);
-            encoded.put("armorPool", seat.armorPool());
+            encoded.put("armorCapacity", seat.armorCapacity());
             encoded.put("armorRating", seat.armorRating());
             encoded.put("armorMoveSpeedMult", seat.armorMoveSpeedMult());
             encoded.put("armorIncomingAccuracyMult",
@@ -461,7 +461,7 @@ public final class BattleFixtureJson {
                     nullableString(encoded, "specialEquipmentId"),
                     nullableEnum(LayeredArmorFamily.class,
                             nullableString(encoded, "armorFamily"), "armor family"),
-                    (float) encoded.getDouble("armorPool"),
+                    (float) encoded.getDouble("armorCapacity"),
                     (float) encoded.getDouble("armorRating"),
                     (float) encoded.getDouble("armorMoveSpeedMult"),
                     (float) encoded.getDouble("armorIncomingAccuracyMult"),

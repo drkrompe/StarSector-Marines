@@ -9,7 +9,7 @@ Read `combat-durability-nouns.md` before implementing this story.
 
 ## Goal
 
-Calibrate armor pools, ratings, structure, damage, and penetration around
+Calibrate armor capacitys, ratings, structure, damage, and penetration around
 readable infantry and mech relationships rather than inherited HP totals.
 
 ## Scope

@@ -24,7 +24,7 @@ public enum MarineArmorPattern {
     public final int tier;
     public final String iconPath;
     /** Ablative protection pool seeded in front of structure. */
-    public final float armorPool;
+    public final float armorCapacity;
     /** Resistance matched against weapon penetration while armor remains. */
     public final float armorRating;
     /** Multiplier on the marine's movement speed. */
@@ -33,13 +33,13 @@ public enum MarineArmorPattern {
     public final float incomingAccuracyMult;
 
     MarineArmorPattern(String id, String displayName, int tier, String iconPath,
-                       float armorPool, float armorRating, float moveSpeedMult,
+                       float armorCapacity, float armorRating, float moveSpeedMult,
                        float incomingAccuracyMult) {
         this.id = id;
         this.displayName = displayName;
         this.tier = tier;
         this.iconPath = iconPath;
-        this.armorPool = armorPool;
+        this.armorCapacity = armorCapacity;
         this.armorRating = armorRating;
         this.moveSpeedMult = moveSpeedMult;
         this.incomingAccuracyMult = incomingAccuracyMult;
