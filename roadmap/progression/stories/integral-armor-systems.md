@@ -4,11 +4,11 @@
 > doorway behind a shield is a different soldier; a breacher with more hit
 > points is the same soldier taking longer to kill.
 
-Status: IN PROGRESS — declared, carried into battle, running, and legible in
-the Armory before issue. The directional mitigation, an authored AI policy,
-battle presentation, and the missile pod remain.
+Status: IN PROGRESS — declared, carried into battle, running with both halves,
+legible in the Armory before issue, and exercising both resource modes. An
+authored AI policy and battle presentation remain.
 Written: 2026-08-27
-Updated: 2026-08-28 — the breach family is authored across all six assault patterns; what is left is the shield half, the use policy, battle presentation, and the pod.
+Updated: 2026-08-28 — the shield half and the shoulder pod both landed; what is left is the use policy and battle presentation.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -77,10 +77,12 @@ Two, chosen because they exercise opposite halves of the model:
   shield is **mitigation**, owned by `combat-durability-nouns.md` as bounded
   directional resistance with an explicit duration — not a second damage path,
   and not extra capacity wearing a costume.
-- **Shoulder micro-missile pod** — a small salvo with finite ammunition,
-  authored through the existing weapon catalog as a micro-missile delivery
-  mechanism. Exercises payload delivery from a non-hand mount and the
-  friendly-fire discipline already applied to other explosive specials.
+- **Shoulder micro-missile pod** (`armor.aegis-composite`) — a small salvo
+  with finite ammunition, authored through the existing weapon catalog
+  (`weapon.micro-missile`) as a micro-missile delivery mechanism. Exercises
+  payload delivery from a non-hand mount and the friendly-fire discipline
+  already applied to other explosive specials. Shipped; see
+  `integral-system-slate.md` for why the Aegis carries it.
 
 ## The room reacts
 
@@ -127,10 +129,23 @@ least and the crudest — and a test refuses a renamed copy. Which pattern gets
 what, and why a pattern with nothing to say carries nothing, is
 `integral-system-slate.md`.
 
-Two of the six under-express until the mitigation lands: the Knightly and
-Sindrian versions spend most of their design on the screen, so today the Armory
-truthfully advertises the Reliquary as a twelve-percent movement boost, which is
-not what the suit is for.
+The second first system is authored too. `armor.aegis-composite` carries
+**Predictive volley**: the suit's own threat display picks a target the wearer
+is not necessarily engaging and puts a brace of `weapon.micro-missile` rounds
+into it, from a rack of two salvos that does not refill. It exercises the
+opposite half of the model from the breach family — a delivered payload
+instead of movement — and is the first live carrier for the ammunition
+resource mode `IntegralSystemDef` has validated since the concept shipped. The
+pod does not touch the billet's carried special item, and its splash follows
+the same friendly-fire discipline as the shipped explosive specials: collateral
+is recorded as its own telemetry quantity, never netted against the intended
+target's damage.
+
+All six members of the breach family now express the whole of what they were
+written to be. The Knightly and Sindrian versions spend most of their design on
+the screen, and that screen is live: the Reliquary advertises and applies a slow
+crossing behind the best protection anyone has, rather than reading as a
+twelve-percent movement boost.
 
 A suit's system is legible before it is issued. The doctrine designer's tile —
 the screen where a pattern is actually chosen — spends its one non-meter line
@@ -139,29 +154,33 @@ what makes a late pattern worth wanting. The fire-team card carries a system
 line level with the billet's carried special item, so the screen shows at a
 glance that the two are separate issues, and hovering it gives the authored
 prose. What those screens quote is what the simulation applies, not what the
-catalog declares: the frontal screen is authored but not yet simulated, so it
-is not advertised, and a test pins the advertised boost to the measured one.
+catalog declares: both the movement boost and the frontal screen now run, so
+both are quoted, including the arc — a screen a player believes is all-round is
+worse than no screen at all — and a test pins the advertised boost to the
+measured one.
 
 The barracks reports systems per formation rather than per marine. Its muster
 row is a fixed 208px name-and-detail pair that already truncates a long pattern
 name, so an individual suit's capability is spelled out in the Armory and the
 barracks says only how many of the formation carry one.
 
+The breacher's protection is real. Its authored frontal resistance and arc are
+handed to combat durability as **mitigation** — a bounded fraction of post-cover
+damage refused, for the system's duration, across an arc measured from the
+wearer's facing when the hit lands. `combat-durability-nouns.md` owns the
+concept, the resolution order, and the laws that keep it from becoming capacity
+in a costume; what matters here is that the suit no longer advertises a screen it
+does not have, and that turning away from the fire costs the front in the same
+tick.
+
 Everything left is gated on simulation work rather than on authoring, so it is
 storied separately rather than held here:
 
-- **The directional resistance** — `d5-timed-directional-mitigation.md`. Until
-  the concept exists the breacher gets the movement half only, so the acceptance
-  bullet about a visible, expiring protection is not met, and the Armory
-  deliberately does not advertise the screen.
 - **An authored AI use policy** — `integral-system-use-policy.md`. The current
   trigger is a placeholder living in the sweep: spend it while actually moving
   with hostiles inside twelve cells.
 - **Battle presentation** — `integral-system-battle-presentation.md`. Nothing is
   drawn today, so an active assist is invisible on the field.
-- **The shoulder micro-missile pod** — `shoulder-micro-missile-pod.md`, which
-  needs a micro-missile delivery mechanism first and is the only planned carrier
-  for the ammunition resource mode.
 - **Defender adoption** — `defender-integral-systems.md`. `InfantryLoadoutRolls`
   still does not pass a pattern's system through, so a hostile in a
   foundry-breaker fights without one.

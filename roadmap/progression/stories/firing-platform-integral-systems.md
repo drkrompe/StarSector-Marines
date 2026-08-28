@@ -71,8 +71,8 @@ trade the player and the AI can both get wrong:
 
 - **Never durability.** A brace must not add capacity, rating, or hit points,
   and must not become mitigation by another name — mitigation is
-  `d5-timed-directional-mitigation.md`'s concept and a stance that quietly
-  duplicates it is the forbidden thing wearing a third costume.
+  `combat-durability-nouns.md`'s concept and a stance that quietly duplicates it
+  is the forbidden thing wearing a third costume.
 - **Accuracy is a legitimate timed effect; evasion is delicate.** Improving what
   the wearer hits is behavior. Reducing what hits the wearer is close enough to
   durability that it needs a specific argument, and probably belongs to
