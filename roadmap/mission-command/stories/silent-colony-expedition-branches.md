@@ -4,9 +4,11 @@ Status: DRAFT — stabilize and explain the archive and survivor branches of the
 
 Written: 2026-08-24
 
-Updated: 2026-08-25 — retained attacker branches while distinguishing autonomous security opposition from a conventional commander.
+Updated: 2026-08-27 — grouped as an Extraction-family adapter while retaining
+stable expedition branches and a separately undecided security-director shape.
 
-Read `ai-nouns.md`, `campaign-event-nouns.md`, and
+Read `mission-command-nouns.md`, `extraction-command.md`,
+`campaign-event-nouns.md`, and
 `autonomous-mission-command-foundation.md` before planning this story.
 
 ## Intent
@@ -43,6 +45,6 @@ original force.
 
 ## Exit
 
-Fold durable expedition-branch vocabulary and laws into `ai-nouns.md`, add the
-story to the AI shipped ledger, and delete it when implementation and live
+Fold durable expedition-branch vocabulary and laws into `extraction-command.md`, add the
+story to the mission-command shipped ledger, and delete it when implementation and live
 acceptance ship.

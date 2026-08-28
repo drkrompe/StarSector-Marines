@@ -4,7 +4,9 @@ Status: PLANNED — follows a competent zero-input baseline and the commander tr
 
 Written: 2026-08-25
 
-Read `ai-nouns.md`, `autonomous-mission-command-foundation.md`,
+Updated: 2026-08-27 — moved under the shared Mission Command authority model.
+
+Read `mission-command-nouns.md`, `autonomous-mission-command-foundation.md`,
 `commander-trace-and-balance-harness.md`, and `command-powers-nouns.md` before
 planning this story.
 
@@ -53,6 +55,6 @@ mission command.
 
 ## Exit
 
-Fold durable intervention laws into `ai-nouns.md`, add this story to the AI
+Fold durable intervention laws into `mission-command-nouns.md`, add this story to the mission-command
 shipped ledger, and delete it when the first production UI and mission adapters
 ship.

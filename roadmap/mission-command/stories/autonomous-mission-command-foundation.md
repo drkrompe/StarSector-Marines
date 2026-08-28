@@ -4,9 +4,11 @@ Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest m
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — enforced battle-tick directive stability separately from temporary authority leases, added typed objective/context invalidations, protected registered provenance from legacy direct writes, and reconciled Conquest detail against committed orders. Other missions deliberately retain their current legacy/no-op assignment behavior.
+Updated: 2026-08-27 — moved under the shared Mission Command architecture;
+remaining foundation acceptance still uses Conquest as the production reference.
 
-Read `ai-nouns.md`, `conquest-nouns.md`, and `battle-fixtures-nouns.md` before
+Read `mission-command-nouns.md`, `conquest-command.md`, `ai-nouns.md`,
+`conquest-nouns.md`, and `battle-fixtures-nouns.md` before
 implementing this story.
 
 ## Intent
@@ -110,5 +112,5 @@ interventions.
 ## Exit
 
 Fold the shipped frame, pool, directive, arbiter, snapshot, and intervention
-laws into `ai-nouns.md`, add this story to `shipped.md`, and delete it when the
+laws into `mission-command-nouns.md`, add this story to `shipped.md`, and delete it when the
 foundation and Conquest reference migration ship.

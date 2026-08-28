@@ -4,9 +4,11 @@ Status: PLANNED — follows the autonomous foundation and at least one paired no
 
 Written: 2026-08-24
 
-Updated: 2026-08-26 — routed faction command-profile authors through the enduring lore guide catalog.
+Updated: 2026-08-27 — moved under Mission Command while retaining lore-authored
+profiles as bounded weights over legal mission choices.
 
-Read `ai-nouns.md`, `campaign-battle-bridge-nouns.md`, and
+Read `mission-command-nouns.md`, `ai-nouns.md`,
+`campaign-battle-bridge-nouns.md`, and
 `faction-lore-nouns.md` before implementing this story.
 
 ## Problem
