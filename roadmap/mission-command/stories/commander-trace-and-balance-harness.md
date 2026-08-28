@@ -66,6 +66,10 @@ churned, or collapsed before tuning force budgets or doctrine.
   while globally retaining useful executable force for actionable front
   resistance; published actions expose a binding distant-capture deferral
   separately from the reason for actual front work.
+- [x] Conquest command-unassigned time is split into lifecycle, execution
+  suspension, local contact, active-path movement, genuine idle, and legacy
+  unclassified buckets using only published own-force facts; the buckets are
+  visible in the report, selected-squad panel, and squad dump.
 - [ ] The harness can compare a bounded player intervention with the same
   zero-input baseline once interventions exist, without making input mandatory.
 - [x] Live Conquest diagnostics can select one perspective and display its
@@ -103,12 +107,16 @@ early terminal results—and may take several minutes. A max-tick or external-
 fixture override is labelled ad hoc in the report; `summary.json` is the full
 machine-readable evidence and `summary.md` is its human overview.
 
-Command-trace schema 5 canonicalizes diagnostic scalar floats to basis-point
+Command-trace schema 6 canonicalizes diagnostic scalar floats to basis-point
 precision and published squad centroids to one tenth of a cell. The simulation
 and commander still consume their unmodified values. This boundary keeps
 sub-cell integration drift from masquerading as a different command decision
 while retaining much finer spatial resolution than any objective zone or
-movement marker requires.
+movement marker requires. Schema 6 also publishes the count of squad members
+with an unexhausted movement path. The offline analyzer applies strict
+lifecycle → suspension → contact → active-path → genuine-idle precedence to
+command-unassigned actions; schema 5 and older rows remain explicitly
+unclassified rather than being reinterpreted without the missing path fact.
 
 ## Representative V3 full-company baseline
 
@@ -137,7 +145,7 @@ zero-pulse latency and no unmobilized episode. This does not establish balance
 from two seeds, but it does establish that paired commander response and lane
 pressure survive representative force delivery.
 
-The next Conquest evidence seam is command inactivity, not transport shape.
+The next Conquest evidence seam was command inactivity, not transport shape.
 The Marine commander published 165 command-unassigned/no-actionable pulses in
 reinforced-south and 398 in full-strength-west, while only 1/18 and 2/42
 secure-compound episodes were observed inside their exact target zone. Before
@@ -146,6 +154,28 @@ arrived squad, form-up/execution suspension, active local contact, preserved
 useful movement, or genuine idle command pool—and make the genuine idle cases
 visible in the trace/report. Exact neutral capture-zone presence remains
 referee evidence and must not become commander input.
+
+## Command-inactivity classification follow-up
+
+The 2026-08-28 schema-6 bounded rerun classified the first 6,000 ticks of each
+representative V3 launch twice, with byte-identical trace and metric output.
+Reinforced-south produced no command-unassigned time before losing 202 of its
+204 committed marines. Full-strength-west produced 104 no-actionable
+squad-pulses / 7,799 squad-ticks; every one classified as active local contact.
+Lifecycle, execution suspension, path-only movement, genuine idle, and
+unclassified time were all zero. The selected-squad dump fixture independently
+exercised the precedence case where local contact and an active path coexist.
+
+This evidence closes the suspected early-window commander-idle gap without a
+behavior change: `NO_ACTIONABLE_TRACK_TARGET` was handing squads to their local
+tactical contact doctrine, not abandoning quiet squads. Preserving an expired
+lane advance or inventing an own-force lead fallback remains a valid future
+option only if a longer or different representative trace records non-zero
+genuine-idle time. Do not tune it from the old aggregate count. The next
+Conquest investigation should instead focus on why secure-compound assignments
+so rarely cross into their exact target zones, using the existing movement,
+contact, suspension, and neutral presence evidence without feeding referee
+occupancy back into command.
 
 ## Historical construction-only baselines
 
