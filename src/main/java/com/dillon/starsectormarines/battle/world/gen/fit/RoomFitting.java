@@ -1,7 +1,5 @@
-package com.dillon.starsectormarines.battle.world.gen.ship.fit;
+package com.dillon.starsectormarines.battle.world.gen.fit;
 
-import com.dillon.starsectormarines.battle.world.gen.ship.Hookup;
-import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.List;
@@ -28,7 +26,7 @@ public interface RoomFitting {
      * Furnish one compartment. Reserve circulation before placing anything, and
      * place fixtures in groups rather than as isolated points.
      */
-    void fit(CompartmentFloor floor);
+    void fit(RoomFloor floor);
 
     /**
      * Where this arrangement can meet the deck, in the canonical frame — or

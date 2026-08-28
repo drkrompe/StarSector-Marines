@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 import java.util.Objects;
 
-/** A V1 scenario construction fixture plus the frozen production launch overlay. */
+/** A versioned scenario construction fixture plus the frozen production launch overlay. */
 public record BattleLaunchFixture(
         BattleFixture construction,
         BattleLaunchOverlay launch) implements BattleFixture {

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.tools.snapshot;
 
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -53,12 +54,23 @@ public final class SnapshotRunner {
         for (PlannedArtifact item : planned) {
             Path output = item.output();
             if (output.getParent() != null) Files.createDirectories(output.getParent());
-            if (!ImageIO.write(item.artifact().image(), "PNG", output.toFile())) {
-                throw new IOException("no PNG writer available for " + output);
-            }
+            write(item.artifact(), output);
             outputs.add(output);
         }
         return List.copyOf(outputs);
+    }
+
+    private static void write(SnapshotArtifact artifact, Path output) throws IOException {
+        if (!artifact.animated()) {
+            if (!ImageIO.write(artifact.image(), "PNG", output.toFile())) {
+                throw new IOException("no PNG writer available for " + output);
+            }
+            return;
+        }
+        try (AnimatedGifWriter gif =
+                     new AnimatedGifWriter(output, artifact.frameDelayMillis())) {
+            for (BufferedImage frame : artifact.frames()) gif.append(frame);
+        }
     }
 
     private record PlannedArtifact(Path output, SnapshotArtifact artifact) {

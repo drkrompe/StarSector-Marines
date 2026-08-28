@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.world.gen.ship.fit;
+package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
@@ -41,7 +41,7 @@ public final class AisleFitting implements RoomFitting {
     }
 
     @Override
-    public void fit(CompartmentFloor floor) {
+    public void fit(RoomFloor floor) {
         int along = floor.canonicalWidth();
         int across = floor.canonicalHeight();
         RoomFit fit = floor.fit();
@@ -68,7 +68,7 @@ public final class AisleFitting implements RoomFitting {
         int aisleStart = banded;
         int aisle = Math.max(0, across - 2 * banded);
         reserve(floor, 0, aisleStart, along, aisle);
-        for (DeckGraph.Compartment.Door door : floor.localDoors()) {
+        for (Doorway door : floor.localDoors()) {
             stubFromDoor(floor, door, aisleStart, Math.max(1, aisle), along, across);
         }
 
@@ -84,7 +84,7 @@ public final class AisleFitting implements RoomFitting {
     }
 
     /** One row of groups running the length of the compartment. */
-    private void rankRow(CompartmentFloor floor, int across, int along) {
+    private void rankRow(RoomFloor floor, int across, int along) {
         int pitch = group.width() + floor.fit().gap();
         for (int offset = 0; offset + group.width() <= along; offset += pitch) {
             place(floor, offset, across);
@@ -92,7 +92,7 @@ public final class AisleFitting implements RoomFitting {
     }
 
     /** Lay one group down, anchor first, then whatever the anchor is used with. */
-    private void place(CompartmentFloor floor, int along, int across) {
+    private void place(RoomFloor floor, int along, int across) {
         int[] anchor = floor.toLocal(along, across);
         if (!place(floor, group.anchor(), anchor, group.affordance())) return;
         for (FixtureGroup.Satellite satellite : group.satellites()) {
@@ -109,7 +109,7 @@ public final class AisleFitting implements RoomFitting {
      * is at the chairs — publishing it at the table would put one place to sit
      * at a fixture four people are sitting at.
      */
-    private static boolean place(CompartmentFloor floor, String id, int[] cell,
+    private static boolean place(RoomFloor floor, String id, int[] cell,
                                  Affordance affordance) {
         return affordance == null
                 ? floor.place(id, cell[0], cell[1])
@@ -123,7 +123,7 @@ public final class AisleFitting implements RoomFitting {
      * spent on it. This is for the doors a hull could not serve where the room
      * asked, and it costs a single column of one rank.
      */
-    private void stubFromDoor(CompartmentFloor floor, DeckGraph.Compartment.Door door,
+    private void stubFromDoor(RoomFloor floor, Doorway door,
                               int aisleStart, int aisle, int along, int across) {
         int[] canonical = floor.toCanonical(door.x(), door.y());
         int doorAcross = canonical[1];
@@ -137,7 +137,7 @@ public final class AisleFitting implements RoomFitting {
         return Math.max(min, Math.min(max - 1, value));
     }
 
-    private void reserve(CompartmentFloor floor,
+    private void reserve(RoomFloor floor,
                          int along, int across, int alongSpan, int acrossSpan) {
         int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
         floor.reserveLane(rect[0], rect[1], rect[2], rect[3]);
