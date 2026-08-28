@@ -1,12 +1,12 @@
 # Ship interior story board
 
-Status: ACTIVE — six bounded stories are open; one has shipped.
+Status: ACTIVE — five bounded stories are open; two have shipped.
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 — `fixture-derived-ambient-routes.md` has shipped and been folded into `ai-nouns.md`: a generated deck is now inhabited, without a single authored waypoint. The flagship story is `company-ship-deck-adoption.md`, which puts the Barracks and Mech Lab screens on that deck.
+Updated: 2026-08-27 — `company-ship-deck-adoption.md` has shipped and been folded into `ship-interiors-nouns.md`: the Barracks and Mech Lab are room views on one generated company ship, and no constant scene layout remains. The open frontier is what a deck holds — `facility-room-themes.md` and `ship-deck-family.md` — and letting the player choose the hull it is generated from.
 
-The first three stories are sequenced and each depends on the one before it.
+The first two stories are sequenced and the second depends on the first.
 `deck-capacity-upgrades.md` is gated on an economic owner, and
 `boarding-deck-missions.md` is gated on a mission model.
 
@@ -14,7 +14,6 @@ The first three stories are sequenced and each depends on the one before it.
 |---|---|---|
 | `ship-deck-family.md` | IN PROGRESS | Deck, rooms and circulation are integrated. Owes the transverse bulkhead chokepoint sequence and the breach point. |
 | `facility-room-themes.md` | IN PROGRESS | Bay, berthing, mess and range are fitted. Owes the density and empty-region seed sweeps, and a refit level that changes what a floor holds. |
-| `company-ship-deck-adoption.md` | IN PROGRESS | Both screens are room views on the company ship and both layout tables are gone. Left: derive breadcrumbs from deck facts. |
 | `company-ship-selection.md` | PROPOSED | Let the player choose the company ship at founding and transfer to another hull later. Direction is in `company-ship.md`. |
 | `deck-capacity-upgrades.md` | PROPOSED | Make facility capacity spatial and let a bounded upgrade transaction change the room. Needs a named economic owner first. |
 | `boarding-deck-missions.md` | PARKED | Generate hostile prize decks for boarding once a mission model owns objectives and extraction. |
