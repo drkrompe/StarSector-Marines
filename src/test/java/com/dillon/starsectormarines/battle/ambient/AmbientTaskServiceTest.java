@@ -183,6 +183,116 @@ class AmbientTaskServiceTest {
         }
     }
 
+    /**
+     * Work starts when the worker gets there, not when a schedule says so.
+     *
+     * <p>The route below budgets its own walk at a twentieth of a cell a second
+     * — several minutes for this leg — while the actor covers it in a few. Under
+     * a sampled clock that gap is spent standing at the fixture waiting for the
+     * timetable to agree, which on a manned deck was four in five actor-samples
+     * of a transport's whole crew and nine in ten of a capital's.
+     */
+    @Test
+    void aDwellBeginsOnArrivalRatherThanWhenAScheduleExpectsIt() {
+        try (BattleSimulation simulation = simulation()) {
+            long actor = simulation.spawn(new EntitySpec(
+                    "walker", Faction.MARINE, UnitType.ENGINEER, 2, 2));
+            AmbientTaskRoute route = new AmbientTaskRoute(
+                    "long-walk", 0f, 0.05f, 0f, AmbientThreatPolicy.NONE, List.of(
+                    new AmbientTaskRoute.Stop(9.5f, 9.5f, 30f,
+                            AmbientActivity.INSPECTING, 10.5f, 9.5f)));
+            simulation.ambientTasks().assign(actor, route);
+
+            AmbientActivity onArrival = null;
+            for (int tick = 0; tick < 30 * 60 && onArrival == null; tick++) {
+                simulation.advance(1f / 30f);
+                if (simulation.movement().atCell(actor, 9, 9)
+                        && simulation.movement().settled(actor)) {
+                    onArrival = simulation.ambientTasks().pose(actor).activity();
+                }
+            }
+
+            assertEquals(AmbientActivity.INSPECTING, onArrival,
+                    "the actor reached its job and was still waiting to begin it");
+        }
+    }
+
+    /**
+     * Somewhere else to be beats somewhere to queue.
+     *
+     * <p>Both members want the one bench. The second is not entitled to it and
+     * must not stand outside it either: the rotation has another job on it, so
+     * that is where they go. A ship with three firing points and six hundred
+     * marines is a fact about the ship; six hundred marines motionless in the
+     * passage outside the range is a scheduling defect.
+     */
+    @Test
+    void aTakenJobIsPassedOverForTheNextOneOnTheRotation() {
+        try (BattleSimulation simulation = simulation()) {
+            simulation.taskPoints().register(new TaskPoint(
+                    "the-bench", "bench", 3.5f, 3.5f, 3.5f, 4.5f));
+            simulation.taskPoints().register(new TaskPoint(
+                    "the-desk", "desk", 9.5f, 9.5f, 9.5f, 10.5f));
+            AmbientTaskRoute route = new AmbientTaskRoute(
+                    "shop", 0f, 1f, 0f, AmbientThreatPolicy.NONE, List.of(
+                    new AmbientTaskRoute.Stop(3.5f, 3.5f, 4f,
+                            AmbientActivity.WORKING, 3.5f, 4.5f, "bench"),
+                    new AmbientTaskRoute.Stop(9.5f, 9.5f, 4f,
+                            AmbientActivity.INSPECTING, 9.5f, 10.5f, "desk")));
+            long first = simulation.spawn(new EntitySpec(
+                    "first", Faction.MARINE, UnitType.ENGINEER, 2, 2));
+            long second = simulation.spawn(new EntitySpec(
+                    "second", Faction.MARINE, UnitType.ENGINEER, 2, 3));
+            simulation.ambientTasks().assign(first, route);
+            simulation.ambientTasks().assign(second, route);
+            simulation.ambientTasks().settle();
+
+            for (int tick = 0; tick < 30 * 30; tick++) simulation.advance(1f / 30f);
+
+            assertEquals("the-bench", simulation.taskPoints().claimedPoint(first).id());
+            assertEquals("the-desk", simulation.taskPoints().claimedPoint(second).id(),
+                    "the second member waited for a bench instead of taking the desk");
+            assertEquals(AmbientActivity.INSPECTING,
+                    simulation.ambientTasks().pose(second).activity());
+        }
+    }
+
+    /**
+     * A rotation with nowhere free left on it keeps somebody at the job they
+     * have, rather than sending them out to stand in a corridor.
+     */
+    @Test
+    void aWorkerWithNowhereElseToGoStaysAtTheJobTheyHave() {
+        try (BattleSimulation simulation = simulation()) {
+            simulation.taskPoints().register(new TaskPoint(
+                    "the-bench", "bench", 3.5f, 3.5f, 3.5f, 4.5f));
+            simulation.taskPoints().register(new TaskPoint(
+                    "the-desk", "desk", 9.5f, 9.5f, 9.5f, 10.5f));
+            AmbientTaskRoute route = new AmbientTaskRoute(
+                    "shop", 0f, 1f, 0f, AmbientThreatPolicy.NONE, List.of(
+                    new AmbientTaskRoute.Stop(3.5f, 3.5f, 1f,
+                            AmbientActivity.WORKING, 3.5f, 4.5f, "bench"),
+                    new AmbientTaskRoute.Stop(9.5f, 9.5f, 1f,
+                            AmbientActivity.INSPECTING, 9.5f, 10.5f, "desk")));
+            long worker = simulation.spawn(new EntitySpec(
+                    "worker", Faction.MARINE, UnitType.ENGINEER, 2, 2));
+            long squatter = simulation.spawn(new EntitySpec(
+                    "squatter", Faction.MARINE, UnitType.ENGINEER, 9, 9));
+            simulation.ambientTasks().assign(worker, route);
+            simulation.ambientTasks().settle();
+            // The desk is spoken for by somebody outside the rotation, so the
+            // worker's only other job is unavailable for the whole run.
+            simulation.taskPoints().claimNearest(squatter, "desk", 9.5f, 9.5f);
+
+            for (int tick = 0; tick < 30 * 20; tick++) simulation.advance(1f / 30f);
+
+            assertEquals("the-bench", simulation.taskPoints().claimedPoint(worker).id());
+            assertEquals(AmbientActivity.WORKING,
+                    simulation.ambientTasks().pose(worker).activity(),
+                    "a worker with nowhere else to be stopped working");
+        }
+    }
+
     private static AmbientTaskRoute oneStop(
             AmbientActivity activity, AmbientThreatPolicy policy, float radius) {
         return new AmbientTaskRoute("test", 0f, 1f, radius, policy, List.of(
@@ -204,6 +314,12 @@ class AmbientTaskServiceTest {
         for (int y = 0; y < 12; y++) {
             for (int x = 0; x < 12; x++) grid.setWalkableFloor(x, y);
         }
-        return new BattleSimulation(grid, topology, 7L);
+        BattleSimulation simulation = new BattleSimulation(grid, topology, 7L);
+        // Ambient work is not a mission. A simulation with no objectives installs
+        // the backstop pair, so a floor holding nobody but friendly workers wins
+        // the moment it is built and stops ticking - which reads, from a test
+        // that advances more than a second, as a worker who stopped working.
+        simulation.setMissionCompletionEnabled(false);
+        return simulation;
     }
 }
