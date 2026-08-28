@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — folded in the authoring pipeline: raw sheets, annotation documents, packed atlases, and the boundary that keeps pre-pack art out of `mod/`.
+Updated: 2026-08-28 — folded in the authoring pipeline: raw sheets, annotation documents, packed atlases, project-discovered sheets, and the boundary that keeps pre-pack art out of `mod/`.
 
 Read `stories.md` for open work.
 
@@ -159,6 +159,14 @@ Three properties of that pass are part of the model rather than of the tool:
 - **Only kept pieces are packed.** A sheet's unused art does not reach the
   atlas, so a tileset's size reflects what the game uses rather than what was
   drawn.
+
+The pass is entered from the project rather than from a file chooser: raw
+sheets, their authoring documents and the exported tilesets are paired by name,
+and each sheet reports whether it is raw, seeded, annotated or exported. A
+document that names a sheet and its slice settings but no pieces is a valid
+starting point — the natural thing to write when setting a sheet up, by hand or
+by a model — and is sliced on open rather than treated as empty. What such a
+seed cannot supply is which piece is which, because that needs the slice.
 
 Slot names state the mask the way its layout reads it — "the exterior is on this
 side", not "the neighbour is a wall". A mirrored assignment still loads, still
