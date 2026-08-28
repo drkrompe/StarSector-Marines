@@ -87,6 +87,35 @@ class DefenseFrontageTest {
     }
 
     @Test
+    void groundBesideAnInteriorDoorwayIsNotItsOwnAperture() {
+        BattleSimulation sim = compoundSim();
+        // Partition the interior with an ordinary internal doorway. A doorway
+        // cell is its own singleton zone and so is not in the held set, which
+        // makes the perfectly ordinary floor on either side of it look like it
+        // opens onto unheld ground. On a generated compound this produced
+        // phantom apertures at every building threshold, competing with the
+        // real perimeter for the garrison's posts.
+        NavigationGrid grid = sim.getGrid();
+        for (int y = TOP + 1; y < BOTTOM; y++) grid.setWalkable(20, y, false);
+        grid.setWalkableFloor(20, 12);
+        grid.setDoorway(20, 12, true);
+        sim.getZoneGraph().rebuild();
+
+        List<Aperture> frontage = DefenseFrontage.forCompound(node(), sim);
+        assertTrue(find(frontage, 19, 12).isEmpty(),
+                "floor beside an interior doorway is not frontage");
+        assertTrue(find(frontage, 21, 12).isEmpty(),
+                "nor is the floor on its other side");
+        for (Aperture aperture : frontage) {
+            assertFalse(grid.isDoorway(aperture.outsideX(), aperture.outsideY()),
+                    "aperture at " + aperture.x() + "," + aperture.y()
+                            + " opens onto a doorway cell rather than real ground");
+        }
+        assertFalse(find(frontage, DOOR_X, BOTTOM).isEmpty(),
+                "the compound's own entrance is still frontage");
+    }
+
+    @Test
     void everyApertureSeparatesHeldGroundFromUnheldGround() {
         BattleSimulation sim = compoundSim();
         for (Aperture aperture : DefenseFrontage.forCompound(node(), sim)) {

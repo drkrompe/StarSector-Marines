@@ -9,14 +9,14 @@ import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.colony.SilentColonyThreatProfile;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
-import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.gen.UrbanMapGenerator;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -171,6 +171,10 @@ public final class BattleSetup {
     /** Min/max parked vehicles scattered on streets and courtyards. Trucks block pathing + LOS, so they act as movable map terrain. */
     private static final int VEHICLE_COUNT_MIN = 3;
     private static final int VEHICLE_COUNT_MAX = 6;
+    /** Doodad pool the street/courtyard scatter draws parked vehicles from. */
+    private static final String PARKED_VEHICLE_POOL = "PARKED_VEHICLES";
+    /** Narrower pool for a working spaceport apron - ground traffic that belongs beside a berth. */
+    private static final String SERVICE_VEHICLE_POOL = "SPACEPORT_SERVICE_VEHICLES";
 
     /**
      * The active {@link MapGenerator}. {@link BspCityGenerator} produces
@@ -221,9 +225,9 @@ public final class BattleSetup {
      * construction (it flips the turret-pad cells non-walkable post-bake), so the
      * historical turret-after-vehicle cover-bake ordering is preserved.
      */
-    public static MapBuild buildMap(MapResult map, List<MapVehicle> vehicles,
+    public static MapBuild buildMap(MapResult map, List<Doodad> parkedVehicles,
                                     List<DefensePost> defensePosts, long seed) {
-        return buildMap(map, vehicles, defensePosts, Collections.emptyList(), seed);
+        return buildMap(map, parkedVehicles, defensePosts, Collections.emptyList(), seed);
     }
 
     /**
@@ -231,7 +235,7 @@ public final class BattleSetup {
      *             stream so the fight is as reproducible as the map already is. Hosts
      *             pass the same seed they generated the map with.
      */
-    public static MapBuild buildMap(MapResult map, List<MapVehicle> vehicles,
+    public static MapBuild buildMap(MapResult map, List<Doodad> parkedVehicles,
                                     List<DefensePost> defensePosts,
                                     List<ParkedAircraft> parkedAircraft, long seed) {
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology, seed);
@@ -239,9 +243,9 @@ public final class BattleSetup {
         sim.setTacticalMap(map.tacticalMap);
         sim.setBuildings(map.buildings);
         sim.setDefensePosts(defensePosts);
-        for (MapVehicle v : vehicles) sim.addVehicle(v);
         for (ParkedAircraft aircraft : parkedAircraft) sim.addParkedAircraft(aircraft);
         for (Doodad d : map.doodads) sim.addDoodad(d);
+        for (Doodad d : parkedVehicles) sim.addDoodad(d);
         LongList structures = spawnDefensePostTurrets(sim, defensePosts);
         return new MapBuild(sim, structures);
     }
@@ -353,7 +357,7 @@ public final class BattleSetup {
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         // Vehicles stamp before sim construction so the BattleSimulation's
         // zone-graph rebuild sees the final walkability — trucks partition zones.
-        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
+        List<Doodad> vehiclePlacements = stampVehicles(map, rng);
         // Defense posts stamp before sim construction for the same reason —
         // the embankment ring cells flip walkability, and the zone graph the
         // sim builds on construction needs to reflect that.
@@ -597,7 +601,7 @@ public final class BattleSetup {
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
-        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
+        List<Doodad> vehiclePlacements = stampVehicles(map, rng);
         List<DefensePost> defensePosts = new ArrayList<>();
         DefensePostStamper.stampNonConquest(map.grid, map.topology,
                 RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
@@ -759,7 +763,7 @@ public final class BattleSetup {
                 profile != null ? profile : TargetProfile.NEUTRAL);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
-        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
+        List<Doodad> vehiclePlacements = stampVehicles(map, rng);
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
@@ -867,7 +871,7 @@ public final class BattleSetup {
                     scale.width, scale.height, battleSeed, null, profile);
             Random rng = new Random(battleSeed);
             List<ShuttleAssignment> assignments = resolveManifest(manifest);
-            List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
+            List<Doodad> vehiclePlacements = stampVehicles(map, rng);
             List<LandingPad> lzCells = LandingPadSelector.select(map,
                     assignments.size(), LZ_MIN_SEPARATION);
             List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
@@ -961,7 +965,7 @@ public final class BattleSetup {
             Random scenarioRng = new Random(
                     scenarioSeed ^ 0x4155544F4D415445L);
             List<ShuttleAssignment> assignments = resolveManifest(manifest);
-            List<MapVehicle> vehiclePlacements = stampVehicles(
+            List<Doodad> vehiclePlacements = stampVehicles(
                     map, scenarioRng);
             List<DefensePost> candidates = new ArrayList<>();
             DefensePostStamper.stampNonConquest(map.grid, map.topology,
@@ -1133,7 +1137,7 @@ public final class BattleSetup {
         // overwatch line reflects how fortified the planet is.
         MapResult map = MAP_GEN.generate(gridW, gridH, seed, axis, profile);
 
-        List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
+        List<Doodad> vehiclePlacements = stampVehicles(map, rng);
         ShuttleArrivalPlan requestedArrivalPlan = arrivalPlan != null
                 ? arrivalPlan : ShuttleArrivalPlan.legacy();
         ShuttleArrivalPlan.ResolvedManifest resolvedManifest =
@@ -2692,13 +2696,12 @@ public final class BattleSetup {
     }
 
     /**
-     * Picks 3-6 random vehicle placements on open outdoor pavement (streets or
-     * super-block courtyards). Each placement flags its footprint cells
-     * non-walkable on the grid, then recomputes cover for the surrounding ring
-     * so cells adjacent to the truck inherit the cover bonus.
+     * Parks 3-6 vehicles on open outdoor pavement (streets or super-block
+     * courtyards) as ordinary registry doodads, drawn from the
+     * {@code PARKED_VEHICLES} pool.
      *
      * <p>Vehicle anchors are required to sit on a street or courtyard cell,
-     * never on an indoor floor — a truck parked in a living room would read
+     * never on an indoor floor - a truck parked in a living room would read
      * wrong. {@link PlacementGuards#touchesDoorway Doorway-adjacent} cells are
      * excluded so the vehicle doesn't seal a building's only egress (the
      * doorway's perpendicular through-cell is walkable and unflagged, but
@@ -2706,12 +2709,15 @@ public final class BattleSetup {
      * {@link PlacementGuards#wouldPartitionWalkable connectivity} is checked
      * so the truck can't sever a thin walkable strip from the main graph.
      */
-    static List<MapVehicle> stampVehicles(MapResult map, Random rng) {
+    static List<Doodad> stampVehicles(MapResult map, Random rng) {
         NavigationGrid grid = map.grid;
         CellTopology topology = map.topology;
+        GenMappingRegistry mappings = GenMappingRegistry.installed();
+        List<DoodadDef> kinds = mappings.doodadPool(PARKED_VEHICLE_POOL);
+        List<DoodadDef> serviceKinds = mappings.doodadPool(SERVICE_VEHICLE_POOL);
+        if (kinds.isEmpty()) return List.of();
         int target = VEHICLE_COUNT_MIN + rng.nextInt(VEHICLE_COUNT_MAX - VEHICLE_COUNT_MIN + 1);
-        VehicleKind[] kinds = VehicleKind.values();
-        List<MapVehicle> placed = new ArrayList<>(target);
+        List<Doodad> placed = new ArrayList<>(target);
 
         // An operating civilian port parks purpose-appropriate ground traffic
         // on the service side of some berths. Keep other berths empty so the
@@ -2720,40 +2726,33 @@ public final class BattleSetup {
         for (LandingPad pad : map.landingPads) {
             if (pad.purpose == LandingPad.Purpose.CIVILIAN_SPACEPORT) portPads.add(pad);
         }
-        int serviceTarget = Math.min(target, Math.min(3, (portPads.size() + 1) / 2));
-        VehicleKind[] serviceKinds = {
-                VehicleKind.FLATBED_TRUCK,
-                VehicleKind.TANKER_TRUCK,
-                VehicleKind.CARGO_TRUCK,
-                VehicleKind.UTILITY_TRUCK
-        };
+        int serviceTarget = serviceKinds.isEmpty()
+                ? 0 : Math.min(target, Math.min(3, (portPads.size() + 1) / 2));
         for (int i = 0; i < serviceTarget; i++) {
             LandingPad pad = portPads.get(i * 2);
-            VehicleKind kind = serviceKinds[rng.nextInt(serviceKinds.length)];
+            DoodadDef kind = serviceKinds.get(rng.nextInt(serviceKinds.size()));
             int[] anchor = findServiceVehicleAnchor(map, pad, kind);
             if (anchor == null) continue;
-            stampOneVehicle(grid, topology, anchor[0], anchor[1], kind);
-            placed.add(new MapVehicle(kind, anchor[0], anchor[1]));
+            placed.add(stampOneVehicle(grid, topology, anchor[0], anchor[1], kind));
         }
 
         int attempts = 0;
         int maxAttempts = target * 50;
         while (placed.size() < target && attempts < maxAttempts) {
             attempts++;
-            VehicleKind kind = kinds[rng.nextInt(kinds.length)];
+            DoodadDef kind = kinds.get(rng.nextInt(kinds.size()));
             int x = rng.nextInt(Math.max(1, grid.getWidth()  - kind.footprintCellsX));
             int y = rng.nextInt(Math.max(1, grid.getHeight() - kind.footprintCellsY));
             if (!canPlaceVehicle(map, x, y, kind, false)) continue;
             if (PlacementGuards.wouldPartitionWalkable(
                     grid, x, y, kind.footprintCellsX, kind.footprintCellsY)) continue;
-            stampOneVehicle(grid, topology, x, y, kind);
-            placed.add(new MapVehicle(kind, x, y));
+            placed.add(stampOneVehicle(grid, topology, x, y, kind));
         }
         return placed;
     }
 
     private static int[] findServiceVehicleAnchor(MapResult map, LandingPad pad,
-                                                   VehicleKind kind) {
+                                                   DoodadDef kind) {
         int x;
         int y;
         if (pad.approach.dx != 0) {
@@ -2782,7 +2781,7 @@ public final class BattleSetup {
     }
 
     private static boolean canPlaceVehicle(MapResult map, int x, int y,
-                                           VehicleKind kind, boolean allowApron) {
+                                           DoodadDef kind, boolean allowApron) {
         NavigationGrid grid = map.grid;
         CellTopology topology = map.topology;
         for (int dy = 0; dy < kind.footprintCellsY; dy++) {
@@ -2809,21 +2808,28 @@ public final class BattleSetup {
         return true;
     }
 
-    private static void stampOneVehicle(NavigationGrid grid, CellTopology topology, int x, int y, VehicleKind kind) {
+    /**
+     * Closes one parked vehicle's footprint and returns the prop that sits on it.
+     *
+     * <p>A truck is not a wall. Each cell becomes non-walkable, see-through, and
+     * edge-cover-suppressed, and the three together are what makes it read as a
+     * truck: you cannot walk it, you shoot over the hood, and the cover it gives
+     * is the authored level its {@link DoodadDef} carries rather than the flat
+     * level the grid derives from any blocker. Suppression is what keeps that
+     * single - without it one silhouette would publish wall cover and doodad
+     * cover at the same time.
+     */
+    private static Doodad stampOneVehicle(NavigationGrid grid, CellTopology topology,
+                                          int x, int y, DoodadDef kind) {
         for (int dy = 0; dy < kind.footprintCellsY; dy++) {
             for (int dx = 0; dx < kind.footprintCellsX; dx++) {
                 grid.setWalkable(x + dx, y + dy, false);
+                grid.setSeeThrough(x + dx, y + dy, true);
+                grid.setEdgeCoverSuppressed(x + dx, y + dy, true);
                 topology.setVehicle(x + dx, y + dy, true);
             }
         }
-        // Refresh cover for the 1-cell ring around the footprint so units who
-        // stand next to a truck pick up the +1 cover bonus on their next
-        // firing-position score.
-        for (int dy = -1; dy <= kind.footprintCellsY; dy++) {
-            for (int dx = -1; dx <= kind.footprintCellsX; dx++) {
-                grid.recomputeCoverAt(x + dx, y + dy);
-            }
-        }
+        return new Doodad(x, y, kind);
     }
 
     /**

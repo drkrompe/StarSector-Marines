@@ -1,0 +1,54 @@
+{
+  "sheet": "graphics/tilesets/parked-vehicles.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.parked-utility-truck",
+      "col": 0,
+      "row": 0,
+      "footprintCells": [3, 2],
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55
+    },
+    {
+      "id": "doodad.parked-flatbed-truck",
+      "col": 3,
+      "row": 0,
+      "footprintCells": [3, 2],
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55
+    },
+    {
+      "id": "doodad.parked-tanker-truck",
+      "col": 6,
+      "row": 0,
+      "footprintCells": [3, 2],
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55
+    },
+    {
+      "id": "doodad.parked-box-van",
+      "col": 0,
+      "row": 2,
+      "footprintCells": [3, 2],
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55
+    },
+    {
+      "id": "doodad.parked-cargo-truck",
+      "col": 3,
+      "row": 2,
+      "footprintCells": [3, 2],
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55
+    },
+    {
+      "id": "doodad.parked-armored-apc",
+      "col": 6,
+      "row": 2,
+      "footprintCells": [3, 2],
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55
+    }
+  ]
+}

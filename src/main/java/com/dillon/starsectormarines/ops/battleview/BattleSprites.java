@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.SheetTexture;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
@@ -72,9 +71,6 @@ public class BattleSprites {
 
     // ---- vehicle sheets -----------------------------------------------------
 
-    private final java.util.EnumMap<VehicleKind.VehicleSheet, UnitSpriteCache> vehicleSheets =
-            new java.util.EnumMap<>(VehicleKind.VehicleSheet.class);
-    private boolean vehicleSheetsLoadAttempted;
 
     // ---- turret sprites -----------------------------------------------------
 
@@ -119,6 +115,7 @@ public class BattleSprites {
     private final SheetTexture urbanTile3Tex = SheetTexture.sliced(TileManifest.STREET3_SHEET);
     private final SheetTexture natureTex     = SheetTexture.sliced(TileManifest.NATURE_SHEET);
     private final SheetTexture doodadTex     = SheetTexture.grid(TileManifest.DOODAD_SHEET);
+    private final SheetTexture parkedVehicleTex = SheetTexture.grid(TileManifest.PARKED_VEHICLE_SHEET);
 
     // ---- shuttle sprites ----------------------------------------------------
 
@@ -164,7 +161,6 @@ public class BattleSprites {
     public java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites()      { return unitDeadSprites; }
     public java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() { return layeredUnitSprites; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
-    public java.util.EnumMap<VehicleKind.VehicleSheet, UnitSpriteCache> vehicleSheets() { return vehicleSheets; }
     public Map<String, ShuttleSpriteCache> turretSprites()   { return turretSprites; }
     public Map<String, ShuttleSpriteCache> turretRecoilSprites() { return turretRecoilSprites; }
     /** Carrier-agnostic projectile-sprite lookup by texture path (what {@code ShotFx.Sprite} resolves against). Null if not loaded / no such path. */
@@ -201,6 +197,9 @@ public class BattleSprites {
     public int natureSheetPxW()                    { return natureTex.pxW(); }
     public int natureSheetPxH()                    { return natureTex.pxH(); }
     public SpriteSheetFrames natureFrames()        { return natureTex.frames(); }
+    public SpriteAPI parkedVehicleSheet()           { return parkedVehicleTex.sprite(); }
+    public int parkedVehicleSheetPxW()              { return parkedVehicleTex.pxW(); }
+    public int parkedVehicleSheetPxH()              { return parkedVehicleTex.pxH(); }
     public SpriteAPI doodadSheet()                  { return doodadTex.sprite(); }
     public int doodadSheetPxW()                     { return doodadTex.pxW(); }
     public int doodadSheetPxH()                     { return doodadTex.pxH(); }
@@ -275,7 +274,11 @@ public class BattleSprites {
     public void ensureUrbanTile3Sheet() { urbanTile3Tex.ensureLoaded(); }
 
     /** Lazy-loads the dedicated 32px generated-doodad atlas. */
-    public void ensureDoodadSheet()     { doodadTex.ensureLoaded(); }
+    /** Loads both prop atlases — the generated doodad sheet and the parked-vehicle
+     *  sheet. One call because they are one layer's art: a caller that wants props
+     *  drawn wants trucks drawn, and splitting the two only invites a host that
+     *  loads one and silently drops the other. */
+    public void ensureDoodadSheet()     { doodadTex.ensureLoaded(); parkedVehicleTex.ensureLoaded(); }
 
     /**
      * Lazy-loads the vanilla engine flame + glow textures. Same one-shot
@@ -397,14 +400,6 @@ public class BattleSprites {
                 UnitSpriteCache dead = loadUnitSheet(type.deadSpritePath);
                 if (dead != null) unitDeadSprites.put(type, dead);
             }
-        }
-    }
-
-    public void ensureVehicleSheets() {
-        if (vehicleSheetsLoadAttempted) return;
-        vehicleSheetsLoadAttempted = true;
-        for (VehicleKind.VehicleSheet sheet : VehicleKind.VehicleSheet.values()) {
-            vehicleSheets.put(sheet, loadUnitSheet(sheet.path));
         }
     }
 

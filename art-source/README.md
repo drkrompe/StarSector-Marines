@@ -31,10 +31,25 @@ annotate, as `<name>.tileset-authoring.json`.
 ## Seeding a tileset for annotation
 
 The Tilesets page lists every sheet it finds here, so dropping a raw sheet into
-`tilesets/` is enough to make it appear as work to do. Nothing else is required.
+`tilesets/` is enough to make it appear as work to do.
 
-A sheet can also be *seeded*: write the document by hand (or have a model write
-it) with the settings and no pieces, and the page will slice it on open.
+Seeding it is the next step, and it is a procedure rather than a preference —
+the `ingest-tileset` skill in `.claude/skills/` walks through it, and
+`ProjectTilesetSeedsTest` fails the build for a raw sheet that arrives without a
+document. Measure the sheet first:
+
+```powershell
+python art-source/tilesets/measure_sheet.py art-source/tilesets/<name>.raw.png --cells 10x10 --write
+```
+
+That reports what can be read off the pixels — size, whether there is a usable
+alpha channel, how many pieces each alpha threshold finds — and drafts the seed.
+It deliberately **does not detect the cell grid**: seam-energy and
+autocorrelation were both measured against sheets whose grids were known and both
+read noise, so it verifies a stated `--cells` instead of inventing one.
+
+The draft's `note` is a placeholder, and replacing it is the ingest step the
+script cannot do. A seed:
 
 ```json
 {

@@ -122,6 +122,10 @@ Do not run builds or leave generated task files there.
   It exposes specialized projectile/artillery behavior and audio; preview
   flight reads the authored burst, boost, arc, contrail, and directional
   launch-FX data instead of substituting a generic projectile treatment.
+  New sheets are ingested through the `ingest-tileset` skill:
+  `art-source/tilesets/measure_sheet.py` measures a sheet and drafts its authoring
+  seed, and `ProjectTilesetSeedsTest` fails the build for raw art that arrives
+  without one.
   The Tilesets page turns a raw art sheet into a loadable tileset. It lists every
   sheet under `art-source/tilesets/` with its state — raw, seeded, annotated,
   exported — so sheets are picked from the project rather than browsed for.
