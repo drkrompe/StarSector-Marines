@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.decision;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -13,23 +14,23 @@ import org.junit.jupiter.api.Test;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Pins the firing-position search against a brute-force reference that scans
- * every cell of the target's weapon-range box and applies each filter in the
- * order the search originally used.
+ * Pins {@link TacticalScoring}'s two pruned searches — the firing-position
+ * picker and the target picker — against brute-force references that consider
+ * every candidate in the order the searches originally used.
  *
- * <p>The shipped search clamps its scan box to the anchor leash, runs the
- * cheap leash test ahead of the line-of-fire raycast, and skips any cell whose
- * best possible score already loses to the incumbent. Those are all pruning
- * moves, so the returned cell — including which of several equal-scoring cells
- * wins the tie — must stay identical to the exhaustive scan on every map.
- * Randomized geometry is what makes that a claim about the algorithm rather
- * than about one hand-drawn arena.
+ * <p>Both searches now skip candidates a score bound has already ruled out,
+ * and both changed the order they visit candidates in to make that bound bite
+ * early. Those are pruning moves, so the answer — including which of several
+ * equal-scoring candidates wins the tie — must stay identical to the
+ * exhaustive scan on every map. Randomized geometry is what makes that a claim
+ * about the algorithms rather than about one hand-drawn arena.
  */
-class FiringPositionSearchEquivalenceTest {
+class TacticalSearchEquivalenceTest {
 
     private static final int WIDTH = 60;
     private static final int HEIGHT = 60;
@@ -67,6 +68,81 @@ class FiringPositionSearchEquivalenceTest {
         assertTrue(foundPositions > probes / 2,
                 "probes must mostly find a firing position, not agree on null; found "
                         + foundPositions + " of " + probes);
+    }
+
+    @Test
+    void distanceOrderedTargetPickMatchesTheDenseOrderScan() {
+        Random random = new Random(20260829L);
+        int probes = 0;
+        int found = 0;
+        for (int map = 0; map < 12; map++) {
+            BattleSimulation sim = randomArena(random);
+            TacticalScoring scoring = sim.getTacticalScoring();
+            for (int probe = 0; probe < 40; probe++) {
+                long self = walkableUnit(sim, random, Faction.MARINE);
+                float selfX = sim.world().x(self);
+                float selfY = sim.world().y(self);
+                boolean allowNoLos = random.nextBoolean();
+                int squadId = Squad.NO_SQUAD;
+
+                long expected = referenceBestTarget(sim, scoring, selfX, selfY,
+                        Faction.MARINE, squadId, self, allowNoLos);
+                long actual = scoring.findBestTarget(selfX, selfY, Faction.MARINE,
+                        squadId, self, 0f, allowNoLos);
+
+                assertEquals(expected, actual,
+                        "distance-ordered pick and dense-order scan disagree on the target");
+                if (expected != 0L) found++;
+                probes++;
+            }
+        }
+        assertTrue(found > probes / 2,
+                "probes must mostly find a target, not agree on none; found "
+                        + found + " of " + probes);
+    }
+
+    /**
+     * The target picker exactly as it read before the distance ordering: one
+     * dense-order pass, a line-of-sight raycast for every hostile combatant in
+     * the roster, first candidate wins a tie.
+     */
+    private static long referenceBestTarget(
+            BattleSimulation sim, TacticalScoring scoring, float selfX, float selfY,
+            Faction selfFaction, int selfSquadId, long exclude, boolean allowNoLos) {
+        NavigationGrid grid = sim.getGrid();
+        long[] dense = sim.getRoster().denseArray();
+        int liveCount = sim.getRoster().liveCount();
+        int selfCellX = (int) Math.floor(selfX);
+        int selfCellY = (int) Math.floor(selfY);
+
+        long best = 0L;
+        float bestScore = Float.MAX_VALUE;
+        long bestAny = 0L;
+        float bestAnyDist = Float.MAX_VALUE;
+        for (int i = 0; i < liveCount; i++) {
+            long other = dense[i];
+            if (sim.getRoster().identity().faction(other) == selfFaction) continue;
+            if (!sim.getRoster().identity().type(other).combatant) continue;
+
+            int ox = sim.world().cellX(other);
+            int oy = sim.world().cellY(other);
+            float d = TacticalScoring.cellDistance(
+                    selfX, selfY, sim.world().x(other), sim.world().y(other));
+            if (d < bestAnyDist) {
+                bestAnyDist = d;
+                bestAny = other;
+            }
+            boolean visible = TacticalScoring.canSeePair(grid, selfCellX, selfCellY,
+                    ox, oy, 0f, sim.vision().airLosRadius(other));
+            if (!visible && !allowNoLos) continue;
+            float score = scoring.scoreTargetCandidate(other, d, visible, selfFaction,
+                    selfSquadId, exclude, selfCellX, selfCellY, ox, oy);
+            if (score < bestScore) {
+                bestScore = score;
+                best = other;
+            }
+        }
+        return best != 0L ? best : bestAny;
     }
 
     /**
