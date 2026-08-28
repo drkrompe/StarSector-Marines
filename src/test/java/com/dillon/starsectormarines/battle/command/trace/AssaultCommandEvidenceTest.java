@@ -42,9 +42,15 @@ class AssaultCommandEvidenceTest {
             throw new IllegalArgumentException(
                     "assault.command.evidence.maxTicks must be positive");
         }
+        Path output = Path.of(System.getProperty(
+                        "assault.command.evidence.outputDir",
+                        "build/reports/commander/assault"))
+                .toAbsolutePath().normalize();
         LoadedFixture loaded = loadFixture();
-        RunResult first = run(loaded.fixture(), maxTicks);
-        RunResult second = run(loaded.fixture(), maxTicks);
+        RunResult first = run(loaded.fixture(), maxTicks, output,
+                "assault-command-duel");
+        RunResult second = run(loaded.fixture(), maxTicks, null,
+                "assault-command-duel");
         TraceMetrics firstMetrics = analyze(first.trace());
         TraceMetrics secondMetrics = analyze(second.trace());
         assertEquals(first.trace(), second.trace(),
@@ -70,10 +76,6 @@ class AssaultCommandEvidenceTest {
                     "canonical duration must show search-leg progress");
         }
 
-        Path output = Path.of(System.getProperty(
-                        "assault.command.evidence.outputDir",
-                        "build/reports/commander/assault"))
-                .toAbsolutePath().normalize();
         Path traces = output.resolve("traces");
         Files.createDirectories(traces);
         Files.writeString(traces.resolve("assault-command-duel.jsonl"),
@@ -88,12 +90,17 @@ class AssaultCommandEvidenceTest {
                 + output.resolve("summary.md"));
     }
 
-    private static RunResult run(BattleFixture fixture, int maxTicks) {
-        try (BattleSimulation sim = fixture.build()) {
+    private static RunResult run(BattleFixture fixture, int maxTicks,
+                                 Path visualRoot, String runId)
+            throws Exception {
+        try (BattleSimulation sim = fixture.build();
+             CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
+                     visualRoot, runId, sim)) {
             sim.setCommandTraceEnabled(true, fixture.kind());
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 int before = sim.getSimTickIndex();
                 sim.advance(BattleSimulation.TICK_DT);
+                capture.afterAdvance();
                 assertEquals(before + 1, sim.getSimTickIndex());
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);

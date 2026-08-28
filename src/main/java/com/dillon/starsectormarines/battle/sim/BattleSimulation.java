@@ -73,6 +73,7 @@ import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
+import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -229,6 +230,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final FacingSystem facingSystem;
     /** Simulation-authoritative mech pivoting, settled before appearance authoring. */
     private final com.dillon.starsectormarines.battle.mech.MechLocomotionSystem mechLocomotionSystem;
+    /** Fixed-tick, presentation-only planted-foot and waist solver. */
+    private final MechGaitSystem mechGaitSystem;
     /** Simulation-authoritative upper-torso traverse; gates mech weapons as well as their render heading. */
     private final com.dillon.starsectormarines.battle.mech.MechTurretSystem mechTurretSystem;
     /** Mech-wreck system — death-event handler that drops a smoking wreck on a dead chassis unit's cell (replaces the former HeavyWeapons per-tick scan). Subscribed to {@link #deathDispatcher} in the constructor. */
@@ -529,6 +532,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.facingSystem = new FacingSystem(entityWorld, battleComponents, rosterService);
         this.mechLocomotionSystem = new com.dillon.starsectormarines.battle.mech.MechLocomotionSystem(
                 entityWorld, battleComponents, rosterService);
+        this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
         this.mechTurretSystem = new com.dillon.starsectormarines.battle.mech.MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
@@ -1712,6 +1716,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // runs after every target/path/cooldown write and the air/ground
         // deboards above, and before any render read of SPRITE this frame.
         mechLocomotionSystem.tick(TICK_DT);
+        mechGaitSystem.tick(TICK_DT);
         mechTurretSystem.tick(TICK_DT);
         facingSystem.tick();
         // FacingSystem authors the ordinary battle pose. Active ambient work

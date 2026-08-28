@@ -114,6 +114,22 @@ class HeadlessUiRendererTest {
     }
 
     @Test
+    void canvasFillsArbitraryQuads() {
+        UiElement canvas = new UiElement("canvas")
+                .tag(UiTag.CANVAS)
+                .canvasSize(30, 30);
+        UiDocument document = new UiDocument(canvas);
+        document.canvases().set(canvas, context -> context.fillQuad(
+                5f, 5f, 25f, 5f, 20f, 25f, 10f, 25f, Color.MAGENTA));
+
+        BufferedImage result = new HeadlessUiRenderer(Path.of("mod"))
+                .render(document, 30, 30);
+
+        assertEquals(Color.MAGENTA.getRGB(), result.getRGB(15, 15));
+        assertEquals(0, result.getRGB(2, 2));
+    }
+
+    @Test
     void typedHostPassCanUseTheHeadlessCanvasDrain() {
         UiElement canvas = new UiElement("canvas").tag(UiTag.CANVAS).canvasSize(40, 20);
         UiDocument document = new UiDocument(canvas);

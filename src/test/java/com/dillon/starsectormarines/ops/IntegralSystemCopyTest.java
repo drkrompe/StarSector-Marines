@@ -14,6 +14,8 @@ import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import org.junit.jupiter.api.Test;
 
+import java.util.Locale;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,12 +45,13 @@ class IntegralSystemCopyTest {
     void theAuthoredRigNamesItsSystemAndHowOftenItIsAvailable() {
         MarineArmorCatalogDef rig = MarineArmorCatalogRegistry.require("armor.foundry-breaker");
         assertTrue(rig.hasIntegralSystem(),
-                "fixture assumption: the foundry-breaker is the pattern that carries one");
+                "fixture assumption: the foundry-breaker carries a breaching assist");
 
         String summary = IntegralSystemCopy.summary(rig);
         assertTrue(summary.contains(rig.integralSystem().displayName()), summary);
-        assertTrue(summary.contains("3s / 22s"),
-                "a player deciding on the suit needs the clock, got: " + summary);
+        assertTrue(summary.contains(seconds(rig.integralSystem().durationSeconds()) + "s")
+                        && summary.contains(seconds(rig.integralSystem().cooldownSeconds()) + "s"),
+                "a player deciding on the suit needs the authored clock, got: " + summary);
 
         String detail = IntegralSystemCopy.detail(rig);
         assertTrue(detail.contains(rig.integralSystem().description()), detail);
@@ -68,7 +71,9 @@ class IntegralSystemCopyTest {
         assertTrue(tile.length() <= 80, "a designer tile clips past ~80 chars, got: " + tile);
         assertFalse(tile.contains(rig.integralSystem().description()),
                 "the full description belongs in the fire-team hover, not the tile");
-        assertTrue(tile.contains("45%"), tile);
+        int boost = Math.round(
+                (rig.integralSystem().breacherAssist().moveSpeedMult() - 1f) * 100f);
+        assertTrue(tile.contains(boost + "%"), tile);
     }
 
     /**
@@ -101,5 +106,12 @@ class IntegralSystemCopyTest {
         assertTrue(IntegralSystemCopy.detail(rig).contains(advertised),
                 "the Armory should quote the measured " + advertised + " boost, but says: "
                         + IntegralSystemCopy.detail(rig));
+    }
+
+    /** Mirrors the copy's own formatting so the assertion tracks the catalog. */
+    private static String seconds(float value) {
+        return value == Math.rint(value)
+                ? String.valueOf(Math.round(value))
+                : String.format(Locale.ROOT, "%.1f", value);
     }
 }

@@ -155,6 +155,18 @@ tasks.register('commanderEvidence', Test) {
         if (!maxTicks.isBlank()) {
             systemProperty "${prefix}.maxTicks", maxTicks
         }
+        def visualArguments = [
+                snapshotEveryTicks: 'commander.evidence.snapshot.everyTicks',
+                gifFrameDelayMillis: 'commander.evidence.snapshot.frameDelayMillis',
+                snapshotWidth: 'commander.evidence.snapshot.width',
+                snapshotHeight: 'commander.evidence.snapshot.height',
+        ]
+        visualArguments.each { argument, property ->
+            def value = providers.gradleProperty(argument)
+                    .orElse(providers.systemProperty(property))
+                    .getOrElse('').trim()
+            if (!value.isBlank()) systemProperty property, value
+        }
     }
     doFirst {
         if (!commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
