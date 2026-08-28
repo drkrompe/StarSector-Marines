@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.command.AssaultDefenderCommandDisclos
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
+import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.CommanderService;
@@ -445,6 +447,42 @@ class SquadStateDumperTest {
         assertEquals("ESCORT", intent.getString("assignmentKind"));
         assertEquals(24, intent.getInt("targetCellX"));
         assertFalse(intent.getBoolean("localContact"));
+    }
+
+    @Test
+    void extractionDefenseDumpPublishesAlarmPictureWithoutHiddenCorridor()
+            throws Exception {
+        BattleSimulation sim = openSim();
+        int zone = sim.getZoneGraph().zoneIdAt(24, 12);
+        sim.addObjective(new ExtractionObjective("EXTRACTION-01", "package",
+                zone, new int[]{24, 12, 23, 12, 22, 12, 21, 12,
+                20, 12, 19, 12, 18, 12, 17, 12, 16, 12, 15, 12,
+                14, 12, 13, 12, 12, 12, 11, 12, 10, 12, 9, 12,
+                8, 12, 7, 12, 6, 12, 5, 12, 4, 12, 3, 12}));
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("guard", Faction.DEFENDER,
+                UnitType.MILITIA, 20, 12).squad(squadId));
+        squad.leaderId = member;
+        sim.setAutonomousCommander(Faction.DEFENDER,
+                new ExtractionDefenderCommand(java.util.Set.of(squadId)),
+                ExtractionDefenderCommandDisclosure.INSTANCE);
+        sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                + BattleSimulation.TICK_DT);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+        JSONObject defense = dump.getJSONObject("extractionDefenseCommand");
+        JSONObject intent = defense.getJSONObject("squadIntent");
+
+        assertEquals("extraction-defender",
+                dump.getJSONObject("commander").getString("strategy"));
+        assertEquals("ROUTINE_SECURITY", defense.getString("phase"));
+        assertEquals("SOURCE_GUARD", intent.getString("role"));
+        assertTrue(dump.isNull("extractionCommand"));
+        assertFalse(defense.has("egressCellX"));
+        assertFalse(defense.has("payloadCellX"));
+        assertFalse(defense.has("progress"));
+        assertFalse(defense.has("controllingSquadId"));
     }
 
     private static BattleSimulation openSim() {
