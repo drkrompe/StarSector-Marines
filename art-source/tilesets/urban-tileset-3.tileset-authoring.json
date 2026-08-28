@@ -9,13 +9,16 @@
         1,
         1
       ],
-      "id": "doodad.urban3.c0r0",
+      "id": "urban3.street-square",
       "included": true,
+      "layer": "ground",
+      "name": "street-square",
+      "note": "uniform square paver \u2014 primary road surface",
       "rect": [
-        0,
-        0,
-        309,
-        726
+        85,
+        230,
+        227,
+        252
       ]
     },
     {
@@ -24,13 +27,16 @@
         1,
         1
       ],
-      "id": "doodad.urban3.c1r0",
+      "id": "urban3.street-irregular",
       "included": true,
+      "layer": "ground",
+      "name": "street-irregular",
+      "note": "irregular cobbled paver \u2014 alt road surface (use one or the other per road, mixing reads as patchy)",
       "rect": [
-        309,
-        0,
-        310,
-        726
+        387,
+        232,
+        224,
+        250
       ]
     },
     {
@@ -39,13 +45,16 @@
         1,
         1
       ],
-      "id": "doodad.urban3.c2r0",
+      "id": "urban3.sidewalk",
       "included": true,
+      "layer": "ground",
+      "name": "sidewalk",
+      "note": "plain sidewalk slab \u2014 straight runs",
       "rect": [
-        619,
-        0,
-        309,
-        726
+        680,
+        239,
+        228,
+        242
       ]
     },
     {
@@ -54,13 +63,16 @@
         1,
         1
       ],
-      "id": "doodad.urban3.c3r0",
+      "id": "urban3.sidewalk-corner",
       "included": true,
+      "layer": "ground",
+      "name": "sidewalk-corner",
+      "note": "alt sidewalk slab \u2014 corners (two perpendicular non-sidewalk neighbors)",
       "rect": [
-        928,
-        0,
-        310,
-        726
+        1005,
+        244,
+        221,
+        231
       ]
     },
     {
@@ -69,13 +81,16 @@
         1,
         1
       ],
-      "id": "doodad.urban3.c4r0",
+      "id": "urban3.culvert",
       "included": true,
+      "layer": "overlay",
+      "name": "culvert",
+      "note": "drain culvert doodad \u2014 placed at curb edge",
       "rect": [
-        1238,
-        0,
-        309,
-        726
+        1323,
+        269,
+        187,
+        185
       ]
     },
     {
@@ -84,13 +99,16 @@
         1,
         1
       ],
-      "id": "doodad.urban3.c5r0",
+      "id": "urban3.bench-s",
       "included": true,
+      "layer": "overlay",
+      "name": "bench-s",
+      "note": "bench facing south \u2014 back of seat read from north sidewalk",
       "rect": [
-        1547,
-        0,
-        310,
-        726
+        1606,
+        280,
+        212,
+        140
       ]
     },
     {
@@ -99,20 +117,32 @@
         1,
         1
       ],
-      "id": "doodad.urban3.c6r0",
+      "id": "urban3.bench-e",
       "included": true,
+      "layer": "overlay",
+      "name": "bench-e",
+      "note": "bench facing east \u2014 mirror at render time for a west-facing variant",
       "rect": [
-        1857,
-        0,
-        309,
-        726
+        1955,
+        221,
+        105,
+        255
       ]
     }
   ],
-  "gridCols": 7,
+  "gridCols": 1,
   "gridRows": 1,
-  "idPrefix": "doodad.urban3",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 7x1 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Cut once, then annotate: slicing finds the plate as one fused piece again, so re-slicing has nothing to add. 2166x726 as a 7x1 strip, so its cells are 309x726. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Like nature-tiles it loads as a sliced frame-indexed sheet rather than col/row doodads, so re-exporting it would change its registry shape.",
+  "idPrefix": "urban3",
+  "note": "A strip of seven street pieces, not a plate: four paving surfaces and three props, each drawn at whatever size and aspect it wants, separated by wide gutters. It loads as an auto-strip - the game finds the frames by alpha at load and a tile pins the frame index it resolves to - so order IS the address here and moving a piece renames every piece after it. The raw art arrived RGB and opaque; its alpha was keyed in by art-source/tilesets/key_background.py, per band, with the three props keyed at a much lower threshold than the pavers because their own ironwork is drawn inside the range the pavers call background. The ids below are live: urban.mapping.json selects urban3.street-square, and TileManifest and GroundRenderSystem name urban3.sidewalk and urban3.sidewalk-corner directly. Re-exporting is safe as long as the seven frames keep this order. The atlas has derived urban-tileset-3_height.png and _normal.png beside it, sampled at the same pixels; re-run 'gradlew.bat :asset-pipeline:deriveTileMaps' after any export or they read the relief of the sheet they replaced.",
+  "outputSheet": "graphics/tilesets/urban-tileset-3.png",
   "sheet": "art-source/tilesets/urban-tileset-3.raw.png",
-  "sheetName": "urban-tileset-3"
+  "sheetName": "urban-tileset-3",
+  "strip": {
+    "alphaThreshold": 16,
+    "gutterPx": 8,
+    "marginPx": 2,
+    "minGap": 4,
+    "mode": "auto-strip",
+    "scale": 5.8
+  }
 }

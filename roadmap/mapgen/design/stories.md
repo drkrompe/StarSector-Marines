@@ -5,12 +5,13 @@ Status: ACTIVE — twelve bounded station, city, economic, or cross-feature stor
 Written: 2026-08-23
 
 Updated: 2026-08-28 — added the compound vehicle-hangar vertical, blocked behind
-`compound-programs.md`.
+`compound-programs.md`, and the garrison-airfield reinforcement follow-on.
 
 | Story | Status | Outcome |
 |---|---|---|
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
+| `garrison-airfield-reinforcement.md` | PLANNED | The ward's airfield is shipped as geometry and an objective; make a shuttle sortie actually use it, so taking it costs the defender their air delivery. |
 | `cross-leaf-footprint-planning.md` | PROPOSED | Plan one coherent multi-leaf structure before roads and per-leaf fills commit the parcel layout. First step of `compound-programs.md`. |
 | `station-corridor-arenas.md` | PROPOSED | Give station junctions and gates intentional tactical space without turning transit into cover soup. |
 | `station-theme-fills.md` | PROPOSED | Fill station room purposes with distinct, tactically meaningful themes. |

@@ -412,7 +412,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         CompanyDeck ship = hull == null
                 ? companyShip(List::of, () -> MarineOpsContext.companyMarines(roster))
                 : new CompanyDeck(new CompanyShip(hull.hullClass(), hull.role(),
-                        hull.minCrew(), hull.maxCrew(), hull.cargo(), hull.silhouette()),
+                        hull.minCrew(), hull.maxCrew(), hull.cargo(),
+                        hull.silhouette(), hull.spriteName()),
                         SHIP_SEED, null, List::of,
                         () -> MarineOpsContext.companyMarines(roster));
         if (hull != null) ship.advance(18f);
@@ -432,7 +433,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("ship-view-deck"),
-                    new ShipViewCanvas(ship, hull == null ? null : hull.spriteName()));
+                    new ShipViewCanvas(ship));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
