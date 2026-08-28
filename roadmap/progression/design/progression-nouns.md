@@ -75,11 +75,14 @@ legibility.
   survivability, geometry, force value, magazine, and gun from the shipped
   emplacement catalogs rather than from the backpack that carried it. It is
   never a squad member and never a second soldier.
-- **Ordnance interception** — removing a hostile warhead from flight before it
-  arrives. It is deliberately not damage: nothing is applied to anything, the
-  round's payload never reaches the detonation authority, and no attacker is
-  credited. Distinct from *physical interception*, which is a shot stopped by
-  cover or by a body it ran into.
+- **Engagement** — one burst a placed emplacement fires at one warhead. It
+  spends a round of the mount's magazine and puts the mount on its interval
+  whether or not it connects, so an engagement is an attempt, not an outcome.
+- **Ordnance interception** — an engagement that connected: the warhead is
+  removed from flight before it arrives. It is deliberately not damage —
+  nothing is applied to anything, the round's payload never reaches the
+  detonation authority, and no attacker is credited. Distinct from *physical
+  interception*, which is a shot stopped by cover or by a body it ran into.
 - **Point-defence target** — a round whose weapon data declares it may be
   engaged in flight. The property belongs to the weapon, never to a list held by
   whatever is shooting it down.
@@ -657,6 +660,26 @@ saturates the mount and the surplus lands. This is the growth law applied to a
 placed object — a defence that cannot be flanked, saturated, outlasted, or
 destroyed is a ban on a weapon class wearing the costume of a capability.
 
+**An engagement can also simply miss.** Whether a burst connects is a roll
+against the mount weapon's authored accuracy, so losing one is an ordinary,
+reachable state rather than an edge case, and the magazine is spent either way.
+This exists for a reason beyond balance: a mount that never misses has only two
+observable states, working and absent, and "it tried and lost" — the state
+that makes the thing feel like equipment rather than a rule — would not exist
+to be watched.
+
+**The interception must be watchable, and a failure must look different from a
+success.** This is not deferrable presentation. A stopped warhead is removed
+from the air, which on screen is indistinguishable from a missile that was never
+fired; and a saturating volley reads as some explosions arriving and some not,
+with nothing to say a defence was involved. Both of those look exactly like a
+bug. So an engagement is drawn as an engagement — the mount fires visibly, the
+burst goes to where the round actually is, and the warhead comes apart there —
+and an engagement that lost is drawn differently from one that connected, with
+the round visibly flying on. The frame worth building the whole feature for is a
+five-round salvo where three die and two arrive, and that frame only means
+anything if a viewer can tell those two apart.
+
 The first deployable is the **Palisade interceptor pod**: a folding cluster gun
 a marine sets down where they are standing, which shoots down incoming warheads
 crossing its bubble until its rounds or its cell run out. Placement is a short
@@ -683,7 +706,10 @@ becomes engageable by accident.
 its payload never reaches the detonation authority, no damage figure is computed
 for anyone, and nothing is credited as damage prevented. Interceptions are their
 own telemetry quantity, credited to the marine who placed the pod so the record
-survives the pod.
+survives the pod — and attempts are counted separately from successes, so an
+after-action can say "engaged five, stopped three". Recording only the kills
+would leave both bounds unreviewable: a mount that ran dry and one that was
+outshot produce the same number.
 
 ### Telemetry and career
 
