@@ -88,11 +88,10 @@ public final class MechLabScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
+            // The doll is not the deck scene: it composes a machine at rest
+            // against its own backdrop, so it loads what it draws. Everything
+            // the deck itself paints is the deck's own business.
             previewSprites().ensureLayeredMechSprites();
-            previewSprites().ensureLayeredUnitSprites();
-            previewSprites().ensureTileSheet();
-            previewSprites().ensureRoadSheet();
-            previewSprites().ensureDoodadSheet();
             previewSprites().ensureMechLabFxSprites();
             built.canvases().set(candidate.requireElement("mech-doll-canvas"),
                     new MechLabDollCanvas(viewModel::gantryVariants,
