@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — an atlas now has two shapes and a strip's laws are stated (order is the address, the scale is authored, reducing sharpens); a key's settings are per cell as well as its flooding; a derived height/normal companion is re-derived rather than preserved.
+Updated: 2026-08-28 — an atlas now has two shapes and a strip's laws are stated (order is the address, the scale is authored, reducing sharpens); a key's settings are per cell as well as its flooding; a derived height/normal companion is re-derived rather than preserved; keying a sheet withdraws it from the alpha-transfer derivation, measured rather than declared.
 
 Read `stories.md` for open work.
 
@@ -245,6 +245,21 @@ These properties of that pass are part of the model rather than of the tool:
   threshold either deletes the bench's frame and leaves four planks floating, or
   leaves the slab a dark halo it then has to tile with. The cell is the unit the
   judgement is made on, so it is the unit the settings attach to.
+- **Keying a sheet withdraws it from the alpha-transfer derivation, and that
+  withdrawal is measured rather than announced.** Two producers of a shipped
+  atlas exist and they are alternatives: one transfers fresh colour onto the
+  previous atlas's alpha, which is tolerable only while the raw plate is opaque
+  and has recorded nothing; the other exports from a keyed raw sheet and its
+  document. A sheet claimed by both reverts to the first the next time anyone
+  runs it — a valid image, the right size, the wrong art — and nothing
+  downstream can see it, because the atlas and the tileset describing it stay
+  consistent with each other. What decides which producer owns a sheet is the
+  sheet's own alpha, never a flag on the document or a note in the script:
+  keying the plate *is* the withdrawal, so there is no second record to keep in
+  step and nothing for the next person to have read. A derivation that would
+  take a keyed plate as input refuses to run, and the same fact is asserted at
+  build time as well, because the run that matters is the one nobody was
+  watching.
 - **A derived companion is re-derived, never preserved.** A sheet's height and
   normal maps are baked from its albedo, found again by naming convention alone,
   and sampled at the coordinates the albedo's own frames give. Nothing connects
