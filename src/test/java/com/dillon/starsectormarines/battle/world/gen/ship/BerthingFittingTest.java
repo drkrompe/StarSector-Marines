@@ -3,7 +3,10 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
+import com.dillon.starsectormarines.battle.world.gen.fit.Hookup;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
@@ -113,7 +116,7 @@ class BerthingFittingTest {
             for (DeckGraph.Compartment room : berths(deck.graph())) {
                 if (room.purpose() != RoomPurpose.BARRACKS) continue;
                 Set<Integer> sides = new HashSet<>();
-                for (DeckGraph.Compartment.Door door : room.doors()) {
+                for (Doorway door : room.doors()) {
                     int[] cell = room.pose().unmap(door.x() - room.left(), door.y() - room.top(),
                             canonical.width(), canonical.height());
                     assertTrue(authored.contains(
@@ -147,7 +150,7 @@ class BerthingFittingTest {
             Deck deck = generate(seed);
             for (DeckGraph.Compartment room : berths(deck.graph())) {
                 Set<Integer> columns = new HashSet<>();
-                for (DeckGraph.Compartment.Door door : room.doors()) {
+                for (Doorway door : room.doors()) {
                     int[] cell = room.pose().unmap(door.x() - room.left(), door.y() - room.top(),
                             canonical.width(), canonical.height());
                     columns.add(cell[0]);

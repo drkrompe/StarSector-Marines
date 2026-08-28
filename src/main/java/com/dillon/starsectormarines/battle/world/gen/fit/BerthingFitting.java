@@ -1,9 +1,7 @@
-package com.dillon.starsectormarines.battle.world.gen.ship.fit;
+package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
-import com.dillon.starsectormarines.battle.world.gen.ship.Hookup;
-import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.List;
@@ -119,7 +117,7 @@ public final class BerthingFitting implements RoomFitting {
     }
 
     @Override
-    public void fit(CompartmentFloor floor) {
+    public void fit(RoomFloor floor) {
         int along = floor.canonicalWidth();
         int across = floor.canonicalHeight();
         if (along < 1 || across < RACK_DEPTH + AISLE) return;
@@ -151,10 +149,10 @@ public final class BerthingFitting implements RoomFitting {
      * hatch, at a known place — instead of whichever one the passage search
      * arrived at.
      */
-    private void clearApproaches(CompartmentFloor floor, int along, int across,
+    private void clearApproaches(RoomFloor floor, int along, int across,
                                  int aisleFrom, int aisleSpan,
                                  boolean[] nearTaken, boolean[] farTaken) {
-        for (DeckGraph.Compartment.Door door : floor.localDoors()) {
+        for (Doorway door : floor.localDoors()) {
             int[] canonical = floor.toCanonical(door.x(), door.y());
             int column = Math.max(0, Math.min(along - 1, canonical[0]));
             int depth = canonical[1];
@@ -179,7 +177,7 @@ public final class BerthingFitting implements RoomFitting {
      * @param doorSide whether this is the rank the compartment is entered
      *     through, which is where kit gets stowed
      */
-    private void layRank(CompartmentFloor floor, int along, int band,
+    private void layRank(RoomFloor floor, int along, int band,
                          boolean headOutboard, boolean[] taken, boolean doorSide) {
         int outboard = headOutboard ? band : band + RACK_DEPTH - 1;
         int inboard = headOutboard ? band + RACK_DEPTH - 1 : band;
@@ -215,7 +213,7 @@ public final class BerthingFitting implements RoomFitting {
      * <p>The standing cell falls in the passage of its own accord, because that
      * is the only side of a rack that is not another rack or the hull.
      */
-    private void layRack(CompartmentFloor floor, int slot, int band, String rack) {
+    private void layRack(RoomFloor floor, int slot, int band, String rack) {
         int[] rect = floor.toLocalRect(slot, band, 1, RACK_DEPTH);
         floor.place(rack, rect[0], rect[1], Affordance.REST);
     }
@@ -228,18 +226,18 @@ public final class BerthingFitting implements RoomFitting {
         return RACK_HEAD_SOUTH;
     }
 
-    private void place(CompartmentFloor floor, int along, int across, String id) {
+    private void place(RoomFloor floor, int along, int across, String id) {
         int[] cell = floor.toLocal(along, across);
         floor.place(id, cell[0], cell[1]);
     }
 
-    private void place(CompartmentFloor floor, int along, int across,
+    private void place(RoomFloor floor, int along, int across,
                        String id, Affordance affordance) {
         int[] cell = floor.toLocal(along, across);
         floor.place(id, cell[0], cell[1], affordance);
     }
 
-    private void reserve(CompartmentFloor floor,
+    private void reserve(RoomFloor floor,
                          int along, int across, int alongSpan, int acrossSpan) {
         int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
         floor.reserveLane(rect[0], rect[1], rect[2], rect[3]);
