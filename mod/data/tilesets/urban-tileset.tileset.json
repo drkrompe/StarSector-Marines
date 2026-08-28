@@ -30,7 +30,11 @@
     { "id": "doodad.desk-dam",           "col": 6, "row": 7, "cover": "med",   "ballisticHalfHeight": 0.28 },
     { "id": "doodad.box-dam",            "col": 7, "row": 7, "cover": "med",   "ballisticHalfHeight": 0.22 },
     { "id": "doodad.chair-s-yellow-dam", "col": 8, "row": 7, "cover": "med",   "ballisticHalfHeight": 0.22 },
-    { "id": "doodad.chair-s-green-dam",  "col": 9, "row": 7, "cover": "med",   "ballisticHalfHeight": 0.22 }
+    { "id": "doodad.chair-s-green-dam",  "col": 9, "row": 7, "cover": "med",   "ballisticHalfHeight": 0.22 },
+
+    { "id": "doodad.fl-grate-1",         "col": 0, "row": 3, "cover": "none",  "ballisticHalfHeight": 0.0 },
+    { "id": "doodad.fl-striped-yellow",  "col": 1, "row": 3, "cover": "none",  "ballisticHalfHeight": 0.0 },
+    { "id": "doodad.fl-grate-2",         "col": 2, "row": 3, "cover": "none",  "ballisticHalfHeight": 0.0 }
   ],
   "cells": [
     { "col": 0, "row": 0, "name": "fl-nw" },
