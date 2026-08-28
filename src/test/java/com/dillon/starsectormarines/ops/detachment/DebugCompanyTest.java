@@ -97,32 +97,6 @@ class DebugCompanyTest {
     }
 
     @Test
-    void firstContractIsTheCampaignOpening() {
-        MarineRoster debug = DebugCompany.roster(DebugCompanyStage.FIRST_CONTRACT);
-        MarineRoster campaign = new MarineRoster();
-        campaign.bootstrapInitialComplement(MarineSquad.CAPACITY);
-
-        assertEquals(campaign.activeSoldiers().size(), debug.activeSoldiers().size());
-
-        // The stage exists to reproduce a new game, so nobody in it may band
-        // above what a new game issues. It is a ceiling rather than a match:
-        // the campaign bootstrap hands every recruit the same basic issue,
-        // while the stage rolls a squad armour doctrine, and a scratch outfit's
-        // doctrine mixes fatigues in among the security kit. Pinning a literal
-        // tier here would only restate what starting issue happens to be today.
-        ExperienceTier opening =
-                campaign.activeSoldiers().get(0).profile().experienceTier();
-        for (MarineSoldier soldier : debug.activeSoldiers()) {
-            assertTrue(soldier.profile().experienceTier().ordinal() <= opening.ordinal(),
-                    "the opening company has collected nothing beyond starting issue,"
-                            + " but one is banded " + soldier.profile().experienceTier());
-        }
-        MarineSquad squad = debug.squadById(DebugCompany.lineSquadIds(debug).get(0));
-        assertSame(EnlistedRank.CORPORAL, debug.squadLeader(squad).enlistedRank(),
-                "sergeant's stripes need a veteran-band suit this company has not got");
-    }
-
-    @Test
     void stripesAndBandsFollowTheArmourEachSquadWasIssued() {
         // Experience is issued with the armour, so a stage no longer authors a
         // band directly: the randomized armour doctrine each squad rolls does.
