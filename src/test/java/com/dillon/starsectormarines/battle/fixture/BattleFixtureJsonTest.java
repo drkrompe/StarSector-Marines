@@ -311,7 +311,7 @@ class BattleFixtureJsonTest {
     void embeddedProfileFixtureMatchesDirectProductionFactory() throws Exception {
         CivilianRescueBattleFixture fixture = canonicalFixture();
         JSONObject profileDump = new JSONObject();
-        profileDump.put("schemaVersion", 6);
+        profileDump.put("schemaVersion", 7);
         profileDump.put("battleFixture", BattleFixtureJson.toJson(fixture));
 
         try (BattleSimulation replay = BattleFixtureJson.fromJson(profileDump).build();

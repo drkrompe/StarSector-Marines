@@ -2,21 +2,24 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignMech;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
+import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
-import com.dillon.starsectormarines.ops.battleview.BarracksBattleScene;
+import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
-import com.dillon.starsectormarines.ops.battleview.MechLabBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
+import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -34,6 +37,7 @@ import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /** Authored retained-view evidence rendered without a Starsector process. */
 public final class UiSnapshotSuite implements SnapshotSuite {
@@ -161,6 +165,26 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 context, renderer, width, height, fireteam, pickerOpen, false, false);
     }
 
+    /** Fixes the photographed ship's layout so the snapshots compare run to run. */
+    private static final long SHIP_SEED = 0x5AFE_DECEL;
+    /** Hull kept around a framed compartment, matching what the screens ask for. */
+    private static final int MECH_LAB_SURROUND_CELLS = 2;
+
+    /**
+     * A running company ship for a room snapshot to photograph.
+     *
+     * <p>Run on a little before the shutter: a compartment photographed at zero
+     * has everybody standing on their spawn cell, which is the one arrangement
+     * the crew is never actually in.
+     */
+    private static CompanyDeck companyShip(Supplier<List<MechVariant>> lance,
+                                           Supplier<List<MarineSoldier>> company) {
+        CompanyDeck ship = new CompanyDeck(CompanyShip.founding(), SHIP_SEED,
+                null, lance, company);
+        ship.advance(18f);
+        return ship;
+    }
+
     private static BufferedImage renderBarracks(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
@@ -182,9 +206,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
+            CompanyDeck ship = companyShip(List::of,
+                    () -> MarineOpsContext.companyMarines(roster));
             document.canvases().set(instance.requireElement("barracks-canvas"),
-                    new BarracksCanvas(viewModel::sceneMarines,
-                            new BarracksBattleScene(), () -> 18d));
+                    new BarracksCanvas(ship, viewModel::sceneMarines));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
@@ -354,14 +379,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .findFirst().orElseThrow().select().run();
         }
         if (pickerOpen) viewModel.openAssetPickerAction().run();
-        // No ship: the snapshot exercises the panel, and the canvas falls back
-        // to its own authored garage when no host pass is available.
+        // The lab is photographed aboard the same ship it is in game. There is
+        // no substitute garage to photograph instead, and a snapshot of one
+        // would be evidence about a room the player never sees.
+        CompanyDeck ship = companyShip(viewModel::gantryVariants, List::of);
+        DeckGraph.Compartment vehicleBay = ship.room(RoomPurpose.VEHICLE_BAY);
+        ShipDeckBattleScene.RoomView framing =
+                ShipDeckBattleScene.RoomView.of(vehicleBay, MECH_LAB_SURROUND_CELLS);
         MechLabCameraController camera = new MechLabCameraController(
-                MechLabCameraController.authoredGarage());
+                MechLabCameraController.on(framing, ship.scene().berthsIn(vehicleBay)));
         camera.snap(viewModel.fittingFocused(), viewModel.selectedGantryIndex(),
                 viewModel.gantryVariants().size());
-        HeadlessArmoryPreviewRenderer technicianPreview =
-                new HeadlessArmoryPreviewRenderer(context.modRoot());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), MECH_LAB_COMPONENTS);
         loader.reload();
@@ -376,11 +404,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             MechLabDollCanvas::headlessAssets,
-                            () -> technicianPreview.assets().layered(
-                                    MarineArmorPattern.ARMY_GREEN),
-                            () -> null, () -> null, () -> null, () -> null,
-                            camera::pose, viewModel::fittingFocused,
-                            () -> null, () -> null, List::of, () -> 0d));
+                            () -> null, () -> null,
+                            viewModel::fittingFocused,
+                            ship::scene,
+                            () -> framing.lookingAt(camera.pose().worldX(),
+                                    camera.pose().worldY(), camera.pose().zoomNotches()),
+                            () -> ship.scene().berthsIn(vehicleBay), () -> 0d));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }

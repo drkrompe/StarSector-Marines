@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — named the longitudinal ship-deck family as a sibling interior premise owned by `ship-interiors-nouns.md`.
+Updated: 2026-08-27 — generalized firing apertures across eligible building facades and compound perimeter walls.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -65,6 +65,14 @@ or an already-claimed compound, but it must not infer a multi-leaf building by
 overwriting roads or neighboring fills after dispatch. Cross-leaf structures
 therefore require an explicit planning stage that publishes the claimed
 footprint and its circulation obligations.
+
+Firing apertures are structural wall cells: they remain non-walkable and
+destructible while passing sight and projectiles. Hollow building shells place
+them on facade runs belonging to tactically usable rooms; secured storage and
+infrastructure rooms may deliberately remain opaque. Compound perimeter walls
+place apertures only on sufficiently long straight runs with walkable firing
+space on both sides, preserving gates, hardpoints, corners, and reserved road
+circulation.
 
 ## City, station, and ship families
 

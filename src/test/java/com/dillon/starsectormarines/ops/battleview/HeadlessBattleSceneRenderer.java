@@ -323,8 +323,21 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             return token;
         }
 
+        /**
+         * Read one asset, naming it if the read fails.
+         *
+         * <p>ImageIO reports a failed decode as "Caught exception during read"
+         * with no indication of what it was reading, which turns a rare failure
+         * in a pack of several hundred files into an unactionable one. The
+         * bootstrap loads them all, so the name is the whole diagnosis.
+         */
         private BufferedImage read(String path) throws IOException {
-            BufferedImage image = ImageIO.read(modRoot.resolve(path).toFile());
+            BufferedImage image;
+            try {
+                image = ImageIO.read(modRoot.resolve(path).toFile());
+            } catch (IOException failure) {
+                throw new IOException("Could not read " + path, failure);
+            }
             if (image == null) throw new IOException("Unsupported image " + path);
             return image;
         }

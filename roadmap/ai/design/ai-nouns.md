@@ -99,14 +99,40 @@ each of those as a separate posting. What somebody does is a fact about them;
 where they do it is a fact about the map.
 
 Two consequences follow and neither is optional. A shift takes on only as many
-people as the scarcest job **at the site it is posted to** can sustain — within a
-room that scarcity is real, while across the map it is not, since counting a
-ship-wide firing range against a berthing posting would cap every berth on the
-hull at the lane count and then send all of them at the same two lanes. And a
-shift that spans sites is scheduled at a slower assumed pace, because the route
-clock budgets travel from the straight line between stops while a deck is a spine
-with rooms hung off it; budget the line and the schedule moves somebody on before
-they have arrived, and a shift crossing the ship never dwells anywhere at all.
+people as its posting holds, read **at the site it is posted to** and never at
+the scarcest place it reaches — counting a ship-wide firing range against a
+berthing posting would cap every berth on the hull at the lane count and then
+send all of them at the same two lanes. And a shift that spans sites is scheduled
+at a slower assumed pace, because the route clock budgets travel from the
+straight line between stops while a deck is a spine with rooms hung off it;
+budget the line and the schedule moves somebody on before they have arrived, and
+a shift crossing the ship never dwells anywhere at all.
+
+How many a posting holds is two different questions and the purpose decides
+which. **A berthing holds its beds**: a bunkroom with nine racks and two lockers
+quarters nine people who occasionally wait for a locker, and reading it as
+quartering two empties a ship of three quarters of her complement to spare a
+queue nobody would ever see. **A workplace holds what it can keep busy**, which
+is its scarcest job: a bay with eight berths and one terminal cannot occupy eight
+technicians on a rotation that includes the terminal, and pretending otherwise
+puts seven of them in a line.
+
+Where somebody is **based** is likewise not everywhere their loop reaches. A role
+is based at its quarters or at its work; the mess it eats in and the lane it
+shoots on are places it goes. Reading those as billets invents a population — a
+galley with eight tables becomes quarters for eight marines who sleep nowhere and
+are on no roster. So a caller deciding a **complement** asks where a role is
+based first, while a caller deliberately **posting** somebody may station them
+anywhere: a range detail is a real order, and a shift posted to a firing range is
+a real shift.
+
+A shift is worked by whoever a caller hands it, which need not be anonymous. The
+same posting takes generated hands or named people carrying their own kit, and
+nothing about being named changes the loop they walk — a roster the player has
+been reading all game turns up in the berthing and goes to the mess like anybody
+else. When named people fill a posting they fill it: the roster is the
+population, and a complement pass must not top the room up with hands who are on
+no muster roll.
 
 Because none of this knows what map family it is on, it is equally the mechanism
 for scripted mission flavour: civilians going about a town's business, a garrison
