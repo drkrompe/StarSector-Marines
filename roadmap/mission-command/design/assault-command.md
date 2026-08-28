@@ -46,9 +46,11 @@ develops its own belief.
 
 ## Variants and evidence
 
-Opening Operations reuse the Assault battle type but need preserve/secure
-scenario command rather than the general search picture. Their campaign
-objective and finite-force laws remain with Early Operations.
+Opening Operations reuse the Assault battle type but now run a paired frozen
+preserve/secure scenario command rather than the general search picture. Their
+campaign objective and finite-force laws remain with Early Operations. The
+current deterministic anchors are command geometry; authored COMMS/depot place
+legibility remains a separate scenario-content and live-acceptance concern.
 
 The Assault picture publishes sectors/areas, status, coverage, sweep/rally,
 reports, strongpoints, reserve, roles, directives, and reasons. The shared

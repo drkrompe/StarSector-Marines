@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.OpeningOperationCommandPicture;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
@@ -34,6 +35,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -42,6 +44,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadPlanDebugPanelTest {
+
+    @Test
+    void openingOperationSummaryNamesScenarioRoleReasonAndPlace() {
+        OpeningOperationCommandPicture.SquadIntent intent =
+                new OpeningOperationCommandPicture.SquadIntent(7,
+                        OpeningOperationCommandPicture.Role.SECURE_ELEMENT,
+                        OpeningOperationCommandPicture.Reason.BANDIT_DEPOT_SECURE,
+                        AssignmentKind.SWEEP_SECTOR, 24, 10);
+        OpeningOperationCommandPicture picture =
+                new OpeningOperationCommandPicture(75, 60, Faction.MARINE,
+                        OpeningOperationKind.COUNTERATTACK,
+                        OpeningOperationCommandPicture.Phase.SECURE_BANDIT_DEPOT,
+                        "bandit-depot", "Bandit depot", 24, 10, 3,
+                        List.of(intent));
+
+        assertEquals("Scenario role SECURE_ELEMENT   Reason BANDIT_DEPOT_SECURE",
+                SquadPlanDebugPanel.openingRoleSummary(intent));
+        assertEquals("Scenario place Bandit depot   cell:24,10 zone:3",
+                SquadPlanDebugPanel.openingPlaceSummary(picture));
+    }
 
     @Test
     void summariesExposeThePublishedContactDecision() {
