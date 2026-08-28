@@ -19,6 +19,7 @@ final class InfluenceTopology {
     private final int blockHeight;
     private final int[] fineComponent;
     private final List<Integer> componentBlocks = new ArrayList<>();
+    private int[][] singletonComponents;
     private List<int[]> neighbors;
 
     InfluenceTopology(NavigationGrid grid, int blockSize) {
@@ -29,6 +30,10 @@ final class InfluenceTopology {
         this.fineComponent = new int[grid.getWidth() * grid.getHeight()];
         Arrays.fill(fineComponent, -1);
         buildComponents();
+        singletonComponents = new int[componentCount()][];
+        for (int component = 0; component < componentCount(); component++) {
+            singletonComponents[component] = new int[] { component };
+        }
         buildCrossBlockEdges();
     }
 
@@ -42,7 +47,7 @@ final class InfluenceTopology {
     int[] componentsForCell(int cellX, int cellY) {
         if (grid.inBounds(cellX, cellY)) {
             int exact = fineComponent[grid.index(cellX, cellY)];
-            if (exact >= 0) return new int[] { exact };
+            if (exact >= 0) return singletonComponents[exact];
         }
 
         int bestDistance = Integer.MAX_VALUE;

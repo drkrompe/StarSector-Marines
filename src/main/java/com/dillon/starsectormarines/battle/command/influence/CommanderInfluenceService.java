@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.influence;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
@@ -13,6 +14,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.LongSupplier;
 
 /** Owns the independently aggregated Marine and Defender influence snapshots. */
 public final class CommanderInfluenceService {
@@ -22,13 +25,23 @@ public final class CommanderInfluenceService {
 
     private final NavigationGrid grid;
     private final UnitRosterService roster;
+    private final LongSupplier topologyRevision;
+    private InfluenceTopology cachedTopology;
+    private long cachedTopologyRevision = Long.MIN_VALUE;
     private volatile CommanderInfluenceSnapshot marineSnapshot;
     private volatile CommanderInfluenceSnapshot defenderSnapshot;
     private int lastUpdateTick = Integer.MIN_VALUE;
 
     public CommanderInfluenceService(NavigationGrid grid, UnitRosterService roster) {
+        this(grid, roster, () -> 0L);
+    }
+
+    public CommanderInfluenceService(NavigationGrid grid, UnitRosterService roster,
+                                     LongSupplier topologyRevision) {
         this.grid = grid;
         this.roster = roster;
+        this.topologyRevision = Objects.requireNonNull(
+                topologyRevision, "topologyRevision");
         int width = (grid.getWidth() + BLOCK_SIZE - 1) / BLOCK_SIZE;
         int height = (grid.getHeight() + BLOCK_SIZE - 1) / BLOCK_SIZE;
         marineSnapshot = emptySnapshot(Faction.MARINE, width, height);
@@ -43,12 +56,32 @@ public final class CommanderInfluenceService {
 
     /** Immediate deterministic rebuild used by the fixed cadence and focused tests. */
     public void refresh(int simTick) {
-        InfluenceTopology topology = new InfluenceTopology(grid, BLOCK_SIZE);
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long start = System.nanoTime();
+        InfluenceTopology topology = topologyForCurrentRevision(profile);
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.INFLUENCE_TOPOLOGY_LOOKUP,
+                    System.nanoTime() - start);
+        }
         CommanderInfluenceSnapshot marine = buildSnapshot(Faction.MARINE, simTick, topology);
         CommanderInfluenceSnapshot defender = buildSnapshot(Faction.DEFENDER, simTick, topology);
         marineSnapshot = marine;
         defenderSnapshot = defender;
         lastUpdateTick = simTick;
+    }
+
+    private InfluenceTopology topologyForCurrentRevision(TickInnerProfile profile) {
+        long revision = topologyRevision.getAsLong();
+        if (cachedTopology == null || cachedTopologyRevision != revision) {
+            long rebuildStart = System.nanoTime();
+            cachedTopology = new InfluenceTopology(grid, BLOCK_SIZE);
+            if (profile != null) {
+                profile.record(TickInnerProfile.Bucket.INFLUENCE_TOPOLOGY_REBUILD,
+                        System.nanoTime() - rebuildStart);
+            }
+            cachedTopologyRevision = revision;
+        }
+        return cachedTopology;
     }
 
     public CommanderInfluenceSnapshot snapshot(Faction faction) {
@@ -65,6 +98,8 @@ public final class CommanderInfluenceService {
 
     private CommanderInfluenceSnapshot buildSnapshot(Faction faction, int simTick,
                                                        InfluenceTopology topology) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long start = System.nanoTime();
         List<InfluenceSource> friendlySources = friendlySources(faction);
         List<CommanderContact> contacts = aggregateContacts(faction);
         List<InfluenceSource> hostileSources = new ArrayList<>(contacts.size());
@@ -72,11 +107,21 @@ public final class CommanderInfluenceService {
             hostileSources.add(new InfluenceSource(contact.cellX(), contact.cellY(),
                     contact.confidence() * contact.strength()));
         }
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.INFLUENCE_SOURCES,
+                    System.nanoTime() - start);
+        }
+        start = System.nanoTime();
+        float[] friendly = InfluenceFieldBuilder.propagate(topology, friendlySources);
+        float[] hostile = InfluenceFieldBuilder.propagate(topology, hostileSources);
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.INFLUENCE_PROPAGATE,
+                    System.nanoTime() - start);
+        }
         return new CommanderInfluenceSnapshot(faction, simTick, BLOCK_SIZE,
                 topology.blockWidth(), topology.blockHeight(),
                 grid.getWidth(), grid.getHeight(),
-                InfluenceFieldBuilder.propagate(topology, friendlySources),
-                InfluenceFieldBuilder.propagate(topology, hostileSources), contacts);
+                friendly, hostile, contacts);
     }
 
     private List<InfluenceSource> friendlySources(Faction faction) {

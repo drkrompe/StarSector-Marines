@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fixture;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import jdk.jfr.Category;
 import jdk.jfr.Configuration;
@@ -138,6 +139,31 @@ class BattleFixtureJfrProfileTest {
             boundary.uniquePathfindGoals = measured.uniquePathfindGoals();
             boundary.uniquePathfindRequests = measured.uniquePathfindRequests();
             boundary.maximumGoalFanIn = measured.maximumGoalFanIn();
+            boundary.commanderPulseCount = measured.commanderPulseCount();
+            boundary.commanderNanos = measured.commanderNanos();
+            boundary.maximumCommanderNanos = measured.maximumCommanderNanos();
+            boundary.goapReplanNanos = measured.goapReplanNanos();
+            boundary.maximumGoapReplanNanos = measured.maximumGoapReplanNanos();
+            boundary.commanderSyncNanos = measured.commanderSyncNanos();
+            boundary.commanderTopologyLookupNanos = measured.commanderTopologyLookupNanos();
+            boundary.commanderTopologyRebuildCount =
+                    measured.commanderTopologyRebuildCount();
+            boundary.commanderTopologyRebuildNanos =
+                    measured.commanderTopologyRebuildNanos();
+            boundary.commanderFrameNanos = measured.commanderFrameNanos();
+            boundary.commanderPlanNanos = measured.commanderPlanNanos();
+            boundary.commanderCommitNanos = measured.commanderCommitNanos();
+            boundary.influenceRefreshCount = measured.influenceRefreshCount();
+            boundary.influenceTopologyLookupNanos =
+                    measured.influenceTopologyLookupNanos();
+            boundary.influenceTopologyRebuildCount =
+                    measured.influenceTopologyRebuildCount();
+            boundary.influenceTopologyRebuildNanos =
+                    measured.influenceTopologyRebuildNanos();
+            boundary.influencePerspectiveBuildCount =
+                    measured.influencePerspectiveBuildCount();
+            boundary.influenceSourceNanos = measured.influenceSourceNanos();
+            boundary.influencePropagationNanos = measured.influencePropagationNanos();
             boundary.end();
             boundary.commit();
             recording.stop();
@@ -156,7 +182,12 @@ class BattleFixtureJfrProfileTest {
                 + measured.pathfindCallsPerTick() + " pathfinds/tick; "
                 + measured.uniquePathfindGoalsPerTick() + " unique goals/tick; "
                 + measured.sharedFieldBuildsPerTick() + " shared fields/tick; "
-                + measured.maximumGoalFanIn() + " max same-goal fan-in)");
+                + measured.maximumGoalFanIn() + " max same-goal fan-in; "
+                + measured.commanderPulseCount() + " commander pulses; "
+                + measured.commanderAverageMillis() + " ms avg / "
+                + measured.commanderMaximumMillis() + " ms max commander; "
+                + measured.influenceAverageMillis() + " ms/influence refresh; "
+                + measured.goapMaximumMillis() + " ms max GOAP)");
     }
 
     private static void verifyRecording(
@@ -182,6 +213,21 @@ class BattleFixtureJfrProfileTest {
         assertTrue(boundary.getLong("activeTickNanos")
                         >= minimumMillis * 1_000_000L,
                 "active tick time should satisfy the requested minimum");
+        long pulseCount = boundary.getLong("commanderPulseCount");
+        if (pulseCount > 0L) {
+            long stageNanos = boundary.getLong("commanderSyncNanos")
+                    + boundary.getLong("commanderTopologyLookupNanos")
+                    + boundary.getLong("commanderFrameNanos")
+                    + boundary.getLong("commanderPlanNanos")
+                    + boundary.getLong("commanderCommitNanos");
+            assertTrue(stageNanos > 0L);
+            assertTrue(stageNanos <= boundary.getLong("commanderNanos"),
+                    "commander stages must fit inside pulse-only commander wall time");
+            assertTrue(boundary.getLong("influenceRefreshCount") > 0L,
+                    "commander fixtures should retain normalized influence evidence");
+        }
+        // Event duration includes slice reconstruction and pre-roll orchestration;
+        // activeTickNanos above is the measured-work denominator.
         assertTrue(boundary.getDuration().toMillis() >= minimumMillis);
         assertTrue(hasProductionSample,
                 "JFR should sample production battle code inside the measured run");
@@ -261,6 +307,25 @@ class BattleFixtureJfrProfileTest {
         long uniquePathfindGoals = 0L;
         long uniquePathfindRequests = 0L;
         int maximumGoalFanIn = 0;
+        long commanderPulseCount = 0L;
+        long commanderNanos = 0L;
+        long maximumCommanderNanos = 0L;
+        long goapReplanNanos = 0L;
+        long maximumGoapReplanNanos = 0L;
+        long commanderSyncNanos = 0L;
+        long commanderTopologyLookupNanos = 0L;
+        long commanderTopologyRebuildCount = 0L;
+        long commanderTopologyRebuildNanos = 0L;
+        long commanderFrameNanos = 0L;
+        long commanderPlanNanos = 0L;
+        long commanderCommitNanos = 0L;
+        long influenceRefreshCount = 0L;
+        long influenceTopologyLookupNanos = 0L;
+        long influenceTopologyRebuildCount = 0L;
+        long influenceTopologyRebuildNanos = 0L;
+        long influencePerspectiveBuildCount = 0L;
+        long influenceSourceNanos = 0L;
+        long influencePropagationNanos = 0L;
         BattleSimulation sim = firstSimulation;
         try {
             while (activeTickNanos < minimumNanos) {
@@ -303,6 +368,49 @@ class BattleFixtureJfrProfileTest {
                             innerProfile.uniquePathfindRequestCount();
                     maximumGoalFanIn = Math.max(maximumGoalFanIn,
                             innerProfile.maximumPathfindGoalFanIn());
+                    long commanderTickNanos = sim.getTickProfile().lastTickNanos(
+                            TickProfile.Phase.COMMANDER);
+                    boolean commanderPulse = innerProfile.countOf(
+                            TickInnerProfile.Bucket.COMMANDER_PULSE) > 0;
+                    if (commanderPulse) {
+                        commanderPulseCount++;
+                        commanderNanos += commanderTickNanos;
+                        maximumCommanderNanos = Math.max(
+                                maximumCommanderNanos, commanderTickNanos);
+                    }
+                    long goapTickNanos = sim.getTickProfile().lastTickNanos(
+                            TickProfile.Phase.GOAP_REPLAN);
+                    goapReplanNanos += goapTickNanos;
+                    maximumGoapReplanNanos = Math.max(
+                            maximumGoapReplanNanos, goapTickNanos);
+                    commanderSyncNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.COMMANDER_SYNC);
+                    commanderTopologyLookupNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_LOOKUP);
+                    commanderTopologyRebuildCount += innerProfile.countOf(
+                            TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_REBUILD);
+                    commanderTopologyRebuildNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_REBUILD);
+                    commanderFrameNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.COMMANDER_FRAME);
+                    commanderPlanNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.COMMANDER_PLAN);
+                    commanderCommitNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.COMMANDER_COMMIT);
+                    influenceRefreshCount += innerProfile.countOf(
+                            TickInnerProfile.Bucket.INFLUENCE_TOPOLOGY_LOOKUP);
+                    influenceTopologyLookupNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.INFLUENCE_TOPOLOGY_LOOKUP);
+                    influenceTopologyRebuildCount += innerProfile.countOf(
+                            TickInnerProfile.Bucket.INFLUENCE_TOPOLOGY_REBUILD);
+                    influenceTopologyRebuildNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.INFLUENCE_TOPOLOGY_REBUILD);
+                    influencePerspectiveBuildCount += innerProfile.countOf(
+                            TickInnerProfile.Bucket.INFLUENCE_SOURCES);
+                    influenceSourceNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.INFLUENCE_SOURCES);
+                    influencePropagationNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.INFLUENCE_PROPAGATE);
                     ticks++;
                 }
 
@@ -330,7 +438,16 @@ class BattleFixtureJfrProfileTest {
                 sharedFieldBuilds, sharedFieldBuildNanos,
                 sharedFieldExtractions, sharedFieldExtractionNanos,
                 occupancyPathfindCalls, uniquePathfindGoals,
-                uniquePathfindRequests, maximumGoalFanIn);
+                uniquePathfindRequests, maximumGoalFanIn,
+                commanderPulseCount, commanderNanos, maximumCommanderNanos,
+                goapReplanNanos, maximumGoapReplanNanos,
+                commanderSyncNanos, commanderTopologyLookupNanos,
+                commanderTopologyRebuildCount, commanderTopologyRebuildNanos,
+                commanderFrameNanos, commanderPlanNanos,
+                commanderCommitNanos, influenceRefreshCount,
+                influenceTopologyLookupNanos, influenceTopologyRebuildCount,
+                influenceTopologyRebuildNanos, influencePerspectiveBuildCount,
+                influenceSourceNanos, influencePropagationNanos);
     }
 
     private static void advanceOneTick(BattleSimulation sim) {
@@ -351,7 +468,19 @@ class BattleFixtureJfrProfileTest {
             long sharedFieldBuilds, long sharedFieldBuildNanos,
             long sharedFieldExtractions, long sharedFieldExtractionNanos,
             long occupancyPathfindCalls, long uniquePathfindGoals,
-            long uniquePathfindRequests, int maximumGoalFanIn) {
+            long uniquePathfindRequests, int maximumGoalFanIn,
+            long commanderPulseCount, long commanderNanos,
+            long maximumCommanderNanos, long goapReplanNanos,
+            long maximumGoapReplanNanos, long commanderSyncNanos,
+            long commanderTopologyLookupNanos,
+            long commanderTopologyRebuildCount,
+            long commanderTopologyRebuildNanos, long commanderFrameNanos,
+            long commanderPlanNanos, long commanderCommitNanos,
+            long influenceRefreshCount, long influenceTopologyLookupNanos,
+            long influenceTopologyRebuildCount,
+            long influenceTopologyRebuildNanos,
+            long influencePerspectiveBuildCount, long influenceSourceNanos,
+            long influencePropagationNanos) {
         double ticksPerSecond() {
             return ticks * 1_000_000_000.0 / activeTickNanos;
         }
@@ -366,6 +495,27 @@ class BattleFixtureJfrProfileTest {
 
         double sharedFieldBuildsPerTick() {
             return Math.round(sharedFieldBuilds * 100.0 / ticks) / 100.0;
+        }
+
+        double commanderAverageMillis() {
+            return commanderPulseCount > 0
+                    ? Math.round(commanderNanos / commanderPulseCount / 10_000.0) / 100.0
+                    : 0.0;
+        }
+
+        double commanderMaximumMillis() {
+            return Math.round(maximumCommanderNanos / 10_000.0) / 100.0;
+        }
+
+        double influenceAverageMillis() {
+            if (influenceRefreshCount == 0L) return 0.0;
+            long nanos = influenceTopologyLookupNanos
+                    + influenceSourceNanos + influencePropagationNanos;
+            return Math.round(nanos / influenceRefreshCount / 10_000.0) / 100.0;
+        }
+
+        double goapMaximumMillis() {
+            return Math.round(maximumGoapReplanNanos / 10_000.0) / 100.0;
         }
     }
 
@@ -429,5 +579,43 @@ class BattleFixtureJfrProfileTest {
         long uniquePathfindRequests;
         @Label("Maximum same-goal fan-in in one tick")
         int maximumGoalFanIn;
+        @Label("Commander pulse count")
+        long commanderPulseCount;
+        @Label("Accumulated commander nanoseconds")
+        long commanderNanos;
+        @Label("Maximum commander tick nanoseconds")
+        long maximumCommanderNanos;
+        @Label("Accumulated GOAP replan nanoseconds")
+        long goapReplanNanos;
+        @Label("Maximum GOAP replan tick nanoseconds")
+        long maximumGoapReplanNanos;
+        @Label("Commander assignment synchronization nanoseconds")
+        long commanderSyncNanos;
+        @Label("Commander topology lookup nanoseconds")
+        long commanderTopologyLookupNanos;
+        @Label("Commander topology rebuild count")
+        long commanderTopologyRebuildCount;
+        @Label("Commander topology rebuild nanoseconds")
+        long commanderTopologyRebuildNanos;
+        @Label("Commander frame freeze nanoseconds")
+        long commanderFrameNanos;
+        @Label("Commander planning nanoseconds")
+        long commanderPlanNanos;
+        @Label("Commander commit nanoseconds")
+        long commanderCommitNanos;
+        @Label("Influence refresh count")
+        long influenceRefreshCount;
+        @Label("Influence topology lookup nanoseconds")
+        long influenceTopologyLookupNanos;
+        @Label("Influence topology rebuild count")
+        long influenceTopologyRebuildCount;
+        @Label("Influence topology rebuild nanoseconds")
+        long influenceTopologyRebuildNanos;
+        @Label("Influence perspective build count")
+        long influencePerspectiveBuildCount;
+        @Label("Influence source aggregation nanoseconds")
+        long influenceSourceNanos;
+        @Label("Influence propagation nanoseconds")
+        long influencePropagationNanos;
     }
 }
