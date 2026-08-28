@@ -3,9 +3,14 @@ package com.dillon.starsectormarines.battle.command.compound;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -148,6 +153,64 @@ public final class CompoundService {
     public Record getRecord(TacticalNode node) {
         return records.get(node);
     }
+
+    /**
+     * Authoritative capture-room zone for {@code record}. The node anchor is
+     * stable place identity, not guaranteed standable geometry, so every
+     * command, execution, and diagnostic consumer must use this resolver
+     * rather than independently reading the anchor's zone.
+     *
+     * <p>The resolved cell is cached on the record. Breaches can merge zones,
+     * so the zone id itself is deliberately read fresh from the live graph.
+     */
+    public int captureZoneId(Record record, BattleView sim) {
+        if (record == null || sim == null) return -1;
+        if (record.captureCellX < 0) {
+            int[] cell = resolveCaptureCell(record.node, sim.getGrid(),
+                    sim.getZoneGraph());
+            if (cell == null) return -1;
+            record.captureCellX = cell[0];
+            record.captureCellY = cell[1];
+        }
+        return sim.getZoneGraph().zoneIdAt(
+                record.captureCellX, record.captureCellY);
+    }
+
+    /** Nearest zoned cell to the anchor, bounded to this structure's bbox. */
+    private static int[] resolveCaptureCell(TacticalNode node,
+                                            NavigationGrid grid,
+                                            ZoneGraph zones) {
+        int left = Math.max(0, node.left);
+        int top = Math.max(0, node.top);
+        int right = Math.min(grid.getWidth() - 1, node.right);
+        int bottom = Math.min(grid.getHeight() - 1, node.bottom);
+        if (left > right || top > bottom) return null;
+        int width = right - left + 1;
+        boolean[] visited = new boolean[width * (bottom - top + 1)];
+        Deque<int[]> queue = new ArrayDeque<>();
+        int startX = Math.min(right, Math.max(left, node.anchorX));
+        int startY = Math.min(bottom, Math.max(top, node.anchorY));
+        queue.add(new int[]{startX, startY});
+        visited[(startY - top) * width + (startX - left)] = true;
+        while (!queue.isEmpty()) {
+            int[] cell = queue.poll();
+            if (zones.zoneIdAt(cell[0], cell[1]) >= 0) return cell;
+            for (int[] step : CAPTURE_NEIGHBOURS) {
+                int nx = cell[0] + step[0];
+                int ny = cell[1] + step[1];
+                if (nx < left || nx > right || ny < top || ny > bottom) continue;
+                int index = (ny - top) * width + (nx - left);
+                if (visited[index]) continue;
+                visited[index] = true;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        return null;
+    }
+
+    private static final int[][] CAPTURE_NEIGHBOURS = {
+            {1, 0}, {-1, 0}, {0, 1}, {0, -1}
+    };
 
     /**
      * True iff at least one compound of {@code kind} is in a state that lets

@@ -74,13 +74,22 @@ public record ConquestFrontSnapshot(
             int currentZoneId,
             String executionSuspension,
             boolean localContact,
-            int activePathMembers) {
+            int activePathMembers,
+            int membersInTargetZone) {
+
+        public SquadState(int squadId, int aliveMembers, float centroidX,
+                          float centroidY, int currentZoneId,
+                          String executionSuspension, boolean localContact,
+                          int activePathMembers) {
+            this(squadId, aliveMembers, centroidX, centroidY, currentZoneId,
+                    executionSuspension, localContact, activePathMembers, 0);
+        }
 
         public SquadState(int squadId, int aliveMembers, float centroidX,
                           float centroidY, int currentZoneId,
                           String executionSuspension, boolean localContact) {
             this(squadId, aliveMembers, centroidX, centroidY, currentZoneId,
-                    executionSuspension, localContact, 0);
+                    executionSuspension, localContact, 0, 0);
         }
     }
 

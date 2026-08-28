@@ -25,6 +25,7 @@ import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +37,23 @@ import java.util.Map;
 /** Java2D drain for the ordinary battle renderer's collected embedded-scene frame. */
 public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRenderer {
 
-    private static final Map<Path, HeadlessBattleSprites> SHARED_SPRITES = new HashMap<>();
+    /**
+     * Loaded sprite sets, kept only while there is room for them.
+     *
+     * <p>Softly rather than strongly held. A sprite set is tens of megabytes of
+     * decoded image and this map is keyed by resource root, so a caller that
+     * renders against a fresh root each time — an authoring preview pointed at a
+     * temporary copy of the mod folder — adds an entry per call and never
+     * removes one. That exhausted the heap partway through a full suite run, and
+     * it surfaced as an unrelated sheet failing to read, because ImageIO wraps
+     * an OutOfMemoryError as an ordinary IIOException.
+     *
+     * <p>Soft references keep the fast path — a suite rendering repeatedly
+     * against the shipped root still loads once — while guaranteeing the cache
+     * is cleared before the heap runs out.
+     */
+    private static final Map<Path, SoftReference<HeadlessBattleSprites>> SHARED_SPRITES =
+            new HashMap<>();
 
     private final HeadlessBattleSprites sprites;
     private final BattleRenderer renderer;
@@ -67,10 +84,14 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
     private static HeadlessBattleSprites sharedSprites(Path modRoot) throws Exception {
         Path normalized = modRoot.toAbsolutePath().normalize();
         synchronized (SHARED_SPRITES) {
-            HeadlessBattleSprites existing = SHARED_SPRITES.get(normalized);
+            SoftReference<HeadlessBattleSprites> cached = SHARED_SPRITES.get(normalized);
+            HeadlessBattleSprites existing = cached == null ? null : cached.get();
             if (existing != null) return existing;
+            // Entries whose sprites have been collected are dead weight, and the
+            // roots that produce them are exactly the ones never asked for again.
+            SHARED_SPRITES.entrySet().removeIf(entry -> entry.getValue().get() == null);
             HeadlessBattleSprites loaded = new HeadlessBattleSprites(normalized);
-            SHARED_SPRITES.put(normalized, loaded);
+            SHARED_SPRITES.put(normalized, new SoftReference<>(loaded));
             return loaded;
         }
     }

@@ -98,10 +98,13 @@ draws in scheduler-dependent order. Each fixture is run twice; byte equality of
 the canonical trace and normalized metrics is an evidence invariant, while a
 production-scheduler run is informational. Battle-long evidence is opt-in and
 bounded. Reaching the bound publishes a neutral timeout instead of fabricating
-a winner. Trace schema 5 keeps simulation and command inputs untouched while
+a winner. Trace schema 7 keeps simulation and command inputs untouched while
 canonicalizing published scalar diagnostics to basis-point precision and squad
 centroids to one tenth of a cell, preventing insignificant integration drift
-from presenting as a different command decision.
+from presenting as a different command decision. It records each compound's
+authoritative capture cell/zone and the perspective-safe count of own squad
+members in their assigned target zone; neutral whole-zone occupancy remains a
+separate referee fact.
 
 Construction V2 adds each assignment's actual seats per sortie and the resolved
 arrival policy plus employer/player shuttle boundary. Historical V1 documents
