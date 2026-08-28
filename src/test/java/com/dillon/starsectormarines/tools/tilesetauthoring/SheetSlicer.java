@@ -99,31 +99,27 @@ public final class SheetSlicer {
      * of columns whenever a sheet was not square. The layout is the thing the
      * operator actually knows, so it is the thing this takes.
      *
-     * <p>Boundaries are placed proportionally and the remainder falls where it
-     * lands, so the parts tile the piece exactly with no gap and no overlap.
+     * <p><b>A grid needs an origin and a pitch, not a division of the canvas.</b>
+     * Dividing the piece proportionally assumes the grid starts at the piece's
+     * own edge and steps by {@code extent / count}, and generated art satisfies
+     * neither: it sits inside a margin and is rarely drawn to a pitch that
+     * divides its own pixel size evenly. This overload is the stated-only case,
+     * where nothing has measured the sheet; pass a {@link GridCut} once
+     * {@link GridFit} has. See {@link GridCut#dividing}.
      */
     public static List<Piece> splitOnGrid(Piece piece, int cols, int rows) {
-        if (cols < 1 || rows < 1) {
-            throw new IllegalArgumentException("a grid needs at least one cell: "
-                    + cols + "x" + rows);
-        }
-        List<Piece> parts = new ArrayList<>();
-        for (int row = 0; row < rows; row++) {
-            int top = edge(piece.height(), row, rows);
-            int bottom = edge(piece.height(), row + 1, rows);
-            for (int col = 0; col < cols; col++) {
-                int left = edge(piece.width(), col, cols);
-                int right = edge(piece.width(), col + 1, cols);
-                parts.add(new Piece(piece.x() + left, piece.y() + top,
-                        Math.max(1, right - left), Math.max(1, bottom - top)));
-            }
-        }
-        return parts;
+        return splitOnGrid(GridCut.dividing(piece, cols, rows));
     }
 
-    /** Boundary {@code index} of {@code divisions} across {@code extent}, rounded once. */
-    private static int edge(int extent, int index, int divisions) {
-        return (int) Math.round(extent * (double) index / divisions);
+    /**
+     * The cells of a placed cut, in reading order.
+     *
+     * <p>The cut says where its lines fall, so the parts tile the cut area
+     * exactly with no gap and no overlap while leaving the sheet's margin
+     * outside the grid, which is what a margin is.
+     */
+    public static List<Piece> splitOnGrid(GridCut cut) {
+        return cut.cells();
     }
 
     /** Eight-connected components of the thresholded alpha mask, as tight bounding boxes. */

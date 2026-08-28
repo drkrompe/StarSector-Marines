@@ -16,8 +16,28 @@ visual-snapshot suites.
 tools/authoring.sh tileset_list
 ```
 
-A call costs about 0.2s. There is nothing to start, nothing to stop, and
+A call costs about 0.9s. There is nothing to start, nothing to stop, and
 nothing that had to be arranged before this session began.
+
+## Call `tools/authoring.sh`, never `build/authoring/authoring.sh`
+
+Most of that second is a Gradle build, and it is the point of the wrapper.
+
+The launcher under `build/` runs `java -classpath build/classes/java/test`, so
+it runs **whatever was compiled last**, and nothing in its output says how old
+that is. Several of these tools rewrite hand-authored documents, and this has
+already destroyed authored work: a `tileset_slice` call made immediately after
+merging a new safety guard ran pre-guard classes, the guard did not fire, and a
+hand-cut 100-cell tileset went with it. The failure was silent and looked
+exactly like a bug in the tool.
+
+So `tools/authoring.sh` and `tools/authoring.cmd` run
+`gradlew installAuthoringTools` before every call. Build output goes to stderr,
+so stdout is still only the tool result and still pipes into `jq`. If that
+build fails they exit **3** and call nothing, rather than falling back to
+classes of unknown age.
+
+Reaching past them to `build/authoring/authoring.sh` skips all of that. Don't.
 
 ## Why not MCP by default
 
@@ -31,15 +51,23 @@ So the shell is the default and MCP is the optimization. If `tileset_*` tools
 are already in your tool list, use them; they are the same code and the same
 arguments. Otherwise use `tools/authoring.sh`.
 
+**One caveat, and it is the staleness one again.** An MCP server is spawned once
+and holds its classes for the whole session. `tools/authoring-mcp.cmd` rebuilds
+before starting, so the session *begins* current, but no wrapper can reload a
+running JVM. **If you have changed tool code this session, the registered
+`tileset_*` tools are stale — restart the server, or use `tools/authoring.sh`,
+which rebuilds per call.**
+
 To register the MCP server for *future* sessions:
 
 ```bash
 gradlew.bat installAuthoringTools
 ```
 
-That prints the `.mcp.json` snippet with absolute paths filled in. Neither the
-launcher nor `.mcp.json` is checked in, because the launcher embeds an absolute
-classpath — each checkout registers its own.
+That prints the `.mcp.json` snippet with absolute paths filled in. It names
+`tools/authoring-mcp.cmd`, not the launcher underneath it, because that wrapper
+is what rebuilds first. `.mcp.json` is not checked in, because the paths are
+absolute — each checkout registers its own.
 
 ## Usage
 
@@ -53,10 +81,10 @@ tools/authoring.sh --describe <tool>
 - `--json` prints the structured result instead of the text summary. The text
   is written for you to read; the structured payload is for piping into `jq`.
 - Exit status: `0` succeeded, `1` the tool reported a failure, `2` you got the
-  command line wrong.
-- `tools/authoring.cmd` is the same thing for `cmd.exe`. The first call of
-  either generates the launcher, which takes a few seconds; after that it is
-  immediate.
+  command line wrong, `3` the freshness build failed and nothing was called.
+- `tools/authoring.cmd` is the same thing for `cmd.exe`. The first call in a
+  cold checkout compiles the project, which takes minutes; after that a call is
+  under a second.
 
 `--list` is the authority on what exists. As of writing:
 
@@ -67,6 +95,7 @@ tools/authoring.sh --describe <tool>
 | `tileset_read_document` | One sheet's authoring document — settings, note, blocks, pieces. |
 | `tileset_write_document` | Replace that document. Not merged: read, edit, write back. |
 | `tileset_slice` | Find pieces at a threshold, carrying existing annotations onto them. |
+| `tileset_fit_grid` | Measure where the stated grid actually sits and re-cut its cells onto it. |
 | `tileset_export` | Pack the kept pieces into an atlas and write the tileset the game loads. |
 | `tileset_map_preview` | Render a generated map as it ships and with this art substituted. |
 | `snapshot_list_suites` | The deterministic visual-evidence suites in this checkout. |

@@ -71,6 +71,13 @@ public final class BspKeys {
     public static final GenKey<TacticalRegionMap> TACTICAL_REGIONS = GenKey.of("tacticalRegions");
 
     /** Marine spawn cell {@code [x, y]}. Produced by the spawn stage. */
+    /**
+     * The packed fortress ward as {@code {left, top, right, bottom}}, published
+     * by {@code FortressWardStage} for the wall that is drawn around it. Absent
+     * on any map without a fortress band.
+     */
+    public static final GenKey<int[]> FORTRESS_WARD = GenKey.of("fortressWard");
+
     public static final GenKey<int[]> MARINE_SPAWN = GenKey.of("marineSpawn");
 
     /** Defender spawn cell {@code [x, y]}. Produced by the spawn stage. */
