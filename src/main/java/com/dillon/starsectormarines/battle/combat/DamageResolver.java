@@ -135,7 +135,7 @@ public final class DamageResolver {
         boolean died = newHp <= 0f;   // wasAlive is guaranteed by the early return above
         // Telemetry runs here, at the one point in the sim that knows both what
         // the hit actually cost after cover and armor resolution and
-        // whether it was fatal. Credited HP is clamped to the pool that was
+        // whether it was fatal. Credited HP is clamped to what was
         // left, so overkill from a rocket doesn't read as output the shooter
         // produced. Both writes are safe on a target that is about to be
         // released: TELEMETRY is not in the corpse-remove mask.

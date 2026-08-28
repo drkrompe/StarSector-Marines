@@ -72,8 +72,8 @@ public final class DurabilityModel {
         out.reset();
         if (postCoverDamage <= 0f || currentStructure <= 0f) return;
 
-        // Refused before the pools are consulted, and reported as its own
-        // quantity: the same number that tells a player their screen worked
+        // Refused before armor or structure is consulted, and reported as its
+        // own quantity: the same number that tells a player their screen worked
         // tells the balance harness whether the arc asymmetry moved.
         out.mitigatedDamage = postCoverDamage * mitigationFraction;
         float remaining = postCoverDamage - out.mitigatedDamage;
@@ -129,7 +129,7 @@ public final class DurabilityModel {
             return structureDamage;
         }
 
-        /** Post-cover damage a live screen refused, reaching neither pool. Never folded into {@link #armorDamage}. */
+        /** Post-cover damage a live screen refused, reaching neither armor nor structure. Never folded into {@link #armorDamage}. */
         public float mitigatedDamage() {
             return mitigatedDamage;
         }
