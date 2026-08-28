@@ -142,6 +142,11 @@ Do not run builds or leave generated task files there.
   `art-source/tilesets/<name>.tileset-authoring.json`, so a sheet can be annotated
   across several sittings; re-slicing carries existing annotations onto the newly
   found pieces and names any that no longer match.
+  Its Map preview generates a city and draws it twice at one seed: as it ships,
+  and with pieces bound through the "stands in for" column painted over the
+  cells of the shipped id they are candidates for. The substitution is made in
+  the pixels, so the two maps are the same map and only the art differs. The
+  binding is preview-only and is never exported.
   All three pages validate before replacement; the Turrets page prepares every
   linked target before replacing files atomically and rolls back earlier files
   if a later replacement fails.
