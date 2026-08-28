@@ -68,6 +68,16 @@ class KeyParams:
     min_hole: int = 60
     #: An island thinner than this, detached from the body, is dust however large.
     thin: int = 3
+    #: The cell's art is the filled rectangle it is drawn on.
+    #:
+    #: A repeating ground field is solid where it is drawn, and a hole in one is
+    #: a hole in the road. Its sprite is a slab with a lit rim and a shadowed
+    #: skirt, and the key reads the ragged outermost pixels of those as
+    #: background - which is true of a *prop's* border and false of a surface
+    #: the map paves with, where every carved pixel is a puncture the tiling
+    #: repeats. What is background is a fact about the cell, so this is a
+    #: setting on the cell rather than a threshold that could ever find it.
+    solid: bool = False
 
 
 def value_plane(image: Image.Image) -> np.ndarray:
@@ -159,6 +169,16 @@ def despeckle(art: np.ndarray, min_island: int, min_hole: int, thin: int) -> np.
     return art
 
 
+def fill_bbox(art: np.ndarray) -> np.ndarray:
+    """The filled bounding box of ``art`` - what a solid cell is drawn on."""
+    ys, xs = np.where(art)
+    if not len(xs):
+        return art
+    filled = np.zeros(art.shape, bool)
+    filled[ys.min():ys.max() + 1, xs.min():xs.max() + 1] = True
+    return filled
+
+
 def key_cell(value: np.ndarray, params: KeyParams) -> np.ndarray:
     """The art mask of one cell: true where the cell is opaque."""
     matte = value <= params.tol_key
@@ -196,7 +216,8 @@ def key_cell(value: np.ndarray, params: KeyParams) -> np.ndarray:
 
     core = np.isin(comp, list(keep))
     art = ~dilate(core, params.reach, matte)
-    return despeckle(art, params.min_island, params.min_hole, params.thin)
+    art = despeckle(art, params.min_island, params.min_hole, params.thin)
+    return fill_bbox(art) if params.solid else art
 
 
 def key_sheet(value: np.ndarray,
@@ -237,7 +258,7 @@ def grid_cells(width: int, height: int, origin_x: float, pitch_x: float,
 
 
 def band_cells(value: np.ndarray, expected: int, tol: int = 12,
-               min_run: int = 8) -> list[tuple[int, int, int, int]]:
+               min_run: int = 8, min_gap: int = 8) -> list[tuple[int, int, int, int]]:
     """A strip's cells: one full-height band per piece, split down its gutters.
 
     A strip of props has no grid to cut on, so the bands come from the sheet's
@@ -246,6 +267,13 @@ def band_cells(value: np.ndarray, expected: int, tol: int = 12,
     remaining runs are separated at the midpoint of the gap between them, so
     every column of the sheet belongs to exactly one band and a piece's own
     outline is never cut off by the band edge.
+
+    A piece need not be one blob. A scatter of pebbles is one prop drawn as
+    three stones with daylight between them, and the daylight inside it is
+    narrower than the gutters that separate it from its neighbours - so runs
+    closer together than ``min_gap`` are one band. Which those are is the same
+    question the loader answers on the exported atlas with its own minimum gap,
+    and answering it differently here would pack a piece the loader then splits.
     """
     lit = (value > tol).any(axis=0)
     xs = np.where(lit)[0]
@@ -260,7 +288,13 @@ def band_cells(value: np.ndarray, expected: int, tol: int = 12,
             start = x
         previous = x
     runs.append([start, previous])
-    runs = [run for run in runs if run[1] - run[0] + 1 >= min_run]
+    joined: list[list[int]] = [runs[0]]
+    for run in runs[1:]:
+        if run[0] - joined[-1][1] - 1 < min_gap:
+            joined[-1][1] = run[1]
+        else:
+            joined.append(run)
+    runs = [run for run in joined if run[1] - run[0] + 1 >= min_run]
     if len(runs) != expected:
         raise ValueError("found %d pieces at tol=%d, expected %d: %s"
                          % (len(runs), tol, expected, runs))
@@ -302,12 +336,28 @@ def _urban_tileset_3(value: np.ndarray) -> tuple[list, KeyParams | list[KeyParam
     return cells, [KeyParams()] * 4 + [_IRONWORK] * 3
 
 
+#: A repeating ground field: solid where it is drawn, whatever its rim reads as.
+_FIELD = KeyParams(solid=True)
+
+#: Plants and rocks, drawn against black with a black outline of their own -
+#: the same disagreement the pavers and the ironwork have on urban-tileset-3.
+#: A rock is also several stones, so an island the size of one pebble is the
+#: prop rather than dust the key admitted.
+_SCATTER = KeyParams(tol_key=12, tol_flow=6, min_island=40, min_hole=20)
+
+
+def _nature_tiles(value: np.ndarray) -> tuple[list, KeyParams | list[KeyParams]]:
+    cells = band_cells(value, 20)
+    return cells, [_FIELD] * 7 + [_SCATTER] * 13
+
+
 #: Every sheet whose alpha was keyed here, and how. A sheet is keyed once and
 #: the keyed PNG is what ships forward, so this table is not a build step - it
 #: is what lets the edit be re-run, reviewed, and proved unchanged.
 SHEETS = {
     "urban-tileset.raw.png": _urban_tileset,
     "urban-tileset-3.raw.png": _urban_tileset_3,
+    "nature-tiles.raw.png": _nature_tiles,
 }
 
 
