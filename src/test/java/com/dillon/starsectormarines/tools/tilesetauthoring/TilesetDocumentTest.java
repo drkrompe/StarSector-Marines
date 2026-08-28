@@ -168,6 +168,17 @@ class TilesetDocumentTest {
     }
 
     @Test
+    void aSheetNoteSurvivesTheRoundTrip(@TempDir Path dir) throws Exception {
+        TilesetDocument doc = document();
+        doc.note = "RGB with no alpha; split the single piece on the 125 px grid.";
+
+        Path path = dir.resolve("ship.tileset-authoring.json");
+        doc.write(path);
+
+        assertEquals(doc.note, TilesetDocument.read(path).note);
+    }
+
+    @Test
     void documentPathIsBesideTheRawSheetNotInsideTheMod() {
         Path path = TilesetDocument.pathFor(Path.of("/project"), "ship");
         String text = path.toString().replace('\\', '/');

@@ -1,23 +1,25 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
-import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
-import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.air.AirScale;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
+import com.dillon.starsectormarines.battle.world.gen.BlockKind;
+import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import com.dillon.starsectormarines.ops.MissionType;
-import com.dillon.starsectormarines.ops.RiskLevel;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -53,7 +55,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * is correspondingly smaller to keep PNG sizes reasonable.
  *
  * <p>Outputs: {@code build/map-previews/sprite-seed-NNNN.png} (one per
- * seed). Re-run via
+ * seed), plus a close generated-compound crop at
+ * {@code build/map-previews/sprite-conquest-military-compound.png}. Re-run via
  * {@code gradlew :test --tests "*BspMapSpritePreviewTest*"}.
  */
 public class BspMapSpritePreviewTest {
@@ -100,6 +103,41 @@ public class BspMapSpritePreviewTest {
             ImageIO.write(img, "PNG", out.toFile());
             System.out.println("  wrote " + out.toAbsolutePath());
         }
+    }
+
+    /**
+     * Close production-path render of a generated Conquest compound. The crop
+     * changes only the evidence framing; every visible cell comes from the
+     * same complete-map draw-command stream used by {@link #renderSpriteBatch()}.
+     */
+    @Test
+    void renderConquestCompound() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        long seed = 1L;
+        BspCityGenerator generator = new BspCityGenerator();
+        MapResult map = generator.generate(240, 160, seed,
+                TraversalAxis.SOUTH_TO_NORTH);
+        Compound compound = generator.getLastCompounds().stream()
+                .filter(candidate -> candidate.kind == BlockKind.MILITARY_BASE)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        "Conquest preview seed must contain a military compound"));
+
+        int cellPx = 16;
+        int margin = 4;
+        BufferedImage full = battleMaps.render(map, seed, cellPx);
+        int left = Math.max(0, compound.left - margin);
+        int top = Math.max(0, compound.top - margin);
+        int right = Math.min(map.grid.getWidth() - 1, compound.right + margin);
+        int bottom = Math.min(map.grid.getHeight() - 1, compound.bottom + margin);
+        int imageY = (map.grid.getHeight() - 1 - bottom) * cellPx;
+        BufferedImage crop = full.getSubimage(left * cellPx, imageY,
+                (right - left + 1) * cellPx,
+                (bottom - top + 1) * cellPx);
+
+        Path out = OUT_DIR.resolve("sprite-conquest-military-compound.png");
+        ImageIO.write(crop, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
     }
 
     /** Full-map look at the campaign-backed civilian port district and its authored berths. */
