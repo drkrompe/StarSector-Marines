@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.ExtractionBattleFixture;
+import com.dillon.starsectormarines.battle.command.ExtractionObjectiveDisclosure;
+import com.dillon.starsectormarines.battle.command.ExtractionObjectiveFacts;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
@@ -18,8 +20,8 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Opt-in neutral evidence for the generic Extraction objective contract. */
-@Tag("extraction-objective-evidence")
+/** Opt-in command and neutral evidence for generic Extraction. */
+@Tag("extraction-command-evidence")
 class ExtractionObjectiveEvidenceTest {
     private static final int DEFAULT_MAX_TICKS = 12_000;
     private static final String DEFAULT_FIXTURE =
@@ -31,9 +33,9 @@ class ExtractionObjectiveEvidenceTest {
         assertEquals(Integer.MAX_VALUE,
                 UnitUpdateSystem.configuredMinimumParallelUnits());
         int maxTicks = Integer.getInteger(
-                "extraction.objective.evidence.maxTicks", DEFAULT_MAX_TICKS);
+                "extraction.command.evidence.maxTicks", DEFAULT_MAX_TICKS);
         if (maxTicks < 1) throw new IllegalArgumentException(
-                "extraction.objective.evidence.maxTicks must be positive");
+                "extraction.command.evidence.maxTicks must be positive");
         BattleFixture fixture = loadFixture();
         RunResult first = run(fixture, maxTicks);
         RunResult second = run(fixture, maxTicks);
@@ -43,14 +45,18 @@ class ExtractionObjectiveEvidenceTest {
                 "\"event\":\"extraction-payload-state\""));
         assertTrue(first.trace().contains(
                 "\"payloadId\":\"EXTRACTION-01\""));
+        assertTrue(first.trace().contains(
+                "\"strategy\":\"extraction-attacker\""));
+        assertTrue(first.trace().contains("\"extraction\":{"));
+        assertTrue(first.trace().contains("\"role\":\"PAYLOAD_ELEMENT\""));
 
         Path output = Path.of(System.getProperty(
-                "extraction.objective.evidence.outputDir",
+                "extraction.command.evidence.outputDir",
                 "build/reports/commander/extraction"))
                 .toAbsolutePath().normalize();
         Files.createDirectories(output.resolve("traces"));
         Files.writeString(output.resolve(
-                        "traces/extraction-objective.jsonl"),
+                        "traces/extraction-command.jsonl"),
                 first.trace(), StandardCharsets.UTF_8);
         JSONObject summary = new JSONObject()
                 .put("schemaVersion", 1)
@@ -63,21 +69,30 @@ class ExtractionObjectiveEvidenceTest {
                 .put("winner", first.winner() != null
                         ? first.winner() : JSONObject.NULL)
                 .put("ticks", first.ticks())
+                .put("payloadPhase", first.payloadPhase())
+                .put("payloadProgress", first.payloadProgress())
+                .put("payloadFailure", first.payloadFailure())
                 .put("traceEvents", first.trace().lines().count());
         Files.writeString(output.resolve("summary.json"),
                 summary.toString(2) + '\n', StandardCharsets.UTF_8);
         Files.writeString(output.resolve("summary.md"),
-                "# Extraction objective evidence\n\n"
+                "# Extraction command evidence\n\n"
                         + "Forced-serial, zero-input production Extraction "
-                        + "replayed twice with byte-identical neutral traces.\n\n"
+                        + "replayed twice with byte-identical perspective "
+                        + "and neutral traces.\n\n"
                         + "- Maximum ticks: " + maxTicks + "\n"
                         + "- Result: " + (first.complete()
                         ? "COMPLETE" : "TIMEOUT") + "\n"
                         + "- Winner: " + (first.winner() != null
                         ? first.winner() : "—") + "\n"
-                        + "- Ticks: " + first.ticks() + "\n",
+                        + "- Ticks: " + first.ticks() + "\n"
+                        + "- Payload phase: " + first.payloadPhase() + "\n"
+                        + "- Payload progress: "
+                        + Math.round(first.payloadProgress() * 100f) + "%\n"
+                        + "- Payload failure: " + first.payloadFailure()
+                        + "\n",
                 StandardCharsets.UTF_8);
-        System.out.println("[extraction-objective-evidence] report "
+        System.out.println("[extraction-command-evidence] report "
                 + output.resolve("summary.md"));
     }
 
@@ -88,15 +103,21 @@ class ExtractionObjectiveEvidenceTest {
                 sim.advance(BattleSimulation.TICK_DT);
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+            ExtractionObjectiveFacts payload = ExtractionObjectiveDisclosure
+                    .freezeNeutral(sim).stream()
+                    .filter(row -> "EXTRACTION-01".equals(row.payloadId()))
+                    .findFirst().orElseThrow();
             return new RunResult(sim.getCommandTraceJsonLines(),
                     sim.getSimTickIndex(), sim.isComplete(),
-                    sim.getWinner() != null ? sim.getWinner().name() : null);
+                    sim.getWinner() != null ? sim.getWinner().name() : null,
+                    payload.phase(), payload.progress(),
+                    payload.failure().name());
         }
     }
 
     private static BattleFixture loadFixture() throws Exception {
         String selected = System.getProperty(
-                "extraction.objective.evidence.fixture.path", "").trim();
+                "extraction.command.evidence.fixture.path", "").trim();
         String json;
         if (selected.isBlank()) {
             try (InputStream stream = ExtractionObjectiveEvidenceTest.class
@@ -121,5 +142,6 @@ class ExtractionObjectiveEvidenceTest {
     }
 
     private record RunResult(String trace, int ticks, boolean complete,
-                             String winner) { }
+                             String winner, String payloadPhase,
+                             float payloadProgress, String payloadFailure) { }
 }

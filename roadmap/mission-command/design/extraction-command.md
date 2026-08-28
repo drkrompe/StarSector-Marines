@@ -1,10 +1,10 @@
 # Extraction command
 
-Status: ACTIVE — generic Extraction has an authoritative payload-and-egress law; corridor command and authored variant pictures remain open.
+Status: ACTIVE — generic Extraction has an authoritative payload law and Marine corridor commander; live acceptance and authored variant pictures remain open.
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — shipped the generic escorted-package objective, perspective disclosure, variant projection, fixture, and neutral evidence.
+Updated: 2026-08-27 — added route-aware generic Marine pickup, escort, screen, and egress command with diagnostics and deterministic evidence.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `campaign-event-nouns.md` for the authored event stakes.
@@ -46,9 +46,26 @@ the Marine egress, exact package position, progress, cohort counts, or
 controlling squad. Neutral traces may record the full state but may never feed
 it back into either perspective.
 
-Generic Extraction now has the objective prerequisite for corridor command;
-it does not yet have a production autonomous commander. The conventional
-defender may eventually receive a bounded source-alarm/interdiction strategy.
+Generic Extraction installs a frame-only Marine corridor commander. It keeps
+one stable payload element, adds one close escort when force strength permits,
+and distributes remaining squads across lead, left, right, and rear screens.
+Only the payload and close escort use the moving escort posture; screen squads
+hold separate route-relative cells and therefore yield to locally acquired
+contact through ordinary squad doctrine. The objective publishes a short
+owning-side route guide so the screen follows authored turns through structures
+instead of aiming directly through walls at the distant egress. Every target is
+snapped to a walkable cell reachable by that squad.
+
+The published command picture carries payload phase, position, route guide,
+progress, escort control, stable role, reason, assignment kind, target cell,
+and local-contact state. The selected-squad overlay, squad dump, and
+perspective trace all consume that picture. `commanderEvidence
+-Pmission=extraction` replays the production fixture twice under forced-serial
+scheduling; the current canonical fixture reaches an explained defender win
+after Marine recovery and partial transit rather than stalling at the source.
+
+The conventional defender remains without a generic Extraction commander. It
+may eventually receive a bounded source-alarm/interdiction strategy.
 Authored swarm or security-network opposition remains a mission director when
 its force and knowledge semantics are not those of a human squad commander.
 
@@ -78,5 +95,6 @@ The survivor cohort and sealed archive publish two distinct payload projections.
 The survivor branch retains cohort/egress semantics; the archive remains a
 source-recovery branch without invented boarding state.
 
-`rescue-corridor-command-picture.md` and
+`generic-extraction-corridor-command.md`,
+`rescue-corridor-command-picture.md`, and
 `silent-colony-expedition-branches.md` own the open command work.
