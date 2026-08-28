@@ -245,6 +245,21 @@ likewise a map fact rather than a shipboard one — a fortress vehicle shed
 publishes the same berths a mech bay does, and what occupies one remains the
 host's decision from a roster.
 
+An **airfield** is the first structure whose substance is open ground rather
+than enclosed floor. Its apron is paved yard with berths marked on it, and its
+hardstands are the aviation form of a machine berth: generation authors the
+clear footprint and the approach direction, and what stands there is the host's
+to decide from a roster. It is therefore sited in what the packing left over
+rather than claimed before it — which is the opposite of the rule for buildings,
+and deliberately so. **A reservation made before packing reshapes every
+placement around itself, and generation cannot see what that costs.** An apron
+claimed up front produced a ward where every building still had its door and its
+route, and no heavy vehicle could reach the defender rear at all: walkable,
+connected, fully checked, and impassable to the one thing that mattered. Ground
+that was already spare cannot do that. The price is that an airfield is not
+guaranteed — a ward whose packing left no clear stretch has none, the same way a
+compound with no wing a bay fits in has no vehicle shed.
+
 **Wedging is a hull's virtue and a compound's defect.** A packer scores a
 position by how tightly it wedges against something already solid, which is
 correct inside a vessel: a void between two compartments is wasted displacement.
