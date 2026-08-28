@@ -70,8 +70,8 @@ class ExtractionObjectiveEvidenceTest {
 
         for (FixtureSpec spec : fixtures) {
             BattleFixture fixture = loadFixture(spec);
-            RunResult first = run(fixture, maxTicks);
-            RunResult second = run(fixture, maxTicks);
+            RunResult first = run(fixture, maxTicks, output, spec.id());
+            RunResult second = run(fixture, maxTicks, null, spec.id());
             assertEquals(first.trace(), second.trace(),
                     spec.id() + " must produce byte-stable command evidence");
             assertCommonEvidence(spec, first);
@@ -178,11 +178,16 @@ class ExtractionObjectiveEvidenceTest {
                 .put("traceEvents", result.trace().lines().count());
     }
 
-    private static RunResult run(BattleFixture fixture, int maxTicks) {
-        try (BattleSimulation sim = fixture.build()) {
+    private static RunResult run(BattleFixture fixture, int maxTicks,
+                                 Path visualRoot, String runId)
+            throws Exception {
+        try (BattleSimulation sim = fixture.build();
+             CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
+                     visualRoot, runId, sim)) {
             sim.setCommandTraceEnabled(true, fixture.kind());
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 sim.advance(BattleSimulation.TICK_DT);
+                capture.afterAdvance();
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             ExtractionObjectiveFacts payload = ExtractionObjectiveDisclosure

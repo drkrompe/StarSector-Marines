@@ -37,9 +37,15 @@ class RescueCommandEvidenceTest {
         BattleFixture fixture = loadFixture();
         Assumptions.assumeTrue(fixture instanceof CivilianRescueBattleFixture,
                 "selected Extraction-family fixture is not Civilian Rescue");
+        Path output = Path.of(System.getProperty(
+                "extraction.command.evidence.outputDir",
+                "build/reports/commander/extraction"))
+                .toAbsolutePath().normalize().resolve("rescue");
 
-        RunResult first = run(fixture, maxTicks);
-        RunResult second = run(fixture, maxTicks);
+        RunResult first = run(fixture, maxTicks, output,
+                "civilian-rescue");
+        RunResult second = run(fixture, maxTicks, null,
+                "civilian-rescue");
         assertEquals(first.trace(), second.trace(),
                 "Civilian Rescue must replay byte-identically");
         assertTrue(first.trace().contains(
@@ -62,10 +68,6 @@ class RescueCommandEvidenceTest {
                     "swarm director leaked Marine corridor truth: " + line);
         }
 
-        Path output = Path.of(System.getProperty(
-                "extraction.command.evidence.outputDir",
-                "build/reports/commander/extraction"))
-                .toAbsolutePath().normalize().resolve("rescue");
         Files.createDirectories(output);
         Files.writeString(output.resolve("civilian-rescue.jsonl"),
                 first.trace(), StandardCharsets.UTF_8);
@@ -90,11 +92,16 @@ class RescueCommandEvidenceTest {
                 + output.resolve("summary.json"));
     }
 
-    private static RunResult run(BattleFixture fixture, int maxTicks) {
-        try (BattleSimulation sim = fixture.build()) {
+    private static RunResult run(BattleFixture fixture, int maxTicks,
+                                 Path visualRoot, String runId)
+            throws Exception {
+        try (BattleSimulation sim = fixture.build();
+             CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
+                     visualRoot, runId, sim)) {
             sim.setCommandTraceEnabled(true, fixture.kind());
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 sim.advance(BattleSimulation.TICK_DT);
+                capture.afterAdvance();
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             ExtractionObjectiveFacts cohort = ExtractionObjectiveDisclosure

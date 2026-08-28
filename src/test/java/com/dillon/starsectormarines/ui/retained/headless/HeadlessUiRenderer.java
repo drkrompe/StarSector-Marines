@@ -24,6 +24,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -294,6 +295,24 @@ public final class HeadlessUiRenderer {
             graphics.setColor(opaque(color));
             graphics.fill(new Rectangle2D.Float(documentX(x), documentY(y),
                     width * coordinateScaleX, height * coordinateScaleY));
+            graphics.setComposite(previous);
+        }
+
+        @Override
+        protected void drawFillQuad(float x0, float y0, float x1, float y1,
+                                    float x2, float y2, float x3, float y3,
+                                    Color color) {
+            var previous = graphics.getComposite();
+            graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                    clampAlpha(color.getAlpha() / 255f * alphaMult())));
+            graphics.setColor(opaque(color));
+            Path2D.Float path = new Path2D.Float();
+            path.moveTo(documentX(x0), documentY(y0));
+            path.lineTo(documentX(x1), documentY(y1));
+            path.lineTo(documentX(x2), documentY(y2));
+            path.lineTo(documentX(x3), documentY(y3));
+            path.closePath();
+            graphics.fill(path);
             graphics.setComposite(previous);
         }
 

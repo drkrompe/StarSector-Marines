@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — gave hip and torso turns persistent angular momentum and
-added planted-foot weight transfer to the walking silhouette.
+Updated: 2026-08-28 — replaced phase-relative mech shuffling with persistent
+foot plants, predicted steps, and support-driven upper-body weight transfer.
 
 ## Purpose
 
@@ -124,11 +124,14 @@ stationary hips may settle toward the same remembered contact.
 
 Hip and upper-chassis turns accelerate and brake within separate angular
 budgets. A changed target or route therefore arrests the old swing before
-reversing it instead of snapping to a new turn direction. During forward
-walking, the rendered waist and complete upper assembly shift laterally over
-the planted foot while foot anchors remain on the actor position. This weight
-transfer is presentation only: it does not move collision, pathing, aim, or
-targeting authority.
+reversing it instead of snapping to a new turn direction. Each foot retains a
+world-space plant until reach or yaw requires a step; the lifted foot advances
+toward a velocity-predicted, stance-constrained landing and adopts the hip
+bearing only at touchdown. Pivoting uses the same rule, so one pad supports the
+body while the other walks around the turn. The rendered waist and complete
+upper assembly respond through a damped support-driven weight transfer. This
+gait is fixed-tick presentation state only: it does not move collision,
+pathing, aim, or targeting authority.
 
 ## Authority flow
 

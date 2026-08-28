@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LayeredMechComposerTest {
 
@@ -18,7 +19,7 @@ class LayeredMechComposerTest {
         MechVariant variant = MechVariant.BULWARK;
 
         LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
-                        layers.add(new Layer(sprite.sourcePath, x, y, width, height)),
+                        layers.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
                 assets, 400f, 300f, 208f,
                 0f, 0f, 0f, 0f, 0f, 0f, 0,
                 variant.chassisAppearance, variant.arms.appearanceSelector,
@@ -58,7 +59,7 @@ class LayeredMechComposerTest {
         MechVariant variant = MechVariant.BULWARK;
 
         LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
-                        layers.add(new Layer(sprite.sourcePath, x, y, width, height)),
+                        layers.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
                 assets, 400f, 300f, 208f,
                 0f, 0f, 0.40f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_MOVING,
@@ -72,9 +73,46 @@ class LayeredMechComposerTest {
                 "the chassis shifts laterally over the supporting foot");
     }
 
+    @Test
+    void proceduralGaitUsesSolvedFootAnchorsYawAndWaist() {
+        LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
+        List<Layer> layers = new ArrayList<>();
+        MechVariant variant = MechVariant.HOUND;
+        LayeredMechComposer.GaitPose gait = new LayeredMechComposer.GaitPose(
+                350f, 280f, 15f,
+                445f, 285f, -12f,
+                410f, 310f, 1f, 0f);
+
+        LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
+                        layers.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
+                assets, 400f, 300f, 208f,
+                0f, 0f, 0.4f, 0f, 0f, 0f,
+                LayeredMechAppearance.FLAG_MOVING,
+                variant.chassisAppearance, variant.arms.appearanceSelector,
+                variant.leftShoulder.appearanceSelector,
+                LayeredMechAppearance.POD_NONE, 1f, null, gait);
+
+        assertEquals(350f, layers.get(0).x(), 0.001f);
+        assertEquals(280f, layers.get(0).y(), 0.001f);
+        assertEquals(15f, layers.get(0).angle(), 0.001f);
+        assertEquals(445f, layers.get(1).x(), 0.001f);
+        assertEquals(-12f, layers.get(1).angle(), 0.001f);
+        Layer chassis = layers.stream()
+                .filter(layer -> fileName(layer.path()).equals("chassis-hound.png"))
+                .findFirst().orElseThrow();
+        assertEquals(410f, chassis.x(), 0.001f);
+        assertEquals(310f, chassis.y(), 0.001f,
+                "the complete upper assembly follows the solved waist position");
+        assertEquals(0f, chassis.angle(), 0.001f,
+                "the procedural waist replaces the old phase-authored chassis wobble");
+        assertTrue(layers.get(0).width() > layers.get(1).width(),
+                "swing lift has a subtle top-down scale cue");
+    }
+
     private static String fileName(String path) {
         return path.substring(path.lastIndexOf('/') + 1);
     }
 
-    private record Layer(String path, float x, float y, float width, float height) { }
+    private record Layer(String path, float x, float y, float width, float height,
+                         float angle) { }
 }
