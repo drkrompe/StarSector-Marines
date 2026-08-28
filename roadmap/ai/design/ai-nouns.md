@@ -8,14 +8,17 @@ Updated: 2026-08-28 — moved cohesion from the squad to the fire team: morale i
 held, drained, and broken per team, a broken team peels to cover while its
 siblings keep executing the squad's plan, and a squad-level morale reading is
 now an aggregate that reads broken only when no composed team is left; added
-the fire team as a decision layer and recorded the cohesion law. Earlier the
-same day — added the defense frontage and the standing-to garrison posture,
-which give a held place's authored apertures to whichever side holds it and
-make believed pressure, rather than local contact, the trigger for manning
-them; recorded what an aperture may open onto and what an open-sided envelope
-yields; added held layers, so a bounded few garrisons may share a perimeter and
-a garrison that loses one envelope falls back to the next; made allocation
-picket every threatened facing before massing on the hottest, with the reserve
+the fire team as a decision layer and recorded the cohesion law. Also that day
+— ambient work is now paced by the worker rather than by an authored clock: the
+dwell begins on arrival, a full job is passed over for the next on the
+rotation, and nothing free anywhere keeps somebody at the job they have.
+Earlier: added the defense frontage and the standing-to garrison posture, which
+give a held place's authored apertures to whichever side holds it and make
+believed pressure, rather than local contact, the trigger for manning them;
+recorded what an aperture may open onto and what an open-sided envelope yields;
+added held layers, so a bounded few garrisons may share a perimeter and a
+garrison that loses one envelope falls back to the next; made allocation picket
+every threatened facing before massing on the hottest, with the reserve
 yielding to that rule.
 
 AI turns an assignment and what a squad has learned into coordinated movement,
@@ -114,15 +117,37 @@ own berthing, eat in the mess, and shoot on the range — so a per-room shift ga
 each of those as a separate posting. What somebody does is a fact about them;
 where they do it is a fact about the map.
 
-Two consequences follow and neither is optional. A shift takes on only as many
-people as its posting holds, read **at the site it is posted to** and never at
-the scarcest place it reaches — counting a ship-wide firing range against a
-berthing posting would cap every berth on the hull at the lane count and then
-send all of them at the same two lanes. And a shift that spans sites is scheduled
-at a slower assumed pace, because the route clock budgets travel from the
-straight line between stops while a deck is a spine with rooms hung off it;
-budget the line and the schedule moves somebody on before they have arrived, and
-a shift crossing the ship never dwells anywhere at all.
+A shift takes on only as many people as its posting holds, read **at the site it
+is posted to** and never at the scarcest place it reaches — counting a ship-wide
+firing range against a berthing posting would cap every berth on the hull at the
+lane count and then send all of them at the same two lanes.
+
+**A rotation is not a timetable.** A shift names the jobs and where they are; how
+long the walk between two of them takes is what the actor's legs and the
+pathfinder settle between them, and the dwell begins on arrival. Nothing budgets
+the travel in advance, because nothing that could is in a position to know it: a
+route sees the straight line between two stops and a deck is a spine with rooms
+hung off it. The budget was tried and it fails in the expensive direction —
+scheduled for an unhurried line across a whole ship while the pathfinder covers
+the same ground several times faster, every worker arrives at their bench and
+stands there waiting for the schedule to agree they have got there. Measured on
+a manned deck that was four in five actor-samples of a transport's whole crew,
+and nine in ten of a capital's: a ship where almost nobody was ever doing
+anything, and where the fault was in the clock rather than in the work.
+
+**A full job is passed over, not queued for.** Where the next job on the rotation
+has no free place to do it, the actor takes the one after it; where nothing on
+the rotation is free, they carry on with the job they are already doing for
+another turn rather than walk off to stand outside a full room. A ship with three
+firing points and six hundred marines is a fact about the ship, and the claim
+service is what states it honestly. Six hundred marines motionless in the passage
+outside the range is not that fact — it is a scheduling defect wearing it — and so
+is one worker standing at a bench they have finished with.
+
+That fallback is also what keeps a place occupied rather than merely held.
+Because a claim is only given up when a replacement succeeds, somebody who finds
+the whole map busy keeps the bench they are standing at instead of surrendering
+it to wait in a corridor for it.
 
 How many a posting holds is two different questions and the purpose decides
 which. **A berthing holds its beds**: a bunkroom with nine racks and two lockers
@@ -169,14 +194,17 @@ berthing spaces send their watches to the same mess — so each publishes it, an
 saying the same thing twice must leave the board as it was. A genuinely clashing
 id still fails loudly, because that is a different mistake.
 
-**Putting somebody into the world is not the same as posing them.** A watch is
-spread across its loop on purpose, so at any instant most of it is between jobs,
-and the pose sampler draws that as the straight line from one stop to the next.
-That line is a presentation convenience which bypasses collision by design; on a
-generated map it crosses walls. Placement therefore goes to a job — the one the
-clock says they are heading for — never to a point between two. A seeded sweep
-of ship decks found one shift in seventy standing inside a bulkhead before this
-was separated out.
+**Putting somebody into the world is not the same as posing them.** The pose
+sampler draws the leg between two stops as the straight line from one to the
+other. That line is a presentation convenience which bypasses collision by
+design; on a generated map it crosses walls. Placement therefore always goes to a
+job — a member's own first one, since a shift hands each of its people a rotation
+already turned to start on a different job — and never to a point between two. A
+seeded sweep of ship decks found one shift in seventy standing inside a bulkhead
+before this was separated out. What varies within a job is how far through it
+somebody is, which is the route's phase, and it is enough to keep a watch coming
+on from finishing its first job in unison and setting off down the passage
+together.
 
 That sweep was the standing check on the whole model, and it was deliberately
 not a check on a picture: for a spread of hulls and seeds it asserted that every
@@ -534,6 +562,14 @@ use the shared track to establish bounded firing positions. Prosecution never
 authorizes an unbounded chase or abandonment of the mission route; if no legal
 position exists inside the maneuver leash, the member continues its assigned
 advance.
+
+While an advancing squad is committed to either kind of contact, a legal
+shooter plants and fires from a stanced posture instead of continuing the
+mission route. A successful shot may author the ordinary cooldown-staggered
+move to strictly better directional cover; subsequent mission-action ticks
+preserve that short cover move but continue to suppress the objective route.
+This lets a receiving line improve accidental contact positions between bursts
+without turning RECEIVE into a pursuit or moving the whole squad in lockstep.
 
 Fireteams are the infantry maneuver unit. They can receive distinct roles in a
 shared squad step: a recoverable ambush can displace the exposed team while a

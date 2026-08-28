@@ -1,10 +1,15 @@
 package com.dillon.starsectormarines.battle.colony;
 
 import com.dillon.starsectormarines.battle.command.SilentColonyCommand;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationObjective;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -16,6 +21,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SilentColonyBattleFactoryTest {
@@ -35,6 +41,34 @@ class SilentColonyBattleFactoryTest {
                 .count());
         assertTrue(sim.getCommander(Faction.MARINE)
                 instanceof SilentColonyCommand);
+        Squad commanded = addMarineSquad(sim, "marine-command-test");
+        Squad payloadOwned = addMarineSquad(sim, "marine-payload-test");
+        ObjectiveAssignment payloadOrder = ObjectiveAssignment.escort(
+                payloadOwned.id, 1, 1);
+        sim.assignSquadCommand(payloadOrder, CommandAuthority.PAYLOAD,
+                "payload-owner", "external survivor duty");
+        SilentColonyCommand command = (SilentColonyCommand)
+                sim.getCommander(Faction.MARINE);
+        command.tick(sim, sim);
+        int commandedMarineSquads = 0;
+        for (var squad : sim.getSquads()) {
+            if (squad.faction != Faction.MARINE || squad.aliveMembers <= 0) {
+                continue;
+            }
+            CommandDirective directive = sim.getSquadCommandDirective(squad.id);
+            assertNotNull(directive);
+            if (squad == payloadOwned) {
+                assertEquals("payload-owner", directive.issuer());
+                assertEquals(payloadOrder, squad.assignedObjective);
+                continue;
+            }
+            assertEquals(CommandAuthority.MISSION_COMMAND,
+                    directive.authority());
+            assertEquals("silent-colony", directive.issuer());
+            commandedMarineSquads++;
+        }
+        assertEquals(1, commandedMarineSquads);
+        assertNotNull(sim.getSquadCommandDirective(commanded.id));
 
         int defenders = 0;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
@@ -48,6 +82,28 @@ class SilentColonyBattleFactoryTest {
         }
         assertTrue(defenders > 0);
         assertTrue(sim.getReinforcementService().isEmpty());
+    }
+
+    private static Squad addMarineSquad(BattleSimulation sim, String name) {
+        int spawnX = -1;
+        int spawnY = -1;
+        for (int y = 0; y < sim.getGrid().getHeight() && spawnX < 0; y++) {
+            for (int x = 0; x < sim.getGrid().getWidth(); x++) {
+                if (!sim.getGrid().isWalkable(x, y)) continue;
+                spawnX = x;
+                spawnY = y;
+                break;
+            }
+        }
+        long leader = sim.spawn(new EntitySpec(name,
+                Faction.MARINE, UnitType.MARINE, spawnX, spawnY));
+        int squadId = sim.mintSquad(Faction.MARINE, leader);
+        sim.squad().assignSquad(leader, squadId);
+        Squad squad = sim.getSquad(squadId);
+        squad.aliveMembers = 1;
+        squad.centroidX = spawnX + 0.5f;
+        squad.centroidY = spawnY + 0.5f;
+        return squad;
     }
 
     @Test

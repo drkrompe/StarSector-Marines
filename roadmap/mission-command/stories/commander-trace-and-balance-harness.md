@@ -394,6 +394,31 @@ classification, so the repair closes latent execution state without disguising
 the remaining contact-bound `HOLD` seam. Investigate that doctrine/execution
 handoff before changing final-hop tactics, capture slots, or timers.
 
+That handoff was an execution discontinuity inside the retained mission plan,
+not a commander-selection failure. `HOLD` correctly suppressed the objective
+route and authored stanced fire, but the zone approach action disabled the
+existing successful-shot cover refresh and then cleared every path. Committed
+shooters now request the established cooldown-staggered move to strictly better
+directional cover, and the approach action preserves only that live micro-move
+while continuing to suppress the mission route. Focused coverage proves a
+RECEIVE shooter drops its old compound path, authors and advances the local
+cover move, and does not convert the hold into pursuit.
+
+Before the concurrent garrison-airfield work was merged, the duplicate
+6,000-tick reinforced replay remained byte-stable and preserved six captures,
+four final Marine holds, eight exact capture-zone entries, and no portal-only
+exits. The merged-tree rerun was also byte-stable but established a different
+force/setup baseline: three captures, three final holds, two entries, twenty
+never-observed-at-portal exits, and again no portal-only exit. Its fifteen loss
+pulses included nine `HOLD`, six with an engageable member and fireteam, and
+three with majority directional cover at the 75-tick sample. That concurrent
+baseline shift prevents attributing the outcome delta to this tactical change.
+Short between-pulse cover moves are likewise not recoverable from the trace
+cadence, so the focused regression is the behavioral authority and the merged
+run verifies determinism plus absence of a renewed portal stall. Playtest
+remains the authority for whether the staggered shifts read naturally under
+multidirectional contact.
+
 ## Historical construction-only baselines
 
 The 2026-08-25 forced-serial run reached the bound on both fixtures, with both
