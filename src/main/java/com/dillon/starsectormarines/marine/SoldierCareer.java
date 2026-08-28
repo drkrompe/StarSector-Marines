@@ -30,6 +30,7 @@ public final class SoldierCareer implements Serializable {
     private int roundsFired;
     private int roundsHit;
     private float damageDealt;
+    private float friendlyFireDamage;
     private float damageTaken;
     private int kills;
     private int timesWounded;
@@ -48,6 +49,13 @@ public final class SoldierCareer implements Serializable {
 
     /** Post-mitigation HP taken off hostiles. Excludes friendly fire and overkill. */
     public float damageDealt() { return damageDealt; }
+
+    /**
+     * Post-mitigation HP this marine has taken off their own side. Recorded
+     * separately from {@link #damageDealt()}, exactly as the telemetry seam
+     * keeps it, so it can be reported rather than netted away.
+     */
+    public float friendlyFireDamage() { return friendlyFireDamage; }
 
     /** Post-mitigation HP absorbed, from any source. */
     public float damageTaken() { return damageTaken; }
@@ -74,13 +82,15 @@ public final class SoldierCareer implements Serializable {
      */
     void recordDeployment(boolean victory, boolean wounded,
                           int roundsFired, int roundsHit,
-                          float damageDealt, float damageTaken, int kills) {
+                          float damageDealt, float friendlyFireDamage,
+                          float damageTaken, int kills) {
         missionsDeployed++;
         if (victory) missionsWon++;
         if (wounded) timesWounded++;
         this.roundsFired += Math.max(0, roundsFired);
         this.roundsHit += Math.max(0, roundsHit);
         this.damageDealt += Math.max(0f, damageDealt);
+        this.friendlyFireDamage += Math.max(0f, friendlyFireDamage);
         this.damageTaken += Math.max(0f, damageTaken);
         this.kills += Math.max(0, kills);
     }
@@ -91,6 +101,7 @@ public final class SoldierCareer implements Serializable {
         roundsFired = Math.max(0, roundsFired);
         roundsHit = Math.max(0, Math.min(roundsFired, roundsHit));
         damageDealt = Math.max(0f, damageDealt);
+        friendlyFireDamage = Math.max(0f, friendlyFireDamage);
         damageTaken = Math.max(0f, damageTaken);
         kills = Math.max(0, kills);
         timesWounded = Math.max(0, timesWounded);

@@ -1403,12 +1403,21 @@ public class MarineRoster implements Serializable {
      * casualties alike, so every key is a marine who went. A marine the battle
      * recorded nothing for still counts as deployed — they were there, they
      * just never got a shot off.
+     *
+     * <p>The same pass credits each marine's <b>squad</b> career. Attribution
+     * comes from the squad id frozen onto the marine at spawn, carried back on
+     * the telemetry row — never from current membership, so reorganizing the
+     * roster after a battle cannot rewrite who fought alongside whom. A marine
+     * with no telemetry row therefore has no squad to credit; they still count
+     * as deployed on their own record. The squad's mission tally counts once
+     * per squad per mission, however many billets it filled.
      */
     public void applySoldierOutcome(Map<String, MarineSoldierStatus> outcomes,
                                     int survivorXp, float currentDay, float wiaDays,
                                     Map<String, CombatTelemetryRow> telemetry,
                                     boolean victory) {
         if (outcomes == null) return;
+        Set<String> creditedSquadIds = new LinkedHashSet<>();
         for (Map.Entry<String, MarineSoldierStatus> entry : outcomes.entrySet()) {
             MarineSoldier soldier = soldierById(entry.getKey());
             if (soldier == null || entry.getValue() == null) continue;
@@ -1429,8 +1438,22 @@ public class MarineRoster implements Serializable {
                     row != null ? row.roundsFired() : 0,
                     row != null ? row.roundsHit() : 0,
                     row != null ? row.damageDealt() : 0f,
+                    row != null ? row.friendlyFireDamage() : 0f,
                     row != null ? row.damageTaken() : 0f,
                     row != null ? row.kills() : 0);
+            if (row == null || row.campaignSquadId() == null) continue;
+            MarineSquad squad = squadById(row.campaignSquadId());
+            if (squad == null) continue;
+            squad.career().recordMarine(
+                    status != MarineSoldierStatus.ACTIVE,
+                    row.roundsFired(), row.roundsHit(),
+                    row.damageDealt(), row.friendlyFireDamage(),
+                    row.damageTaken(), row.kills());
+            creditedSquadIds.add(row.campaignSquadId());
+        }
+        for (String squadId : creditedSquadIds) {
+            MarineSquad squad = squadById(squadId);
+            if (squad != null) squad.career().recordMission(victory);
         }
         refreshLeadership();
     }

@@ -4,12 +4,11 @@ Status: IN PROGRESS
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 — roles, jobs and shifts are built, and every room a marine
-uses now publishes its jobs: rest and inspect in the barracks, socialize in the
-mess, practice on the range. All four stops of the authored rotation exist and
-none of them is a waypoint anybody typed. What is missing is the one thing that
-joins them: a shift is built from a single compartment's fixtures, so a marine
-gets each stop on its own. The live-fire window and the seed sweep also remain.
+Updated: 2026-08-27 — roles, jobs and shifts are built, every room a marine uses
+publishes its jobs, and live fire resolves on a generated range. What is missing
+is the one thing that joins the four stops: a shift is built from a single
+compartment's fixtures, so a marine gets each of them on its own. The seed sweep
+also remains.
 
 Read `ship-interiors-nouns.md` before implementing this story. Depends on
 `facility-room-themes.md`.
@@ -53,9 +52,11 @@ generated room and a dead one.
   compartments. That is a decision about the shift, not about the fill.
 - A generated mech bay produces fabrication, parts-running, and inspection
   activity around its gantries, scaling with gantry count.
-- The live-fire window still resolves on a generated firing range: rounds are
+- ~~The live-fire window still resolves on a generated firing range: rounds are
   fired through the bounded simulation against a simulation-owned target, with
-  campaign personnel and inventory untouched.
+  campaign personnel and inventory untouched.~~ Done. A detail staffed onto a
+  generated range fires down its own lane at a frame the scene spawned on the
+  butts the fitting bound the firing point to.
 - Actors do not converge on one fixture, stall against blocking fixtures, or
   leave a compartment their route did not name.
 - A seed sweep produces no route that is unreachable or that never advances.

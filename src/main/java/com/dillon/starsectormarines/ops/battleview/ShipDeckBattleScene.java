@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
@@ -14,6 +15,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
@@ -26,7 +28,9 @@ import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Battle-renderer host for a generated ship deck.
@@ -81,6 +85,12 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final List<FixtureTask> fixtureTasks;
     private final boolean[] occupiedBerths;
     private final DeckGraph rooms;
+    /**
+     * Range targets already spawned, by the cell of butts they stand in. One
+     * per set of butts rather than one per shooter: a lane is shot at by
+     * whoever has claimed its firing point, and there is only ever one of them.
+     */
+    private final Map<Long, Long> butts = new HashMap<>();
     private final HighlightOverlay highlights = new HighlightOverlay();
     private final Selection selection = new Selection();
 
@@ -106,6 +116,13 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         occupiedBerths = new boolean[gantries.size()];
         simulation = BattleSetup.buildMap(deck, Collections.emptyList(),
                 Collections.emptyList(), seed).sim();
+        // A deck is not a mission. Left alone, the simulation installs its
+        // backstop eliminate-each-other objectives, a deck carrying nobody but
+        // its own crew wins the moment it is built, and every advance returns
+        // without ticking - so the ship stops dead the first time anybody asks
+        // it to run. A boarding action hosted here registers its own objectives
+        // and turns this back on.
+        simulation.setMissionCompletionEnabled(false);
         simulation.getFogOfWar().tick(0, simulation.getRoster());
         if (sprites == null) {
             renderer = null;
@@ -242,9 +259,11 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             if (shift == null) break;
             AmbientTaskPose start = AmbientTaskService.sample(shift, 0f);
             long hand = simulation.spawn(new EntitySpec(shift.id(), Faction.MARINE,
-                    UnitType.ENGINEER,
+                    role.unit(),
                     (int) Math.floor(start.worldX()), (int) Math.floor(start.worldY())));
-            simulation.ambientTasks().assign(hand, shift);
+            long butt = liveFireTarget(shift);
+            if (butt != 0L) simulation.ambientTasks().assignLiveFire(hand, shift, butt);
+            else simulation.ambientTasks().assign(hand, shift);
             hired.add(hand);
         }
         simulation.ambientTasks().seek(0f);
@@ -252,6 +271,37 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         long[] actors = new long[hired.size()];
         for (int index = 0; index < actors.length; index++) actors[index] = hired.get(index);
         return actors;
+    }
+
+    /**
+     * The target this shift shoots at, or zero where it does no shooting.
+     *
+     * <p>A practice stop already knows what it is aiming at: the fitting bound
+     * the firing point to the butts it faces, so the stop's focus <em>is</em> the
+     * target cell. Matching on that rather than on the actor's index is what
+     * keeps a shooter firing down their own lane instead of across a neighbour's.
+     *
+     * <p>The target belongs to the side that owns the deck, and is spawned once
+     * per set of butts rather than once per shooter. A range target is the
+     * ship's own equipment, so making it hostile would have the detail flee the
+     * paper it came to shoot at — the threat policy cannot tell a target frame
+     * from somebody walking in, and should not have to.
+     */
+    private long liveFireTarget(AmbientTaskRoute shift) {
+        for (AmbientTaskRoute.Stop stop : shift.stops()) {
+            if (stop.activity() != AmbientActivity.PRACTICING_EQUIPMENT) continue;
+            int cellX = (int) Math.floor(stop.focusX());
+            int cellY = (int) Math.floor(stop.focusY());
+            long key = ((long) cellX << 32) ^ (cellY & 0xffffffffL);
+            Long standing = butts.get(key);
+            if (standing != null) return standing;
+            long target = simulation.spawn(new EntitySpec(
+                    "butts " + cellX + "," + cellY, Faction.MARINE,
+                    UnitType.RANGE_TARGET, cellX, cellY).role(UnitRole.STRUCTURE));
+            butts.put(key, target);
+            return target;
+        }
+        return 0L;
     }
 
     public BattleSceneHostPass pass(DeckView view) {

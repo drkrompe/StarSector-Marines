@@ -28,7 +28,7 @@ class SoldierCareerTest {
                                           int fired, int hit, float dealt,
                                           float taken, int kills) {
         return new CombatTelemetryRow(1L, "marine", Faction.MARINE, UnitType.MARINE,
-                soldierId, survived, fired, hit, dealt, 0f, taken, kills, 0);
+                soldierId, null, survived, fired, hit, dealt, 0f, taken, kills, 0);
     }
 
     private static MarineRoster rosterWithSoldiers(int count) {

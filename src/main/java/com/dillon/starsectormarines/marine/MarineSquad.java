@@ -41,6 +41,8 @@ public final class MarineSquad implements Serializable {
     private String weaponDoctrineId;
     /** Squad-wide armour intent; null means legacy or individually issued equipment. */
     private String armorDoctrineId;
+    /** Lifetime service record. Belongs to the formation, never reset by turnover. */
+    private SquadCareer career = new SquadCareer();
 
     public MarineSquad(String name) {
         this(UUID.randomUUID().toString(), name);
@@ -68,6 +70,7 @@ public final class MarineSquad implements Serializable {
         return teamIndex >= 0 && teamIndex < TEAMS_PER_SQUAD
                 ? teamTemplateCardIds[teamIndex] : null;
     }
+    public SquadCareer career() { return career; }
     public String weaponDoctrineId() { return weaponDoctrineId; }
     public String armorDoctrineId() { return armorDoctrineId; }
 
@@ -138,6 +141,7 @@ public final class MarineSquad implements Serializable {
             teamTemplateCardIds = repaired;
         }
         if (stationingContractId <= 0L) stationingContractId = -1L;
+        if (career == null) career = new SquadCareer();
         return this;
     }
 }

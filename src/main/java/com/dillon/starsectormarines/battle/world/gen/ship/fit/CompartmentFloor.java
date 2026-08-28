@@ -39,6 +39,8 @@ public final class CompartmentFloor {
     private final boolean[][] free;
     private final boolean[][] lane;
     private final boolean[][] claimed;
+    private final boolean[][] shut;
+    private final List<int[]> closed = new ArrayList<>();
     private final int left;
     private final int top;
     private final int width;
@@ -56,6 +58,7 @@ public final class CompartmentFloor {
         this.free = new boolean[width][height];
         this.lane = new boolean[width][height];
         this.claimed = new boolean[width][height];
+        this.shut = new boolean[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 free[x][y] = compartment.shape().contains(x, y);
@@ -178,6 +181,57 @@ public final class CompartmentFloor {
                 if (lx < 0 || ly < 0 || lx >= width || ly >= height) continue;
                 if (free[lx][ly]) lane[lx][ly] = true;
             }
+        }
+    }
+
+    /**
+     * Close a run of deck: reserved against fixtures like a lane, and shut to
+     * movement as well.
+     *
+     * <p>For the deck a room keeps clear <em>of people</em> rather than for
+     * them. A firing range's beaten zone is the case that needs it: reserving
+     * it only stops the fill standing something there, and a lane nobody may
+     * shoot across is not a lane at all — it is somewhere a marine will walk
+     * because the deck offered no reason not to.
+     *
+     * <p>Shut, not walled. The cells stay see-through so sight and rounds cross
+     * them, carry no edge cover so the empty deck does not hand a free flank to
+     * whoever stands beside it, and are tagged as fixtures so the finalize pass
+     * does not seed them with destructible wall hit points. That is the same
+     * treatment water gets, and for the same reason: navigation is blocked by
+     * something that is not a wall.
+     *
+     * <p>Recorded rather than applied. A fill that seals its compartment is
+     * thrown away entire, and deck closed off by a discarded fill would stay
+     * closed — a room with a strip through it that nothing can cross and
+     * nothing explains.
+     */
+    public void closeOff(int x, int y, int spanX, int spanY) {
+        reserveLane(x, y, spanX, spanY);
+        for (int dx = 0; dx < spanX; dx++) {
+            for (int dy = 0; dy < spanY; dy++) {
+                int lx = x + dx;
+                int ly = y + dy;
+                if (lx < 0 || ly < 0 || lx >= width || ly >= height) continue;
+                if (!compartment.shape().contains(lx, ly) || shut[lx][ly]) continue;
+                shut[lx][ly] = true;
+                closed.add(new int[]{ lx, ly });
+            }
+        }
+    }
+
+    /**
+     * Apply what {@link #closeOff} recorded. Called once the fill is known to
+     * be kept, and never for one that is discarded.
+     */
+    public void seal() {
+        for (int[] cell : closed) {
+            int x = left + cell[0];
+            int y = top + cell[1];
+            ctx.grid.setWalkable(x, y, false);
+            ctx.grid.setSeeThrough(x, y, true);
+            ctx.grid.setEdgeCoverSuppressed(x, y, true);
+            ctx.topology.setFixture(x, y, true);
         }
     }
 
@@ -364,6 +418,11 @@ public final class CompartmentFloor {
      * failures rolled most of the deck back to bare floor for defects nobody
      * could walk into anyway. What has to hold is that the authored circulation
      * is intact.
+     *
+     * <p>Deck that was {@linkplain #closeOff closed off} is neither traversed
+     * nor required: it is reserved against fixtures but shut to movement, so
+     * counting it as circulation would let a room prove itself walkable by a
+     * route that runs down its own firing lane.
      */
     public boolean circulationSurvives() {
         int[] start = null;
@@ -371,7 +430,8 @@ public final class CompartmentFloor {
             for (int[] step : STEPS) {
                 int x = door.x() + step[0];
                 int y = door.y() + step[1];
-                if (x >= 0 && y >= 0 && x < width && y < height && free[x][y]) {
+                if (x >= 0 && y >= 0 && x < width && y < height
+                        && free[x][y] && !shut[x][y]) {
                     start = new int[]{ x, y };
                     break;
                 }
@@ -390,14 +450,14 @@ public final class CompartmentFloor {
                 int nx = cell[0] + step[0];
                 int ny = cell[1] + step[1];
                 if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-                if (seen[nx][ny] || !free[nx][ny]) continue;
+                if (seen[nx][ny] || !free[nx][ny] || shut[nx][ny]) continue;
                 seen[nx][ny] = true;
                 queue.add(new int[]{ nx, ny });
             }
         }
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                if (lane[x][y] && !seen[x][y]) return false;
+                if (lane[x][y] && !shut[x][y] && !seen[x][y]) return false;
             }
         }
         return true;
