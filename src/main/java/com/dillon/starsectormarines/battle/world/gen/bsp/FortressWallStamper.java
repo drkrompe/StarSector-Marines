@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode.StandPosition;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Random;
@@ -151,7 +152,7 @@ public final class FortressWallStamper implements GenStage {
                     wallMask, skip, ctx.tactical, w, h, rng);
         }
         demolishIntersectedBuildings(grid, topology, ctx.doodads, wallMask, w, h);
-        sealOrphanedPockets(grid, w, h);
+        sealOrphanedPockets(grid, topology, ctx.tactical, w, h);
     }
 
     /**
@@ -969,44 +970,41 @@ public final class FortressWallStamper implements GenStage {
     }
 
     /**
-     * Flood-fill from every map-edge walkable cell and collect every cell
-     * those floods reach. Any walkable cell NOT reached is a sealed pocket —
-     * a building interior whose only doorway was painted over by the wall.
-     * Fill those pockets in as non-walkable so the preview test's
-     * single-component connectivity assertion still holds.
+     * Resolve every walkable region the wall cut off from the rest of the map,
+     * so the finished map stays a single connected component.
      *
-     * <p>This is intentionally aggressive: the alternative (cutting a new
-     * doorway through the wall) would introduce extra unintended gates.
-     * Losing a few sealed building interiors to the wall is the right
-     * tradeoff — they were going to be unusable anyway.
+     * <p>Two outcomes, because sealed pockets are not all worth the same. An
+     * ordinary sealed building interior is filled in solid: it was going to be
+     * unusable anyway, and cutting it a new doorway would scatter unintended
+     * gates through the wall. A pocket holding a <b>compound</b> is breached
+     * open instead — a compound is a Conquest win condition, so walling one off
+     * does not cost a room, it makes the mission unwinnable. One narrow breach
+     * into a supply hub the wall happened to swallow is a far smaller price,
+     * and it reads honestly: there is a way in.
+     *
+     * <p>Note that merely declining to seal such a pocket would not be enough.
+     * An unsealed pocket nobody can walk into is exactly as uncapturable as a
+     * filled one, so the connection has to actually be cut.
      */
-    private static void sealOrphanedPockets(NavigationGrid grid, int w, int h) {
-        boolean[][] reachable = new boolean[w][h];
-        Deque<int[]> queue = new ArrayDeque<>();
-        // Seed from every walkable cell along the map perimeter — guarantees
-        // we flood from BOTH attacker side (south rows) AND fortress interior
-        // (north rows past the wall), since each abuts the map edge.
-        for (int x = 0; x < w; x++) {
-            seedFlood(grid, reachable, queue, x, 0);
-            seedFlood(grid, reachable, queue, x, h - 1);
-        }
+    private static void sealOrphanedPockets(NavigationGrid grid, CellTopology topology,
+                                            List<TacticalNode> tactical, int w, int h) {
+        boolean[][] reachable = floodFromMapEdge(grid, w, h);
+
+        boolean[][] visited = new boolean[w][h];
         for (int y = 0; y < h; y++) {
-            seedFlood(grid, reachable, queue, 0, y);
-            seedFlood(grid, reachable, queue, w - 1, y);
-        }
-        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        while (!queue.isEmpty()) {
-            int[] p = queue.poll();
-            for (int[] d : dirs) {
-                int nx = p[0] + d[0];
-                int ny = p[1] + d[1];
-                if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
-                if (reachable[nx][ny]) continue;
-                if (!grid.isWalkable(nx, ny)) continue;
-                reachable[nx][ny] = true;
-                queue.add(new int[]{nx, ny});
+            for (int x = 0; x < w; x++) {
+                if (visited[x][y] || reachable[x][y] || !grid.isWalkable(x, y)) continue;
+                List<int[]> pocket = collectPocket(grid, visited, x, y, w, h);
+                if (holdsCompound(pocket, tactical)) {
+                    breachToReachable(grid, topology, pocket, reachable, w, h);
+                }
             }
         }
+
+        // Re-flood rather than patching reachability in place: a breach can
+        // reconnect more than the pocket it was cut for, and sealing a region
+        // the breach just opened would undo the repair.
+        reachable = floodFromMapEdge(grid, w, h);
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (!grid.isWalkable(x, y)) continue;
@@ -1016,6 +1014,143 @@ public final class FortressWallStamper implements GenStage {
             }
         }
     }
+
+    /**
+     * Every walkable cell reachable from the map perimeter. Seeding from all
+     * four edges floods BOTH the attacker side (south rows) and the fortress
+     * interior (north rows past the wall), since each abuts the map edge.
+     */
+    private static boolean[][] floodFromMapEdge(NavigationGrid grid, int w, int h) {
+        boolean[][] reachable = new boolean[w][h];
+        Deque<int[]> queue = new ArrayDeque<>();
+        for (int x = 0; x < w; x++) {
+            seedFlood(grid, reachable, queue, x, 0);
+            seedFlood(grid, reachable, queue, x, h - 1);
+        }
+        for (int y = 0; y < h; y++) {
+            seedFlood(grid, reachable, queue, 0, y);
+            seedFlood(grid, reachable, queue, w - 1, y);
+        }
+        while (!queue.isEmpty()) {
+            int[] p = queue.poll();
+            for (int[] d : CARDINALS) {
+                int nx = p[0] + d[0];
+                int ny = p[1] + d[1];
+                if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                if (reachable[nx][ny]) continue;
+                if (!grid.isWalkable(nx, ny)) continue;
+                reachable[nx][ny] = true;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        return reachable;
+    }
+
+    /** One maximal connected run of cut-off walkable cells, flood-filled from {@code (startX, startY)}. */
+    private static List<int[]> collectPocket(NavigationGrid grid, boolean[][] visited,
+                                             int startX, int startY, int w, int h) {
+        List<int[]> pocket = new ArrayList<>();
+        Deque<int[]> queue = new ArrayDeque<>();
+        visited[startX][startY] = true;
+        queue.add(new int[]{startX, startY});
+        while (!queue.isEmpty()) {
+            int[] p = queue.poll();
+            pocket.add(p);
+            for (int[] d : CARDINALS) {
+                int nx = p[0] + d[0];
+                int ny = p[1] + d[1];
+                if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                if (visited[nx][ny]) continue;
+                if (!grid.isWalkable(nx, ny)) continue;
+                visited[nx][ny] = true;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        return pocket;
+    }
+
+    /** True when a compound node's footprint covers any cell of this pocket. */
+    private static boolean holdsCompound(List<int[]> pocket, List<TacticalNode> tactical) {
+        if (tactical == null || tactical.isEmpty()) return false;
+        for (int[] cell : pocket) {
+            for (TacticalNode node : tactical) {
+                if (!isCompoundKind(node.kind)) continue;
+                if (cell[0] >= node.left && cell[0] <= node.right
+                        && cell[1] >= node.top && cell[1] <= node.bottom) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Cut the shortest corridor from {@code pocket} to reachable ground, opening
+     * every wall cell along it. Breadth-first from the whole pocket at once and
+     * through walls, so the corridor crosses the thinnest structure available
+     * rather than whatever happens to sit beside an arbitrary starting cell.
+     *
+     * <p>Opened as plain military floor, not as a gate: a gate carries a doorway
+     * flag, and doorway cells belong to no zone — which is the very condition
+     * that would leave the compound unable to resolve a capture room.
+     */
+    private static void breachToReachable(NavigationGrid grid, CellTopology topology,
+                                          List<int[]> pocket, boolean[][] reachable,
+                                          int w, int h) {
+        int[] cameFrom = new int[w * h];
+        Arrays.fill(cameFrom, UNVISITED);
+        Deque<int[]> queue = new ArrayDeque<>();
+        for (int[] cell : pocket) {
+            cameFrom[cell[1] * w + cell[0]] = PATH_START;
+            queue.add(cell);
+        }
+        while (!queue.isEmpty()) {
+            int[] p = queue.poll();
+            if (reachable[p[0]][p[1]]) {
+                openBreachPath(grid, topology, cameFrom, p[0], p[1], w);
+                return;
+            }
+            for (int[] d : CARDINALS) {
+                int nx = p[0] + d[0];
+                int ny = p[1] + d[1];
+                if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                int index = ny * w + nx;
+                if (cameFrom[index] != UNVISITED) continue;
+                cameFrom[index] = p[1] * w + p[0];
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        // Nothing reachable anywhere on the map to connect to — degenerate
+        // geometry. Leave the pocket to the seal pass.
+    }
+
+    /** Walks the breach predecessors back to the pocket, opening each wall cell it crosses. */
+    private static void openBreachPath(NavigationGrid grid, CellTopology topology,
+                                       int[] cameFrom, int endX, int endY, int w) {
+        int index = endY * w + endX;
+        while (index != PATH_START) {
+            int x = index % w;
+            int y = index / w;
+            if (!grid.isWalkable(x, y)) {
+                grid.setWalkableFloor(x, y);
+                topology.setWall(x, y, false);
+                topology.setGroundKind(x, y, WALL_GROUND);
+            }
+            index = cameFrom[index];
+        }
+    }
+
+    private static boolean isCompoundKind(TacticalNode.Kind kind) {
+        return kind == TacticalNode.Kind.COMMAND_POST
+                || kind == TacticalNode.Kind.BARRACKS
+                || kind == TacticalNode.Kind.ARMORY;
+    }
+
+    /** Breach-search sentinels: no predecessor recorded yet, and "this cell is the pocket itself". */
+    private static final int UNVISITED = -2;
+    private static final int PATH_START = -1;
+
+    private static final int[][] CARDINALS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
     private static void seedFlood(NavigationGrid grid, boolean[][] reachable,
                                    Deque<int[]> queue, int x, int y) {

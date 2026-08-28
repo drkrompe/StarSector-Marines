@@ -6,12 +6,11 @@ from PIL import Image
 
 
 HERE = Path(__file__).resolve().parent
-# Raw art lives outside mod/, so the shipped folder never carries pre-pack
-# inputs. Outputs are addressed from the repository root rather than from
-# a sibling directory.
-REPO_ROOT = HERE.parent.parent
+# Masters, derived sources and the atlas step are all art source, so this
+# whole chain stays inside art-source/. Only stitch_atlas.py crosses into
+# mod/, and it addresses the repository root to do it.
 MASTERS = HERE / "imagegen-masters"
-SOURCES = REPO_ROOT / "mod" / "graphics" / "doodads" / "sources"
+SOURCES = HERE / "sources"
 
 
 def content(image: Image.Image) -> Image.Image:

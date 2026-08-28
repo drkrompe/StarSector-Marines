@@ -49,6 +49,9 @@ class LayeredMechComposerTest {
                 variant.leftShoulder.appearanceSelector,
                 LayeredMechAppearance.POD_NONE, 1f);
 
+        assertEquals(List.of("foot.png", "foot.png", "thigh-bone.png", "thigh-bone.png"),
+                layers.subList(0, 4),
+                "the static fallback also keeps both thighs below every upper layer");
         assertEquals(1, layers.stream().filter("srm-pod.png"::equals).count());
     }
 
@@ -92,6 +95,11 @@ class LayeredMechComposerTest {
                 variant.leftShoulder.appearanceSelector,
                 LayeredMechAppearance.POD_NONE, 1f, null, gait);
 
+        assertEquals(List.of(
+                        "foot.png", "foot.png", "thigh-bone.png", "thigh-bone.png",
+                        "chaingun-arm.png", "chassis-hound.png", "srm-pod.png"),
+                layers.stream().map(layer -> fileName(layer.path())).toList(),
+                "feet and thighs must be fully emitted before the upper assembly");
         assertEquals(350f, layers.get(0).x(), 0.001f);
         assertEquals(280f, layers.get(0).y(), 0.001f);
         assertEquals(15f, layers.get(0).angle(), 0.001f);
