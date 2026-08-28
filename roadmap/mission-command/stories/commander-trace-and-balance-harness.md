@@ -4,8 +4,8 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-28 — unified Conquest command and capture around the resolved
-capture room and added perspective-safe any-member target-zone evidence.
+Updated: 2026-08-28 — added explicit secure-compound travel exits and recorded
+the first sealed schema-7/schema-4 representative result.
 
 Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -61,6 +61,10 @@ churned, or collapsed before tuning force budgets or doctrine.
 - [x] Conquest evidence distinguishes own-squad approach and target-zone
   arrival from neutral mixed or marine-only presence in the exact compound
   capture zone without leaking opposing occupancy into commander perspective.
+- [x] Every observed Conquest secure-compound travel segment ends once by
+  target entry, retarget, release, squad loss, execution suspension,
+  observation gap, timeout, or terminal result; incomplete traces remain open
+  and contact/path/quiet observations remain orthogonal context.
 - [x] Conquest capture allocation preserves in-flight and adjacent commitments
   while globally retaining useful executable force for actionable front
   resistance; published actions expose a binding distant-capture deferral
@@ -206,11 +210,26 @@ diagnostic bound but had not yet reached a compound; two attempted 6,000-tick
 full-strength replays were stopped externally at similar wall time, so that
 partial window is not a balance conclusion.
 
-The next evidence seam is explicit secure-travel episode completion. Finalize
-an episode on target entry, retarget, release, squad loss, execution
-suspension, observation gap, timeout, or terminal result, while retaining
-contact, active path, and quiet travel as orthogonal context. Then rerun the
-representative-duration matrix before changing allocation or tactical tuning.
+Secure travel now has that explicit single-exit lifecycle without a trace
+schema change. Same-target reissues remain one trip, rejected proposals leave
+their incumbent intact, resumed in-zone baselines are left-censored, and an
+incomplete live trace stays open. Conquest summary schema 4 publishes the exit
+breakdown beside overlapping local-contact, active-path, and quiet-travel
+episode counts.
+
+The sealed duplicate 6,000-tick reinforced-south rerun finalized all 23 secure
+travel segments: four target entries, five retargets, one release, eleven squad
+losses, and two timeout exits. Every segment observed local contact, 21 retained
+an active path, and only one had any quiet-travel observation. The run captured
+and held one compound at the bound. This is evidence that lethal contact—not
+an unexplained passive-travel bucket—dominates non-arrival in this fixture; it
+is not a balance target.
+
+The paired two-fixture run again completed reinforced-south but received an
+external Gradle stop during full-strength-west before it could publish the
+matrix. The isolated reinforced fixture then completed and published byte-
+stable trace and summary output. Full-strength secure-exit comparison therefore
+remains an environment-bounded evidence follow-up, not missing analyzer work.
 
 ## Historical construction-only baselines
 

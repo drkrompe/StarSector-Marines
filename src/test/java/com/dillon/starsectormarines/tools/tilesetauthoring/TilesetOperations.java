@@ -8,9 +8,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
@@ -89,6 +92,104 @@ public final class TilesetOperations {
     }
 
     /**
+     * A lost entry that was decided rather than measured, and what made it one.
+     *
+     * <p>The reason is carried because a refusal that only counts entries tells
+     * an operator nothing about whether losing them matters.
+     */
+    public record AtRisk(String id, String reason) {}
+
+    /** How many at-risk entries a refusal names before summarizing the rest. */
+    private static final int NAMED_IN_REFUSAL = 6;
+
+    /**
+     * Which of a re-slice's lost entries carry authored work.
+     *
+     * <p>Re-slicing derives pieces from pixels, so it can only ever recover what
+     * a threshold can see. Everything else an entry holds was decided by someone
+     * looking at the art, and a piece that reconciles to nothing takes all of it
+     * with it. Two shapes qualify:
+     *
+     * <ul>
+     *   <li>an entry carrying judgement — block membership, a note, tags, a
+     *       non-default cover, a footprint other than one cell, a stand-in
+     *       binding, or an id that is no longer the generated one;
+     *   <li>a cut cell, recognizable from the positional id
+     *       {@link #gridId} gives it. It may carry no annotation yet, but the cut
+     *       itself is a stated decision that a re-slice silently reverses: a
+     *       fused plate has no alpha gutters, so slicing finds it whole again and
+     *       every cell reconciles to nothing.
+     * </ul>
+     *
+     * <p>Exclusion is deliberately not judgement. Marking specks as not shipping
+     * and then raising the threshold until they vanish is a threshold sweep
+     * working, not work being lost.
+     */
+    public static List<AtRisk> atRisk(List<TilesetExport.Entry> lost, String idPrefix) {
+        List<AtRisk> found = new ArrayList<>();
+        for (TilesetExport.Entry entry : lost) {
+            String reason = authoredReason(entry, idPrefix);
+            if (reason != null) found.add(new AtRisk(entry.id, reason));
+        }
+        return found;
+    }
+
+    private static String authoredReason(TilesetExport.Entry entry, String idPrefix) {
+        List<String> reasons = new ArrayList<>();
+        if (entry.isBlockMember()) {
+            reasons.add("slot " + entry.slot + " of block " + entry.blockId);
+        }
+        if (!entry.note.isEmpty()) reasons.add("a note");
+        if (!entry.tags.isEmpty()) reasons.add("tags");
+        if (!"none".equals(entry.cover)) reasons.add("cover " + entry.cover);
+        if (entry.footprintX != 1 || entry.footprintY != 1) {
+            reasons.add("footprint " + entry.footprintX + "x" + entry.footprintY);
+        }
+        if (!entry.standsInFor.isEmpty()) reasons.add("stands in for " + entry.standsInFor);
+        if (isCutCell(entry.id, idPrefix)) {
+            reasons.add("a cut cell");
+        } else if (!isGeneratedSerialId(entry.id, idPrefix)) {
+            reasons.add("a chosen id");
+        }
+        return reasons.isEmpty() ? null : String.join(", ", reasons);
+    }
+
+    /** A cell of a plate that was cut on the grid: {@code <idPrefix>.c<col>r<row>}. */
+    private static boolean isCutCell(String id, String idPrefix) {
+        return id.matches(Pattern.quote(idPrefix) + "\\.c\\d+r\\d+");
+    }
+
+    /** The reading-order name a slice hands a piece nobody has named yet. */
+    private static boolean isGeneratedSerialId(String id, String idPrefix) {
+        return id.matches(Pattern.quote(idPrefix) + "\\.piece-\\d+");
+    }
+
+    /**
+     * Why keeping a re-slice is refused, and what it would have cost.
+     *
+     * <p>Shared so the window and the headless caller refuse the same thing for
+     * the same stated reason. Neither says how to override here: a confirmation
+     * button and a {@code force} argument are not the same escape, and a message
+     * naming the wrong one is worse than one naming none.
+     */
+    public static String discardWarning(List<AtRisk> atRisk) {
+        StringBuilder message = new StringBuilder("keeping this re-slice would drop ")
+                .append(atRisk.size())
+                .append(atRisk.size() == 1 ? " entry that was" : " entries that were")
+                .append(" decided rather than found: ");
+        for (int i = 0; i < Math.min(NAMED_IN_REFUSAL, atRisk.size()); i++) {
+            if (i > 0) message.append("; ");
+            message.append(atRisk.get(i).id()).append(" (").append(atRisk.get(i).reason()).append(')');
+        }
+        if (atRisk.size() > NAMED_IN_REFUSAL) {
+            message.append("; and ").append(atRisk.size() - NAMED_IN_REFUSAL).append(" more");
+        }
+        return message.append(". Slicing reads pixels, so none of that comes back: a fused "
+                + "plate has no gutters and is found whole again, and every cell cut from it "
+                + "reconciles to nothing.").toString();
+    }
+
+    /**
      * What a caller is told when it asks for a {@code 1 x 1} split.
      *
      * <p>Shared so the window and the headless caller refuse the same thing for
@@ -116,10 +217,22 @@ public final class TilesetOperations {
      * the parts: a plate's id, note and footprint describe the plate, and every
      * cell inheriting one description would read as many answers where there is
      * one.
+     *
+     * <p>Each part is named for where it sits — see {@link #gridId} — so the
+     * plate's own id is not part of its cells' names and the {@code idPrefix} the
+     * document states is.
+     *
+     * @throws IllegalArgumentException if a part's positional id is one the sheet
+     *                                  already uses
      */
     public static List<TilesetExport.Entry> splitOnGrid(List<TilesetExport.Entry> entries,
                                                         Predicate<TilesetExport.Entry> selected,
-                                                        int cols, int rows) {
+                                                        String idPrefix, int cols, int rows) {
+        Set<String> taken = new LinkedHashSet<>();
+        for (TilesetExport.Entry entry : entries) {
+            if (!selected.test(entry)) taken.add(entry.id);
+        }
+        List<String> collisions = new ArrayList<>();
         List<TilesetExport.Entry> replaced = new ArrayList<>();
         for (TilesetExport.Entry entry : entries) {
             if (!selected.test(entry)) {
@@ -128,29 +241,48 @@ public final class TilesetOperations {
             }
             int part = 0;
             for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cols, rows)) {
-                TilesetExport.Entry split = new TilesetExport.Entry(
-                        piece, entry.id + "-" + partSuffix(part++));
+                String id = gridId(idPrefix, part % cols, part / cols);
+                part++;
+                if (!taken.add(id)) collisions.add(id);
+                TilesetExport.Entry split = new TilesetExport.Entry(piece, id);
                 split.cover = entry.cover;
                 split.footprintX = 1;
                 split.footprintY = 1;
                 replaced.add(split);
             }
         }
+        if (!collisions.isEmpty()) throw new IllegalArgumentException(collisionMessage(collisions));
         return replaced;
     }
 
     /**
-     * A part's name suffix: {@code a}…{@code z}, then {@code aa}, {@code ab}, and
-     * on. Real plates run well past 26 cells — a 25x26 floor sheet is 650 — and
-     * stepping one character further off {@code 'a'} walks out of the alphabet
-     * into punctuation.
+     * A cut cell's name: {@code <idPrefix>.c<col>r<row>}, zero-based, column
+     * first.
+     *
+     * <p>The id has to say where on the plate the cell is. A table row and a cell
+     * in the picture are otherwise impossible to line up — a 10x10 plate cut into
+     * a hundred serial names gives a person and a model no way to point at the
+     * same cell out loud — and column-then-row is the order the grid is stated in
+     * everywhere else here.
      */
-    static String partSuffix(int index) {
-        StringBuilder suffix = new StringBuilder();
-        for (int n = index; ; n = n / 26 - 1) {
-            suffix.insert(0, (char) ('a' + n % 26));
-            if (n < 26) return suffix.toString();
-        }
+    public static String gridId(String idPrefix, int col, int row) {
+        return idPrefix + ".c" + col + "r" + row;
+    }
+
+    /**
+     * Why a split that would rename a piece out of existence is refused.
+     *
+     * <p>A positional id cannot be stepped past to make room the way
+     * {@link TilesetDocument#reconcile} steps its serial ones: the number in it
+     * is the cell's address, so a part renamed to dodge a clash would name the
+     * wrong cell. The cut is refused whole instead of half-applied.
+     */
+    private static String collisionMessage(List<String> collisions) {
+        return "the sheet already holds " + collisions.size()
+                + " of the ids this cut would create: " + String.join(", ", collisions)
+                + ". A cut cell's id says which cell it is, so it cannot be renumbered to "
+                + "make room. Rename or remove the pieces holding those ids, or cut the "
+                + "plate on a sheet of its own.";
     }
 
     /**

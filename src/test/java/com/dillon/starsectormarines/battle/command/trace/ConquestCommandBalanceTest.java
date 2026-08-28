@@ -254,7 +254,7 @@ class ConquestCommandBalanceTest {
     static String summaryJson(List<ReportRow> rows, int maxTicks,
                               boolean canonical) {
         StringBuilder out = new StringBuilder(2_048)
-                .append("{\"schemaVersion\":3,\"schedulerMode\":")
+                .append("{\"schemaVersion\":4,\"schedulerMode\":")
                 .append("\"SERIAL_DETERMINISTIC\",\"maxTicks\":")
                 .append(maxTicks)
                 .append(",\"repeatCount\":2,\"canonicalMatrix\":")
@@ -332,6 +332,8 @@ class ConquestCommandBalanceTest {
                     marine.physicalProgress();
             CommandTraceAnalyzer.CommandInactivityMetrics inactivity =
                     marine.commandInactivity();
+            CommandTraceAnalyzer.SecureTravelMetrics secureTravel =
+                    movement.secureTravel();
             CommandTraceAnalyzer.CompoundPresenceMetrics presence =
                     analysis.conquest().physicalPresence();
             out.append("\n### ").append(row.id).append("\n\n")
@@ -391,6 +393,34 @@ class ConquestCommandBalanceTest {
                     .append(movement.suspendedAssignmentSquadTicks())
                     .append(" execution-suspended; target-zone latencies: ")
                     .append(movement.targetZoneEntryLatenciesTicks())
+                    .append(".\n")
+                    .append("- Marine secure-travel episodes: ")
+                    .append(secureTravel.episodesFinalized()).append('/')
+                    .append(secureTravel.episodesStarted())
+                    .append(" finalized, ")
+                    .append(secureTravel.episodesOpen())
+                    .append(" open; exits: target entry ")
+                    .append(secureTravel.targetEntryExits())
+                    .append(", retarget ")
+                    .append(secureTravel.retargetExits())
+                    .append(", release ")
+                    .append(secureTravel.releaseExits())
+                    .append(", squad loss ")
+                    .append(secureTravel.squadLossExits())
+                    .append(", execution suspension ")
+                    .append(secureTravel.executionSuspensionExits())
+                    .append(", observation gap ")
+                    .append(secureTravel.observationGapExits())
+                    .append(", timeout ")
+                    .append(secureTravel.timeoutExits())
+                    .append(", terminal result ")
+                    .append(secureTravel.terminalExits())
+                    .append(". Context may overlap: local contact ")
+                    .append(secureTravel.episodesWithLocalContact())
+                    .append(", active path ")
+                    .append(secureTravel.episodesWithActivePath())
+                    .append(", quiet travel ")
+                    .append(secureTravel.episodesWithQuietTravel())
                     .append(".\n")
                     .append("- Capture-zone presence: ")
                     .append(presence.compoundsWithMarinePresence())

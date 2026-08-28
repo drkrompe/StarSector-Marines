@@ -135,6 +135,41 @@ public final class CommandTraceAnalyzer {
         }
     }
 
+    /**
+     * Completion and overlapping tactical context for secure-compound travel.
+     * Lifecycle and context are deliberately separate: an episode can meet
+     * contact, retain an active path, and later exit for any one reason.
+     */
+    public record SecureTravelMetrics(
+            int episodesStarted,
+            int targetEntryExits,
+            int retargetExits,
+            int releaseExits,
+            int squadLossExits,
+            int executionSuspensionExits,
+            int observationGapExits,
+            int timeoutExits,
+            int terminalExits,
+            int episodesWithLocalContact,
+            int episodesWithActivePath,
+            int episodesWithQuietTravel) {
+
+        public int episodesFinalized() {
+            return targetEntryExits + retargetExits + releaseExits
+                    + squadLossExits + executionSuspensionExits
+                    + observationGapExits + timeoutExits + terminalExits;
+        }
+
+        public int episodesOpen() {
+            return Math.max(0, episodesStarted - episodesFinalized());
+        }
+
+        static SecureTravelMetrics empty() {
+            return new SecureTravelMetrics(0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0);
+        }
+    }
+
     public record PhysicalProgressMetrics(
             int squadSamples,
             int maximumConcurrentAliveSquads,
@@ -151,16 +186,20 @@ public final class CommandTraceAnalyzer {
             long quietNonClosingSquadTicks,
             long targetZoneSquadTicks,
             long suspendedAssignmentSquadTicks,
-            List<Integer> targetZoneEntryLatenciesTicks) {
+            List<Integer> targetZoneEntryLatenciesTicks,
+            SecureTravelMetrics secureTravel) {
 
         public PhysicalProgressMetrics {
             targetZoneEntryLatenciesTicks =
                     List.copyOf(targetZoneEntryLatenciesTicks);
+            secureTravel = secureTravel != null
+                    ? secureTravel : SecureTravelMetrics.empty();
         }
 
         static PhysicalProgressMetrics empty() {
             return new PhysicalProgressMetrics(0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0L, 0L, 0L, 0L, 0L, 0L, List.of());
+                    0L, 0L, 0L, 0L, 0L, 0L, List.of(),
+                    SecureTravelMetrics.empty());
         }
     }
 
@@ -340,7 +379,31 @@ public final class CommandTraceAnalyzer {
                     if (i > 0) out.append(',');
                     out.append(physical.targetZoneEntryLatenciesTicks().get(i));
                 }
-                out.append("]}");
+                out.append(']');
+                SecureTravelMetrics secure = physical.secureTravel();
+                out.append(",\"secureTravelEpisodes\":{");
+                rawNumberField(out, "started", secure.episodesStarted());
+                numberField(out, "finalized", secure.episodesFinalized());
+                numberField(out, "open", secure.episodesOpen());
+                out.append(",\"exits\":{");
+                rawNumberField(out, "targetEntry", secure.targetEntryExits());
+                numberField(out, "retarget", secure.retargetExits());
+                numberField(out, "release", secure.releaseExits());
+                numberField(out, "squadLoss", secure.squadLossExits());
+                numberField(out, "executionSuspension",
+                        secure.executionSuspensionExits());
+                numberField(out, "observationGap",
+                        secure.observationGapExits());
+                numberField(out, "timeout", secure.timeoutExits());
+                numberField(out, "terminalResult", secure.terminalExits());
+                out.append('}');
+                numberField(out, "withLocalContact",
+                        secure.episodesWithLocalContact());
+                numberField(out, "withActivePath",
+                        secure.episodesWithActivePath());
+                numberField(out, "withQuietTravel",
+                        secure.episodesWithQuietTravel());
+                out.append("}}");
                 out.append('}');
             }
             out.append('}');
@@ -395,6 +458,7 @@ public final class CommandTraceAnalyzer {
                 factions.put(faction, analyzeFaction(faction, samples,
                         trace.windowStarts, trace.windowEnds,
                         trace.termination, trace.finalWindow(),
+                        trace.capturePausedAtEnd,
                         trace.schemaVersion));
             }
         }
@@ -407,6 +471,7 @@ public final class CommandTraceAnalyzer {
             Map<Integer, Integer> windowStarts,
             Map<Integer, Integer> windowEnds,
             Termination termination, int finalTraceWindow,
+            boolean capturePausedAtEnd,
             int schemaVersion) throws Exception {
         Map<Integer, DirectiveState> directiveStates = new HashMap<>();
         int directiveWindow = -1;
@@ -567,7 +632,9 @@ public final class CommandTraceAnalyzer {
         }
 
         PhysicalProgressMetrics physical = analyzePhysicalProgress(
-                samples, windowStarts, windowEnds, schemaVersion);
+                samples, windowStarts, windowEnds, termination,
+                finalTraceWindow, capturePausedAtEnd,
+                schemaVersion);
         return new FactionMetrics(samples.size(), retargets, releases,
                 reissues, rejected, stabilityHolds, unassignedPulses,
                 unassignedTicks, unreachablePulses, noActionablePulses,
@@ -624,6 +691,9 @@ public final class CommandTraceAnalyzer {
             List<PerspectiveSample> samples,
             Map<Integer, Integer> windowStarts,
             Map<Integer, Integer> windowEnds,
+            Termination termination,
+            int finalTraceWindow,
+            boolean capturePausedAtEnd,
             int schemaVersion) throws Exception {
         if (schemaVersion < 3) return PhysicalProgressMetrics.empty();
         Map<Integer, MovementEpisode> episodes = new HashMap<>();
@@ -816,12 +886,229 @@ public final class CommandTraceAnalyzer {
             }
             episodes.keySet().removeIf(squadId -> !observed.containsKey(squadId));
         }
+        SecureTravelMetrics secureTravel = analyzeSecureTravel(samples,
+                termination, finalTraceWindow, capturePausedAtEnd,
+                schemaVersion);
         return new PhysicalProgressMetrics(squadSamples, maximumAliveSquads,
                 maximumAliveMembers, movementEpisodes,
                 episodesWithClosure, episodesInZone, thresholdCommitments,
                 secureEpisodes, secureEpisodesInZone, comparableTicks,
                 closingTicks, contactTicks, quietTicks, targetZoneTicks,
-                suspendedTicks, entryLatencies);
+                suspendedTicks, entryLatencies, secureTravel);
+    }
+
+    /**
+     * Secure travel has a stricter lifecycle than the legacy movement totals:
+     * every observable segment finishes exactly once, while a successful entry
+     * remains tombstoned until the directive changes so holding the room cannot
+     * manufacture another trip.
+     */
+    private static SecureTravelMetrics analyzeSecureTravel(
+            List<PerspectiveSample> samples,
+            Termination termination,
+            int finalTraceWindow,
+            boolean capturePausedAtEnd,
+            int schemaVersion) throws Exception {
+        Map<Integer, SecureTravelEpisode> active = new HashMap<>();
+        Map<Integer, String> completedKeys = new HashMap<>();
+        SecureTravelAccumulator metrics = new SecureTravelAccumulator();
+        int currentWindow = -1;
+
+        for (PerspectiveSample sample : samples) {
+            boolean baseline = sample.window != currentWindow;
+            if (baseline) {
+                if (currentWindow >= 0) {
+                    finishAll(active, metrics,
+                            SecureTravelExit.OBSERVATION_GAP);
+                    completedKeys.clear();
+                }
+                currentWindow = sample.window;
+            }
+
+            JSONObject conquest = sample.row.optJSONObject("conquest");
+            if (conquest == null) continue;
+            Map<Integer, JSONObject> states = bySquad(
+                    conquest.optJSONArray("squads"));
+            Map<Integer, JSONObject> directives = bySquad(
+                    sample.row.optJSONArray("directives"));
+            Map<Integer, JSONObject> actions = bySquad(
+                    conquest.optJSONArray("actions"));
+
+            for (Map.Entry<Integer, SecureTravelEpisode> entry
+                    : new ArrayList<>(active.entrySet())) {
+                int squadId = entry.getKey();
+                SecureTravelEpisode episode = entry.getValue();
+                JSONObject state = states.get(squadId);
+                JSONObject directive = directives.get(squadId);
+                JSONObject action = actions.get(squadId);
+
+                if (state == null) {
+                    metrics.finish(episode,
+                            SecureTravelExit.OBSERVATION_GAP);
+                    active.remove(squadId);
+                    continue;
+                }
+                if (state.optInt("aliveMembers", 0) <= 0) {
+                    metrics.finish(episode, SecureTravelExit.SQUAD_LOST);
+                    active.remove(squadId);
+                    completedKeys.remove(squadId);
+                    continue;
+                }
+
+                metrics.observeContext(episode, state, schemaVersion);
+                SecureTravelCandidate candidate = secureTravelCandidate(
+                        sample.row, action, directive);
+                boolean sameCandidate = candidate != null
+                        && candidate.key.equals(episode.key);
+                boolean enteredOldTarget = state.optInt("currentZoneId", -1)
+                        == episode.targetZone
+                        || (schemaVersion >= 7 && sameCandidate
+                        && state.optInt("membersInTargetZone", 0) > 0);
+                if (enteredOldTarget) {
+                    metrics.finish(episode, SecureTravelExit.TARGET_ENTRY);
+                    active.remove(squadId);
+                    if (sameCandidate) {
+                        completedKeys.put(squadId, episode.key);
+                    }
+                    continue;
+                }
+                if (!state.isNull("executionSuspension")) {
+                    metrics.finish(episode,
+                            SecureTravelExit.EXECUTION_SUSPENDED);
+                    active.remove(squadId);
+                    completedKeys.remove(squadId);
+                    continue;
+                }
+                if (isRejected(directive)) {
+                    // A rejected proposal does not revoke the incumbent that
+                    // was governing the previous physical sample.
+                    continue;
+                }
+                if (sameCandidate) continue;
+                if (candidate != null
+                        || assignmentRetargets(directive, sample.row,
+                        episode.targetZone)) {
+                    metrics.finish(episode, SecureTravelExit.RETARGETED);
+                } else if (isExplicitRelease(directive)
+                        || directive == null) {
+                    metrics.finish(episode, SecureTravelExit.RELEASED);
+                } else {
+                    // A present own squad with no coherent action/directive
+                    // pair is censored, not silently declared released.
+                    metrics.finish(episode,
+                            SecureTravelExit.OBSERVATION_GAP);
+                }
+                active.remove(squadId);
+                completedKeys.remove(squadId);
+            }
+
+            for (Map.Entry<Integer, JSONObject> entry : actions.entrySet()) {
+                int squadId = entry.getKey();
+                JSONObject state = states.get(squadId);
+                if (state == null || state.optInt("aliveMembers", 0) <= 0
+                        || !state.isNull("executionSuspension")) continue;
+                SecureTravelCandidate candidate = secureTravelCandidate(
+                        sample.row, entry.getValue(), directives.get(squadId));
+                if (candidate == null) {
+                    completedKeys.remove(squadId);
+                    continue;
+                }
+                SecureTravelEpisode incumbent = active.get(squadId);
+                if (incumbent != null && incumbent.key.equals(candidate.key)) {
+                    metrics.observeContext(incumbent, state, schemaVersion);
+                    continue;
+                }
+                if (candidate.key.equals(completedKeys.get(squadId))) continue;
+                completedKeys.remove(squadId);
+
+                boolean inTargetZone = state.optInt("currentZoneId", -1)
+                        == candidate.targetZone
+                        || (schemaVersion >= 7
+                        && state.optInt("membersInTargetZone", 0) > 0);
+                if (baseline && inTargetZone) {
+                    // The trip began outside the observation window. Suppress
+                    // it until the assignment changes rather than inventing a
+                    // zero-latency success at resume.
+                    completedKeys.put(squadId, candidate.key);
+                    continue;
+                }
+
+                SecureTravelEpisode episode = new SecureTravelEpisode(
+                        candidate.key, candidate.targetZone);
+                active.put(squadId, episode);
+                metrics.start();
+                metrics.observeContext(episode, state, schemaVersion);
+                if (inTargetZone) {
+                    metrics.finish(episode, SecureTravelExit.TARGET_ENTRY);
+                    active.remove(squadId);
+                    completedKeys.put(squadId, candidate.key);
+                }
+            }
+        }
+
+        if (!active.isEmpty()) {
+            if (capturePausedAtEnd || currentWindow < finalTraceWindow) {
+                finishAll(active, metrics,
+                        SecureTravelExit.OBSERVATION_GAP);
+            } else if (termination == Termination.TIMEOUT) {
+                finishAll(active, metrics, SecureTravelExit.TIMEOUT);
+            } else if (termination == Termination.TERMINAL) {
+                finishAll(active, metrics, SecureTravelExit.TERMINAL);
+            }
+        }
+        return metrics.result();
+    }
+
+    private static SecureTravelCandidate secureTravelCandidate(
+            JSONObject perspective, JSONObject action, JSONObject directive)
+            throws Exception {
+        if (action == null || directive == null
+                || isRejected(directive)
+                || !matchesEffectiveDirective(perspective, action, directive)
+                || !"SECURE_COMPOUND".equals(
+                nullableString(action, "assignmentKind"))) return null;
+        int markerX = action.getInt("markerCellX");
+        int markerY = action.getInt("markerCellY");
+        int targetZone = action.getInt("targetZoneId");
+        if (markerX < 0 || markerY < 0 || targetZone < 0) return null;
+        String key = directive.getString("issuer") + "|SECURE_COMPOUND|"
+                + targetZone + '|' + markerX + '|' + markerY;
+        return new SecureTravelCandidate(key, targetZone);
+    }
+
+    private static boolean assignmentRetargets(
+            JSONObject directive, JSONObject perspective, int oldTargetZone)
+            throws Exception {
+        if (directive == null || isRejected(directive)
+                || !perspective.getString("strategy").equals(
+                directive.getString("issuer"))) return false;
+        JSONObject assignment = directive.optJSONObject("assignment");
+        if (assignment == null) return false;
+        return !"SECURE_COMPOUND".equals(assignment.getString("kind"))
+                || assignment.getInt("targetZoneId") != oldTargetZone;
+    }
+
+    private static boolean isExplicitRelease(JSONObject directive)
+            throws Exception {
+        if (directive == null) return false;
+        String status = directive.getString("status");
+        return "RELEASED".equals(status) || "UNASSIGNED".equals(status)
+                || directive.optJSONObject("assignment") == null;
+    }
+
+    private static boolean isRejected(JSONObject directive) throws Exception {
+        return directive != null
+                && "REJECTED".equals(directive.getString("status"));
+    }
+
+    private static void finishAll(
+            Map<Integer, SecureTravelEpisode> active,
+            SecureTravelAccumulator metrics,
+            SecureTravelExit exit) {
+        for (SecureTravelEpisode episode : active.values()) {
+            metrics.finish(episode, exit);
+        }
+        active.clear();
     }
 
     private static Map<Integer, JSONObject> bySquad(JSONArray rows)
@@ -1140,6 +1427,7 @@ public final class CommandTraceAnalyzer {
         trace.endTick = trace.termination == Termination.INCOMPLETE
                 ? trace.maxObservedTick : trace.endTick;
         if (!paused) trace.windowEnds.put(currentWindow, trace.endTick);
+        trace.capturePausedAtEnd = paused;
         trace.observationWindows = trace.windowStarts.size();
         return trace;
     }
@@ -1322,6 +1610,92 @@ public final class CommandTraceAnalyzer {
             String subject, String occupancy, int marineUnits,
             int defenderUnits, int captureProgressBasisPoints) { }
 
+    private enum SecureTravelExit {
+        TARGET_ENTRY,
+        RETARGETED,
+        RELEASED,
+        SQUAD_LOST,
+        EXECUTION_SUSPENDED,
+        OBSERVATION_GAP,
+        TIMEOUT,
+        TERMINAL
+    }
+
+    private record SecureTravelCandidate(String key, int targetZone) { }
+
+    private static final class SecureTravelEpisode {
+        final String key;
+        final int targetZone;
+        boolean localContact;
+        boolean activePath;
+        boolean quietTravel;
+        boolean finished;
+
+        private SecureTravelEpisode(String key, int targetZone) {
+            this.key = key;
+            this.targetZone = targetZone;
+        }
+    }
+
+    private static final class SecureTravelAccumulator {
+        int started;
+        int targetEntry;
+        int retarget;
+        int release;
+        int squadLoss;
+        int suspension;
+        int observationGap;
+        int timeout;
+        int terminal;
+        int withContact;
+        int withActivePath;
+        int withQuietTravel;
+
+        void start() {
+            started++;
+        }
+
+        void observeContext(SecureTravelEpisode episode, JSONObject state,
+                            int schemaVersion) {
+            if (!episode.localContact
+                    && state.optBoolean("localContact", false)) {
+                episode.localContact = true;
+                withContact++;
+            }
+            if (schemaVersion >= 6 && !episode.activePath
+                    && state.optInt("activePathMembers", 0) > 0) {
+                episode.activePath = true;
+                withActivePath++;
+            }
+            if (!episode.quietTravel
+                    && !state.optBoolean("localContact", false)) {
+                episode.quietTravel = true;
+                withQuietTravel++;
+            }
+        }
+
+        void finish(SecureTravelEpisode episode, SecureTravelExit exit) {
+            if (episode.finished) return;
+            episode.finished = true;
+            switch (exit) {
+                case TARGET_ENTRY -> targetEntry++;
+                case RETARGETED -> retarget++;
+                case RELEASED -> release++;
+                case SQUAD_LOST -> squadLoss++;
+                case EXECUTION_SUSPENDED -> suspension++;
+                case OBSERVATION_GAP -> observationGap++;
+                case TIMEOUT -> timeout++;
+                case TERMINAL -> terminal++;
+            }
+        }
+
+        SecureTravelMetrics result() {
+            return new SecureTravelMetrics(started, targetEntry, retarget,
+                    release, squadLoss, suspension, observationGap, timeout,
+                    terminal, withContact, withActivePath, withQuietTravel);
+        }
+    }
+
     private static final class MovementEpisode {
         final String key;
         final int startedTick;
@@ -1377,6 +1751,7 @@ public final class CommandTraceAnalyzer {
         int endTick;
         int maxObservedTick;
         int observationWindows;
+        boolean capturePausedAtEnd;
         Termination termination = Termination.INCOMPLETE;
         String winner;
         final Map<Faction, Integer> casualties = new EnumMap<>(Faction.class);
