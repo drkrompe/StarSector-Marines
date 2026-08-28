@@ -58,7 +58,7 @@
         },
         "specialEquipmentId": null,
         "armorFamily": "CHARCOAL",
-        "armorPool": 60.0,
+        "armorCapacity": 60.0,
         "armorRating": 5.0,
         "armorMoveSpeedMult": 1.0,
         "armorIncomingAccuracyMult": 1.0,

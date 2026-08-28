@@ -266,8 +266,8 @@ public final class MechLabViewModel {
         if (mech == null) return List.of();
         MechVariant v = mech.variant();
         return List.of(
-                meter("armor", "ARMOR", Math.round(v.armorPool) + " PLATE",
-                        v.armorPool, maximum(x -> x.armorPool)),
+                meter("armor", "ARMOR", Math.round(v.armorCapacity) + " PLATE",
+                        v.armorCapacity, maximum(x -> x.armorCapacity)),
                 meter("mobility", "MOBILITY", number(v.moveSpeed) + " CELLS/S",
                         v.moveSpeed, maximum(x -> x.moveSpeed)),
                 meter("range", "MAX RANGE", number(v.maxWeaponRange()) + " CELLS",

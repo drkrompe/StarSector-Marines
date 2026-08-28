@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
+import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -186,6 +187,8 @@ public final class SquadStateDumper {
                 squad, commander, sim));
         o.put("raidCommand", buildRaidCommandJson(squad, commander, sim));
         o.put("extractionCommand", buildExtractionCommandJson(
+                squad, commander, sim));
+        o.put("extractionDefenseCommand", buildExtractionDefenseCommandJson(
                 squad, commander, sim));
         o.put("currentCommanderInfluence", buildCommanderInfluenceJson(
                 squad.faction, sim));
@@ -546,6 +549,49 @@ public final class SquadStateDumper {
         out.put("failed", snapshot.failed());
         out.put("failure", snapshot.failure().name());
         ExtractionCommandSnapshot.SquadIntent selected =
+                snapshot.intentFor(squad.id);
+        if (selected == null) {
+            out.put("squadIntent", JSONObject.NULL);
+        } else {
+            JSONObject intent = new JSONObject();
+            intent.put("role", selected.role().name());
+            intent.put("reason", selected.reason());
+            intent.put("assignmentKind", selected.assignmentKind() != null
+                    ? selected.assignmentKind().name() : JSONObject.NULL);
+            intent.put("targetCellX", selected.targetCellX());
+            intent.put("targetCellY", selected.targetCellY());
+            intent.put("localContact", selected.localContact());
+            out.put("squadIntent", intent);
+        }
+        return out;
+    }
+
+    private static Object buildExtractionDefenseCommandJson(
+            Squad squad, CommanderSnapshot<?> commander,
+            BattleSimulation sim) throws Exception {
+        ExtractionDefenseSnapshot snapshot = commander != null
+                && commander.detail() instanceof ExtractionDefenseSnapshot defense
+                ? defense : null;
+        if (snapshot == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("tick", snapshot.tick());
+        out.put("ageTicks", Math.max(0, sim.simTickIndex - snapshot.tick()));
+        out.put("perspective", snapshot.perspective().name());
+        out.put("phase", snapshot.phase().name());
+        out.put("payloadId", snapshot.payloadId());
+        out.put("payloadName", snapshot.payloadName());
+        out.put("sourceCellX", snapshot.sourceCellX());
+        out.put("sourceCellY", snapshot.sourceCellY());
+        out.put("alarmActive", snapshot.alarmActive());
+        out.put("alarmRaisedTick", snapshot.alarmRaisedTick());
+        out.put("complete", snapshot.complete());
+        out.put("failed", snapshot.failed());
+        out.put("failure", snapshot.failure().name());
+        out.put("knownContactCount", snapshot.knownContactCount());
+        out.put("freshestContactTick", snapshot.freshestContactTick());
+        out.put("mobilePool", snapshot.mobilePool());
+        out.put("reserveCount", snapshot.reserveCount());
+        ExtractionDefenseSnapshot.SquadIntent selected =
                 snapshot.intentFor(squad.id);
         if (selected == null) {
             out.put("squadIntent", JSONObject.NULL);

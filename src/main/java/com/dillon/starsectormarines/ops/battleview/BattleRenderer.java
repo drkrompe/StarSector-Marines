@@ -80,8 +80,8 @@ public class BattleRenderer {
      *  {@link UnitRenderService} dead sweep multiplies it by {@code renderScale}
      *  exactly as the inline live/dead passes do, so they must read one constant. */
     static final float UNIT_FRAC      = 1.00f;
-    /** Gap between an entity's top edge and its HP bar (placement, caller-owned).
-     *  Bar style (height/colors) lives in {@link HpBarDecor}. */
+    /** Gap between an entity's top edge and its durability bar (placement, caller-owned).
+     *  Bar style (height/colors/ownership coding) lives in {@link DurabilityBarDecor}. */
     static final float HP_BAR_GAP     = 2f;
 
     /** Icon tints + sizes. Sizes are fractions of {@code layout.cellSize}. */

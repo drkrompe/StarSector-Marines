@@ -44,8 +44,8 @@ public final class RenderAppearance {
     public final SpriteKind spriteKind;
     /** Emits a ground footprint pad under the body (map turrets + drone hubs). */
     public final boolean drawsFootprint;
-    /** Gets an HP bar in the last (layer-wide top) sweep — combatants, excluding drones (they bar themselves in the DRONES layer). */
-    public final boolean drawsHpBar;
+    /** Gets a durability bar in the last (layer-wide top) sweep — combatants, excluding drones (they bar themselves in the DRONES layer). */
+    public final boolean drawsDurabilityBar;
     /** Has a corpse sheet, so a {@code deathPoseIdx >= 0} entity is drawn in the dead-sprite sweep. */
     public final boolean hasDeathPose;
     /** Facing→frame convention for the sprite sweep. Meaningful only when {@link #spriteKind} is {@link SpriteKind#SHEET}. */
@@ -53,11 +53,11 @@ public final class RenderAppearance {
     /** Multiplier on the per-cell sprite size (mirrors {@link UnitType#renderScale}). */
     public final float renderScale;
 
-    private RenderAppearance(SpriteKind spriteKind, boolean drawsFootprint, boolean drawsHpBar,
+    private RenderAppearance(SpriteKind spriteKind, boolean drawsFootprint, boolean drawsDurabilityBar,
                              boolean hasDeathPose, UnitType.FrameLayout frameLayout, float renderScale) {
         this.spriteKind = spriteKind;
         this.drawsFootprint = drawsFootprint;
-        this.drawsHpBar = drawsHpBar;
+        this.drawsDurabilityBar = drawsDurabilityBar;
         this.hasDeathPose = hasDeathPose;
         this.frameLayout = frameLayout;
         this.renderScale = renderScale;
@@ -85,7 +85,7 @@ public final class RenderAppearance {
      * render-tier class) — this method just defers to it. {@code
      * TURRET}/{@code DRONE_HUB_STRUCTURE} ({@link UnitType#isStatic()}) are the
      * whole-sprite footprint-drawers; {@code DRONE} renders in its own layer.
-     * HP bars follow {@code combatant} (drones excluded), and a corpse sweep
+     * Durability bars follow {@code combatant} (drones excluded), and a corpse sweep
      * needs only a dead sheet to exist.
      */
     private static RenderAppearance derive(UnitType t) {

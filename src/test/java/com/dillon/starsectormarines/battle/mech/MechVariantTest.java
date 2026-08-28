@@ -105,7 +105,7 @@ class MechVariantTest {
 
         assertSame(MechVariant.HOUND, sim.identity().mechVariant(hound));
         assertEquals(MechVariant.HOUND.maxStructure, sim.world().maxHp(hound), 0.001f);
-        assertEquals(MechVariant.HOUND.armorPool, sim.world().armor(hound), 0.001f);
+        assertEquals(MechVariant.HOUND.armorCapacity, sim.world().armor(hound), 0.001f);
         assertEquals(MechVariant.HOUND.armorRating, sim.world().armorRating(hound), 0.001f);
         assertEquals(MechVariant.HOUND.moveSpeed, sim.movement().moveSpeed(hound), 0.001f);
         assertEquals(MechVariant.HOUND.radius, sim.getRoster().radius(hound), 0.001f);

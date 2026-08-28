@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
+import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
@@ -362,6 +363,9 @@ public final class CommandTraceRecorder {
         } else if (snapshot.detail()
                 instanceof ExtractionCommandSnapshot extraction) {
             extraction(out, extraction);
+        } else if (snapshot.detail()
+                instanceof ExtractionDefenseSnapshot defense) {
+            extractionDefense(out, defense);
         }
         return end(out);
     }
@@ -583,6 +587,47 @@ public final class CommandTraceRecorder {
         for (int i = 0; i < intents.size(); i++) {
             if (i > 0) out.append(',');
             ExtractionCommandSnapshot.SquadIntent intent = intents.get(i);
+            out.append('{');
+            rawNumberField(out, "squadId", intent.squadId());
+            field(out, "role", intent.role().name());
+            field(out, "reason", intent.reason());
+            nullableField(out, "assignmentKind",
+                    intent.assignmentKind() != null
+                            ? intent.assignmentKind().name() : null);
+            numberField(out, "targetCellX", intent.targetCellX());
+            numberField(out, "targetCellY", intent.targetCellY());
+            booleanField(out, "localContact", intent.localContact());
+            out.append('}');
+        }
+        out.append("]}");
+    }
+
+    private static void extractionDefense(
+            StringBuilder out, ExtractionDefenseSnapshot snapshot) {
+        out.append(",\"extractionDefense\":{");
+        rawField(out, "phase", snapshot.phase().name());
+        field(out, "payloadId", snapshot.payloadId());
+        field(out, "payloadName", snapshot.payloadName());
+        numberField(out, "sourceCellX", snapshot.sourceCellX());
+        numberField(out, "sourceCellY", snapshot.sourceCellY());
+        booleanField(out, "alarmActive", snapshot.alarmActive());
+        numberField(out, "alarmRaisedTick", snapshot.alarmRaisedTick());
+        booleanField(out, "complete", snapshot.complete());
+        booleanField(out, "failed", snapshot.failed());
+        field(out, "failure", snapshot.failure().name());
+        numberField(out, "knownContactCount", snapshot.knownContactCount());
+        numberField(out, "freshestContactTick",
+                snapshot.freshestContactTick());
+        numberField(out, "mobilePool", snapshot.mobilePool());
+        numberField(out, "reserveCount", snapshot.reserveCount());
+        List<ExtractionDefenseSnapshot.SquadIntent> intents =
+                new ArrayList<>(snapshot.squadIntents());
+        intents.sort(Comparator.comparingInt(
+                ExtractionDefenseSnapshot.SquadIntent::squadId));
+        out.append(",\"actions\":[");
+        for (int i = 0; i < intents.size(); i++) {
+            if (i > 0) out.append(',');
+            ExtractionDefenseSnapshot.SquadIntent intent = intents.get(i);
             out.append('{');
             rawNumberField(out, "squadId", intent.squadId());
             field(out, "role", intent.role().name());

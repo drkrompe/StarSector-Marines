@@ -136,7 +136,8 @@ Review a canonical-duration `commanderEvidence -Pmission=assault` run and the
 deferred live play pass before retiring its two implementation stories.
 Opening Operations remains the smallest later command-duel proof. Raid's first
 contract is ready for canonical-duration and live review; generic Extraction's
-objective contract is ready for its corridor commander. Each mission
+paired corridor and bounded interdiction commanders are ready for canonical
+and live review. Each mission
 adapts the same knowledge, ownership, cadence, and diagnostic contracts through
 its own geometry. The grouped work lives in the Mission Command `stories.md`.
 

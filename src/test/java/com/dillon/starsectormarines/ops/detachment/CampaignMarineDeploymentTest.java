@@ -85,7 +85,7 @@ class CampaignMarineDeploymentTest {
         // veteran band regardless of the 123 XP sitting on the record.
         assertEquals(ExperienceTier.VETERAN.minimumXp, seat.soldierProfile.experienceXp());
         assertEquals(LayeredArmorFamily.CHARCOAL, seat.armorFamily);
-        assertEquals(MarineArmorPattern.CHARCOAL.armorPool, seat.armorPool, 1e-6f);
+        assertEquals(MarineArmorPattern.CHARCOAL.armorCapacity, seat.armorCapacity, 1e-6f);
         assertEquals(MarineArmorPattern.CHARCOAL.armorRating,
                 seat.armorRating, 1e-6f);
         assertEquals(MarineArmorPattern.CHARCOAL.moveSpeedMult,

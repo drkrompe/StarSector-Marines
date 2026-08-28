@@ -994,8 +994,8 @@ public final class FleetArmoryViewModel {
                         String.format(Locale.ROOT, "%.0f", UnitType.MARINE.maxHp),
                         UnitType.MARINE.maxHp, UnitType.MARINE.maxHp),
                 statMeter(cardId + ":armor-value", "ARMOR",
-                        String.format(Locale.ROOT, "%.0f", armor.armorPool()),
-                        armor.armorPool(), maximumArmorPool()),
+                        String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
+                        armor.armorCapacity(), maximumArmorPool()),
                 statMeter(cardId + ":resist", "RESIST",
                         String.format(Locale.ROOT, "%.0f", armor.armorRating()),
                         armor.armorRating(), maximumArmorRating()),
@@ -1055,7 +1055,7 @@ public final class FleetArmoryViewModel {
     private static float maximumArmorPool() {
         float maximum = 1f;
         for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, armor.armorPool());
+            maximum = Math.max(maximum, armor.armorCapacity());
         }
         return maximum;
     }
@@ -1083,7 +1083,7 @@ public final class FleetArmoryViewModel {
         MarineArmorCatalogDef current = soldier.armorDef();
         return String.format(Locale.ROOT,
                 "ARMOR %+.0f  ·  RESIST %+.0f  ·  SPEED %+.1f",
-                next.armorPool() - current.armorPool(),
+                next.armorCapacity() - current.armorCapacity(),
                 next.armorRating() - current.armorRating(),
                 UnitType.MARINE.moveSpeed
                         * (next.moveSpeedMult() - current.moveSpeedMult()));
