@@ -136,7 +136,8 @@ public final class FragGrenadeTactics {
     private static boolean usableSoftContact(BelievedContact contact, BattleView sim) {
         if (contact.source() != BeliefSource.DIRECT
                 || contact.confidence() < MIN_CONTACT_CONFIDENCE
-                || sim.getSimTickIndex() - contact.lastSeenTick() > MAX_DIRECT_CONTACT_AGE_TICKS) {
+                || sim.getSimTickIndex() - contact.lastSeenTick() > MAX_DIRECT_CONTACT_AGE_TICKS
+                || !sim.identity().has(contact.unitId())) {
             return false;
         }
         UnitType type = sim.identity().type(contact.unitId());
