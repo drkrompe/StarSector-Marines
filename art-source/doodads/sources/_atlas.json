@@ -273,6 +273,56 @@
       "scale": 0.92,
       "order": 62
     },
+    "civic-workstation-bank.png": {
+      "id": "doodad.civic-workstation-bank",
+      "name": "Civic workstation suite",
+      "description": "Two-cell municipal workstation suite with terminal, storage, and privacy panels.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [2, 2],
+      "scale": 0.94,
+      "order": 63
+    },
+    "civic-server-rack.png": {
+      "id": "doodad.civic-server-rack",
+      "name": "Civic server rack",
+      "description": "Two-cell municipal data cabinet with status lights.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.75,
+      "footprintCells": [1, 2],
+      "scale": 0.92,
+      "order": 64
+    },
+    "civic-conference-table.png": {
+      "id": "doodad.civic-conference-table",
+      "name": "Civic conference table",
+      "description": "Large administrative planning table with inset presentation display.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [3, 2],
+      "scale": 0.92,
+      "order": 65
+    },
+    "office-reception-counter.png": {
+      "id": "doodad.office-reception-counter",
+      "name": "Civic reception counter",
+      "description": "Broad two-station public reception counter.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [3, 2],
+      "scale": 0.96,
+      "order": 66
+    },
+    "office-records-bank.png": {
+      "id": "doodad.office-records-bank",
+      "name": "Civic records bank",
+      "description": "Wall-side archive cabinets with a compact communications terminal.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.50,
+      "footprintCells": [2, 1],
+      "scale": 0.96,
+      "order": 67
+    },
     "residential-bed-h.png": {
       "id": "doodad.residential-bed-h",
       "name": "Residential bed head west",

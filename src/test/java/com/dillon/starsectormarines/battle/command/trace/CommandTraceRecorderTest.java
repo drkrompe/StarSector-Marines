@@ -49,7 +49,7 @@ class CommandTraceRecorderTest {
 
         List<String> lines = recorder.canonicalJsonLines().lines().toList();
         assertEquals(2, lines.size());
-        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":5,"
+        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":6,"
                 + "\"fixtureKind\":\"CONQUEST\","
                 + "\"schedulerMode\":\"SERIAL_DETERMINISTIC\"}", lines.get(0));
         String line = lines.get(1);
@@ -203,7 +203,7 @@ class CommandTraceRecorderTest {
                 ConquestFrontSnapshot.Phase.LANE_ADVANCE, 2, 25,
                 CompoundService.CompoundState.DEFENDER_HELD,
                 List.of(track), List.of(new ConquestFrontSnapshot.SquadState(
-                        139, 4, centroidX, centroidY, 0, null, false)),
+                        139, 4, centroidX, centroidY, 0, null, false, 3)),
                 List.of());
         CommanderSnapshot<ConquestFrontSnapshot> snapshot =
                 new CommanderSnapshot<>(Faction.MARINE, "conquest",
@@ -212,7 +212,9 @@ class CommandTraceRecorderTest {
         CommandTraceRecorder recorder = new CommandTraceRecorder(
                 "CONQUEST", "SERIAL_DETERMINISTIC", 0);
         recorder.recordPerspective(snapshot);
-        return recorder.canonicalJsonLines();
+        String trace = recorder.canonicalJsonLines();
+        assertTrue(trace.contains("\"activePathMembers\":3"));
+        return trace;
     }
 
     @Test

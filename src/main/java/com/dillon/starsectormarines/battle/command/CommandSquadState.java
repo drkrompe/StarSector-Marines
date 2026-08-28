@@ -17,5 +17,6 @@ public record CommandSquadState(
         boolean localContact,
         String executionSuspension,
         ObjectiveAssignment assignment,
-        CommandDirective directive) {
+        CommandDirective directive,
+        int activePathMembers) {
 }
