@@ -58,6 +58,7 @@ public final class CompanyHqScreen implements Screen {
                 this::onArmory,
                 this::onMechLab,
                 this::onShipTransfer,
+                this::onShipView,
                 this::onClose,
                 this::responseAction);
         MarkupInstance candidate = markup.reloadAndBuild(
@@ -120,6 +121,10 @@ public final class CompanyHqScreen implements Screen {
 
     private void onShipTransfer() {
         if (context != null) context.goTo(ScreenId.SHIP_TRANSFER);
+    }
+
+    private void onShipView() {
+        if (context != null) context.goTo(ScreenId.SHIP_VIEW);
     }
 
     private void onClose() {

@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
+import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.DeckPlanCanvas;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
@@ -87,6 +88,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final CompanyMeans SOLVENT = CompanyMeans.of(84, 3, 240_000);
     private static final CompanyMeans BROKE = CompanyMeans.of(84, 3, 18_000);
 
+    private static final List<String> SHIP_VIEW_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/ship-view.mlx");
     private static final List<String> SHIP_TRANSFER_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-transfer.mlx");
@@ -134,6 +138,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderCompanyHq(context, renderer, 1744, 938, 1.5f)),
                 new SnapshotArtifact("barracks-wide.png",
                         renderBarracks(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("ship-view-wide.png",
+                        renderShipView(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("ship-transfer-wide.png",
                         renderShipTransfer(context, renderer,
@@ -375,6 +382,42 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("barracks-canvas"),
                     new BarracksCanvas(ship, viewModel::sceneMarines));
+            return renderRelative(renderer, document, width, height, 1f);
+        }
+    }
+
+    /**
+     * The whole ship, at the framing the page opens on.
+     *
+     * <p>Fully zoomed out, because that is the state the player is handed and
+     * the one worth checking: whether a generated hull reads as a vessel at the
+     * scale a screen can show her at all.
+     */
+    private static BufferedImage renderShipView(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        Reactor reactor = new Reactor();
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY * 3);
+        CompanyDeck ship = companyShip(List::of,
+                () -> MarineOpsContext.companyMarines(roster));
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
+        loader.reload();
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("roomTitle", "COMPANY SHIP  //  UNDERWAY");
+        props.put("roomCopy",
+                "Drag to look around her. Wheel to close in, WASD to walk the view.");
+        props.put("contextLabel", "COMPANY SHIP / UNDERWAY");
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
+                MarineOpsPageNav.ANY_SHIP,
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+        try (MarkupInstance instance = loader.build(reactor, "ship-view", props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("ship-view-deck"),
+                    new ShipViewCanvas(ship));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
