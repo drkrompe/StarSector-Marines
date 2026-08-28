@@ -432,7 +432,7 @@ class CommandTraceAnalyzerTest {
     @Test
     void acceptsLegacyV2WithoutPhysicalRowsAndRejectsV3EventUnderV2()
             throws Exception {
-        String legacyHeader = header().replace("\"schemaVersion\":4",
+        String legacyHeader = header().replace("\"schemaVersion\":5",
                 "\"schemaVersion\":2");
         String legacyPerspective = perspective(75, "MARINE", 0,
                 directive("ACTIVE", 75, 1),
@@ -467,7 +467,7 @@ class CommandTraceAnalyzerTest {
 
     @Test
     void rejectsUnsupportedSchemasAndDuplicateHeaders() {
-        String old = header().replace("\"schemaVersion\":4",
+        String old = header().replace("\"schemaVersion\":5",
                 "\"schemaVersion\":1");
         assertThrows(IllegalArgumentException.class,
                 () -> CommandTraceAnalyzer.analyze(old));
@@ -493,7 +493,7 @@ class CommandTraceAnalyzerTest {
     }
 
     private static String header() {
-        return "{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":4,"
+        return "{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":5,"
                 + "\"fixtureKind\":\"CONQUEST\","
                 + "\"schedulerMode\":\"SERIAL_DETERMINISTIC\"}";
     }
