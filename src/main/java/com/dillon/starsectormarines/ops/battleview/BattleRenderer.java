@@ -233,6 +233,7 @@ public class BattleRenderer {
                         collectFogOverlay(ctx.sim, out, ctx.alphaMult)),
                 new UnitRenderService(sprites),
                 new SatchelRenderSystem(sprites),
+                new PointDefenseRenderSystem(),
                 new FragGrenadeRenderSystem(),
                 new SmokeRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->

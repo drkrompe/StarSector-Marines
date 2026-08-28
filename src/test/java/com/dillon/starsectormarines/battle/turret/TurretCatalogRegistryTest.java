@@ -22,10 +22,11 @@ class TurretCatalogRegistryTest {
     private static final float EPS = 0.0001f;
 
     @Test
-    void builtinsExactlyPreserveTheEightShippedTurretDefinitions() {
+    void builtinsExactlyPreserveTheShippedTurretDefinitions() {
         TurretCatalogRegistry registry = TurretCatalogRegistry.installed();
-        assertEquals(8, registry.mountCount());
-        assertEquals(8, registry.structureCount());
+        // No catalog-count pin: this test guards the authored values of the
+        // definitions it names, and adding a ninth definition is not a
+        // regression in any of them.
 
         assertKind(structure(TurretCatalogRegistry.VULCAN_STRUCTURE_ID), "Vulcan Cannon", 22f, 10.8f, 3f, .45f, 1.4f,
                 60f, 80f, 8f, 120f, 1.6f, .22f, 120,

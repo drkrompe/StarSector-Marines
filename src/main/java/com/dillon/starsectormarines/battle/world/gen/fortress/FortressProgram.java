@@ -86,6 +86,23 @@ public final class FortressProgram {
                 new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.YARD, 2));
     }
 
+    /**
+     * The same fortress built around a citadel that already exists.
+     *
+     * <p>A conquest map seeds one canonical military compound in the fortress
+     * band, and that compound carries the mission's command post. Packing a keep
+     * as well would give the place two, so the ward program is the garrison
+     * program with its own keep taken out: the compound is the keep, and this is
+     * what stands around it.
+     */
+    public static List<FortressBuilding> ward() {
+        List<FortressBuilding> out = new ArrayList<>();
+        for (FortressBuilding building : garrison()) {
+            if (building.purpose() != RoomPurpose.KEEP_THRONE) out.add(building);
+        }
+        return List.copyOf(out);
+    }
+
     /** Cells of building floor the program needs, walls and roadways excluded. */
     public static int floorArea(List<FortressBuilding> program) {
         int area = 0;

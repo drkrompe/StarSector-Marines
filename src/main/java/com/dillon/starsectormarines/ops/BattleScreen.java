@@ -52,6 +52,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.CameraControls;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
@@ -143,6 +144,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final float ENGINE_PITCH_CRUISE = 1.0f;
     /** Cells → OpenAL world units, for positional SFX. Must match {@code FlybyOverlay.AUDIO_WORLD_UNITS_PER_CELL}. */
     private static final float AUDIO_WORLD_UNITS_PER_CELL = BattleShotAudio.WORLD_UNITS_PER_CELL;
+    /** Radius, in cells, of the burst drawn where a point-defence emplacement stopped a warhead. Presentation only; nothing is damaged. */
+    private static final float INTERCEPT_BURST_CELLS = 0.9f;
     /** OpenAL distance the distant-boom emitter sits from the camera focus. Far enough to attenuate noticeably (read as "off in the distance") but close enough to remain audible. */
     private static final float DISTANT_BOOM_EMITTER_DISTANCE = 600f;
 
@@ -197,14 +200,12 @@ public class BattleScreen implements Screen, BattleUiContext {
     private MarineOpsContext ctx;
     private BattleLayout layout;
     private BattleCamera camera;
-    /** Pan-drag state: true while RMB is held (without shift, which routes to debug damage). */
-    private boolean panDragging;
-    private int lastDragX;
-    private int lastDragY;
-    /** Held-key pan state, polled in advance() so WASD/arrow holds keep panning between key events. */
-    private boolean panKeyW, panKeyA, panKeyS, panKeyD;
-    /** Cells per second of keyboard-pan, in world cells (the camera converts to pixels per its zoom). */
-    private static final float KEY_PAN_CELLS_PER_SEC = 18f;
+    /**
+     * The hand on the camera. Shared with every other screen that lets the
+     * player look around a world; shift plus right-drag is reserved here
+     * because it is the debug damage gesture.
+     */
+    private final CameraControls cameraControls = new CameraControls(true);
     private float speedMultiplier = 1f;
     /** Pixel x-center of each speed button, captured at layout time for the active-marker dot. */
     private final float[] speedBtnCenterX = new float[SPEED_OPTIONS.length];
@@ -394,19 +395,9 @@ public class BattleScreen implements Screen, BattleUiContext {
                     camera.panCellX() * AUDIO_WORLD_UNITS_PER_CELL,
                     camera.panCellY() * AUDIO_WORLD_UNITS_PER_CELL));
         }
-        // Keyboard pan integrates on real dt (not sim-time) so the camera still
-        // moves while the sim is paused — the player should be able to look
-        // around the map without unpausing. Diagonal holds aren't normalized;
-        // pressing two axes just sums them, which gives a slightly faster
-        // diagonal pan and feels right for a top-down map.
-        if (camera != null) {
-            float dx = (panKeyD ? 1f : 0f) - (panKeyA ? 1f : 0f);
-            float dy = (panKeyW ? 1f : 0f) - (panKeyS ? 1f : 0f);
-            if (dx != 0f || dy != 0f) {
-                camera.panByCells(dx * KEY_PAN_CELLS_PER_SEC * dt,
-                                  dy * KEY_PAN_CELLS_PER_SEC * dt);
-            }
-        }
+        // On real dt, not sim-time, so the player can still look around the map
+        // while the simulation is paused.
+        cameraControls.advance(dt, camera);
         // playUILoop is documented as "must be called every frame or the loop will fade out" —
         // re-arming it every advance is how Starsector expects loops to be driven. When this
         // screen stops being current, advance() stops firing and all loops fade automatically.
@@ -924,6 +915,18 @@ public class BattleScreen implements Screen, BattleUiContext {
             ImpactDecals.spawnWeaponImpact(sim, rng, fx, s.toX, s.toY, isWall);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
         }
+        // Warheads a point-defence emplacement stopped come apart in the air.
+        // The mount's own burst already flashed on the way in; this is the
+        // payload going off where it was hit, which is what makes an intercept
+        // read as a kill rather than as a missile that quietly stopped
+        // existing. Deliberately not routed through the damage path: the
+        // detonation is presentation, and hurts nobody.
+        List<float[]> interceptPoints = sim.getShots().getInterceptPointsThisFrame();
+        for (int i = 0, n = interceptPoints.size(); i < n; i++) {
+            float[] point = interceptPoints.get(i);
+            renderer.getImpactFx().spawnHeavyImpact(point[0], point[1], INTERCEPT_BURST_CELLS);
+            renderer.getGroundLights().spawnImpact(null, point[0], point[1]);
+        }
     }
 
     /** True when the endpoint cell is non-walkable (wall / vehicle / turret mount) and the impact should read as a chip on solid material rather than a kick of floor dust. */
@@ -1008,59 +1011,7 @@ public class BattleScreen implements Screen, BattleUiContext {
      * key keeps panning between events).
      */
     private void handleCameraInput(List<InputEventAPI> events) {
-        if (events == null || camera == null) return;
-        for (InputEventAPI e : events) {
-            if (e.isConsumed()) continue;
-            // Mouse wheel — zoom-to-cursor when over the grid area, ignored elsewhere
-            // so scrolling outside the play area doesn't fight other dialogs.
-            if (e.isMouseScrollEvent()) {
-                if (!camera.containsScreen(e.getX(), e.getY())) continue;
-                // Wheel deltas come through as raw LWJGL values (typically ±120 per
-                // notch on Windows; ±1 on some Linux builds). Normalize to ±1 notch
-                // so zoom magnitude is consistent regardless of platform conventions.
-                int raw = e.getEventValue();
-                float notches = raw > 0 ? 1f : (raw < 0 ? -1f : 0f);
-                camera.zoomAt(notches, e.getX(), e.getY());
-                e.consume();
-                continue;
-            }
-            // RMB-drag pan (no shift — shift+RMB is the debug damage gesture).
-            if (e.isRMBDownEvent() && !e.isShiftDown()) {
-                if (!camera.containsScreen(e.getX(), e.getY())) continue;
-                panDragging = true;
-                lastDragX = e.getX();
-                lastDragY = e.getY();
-                e.consume();
-                continue;
-            }
-            if (e.isRMBUpEvent()) {
-                panDragging = false;
-                continue;
-            }
-            if (panDragging && e.isMouseMoveEvent()) {
-                int x = e.getX();
-                int y = e.getY();
-                // Pan opposite to the mouse delta — dragging right pulls the world
-                // right (i.e. the camera moves left over the world). panByPixels
-                // already negates internally, so we pass the raw mouse delta.
-                camera.panByPixels(x - lastDragX, y - lastDragY);
-                lastDragX = x;
-                lastDragY = y;
-                e.consume();
-                continue;
-            }
-            // Keyboard pan — WASD + arrow keys, both directions. We just track
-            // the held state here; advance() integrates the pan per dt so a held
-            // key doesn't depend on key-repeat firing rate.
-            if (e.isKeyDownEvent() || e.isKeyUpEvent()) {
-                boolean down = e.isKeyDownEvent();
-                int key = e.getEventValue();
-                if (key == org.lwjgl.input.Keyboard.KEY_W || key == org.lwjgl.input.Keyboard.KEY_UP)    { panKeyW = down; }
-                else if (key == org.lwjgl.input.Keyboard.KEY_S || key == org.lwjgl.input.Keyboard.KEY_DOWN)  { panKeyS = down; }
-                else if (key == org.lwjgl.input.Keyboard.KEY_A || key == org.lwjgl.input.Keyboard.KEY_LEFT)  { panKeyA = down; }
-                else if (key == org.lwjgl.input.Keyboard.KEY_D || key == org.lwjgl.input.Keyboard.KEY_RIGHT) { panKeyD = down; }
-            }
-        }
+        cameraControls.process(events, camera);
     }
 
     /** Debug-only: Z toggles {@link #debugZonesVisible}. Used to eyeball-verify the zone graph after wall breaches. */
