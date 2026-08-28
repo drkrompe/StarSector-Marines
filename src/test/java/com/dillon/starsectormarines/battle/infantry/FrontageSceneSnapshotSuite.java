@@ -71,16 +71,30 @@ public final class FrontageSceneSnapshotSuite implements SnapshotSuite {
             sim.advance(BattleSimulation.TICK_DT);
         }
         return SnapshotArtifact.animation(
-                approach.name().toLowerCase(Locale.ROOT) + "-approach.gif",
-                frames, FRAME_DELAY_MILLIS);
+                "assault-from-" + edge(approach) + ".gif", frames, FRAME_DELAY_MILLIS);
+    }
+
+    /**
+     * Which edge of the <em>rendered frame</em> an approach enters from.
+     * {@link Approach} is named in world terms and world +y draws upward, so a
+     * recording labelled by the enum tells a viewer the assault came from the
+     * south while they watch it walk down from the top of the picture.
+     */
+    private static String edge(Approach approach) {
+        return switch (approach) {
+            case SOUTH -> "top";
+            case NORTH -> "bottom";
+            case EAST -> "right";
+            case WEST -> "left";
+        };
     }
 
     /** Tick, the garrison's current goal, and — while it is standing to — how its posts are split. */
     private static String caption(Scene scene, int tick) {
         Sample sample = FrontageScene.sample(scene, tick);
         StringBuilder caption = new StringBuilder(String.format(Locale.ROOT,
-                "%s  •  t%-4d  •  %s",
-                scene.approach(), tick, sample.goal()));
+                "assault from %s  •  t%-4d  •  %s",
+                edge(scene.approach()), tick, sample.goal()));
         if (sample.posts() > 0) {
             caption.append(String.format(Locale.ROOT,
                     "  •  %d posts, %d cover, %d reserve  •  %d on post",
