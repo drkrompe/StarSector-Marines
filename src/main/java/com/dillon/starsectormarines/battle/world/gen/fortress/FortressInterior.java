@@ -148,6 +148,13 @@ public final class FortressInterior {
         stampWalls(ctx, placed);
         furnish(ctx, placed);
         stampWindows(ctx, placed);
+        // The airfield goes in what the packing left over, so it is sited after
+        // the yard has been opened and there is a yard to look at. Bounds names
+        // its vertical extent top-down; the airfield asks in grid terms, where a
+        // larger y is further north.
+        FortressAirfield airfield = FortressAirfield.site(ctx, ground, axis,
+                bounds.left(), bounds.top(), bounds.right(), bounds.bottom());
+        if (airfield != null) airfield.author(ctx, axis);
         return new Result(placed, unplaced);
     }
 
