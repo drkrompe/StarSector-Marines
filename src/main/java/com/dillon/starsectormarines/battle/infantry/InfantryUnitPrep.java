@@ -54,6 +54,9 @@ public final class InfantryUnitPrep {
         if (sec.activation() == SpecialActivation.ARC_EXPLOSIVE) {
             return tickFragThrow(unit, sec, sim);
         }
+        if (sec.activation() == SpecialActivation.CLOSE_CONTACT) {
+            return CloseContactTactics.tickChannel(unit, sec, sim);
+        }
         w.setSecondaryActionTimer(id, w.secondaryActionTimer(id) - BattleSimulation.TICK_DT);
         float fireAt = sec.aimDuration() * 0.5f;
         if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
@@ -120,7 +123,9 @@ public final class InfantryUnitPrep {
      * Direct-fire equipment begins its ordinary aim when a legal target is in
      * range. A satchel is stricter: it considers only a target already inside
      * contact range, creates no approach path, and channels the plant through
-     * the same movement-freezing action window.
+     * the same movement-freezing action window. Close-contact tools are
+     * stricter still and delegate to {@link CloseContactTactics}, which reaches
+     * only across a crossable cell boundary.
      *
      * <p>For direct-fire equipment, the squad-coordination gate
      * ({@link TacticalScoring#shouldCommitSpecial})
@@ -147,6 +152,9 @@ public final class InfantryUnitPrep {
         }
         if (sec.aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) {
             return FragGrenadeTactics.tryCommitThrow(unit, sec, sim);
+        }
+        if (sec.activation() == SpecialActivation.CLOSE_CONTACT) {
+            return CloseContactTactics.tryCommit(unit, sec, sim);
         }
         float range = sec.range();
         // Hardened-target scan: any MapTurret, drone hub, or HEAVY_MECH in
