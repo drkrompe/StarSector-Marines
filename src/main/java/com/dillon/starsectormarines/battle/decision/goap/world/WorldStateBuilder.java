@@ -139,6 +139,7 @@ public final class WorldStateBuilder {
                                                BattleView sim) {
         long unit = sim.resolveUnit(contact.unitId());
         return unit != 0L
+                && sim.identity().has(unit)
                 && sim.identity().faction(unit) != squad.faction
                 && sim.identity().type(unit).combatant;
     }

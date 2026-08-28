@@ -7,10 +7,8 @@
   "swarmCount": 20,
   "stressTest": false,
   "shuttles": [
-    {
-      "type": "VALKYRIE",
-      "cycles": 1
-    }
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 }
   ],
   "targetProfile": {
     "marketSize": 0,
