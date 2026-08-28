@@ -66,6 +66,15 @@
       "doodad.shelf-empty", "doodad.shelf-1", "doodad.shelf-2", "doodad.shelf-3",
       "doodad.desk-1", "doodad.desk-2", "doodad.chest-1", "doodad.chest-2",
       "doodad.box", "doodad.crate"
+    ],
+    "PARKED_VEHICLES": [
+      "doodad.parked-utility-truck", "doodad.parked-flatbed-truck",
+      "doodad.parked-tanker-truck", "doodad.parked-box-van",
+      "doodad.parked-cargo-truck", "doodad.parked-armored-apc"
+    ],
+    "SPACEPORT_SERVICE_VEHICLES": [
+      "doodad.parked-flatbed-truck", "doodad.parked-tanker-truck",
+      "doodad.parked-cargo-truck", "doodad.parked-utility-truck"
     ]
   }
 }
