@@ -84,7 +84,7 @@ public final class CombatTelemetryService {
 
     /**
      * Post-cover damage {@code id}'s live screen refused, reaching neither
-     * pool ({@code combat-durability-nouns.md}). Separate from
+     * armor nor structure ({@code combat-durability-nouns.md}). Separate from
      * {@link #damageTaken} on purpose — this is the number that says a screen
      * worked, and netting it into absorbed damage would hide it.
      */
