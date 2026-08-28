@@ -227,6 +227,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.currentGoal = null;
             squad.aliveMembersAtLastPlan = 0;
             squad.clearMechScreen();
+            squad.clearBoundingOverwatch();
             squad.clearEngagementDisciplineHold();
             return;
         }
@@ -236,6 +237,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.timeSinceReplan = 0f;
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
             squad.clearMechScreen();
+            squad.clearBoundingOverwatch();
             return;
         }
 
@@ -270,6 +272,13 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             return;
         }
 
+        // A live-member change invalidates both the role partition and any
+        // in-flight bound authored from it. Sticky mission plans may return
+        // the same SquadPlan instance below, so matching target geometry is
+        // not enough to preserve the old phase: its moving team can now be
+        // dissolved, folded into a sibling, or entirely dead.
+        if (memberCountChanged) squad.clearBoundingOverwatch();
+
         WorldState current = WorldStateBuilder.build(squad, sim);
         Goal goal = Goal.pickMostRelevant(INFANTRY_GOALS, current, squad, sim);
         if (goal == null) {
@@ -280,6 +289,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
             squad.assignedObjectiveAtLastPlan = executableAssignment;
             squad.clearMechScreen();
+            squad.clearBoundingOverwatch();
             return;
         }
 
@@ -314,6 +324,11 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             for (SquadPlan.Step step : plan.steps()) {
                 Map<String, List<Long>> assignment = step.action.assignRoles(
                         squad, sim, aliveMembers);
+                // Some mission goals deliberately retain the current plan
+                // across replans to prevent portal oscillation. Replace its
+                // role map exactly; putAll alone leaves dissolved fire-team
+                // keys and duplicate survivors after casualties.
+                step.assignments.clear();
                 step.assignments.putAll(assignment);
             }
         }

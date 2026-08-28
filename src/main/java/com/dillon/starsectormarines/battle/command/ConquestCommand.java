@@ -238,6 +238,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final String contactInitiative;
         final int coolingDownMembers;
         final int[] memberZoneIds;
+        final int[] memberCellXs;
+        final int[] memberCellYs;
         final ObjectiveAssignment originalAssignment;
         ObjectiveAssignment assignedObjective;
 
@@ -267,6 +269,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
             contactInitiative = state.contactInitiative();
             coolingDownMembers = state.coolingDownMembers();
             memberZoneIds = state.memberZoneIds();
+            memberCellXs = state.memberCellXs();
+            memberCellYs = state.memberCellYs();
             originalAssignment = state.assignment();
             assignedObjective = state.assignment();
         }
@@ -1255,13 +1259,14 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 influenceTick, axis, phase, remainingCompounds,
                 keep != null ? keep.captureZoneId : -1,
                 keep != null ? keep.state : null,
-                tracks, squadStates(allSquads, directives),
+                tracks, squadStates(allSquads, directives, frame.topology()),
                 new ArrayList<>(directives.values()));
     }
 
     private static List<ConquestFrontSnapshot.SquadState> squadStates(
             Map<Integer, PlanningSquad> squads,
-            Map<Integer, SquadDirective> directives) {
+            Map<Integer, SquadDirective> directives,
+            CommandTopology topology) {
         List<ConquestFrontSnapshot.SquadState> states = new ArrayList<>(squads.size());
         for (PlanningSquad squad : squads.values()) {
             SquadDirective directive = directives.get(squad.id);
@@ -1272,6 +1277,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     squad.executionSuspension, squad.localContact,
                     squad.activePathMembers,
                     membersInZone(squad.memberZoneIds, targetZone),
+                    membersAtTargetPortal(squad, targetZone, topology),
                     squad.underFireRecently, squad.moraleBroken,
                     squad.currentGoal, squad.currentAction,
                     squad.movingMembers, squad.coveredFromPrimaryMembers,
@@ -1288,6 +1294,27 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (targetZone < 0) return 0;
         int count = 0;
         for (int zoneId : memberZoneIds) if (zoneId == targetZone) count++;
+        return count;
+    }
+
+    private static int membersAtTargetPortal(PlanningSquad squad,
+                                             int targetZone,
+                                             CommandTopology topology) {
+        if (targetZone < 0) return 0;
+        int count = 0;
+        for (int i = 0; i < squad.memberCellXs.length; i++) {
+            int x = squad.memberCellXs[i];
+            int y = squad.memberCellYs[i];
+            if (!topology.inBounds(x, y)) continue;
+            int cell = y * topology.width() + x;
+            if (!topology.isDoorwayCell(cell)) continue;
+            if (topology.zoneIdAt(x - 1, y) == targetZone
+                    || topology.zoneIdAt(x + 1, y) == targetZone
+                    || topology.zoneIdAt(x, y - 1) == targetZone
+                    || topology.zoneIdAt(x, y + 1) == targetZone) {
+                count++;
+            }
+        }
         return count;
     }
 

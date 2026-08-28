@@ -463,6 +463,8 @@ public final class SquadStateDumper {
             state.put("activePathMembers", squadState.activePathMembers());
             state.put("membersInTargetZone",
                     squadState.membersInTargetZone());
+            state.put("membersInTargetPortal",
+                    squadState.membersInTargetPortal());
             state.put("underFireRecently", squadState.underFireRecently());
             state.put("moraleBroken", squadState.moraleBroken());
             state.put("currentGoal", squadState.currentGoal() != null
