@@ -123,7 +123,8 @@ public final class CampaignMarineDeployment {
                     soldier.id(), armor.appearanceFamily(),
                     armor.armorCapacity(), armor.armorRating(),
                     armor.moveSpeedMult(), armor.incomingAccuracyMult(),
-                    tag(roster, owners.get(i), soldier, strengths)));
+                    tag(roster, owners.get(i), soldier, strengths),
+                    armor.integralSystem()));
         }
         return new CampaignMarineDeployment(frozen);
     }
@@ -241,7 +242,7 @@ public final class CampaignMarineDeployment {
                 allocation.campaignSoldierId, allocation.armorFamily,
                 allocation.armorCapacity, allocation.armorRating,
                 allocation.armorMoveSpeedMult, allocation.armorIncomingAccuracyMult,
-                allocation.campaignSquad);
+                allocation.campaignSquad, allocation.integralSystem);
     }
 
     /**

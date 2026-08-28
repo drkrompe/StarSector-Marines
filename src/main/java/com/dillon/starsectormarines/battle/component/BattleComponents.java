@@ -206,6 +206,18 @@ public final class BattleComponents {
     public static final int MOVEMENT_VEL_Y = 6;
     /** {@link #MOVEMENT} field 7: brief sim-seconds of formation-heading memory after actual translation, used only to preserve shared-destination infantry footprints after arrival (FLOAT). */
     public static final int MOVEMENT_FORMATION_MEMORY_TIMER = 7;
+    /**
+     * {@link #MOVEMENT} field 8: the unit's unmodified movement speed in
+     * cells/sec (FLOAT), seeded at spawn from the same {@code EntitySpec.moveSpeed}
+     * as {@link #MOVEMENT_MOVE_SPEED} and never written again.
+     *
+     * <p>Exists so a temporary speed effect has something to return to.
+     * {@link #MOVEMENT_MOVE_SPEED} is the live value the mover steps by; an
+     * effect recomputes it as {@code base * multiplier} rather than scaling the
+     * live value in place, because repeated scale-and-restore drifts and a
+     * second overlapping effect would compound the first one's leftovers.
+     */
+    public static final int MOVEMENT_BASE_MOVE_SPEED = 8;
 
     /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
     public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
@@ -253,6 +265,15 @@ public final class BattleComponents {
     public static final int SECONDARY_WEAPON_AIM_TARGET_ID = 4;
     /** {@link #SECONDARY_WEAPON} field 5: one-shot-per-aim-cycle latch as 0/1 (INT). */
     public static final int SECONDARY_WEAPON_FIRED = 5;
+
+    /** {@link #INTEGRAL_SYSTEM} field 0: the authoritative {@link com.dillon.starsectormarines.marine.IntegralSystemDef} the worn armour pattern declares (OBJECT). */
+    public static final int INTEGRAL_SYSTEM_SPEC = 0;
+    /** {@link #INTEGRAL_SYSTEM} field 1: sim-seconds until the system may be activated again (FLOAT); {@code <= 0} = ready. */
+    public static final int INTEGRAL_SYSTEM_COOLDOWN_TIMER = 1;
+    /** {@link #INTEGRAL_SYSTEM} field 2: sim-seconds remaining in the current activation (FLOAT); {@code > 0} = running. */
+    public static final int INTEGRAL_SYSTEM_ACTIVE_TIMER = 2;
+    /** {@link #INTEGRAL_SYSTEM} field 3: uses remaining for an ammunition-gated system (INT); unused by cooldown-gated ones. */
+    public static final int INTEGRAL_SYSTEM_AMMO = 3;
 
     /** {@link #CRASHING} field 0: the {@link com.dillon.starsectormarines.battle.air.components.CrashingComponent} payload (OBJECT) — the falling body, fall timer, and spin. */
     public static final int CRASHING_STATE = 0;
@@ -592,6 +613,18 @@ public final class BattleComponents {
      */
     public final ComponentType SECONDARY_WEAPON;
     /**
+     * Optional integral-system state — present iff the unit's worn armour
+     * pattern declares one, so presence IS "this suit can do something"
+     * ({@code integral-armor-systems.md}). Holds the authored definition plus
+     * the live cooldown/active timers, in the {@link #SECONDARY_WEAPON}
+     * precedent: a flyweight spec column beside the per-unit clocks.
+     *
+     * <p>Deliberately separate from {@link #SECONDARY_WEAPON}: a suit's system
+     * is not the billet's carried item and must never spend it. A marine can
+     * carry both, and most carry neither. Removed in the corpse transmute.
+     */
+    public final ComponentType INTEGRAL_SYSTEM;
+    /**
      * Optional crash state — one OBJECT field holding the
      * {@link com.dillon.starsectormarines.battle.air.components.CrashingComponent}
      * (the falling body + fall timer + tumble spin). Attached on an air unit's
@@ -922,7 +955,8 @@ public final class BattleComponents {
                 FieldKind.LONG, FieldKind.INT);
         MOVEMENT        = world.register(8, "Movement",
                 FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT,
-                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
+                FieldKind.FLOAT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         CRASHING        = world.register(10, "Crashing", FieldKind.OBJECT);
@@ -960,6 +994,8 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
         ARMOR          = world.register(35, "Armor",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
+        INTEGRAL_SYSTEM = world.register(36, "IntegralSystem",
+                FieldKind.OBJECT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(
