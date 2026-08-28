@@ -98,7 +98,13 @@ public class FortressBunkerWindowTest {
             int outsideX = stand.x() + frontDx;
             int outsideY = stand.y() + frontDy;
             assertTrue(map.grid.isWalkable(outsideX, outsideY),
-                    context(axis, seed, "window exterior must remain standable"));
+                    context(axis, seed, "window exterior must remain standable at "
+                            + outsideX + "," + outsideY
+                            + " [wall=" + map.topology.isWall(outsideX, outsideY)
+                            + ", fixture=" + map.topology.isFixture(outsideX, outsideY)
+                            + ", vehicle=" + map.topology.isVehicle(outsideX, outsideY)
+                            + ", window=" + map.topology.isWindow(outsideX, outsideY)
+                            + ", ground=" + map.topology.getGroundKind(outsideX, outsideY) + "]"));
             assertTrue(map.grid.hasLineOfSight(
                             stand.x(), stand.y(), outsideX, outsideY),
                     context(axis, seed, "stand cell cannot see through its window"));

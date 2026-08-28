@@ -743,6 +743,7 @@ public final class FortressWallStamper implements GenStage {
         // bunker. This rejects a visually plausible stamp inside a stranded
         // one-cell pocket.
         int frontDepth = -BUNKER_HALF_DEPTH - 1;
+        List<int[]> frontExits = new ArrayList<>(BUNKER_FRONTAGE);
         for (int along = -BUNKER_HALF_FRONTAGE;
              along <= BUNKER_HALF_FRONTAGE; along++) {
             int x = cx + (axis == TraversalAxis.SOUTH_TO_NORTH
@@ -750,6 +751,7 @@ public final class FortressWallStamper implements GenStage {
             int y = cy + (axis == TraversalAxis.SOUTH_TO_NORTH
                     ? frontDepth : along);
             if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return false;
+            frontExits.add(new int[]{x, y});
         }
         for (int depth = -BUNKER_HALF_DEPTH;
              depth <= BUNKER_HALF_DEPTH; depth++) {
@@ -779,11 +781,16 @@ public final class FortressWallStamper implements GenStage {
                 exits.add(new int[]{x, y});
             }
         }
-        return rearExitReachesMapEdge(grid, exits, cx, cy, axis);
+        // The bunker footprint itself can be the only bridge between two
+        // otherwise open areas. Prove both sides remain connected after that
+        // footprint becomes solid so the orphan-pocket cleanup cannot later
+        // consume either side of an authored firing window.
+        return exitsReachMapEdge(grid, frontExits, cx, cy, axis)
+                && exitsReachMapEdge(grid, exits, cx, cy, axis);
     }
 
-    private static boolean rearExitReachesMapEdge(NavigationGrid grid, List<int[]> exits,
-                                                   int cx, int cy, TraversalAxis axis) {
+    private static boolean exitsReachMapEdge(NavigationGrid grid, List<int[]> exits,
+                                              int cx, int cy, TraversalAxis axis) {
         if (exits.isEmpty()) return false;
         boolean[][] seen = new boolean[grid.getWidth()][grid.getHeight()];
         Deque<int[]> queue = new ArrayDeque<>();

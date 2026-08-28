@@ -6,8 +6,8 @@ Written: 2026-08-23
 
 Updated: 2026-08-28 — shipped shared-edge windows for Conquest bunkers,
 widened compound firing aprons while preserving functional parcel members,
-guaranteed standable interior anchors, and made pocket sealing yield to a
-compound.
+added role-readable compound dressing, guaranteed standable interior anchors,
+and made pocket sealing yield to a compound.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -144,6 +144,10 @@ cell apertures model a thick shell; shared-edge windows model a narrow divider
 without consuming either side. The apron expands the minimum parcel claimed by
 a walled compound; it may not reduce an intended member below a hollow shell
 with a standable interior and doorway.
+Compound dressing is clustered by role and place: logistics props explain each
+military wing, while planters and seating define shared domestic space. Hard
+fixtures and visual-only clutter both preserve gates, building thresholds,
+two-cell circulation, road reservations, and final walkable connectivity.
 
 ## City, station, and ship families
 
