@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ui.highlight;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
+import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,41 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class ExtractionCommanderOverlayPublisherTest {
+
+    @Test
+    void defenderOverlayPublishesOnlySourceAndOwnInterdictionActions() {
+        HighlightOverlay overlay = new HighlightOverlay();
+        ExtractionDefenseSnapshot detail = new ExtractionDefenseSnapshot(
+                120, Faction.DEFENDER,
+                ExtractionDefenseSnapshot.Phase.ALARM_INTERDICTION,
+                "EXTRACTION-01", "package", 30, 20,
+                true, 100, false, false,
+                ExtractionPayloadObjective.Failure.NONE,
+                2, 118, 3, 0,
+                List.of(new ExtractionDefenseSnapshot.SquadIntent(9,
+                        ExtractionDefenseSnapshot.Role.INTERDICTION,
+                        "BELIEVED_CONTACT_INTERDICTION",
+                        AssignmentKind.DEFEND_SITE, 22, 14, false)));
+        CommanderSnapshot<ExtractionDefenseSnapshot> commander =
+                new CommanderSnapshot<>(Faction.DEFENDER,
+                        "extraction-defender", "ALARM_INTERDICTION", 120, 118,
+                        3, 0, List.of(), List.of(), detail);
+
+        ExtractionCommanderOverlayPublisher.publish(overlay, commander, 9);
+
+        assertEquals(1, overlay.source(
+                HighlightOverlay.SRC_EXTRACTION_SOURCE).size());
+        assertEquals(1, overlay.source(
+                HighlightOverlay.SRC_EXTRACTION_ACTIONS).size());
+        assertEquals(1, overlay.source(
+                HighlightOverlay.SRC_EXTRACTION_SELECTED_ACTION).size());
+        assertFalse(overlay.hasSource(
+                HighlightOverlay.SRC_EXTRACTION_PAYLOAD));
+        assertFalse(overlay.hasSource(
+                HighlightOverlay.SRC_EXTRACTION_GUIDE));
+        assertFalse(overlay.hasSource(
+                HighlightOverlay.SRC_EXTRACTION_EGRESS));
+    }
 
     @Test
     void publishesSourcePayloadEgressActionsAndSelectedIntent() {

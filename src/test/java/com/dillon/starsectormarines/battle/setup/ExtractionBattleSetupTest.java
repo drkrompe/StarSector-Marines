@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionObjective;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
+import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,8 @@ class ExtractionBattleSetupTest {
                     .count());
             assertTrue(sim.getCommander(Faction.MARINE)
                     instanceof ExtractionCommand);
-            assertEquals(null, sim.getCommander(Faction.DEFENDER));
+            assertTrue(sim.getCommander(Faction.DEFENDER)
+                    instanceof ExtractionDefenderCommand);
         }
     }
 }

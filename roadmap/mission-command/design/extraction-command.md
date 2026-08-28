@@ -1,10 +1,10 @@
 # Extraction command
 
-Status: ACTIVE — generic Extraction has an authoritative payload law and Marine corridor commander; live acceptance and authored variant pictures remain open.
+Status: ACTIVE — generic Extraction has an authoritative payload law and paired corridor/interdiction commanders; canonical/live acceptance and authored variant pictures remain open.
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — added route-aware generic Marine pickup, escort, screen, and egress command with diagnostics and deterministic evidence.
+Updated: 2026-08-27 — added bounded defender source security and belief-driven interdiction without disclosing hidden corridor truth.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `campaign-event-nouns.md` for the authored event stakes.
@@ -61,13 +61,26 @@ progress, escort control, stable role, reason, assignment kind, target cell,
 and local-contact state. The selected-squad overlay, squad dump, and
 perspective trace all consume that picture. `commanderEvidence
 -Pmission=extraction` replays the production fixture twice under forced-serial
-scheduling; the current canonical fixture reaches an explained defender win
-after Marine recovery and partial transit rather than stalling at the source.
+scheduling. With paired command active, the current canonical fixture reaches
+an explained defender win at tick 5,079 before uncontested source control; it
+proves quiet security, ownership, redaction, and deterministic terminal law,
+but a fixture that actually raises the alarm is still needed to accept the
+post-alarm evidence branch.
 
-The conventional defender remains without a generic Extraction commander. It
-may eventually receive a bounded source-alarm/interdiction strategy.
-Authored swarm or security-network opposition remains a mission director when
-its force and knowledge semantics are not those of a human squad commander.
+Generic conventional defenders receive a small mission-owned patrol pool while
+authored garrisons retain their posts. One patrol guards the public source and
+the rest remain an explicit reserve until the identity-free alarm mobilizes at
+most three squads. Responders use defender-local contact beliefs for
+interdiction when available; without a contact they reinforce separate
+reachable source-perimeter positions. The alarm authorizes mobilization but
+never reveals egress, live package position, progress, cohort state, escort,
+controlling squad, or hostile identity.
+
+The defender overlay, squad dump, and perspective trace publish only the
+source, alarm and terminal disclosure, a coarse contact summary, mobile/reserve
+counts, and own-force roles, reasons, and rally cells. Authored swarm or
+security-network opposition remains a mission director when its force and
+knowledge semantics are not those of a human squad commander.
 
 ## Civilian Rescue
 
@@ -96,5 +109,6 @@ The survivor branch retains cohort/egress semantics; the archive remains a
 source-recovery branch without invented boarding state.
 
 `generic-extraction-corridor-command.md`,
+`generic-extraction-interdiction-command.md`,
 `rescue-corridor-command-picture.md`, and
 `silent-colony-expedition-branches.md` own the open command work.

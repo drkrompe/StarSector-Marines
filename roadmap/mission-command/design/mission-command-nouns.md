@@ -137,7 +137,7 @@ seed is not a balance target.
 | Sabotage | Three named-site task groups with planter logistics and site security | Paired production duel shipped | `sabotage-command.md` |
 | Assault | Two-dimensional search sectors versus strongpoint security areas | Paired production duel; live/evidence acceptance remains | `assault-command.md` |
 | Raid | Primary high-value target plus authored ingress/egress corridor | Paired production duel; canonical/live acceptance remains | `raid-command.md` |
-| Extraction | Payload/cohort corridor, with scenario-specific branches or directors | Generic Marine corridor command shipped; defender and authored variants remain | `extraction-command.md` |
+| Extraction | Payload/cohort corridor, with bounded conventional interdiction or scenario-specific directors | Paired generic commanders shipped; canonical/live acceptance and authored variants remain | `extraction-command.md` |
 
 Opening Operations reuse the Assault battle type but keep scenario-specific
 preserve/secure command meaning. Civilian Rescue and Silent Colony are authored

@@ -1,10 +1,14 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckGenerator;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * The company ship's interior, as operations screens see it.
@@ -21,25 +25,63 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
  * they are the same fact: there is no such place aboard. That is what a screen
  * consults before offering to take them to it.
  *
- * <p>Generation is deferred to first use rather than done in the constructor. A
- * deck is a few tens of milliseconds of work, most sessions never open a room
- * view at all, and nothing about the ship changes in the meantime.
+ * <p><b>One scene, one clock, held across page flips.</b> Not a scene per
+ * screen, and emphatically not a scene rebuilt when the player opens a page.
+ * The question a shared ship can answer and a per-screen one cannot is where
+ * somebody <em>was</em>: flip from berthing to the lab and back, and the
+ * technician who was walking to the parts cage should be at the parts cage,
+ * because half a minute passed. Give each screen its own simulation and that
+ * has no answer at all — the two pages are different ships — and freeze the
+ * room the player is not looking at and the answer is "exactly where you left
+ * them", which reads as a diorama rather than a crew.
+ *
+ * <p>So the ship is run by whoever is ticking the panel, not by the page that
+ * happens to be up. Time aboard is a property of the ship.
+ *
+ * <p><b>The whole ship runs, not the part being looked at.</b> She is crewed to
+ * her complement and every compartment ticks, whether or not any screen frames
+ * it — a ship whose crew exist only where the camera is pointing cannot answer
+ * the question above at all. The cost is not the reason to do less: a manned
+ * capital transport is a few hundred hands and well under a millisecond a
+ * frame, against a sixteen millisecond budget.
+ *
+ * <p>She is built when the operations panel starts ticking her rather than in
+ * the constructor, which is a matter of when rather than whether — the context
+ * is assembled before the panel is on screen, and generating a deck there would
+ * put the work in front of the first frame instead of behind it.
  */
 public final class CompanyDeck {
 
     private final CompanyShip ship;
     private final long seed;
+    private final BattleSprites sprites;
+    private final Supplier<List<MechVariant>> lance;
     private MapResult deck;
     private DeckGraph rooms;
+    private ShipDeckBattleScene scene;
+    private float elapsedSeconds;
 
     /**
      * @param seed fixes the layout, so the ship a player leaves is the ship they
      *     come back to; it belongs to the company rather than to the session
+     * @param sprites the ship's own sprite cache, or null for a headless caller;
+     *     one per ship rather than one per screen, for the same reason there is
+     *     one deck
+     * @param lance the machines to park in her berths, read when the ship is
+     *     first crewed; servicing work only exists while something is berthed
      */
-    public CompanyDeck(CompanyShip ship, long seed) {
+    public CompanyDeck(CompanyShip ship, long seed, BattleSprites sprites,
+                       Supplier<List<MechVariant>> lance) {
         if (ship == null) throw new IllegalArgumentException("a company ship is required");
         this.ship = ship;
         this.seed = seed;
+        this.sprites = sprites;
+        this.lance = lance == null ? List::of : lance;
+    }
+
+    /** A ship nobody will draw and nothing is berthed in. */
+    public CompanyDeck(CompanyShip ship, long seed) {
+        this(ship, seed, null, null);
     }
 
     public CompanyShip ship() {
@@ -86,6 +128,57 @@ public final class CompanyDeck {
     public DeckGraph rooms() {
         generate();
         return rooms;
+    }
+
+    /** The ship's sprite cache, shared by every screen that draws her. */
+    public BattleSprites sprites() {
+        return sprites;
+    }
+
+    /**
+     * The live ship: one simulation, crewed to her complement, that every room
+     * view frames.
+     *
+     * <p>Built and manned on first call and then handed back unchanged, which is
+     * the whole point — a screen that got a fresh scene would be looking at a
+     * different crew each time the player walked in.
+     */
+    public ShipDeckBattleScene scene() {
+        if (scene != null) return scene;
+        generate();
+        scene = new ShipDeckBattleScene(deck, rooms, seed, sprites);
+        scene.occupyGantries(lance.get());
+        scene.manDeck();
+        return scene;
+    }
+
+    /** Whether the ship has been built and crewed yet. */
+    public boolean live() {
+        return scene != null;
+    }
+
+    /**
+     * Run the ship on, crewing her if this is the first tick.
+     *
+     * <p>Called by the panel rather than by a screen, so the whole ship keeps
+     * working while the player is reading a page that frames none of it. A
+     * screen owning this is what makes the crew stop when nobody is watching,
+     * and gating it on a room view having been opened is the same mistake one
+     * step removed — the ship would then start when first looked at, so the
+     * berthing screen a player opens first would always show a watch that had
+     * just come on.
+     */
+    public void advance(float dt) {
+        if (!(dt > 0f)) return;
+        if (!ship.habitable()) return;
+        scene();
+        elapsedSeconds += dt;
+        scene.advanceTo(elapsedSeconds);
+    }
+
+    /** How long the ship has been running since she was first looked at. */
+    public float elapsedSeconds() {
+        return elapsedSeconds;
     }
 
     private void generate() {

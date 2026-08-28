@@ -4,8 +4,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — bounded live-fire hosts now load the projectile cache required
-by their selected shot layer and anchor authored weapon clips in the campaign world.
+Updated: 2026-08-27 — allegiance and the durability bar enter the vocabulary; unit
+decoration now reports the armor pool and codes ownership.
 
 ## Vocabulary
 
@@ -20,6 +20,8 @@ by their selected shot layer and anchor authored weapon clips in the campaign wo
 - A **custom command** is an explicit boundary for a pass that owns its own GL lifecycle or persistent target, such as an FBO-backed accumulator. It is not a shortcut for ordinary geometry.
 - A **sheet quad** is a sub-rectangle batched from a shared sheet; a **sprite** is a whole texture rendered through the host API. They are presentation forms, not simulation identity.
 - A **render appearance** is a type-shared render-side description of what an entity kind can draw. Dynamic pose, health, visibility, and interpolation remain current simulation inputs.
+- An **allegiance** is the presentation reading of a unit's simulation faction from the player's chair: player, ally, neutral, or enemy. Faction is the side a unit fights for; allegiance is how the person watching should read it. The number of ownership buckets a player can distinguish at a glance stays four however many factions the simulation fields.
+- A **durability bar** is the ownership-coded gauge above an entity reporting its remaining combat durability — the armor pool stacked over the structure pool. It is a per-frame read of current pools, never a second durability authority.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
 - An **embedded scene host** is a bounded consumer of the ordinary battle camera,
   simulation view, and selected render layers. It owns its viewport and framing,
@@ -61,7 +63,7 @@ Ground is a dense, cell-backed surface. Current camera culling range-loops the v
 1. Paint order is semantic. Change `RenderLayer` order or same-layer producer order only after re-deriving the affected occlusion contract.
 2. Collectors are per-frame, read-only presentation consumers. They never mutate simulation state or perform GL work.
 3. The engine owns batching and GL containment; a custom pass owns its complete local GL lifecycle. No middle ground leaks state across the boundary.
-4. Commands are ephemeral and pooled. They describe this frame's projection and must not become persistent entity data or a second source of position, health, or visibility.
+4. Commands are ephemeral and pooled. They describe this frame's projection and must not become persistent entity data or a second source of position, health, or visibility. A decoration that would need to remember a previous frame — a trailing chip bar, a damage flash — needs a home for that state before it can exist, not a retained draw command.
 5. Presentation identity is resolved render-side from stable conceptual identity. Asset handles and host graphics objects do not cross into the simulation tier.
 6. Batch fewer calls without changing what paints on top. Grouping is valid only when it preserves strict painter order and required blend/texture state.
 7. Dense terrain culling and future residency optimize the view, not the simulation. Navigation, LoS, walls, fog, occupancy, and saves remain cell-addressed.
@@ -71,8 +73,12 @@ Ground is a dense, cell-backed surface. Current camera culling range-loops the v
 10. Headless evidence may substitute a graphics drain, never a scene model. A
     snapshot of an embedded battle scene must collect the same simulation,
     camera, selected render systems, command order, and authored assets as live.
+11. Ownership coding is redundant by construction. An allegiance is carried on hue *and* at least one non-color channel, so a busy field, a colorblind reader, and a pulled-back camera all still resolve whose unit it is. Decoration measured in screen pixels stays legible at any zoom; decoration measured in cells does not.
+12. A durability band is drawn only for a pool the entity actually carries. Armor is optional and live-only, so an armorless body reads visibly slimmer rather than showing an empty armor track it could never fill.
 
 ## Boundaries and extension paths
+
+Allegiance is resolved render-side from simulation faction; the simulation never gains a presentation ownership field. The player's side is `MARINE` by standing convention across missions, so `MARINE` reads as player, `CIVILIAN` as neutral, and anything else as enemy. The ally reading has no producer until the simulation fields a friendly non-player faction — the same allied-contributor gap `fog-of-war-nouns.md` law 2 already names — and is styled ahead of that work so the presentation side needs no second design pass when it lands.
 
 `surface-relief-nouns.md` owns the ground-relief composite that may redirect the GROUND layer while preserving the render pipeline's order. `air-nouns.md` owns airborne behavior; this model only guarantees the layered presentation space it consumes. `vanilla-combat-bridge-nouns.md` owns the vanilla host and selects the bridge's subset of ground layers. `moddable-tilesets-nouns.md` owns tile catalog and generation mapping, while rendering resolves their authored visual identity.
 

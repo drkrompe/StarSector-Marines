@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
@@ -15,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -165,6 +167,32 @@ final class MannedDeckTest {
                         "re-advancing to the same instant moved somebody");
             }
         }
+    }
+
+    /**
+     * Every room view frames one ship, and she keeps running between them.
+     *
+     * <p>The question a shared scene answers and a per-screen one cannot is
+     * where somebody <em>was</em> while the player was reading another page.
+     * Two scenes make the two pages different ships; a scene that only runs
+     * while its page is up puts everybody exactly where they were left, however
+     * long the player was gone.
+     */
+    @Test
+    void aCompanyDeckIsOneShipAcrossEveryRoomView() {
+        CompanyDeck ship = new CompanyDeck(CompanyShip.founding(), SEED);
+        ShipDeckBattleScene fromBerthing = ship.scene();
+        assertSame(fromBerthing, ship.scene(), "two room views got two different ships");
+        assertSame(fromBerthing.simulation(), ship.scene().simulation(),
+                "one ship is running two simulations");
+        assertTrue(fromBerthing.simulation().getRoster().liveCount() > 0,
+                "the ship was crewed with nobody");
+
+        for (int frame = 0; frame < 600; frame++) ship.advance(1f / 60f);
+        assertTrue(ship.elapsedSeconds() > 9f,
+                "the ship only ran " + ship.elapsedSeconds() + " seconds");
+        assertSame(fromBerthing, ship.scene(),
+                "coming back to a room view rebuilt the ship");
     }
 
     private static DeckSizing.DeckPlan transportPlan() {
