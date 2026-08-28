@@ -4,6 +4,7 @@
   "idPrefix": "doodad.water",
   "cellPx": 16,
   "alphaMin": 40,
-  "gridCell": 50,
-  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the grid size below, which yields the sheet's cells exactly. 1254x1254 raw at 50 px splits to the shipped 25x25 grid. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Water is a zero-cover blocker: non-walkable and see-through, publishing no edge cover profile."
+  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the layout below. 1254x1254 at 25x25. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Water is a zero-cover blocker: non-walkable and see-through, publishing no edge cover profile.",
+  "gridCols": 25,
+  "gridRows": 25
 }
