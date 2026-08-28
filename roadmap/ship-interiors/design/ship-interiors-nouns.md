@@ -409,6 +409,17 @@ far whose empty deck *is* the room. The stretch between the firing line and the
 butts is marked, reserved before anything is placed, and kept clear of fixtures
 in both directions — nothing may stand in it, and nothing may open onto it.
 
+That deck is **shut** rather than merely reserved. A reservation is a rule about
+furniture: it stops the fill standing anything in the lane and leaves everybody
+else free to walk down it, which for a beaten zone is the whole failure. Shut
+deck is closed to movement and open to sight and shot — see-through, carrying no
+edge cover, and tagged a fixture rather than a wall so nothing seeds it with
+destructible hit points. That is the treatment water already gets, and for the
+same reason: what stops the deck here is not a wall. Shutting is recorded during
+the fill and applied only once the fill is known to be kept, because deck closed
+off by a discarded fill would stay closed — a strip through a room that nothing
+can cross and nothing explains.
+
 Density varies on purpose. Work areas are dense and cluttered; transit is clear
 and legible; the boundary between them is visible from the fixtures alone,
 without a floor decal explaining it.

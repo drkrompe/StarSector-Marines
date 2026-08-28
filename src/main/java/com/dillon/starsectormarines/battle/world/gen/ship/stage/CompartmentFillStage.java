@@ -49,7 +49,12 @@ public final class CompartmentFillStage implements GenStage {
             int work = ctx.fixtureTasks.size();
             CompartmentFloor floor = new CompartmentFloor(ctx, compartment, fit);
             fitting.fit(floor);
-            if (!floor.circulationSurvives()) {
+            if (floor.circulationSurvives()) {
+                // Deck the fill wants shut is closed only now, because a fill
+                // that is thrown away must not leave a strip of the room that
+                // nothing can cross and nothing explains.
+                floor.seal();
+            } else {
                 // Roll the room back to bare deck rather than ship one that
                 // cannot be walked through — and roll back everything the
                 // fitting published, not merely what it can be seen to have

@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -181,5 +182,55 @@ class FiringRangeFittingTest {
 
     private static long key(int x, int y) {
         return ((long) x << 32) ^ (y & 0xffffffffL);
+    }
+
+    /**
+     * Nobody walks down the lane, and everybody can see and shoot along it.
+     *
+     * <p>Reserving the beaten zone only kept the fill out of it. What a range
+     * needs is that the deck itself refuses the route — otherwise the shortest
+     * way across the compartment runs between the firing line and the butts, and
+     * the pathfinder will happily take it.
+     *
+     * <p>Shut is not walled, and the second half matters as much as the first.
+     * The lane has to carry sight and rounds or the room does not work as a
+     * range and, in a boarding action, does not work as the long open sightline
+     * it ought to be.
+     */
+    @Test
+    void nobodyWalksDownTheLaneAndEverybodyCanShootAlongIt() {
+        int checked = 0;
+        for (long seed : SEEDS) {
+            Deck deck = generate(seed);
+            for (DeckGraph.Compartment range : rooms(deck.graph(), RoomPurpose.FIRING_RANGE)) {
+                for (FixtureTask point : work(deck, range, Affordance.PRACTICE)) {
+                    assertTrue(deck.map().grid.isWalkable(point.cellX(), point.cellY()),
+                            "seed " + seed + ": the firing point at " + point.cellX() + ","
+                                    + point.cellY() + " is somewhere nobody can stand");
+                    int stepX = Integer.signum(point.fixtureX() - point.cellX());
+                    int stepY = Integer.signum(point.fixtureY() - point.cellY());
+                    int x = point.cellX() + 2 * stepX;
+                    int y = point.cellY() + 2 * stepY;
+                    while (x != point.fixtureX() + stepX || y != point.fixtureY() + stepY) {
+                        checked++;
+                        assertTrue(!deck.map().grid.isWalkable(x, y),
+                                "seed " + seed + ": " + x + "," + y
+                                        + " is downrange and can be walked into");
+                        assertTrue(deck.map().grid.isSeeThrough(x, y),
+                                "seed " + seed + ": " + x + "," + y
+                                        + " is downrange and stops sight, so the lane is a wall");
+                        assertTrue(!deck.map().topology.isWall(x, y),
+                                "seed " + seed + ": " + x + "," + y
+                                        + " was tagged a wall, so the beaten zone renders as one");
+                        assertEquals(0, deck.map().grid.getWallHp(x, y),
+                                "seed " + seed + ": " + x + "," + y
+                                        + " was given wall hit points, so the lane is shootable");
+                        x += stepX;
+                        y += stepY;
+                    }
+                }
+            }
+        }
+        assertTrue(checked > 0, "no deck generated a lane, so nothing was checked");
     }
 }

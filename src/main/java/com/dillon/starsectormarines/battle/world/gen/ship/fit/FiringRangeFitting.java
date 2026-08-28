@@ -28,6 +28,13 @@ import java.util.List;
  * recipe reshaped later moves the firing line with it instead of leaving a
  * number here that has quietly stopped matching.
  *
+ * <p>Everything past the barrier is <b>shut</b> rather than reserved. A
+ * reservation is a rule about furniture: it keeps the fill from standing
+ * anything in the lane and leaves everybody else free to stroll down it. So the
+ * beaten zone is closed to movement while staying open to sight and to shot —
+ * the treatment water gets, and for the same reason, since what blocks the deck
+ * here is not a wall.
+ *
  * <p>Shooters stand <em>behind</em> the barrier and face the butts, which is why
  * the practice points are placed rather than searched for. A task point found
  * beside its fixture prefers a cell already reserved as circulation, and on a
@@ -121,14 +128,18 @@ public final class FiringRangeFitting implements RoomFitting {
         if (plan == null) return;
 
         int butts = along - BUTTS;
-        // The lane run is marked and reserved before anything is placed, so
-        // nothing the ready end does later can reach into it.
+        // The lane run is marked before anything is placed, so nothing the ready
+        // end does later can reach into it.
         mark(floor, plan.firingLine(), plan.laneFrom(),
                 butts - plan.firingLine(), plan.laneSpan());
         layFiringLine(floor, plan, butts);
-        reserve(floor, plan.firingLine() + 1, plan.laneFrom(),
-                butts - plan.firingLine() - 1, plan.laneSpan());
         layButts(floor, plan, butts, along);
+        // Everything past the barrier is shut, not merely reserved. Reserving it
+        // keeps the fill out and lets everybody else stroll down it, which is the
+        // one thing a range cannot have: a reservation is a rule about furniture,
+        // and a beaten zone is a rule about people.
+        closeOff(floor, plan.firingLine() + 1, plan.laneFrom(),
+                along - plan.firingLine() - 1, plan.laneSpan());
 
         // Behind the firing line: the run people come up, and the gear either
         // side of it. Hatches are joined to that run before anything is placed
@@ -286,6 +297,12 @@ public final class FiringRangeFitting implements RoomFitting {
                          int along, int across, int alongSpan, int acrossSpan) {
         int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
         floor.reserveLane(rect[0], rect[1], rect[2], rect[3]);
+    }
+
+    private void closeOff(CompartmentFloor floor,
+                          int along, int across, int alongSpan, int acrossSpan) {
+        int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
+        floor.closeOff(rect[0], rect[1], rect[2], rect[3]);
     }
 
     private void mark(CompartmentFloor floor,
