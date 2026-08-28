@@ -57,6 +57,16 @@ it) with the settings and no pieces, and the page will slice it on open.
 - `gridCell` — cell size *on the raw sheet*, in its own pixels. Used to split
   fused plates and to guess footprints, so it is worth measuring rather than
   guessing.
+- `note` — what is true of this sheet, shown when it is opened. Slice settings
+  say how to cut a sheet up but not what it *is*: that it has no alpha channel
+  and arrives as one fused plate, that its frames are not square, that it is a
+  patch composited into another sheet rather than a tileset of its own. A sheet
+  listed as `seeded — see note` is telling you to read this before slicing.
+
+Every raw sheet in `tilesets/` is seeded. Three are ready to cut — select the
+single fused piece and split it on the grid the note gives. The other three are
+seeded to record why they are *not* a straight ingest, which is worth more than
+leaving them in the queue as untouched art.
 
 `blocks` may also be pre-declared, so the walls a sheet is known to contain are
 named before anyone opens it:

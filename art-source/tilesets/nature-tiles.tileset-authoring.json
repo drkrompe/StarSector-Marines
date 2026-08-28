@@ -1,0 +1,9 @@
+{
+  "sheet": "art-source/tilesets/nature-tiles.raw.png",
+  "sheetName": "nature-tiles",
+  "idPrefix": "doodad.nature",
+  "cellPx": 80,
+  "alphaMin": 40,
+  "gridCell": 109,
+  "note": "Not a straight ingest. This is a 20-frame horizontal strip whose frames are not square (raw frames are about 109x724, shipped 60x80), and the current grid split assumes square cells, so it cannot be cut here in one action. It also loads as a sliced sheet addressed by frame index, not as col/row doodads, so re-exporting it through this tool would change its shape in the registry rather than just its coordinates. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Listed so the sheet is accounted for, not because it is ready to annotate."
+}
