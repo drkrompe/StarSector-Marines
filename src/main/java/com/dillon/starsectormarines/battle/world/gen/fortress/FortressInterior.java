@@ -3,6 +3,10 @@ package com.dillon.starsectormarines.battle.world.gen.fortress;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFitting;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -38,6 +42,13 @@ public final class FortressInterior {
 
     /** The open ground between the buildings: parade square, vehicle park, verge. */
     private static final GroundKind YARD = GroundKind.DIRT;
+
+    /**
+     * How well a garrison keeps its own buildings. A working arrangement rather
+     * than a cramped one: this is a defended installation, not a prize hull
+     * being run on a shoestring.
+     */
+    private static final RoomFit FIT = RoomFit.STANDARD;
 
     /** Where a fortress's buildings ended up, and what it could not find room for. */
     public record Result(List<RoomPacker.Placed> placed, List<FortressBuilding> unplaced) {
@@ -76,7 +87,51 @@ public final class FortressInterior {
             }
         }
         metalYard(ctx, buildable, placed);
+        furnish(ctx, placed);
         return new Result(placed, unplaced);
+    }
+
+    /**
+     * Furnish each building with the fitting authored for its purpose.
+     *
+     * <p>The same fittings that furnish a deck. A magazine holds racks and ready
+     * crates whether it is aboard a ship or against a fortress wall, and a
+     * vehicle shed holds the same five-by-seven bays — which is the whole reason
+     * the fittings stopped being shipboard. A purpose with no authored fitting
+     * is left bare rather than scattered with something generic: an empty
+     * building is honest about not being authored yet, one full of crates looks
+     * finished and is not.
+     *
+     * <p>Runs after the yard is opened, not before. A fixture may take its cell
+     * out of circulation, and the yard pass opens everything that is not
+     * walkable and not wall — so furnishing first would have the yard quietly
+     * re-open the cells the fill had just occupied.
+     *
+     * <p>The rollback is the deck's, for the deck's reason: a fill that seals
+     * its own building is worse than no fill, because the building still stands
+     * and still shows a door and cannot be entered. What is thrown away is
+     * everything the fitting published, not merely what can be seen — a
+     * rolled-back bay that kept its berths would offer to service machines on
+     * empty floor and look entirely correct from outside.
+     */
+    private static void furnish(GenContext ctx, List<RoomPacker.Placed> placed) {
+        for (RoomPacker.Placed room : placed) {
+            RoomFitting fitting = RoomFittings.forPurpose(room.purpose());
+            if (fitting == null) continue;
+
+            int doodads = ctx.doodads.size();
+            int berths = ctx.gantries.size();
+            int work = ctx.fixtureTasks.size();
+            RoomFloor floor = new RoomFloor(ctx, room, FIT);
+            fitting.fit(floor);
+            if (floor.circulationSurvives()) {
+                floor.seal();
+            } else {
+                ctx.doodads.subList(doodads, ctx.doodads.size()).clear();
+                ctx.gantries.subList(berths, ctx.gantries.size()).clear();
+                ctx.fixtureTasks.subList(work, ctx.fixtureTasks.size()).clear();
+            }
+        }
     }
 
     /**
@@ -100,8 +155,8 @@ public final class FortressInterior {
         boolean[][] structure = new boolean[ctx.width][ctx.height];
         for (RoomPacker.Placed room : placed) {
             for (int[] cell : room.shape().wall()) {
-                int x = room.x() + cell[0];
-                int y = room.y() + cell[1];
+                int x = room.originX() + cell[0];
+                int y = room.originY() + cell[1];
                 if (x >= 0 && y >= 0 && x < ctx.width && y < ctx.height) structure[x][y] = true;
             }
         }

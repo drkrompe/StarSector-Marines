@@ -115,7 +115,7 @@ class FortressInteriorPreviewTest {
         for (RoomPacker.Placed room : result.placed()) {
             g.setColor(KEY.getOrDefault(room.purpose(), Color.GRAY));
             for (int[] cell : room.shape().filled()) {
-                g.fillRect((room.x() + cell[0]) * CELL_PX, flip(room.y() + cell[1]),
+                g.fillRect((room.originX() + cell[0]) * CELL_PX, flip(room.originY() + cell[1]),
                         CELL_PX, CELL_PX);
             }
             g.setColor(Color.WHITE);
