@@ -20,11 +20,11 @@ import java.util.Locale;
  * committing to it would be exactly the hidden modifier that law forbids.
  *
  * <p><b>This reports what the simulation applies, not what the catalog
- * declares.</b> The two are not the same yet: a breacher assist authors a
- * frontal screen alongside its movement boost, and only the movement half runs
- * today. Advertising the screen before the mitigation lands would make the
- * Armory a brochure rather than evidence, so {@link #effects} lists the live
- * effects and gains the screen when that half ships.
+ * declares.</b> A breacher assist authors a movement boost and a frontal
+ * screen, and both now run — so both are quoted, including the arc, because a
+ * screen a player believes is all-round is worse than no screen at all.
+ * Anything a future system authors but does not yet simulate stays out of this
+ * copy until it does; the Armory is evidence, not a brochure.
  */
 final class IntegralSystemCopy {
 
@@ -70,7 +70,7 @@ final class IntegralSystemCopy {
         IntegralSystemDef system = armor.integralSystem();
         List<String> parts = new ArrayList<>();
         parts.add(system.description());
-        String effect = effect(system);
+        String effect = effectDetail(system);
         if (!effect.isEmpty()) {
             parts.add(effect + ", then the suit is exactly the suit it was.");
         }
@@ -79,13 +79,42 @@ final class IntegralSystemCopy {
     }
 
     /**
-     * What the suit measurably does while the system runs. Only effects the
-     * simulation actually applies appear here — see the class note.
+     * What the suit measurably does while the system runs, sized for a tile.
+     * Only effects the simulation actually applies appear here — see the class
+     * note. Terse on purpose: a designer tile clips past roughly eighty
+     * characters, and the pattern name and its clock have already spent half of
+     * that.
      */
     private static String effect(IntegralSystemDef system) {
         BreacherAssistSpec breacher = system.breacherAssist();
         if (breacher == null) return "";
-        return "Moves " + percent(breacher.moveSpeedMult() - 1f) + " faster while it runs";
+        String movement = percent(breacher.moveSpeedMult() - 1f) + " faster";
+        return system.grantsMitigation()
+                ? movement + ", " + percent(breacher.frontalResistance()) + " refused over "
+                        + degrees(breacher.shieldedArcDegrees())
+                : movement;
+    }
+
+    /**
+     * The same effects with room to say them properly. The arc is spelled out
+     * rather than implied: the screen faces one way, and a player who reads it
+     * as all-round will walk a heavy suit into a flanking gun.
+     */
+    private static String effectDetail(IntegralSystemDef system) {
+        BreacherAssistSpec breacher = system.breacherAssist();
+        if (breacher == null) return "";
+        String movement = "Moves " + percent(breacher.moveSpeedMult() - 1f)
+                + " faster while it runs";
+        return system.grantsMitigation()
+                ? movement + " and turns aside " + percent(breacher.frontalResistance())
+                        + " of what reaches its " + degrees(breacher.shieldedArcDegrees())
+                        + " front, leaving the flanks exactly as exposed as they were"
+                : movement;
+    }
+
+    /** Whole degrees with the sign; an arc is authored to the degree and read at a glance. */
+    private static String degrees(float value) {
+        return Math.round(value) + "°";
     }
 
     private static String availability(IntegralSystemDef system) {

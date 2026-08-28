@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.mech.MechLocomotion;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
+import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
@@ -159,8 +160,10 @@ public final class UnitRosterService {
     private final SquadService squadService = new SquadService(
             entityWorld, components, this::onSquadAssignment);
     private final RoleService roleService = new RoleService(entityWorld, components);
+    private final MitigationService mitigationService =
+            new MitigationService(entityWorld, components);
     private final IntegralSystemService integralSystemService =
-            new IntegralSystemService(entityWorld, components);
+            new IntegralSystemService(entityWorld, components, mitigationService);
     private final HomeService homeService = new HomeService(entityWorld, components);
     private final HubStateService hubStateService = new HubStateService(entityWorld, components);
     private final TurretStateService turretStateService = new TurretStateService(entityWorld, components);
@@ -299,6 +302,9 @@ public final class UnitRosterService {
     /** Data owner for the INTEGRAL_SYSTEM component — the capability a unit's armour pattern carries. */
     public IntegralSystemService integralSystems() { return integralSystemService; }
 
+    /** Data owner for the MITIGATION component — the live screen an actor can hold up. */
+    public MitigationService mitigations() { return mitigationService; }
+
     /** Data owner for the VISION component (sight stats) — inject into consumers that read/mutate visionRange/airLosRadius. */
     public VisionService vision() { return visionService; }
 
@@ -428,6 +434,12 @@ public final class UnitRosterService {
         boolean hasArmor = spec.maxArmor > 0f;
         boolean hasSecondary = spec.specialEquipment != null;
         boolean hasIntegralSystem = spec.integralSystem != null;
+        // MITIGATION iff something the unit carries can raise a screen. Presence is
+        // "can be screened", not "is screened right now" (the ARMOR shape rather
+        // than the SECONDARY_WEAPON one): the damage path resolves the arc on every
+        // hit, and paying an archetype move for each grant and expiry would put a
+        // table reshuffle on it. Live-only.
+        boolean hasMitigation = hasIntegralSystem && spec.integralSystem.grantsMitigation();
         // SPRITE iff sheet-drawn (UnitType.drawnAsSheet) — see the bullet above.
         boolean sheetDrawn = spec.type.drawnAsSheet();
         boolean layerDrawn = spec.type.drawnAsLayers();
@@ -469,7 +481,7 @@ public final class UnitRosterService {
         boolean mechLayerDrawn = spec.type.drawnAsMechLayers();
         ComponentType[] archetype = new ComponentType[
                 5 + (hasArmor ? 1 : 0) + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
-                  + (hasIntegralSystem ? 1 : 0)
+                  + (hasIntegralSystem ? 1 : 0) + (hasMitigation ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
                   + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 3 : 0)
                   + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
@@ -491,6 +503,7 @@ public final class UnitRosterService {
         }
         if (hasSecondary) archetype[c++] = components.SECONDARY_WEAPON;
         if (hasIntegralSystem) archetype[c++] = components.INTEGRAL_SYSTEM;
+        if (hasMitigation) archetype[c++] = components.MITIGATION;
         if (hasBody) archetype[c++] = components.KINEMATICS;
         if (inSquad) archetype[c++] = components.SQUAD;
         if (hasHome) archetype[c++] = components.HOME;
