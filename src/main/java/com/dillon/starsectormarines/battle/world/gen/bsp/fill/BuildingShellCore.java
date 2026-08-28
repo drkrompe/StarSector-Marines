@@ -228,16 +228,11 @@ final class BuildingShellCore {
         // lookup instead of zone-graph inference.
         labelRooms(grid, topology, bl, bt, br, bb, layout, interior, config);
 
-        // Purpose-bearing rooms that touch the facade receive deliberate
-        // firing apertures. They remain structural, non-walkable wall cells;
-        // only LoS and projectile rays pass through. Shared circulation and
-        // public thresholds stay protected by the purpose filter.
-        if (config.layoutRecipe == BuildingLayouts.LayoutRecipe.APARTMENT_BLOCK
-                || config.layoutRecipe == BuildingLayouts.LayoutRecipe.MEDICAL_CLINIC
-                || config.layoutRecipe == BuildingLayouts.LayoutRecipe.DENSE_TENEMENT
-                || config.layoutRecipe == BuildingLayouts.LayoutRecipe.DENSE_MARKET) {
-            stampPurposeWindows(grid, topology, bl, bt, br, bb, config.layoutRecipe);
-        }
+        // Facade rooms receive recipe-appropriate firing apertures. They
+        // remain structural, non-walkable wall cells; only LoS and projectile
+        // rays pass through. Secured rooms such as armories, parts cages,
+        // pharmacies, and server rooms deliberately retain opaque walls.
+        stampExteriorWindows(grid, topology, bl, bt, br, bb, config.layoutRecipe);
 
         // Doodad/fixture layout — TINY buildings get sparse scatter (shed),
         // LARGE buildings apply the per-type recipe. Purpose-aware commercial
@@ -249,9 +244,9 @@ final class BuildingShellCore {
                 anchor[0], anchor[1], interior[0], interior[1]);
     }
 
-    private static void stampPurposeWindows(NavigationGrid grid, CellTopology topology,
-                                            int bl, int bt, int br, int bb,
-                                            BuildingLayouts.LayoutRecipe recipe) {
+    private static void stampExteriorWindows(NavigationGrid grid, CellTopology topology,
+                                             int bl, int bt, int br, int bb,
+                                             BuildingLayouts.LayoutRecipe recipe) {
         stampWindowRuns(grid, topology, bl, bt, br, bb,
                 BuildingPlacement.Side.TOP, recipe);
         stampWindowRuns(grid, topology, bl, bt, br, bb,
@@ -272,36 +267,46 @@ final class BuildingShellCore {
         int min = horizontal ? bl + 1 : bt + 1;
         int max = horizontal ? br - 1 : bb - 1;
         int runStart = -1;
+        boolean inRun = false;
         RoomPurpose runPurpose = null;
         for (int along = min; along <= max + 1; along++) {
             RoomPurpose purpose = along <= max
                     ? inwardPurpose(topology, bl, bt, br, bb, side, along) : null;
-            boolean eligible = supportsWindow(recipe, purpose);
-            if (eligible && purpose == runPurpose) continue;
-            if (runStart >= 0) {
+            boolean eligible = along <= max && supportsWindow(recipe, purpose);
+            if (eligible && inRun && purpose == runPurpose) continue;
+            if (inRun) {
                 stampWindow(grid, topology, bl, bt, br, bb, side,
                         (runStart + along - 1) / 2);
             }
             runStart = eligible ? along : -1;
+            inRun = eligible;
             runPurpose = eligible ? purpose : null;
         }
     }
 
     private static boolean supportsWindow(BuildingLayouts.LayoutRecipe recipe,
                                           RoomPurpose purpose) {
-        if (recipe == BuildingLayouts.LayoutRecipe.APARTMENT_BLOCK) {
-            return purpose == RoomPurpose.APARTMENT_LIVING
+        return switch (recipe) {
+            case WAREHOUSE -> purpose == null;
+            case APARTMENT_BLOCK -> purpose == RoomPurpose.APARTMENT_LIVING
                     || purpose == RoomPurpose.BEDROOM;
-        }
-        if (recipe == BuildingLayouts.LayoutRecipe.DENSE_TENEMENT) {
-            return purpose == RoomPurpose.BEDROOM;
-        }
-        if (recipe == BuildingLayouts.LayoutRecipe.DENSE_MARKET) {
-            return purpose == RoomPurpose.SHOP_FLOOR;
-        }
-        return recipe == BuildingLayouts.LayoutRecipe.MEDICAL_CLINIC
-                && (purpose == RoomPurpose.TREATMENT_ROOM
-                    || purpose == RoomPurpose.PATIENT_WARD);
+            case SHOP, DENSE_MARKET -> purpose == RoomPurpose.SHOP_FLOOR;
+            case INDUSTRIAL_FACILITY -> purpose == null
+                    || purpose == RoomPurpose.LOADING_BAY
+                    || purpose == RoomPurpose.PRODUCTION_FLOOR
+                    || purpose == RoomPurpose.CONTROL_ROOM;
+            case COMMAND_CENTER -> purpose == RoomPurpose.KEEP_ENTRY
+                    || purpose == RoomPurpose.KEEP_INNER;
+            case BARRACKS -> purpose == RoomPurpose.BARRACKS;
+            case VEHICLE_BAY -> purpose == RoomPurpose.VEHICLE_BAY;
+            case CIVIC_HEADQUARTERS -> purpose == RoomPurpose.CIVIC_RECEPTION
+                    || purpose == RoomPurpose.CIVIC_OFFICE
+                    || purpose == RoomPurpose.CONFERENCE_ROOM;
+            case MEDICAL_CLINIC -> purpose == RoomPurpose.TREATMENT_ROOM
+                    || purpose == RoomPurpose.PATIENT_WARD;
+            case DENSE_TENEMENT -> purpose == RoomPurpose.BEDROOM;
+            case SHED, HOME, ARMORY -> false;
+        };
     }
 
     private static RoomPurpose inwardPurpose(CellTopology topology,

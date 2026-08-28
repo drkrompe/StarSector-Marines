@@ -52,6 +52,7 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDamageResolver;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
@@ -347,6 +348,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final DamageService damageService;
     /** Stateless body of {@code applyDamage} — cover-curve / HP write / death cascade / leader promotion / morale drain. Wired into {@link #damageService} as the damage applier so inline and queued paths share semantics. */
     private final DamageResolver damageResolver;
+    private final VehicleDamageResolver vehicleDamageResolver;
     /**
      * The battle's single random stream, seeded at construction.
      *
@@ -474,8 +476,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 // deathsThisFrame list (read post-advance by the death-voice
                 // consumers via identity()/world() by-id — IDENTITY survives release).
                 id -> deathsThisFrame.add(id), deathDispatcher, rng);
+        this.vehicleDamageResolver = new VehicleDamageResolver(rosterService);
         this.damageService = new DamageService(
-                damageResolver::resolve,
+                (target, attacker, damage, penetration, moraleImpact) -> {
+                    if (rosterService.convoy().isVehicle(target)) {
+                        vehicleDamageResolver.resolve(target, attacker, damage,
+                                penetration, moraleImpact);
+                    } else {
+                        damageResolver.resolve(target, attacker, damage,
+                                penetration, moraleImpact);
+                    }
+                },
                 this::writeReprioInline,
                 this::writeFallbackInline,
                 navigation::applyOccupancyDeltaInline,
@@ -550,7 +561,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 hitResponse, world, ballisticResolver, rosterService.telemetry());
         this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, grid, rng);
         this.ambientTasks.setLiveFireSink((actorId, targetId) -> {
-            if (rosterService.isLive(actorId) && rosterService.isLive(targetId)) {
+            if (rosterService.isLive(actorId) && rosterService.isAliveById(targetId)) {
                 infantry.fireShot(actorId, targetId, FireStance.STANCED);
                 rosterService.combat().beginBurst(actorId, targetId);
             }
@@ -560,7 +571,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
-                turretFire, rng, this::spawn, this);
+                turretFire, rng, this::spawn, this, effects, mapEditor);
+        this.vehicleDamageResolver.setDestructionSink(groundSystem::destroyVehicle);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
@@ -895,7 +907,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public long targetOf(long u) {
         long t = world.targetId(u);
-        return rosterService.isLive(t) ? t : 0L;
+        return resolveUnit(t);
     }
 
     /**
@@ -907,7 +919,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * via {@code TurretStateService}) where there's no companion holder unit to thread.
      */
     public long resolveUnit(long id) {
-        return rosterService.isLive(id) ? id : 0L;
+        return rosterService.isLive(id) || rosterService.convoy().isTargetable(id)
+                ? id : 0L;
+    }
+
+    @Override
+    public boolean isCombatTarget(long id) {
+        if (rosterService.convoy().isTargetable(id)) return true;
+        return rosterService.isAliveById(id) && rosterService.isLive(id)
+                && identity().type(id).combatant;
+    }
+
+    @Override
+    public boolean isHardenedTarget(long id) {
+        return isCombatTarget(id) && tacticalScoring.isHardenedTarget(id);
     }
     /** Bucketed spatial index over alive units keyed on path destination (not current cell). Rebuilt alongside {@link #unitIndex} each tick. */
     public UnitDestinationSpatialIndex getDestIndex() { return destIndex; }
@@ -1714,8 +1739,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
             friendlyFireSquadsThisFrame.add(friendlyFireSquad);
         }
-        hitResponse.rollFallbackOnHit(impact.victimId);
-        hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
+        if (rosterService.isLive(impact.victimId)) {
+            hitResponse.rollFallbackOnHit(impact.victimId);
+            hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
+        }
     }
 
     /** Delegates to {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#getAttackersOf(long)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
@@ -1882,7 +1909,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (!world.hasSecondaryWeapon(carrier) || resolveUnit(target) == 0L) return false;
         SpecialEquipmentDef secondary = world.specialEquipment(carrier);
         if (secondary.activation() != SpecialActivation.UTILITY_SATCHEL
-                || !TacticalScoring.isHardened(identity().type(target))
+                || !isHardenedTarget(target)
                 || identity().faction(carrier) == identity().faction(target)) return false;
         SatchelChargeSpec spec = secondary.satchelChargeSpec();
         float dx = world.x(target) - world.x(carrier);

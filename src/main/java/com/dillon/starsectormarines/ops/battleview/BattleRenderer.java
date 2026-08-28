@@ -625,6 +625,11 @@ public class BattleRenderer {
         font.drawString(String.format("state: %s  wp: %d/%d", v.state, wp, xs.length),
                 textX, textY, c, alphaMult);
         textY -= lineH;
+        font.drawString(String.format("structure: %.0f/%.0f  armor: %.0f/%.0f (%.0f)",
+                convoy.structure(selId), convoy.maxStructure(selId),
+                convoy.armor(selId), convoy.maxArmor(selId), convoy.armorRating(selId)),
+                textX, textY, c, alphaMult);
+        textY -= lineH;
         font.drawString(String.format("speed: %.1f  facing: %.0f  stuck: %.2fs",
                 body.speed, body.facingDegrees, stuckSecs), textX, textY, c, alphaMult);
         textY -= lineH;

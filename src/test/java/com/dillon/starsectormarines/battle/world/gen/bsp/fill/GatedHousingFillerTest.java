@@ -111,6 +111,24 @@ class GatedHousingFillerTest {
     }
 
     @Test
+    void perimeterWallsReceiveShootThroughApertures() {
+        Fixture fixture = generate(117L);
+        int windows = 0;
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                if (!fixture.topology.isWindow(x, y)
+                        || fixture.grid.getWallHp(x, y) <= 0) continue;
+                windows++;
+                assertFalse(fixture.grid.isWalkable(x, y));
+                assertTrue(fixture.grid.isSeeThrough(x, y));
+                assertFalse(fixture.grid.isDoorway(x, y));
+            }
+        }
+        assertTrue(windows >= 2,
+                "residential perimeter should offer several firing points");
+    }
+
+    @Test
     void multicellFurnitureCannotSealAShallowRoom() {
         MapResult map = new BspCityGenerator().generate(80, 80, 777L);
         assertAllWalkableCellsConnected(map.grid);
