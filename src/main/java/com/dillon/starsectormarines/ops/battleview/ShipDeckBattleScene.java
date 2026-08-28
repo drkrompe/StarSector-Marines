@@ -316,6 +316,21 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      *     posting is still capped by what that compartment can keep busy
      * @return every hand now aboard
      */
+    /**
+     * Crew the ship to her complement: every posting filled to what it can
+     * actually sustain.
+     *
+     * <p>The honest default. A cap on the watch is a throttle on how much ship
+     * exists, and there is nothing to throttle for — the compartments already
+     * bound themselves by the work they hold, so a barracks takes the marines
+     * its racks can sleep and a bay takes the technicians its jobs can occupy.
+     * Asking for fewer than that produces a half-empty ship for no reason
+     * anybody could see in the fiction.
+     */
+    public long[] manDeck() {
+        return manDeck(Integer.MAX_VALUE);
+    }
+
     public long[] manDeck(int watch) {
         if (rooms == null) {
             throw new IllegalStateException("this deck scene carries no room graph");
