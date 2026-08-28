@@ -54,6 +54,7 @@ final class CompanyHqViewModel {
             Runnable openArmory,
             Runnable openMechLab,
             Runnable openShipTransfer,
+            Runnable openShipView,
             Runnable close,
             Function<CompanyClocks.Entry, Runnable> respond) {
         int day = CampaignClock.day();
@@ -64,7 +65,7 @@ final class CompanyHqViewModel {
         List<CompanyNews.Entry> news = CompanyNews.latest(
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
         return build(standing, clocks, news, day, aboard, openBarracks, openArmory,
-                openMechLab, openShipTransfer, close, respond);
+                openMechLab, openShipTransfer, openShipView, close, respond);
     }
 
     private static CompanyHqViewModel build(
@@ -77,6 +78,7 @@ final class CompanyHqViewModel {
             Runnable openArmory,
             Runnable openMechLab,
             Runnable openShipTransfer,
+            Runnable openShipView,
             Runnable close,
             Function<CompanyClocks.Entry, Runnable> respond) {
         Map<String, Object> props = baseLabels();
@@ -123,6 +125,7 @@ final class CompanyHqViewModel {
 
         props.put("shipAction", openShipTransfer);
         props.put("shipLabel", shipLabel());
+        props.put("shipViewAction", openShipView);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, aboard, close,
                 () -> { }, openBarracks, openArmory, openMechLab);
         return new CompanyHqViewModel(props);
@@ -152,6 +155,7 @@ final class CompanyHqViewModel {
         props.put("purpose", "FLAGSHIP  /  BRIDGE  /  COMMAND NETWORK");
         props.put("shipAction", (Runnable) () -> { });
         props.put("shipLabel", "VALKYRIE  ·  CHANGE SHIP");
+        props.put("shipViewAction", (Runnable) () -> { });
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         props.put("assessmentHeader", "BRIDGE ADJUTANT  //  DAILY ASSESSMENT");
