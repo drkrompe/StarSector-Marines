@@ -10,7 +10,9 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
@@ -67,7 +69,8 @@ public final class InfantryLoadoutRolls {
                     defenderEquipmentGrade(type, resolvedRisk, rng),
                     defenderProfile(type, resolvedRisk, rng), special, null,
                     armor.layeredFamily(), armor.armorCapacity, armor.armorRating,
-                    armor.moveSpeedMult, armor.incomingAccuracyMult);
+                    armor.moveSpeedMult, armor.incomingAccuracyMult,
+                    null, integralSystemOf(armor.id));
         }
         return roster;
     }
@@ -87,7 +90,28 @@ public final class InfantryLoadoutRolls {
                 issue.pickPrimaryDef(rng), issue.pickGrade(risk, rng),
                 defenderProfile(issue.unitType(), risk != null ? risk : RiskLevel.LOW, rng),
                 special, null, armor.appearanceFamily(), armor.armorCapacity(), armor.armorRating(),
-                armor.moveSpeedMult(), armor.incomingAccuracyMult());
+                armor.moveSpeedMult(), armor.incomingAccuracyMult(),
+                null, armor.integralSystem());
+    }
+
+    /**
+     * The capability a pattern carries, whoever is wearing it. Defender issue
+     * reads the same armour catalog the player's Armory does, so a hostile in a
+     * foundry-breaker fights with the thing the rig is named after and a
+     * recovered suit behaves exactly as it did for its previous owner. There is
+     * deliberately no defender-side tuning here and no second catalog to hold
+     * one: if a defender's use of a system is too strong or too weak, the fix is
+     * the authored numbers or the policy ({@code progression-nouns.md}).
+     *
+     * <p>Returns null when the pattern carries nothing — which is most of them —
+     * and also when no catalog is installed, as in a bare headless fixture that
+     * never loaded one.
+     */
+    private static IntegralSystemDef integralSystemOf(String armorId) {
+        MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
+        if (catalog == null || armorId == null) return null;
+        MarineArmorCatalogDef def = catalog.get(armorId);
+        return def != null ? def.integralSystem() : null;
     }
 
     /** One delivery manifest built from the same frozen profile as initial defenders. */
