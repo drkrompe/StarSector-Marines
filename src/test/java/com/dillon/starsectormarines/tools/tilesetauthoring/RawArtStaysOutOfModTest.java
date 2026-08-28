@@ -122,8 +122,8 @@ class RawArtStaysOutOfModTest {
     /**
      * A battle FX texture is drawn at a fraction of a cell and is decoded into
      * the headless renderers' image cache exactly like an icon, so it gets the
-     * same rule for the same reason. The masters these are derived from are
-     * 1024px and live under {@code art-source/fx/}, where nothing loads them.
+     * same rule for the same reason: a generated master is downscaled before it
+     * is committed, and the master itself stays out of {@code mod/}.
      */
     @Test
     void battleFxTexturesShipAtDisplayResolution() throws IOException {
