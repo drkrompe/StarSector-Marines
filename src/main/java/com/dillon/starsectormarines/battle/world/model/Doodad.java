@@ -57,6 +57,11 @@ public final class Doodad {
     /** Rendered, navigational, cover, and ballistic footprint from the anchor cell. */
     public final int footprintCellsX;
     public final int footprintCellsY;
+    /** Unrotated source span on the sprite sheet. */
+    public final int sourceCellsX;
+    public final int sourceCellsY;
+    /** Placement rotation in normalized quarter turns. */
+    public final int quarterTurns;
     /** Optional authored edge intended to sit against a wall. */
     public final WallSide preferredWallSide;
     /**
@@ -75,10 +80,18 @@ public final class Doodad {
      * on {@link TileManifest#ROAD_SHEET}. The registry-fed prop ctor.
      */
     public Doodad(int cellX, int cellY, DoodadDef def) {
+        this(cellX, cellY, def, 0);
+    }
+
+    /** Builds one placed orientation without requiring duplicate asset definitions. */
+    public Doodad(int cellX, int cellY, DoodadDef def, int quarterTurns) {
         this(cellX, cellY, new TileManifest.TileFrame(def.col, def.row),
                 def.sheetPath, def.cover.level(), def.ballisticHalfHeight,
-                def.footprintCellsX, def.footprintCellsY, def.preferredWallSide,
-                def.sourceCellPx);
+                def.footprintCellsX, def.footprintCellsY,
+                rotatedWidth(def.footprintCellsX, def.footprintCellsY, quarterTurns),
+                rotatedHeight(def.footprintCellsX, def.footprintCellsY, quarterTurns),
+                rotateSide(def.preferredWallSide, quarterTurns),
+                def.sourceCellPx, normalizeTurns(quarterTurns));
     }
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
@@ -127,6 +140,18 @@ public final class Doodad {
                   String sheetPath, int cover, float ballisticHalfHeight,
                   int footprintCellsX, int footprintCellsY,
                   WallSide preferredWallSide, int sourceCellPx) {
+        this(cellX, cellY, tile, sheetPath, cover, ballisticHalfHeight,
+                footprintCellsX, footprintCellsY,
+                footprintCellsX, footprintCellsY,
+                preferredWallSide, sourceCellPx, 0);
+    }
+
+    private Doodad(int cellX, int cellY, TileManifest.TileFrame tile,
+                   String sheetPath, int cover, float ballisticHalfHeight,
+                   int sourceCellsX, int sourceCellsY,
+                   int footprintCellsX, int footprintCellsY,
+                   WallSide preferredWallSide, int sourceCellPx,
+                   int quarterTurns) {
         if (footprintCellsX <= 0 || footprintCellsY <= 0) {
             throw new IllegalArgumentException("Doodad footprint must be positive");
         }
@@ -140,9 +165,12 @@ public final class Doodad {
         this.ballisticHalfHeight = Float.isFinite(ballisticHalfHeight)
                 ? Math.max(0f, ballisticHalfHeight)
                 : 0f;
+        this.sourceCellsX = sourceCellsX;
+        this.sourceCellsY = sourceCellsY;
         this.footprintCellsX = footprintCellsX;
         this.footprintCellsY = footprintCellsY;
         this.preferredWallSide = preferredWallSide;
+        this.quarterTurns = quarterTurns;
     }
 
     public boolean occupiesCell(int x, int y) {
@@ -154,5 +182,32 @@ public final class Doodad {
         if (v < COVER_NONE)  return COVER_NONE;
         if (v > COVER_HEAVY) return COVER_HEAVY;
         return v;
+    }
+
+    private static int normalizeTurns(int quarterTurns) {
+        return Math.floorMod(quarterTurns, 4);
+    }
+
+    private static int rotatedWidth(int width, int height, int quarterTurns) {
+        return (normalizeTurns(quarterTurns) & 1) == 0 ? width : height;
+    }
+
+    private static int rotatedHeight(int width, int height, int quarterTurns) {
+        return (normalizeTurns(quarterTurns) & 1) == 0 ? height : width;
+    }
+
+    private static WallSide rotateSide(WallSide side, int quarterTurns) {
+        if (side == null) return null;
+        WallSide rotated = side;
+        for (int turn = 0; turn < normalizeTurns(quarterTurns); turn++) {
+            switch (rotated) {
+                case N: rotated = WallSide.W; break;
+                case W: rotated = WallSide.S; break;
+                case S: rotated = WallSide.E; break;
+                case E: rotated = WallSide.N; break;
+                default: throw new IllegalStateException();
+            }
+        }
+        return rotated;
     }
 }
