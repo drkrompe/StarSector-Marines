@@ -6,7 +6,7 @@ are shipped.
 
 Written: 2026-08-24
 
-Updated: 2026-08-26 — added Sabotage construction/launch replay and bounded
+Updated: 2026-08-27 — captures may travel beside a profile dump when they cannot fit inside it.
 named-site command evidence.
 
 ## Vocabulary
@@ -20,7 +20,10 @@ A **capture** freezes those facts at the launch boundary, before scenario
 construction can hide the requested seed behind deterministic map retries. A
 profile dump may embed that fixture beside its live timing evidence. The timing
 window describes the observed live battle; the embedded fixture describes how
-to reconstruct its initial scenario.
+to reconstruct its initial scenario. A capture large enough to push a dump past
+the host's file-size limit travels as a sibling file the dump names instead;
+the codec reads a bare fixture document and an embedding one alike, so where a
+capture was written never changes how it replays.
 
 A **replay** creates a fresh battle by feeding the captured facts back through
 the same production factory used by ordinary play. Headless tests and profiling
