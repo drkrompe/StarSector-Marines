@@ -4,11 +4,11 @@
 > doorway behind a shield is a different soldier; a breacher with more hit
 > points is the same soldier taking longer to kill.
 
-Status: IN PROGRESS — declared, carried into battle, and running: the breacher
-assist activates, boosts, expires, and goes on cooldown. The directional
-mitigation, an authored AI policy, presentation, and the missile pod remain.
+Status: IN PROGRESS — declared, carried into battle, running, and legible in
+the Armory before issue. The directional mitigation, an authored AI policy,
+battle presentation, and the missile pod remain.
 Written: 2026-08-27
-Updated: 2026-08-27 — battle activation landed; what is left is the shield half, the use policy, presentation, and the pod.
+Updated: 2026-08-28 — Armory legibility landed; what is left is the shield half, the use policy, battle presentation, and the pod.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -118,23 +118,42 @@ Movement is recomputed from an untouched base speed rather than scaled in
 place, so repeated runs cannot compound and a second effect will not inherit
 the first one's remainder.
 
-- **The directional resistance.** `combat-durability-nouns.md` still owes the
-  bounded, timed, arc-limited mitigation concept this leans on, and telemetry
-  has to report it as its own mitigation rather than as inflated capacity.
-  Until it exists the breacher gets the movement half only, so the acceptance
-  bullet about a visible, expiring protection is not met yet.
-- **An authored AI use policy.** The current trigger is a deliberate placeholder
-  living in the sweep: spend it while actually moving with hostiles inside
-  twelve cells. It is real behavior rather than a stub, but the decision belongs
-  in the special-equipment policy vocabulary the standing rules point at, not in
-  a hard-coded radius.
-- **Presentation.** The pose and the screen, downstream of simulation as always.
-  Nothing is drawn today, so an active assist is invisible.
-- **The shoulder micro-missile pod**, which needs a micro-missile weapon in the
-  catalog before its effect is worth declaring.
-- **Defender adoption**, still out of scope: `InfantryLoadoutRolls` deliberately
-  does not pass a pattern's system through, so a hostile in a foundry-breaker
-  fights without one.
+A suit's system is legible before it is issued. The doctrine designer's tile —
+the screen where a pattern is actually chosen — spends its one non-meter line
+on the system's mechanics, because the four scalars beneath it cannot express
+what makes a late pattern worth wanting. The fire-team card carries a system
+line level with the billet's carried special item, so the screen shows at a
+glance that the two are separate issues, and hovering it gives the authored
+prose. What those screens quote is what the simulation applies, not what the
+catalog declares: the frontal screen is authored but not yet simulated, so it
+is not advertised, and a test pins the advertised boost to the measured one.
+
+The barracks reports systems per formation rather than per marine. Its muster
+row is a fixed 208px name-and-detail pair that already truncates a long pattern
+name, so an individual suit's capability is spelled out in the Armory and the
+barracks says only how many of the formation carry one.
+
+Everything left is gated on simulation work rather than on authoring, so it is
+storied separately rather than held here:
+
+- **The directional resistance** — `d5-timed-directional-mitigation.md`. Until
+  the concept exists the breacher gets the movement half only, so the acceptance
+  bullet about a visible, expiring protection is not met, and the Armory
+  deliberately does not advertise the screen.
+- **An authored AI use policy** — `integral-system-use-policy.md`. The current
+  trigger is a placeholder living in the sweep: spend it while actually moving
+  with hostiles inside twelve cells.
+- **Battle presentation** — `integral-system-battle-presentation.md`. Nothing is
+  drawn today, so an active assist is invisible on the field.
+- **The shoulder micro-missile pod** — `shoulder-micro-missile-pod.md`, which
+  needs a micro-missile delivery mechanism first and is the only planned carrier
+  for the ammunition resource mode.
+- **Defender adoption** — `defender-integral-systems.md`. `InfantryLoadoutRolls`
+  still does not pass a pattern's system through, so a hostile in a
+  foundry-breaker fights without one.
+
+Which patterns should carry a system at all, and what the faction traditions
+support, is direction rather than scope: see `integral-system-slate.md`.
 
 ## Out of scope
 
