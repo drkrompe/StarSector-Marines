@@ -107,8 +107,11 @@ public final class CompanyShipDesignation {
             message.append(toll.marinesLost()).append(" marines went down with her; ")
                     .append(toll.marinesSurvived()).append(" were picked up. ");
         }
-        message.append("The armory, the bay's spares and everything in her holds "
-                + "are gone. The company needs somewhere to live.");
+        if (toll.storesLost() > 0 || toll.sparesLost() > 0) {
+            message.append("The bay's spares and ").append(toll.storesLost())
+                    .append(" units of stores went down in her holds. ");
+        }
+        message.append("The company needs somewhere to live.");
         ui.getMessageDisplay().addMessage(message.toString());
     }
 
