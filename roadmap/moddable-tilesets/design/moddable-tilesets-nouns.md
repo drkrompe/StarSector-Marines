@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — three laws added to the authoring pass: a packed sheet is addressed by id and never by coordinate, the authoring document must be able to say everything the tileset says, and a raw sheet must carry its own alpha.
+Updated: 2026-08-28 — the alpha law now says keying a plate is an edit to the art rather than a per-sheet setting, and the fit law now says a disowned fit's residual does not measure the cut in force.
 
 Read `stories.md` for open work.
 
@@ -196,7 +196,18 @@ These properties of that pass are part of the model rather than of the tool:
   authoring document can hold every id and every number and still not be able
   to regenerate the sheet. Alpha belongs in `art-source/` with the art, and a
   sheet that lacks it is not yet re-exportable however completely it is
-  annotated.
+  annotated. **Giving an opaque plate its alpha is an edit to the art, not a
+  setting on the sheet**, because what counts as background is a fact about a
+  cell rather than about the plate: the same dark gutter is background beside a
+  crate and is the outer edge of the floor tile next to it, and a plate's own
+  dark outlines sit inside the range its background occupies. A colour key
+  declared once for the sheet cannot say that, and a key that could would be a
+  judgement stored as a number where a picture is what was judged. The keyed
+  sheet is then reviewed piece by piece against the atlas it replaces, over a
+  contrasting backdrop, because both a passing suite and a per-piece opacity
+  figure stayed green through the failure that made this a law: a prop keyed to
+  a plausible fraction can still be one cut in half by a corridor of background
+  that reached its middle.
 - **A grid needs an origin and a pitch, not a division of the canvas.**
   Generated art sits inside a margin and is rarely drawn to a pitch that divides
   its own pixel size evenly, so dividing a plate proportionally puts every
@@ -222,7 +233,14 @@ These properties of that pass are part of the model rather than of the tool:
   how many of the stated boundaries landed on a real feature of the art and how
   far those lie from the straight line through them, and disowns itself when
   either is poor. An axis that disowns itself keeps the cut already in force.
-  Applying it anyway is possible and is an explicit act.
+  Applying it anyway is possible and is an explicit act. **A disowned fit's
+  numbers are about the feature it fell back to, so they do not say how wrong
+  the cut in force is.** An axis that could not find its gutters is reported
+  against the change seams, which are the far edge of each gutter rather than
+  its middle; a line correctly placed in the gutter reads as several pixels
+  "off" against them. Whether a stated cut is actually misplaced is answered by
+  measuring it against the same feature it was meant to sit on, not by reading
+  the residual of a fit that disowned itself.
 - **A cut cell is named for where it sits.** Splitting a fused plate names its
   cells `<idPrefix>.c<col>r<row>`, zero-based and column first, because the
   annotation pass is a person and a model looking at the same picture and a
