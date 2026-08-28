@@ -69,14 +69,12 @@ public final class MechLocomotionSystem {
                     continue;
                 }
                 long target = hasCombat ? targets[row] : 0L;
-                if (target == 0L || !roster.isLive(target)) {
+                if (target == 0L || !roster.isAliveById(target)) {
                     MechLocomotion.stopTurning(world, components, id);
                     continue;
                 }
-                int dx = (int) Math.floor(world.getFloat(target, components.POSITION,
-                        BattleComponents.POSITION_X)) - rowCellX;
-                int dy = (int) Math.floor(world.getFloat(target, components.POSITION,
-                        BattleComponents.POSITION_Y)) - rowCellY;
+                int dx = (int) Math.floor(roster.world().x(target)) - rowCellX;
+                int dy = (int) Math.floor(roster.world().y(target)) - rowCellY;
                 if (dx == 0 && dy == 0) {
                     MechLocomotion.stopTurning(world, components, id);
                 } else {
