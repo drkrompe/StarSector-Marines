@@ -9,9 +9,10 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.engine.ecs.Query;
 
 /**
- * Turns idle mech chassis toward their combat target. Active path steering is
- * handled by MovementService so pivoting and permission to translate remain an
- * atomic decision; this pass owns the no-path case.
+ * Turns mech hips toward their locomotion bearing, or toward combat intent while
+ * stationary. Active path steering remains authoritative so pivoting and
+ * permission to translate stay an atomic decision; the upper chassis can look
+ * farther ahead independently through {@link MechTurretSystem}.
  */
 public final class MechLocomotionSystem {
 
@@ -69,14 +70,19 @@ public final class MechLocomotionSystem {
                     continue;
                 }
                 long target = hasCombat ? targets[row] : 0L;
-                if (target == 0L || !roster.isLive(target)) {
+                MechFacingIntent.Point intent = target != 0L && roster.isLive(target)
+                        ? new MechFacingIntent.Point(
+                        world.getFloat(target, components.POSITION,
+                                BattleComponents.POSITION_X),
+                        world.getFloat(target, components.POSITION,
+                                BattleComponents.POSITION_Y))
+                        : MechFacingIntent.rememberedContact(id, roster);
+                if (intent == null) {
                     MechLocomotion.stopTurning(world, components, id);
                     continue;
                 }
-                int dx = (int) Math.floor(world.getFloat(target, components.POSITION,
-                        BattleComponents.POSITION_X)) - rowCellX;
-                int dy = (int) Math.floor(world.getFloat(target, components.POSITION,
-                        BattleComponents.POSITION_Y)) - rowCellY;
+                int dx = (int) Math.floor(intent.x()) - rowCellX;
+                int dy = (int) Math.floor(intent.y()) - rowCellY;
                 if (dx == 0 && dy == 0) {
                     MechLocomotion.stopTurning(world, components, id);
                 } else {
