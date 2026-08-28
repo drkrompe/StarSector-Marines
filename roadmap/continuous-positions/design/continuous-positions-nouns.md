@@ -4,7 +4,7 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — admitted authored shared-edge barriers into exact tracing and reactive greedy-region rebuilds.
+Updated: 2026-08-28 — shared-goal reverse fields serve every converging-mover behavior, not only the swarm, above one shared density crossover.
 
 ## Vocabulary
 
@@ -39,7 +39,13 @@ closed edges become region seams and doorway cells remain explicit singleton
 regions. Ordinary one-off routes search those regions and boundary intervals,
 pad the selected region corridor, then run authoritative cell A* inside it.
 Shared-goal reverse fields remain the dense same-destination path for a frozen
-unit-update snapshot. A* routes,
+unit-update snapshot: one field per goal cell, built once and read by every
+mover heading there, for that snapshot and a bounded run of later ones. Any
+behavior whose movers converge on one authored cell — an evacuation swarm on
+its objective, a squad push on a capture zone — takes that route rather than a
+private search, above a single battle-density crossover the whole simulation
+shares. Below it, and for destinations picked per mover, ordinary A* stays
+cheaper. A* routes,
 walkability and occupancy density, perception line of sight, fog, zones, and
 topology all consume a grid projection at their boundary. A grid result is
 converted back to a center only when it becomes a point-space destination. Direct-fire
