@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
+import com.dillon.starsectormarines.battle.command.OpeningOperationCommandPicture;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -315,6 +316,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (commander != null) lines += 1;
         if (directive != null) lines += 3;
         if (activeDirective != null && !activeDirective.equals(directive)) lines += 1;
+        if (commander != null && openingOperationPicture(commander) != null) lines += 2;
         if (commander != null && conquestSnapshot(commander) != null) lines += 3;
         if (commander != null && assaultSnapshot(commander) != null) lines += 2;
         if (commander != null && assaultDefenseSnapshot(commander) != null) lines += 2;
@@ -574,6 +576,18 @@ public final class SquadPlanDebugPanel implements HudPanel {
                     vpBottomY, vpTopY);
         }
         if (commander != null) {
+            OpeningOperationCommandPicture opening =
+                    openingOperationPicture(commander);
+            if (opening != null) {
+                OpeningOperationCommandPicture.SquadIntent intent =
+                        opening.intentFor(s.id);
+                lineY = drawLineIfVisible(font, openingRoleSummary(intent),
+                        lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                        vpBottomY, vpTopY);
+                lineY = drawLineIfVisible(font, openingPlaceSummary(opening),
+                        lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                        vpBottomY, vpTopY);
+            }
             ConquestFrontSnapshot conquest = conquestSnapshot(commander);
             if (conquest != null) {
                 ConquestFrontSnapshot.SquadDirective conquestDirective =
@@ -819,6 +833,26 @@ public final class SquadPlanDebugPanel implements HudPanel {
             CommanderSnapshot<?> snapshot) {
         return snapshot.detail() instanceof ConquestFrontSnapshot conquest
                 ? conquest : null;
+    }
+
+    private static OpeningOperationCommandPicture openingOperationPicture(
+            CommanderSnapshot<?> snapshot) {
+        return snapshot.detail() instanceof OpeningOperationCommandPicture opening
+                ? opening : null;
+    }
+
+    static String openingRoleSummary(
+            OpeningOperationCommandPicture.SquadIntent intent) {
+        return intent == null
+                ? "Scenario role —   Reason —"
+                : String.format("Scenario role %s   Reason %s",
+                intent.role(), intent.reason());
+    }
+
+    static String openingPlaceSummary(OpeningOperationCommandPicture picture) {
+        return String.format("Scenario place %s   cell:%d,%d zone:%d",
+                picture.placeName(), picture.placeCellX(),
+                picture.placeCellY(), picture.placeZoneId());
     }
 
     private static AssaultSearchSnapshot assaultSnapshot(

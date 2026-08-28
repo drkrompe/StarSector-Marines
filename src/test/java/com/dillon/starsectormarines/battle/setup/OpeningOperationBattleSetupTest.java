@@ -3,8 +3,11 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -15,6 +18,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class OpeningOperationBattleSetupTest {
@@ -40,12 +44,38 @@ class OpeningOperationBattleSetupTest {
         assertInstanceOf(OpeningOperationCommand.class,
                 sim.getCommander(Faction.DEFENDER));
 
+        int localPosts = 0;
+        int raiderPool = 0;
+        for (Squad squad : sim.getSquads()) {
+            CommandDirective directive = sim.getSquadCommandDirective(squad.id);
+            if (squad.faction == Faction.MARINE) {
+                assertNotNull(directive);
+                assertEquals(CommandAuthority.GARRISON, directive.authority());
+                localPosts++;
+            } else if (squad.faction == Faction.DEFENDER) {
+                assertNotNull(directive);
+                assertEquals(CommandAuthority.MISSION_COMMAND,
+                        directive.authority());
+                assertEquals(OpeningOperationCommand.issuer(Faction.DEFENDER),
+                        directive.issuer());
+                raiderPool++;
+            }
+        }
+        assertEquals(2, localPosts);
+        assertEquals(3, raiderPool);
+
         long[] shuttles = sim.getAirEntityIds();
         assertEquals(2, shuttles.length);
         ShuttleMission employer = sim.world().mission(shuttles[0]);
         ShuttleMission player = sim.world().mission(shuttles[1]);
         assertEquals(UnitType.MILITIA, employer.deboardUnitType);
         assertNull(player.deboardUnitType);
+        assertEquals(OpeningOperationCommand.issuer(Faction.MARINE),
+                employer.commandClaim.issuer());
+        assertEquals(OpeningOperationCommand.issuer(Faction.MARINE),
+                player.commandClaim.issuer());
+        assertEquals(CommandAuthority.MISSION_COMMAND,
+                employer.commandClaim.authority());
     }
 
     @Test

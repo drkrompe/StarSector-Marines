@@ -53,6 +53,9 @@ import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
+import com.dillon.starsectormarines.battle.command.OpeningOperationCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.OpeningOperationCommandFacts;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.RaidCommand;
 import com.dillon.starsectormarines.battle.command.RaidCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.RaidDefenderCommand;
@@ -62,6 +65,7 @@ import com.dillon.starsectormarines.battle.command.SabotageCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommand;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SilentColonyCommand;
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -793,6 +797,9 @@ public final class BattleSetup {
                     assignment.seatsPerSortie);
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
             shuttleMission.totalCycles = assignment.cycles;
+            shuttleMission.commandClaim = SquadCommandClaim.mission(
+                    OpeningOperationCommand.issuer(Faction.MARINE),
+                    "opening-operation landing force");
             MarineLoadout[][] cycleLoadouts =
                     new MarineLoadout[assignment.cycles][];
             boolean localMilitia = i < localTransports;
@@ -811,17 +818,28 @@ public final class BattleSetup {
             // are for companies whose lift is transport, not close support.
         }
 
-        if (kind == OpeningOperationKind.RELIEF) {
-            spawnOpeningDefenseLine(sim, map, lzCells.get(0), rng);
-        }
-        spawnOpeningRaiders(sim, map, rng);
+        int[] reliefAnchor = kind == OpeningOperationKind.RELIEF
+                ? spawnOpeningDefenseLine(sim, map, lzCells.get(0), rng)
+                : null;
+        int[] banditDepot = spawnOpeningRaiders(sim, map, rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
 
-        sim.setCommander(Faction.MARINE, new OpeningOperationCommand(
-                Faction.MARINE, Faction.DEFENDER, true));
-        sim.setCommander(Faction.DEFENDER, new OpeningOperationCommand(
-                Faction.DEFENDER, Faction.MARINE, false));
+        int[] commandPlace = kind == OpeningOperationKind.RELIEF
+                ? reliefAnchor : banditDepot;
+        OpeningOperationCommandFacts commandFacts =
+                new OpeningOperationCommandFacts(kind,
+                        kind == OpeningOperationKind.RELIEF
+                                ? "relief-anchor" : "bandit-depot",
+                        kind == OpeningOperationKind.RELIEF
+                                ? "Relief anchor" : "Bandit depot",
+                        commandPlace[0], commandPlace[1]);
+        OpeningOperationCommandDisclosure disclosure =
+                new OpeningOperationCommandDisclosure(commandFacts);
+        sim.setAutonomousCommander(Faction.MARINE,
+                new OpeningOperationCommand(Faction.MARINE), disclosure);
+        sim.setAutonomousCommander(Faction.DEFENDER,
+                new OpeningOperationCommand(Faction.DEFENDER), disclosure);
         return sim;
     }
 
@@ -1870,7 +1888,7 @@ public final class BattleSetup {
         return approach;
     }
 
-    private static void spawnOpeningDefenseLine(
+    private static int[] spawnOpeningDefenseLine(
             BattleSimulation sim, MapResult map, LandingPad firstLz,
             Random rng) {
         int towardEnemyX = Integer.compare(map.defenderSpawnX, firstLz.centerX);
@@ -1883,14 +1901,19 @@ public final class BattleSetup {
                 map.grid, anchorX, anchorY, OPENING_LOCAL_MILITIA);
         spawnOpeningMilitiaSquads(sim, cells, Faction.MARINE,
                 "local", true, rng);
+        return cells.isEmpty()
+                ? new int[]{anchorX, anchorY} : cells.get(0).clone();
     }
 
-    private static void spawnOpeningRaiders(
+    private static int[] spawnOpeningRaiders(
             BattleSimulation sim, MapResult map, Random rng) {
         List<int[]> cells = pickDefensiveCluster(map.grid,
                 map.defenderSpawnX, map.defenderSpawnY, OPENING_RAIDERS);
         spawnOpeningMilitiaSquads(sim, cells, Faction.DEFENDER,
                 "raider", false, rng);
+        return cells.isEmpty()
+                ? new int[]{map.defenderSpawnX, map.defenderSpawnY}
+                : cells.get(0).clone();
     }
 
     /** Spawns intentionally low-grade four-person militia squads for either side. */
@@ -1912,6 +1935,16 @@ public final class BattleSetup {
                     squad.assignedNode = openingDefenseNode(
                             cell[0], cell[1], faction, sim.getGrid());
                     squad.patrolRadius = 4;
+                    sim.assignSquadCommand(ObjectiveAssignment.holdNode(
+                                    squad.id, squad.assignedNode),
+                            CommandAuthority.GARRISON,
+                            "opening-local-garrison",
+                            "preserve authored relief post");
+                } else {
+                    sim.claimSquadCommand(squad.id,
+                            CommandAuthority.MISSION_COMMAND,
+                            OpeningOperationCommand.issuer(faction),
+                            "opening-operation starting force");
                 }
             }
             EntitySpec unit = makeOpeningMilitia(

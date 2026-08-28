@@ -42,10 +42,14 @@ counterattack omits that predeployed line and makes the joint advance the
 problem. Both use small-scale terrain and militia-only non-player forces, but
 their shared campaign tier does not erase their different scenario roles.
 
-The finite-force commander is intentionally symmetric and faction-neutral:
-mobile squads close on the nearest enemy while authored local garrisons may
-remain on their duty. This is a reusable small-assault seam, but later missions
-must opt into it explicitly rather than inheriting opening-ladder constraints.
+The finite-force command duel uses one public scenario place rather than hidden
+enemy positions. In Relief, the local line keeps authored garrison ownership,
+mobile friendly squads preserve its anchor, and raiders advance on that anchor.
+In Counterattack, the joint force advances on the bandit-depot anchor while the
+finite raider force defends it. Each side plans from a frozen own-force frame;
+contact response remains squad doctrine. The anchor/depot intent does not alter
+the current elimination objective or victory authority. This is a reusable
+command-architecture seam, not a rule later Assault missions inherit.
 
 ## Boundaries and acceptance
 

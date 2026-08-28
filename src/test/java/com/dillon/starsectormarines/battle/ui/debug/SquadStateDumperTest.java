@@ -14,6 +14,9 @@ import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisc
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.CommanderService;
+import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
+import com.dillon.starsectormarines.battle.command.OpeningOperationCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.OpeningOperationCommandFacts;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommand;
@@ -34,6 +37,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import org.json.JSONObject;
@@ -467,6 +471,47 @@ class SquadStateDumperTest {
         assertTrue(dump.isNull("assaultCommand"));
         assertFalse(area.has("hostileCellX"));
         assertFalse(area.has("hostileCellY"));
+    }
+
+    @Test
+    void openingOperationDumpPublishesScenarioRoleAndPublicPlace()
+            throws Exception {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("counterattack", Faction.MARINE,
+                UnitType.MARINE, 3, 12).squad(squadId));
+        squad.leaderId = member;
+        sim.spawn(new EntitySpec("undisclosed-raider", Faction.DEFENDER,
+                UnitType.MILITIA, 30, 22).moveSpeed(0f));
+        sim.claimSquadCommand(squadId, CommandAuthority.MISSION_COMMAND,
+                OpeningOperationCommand.issuer(Faction.MARINE),
+                "opening-operation landing force");
+        OpeningOperationCommandFacts facts = new OpeningOperationCommandFacts(
+                OpeningOperationKind.COUNTERATTACK, "bandit-depot",
+                "Bandit depot", 24, 12);
+        sim.setAutonomousCommander(Faction.MARINE,
+                new OpeningOperationCommand(Faction.MARINE),
+                new OpeningOperationCommandDisclosure(facts));
+        sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                + BattleSimulation.TICK_DT);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+        assertFalse(dump.isNull("commander"), dump.toString());
+        assertFalse(dump.isNull("openingOperationCommand"),
+                dump.get("commander").toString());
+        JSONObject opening = dump.getJSONObject("openingOperationCommand");
+        JSONObject intent = opening.getJSONObject("squadIntent");
+        assertEquals("opening-operation:MARINE",
+                dump.getJSONObject("commander").getString("strategy"));
+        assertEquals("COUNTERATTACK", opening.getString("operationKind"));
+        assertEquals("SECURE_BANDIT_DEPOT", opening.getString("phase"));
+        assertEquals("Bandit depot", opening.getString("placeName"));
+        assertEquals("SECURE_ELEMENT", intent.getString("role"));
+        assertEquals("BANDIT_DEPOT_SECURE", intent.getString("reason"));
+        assertEquals("SWEEP_SECTOR", intent.getString("assignmentKind"));
+        assertFalse(opening.has("hostileCellX"));
+        assertFalse(opening.has("hostileCellY"));
     }
 
     @Test
