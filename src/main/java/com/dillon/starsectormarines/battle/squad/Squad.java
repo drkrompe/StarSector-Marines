@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.LongPredicate;
 
 /**
  * A transient tactical unit assembled from deploying marines, or a defender
@@ -645,19 +646,43 @@ public final class Squad {
     }
 
     /**
-     * Ages the private serial-write store at tick start. The refreshed
-     * immutable snapshot is published after all direct observations land.
+     * Ages the private serial-write store at tick start and drops belief the
+     * world no longer backs. The refreshed immutable snapshot is published
+     * after all direct observations land.
+     *
+     * <p>{@code stillResolves} asks whether a remembered identity is still a
+     * unit anything can act on — the same question {@code
+     * BattleSimulation.resolveUnit} answers, so a live convoy vehicle carrying
+     * no identity component survives it. Belief that fails it is removed here
+     * rather than left to decay over {@link #BELIEF_LIFETIME_SECONDS}: every
+     * consumer that filters on liveness would skip it anyway, and the several
+     * that do not — break-contact threat choice, smoke and frag anchors,
+     * threat density, the last-seen projection below — would otherwise steer
+     * the squad off a corpse. Decay still owns belief about a unit that is
+     * merely unobserved.
+     *
+     * <p>Removal is deliberately not conditioned on having watched the unit
+     * die. Reads already treated an unresolvable identity as no contact at
+     * all, so this makes the store agree with them; it does not decide when a
+     * squad learns something.
      */
-    void beginBeliefTick(float dt, int simTick) {
+    void beginBeliefTick(float dt, int simTick, LongPredicate stillResolves) {
         directContactObservedLastTick = false;
         ObjectIterator<Long2ObjectMap.Entry<BelievedContact>> iterator =
                 contactMemory.long2ObjectEntrySet().fastIterator();
         while (iterator.hasNext()) {
             Long2ObjectMap.Entry<BelievedContact> entry = iterator.next();
             BelievedContact old = entry.getValue();
+            // Whether contact was held last tick is a fact about the
+            // observation, not about the target's current state, so it is
+            // read before the identity check drops a killed contact.
             if (old.source() == BeliefSource.DIRECT
                     && old.lastSeenTick() == simTick - 1) {
                 directContactObservedLastTick = true;
+            }
+            if (!stillResolves.test(old.unitId())) {
+                iterator.remove();
+                continue;
             }
             float confidence = old.confidence() - BELIEF_DECAY_PER_SECOND * dt;
             if (confidence <= 0f) {
