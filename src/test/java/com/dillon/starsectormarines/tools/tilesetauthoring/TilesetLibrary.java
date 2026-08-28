@@ -54,7 +54,7 @@ public final class TilesetLibrary {
      * @param annotatedPieces how many pieces the document describes
      */
     public record Sheet(String name, Path rawSheet, Path document, Path exportedTileset,
-                        int annotatedPieces) {
+                        int annotatedPieces, boolean hasNote) {
 
         public boolean isAnnotated() {
             return document != null;
@@ -75,7 +75,13 @@ public final class TilesetLibrary {
                 return exportedTileset == null ? "raw — not annotated"
                         : "shipped, but no authoring document";
             }
-            if (annotatedPieces == 0) return "seeded — slice to begin";
+            // Not every seed is ready to slice — some exist to say why their
+            // sheet is not a straight ingest at all. Where a note exists it is
+            // the thing to read, so the listing points at it rather than
+            // promising work that may not be there.
+            if (annotatedPieces == 0) {
+                return hasNote ? "seeded — see note" : "seeded — slice to begin";
+            }
             return annotatedPieces + " pieces" + (exportedTileset == null ? " — not exported" : " — exported");
         }
 
@@ -122,8 +128,10 @@ public final class TilesetLibrary {
         List<Sheet> sheets = new ArrayList<>();
         for (String name : names) {
             Path document = documents.get(name);
+            TilesetDocument loaded = document == null ? null : read(document);
             sheets.add(new Sheet(name, raw.get(name), document, exports.get(name),
-                    document == null ? 0 : pieceCount(document)));
+                    loaded == null ? 0 : loaded.entries.size(),
+                    loaded != null && !loaded.note.isBlank()));
         }
         // Unannotated raw art first: it is the work that has not started.
         sheets.sort(Comparator.comparingInt(TilesetLibrary::rank)
@@ -154,11 +162,12 @@ public final class TilesetLibrary {
         return name.endsWith(".raw") ? name.substring(0, name.length() - ".raw".length()) : name;
     }
 
-    private static int pieceCount(Path document) {
+    /** Null for a document that will not parse; opening it is where that belongs. */
+    private static TilesetDocument read(Path document) {
         try {
-            return TilesetDocument.read(document).entries.size();
+            return TilesetDocument.read(document);
         } catch (IOException | JSONException | RuntimeException unreadable) {
-            return 0;
+            return null;
         }
     }
 
