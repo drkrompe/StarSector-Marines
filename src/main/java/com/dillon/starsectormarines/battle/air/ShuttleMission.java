@@ -236,6 +236,27 @@ public final class ShuttleMission {
                 || state == ShuttleState.HOVER_STATION || state == ShuttleState.DEPARTING;
     }
 
+    /**
+     * Squad walking out to embark, or {@link com.dillon.starsectormarines.battle.squad.Squad#NO_SQUAD}
+     * on a sortie that was loaded before it existed.
+     *
+     * <p>Distinct from {@link #squadId}, which is the squad this sortie
+     * <em>delivers</em> and is minted at the far end. One is who gets on; the
+     * other is who gets off.
+     */
+    public int embarkSquadId = com.dillon.starsectormarines.battle.squad.Squad.NO_SQUAD;
+
+    /**
+     * Seconds a loading craft waits on its pad before going with whoever made
+     * it aboard.
+     *
+     * <p>There has to be a deadline, because the squad walking out to the pad
+     * can be shot on the way. Without one a sortie whose squad died in the yard
+     * holds a hardstand for the rest of the battle and the air arm silently
+     * stops existing.
+     */
+    public float boardingPatience;
+
     public ShuttleMission(float lzX, float lzY, float entryX, float entryY,
                           float exitX, float exitY, float pendingDelay,
                           int marinesRemaining, float hp) {

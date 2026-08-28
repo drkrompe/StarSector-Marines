@@ -4,12 +4,18 @@ import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
@@ -18,6 +24,7 @@ import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -76,14 +83,21 @@ public final class ShuttleMeans implements ReinforcementMeans {
      * deboards a squad into whoever just took the position. The policy answers
      * the separate question the reinforcement model already separates out, of
      * where a means may safely arrive.
-     *
-     * <p>Its type is named for the convoy because the convoy asked first. That
-     * is vocabulary debt rather than a boundary: nothing in it is road-shaped,
-     * and a shuttle reads the same rear-shifted hint off it.
      */
-    private final ConvoyDeploymentPolicy deploymentPolicy;
+    private final DeliveryDeploymentPolicy deploymentPolicy;
+    /**
+     * Sim-seconds a loaded-on-the-ground sortie waits for its squad to march
+     * out to the pad before going with whoever arrived.
+     *
+     * <p>Long enough to cross a ward on foot, short enough that a squad killed
+     * on the way does not park an aircraft for the rest of the battle.
+     */
+    private static final float BOARDING_PATIENCE = 90f;
+
     /** Hardstands on the garrison's own airfield, in map order. Empty on a map with none. */
     private final List<LandingPad> airfield;
+    /** Names the marines this means marches out to its pads. */
+    private int nextEmbarkId;
 
     public ShuttleMeans(TraversalAxis axis) {
         this(axis, null, RiskLevel.LOW);
@@ -94,7 +108,7 @@ public final class ShuttleMeans implements ReinforcementMeans {
     }
 
     public ShuttleMeans(TraversalAxis axis, GroundRosterProfile groundRoster, RiskLevel risk,
-                        ConvoyDeploymentPolicy deploymentPolicy, List<LandingPad> landingPads) {
+                        DeliveryDeploymentPolicy deploymentPolicy, List<LandingPad> landingPads) {
         this.axis = axis;
         this.groundRoster = groundRoster;
         this.risk = risk != null ? risk : RiskLevel.LOW;
@@ -116,6 +130,16 @@ public final class ShuttleMeans implements ReinforcementMeans {
         // post and the air arm has nothing to dispatch from.
         if (!sim.getCompoundService().hasAliveCompound(
                 TacticalNode.Kind.COMMAND_POST, Faction.DEFENDER)) {
+            return false;
+        }
+        // And the field the aircraft actually fly from, on a map that has one.
+        // A command post authorises a drop; an airfield is where the lift
+        // lives, so taking the field ends air delivery whoever still holds the
+        // headquarters. A map with no airfield keeps the command post as its
+        // only gate, exactly as before — the field cannot be a requirement on
+        // battles that were never given one.
+        if (!airfield.isEmpty() && !sim.getCompoundService().hasAliveCompound(
+                TacticalNode.Kind.AIRBASE, Faction.DEFENDER)) {
             return false;
         }
         int[] centre = deliveryCentre(req);
@@ -150,6 +174,8 @@ public final class ShuttleMeans implements ReinforcementMeans {
         ShuttleMission mission = sim.world().mission(shuttleId);
         mission.commandClaim = SquadCommandClaim.reinforcement(req.reason.name());
         mission.totalCycles = 1;
+        boolean loadedOnTheGround = !airfield.isEmpty()
+                && embarkOnPad(sim, req, mission);
         // Objective assignment (progressive-reinforcement slice 4): resolve the
         // request's objective to a tactical node now, at dispatch time, so the
         // deboarded squad is assigned the moment it lands rather than only once
@@ -175,8 +201,88 @@ public final class ShuttleMeans implements ReinforcementMeans {
         }
         LOG.info("ShuttleMeans: dispatched " + DEFAULT_TYPE + " side=" + req.side
                 + " lz=(" + lz[0] + "," + lz[1] + ") entry=(" + entry[0] + "," + entry[1] + ")"
-                + " from=" + (airfield.isEmpty() ? "offmap" : "airfield"));
+                + " from=" + (airfield.isEmpty() ? "offmap"
+                        : loadedOnTheGround ? "airfield-embark" : "airfield"));
         return ReinforcementDispatchResult.COMMITTED;
+    }
+
+    /**
+     * Hold the craft on its pad and march a squad out to board it.
+     *
+     * <p>This is the difference between an air arm and a spawner. A sortie that
+     * arrives already loaded has no cost and no story: the aircraft is a
+     * delivery mechanism that happens to be drawn. A sortie that has to be
+     * loaded has both — the garrison commits people it can see, they cross open
+     * ground to reach the field, and an attacker who is on the airfield, or
+     * merely shooting across it, has stopped the lift without touching the
+     * aircraft.
+     *
+     * <p>The squad walks in from the side's own rear edge, the same place the
+     * walk-in means brings one on, and is pointed at the airbase node so the
+     * ordinary patrol routing takes it there. Nothing here steers anybody: the
+     * craft waits, {@code AirSystem} takes aboard whoever reaches the ramp, and
+     * the sortie leaves when it is full or when there is no one else coming.
+     *
+     * @return false when there is no airbase to march to or nowhere to march
+     *         from, leaving the sortie loaded as it always was
+     */
+    private boolean embarkOnPad(BattleControl sim, ReinforcementRequest req,
+                                ShuttleMission mission) {
+        TacticalNode field = airbaseNode(sim, req);
+        if (field == null) return false;
+        int[] primary = WalkInMeans.pickPrimaryCell(sim, req, axis);
+        if (primary == null) return false;
+        List<int[]> cells = WalkInMeans.collectAdjacentCells(sim.getGrid(),
+                new LandingZoneScorer(sim.getGrid(), sim.getTopology()),
+                primary[0], primary[1], DEFAULT_TYPE.capacity);
+        if (cells.isEmpty()) return false;
+
+        GroundRosterProfile effectiveRoster = groundRoster != null
+                ? groundRoster : sim.getGroundRoster();
+        UnitType infantryType = effectiveRoster != null
+                ? effectiveRoster.unitType(GroundRosterProfile.ForceTier.ELITE)
+                : FactionUnitRoster.forFaction(req.side).elite();
+
+        Squad squad = null;
+        int marched = 0;
+        for (int[] cell : cells) {
+            EntitySpec unit = new EntitySpec("e" + (nextEmbarkId++), req.side,
+                    infantryType, cell[0], cell[1]);
+            if (effectiveRoster != null) {
+                InfantryLoadoutRolls.defenderLoadout(effectiveRoster,
+                        GroundRosterProfile.ForceTier.ELITE, risk, sim.random()).seedInto(unit);
+            } else {
+                InfantryLoadoutRolls.defenderSquad(
+                        1, infantryType, risk, sim.random())[0].seedInto(unit);
+            }
+            unit.role(UnitRole.PATROL);
+            if (squad == null) {
+                int sid = sim.mintSquad(req.side, infantryType);
+                SquadCommandClaim.reinforcement(req.reason.name()).apply(sim, sid);
+                squad = sim.getSquad(sid);
+                if (squad != null) squad.assignedNode = field;
+            }
+            if (squad != null) unit.squad(squad.id);
+            sim.spawn(unit);
+            marched++;
+        }
+        if (squad == null) return false;
+        squad.originalSize = marched;
+
+        mission.state = ShuttleState.LOADING;
+        mission.marinesRemaining = 0;
+        mission.embarkSquadId = squad.id;
+        mission.boardingPatience = BOARDING_PATIENCE;
+        return true;
+    }
+
+    /** This side's airbase, which is where its aircraft are and where a crew walks to. */
+    private static TacticalNode airbaseNode(BattleControl sim, ReinforcementRequest req) {
+        TacticalMap map = sim.getTacticalMap();
+        if (map == null) return null;
+        List<TacticalNode> near = map.nearest(req.rallyX, req.rallyY, 1,
+                EnumSet.of(TacticalNode.Kind.AIRBASE));
+        return near.isEmpty() ? null : near.get(0);
     }
 
     /**
@@ -190,7 +296,7 @@ public final class ShuttleMeans implements ReinforcementMeans {
      */
     private int[] deliveryCentre(ReinforcementRequest req) {
         if (deploymentPolicy == null) return new int[]{ req.rallyX, req.rallyY };
-        ConvoyDeployment deployment = deploymentPolicy.deploymentFor(req);
+        DeliveryDeployment deployment = deploymentPolicy.deploymentFor(req);
         if (deployment == null) return new int[]{ req.rallyX, req.rallyY };
         return new int[]{ deployment.hintX(), deployment.hintY() };
     }

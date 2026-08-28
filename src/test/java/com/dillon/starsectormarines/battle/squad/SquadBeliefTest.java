@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.function.LongPredicate;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,6 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadBeliefTest {
+
+    /** Ordering fixtures use synthetic ids that no roster can resolve. */
+    private static final LongPredicate ALL_RESOLVE = id -> true;
 
     private static BattleSimulation openSim() {
         NavigationGrid grid = new NavigationGrid(36, 18);
@@ -34,7 +39,7 @@ class SquadBeliefTest {
     void beliefSnapshotSortsContactsByUnitIdIndependentOfStoreOrder() {
         Squad squad = new Squad(1, Faction.MARINE);
         int simTick = 7;
-        squad.beginBeliefTick(BattleSimulation.TICK_DT, simTick);
+        squad.beginBeliefTick(BattleSimulation.TICK_DT, simTick, ALL_RESOLVE);
         squad.observeDirectContact(30L, 30, 3, simTick);
         squad.observeDirectContact(10L, 10, 1, simTick);
         squad.observeDirectContact(20L, 20, 2, simTick);
@@ -85,6 +90,57 @@ class SquadBeliefTest {
         assertEquals(first.lastSeenCellY(), refreshed.previousDirectCellY());
         assertEquals(first.lastSeenTick(), refreshed.previousDirectTick(),
                 "a second squadmate must not overwrite the prior-tick motion sample");
+    }
+
+    @Test
+    void killedContactLeavesTheStoreRatherThanDecayingOutOfIt() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        sim.spawn(new EntitySpec("observer", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        long target = sim.spawn(new EntitySpec("target", Faction.DEFENDER,
+                UnitType.MARINE, 10, 5));
+
+        sim.advance(BattleSimulation.TICK_DT);
+        assertNotNull(squad.believedContact(target));
+
+        sim.applyDamage(target, 100_000f, 1f, 0f);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertTrue(squad.believedContacts().isEmpty(),
+                "belief whose identity no longer resolves is dropped, not left "
+                        + "to decay over BELIEF_LIFETIME_SECONDS");
+        assertNull(squad.believedContact(target));
+        assertEquals(-1, squad.lastSeenEnemyX,
+                "the last-seen projection must not keep pointing at a corpse");
+        assertEquals(-1, squad.lastSeenEnemyY);
+    }
+
+    @Test
+    void unobservedContactDecaysWhileUnresolvableContactIsDropped() {
+        // The two expiry paths, side by side on one contact: going unseen is
+        // decay's job, and losing the identity is the store's.
+        Squad squad = new Squad(1, Faction.MARINE);
+        squad.beginBeliefTick(BattleSimulation.TICK_DT, 1, ALL_RESOLVE);
+        squad.observeDirectContact(42L, 9, 4, 1);
+        squad.publishBeliefSnapshot();
+        assertEquals(1f, squad.believedContact(42L).confidence());
+
+        squad.beginBeliefTick(BattleSimulation.TICK_DT, 2, ALL_RESOLVE);
+        squad.publishBeliefSnapshot();
+
+        BelievedContact remembered = squad.believedContact(42L);
+        assertNotNull(remembered,
+                "a live contact that merely went unobserved is decay's to expire");
+        assertTrue(remembered.confidence() < 1f, "and it is decaying");
+
+        squad.beginBeliefTick(BattleSimulation.TICK_DT, 3, id -> false);
+        squad.publishBeliefSnapshot();
+
+        assertTrue(squad.believedContacts().isEmpty(),
+                "an identity the world no longer backs goes at once, "
+                        + "whatever confidence is left");
     }
 
     @Test

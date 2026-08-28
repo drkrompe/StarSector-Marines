@@ -203,8 +203,9 @@ and the second replay must still match the captured first replay byte-for-byte.
 | Raid | Primary high-value target plus authored ingress/egress corridor | Paired production duel; canonical/live acceptance remains | `raid-command.md` |
 | Extraction | Payload/cohort corridor, with bounded conventional interdiction or scenario-specific directors | Paired generic commanders and asymmetric Civilian Rescue shipped; live acceptance and Silent Colony remain | `extraction-command.md` |
 
-Opening Operations reuse the Assault battle type but keep scenario-specific
-preserve/secure command meaning. Civilian Rescue and Silent Colony are authored
+Opening Operations reuse the Assault battle type and now apply the shared
+frozen frame/plan/commit envelope to scenario-specific preserve/secure command
+meaning. Civilian Rescue and Silent Colony are authored
 Extraction-family scenarios; each preserves its own payload law while exposing
 the shared objective projection. Civilian Rescue proves that an opposing command
 picture may be a mission director rather than a mirrored squad commander.

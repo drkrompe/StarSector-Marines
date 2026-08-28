@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Owns the per-cell fog-of-war bitmap, per-unit visibility state, and the
@@ -64,16 +65,28 @@ public final class FogOfWarService {
     // within a single tick. Sized to the largest possible footprint.
     private int[] shadowScratch;
 
-    // Ephemeral vision sources (shuttles, strafing fighters) — not part of the
-    // cohort system. Their footprint is fully recomputed each vision tick:
-    // decrement old, shadowcast new, increment.
+    // Temporary vision sources — not part of the cohort system. Their combined
+    // footprint is fully recomputed each vision tick: decrement old,
+    // shadowcast new, increment.
     private int[] ephemeralPrevCells = new int[0];
     private int ephemeralPrevCount = 0;
-    private int ephemeralSourceCount = 0;
-    private int[] ephSourceCellX = new int[8];
-    private int[] ephSourceCellY = new int[8];
-    private int[] ephSourceRange = new int[8];
-    private float[] ephSourceAirR = new float[8];
+
+    /**
+     * Sources projected by a render host each frame: shuttles, strafing
+     * fighters, and the player's active recon pings.
+     */
+    private final TemporarySources projected = new TemporarySources();
+
+    /**
+     * Sources the simulation itself replaces each tick: a suit whose integral
+     * system is running a sensor sweep. A separate channel from
+     * {@link #projected} because the two are cleared by different owners at
+     * different cadences — the host wipes its own set between frames, and a
+     * sim-owned source pushed into that set would be wiped with it. Both feed
+     * the one footprint rebuild below, so law 5 ("replaced as a set, never
+     * accumulated") holds for each of them independently.
+     */
+    private final TemporarySources carried = new TemporarySources();
 
     public Buildings getBuildings() { return buildings; }
     public PlayerVisionState getVisionState() { return visionState; }
@@ -114,6 +127,20 @@ public final class FogOfWarService {
         if (!initialized) return true;
         if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) return false;
         return cellRevealed[y * gridWidth + x];
+    }
+
+    /**
+     * How many sources currently hold this cell open. The boolean view above is
+     * what the renderer wants; this is the reference count itself, exposed
+     * because the standing "removing one footprint must not conceal a cell
+     * still revealed by another" law is a statement about this number and
+     * nothing else can observe it. A temporary source that released more or
+     * less than it took is invisible in the boolean array until a second source
+     * happens to overlap it.
+     */
+    public int revealCountAt(int x, int y) {
+        if (!initialized || x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) return 0;
+        return revealCount[y * gridWidth + x];
     }
 
     /** Direct access to the revealed array for the renderer's per-cell fog pass. */
@@ -250,33 +277,49 @@ public final class FogOfWarService {
     }
 
     /**
-     * Clears the ephemeral source list. Call before re-pushing shuttle and
-     * fighter positions each vision tick.
+     * Clears the host-projected source list. Call before re-pushing shuttle,
+     * fighter, and recon-ping positions each frame.
      */
     public void clearEphemeralSources() {
-        ephemeralSourceCount = 0;
+        projected.clear();
     }
 
     /**
-     * Registers an ephemeral vision source (shuttle, strafing fighter) for the
-     * current vision tick. The footprint is fully recomputed each tick — no
-     * caching, no cohort assignment.
+     * Registers a host-projected vision source (shuttle, strafing fighter,
+     * recon ping) for the current vision tick. The footprint is fully
+     * recomputed each tick — no caching, no cohort assignment.
      */
     public void addEphemeralSource(int cellX, int cellY, int range, float airLosRadius) {
+        add(projected, cellX, cellY, range, airLosRadius);
+    }
+
+    /**
+     * Clears the simulation-owned sweep source list. Called by the sweep that
+     * owns those sources at the start of every tick, so a source survives
+     * exactly as long as the system projecting it is still running.
+     */
+    public void clearCarriedSweepSources() {
+        carried.clear();
+    }
+
+    /**
+     * Registers a carried sensor sweep as a temporary observer for this tick.
+     *
+     * <p>Deliberately the same seam every other temporary source uses: the
+     * caller supplies a cell, a range, and a wall-read radius, and gets the
+     * ordinary shadowcast and the ordinary reference count. A sweep is a client
+     * of player reveal composition, never a second reveal path
+     * ({@code fog-of-war-nouns.md}).
+     */
+    public void addCarriedSweepSource(int cellX, int cellY, int range, float wallReadRadius) {
+        add(carried, cellX, cellY, range, wallReadRadius);
+    }
+
+    private void add(TemporarySources sources, int cellX, int cellY,
+                     int range, float airLosRadius) {
         if (!initialized) return;
         if (cellX < 0 || cellX >= gridWidth || cellY < 0 || cellY >= gridHeight) return;
-        if (ephemeralSourceCount >= ephSourceCellX.length) {
-            int newCap = ephSourceCellX.length * 2;
-            ephSourceCellX = java.util.Arrays.copyOf(ephSourceCellX, newCap);
-            ephSourceCellY = java.util.Arrays.copyOf(ephSourceCellY, newCap);
-            ephSourceRange = java.util.Arrays.copyOf(ephSourceRange, newCap);
-            ephSourceAirR  = java.util.Arrays.copyOf(ephSourceAirR, newCap);
-        }
-        ephSourceCellX[ephemeralSourceCount] = cellX;
-        ephSourceCellY[ephemeralSourceCount] = cellY;
-        ephSourceRange[ephemeralSourceCount] = Math.min(MAX_VISION_RANGE, range);
-        ephSourceAirR[ephemeralSourceCount]  = airLosRadius;
-        ephemeralSourceCount++;
+        sources.add(cellX, cellY, Math.min(MAX_VISION_RANGE, range), airLosRadius);
     }
 
     public int gridWidth()  { return gridWidth; }
@@ -295,22 +338,8 @@ public final class FogOfWarService {
             }
         }
 
-        int total = 0;
-        for (int s = 0; s < ephemeralSourceCount; s++) {
-            int count = Shadowcast.castFrom(grid,
-                    ephSourceCellX[s], ephSourceCellY[s],
-                    ephSourceRange[s], ephSourceAirR[s],
-                    shadowScratch, 0);
-            int needed = total + count;
-            if (needed > ephemeralPrevCells.length) {
-                int newCap = Math.max(needed, ephemeralPrevCells.length * 2);
-                int[] grow = new int[newCap];
-                System.arraycopy(ephemeralPrevCells, 0, grow, 0, total);
-                ephemeralPrevCells = grow;
-            }
-            System.arraycopy(shadowScratch, 0, ephemeralPrevCells, total, count);
-            total += count;
-        }
+        int total = castInto(projected, 0);
+        total = castInto(carried, total);
         ephemeralPrevCount = total;
 
         for (int i = 0; i < total; i++) {
@@ -363,6 +392,26 @@ public final class FogOfWarService {
         }
     }
 
+    /** Shadowcasts every source in one channel onto the end of the combined footprint. */
+    private int castInto(TemporarySources sources, int total) {
+        for (int s = 0; s < sources.count; s++) {
+            int count = Shadowcast.castFrom(grid,
+                    sources.cellX[s], sources.cellY[s],
+                    sources.range[s], sources.airLosRadius[s],
+                    shadowScratch, 0);
+            int needed = total + count;
+            if (needed > ephemeralPrevCells.length) {
+                int newCap = Math.max(needed, ephemeralPrevCells.length * 2);
+                int[] grow = new int[newCap];
+                System.arraycopy(ephemeralPrevCells, 0, grow, 0, total);
+                ephemeralPrevCells = grow;
+            }
+            System.arraycopy(shadowScratch, 0, ephemeralPrevCells, total, count);
+            total += count;
+        }
+        return total;
+    }
+
     private void decrementFootprint(ContributorEntry e) {
         for (int j = 0; j < e.previousCellCount; j++) {
             int idx = e.previousCells[j];
@@ -408,6 +457,34 @@ public final class FogOfWarService {
 
     private static final class FogCohort {
         final ArrayList<ContributorEntry> contributors = new ArrayList<>();
+    }
+
+    /** One replaceable set of temporary observers, owned by whoever pushes it. */
+    private static final class TemporarySources {
+        int count = 0;
+        int[] cellX = new int[8];
+        int[] cellY = new int[8];
+        int[] range = new int[8];
+        float[] airLosRadius = new float[8];
+
+        void clear() {
+            count = 0;
+        }
+
+        void add(int x, int y, int cells, float airRadius) {
+            if (count >= cellX.length) {
+                int newCap = cellX.length * 2;
+                cellX = Arrays.copyOf(cellX, newCap);
+                cellY = Arrays.copyOf(cellY, newCap);
+                range = Arrays.copyOf(range, newCap);
+                airLosRadius = Arrays.copyOf(airLosRadius, newCap);
+            }
+            cellX[count] = x;
+            cellY[count] = y;
+            range[count] = cells;
+            airLosRadius[count] = airRadius;
+            count++;
+        }
     }
 
     private static final class ContributorEntry {

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
+import com.dillon.starsectormarines.battle.decision.goap.action.BreakContact;
 import com.dillon.starsectormarines.battle.decision.goap.action.EnterZone;
 import com.dillon.starsectormarines.battle.command.DefendAssignedTrackGoal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedSiteGoal;
@@ -150,6 +151,23 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                 || prepStep.action.permitsOpportunityFire();
         if (!prepareForAction(unit, sim, permitsPreparationFire)) return;
 
+        // Fire-team morale override — the tier between the individual and the
+        // squad plan. Cohesion breaks at fire-team granularity, so a marine
+        // whose team has broken pulls back to cover on his team's own account
+        // while his composed siblings keep executing the squad's plan. The
+        // squad is not the thing that breaks.
+        //
+        // No plan bookkeeping here on purpose: BreakContact runs perpetually
+        // and the peeled team is excluded from role assignment
+        // (replanIfNeeded), so it cannot advance or fail a step it was never
+        // assigned. When the team's morale clears the hysteresis, the replan
+        // that fires on the flip puts these marines back in the slot pool and
+        // this branch stops catching them.
+        if (squad.fireTeamBroken(sim.squad().fireTeamIndex(unit))) {
+            BreakContact.INSTANCE.execute(unit, squad, sim);
+            return;
+        }
+
         SquadPlan plan = squad.currentPlan;
         if (plan == null || plan.isComplete()) {
             // Replan pass (run from BattleSimulation.tick) will catch up next
@@ -206,7 +224,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      *   <li>Current plan ran to completion</li>
      *   <li>Squad lost or gained a live member since the last plan (death-driven freshness)</li>
      *   <li>A squad-wide direct-LOS episode started, or the alert level transitioned</li>
-     *   <li>Morale hysteresis entered or left the broken state</li>
+     *   <li>Any fire team's morale hysteresis entered or left the broken state — the plan has to be rebuilt around a team that just peeled, or make room for one that just rejoined</li>
      *   <li>The alert pass observed hostile incoming fire with LOS to its origin</li>
      *   <li>{@link Planner#REPLAN_PERIOD} sim-seconds have elapsed since the last replan</li>
      * </ul>
@@ -317,9 +335,17 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             // to expose meaningful partitions (planter+portal-holders for
             // sabotage cordon, suppressor+bounder for bounding overwatch, etc.)
             // and the same call here distributes members per slot.
+            // A broken fire team is peeling to cover under the dispatcher's
+            // morale override, not executing this plan. Leaving its marines in
+            // the candidate pool would hand a cordon post or a bounding slot
+            // to someone walking the other way, so the squad plans around the
+            // team that peeled and takes it back on the replan that fires when
+            // its morale clears.
             List<Long> aliveMembers = new ArrayList<>(squad.aliveMembers);
             for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
-                aliveMembers.add(sim.squadMemberAt(squad.id, i));
+                long member = sim.squadMemberAt(squad.id, i);
+                if (squad.fireTeamBroken(sim.squad().fireTeamIndex(member))) continue;
+                aliveMembers.add(member);
             }
             for (SquadPlan.Step step : plan.steps()) {
                 Map<String, List<Long>> assignment = step.action.assignRoles(

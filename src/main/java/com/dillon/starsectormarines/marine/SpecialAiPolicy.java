@@ -68,7 +68,14 @@ public enum SpecialAiPolicy {
      * answer than the weapon already in their hands. Holding fire on a contact
      * that is already on top of them is the point, not an omission.
      */
-    SIGHTED_STANDOFF_CONTACT("sighted-standoff-contact");
+    SIGHTED_STANDOFF_CONTACT("sighted-standoff-contact"),
+    /**
+     * Moving onto ground that cannot be seen into: the carrier is under way,
+     * and the ground a short distance along their heading is behind something
+     * their own eyes do not reach past. Dead ground is the moment; what gets
+     * spent on it may do no more than look at it.
+     */
+    APPROACHING_DEAD_GROUND("approaching-dead-ground");
 
     public final String key;
 
