@@ -128,8 +128,13 @@ public final class DeployedCoverSceneSnapshotSuite implements SnapshotSuite {
                 .specialEquipment(revetment, revetment.startingAmmo()));
 
         List<BufferedImage> frames = new ArrayList<>(TICKS / FRAME_EVERY_TICKS + 1);
+        float[] baseline = null;
         for (int tick = 0; tick <= TICKS; tick++) {
             if (tick == PLACEMENT_TICK) {
+                baseline = new float[] {
+                        damageTaken(sim, coveredLane),
+                        damageTaken(sim, openLane),
+                        sim.telemetry().damageTaken(flankedPost)};
                 for (int i = 0; i < LANE_LENGTH; i++) {
                     sim.deployedCover().queuePlacement(carrier, Faction.MARINE,
                             LANE_CELL_X, COVERED_LANE_Y + LANE_SPACING * i,
@@ -144,7 +149,7 @@ public final class DeployedCoverSceneSnapshotSuite implements SnapshotSuite {
                     coveredLane, openLane, flankedPost);
             if (tick % FRAME_EVERY_TICKS == 0) {
                 frames.add(renderer.render(sim,
-                        caption(sim, coveredLane, openLane, flankedPost, tick)));
+                        caption(sim, coveredLane, openLane, flankedPost, tick, baseline)));
             }
             sim.advance(BattleSimulation.TICK_DT);
         }
@@ -222,19 +227,36 @@ public final class DeployedCoverSceneSnapshotSuite implements SnapshotSuite {
     }
 
     /**
-     * The three figures the scene exists to put side by side. Before the
-     * screens go up all three should track each other; afterwards the covered
-     * lane must fall behind the open lane, and the flanked post must not.
+     * The three figures the scene exists to put side by side.
+     *
+     * <p>Once the screens are up the caption reports damage <em>taken since
+     * they went up</em>, not since the battle began. That is the only figure
+     * the comparison is entitled to: the three lanes do not arrive at the
+     * placement tick carrying identical totals, because a hit roll is a roll,
+     * so a running total from t0 mixes the effect being measured with whatever
+     * spread the opening exchange happened to produce. Subtracting the reading
+     * at placement makes every frame afterwards a controlled comparison that
+     * can be read straight off the picture, which is what this artifact is
+     * for.
      */
     private static String caption(BattleSimulation sim, List<Long> coveredLane,
-                                  List<Long> openLane, long flankedPost, int tick) {
+                                  List<Long> openLane, long flankedPost, int tick,
+                                  float[] baseline) {
         String state = !sim.deployedCover().activeScreens().isEmpty()
                 ? sim.deployedCover().activeScreens().size() + " revetments up, all facing east"
                 : (tick < PLACEMENT_TICK ? "no revetments yet" : "revetments expired");
+        float covered = damageTaken(sim, coveredLane);
+        float open = damageTaken(sim, openLane);
+        float flanked = sim.telemetry().damageTaken(flankedPost);
+        if (baseline != null) {
+            covered -= baseline[0];
+            open -= baseline[1];
+            flanked -= baseline[2];
+        }
         return String.format(Locale.ROOT,
-                "t%-4d %s | damage: covered %.0f, open %.0f, flanked %.0f",
-                tick, state, damageTaken(sim, coveredLane), damageTaken(sim, openLane),
-                sim.telemetry().damageTaken(flankedPost));
+                "t%-4d %s | damage %s: covered %.0f, open %.0f, flanked %.0f",
+                tick, state, baseline == null ? "so far" : "since placement",
+                covered, open, flanked);
     }
 
     private static float damageTaken(BattleSimulation sim, List<Long> lane) {
