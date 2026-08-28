@@ -663,6 +663,32 @@ class CommandTraceAnalyzerTest {
     }
 
     @Test
+    void secureTravelClassifiesPortalApproachAndEntry() throws Exception {
+        var never = analyzeSecure(String.join("\n", schemaNineHeader(),
+                physicalPerspectiveV9(75, 10f, 10f, 1, 0, 0),
+                timeout(150), ""));
+        assertEquals(1, never.portalProgress().classifiedExits());
+        assertEquals(1, never.portalProgress().neverAtPortalExits());
+        assertEquals(0, never.portalProgress().episodesObservedAtPortal());
+
+        var portal = analyzeSecure(String.join("\n", schemaNineHeader(),
+                physicalPerspectiveV9(75, 10f, 10f, 1, 0, 0),
+                physicalPerspectiveV9(150, 19f, 20f, 1, 0, 1),
+                timeout(225), ""));
+        assertEquals(1, portal.portalProgress().classifiedExits());
+        assertEquals(1, portal.portalProgress().atPortalNotEnteredExits());
+        assertEquals(1, portal.portalProgress().episodesObservedAtPortal());
+
+        var entered = analyzeSecure(String.join("\n", schemaNineHeader(),
+                physicalPerspectiveV9(75, 19f, 20f, 1, 0, 1),
+                physicalPerspectiveV9(150, 20f, 20f, 5, 1, 0),
+                timeout(225), ""));
+        assertEquals(1, entered.portalProgress().classifiedExits());
+        assertEquals(1, entered.portalProgress().enteredExits());
+        assertEquals(1, entered.targetEntryExits());
+    }
+
+    @Test
     void secureTravelSeparatesReleaseLossAndSuspensionExits()
             throws Exception {
         String released = physicalPerspectiveV7(150, 10f, 10f, 1,
@@ -1049,6 +1075,22 @@ class CommandTraceAnalyzerTest {
     private static String schemaEightHeader() {
         return header().replace("\"schemaVersion\":5",
                 "\"schemaVersion\":8");
+    }
+
+    private static String schemaNineHeader() {
+        return header().replace("\"schemaVersion\":5",
+                "\"schemaVersion\":9");
+    }
+
+    private static String physicalPerspectiveV9(
+            int tick, float centroidX, float centroidY, int currentZone,
+            int membersInTargetZone, int membersInTargetPortal) {
+        return physicalPerspectiveV7(tick, centroidX, centroidY, currentZone,
+                membersInTargetZone).replace(
+                "\"membersInTargetZone\":" + membersInTargetZone + '}',
+                "\"membersInTargetZone\":" + membersInTargetZone
+                        + ",\"membersInTargetPortal\":"
+                        + membersInTargetPortal + '}');
     }
 
     private static String tacticalState(String row, int movingMembers,
