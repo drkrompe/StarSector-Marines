@@ -9,6 +9,7 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -60,6 +61,13 @@ import java.util.List;
  * rather than one long sitting. Re-slicing carries the existing annotations
  * across, which is what makes tuning the threshold safe to do late.
  *
+ * <p>The sheets of the project are found rather than browsed for: the toolbar
+ * lists what {@link TilesetLibrary} discovers, with the state of each, so
+ * picking up an unfinished sheet does not depend on remembering which one it
+ * was. A document that names a sheet and its slice settings but no pieces is a
+ * valid starting point — it is what a person or a model writes to set a sheet
+ * up — and opening one slices immediately rather than showing an empty table.
+ *
  * <p>A piece is either a doodad or one cell of a named <b>block</b>. A block is
  * how a wall gets its facing: the game picks the cell from the four-neighbour
  * mask through the block's {@code GridLayout}, so the authoring act is assigning
@@ -85,6 +93,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private final JLabel summary = new JLabel(" ");
 
     private final List<TilesetExport.BlockSpec> blocks = new ArrayList<>();
+    private final DefaultComboBoxModel<TilesetLibrary.Sheet> library = new DefaultComboBoxModel<>();
+    private final JComboBox<TilesetLibrary.Sheet> librarySheets = new JComboBox<>(library);
 
     private BufferedImage source;
     private Path sourcePath;
@@ -96,14 +106,24 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
         JToolBar bar = new JToolBar();
         bar.setFloatable(false);
-        bar.add(new AbstractAction("Open sheet…") {
+        bar.add(new JLabel(" project "));
+        librarySheets.setMaximumSize(new Dimension(360, 26));
+        librarySheets.setPreferredSize(new Dimension(360, 26));
+        bar.add(librarySheets);
+        bar.add(new AbstractAction("Open") {
             @Override public void actionPerformed(ActionEvent e) {
-                openSheet();
+                openSelectedFromLibrary();
             }
         });
-        bar.add(new AbstractAction("Open document…") {
+        bar.add(new AbstractAction("Rescan") {
             @Override public void actionPerformed(ActionEvent e) {
-                openDocument();
+                rescanLibrary();
+            }
+        });
+        bar.addSeparator();
+        bar.add(new AbstractAction("Browse…") {
+            @Override public void actionPerformed(ActionEvent e) {
+                openSheet();
             }
         });
         bar.add(new AbstractAction("Save document") {
@@ -179,6 +199,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         split.setResizeWeight(0.5);
 
         summary.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+        rescanLibrary();
         root.add(bar, BorderLayout.NORTH);
         root.add(split, BorderLayout.CENTER);
         root.add(summary, BorderLayout.SOUTH);
@@ -217,6 +238,57 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         }
     }
 
+    private void rescanLibrary() {
+        TilesetLibrary.Sheet selected = (TilesetLibrary.Sheet) librarySheets.getSelectedItem();
+        library.removeAllElements();
+        List<TilesetLibrary.Sheet> sheets = TilesetLibrary.scan(context.projectRoot());
+        for (TilesetLibrary.Sheet sheet : sheets) {
+            library.addElement(sheet);
+            // Keep the operator on the sheet they were editing across a rescan.
+            if (selected != null && selected.name().equals(sheet.name())) {
+                library.setSelectedItem(sheet);
+            }
+        }
+        context.reportStatus(sheets.size() + " sheets in " + TilesetLibrary.SOURCE_DIR);
+    }
+
+    /**
+     * Open whichever sheet the project list has selected.
+     *
+     * <p>Three cases, and the operator should not have to know which they are
+     * in: an annotated sheet reopens its document, a raw sheet is loaded and
+     * sliced, and a sheet that only exists as an exported tileset cannot be
+     * opened at all because its raw art is not in the project.
+     */
+    private void openSelectedFromLibrary() {
+        TilesetLibrary.Sheet sheet = (TilesetLibrary.Sheet) librarySheets.getSelectedItem();
+        if (sheet == null) return;
+        if (sheet.isAnnotated()) {
+            openDocumentAt(sheet.document());
+            return;
+        }
+        if (sheet.rawSheet() == null) {
+            JOptionPane.showMessageDialog(root,
+                    sheet.name() + " ships as a tileset but has no raw art in "
+                            + TilesetLibrary.SOURCE_DIR + ", so there is nothing to annotate.",
+                    "Open", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        try {
+            loadSheet(sheet.rawSheet());
+            documentPath = null;
+            blocks.clear();
+            model.setEntries(new ArrayList<>());
+            sheetName.setText(sheet.name());
+            idPrefix.setText("doodad." + sheet.name());
+            slice();
+        } catch (Exception failure) {
+            JOptionPane.showMessageDialog(root,
+                    "Could not read " + sheet.rawSheet() + ":\n" + failure,
+                    "Open", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     /**
      * Reopen a saved annotation pass exactly as it was left.
      *
@@ -229,7 +301,10 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         JFileChooser chooser = new JFileChooser(documentDir().toFile());
         chooser.setFileFilter(new FileNameExtensionFilter("Tileset authoring document", "json"));
         if (chooser.showOpenDialog(root) != JFileChooser.APPROVE_OPTION) return;
-        Path path = chooser.getSelectedFile().toPath();
+        openDocumentAt(chooser.getSelectedFile().toPath());
+    }
+
+    private void openDocumentAt(Path path) {
         try {
             TilesetDocument document = TilesetDocument.read(path);
             loadSheet(resolve(document.sheet));
@@ -245,6 +320,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             view.setEntries(document.entries);
             dirty = false;
             context.stateChanged();
+            if (document.entries.isEmpty()) {
+                // A seeded document: it chose the sheet and the slice settings
+                // and left the pieces to be found. Finding them is this tool's
+                // mechanical half, so do it rather than presenting an empty table.
+                slice();
+                context.reportStatus("Opened " + path + " and sliced it for the first time");
+                return;
+            }
             context.reportStatus("Opened " + path);
             report();
             refreshPreview();
@@ -272,6 +355,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             documentPath = path;
             dirty = false;
             context.stateChanged();
+            rescanLibrary();
             context.reportStatus("Wrote " + path);
         } catch (Exception failure) {
             JOptionPane.showMessageDialog(root, "Could not save " + path + ":\n" + failure,
@@ -540,6 +624,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                     atlasPath, tilesetPath);
             Files.writeString(cardPath, TilesetCatalogCard.render(
                     name, sheetRelative, cell, model.entries, blocks));
+            rescanLibrary();
             context.reportStatus("Wrote " + atlasPath + ", " + tilesetPath + " and " + cardPath);
             report();
         } catch (Exception failure) {

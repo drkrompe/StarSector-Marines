@@ -28,6 +28,47 @@ Tileset authoring documents — one per annotated sheet, written by the Tilesets
 page of `gradlew.bat layerAuthoring` — live in `tilesets/` beside the sheet they
 annotate, as `<name>.tileset-authoring.json`.
 
+## Seeding a tileset for annotation
+
+The Tilesets page lists every sheet it finds here, so dropping a raw sheet into
+`tilesets/` is enough to make it appear as work to do. Nothing else is required.
+
+A sheet can also be *seeded*: write the document by hand (or have a model write
+it) with the settings and no pieces, and the page will slice it on open.
+
+```json
+{
+  "sheet": "art-source/tilesets/reactor-hall.raw.png",
+  "sheetName": "reactor-hall",
+  "idPrefix": "doodad.reactor-hall",
+  "cellPx": 64,
+  "alphaMin": 40,
+  "gridCell": 104
+}
+```
+
+- `sheet` — the raw art, project-relative.
+- `sheetName` — base name for the exported atlas, tileset and catalog card.
+- `idPrefix` — prefix for generated piece ids before they are renamed.
+- `cellPx` — cell size of the exported atlas; keep it at or above the game grid
+  so a finely drawn sheet keeps its detail.
+- `alphaMin` — alpha at or above which a pixel counts as art. Raise it when a
+  soft key fuses the whole sheet into one piece.
+- `gridCell` — cell size *on the raw sheet*, in its own pixels. Used to split
+  fused plates and to guess footprints, so it is worth measuring rather than
+  guessing.
+
+`blocks` may also be pre-declared, so the walls a sheet is known to contain are
+named before anyone opens it:
+
+```json
+"blocks": [{ "id": "reactor-hall.wall", "layout": "wall-3x3", "fillRgb": "0x060A10" }]
+```
+
+What a seed cannot supply is which piece is which: that needs the slice, which
+needs the image. Seeding sets a sheet up; annotating it is still the work the
+page exists for.
+
 ## Writing a script here
 
 Every script computes the repository root and addresses `mod/` from there:
