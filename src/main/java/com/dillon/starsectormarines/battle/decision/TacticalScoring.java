@@ -719,6 +719,11 @@ public final class TacticalScoring {
      * Direct-fire counterpart to {@link #canSeePair}. Point positions are
      * authoritative for ground fire; perception continues to use projected
      * cells and its tick cache.
+     *
+     * <p>Both branches ask a structural question only. Smoke is obscuration
+     * and is priced into the round's accuracy by {@code SmokeObscuration}, so
+     * a screened lane is a bad shot here rather than a forbidden one — see
+     * {@code ballistics-nouns.md}.
      */
     public static boolean canShootPair(NavigationGrid grid,
                                        float sx, float sy, float tx, float ty,
@@ -726,7 +731,7 @@ public final class TacticalScoring {
         if (shooterAirR <= 0f && targetAirR <= 0f) {
             return grid.hasLineOfFire(sx, sy, tx, ty);
         }
-        return canSeePair(grid,
+        return TurretAim.airFireLineClear(grid,
                 (int) Math.floor(sx), (int) Math.floor(sy),
                 (int) Math.floor(tx), (int) Math.floor(ty),
                 shooterAirR, targetAirR);

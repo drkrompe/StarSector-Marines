@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.smoke.SmokeObscuration;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -250,8 +251,16 @@ public final class BallisticResolver {
         // rotates the real ground ray; elevation error becomes a linear Z
         // slope. An authored miss therefore visibly clears the intended
         // silhouette instead of crossing it and failing a hidden second roll.
+        //
+        // Smoke joins the stack here rather than upstream because obscuration
+        // is a property of the lane this round actually flies, not of the
+        // shooter: it is measured on the same source-to-target segment the
+        // structural trace uses, and it degrades the sight picture instead of
+        // stopping anything. The round itself crosses the cloud untouched.
+        float obscuredAccuracy = finalAccuracy * SmokeObscuration.accuracyMultiplier(
+                grid.smokeDepthOnLine(fromX, fromY, targetX, targetY));
         TargetPlaneAim.Sample aim = TargetPlaneAim.sample(
-                finalAccuracy, world.incomingAccuracyMult(target), effectiveSpread,
+                obscuredAccuracy, world.incomingAccuracyMult(target), effectiveSpread,
                 targetRadius(target), targetHitHalfHeight(target), rng);
         float baseDx = leadX - fromX;
         float baseDy = leadY - fromY;

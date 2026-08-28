@@ -87,7 +87,8 @@ public final class DeadBodySystem {
         this.corpseRemove = new ComponentType[]{
                 components.HEALTH, components.ARMOR, components.COMBAT, components.MOVEMENT,
                 components.AI_STATE, components.SECONDARY_WEAPON,
-                components.INTEGRAL_SYSTEM, components.MITIGATION, components.VISION,
+                components.INTEGRAL_SYSTEM, components.MITIGATION, components.SYSTEM_FX,
+                components.VISION,
                 components.SQUAD, components.ROLE, components.HOME, components.TASK,
                 components.HUB_STATE, components.TURRET_STATE, components.DRONE_STATE,
                 components.LAYERED_ANIMATION, components.MECH_LAYERED_ANIMATION,

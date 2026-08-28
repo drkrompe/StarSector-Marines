@@ -142,8 +142,15 @@ public class NavigationGrid {
             Collections.unmodifiableList(edgeBarriers);
     /** Per-cell wall hit points. Non-zero only for non-walkable cells initialized as walls; ignored once a cell becomes walkable (rubble or floor). */
     private final int[] wallHp;
-    /** Reference-counted temporary opacity (smoke). Never affects walkability or ballistics. */
+    /**
+     * Reference-counted temporary opacity (smoke). Never affects walkability,
+     * and never stops a round: it blocks <em>sight</em> (perception, fog, and
+     * target acquisition) while direct fire reads it as graded obscuration
+     * through {@link #smokeDepthOnLine} rather than as a gate.
+     */
     private final short[] transientOpacity;
+    /** Live count of cells holding transient opacity — lets {@link #smokeDepthOnLine} exit in O(1) on the overwhelmingly common smokeless map. */
+    private int transientOpacityCells;
     private long opacityRevision;
 
     public NavigationGrid(int width, int height) {
@@ -231,14 +238,14 @@ public class NavigationGrid {
 
     public void addTransientOpacityAt(int idx) {
         if (transientOpacity[idx] == Short.MAX_VALUE) return;
-        transientOpacity[idx]++;
+        if (transientOpacity[idx]++ == 0) transientOpacityCells++;
         opacityRevision++;
         LosCache.clearAll();
     }
 
     public void removeTransientOpacityAt(int idx) {
         if (transientOpacity[idx] <= 0) return;
-        transientOpacity[idx]--;
+        if (--transientOpacity[idx] == 0) transientOpacityCells--;
         opacityRevision++;
         LosCache.clearAll();
     }
@@ -252,6 +259,12 @@ public class NavigationGrid {
     public boolean blocksLineOfSight(int x, int y) {
         if (!inBounds(x, y)) return false;
         return blocksLineOfSightAt(index(x, y));
+    }
+
+    /** Bounds-checked {@link #blocksStructuralLineOfSightAt} — the smoke-free rule direct fire follows. */
+    public boolean blocksStructuralLineOfSight(int x, int y) {
+        if (!inBounds(x, y)) return false;
+        return blocksStructuralLineOfSightAt(index(x, y));
     }
 
     // ----- Cell flags (bounds-checked typed wrappers around hasTag/setTag) -----
@@ -791,6 +804,7 @@ public class NavigationGrid {
         invalidateBarrierIndex();
         Arrays.fill(wallHp, 0);
         Arrays.fill(transientOpacity, (short) 0);
+        transientOpacityCells = 0;
         opacityRevision++;
         LosCache.clearAll();
     }
@@ -856,11 +870,73 @@ public class NavigationGrid {
      * Bresenham. Perception, fog, and topology remain cell projections; use
      * this only where a direct-fire decision needs to agree with the physical
      * ballistic ray.
+     *
+     * <p>Only structural geometry stops fire. Smoke is deliberately absent:
+     * it is obscuration, so it costs the shot accuracy via
+     * {@link #smokeDepthOnLine} rather than forbidding it. Sight keeps the
+     * stricter rule — see {@link #hasLineOfSight}.
      */
     public boolean hasLineOfFire(float x0, float y0, float x1, float y1) {
         return firstProjectileBlockingEdgeBarrierOnLine(x0, y0, x1, y1) == null
-                && firstBlockOnLine(x0, y0, x1, y1,
-                false, true) == noBlockPacked();
+                && firstBlockOnLine(x0, y0, x1, y1, true) == noBlockPacked();
+    }
+
+    /**
+     * How many smoke-filled cells the exact segment from {@code (x0,y0)} to
+     * {@code (x1,y1)} passes through, counting both endpoint cells — a
+     * shooter standing inside their own cloud is obscured by it, and so is a
+     * target hiding in one.
+     *
+     * <p>This is the graded input direct fire uses in place of the hard gate
+     * smoke used to impose: {@code SmokeObscuration} turns the returned depth
+     * into an accuracy multiplier. A map with no live cloud answers on one
+     * integer compare, so the ordinary shot pays nothing for the query.
+     */
+    public int smokeDepthOnLine(float x0, float y0, float x1, float y1) {
+        if (transientOpacityCells == 0) return 0;
+        if (!Float.isFinite(x0) || !Float.isFinite(y0)
+                || !Float.isFinite(x1) || !Float.isFinite(y1)) {
+            throw new IllegalArgumentException("Ray endpoints must be finite");
+        }
+        int x = (int) Math.floor(x0);
+        int y = (int) Math.floor(y0);
+        int endX = (int) Math.floor(x1);
+        int endY = (int) Math.floor(y1);
+        int depth = hasTransientOpacity(x, y) ? 1 : 0;
+        if (x == endX && y == endY) return depth;
+
+        // Same Amanatides-Woo traversal firstBlockOnLine walks, counting
+        // instead of stopping, so the accuracy penalty and the structural
+        // stop agree about which cells a round actually crosses.
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        int stepX = Float.compare(dx, 0f);
+        int stepY = Float.compare(dy, 0f);
+        float tDeltaX = stepX == 0 ? Float.POSITIVE_INFINITY : Math.abs(1f / dx);
+        float tDeltaY = stepY == 0 ? Float.POSITIVE_INFINITY : Math.abs(1f / dy);
+        float nextBoundaryX = stepX > 0 ? x + 1f : x;
+        float nextBoundaryY = stepY > 0 ? y + 1f : y;
+        float tMaxX = stepX == 0 ? Float.POSITIVE_INFINITY
+                : (nextBoundaryX - x0) / dx;
+        float tMaxY = stepY == 0 ? Float.POSITIVE_INFINITY
+                : (nextBoundaryY - y0) / dy;
+
+        while (x != endX || y != endY) {
+            if (tMaxX < tMaxY) {
+                x += stepX;
+                tMaxX += tDeltaX;
+            } else if (tMaxY < tMaxX) {
+                y += stepY;
+                tMaxY += tDeltaY;
+            } else {
+                x += stepX;
+                y += stepY;
+                tMaxX += tDeltaX;
+                tMaxY += tDeltaY;
+            }
+            if (hasTransientOpacity(x, y)) depth++;
+        }
+        return depth;
     }
 
     /** First authored edge feature physically crossed by an exact segment. */
@@ -1056,18 +1132,18 @@ public class NavigationGrid {
      * visibility concern and bullets pass through it.
      */
     public long firstWallOnLine(float x0, float y0, float x1, float y1) {
-        return firstBlockOnLine(x0, y0, x1, y1,
-                true, false);
+        return firstBlockOnLine(x0, y0, x1, y1, false);
     }
 
     /**
      * Amanatides-Woo grid traversal. Returned format matches
-     * {@link #firstWallOnLine(int, int, int, int)}. When {@code structuralOnly}
-     * is false, transient opacity also blocks. When {@code excludeEnd} is true,
-     * the target cell is exempt.
+     * {@link #firstWallOnLine(int, int, int, int)}. Only structural geometry
+     * blocks — smoke is graded obscuration, never a stop (see
+     * {@link #smokeDepthOnLine}). When {@code excludeEnd} is true, the target
+     * cell is exempt.
      */
     private long firstBlockOnLine(float x0, float y0, float x1, float y1,
-                                  boolean structuralOnly, boolean excludeEnd) {
+                                  boolean excludeEnd) {
         if (!Float.isFinite(x0) || !Float.isFinite(y0)
                 || !Float.isFinite(x1) || !Float.isFinite(y1)) {
             throw new IllegalArgumentException("Ray endpoints must be finite");
@@ -1095,13 +1171,11 @@ public class NavigationGrid {
             if (tMaxX < tMaxY) {
                 x += stepX;
                 tMaxX += tDeltaX;
-                if (blocksRayCell(x, y, endX, endY,
-                        structuralOnly, excludeEnd)) return packCell(x, y);
+                if (blocksRayCell(x, y, endX, endY, excludeEnd)) return packCell(x, y);
             } else if (tMaxY < tMaxX) {
                 y += stepY;
                 tMaxY += tDeltaY;
-                if (blocksRayCell(x, y, endX, endY,
-                        structuralOnly, excludeEnd)) return packCell(x, y);
+                if (blocksRayCell(x, y, endX, endY, excludeEnd)) return packCell(x, y);
             } else {
                 // At an exact corner the zero-width segment enters only the
                 // diagonal cell; the orthogonal neighbors are touched at one
@@ -1111,21 +1185,17 @@ public class NavigationGrid {
                 y += stepY;
                 tMaxX += tDeltaX;
                 tMaxY += tDeltaY;
-                if (blocksRayCell(x, y, endX, endY,
-                        structuralOnly, excludeEnd)) return packCell(x, y);
+                if (blocksRayCell(x, y, endX, endY, excludeEnd)) return packCell(x, y);
             }
         }
         return noBlockPacked();
     }
 
     private boolean blocksRayCell(int x, int y, int endX, int endY,
-                                  boolean structuralOnly, boolean excludeEnd) {
+                                  boolean excludeEnd) {
         if (excludeEnd && x == endX && y == endY) return false;
         if (!inBounds(x, y)) return false;
-        int idx = index(x, y);
-        return structuralOnly
-                ? blocksStructuralLineOfSightAt(idx)
-                : blocksLineOfSightAt(idx);
+        return blocksStructuralLineOfSightAt(index(x, y));
     }
 
     private static long packCell(int x, int y) {

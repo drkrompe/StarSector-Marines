@@ -271,6 +271,18 @@ may be glued to one another. The bound that matters is the ground's own size: a
 run of wall longer than half the extent it stands on has no way round inside the
 place at all, and only a single building may exceed that on its own.
 
+**One door makes a room reachable; it does not make it a fight.** Reachability
+is all packing checks, so a building large enough to matter can come out with a
+single entrance — widened to two cells, which reads as two doors on the same
+wall — and be cleared by holding that one doorway. The attacker never chooses an
+approach and the defender never covers more than one, so the interior might as
+well not be there. A place therefore says how much floor earns another way in,
+and each further one is cut on a face the room does not already have: another
+door beside the first changes nothing, while one on the far wall means the
+building can be entered from two sides, flanked, or given up at one end and held
+at the other. A hull keeps one hatch per compartment; how a deck is cut belongs
+to the ship family.
+
 **A wall is left over on a hull and authored on a map.** A packer carves a
 room's floor and leaves the ring around it alone, which is the whole of a
 bulkhead inside a vessel: a void in a hull is structure, and nothing has to say

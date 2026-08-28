@@ -115,11 +115,16 @@ public class ConquestCommandTest {
 
     /** One dominant open zone, tall enough to exercise cautious line staging. */
     private static BattleSimulation tallExteriorSim(int height) {
-        NavigationGrid grid = new NavigationGrid(W, height);
+        return openExteriorSim(W, height);
+    }
+
+    /** Open ground sized to give each conquest track real lateral width. */
+    private static BattleSimulation openExteriorSim(int width, int height) {
+        NavigationGrid grid = new NavigationGrid(width, height);
         for (int y = 0; y < height; y++) {
-            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+            for (int x = 0; x < width; x++) grid.setWalkableFloor(x, y);
         }
-        return new BattleSimulation(grid, new CellTopology(W, height));
+        return new BattleSimulation(grid, new CellTopology(width, height));
     }
 
     private static Squad addMarineSquad(BattleSimulation sim, float centroidX, float centroidY) {
@@ -459,6 +464,76 @@ public class ConquestCommandTest {
         tick(cmd, sim);
         assertEquals(stage, rear.assignedObjective,
                 "unchanged belief must preserve a deterministic staging marker");
+    }
+
+    @Test
+    public void farLateralContactInTheSameTrackDoesNotSetTheStandoff() {
+        // A track spans a third of the map laterally. The believed front that
+        // gates a lane stage has to come from contacts in front of the squad,
+        // not from one at the far edge of its own band: scanning the whole
+        // band lets a corner contact put the safe line behind a squad that has
+        // already advanced past it, which strands the squad with no assignment.
+        BattleSimulation sim = openExteriorSim(120, 140);
+        ConquestTrackLayout layout = new ConquestTrackLayout(
+                TraversalAxis.SOUTH_TO_NORTH, 120, 140);
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+
+        Squad subject = addMarineSquad(sim, 30f, 40f);
+        Squad aheadReporter = addMarineSquad(sim, 28f, 118f);
+        Squad flankReporter = addMarineSquad(sim, 1f, 12f);
+        addDefender(sim, 28, 120);
+        addDefender(sim, 1, 10);
+        assertEquals(0, layout.trackForCell(28, 120));
+        assertEquals(0, layout.trackForCell(1, 10),
+                "the fixture only bites while both contacts share the subject's track");
+        establishDirectMarineContact(sim, aheadReporter);
+        establishDirectMarineContact(sim, flankReporter);
+        assertFalse(subject.hasBelievedContacts(),
+                "the subject must rely on commander belief, not local sensing");
+
+        tick(cmd, sim);
+
+        ObjectiveAssignment stage = subject.assignedObjective;
+        assertNotNull(stage,
+                "a contact at the far lateral edge must not strand the squad");
+        assertEquals(AssignmentKind.ADVANCE_TRACK, stage.kind());
+        assertTrue(stage.targetCellY()
+                        >= 40 + ConquestCommand.TRACK_LINE_MIN_ADVANCE_CELLS,
+                "the stage must actually advance the squad");
+        assertTrue(stage.targetCellY()
+                        <= 120 - ConquestCommand.TRACK_LINE_STANDOFF_CELLS,
+                "the standoff still applies to the contact that is ahead");
+        assertEquals(AssignmentReason.TRACK_LINE_ADVANCE,
+                cmd.frontSnapshot().directiveFor(subject.id).reason());
+    }
+
+    @Test
+    public void believedTrackFrontOffThisSquadsLineStillStagesItForward() {
+        // The reported failure: every contact in the squad's track sits tens
+        // of cells off its line of advance. An empty corridor means nobody is
+        // in front of this squad, which is a reason to keep moving, not a
+        // reason to stand still with no assignment at all.
+        BattleSimulation sim = openExteriorSim(120, 140);
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+
+        Squad subject = addMarineSquad(sim, 30f, 40f);
+        Squad flankReporter = addMarineSquad(sim, 1f, 12f);
+        addDefender(sim, 1, 10);
+        establishDirectMarineContact(sim, flankReporter);
+        assertFalse(subject.hasBelievedContacts(),
+                "the subject must rely on commander belief, not local sensing");
+
+        tick(cmd, sim);
+
+        ObjectiveAssignment stage = subject.assignedObjective;
+        assertNotNull(stage, "an off-line front must not strand the squad");
+        assertEquals(AssignmentKind.ADVANCE_TRACK, stage.kind());
+        assertTrue(stage.targetCellY()
+                        >= 40 + ConquestCommand.TRACK_LINE_MIN_ADVANCE_CELLS,
+                "with nobody ahead the friendly line and stride cap size the step");
+        assertTrue(stage.targetCellY()
+                        <= 40 + ConquestCommand.TRACK_LINE_MAX_STRIDE_CELLS,
+                "an unopposed corridor is still not licence to cross the lane");
     }
 
     @Test
