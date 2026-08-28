@@ -18,11 +18,19 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
  * @param maxCrew everyone she can carry; a vanilla hull's {@code max crew}
  * @param cargo hold capacity; a vanilla hull's {@code cargo}
  * @param aspect beam over length, which gives the deck the hull's proportions
+ * @param outline the hull's own form, or null for a ship whose shape could not
+ *     be read — her deck then takes a synthetic taper, which is a plausible
+ *     ship rather than a particular one
  */
 public record CompanyShip(HullClass hullClass, HullRole role,
-                          int minCrew, int maxCrew, int cargo, float aspect) {
+                          int minCrew, int maxCrew, int cargo, float aspect,
+                          HullSilhouette outline) {
 
     public CompanyShip {
+        // A hull has one set of proportions. Carrying both an outline and a
+        // separate aspect invites them to disagree, and the outline is the one
+        // the deck is actually laid out inside.
+        if (outline != null) aspect = outline.aspect();
         if (hullClass == null) throw new IllegalArgumentException("a hull class is required");
         if (role == null) throw new IllegalArgumentException("a hull role is required");
         if (minCrew < 0 || maxCrew < minCrew) {
@@ -31,6 +39,18 @@ public record CompanyShip(HullClass hullClass, HullRole role,
         }
         if (cargo < 0) throw new IllegalArgumentException("hold capacity cannot be negative");
         if (!(aspect > 0f)) throw new IllegalArgumentException("a hull has a positive beam");
+    }
+
+    /** A hull whose form is known: her proportions come from her own outline. */
+    public CompanyShip(HullClass hullClass, HullRole role,
+                       int minCrew, int maxCrew, int cargo, HullSilhouette outline) {
+        this(hullClass, role, minCrew, maxCrew, cargo, 1f, outline);
+    }
+
+    /** A hull known only by her proportions, with no outline to lay a deck in. */
+    public CompanyShip(HullClass hullClass, HullRole role,
+                       int minCrew, int maxCrew, int cargo, float aspect) {
+        this(hullClass, role, minCrew, maxCrew, cargo, aspect, null);
     }
 
     /** What this hull owes in rooms, and how much deck to lay them out on. */

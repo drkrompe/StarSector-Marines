@@ -4,11 +4,12 @@ Status: IN PROGRESS
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — the company now lives aboard a real ship in the player's
-fleet: the designation is recorded on company state, the hull's form is read
-with its battle damage lifted, and the deck is derived per ship. What remains
-is the comparison screen and a founding choice the player makes rather than
-inherits.
+Updated: 2026-08-28 — the company lives aboard a real ship in the player's
+fleet, and the transfer screen is in: every candidate is drawn as her own
+generated deck inside her own hull outline, with what she would cost the
+company named before they commit. What remains is a founding choice the player
+makes rather than inherits, and what happens when the company ship is destroyed
+rather than merely sold.
 
 Read `ship-interiors-nouns.md` and `company-ship.md` before implementing this
 story. Depends on the room views being deck-hosted, which they now are — see
@@ -69,7 +70,12 @@ fleet.
   genuinely uninhabitable rather than merely a poor choice. Whether a candidate
   can hold a barracks at all is a fact the comparison shows, not a filter.
 - Whether transfer costs anything, and whether facility contents move with the
-  company or stay with the hull.
+  company or stay with the hull. Transferring is currently free and instant.
+
+- Whether a hull's proportions should come from her collision polygon or from
+  traced art. The polygon is the reading the running game can take and is what
+  ships; the sprite trace is finer but needs pixels a mod cannot reach, so
+  adopting it would mean baking a catalog. The two agree within about a tenth.
 - What happens when the company ship is destroyed rather than merely damaged.
   This is the sharpest version of the question and the one most worth answering
   deliberately.
