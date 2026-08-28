@@ -175,7 +175,7 @@ Do not run builds or leave generated task files there.
   one-shot command removes. Both entry points are separate front doors onto the
   same domain code, never an embedded server — an editor holding unsaved changes
   and a tool writing the same document would be two writers. See
-  `authoring-mcp-server.md`.
+  `authoring-entry-points.md`.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.
