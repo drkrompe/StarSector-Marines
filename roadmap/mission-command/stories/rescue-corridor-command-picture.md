@@ -4,7 +4,11 @@ Status: DRAFT — expose the asymmetric escort-versus-pressure operation without
 
 Written: 2026-08-25
 
-Read `ai-nouns.md`, `campaign-event-nouns.md`,
+Updated: 2026-08-27 — grouped as an Extraction-family adapter with distinct
+Marine corridor command and swarm-director semantics.
+
+Read `mission-command-nouns.md`, `extraction-command.md`,
+`campaign-event-nouns.md`,
 `autonomous-mission-command-foundation.md`, and
 `commander-trace-and-balance-harness.md` before planning this story.
 
@@ -57,5 +61,5 @@ pressure. Both publish inspectable intent under their actual fiction.
 
 ## Exit
 
-Fold durable asymmetric-director vocabulary into `ai-nouns.md`, add this story
-to the AI shipped ledger, and delete it when both pictures and trace ship.
+Fold durable asymmetric-director vocabulary into `extraction-command.md`, add this story
+to the mission-command shipped ledger, and delete it when both pictures and trace ship.

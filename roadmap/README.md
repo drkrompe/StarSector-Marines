@@ -38,6 +38,11 @@ mission model lives in `early-operation-nouns.md`.
 
 ### Battle tier
 
+Mission command has one shared architecture and separate enduring strategy
+designs for Conquest, Sabotage, Assault, Raid, and Extraction. Start with
+`mission-command-nouns.md`, then read the relevant mission design and its story
+group. Mission objectives and outcomes remain with their owning domains.
+
 Conquest is the primary territorial battle and the first production paired
 mission-command implementation: marines capture reversible supply compounds
 while defenders mobilize patrols, preserve strongpoints, and retain
@@ -46,14 +51,16 @@ command-duel foundation in which both sides can progress the mission without
 player micromanagement; foundation migration and paired live acceptance remain.
 Marine Sabotage is the second production attacker migration: exactly three named
 sites organize stable planter, kit-recovery, security, and reinforcement groups
-with deterministic headless evidence. Its defender site-security commander is
-the explicit paired follow-on. Assault now supplies the next paired production
+with deterministic headless evidence. Its paired defender site-security
+commander is also shipped. Assault now supplies the next paired production
 duel: Marines search persistent two-dimensional sectors while defenders preserve
 authored strongpoints, spread routine area security, and mobilize a belief-driven
 bounded reserve. Its live acceptance and canonical-duration evidence review are
 still pending.
-Each later mission keeps its own strategy geometry. See `conquest-nouns.md`,
-`ai-nouns.md`, `reinforcement-nouns.md`, and `convoy-nouns.md`.
+Each mission keeps its own strategy geometry. See `conquest-command.md`,
+`sabotage-command.md`, `assault-command.md`, `raid-command.md`,
+`extraction-command.md`, `ai-nouns.md`, `reinforcement-nouns.md`, and
+`convoy-nouns.md`.
 
 Fleet-sourced support is committed before launch and activated by the
 simulation through `command-powers-nouns.md`; distinct chassis, loadouts, and
@@ -120,9 +127,11 @@ commanders now share stable area geometry while retaining separate beliefs,
 ownership, directives, panel/dump/overlay views, and forced-serial trace evidence.
 Review a canonical-duration `commanderEvidence -Pmission=assault` run and the
 deferred live play pass before retiring its two implementation stories.
-Opening Operations remains the smallest later command-duel proof. Each mission
+Opening Operations remains the smallest later command-duel proof. Raid's first
+step is its objective-and-egress contract; generic Extraction likewise needs a
+payload/cohort-and-egress contract before commander implementation. Each mission
 adapts the same knowledge, ownership, cadence, and diagnostic contracts through
-its own geometry.
+its own geometry. The grouped work lives in the Mission Command `stories.md`.
 
 ## How to use this directory
 

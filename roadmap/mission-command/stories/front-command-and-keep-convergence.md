@@ -4,9 +4,11 @@ Status: IN PROGRESS — implementation is complete; paired autonomous-command li
 
 Written: 2026-08-24
 
-Updated: 2026-08-26 — added explicit attacker lane-line staging when only open-ground resistance is actionable.
+Updated: 2026-08-27 — moved under `conquest-command.md`; live paired acceptance
+still covers tracks, front staging, and culmination.
 
-Read `conquest-nouns.md`, `ai-nouns.md`, and
+Read `conquest-command.md`, `mission-command-nouns.md`, `conquest-nouns.md`,
+`ai-nouns.md`, and
 `autonomous-mission-command-foundation.md` before implementing this story.
 
 ## Intent
@@ -89,5 +91,5 @@ territorial objective, or on a sole contested recapture after the keep falls.
 
 ## Exit
 
-Fold the durable track/front/convergence laws into `conquest-nouns.md`, add
+Fold the durable track/front/convergence laws into `conquest-command.md`, add
 this story to `shipped.md`, and delete it after live acceptance is complete.
