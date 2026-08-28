@@ -344,7 +344,8 @@ public class InfantryWeapons {
         shots.queueProjectile(new Projectile(fromX, fromY, res.endX(), res.endY(),
                 /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
                 shooterFaction, /*aerialDelivery*/ false,
-                res.flightTime(), onArrival));
+                res.flightTime(), onArrival, sec.weaponDef().id,
+                sec.weaponDef().pointDefenseTarget));
         shots.postShot(ShotEvent.special(fromX, fromY, 0f,
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
@@ -454,7 +455,8 @@ public class InfantryWeapons {
                 /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
         shots.queueProjectile(new Projectile(fromX, fromY, targetX, targetY,
                 /*hasBoostRamp*/ false, grenade.arcHeight(), faction,
-                /*aerialDelivery*/ false, flightTime, payload, grenade.weaponDef().id));
+                /*aerialDelivery*/ false, flightTime, payload, grenade.weaponDef().id,
+                grenade.weaponDef().pointDefenseTarget));
         shots.postShot(ShotEvent.special(fromX, fromY, 0f,
                 targetX, targetY, 0f, false, faction, flightTime,
                 grenade, roster.identity().type(carrier).moraleImpact,

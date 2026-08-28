@@ -67,6 +67,37 @@ class TilesetDocumentTest {
     }
 
     @Test
+    void aMeasuredPlacementIsSavedSoTheCutCanBeReproduced(@TempDir Path dir) throws Exception {
+        Path path = dir.resolve("ship.tileset-authoring.json");
+        TilesetDocument doc = document();
+        doc.setCut(doc.cut(1254, 1254).withColumnAxis(8.5, 123.23));
+        doc.write(path);
+
+        TilesetDocument reopened = TilesetDocument.read(path);
+
+        assertEquals(12, reopened.gridCols, "a measurement never revises a stated count");
+        assertEquals(4, reopened.gridRows);
+        GridCut cut = reopened.cut(1254, 1254);
+        assertEquals(8.5, cut.originX());
+        assertEquals(123.23, cut.pitchX());
+        assertEquals(reopened.cut(1254, 1254).cell(3, 1), cut.cell(3, 1),
+                "the same document should describe the same cells every time it is read");
+    }
+
+    @Test
+    void aDocumentThatHasNotBeenMeasuredStillDescribesACut(@TempDir Path dir) throws Exception {
+        Path path = dir.resolve("ship.tileset-authoring.json");
+        document().write(path);
+
+        GridCut cut = TilesetDocument.read(path).cut(1200, 400);
+
+        assertTrue(cut.isDivisionOf(1200, 400),
+                "a stated layout alone can only say the canvas is divided, and it should say "
+                        + "exactly that rather than inventing a placement");
+        assertEquals(100.0, cut.pitchX());
+    }
+
+    @Test
     void writeReplacesAtomicallyAndLeavesNoTemporary(@TempDir Path dir) throws Exception {
         Path path = dir.resolve("nested/ship.tileset-authoring.json");
         document().write(path);

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -41,6 +42,8 @@ public final class BattleReviewFrameRenderer {
     private static final Color MARINE_MARKER = new Color(68, 214, 255, 235);
     private static final Color DEFENDER_MARKER = new Color(255, 83, 83, 235);
     private static final Color CIVILIAN_MARKER = new Color(255, 218, 73, 235);
+    /** In-flight ordnance a point-defence mount is allowed to engage. Its own colour because "a warhead is on the way" is the state the reader is watching for. */
+    private static final Color ORDNANCE_MARKER = new Color(255, 150, 40, 240);
 
     /** GL-owned custom and ribbon decorations are deliberately absent — the Java2D drain cannot produce them. */
     private static final EnumSet<RenderLayer> REVIEW_LAYERS = EnumSet.of(
@@ -79,6 +82,7 @@ public final class BattleReviewFrameRenderer {
         graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         drawUnitMarkers(graphics, simulation);
+        drawOrdnanceMarkers(graphics, simulation);
         graphics.setColor(new Color(0, 0, 0, 205));
         graphics.fillRect(0, 0, image.getWidth(), HEADER_HEIGHT);
         graphics.setColor(Color.WHITE);
@@ -105,6 +109,32 @@ public final class BattleReviewFrameRenderer {
             graphics.setColor(color);
             graphics.fillOval(left + 1, top + 1,
                     Math.max(1, diameter - 2), Math.max(1, diameter - 2));
+        }
+    }
+
+    /**
+     * Marks every warhead currently in the air that a point-defence mount may
+     * engage. The Java2D drain cannot produce the GL projectile pass, so
+     * without this a review of an artillery exchange shows explosions with
+     * nothing travelling between the gun and the ground — and a review of an
+     * <em>interception</em> shows nothing at all, since the whole event is a
+     * round that stops existing. A diamond rather than a disc, so ordnance is
+     * never confused with a body at marker scale.
+     */
+    private void drawOrdnanceMarkers(Graphics2D graphics, BattleSimulation simulation) {
+        BattleCamera camera = cameraFor(width, height, simulation);
+        int reach = Math.round(Math.max(3f, Math.min(5.5f, camera.cellPxSize() * 0.55f)));
+        graphics.setStroke(new BasicStroke(1.5f));
+        for (Projectile round : simulation.snapshotActiveProjectiles()) {
+            if (!round.pointDefenseTarget) continue;
+            int centerX = Math.round(camera.cellToScreenX(round.currentX()));
+            int centerY = Math.round(height - camera.cellToScreenY(round.currentY()));
+            int[] xs = {centerX, centerX + reach, centerX, centerX - reach};
+            int[] ys = {centerY - reach, centerY, centerY + reach, centerY};
+            graphics.setColor(ORDNANCE_MARKER);
+            graphics.fillPolygon(xs, ys, 4);
+            graphics.setColor(new Color(0, 0, 0, 220));
+            graphics.drawPolygon(xs, ys, 4);
         }
     }
 
