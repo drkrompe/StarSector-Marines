@@ -71,9 +71,9 @@ and either way the world behaves normally.
 - A bounded temporary vision contribution that composes with the existing
   ref-counted visibility rather than bypassing the gate, and releases exactly on
   expiry with no leaked references.
-- The Janus sweep as the only carrier. The slate has room for roughly two more
-  systems across the whole catalog and this claims one of them, so a second
-  perception carrier is not available without giving something else up.
+- The Janus sweep as the only carrier. A sensor capability belongs on the suit
+   built around sensors; spreading it to a second pattern would need that
+   pattern to have its own reason, not a spare slot.
 - Presentation, following `integral-system-battle-presentation.md`: a sweep the
   player cannot see happen is information arriving from nowhere.
 

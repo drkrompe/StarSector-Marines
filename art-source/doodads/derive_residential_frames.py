@@ -6,6 +6,9 @@ from PIL import Image
 
 
 HERE = Path(__file__).resolve().parent
+# Masters, derived sources and the atlas step are all art source, so this
+# whole chain stays inside art-source/. Only stitch_atlas.py crosses into
+# mod/, and it addresses the repository root to do it.
 MASTERS = HERE / "imagegen-masters"
 SOURCES = HERE / "sources"
 

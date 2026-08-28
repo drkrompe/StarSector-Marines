@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — adopted the shared enabled-mod manifest and provenance contract for additive tilesets and mappings.
+Updated: 2026-08-28 — folded in the authoring pipeline: raw sheets, annotation documents, packed atlases, and the boundary that keeps pre-pack art out of `mod/`.
 
 Read `stories.md` for open work.
 
@@ -42,6 +42,15 @@ override layer: changing core generation policy remains a deliberate core edit.
   selected. These three content shapes share one namespace. A dense handle is
   only an in-memory implementation detail for a generated cell, never a
   cross-load identity or save format.
+- A **raw sheet** is the art as it was generated or commissioned: an arbitrary
+  arrangement of pieces at an arbitrary scale, with no ids and no semantics. It
+  is an input to the shipped assets, not one of them.
+- An **authoring document** is the annotation of one raw sheet — which piece is
+  what, how much deck it covers, which block cell it is, and what it is for. It
+  is the record of judgements that cannot be re-derived mechanically, and it is
+  the only durable home for them.
+- A **packed atlas** is the exported sheet a tileset definition addresses. It
+  contains the pieces that were kept, arranged by the packer, and nothing else.
 
 `TileRegistry` owns the merged asset catalog and `GenMappingRegistry` owns
 the merged use mapping. The application lifecycle loads the asset catalog
@@ -83,8 +92,11 @@ other procedural decisions.
 Both sliced sheets and fixed-grid sheets resolve by explicit ids rather than
 enum order or hardcoded origins. Sliced definitions pin their frame explicitly;
 fixed-grid definitions name the layout convention or the member cells of a
-deterministic variant pool. Per-cell viewer labels are descriptive only and
-never participate in generation or combat.
+deterministic variant pool. Per-cell viewer labels — a name, a free-text
+description, and descriptive tags — are documentation only and never participate
+in generation or combat. They are where a sheet says what a piece is *for*,
+which neither an id nor a cover level can express, and are the annotation a
+reader (frequently an LLM assembling a map) has to work from.
 
 The registry preserves prior visual behavior: ids and frames are pinned to
 their established output, and cell overlay handles are resolved through the
@@ -122,6 +134,42 @@ non-walkable and see-through but explicitly supplies no edge profile.
 overrides. The tile feature owns the mapping container and its load order;
 surface relief owns what those height values mean and how rendering uses them.
 
+## Authoring: raw sheet to packed atlas
+
+Content reaches the catalog through an annotation pass. A raw sheet is sliced
+into pieces mechanically; each piece is then given a role, an id or block slot,
+a footprint, and a usage annotation; the kept pieces are packed into an atlas
+and described by a generated tileset definition. The slicing is repeatable and
+the annotation is not, so the annotation is saved to an authoring document
+beside the raw sheet and can be resumed, corrected, and re-sliced without being
+lost.
+
+Three properties of that pass are part of the model rather than of the tool:
+
+- **A piece is a doodad or one cell of a block.** Facing is not a property of a
+  piece. A wall or a corner is a block whose cells the game selects from the
+  four-neighbour mask through its layout, so the authoring act is assigning
+  pieces to that layout's slots. Authored content may never carry a per-piece
+  facing: that would be a second answer to a question the layout already
+  answers, and would move geometry authority out of code into art data.
+- **A block's origin is generated, never counted.** Its cells are addressed as
+  origin plus a layout offset, so they must be packed as one contiguous patch
+  and the packer reports where it put them. A slot a sheet does not fill stays
+  empty; a hollow layout's fill colour is exactly what that case is for.
+- **Only kept pieces are packed.** A sheet's unused art does not reach the
+  atlas, so a tileset's size reflects what the game uses rather than what was
+  drawn.
+
+Slot names state the mask the way its layout reads it — "the exterior is on this
+side", not "the neighbour is a wall". A mirrored assignment still loads, still
+resolves, and is still opaque, so no validation can detect it; the wording of
+the label and a preview that draws the block as a room are the only defences.
+
+Raw sheets, masters, authoring documents and derivation scripts are pre-pack
+input and live outside `mod/`, which is synchronized wholesale into every
+install. They stay version-controlled: a sheet has to remain re-derivable and
+re-annotatable, and its annotation cannot be recovered by re-running anything.
+
 ## Validation and fallback laws
 
 1. A built-in id collision, a missing sliced frame, or an unresolved tile
@@ -146,6 +194,11 @@ surface relief owns what those height values mean and how rendering uses them.
 7. Code may choose a layout from topology, but declared content owns the
    membership of a visual variant pool. A compatibility fallback may preserve
    output only while the registry is unavailable; it is not another catalog.
+8. A tag or a description is documentation. It becomes a generation or tactical
+   selector only through the code path that owns that law, never by being read
+   from a label.
+9. Pre-pack art inputs must not live under `mod/`. The shipped folder is
+   synchronized in full, so an input left inside it is distributed as content.
 
 ## External-provider contract
 

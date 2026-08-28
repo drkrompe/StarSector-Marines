@@ -15,6 +15,8 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VehicleDurabilityIntegrationTest {
@@ -61,8 +63,6 @@ class VehicleDurabilityIntegrationTest {
         BattleSimulation sim = openArena();
         long apc = spawnVisibleApc(sim);
         VehicleMission mission = sim.convoy().mission(apc);
-        mission.routeClearance = VehicleClearance.erode(sim.getGrid(), 1);
-        VehicleClearance clearanceBeforeWreck = mission.routeClearance;
 
         // Field-rifle profile: 14 damage / 7 penetration. It only chips armor.
         sim.applyDamage(apc, 14f, 7f);
@@ -77,12 +77,6 @@ class VehicleDurabilityIntegrationTest {
         assertEquals(VehicleState.WRECKED, mission.state);
         assertEquals(0f, sim.convoy().structure(apc), 1e-3f);
         assertFalse(sim.convoy().isTargetable(apc));
-        assertFalse(sim.getGrid().isWalkable(8, 5),
-                "the persistent chassis footprint becomes a real navigation obstacle");
-        assertTrue(mission.routeClearance != clearanceBeforeWreck,
-                "wreck creation refreshes active vehicles' immutable clearance snapshots");
-        assertFalse(mission.routeClearance.isPassable(8, 5),
-                "recovery routing sees the new wreck instead of its stale spawn-time mask");
         assertEquals(1, sim.getSmokingWrecks().size());
         assertEquals(0, mission.marinesRemaining, "onboard passengers resolve once at destruction");
         assertTrue(sim.liveUnitCount() >= 1 && sim.liveUnitCount() <= 2,
@@ -115,6 +109,71 @@ class VehicleDurabilityIntegrationTest {
         assertEquals(TacticalScoring.PursuitDecision.KEEP,
                 sim.getTacticalScoring().assessPursuit(shooter, apc));
         assertTrue(sim.getTacticalScoring().shouldKeepPursuing(shooter, apc));
+    }
+
+    @Test
+    void aWreckStopsBeingATargetOnEveryGateThatCanNominateOne() {
+        BattleSimulation sim = openArena();
+        long shooter = sim.spawn(new EntitySpec("marine", Faction.MARINE,
+                UnitType.MARINE, 2, 5));
+        long apc = spawnVisibleApc(sim);
+
+        assertEquals(apc, sim.getTacticalScoring().findBestTarget(shooter));
+        sim.world().setTargetId(shooter, apc);
+
+        sim.applyDamage(apc, 162f, 18f);
+        sim.applyDamage(apc, 162f, 18f);
+        sim.applyDamage(apc, 162f, 18f);
+        assertEquals(VehicleState.WRECKED, sim.convoy().mission(apc).state);
+
+        assertFalse(sim.isCombatTarget(apc), "a wreck is not a combat target");
+        assertEquals(0L, sim.resolveUnit(apc), "a wreck does not resolve as a live actor");
+        assertEquals(0L, sim.targetOf(shooter),
+                "a retained target id stops resolving the moment the vehicle wrecks");
+        assertEquals(TacticalScoring.PursuitDecision.RETARGET,
+                sim.getTacticalScoring().assessPursuit(shooter, apc));
+        // Target selection may hand back one of the militia that bailed out of the
+        // dying APC; what it must never hand back is the hull they left behind.
+        assertNotEquals(apc, sim.getTacticalScoring().findBestTarget(shooter),
+                "target selection never re-acquires a wreck");
+
+        // The physical layer agrees: a round aimed at the wreck's cell finds no
+        // victim there, so incidental contact cannot resurrect it as a target.
+        BallisticResolver resolver = new BallisticResolver(sim.getGrid(),
+                new DoodadService(sim.getGrid()), sim.getUnitIndex(), sim.getRoster());
+        BallisticResolver.Resolution shot = resolver.resolve(shooter, shooter,
+                1f, 0f, 48f, new MidRollRandom());
+        assertTrue(shot.victimId() != apc, "a wreck is not a ballistic contact");
+    }
+
+    @Test
+    void aWreckWritesNeitherNavigationNorLineOfSight() {
+        BattleSimulation sim = openArena();
+        NavigationGrid grid = sim.getGrid();
+        VehicleClearance clearanceBeforeWreck = VehicleClearance.erode(grid, 1);
+
+        long apc = spawnVisibleApc(sim);
+        VehicleMission mission = sim.convoy().mission(apc);
+        mission.routeClearance = clearanceBeforeWreck;
+        sim.applyDamage(apc, 162f, 18f);
+        sim.applyDamage(apc, 162f, 18f);
+        sim.applyDamage(apc, 162f, 18f);
+        assertEquals(VehicleState.WRECKED, mission.state);
+
+        // A hull that dies in a doorway must not strand what is behind it, so the
+        // wreck closes nothing: infantry walkability, the vehicle clearance mask,
+        // sight, and the ballistic ray all read exactly as they did a tick ago.
+        assertTrue(grid.isWalkable(8, 5), "a wreck never closes a navigation cell");
+        assertFalse(grid.isSeeThrough(8, 5),
+                "and it needs no see-through opt-out, because it never closed the cell");
+        assertTrue(clearanceBeforeWreck.isPassable(8, 5),
+                "vehicle clearance is untouched, so no island appears for a later convoy");
+        assertSame(clearanceBeforeWreck, mission.routeClearance,
+                "an unchanged map needs no clearance rebuild");
+        assertTrue(grid.hasLineOfSight(2, 5, 20, 5),
+                "a firing line through the wreck survives the vehicle's death");
+        assertTrue(grid.hasLineOfFire(2.5f, 5.5f, 20.5f, 5.5f),
+                "and the ballistic ray is not capped by the hull either");
     }
 
     private static final class MidRollRandom extends Random {

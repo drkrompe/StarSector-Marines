@@ -124,10 +124,14 @@ Do not run builds or leave generated task files there.
   launch-FX data instead of substituting a generic projectile treatment.
   The Tilesets page turns a raw art sheet into a loadable tileset: it finds the
   pieces by keying on alpha, proposes a footprint for each from the sheet grid,
-  and exports a packed atlas plus its `*.tileset.json`. Footprints are
-  edited there rather than inferred, because how much deck a piece covers is a
-  judgement about the object, not a measurement of the art. The annotations are
-  saved to `art-source/tilesets/<name>.tileset-authoring.json`, so a sheet can be
+  and exports a packed atlas plus its `*.tileset.json` and a generated
+  `*.tileset.md` catalog card. Footprints are edited there rather than inferred,
+  because how much deck a piece covers is a judgement about the object, not a
+  measurement of the art. A piece becomes a doodad or a cell of a named autotile
+  block; walls and corners are authored by grouping pieces into a block's slots,
+  which the packer then places as one contiguous patch. Only included pieces are
+  packed. The annotations are saved to
+  `art-source/tilesets/<name>.tileset-authoring.json`, so a sheet can be
   annotated across several sittings; re-slicing carries existing annotations onto
   the newly found pieces and names any that no longer match.
   All three pages validate before replacement; the Turrets page prepares every
@@ -192,7 +196,13 @@ other's domain dependencies.
 
 ## Mod layout
 
-The `mod/` folder in this repo is what ships. `mod_info.json` lists the jar at
+The `mod/` folder in this repo is what ships. Pre-pack art inputs — raw
+generated sheets, ImageGen masters, retained `sources/` originals, tileset
+authoring documents, and the scripts
+that derive shipped art from them — live under `art-source/` instead, because
+`deployMod` is a `Sync` of the whole `mod/` folder and would otherwise copy them
+into every install. `RawArtStaysOutOfModTest` enforces that boundary; see
+`art-source/README.md`. `mod_info.json` lists the jar at
 `jars/StarsectorMarines.jar`. The `modPlugin` entry point is
 `com.dillon.starsectormarines.StarsectorMarinesModPlugin`.
 

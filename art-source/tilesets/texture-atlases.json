@@ -3,8 +3,8 @@
   "atlases": [
     {
       "id": "nature-materials",
-      "base": "../nature-tiles.png",
-      "output": "../nature-tiles.png",
+      "base": "../../mod/graphics/tilesets/nature-tiles.png",
+      "output": "../../mod/graphics/tilesets/nature-tiles.png",
       "layout": {
         "mode": "auto-strip",
         "alphaThreshold": 16,
@@ -45,8 +45,8 @@
     },
     {
       "id": "floor-materials",
-      "base": "../Floors_Tiles.png",
-      "output": "../Floors_Tiles.png",
+      "base": "../../mod/graphics/tilesets/Floors_Tiles.png",
+      "output": "../../mod/graphics/tilesets/Floors_Tiles.png",
       "layout": {
         "mode": "grid",
         "cellPx": 56

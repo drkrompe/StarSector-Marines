@@ -532,12 +532,15 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         Path atlasPath = context.projectRoot().resolve("mod").resolve(sheetRelative);
         Path tilesetPath = context.projectRoot()
                 .resolve("mod/data/tilesets").resolve(name + ".tileset.json");
+        Path cardPath = tilesetPath.resolveSibling(name + ".tileset.md");
         try {
             BufferedImage atlas = TilesetExport.atlas(source, model.entries, blocks, cell);
             TilesetExport.write(atlas,
                     TilesetExport.tileset(sheetRelative, cell, model.entries, blocks),
                     atlasPath, tilesetPath);
-            context.reportStatus("Wrote " + atlasPath + " and " + tilesetPath);
+            Files.writeString(cardPath, TilesetCatalogCard.render(
+                    name, sheetRelative, cell, model.entries, blocks));
+            context.reportStatus("Wrote " + atlasPath + ", " + tilesetPath + " and " + cardPath);
             report();
         } catch (Exception failure) {
             JOptionPane.showMessageDialog(root, "Export failed:\n" + failure,
@@ -614,8 +617,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     /** Editable view of the sliced pieces: role, id, footprint, cover, and whether it ships. */
     private final class EntryTableModel extends AbstractTableModel {
 
-        private final String[] columns =
-                { "#", "id", "block", "slot", "cells X", "cells Y", "cover", "px", "in" };
+        private final String[] columns = { "#", "id", "block", "slot", "cells X", "cells Y",
+                "cover", "tags", "note", "px", "in" };
         private List<TilesetExport.Entry> entries = new ArrayList<>();
         private int[] selectedRows = new int[0];
 
@@ -642,14 +645,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         public Class<?> getColumnClass(int column) {
             return switch (column) {
                 case 0, 4, 5 -> Integer.class;
-                case 8 -> Boolean.class;
+                case 10 -> Boolean.class;
                 default -> String.class;
             };
         }
 
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column != 0 && column != 7;
+            return column != 0 && column != 9;
         }
 
         @Override
@@ -663,7 +666,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 case 4 -> e.isBlockMember() ? 1 : e.footprintX;
                 case 5 -> e.isBlockMember() ? 1 : e.footprintY;
                 case 6 -> e.isBlockMember() ? "" : e.cover;
-                case 7 -> e.piece.width() + "x" + e.piece.height();
+                case 7 -> String.join(", ", e.tags);
+                case 8 -> e.note;
+                case 9 -> e.piece.width() + "x" + e.piece.height();
                 default -> e.included;
             };
         }
@@ -678,7 +683,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 case 4 -> e.footprintX = Math.max(1, ((Number) value).intValue());
                 case 5 -> e.footprintY = Math.max(1, ((Number) value).intValue());
                 case 6 -> e.cover = String.valueOf(value).trim().toLowerCase();
-                case 8 -> e.included = Boolean.TRUE.equals(value);
+                case 7 -> e.tags = parseTags(String.valueOf(value));
+                case 8 -> e.note = String.valueOf(value).trim();
+                case 10 -> e.included = Boolean.TRUE.equals(value);
                 default -> { }
             }
             fireTableRowsUpdated(row, row);
@@ -705,6 +712,16 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             e.blockId = blockId;
             if (e.slot.isEmpty()) e.slot = BlockSlots.of(specFor(blockId).layout).get(0);
             pruneEmptyBlocks();
+        }
+
+        /** Comma-separated, lowercase, de-duplicated, order preserved. */
+        private List<String> parseTags(String text) {
+            List<String> tags = new ArrayList<>();
+            for (String part : text.split(",")) {
+                String tag = part.trim().toLowerCase();
+                if (!tag.isEmpty() && !tags.contains(tag)) tags.add(tag);
+            }
+            return tags;
         }
 
         private void setSlot(TilesetExport.Entry e, String slot) {
