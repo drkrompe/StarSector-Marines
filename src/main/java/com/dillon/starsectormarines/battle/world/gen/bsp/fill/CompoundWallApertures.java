@@ -4,14 +4,14 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 /**
- * Adds sparse firing apertures to already-authored compound perimeter walls.
+ * Adds paired firing apertures to already-authored compound perimeter walls.
  * Only straight runs with a walkable cell on both sides qualify, so windows
  * never invent circulation, occupy a gate, or fire from an unusable pocket.
  */
 final class CompoundWallApertures {
 
-    private static final int MIN_RUN_LENGTH = 5;
-    private static final int CELLS_PER_APERTURE = 6;
+    private static final int MIN_RUN_LENGTH = 6;
+    private static final int CELLS_PER_PAIR = 8;
 
     private CompoundWallApertures() {}
 
@@ -79,24 +79,34 @@ final class CompoundWallApertures {
                                  int start, int end, int fixed, boolean row) {
         int length = end - start + 1;
         if (length < MIN_RUN_LENGTH) return;
-        int count = Math.max(1, length / CELLS_PER_APERTURE);
-        for (int i = 1; i <= count; i++) {
-            int along = start + (i * (length - 1)) / (count + 1);
-            int x = row ? along : fixed;
-            int y = row ? fixed : along;
-            if (adjacentToOpening(grid, topology, x, y, row)) continue;
-            grid.setSeeThrough(x, y, true);
-            topology.setWindow(x, y, true);
+        int count = Math.max(1, length / CELLS_PER_PAIR);
+        for (int i = 0; i < count; i++) {
+            int segmentStart = start + (i * length) / count;
+            int segmentEnd = start + ((i + 1) * length) / count - 1;
+            int pairStart = (segmentStart + segmentEnd - 1) / 2;
+            pairStart = Math.max(start + 1, Math.min(end - 2, pairStart));
+            if (openingNearPair(grid, topology, pairStart, fixed, row)) continue;
+            stampWindow(grid, topology, pairStart, fixed, row);
+            stampWindow(grid, topology, pairStart + 1, fixed, row);
         }
     }
 
-    private static boolean adjacentToOpening(NavigationGrid grid, CellTopology topology,
-                                             int x, int y, boolean row) {
-        int dx = row ? 1 : 0;
-        int dy = row ? 0 : 1;
-        return grid.isDoorway(x - dx, y - dy) || grid.isDoorway(x + dx, y + dy)
-                || topology.isWindow(x - dx, y - dy)
-                || topology.isWindow(x + dx, y + dy);
+    private static boolean openingNearPair(NavigationGrid grid, CellTopology topology,
+                                           int pairStart, int fixed, boolean row) {
+        for (int along = pairStart - 1; along <= pairStart + 2; along++) {
+            int x = row ? along : fixed;
+            int y = row ? fixed : along;
+            if (grid.isDoorway(x, y) || topology.isWindow(x, y)) return true;
+        }
+        return false;
+    }
+
+    private static void stampWindow(NavigationGrid grid, CellTopology topology,
+                                    int along, int fixed, boolean row) {
+        int x = row ? along : fixed;
+        int y = row ? fixed : along;
+        grid.setSeeThrough(x, y, true);
+        topology.setWindow(x, y, true);
     }
 
     private enum Facing {

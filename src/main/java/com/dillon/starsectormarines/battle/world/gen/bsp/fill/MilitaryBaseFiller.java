@@ -37,7 +37,7 @@ import java.util.Random;
  *       GroundKind#STRIPED} ground so breaches read as military floor).</li>
  *   <li>Repaints the bridged roads as {@link GroundKind#STONE} parade ground —
  *       the visual hinge that converts "adjacent buildings" into "one base".</li>
- *   <li>Insets each member leaf by one cell and carves a sub-building inside
+ *   <li>Insets each member leaf by two cells and carves a sub-building inside
  *       via {@link BuildingShellCore#carve}; role drives interior floor +
  *       doodad pool (COMMAND = SKYPORT, BARRACKS = RESIDENTIAL, ARMORY /
  *       VEHICLE_BAY = WAREHOUSE).</li>
@@ -67,6 +67,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
     private static final GroundKind EMPLACEMENT_GROUND = GroundKind.STONE;
     /** Max road-strip depth searched when looking for member-bridged road cells. Matches {@link com.dillon.starsectormarines.battle.world.gen.bsp.LeafAdjacency}'s scan depth so the same gap counts as "inside the compound". */
     private static final int BRIDGE_SCAN_DEPTH = 5;
+    static final int BUILDING_SETBACK = 2;
     /** Default wall HP — matches the legacy seed used elsewhere. Higher than building walls because the compound wall is meant to read as armor. */
     private static final int WALL_HP_FORTIFIED = 150;
     private static final String RADAR_DISH_ID = "doodad.military-radar-dish";
@@ -124,7 +125,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
         markBridgedRoads(compound, roadCells, roadReservation, memberCells, inCompound);
         absorbConcaveNotches(compound, inCompound);
 
-        repaintParadeGround(compound, inCompound, memberCells, grid, topology);
+        repaintParadeGround(inCompound, grid, topology);
         Map<BlockLeaf, PointOfInterest> leafPois = carveSubBuildings(
                 compound, inCompound, grid, topology, doodads, pois, rng);
         paintWallRing(inCompound, roadReservation, grid, topology);
@@ -353,43 +354,25 @@ public final class MilitaryBaseFiller implements CompoundFiller {
     }
 
     /**
-     * Repaint bridged roads and the outer rim of every member leaf as STONE
-     * parade ground. The leaf rim repaint gives the sub-building a 1-cell
-     * "yard" between its wall and the compound's outer wall, which avoids a
-     * double-wall artifact when a leaf sits against the compound perimeter.
+     * Repaint the compound interior as STONE parade ground before member
+     * buildings are carved. The later two-cell inset leaves a broad apron
+     * between each building wall and the compound perimeter.
      */
-    private void repaintParadeGround(Compound compound, boolean[][] inCompound,
-                                     boolean[][] memberCells, NavigationGrid grid, CellTopology topology) {
+    private void repaintParadeGround(boolean[][] inCompound, NavigationGrid grid,
+                                     CellTopology topology) {
         int w = inCompound.length;
         int h = inCompound[0].length;
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (!inCompound[x][y]) continue;
-                if (memberCells[x][y]) continue; // member-leaf cells get repainted via carve below
                 grid.setWalkableFloor(x, y);
                 topology.setGroundKind(x, y, PARADE_GROUND);
-            }
-        }
-        // Leaf rim repaint — outer perimeter cells of each member leaf become
-        // parade ground; the actual sub-building carves inset by 1.
-        for (BlockLeaf m : compound.members) {
-            for (int x = m.left; x <= m.right; x++) {
-                grid.setWalkableFloor(x, m.top);
-                grid.setWalkableFloor(x, m.bottom);
-                topology.setGroundKind(x, m.top,    PARADE_GROUND);
-                topology.setGroundKind(x, m.bottom, PARADE_GROUND);
-            }
-            for (int y = m.top + 1; y <= m.bottom - 1; y++) {
-                grid.setWalkableFloor(m.left,  y);
-                grid.setWalkableFloor(m.right, y);
-                topology.setGroundKind(m.left,  y, PARADE_GROUND);
-                topology.setGroundKind(m.right, y, PARADE_GROUND);
             }
         }
     }
 
     /**
-     * Carve one sub-building per member leaf, inset by 1 cell from the leaf
+     * Carve one sub-building per member leaf, inset by two cells from the leaf
      * edge so the building wall stands inside the parade-ground rim painted
      * above. Reuses {@link BuildingShellCore#carve} with role-specific
      * config — same code path as standalone buildings.
@@ -403,10 +386,10 @@ public final class MilitaryBaseFiller implements CompoundFiller {
                                                               List<Doodad> doodads, List<PointOfInterest> pois, Random rng) {
         Map<BlockLeaf, PointOfInterest> leafPois = new IdentityHashMap<>();
         for (BlockLeaf m : compound.members) {
-            int subL = m.left   + 1;
-            int subT = m.top    + 1;
-            int subR = m.right  - 1;
-            int subB = m.bottom - 1;
+            int subL = m.left   + BUILDING_SETBACK;
+            int subT = m.top    + BUILDING_SETBACK;
+            int subR = m.right  - BUILDING_SETBACK;
+            int subB = m.bottom - BUILDING_SETBACK;
             if (subR - subL < 1 || subB - subT < 1) continue; // leaf too small to inset
 
             BlockLeaf inset = new BlockLeaf(subL, subT, subR, subB, false);
@@ -436,7 +419,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
 
     /**
      * Places one outdoor radar near COMMAND on a broad piece of parade ground.
-     * Bridged courtyard cells are preferred over the one-cell building rim so
+     * Bridged courtyard cells are preferred over the building apron so
      * the hard fixture does not turn circulation around a barracks into a choke.
      */
     private void stampCommandRadar(Compound compound, boolean[][] inCompound,
