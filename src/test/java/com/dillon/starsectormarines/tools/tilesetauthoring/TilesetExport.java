@@ -56,6 +56,29 @@ public final class TilesetExport {
         public int footprintX = 1;
         public int footprintY = 1;
         public String cover = "none";
+        /**
+         * How high this piece stops a shot, as a symmetric half-height in cells,
+         * or null to take the height
+         * {@link com.dillon.starsectormarines.battle.world.tiles.DoodadCover}
+         * gives its cover level.
+         *
+         * <p>Cover and height are two different statements and a sheet needs
+         * both: a chest and a shelf are equally worth hiding behind on the deck
+         * and are nothing alike to shoot over. Leaving it null is not the same as
+         * writing the default down — the default is a compatibility value the
+         * consumer substitutes, and a piece that has been looked at should say
+         * what it is rather than inherit a bucket's average.
+         */
+        public Double ballisticHalfHeight;
+        /**
+         * The edge that naturally backs onto a wall — {@code N}, {@code S},
+         * {@code E}, {@code W} — or empty where the piece has no such edge.
+         *
+         * <p>A sofa's back and a bed's head are drawn against something. Placing
+         * one in open floor, or against a wall the wrong way round, is a
+         * placement no amount of cover data prevents.
+         */
+        public String preferredWallSide = "";
         public boolean included = true;
         /**
          * The block this piece belongs to, or empty for a doodad. A block member
@@ -223,6 +246,12 @@ public final class TilesetExport {
             o.put("col", entry.col);
             o.put("row", entry.row);
             o.put("cover", entry.cover);
+            if (entry.ballisticHalfHeight != null) {
+                o.put("ballisticHalfHeight", entry.ballisticHalfHeight.doubleValue());
+            }
+            if (!entry.preferredWallSide.isEmpty()) {
+                o.put("preferredWallSide", entry.preferredWallSide);
+            }
             if (entry.footprintX != 1 || entry.footprintY != 1) {
                 o.put("footprintCells", new JSONArray().put(entry.footprintX).put(entry.footprintY));
             }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.tools.authoring.AuthoringMessages;
@@ -1085,7 +1086,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private final class EntryTableModel extends AbstractTableModel {
 
         private final String[] columns = { "#", "id", "block", "slot", "cells X", "cells Y",
-                "cover", "tags", "note", "stands in for", "px", "in" };
+                "cover", "half height", "wall side", "tags", "note", "stands in for",
+                "px", "in" };
         private List<TilesetExport.Entry> entries = new ArrayList<>();
         private int[] selectedRows = new int[0];
 
@@ -1112,14 +1114,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         public Class<?> getColumnClass(int column) {
             return switch (column) {
                 case 0, 4, 5 -> Integer.class;
-                case 11 -> Boolean.class;
+                case 13 -> Boolean.class;
                 default -> String.class;
             };
         }
 
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column != 0 && column != 10;
+            return column != 0 && column != 12;
         }
 
         @Override
@@ -1133,10 +1135,13 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 case 4 -> e.isBlockMember() ? 1 : e.footprintX;
                 case 5 -> e.isBlockMember() ? 1 : e.footprintY;
                 case 6 -> e.isBlockMember() ? "" : e.cover;
-                case 7 -> String.join(", ", e.tags);
-                case 8 -> e.note;
-                case 9 -> e.standsInFor;
-                case 10 -> e.piece.width() + "x" + e.piece.height();
+                case 7 -> e.isBlockMember() || e.ballisticHalfHeight == null
+                        ? "" : String.valueOf(e.ballisticHalfHeight);
+                case 8 -> e.isBlockMember() ? "" : e.preferredWallSide;
+                case 9 -> String.join(", ", e.tags);
+                case 10 -> e.note;
+                case 11 -> e.standsInFor;
+                case 12 -> e.piece.width() + "x" + e.piece.height();
                 default -> e.included;
             };
         }
@@ -1151,16 +1156,55 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 case 4 -> e.footprintX = Math.max(1, ((Number) value).intValue());
                 case 5 -> e.footprintY = Math.max(1, ((Number) value).intValue());
                 case 6 -> e.cover = String.valueOf(value).trim().toLowerCase();
-                case 7 -> e.tags = parseTags(String.valueOf(value));
-                case 8 -> e.note = String.valueOf(value).trim();
-                case 9 -> setStandsInFor(e, String.valueOf(value).trim());
-                case 11 -> e.included = Boolean.TRUE.equals(value);
+                case 7 -> setBallisticHalfHeight(e, String.valueOf(value).trim());
+                case 8 -> setPreferredWallSide(e, String.valueOf(value).trim());
+                case 9 -> e.tags = parseTags(String.valueOf(value));
+                case 10 -> e.note = String.valueOf(value).trim();
+                case 11 -> setStandsInFor(e, String.valueOf(value).trim());
+                case 13 -> e.included = Boolean.TRUE.equals(value);
                 default -> { }
             }
             fireTableRowsUpdated(row, row);
             markDirty();
             report();
             refreshPreview();
+        }
+
+        /**
+         * How high the piece stops a shot. Blank clears it back to the height
+         * the cover level implies, which is a different statement from writing
+         * that height down: one says nobody has judged it, the other says
+         * somebody did and this is the answer.
+         */
+        private void setBallisticHalfHeight(TilesetExport.Entry e, String text) {
+            if (text.isEmpty()) {
+                e.ballisticHalfHeight = null;
+                return;
+            }
+            try {
+                double height = Double.parseDouble(text);
+                if (!Double.isFinite(height) || height < 0) throw new NumberFormatException(text);
+                e.ballisticHalfHeight = height;
+            } catch (NumberFormatException notANumber) {
+                AuthoringMessages.error(root, "Half height",
+                        "'" + text + "' is not a height. Give cells above the deck as a "
+                                + "positive number, or leave it blank to take the cover "
+                                + "level's default.");
+            }
+        }
+
+        /** The edge that backs onto a wall, or blank for a piece with no such edge. */
+        private void setPreferredWallSide(TilesetExport.Entry e, String text) {
+            if (text.isEmpty()) {
+                e.preferredWallSide = "";
+                return;
+            }
+            try {
+                e.preferredWallSide = WallSide.fromJson(text).name();
+            } catch (IllegalArgumentException unknown) {
+                AuthoringMessages.error(root, "Wall side",
+                        "'" + text + "' is not a side. Use N, S, E or W, or leave it blank.");
+            }
         }
 
         /** Clearing the block column turns the piece back into a doodad. */
