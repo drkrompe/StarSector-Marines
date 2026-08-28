@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -79,7 +80,10 @@ class CampaignMarineDeploymentTest {
         assertNotNull(seat);
         assertEquals(soldier.id(), seat.campaignSoldierId);
         assertEquals(WeaponRegistry.require(WeaponRegistry.DMR_ID), seat.primaryDef());
-        assertEquals(123, seat.soldierProfile.experienceXp());
+        // Experience is issued with the armour, not carried from the marine:
+        // Bastion line armor is a tier-3 pattern, so the seat freezes at the
+        // veteran band regardless of the 123 XP sitting on the record.
+        assertEquals(ExperienceTier.VETERAN.minimumXp, seat.soldierProfile.experienceXp());
         assertEquals(LayeredArmorFamily.CHARCOAL, seat.armorFamily);
         assertEquals(MarineArmorPattern.CHARCOAL.armorPool, seat.armorPool, 1e-6f);
         assertEquals(MarineArmorPattern.CHARCOAL.armorRating,

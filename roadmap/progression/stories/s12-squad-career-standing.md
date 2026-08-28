@@ -2,8 +2,9 @@
 
 > The formation is the thing with a history. The marines rotate through it.
 
-Status: READY — the per-marine fold this extends is shipped.
+Status: IN PROGRESS — slices 1 and 2 are shipped; only the standing view remains.
 Written: 2026-08-27
+Updated: 2026-08-27 — the squad record and its frozen-attribution fold landed.
 
 Read `progression-nouns.md` before changing this story. The attribution seam is
 shared with `c6-after-action-by-fireteam.md`; the two should land together.
@@ -15,9 +16,9 @@ Presentation coordinates with `s8-roster-legibility.md`.
 frozen telemetry by `MarineRoster.applySoldierOutcome`. Nothing accumulates at
 the grain the player actually names, deploys, and cares about.
 
-With rank-and-file experience issued rather than earned
-(`s11-card-sourced-experience.md`), the individual record loses its mechanical
-job. That makes the squad the right holder of continuity: a squad persists
+With rank-and-file experience issued with the armour pattern rather than earned
+(`progression-nouns.md`, aptitude and experience), the individual record loses
+its mechanical job. That makes the squad the right holder of continuity: a squad persists
 across replacements, carries a name the player chose, and is what the player
 means when they say a unit is good.
 
@@ -26,7 +27,7 @@ means when they say a unit is good.
 Every squad accumulates a lifetime record, and the player can read the company
 as a standing.
 
-## Slice 1 — The record
+## Slice 1 — The record (shipped)
 
 - A squad career holding the same measures `SoldierCareer` already holds:
   deployments, wins, rounds fired and landed, damage dealt and taken, kills,
@@ -37,7 +38,7 @@ as a standing.
 - Lifetime totals only. A per-mission journal is a separate retention and UI
   commitment, as the standing invariant says.
 
-## Slice 2 — The fold
+## Slice 2 — The fold (shipped)
 
 - Credit the squad a marine **deployed with**, taken from the frozen deployment
   tag rather than current membership, so a post-battle roster edit cannot
@@ -48,7 +49,7 @@ as a standing.
 - Casualties credit the squad that took them, including for marines who did not
   survive — telemetry already survives the death transition.
 
-## Slice 3 — The standing
+## Slice 3 — The standing (remaining)
 
 A company-wide view ranking squads by their record. Rank on measures with
 character, not only kills:

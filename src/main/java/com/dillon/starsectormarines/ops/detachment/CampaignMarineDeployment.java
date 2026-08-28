@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadExperienceStandard;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,7 +117,8 @@ public final class CampaignMarineDeployment {
             MarineSoldier soldier = active.get(i);
             MarineArmorCatalogDef armor = soldier.armorDef();
             frozen.add(MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
-                    soldier.primaryDef(), soldier.primaryGrade(), soldier.profile(),
+                    soldier.primaryDef(), soldier.primaryGrade(),
+                    SquadExperienceStandard.profileFor(soldier),
                     soldier.specialEquipmentDef(),
                     soldier.id(), armor.appearanceFamily(),
                     armor.armorPool(), armor.armorRating(),

@@ -388,9 +388,11 @@ class MarineArmoryTest {
         assertEquals(12, pulseRifles.free());
         assertEquals(0, pulseRifles.returned());
         assertEquals(4, pulseRifles.required());
+        // The founding complement is issued tier-2 patterns, so none of the
+        // owned Bastion suits are already fielded when this refit is priced.
         FireTeamGearDelta charcoal = delta(preview, "Bastion line armor");
-        assertEquals(2, charcoal.free());
-        assertEquals(4, charcoal.returned());
+        assertEquals(6, charcoal.free());
+        assertEquals(0, charcoal.returned());
         assertEquals(4, charcoal.required());
     }
 
