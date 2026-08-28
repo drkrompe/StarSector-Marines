@@ -12,8 +12,9 @@ import java.util.Locale;
  *
  * <p>A doodad begins at source cell ({@link #col},{@link #row} on
  * {@link #sheetPath}) and may span {@link #footprintCellsX} by
- * {@link #footprintCellsY} cells. The same span is its rendered and tactical
- * world footprint. Intrinsic {@link #cover} and symmetric
+ * {@link #footprintCellsY} source cells. An unrotated placement uses that same
+ * world footprint; a quarter-turned placement swaps its world axes while
+ * retaining the canonical source rectangle. Intrinsic {@link #cover} and symmetric
  * {@link #ballisticHalfHeight} apply to every occupied cell.
  * Gen scatters them by id; which ids go in which pool is the
  * {@code GenMappingRegistry}'s concern, not this def's.
