@@ -39,7 +39,8 @@ import java.util.Set;
  *
  * <p>Nothing here knows what kind of place it is filling. A hull and a walled
  * compound differ in what makes a position good, which is the caller's
- * {@link Affinity}, and in what counts as the outside, which is the buildable
+ * {@link Affinity}; in how freely rooms may be glued to each other, which is
+ * its {@link Massing}; and in what counts as the outside, which is the buildable
  * mask — not in how rooms are packed or how a passage is cut to reach one.
  * Ordering the program, filling leftover pockets, and deciding what an unplaced
  * room means are likewise the caller's, because they are policy about a place
@@ -84,6 +85,40 @@ public final class RoomPacker {
 
     /** The ground a packed room, its halls, and its thresholds are laid on. */
     public record Palette(GroundKind roomFloor, GroundKind hall, GroundKind threshold) {}
+
+    /**
+     * How freely rooms may be glued to one another.
+     *
+     * <p>Wedging is what makes the packing tight, and inside a hull it is simply
+     * correct: compartments share bulkheads, and a void between two of them is
+     * wasted displacement. On open ground it is not. Every shared seam extends
+     * one unbroken run of impassable structure, and a place whose buildings all
+     * chain together is a place with one long wall through it — crossed only by
+     * walking to the end and back, which is a detour the packing never sees
+     * because every individual room is reachable.
+     *
+     * <p>So the allowance is a length: how much of its wall a room may share
+     * with the rooms already placed before the packing starts preferring
+     * somewhere else. Short seams stay free, which is what lets buildings sit
+     * in a block and corner into each other; long ones are pushed apart. It is
+     * a preference rather than a veto because a room that cannot be placed at
+     * all is worse than a room placed against its neighbour.
+     *
+     * @param sharedSeamAllowance ring cells a room may share with earlier rooms
+     *                            for free
+     * @param seamPenalty score charged per shared cell beyond the allowance
+     */
+    public record Massing(int sharedSeamAllowance, int seamPenalty) {
+
+        /** A hull: share every bulkhead you can, because open space is waste. */
+        public static final Massing WEDGED = new Massing(Integer.MAX_VALUE, 0);
+
+        public Massing {
+            if (sharedSeamAllowance < 0) {
+                throw new IllegalArgumentException("a seam allowance cannot be negative");
+            }
+        }
+    }
 
     /** One room to place: what it is, the floor it needs, and where it belongs. */
     public record Request(RoomPurpose purpose, RoomShape shape,
@@ -160,8 +195,11 @@ public final class RoomPacker {
     private final boolean[][] claimed;
     private final boolean[][] floor;
     private final boolean[][] passage;
+    /** Ring cells of rooms already placed — the seams a later room could glue itself to. */
+    private final boolean[][] structure;
     private final GenContext ctx;
     private final Palette palette;
+    private final Massing massing;
     private final int width;
     private final int height;
     private int[][] claimedSum;
@@ -175,8 +213,20 @@ public final class RoomPacker {
      */
     public RoomPacker(GenContext ctx, boolean[][] buildable, boolean[][] circulation,
                       Palette palette) {
+        this(ctx, buildable, circulation, palette, Massing.WEDGED);
+    }
+
+    /**
+     * @param buildable cells rooms may occupy; everything else is outside
+     * @param circulation walkable space that already exists and must survive
+     * @param massing how freely this place lets its rooms glue together
+     */
+    public RoomPacker(GenContext ctx, boolean[][] buildable, boolean[][] circulation,
+                      Palette palette, Massing massing) {
         this.ctx = ctx;
         this.palette = palette;
+        this.massing = massing;
+        this.structure = new boolean[ctx.width + 2][ctx.height + 2];
         this.width = ctx.width;
         this.height = ctx.height;
         this.outside = new boolean[width + 2][height + 2];
@@ -446,8 +496,12 @@ public final class RoomPacker {
                     if (!meetsEdge(request.contact(), shape, x, y)) continue;
                     int belongs = request.affinity().prefers(x + w / 2, y + h / 2)
                             ? AFFINITY_BONUS : 0;
+                    int excess = massing.sharedSeamAllowance() == Integer.MAX_VALUE ? 0
+                            : Math.max(0, glue(shape, x, y)
+                                    - massing.sharedSeamAllowance());
                     found.add(new Candidate(shape, pose, x, y,
-                            belongs + contact + ctx.rng.nextInt(3)));
+                            belongs + contact + ctx.rng.nextInt(3)
+                                    - excess * massing.seamPenalty()));
                 }
             }
         }
@@ -506,6 +560,42 @@ public final class RoomPacker {
             if (claimed[x + 1][y + 1]) contact++;
         }
         return contact;
+    }
+
+    /**
+     * How much of this ring would join a run of structure already standing.
+     *
+     * <p>Shared cells and abutting ones alike. A wall two cells thick is every
+     * bit as impassable as one the two rooms share, so counting only the
+     * overlap measures the wrong thing: rooms would simply stop sharing and go
+     * on standing back to back, and the unbroken run would be exactly as long.
+     * What has to be bought is a cell of yard between them.
+     *
+     * <p>Told apart from contact with the envelope and the circulation, which
+     * are what the wedging is for: a room tucked into a corner of the ground it
+     * was given, or laid along the road, costs nobody a detour. A room laid
+     * against its neighbour's flank does.
+     */
+    private int glue(RoomShape shape, int ox, int oy) {
+        int glued = 0;
+        for (int[] cell : shape.wall()) {
+            int x = ox + cell[0];
+            int y = oy + cell[1];
+            if (!inBounds(x, y)) continue;
+            if (structure[x + 1][y + 1]) {
+                glued++;
+                continue;
+            }
+            for (int[] step : STEPS) {
+                int nx = x + step[0];
+                int ny = y + step[1];
+                if (inBounds(nx, ny) && structure[nx + 1][ny + 1]) {
+                    glued++;
+                    break;
+                }
+            }
+        }
+        return glued;
     }
 
     /** A door through one bulkhead cell, and the passage cells cut to reach it. */
@@ -850,7 +940,9 @@ public final class RoomPacker {
         for (int[] cell : shape.wall()) {
             int x = candidate.x() + cell[0];
             int y = candidate.y() + cell[1];
-            if (inBounds(x, y)) claimed[x + 1][y + 1] = true;
+            if (!inBounds(x, y)) continue;
+            claimed[x + 1][y + 1] = true;
+            structure[x + 1][y + 1] = true;
         }
     }
 
