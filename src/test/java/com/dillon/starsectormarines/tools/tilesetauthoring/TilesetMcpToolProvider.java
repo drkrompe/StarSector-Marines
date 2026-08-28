@@ -555,6 +555,7 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
             }
             return new JSONObject()
                     .put("count", axis.count())
+                    .put("fittedTo", axis.onto().name())
                     .put("origin", axis.origin())
                     .put("pitch", axis.pitch())
                     .put("strongSeams", axis.strongSeams())
