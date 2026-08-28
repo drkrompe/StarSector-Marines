@@ -2,8 +2,21 @@
 
 These are the raw ImageGen style-transfer sources and normalization tools used
 to build the shipped tilesets in the parent directory. The raw images are not
-drop-in runtime assets: each is RGB, uses near-black in place of transparency,
-and has a model-selected canvas size.
+drop-in runtime assets: an unkeyed one is RGB, uses near-black in place of
+transparency, and has a model-selected canvas size.
+
+Two producers exist and only one may own a sheet. `normalize_tilesets.py`
+transfers fresh colour onto the alpha topology of the atlas it overwrites, so
+the shipped file is its own input; that is tolerable only while the raw plate is
+opaque and has therefore recorded nothing about what is background and what is
+art. A raw sheet that has been keyed (see `key_background.py`) has recorded
+exactly that, per cell, at the source, and its atlas is exported from its
+`*.tileset-authoring.json` through the tileset authoring exporter instead.
+Pointing the normalize script at a keyed sheet would rebuild it from the alpha
+of the export it is replacing and silently revert it. It refuses rather than
+doing so, and `KeyedSheetsAreExportedNotNormalizedTest` fails the build for a
+re-add before anyone runs it. Neither guard is a list to keep in step: keying
+the plate is itself the withdrawal, and both simply measure it.
 
 The normalized production atlases use the canonical runtime names. The retired
 pre-ImageGen atlases and temporary `*-imagegen.png` candidates are no longer
@@ -79,9 +92,9 @@ python -m unittest discover `
 
 | Runtime atlas | Raw source | Initial topology check |
 | --- | --- | --- |
-| `urban-tileset.png` | `urban-tileset.raw.png` (1254x1254 RGB) | Strong whole-sheet preservation; 2 originally empty cells contain spillover |
+| `urban-tileset.png` | `urban-tileset.raw.png` (1254x1254 RGBA, keyed) | Exported from `urban-tileset.tileset-authoring.json`; withdrawn from `normalize_tilesets.py` |
 | `urban-tileset-2.png` | `urban-tileset-2-spaceport-apron.raw.png` (1254x1254 RGB) | The approved 3x3 spaceport apron is extracted panel-by-panel into the road atlas |
-| `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGB) | All 7 auto-sliced frames retained in order |
+| `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGBA, keyed) | Exported from `urban-tileset-3.tileset-authoring.json` as an auto-strip; withdrawn from `normalize_tilesets.py` |
 | `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) + `atlas-material-source/` (52x52 RGBA) | 25x26 topology retained at 56px per cell; sand and stone fields use manifest-packed seamless materials |
 | `Water_tiles.png` | `Water_tiles.raw.png` (1254x1254 RGB) | Strong macro-layout preservation; some edge spill into empty cells |
 | `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGB) + `atlas-material-source/` (52x52 and 45x47 RGBA) | All 20 auto-sliced frames retained in order; grass, dirt, and sand fields use manifest-packed seamless materials |
