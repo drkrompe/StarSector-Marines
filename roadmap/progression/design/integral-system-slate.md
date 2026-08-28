@@ -57,10 +57,11 @@ nothing else:
 
 ## The breach family
 
-Authored. Every one of these is the same effect and none of them plays the same,
-because the axes a tradition is good at are the axes it spends on. Only the
-movement half runs today; the screen arrives with
-`d5-timed-directional-mitigation.md`.
+Authored and running. Every one of these is the same effect and none of them
+plays the same, because the axes a tradition is good at are the axes it spends
+on. Both halves are live: the wearer speeds up, and the authored screen refuses
+its fraction across its arc for the window's duration
+(`combat-durability-nouns.md` owns what a screen is).
 
 | Pattern | Tradition | System | The character it buys |
 | --- | --- | --- | --- |
@@ -127,10 +128,10 @@ likely to be violated by a *capability* rather than by a stat are:
 ## Where this leaves the board
 
 `integral-armor-systems.md` owns the shipped concept and its remaining scope.
-The mechanics the slate still needs are storied separately, because each is
-gated on different simulation work rather than on authoring:
-`d5-timed-directional-mitigation.md` — which two authored members of the breach
-family are effectively waiting on — plus `integral-system-use-policy.md`,
+Directional mitigation has landed, so every authored member of the breach family
+now expresses the whole of what it was written to be. The mechanics the slate
+still needs are storied separately, because each is gated on different
+simulation work rather than on authoring: `integral-system-use-policy.md`,
 `integral-system-battle-presentation.md`, `shoulder-micro-missile-pod.md`, and
 `defender-integral-systems.md`.
 

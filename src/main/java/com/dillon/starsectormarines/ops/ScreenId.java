@@ -15,6 +15,8 @@ public enum ScreenId {
     COMPANY_HQ,
     /** Read-only shipboard marine-quarters browser; safe without a planet. */
     BARRACKS,
+    /** Which ship in the fleet the company lives aboard; safe without a planet. */
+    SHIP_TRANSFER,
     /** Dev-only retained document and host-capability proof; safe without a planet. */
     UI_WORKBENCH,
     MISSION_SELECT,

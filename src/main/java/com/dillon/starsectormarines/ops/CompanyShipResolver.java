@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
+import com.dillon.starsectormarines.battle.world.gen.ship.HullOutline;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
+import com.dillon.starsectormarines.battle.world.gen.ship.HullSilhouette;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -11,6 +13,7 @@ import com.fs.starfarer.api.fleet.FleetMemberType;
 import com.fs.starfarer.api.impl.campaign.DModManager;
 import com.fs.starfarer.api.impl.campaign.ids.Tags;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -55,8 +58,12 @@ public final class CompanyShipResolver {
      */
     private static final float TYPICAL_ASPECT = 0.88f;
 
-    /** Base hull id to beam-over-length, scraped once per hull. */
-    private static final Map<String, Float> ASPECT_BY_HULL = new HashMap<>();
+    /**
+     * Base hull id to its outline, scraped once per hull. Holds nulls for hulls
+     * whose spec could not be read, so an unreadable hull is not re-read on
+     * every comparison.
+     */
+    private static final Map<String, HullSilhouette> OUTLINE_BY_HULL = new HashMap<>();
 
     private CompanyShipResolver() { }
 
@@ -73,7 +80,7 @@ public final class CompanyShipResolver {
                 hull.getHullSize() == null ? null : hull.getHullSize().name(),
                 hull.getDesignation(),
                 whole.getMinCrew(), whole.getMaxCrew(), whole.getCargoCapacity(),
-                aspectOf(hull.getBaseHullId()));
+                outlineOf(hull.getBaseHullId()));
     }
 
     /**
@@ -87,15 +94,16 @@ public final class CompanyShipResolver {
      * generate something.
      */
     static CompanyShip shipOf(String hullSize, String designation,
-                              float minCrew, float maxCrew, float cargo, float aspect) {
+                              float minCrew, float maxCrew, float cargo,
+                              HullSilhouette outline) {
         int holds = Math.max(0, Math.round(cargo));
         int carries = Math.max(0, Math.round(maxCrew));
         int works = Math.min(carries, Math.max(0, Math.round(minCrew)));
-        return new CompanyShip(
-                HullClass.fromHullSize(hullSize),
-                HullRole.fromDesignation(designation),
-                works, carries, holds,
-                aspect > 0f ? aspect : TYPICAL_ASPECT);
+        HullClass hullClass = HullClass.fromHullSize(hullSize);
+        HullRole role = HullRole.fromDesignation(designation);
+        return outline != null
+                ? new CompanyShip(hullClass, role, works, carries, holds, outline)
+                : new CompanyShip(hullClass, role, works, carries, holds, TYPICAL_ASPECT);
     }
 
     /**
@@ -134,39 +142,45 @@ public final class CompanyShipResolver {
     }
 
     /**
-     * A hull's beam over its length, from the drawn hull rather than the stats.
+     * A hull's own outline, or null for one whose spec could not be read.
      *
-     * <p>Nothing on the fleet member reports proportions, but every hull's
-     * {@code .ship} spec carries the dimensions it is drawn at, and vanilla art
-     * is bow-up — so height is her length and width her beam. Loaded through
-     * the settings API, which follows the game's own mod load order, so a
-     * modded hull is read the same way a base one is.
+     * <p>Nothing on the fleet member describes a hull's form, but every
+     * {@code .ship} spec carries the collision polygon the game itself uses.
+     * Loaded through the settings API, which follows the game's mod load order,
+     * so a modded hull's deck comes out the shape of that hull without anybody
+     * preparing it.
+     *
+     * <p>Keyed on the base hull id so a skin and the hull it is a skin of share
+     * one reading: a (D) variant is the same shape as the ship it was made
+     * from, and only its condition differs.
      */
-    private static float aspectOf(String baseHullId) {
-        if (baseHullId == null || baseHullId.isEmpty()) return TYPICAL_ASPECT;
-        Float cached = ASPECT_BY_HULL.get(baseHullId);
-        if (cached != null) return cached;
-        float resolved = scrapeAspect(baseHullId);
-        ASPECT_BY_HULL.put(baseHullId, resolved);
-        return resolved;
+    private static HullSilhouette outlineOf(String baseHullId) {
+        if (baseHullId == null || baseHullId.isEmpty()) return null;
+        if (OUTLINE_BY_HULL.containsKey(baseHullId)) return OUTLINE_BY_HULL.get(baseHullId);
+        HullSilhouette outline = scrapeOutline(baseHullId);
+        OUTLINE_BY_HULL.put(baseHullId, outline);
+        return outline;
     }
 
-    private static float scrapeAspect(String baseHullId) {
+    private static HullSilhouette scrapeOutline(String baseHullId) {
         String path = "data/hulls/" + baseHullId + ".ship";
         try {
             JSONObject spec = Global.getSettings().loadJSON(path);
-            float beam = (float) spec.optDouble("width", 0.0);
-            float length = (float) spec.optDouble("height", 0.0);
-            if (beam <= 0f || length <= 0f) {
+            JSONArray bounds = spec.optJSONArray("bounds");
+            if (bounds == null || bounds.length() < 6) {
                 LOG.warn("CompanyShipResolver: " + baseHullId + " (" + path + ") — "
-                        + "missing width/height; using typical proportions");
-                return TYPICAL_ASPECT;
+                        + "no usable bounds; her deck takes a synthetic taper");
+                return null;
             }
-            return beam / length;
+            float[] polygon = new float[bounds.length()];
+            for (int corner = 0; corner < polygon.length; corner++) {
+                polygon[corner] = (float) bounds.getDouble(corner);
+            }
+            return HullOutline.fromBounds(polygon, baseHullId);
         } catch (Exception unreadable) {
             LOG.warn("CompanyShipResolver: " + baseHullId + " (" + path + ") — "
                     + unreadable.getClass().getSimpleName() + ": " + unreadable.getMessage());
-            return TYPICAL_ASPECT;
+            return null;
         }
     }
 }
