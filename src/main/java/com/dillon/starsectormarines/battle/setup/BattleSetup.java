@@ -740,9 +740,13 @@ public final class BattleSetup {
     }
 
     /**
-     * Authored green-company operation: finite militia-only opposition, no
+     * Authored militia-support operation: finite militia-only opposition, no
      * turrets, mechs, fighters, or reinforcement layer. Employer transports
      * deboard local militia while later manifest entries retain player seats.
+     *
+     * <p>Deliberately small at every scale, and it stays that way however good
+     * the company gets — these contracts recur, and a veteran outfit is meant
+     * to look at the payout and decline rather than find them withheld.
      */
     public static BattleSimulation createOpeningOperation(
             long seed, List<ShuttleAssignment> manifest, int employerShips,
