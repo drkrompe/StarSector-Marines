@@ -54,6 +54,12 @@ worktree.
    git branch -d session/<unique-name>
    ```
 
+Integrate at every coherent commit chain, not once at the end of a session.
+A session that has reached a green, self-contained state should merge to `main`
+before starting the next chunk, then keep working in the same worktree. Banking
+several chains and merging them together only widens the window in which a
+sibling session's merge turns into a conflict.
+
 The main workspace is for brief integration and worktree administration only.
 Do not run builds or leave generated task files there.
 
