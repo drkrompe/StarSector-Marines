@@ -239,6 +239,14 @@ class SquadStateDumperTest {
         assertEquals(1, commandState.getInt("aliveMembers"));
         assertEquals(1, commandState.getInt("activePathMembers"));
         assertTrue(commandState.has("membersInTargetZone"));
+        assertTrue(commandState.has("movingMembers"));
+        assertTrue(commandState.has("coveredFromPrimaryMembers"));
+        assertTrue(commandState.has("primaryEngageableMembers"));
+        assertTrue(commandState.has("primaryEngageableFireTeams"));
+        assertTrue(commandState.has("contactPosture"));
+        assertTrue(commandState.has("contactDoctrine"));
+        assertTrue(commandState.has("contactInitiative"));
+        assertTrue(commandState.has("coolingDownMembers"));
         assertTrue(commandState.getBoolean("localContact"));
         assertEquals(3, conquest.getJSONArray("tracks").length());
 

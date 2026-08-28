@@ -562,6 +562,8 @@ class CommandTraceAnalyzerTest {
         assertEquals(1, loss.squadLossLocationsObserved());
         assertEquals(0, loss.squadLossLocationsUnknown());
         assertEquals(1, loss.squadLossWithUnknownTrack());
+        assertEquals(1, loss.squadLossTacticalUnknown());
+        assertEquals(0, loss.squadLossTacticalObserved());
 
         String forming = physicalPerspectiveV7(150, 10f, 10f, 1,
                 4, "FORMING_UP", false, 0, 0, secureDirective(),
@@ -606,6 +608,40 @@ class CommandTraceAnalyzerTest {
                 clearStart, dead, timeout(225), ""));
         assertEquals(1, clear.squadLossWithoutPublishedContact());
 
+    }
+
+    @Test
+    void secureTravelLossUsesLastAliveTacticalContactFacets()
+            throws Exception {
+        String first = tacticalState(physicalPerspectiveV7(75, 10f, 10f, 1,
+                        4, null, true, 1, 0, secureDirective(),
+                        secureAction("COMPOUND_CAPTURE_PRESERVED", 5, 20, 20)),
+                2, 0, 0, 0, "DEFENDING", "HOLD", "RECEIVE",
+                "BreachAndAdvance[portal=3]", true, 2);
+        String finalAlive = tacticalState(physicalPerspectiveV7(150, 12f, 12f, 1,
+                        3, null, true, 0, 0, secureDirective(),
+                        secureAction("COMPOUND_CAPTURE_PRESERVED", 5, 20, 20)),
+                0, 2, 2, 1, "ADVANCING", "DISENGAGE", "PROSECUTE",
+                "Engage", true, 1);
+        String dead = physicalPerspectiveV7(225, 0f, 0f, 1,
+                0, null, false, 0, 0, secureDirective(), "");
+
+        var loss = analyzeSecure(String.join("\n", schemaEightHeader(),
+                first, finalAlive, dead, timeout(300), ""));
+
+        assertEquals(1, loss.squadLossTacticalObserved());
+        assertEquals(0, loss.squadLossTacticalUnknown());
+        assertEquals(0, loss.squadLossWithBreachAction(),
+                "the final living pulse replaces earlier tactical facets");
+        assertEquals(0, loss.squadLossWithMovingMembers());
+        assertEquals(0, loss.squadLossExposedFromPrimary());
+        assertEquals(1, loss.squadLossDoctrineDisengage());
+        assertEquals(1, loss.squadLossInitiativeProsecute());
+        assertEquals(1, loss.squadLossWithEngageableMembers());
+        assertEquals(1, loss.squadLossWithEngageableFireTeams());
+        assertEquals(1, loss.squadLossUnderFireRecently());
+        assertEquals(1, loss.squadLossMajorityCoveredFromPrimary());
+        assertEquals(1, loss.squadLossCoolingDown());
     }
 
     @Test
@@ -882,6 +918,35 @@ class CommandTraceAnalyzerTest {
     private static String schemaSevenHeader() {
         return header().replace("\"schemaVersion\":5",
                 "\"schemaVersion\":7");
+    }
+
+    private static String schemaEightHeader() {
+        return header().replace("\"schemaVersion\":5",
+                "\"schemaVersion\":8");
+    }
+
+    private static String tacticalState(String row, int movingMembers,
+                                        int coveredFromPrimaryMembers,
+                                        int engageableMembers,
+                                        int engageableFireTeams,
+                                        String posture, String doctrine,
+                                        String initiative, String action,
+                                        boolean underFire, int coolingDown) {
+        return row.replace("\"membersInTargetZone\":0}",
+                "\"membersInTargetZone\":0"
+                        + ",\"underFireRecently\":" + underFire
+                        + ",\"moraleBroken\":false"
+                        + ",\"currentGoal\":\"SecureCompound\""
+                        + ",\"currentAction\":\"" + action + "\""
+                        + ",\"movingMembers\":" + movingMembers
+                        + ",\"coveredFromPrimaryMembers\":"
+                        + coveredFromPrimaryMembers
+                        + ",\"primaryEngageableMembers\":" + engageableMembers
+                        + ",\"primaryEngageableFireTeams\":" + engageableFireTeams
+                        + ",\"contactPosture\":\"" + posture + "\""
+                        + ",\"contactDoctrine\":\"" + doctrine + "\""
+                        + ",\"contactInitiative\":\"" + initiative + "\""
+                        + ",\"coolingDownMembers\":" + coolingDown + '}');
     }
 
     private static String timeout(int tick) {

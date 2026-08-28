@@ -163,6 +163,22 @@ public final class CommandTraceAnalyzer {
             int squadLossWithTrackBeliefOnly,
             int squadLossWithoutPublishedContact,
             int squadLossWithUnknownTrack,
+            int squadLossTacticalObserved,
+            int squadLossTacticalUnknown,
+            int squadLossWithBreachAction,
+            int squadLossWithMovingMembers,
+            int squadLossExposedFromPrimary,
+            int squadLossDoctrineAdvance,
+            int squadLossDoctrineHold,
+            int squadLossDoctrineDisengage,
+            int squadLossInitiativeNone,
+            int squadLossInitiativeReceive,
+            int squadLossInitiativeProsecute,
+            int squadLossWithEngageableMembers,
+            int squadLossWithEngageableFireTeams,
+            int squadLossUnderFireRecently,
+            int squadLossMajorityCoveredFromPrimary,
+            int squadLossCoolingDown,
             List<Integer> squadLossLastDistancesDecicells,
             List<Integer> squadLossApproachProgressBasisPoints) {
 
@@ -188,6 +204,11 @@ public final class CommandTraceAnalyzer {
                 throw new IllegalArgumentException(
                         "front context must classify every squad loss");
             }
+            if (squadLossTacticalObserved + squadLossTacticalUnknown
+                    != squadLossExits) {
+                throw new IllegalArgumentException(
+                        "tactical observation must classify every squad loss");
+            }
         }
 
         public int episodesFinalized() {
@@ -202,6 +223,7 @@ public final class CommandTraceAnalyzer {
 
         static SecureTravelMetrics empty() {
             return new SecureTravelMetrics(0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     List.of(), List.of());
         }
@@ -461,6 +483,36 @@ public final class CommandTraceAnalyzer {
                         secure.squadLossWithoutPublishedContact());
                 numberField(out, "unknownTrack",
                         secure.squadLossWithUnknownTrack());
+                out.append('}');
+                out.append(",\"squadLossTacticalContact\":{");
+                rawNumberField(out, "observed", secure.squadLossTacticalObserved());
+                numberField(out, "unknown", secure.squadLossTacticalUnknown());
+                numberField(out, "breachAction",
+                        secure.squadLossWithBreachAction());
+                numberField(out, "moving", secure.squadLossWithMovingMembers());
+                numberField(out, "exposedFromPrimary",
+                        secure.squadLossExposedFromPrimary());
+                out.append(",\"doctrine\":{");
+                rawNumberField(out, "advance", secure.squadLossDoctrineAdvance());
+                numberField(out, "hold", secure.squadLossDoctrineHold());
+                numberField(out, "disengage",
+                        secure.squadLossDoctrineDisengage());
+                out.append('}');
+                out.append(",\"initiative\":{");
+                rawNumberField(out, "none", secure.squadLossInitiativeNone());
+                numberField(out, "receive", secure.squadLossInitiativeReceive());
+                numberField(out, "prosecute",
+                        secure.squadLossInitiativeProsecute());
+                out.append('}');
+                numberField(out, "withEngageableMembers",
+                        secure.squadLossWithEngageableMembers());
+                numberField(out, "withEngageableFireTeams",
+                        secure.squadLossWithEngageableFireTeams());
+                numberField(out, "underFireRecently",
+                        secure.squadLossUnderFireRecently());
+                numberField(out, "majorityCoveredFromPrimary",
+                        secure.squadLossMajorityCoveredFromPrimary());
+                numberField(out, "coolingDown", secure.squadLossCoolingDown());
                 out.append('}');
                 numberField(out, "withLocalContact",
                         secure.episodesWithLocalContact());
@@ -1467,7 +1519,8 @@ public final class CommandTraceAnalyzer {
                     int schemaVersion = row.getInt("schemaVersion");
                     if (schemaVersion != 2 && schemaVersion != 3
                             && schemaVersion != 4 && schemaVersion != 5
-                            && schemaVersion != 6 && schemaVersion != 7) {
+                            && schemaVersion != 6 && schemaVersion != 7
+                            && schemaVersion != 8) {
                         throw new IllegalArgumentException(
                                 "Unsupported command trace schemaVersion: "
                                         + schemaVersion);
@@ -1767,6 +1820,17 @@ public final class CommandTraceAnalyzer {
         boolean finished;
         SecureTravelLossContext lastLossContext =
                 SecureTravelLossContext.UNKNOWN_TRACK;
+        boolean lastTacticalObserved;
+        boolean lastBreachAction;
+        boolean lastMoving;
+        boolean lastExposedFromPrimary;
+        String lastDoctrine;
+        String lastInitiative;
+        boolean lastWithEngageableMembers;
+        boolean lastWithEngageableFireTeams;
+        boolean lastUnderFireRecently;
+        boolean lastMajorityCoveredFromPrimary;
+        boolean lastCoolingDown;
 
         private SecureTravelEpisode(SecureTravelCandidate candidate,
                                     JSONObject state) {
@@ -1798,6 +1862,22 @@ public final class CommandTraceAnalyzer {
         int lossWithTrackBeliefOnly;
         int lossWithoutPublishedContact;
         int lossWithUnknownTrack;
+        int lossTacticalObserved;
+        int lossTacticalUnknown;
+        int lossWithBreachAction;
+        int lossWithMovingMembers;
+        int lossExposedFromPrimary;
+        int lossDoctrineAdvance;
+        int lossDoctrineHold;
+        int lossDoctrineDisengage;
+        int lossInitiativeNone;
+        int lossInitiativeReceive;
+        int lossInitiativeProsecute;
+        int lossWithEngageableMembers;
+        int lossWithEngageableFireTeams;
+        int lossUnderFireRecently;
+        int lossMajorityCoveredFromPrimary;
+        int lossCoolingDown;
         final List<Integer> lossDistances = new ArrayList<>();
         final List<Integer> lossProgress = new ArrayList<>();
 
@@ -1812,6 +1892,7 @@ public final class CommandTraceAnalyzer {
                     episode.markerY);
             if (Double.isFinite(distance)) episode.lastDistance = distance;
             episode.lastLossContext = lossContext(state, action, perspective);
+            if (schemaVersion >= 8) observeLossTactics(episode, state);
             if (!episode.localContact
                     && state.optBoolean("localContact", false)) {
                 episode.localContact = true;
@@ -1882,6 +1963,33 @@ public final class CommandTraceAnalyzer {
                 case NO_PUBLISHED_CONTACT -> lossWithoutPublishedContact++;
                 case UNKNOWN_TRACK -> lossWithUnknownTrack++;
             }
+            if (episode.lastTacticalObserved) {
+                lossTacticalObserved++;
+                if (episode.lastBreachAction) lossWithBreachAction++;
+                if (episode.lastMoving) lossWithMovingMembers++;
+                if (episode.lastExposedFromPrimary) lossExposedFromPrimary++;
+                switch (episode.lastDoctrine) {
+                    case "ADVANCE" -> lossDoctrineAdvance++;
+                    case "HOLD" -> lossDoctrineHold++;
+                    case "DISENGAGE" -> lossDoctrineDisengage++;
+                    default -> { }
+                }
+                switch (episode.lastInitiative) {
+                    case "NONE" -> lossInitiativeNone++;
+                    case "RECEIVE" -> lossInitiativeReceive++;
+                    case "PROSECUTE" -> lossInitiativeProsecute++;
+                    default -> { }
+                }
+                if (episode.lastWithEngageableMembers) lossWithEngageableMembers++;
+                if (episode.lastWithEngageableFireTeams) lossWithEngageableFireTeams++;
+            } else {
+                lossTacticalUnknown++;
+            }
+            if (episode.lastUnderFireRecently) lossUnderFireRecently++;
+            if (episode.lastMajorityCoveredFromPrimary) {
+                lossMajorityCoveredFromPrimary++;
+            }
+            if (episode.lastCoolingDown) lossCoolingDown++;
         }
 
         SecureTravelMetrics result() {
@@ -1893,8 +2001,40 @@ public final class CommandTraceAnalyzer {
                     lossLocationsObserved, lossLocationsUnknown,
                     lossAtLocalContact, lossWithTrackBeliefOnly,
                     lossWithoutPublishedContact, lossWithUnknownTrack,
+                    lossTacticalObserved, lossTacticalUnknown,
+                    lossWithBreachAction, lossWithMovingMembers,
+                    lossExposedFromPrimary, lossDoctrineAdvance,
+                    lossDoctrineHold, lossDoctrineDisengage,
+                    lossInitiativeNone, lossInitiativeReceive,
+                    lossInitiativeProsecute, lossWithEngageableMembers,
+                    lossWithEngageableFireTeams, lossUnderFireRecently,
+                    lossMajorityCoveredFromPrimary, lossCoolingDown,
                     lossDistances, lossProgress);
         }
+    }
+
+    private static void observeLossTactics(SecureTravelEpisode episode,
+                                           JSONObject state) {
+        int alive = state.optInt("aliveMembers", 0);
+        int moving = state.optInt("movingMembers", 0);
+        int covered = state.optInt("coveredFromPrimaryMembers", -1);
+        int coolingDown = state.optInt("coolingDownMembers", 0);
+        String action = state.optString("currentAction", "");
+        episode.lastTacticalObserved = true;
+        episode.lastBreachAction = action.startsWith("BreachAndAdvance");
+        episode.lastMoving = moving > 0;
+        episode.lastExposedFromPrimary = moving > 0 && covered == 0;
+        episode.lastDoctrine = state.optString("contactDoctrine", "");
+        episode.lastInitiative = state.optString("contactInitiative", "");
+        episode.lastWithEngageableMembers =
+                state.optInt("primaryEngageableMembers", 0) > 0;
+        episode.lastWithEngageableFireTeams =
+                state.optInt("primaryEngageableFireTeams", 0) > 0;
+        episode.lastUnderFireRecently =
+                state.optBoolean("underFireRecently", false);
+        episode.lastMajorityCoveredFromPrimary =
+                alive > 0 && covered >= 0 && covered * 2 >= alive;
+        episode.lastCoolingDown = coolingDown > 0;
     }
 
     private static double distanceToMarker(JSONObject state, int markerX,
