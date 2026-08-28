@@ -157,8 +157,8 @@ Do not run builds or leave generated task files there.
 - `gradlew.bat installAuthoringMcpServer` → writes
   `build/mcp/starsector-authoring-mcp.cmd` and prints the `.mcp.json` snippet
   that registers it. The server serves the authoring tools — list/measure/read/
-  write/slice/export a tileset, render its map-preview comparison, and run the
-  snapshot catalog — over MCP stdio, headlessly and without the workbench
+  write/slice/split/export a tileset, render its map-preview comparison, and run
+  the snapshot catalog — over MCP stdio, headlessly and without the workbench
   window. It is a separate entry point onto the same domain code, not an
   embedded server: an editor holding unsaved changes and a tool writing the same
   document would be two writers. The launcher is generated rather than checked

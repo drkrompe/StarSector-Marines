@@ -113,12 +113,18 @@ gradlew.bat layerAuthoring
 Tilesets page → pick the sheet from the project list → **Open**. A seeded
 document slices on open. From there it is annotation, which is a person's job:
 
-- For a fused plate: select the single piece, **Split selected on grid**, then
-  **Group selected as block** for any wall or corner set. Slot names read as
-  *"the exterior is on this side"*, not "the neighbour is a wall" — a mirrored
-  assignment still loads and still resolves, so the preview drawing each block as
-  a room is the only thing that catches it.
+- For a fused plate: cut it into its cells, then **Group selected as block** for
+  any wall or corner set. Slot names read as *"the exterior is on this side"*,
+  not "the neighbour is a wall" — a mirrored assignment still loads and still
+  resolves, so the preview drawing each block as a room is the only thing that
+  catches it.
 - For a prop sheet: set each piece's footprint, cover, id, note and tags.
+
+Cutting the plate is mechanical, so it does not need the window. Either **Split
+selected on grid** in the page, or `tileset_split_on_grid` over MCP, which cuts
+the document's stated `gridCols` x `gridRows` and previews the parts until you
+pass `apply=true`. Slice the sheet first — a fused plate slices to one piece,
+which is the piece to cut. Grouping into blocks is still the page's.
 
 Export writes the packed atlas, its tileset, and a `*.tileset.md` catalog card.
 
