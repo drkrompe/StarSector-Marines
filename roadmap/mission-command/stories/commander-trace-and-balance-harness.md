@@ -394,6 +394,27 @@ classification, so the repair closes latent execution state without disguising
 the remaining contact-bound `HOLD` seam. Investigate that doctrine/execution
 handoff before changing final-hop tactics, capture slots, or timers.
 
+That handoff was an execution discontinuity inside the retained mission plan,
+not a commander-selection failure. `HOLD` correctly suppressed the objective
+route and authored stanced fire, but the zone approach action disabled the
+existing successful-shot cover refresh and then cleared every path. Committed
+shooters now request the established cooldown-staggered move to strictly better
+directional cover, and the approach action preserves only that live micro-move
+while continuing to suppress the mission route. Focused coverage proves a
+RECEIVE shooter drops its old compound path, authors and advances the local
+cover move, and does not convert the hold into pursuit.
+
+The duplicate 6,000-tick reinforced replay remained byte-stable. It preserved
+six captures, four final Marine holds, eight exact capture-zone entries, and no
+portal-only exits. The deterministic combat perturbation produced 31 finalized
+secure trips (23 never observed at a portal, eight entered), with fifteen squad
+losses; eleven loss pulses still published `HOLD`, ten had an engageable member
+and fireteam, and one had majority directional cover at the 75-tick sample.
+Short between-pulse cover moves are not recoverable from that cadence, so this
+run verifies strategic and breach non-regression but does not claim a survival
+or cover-rate improvement. Playtest remains the authority for whether the
+staggered shifts read naturally under multidirectional contact.
+
 ## Historical construction-only baselines
 
 The 2026-08-25 forced-serial run reached the bound on both fixtures, with both
