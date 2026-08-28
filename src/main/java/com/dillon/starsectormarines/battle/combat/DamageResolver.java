@@ -85,6 +85,32 @@ public final class DamageResolver {
     }
 
     /**
+     * Cover the target actually had against <em>this</em> hit.
+     *
+     * <p>Cover is stored per facing because it is a property of a boundary: a
+     * marine with a wall to the east is covered from the east and naked from
+     * the south. When the hit has a locatable source, that is exactly the
+     * question this seam can ask, and asking it is what stops a feature on one
+     * boundary from protecting its cell from every direction — the difference
+     * between a barricade and a free durability bonus.
+     *
+     * <p>An unattributed hit — a detonation with no attacker, a source already
+     * released from the roster — has no bearing at all, so there is no facing
+     * to read. It falls back to the direction-blind scalar, which is the same
+     * "cover in general" figure the whole path used before there was anything
+     * to be directional about.
+     */
+    private int coverAgainst(World world, long targetId, long attackerId,
+                             int targetCellX, int targetCellY) {
+        if (attackerId == targetId || !roster.isAliveById(attackerId)) {
+            return grid.getCoverAt(targetCellX, targetCellY);
+        }
+        return grid.getCoverAt(targetCellX, targetCellY,
+                world.cellX(attackerId) - targetCellX,
+                world.cellY(attackerId) - targetCellY);
+    }
+
+    /**
      * Resolves a damage event. Idempotent w.r.t. already-dead targets — a
      * target killed by a prior queued entry is skipped entirely when a stacked
      * entry resolves against it later in the same flush, so it doesn't re-emit
@@ -108,7 +134,7 @@ public final class DamageResolver {
         int tcy = world.cellY(targetId);
         float tx = world.x(targetId);
         float ty = world.y(targetId);
-        int targetCover = grid.getCoverAt(tcx, tcy);
+        int targetCover = coverAgainst(world, targetId, attackerId, tcx, tcy);
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
         float hpBefore = world.hp(targetId);
         boolean hasArmor = world.hasArmor(targetId);

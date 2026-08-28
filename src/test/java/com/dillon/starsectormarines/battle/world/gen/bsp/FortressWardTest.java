@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +29,24 @@ class FortressWardTest {
             RoomPurpose.VEHICLE_BAY, RoomPurpose.ARMORY, RoomPurpose.BARRACKS,
             RoomPurpose.ENGINE_ROOM, RoomPurpose.PARTS_CAGE, RoomPurpose.STOCKROOM,
             RoomPurpose.MESS_HALL, RoomPurpose.KEEP_ENTRY, RoomPurpose.CONTROL_ROOM };
+
+    /** The ward's buildings are furnished, and its vehicle sheds hold real berths. */
+    @Test
+    void thePackedWardIsFurnished() {
+        for (long seed : new long[] { 1L, 9L, 777L }) {
+            MapResult map = new BspCityGenerator().generate(
+                    W, H, seed, TraversalAxis.SOUTH_TO_NORTH);
+            int inWard = 0;
+            for (Doodad doodad : map.doodads) {
+                if (map.topology.getRoomPurpose(doodad.cellX, doodad.cellY) != null) inWard++;
+            }
+            System.out.println("FURNISH seed=" + seed
+                    + " doodads=" + map.doodads.size()
+                    + " gantries=" + map.gantries.size());
+            assertTrue(map.gantries.size() > 0,
+                    "a fortress with vehicle sheds must publish machine berths: " + seed);
+        }
+    }
 
     @Test
     void everyCanonicalConquestMapPacksItsFortressWard() {

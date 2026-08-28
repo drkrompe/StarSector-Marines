@@ -5,3 +5,4 @@ com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.DurabilityBarSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.FrontageSceneSnapshotSuite
 com.dillon.starsectormarines.battle.deployable.PointDefenceSceneSnapshotSuite
+com.dillon.starsectormarines.battle.deployable.DeployedCoverSceneSnapshotSuite
