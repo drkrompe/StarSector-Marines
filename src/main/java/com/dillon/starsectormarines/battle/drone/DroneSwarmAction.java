@@ -270,7 +270,7 @@ public final class DroneSwarmAction implements Action {
         if (dist > Drone.AGGRO_RANGE_CELLS) return 0L;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
                 sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(candidate), sim.world().cellY(candidate),
-                dAir, sim.vision().airLosRadius(candidate));
+                dAir, sim.vision().targetAirLosRadius(candidate));
         return visible ? candidate : 0L;
     }
 

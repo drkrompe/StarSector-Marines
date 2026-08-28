@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -97,6 +98,23 @@ class VehicleDurabilityIntegrationTest {
         assertEquals(survivors, sim.liveUnitCount());
         assertEquals(1, sim.getSmokingWrecks().size(),
                 "stacked/late damage cannot repeat passenger or wreck side effects");
+    }
+
+    @Test
+    void theInfantryPursuitGateHandlesAVehicleTargetThatCarriesNoVision() {
+        BattleSimulation sim = openArena();
+        long shooter = sim.spawn(new EntitySpec("marine", Faction.MARINE,
+                UnitType.MARINE, 2, 5));
+        long apc = spawnVisibleApc(sim);
+
+        // Targeting hands infantry the APC, so the next tick's pursuit gate is
+        // asked about an id with HEALTH but no VISION. It reads the seen side's
+        // air-LoS radius tolerantly instead of failing loud on the missing column.
+        assertEquals(apc, sim.getTacticalScoring().findBestTarget(shooter));
+        sim.world().setTargetId(shooter, apc);
+        assertEquals(TacticalScoring.PursuitDecision.KEEP,
+                sim.getTacticalScoring().assessPursuit(shooter, apc));
+        assertTrue(sim.getTacticalScoring().shouldKeepPursuing(shooter, apc));
     }
 
     private static final class MidRollRandom extends Random {
