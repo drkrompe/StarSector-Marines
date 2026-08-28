@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-08-28 — folded the close-contact boarding tools.
+Updated: 2026-08-28 — folded the first deployable.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -22,3 +22,4 @@ Updated: 2026-08-28 — folded the close-contact boarding tools.
 | `s11-card-sourced-experience.md` | 2026-08-27 | this commit | `progression-nouns.md` — aptitude and experience: bands issued with the armour pattern, the rejected weapon-grade source, no hidden leader promotion, and stripes following issued armour |
 | `shoulder-micro-missile-pod.md` | 2026-08-28 | this commit | `integral-armor-systems.md` — the second first system, shipped as `system.predictive-volley` on `armor.aegis-composite`, firing `weapon.micro-missile`; `integral-system-slate.md` — the allocation reasoning; `equipment-lore-catalog.md` — the pattern's and weapon's provenance |
 | `s2e-close-contact-boarding-tools.md` | 2026-08-28 | this commit | `progression-nouns.md` — the close-contact activation, contact reach, contact reservation, the authored breach point, the no-universal-melee law, and the two shipped families; `moddable-weapons-nouns.md` — the adjacency executor and the bounded meaning of authored wall damage; `equipment-lore-catalog.md` — Emberjaw and Quillon provenance |
+| `deployable-emplacements.md` | 2026-08-28 | this commit | `progression-nouns.md` — the deployable activation, the placed-emplacement noun, ordnance interception as distinct from damage, the bounded-on-every-axis law, and the Palisade pod; `moddable-weapons-nouns.md` — the round-declares-its-own-vulnerability law and the emplacement authority split for a carried platform; `equipment-lore-catalog.md` — Palisade provenance. Deployable cover was deliberately deferred to `deployable-cover.md`. |

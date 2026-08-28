@@ -97,6 +97,16 @@ public final class CombatTelemetryService {
     public int secondaryUsed(long id) { return getInt(id, BattleComponents.TELEMETRY_SECONDARY_USED); }
 
     /**
+     * Hostile warheads {@code id}'s placed point-defence emplacements engaged
+     * in flight. Deliberately not expressed as damage prevented: an engaged
+     * round is removed before it detonates, so no damage figure ever existed
+     * to net out.
+     */
+    public int ordnanceIntercepted(long id) {
+        return getInt(id, BattleComponents.TELEMETRY_ORDNANCE_INTERCEPTED);
+    }
+
+    /**
      * Landed fraction — {@link #roundsHit} over {@link #roundsFired}, or
      * {@code 0} before the first trigger pull. The headline accuracy number
      * for both the debug readout and the career record.
@@ -151,6 +161,11 @@ public final class CombatTelemetryService {
     /** One secondary-weapon round expended. */
     public void recordSecondaryUsed(long shooterId) {
         bumpInt(shooterId, BattleComponents.TELEMETRY_SECONDARY_USED, 1);
+    }
+
+    /** One hostile warhead engaged in flight by {@code carrierId}'s placed emplacement. */
+    public void recordOrdnanceIntercepted(long carrierId) {
+        bumpInt(carrierId, BattleComponents.TELEMETRY_ORDNANCE_INTERCEPTED, 1);
     }
 
     // ---- internals ----

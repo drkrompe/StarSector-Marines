@@ -125,6 +125,19 @@ public final class MapEditor {
      * ("obstacle removed, stamp rubble, refresh navigation") for the non-wall
      * obstacle kinds.
      */
+    /**
+     * Whether {@code (cellX, cellY)} is currently closed to movement. The
+     * demolition handlers read this before flipping a dead emplacement's cell
+     * to rubble: a map turret or drone hub was stamped onto a sealed cell at
+     * setup and leaving it sealed would orphan an invisible obstacle, whereas a
+     * carrier-placed emplacement stood on ordinary floor and never sealed
+     * anything. Flipping the latter would open authored edges under existing
+     * paths for no reason.
+     */
+    public boolean isCellSealed(int cellX, int cellY) {
+        return !grid.isWalkable(cellX, cellY);
+    }
+
     public void flipCellToRubble(int cellX, int cellY) {
         grid.setWalkable(cellX, cellY, true);
         grid.openAllEdges(cellX, cellY);

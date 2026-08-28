@@ -379,6 +379,13 @@ public final class BattleComponents {
      * invisible damage multiplier {@code combat-durability-nouns.md} refuses.
      */
     public static final int TELEMETRY_DAMAGE_MITIGATED = 7;
+    /**
+     * {@link #TELEMETRY} field 8: hostile warheads this entity's placed
+     * point-defence emplacements engaged in flight. Its own quantity, never
+     * folded into damage: an intercepted round is removed before it detonates,
+     * so there is no damage figure to prevent and no attribution to reverse (INT).
+     */
+    public static final int TELEMETRY_ORDNANCE_INTERCEPTED = 8;
 
     /**
      * {@link #MITIGATION} field 0: the fraction of post-cover damage the live
@@ -1035,7 +1042,8 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         TELEMETRY       = world.register(34, "Telemetry",
                 FieldKind.INT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
-                FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
+                FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT,
+                FieldKind.INT);
         ARMOR          = world.register(35, "Armor",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         INTEGRAL_SYSTEM = world.register(36, "IntegralSystem",

@@ -231,7 +231,8 @@ public final class TurretFireSystem implements TurretFireSink {
                 /*friendlyFireImmune*/ false, /*authoredAftermath*/ true);
         shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
                 weapon.boostRamp, weapon.arcHeight,
-                shooterFaction, aerialDelivery, flightTime, onArrival));
+                shooterFaction, aerialDelivery, flightTime, onArrival, weapon.id,
+                weapon.pointDefenseTarget));
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
                 flightTime, structure, null, null));
     }

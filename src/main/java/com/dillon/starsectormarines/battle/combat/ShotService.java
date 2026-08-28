@@ -234,8 +234,8 @@ public final class ShotService {
     }
 
     /**
-     * Advances every in-flight {@link Projectile} by {@code dt}. Intercepted
-     * projectiles (point-defense future hook) are removed without detonating;
+     * Advances every in-flight {@link Projectile} by {@code dt}. Projectiles a
+     * point-defence emplacement marked this tick are removed without detonating;
      * expired ones with a non-null {@link Projectile#onArrival} payload fire
      * it via the supplied {@code sink} and land in
      * {@link #projectilesArrivedThisFrame} for renderer impact FX. Payloadless
@@ -245,7 +245,11 @@ public final class ShotService {
         for (int i = activeProjectiles.size() - 1; i >= 0; i--) {
             Projectile p = activeProjectiles.get(i);
             if (p.intercepted) {
-                // Future: spawn intercept FX here. For now, just remove.
+                // Engaged by a point-defence emplacement earlier this tick.
+                // Drop the round WITHOUT firing onArrival: interception is not
+                // damage, so the payload never reaches the detonation sink and
+                // no arrival record is published. The engagement's own tracer
+                // and impact FX were posted by the intercepting emplacement.
                 activeProjectiles.remove(i);
                 continue;
             }
