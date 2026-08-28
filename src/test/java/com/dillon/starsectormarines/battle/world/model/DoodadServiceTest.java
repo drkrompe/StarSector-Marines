@@ -1,12 +1,16 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import com.dillon.starsectormarines.battle.world.tiles.TileCover;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DoodadServiceTest {
@@ -57,6 +61,24 @@ class DoodadServiceTest {
         assertEquals(1, sofa.footprintCellsY);
         assertEquals(true, sofa.occupiesCell(2, 1));
         assertEquals(false, sofa.occupiesCell(3, 1));
+    }
+
+    @Test
+    void placementRotationKeepsSourceSpanAndRotatesItsTacticalFootprint() {
+        DoodadDef records = new DoodadDef("test.records", TileManifest.DOODAD_SHEET,
+                2, 3, DoodadCover.MED, 0.4f, 2, 1, WallSide.N, 96);
+
+        Doodad rotated = new Doodad(4, 5, records, 1);
+
+        assertEquals(2, rotated.sourceCellsX);
+        assertEquals(1, rotated.sourceCellsY);
+        assertEquals(1, rotated.footprintCellsX);
+        assertEquals(2, rotated.footprintCellsY);
+        assertEquals(1, rotated.quarterTurns);
+        assertEquals(WallSide.W, rotated.preferredWallSide);
+        assertTrue(rotated.occupiesCell(4, 5));
+        assertTrue(rotated.occupiesCell(4, 6));
+        assertFalse(rotated.occupiesCell(5, 5));
     }
 
     @Test

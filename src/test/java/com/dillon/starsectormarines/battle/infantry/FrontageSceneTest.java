@@ -241,6 +241,45 @@ class FrontageSceneTest {
         System.out.println("scene report: " + report);
     }
 
+    @Test
+    void aSimultaneousAssaultOnSeveralSidesIsCoveredOnEverySide() {
+        for (List<Approach> axes : List.of(
+                List.of(Approach.SOUTH),
+                List.of(Approach.SOUTH, Approach.NORTH),
+                List.of(Approach.SOUTH, Approach.EAST),
+                List.of(Approach.SOUTH, Approach.NORTH, Approach.EAST, Approach.WEST))) {
+            Scene scene = FrontageScene.build(SEED, GARRISON_SQUADS, GARRISON_SIZE,
+                    1, ASSAULT_SIZE, axes);
+            List<Sample> samples = FrontageScene.play(scene, TICKS, SAMPLE_PERIOD);
+
+            // Scoped to samples where the perimeter is still the line: every
+            // axis has attackers, apertures are manned, and the wall has not
+            // yet been given up. An axis whose assault is dead needs no cover;
+            // a garrison between plans is not aiming at all, which is a
+            // different question; and once the compound has fallen and the
+            // defense is inside the buildings, "is the north wall manned" has
+            // stopped being the question worth asking.
+            List<Sample> contested = samples.stream()
+                    .filter(s -> s.mannedApertures() > 0)
+                    .filter(s -> "COMPOUND".equals(s.perimeterLayer()))
+                    .filter(s -> s.axes().stream().allMatch(a -> a.liveMarines() > 0))
+                    .toList();
+            assertFalse(contested.isEmpty(), axes + ": no sample had every axis live and manned");
+
+            int worstEver = contested.stream()
+                    .mapToInt(Sample::coverageOfWeakestLiveAxis).min().orElse(-1);
+            long blind = contested.stream()
+                    .filter(s -> s.coverageOfWeakestLiveAxis() == 0).count();
+            System.out.printf("%d-axis %s: weakest live axis got %d posts at worst; "
+                            + "%d of %d contested samples left an axis uncovered%n",
+                    axes.size(), axes.stream().map(Approach::renderedEdge).toList(),
+                    worstEver, blind, contested.size());
+
+            assertTrue(worstEver > 0, axes
+                    + ": an axis under live assault was left with no post covering it");
+        }
+    }
+
     private static Sample firstStandTo(List<Sample> samples) {
         return samples.stream()
                 .filter(s -> "FrontageDefense".equals(s.goal()))

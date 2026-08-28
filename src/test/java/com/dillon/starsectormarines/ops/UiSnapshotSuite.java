@@ -74,9 +74,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     /** A company with a home, and one whose ship did not come back. */
     private static final CompanyShipDesignation.Home QUARTERED =
-            new CompanyShipDesignation.Home("home", null, false);
+            new CompanyShipDesignation.Home("home", null, false, 0);
     private static final CompanyShipDesignation.Home DISPLACED =
-            new CompanyShipDesignation.Home(null, "SABRE", true);
+            new CompanyShipDesignation.Home(null, "SABRE", true, 41);
 
     /**
      * The company being moved, and what it has to pay with. A mid-campaign
@@ -256,7 +256,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 width, height, 1f, MarineOpsUiViewport.REFERENCE_WIDTH,
                 MarineOpsUiViewport.REFERENCE_HEIGHT);
         CompanyShipDesignation.Home home = standing.shipId() == null ? standing
-                : new CompanyShipDesignation.Home(fleet.get(0).id(), null, false);
+                : new CompanyShipDesignation.Home(fleet.get(0).id(), null, false, 0);
         ShipTransferViewModel viewModel = new ShipTransferViewModel(
                 reactor, () -> fleet, () -> home, moved -> { }, means);
         viewModel.select(fleet.get(Math.min(selected, fleet.size() - 1)).id());

@@ -49,10 +49,20 @@ class FactionEquipmentMarketStockTest {
         FactionEquipmentMarketStockPlanner.StockPlan licensed = plan(
                 "hegemony", "chicomoztoc", 6, 30L, true, Set.of());
 
-        assertEquals(4, unlicensed.marketTemplateIds().size());
-        assertTrue(unlicensed.licensedTemplateIds().isEmpty());
-        assertEquals(2, licensed.licensedTemplateIds().size());
-        assertEquals(6, new HashSet<>(licensed.allTemplateIds()).size());
+        // Relationships, not census figures: a licence adds a separate shelf on
+        // top of ordinary stock and never offers the same card twice. Pinning the
+        // literal sizes meant every added item broke this test for no reason.
+        assertFalse(unlicensed.marketTemplateIds().isEmpty(),
+                "a sizeable hegemony market should stock something");
+        assertTrue(unlicensed.licensedTemplateIds().isEmpty(),
+                "no licence means no licensed shelf");
+        assertEquals(unlicensed.marketTemplateIds(), licensed.marketTemplateIds(),
+                "a licence adds to ordinary stock rather than reshuffling it");
+        assertFalse(licensed.licensedTemplateIds().isEmpty(),
+                "standing should open a licensed shelf");
+        assertEquals(licensed.marketTemplateIds().size() + licensed.licensedTemplateIds().size(),
+                new HashSet<>(licensed.allTemplateIds()).size(),
+                "ordinary and licensed stock must be disjoint");
 
         Set<String> owned = Set.copyOf(licensed.allTemplateIds());
         FactionEquipmentMarketStockPlanner.StockPlan filtered = plan(
@@ -149,8 +159,12 @@ class FactionEquipmentMarketStockTest {
                 6, 30L, true, Set.of(), FULL_ACCESS);
 
         assertEquals(List.of(staleMarineCard), removed);
-        assertEquals(6, added.size());
-        assertEquals(6, added.stream().map(SpecialItemData::getData).distinct().count());
+        // What reaches cargo is exactly what the planner planned, once each.
+        FactionEquipmentMarketStockPlanner.StockPlan expected = plan(
+                "hegemony", "chicomoztoc", 6, 30L, true, Set.of());
+        assertEquals(new HashSet<>(expected.allTemplateIds()).size(), added.size());
+        assertEquals(added.size(), added.stream()
+                .map(SpecialItemData::getData).distinct().count());
         assertTrue(added.stream().allMatch(data ->
                 EquipmentTemplateCardItemPlugin.ITEM_ID.equals(data.getId())));
         assertTrue(cleaned[0]);
