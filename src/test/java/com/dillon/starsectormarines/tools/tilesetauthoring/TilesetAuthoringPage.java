@@ -488,29 +488,11 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         int cols = (Integer) gridCols.getValue();
         int gridDown = (Integer) gridRows.getValue();
         if (cols == 1 && gridDown == 1) {
-            AuthoringMessages.info(root, "Split on grid",
-                    "The grid is 1 x 1, so splitting would change nothing. Set it to the "
-                            + "layout the sheet was generated to — a 20-frame strip is 20 x 1 "
-                            + "— and the cells need not be square.");
+            AuthoringMessages.info(root, "Split on grid", TilesetOperations.DEGENERATE_GRID_MESSAGE);
             return;
         }
-        List<TilesetExport.Entry> replaced = new ArrayList<>();
-        for (TilesetExport.Entry entry : model.entries) {
-            if (!model.isSelected(entry)) {
-                replaced.add(entry);
-                continue;
-            }
-            int part = 0;
-            for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cols, gridDown)) {
-                TilesetExport.Entry split = new TilesetExport.Entry(
-                        piece, entry.id + "-" + (char) ('a' + part++));
-                split.cover = entry.cover;
-                // A plate's cells are one cell each by construction.
-                split.footprintX = 1;
-                split.footprintY = 1;
-                replaced.add(split);
-            }
-        }
+        List<TilesetExport.Entry> replaced =
+                TilesetOperations.splitOnGrid(model.entries, model::isSelected, cols, gridDown);
         model.setEntries(replaced);
         view.setEntries(replaced);
         markDirty();
