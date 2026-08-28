@@ -9,7 +9,7 @@ import java.util.Random;
 
 /**
  * Multi-axis civic headquarters plan. A two-cell spine joins aligned public
- * and service doors, a three-cell-deep reception lobby wraps the frontage,
+ * and service doors, a four-cell-deep reception lobby wraps the frontage,
  * and four directly accessible side rooms become two offices, a conference
  * room, and a secured server room.
  *
@@ -21,7 +21,7 @@ final class CivicPartitionStrategy implements PartitionStrategy {
 
     static final CivicPartitionStrategy DEFAULT = new CivicPartitionStrategy();
 
-    private static final int RECEPTION_DEPTH = 3;
+    private static final int RECEPTION_DEPTH = 4;
 
     private CivicPartitionStrategy() {}
 

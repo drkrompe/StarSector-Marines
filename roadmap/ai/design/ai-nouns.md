@@ -8,7 +8,9 @@ Updated: 2026-08-28 — added the defense frontage and the standing-to garrison
 posture, which give a held place's authored apertures to whichever side holds
 it and make believed pressure, rather than local contact, the trigger for
 manning them; recorded what an aperture may open onto and what an open-sided
-envelope yields.
+envelope yields; added held layers, so a bounded few garrisons may share a
+perimeter and a garrison that loses one envelope falls back to the next; made
+allocation picket every threatened facing before massing on the hottest.
 
 AI turns an assignment and what a squad has learned into coordinated movement,
 posture, and fire intent. It is a decision system, not the authority for combat
@@ -570,10 +572,38 @@ building's shell inside that compound, and an isolated post's own envelope. A
 layered defense is the consequence of applying one rule at two scopes rather
 than a separate behavior.
 
+A held place has **layers**: the compound's perimeter is one envelope and each
+building's shell inside it is another. A bounded few of a compound's garrisons
+may man its perimeter, taken in node priority order; the rest hold their own
+buildings. The bound is the point — a compound whose every garrison stood on the
+outer wall would have nothing holding the buildings, so the assault that got
+through the wall, which is the assault that matters, would walk into an empty
+base. Squads sharing one envelope partition it: each takes the most threatened
+apertures no other squad is already manning, so reinforcing a wall widens the
+frontage held instead of stacking two squads on the same few windows.
+
+A squad holds the outermost layer it is eligible for and that is not breached.
+When that layer is entered it **falls back** to the next envelope in rather than
+standing down — the perimeter holder turns around and mans its own building's
+shell against whatever is now in the courtyard. Only when its innermost envelope
+is breached does standing to end and the room-clearing behaviors take over. This
+is what makes the defense reactive rather than a single line that either holds or
+is gone.
+
 **Standing to** is the garrison posture between quiet patrol and the indoor
 fight. It distributes members onto stances covering the apertures under the
 greatest believed pressure, holding part of the squad back as an interior
 reserve so a single threatened facing cannot strip the rest of the envelope.
+
+Allocation **pickets before it masses**: every threatened facing receives a post
+before any facing receives a second one, and the remainder go in plain threat
+order. Ranking apertures by pressure alone is right for one approach and wrong
+for two — the field ranks a whole wall above another, so a squad filling from
+one global list puts everybody on whichever side reads hotter and leaves the
+other approach with nobody facing it. A picket on each threatened approach and
+the weight on the dangerous one is the reading a defender should make; it costs
+the hot side one post per other threatened facing, which is the trade being
+made deliberately.
 Its trigger is the squad's own faction influence, which is aggregated from
 believed contacts and propagated through navigable topology: a forward
 element's contact mans the wall facing it, and a garrison that has personally
@@ -585,19 +615,20 @@ Frontage belongs to whoever holds the place, not to whoever is defending the
 mission. An attacker holding a captured compound stands to on the same envelope
 against the counter-attack.
 
-A frontage exists only while the envelope does, and the envelope is whatever is
-actually closed rather than whatever was drawn. Where map generation leaves a
+A frontage exists only while the envelope in question does, and the envelope is
+whatever is actually closed rather than whatever was drawn. Where map generation leaves a
 wall open on purpose — a reserved road centreline crossing a compound is the
 standing case — the ground inside joins the ground outside, and the frontage
 found at compound scope is the member buildings' shells instead of the
 perimeter. That degradation to the inner layer is the correct reading of an
 open-sided compound, not a failure to find the wall. A breach is likewise not a
 new entrance: opening a hole merges the interior with the ground outside, so
-held and unheld stop being distinguishable and the frontage dissolves. Standing to also ends
-once any enemy is inside. Both hand the fight to the room-clearing and
-choke-point behaviors, which is the correct answer — posting people at intact
-windows while the building is being entered elsewhere is the failure these
-boundaries exist to prevent. A live local contact still outranks standing to.
+held and unheld stop being distinguishable and the frontage dissolves. An enemy inside a layer ends that layer, and the squad
+falls back through the ones remaining to it. Both eventually hand the fight to
+the room-clearing and choke-point behaviors, which is the correct answer —
+posting people at intact windows while the building is being entered elsewhere
+is the failure these boundaries exist to prevent. A live local contact still
+outranks standing to.
 
 The shared planner does not make all actors tactically identical. Infantry,
 mech, and drone groups use distinct goal/action libraries for their different

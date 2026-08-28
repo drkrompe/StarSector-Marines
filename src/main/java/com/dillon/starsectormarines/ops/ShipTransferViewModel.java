@@ -147,8 +147,7 @@ public final class ShipTransferViewModel {
             revision.get();
             CompanyShipDesignation.Home standing = home.get();
             if (standing.displaced()) {
-                return standing.formerShipName()
-                        + (standing.lostInAction() ? " was lost. " : " is gone. ")
+                return standing.formerShipName() + gone(standing)
                         + "The company needs somewhere to live.";
             }
             return unquartered()
@@ -310,6 +309,20 @@ public final class ShipTransferViewModel {
         return lost.isEmpty()
                 ? "Nothing aboard would be given up."
                 : "Moving here would give up " + list(lost, "and") + ".";
+    }
+
+    /**
+     * How she went, and who went with her.
+     *
+     * <p>The toll is named here because this is the screen the player is put on
+     * by the loss, and a company that has just been cut in half should not have
+     * to work that out from a shorter roster.
+     */
+    private static String gone(CompanyShipDesignation.Home standing) {
+        if (!standing.lostInAction()) return " is gone. ";
+        return standing.marinesLost() > 0
+                ? " was lost with " + standing.marinesLost() + " marines aboard. "
+                : " was lost. ";
     }
 
     /**

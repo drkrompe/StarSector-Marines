@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
@@ -131,7 +133,7 @@ class MedicalCampusFillerTest {
         assertTrue(CompoundClaim.claim(
                 List.of(failed, onlyNeighbor), shortAdjacency,
                 CompoundClaim.DEFAULT_SPECS, new Random(4)).isEmpty());
-        assertEquals(BlockKind.BUILDING_CIVIC, failed.kind);
+        assertEquals(BlockKind.BUILDING_COMMERCIAL, failed.kind);
     }
 
     @Test
@@ -223,34 +225,32 @@ class MedicalCampusFillerTest {
     private static void assertMedicalWindows(Fixture fixture) {
         fixture.topology.tagDefaultWalls(fixture.grid);
         recomputeCover(fixture.grid);
-        int windows = 0;
-        for (int y = CLINIC.top; y <= CLINIC.bottom; y++) {
-            for (int x = CLINIC.left; x <= CLINIC.right; x++) {
-                if (!fixture.topology.isWindow(x, y)) continue;
-                windows++;
-                assertFalse(fixture.grid.isWalkable(x, y));
-                assertTrue(fixture.grid.isSeeThrough(x, y));
-                assertWindowHasFiringLane(fixture, x, y);
-            }
+        var windows = BuildingWindowTestSupport.windowsOwnedBy(fixture.grid, CLINIC);
+        for (SharedEdgeBarrier window : windows) {
+            int ownerX = window.structureCellX();
+            int ownerY = window.structureCellY();
+            assertTrue(fixture.grid.isWalkable(ownerX, ownerY));
+            assertFalse(fixture.topology.isWindow(ownerX, ownerY));
+            assertWindowHasFiringLane(fixture, window);
         }
-        assertTrue(windows >= 2);
+        assertTrue(windows.size() >= 2);
     }
 
-    private static void assertWindowHasFiringLane(Fixture fixture, int windowX, int windowY) {
-        for (int[] direction : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
-            int insideX = windowX + direction[0];
-            int insideY = windowY + direction[1];
-            RoomPurpose purpose = fixture.topology.getRoomPurpose(insideX, insideY);
-            if (purpose != RoomPurpose.TREATMENT_ROOM
-                    && purpose != RoomPurpose.PATIENT_WARD) continue;
-            int outsideX = windowX - direction[0];
-            int outsideY = windowY - direction[1];
-            assertTrue(fixture.grid.hasLineOfSight(outsideX, outsideY, insideX, insideY));
-            int facing = NavigationGrid.facingFor(-direction[0], -direction[1]);
-            assertEquals(1, fixture.grid.getCoverAtFacing(insideX, insideY, facing));
-            return;
-        }
-        throw new AssertionError("window is not aligned with a clinical room");
+    private static void assertWindowHasFiringLane(Fixture fixture,
+                                                  SharedEdgeBarrier window) {
+        int windowX = window.structureCellX();
+        int windowY = window.structureCellY();
+        Direction outward = BuildingWindowTestSupport.outwardFromOwner(window);
+        int insideX = windowX - outward.dx;
+        int insideY = windowY - outward.dy;
+        RoomPurpose purpose = fixture.topology.getRoomPurpose(insideX, insideY);
+        assertTrue(purpose == RoomPurpose.TREATMENT_ROOM
+                || purpose == RoomPurpose.PATIENT_WARD);
+        int outsideX = windowX + outward.dx;
+        int outsideY = windowY + outward.dy;
+        assertTrue(fixture.grid.hasLineOfSight(outsideX, outsideY, insideX, insideY));
+        int facing = NavigationGrid.facingFor(outward.dx, outward.dy);
+        assertEquals(1, fixture.grid.getCoverAtFacing(windowX, windowY, facing));
     }
 
     private static void recomputeCover(NavigationGrid grid) {

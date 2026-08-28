@@ -42,9 +42,9 @@ public final class LabelLeavesStage implements GenStage {
     /** Minimum dimension a LANDING_ZONE leaf must have on both axes to keep that kind — smaller leaves get demoted to PLAZA, since tiny LZ pads tucked between big buildings read as "courtyard interior" rather than open touchdown apron. */
     private static final int LANDING_ZONE_MIN_SIDE = 5;
     /** Minimum long footprint dimension for a multi-room civic headquarters. */
-    public static final int CIVIC_MIN_LONG_DIM = 13;
+    public static final int CIVIC_MIN_LONG_DIM = 15;
     /** Minimum short footprint dimension for a multi-room civic headquarters. */
-    public static final int CIVIC_MIN_SHORT_DIM = 11;
+    public static final int CIVIC_MIN_SHORT_DIM = 13;
     /** Minimum long outer lot dimension for a courtyard-facing apartment seed. */
     public static final int GATED_HOUSING_MIN_LONG_DIM = 16;
     /** Minimum short outer lot dimension for a courtyard-facing apartment seed. */
@@ -73,6 +73,7 @@ public final class LabelLeavesStage implements GenStage {
         ensureGatedHousingSeed(partition);
         ensureIndustrialCompoundSeed(partition);
         ensureMedicalCampusSeed(partition);
+        ensureCivicHeadquartersSeed(partition);
     }
 
     /** Promote only an already-residential qualifying lot when no natural seed rolled. */
@@ -115,27 +116,42 @@ public final class LabelLeavesStage implements GenStage {
         if (best != null) best.kind = BlockKind.INDUSTRIAL_COMPOUND;
     }
 
-    /** Promote the largest qualifying civic/commercial lot when no clinic seed rolled. */
+    /** Promote the largest qualifying commercial lot when no clinic seed rolled. */
     private static void ensureMedicalCampusSeed(Bsp.Partition partition) {
         for (BlockLeaf leaf : partition.leaves) {
             if (leaf.kind == BlockKind.MEDICAL_CAMPUS) return;
         }
         BlockLeaf best = null;
         for (BlockLeaf leaf : partition.leaves) {
-            if (leaf.kind != BlockKind.BUILDING_CIVIC
-                    && leaf.kind != BlockKind.BUILDING_COMMERCIAL) continue;
+            if (leaf.kind != BlockKind.BUILDING_COMMERCIAL) continue;
             if (Math.max(leaf.width(), leaf.height()) < MEDICAL_CAMPUS_MIN_LONG_DIM
                     || Math.min(leaf.width(), leaf.height()) < MEDICAL_CAMPUS_MIN_SHORT_DIM) {
                 continue;
             }
-            if (best == null
-                    || (leaf.kind == BlockKind.BUILDING_CIVIC
-                        && best.kind != BlockKind.BUILDING_CIVIC)
-                    || (leaf.kind == best.kind && leaf.area() > best.area())) {
-                best = leaf;
-            }
+            if (best == null || leaf.area() > best.area()) best = leaf;
         }
         if (best != null) best.kind = BlockKind.MEDICAL_CAMPUS;
+    }
+
+    /**
+     * Preserve one properly sized headquarters after the compound seed passes
+     * have claimed their qualifying parcels. A smaller parcel remains
+     * commercial rather than inheriting an office program its rooms cannot hold.
+     */
+    private static void ensureCivicHeadquartersSeed(Bsp.Partition partition) {
+        for (BlockLeaf leaf : partition.leaves) {
+            if (leaf.kind == BlockKind.BUILDING_CIVIC) return;
+        }
+        BlockLeaf best = null;
+        for (BlockLeaf leaf : partition.leaves) {
+            if (leaf.kind != BlockKind.BUILDING_COMMERCIAL) continue;
+            if (Math.max(leaf.width(), leaf.height()) < CIVIC_MIN_LONG_DIM
+                    || Math.min(leaf.width(), leaf.height()) < CIVIC_MIN_SHORT_DIM) {
+                continue;
+            }
+            if (best == null || leaf.area() > best.area()) best = leaf;
+        }
+        if (best != null) best.kind = BlockKind.BUILDING_CIVIC;
     }
 
     static BlockKind constrainKindForSize(BlockKind kind, int width, int height) {

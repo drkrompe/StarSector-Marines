@@ -8,7 +8,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 
 import java.util.ArrayDeque;
 import java.util.List;
@@ -228,11 +230,13 @@ final class BuildingShellCore {
         // lookup instead of zone-graph inference.
         labelRooms(grid, topology, bl, bt, br, bb, layout, interior, config);
 
-        // Facade rooms receive recipe-appropriate firing apertures. They
-        // remain structural, non-walkable wall cells; only LoS and projectile
-        // rays pass through. Secured rooms such as armories, parts cages,
-        // pharmacies, and server rooms deliberately retain opaque walls.
-        stampExteriorWindows(grid, topology, bl, bt, br, bb, config.layoutRecipe);
+        // Facade rooms receive recipe-appropriate firing apertures. A selected
+        // perimeter cell becomes a walkable building-owned recess and the
+        // window occupies only its outside shared edge. Secured rooms such as
+        // armories, parts cages, pharmacies, and server rooms deliberately
+        // retain opaque walls.
+        stampExteriorWindows(grid, topology, bl, bt, br, bb,
+                config.layoutRecipe, config.buildingKind);
 
         // Doodad/fixture layout — TINY buildings get sparse scatter (shed),
         // LARGE buildings apply the per-type recipe. Purpose-aware commercial
@@ -246,22 +250,24 @@ final class BuildingShellCore {
 
     private static void stampExteriorWindows(NavigationGrid grid, CellTopology topology,
                                              int bl, int bt, int br, int bb,
-                                             BuildingLayouts.LayoutRecipe recipe) {
+                                             BuildingLayouts.LayoutRecipe recipe,
+                                             BuildingKind buildingKind) {
         stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.TOP, recipe);
+                BuildingPlacement.Side.TOP, recipe, buildingKind);
         stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.BOTTOM, recipe);
+                BuildingPlacement.Side.BOTTOM, recipe, buildingKind);
         stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.LEFT, recipe);
+                BuildingPlacement.Side.LEFT, recipe, buildingKind);
         stampWindowRuns(grid, topology, bl, bt, br, bb,
-                BuildingPlacement.Side.RIGHT, recipe);
+                BuildingPlacement.Side.RIGHT, recipe, buildingKind);
     }
 
     /** Stamps one centered aperture per contiguous living/bedroom run on a facade. */
     private static void stampWindowRuns(NavigationGrid grid, CellTopology topology,
                                         int bl, int bt, int br, int bb,
                                         BuildingPlacement.Side side,
-                                        BuildingLayouts.LayoutRecipe recipe) {
+                                        BuildingLayouts.LayoutRecipe recipe,
+                                        BuildingKind buildingKind) {
         boolean horizontal = side == BuildingPlacement.Side.TOP
                 || side == BuildingPlacement.Side.BOTTOM;
         int min = horizontal ? bl + 1 : bt + 1;
@@ -276,7 +282,7 @@ final class BuildingShellCore {
             if (eligible && inRun && purpose == runPurpose) continue;
             if (inRun) {
                 stampWindow(grid, topology, bl, bt, br, bb, side,
-                        (runStart + along - 1) / 2);
+                        (runStart + along - 1) / 2, buildingKind);
             }
             runStart = eligible ? along : -1;
             inRun = eligible;
@@ -300,7 +306,6 @@ final class BuildingShellCore {
             case BARRACKS -> purpose == RoomPurpose.BARRACKS;
             case VEHICLE_BAY -> purpose == RoomPurpose.VEHICLE_BAY;
             case CIVIC_HEADQUARTERS -> purpose == RoomPurpose.CIVIC_RECEPTION
-                    || purpose == RoomPurpose.CIVIC_OFFICE
                     || purpose == RoomPurpose.CONFERENCE_ROOM;
             case MEDICAL_CLINIC -> purpose == RoomPurpose.TREATMENT_ROOM
                     || purpose == RoomPurpose.PATIENT_WARD;
@@ -321,15 +326,38 @@ final class BuildingShellCore {
 
     private static void stampWindow(NavigationGrid grid, CellTopology topology,
                                     int bl, int bt, int br, int bb,
-                                    BuildingPlacement.Side side, int along) {
+                                    BuildingPlacement.Side side, int along,
+                                    BuildingKind buildingKind) {
         int x = side == BuildingPlacement.Side.LEFT ? bl
                 : side == BuildingPlacement.Side.RIGHT ? br : along;
         int y = side == BuildingPlacement.Side.TOP ? bt
                 : side == BuildingPlacement.Side.BOTTOM ? bb : along;
         if (grid.isDoorway(x, y)) return;
-        grid.setWalkable(x, y, false);
-        grid.setSeeThrough(x, y, true);
-        topology.setWindow(x, y, true);
+        Direction outward = outwardDirection(side);
+        int insideX = x - outward.dx;
+        int insideY = y - outward.dy;
+        int outsideX = x + outward.dx;
+        int outsideY = y + outward.dy;
+        if (!grid.isWalkable(insideX, insideY)
+                || !grid.inBounds(outsideX, outsideY)
+                || !grid.isWalkable(outsideX, outsideY)
+                || grid.getEdgeBarrier(x, y, outward) != null
+                || !grid.isEdgePassable(outsideX, outsideY, outward.opposite())) return;
+
+        grid.setWalkableFloor(x, y);
+        topology.setWallDirMask(x, y, 0);
+        topology.setWindow(x, y, false);
+        topology.setBuildingKindHint(x, y, buildingKind);
+        grid.placeEdgeBarrier(x, y, outward, SharedEdgeBarrier.Kind.WINDOW);
+    }
+
+    private static Direction outwardDirection(BuildingPlacement.Side side) {
+        return switch (side) {
+            case TOP -> Direction.S;
+            case BOTTOM -> Direction.N;
+            case LEFT -> Direction.W;
+            case RIGHT -> Direction.E;
+        };
     }
 
     /**

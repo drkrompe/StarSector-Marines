@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.CampaignUIAPI;
+import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import org.apache.log4j.Logger;
 
@@ -36,6 +38,11 @@ import java.util.List;
  * next-best hull on their behalf would turn the loss into a shrug — the player
  * would find out their transport had burned by noticing the room looked
  * different. They are put back to choosing, out of whatever is left.
+ *
+ * <p><b>Confirming she is gone is where a loss is settled.</b> The engagement
+ * she failed to come home from is only evidence — a disabled ship can be
+ * recovered off the field — so what she took down with her is not counted until
+ * she is actually missing from the fleet. See {@link ShipLossSettlement}.
  */
 public final class CompanyShipDesignation {
 
@@ -63,8 +70,55 @@ public final class CompanyShipDesignation {
         }
         LOG.info("CompanyShipDesignation: the company's ship ("
                 + roster.companyShipName() + ") is gone; they have nowhere to live");
-        roster.reportCompanyShipGone();
+        roster.reportCompanyShipGone(settle(roster));
         return null;
+    }
+
+    /**
+     * Count what went down with her, once and only once.
+     *
+     * <p>A ship the player sold takes nothing with her; only a casualty does.
+     * The roll is seeded from the company and her name so reloading the save
+     * cannot buy a kinder one — a loss the player can re-roll is not a loss.
+     *
+     * @return how many named marines were lost
+     */
+    private static int settle(MarineRoster roster) {
+        if (!roster.companyShipCasualty()) return 0;
+        ShipLossSettlement.Toll toll = ShipLossSettlement.settle(roster, holds(),
+                roster.companyShipHold(), roster.companyShipCasualtyHeldField(),
+                roster.deckSeed() * 31L + String.valueOf(roster.companyShipName()).hashCode());
+        announce(roster.companyShipName(), toll);
+        return toll.marinesLost();
+    }
+
+    /**
+     * Say it plainly and once, where the player is already looking. A
+     * catastrophe the player discovers by noticing a screen looks different is
+     * the failure this whole path exists to avoid.
+     */
+    private static void announce(String lost, ShipLossSettlement.Toll toll) {
+        if (Global.getSector() == null || !toll.anything()) return;
+        CampaignUIAPI ui = Global.getSector().getCampaignUI();
+        if (ui == null || ui.getMessageDisplay() == null) return;
+        StringBuilder message = new StringBuilder(String.valueOf(lost))
+                .append(" is lost. ");
+        if (toll.marinesLost() > 0) {
+            message.append(toll.marinesLost()).append(" marines went down with her; ")
+                    .append(toll.marinesSurvived()).append(" were picked up. ");
+        }
+        if (toll.storesLost() > 0 || toll.sparesLost() > 0) {
+            message.append("The bay's spares and ").append(toll.storesLost())
+                    .append(" units of stores went down in her holds. ");
+        }
+        message.append("The company needs somewhere to live.");
+        ui.getMessageDisplay().addMessage(message.toString());
+    }
+
+    private static CargoAPI holds() {
+        if (Global.getSector() == null) return null;
+        CampaignFleetAPI fleet = Global.getSector().getPlayerFleet();
+        return fleet == null ? null : fleet.getCargo();
     }
 
     /**
@@ -74,10 +128,12 @@ public final class CompanyShipDesignation {
      * @param shipId the ship they live aboard, or null for a company with none
      * @param formerShipName the ship they lost, when they had one
      * @param lostInAction whether she was lost rather than let go
+     * @param marinesLost how many of them went down with her
      */
-    public record Home(String shipId, String formerShipName, boolean lostInAction) {
+    public record Home(String shipId, String formerShipName, boolean lostInAction,
+                       int marinesLost) {
 
-        public static final Home NONE = new Home(null, null, false);
+        public static final Home NONE = new Home(null, null, false, 0);
 
         /** Whether the company has never had a ship, as against having lost one. */
         public boolean founding() {
@@ -96,7 +152,8 @@ public final class CompanyShipDesignation {
         MarineRoster roster = roster();
         if (roster == null) return Home.NONE;
         return new Home(aboard == null ? null : aboard.getId(),
-                roster.formerShipName(), roster.formerShipLostInAction());
+                roster.formerShipName(), roster.formerShipLostInAction(),
+                roster.formerShipMarinesLost());
     }
 
     /**
@@ -129,7 +186,8 @@ public final class CompanyShipDesignation {
         MarineRoster roster = roster();
         if (roster == null || member == null) return false;
         if (!candidates().contains(member)) return false;
-        roster.setCompanyShip(member.getId(), shipName(member));
+        roster.setCompanyShip(member.getId(), shipName(member),
+                Math.round(member.getCargoCapacity()));
         LOG.info("CompanyShipDesignation: the company now lives aboard "
                 + member.getShipName() + " (" + member.getHullId() + ")");
         return true;
