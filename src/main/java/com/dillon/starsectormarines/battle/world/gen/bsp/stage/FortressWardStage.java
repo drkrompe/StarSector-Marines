@@ -85,10 +85,25 @@ public final class FortressWardStage implements GenStage {
     private static final int LATERAL_STEP = 6;
 
     /**
-     * The airbase a fortress ward builds. A ward has the ground for the whole
-     * installation, which is the one place on the map that does.
+     * The airbases a fortress ward will build, largest first.
+     *
+     * <p>A ward on the largest map has the ground for the whole installation,
+     * which is the one place on a map that does. Every other map is smaller,
+     * and asking only for the installation is how a garrison ends up with no
+     * air arm at all: the ward tried to reserve forty-four by twenty-four,
+     * could not, and skipped the base without a word. It fitted at the one size
+     * the map-gen tests run, so nothing said otherwise — the enemy simply had
+     * no airfield, on every operation below full strength.
+     *
+     * <p>So the ward ladders down exactly as a city claim does. A smaller map
+     * gets a smaller airbase, and a base with one berth is still an air arm
+     * that flies and still a thing that can be taken to stop it.
      */
-    private static final AirbaseLot.Size WARD_AIRBASE = AirbaseLot.Size.FIELD;
+    private static final AirbaseLot.Size[] WARD_AIRBASES = {
+            AirbaseLot.Size.FIELD, AirbaseLot.Size.PAD, AirbaseLot.Size.STRIP };
+
+    /** An airbase reservation and the size that fitted it. */
+    record WardAirbase(int[] rect, AirbaseLot.Size size) { }
 
     /** Ward cells the packer may not build on but must be able to cross. */
     private static final int APPROACH_WIDTH = 2;
@@ -122,19 +137,21 @@ public final class FortressWardStage implements GenStage {
         // from the middle it would sever the ward's spine, which is how an
         // earlier reservation left a ward every building could reach and no
         // convoy could cross.
-        int[] lot = airbaseLot(ward, axis, citadel, roads);
-        if (lot != null) {
-            for (int x = lot[0]; x <= lot[2]; x++) {
-                for (int y = lot[1]; y <= lot[3]; y++) buildable[x][y] = false;
+        WardAirbase base = airbaseLot(ward, axis, citadel, roads);
+        if (base != null) {
+            for (int x = base.rect()[0]; x <= base.rect()[2]; x++) {
+                for (int y = base.rect()[1]; y <= base.rect()[3]; y++) buildable[x][y] = false;
             }
         }
 
         FortressInterior.Result result = FortressInterior.pack(
                 ctx, buildable, circulation, axis, FortressProgram.ward());
-        if (lot != null) {
-            new AirbaseLot(lot[0] + WARD_AIRBASE.clearance(), lot[1] + WARD_AIRBASE.clearance(),
-                    lot[2] - WARD_AIRBASE.clearance(), lot[3] - WARD_AIRBASE.clearance(),
-                    AirbaseLot.Facing.of(axis), WARD_AIRBASE).author(ctx, ctx.rng);
+        if (base != null) {
+            int[] lot = base.rect();
+            int clear = base.size().clearance();
+            new AirbaseLot(lot[0] + clear, lot[1] + clear,
+                    lot[2] - clear, lot[3] - clear,
+                    AirbaseLot.Facing.of(axis), base.size()).author(ctx, ctx.rng);
             emitAirbaseNode(ctx, lot);
         }
         ctx.put(BspKeys.FORTRESS_WARD, ward);
@@ -196,15 +213,31 @@ public final class FortressWardStage implements GenStage {
      * taken from the back, so the runway ends up along the ward's front where
      * an aircraft has an open run at it.
      */
-    private static int[] airbaseLot(int[] ward, TraversalAxis axis,
-                                    Compound citadel, boolean[][] roadCells) {
+    static WardAirbase airbaseLot(int[] ward, TraversalAxis axis,
+                                         Compound citadel, boolean[][] roadCells) {
+        for (AirbaseLot.Size size : WARD_AIRBASES) {
+            // The far end from the citadel first, then the near one. A base
+            // wants the end the fortress is not centred on, but "wants" is not
+            // "must": preferring one end and giving up when a road crosses it
+            // is how a ward with room at the other end ends up with no air arm.
+            for (boolean farEnd : new boolean[]{ true, false }) {
+                int[] rect = lotFor(size, ward, axis, citadel, roadCells, farEnd);
+                if (rect != null) return new WardAirbase(rect, size);
+            }
+        }
+        return null;
+    }
+
+    /** The reservation one size would take, or null when the ward cannot spare it. */
+    private static int[] lotFor(AirbaseLot.Size size, int[] ward, TraversalAxis axis,
+                                Compound citadel, boolean[][] roadCells, boolean farEnd) {
         boolean alongY = axis == TraversalAxis.SOUTH_TO_NORTH;
         // The reservation is the lot plus the clear ground kept outside its
         // fence. Reserving only the lot lets a building pack flush against the
         // fence, and the way past the base is then whatever the packing left.
         AirbaseLot.Facing facing = AirbaseLot.Facing.of(axis);
-        int spanX = AirbaseLot.reservedSpanX(WARD_AIRBASE, facing);
-        int spanY = AirbaseLot.reservedSpanY(WARD_AIRBASE, facing);
+        int spanX = AirbaseLot.reservedSpanX(size, facing);
+        int spanY = AirbaseLot.reservedSpanY(size, facing);
         int wardW = ward[2] - ward[0] + 1;
         int wardH = ward[3] - ward[1] + 1;
         if (spanX > wardW || spanY > wardH) return null;
@@ -218,12 +251,13 @@ public final class FortressWardStage implements GenStage {
         boolean citadelLow = citadel != null
                 && (alongY ? (citadel.left + citadel.right) / 2 < (ward[0] + ward[2]) / 2
                            : (citadel.top + citadel.bottom) / 2 < (ward[1] + ward[3]) / 2);
+        boolean high = farEnd == citadelLow;
         int left = alongY
-                ? (citadelLow ? ward[2] - spanX + 1 : ward[0])
+                ? (high ? ward[2] - spanX + 1 : ward[0])
                 : ward[0];
         int bottom = alongY
                 ? ward[1]
-                : (citadelLow ? ward[3] - spanY + 1 : ward[1]);
+                : (high ? ward[3] - spanY + 1 : ward[1]);
         int[] lot = { left, bottom, left + spanX - 1, bottom + spanY - 1 };
         if (lot[0] < ward[0] || lot[1] < ward[1]
                 || lot[2] > ward[2] || lot[3] > ward[3]) return null;
