@@ -216,4 +216,50 @@ public class CompoundCaptureSystemTest {
                 service.getRecord(node).state,
                 "a compound anchored on a blocked cell still captures in its own room");
     }
+
+    /**
+     * An open compound is taken by standing on it, not by sharing the outdoors
+     * with it.
+     *
+     * <p>An airfield has no walls, so the zone its apron belongs to is the
+     * whole outdoors — on a generated ward, a 216-cell apron resolving to a
+     * 1341-cell zone. Reading presence from the zone alone made the field
+     * contested by any marine anywhere outside a building, and then froze it
+     * there, because every defender outdoors was equally "present" and a
+     * two-sided zone pauses the timer. The field showed permanently
+     * mid-capture and could neither fall nor be held.
+     *
+     * <p>This is the whole grid as one zone with a 3x3 compound in the middle
+     * of it, which is that map in miniature.
+     */
+    @Test
+    public void openCompoundIgnoresTheRestOfItsZone() {
+        BattleSimulation sim = openSim();
+        CompoundService service = new CompoundService();
+        CompoundCaptureSystem system = new CompoundCaptureSystem();
+        TacticalNode field = new TacticalNode(TacticalNode.Kind.AIRBASE, 5, 5,
+                4, 4, 6, 6, Faction.DEFENDER, 65, 3);
+        service.register(field);
+
+        // Marines across the same open ground, well clear of the compound.
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 0, 0));
+        sim.spawn(new EntitySpec("m2", Faction.MARINE, UnitType.MARINE, 9, 9));
+        tickN(system, sim, service, 3);
+        assertEquals(CompoundService.CompoundState.DEFENDER_HELD,
+                service.getRecord(field).state,
+                "sharing the outdoors with a field is not being on it");
+
+        // One of them walks onto the apron itself, and it is contested.
+        sim.spawn(new EntitySpec("m3", Faction.MARINE, UnitType.MARINE, 5, 5));
+        tickN(system, sim, service, 1);
+        assertEquals(CompoundService.CompoundState.CONTESTED,
+                service.getRecord(field).state);
+
+        // And with nobody defending it, holding it takes it.
+        tickN(system, sim, service,
+                (int) Math.ceil(CompoundService.MARINE_HOLD_TIME
+                        / CompoundCaptureSystem.CAPTURE_TICK_PERIOD));
+        assertEquals(CompoundService.CompoundState.MARINE_HELD,
+                service.getRecord(field).state);
+    }
 }

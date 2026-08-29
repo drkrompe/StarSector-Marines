@@ -244,7 +244,7 @@ public final class ShuttleMission {
      * <em>delivers</em> and is minted at the far end. One is who gets on; the
      * other is who gets off.
      */
-    public int embarkSquadId = com.dillon.starsectormarines.battle.squad.Squad.NO_SQUAD;
+    public int embarkSquadId = Squad.NO_SQUAD;
 
     /**
      * Seconds a loading craft waits on its pad before going with whoever made
@@ -256,6 +256,26 @@ public final class ShuttleMission {
      * stops existing.
      */
     public float boardingPatience;
+
+    /**
+     * Who takes command of the boarding party when this sortie closes, or null
+     * to simply let it go.
+     *
+     * <p>A sortie borrows people; it should not keep them. While loading, the
+     * crew is held at reinforcement authority so nothing outranks the lift and
+     * pulls it apart mid-boarding. That is right for the ninety seconds it
+     * lasts and wrong forever after: the survivors of a scrubbed sortie, or the
+     * ones a full aircraft left behind, would otherwise stand on the pad under
+     * an authority the mission commander cannot outbid, for the rest of the
+     * battle, while each new sortie marched four more out to join them.
+     *
+     * <p>Handing them over rather than releasing them is deliberate. An
+     * unclaimed squad is not in the commander's pool — the pool is what it
+     * owns — so a bare release would leave them exactly as stranded, just
+     * without a label. This is the claim the delivery policy already mints for
+     * the squads a convoy brings in, asked for the same thing.
+     */
+    public SquadCommandClaim embarkHandoff;
 
     public ShuttleMission(float lzX, float lzY, float entryX, float entryY,
                           float exitX, float exitY, float pendingDelay,

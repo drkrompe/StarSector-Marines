@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
-import com.dillon.starsectormarines.marine.CrossingUnderFireSpec;
+import com.dillon.starsectormarines.marine.ExposedUnderFireSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.IntegralSystemEffect;
 import com.dillon.starsectormarines.marine.MissilePodSpec;
@@ -333,7 +333,7 @@ class SystemFxSystemTest {
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 DURATION, COOLDOWN, 0,
                 new BreacherAssistSpec(BOOST, SOAK, arcDegrees), null, null,
-                new CrossingUnderFireSpec(12f));
+                new ExposedUnderFireSpec(2f, 1f));
     }
 
     private static IntegralSystemDef missilePod() {

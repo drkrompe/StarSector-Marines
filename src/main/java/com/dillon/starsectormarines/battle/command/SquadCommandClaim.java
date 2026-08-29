@@ -8,7 +8,8 @@ import java.util.Objects;
  */
 public record SquadCommandClaim(CommandAuthority authority, String issuer, String reason) {
 
-    private static final String REINFORCEMENT_ISSUER = "reinforcement";
+    /** Issuer every reinforcement claim carries, and the name a handoff must give back. */
+    public static final String REINFORCEMENT_ISSUER = "reinforcement";
 
     public SquadCommandClaim {
         Objects.requireNonNull(authority, "authority");

@@ -56,12 +56,22 @@ public enum SpecialAiPolicy {
      */
     CONTACT_REACTION_STRIKE("contact-reaction-strike"),
     /**
-     * Crossing ground that is expensive to cross: the carrier is actually
-     * moving and something hostile is near enough to make the crossing costly.
-     * Names the moment rather than the capability spent on it, because what is
-     * spent may have no target at all — the situation is the whole trigger.
+     * Taking fire the carrier cannot presently answer, in a place that is not
+     * answering it either. Three facts have to hold at once: enough rounds are
+     * landing near them to be worth a long cooldown, the bearing those rounds
+     * come from is not already covered by the terrain, and they are in no
+     * position to shoot back — either because they are crossing ground, or
+     * because the shooter is beyond their own weapon's reach.
+     *
+     * <p>Names the moment rather than the capability spent on it, because what
+     * is spent may have no target at all — the situation is the whole trigger.
+     * The predecessor of this policy named only the crossing and asked only
+     * whether a hostile was nearby, which is a proximity test wearing a combat
+     * name: it could fire with nobody shooting, and it had nothing to say about
+     * the marine who is being shot at and standing still because there is
+     * nowhere better to be.
      */
-    CROSSING_UNDER_FIRE("crossing-under-fire"),
+    EXPOSED_UNDER_FIRE("exposed-under-fire"),
     /**
      * A hostile sighted at standoff: something the carrier holds a clear,
      * reachable line on, far enough off that a delivered payload is a better

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
@@ -63,6 +64,13 @@ class IntegralSystemPolicyTest {
     /** Long enough for a stationary pod to acquire and spend, short enough to stay quick. */
     private static final int OBSERVATION_TICKS = 240;
 
+    /**
+     * Enough health that neither side of a scene dies inside the window. A
+     * casualty would end the fire the scene is about and turn "the screen never
+     * came up" into "nobody was shooting by then".
+     */
+    private static final float SURVIVES_THE_SCENE = 1_000_000f;
+
     // ---------------------------------------------------------------- authoring
 
     /**
@@ -84,9 +92,9 @@ class IntegralSystemPolicyTest {
             assertNotNull(system.policy(), pattern.id() + " authors no use policy");
             assertSame(system.policy().aiPolicy(), system.aiPolicy(), pattern.id());
             switch (system.aiPolicy()) {
-                case CROSSING_UNDER_FIRE -> assertTrue(
-                        system.crossingUnderFire().threatRadiusCells() > 0f,
-                        pattern.id() + " must author the radius its crossing is judged against");
+                case EXPOSED_UNDER_FIRE -> assertTrue(
+                        system.exposedUnderFire().incomingPressureThreshold() > 0f,
+                        pattern.id() + " must author how much fire is worth its cooldown");
                 case SIGHTED_STANDOFF_CONTACT -> assertTrue(
                         system.sightedStandoff().minimumStandoffCells() > 0f,
                         pattern.id() + " must author the standoff its salvo is judged against");
@@ -108,8 +116,9 @@ class IntegralSystemPolicyTest {
     @Test
     void aPolicyThatCannotApplyToItsEffectIsRefusedNamingTheOnesThatCan() throws JSONException {
         JSONObject crossingOnAPod = missilePodJson()
-                .put("policy", SpecialAiPolicy.CROSSING_UNDER_FIRE.key)
-                .put("threatRadiusCells", 12.0);
+                .put("policy", SpecialAiPolicy.EXPOSED_UNDER_FIRE.key)
+                .put("incomingPressureThreshold", 2.0)
+                .put("maxCoverLevel", 1);
         JSONException podFailure = assertThrows(JSONException.class,
                 () -> IntegralSystemDef.parse(crossingOnAPod, "armor.test"));
         assertTrue(podFailure.getMessage().contains(SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT.key),
@@ -121,7 +130,7 @@ class IntegralSystemPolicyTest {
                 .put("minimumStandoffCells", 5.0);
         JSONException assistFailure = assertThrows(JSONException.class,
                 () -> IntegralSystemDef.parse(standoffOnAnAssist, "armor.test"));
-        assertTrue(assistFailure.getMessage().contains(SpecialAiPolicy.CROSSING_UNDER_FIRE.key),
+        assertTrue(assistFailure.getMessage().contains(SpecialAiPolicy.EXPOSED_UNDER_FIRE.key),
                 "the refusal should name the policy a breach assist can declare: "
                         + assistFailure.getMessage());
     }
@@ -137,7 +146,7 @@ class IntegralSystemPolicyTest {
                 .put("policy", SpecialAiPolicy.HARDENED_DIRECT_FIRE.key);
         JSONException failure = assertThrows(JSONException.class,
                 () -> IntegralSystemDef.parse(json, "armor.test"));
-        assertTrue(failure.getMessage().contains(SpecialAiPolicy.CROSSING_UNDER_FIRE.key),
+        assertTrue(failure.getMessage().contains(SpecialAiPolicy.EXPOSED_UNDER_FIRE.key),
                 failure.getMessage());
     }
 
@@ -147,7 +156,7 @@ class IntegralSystemPolicyTest {
         JSONObject json = breacherAssistJson().put("policy", "charge-the-door");
         JSONException failure = assertThrows(JSONException.class,
                 () -> IntegralSystemDef.parse(json, "armor.test"));
-        assertTrue(failure.getMessage().contains(SpecialAiPolicy.CROSSING_UNDER_FIRE.key),
+        assertTrue(failure.getMessage().contains(SpecialAiPolicy.EXPOSED_UNDER_FIRE.key),
                 failure.getMessage());
     }
 
@@ -164,29 +173,60 @@ class IntegralSystemPolicyTest {
     void twoPoliciesSpendThemselvesOnDifferentOccasions() {
         assertTrue(podSpendsASalvo(/*standoff*/ 5f, /*hostileDistance*/ 8),
                 "a sighted contact at standoff is the pod's moment");
-        assertFalse(breacherSpendsItself(/*radius*/ 12f, /*hostileDistance*/ 8, /*crossing*/ false),
-                "standing still with a hostile inside the radius is not the crossing moment");
-        assertTrue(breacherSpendsItself(/*radius*/ 12f, /*hostileDistance*/ 8, /*crossing*/ true),
-                "crossing with that same hostile inside the radius is");
+        assertFalse(screenRaised(Scene.answerable()),
+                "fire the wearer can shoot back at is not the screen's moment — shoot back");
+        assertTrue(screenRaised(Scene.outranged()),
+                "fire the wearer cannot reach back at is");
         assertFalse(podSpendsASalvo(/*standoff*/ 5f, /*hostileDistance*/ 3),
                 "a contact already on top of the wearer is past the pod's moment");
     }
 
     /**
-     * Each policy's authored numbers govern its own system and nothing else.
-     * Twelve cells is deliberately used on both sides: it is an outer bound for
-     * one policy and an inner bound for the other, so a leak between them would
-     * flip a result rather than nudge it.
+     * The waste guard. The same scene, the same incoming, and the only
+     * difference is what the suit believes is worth its cooldown: a suit that
+     * wants a real volume of fire holds while one that answers the first burst
+     * spends. This is the whole reason the threshold is authored, so a failure
+     * here means a suit can no longer decline a moment.
      */
     @Test
-    void neitherPolicysNumbersReachTheOthersSystem() {
-        assertTrue(breacherSpendsItself(12f, 8, true));
-        assertFalse(breacherSpendsItself(4f, 8, true),
-                "a narrower authored radius holds the same suit in the same scene");
+    void aSuitThatWantsMoreFireThanThisHoldsItsOneCard() {
+        assertTrue(screenRaised(Scene.outranged().threshold(1f)),
+                "a suit that answers the first rounds spends here");
+        assertFalse(screenRaised(Scene.outranged().threshold(500f)),
+                "one that wants a volume this scene never reaches keeps it");
+    }
 
-        assertTrue(podSpendsASalvo(5f, 8));
-        assertFalse(podSpendsASalvo(12f, 8),
-                "a wider authored standoff holds the same pod in the same scene");
+    /**
+     * The cover gate. Cover resolves ahead of a screen in the durability model,
+     * so fire the terrain is already stopping is fire the screen would be paid
+     * to stop twice. Identical scenes; the wearer's cell is the difference.
+     */
+    @Test
+    void terrainAlreadyCoveringTheThreatBearingHoldsTheScreen() {
+        assertTrue(screenRaised(Scene.outranged()),
+                "a wearer in the open spends");
+        assertFalse(screenRaised(Scene.outranged().behindCover()),
+                "the same wearer, same fire, with the bearing already covered does not");
+    }
+
+    /**
+     * The occasion that reads path state rather than applied velocity. The
+     * wearer here <em>can</em> reach its shooter, so being under way is the only
+     * thing offering it the moment — and it is offered through a real
+     * {@code sim.advance} tick, in which every mover's applied velocity is the
+     * zero the movement pass has not yet overwritten.
+     *
+     * <p>This is the case the retired scene could not have caught: it wrote the
+     * velocity by hand and drove the sweep directly, so it proved the policy's
+     * arithmetic against a number the simulation never produces at that point in
+     * the tick. A whole Conquest battle raised zero screens while it passed.
+     */
+    @Test
+    void crossingGroundIsReadFromThePathAndNotFromAppliedVelocity() {
+        assertFalse(screenRaised(Scene.answerable()),
+                "standing still within reach of the shooter is not the moment");
+        assertTrue(screenRaised(Scene.answerable().crossing()),
+                "the same wearer under way is");
     }
 
     /**
@@ -231,10 +271,10 @@ class IntegralSystemPolicyTest {
     void aDefenderSpendsASystemOnTheSameOccasionAMarineDoes() {
         IntegralSystemDef rig = catalogSystem("armor.foundry-breaker");
         assertEquals(
-                crossingCarrierSpends(Faction.MARINE, rig),
-                crossingCarrierSpends(Faction.DEFENDER, rig),
+                screenRaised(Scene.outranged().wearing(rig).as(Faction.MARINE)),
+                screenRaised(Scene.outranged().wearing(rig).as(Faction.DEFENDER)),
                 "a hostile in a system-carrying pattern must spend it exactly when a marine does");
-        assertTrue(crossingCarrierSpends(Faction.DEFENDER, rig),
+        assertTrue(screenRaised(Scene.outranged().wearing(rig).as(Faction.DEFENDER)),
                 "and the shipped rig's authored policy must actually fire in this scene");
     }
 
@@ -302,35 +342,104 @@ class IntegralSystemPolicyTest {
     // ---------------------------------------------------------------- scenes
 
     /**
-     * A breacher and one hostile, geometry frozen so only the policy can move
-     * the result. The carrier cannot walk, which is what lets {@code crossing}
-     * be the single difference between the two cases: it writes the velocity
-     * the crossing policy reads and then offers the sweep its one chance.
+     * One wearer, one shooter that really shoots, played by the real
+     * simulation for as long as it takes the fire to matter.
+     *
+     * <p>Every scene here runs through {@code sim.advance}, so the incoming-fire
+     * signal is written by {@code SquadAlertSystem} off actual rounds and the
+     * decision is made where it is made in a battle. Nothing is poked into the
+     * wearer by hand: what varies between cases is geometry, terrain, the
+     * wearer's own reach, and whether it has somewhere to be.
      */
-    private static boolean breacherSpendsItself(float radiusCells, int hostileDistance,
-                                                boolean crossing) {
-        BattleSimulation sim = arena();
-        long breacher = sim.spawn(carrier("breacher", Faction.MARINE)
-                .integralSystem(assist(radiusCells)));
-        sim.spawn(hostile(Faction.DEFENDER, CARRIER_X + hostileDistance));
-        // A few real ticks so the spatial index the policy queries is populated
-        // by the simulation rather than by the test.
-        advance(sim, 4);
-        if (crossing) beginCrossing(sim, breacher);
-        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
-        return sim.integralSystems().isActive(breacher);
+    private static final class Scene {
+
+        private IntegralSystemDef system;
+        private float threshold = 2f;
+        private float maxCover = 1f;
+        private Faction wearerFaction = Faction.MARINE;
+        private float wearerReach;
+        private int shooterDistance;
+        private boolean covered;
+        private boolean crossing;
+
+        /** Fire from a shooter the wearer can reach back at: answerable, so no occasion. */
+        static Scene answerable() {
+            Scene scene = new Scene();
+            scene.shooterDistance = 8;
+            scene.wearerReach = 20f;
+            return scene;
+        }
+
+        /** Fire from beyond the wearer's own reach: nothing to do but cover up. */
+        static Scene outranged() {
+            Scene scene = new Scene();
+            scene.shooterDistance = 14;
+            scene.wearerReach = 6f;
+            return scene;
+        }
+
+        Scene threshold(float v) { this.threshold = v; return this; }
+        Scene behindCover() { this.covered = true; return this; }
+        Scene crossing() { this.crossing = true; return this; }
+        Scene wearing(IntegralSystemDef def) { this.system = def; return this; }
+        Scene as(Faction faction) { this.wearerFaction = faction; return this; }
+
+        IntegralSystemDef suit() {
+            return system != null ? system : shield(threshold, maxCover);
+        }
     }
 
-    /** The same scene with the carrier's faction as the variable rather than its policy. */
-    private static boolean crossingCarrierSpends(Faction wearerFaction, IntegralSystemDef system) {
-        Faction opposing = wearerFaction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
-        BattleSimulation sim = arena();
-        long wearer = sim.spawn(carrier("wearer", wearerFaction).integralSystem(system));
-        sim.spawn(hostile(opposing, CARRIER_X + 8));
-        advance(sim, 4);
-        beginCrossing(sim, wearer);
-        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
-        return sim.integralSystems().isActive(wearer);
+    /**
+     * Plays {@code scene} and answers whether the wearer's screen ever came up.
+     * Watched every tick rather than sampled at the end, because a screen that
+     * ran and expired inside the window is still a screen that was raised.
+     */
+    private static boolean screenRaised(Scene scene) {
+        Faction opposing = scene.wearerFaction == Faction.MARINE
+                ? Faction.DEFENDER : Faction.MARINE;
+        int shooterX = CARRIER_X + scene.shooterDistance;
+        BattleSimulation sim = scene.covered ? coveredArena(shooterX) : arena();
+
+        long wearer = sim.spawn(carrier("wearer", scene.wearerFaction)
+                .integralSystem(scene.suit())
+                .moveSpeed(scene.crossing ? 2f : 0f)
+                .attackRange(scene.wearerReach)
+                .attackDamage(1f)
+                .accuracy(0.3f)
+                .attackCooldown(1f)
+                .visionRange(40f)
+                .hp(SURVIVES_THE_SCENE).maxHp(SURVIVES_THE_SCENE));
+        long shooter = sim.spawn(hostile(opposing, shooterX)
+                .attackRange(30f)
+                .attackDamage(1f)
+                .accuracy(0.95f)
+                .attackCooldown(0.2f)
+                .visionRange(40f)
+                .hp(SURVIVES_THE_SCENE).maxHp(SURVIVES_THE_SCENE));
+
+        if (scene.crossing) sim.setPath(wearer, crossingPath());
+
+        for (int tick = 0; tick < OBSERVATION_TICKS; tick++) {
+            // Fire is ordered rather than left to the squad AI, for the reason
+            // TtkHarness orders it: the scene is about what the screen does with
+            // incoming, not about whether a lone militiaman decided to engage.
+            // The rounds themselves are real and travel the ordinary path, which
+            // is what writes the signal the policy reads.
+            sim.getRoster().combat().setFireIntent(shooter, wearer, FireStance.STANCED, false);
+            sim.advance(BattleSimulation.TICK_DT);
+            if (sim.integralSystems().isActive(wearer)) return true;
+            // A crossing wearer that walks its path out has stopped crossing,
+            // which would quietly turn this into a different scene.
+            if (scene.crossing && sim.movement().settled(wearer)) {
+                sim.setPath(wearer, crossingPath());
+            }
+        }
+        return false;
+    }
+
+    /** A short there-and-back that keeps a crossing wearer on roughly its own ground. */
+    private static int[] crossingPath() {
+        return new int[] {CARRIER_X, ROW, CARRIER_X, ROW + 1, CARRIER_X, ROW + 2};
     }
 
     /**
@@ -372,6 +481,22 @@ class IntegralSystemPolicyTest {
         for (int y = 0; y < H; y++) {
             for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
         }
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
+    /**
+     * The open arena plus one wall cell directly between the wearer and its
+     * shooter, so the wearer's own cell reads cover on exactly the bearing the
+     * incoming rounds arrive from and on no other.
+     */
+    private static BattleSimulation coveredArena(int shooterX) {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        grid.setCoverAtFacing(CARRIER_X, ROW,
+                shooterX > CARRIER_X ? NavigationGrid.FACING_E : NavigationGrid.FACING_W,
+                NavigationGrid.MAX_COVER);
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
@@ -441,10 +566,11 @@ class IntegralSystemPolicyTest {
         return ids;
     }
 
-    private static IntegralSystemDef assist(float threatRadiusCells) {
+    private static IntegralSystemDef shield(float pressureThreshold, float maxCoverLevel) {
         try {
             return IntegralSystemDef.parse(breacherAssistJson()
-                    .put("threatRadiusCells", threatRadiusCells), "armor.test");
+                    .put("incomingPressureThreshold", pressureThreshold)
+                    .put("maxCoverLevel", maxCoverLevel), "armor.test");
         } catch (JSONException failure) {
             throw new AssertionError("test fixture should parse", failure);
         }
@@ -487,8 +613,9 @@ class IntegralSystemPolicyTest {
                 .put("description", "A shove and a screen.")
                 .put("effect", "breacher-assist")
                 .put("resource", "cooldown")
-                .put("policy", SpecialAiPolicy.CROSSING_UNDER_FIRE.key)
-                .put("threatRadiusCells", 12.0)
+                .put("policy", SpecialAiPolicy.EXPOSED_UNDER_FIRE.key)
+                .put("incomingPressureThreshold", 2.0)
+                .put("maxCoverLevel", 1)
                 .put("durationSeconds", 3.0)
                 .put("cooldownSeconds", 22.0)
                 .put("moveSpeedMult", 1.4)
