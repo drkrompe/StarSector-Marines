@@ -53,7 +53,9 @@ public class TileRegistryCellLabelTest {
         assertEquals("road.road nw", roadNw.name);
         assertEquals("road-nw", roadNw.description);
 
-        assertEquals("grass-1", firstCellLabel(reg, "floors.grass").name);
+        CellLabel grass = firstCellLabel(reg, "floors.grass");
+        assertEquals("floors.grass v1", grass.name);
+        assertEquals("grass-1", grass.description, "the sheet's own name for the cell");
         assertEquals("water.water v1", firstCellLabel(reg, "water.water").name);
     }
 

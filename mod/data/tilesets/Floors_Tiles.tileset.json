@@ -1,89 +1,204 @@
 {
-  "sheet": "graphics/tilesets/Floors_Tiles.png",
-  "cellPx": 56,
   "blocks": [
-    { "id": "floors.grass", "cells": [[1, 10], [2, 10], [3, 10]] },
-    { "id": "floors.dirt",  "cells": [[11, 10], [12, 10], [13, 10]] },
-    { "id": "floors.stone", "cells": [[6, 10], [7, 10], [8, 10]] },
-    { "id": "floors.sand",  "cells": [[6, 14], [7, 14], [8, 14]] },
-    { "id": "floors.brick", "cells": [[17, 1], [16, 2], [17, 2], [18, 2], [17, 3]] }
+    {
+      "cells": [
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ]
+      ],
+      "id": "floors.grass"
+    },
+    {
+      "cells": [
+        [
+          11,
+          0
+        ],
+        [
+          12,
+          0
+        ],
+        [
+          13,
+          0
+        ]
+      ],
+      "id": "floors.dirt"
+    },
+    {
+      "cells": [
+        [
+          8,
+          0
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          10,
+          0
+        ]
+      ],
+      "id": "floors.stone"
+    },
+    {
+      "cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "id": "floors.sand"
+    },
+    {
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ]
+      ],
+      "id": "floors.brick"
+    }
   ],
+  "cellPx": 56,
   "cells": [
-    { "col": 17, "row": 1, "name": "fl-tile-1" },
-    { "col": 16, "row": 2, "name": "fl-tile-2" },
-    { "col": 17, "row": 2, "name": "fl-tile-3" },
-    { "col": 18, "row": 2, "name": "fl-tile-4" },
-    { "col": 17, "row": 3, "name": "fl-tile-5" },
-    { "col": 1, "row": 5, "name": "grass-edge-se-1" },
-    { "col": 2, "row": 5, "name": "grass-edge-s" },
-    { "col": 3, "row": 5, "name": "grass-edge-sw-1" },
-    { "col": 6, "row": 5, "name": "stone-edge-se" },
-    { "col": 7, "row": 5, "name": "stone-edge-s" },
-    { "col": 8, "row": 5, "name": "stone-edge-sw-1" },
-    { "col": 11, "row": 5, "name": "dirt-edge-se-1" },
-    { "col": 12, "row": 5, "name": "dirt-edge-s" },
-    { "col": 13, "row": 5, "name": "dirt-edge-sw-1" },
-    { "col": 0, "row": 6, "name": "grass-edge-se-2" },
-    { "col": 4, "row": 6, "name": "grass-edge-sw-2" },
-    { "col": 5, "row": 6, "name": "stone-wedge-se" },
-    { "col": 9, "row": 6, "name": "stone-edge-sw-2" },
-    { "col": 10, "row": 6, "name": "dirt-edge-se-2" },
-    { "col": 14, "row": 6, "name": "dirt-edge-sw-2" },
-    { "col": 0, "row": 7, "name": "grass-edge-e" },
-    { "col": 4, "row": 7, "name": "grass-edge-w" },
-    { "col": 5, "row": 7, "name": "stone-edge-e" },
-    { "col": 9, "row": 7, "name": "stone-edge-w" },
-    { "col": 10, "row": 7, "name": "dirt-edge-e" },
-    { "col": 14, "row": 7, "name": "dirt-edge-w" },
-    { "col": 0, "row": 8, "name": "grass-edge-ne-1" },
-    { "col": 4, "row": 8, "name": "grass-edge-nw-1" },
-    { "col": 5, "row": 8, "name": "stone-edge-ne-1" },
-    { "col": 9, "row": 8, "name": "stone-edge-nw-1" },
-    { "col": 10, "row": 8, "name": "dirt-edge-ne-1" },
-    { "col": 14, "row": 8, "name": "dirt-edge-nw-1" },
-    { "col": 1, "row": 9, "name": "grass-edge-ne-2" },
-    { "col": 2, "row": 9, "name": "grass-edge-n" },
-    { "col": 3, "row": 9, "name": "grass-edge-nw-2" },
-    { "col": 6, "row": 9, "name": "stone-edge-ne-2" },
-    { "col": 7, "row": 9, "name": "stone-edge-n" },
-    { "col": 8, "row": 9, "name": "stone-edge-nw-2" },
-    { "col": 11, "row": 9, "name": "dirt-edge-ne-2" },
-    { "col": 12, "row": 9, "name": "dirt-edge-n" },
-    { "col": 13, "row": 9, "name": "dirt-edge-nw-2" },
-    { "col": 1, "row": 10, "name": "grass-1" },
-    { "col": 2, "row": 10, "name": "grass-2" },
-    { "col": 3, "row": 10, "name": "grass-3" },
-    { "col": 6, "row": 10, "name": "stone-1" },
-    { "col": 7, "row": 10, "name": "stone-2" },
-    { "col": 8, "row": 10, "name": "stone-3" },
-    { "col": 11, "row": 10, "name": "dirt-1" },
-    { "col": 12, "row": 10, "name": "dirt-2" },
-    { "col": 13, "row": 10, "name": "dirt-3" },
-    { "col": 2, "row": 12, "name": "snow-edge-n" },
-    { "col": 7, "row": 12, "name": "sand-edge-n" },
-    { "col": 1, "row": 13, "name": "snow-edge-nw" },
-    { "col": 2, "row": 13, "name": "snow-1" },
-    { "col": 3, "row": 13, "name": "snow-edge-ne" },
-    { "col": 6, "row": 13, "name": "sand-edge-nw" },
-    { "col": 7, "row": 13, "name": "sand-1" },
-    { "col": 8, "row": 13, "name": "sand-edge-ne" },
-    { "col": 0, "row": 14, "name": "snow-edge-w" },
-    { "col": 1, "row": 14, "name": "snow-2" },
-    { "col": 2, "row": 14, "name": "snow-3" },
-    { "col": 3, "row": 14, "name": "snow-4" },
-    { "col": 4, "row": 14, "name": "snow-edge-e" },
-    { "col": 5, "row": 14, "name": "sand-edge-w" },
-    { "col": 6, "row": 14, "name": "sand-2" },
-    { "col": 7, "row": 14, "name": "sand-3" },
-    { "col": 8, "row": 14, "name": "sand-4" },
-    { "col": 9, "row": 14, "name": "sand-edge-e" },
-    { "col": 1, "row": 15, "name": "snow-edge-sw" },
-    { "col": 2, "row": 15, "name": "snow-5" },
-    { "col": 3, "row": 15, "name": "snow-edge-se" },
-    { "col": 6, "row": 15, "name": "sand-edge-sw" },
-    { "col": 7, "row": 15, "name": "sand-5" },
-    { "col": 8, "row": 15, "name": "sand-edge-se" },
-    { "col": 2, "row": 16, "name": "snow-edge-s" },
-    { "col": 7, "row": 16, "name": "sand-edge-s" }
-  ]
+    {
+      "col": 0,
+      "description": "fl-tile-1",
+      "name": "floors.brick v1",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "fl-tile-2",
+      "name": "floors.brick v2",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "fl-tile-3",
+      "name": "floors.brick v3",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "fl-tile-4",
+      "name": "floors.brick v4",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "fl-tile-5",
+      "name": "floors.brick v5",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "grass-1",
+      "name": "floors.grass v1",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "grass-2",
+      "name": "floors.grass v2",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "grass-3",
+      "name": "floors.grass v3",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "stone-1",
+      "name": "floors.stone v1",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "stone-2",
+      "name": "floors.stone v2",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "stone-3",
+      "name": "floors.stone v3",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "dirt-1",
+      "name": "floors.dirt v1",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "dirt-2",
+      "name": "floors.dirt v2",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "dirt-3",
+      "name": "floors.dirt v3",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "sand-2",
+      "name": "floors.sand v1",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "sand-3",
+      "name": "floors.sand v2",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "sand-4",
+      "name": "floors.sand v3",
+      "row": 1
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/Floors_Tiles.png"
 }

@@ -126,38 +126,34 @@ Sheet-specific constraints:
 - `Water_tiles`: preserve a 25x25 grid of 16px cells, four top island sprites, the water edge/corner family, center textures, and shoreline topology. The shipped atlas holds only the three centre cells of `water.water` — the rest of the plate is kept here, and including a cell in the authoring document is all it takes to bring one back.
 - `nature-tiles`: preserve exactly 20 auto-sliced sprites in order, with at least 4 transparent pixels between frames. The prompt said "7 ground, 5 plants, 3 small-rock groups, 2 medium, 3 large"; the art came back as 7 ground, **6** plants and **7** rock groups. The ids followed the prompt rather than the art until 2026-08-29, so frame 12 — a tall grass tuft — was named `nature.rock-small-1` and scattered as a rock; it is now `nature.tuft-3` and the small rocks are numbered from frame 13.
 
-## Normalization strategy
+## Every sheet is exported, not normalized
 
-The scripts preserve the runtime canvas dimensions and alpha topology:
-normalization fits generated content into the current production content bounds
-and restores its alpha mask exactly. One sheet is produced this way now —
-`Floors_Tiles`.
+There was a second way a shipped atlas got made: `normalize_tilesets.py` and
+`normalize_spaceport_apron.py` fitted freshly generated colour onto the alpha of
+the atlas they were about to overwrite. That made a shipped file its own input.
+It worked, and it could not be checked — running the script after anything else
+had touched the sheet would rebuild it from the export being replaced, silently.
 
-`Water_tiles` left on 2026-08-29. It did not need keying: every cell the game
-asks that sheet for is fully opaque, and the alpha the script so carefully
-restored described the 622 cells nothing addresses. Its document declares the
-`water.water` pool instead, and declaring blocks is now the second measured
-withdrawal from this script alongside a keyed plate.
+Both are gone as of 2026-08-29, along with `texture-atlases.json` and
+`pack_texture_atlas.py`. Every tileset is exported from its authoring document,
+and `OneProducerPerSheetTest` keeps it that way by measurement rather than by a
+list: a sheet an authoring document declares may not be named by any script in
+this directory.
 
-The current normalized pass fits whole content into the production bounds. After
-fitting, it removes ImageGen's dark isolated-sprite outline from the reusable
-brick, grass and dirt cells by mirroring a narrow band of neighbouring interior
-rows and columns through each tile edge.
+What the scripts did that was worth keeping now lives in the exporter, authored
+per piece rather than keyed by sheet name:
 
-The stone and sand cells were treated the same way until 2026-08-29, along with
-two further passes that matched the sand variants' join bands and flattened
-their shared palette drift. All of it was dead: `floor-materials` pastes one
-52x52 tile into all three stone cells and all three sand cells *after* this
-pass, so the treatments were computed and then overwritten, and the join those
-two passes existed to hide cannot occur between three identical tiles. Removing
-them leaves both atlases byte-identical, which is how it was established rather
-than argued.
+- `material` — a frame's picture comes from a tileable file instead of the
+  plate. `floors.stone` and `floors.sand` take theirs from
+  `atlas-material-source/`, which is what `texture-atlases.json` used to paste.
+- `spriteBorderPx` — the dark rim ImageGen draws around an isolated cell is
+  mirrored away from the interior, so a repeating field has no lattice at its
+  tile boundaries. The eleven grass, dirt and brick cells carry it.
 
-The auto-strip half of that pass is gone. It carried twenty pinned frame boxes
-into `nature-tiles.png` and a ground-edge band beside them — coordinates into an
-atlas held outside the tileset that describes it — and withdrawing the sheet
-took all of it. The same treatment now lives in the exporter as
-`spriteBorderPx`, authored per piece on the authoring document rather than
-keyed by sheet name in a script.
+Walls, transition autotiles and overlays declare no border, because that edge
+contrast communicates topology rather than atlas separation.
 
-Walls, transition autotiles, and overlays retain their authored edge contrast because those boundaries communicate topology. A future segmented regeneration can replace an individual material family without changing runtime paths.
+`pack_parked_vehicles.py` still writes `parked-vehicles.png`; that sheet has not
+moved to the exporter yet, and its documents declare nothing, so the guard has
+no quarrel with it.
+
