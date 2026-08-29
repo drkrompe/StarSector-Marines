@@ -48,6 +48,8 @@ import com.dillon.starsectormarines.battle.command.trace.CommandTraceRecorder;
 import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.air.AirfieldSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -308,6 +310,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CompoundService compoundService = new CompoundService();
     /** Stateless tick consumer that drives the compound capture state machine. Reads zone occupancy, writes {@link #compoundService} records on its slow-tick cadence. */
     private final CompoundCaptureSystem compoundCapture = new CompoundCaptureSystem();
+    /** Per-hardstand berth state for a garrison airfield — what is parked, away, refitting, or burned. Empty on a battle with no authored field. */
+    private final AirfieldService airfieldService = new AirfieldService();
+    /** Stateless tick consumer that stands airframes on their pads, writes off one destroyed where it sat, and counts down a turnaround. */
+    private final AirfieldSystem airfieldSystem = new AirfieldSystem(Faction.DEFENDER);
     /** Marine-side garrison shuttle spawner — drops friendly troops at captured compounds. Conquest-only; null on other mission types. Set via {@link #setGarrisonSystem}. */
     private CompoundGarrisonSystem garrisonSystem;
 
@@ -603,6 +609,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
+        this.airSystem.setAirfield(airfieldService);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
                 turretFire, rng, this::spawn, this, effects);
         this.vehicleDamageResolver.setDestructionSink(groundSystem::destroyVehicle);
@@ -1080,6 +1087,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * resolve to null") holds in test fixtures the same way it does in
      * production.
      */
+    @Override
     public void releaseFromRegistry(long entityId) {
         rosterService.releaseFromRegistry(entityId);
     }
@@ -1358,6 +1366,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     /** Compound capture-state registry. Read by slice-2 marker renderer, slice-3 trigger/means gates, and slice-4 win-condition objective. Initialized from {@link TacticalMap} during {@link #setTacticalMap}. */
+    /** The garrison airfield's berths — read by reinforcement as a supply question, by the render pass, and by tests. */
+    @Override
+    public AirfieldService getAirfieldService() {
+        return airfieldService;
+    }
+
     public CompoundService getCompoundService() {
         return compoundService;
     }
@@ -1706,6 +1720,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // MARINE_HELD state. Runs before resource production and reinforcement
         // so both see the freshest capture state this tick.
         compoundCapture.tick(TICK_DT, this, compoundService);
+        airfieldSystem.tick(TICK_DT, this, airfieldService);
         if (garrisonSystem != null) garrisonSystem.tick(TICK_DT, this, compoundService);
         // Resource production — alive compounds generate tickets (reinforcement,
         // airstrike) into per-faction pools. Ticked after capture so a

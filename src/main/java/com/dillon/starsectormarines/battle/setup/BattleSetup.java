@@ -1539,11 +1539,35 @@ public final class BattleSetup {
         if (missionType != MissionType.ASSAULT) {
             rs.addTrigger(new ObjectiveLostTrigger());
         }
+        basedAircraft(sim, map);
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
                 deliveryPolicy));
         rs.addMeans(new ShuttleMeans(axis, groundRoster, risk,
                 deliveryPolicy, map.landingPads));
         rs.addMeans(new WalkInMeans(axis, groundRoster, risk));
+    }
+
+    /**
+     * Registers a berth on every garrison hardstand, so the field the air arm
+     * flies from has actual aircraft standing on it.
+     *
+     * <p>The berths are what {@link ShuttleMeans} draws sorties from and what
+     * an attacker destroys to end them, so they are installed with the
+     * reinforcement layer rather than with the map's scenery. A battle whose
+     * map has no authored airfield registers nothing and behaves exactly as it
+     * did — the field cannot become a requirement on battles that were never
+     * given one.
+     *
+     * <p>Distinct from {@link #stampParkedAircraft}, which dresses surplus
+     * <em>civilian</em> port berths with scenery hulls. Those are props: no
+     * unit, no HP, and nothing flies them.
+     */
+    private static void basedAircraft(BattleSimulation sim, MapResult map) {
+        for (LandingPad pad : map.landingPads) {
+            if (pad.purpose != LandingPad.Purpose.GARRISON_AIRFIELD) continue;
+            sim.getAirfieldService().addBerth(pad, ShuttleMeans.SORTIE_TYPE,
+                    AirBody.facingToward(pad.approach.dx, pad.approach.dy));
+        }
     }
 
     /**
