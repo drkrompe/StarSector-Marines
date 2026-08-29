@@ -206,6 +206,17 @@ public final class ShuttleMission {
     public TacticalNode assignNode;
 
     /**
+     * Sim-seconds this craft has been on the ground without managing to set
+     * anybody down. Reset by every successful deboard.
+     *
+     * <p>A delivery that cannot find anywhere to put a passenger is a delivery
+     * that fails, not one that waits: without a bound the craft holds its LZ
+     * for the rest of the battle with its passengers still aboard, and the
+     * reinforcement neither arrives nor is ever reported as lost.
+     */
+    public float unloadStalledFor;
+
+    /**
      * The berth this sortie flew off, or null for a craft that came from
      * off-map.
      *

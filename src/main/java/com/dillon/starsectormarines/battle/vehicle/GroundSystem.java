@@ -19,6 +19,8 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
+import com.fs.starfarer.api.Global;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
@@ -45,7 +47,23 @@ import java.util.function.Consumer;
 public class GroundSystem {
 
     /** Max BFS radius from the LZ when looking for a free deboard cell. Past this we drop the deboard for this tick and retry. */
-    private static final int DEBOARD_SCAN_RADIUS = 5;
+    /**
+     * How far from the stop a passenger may be set down. Nearest-first, so
+     * this bounds the crowded case rather than the normal one. Mirrors the
+     * air deboard's reach and exists for the same reason: at five, a squad
+     * holding around its own drop point fills every candidate cell and the
+     * vehicle retries forever without ever departing.
+     */
+    private static final Logger LOG = Global.getLogger(GroundSystem.class);
+
+    private static final int DEBOARD_SCAN_RADIUS = 10;
+
+    /**
+     * Sim-seconds a stopped vehicle keeps trying to set a passenger down
+     * before it gives up and moves off with them. Mirrors the air side's
+     * patience; see {@code AirSystem}.
+     */
+    private static final float UNLOAD_PATIENCE_SEC = 20f;
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
@@ -127,11 +145,24 @@ public class GroundSystem {
 
                 case LANDED:
                     m.deboardCountdown -= dt;
+                    if (m.marinesRemaining > 0) m.unloadStalledFor += dt;
                     if (m.deboardCountdown <= 0f && m.marinesRemaining > 0) {
                         if (tryDeboardMarine(id, m, type)) {
                             m.marinesRemaining--;
+                            m.unloadStalledFor = 0f;
                         }
                         m.deboardCountdown = type.deboardInterval;
+                    }
+                    // Nowhere to put anybody and no prospect of one. The convoy
+                    // moves off with whoever is still aboard rather than
+                    // parking on its drop point for the rest of the battle.
+                    if (m.marinesRemaining > 0
+                            && m.unloadStalledFor >= UNLOAD_PATIENCE_SEC) {
+                        LOG.warn("convoy: " + type + " could not unload "
+                                + m.marinesRemaining + " of its passengers at ("
+                                + m.lzX + "," + m.lzY + ") — no standable cell within "
+                                + UNLOAD_PATIENCE_SEC + "s. Moving off with them aboard.");
+                        m.marinesRemaining = 0;
                     }
                     if (m.marinesRemaining == 0) {
                         if (type.departsAfterDeboard) {
