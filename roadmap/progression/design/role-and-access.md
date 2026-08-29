@@ -1,12 +1,13 @@
 # Role and access
 
 Status: ACTIVE — direction for how equipment is organised and how a squad is
-put together. The role vocabulary is closed and the catalog's shape is under
-test; the matrix it describes is not yet filled.
+put together. The role vocabulary is closed, the matrix is filled, and both are
+under test. Doctrine still fuses role with access; that is the remaining work.
 
 Written: 2026-08-29
-Updated: 2026-08-29 — role became closed validated data (`ArmorRole`) and
-`ArmorCatalogShapeTest` now reads the whole table. SUPPORT is adopted.
+Updated: 2026-08-29 — role became closed validated data (`ArmorRole`), the
+matrix was filled with six patterns, and `ArmorCatalogShapeTest` asserts both
+role span and the capability ladder.
 
 Read `progression-nouns.md` for the standing rules equipment must obey,
 `integral-system-slate.md` for which traditions build a suit capability and
@@ -36,7 +37,9 @@ tier it is sold at:
 | ASSAULT | — | — | — | heavy, specter, bulwark, reliquary, lions-mantle, foundry-breaker |
 
 Eighteen patterns on a diagonal. Six of them share one cell. Two roles exist at
-exactly one tier each.
+exactly one tier each. (This table is the state that motivated the doc; it is
+kept as written because the argument is about the shape, and the shape is what
+changed.)
 
 **Role is not a category here. It is a label stuck on a rung of a ladder.**
 Buying up the ladder does not upgrade a marine, it changes what that marine
@@ -169,17 +172,27 @@ price band or a manufacturer and nothing would object.
 Not every cell. A role should span the range its users actually operate at, and
 an empty cell is a statement that nobody builds that thing.
 
-The gaps that matter, in order:
+The gaps that mattered are filled. Six patterns, no new art — every one reuses
+an appearance family and a tier icon that already shipped:
 
-1. **Tier-IV RECON and tier-IV LINE.** Without these the top of the ladder is
-   assault-only and the whole problem persists. These are the cells that make
-   a fully equipped squad legible as a squad.
-2. **A cheap ASSAULT pattern.** Breaching is a role, so a poor company should be
-   able to field a bad breacher. Gating the role behind prestige is what makes
-   it read as a reward rather than a job.
-3. **SUPPORT across the range**, if the role is adopted.
-4. **Tier-III RECON**, so recon's own ladder has a middle rung rather than
-   jumping II to IV.
+| Pattern | Role | Tier | Tradition | Carries |
+| --- | --- | --- | --- | --- |
+| Kestrel riot shell | assault | II | Corporate security surplus | A real shield and no shove worth the name |
+| Packframe support harness | support | II | Independent crews | One rocket on a welded rail |
+| Pathfinder recon suit | recon | III | Hegemony | A survey array that reads further than a Janus and announces itself doing it |
+| Redoubt siege plate | line | IV | Hegemony | Nothing — it holds a breach somebody else made |
+| Outrider deep-recon suit | recon | IV | Persean League | The deepest return anyone fields, built to be shared |
+| Arbalest support battlesuit | support | IV | Hegemony | Four rounds and a doctrine for spending them |
+
+Each was written to be a different suit rather than a scaled copy, per the
+standing rule below. The Kestrel is the clearest case: it is the only breacher
+whose whole value is the screen and whose assist is negligible, which is what a
+riot rig actually is and is nothing like the six crossing suits above it.
+
+Still deliberately empty: a tier-I version of everything.
+`integral-system-slate.md`'s "do not give a faction a system so it has one"
+applies to cells too — a cell exists because somebody would build that thing,
+not to make the table rectangular.
 
 Deliberately *not* filled: a tier-I version of everything. `integral-system-slate.md`'s
 "do not give a faction a system so it has one" applies to cells too — a cell
@@ -239,6 +252,14 @@ capability is carried by two roles — and *reports* the role/tier matrix rather
 than asserting it, because the invariant this doc actually wants does not hold
 yet and a failing test is not a plan.
 
-**Turning that report into an assertion is the acceptance for filling the
-matrix.** Three roles are confined to a single tier today: recon at II, support
-at III, assault at IV.
+That report is now an assertion. `everyRoleIsAvailableAtMoreThanOneTier` is the
+invariant this doc exists for, and a second — `aCapabilityGetsStrongerWithTheTierOfTheSuitCarryingIt`
+— pins the ladder: the best example of an effect at each populated tier is at
+least as strong as the best at the tier below, measured on that effect's own
+headline axis. It is compared between populated tiers and on the *best* example
+rather than every one, because a capability may skip a tier and because suits
+within a tier are deliberate side-grades — the Foundry-breaker and the Reliquary
+are both tier IV and their pools differ sevenfold.
+
+Neither test could have been written before the matrix was filled. The second
+one especially: a ladder needs two rungs.

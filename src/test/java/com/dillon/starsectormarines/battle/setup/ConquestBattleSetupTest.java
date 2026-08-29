@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
@@ -41,8 +42,11 @@ public class ConquestBattleSetupTest {
                 RiskLevel.LOW,
                 TargetProfile.NEUTRAL);
 
-        assertEquals(240, BattleSetup.CONQUEST_GRID_W);
-        assertEquals(160, BattleSetup.CONQUEST_GRID_H);
+        // Against the scale rather than a literal: what this pins is that a low
+        // tier still gets the canonical full-size grid, which stays true when
+        // the map is resized and would otherwise fail for the wrong reason.
+        assertEquals(MapScale.LARGE.width, BattleSetup.CONQUEST_GRID_W);
+        assertEquals(MapScale.LARGE.height, BattleSetup.CONQUEST_GRID_H);
         assertEquals(BattleSetup.CONQUEST_GRID_W, sim.getGrid().getWidth());
         assertEquals(BattleSetup.CONQUEST_GRID_H, sim.getGrid().getHeight());
         assertTrue(sim.getObjectives().stream().anyMatch(ConquestObjective.class::isInstance));
