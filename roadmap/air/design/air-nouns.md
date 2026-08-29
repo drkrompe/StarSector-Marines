@@ -111,6 +111,12 @@ aircraft and now does not — has nowhere to live if the aircraft is the record.
 A berth is parked, away, refitting, or destroyed, and the unit standing on it
 is a consequence of that state rather than a thing anybody places directly.
 
+Not every berth is equally exposed. A field's hangar shelters one of them, so
+two aircraft stand where anything with a sight line can burn them and the third
+cannot be touched until somebody is inside the building or has put a hole in it.
+Same field, same aircraft count, two different problems for an attacker.
+`mapgen-nouns.md` owns the shed's geometry.
+
 Three rules give the field its stakes:
 
 - **The hull is continuous.** An aircraft that comes home shot up parks shot up,
