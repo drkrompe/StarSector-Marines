@@ -142,9 +142,15 @@ public final class ShipViewScreen implements Screen {
      * The camera is flown from raw events rather than from pointer callbacks,
      * because the wheel is not a gesture the retained layer carries and a zoom
      * that only worked with a button held would be a strange one. The controls
-     * are told how to read a pointer into the canvas's own pixels rather than
+     * are told how to read a pointer into the camera's own pixels rather than
      * being handed translated events, so nothing has to impersonate an
      * {@code InputEventAPI}.
+     *
+     * <p>The canvas is asked for that last step rather than it being repeated
+     * here. Where the camera lives is the canvas's business — it is the thing
+     * that has to draw a backdrop in one space and a deck in the other — and a
+     * second copy of the conversion is how a drag ends up running at a
+     * different speed from the picture it is dragging.
      */
     @Override
     public void processInput(List<InputEventAPI> events) {
@@ -155,12 +161,12 @@ public final class ShipViewScreen implements Screen {
             controls.process(events, camera, new CameraControls.PointerSpace() {
                 @Override
                 public float x(float screenX) {
-                    return metrics.toCanvasX(viewport.documentX(screenX));
+                    return deck.toCameraX(metrics.toCanvasX(viewport.documentX(screenX)));
                 }
 
                 @Override
                 public float y(float screenY) {
-                    return metrics.toCanvasY(viewport.documentY(screenY));
+                    return deck.toCameraY(metrics.toCanvasY(viewport.documentY(screenY)));
                 }
             });
         }

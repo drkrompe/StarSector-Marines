@@ -147,15 +147,20 @@ final class StarsectorCanvasContext extends CanvasContext {
     }
 
     @Override
-    protected boolean drawHostPass(CanvasHostPass pass) {
+    public CanvasHostViewport hostViewport() {
         CanvasMetrics metrics = metrics();
         Rect content = metrics.contentBox();
-        CanvasHostViewport hostViewport = new CanvasHostViewport(
+        return new CanvasHostViewport(
                 viewport.screenXFor(content.x()),
                 viewport.screenBottomFor(content),
                 content.width() * viewport.documentScale(),
                 content.height() * viewport.documentScale(),
                 metrics.surfaceWidth(), metrics.surfaceHeight());
+    }
+
+    @Override
+    protected boolean drawHostPass(CanvasHostPass pass) {
+        CanvasHostViewport hostViewport = hostViewport();
         try {
             pass.draw(hostViewport, alphaMult());
         } finally {
