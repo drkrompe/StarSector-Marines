@@ -133,14 +133,23 @@ legibility.
   accompanies when the catalog loads. A policy named after its effect would be a
   second vocabulary in the first one's clothes, so a self-directed capability —
   which has no target to describe, only a situation it suits — names the
-  situation: crossing ground under fire, a contact sighted at standoff.
+  situation: taking fire it cannot answer, a contact sighted at standoff.
 - **Policy parameters** — the numbers one system's take on a policy is judged
-  by, authored on the catalog entry beside it. The radius that decides an
-  industrial rig's crossing is a judgement about that rig, so it belongs with
-  the rig; a constant in the code that spends it would be one author's judgement
-  about one suit imposed on every system that will ever exist. Each policy owns
-  its own parameters, so two systems declaring different policies share no
-  numbers and cannot perturb each other.
+  by, authored on the catalog entry beside it. How much incoming an industrial
+  rig thinks is worth its cooldown is a judgement about that rig, so it belongs
+  with the rig; a constant in the code that spends it would be one author's
+  judgement about one suit imposed on every system that will ever exist. Each
+  policy owns its own parameters, so two systems declaring different policies
+  share no numbers and cannot perturb each other.
+
+  The split within a policy is between fact and judgement. Whether a wearer is
+  under fire, how much, from where, whether the ground already covers that
+  bearing, whether they are under way, and whether the shooter is beyond their
+  reach are all facts the sweep computes and no catalog may override — a suit
+  does not get an opinion about whether it is being shot at. What a suit gets to
+  author is the price: how much fire justifies spending a scarce card, and how
+  much cover makes spending it pointless. That is why an occasion can be added
+  to a policy without touching a catalog, and retuning a suit never needs code.
 - **System grade** — how well a tradition builds its version, on the same
   Surplus/Service/Milspec/Masterwork ladder a weapon's manufacture already uses,
   so one word means one thing across the Armory. It is <b>description, not
@@ -526,18 +535,25 @@ a defender's use of a system is too strong or too weak, the fix is the authored
 numbers or the policy, never a second set of numbers or a branch in the sweep.
 That also means a system is not a difficulty lever — it composes with the
 weighting a roster already had, and no table should start reaching for
-system-carrying patterns to make a fight harder. Measurement bears that out: a
-defender who now carries what their pattern declares does not measurably harden
-a fight, and the reason is instructive. **A use policy names a moment, and some
-moments belong to one side.** Crossing ground under fire is an attacker's
-moment, so the breach family a defender wears is real, is offered the same
-decision the player's marines are offered, and — while that defender holds a
-line rather than crossing one — correctly declines to spend itself. What
-defenders actually gain from adoption is the capability whose moment they do
-reach. That is the intended shape rather than a gap to close: a defender who
-charged a doorway because the suit could would be spending it at an obviously
-wrong moment, which is the failure the policy exists to prevent. Whether a
-hostile pattern's
+system-carrying patterns to make a fight harder.
+
+**A defender's screen is not a narrower case of an attacker's.** An earlier
+reading of the measurements held that defender adoption changed nothing because
+the moment itself belonged to the attacker — a defender holding a line was
+simply never crossing one, and so correctly declined. That reading was wrong,
+and instructively so: the trigger it described had never fired for anybody. It
+gated on applied velocity, read from a sweep that deliberately runs ahead of the
+movement pass, so the value was always the zero the movement pass had just
+written. A full battle raised zero screens, for attackers and defenders alike,
+while the tests covering it passed by writing that velocity in by hand.
+
+The correction is a better noun rather than a repaired predicate. What a soldier
+raises a built-in screen for is **fire they cannot presently answer**, and that
+is not a posture: a defender pinned by something out of their own reach is in it
+exactly as much as a marine crossing a street. Holding a line is not a reason to
+decline; having somewhere better to put the round is. So there is still one data
+path and no defender branch, and it now carries a moment both sides genuinely
+reach. Whether a hostile pattern's
 system is readable before contact remains open: reading it at a distance makes a
 fight plannable, and discovering it when a rig comes through a door is more in
 keeping with how the rest of the equipment model treats recovery.

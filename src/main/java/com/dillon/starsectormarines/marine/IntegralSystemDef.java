@@ -152,7 +152,7 @@ public record IntegralSystemDef(
      */
     private static SpecialAiPolicy[] applicablePolicies(IntegralSystemEffect effect) {
         return switch (effect) {
-            case BREACHER_ASSIST -> new SpecialAiPolicy[] {SpecialAiPolicy.CROSSING_UNDER_FIRE};
+            case BREACHER_ASSIST -> new SpecialAiPolicy[] {SpecialAiPolicy.EXPOSED_UNDER_FIRE};
             case MISSILE_POD -> new SpecialAiPolicy[] {SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT};
             case PERCEPTION_SWEEP ->
                     new SpecialAiPolicy[] {SpecialAiPolicy.APPROACHING_DEAD_GROUND};
@@ -168,7 +168,7 @@ public record IntegralSystemDef(
         for (SpecialAiPolicy candidate : applicablePolicies(effect)) {
             if (candidate != declared) continue;
             return switch (declared) {
-                case CROSSING_UNDER_FIRE -> CrossingUnderFireSpec.parse(json, armorId, systemId);
+                case EXPOSED_UNDER_FIRE -> ExposedUnderFireSpec.parse(json, armorId, systemId);
                 case SIGHTED_STANDOFF_CONTACT -> SightedStandoffSpec.parse(json, armorId, systemId);
                 case APPROACHING_DEAD_GROUND ->
                         ApproachingDeadGroundSpec.parse(json, armorId, systemId);
@@ -188,9 +188,9 @@ public record IntegralSystemDef(
         return policy.aiPolicy();
     }
 
-    /** This system's crossing parameters, or null when it declares another policy. */
-    public CrossingUnderFireSpec crossingUnderFire() {
-        return policy instanceof CrossingUnderFireSpec spec ? spec : null;
+    /** This system's exposure/pressure judgement, or null when it declares another policy. */
+    public ExposedUnderFireSpec exposedUnderFire() {
+        return policy instanceof ExposedUnderFireSpec spec ? spec : null;
     }
 
     /** This system's standoff parameters, or null when it declares another policy. */

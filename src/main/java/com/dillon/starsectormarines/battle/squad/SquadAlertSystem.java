@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
+import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -139,6 +140,7 @@ public final class SquadAlertSystem {
         World world = roster.world();
         VisionService vision = roster.vision();
         IdentityService identity = roster.identity();
+        CombatService combat = roster.combat();
         UnitSpatialIndex unitIndex = navigation.getUnitIndex();
         long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
@@ -254,16 +256,24 @@ public final class SquadAlertSystem {
             }
         }
 
-        // Per-tick under-fire-at-LoS scan for every squad. This is the
-        // authoritative fact consumed by WorldStateBuilder and runs before the
-        // GOAP replan pass so infantry can treat incoming fire as an immediate
-        // plan interrupt rather than waiting for the two-second cadence.
+        // Per-tick under-fire-at-LoS scan. Produces two facts from one walk:
+        // the squad flag consumed by WorldStateBuilder, and the individual's own
+        // incoming-fire pressure and bearing on COMBAT. It runs before the GOAP
+        // replan pass so infantry can treat incoming fire as an immediate plan
+        // interrupt rather than waiting for the two-second cadence, and before
+        // the integral-system sweep so a suit deciding whether to raise a screen
+        // reads this tick's fire rather than last tick's.
         // Garrison squads additionally consume the same flag below for the
         // legacy timeUnderSustainedFire kill-zone diagnostic/override.
         // Shots are the sparse side of this relationship, so query the unit
         // index around each endpoint instead of testing every squadmate against
-        // every active shot. The flag itself deduplicates squads reached by
-        // multiple members or shots.
+        // every active shot. The squad flag deduplicates squads reached by
+        // multiple members or shots; the per-unit pressure deliberately does
+        // not, because two rounds is twice the fire one round is.
+        //
+        // The 2-cell gather is what makes a near miss count. A round that kills
+        // the marine beside you is fire you are under, and the individual signal
+        // says so without anyone having to aggregate it back up to the fireteam.
         if (!activeShots.isEmpty()) {
             for (ShotEvent shot : activeShots) {
                 unitIndex.gather(shot.toX, shot.toY, 2f, underFireCandidates);
@@ -271,14 +281,18 @@ public final class SquadAlertSystem {
                 int fromCellY = (int) Math.floor(shot.fromY);
                 for (int i = 0; i < underFireCandidates.size; i++) {
                     long u = underFireCandidates.ids[i];
-                    if (!roster.squad().hasSquad(u)) continue;
-                    Squad squad = roster.getSquad(roster.squad().squadId(u));
-                    if (squad == null || squad._underFireAtLosThisTick) continue;
-                    if (shot.shooterFaction == squad.faction) continue;
+                    if (shot.shooterFaction == identity.faction(u)) continue;
+                    Squad squad = roster.squad().hasSquad(u)
+                            ? roster.getSquad(roster.squad().squadId(u)) : null;
+                    boolean squadNeedsFlag = squad != null && !squad._underFireAtLosThisTick;
+                    boolean unitTakesPressure = combat.has(u);
+                    if (!squadNeedsFlag && !unitTakesPressure) continue;
                     int uCellX = world.cellX(u);
                     int uCellY = world.cellY(u);
-                    if (grid.hasLineOfSight(uCellX, uCellY, fromCellX, fromCellY)) {
-                        squad._underFireAtLosThisTick = true;
+                    if (!grid.hasLineOfSight(uCellX, uCellY, fromCellX, fromCellY)) continue;
+                    if (squadNeedsFlag) squad._underFireAtLosThisTick = true;
+                    if (unitTakesPressure) {
+                        combat.recordIncomingFire(u, fromCellX, fromCellY, simTick);
                     }
                 }
             }
