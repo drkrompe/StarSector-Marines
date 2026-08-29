@@ -116,7 +116,7 @@ public final class BarracksScreen implements Screen {
                 context.companyDeck().ship(),
                 context.companyDeck().quartersFor(viewModel.sceneMarines()))));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
-                context::shipHasRoom,
+                context::roomAboard,
                 this::close,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> { },

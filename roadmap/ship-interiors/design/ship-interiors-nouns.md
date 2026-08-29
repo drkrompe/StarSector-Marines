@@ -4,9 +4,11 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-29 - a laid-out deck outlives the panel that asked for it, so
-a hull is laid out once per game rather than once per visit; and a fleet
-comparison is a fleet of decks and is laid out off the frame: the screen opens on the list, says which hulls it is still reading,
+Updated: 2026-08-29 - getting the company ship ready happens away from the
+frame that opens the shell, and the navigation says a room is being got ready
+rather than that the hull lacks it; a laid-out deck outlives the panel that
+asked for it, so a hull is laid out once per game rather than once per visit;
+and a fleet comparison is a fleet of decks and is laid out off the frame: the screen opens on the list, says which hulls it is still reading,
 and fills each row in as its deck lands, keeping only the deck of the hull on
 the stage. Earlier: every furnished compartment now publishes work and carries
 a trade of its own, and a task point nobody can reach costs the point rather than
@@ -529,6 +531,32 @@ not do for us. With a home to measure against, the answer is what moving would
 give up; without one, it is simply what she lacks. One screen answers both, and
 a candidate is read the same way either time - as a generated deck, from the
 generator and the seed her real interior would use.
+
+**Getting the ship ready happens away from the frame.** Laying a capital's
+deck out and mustering her watch is seconds of arithmetic, and doing it on the
+frame that draws the shell is the difference between opening operations and
+waiting for operations to open. None of that work touches anything the game
+owns - it is the generator writing into its own grids and the simulation
+spawning into itself - so it is done elsewhere, and the shell opens on a page
+that is not aboard anything.
+
+Two things are pinned either side of that handover, and they are the whole of
+the rule. **Who is aboard is read before the work is handed over**, because the
+roster is campaign state and the campaign is still running; a supplier called
+from the other thread would be reading the company while it changes.
+**A renderer is built after the work comes back**, because it reads sheets the
+game loaded and those belong to the thread that loaded them. A scene is
+arithmetic and can be assembled and crewed anywhere; drawing one cannot.
+
+**A room the shell has not laid out yet is not a room the ship lacks.** Both are
+a button that does nothing, and they are opposite things to tell a player: a
+hull that cannot hold a mech bay never will, and a hull still being laid out has
+one or does not and nobody knows yet. Shown as absence, the second would tell
+somebody their own capital had no bay and they would have no reason to doubt
+it. So the shell has three answers rather than two, and a page that is somewhere
+aboard is simply not routed to until the ship is ready - guarded where routing
+happens rather than at each button, because there is more than one way into a
+room and the next one added would not know to check.
 
 **A deck outlives the panel that asked for it.** The operations panel is built
 afresh every time the player opens it, so anything a screen holds is thrown away
