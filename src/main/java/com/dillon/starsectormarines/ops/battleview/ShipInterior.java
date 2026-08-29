@@ -78,8 +78,20 @@ public record ShipInterior(CompanyShip ship, Map<RoomPurpose, Facility> faciliti
     public static ShipInterior of(CompanyShip ship, long seed) {
         if (ship == null) throw new IllegalArgumentException("a ship is required");
         if (!ship.habitable()) return new ShipInterior(ship, Map.of());
+        return of(ship, new CompanyDeck(ship, seed).rooms());
+    }
 
-        DeckGraph deck = new CompanyDeck(ship, seed).rooms();
+    /**
+     * Read what is aboard a deck that has already been laid out.
+     *
+     * <p>The comparison and the plan view ask two questions of one ship, and
+     * laying her deck out is far and away the most expensive thing either of
+     * them does. A hull the player is looking at is generated once and asked
+     * twice.
+     */
+    public static ShipInterior of(CompanyShip ship, DeckGraph deck) {
+        if (ship == null) throw new IllegalArgumentException("a ship is required");
+        if (deck == null) throw new IllegalArgumentException("a deck is required");
 
         // What is aboard comes from the deck, and what it holds from the
         // program. A deck carries more rooms than the program owed: the packer

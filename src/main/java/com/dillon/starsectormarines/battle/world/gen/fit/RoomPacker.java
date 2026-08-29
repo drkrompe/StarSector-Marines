@@ -223,12 +223,15 @@ public final class RoomPacker {
     private final Massing massing;
     private final int width;
     private final int height;
-    private int[][] claimedSum;
+    private int[] claimedSum;
     /**
      * Walkable floor, summed the same way, so a solid room's whole bulkhead
      * ring can be judged without walking it. @see #ringContact
      */
-    private int[][] floorSum;
+    private int[] floorSum;
+    /** Row stride of the summed tables, which are one larger than the padded masks. */
+    private final int sumStride;
+    private final int sumColumns;
 
     /**
      * @param buildable cells rooms may occupy; everything else is outside
@@ -255,6 +258,8 @@ public final class RoomPacker {
         this.structure = new boolean[ctx.width + 2][ctx.height + 2];
         this.width = ctx.width;
         this.height = ctx.height;
+        this.sumStride = ctx.height + 3;
+        this.sumColumns = ctx.width + 3;
         this.outside = new boolean[width + 2][height + 2];
         this.room = new boolean[width + 2][height + 2];
         this.claimed = new boolean[width + 2][height + 2];
@@ -658,16 +663,17 @@ public final class RoomPacker {
      * never floor — which is exactly how the walked form treats a ring cell
      * lying off the deck.
      *
+     * <p>Asked only of a position whose own box holds nothing claimed, which
+     * is what the bounding-box test already established for a footprint with
+     * no holes. So the box contributes nothing to either count — floor is
+     * always claimed — and the ring is the outer rectangle alone.
+     *
      * @return how much of the ring backs onto something solid, or -1 where it
      *     crosses walkable floor and the placement is illegal
      */
     private int ringContact(int x, int y, int w, int h) {
-        if (sum(floorSum, x - 1, y - 1, w + 2, h + 2)
-                - sum(floorSum, x, y, w, h) > 0) {
-            return -1;
-        }
-        return sum(claimedSum, x - 1, y - 1, w + 2, h + 2)
-                - sum(claimedSum, x, y, w, h);
+        if (sum(floorSum, x - 1, y - 1, w + 2, h + 2) > 0) return -1;
+        return sum(claimedSum, x - 1, y - 1, w + 2, h + 2);
     }
 
     /** Whether every cell of the shape lands on unclaimed deck. */
@@ -1238,30 +1244,42 @@ public final class RoomPacker {
     }
 
     private void rebuildSums() {
-        claimedSum = prefix(claimed);
-        floorSum = prefix(floor);
+        claimedSum = prefix(claimed, claimedSum);
+        floorSum = prefix(floor, floorSum);
     }
 
-    /** Summed-area table over the padded mask, so the bounding-box reject is four lookups. */
-    private static int[][] prefix(boolean[][] mask) {
+    /**
+     * Summed-area table over the padded mask, so the bounding-box reject is
+     * four lookups.
+     *
+     * <p>Flat rather than a table of rows. The scan reads these tables a dozen
+     * times for every position of every pose of every room, which on a large
+     * deck is tens of millions of reads through a pointer to a row that is
+     * rarely the one read last.
+     */
+    private int[] prefix(boolean[][] mask, int[] into) {
         int w = mask.length;
         int h = mask[0].length;
-        int[][] sums = new int[w + 1][h + 1];
+        int[] sums = into != null ? into : new int[(w + 1) * (h + 1)];
         for (int x = 0; x < w; x++) {
+            int row = (x + 1) * sumStride;
+            int previous = x * sumStride;
             for (int y = 0; y < h; y++) {
-                sums[x + 1][y + 1] = (mask[x][y] ? 1 : 0)
-                        + sums[x][y + 1] + sums[x + 1][y] - sums[x][y];
+                sums[row + y + 1] = (mask[x][y] ? 1 : 0)
+                        + sums[previous + y + 1] + sums[row + y] - sums[previous + y];
             }
         }
         return sums;
     }
 
     /** Count of set cells in the unpadded rect {@code (x, y, w, h)}, clipped to the padded mask. */
-    private static int sum(int[][] sums, int x, int y, int w, int h) {
-        int x0 = Math.max(0, Math.min(sums.length - 1, x + 1));
-        int y0 = Math.max(0, Math.min(sums[0].length - 1, y + 1));
-        int x1 = Math.max(x0, Math.min(sums.length - 1, x + 1 + w));
-        int y1 = Math.max(y0, Math.min(sums[0].length - 1, y + 1 + h));
-        return sums[x1][y1] - sums[x0][y1] - sums[x1][y0] + sums[x0][y0];
+    private int sum(int[] sums, int x, int y, int w, int h) {
+        int x0 = Math.max(0, Math.min(sumColumns - 1, x + 1));
+        int y0 = Math.max(0, Math.min(sumStride - 1, y + 1));
+        int x1 = Math.max(x0, Math.min(sumColumns - 1, x + 1 + w));
+        int y1 = Math.max(y0, Math.min(sumStride - 1, y + 1 + h));
+        int low = x0 * sumStride;
+        int high = x1 * sumStride;
+        return sums[high + y1] - sums[low + y1] - sums[high + y0] + sums[low + y0];
     }
 }
