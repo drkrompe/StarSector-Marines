@@ -91,7 +91,12 @@ public final class AirbasePadSeedStage implements GenStage {
             if (!holdsALot(leaf)) continue;
             if (best == null || leaf.area() > best.area()) best = leaf;
         }
-        if (best != null) best.kind = BlockKind.AIRBASE_PAD;
+        if (best == null) return;
+        // Seeded as a claim, not as a block. The claim stage grows it across
+        // its neighbours and demotes it back to a single-block pad when it
+        // cannot, so asking for the larger one costs nothing: the failure mode
+        // is the smaller base rather than no base.
+        best.kind = BlockKind.AIRBASE_COMPOUND;
     }
 
 }
