@@ -4,7 +4,10 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — an emplacement is never a shot of opportunity: a
+Updated: 2026-08-29 — added the attack move and its cooperating group: an
+order whose destination survives contact, and squads under one that split into
+a squad fixing and a squad maneuvering rather than each forming its own line.
+Also that day — an emplacement is never a shot of opportunity: a
 move-only role still commits anti-hardened direct fire while the rest of the
 special-equipment path stays behind its gate.
 Earlier: belief now expires two ways: decay for a hostile
@@ -684,6 +687,54 @@ the suppression used to silence. The exemption is narrow and is about the
 equipment rather than the moment: tools that spend a squad resource or freeze
 their carrier to place something — satchel, frag, deployables, close-contact —
 stay behind the gate.
+
+### The attack move and its cooperating group
+
+An **attack move** is an order to reach a place and destroy what is met on the
+way. It is distinguished from a staging order by what it does with contact: a
+staging order's job is to reach a line and stop, so it hands a squad in contact
+to ordinary engagement and is finished; an attack move's destination has to
+survive the fight, because the engagement goals carry no memory of it. A squad
+that gives up its objective on the first remembered hostile fights, wins, and
+then stands where it stopped.
+
+So an attack move keeps its MISSION relevance through contact and owns the
+fighting itself, on the same bounded-advance law an assigned room crossing
+uses: commit when the route threat earns it, fight from firing positions
+leashed to the route, resume when the threat releases. Morale remains the
+escape — a squad with no composed team left releases the order like any other
+mission goal.
+
+**Squads under one attack move are a maneuver group, the way fire teams inside
+a squad are.** Left to themselves, several squads converging on one position
+each reach the same correct-in-isolation conclusion — form a line and shoot —
+and the result is three frontal lines and nobody moving. The remedy is the
+pattern a squad already runs internally, one level up: one squad holds the
+enemy's attention while another moves. A squad is to its cooperating group what
+a fire team is to its squad, and the vocabulary is deliberately shared so the
+two read alike.
+
+The group is formed by **shared believed contact**, never by proximity. Two
+squads standing near each other looking at different enemies are not
+cooperating and must not be told they are; two squads further apart that have
+both identified the same hostile are. Belief is what keeps it honest, since a
+squad that has never seen the enemy can contribute nothing to a group formed
+around it.
+
+Within a group, the squad with the best firing line **fixes** and the others
+**maneuver** onto a bearing off the fixing squad's axis, on the side they
+already stand — crossing that axis would walk a squad through friendly fire.
+Two refusals matter as much as the assignment. When nobody in the group can yet
+shoot the shared contact, no role is issued at all: sending a squad around the
+flank of an enemy no one is holding is worse than both of them closing. And
+when the ground will not support a flank, the maneuvering squad advances on its
+own objective rather than standing still.
+
+A role chooses the manner of an order, never its destination, and carries no
+authority: command still owns where a squad is going and local doctrine still
+owns whether it advances, holds, or breaks. Role selection is deterministic to
+the tie-break, because the commander evidence harness replays each fixture
+twice and compares byte for byte.
 
 Fireteams are the infantry maneuver unit. They can receive distinct roles in a
 shared squad step: a recoverable ambush can displace the exposed team while a

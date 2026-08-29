@@ -81,6 +81,16 @@ public record ObjectiveAssignment(
                 UNSCOPED, null, UNSCOPED, cellX, cellY);
     }
 
+    /**
+     * Advance to a cell and destroy what is met on the way. Carries an
+     * own-force destination only — the enemy the squad fights is the one it
+     * finds, never one the commander named.
+     */
+    public static ObjectiveAssignment attackMove(int squadId, int cellX, int cellY) {
+        return new ObjectiveAssignment(squadId, AssignmentKind.ATTACK_MOVE,
+                UNSCOPED, null, UNSCOPED, cellX, cellY);
+    }
+
     /** Convenience: zone-scoped compound capture — push, clear, hold until captured. */
     public static ObjectiveAssignment secureCompound(int squadId, int zoneId, TacticalNode compoundNode) {
         return new ObjectiveAssignment(squadId, AssignmentKind.SECURE_COMPOUND,
