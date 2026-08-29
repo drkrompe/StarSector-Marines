@@ -47,6 +47,7 @@
           <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
           <div id="{tile.compositionId}" class="doctrine-composition label">SECTION  ·  {tile.composition}</div>
           <div id="{tile.distributionId}" class="doctrine-distribution label">ISSUED  ·  {tile.distribution}</div>
+          <div id="{tile.carriesId}" class="doctrine-carries label">CARRIES  ·  {tile.carries}</div>
         </button>
       </div>
     </div>
@@ -80,7 +81,7 @@
   #armor-doctrine-summary { width: 0px; flex-grow: 1; height: 20px; padding: 2px 5px; }
   #compare-armor-patterns { width: 130px; height: 20px; padding: 2px 4px; border-width: 1px; font-family: body; text-align: center; }
   .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
-  .doctrine-tile { flex-direction: column; width: 476px; height: 186px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #0e1621; }
+  .doctrine-tile { flex-direction: column; width: 476px; height: 206px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #0e1621; }
   .doctrine-tile.rarity-common { border-color: #607188; }
   .doctrine-tile.rarity-uncommon { border-color: #53c6e8; background-color: #10202c; }
   .doctrine-tile.rarity-rare { border-color: #dfb84d; background-color: #211d13; }
@@ -96,6 +97,7 @@
   .doctrine-lore { height: 64px; white-space: normal; }
   .doctrine-composition { height: 18px; color: #7fb2d8; }
   .doctrine-distribution { height: 34px; color: #d8bd67; white-space: normal; }
+  .doctrine-carries { height: 18px; color: #8fd6a6; }
   #squad-equip-row { flex-direction: row; height: 30px; gap: 7px; }
   .transaction-result { width: 0px; flex-grow: 1; padding: 4px 7px; border-width: 1px; overflow: hidden; }
   .apply-button { padding: 4px 9px; border-width: 1px; font-family: body; text-align: center; }
