@@ -2,11 +2,14 @@
 
 Status: ACTIVE — 12 open stories
 Written: 2026-08-23
-Updated: 2026-08-28 — the Janus sensor sweep and the running-system battle
-treatment both shipped and folded into `progression-nouns.md`; only the
-line-suit brace remains of the individual integral systems.
+Updated: 2026-08-29 — added `role-and-access.md`: the armour catalog is a
+role/tier diagonal rather than a matrix, which is why a fully equipped company
+fields only assault suits and every marine ends up with the same capability.
 
-Read `progression-nouns.md` before changing a progression story.
+Read `progression-nouns.md` before changing a progression story, and
+`role-and-access.md` before changing anything about which patterns exist or how
+a squad is composed — the catalog's role/tier shape is a live direction question
+rather than settled.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
