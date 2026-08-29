@@ -152,11 +152,19 @@ class ShipRoomAvailabilityTest {
     /**
      * A ship still being laid out is not a ship without rooms.
      *
-     * <p>Both are a button that does nothing, and they are not the same thing
-     * to be told: a hull that cannot hold a bay never will, and this is a wait
-     * of a second or two while a capital's deck is packed. Shown as absence it
-     * would tell the player their own ship had no mech bay, and they would have
-     * no reason to doubt it.
+     * <p>Both would be a dead button, and they are opposite things to be told:
+     * a hull that cannot hold a bay never will, and this is a wait of a second
+     * or two while a capital's deck is packed. Shown as absence it would tell
+     * the player their own ship had no mech bay, and they would have no reason
+     * to doubt it.
+     *
+     * <p><b>So the waiting page keeps its route while the absent one loses
+     * it.</b> These properties are read once, when the page is built, and a
+     * ship gets ready some seconds later — an action dropped here would stay
+     * dropped on the page the player is looking at, long after the room was
+     * available. Routing is what refuses the trip meanwhile, and it stops
+     * refusing on its own; a room the hull does not have is refused here,
+     * because that never changes.
      */
     @Test
     void aShipStillBeingLaidOutIsNotAShipWithoutRooms() {
@@ -175,8 +183,32 @@ class ShipRoomAvailabilityTest {
         ((Runnable) props.get("armoryAction")).run();
         ((Runnable) props.get("mechLabAction")).run();
         for (boolean went : opened) {
-            assertFalse(went, "a room was entered before the ship had been laid out");
+            assertTrue(went, "a room that is merely being laid out lost its route "
+                    + "and would never get it back");
         }
+    }
+
+    /**
+     * The way to the whole ship is the one route on headquarters that is not a
+     * navigation button, so it carries the same three states itself.
+     */
+    @Test
+    void theWayAboardSaysWhenSheIsBeingGotReady() {
+        Map<String, Object> waiting = new LinkedHashMap<>();
+        CompanyHqViewModel.putShipView(waiting, true);
+        Map<String, Object> ready = new LinkedHashMap<>();
+        CompanyHqViewModel.putShipView(ready, false);
+
+        assertEquals("GETTING HER READY", waiting.get("shipViewLabel"));
+        assertTrue(((String) waiting.get("shipViewClasses")).contains("hq-ship-waiting"));
+        assertTrue(((String) waiting.get("shipViewLabelClasses"))
+                        .contains("hq-ship-waiting-label"),
+                "the wording dimmed with the tile but the text it is written in did not");
+
+        assertEquals("WALK THE SHIP", ready.get("shipViewLabel"));
+        assertFalse(((String) ready.get("shipViewClasses")).contains("waiting"),
+                "a ship that is ready was still shown as being got ready");
+        assertFalse(((String) ready.get("shipViewLabelClasses")).contains("waiting"));
     }
 
     /** What the shell asks of a ship whose deck is in hand. */
