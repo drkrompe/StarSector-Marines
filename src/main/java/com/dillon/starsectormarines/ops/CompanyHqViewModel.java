@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /** Display-ready, read-only projection for the retained Company HQ dashboard. */
 final class CompanyHqViewModel {
@@ -49,7 +48,7 @@ final class CompanyHqViewModel {
     }
 
     static CompanyHqViewModel current(
-            Predicate<RoomPurpose> aboard,
+            Function<RoomPurpose, MarineOpsPageNav.Aboard> aboard,
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
@@ -73,7 +72,7 @@ final class CompanyHqViewModel {
             List<CompanyClocks.Entry> clocks,
             List<CompanyNews.Entry> news,
             int day,
-            Predicate<RoomPurpose> aboard,
+            Function<RoomPurpose, MarineOpsPageNav.Aboard> aboard,
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,

@@ -106,7 +106,11 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     private static final float MAX_CATCH_UP_SECONDS = 30f;
 
-    private final BattleRenderer renderer;
+    /**
+     * Built where the game's assets are, which is not necessarily where the
+     * scene was. @see #attachRenderer
+     */
+    private BattleRenderer renderer;
     private final BattleSimulation simulation;
     private final List<Gantry> gantries;
     private final List<FixtureTask> fixtureTasks;
@@ -184,12 +188,22 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         // and turns this back on.
         simulation.setMissionCompletionEnabled(false);
         simulation.getFogOfWar().tick(0, simulation.getRoster());
-        if (sprites == null) {
-            renderer = null;
-        } else {
-            renderer = new BattleRenderer(sprites);
-            renderer.buildTileBatches();
-        }
+        if (sprites != null) attachRenderer(sprites);
+    }
+
+    /**
+     * Give this scene the means to draw itself.
+     *
+     * <p>Separable from building the scene because the two have different
+     * homes. A scene is arithmetic and can be assembled and crewed anywhere; a
+     * renderer reads sheets the game loaded and belongs on the thread that owns
+     * them. Splitting them is what lets a capital's ship be got ready without
+     * the frame waiting for her.
+     */
+    public void attachRenderer(BattleSprites sprites) {
+        if (sprites == null || renderer != null) return;
+        renderer = new BattleRenderer(sprites);
+        renderer.buildTileBatches();
     }
 
     public BattleSimulation simulation() {
