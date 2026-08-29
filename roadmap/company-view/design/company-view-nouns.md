@@ -4,9 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — replaced the scale-bound battle squad roster with one
-task-force status plate and made squad detail plus GOAP diagnostics explicitly
-selection-scoped.
+Updated: 2026-08-29 — replaced scale-bound battle lists with the fixed
+task-force plate and MLX command rail; squad detail plus GOAP diagnostics are
+explicitly selection-scoped.
 
 ## Purpose
 
@@ -416,6 +416,16 @@ pretending defenders belong to the player's company.
 
 These surfaces remain read-only. Selection does not write an assignment,
 objective, waypoint, or any other mission-command input.
+
+Player-facing battle chrome uses the retained MLX path. One compact top-right
+command rail owns pause / 1x / 2x / 4x time selection and, only on maps with
+capturable compounds, the capture ledger. The ledger reports secured out of
+total, keeps one stable abbreviated chip per compound, groups the secured /
+contested / hostile counts, and spends a progress bar only on the most advanced
+contested site. World-anchored compound markers remain the primary spatial
+read. There is no full-height objective roster, and maps without compounds pay
+only for the time-control row. Java projects live state and actions into the
+retained model; MLX owns the hierarchy and presentation.
 
 ## Battle maneuver doctrine
 

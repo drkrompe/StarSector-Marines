@@ -4,8 +4,8 @@ import com.fs.starfarer.api.ui.PositionAPI;
 
 /**
  * Pure-data layout for the battle screen. Fits the {@code gridCellsW × gridCellsH}
- * cell grid into the dialog rect, centered, with a top control strip (speed
- * buttons) and a bottom-left Back button. {@link #cellSize} is the pixel size
+ * cell grid into the dialog rect, centered, with a top control strip (the
+ * retained battle command rail) and a bottom-left Back button. {@link #cellSize} is the pixel size
  * of one cell — same for X and Y so cells stay square regardless of dialog
  * aspect ratio.
  */
@@ -24,7 +24,7 @@ public final class BattleLayout {
     public final float gridH;
     public final float cellSize;
 
-    /** Top control strip (speed buttons sit here). */
+    /** Top control strip (the MLX time control sits here). */
     public final float controlsX;
     public final float controlsY;
     public final float controlsW;

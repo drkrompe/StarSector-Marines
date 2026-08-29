@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
@@ -123,6 +125,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> MECH_LAB_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/mech-lab/mech-lab.mlx");
+    private static final List<String> BATTLE_HUD_COMPONENTS =
+            List.of(BattleHudOverlay.COMPONENT_PATH);
 
     @Override
     public String id() {
@@ -234,7 +238,59 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true)),
                 new SnapshotArtifact("battle-hud-task-force-wide.png",
                         renderBattleHudTaskForce(
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-command-overlay-wide.png",
+                        renderBattleHudCommandOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)));
+    }
+
+    /** Full-screen evidence for the production MLX command rail over battle contrast. */
+    private static BufferedImage renderBattleHudCommandOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        BufferedImage image = renderBattleHudTaskForce(width, height);
+        Reactor reactor = new Reactor();
+        BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
+                ignored -> { }, "Pause", "1x", "2x", "4x");
+        model.updateProjected(2f, List.of(
+                capture(TacticalNode.Kind.COMMAND_POST,
+                        CompoundService.CompoundState.MARINE_HELD, 0f),
+                capture(TacticalNode.Kind.BARRACKS,
+                        CompoundService.CompoundState.CONTESTED, 0.62f),
+                capture(TacticalNode.Kind.ARMORY,
+                        CompoundService.CompoundState.DEFENDER_HELD, 0f),
+                capture(TacticalNode.Kind.BARRACKS,
+                        CompoundService.CompoundState.MARINE_HELD, 0f),
+                capture(TacticalNode.Kind.ARMORY,
+                        CompoundService.CompoundState.DEFENDER_HELD, 0f),
+                capture(TacticalNode.Kind.BARRACKS,
+                        CompoundService.CompoundState.DEFENDER_HELD, 0f),
+                capture(TacticalNode.Kind.ARMORY,
+                        CompoundService.CompoundState.MARINE_HELD, 0f)));
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattleHudOverlay.COMPONENT, model.props())) {
+            BattleHudOverlay.wireLayout(instance);
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            BufferedImage overlay = renderer.render(document,
+                    Math.round(BattleHudOverlay.DOCUMENT_WIDTH),
+                    Math.round(BattleHudOverlay.OBJECTIVE_HEIGHT));
+            Graphics2D graphics = image.createGraphics();
+            graphics.drawImage(overlay,
+                    width - 12 - overlay.getWidth(), 12, null);
+            graphics.dispose();
+            return image;
+        }
+    }
+
+    private static BattleHudOverlayModel.CaptureObjective capture(
+            TacticalNode.Kind kind, CompoundService.CompoundState state,
+            float progress) {
+        return new BattleHudOverlayModel.CaptureObjective(kind, state, progress);
     }
 
     /**
