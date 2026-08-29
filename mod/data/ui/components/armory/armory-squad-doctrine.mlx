@@ -3,7 +3,7 @@
     <div id="equipment-picker-tabs">
       <div id="equipment-picker-heading" class="label heading tone-edge">LOADOUTS</div>
       <button id="show-weapon-picker" class="{weaponPickerTabClasses}" onclick="{showWeaponPicker}">Weapon Loadouts</button>
-      <button id="show-armor-picker" class="{armorPickerTabClasses}" onclick="{showArmorPicker}">Armor Loadouts</button>
+      <button id="show-armor-picker" class="{armorPickerTabClasses}" onclick="{showArmorPicker}">Tactic Sheets</button>
     </div>
 
     <div id="loadout-browser-tools">
@@ -45,7 +45,8 @@
             <div id="{tile.metadataId}" class="doctrine-metadata label tone-accent">{tile.metadata}</div>
           </div>
           <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
-          <div id="{tile.distributionId}" class="doctrine-distribution label">{tile.distribution}</div>
+          <div id="{tile.compositionId}" class="doctrine-composition label">SECTION  ·  {tile.composition}</div>
+          <div id="{tile.distributionId}" class="doctrine-distribution label">ISSUED  ·  {tile.distribution}</div>
         </button>
       </div>
     </div>
@@ -79,7 +80,7 @@
   #armor-doctrine-summary { width: 0px; flex-grow: 1; height: 20px; padding: 2px 5px; }
   #compare-armor-patterns { width: 130px; height: 20px; padding: 2px 4px; border-width: 1px; font-family: body; text-align: center; }
   .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
-  .doctrine-tile { flex-direction: column; width: 476px; height: 150px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #0e1621; }
+  .doctrine-tile { flex-direction: column; width: 476px; height: 186px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #0e1621; }
   .doctrine-tile.rarity-common { border-color: #607188; }
   .doctrine-tile.rarity-uncommon { border-color: #53c6e8; background-color: #10202c; }
   .doctrine-tile.rarity-rare { border-color: #dfb84d; background-color: #211d13; }
@@ -92,8 +93,9 @@
   .doctrine-rarity.rarity-uncommon { color: #70d9f4; border-color: #53c6e8; }
   .doctrine-rarity.rarity-rare { color: #f2cf68; border-color: #dfb84d; }
   .doctrine-rarity.rarity-exotic { color: #dda8ff; border-color: #c77dff; }
-  .doctrine-lore { height: 82px; white-space: normal; }
-  .doctrine-distribution { height: 18px; color: #d8bd67; }
+  .doctrine-lore { height: 64px; white-space: normal; }
+  .doctrine-composition { height: 18px; color: #7fb2d8; }
+  .doctrine-distribution { height: 34px; color: #d8bd67; white-space: normal; }
   #squad-equip-row { flex-direction: row; height: 30px; gap: 7px; }
   .transaction-result { width: 0px; flex-grow: 1; padding: 4px 7px; border-width: 1px; overflow: hidden; }
   .apply-button { padding: 4px 9px; border-width: 1px; font-family: body; text-align: center; }

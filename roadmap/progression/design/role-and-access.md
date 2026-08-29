@@ -2,12 +2,13 @@
 
 Status: ACTIVE — direction for how equipment is organised and how a squad is
 put together. Shipped: the role vocabulary, the filled matrix, provenance as
-data, and doctrine as a role mix resolved against access.
+data, doctrine as a role mix resolved against access, and the Armory surface
+that makes the split visible.
 
 Written: 2026-08-29
-Updated: 2026-08-29 — role, tradition and the filled matrix all landed, and
-`SquadArmorPlan` replaced the pattern-naming doctrine: a plan names a role mix
-and a tradition, and `ArmorIssueResolver` issues it from available stock.
+Updated: 2026-08-29 — role, tradition, the filled matrix and `SquadArmorPlan`
+all landed, and the Armory now sells a plan as a **tactic sheet**: the section
+it organises above what this company's stock puts in those billets.
 
 Read `progression-nouns.md` for the standing rules equipment must obey,
 `integral-system-slate.md` for which traditions build a suit capability and
@@ -217,6 +218,38 @@ Deliberately *not* filled: a tier-I version of everything. `integral-system-slat
 "do not give a faction a system so it has one" applies to cells too — a cell
 exists because somebody would build that thing, not to make the table
 rectangular.
+
+## What the player is buying
+
+A plan is presented as a **tactic sheet**: the player assigns one to a squad, and
+it equips the whole squad at once. That framing is the model made sayable — a
+sheet is a way of organising twelve marines, and it is bought once and kept,
+while the kit inside it improves as the company does.
+
+Each sheet in the Armory therefore shows two lines that must never be confused:
+
+- **SECTION** — the role mix. One scout, seven line, two assault, two support.
+  This is what the player is choosing between, and it does not move.
+- **ISSUED** — what this company's own stock currently puts in those billets.
+  This is what improves, and it is the only thing that changes when the company
+  grows richer.
+
+The header carries the tradition and the band the sheet would *field today*
+rather than an authored tier, because a sheet has no tier of its own. Two
+companies looking at the same sheet see the same SECTION line and different
+ISSUED lines, which is the whole model in two rows of text.
+
+**A role the company owns nothing for is marked on the SECTION line**, because
+the resolver's fallback is otherwise invisible and misleading. A sheet asking
+for five recon billets, read by a company with no recon kit, issues twelve line
+suits and says nothing about it — the player sees a section they did not choose
+and no reason for it. Naming the gap where the choice is made turns an
+unfillable sheet into the thing it should be: a reason to go and buy a scout
+suit.
+
+A hand-authored custom doctrine still names patterns outright and says so where
+its composition would go: it is a fixed loadout rather than a sheet, and the two
+should not look alike.
 
 ## What this does not change
 
