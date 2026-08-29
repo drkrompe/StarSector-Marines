@@ -216,12 +216,16 @@ most of what the surface looks like, with the ring art only where it meets a
 wall. Anything showing a block to be chosen between has to show the fill too,
 or a paved yard reads as an earthwork.
 
-One block may serve two purposes at once. `road.courtyard` is the courtyard
-ground surface and, through the same mask, the outward-bowed heavy cover that
-rings a turret emplacement. That is legitimate — the art is a revetment either
-way — but it means editing such a block changes a ground surface and a piece of
-defensive cover together, so the dual use is recorded on the block's own cells
-where anyone re-cutting them will read it.
+**A block serves one purpose.** Two things that are drawn alike are still two
+things, and one block used for both cannot be redrawn for either. `road.courtyard`
+was the courtyard ground surface *and*, through the same neighbour mask, the
+outward-bowed heavy cover ringing a turret emplacement — so redrawing a
+courtyard as flatter paving would have changed what a turret hides behind, and
+nothing would have said so. It is `road.courtyard` and `road.revetment` now.
+They share their art, which costs nine cells of atlas and is the whole point:
+identical today, free to differ tomorrow. Sharing art is cheap and sharing
+identity is not, so where two uses are found on one block, split the block
+rather than annotate the collision.
 
 Choosing between candidates is done by looking at them. A block id says which
 sheet a thing came from and nothing about what it is: two walls are a masonry
