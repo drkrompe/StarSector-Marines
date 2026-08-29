@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -51,7 +52,34 @@ public final class FortressAirfield {
      * plus ends came to thirty-two cells across, which the yard a packed ward
      * leaves over could not offer on any seed.
      */
-    private static final int PADS = 3;
+    private static final int PADS = 2;
+
+    /**
+     * The shed at one end of the line, and the third berth.
+     *
+     * <p>An airfield that is only paint and parked trucks reads as a car park
+     * with markings. What makes it a facility is a building — somewhere the
+     * aircraft are worked on, with a roof and a door and people inside it — and
+     * a fence saying where it starts.
+     *
+     * <p>Seven cells wide across the apron's full depth, which walls down to a
+     * five-by-six interior: exactly a berth, plus the row in front of it that
+     * the opening lets onto. It is paid for out of the row of stands rather
+     * than added to the envelope, because the ward has no deeper hole to give.
+     * Measured across eight seeds, unclaimed yard is plentiful at this apron's
+     * eight-cell depth — eleven to forty-six cells wide — and all but vanishes
+     * at ten, where most seeds offer a single column. An airfield that needed
+     * two more rows would simply stop existing.
+     *
+     * <p>So the count of aircraft is unchanged and their exposure is not: two
+     * stand in the open where anything with a sight line can burn them, and the
+     * third is behind a wall that has to be entered or breached first.
+     */
+    private static final int HANGAR_WIDTH = 7;
+
+    /** Cells of the hangar's frontage that stand open. Aircraft-sized, not a door. */
+    private static final int HANGAR_OPENING = 3;
+
     /** The strip behind the hardstands that crews and vehicles move along. */
     private static final int TAXIWAY = 3;
 
@@ -66,7 +94,7 @@ public final class FortressAirfield {
 
     /** Cells across the apron, and the depth it needs behind them. */
     private static final int APRON_WIDTH =
-            PADS * PAD + (PADS - 1) * PAD_GAP + 2 * END_BAY;
+            HANGAR_WIDTH + PADS * PAD + (PADS - 1) * PAD_GAP + 2 * END_BAY;
     private static final int APRON_DEPTH = PAD + TAXIWAY;
 
     /** What the yard pass leaves behind, and therefore what counts as spare. */
@@ -186,9 +214,15 @@ public final class FortressAirfield {
         }
 
         boolean alongY = axis == TraversalAxis.SOUTH_TO_NORTH;
+
+        // The shed takes the far end of the line, so the open stands sit
+        // between it and the approach: an attacker crossing the apron meets the
+        // aircraft it can shoot before the one it has to come inside for.
+        int[] sheltered = stampHangar(ctx, alongY);
+
         int[][] pads = new int[PADS][2];
         for (int i = 0; i < PADS; i++) {
-            int offset = END_BAY + i * (PAD + PAD_GAP) + PAD / 2;
+            int offset = END_BAY + HANGAR_WIDTH + i * (PAD + PAD_GAP) + PAD / 2;
             // Hardstands sit at the rear of the apron; the taxiway is the strip
             // in front of them, which is the side the aircraft leave over.
             pads[i][0] = alongY ? left + offset : right - PAD / 2;
@@ -196,14 +230,159 @@ public final class FortressAirfield {
             markHardstand(ctx, pads[i][0], pads[i][1]);
             ctx.landingPads.add(LandingPad.garrison(pads[i][0], pads[i][1], approach));
         }
+        ctx.landingPads.add(LandingPad.garrison(sheltered[0], sheltered[1], approach));
 
         dress(ctx, pads, alongY);
+        fence(ctx, alongY);
 
         int centreX = (left + right) / 2;
         int centreY = (bottom + top) / 2;
         ctx.tactical.add(new TacticalNode(TacticalNode.Kind.AIRBASE,
                 centreX, centreY, left, bottom, right, top,
                 Faction.DEFENDER, 65, 3, false));
+    }
+
+    /**
+     * Wall the shed at the far end of the apron and berth an aircraft inside it.
+     *
+     * <p>A ring of wall round the hangar's footprint, and a wide gap in the
+     * face that looks onto the taxiway. The gap is an opening rather than a
+     * door: three cells, because what goes through it is an aircraft, and a
+     * hangar with a marine-width doorway is a garage. Its cells are ordinary
+     * floor with their edges opened, not doorway-flagged — a doorway is a
+     * one-cell routing node, and three of them side by side would carve the
+     * mouth of the shed into three separate rooms.
+     *
+     * <p>The wall is what the berth inside is worth. Two aircraft on the open
+     * stands can be shot by anything with a sight line across the apron; this
+     * one cannot be touched until somebody is inside the building or has put a
+     * hole in it. Same field, same aircraft count, two different problems.
+     *
+     * @return the centre cell of the sheltered berth
+     */
+    private int[] stampHangar(GenContext ctx, boolean alongY) {
+        // Set back off the front edge by the same row the stands leave for the
+        // taxiway. A shed pushed flush to the edge of the paving has its mouth
+        // opening onto whatever is outside the field, and the crew can only
+        // reach it by leaving the airfield and coming back in.
+        int hLeft = alongY ? left + END_BAY : left + 1;
+        int hBottom = alongY ? bottom + 1 : bottom + END_BAY;
+        int hRight = alongY ? hLeft + HANGAR_WIDTH - 1 : right;
+        int hTop = alongY ? top : hBottom + HANGAR_WIDTH - 1;
+
+        for (int x = hLeft; x <= hRight; x++) {
+            for (int y = hBottom; y <= hTop; y++) {
+                boolean ring = x == hLeft || x == hRight || y == hBottom || y == hTop;
+                if (!ring) continue;
+                if (onHangarOpening(x, y, hLeft, hBottom, hRight, hTop, alongY)) {
+                    ctx.grid.setWalkableFloor(x, y);
+                    ctx.grid.openAllEdges(x, y);
+                    ctx.topology.setGroundKind(x, y, HARDSTAND);
+                    continue;
+                }
+                ctx.grid.setWalkable(x, y, false);
+                int mask = 0;
+                if (y + 1 > hTop) mask |= CellTopology.WALL_DIR_N;
+                if (y - 1 < hBottom) mask |= CellTopology.WALL_DIR_S;
+                if (x + 1 > hRight) mask |= CellTopology.WALL_DIR_E;
+                if (x - 1 < hLeft) mask |= CellTopology.WALL_DIR_W;
+                ctx.topology.setWall(x, y, true);
+                ctx.topology.orWallDirMask(x, y, mask);
+                ctx.topology.setGroundKind(x, y, APRON);
+            }
+        }
+
+        // The berth fills the interior, pushed to the back so the row inside
+        // the opening stays clear to walk in through.
+        int centreX = alongY ? (hLeft + hRight) / 2 : (hLeft + hRight + 1) / 2;
+        int centreY = alongY ? (hBottom + hTop) / 2 : (hBottom + hTop) / 2;
+        markHardstand(ctx, centreX, centreY);
+        return new int[]{ centreX, centreY };
+    }
+
+    /** Whether this ring cell is part of the hangar's open frontage. */
+    private boolean onHangarOpening(int x, int y, int hLeft, int hBottom,
+                                    int hRight, int hTop, boolean alongY) {
+        if (alongY) {
+            if (y != hBottom) return false;
+            int centre = (hLeft + hRight) / 2;
+            return Math.abs(x - centre) <= HANGAR_OPENING / 2;
+        }
+        if (x != hLeft) return false;
+        int centre = (hBottom + hTop) / 2;
+        return Math.abs(y - centre) <= HANGAR_OPENING / 2;
+    }
+
+    /**
+     * Run a fence round the field, with a gate front and back.
+     *
+     * <p>Outside the apron rather than on it: the apron's own cells are all
+     * spoken for by stands and taxiway, and a ring taken out of them would cost
+     * the depth the stands need. The ring therefore takes only cells that are
+     * still unclaimed yard and skips the rest, which is also how a real
+     * compound fence behaves — it runs until it meets the side of a building
+     * and starts again after it.
+     *
+     * <p>Two gates, opposite each other, and that is a safety property rather
+     * than a flourish. A fence that fully encloses the apron makes it a pocket,
+     * and a pocket whose only gate faces the wrong way sends the ground crew
+     * the long way round their own airfield — or seals the field off from the
+     * ward entirely.
+     */
+    private void fence(GenContext ctx, boolean alongY) {
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return;
+        int fLeft = left - 1;
+        int fBottom = bottom - 1;
+        int fRight = right + 1;
+        int fTop = top + 1;
+        int gateAlong = alongY ? (fLeft + fRight) / 2 : (fBottom + fTop) / 2;
+
+        for (int x = fLeft; x <= fRight; x++) {
+            for (int y = fBottom; y <= fTop; y++) {
+                boolean ring = x == fLeft || x == fRight || y == fBottom || y == fTop;
+                if (!ring) continue;
+                if (!freeYard(ctx, x, y)) continue;
+                boolean gateSide = alongY ? (y == fBottom || y == fTop)
+                        : (x == fLeft || x == fRight);
+                int along = alongY ? x : y;
+                if (gateSide && Math.abs(along - gateAlong) <= GATE_WIDTH / 2) {
+                    ctx.grid.setWalkableFloor(x, y);
+                    ctx.grid.openAllEdges(x, y);
+                    ctx.topology.setGroundKind(x, y, HARDSTAND);
+                    continue;
+                }
+                DoodadDef post = registry.doodad(fenceId(x, y, fLeft, fBottom, fRight, fTop));
+                if (post == null) continue;
+                ctx.grid.setWalkable(x, y, false);
+                ctx.grid.setSeeThrough(x, y, true);
+                ctx.topology.setWall(x, y, false);
+                ctx.topology.setFixture(x, y, true);
+                ctx.doodads.add(new Doodad(x, y, post));
+            }
+        }
+    }
+
+    /** Cells across a gate. Three, so a fire team is channelled rather than filtered one at a time. */
+    private static final int GATE_WIDTH = 3;
+
+    /** Still-unclaimed ground the fence may stand on. Anything else already belongs to the ward. */
+    private static boolean freeYard(GenContext ctx, int x, int y) {
+        if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) return false;
+        if (!ctx.grid.isWalkable(x, y)) return false;
+        if (ctx.topology.getRoomPurpose(x, y) != RoomPurpose.GENERIC) return false;
+        return ctx.topology.getGroundKind(x, y) == YARD;
+    }
+
+    /** Which piece of the industrial fence set this ring cell is. */
+    private static String fenceId(int x, int y, int fLeft, int fBottom, int fRight, int fTop) {
+        if (x == fLeft && y == fTop) return "doodad.industrial-fence-corner-nw";
+        if (x == fRight && y == fTop) return "doodad.industrial-fence-corner-ne";
+        if (x == fLeft && y == fBottom) return "doodad.industrial-fence-corner-sw";
+        if (x == fRight && y == fBottom) return "doodad.industrial-fence-corner-se";
+        return y == fTop || y == fBottom
+                ? "doodad.industrial-fence-straight-h"
+                : "doodad.industrial-fence-straight-v";
     }
 
     /** Paint one berth's footprint so a stand reads as a stand from across the yard. */
