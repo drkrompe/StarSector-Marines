@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -60,6 +62,28 @@ public final class ShipTransferViewModel {
 
     /** Losses named on one row of the fleet list before the rest are counted. */
     private static final int ROW_LOSSES = 2;
+
+    /**
+     * Where hulls are laid out, and how much of the machine that is allowed to
+     * take.
+     *
+     * <p>Half the cores, and never the whole machine. The campaign is still
+     * being drawn behind this dialog, and a screen that answers instantly by
+     * taking every core to do it has moved the stutter rather than removed it.
+     * Deliberately not the common pool for the same reason — its parallelism is
+     * every core but one, which on a small machine is every core the game has.
+     *
+     * <p>Daemon threads, so a fleet still being read is never what keeps the
+     * game from closing.
+     */
+    private static final Executor YARD = Executors.newFixedThreadPool(
+            Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
+            runnable -> {
+                Thread hand = new Thread(runnable, "marine-ops-deck-layout");
+                hand.setDaemon(true);
+                hand.setPriority(Thread.NORM_PRIORITY - 2);
+                return hand;
+            });
 
     /** The places a company weighs a hull on, in the order they are read. */
     private static final RoomPurpose[] COMPARED = {
@@ -568,7 +592,7 @@ public final class ShipTransferViewModel {
             return;
         }
         long seed = CompanyShipDesignation.deckSeedFor(id);
-        laying.put(id, CompletableFuture.supplyAsync(() -> lay(ship, seed, keep)));
+        laying.put(id, CompletableFuture.supplyAsync(() -> lay(ship, seed, keep), YARD));
     }
 
     /**
