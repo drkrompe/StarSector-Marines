@@ -6,7 +6,8 @@ Written: 2026-08-23
 
 Updated: 2026-08-29 — the airbase lot turns four ways, comes in three sizes, and
 reaches the city as either a block-sized site or a multi-block compound claim
-placed on the ground that claim actually owns.
+placed on the ground that claim actually owns, whose made surface the terrain
+passes no longer repaint.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -399,6 +400,19 @@ and the building carried on outside the site, and nothing detected it because
 both halves were individually correct. The ground a claim may build on is cells
 inside a member leaf, plus cells inside no leaf at all — the street frames
 between members, which belong to nobody. Everything else is somebody's block.
+
+**A biome is the ground a place is built on, not the ground a place is made
+of.** The beach override repaints outdoor ground as sand so a shore reads as one
+continuous strand, which is right for a road, a park or a yard and wrong for a
+facility: an apron, a runway and painted berth markings are engineering, and
+sanding them left a fenced airbase floored in beach with each berth's outline
+eaten away in ragged patches. Nothing was misbehaving — the terrain pass runs
+after the fill that laid them, and both halves were doing their job. So a
+facility **claims the surface it made**, and terrain passes leave those cells
+alone; the shoreline pass already kept a road reservation dry for the same
+reason, and this is that exemption generalised. Only what is inside the fence is
+claimed. The verge outside is ground the lot *reserved* rather than ground it
+*made*, and a shore that reaches the fence line and stops is exactly right.
 
 **Clearance belongs to the placement, not to the size.** What the reservation
 outside the fence buys is a way past the base, and whether that has to be bought
