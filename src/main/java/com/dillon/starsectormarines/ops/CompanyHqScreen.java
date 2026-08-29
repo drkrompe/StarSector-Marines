@@ -54,6 +54,7 @@ public final class CompanyHqScreen implements Screen {
     private void installDocument() {
         CompanyHqViewModel viewModel = CompanyHqViewModel.current(
                 context::roomAboard,
+                context.shipGettingReady(),
                 this::onBarracks,
                 this::onArmory,
                 this::onMechLab,

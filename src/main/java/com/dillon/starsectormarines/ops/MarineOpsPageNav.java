@@ -130,7 +130,14 @@ final class MarineOpsPageNav {
         // where the Mech Lab went. Its action is dropped here rather than left
         // to the styling, because a route nothing can reach is the actual rule
         // and a greyed-out button that still worked would be a lie.
-        props.put(name + "Action", available == Aboard.YES ? wired : (Runnable) () -> { });
+        //
+        // A page that is only waiting keeps its action, because it stops
+        // waiting. These properties are read once, when the page is built, and
+        // a ship gets ready some seconds later; an action dropped here would
+        // stay dropped on the page the player is looking at. Routing refuses
+        // it until she is ready and stops refusing when she is, so the button
+        // corrects itself even if nothing rebuilds it.
+        props.put(name + "Action", available == Aboard.NO ? (Runnable) () -> { } : wired);
         props.put(name + "Classes", classes(page == current, available));
     }
 

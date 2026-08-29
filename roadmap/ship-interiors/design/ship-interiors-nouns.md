@@ -5,8 +5,9 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 Written: 2026-08-26
 
 Updated: 2026-08-29 - getting the company ship ready happens away from the
-frame that opens the shell, and the navigation says a room is being got ready
-rather than that the hull lacks it; a laid-out deck outlives the panel that
+frame that opens the shell; every way aboard says a room is being got ready
+rather than that the hull lacks it, keeps its route while it waits, and is
+rebuilt where it stands when she arrives; a laid-out deck outlives the panel that
 asked for it, so a hull is laid out once per game rather than once per visit;
 and a fleet comparison is a fleet of decks and is laid out off the frame: the screen opens on the list, says which hulls it is still reading,
 and fills each row in as its deck lands, keeping only the deck of the hull on
@@ -553,10 +554,22 @@ a button that does nothing, and they are opposite things to tell a player: a
 hull that cannot hold a mech bay never will, and a hull still being laid out has
 one or does not and nobody knows yet. Shown as absence, the second would tell
 somebody their own capital had no bay and they would have no reason to doubt
-it. So the shell has three answers rather than two, and a page that is somewhere
-aboard is simply not routed to until the ship is ready - guarded where routing
-happens rather than at each button, because there is more than one way into a
-room and the next one added would not know to check.
+it. So the shell has three answers rather than two, and it carries them
+wherever a way aboard appears - the navigation buttons and headquarters' own
+way onto the ship alike, since a tile that looked ordinary and did nothing
+would read as a broken button rather than as a wait.
+
+A page that is somewhere aboard is simply not routed to until the ship is ready,
+**guarded where routing happens rather than at each button**. Two reasons, and
+the second is the load-bearing one. There is more than one way into a room and
+the next one somebody adds would not know to check. And a page's properties are
+read once, when it is built, while a ship gets ready some seconds later - so a
+route disabled at build time would stay disabled on the page the player is
+looking at, long after the room became available. A way in that is merely
+waiting therefore keeps its action and is refused by routing, which stops
+refusing on its own; a room the hull does not have loses its action outright,
+because that never changes. The page the player is standing on is rebuilt where
+it stands the frame she arrives, so what it says catches up with what it does.
 
 **A deck outlives the panel that asked for it.** The operations panel is built
 afresh every time the player opens it, so anything a screen holds is thrown away
