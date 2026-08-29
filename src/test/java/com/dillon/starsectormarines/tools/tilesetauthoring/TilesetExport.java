@@ -389,47 +389,19 @@ public final class TilesetExport {
             // A block cell is one cell by definition; only a doodad claims deck.
             int width = entry.isBlockMember() ? 1 : entry.footprintX;
             int height = entry.isBlockMember() ? 1 : entry.footprintY;
+            // Drawn straight rather than area-averaged. The strip path pairs
+            // resample with sharpen, and box-averaging a 123px cut cell into 32
+            // without that second half is visibly mushy: the wall panel's lines
+            // and a crate's edges go soft. Bringing both halves here would
+            // change every grid sheet already exported, so it belongs with the
+            // ground sheets that need it rather than with a packing change.
             g.drawImage(
-                    reduced(source.getSubimage(p.x(), p.y(), p.width(), p.height()),
-                            width * cellPx, height * cellPx),
+                    source.getSubimage(p.x(), p.y(), p.width(), p.height()),
                     entry.col * cellPx, entry.row * cellPx,
                     width * cellPx, height * cellPx, null);
         }
         g.dispose();
         return atlas;
-    }
-
-    /**
-     * Halve {@code piece} repeatedly until one more bilinear step reaches the
-     * target, and return whatever is left for the caller to draw.
-     *
-     * <p>Bilinear samples four source pixels. Asked to reduce by three, it
-     * therefore reads four of every nine and simply discards the rest, which on
-     * a plate cut at 50px into 16px cells throws away more than half the art and
-     * comes out soft and aliased. Halving first keeps every pixel contributing:
-     * each step averages all four of its inputs, so the result approximates a
-     * box filter over the whole source.
-     *
-     * <p>Enlargement and reductions under 2x pass straight through — there is
-     * nothing to average, and a needless copy would only round twice.
-     */
-    static BufferedImage reduced(BufferedImage piece, int targetWidth, int targetHeight) {
-        BufferedImage current = piece;
-        while (current.getWidth() >= targetWidth * 2 && current.getHeight() >= targetHeight * 2
-                && current.getWidth() > 1 && current.getHeight() > 1) {
-            int halfWidth = Math.max(targetWidth, current.getWidth() / 2);
-            int halfHeight = Math.max(targetHeight, current.getHeight() / 2);
-            BufferedImage half = new BufferedImage(halfWidth, halfHeight,
-                    BufferedImage.TYPE_INT_ARGB);
-            Graphics2D step = half.createGraphics();
-            step.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            step.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            step.drawImage(current, 0, 0, halfWidth, halfHeight, null);
-            step.dispose();
-            current = half;
-        }
-        return current;
     }
 
     /**

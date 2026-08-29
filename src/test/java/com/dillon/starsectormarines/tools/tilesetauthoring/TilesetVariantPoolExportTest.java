@@ -5,8 +5,6 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,18 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TilesetVariantPoolExportTest {
 
     private static final int CELL = 16;
-
-    /** A plate of {@code count} distinct solid cells in a row. */
-    private static BufferedImage plate(int count) {
-        BufferedImage image = new BufferedImage(count * CELL, CELL, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = image.createGraphics();
-        for (int i = 0; i < count; i++) {
-            g.setColor(new Color(20 + i * 40, 60, 120));
-            g.fillRect(i * CELL, 0, CELL, CELL);
-        }
-        g.dispose();
-        return image;
-    }
 
     private static List<TilesetExport.Entry> pool(String blockId, int count) {
         List<TilesetExport.Entry> entries = new ArrayList<>();
@@ -117,43 +103,5 @@ public class TilesetVariantPoolExportTest {
         assertNotNull(block, "the exported pool must load");
         assertTrue(block.isVariantPool(), "it must load as a pool, not as an autotile");
         assertEquals(3, block.cells.length);
-    }
-
-    /**
-     * Reducing a piece by more than half averages every source pixel instead of
-     * sampling four of them. A single bilinear step at 3x reads four of every
-     * nine and discards the rest, which is visible as softening and aliasing on
-     * a ground tile cut from a large plate.
-     */
-    @Test
-    void aBigReductionAveragesTheWholePieceRatherThanSamplingIt() {
-        // Half black, half white in 2px columns: a single bilinear step to 1/4
-        // can land entirely on one phase, an averaging one cannot.
-        BufferedImage striped = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = striped.createGraphics();
-        for (int x = 0; x < 32; x += 4) {
-            g.setColor(Color.WHITE);
-            g.fillRect(x, 0, 2, 32);
-            g.setColor(Color.BLACK);
-            g.fillRect(x + 2, 0, 2, 32);
-        }
-        g.dispose();
-
-        BufferedImage small = TilesetExport.reduced(striped, 8, 8);
-        assertTrue(small.getWidth() <= 16,
-                "a 4x reduction should have been halved at least once, not drawn in one step");
-
-        int mid = new Color(small.getRGB(small.getWidth() / 2, small.getHeight() / 2)).getRed();
-        assertTrue(mid > 60 && mid < 195,
-                "averaging a black-and-white stripe should land mid-grey, not on one phase; got "
-                        + mid);
-    }
-
-    /** Enlargement and small reductions pass straight through rather than round twice. */
-    @Test
-    void aPieceThatIsNotBeingShrunkIsLeftAlone() {
-        BufferedImage piece = plate(1);
-        assertEquals(piece, TilesetExport.reduced(piece, CELL, CELL));
-        assertEquals(piece, TilesetExport.reduced(piece, CELL * 2, CELL * 2));
     }
 }
