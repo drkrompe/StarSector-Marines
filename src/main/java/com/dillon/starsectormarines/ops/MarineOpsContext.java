@@ -353,6 +353,17 @@ public class MarineOpsContext {
         return ship != null && ship.ready();
     }
 
+    /**
+     * Whether there is a ship and she is still being got ready.
+     *
+     * <p>Told apart from having no ship at all, which is not a wait: a company
+     * with nowhere to live is sent to choose somewhere, and that route works.
+     */
+    boolean shipGettingReady() {
+        CompanyDeck ship = companyDeck();
+        return ship != null && !ship.ready();
+    }
+
     /** Opens the owned-company landing view used by the campaign Company HQ. */
     public void openCompanyArmoryFrom(ScreenId returnScreen) {
         armoryReturnScreen = returnScreen != null ? returnScreen : ScreenId.COMPANY_HQ;

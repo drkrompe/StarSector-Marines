@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
+import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
@@ -230,7 +231,7 @@ public class BoundingOverwatchTest {
     }
 
     @Test
-    public void moveOnlyPreparationDoesNotInitiateOpportunityRocket() {
+    public void moveOnlyPreparationStillAnswersAnEmplacementWithTheRocket() {
         BattleSimulation sim = openSim();
         long marine = sim.spawn(new EntitySpec("rocketeer", Faction.MARINE,
                 UnitType.MARINE, 10, 15));
@@ -239,14 +240,51 @@ public class BoundingOverwatchTest {
         sim.spawn(MapTurret.create("turret", Faction.DEFENDER,
                 TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 20, 15));
 
-        assertTrue(GoapInfantryBehavior.prepareForAction(marine, sim, false),
-                "move-only preparation continues into the action body");
-        assertEquals(0f, sim.world().secondaryActionTimer(marine), 0.001f,
-                "move-only role must not start a fresh rocket aim");
+        // The approach action suppresses ordinary opportunity fire so a passing
+        // shot cannot divert the moving half of a bound. A turret is not a
+        // passing shot: it is why the advance is in trouble, and the rocket is
+        // the only thing in the squad that meaningfully hurts it.
+        assertFalse(GoapInfantryBehavior.prepareForAction(marine, sim, false),
+                "a move-only role short-circuits its tick to aim at the emplacement");
+        assertTrue(sim.world().secondaryActionTimer(marine) > 0f,
+                "move-only role commits the anti-hardened rocket");
+    }
 
-        assertFalse(GoapInfantryBehavior.prepareForAction(marine, sim, true),
-                "ordinary actions still short-circuit when they commit the rocket");
-        assertTrue(sim.world().secondaryActionTimer(marine) > 0f);
+    @Test
+    public void hardenedOpportunityRefusesEveryNonDirectFirePolicy() {
+        // Frag, satchel, deployables, smoke and close-contact tools each spend
+        // a squad resource or freeze the carrier to place something. Only the
+        // direct-fire anti-hardened shot comes through the move-only gate, and
+        // the policy check short-circuits ahead of any target scan — so this is
+        // a property of the carrier's equipment, not of the situation.
+        BattleSimulation sim = openSim();
+        sim.spawn(MapTurret.create("turret", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 20, 15));
+        String[] withheld = {
+                SpecialEquipmentRegistry.FRAG_GRENADE_ID,
+                SpecialEquipmentRegistry.SATCHEL_CHARGE_ID,
+                SpecialEquipmentRegistry.SMOKE_GRENADE_ID,
+                SpecialEquipmentRegistry.FIELD_REVETMENT_ID,
+                SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID,
+                SpecialEquipmentRegistry.BREACHING_CUTTER_ID,
+        };
+        for (String id : withheld) {
+            long marine = sim.spawn(new EntitySpec("carrier-" + id, Faction.MARINE,
+                    UnitType.MARINE, 10, 15));
+            var kit = SpecialEquipmentRegistry.require(id);
+            sim.world().attachSpecialEquipment(marine, kit, kit.startingAmmo());
+            assertFalse(InfantryUnitPrep.tryHardenedOpportunity(marine, sim),
+                    id + " is not a move-only opportunity shot");
+            assertEquals(0f, sim.world().secondaryActionTimer(marine), 0.001f,
+                    id + " must not start an aim through the hardened gate");
+        }
+
+        long rocketeer = sim.spawn(new EntitySpec("rocketeer", Faction.MARINE,
+                UnitType.MARINE, 10, 15));
+        var rocket = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
+        sim.world().attachSpecialEquipment(rocketeer, rocket, rocket.startingAmmo());
+        assertTrue(InfantryUnitPrep.tryHardenedOpportunity(rocketeer, sim),
+                "direct-fire anti-hardened equipment is exactly what the gate lets through");
     }
 
     @Test
