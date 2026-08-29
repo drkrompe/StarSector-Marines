@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — walls, doorways and roofs dispatch through the mapping's `surfaceRender` section, and content is found by purpose as well as by sheet.
+Updated: 2026-08-29 — walls, doorways and roofs dispatch through the mapping's `surfaceRender` section; content is found by purpose as well as by sheet; and a block may be a variant pool as well as an autotile.
 
 Read `stories.md` for open work.
 
@@ -213,13 +213,24 @@ These properties of that pass are part of the model rather than of the tool:
   answers, and would move geometry authority out of code into art data. A
   doodad placement may still rotate one canonical piece to fit its generated
   room; the turn belongs to the placement, not the authored piece identity.
+- **A block has one of two shapes, and they are alternatives.** An *autotile*
+  answers "which cell for this neighbour mask", so it occupies a fixed patch
+  addressed as an origin plus a layout offset. A *variant pool* answers "any of
+  these", is chosen by hashing the cell's coordinate, and has no geometry at
+  all — so it is written as an explicit list of cells and laid out as a plain
+  run. Giving a pool a layout would put it where every autotile resolver then
+  has to special-case it out again.
 - **A block's origin is generated, never counted.** Its cells are addressed as
   origin plus a layout offset, so they must be packed as one contiguous patch
   and the packer reports where it put them. A slot a sheet does not fill stays
   empty; a hollow layout's fill colour is exactly what that case is for.
 - **Only kept pieces are packed.** A sheet's unused art does not reach the
   atlas, so a tileset's size reflects what the game uses rather than what was
-  drawn.
+  drawn. Nothing is lost by leaving a cell out: the raw plate and the document's
+  entry both keep it, and including it again is the whole of bringing it back.
+  A sheet still produced by a script rather than exported is the exception, and
+  the gap is large — one such sheet ships 650 cells to deliver the seventeen the
+  game addresses.
 - **A packed sheet is addressed by id and never by coordinate.** The packer is
   free to lay an atlas out differently on every export, so an id is the only
   thing an export preserves. A `(col, row)` held anywhere outside the tileset
