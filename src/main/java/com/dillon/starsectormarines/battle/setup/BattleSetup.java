@@ -1499,18 +1499,18 @@ public final class BattleSetup {
      * a previously defender-held zone has been taken by marines. Assault omits
      * that exact-occupancy trigger; its defender commander reacts only to
      * faction-local reports while own-force garrison depletion remains legal.
-     * <p>Means (priority = insertion order; first {@code canFulfill = true}
-     * wins):
+     * <p>Means (all feasible ones compete on {@code arrivalSeconds}; the
+     * soonest wins and registration order breaks a tie):
      * <ul>
      *   <li>{@link ConvoyMeans} — readable truck delivery; needs a road
      *       graph and a reachable rally.</li>
      *   <li>{@link ShuttleMeans} — air-drop; needs a walkable LZ within
      *       8 cells of the rally. Reuses the existing {@code AirSystem}
      *       state machine.</li>
-     *   <li>{@link WalkInMeans} — lowest eligible defender means; requires a
-     *       held BARRACKS, then spawns infantry on the side-appropriate
-     *       perimeter and pulls them toward the rally via
-     *       {@code assignedNode}.</li>
+     *   <li>{@link WalkInMeans} — the slowest over any real distance, and so
+     *       the floor in practice rather than by placement; requires a held
+     *       BARRACKS, then spawns infantry on the side-appropriate perimeter
+     *       and pulls them toward the rally via {@code assignedNode}.</li>
      * </ul>
      * Non-Conquest maps register the same means set and self-gate harmlessly
      * (no compounds → no trigger or means supply; no road graph → convoy

@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -85,23 +88,127 @@ class ReinforcementSystemTest {
                 "a launched prepaid failure remains a sunk commitment");
     }
 
+    @Test
+    void theSoonestArrivingMeansGetsTheRequestWhereverItWasRegistered() {
+        BattleSimulation sim = openSim();
+        ReinforcementService service = new ReinforcementService();
+        List<String> tried = new ArrayList<>();
+        StubMeans slow = new StubMeans(ReinforcementDispatchResult.COMMITTED, 90f)
+                .named("slow", tried);
+        StubMeans quick = new StubMeans(ReinforcementDispatchResult.COMMITTED, 20f)
+                .named("quick", tried);
+        service.addMeans(slow);
+        service.addMeans(quick);
+        service.post(request(false));
+
+        new ReinforcementSystem(service, funded()).tick(1f, sim);
+
+        assertEquals(List.of("quick"), tried,
+                "the request goes to whichever means would answer it soonest");
+        assertEquals(0, slow.attempts);
+    }
+
+    @Test
+    void meansThatWouldArriveTogetherResolveInRegistrationOrder() {
+        BattleSimulation sim = openSim();
+        ReinforcementService service = new ReinforcementService();
+        List<String> tried = new ArrayList<>();
+        service.addMeans(new StubMeans(ReinforcementDispatchResult.COMMITTED, 30f)
+                .named("first", tried));
+        service.addMeans(new StubMeans(ReinforcementDispatchResult.COMMITTED, 30f)
+                .named("second", tried));
+        service.post(request(false));
+
+        new ReinforcementSystem(service, funded()).tick(1f, sim);
+
+        assertEquals(List.of("first"), tried,
+                "a tie is broken by the order the battle installed them, "
+                        + "so the same battle dispatches the same way twice");
+    }
+
+    @Test
+    void aRejectedFirstChoiceFallsThroughToTheNextSoonest() {
+        BattleSimulation sim = openSim();
+        ReinforcementService service = new ReinforcementService();
+        List<String> tried = new ArrayList<>();
+        service.addMeans(new StubMeans(ReinforcementDispatchResult.COMMITTED, 60f)
+                .named("middling", tried));
+        service.addMeans(new StubMeans(ReinforcementDispatchResult.COMMITTED, 95f)
+                .named("slowest", tried));
+        service.addMeans(new StubMeans(ReinforcementDispatchResult.REJECTED, 15f)
+                .named("quickest", tried));
+        service.post(request(false));
+
+        new ReinforcementSystem(service, funded()).tick(1f, sim);
+
+        assertEquals(List.of("quickest", "middling"), tried,
+                "fallthrough follows arrival order, not registration order");
+    }
+
+    @Test
+    void anInfeasibleMeansIsNeverAskedWhenItWouldArrive() {
+        BattleSimulation sim = openSim();
+        ReinforcementService service = new ReinforcementService();
+        List<String> tried = new ArrayList<>();
+        StubMeans unsupplied = new StubMeans(ReinforcementDispatchResult.COMMITTED, 1f)
+                .named("unsupplied", tried);
+        unsupplied.feasible = false;
+        service.addMeans(unsupplied);
+        service.addMeans(new StubMeans(ReinforcementDispatchResult.COMMITTED, 80f)
+                .named("only-option", tried));
+        service.post(request(false));
+
+        new ReinforcementSystem(service, funded()).tick(1f, sim);
+
+        assertEquals(0, unsupplied.arrivalQueries,
+                "a means that cannot deliver is not asked how fast it would");
+        assertEquals(List.of("only-option"), tried);
+    }
+
     private static final class StubMeans implements ReinforcementMeans {
         ReinforcementDispatchResult result;
+        /** What this stub claims it would take to arrive. Equal by default, so registration order decides. */
+        float arrivalSeconds;
+        /** Whether this stub can serve the request at all. */
+        boolean feasible = true;
+        /** How many times the system asked when this stub would arrive. */
+        int arrivalQueries;
         int attempts;
+        /** Shared across a test's stubs so the order they were tried in is readable. */
+        List<String> trace = new ArrayList<>();
+        String name = "stub";
 
         StubMeans(ReinforcementDispatchResult result) {
+            this(result, 10f);
+        }
+
+        StubMeans(ReinforcementDispatchResult result, float arrivalSeconds) {
             this.result = result;
+            this.arrivalSeconds = arrivalSeconds;
+        }
+
+        StubMeans named(String name, List<String> trace) {
+            this.name = name;
+            this.trace = trace;
+            return this;
         }
 
         @Override
         public boolean canFulfill(BattleView sim, ReinforcementRequest req) {
-            return true;
+            return feasible;
+        }
+
+        @Override
+        public float arrivalSeconds(BattleView sim, ReinforcementRequest req) {
+            arrivalQueries++;
+            return arrivalSeconds;
         }
 
         @Override
         public ReinforcementDispatchResult dispatch(
                 BattleControl sim, ReinforcementRequest req) {
             attempts++;
+            trace.add(name);
             return result;
         }
     }
