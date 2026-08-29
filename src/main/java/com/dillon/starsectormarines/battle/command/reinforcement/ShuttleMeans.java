@@ -152,7 +152,8 @@ public final class ShuttleMeans implements ReinforcementMeans {
     public ReinforcementDispatchResult dispatch(BattleControl sim,
                                                 ReinforcementRequest req) {
         NavigationGrid grid = sim.getGrid();
-        int[] centre = deliveryCentre(req);
+        DeliveryDeployment deployment = deploymentFor(req);
+        int[] centre = { deployment.hintX(), deployment.hintY() };
         int[] lz = new LandingZoneScorer(grid, sim.getTopology())
                 .bestNear(centre[0], centre[1], LZ_SCAN_RADIUS, SHUTTLE_MIN_CLEARANCE);
         if (lz == null) {
@@ -173,15 +174,30 @@ public final class ShuttleMeans implements ReinforcementMeans {
                 entry[2], entry[3],
                 /*pendingDelay*/ 0f);
         ShuttleMission mission = sim.world().mission(shuttleId);
-        mission.commandClaim = SquadCommandClaim.reinforcement(req.reason.name());
+        // Whoever the delivery policy says owns a delivered squad — the mission
+        // commander on a battle that has one. A sortie's passengers are the
+        // commander's people once they are on the ground, the same as a
+        // convoy's; claiming them for the air arm instead left every squad a
+        // shuttle ever dropped outranking the commander that asked for it, and
+        // so unable to be moved for the rest of the battle.
+        mission.commandClaim = deployment.squadClaim();
+        mission.commandOwnsObjective = deployment.commandOwnsObjective();
         mission.totalCycles = 1;
         boolean loadedOnTheGround = !airfield.isEmpty()
-                && embarkOnPad(sim, req, mission);
+                && embarkOnPad(sim, req, deployment, mission);
         // Objective assignment (progressive-reinforcement slice 4): resolve the
         // request's objective to a tactical node now, at dispatch time, so the
         // deboarded squad is assigned the moment it lands rather than only once
         // it physically walks to the position — see ObjectiveNodes.
         mission.assignNode = ObjectiveNodes.resolve(sim.getTacticalMap(), req);
+        // An objective with no authored place behind it — a lost zone — still
+        // names somewhere to retake, so carry it as a zone rather than dropping
+        // the task on the floor. Same fallback the convoy makes.
+        if (mission.assignNode == null && req.hasObjective()
+                && sim.getZoneGraph() != null) {
+            mission.assignZoneId = sim.getZoneGraph().zoneIdAt(
+                    req.objectiveX, req.objectiveY);
+        }
         // Reinforcement shuttles deboard the faction's elite tier (the
         // narrative of "expensive air-drop = stiffening delivery"). Default
         // player shuttles leave deboardUnitType null and get the bulk
@@ -243,6 +259,7 @@ public final class ShuttleMeans implements ReinforcementMeans {
      *         from, leaving the sortie loaded as it always was
      */
     private boolean embarkOnPad(BattleControl sim, ReinforcementRequest req,
+                                DeliveryDeployment deployment,
                                 ShuttleMission mission) {
         if (airbaseNode(sim, req) == null) return false;
         int[] primary = WalkInMeans.pickPrimaryCell(sim, req, axis);
@@ -296,22 +313,9 @@ public final class ShuttleMeans implements ReinforcementMeans {
         mission.boardingPatience = BOARDING_PATIENCE;
         // Whoever the lift does not take stops being the air arm's the moment
         // the sortie closes, and becomes the commander's like any other squad.
-        mission.embarkHandoff = handoffClaim(req);
+        mission.embarkHandoff = deploymentPolicy != null
+                ? deployment.squadClaim() : null;
         return true;
-    }
-
-    /**
-     * Who inherits the boarding party when the sortie closes.
-     *
-     * <p>The delivery policy already mints exactly this claim for the squads a
-     * convoy brings in, so a crew handed back lands in the same pool by the
-     * same authority as any other delivered squad. With no policy to ask there
-     * is nobody to hand them to, and they are simply let go.
-     */
-    private SquadCommandClaim handoffClaim(ReinforcementRequest req) {
-        if (deploymentPolicy == null) return null;
-        DeliveryDeployment deployment = deploymentPolicy.deploymentFor(req);
-        return deployment == null ? null : deployment.squadClaim();
     }
 
     /** This side's airbase, which is where its aircraft are and where a crew walks to. */
@@ -333,10 +337,24 @@ public final class ShuttleMeans implements ReinforcementMeans {
      * the answer to all three used to be the same cell.
      */
     private int[] deliveryCentre(ReinforcementRequest req) {
-        if (deploymentPolicy == null) return new int[]{ req.rallyX, req.rallyY };
-        DeliveryDeployment deployment = deploymentPolicy.deploymentFor(req);
-        if (deployment == null) return new int[]{ req.rallyX, req.rallyY };
+        DeliveryDeployment deployment = deploymentFor(req);
         return new int[]{ deployment.hintX(), deployment.hintY() };
+    }
+
+    /**
+     * This request's delivery terms: where the aircraft may put down, who owns
+     * the squad it carries, and whether the objective it was sent for is a real
+     * objective or only a starting point.
+     *
+     * <p>Never null. A battle with no commanding authority to ask falls back to
+     * the same legacy terms the convoy uses — the raw rally, no rear standoff,
+     * and reinforcement ownership — which is what this means did unconditionally
+     * before there was a policy to ask.
+     */
+    private DeliveryDeployment deploymentFor(ReinforcementRequest req) {
+        if (deploymentPolicy == null) return DeliveryDeployment.legacy(req);
+        DeliveryDeployment deployment = deploymentPolicy.deploymentFor(req);
+        return deployment != null ? deployment : DeliveryDeployment.legacy(req);
     }
 
     /**
