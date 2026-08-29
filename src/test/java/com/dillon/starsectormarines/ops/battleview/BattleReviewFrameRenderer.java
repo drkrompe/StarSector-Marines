@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
@@ -44,6 +45,8 @@ public final class BattleReviewFrameRenderer {
     private static final Color CIVILIAN_MARKER = new Color(255, 218, 73, 235);
     /** In-flight ordnance a point-defence mount is allowed to engage. Its own colour because "a warhead is on the way" is the state the reader is watching for. */
     private static final Color ORDNANCE_MARKER = new Color(255, 150, 40, 240);
+    /** Burning wreckage. Alpha is set per wreck from how much of its life is left. */
+    private static final Color WRECK_MARKER = new Color(255, 96, 24, 255);
 
     /** GL-owned custom and ribbon decorations are deliberately absent — the Java2D drain cannot produce them. */
     private static final EnumSet<RenderLayer> REVIEW_LAYERS = EnumSet.of(
@@ -81,6 +84,7 @@ public final class BattleReviewFrameRenderer {
                 RenderingHints.VALUE_ANTIALIAS_ON);
         graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        drawWreckMarkers(graphics, simulation);
         drawUnitMarkers(graphics, simulation);
         drawOrdnanceMarkers(graphics, simulation);
         graphics.setColor(new Color(0, 0, 0, 205));
@@ -89,6 +93,38 @@ public final class BattleReviewFrameRenderer {
         graphics.setFont(captionFont(graphics, caption, image.getWidth() - 2 * CAPTION_MARGIN));
         graphics.drawString(caption, CAPTION_MARGIN, 20);
         graphics.dispose();
+    }
+
+    /**
+     * Marks the ground still burning. A destroyed turret, hub, vehicle, mech,
+     * or airframe leaves a smoking wreck where it stood, and it is the only
+     * part of the FX layer that lasts long enough for a review frame to catch
+     * — the fireball itself is a single tick's event and a review samples
+     * every few hundred. Without this a raid on an airfield reads as three
+     * markers that stop being drawn, which is indistinguishable from three
+     * markers that walked off the edge of the frame.
+     *
+     * <p>Fades as the wreck cools, so a frame says how recently it burned as
+     * well as that it did.
+     */
+    private void drawWreckMarkers(Graphics2D graphics, BattleSimulation simulation) {
+        BattleCamera camera = cameraFor(width, height, simulation);
+        float radius = Math.max(4f, Math.min(9f, camera.cellPxSize() * 1.4f));
+        graphics.setStroke(new BasicStroke(2f));
+        for (SmokingWreck wreck : simulation.getSmokingWrecks()) {
+            float heat = wreck.totalLifetime <= 0f ? 1f
+                    : Math.max(0f, Math.min(1f, wreck.remainingLifetime / wreck.totalLifetime));
+            int centerX = Math.round(camera.cellToScreenX(wreck.cellX + 0.5f));
+            int centerY = Math.round(height - camera.cellToScreenY(wreck.cellY + 0.5f));
+            int diameter = Math.round(radius * 2f);
+            graphics.setColor(new Color(WRECK_MARKER.getRed(), WRECK_MARKER.getGreen(),
+                    WRECK_MARKER.getBlue(), Math.round(60 + 175 * heat)));
+            graphics.drawOval(Math.round(centerX - radius), Math.round(centerY - radius),
+                    diameter, diameter);
+            graphics.fillOval(Math.round(centerX - radius * 0.45f),
+                    Math.round(centerY - radius * 0.45f),
+                    Math.round(radius * 0.9f), Math.round(radius * 0.9f));
+        }
     }
 
     private void drawUnitMarkers(Graphics2D graphics, BattleSimulation simulation) {

@@ -38,12 +38,14 @@ public final class ReinforcementService {
     public void addTrigger(ReinforcementTrigger trigger) { triggers.add(trigger); }
 
     /**
-     * Register a means provider. Order matters — providers are tried in
-     * insertion order on each request. A provider whose feasibility probe
-     * passes gets an atomic commit attempt; rejection falls through to the next
-     * provider. Production registers the readable defender ladder as convoy,
-     * shuttle, then walk-in; supply loss, map feasibility, or route proof may
-     * force fallback.
+     * Register a means provider. Order is the tie-break, not the selection:
+     * every provider whose feasibility probe passes is asked when it would
+     * arrive, and the soonest gets the atomic commit attempt; rejection falls
+     * through to the next-soonest. Providers registered together therefore
+     * compete on the delivery rather than on the order they were added, and
+     * two that would arrive at the same moment resolve in this order so a
+     * battle dispatches the same way twice. Production registers convoy,
+     * shuttle, then walk-in.
      */
     public void addMeans(ReinforcementMeans m) { means.add(m); }
 
