@@ -190,6 +190,14 @@ public final class ShuttleMeans implements ReinforcementMeans {
         // deboarded squad is assigned the moment it lands rather than only once
         // it physically walks to the position — see ObjectiveNodes.
         mission.assignNode = ObjectiveNodes.resolve(sim.getTacticalMap(), req);
+        // An objective with no authored place behind it — a lost zone — still
+        // names somewhere to retake, so carry it as a zone rather than dropping
+        // the task on the floor. Same fallback the convoy makes.
+        if (mission.assignNode == null && req.hasObjective()
+                && sim.getZoneGraph() != null) {
+            mission.assignZoneId = sim.getZoneGraph().zoneIdAt(
+                    req.objectiveX, req.objectiveY);
+        }
         // Reinforcement shuttles deboard the faction's elite tier (the
         // narrative of "expensive air-drop = stiffening delivery"). Default
         // player shuttles leave deboardUnitType null and get the bulk

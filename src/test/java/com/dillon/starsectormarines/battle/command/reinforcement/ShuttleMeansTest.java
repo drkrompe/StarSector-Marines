@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -471,5 +472,48 @@ public class ShuttleMeansTest {
                 mission.commandClaim.authority());
         assertFalse(mission.commandOwnsObjective,
                 "nobody owns an objective on a battle with no commander to own it");
+    }
+
+    /**
+     * An objective with no authored place behind it still gets carried.
+     *
+     * <p>A lost zone is somewhere the defender used to hold, and the nearest
+     * tactical node can be well outside the tolerance that would make it the
+     * same position. Resolved to no node and with no fallback, the sortie
+     * delivered a squad that was owned but had nothing to do — the objective it
+     * was flown for was dropped at the ramp.
+     */
+    @Test
+    public void anObjectiveWithNoNodeIsCarriedAsAZone() {
+        BattleSimulation sim = openSim();
+        // The only node on the map is a long way from the objective, so the
+        // objective resolves to no place at all.
+        sim.setTacticalMap(new TacticalMap(List.of(commandPost(1, 1))));
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, commanderOwning("conquest-defender"), List.of());
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 8, 8, 8, 8);
+
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 0, 0));
+        sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, W - 1, H - 1));
+
+        means.dispatch(sim, req);
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertNull(mission.assignNode, "no node is near enough to be the objective");
+        int lostZone = sim.getZoneGraph().zoneIdAt(8, 8);
+        assertEquals(lostZone, mission.assignZoneId, "so the zone carries it instead");
+
+        for (int i = 0; i < 1800 && mission.squadId == Squad.NO_SQUAD; i++) {
+            sim.advance(1f / 30f);
+        }
+        assertTrue(mission.squadId != Squad.NO_SQUAD,
+                "the sortie deboarded somebody: state=" + mission.state);
+
+        CommandDirective owner = sim.getSquadCommandDirective(mission.squadId);
+        assertNotNull(owner.assignment(),
+                "a delivered squad lands tasked, node or no node");
+        assertEquals(AssignmentKind.CLEAR_ZONE, owner.assignment().kind());
+        assertEquals(lostZone, owner.assignment().targetZoneId());
     }
 }
