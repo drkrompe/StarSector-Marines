@@ -107,7 +107,8 @@ test {
     useJUnitPlatform {
         excludeTags 'battle-profile', 'commander-balance',
                 'sabotage-command-evidence', 'assault-command-evidence',
-                'raid-command-evidence', 'extraction-command-evidence'
+                'raid-command-evidence', 'extraction-command-evidence',
+                'crew-liveliness'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -161,6 +162,26 @@ def commanderEvidenceTags = [
         raid: 'raid-command-evidence',
         extraction: 'extraction-command-evidence',
 ]
+
+// Crewing two whole hulls and running each for four minutes of ship's time is
+// minutes of wall clock, so it is opt-in like the rest of the evidence. What it
+// answers is whether anybody aboard is standing about with nothing to do - see
+// CrewLivelinessEvidence for why a corpse counts as exactly that.
+tasks.register('crewEvidence', Test) {
+    group = 'verification'
+    description = 'Measure what a manned ship spends her time doing; opt-in, excluded from test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'crew-liveliness'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    testLogging {
+        showStandardStreams = true
+    }
+}
 
 tasks.register('commanderEvidence', Test) {
     group = 'verification'

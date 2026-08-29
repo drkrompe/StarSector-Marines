@@ -122,6 +122,23 @@ somebody's workplace, and jobs it has **off watch**, only at its own quarters.
 Collapsing the two into one list is not a simplification but a leak — with one,
 the marines were duly offered a shift running the mech bay's stores.
 
+**Idleness is chosen or it is a defect, and the two look identical.** An actor
+standing still because their rotation had nowhere to send them and one sitting in
+a lounge are the same picture; what separates them is whether the map gave the
+second one somewhere to be. So the amenities are jobs like any other — a seat, a
+mat, a washbasin — and doing nothing is a thing a map has to be able to *offer*
+rather than a state a person falls into. A complement whose only options are a
+bunk and a bench can be asleep or at work, and everything else it does is the
+defect wearing the costume of rest.
+
+That is also why **an amenity is on watch, not off**. The two lists divide by
+*where*, not by *when*: an off-watch job can only be done in one's own quarters,
+and an on-watch job is done in a room of its own. Reading "not work" as "off
+watch" fenced every washroom, lounge and gymnasium behind the claim rule at once
+— the rooms generated, published their work, and no member of the crew was
+allowed to claim any of it. None of them are duty jobs, so none of them make a
+room a posting; somewhere to wash is not a billet.
+
 A **shift** is one role's work across one or more sites, and the loop each member
 of it walks. It is the join between a role and a map, and it is derived rather
 than authored: hand it the places somebody is posted and the work a generator
@@ -157,6 +174,21 @@ actor-samples of a manned transport were somebody in a passage. A stint has to b
 long enough to read as the thing the walk was for. They are still nothing like a
 real watch: this is presentation, and what it owes is that a player looking at a
 room for half a minute sees it worked rather than sees one person arrive.
+
+Most jobs are somewhere you go. A **circuit** job is not: it is done at every
+place the shift reaches that offers it, in one turn of the rotation. Two things
+aboard work that way and both would collapse into their opposite if given a
+single stop like everything else — **rounds**, which are made of the walk between
+compartments rather than of any one of them, and a **defect list**, which is
+wherever the defects happen to be. A round with one stop is somebody who walks to
+the next room and stands in it; a repair round with one stop is a technician
+tending the same fault forever.
+
+A circuit is bounded rather than exhaustive, and it is never a **trade**. Rounds
+and defects are deliberately everywhere — that is what makes them circuits — so
+reading either as a station would make every compartment on the ship a posting
+and put a watch in each of them; and a patrol of every compartment on a capital
+is a rotation nobody completes, whose walker is permanently in a passage.
 
 **A full job is passed over, not queued for.** Where the next job on the rotation
 has no free place to do it, the actor takes the one after it; where nothing on

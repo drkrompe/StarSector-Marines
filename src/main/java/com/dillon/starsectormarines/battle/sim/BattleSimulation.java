@@ -594,7 +594,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, grid, rng);
         this.ambientTasks.setLiveFireSink((actorId, targetId) -> {
             if (rosterService.isLive(actorId) && rosterService.isAliveById(targetId)) {
-                infantry.fireShot(actorId, targetId, FireStance.STANCED);
+                infantry.fireDrillShot(actorId, targetId, FireStance.STANCED);
                 rosterService.combat().beginBurst(actorId, targetId);
             }
         });

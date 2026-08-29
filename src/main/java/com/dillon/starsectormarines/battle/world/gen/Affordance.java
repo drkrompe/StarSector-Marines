@@ -90,7 +90,49 @@ public enum Affordance {
      * a berth and exists only while something is parked there. This is the ship
      * herself, and it is there whether or not anything is embarked.
      */
-    TEND;
+    TEND,
+
+    /**
+     * A seat in the lounge. Somewhere to be that is not a bunk, a mess table or
+     * a work station.
+     *
+     * <p>The one job whose content is that there is none, and the reason it is a
+     * job at all: doing nothing has to have somewhere to be done, or the only
+     * shape it can take is standing in a passage. Idleness a crew <em>chooses</em>
+     * is worth having and reads as a ship people live on; idleness imposed on
+     * them by a rotation with nowhere to go is the defect the whole model exists
+     * to avoid, and the two look identical from outside unless one of them has a
+     * room.
+     */
+    UNWIND,
+
+    /**
+     * A mat or a piece of gear in the gymnasium. Off watch, and the other half
+     * of what a complement does when it is not working or asleep.
+     */
+    EXERCISE,
+
+    /**
+     * A compartment as it appears on somebody's rounds: looked into, checked,
+     * and left.
+     *
+     * <p>Unlike every other job this is not <em>at</em> anything. What a fixture
+     * affords is a reason to stand somewhere; what rounds afford is a reason to
+     * be somewhere else next, and a ship is full of places that are worth
+     * looking into and hold no work of their own.
+     */
+    ROUNDS,
+
+    /**
+     * A defect standing against a fixture: something aboard that is not right
+     * and has not been got to yet.
+     *
+     * <p>Distinct from {@link #SERVICE} and {@link #TEND}, which are the work a
+     * machine needs when nothing is wrong with it. A ship of any size always has
+     * a list, and the list is what keeps a trade moving around the hull rather
+     * than circling one compartment.
+     */
+    REPAIR;
 
     /**
      * Whether doing this is work, as opposed to what somebody does when they
@@ -106,8 +148,9 @@ public enum Affordance {
      */
     public boolean duty() {
         return switch (this) {
-            case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND -> true;
-            case REST, MESS, PRACTICE, WASH -> false;
+            case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND,
+                    ROUNDS, REPAIR -> true;
+            case REST, MESS, PRACTICE, WASH, UNWIND, EXERCISE -> false;
         };
     }
 }

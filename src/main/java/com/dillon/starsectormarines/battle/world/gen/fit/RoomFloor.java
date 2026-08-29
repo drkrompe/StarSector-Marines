@@ -485,6 +485,38 @@ public final class RoomFloor {
     }
 
     /**
+     * Publish this room as somewhere worth looking into on somebody's rounds.
+     *
+     * <p>The one job that is not at anything. Every other point exists because a
+     * fixture affords something; this exists because the compartment does, and
+     * it is published for a bare pocket and a machinery space alike — a round
+     * that only called at rooms with work in them would miss precisely the
+     * places worth checking.
+     *
+     * <p>Stood just inside a hatch and facing the middle, which is what somebody
+     * making rounds actually does: they look in, and the next compartment is the
+     * point. Published last, after any fill has been judged, so a room whose fill
+     * was discarded is still on the round rather than being quietly dropped off
+     * it along with its furniture.
+     *
+     * @return whether the point was taken; a room with nowhere free to stand
+     *     simply is not called at
+     */
+    public boolean roundsPoint() {
+        int centreX = width / 2;
+        int centreY = height / 2;
+        for (Doorway door : localDoors()) {
+            for (int[] step : STEPS) {
+                int x = door.x() + step[0];
+                int y = door.y() + step[1];
+                if (!standable(x, y) || claimed[x][y] || shut[x][y]) continue;
+                return fixtureTask(x, y, Affordance.ROUNDS, centreX, centreY);
+            }
+        }
+        return false;
+    }
+
+    /**
      * Every cell a hatch can be walked to, or null for a room with no way in.
      *
      * <p>Deliberately over open floor rather than over the lanes. Furniture is

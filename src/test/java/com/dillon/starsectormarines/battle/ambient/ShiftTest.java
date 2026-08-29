@@ -65,6 +65,11 @@ class ShiftTest {
                         .member(0);
         assertNotNull(shift, "a furnished bay offered a technician no work at all");
 
+        // A loop that came back to the same group twice would be a stop that
+        // resolves to a claim the walker is already holding: they arrive where
+        // they stand and do the same job again. One bay is one site, so even the
+        // defect list - which is a circuit and does call at several places -
+        // contributes exactly one group here.
         Set<String> groups = new HashSet<>();
         for (AmbientTaskRoute.Stop stop : shift.stops()) {
             assertNotNull(stop.pointGroup(),
@@ -97,9 +102,13 @@ class ShiftTest {
                         bay.map().fixtureTasks, allBerthed(bay.map()), AmbientThreatPolicy.ANY_COMBATANT)
                         .member(0);
         assertNotNull(machinist, "the shop offered a machinist nothing");
+        // Repair joined the list when the bays started publishing a defect
+        // backlog: making and mending parts is the same trade, and the machinist
+        // is who a bay's snag list belongs to.
         for (AmbientTaskRoute.Stop stop : machinist.stops()) {
             assertTrue(stop.pointGroup().endsWith("fabricate")
-                            || stop.pointGroup().endsWith("stow"),
+                            || stop.pointGroup().endsWith("stow")
+                            || stop.pointGroup().endsWith("repair"),
                     "a machinist was sent to " + stop.pointGroup());
         }
     }
