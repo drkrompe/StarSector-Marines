@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.AudibleBearing;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
@@ -41,37 +40,25 @@ import com.fs.starfarer.api.input.InputEventAPI;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Bottom-right HUD pane: per-squad GOAP plan readout. Two modes driven by
- * {@link Selection}:
- *
- * <ul>
- *   <li><b>Compact</b> (no selection) — one row per squad with goal +
- *       current posture + step index. Sibling to {@link SquadOverviewPanel}
- *       (bottom-left), so the layout reads "your squads here, what they're
- *       planning there."</li>
- *   <li><b>Filtered detail</b> (a squad is selected — picked from the world
- *       via {@link com.dillon.starsectormarines.battle.ui.picking.WorldPicker}
- *       or from a UI row) — full plan dump for that squad: goal + priority
- *       bucket, every step's action + slot→member assignments, plus the
- *       current world-state predicate grid. The predicate grid is the
- *       diagnostic for "why isn't this squad doing anything?" — preconditions
- *       on Engage / Overwatch / etc. read straight off this list. The body is
- *       scrollable via {@link ScrollState} — long plans (multi-portal cordons,
- *       many slots) routinely overflow the panel and walked off-screen
- *       pre-scroll.</li>
- * </ul>
+ * Bottom-right selected-squad GOAP diagnostic. It remains closed while no
+ * squad is selected; the former all-squad plan overview duplicated the scale
+ * problem of the squad roster and covered the battlefield with developer
+ * state. Picking a squad through
+ * {@link com.dillon.starsectormarines.battle.ui.picking.WorldPicker} opens its
+ * full plan dump: goal + priority bucket, every step's action + slot→member
+ * assignments, and the current world-state predicate grid. The predicate grid
+ * answers "why isn't this squad doing anything?" from the selected squad's
+ * own state. The body remains scrollable through {@link ScrollState}.
  *
  * <p>Detail mode uses {@link Fonts#INSIGNIA_15_AA} rather than Orbitron 20 —
  * predicate names + slot listings are long, and the Orbitron 20 floor for
- * gameplay UI doesn't apply to debug overlays. Compact mode keeps Orbitron 20
- * to match the rest of the HUD.
+ * gameplay UI doesn't apply to debug overlays.
  */
 @DebugOnly
 public final class SquadPlanDebugPanel implements HudPanel {
@@ -80,29 +67,16 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private static final float PANEL_W       = 360f;
     private static final float HEADER_H      = 28f;
     private static final float PAD_INNER     = 8f;
-    private static final float DOT_RADIUS    = 5f;
 
     private static final Color BG            = new Color(0x10, 0x18, 0x22, 0xD8);
     private static final Color BORDER        = new Color(0x60, 0x80, 0xA0);
     private static final Color HEADER_FG     = new Color(0xC8, 0xE0, 0xFF);
     private static final Color MARINE_FG     = new Color(0x80, 0xC0, 0xFF);
     private static final Color DEFENDER_FG   = new Color(0xFF, 0xA0, 0x80);
-    private static final Color GOAL_FG       = new Color(0xC0, 0xC0, 0xC0);
-    private static final Color STEP_FG       = new Color(0xE8, 0xE8, 0xE8);
     private static final Color IDLE_FG       = new Color(0x70, 0x70, 0x70);
-
-    private static final Color ALERT_UNAWARE    = new Color(0x60, 0xC0, 0x60);
-    private static final Color ALERT_SUSPICIOUS = new Color(0xE0, 0xC0, 0x40);
-    private static final Color ALERT_ENGAGED    = new Color(0xE0, 0x60, 0x40);
-
-    // --- Compact mode ---
-    private static final float COMPACT_ROW_H = 26f;
-    private static final float COMPACT_SCROLL_PX_PER_NOTCH = COMPACT_ROW_H * 3f;
 
     // --- Detail mode ---
     private static final float DETAIL_LINE_H        = 18f;
-    /** Reserved height at the bottom of the panel for the "(scrolled)" hint, plus a touch of breathing room. Only takes up space when content overflows. */
-    private static final float DETAIL_FOOTER_H      = 16f;
     /** Right-side scrollbar gutter inset from the panel border. */
     private static final float SCROLLBAR_W          = 4f;
     private static final float SCROLLBAR_GAP        = 3f;
@@ -135,7 +109,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
     // --- Header DUMP button ---
     private static final float DUMP_BTN_W            = 48f;
     private static final float DUMP_BTN_H            = 18f;
-    private static final float DUMP_BTN_RIGHT_INSET  = 210f;  // sits to the left of the existing hint text
+    private static final float DUMP_BTN_RIGHT_INSET  = 220f;
     private static final Color DUMP_BTN_BG           = new Color(0x32, 0x22, 0x46, 0xC8);
     private static final Color DUMP_BTN_FG           = new Color(0xC0, 0xA0, 0xE0);
     private static final Color DUMP_BTN_BORDER       = new Color(0x80, 0x60, 0xA0);
@@ -145,11 +119,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
     static final int DOCTRINE_AXIS_TRACE_CELLS = 8;
 
     private final BattleUiContext ctx;
-    /** Per-frame cache filled by update(); consumed by render(). Empty in detail mode. */
-    private final List<Squad> compactSquads = new ArrayList<>();
-    private final ScrollState compactScroll = new ScrollState();
-    private SquadListViewport compactViewport;
-    /** Detail-mode squad pinned each frame from Selection; null in compact mode (or if the squad disappeared). */
+    /** Selected squad pinned each frame from Selection; null while the diagnostic is closed. */
     private Squad detailSquad;
     /** Snapshot of the detail squad's WorldState. Recomputed every frame so diagnostic readout stays fresh. */
     private WorldState detailState;
@@ -194,12 +164,11 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     @Override
     public boolean isVisible() {
-        return detailSquad != null || !compactSquads.isEmpty();
+        return detailSquad != null;
     }
 
     @Override
     public void update(float dt) {
-        compactSquads.clear();
         detailSquad = null;
         detailState = null;
         detailContentH = 0f;
@@ -247,8 +216,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 publishDoctrineHighlight(s);
                 return;
             }
-            // Selected squad vanished (wiped out, or stale id). Fall through to
-            // compact mode rather than rendering an empty detail panel.
+            // Selected squad vanished (wiped out, or stale id). Close both
+            // selected-squad panes rather than leaving a dead selection open.
+            sel.clear();
         }
         lastDetailSquadId = Selection.NONE;
         lastPlanForHighlights = null;
@@ -263,15 +233,6 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // now — it clears itself when the selection drops, so the panel no longer
         // touches it.
 
-        for (Squad s : sim.getSquads()) {
-            if (s.aliveMembers <= 0) continue;
-            compactSquads.add(s);
-        }
-        compactSquads.sort(Comparator.<Squad, Integer>comparing(s -> s.faction == Faction.MARINE ? 0 : 1)
-                .thenComparingInt(s -> s.id));
-        compactViewport = SquadListViewport.fit(compactSquads.size(), maxPanelHeight(),
-                HEADER_H, PAD_INNER, COMPACT_ROW_H);
-        compactScroll.setMetrics(compactViewport.contentHeight, compactViewport.viewportHeight);
     }
 
     private float panelX() {
@@ -287,7 +248,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
     /**
      * Largest height either panel mode may grow to. Sits below the top control
      * strip with a small gap — past that the panel would overpaint the speed
-     * buttons. Detail content and compact squad rows scroll inside this cap.
+     * buttons. Detail content scrolls inside this cap.
      */
     private float maxPanelHeight() {
         BattleLayout l = ctx.getLayout();
@@ -353,77 +314,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
         return Math.min(wanted, maxPanelHeight());
     }
 
-    private float compactPanelHeight() {
-        return compactViewport != null ? compactViewport.panelHeight : 0f;
-    }
-
     @Override
     public void render(float alphaMult) {
-        if (detailSquad != null) {
-            renderDetail(alphaMult);
-        } else {
-            renderCompact(alphaMult);
-        }
-    }
-
-    // -----------------------------------------------------------------------
-    // Compact mode (unchanged from pre-WorldPicker shape)
-    // -----------------------------------------------------------------------
-
-    private void renderCompact(float alphaMult) {
-        float x0 = panelX();
-        float y0 = panelY();
-        float w = PANEL_W;
-        float h = compactPanelHeight();
-
-        HudDraw.prepBlend();
-        HudDraw.filledRect(x0, y0, w, h, BG, alphaMult);
-        HudDraw.borderRect(x0, y0, w, h, BORDER, alphaMult);
-
-        float headerY = y0 + h - HEADER_H;
-        Fonts.ORBITRON_20.drawString("GOAP PLANS", x0 + PAD_INNER, headerY + HEADER_H - 6f, HEADER_FG, alphaMult);
-
-        for (int i = 0; i < compactSquads.size(); i++) {
-            Squad s = compactSquads.get(i);
-            float rowY = compactViewport.rowBottom(headerY, i, compactScroll.offset());
-            if (!compactViewport.rowVisible(rowY, y0 + PAD_INNER, headerY)) continue;
-            float baseline = rowY + COMPACT_ROW_H - 6f;
-
-            String idLabel = "SQ-" + s.id;
-            Color idColor = (s.faction == Faction.MARINE) ? MARINE_FG : DEFENDER_FG;
-            Fonts.ORBITRON_20.drawString(idLabel, x0 + PAD_INNER, baseline, idColor, alphaMult);
-
-            float dotX = x0 + 60f;
-            float dotY = rowY + COMPACT_ROW_H * 0.5f;
-            HudDraw.disc(dotX, dotY, DOT_RADIUS, alertColor(s.alertLevel), alphaMult, 14);
-
-            String goalName = s.currentGoal != null ? s.currentGoal.name() : "—";
-            Fonts.ORBITRON_20.drawString(goalName, x0 + 80f, baseline, GOAL_FG, alphaMult);
-
-            String stepLabel = formatStep(s.currentPlan);
-            Color stepColor = (s.currentPlan == null) ? IDLE_FG : STEP_FG;
-            Fonts.ORBITRON_20.drawString(stepLabel, x0 + 220f, baseline, stepColor, alphaMult);
-        }
-
-        compactScroll.renderScrollbar(x0 + w - SCROLLBAR_W - SCROLLBAR_GAP,
-                y0 + PAD_INNER, SCROLLBAR_W, compactViewport.viewportHeight,
-                SCROLL_TRACK, SCROLL_THUMB, alphaMult);
-    }
-
-    private static String formatStep(SquadPlan plan) {
-        if (plan == null) return "idle";
-        if (plan.isComplete()) return "done";
-        SquadPlan.Step step = plan.currentStep();
-        return step.action.name() + " [" + (plan.currentIndex() + 1) + "/" + plan.stepCount() + "]";
-    }
-
-    private static Color alertColor(SquadAlertLevel level) {
-        if (level == null) return ALERT_UNAWARE;
-        switch (level) {
-            case ENGAGED:    return ALERT_ENGAGED;
-            case SUSPICIOUS: return ALERT_SUSPICIOUS;
-            default:         return ALERT_UNAWARE;
-        }
+        renderDetail(alphaMult);
     }
 
     // -----------------------------------------------------------------------
@@ -449,18 +342,19 @@ public final class SquadPlanDebugPanel implements HudPanel {
         HudDraw.filledRect(x0, y0, w, h, BG, alphaMult);
         HudDraw.borderRect(x0, y0, w, h, BORDER, alphaMult);
 
-        // Fixed header — squad id + faction color + DUMP button + the
+        // Fixed header — frozen squad label + DUMP button + the
         // "scroll to see more" hint (replaced by the post-dump status
         // banner for DUMP_STATUS_DURATION sim-seconds after a dump click).
         float headerY = y0 + h - HEADER_H;
         Color idColor = (s.faction == Faction.MARINE) ? MARINE_FG : DEFENDER_FG;
-        Fonts.ORBITRON_20.drawString("SQ-" + s.id, x0 + PAD_INNER, headerY + HEADER_H - 6f, idColor, alphaMult);
-        Fonts.ORBITRON_20.drawString(s.faction.name(), x0 + 70f, headerY + HEADER_H - 6f, HEADER_FG, alphaMult);
+        String squadLabel = debugHeaderLabel(s);
+        Fonts.ORBITRON_20.drawString(squadLabel, x0 + PAD_INNER,
+                headerY + HEADER_H - 6f, idColor, alphaMult);
         renderDumpButton(font, x0 + w - DUMP_BTN_RIGHT_INSET, headerY + HEADER_H - 8f - DUMP_BTN_H / 2f, alphaMult);
         String hint = dumpStatusMessage != null
                 ? dumpStatusMessage
                 : (detailScroll.overflows() ? "(scroll · click empty to clear)" : "(click empty to clear)");
-        font.drawString(hint, x0 + w - 200f, headerY + HEADER_H - 8f, IDLE_FG, alphaMult);
+        font.drawString(hint, x0 + w - 160f, headerY + HEADER_H - 8f, IDLE_FG, alphaMult);
 
         // Scrollable region — body lines render in this band, anything outside
         // gets skipped per-line. vpTop is just below the header; vpBottom is
@@ -724,6 +618,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
         detailScroll.renderScrollbar(gutterX, vpBottomY + SCROLLBAR_GAP,
                 SCROLLBAR_W, (vpTopY - vpBottomY) - 2f * SCROLLBAR_GAP,
                 SCROLL_TRACK, SCROLL_THUMB, alphaMult);
+    }
+
+    private static String debugHeaderLabel(Squad squad) {
+        String label = squad.campaignLabel != null && !squad.campaignLabel.isBlank()
+                ? squad.campaignLabel : "SQ-" + squad.id;
+        return label.length() <= 16 ? label : label.substring(0, 13) + "...";
     }
 
     /** Draws {@code text} at the current cursor if it falls inside the viewport band, then advances the cursor by one line. */
@@ -1194,13 +1094,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     @Override
     public void handleInput(List<InputEventAPI> events) {
-        if (events == null) return;
-        if (detailSquad == null) {
-            compactScroll.handleWheel(events,
-                    panelX(), panelY(), PANEL_W, compactPanelHeight(),
-                    COMPACT_SCROLL_PX_PER_NOTCH);
-            return;
-        }
+        if (events == null || detailSquad == null) return;
         // LMB on a step's [H] button toggles that step's highlight. Walk
         // events before the scroll handler so an unconsumed click on a button
         // doesn't get eaten by anything else. Buttons live inside the panel
@@ -1226,8 +1120,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 }
             }
         }
-        // Wheel-over-detail-panel scrolls the body. Compact mode and the
-        // no-selection case stay no-input — there's nothing to scroll there.
+        // Wheel-over-detail-panel scrolls the body. The no-selection case is
+        // closed and owns no input.
         detailScroll.handleWheel(events,
                 panelX(), panelY(), PANEL_W, detailPanelHeight(),
                 SCROLL_PX_PER_NOTCH);

@@ -31,7 +31,7 @@ import com.dillon.starsectormarines.battle.ui.panel.BattleCommsPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
-import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
+import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
@@ -564,11 +564,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         // the targeting world-click before the picker turns them into a squad
         // selection; when not targeting, world clicks fall through to the picker.
         hud.addPanel(new com.dillon.starsectormarines.battle.ui.panel.CommandPowerPanel(this));
-        hud.addPanel(new SquadOverviewPanel(this));
+        hud.addPanel(new TaskForceStatusPanel(this));
         hud.addPanel(new SquadDetailPanel(this));
-        // Per-squad GOAP plan readout. Compact when nothing is selected; full
-        // plan + predicate grid when WorldPicker (or the Overview rows) put a
-        // squad id into Selection.
+        // Per-squad GOAP plan readout. It has no all-squad overview: the
+        // diagnostic opens only while WorldPicker has a squad in Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
         // Per-phase tick wall-time profile (top-left). DevConfig-gated; informs
         // the upcoming DoD / ECS refactor by showing which tick phases are

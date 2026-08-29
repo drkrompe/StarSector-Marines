@@ -27,8 +27,8 @@ import java.util.List;
  * role badge for non-combatant slots (PLANTER / KIT_RETRIEVER / VIP).
  *
  * <p>Header carries a small back chip on the left ({@code "<- BACK"}) that
- * clears the selection and routes the HUD back to {@link SquadOverviewPanel}.
- * The same dock slot as the overview, so visibility is keyed off
+ * clears the selection and routes the HUD back to {@link TaskForceStatusPanel}.
+ * The same dock slot as the force plate, so visibility is keyed off
  * {@link Selection#hasSquadSelection()}.
  */
 public final class SquadDetailPanel implements HudPanel {
@@ -180,7 +180,7 @@ public final class SquadDetailPanel implements HudPanel {
         HudDraw.filledRect(x0, y0, w, h, BG, alphaMult);
         HudDraw.borderRect(x0, y0, w, h, BORDER, alphaMult);
 
-        // Header: back chip + "SQUAD N · alive/peak"
+        // Header: back chip + frozen campaign label (numeric fallback) + alive/peak.
         float headerY = y0 + h - HEADER_H;
         float bx = x0 + PAD_INNER;
         float by = headerY + (HEADER_H - BACK_H) * 0.5f;
@@ -188,7 +188,10 @@ public final class SquadDetailPanel implements HudPanel {
         HudDraw.borderRect(bx, by, BACK_W, BACK_H, BORDER, alphaMult);
         Fonts.ORBITRON_20.drawString("< BACK", bx + 6f, by + BACK_H - 4f, HEADER_FG, alphaMult);
 
-        String title = "SQUAD " + currentSquad.id
+        String squadLabel = currentSquad.campaignLabel != null
+                && !currentSquad.campaignLabel.isBlank()
+                ? currentSquad.campaignLabel : "SQUAD " + currentSquad.id;
+        String title = squadLabel
                 + "   " + currentSquad.aliveMembers
                 + "/" + Math.max(currentSquad.aliveMembers, currentSquad.originalSize);
         Fonts.ORBITRON_20.drawString(title, bx + BACK_W + 12f, headerY + HEADER_H - 8f, HEADER_FG, alphaMult);
