@@ -1,0 +1,135 @@
+package com.dillon.starsectormarines.ops;
+
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ui.retained.UiAlign;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiViewport;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.input.InputEventAPI;
+import com.fs.starfarer.api.ui.PositionAPI;
+
+import java.util.List;
+import java.util.function.Consumer;
+
+/** Host bridge for the MLX-authored battle time and capture overlay. */
+final class BattleHudOverlay {
+
+    static final String COMPONENT = "battle-hud-overlay";
+    static final String COMPONENT_PATH =
+            "data/ui/components/battle/battle-hud-overlay.mlx";
+    static final float DOCUMENT_WIDTH = 316f;
+    static final float TIME_ONLY_HEIGHT = 42f;
+    static final float OBJECTIVE_HEIGHT = 164f;
+    private static final float EDGE_INSET = 12f;
+
+    private final Reactor reactor = new Reactor();
+    private final MarkupLoader markup = new MarkupLoader(
+            path -> Global.getSettings().loadText(path), List.of(COMPONENT_PATH));
+    private final BattleHudOverlayModel model;
+
+    private PositionAPI position;
+    private UiViewport viewport;
+    private UiDocument document;
+    private MarkupInstance markupInstance;
+    private StarsectorUiInputAdapter input;
+    private boolean objectivesVisible;
+
+    BattleHudOverlay(Consumer<Float> speedSetter) {
+        model = new BattleHudOverlayModel(reactor, speedSetter,
+                Strings.get("battleSpeedPause"), Strings.get("battleSpeed1x"),
+                Strings.get("battleSpeed2x"), Strings.get("battleSpeed4x"));
+    }
+
+    void attach(PositionAPI nextPosition, BattleSimulation sim, float speedMultiplier) {
+        position = nextPosition;
+        objectivesVisible = hasObjectives(sim);
+        viewport = viewport(nextPosition, objectivesVisible);
+        if (document == null) installDocument();
+        else document.layout(viewport.documentWidth(), viewport.documentHeight());
+        input = new StarsectorUiInputAdapter(document, viewport);
+        update(0f, sim, speedMultiplier);
+    }
+
+    private void installDocument() {
+        MarkupInstance candidate = markup.reloadAndBuild(
+                reactor, COMPONENT, model.props());
+        UiDocument built;
+        try {
+            requireWiredElements(candidate);
+            wireLayout(candidate);
+            built = new UiDocument(candidate.root());
+            for (var style : candidate.styles()) built.addStyleSheet(style);
+            built.theme(MarineOpsThemes.standard());
+            built.layout(viewport.documentWidth(), viewport.documentHeight());
+        } catch (RuntimeException failure) {
+            candidate.close();
+            throw failure;
+        }
+        document = built;
+        markupInstance = candidate;
+    }
+
+    private static void requireWiredElements(MarkupInstance instance) {
+        for (String id : List.of(
+                "battle-hud-overlay", "battle-time-control", "battle-time-pause",
+                "battle-time-normal", "battle-time-double", "battle-time-quad",
+                "battle-objectives", "battle-objective-chips",
+                "battle-objective-score", "battle-objective-tally",
+                "battle-objective-focus", "battle-objective-progress-fill")) {
+            instance.requireElement(id);
+        }
+    }
+
+    /** CSS has no item-alignment property yet; keep the progress fill left-anchored. */
+    static void wireLayout(MarkupInstance instance) {
+        instance.requireElement("battle-objective-progress-fill")
+                .align(UiAlign.START, UiAlign.STRETCH);
+    }
+
+    void update(float realDt, BattleSimulation sim, float speedMultiplier) {
+        boolean nextVisible = model.update(speedMultiplier,
+                sim == null ? List.of() : sim.getCompoundService().getRecords());
+        if (nextVisible != objectivesVisible && position != null) {
+            objectivesVisible = nextVisible;
+            viewport = viewport(position, objectivesVisible);
+            document.layout(viewport.documentWidth(), viewport.documentHeight());
+            input = new StarsectorUiInputAdapter(document, viewport);
+        }
+        if (markupInstance != null) markupInstance.flush();
+        if (document != null) document.advance(realDt);
+    }
+
+    void render(float alphaMult) {
+        if (document != null && viewport != null) document.render(viewport, alphaMult);
+    }
+
+    void processInput(List<InputEventAPI> events) {
+        if (input != null) input.process(events);
+    }
+
+    void detach() {
+        if (document != null) document.deactivateInput();
+        input = null;
+    }
+
+    static UiViewport viewport(PositionAPI position, boolean objectivesVisible) {
+        UiViewport host = MarineOpsUiViewport.from(position);
+        float scale = host.documentScale();
+        float documentHeight = objectivesVisible ? OBJECTIVE_HEIGHT : TIME_ONLY_HEIGHT;
+        float physicalWidth = DOCUMENT_WIDTH * scale;
+        float physicalHeight = documentHeight * scale;
+        return new UiViewport(
+                position.getX() + position.getWidth() - EDGE_INSET - physicalWidth,
+                position.getY() + position.getHeight() - EDGE_INSET - physicalHeight,
+                physicalWidth, physicalHeight, scale);
+    }
+
+    private static boolean hasObjectives(BattleSimulation sim) {
+        return sim != null && !sim.getCompoundService().getRecords().isEmpty();
+    }
+}
