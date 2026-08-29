@@ -98,7 +98,7 @@ class AirbaseLotTest {
     void everyBerthIsClearAndReachableFromOutside(AirbaseLot.Size size, AirbaseLot.Facing facing) {
         Lot lot = author(size, facing);
         List<LandingPad> berths = berths(lot);
-        assertEquals(size == AirbaseLot.Size.FIELD ? 3 : 2, berths.size(),
+        assertEquals(size.pads(), berths.size(),
                 size + " " + facing + ": the berths this size carries");
 
         boolean[][] reached = flood(lot.grid(), 0, 0);
@@ -199,9 +199,15 @@ class AirbaseLotTest {
                 else posts++;
             }
         }
-        assertTrue(posts > open * 4, size + " " + facing + ": the perimeter should be mostly fence — "
-                + posts + " posts against " + open + " open cells");
-        assertTrue(open >= 4, size + " " + facing + ": a fence with no gate makes the lot a pocket");
+        // The only openings a fence is allowed are its gates: one per side, and
+        // no wider than a gate. Stated as a bound rather than a ratio, because a
+        // ratio that holds on a forty-cell frontage says nothing on a
+        // fourteen-cell one — the same four gates are a much larger share of it.
+        assertTrue(open <= AirbaseLot.gatedSides() * AirbaseLot.gateWidth(),
+                size + " " + facing + ": " + open + " cells of the perimeter stand open,"
+                        + " which is more than its gates");
+        assertTrue(open >= AirbaseLot.gateWidth(),
+                size + " " + facing + ": a fence with no gate makes the lot a pocket");
     }
 
     /**
@@ -248,7 +254,7 @@ class AirbaseLotTest {
     @MethodSource("shapes")
     void theFenceKeepsItsClearanceUntouched(AirbaseLot.Size size, AirbaseLot.Facing facing) {
         Lot lot = author(size, facing);
-        for (int ring = 1; ring <= AirbaseLot.CLEARANCE; ring++) {
+        for (int ring = 1; ring <= size.clearance(); ring++) {
             for (int x = lot.left() - ring; x <= lot.right() + ring; x++) {
                 for (int y = lot.bottom() - ring; y <= lot.top() + ring; y++) {
                     boolean onRing = x == lot.left() - ring || x == lot.right() + ring
