@@ -165,6 +165,45 @@ public final class InfantryUnitPrep {
         if (sec.activation() == SpecialActivation.CLOSE_CONTACT) {
             return CloseContactTactics.tryCommit(unit, sec, sim);
         }
+        return tryHardenedDirectFire(unit, sec, sim);
+    }
+
+    /**
+     * The hardened-target half of {@link #tryOpportunitySpecial}, reachable on
+     * its own so a move-only coordinated role can still answer a turret.
+     *
+     * <p>An advancing squad suppresses ordinary opportunity fire because a
+     * passing shot must not divert the moving half of a bound. A rocket at an
+     * emplacement is the opposite case: the emplacement is the reason the
+     * advance is in trouble, and the marine carrying the only weapon that
+     * meaningfully hurts it is the one being told to hold his fire. Splitting
+     * the scan out lets {@link com.dillon.starsectormarines.battle.decision.goap.Action#permitsOpportunityFire}
+     * keep its narrow meaning while this stays available underneath it.
+     *
+     * <p>Deliberately excludes the satchel, frag, deployable, and close-contact
+     * policies: each of those either freezes the carrier to plant something or
+     * spends a squad resource, which is a diversion in a way a direct-fire shot
+     * is not.
+     */
+    public static boolean tryHardenedOpportunity(long unit, BattleControl sim) {
+        if (!sim.world().hasSecondaryWeapon(unit)) return false;
+        if (sim.world().secondaryCooldownTimer(unit) > 0f) return false;
+        if (sim.world().secondaryActionTimer(unit) > 0f) return false;
+
+        SpecialEquipmentDef sec = sim.world().specialEquipment(unit);
+        if (!sec.hasAvailableUse(sim.world().secondaryAmmo(unit))) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.SQUAD_SMOKE_SCREEN) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) return false;
+        if (sec.activation() == SpecialActivation.CLOSE_CONTACT) return false;
+        return tryHardenedDirectFire(unit, sec, sim);
+    }
+
+    private static boolean tryHardenedDirectFire(long unit, SpecialEquipmentDef sec,
+                                                 BattleControl sim) {
+        long id = unit;
         float range = sec.range();
         // Hardened-target scan: any MapTurret, drone hub, or HEAVY_MECH in
         // special range with LoS that the squad-coordination gate doesn't
