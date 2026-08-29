@@ -111,6 +111,19 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final List<Gantry> gantries;
     private final List<FixtureTask> fixtureTasks;
     private final boolean[] occupiedBerths;
+    /**
+     * Watch bills already drawn up, by compartment and role.
+     *
+     * <p>Drawing one up reads every compartment on the deck and every fixture
+     * task on it, and publishes the jobs it finds to the board. Manning a ship
+     * hires one hand at a time and goes round every posting until the bunks run
+     * out, so a capital drew each of its bills several hundred times over — the
+     * larger half of the half-minute it took to open her.
+     *
+     * <p>Cleared when a berth is filled, because what a bay has to offer
+     * depends on whether there is a machine standing in it.
+     */
+    private final Map<String, Shift> watchBills = new HashMap<>();
     private final DeckGraph rooms;
     /**
      * Range targets already spawned, by the cell of butts they stand in. One
@@ -266,6 +279,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             machines[index] = mech;
             occupiedBerths[index] = true;
         }
+        watchBills.clear();
         simulation.getFogOfWar().tick(0, simulation.getRoster());
         return machines;
     }
@@ -294,9 +308,11 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         // yielding to any combatant means yielding to the mech they are welding
         // - so the crew of a home deck would flee their own bay and stand around
         // the edges of it forever.
-        return hire(compartment, role, watch,
+        long[] hands = hire(compartment, role, watch,
                 (billet, shift, cellX, cellY) -> new EntitySpec(
                         shift.id(), Faction.MARINE, role.unit(), cellX, cellY));
+        readyHands();
+        return hands;
     }
 
     /**
@@ -333,6 +349,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         List<MarineSoldier> roll = company == null ? List.of() : company;
         long[] mustered = hire(berthing, CrewRole.MARINE, roll.size(),
                 (billet, shift, cellX, cellY) -> specFor(roll.get(billet), cellX, cellY));
+        readyHands();
         billets.put(billet(berthing, CrewRole.MARINE), Integer.MAX_VALUE);
         long[] bySoldier = new long[roll.size()];
         System.arraycopy(mustered, 0, bySoldier, 0, mustered.length);
@@ -369,11 +386,24 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         }
         billets.put(billet, filled + hired.size());
         this.hired.merge(role.quarters(), hired.size(), Integer::sum);
-        simulation.ambientTasks().settle();
-        simulation.getFogOfWar().tick(0, simulation.getRoster());
         long[] actors = new long[hired.size()];
         for (int index = 0; index < actors.length; index++) actors[index] = hired.get(index);
         return actors;
+    }
+
+    /**
+     * Put everybody aboard at their first stop and let them see the ship.
+     *
+     * <p>Both passes are over the whole complement, so this is done once a
+     * crewing is finished rather than once per hand taken on. Manning a deck
+     * hires one at a time and goes round the postings until the bunks run out —
+     * settling the entire roster after each of those was quadratic in the
+     * complement, and cost half a minute on a capital: three quarters of what
+     * it took to open the ship at all, and none of it work.
+     */
+    private void readyHands() {
+        simulation.ambientTasks().settle();
+        simulation.getFogOfWar().tick(0, simulation.getRoster());
     }
 
     private static String billet(DeckGraph.Compartment compartment, CrewRole role) {
@@ -472,12 +502,15 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 int budget = berths.computeIfAbsent(posting.role().quarters(),
                         this::bunksIn) - hired.getOrDefault(posting.role().quarters(), 0);
                 if (budget <= 0) continue;
-                long[] hand = staff(posting.room(), posting.role(), 1);
+                long[] hand = hire(posting.room(), posting.role(), 1,
+                        (billet, shift, cellX, cellY) -> new EntitySpec(shift.id(),
+                                Faction.MARINE, posting.role().unit(), cellX, cellY));
                 if (hand.length == 0) continue;
                 aboard.add(hand[0]);
                 progressed = true;
             }
         }
+        readyHands();
         long[] crew = new long[aboard.size()];
         for (int index = 0; index < crew.length; index++) crew[index] = aboard.get(index);
         return crew;
@@ -534,6 +567,12 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     public Shift watchBill(DeckGraph.Compartment compartment, CrewRole role) {
         if (compartment == null) throw new IllegalArgumentException("a compartment is required");
         if (role == null) throw new IllegalArgumentException("a role is required");
+        return watchBills.computeIfAbsent(billet(compartment, role),
+                key -> drawUp(compartment, role));
+    }
+
+    /** @see #watchBills */
+    private Shift drawUp(DeckGraph.Compartment compartment, CrewRole role) {
         Shift bill = Shift.postedAt(role, compartment,
                 rooms == null ? null : rooms.compartments(),
                 fixtureTasks, occupiedBerths, AmbientThreatPolicy.HOSTILE_COMBATANT);
