@@ -252,6 +252,15 @@ derived by script rather than exported from a document are in the second
 category, and the listing says so rather than offering an edit that leads
 nowhere.
 
+A cut is correctable one piece at a time. Slicing and splitting are mechanical
+and are right for most of a sheet, and the exceptions are individual: a prop
+keyed together with its own contact shadow, a cell whose seam lies off the line
+through its neighbours. Re-running either to correct one of those moves every
+piece, so a sheet with one bad rectangle would be left carrying it. Moving a
+single rectangle changes only where that piece's picture is cut from — its id,
+footprint, block membership and annotation are not in question — and it is a
+correction to the *cut*, never to the art.
+
 These properties of that pass are part of the model rather than of the tool:
 
 - **A piece is a doodad or one cell of a block.** Facing is not a property of a
