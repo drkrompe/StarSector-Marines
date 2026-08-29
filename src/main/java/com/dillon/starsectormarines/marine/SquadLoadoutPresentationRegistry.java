@@ -62,8 +62,8 @@ public final class SquadLoadoutPresentationRegistry {
         for (SquadWeaponDoctrine doctrine : SquadEquipmentDoctrines.weaponDoctrines()) {
             requireKind(doctrine.id(), SquadLoadoutPresentationDef.Kind.WEAPON);
         }
-        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
-            requireKind(doctrine.id(), SquadLoadoutPresentationDef.Kind.ARMOR);
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            requireKind(plan.id(), SquadLoadoutPresentationDef.Kind.ARMOR);
         }
     }
 

@@ -47,7 +47,7 @@ public enum DebugCompanyStage {
      * reported to need.
      */
     REINFORCED("Reinforced", 17, 3 * MechSupport.LANCE_SIZE,
-            Rank.LT_COLONEL, DebugBilletPlan.SEASONED),
+            Rank.LT_COLONEL, DebugBilletPlan.HARDENED),
 
     /**
      * Everything the company has — thirty-four squads, four hundred and eight

@@ -120,11 +120,28 @@ public final class MarineArmory implements Serializable {
         result.addAll(customWeaponDoctrines);
         return Collections.unmodifiableList(result);
     }
+    /**
+     * The built-in plans issued from what this armoury owns, plus any custom
+     * doctrines authored by hand.
+     *
+     * <p>A plan names roles rather than patterns, so this is where "the standard
+     * section" becomes twelve concrete suits — the best owned for each billet's
+     * job. Two companies running the same plan therefore field the same section
+     * in different kit, which is the whole point of separating the two
+     * ({@code role-and-access.md}).
+     */
     public List<SquadArmorDoctrine> armorDoctrines() {
-        List<SquadArmorDoctrine> result = new ArrayList<>(
-                SquadEquipmentDoctrines.armorDoctrines());
+        List<SquadArmorDoctrine> result = new ArrayList<>();
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            result.add(issue(plan));
+        }
         result.addAll(customArmorDoctrines);
         return Collections.unmodifiableList(result);
+    }
+
+    /** Issues one plan from this armoury's own stock. */
+    public SquadArmorDoctrine issue(SquadArmorPlan plan) {
+        return ArmorIssueResolver.resolve(plan, pattern -> ownsArmorTemplate(pattern.id()));
     }
     public SquadWeaponDoctrine weaponDoctrineById(String id) {
         SquadWeaponDoctrine builtIn = SquadEquipmentDoctrines.weaponById(id);
@@ -136,8 +153,8 @@ public final class MarineArmory implements Serializable {
         return null;
     }
     public SquadArmorDoctrine armorDoctrineById(String id) {
-        SquadArmorDoctrine builtIn = SquadEquipmentDoctrines.armorById(id);
-        if (builtIn != null) return builtIn;
+        SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(id);
+        if (plan != null) return issue(plan);
         if (id == null) return null;
         for (SquadArmorDoctrine doctrine : customArmorDoctrines) {
             if (doctrine != null && id.equals(doctrine.id())) return doctrine;
@@ -527,7 +544,7 @@ public final class MarineArmory implements Serializable {
         customWeaponDoctrines.removeIf(doctrine -> doctrine == null
                 || SquadEquipmentDoctrines.weaponById(doctrine.id()) != null);
         customArmorDoctrines.removeIf(doctrine -> doctrine == null
-                || SquadEquipmentDoctrines.armorById(doctrine.id()) != null);
+                || SquadEquipmentDoctrines.armorPlanById(doctrine.id()) != null);
         migrateLegacyPrimaryKeys();
         migrateLegacySecondaryKeys();
         migrateLegacyTemplateOwnership();

@@ -87,8 +87,12 @@ class FleetArmoryViewModelTest {
         assertTrue(firstLoadout.description().length() > 120);
         assertTrue(viewModel.weaponDoctrineTiles().get().size()
                 < roster.armory().weaponDoctrines().size());
-        assertTrue(viewModel.armorDoctrineTiles().get().size()
-                < roster.armory().armorDoctrines().size());
+        // Every armour plan is always issuable: it names roles and the armoury
+        // fills them from whatever is owned, so there is no such thing as an
+        // unaffordable composition. Weapons still gate, which is why the
+        // assertion above it is still a strict inequality.
+        assertEquals(roster.armory().armorDoctrines().size(),
+                viewModel.armorDoctrineTiles().get().size());
         viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.RARE).run();
         assertEquals(FleetArmoryViewModel.LoadoutFilter.RARE, viewModel.loadoutFilter());
         assertTrue(viewModel.weaponDoctrineTiles().get().stream()
