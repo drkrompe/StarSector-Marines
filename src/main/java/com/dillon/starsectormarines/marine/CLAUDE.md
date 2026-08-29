@@ -49,12 +49,17 @@ rollup. `MarineSquad` holds one weapon doctrine id and one armor doctrine id;
 `MarineRoster.applySquadEquipment` changes both only after the complete
 twelve-billet template and cargo transaction succeeds. It prices changed incoming
 kit, never refunds removed kit, and spends nothing until the full issue can commit.
-`MarineArmory` persists custom Weapon and Armor definition catalogs while built-ins
+`MarineArmory` persists a custom **weapon** definition catalog while built-ins
 remain immutable fixtures; authoring consumes nothing but may reference only
-collected templates. Legacy per-team template ids remain
-save input only: `MarineRoster.readResolve` composes complete legacy intent into
-deterministic custom definitions without changing kits, and the first successful
-squad issue clears those ids. The current per-soldier kit remains the materialized
+collected templates. **There is no custom armour catalog and nothing should add
+one back.** An armour doctrine id always names a `SquadArmorPlan`, and
+`armorDoctrineById` resolves it through `ArmorIssueResolver` against what the
+armoury owns — a stored twelve is frozen kit, which is the artifact the plan model
+exists to remove. Legacy per-team template ids remain save input only:
+`MarineRoster.readResolve` composes complete legacy weapon intent into a
+deterministic custom definition without changing kits, assigns the starter tactic
+sheet rather than preserving the card's twelve concrete patterns, and the first
+successful squad issue clears those ids. The current per-soldier kit remains the materialized
 state consumed by deployment and battle.
 
 Built-in starter definitions are exact distributions, not best-fit suggestions.

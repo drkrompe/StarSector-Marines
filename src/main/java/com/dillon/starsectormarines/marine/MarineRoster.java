@@ -380,11 +380,6 @@ public class MarineRoster implements Serializable {
                 && armory.deleteWeaponDoctrine(doctrineId);
     }
 
-    public boolean deleteArmorDoctrine(String doctrineId) {
-        return !isArmorDoctrineAssigned(doctrineId)
-                && armory.deleteArmorDoctrine(doctrineId);
-    }
-
     public List<MarineSoldier> soldiers() {
         return Collections.unmodifiableList(soldiers);
     }
@@ -1316,7 +1311,6 @@ public class MarineRoster implements Serializable {
             if (squad == null || squad.reserve()
                     || squad.weaponDoctrineId() != null || squad.armorDoctrineId() != null) continue;
             List<SquadWeaponIssue> weapons = new ArrayList<>();
-            List<MarineArmorPattern> armor = new ArrayList<>();
             boolean complete = true;
             for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
                 FireTeamTemplateCard card = armory.templateCardById(
@@ -1329,18 +1323,19 @@ public class MarineRoster implements Serializable {
                     weapons.add(new SquadWeaponIssue(
                             billet.name(), billet.primaryId(), billet.grade(),
                             billet.specialEquipmentId()));
-                    armor.add(billet.armor() != null
-                            ? billet.armor() : MarineArmorPattern.ARMORLESS);
                 }
             }
             if (!complete || weapons.size() != MarineSquad.CAPACITY) continue;
             String weaponId = "migrated:weapons:" + squad.id();
-            String armorId = "migrated:armor:" + squad.id();
             armory.ensureWeaponDoctrine(weaponId,
                     squad.name() + " Legacy Weapon Issue", weapons);
-            armory.ensureArmorDoctrine(armorId,
-                    squad.name() + " Legacy Armor Issue", armor);
-            squad.migrateEquipmentDoctrineIds(weaponId, armorId);
+            // The legacy card's twelve concrete patterns are deliberately
+            // dropped rather than preserved as a doctrine. Armour is a plan
+            // now, and a frozen twelve is the artifact the plan model exists to
+            // remove; the squad picks up the starter sheet and re-resolves from
+            // whatever the company actually owns ({@code role-and-access.md}).
+            squad.migrateEquipmentDoctrineIds(
+                    weaponId, SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
         }
     }
 

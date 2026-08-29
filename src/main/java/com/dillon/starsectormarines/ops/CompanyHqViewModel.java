@@ -49,6 +49,7 @@ final class CompanyHqViewModel {
 
     static CompanyHqViewModel current(
             Function<RoomPurpose, MarineOpsPageNav.Aboard> aboard,
+            boolean shipGettingReady,
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
@@ -63,7 +64,8 @@ final class CompanyHqViewModel {
         CampaignState state = script != null ? script.state() : null;
         List<CompanyNews.Entry> news = CompanyNews.latest(
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
-        return build(standing, clocks, news, day, aboard, openBarracks, openArmory,
+        return build(standing, clocks, news, day, aboard, shipGettingReady,
+                openBarracks, openArmory,
                 openMechLab, openShipTransfer, openShipView, close, respond);
     }
 
@@ -73,6 +75,7 @@ final class CompanyHqViewModel {
             List<CompanyNews.Entry> news,
             int day,
             Function<RoomPurpose, MarineOpsPageNav.Aboard> aboard,
+            boolean shipGettingReady,
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
@@ -125,6 +128,7 @@ final class CompanyHqViewModel {
         props.put("shipAction", openShipTransfer);
         props.put("shipLabel", shipLabel());
         props.put("shipViewAction", openShipView);
+        putShipView(props, shipGettingReady);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, aboard, close,
                 () -> { }, openBarracks, openArmory, openMechLab);
         return new CompanyHqViewModel(props);
@@ -148,6 +152,45 @@ final class CompanyHqViewModel {
                 + "  ·  CHANGE SHIP";
     }
 
+    /**
+     * How the way aboard reads while her deck is still being laid out.
+     *
+     * <p>The one route to the whole ship, and the only one on this page that is
+     * not a navigation button. It says what is happening rather than going
+     * quiet: a tile that looked ordinary and did nothing would read as a
+     * broken button, and the wait is a real thing the shell is doing.
+     *
+     * <p>The action stays wired, because she stops being got ready. These
+     * properties are read once when the page is built, and routing is what
+     * refuses the trip until she is ready — so the tile corrects itself even
+     * if nothing rebuilds it.
+     */
+    static void putShipView(Map<String, Object> props, boolean gettingReady) {
+        props.put("shipViewLabel", gettingReady ? "GETTING HER READY" : "WALK THE SHIP");
+        props.put("shipViewClasses",
+                gettingReady ? "hq-ship-button hq-ship-waiting" : "hq-ship-button");
+        // The wording is on the label and so is its colour: a class on the
+        // button around it does not reach the text inside.
+        props.put("shipViewLabelClasses", "label heading hq-ship-label"
+                + (gettingReady ? " hq-ship-waiting-label" : ""));
+    }
+
+    /**
+     * The same page as {@link #preview()} with the ship still being laid out.
+     *
+     * <p>Evidence for the one state nothing else can show: the rooms aboard
+     * her read as pending rather than absent, and the way aboard says what it
+     * is waiting for. A style with nothing rendering it is a style that rots.
+     */
+    static CompanyHqViewModel gettingReadyPreview() {
+        Map<String, Object> props = preview().props();
+        putShipView(props, true);
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
+                purpose -> MarineOpsPageNav.Aboard.UNKNOWN,
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+        return new CompanyHqViewModel(props);
+    }
+
     /** Rich deterministic fixture used by the retained UI evidence suite. */
     static CompanyHqViewModel preview() {
         Map<String, Object> props = new LinkedHashMap<>();
@@ -155,6 +198,7 @@ final class CompanyHqViewModel {
         props.put("shipAction", (Runnable) () -> { });
         props.put("shipLabel", "VALKYRIE  ·  CHANGE SHIP");
         props.put("shipViewAction", (Runnable) () -> { });
+        putShipView(props, false);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         props.put("assessmentHeader", "BRIDGE ADJUTANT  //  DAILY ASSESSMENT");

@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -149,11 +150,16 @@ class SubmodEquipmentContributionTest {
             assertTrue(ShotFx.of(shot).body() instanceof ShotFx.Sprite);
 
             MarineRoster playerRoster = playerCanLearnAuthorIssueAndDeployContributedKit();
+            // Weapons are authored per billet, so the contributed rifle and
+            // special land on billet one by construction. Armour is issued by
+            // role, so which billet wears the contributed suit is the sheet's
+            // decision and the test follows it rather than assuming.
+            int ceramicBillet = billetWearing(playerRoster, "example.armor-ceramic");
             MarineRoster persisted = roundTrip(playerRoster);
             assertEquals("example.weapon-needle-rifle",
                     persisted.activeSoldiers().get(0).primaryId());
             assertEquals("example.armor-ceramic",
-                    persisted.activeSoldiers().get(0).armorId());
+                    persisted.activeSoldiers().get(ceramicBillet).armorId());
             assertEquals("example.special-signal-smoke",
                     persisted.activeSoldiers().get(0).specialEquipmentId());
 
@@ -165,7 +171,8 @@ class SubmodEquipmentContributionTest {
             FactionEquipmentCatalog.install(oldFactionEquipment);
             MarineRoster repaired = deserialize(providerSave);
             assertEquals("weapon.field-rifle", repaired.activeSoldiers().get(0).primaryId());
-            assertEquals("armor.field-fatigues", repaired.activeSoldiers().get(0).armorId());
+            assertEquals("armor.field-fatigues",
+                    repaired.activeSoldiers().get(ceramicBillet).armorId());
             assertNull(repaired.activeSoldiers().get(0).specialEquipmentId());
 
             WeaponRegistry.install(weapons);
@@ -194,7 +201,7 @@ class SubmodEquipmentContributionTest {
         assertTrue(roster.armory().acquireEquipmentTemplate(specialTemplate));
 
         EquipmentDoctrineDesignerViewModel designer = new EquipmentDoctrineDesignerViewModel(
-                new Reactor(), roster, null, null, null);
+                new Reactor(), roster, null, null);
         for (int attempt = 0; attempt < 20
                 && !"example.weapon-needle-rifle".equals(
                 designer.viewerBilletAt(0).primaryId()); attempt++) {
@@ -217,19 +224,11 @@ class SubmodEquipmentContributionTest {
                 .filter(doctrine -> "OC Needle Issue".equals(doctrine.displayName()))
                 .findFirst().orElseThrow();
 
-        designer.showArmor().run();
-        for (int attempt = 0; attempt < 20
-                && !"example.armor-ceramic".equals(
-                designer.viewerBilletAt(0).armorId()); attempt++) {
-            designer.billets().get().get(0).cyclePrimary().run();
-        }
-        assertEquals("example.armor-ceramic", designer.viewerBilletAt(0).armorId(),
-                "a learned contributed armor must appear in the doctrine picker");
-        designer.newDraft().run();
-        designer.editName().accept("OC Ceramic Issue");
-        designer.saveAsNew().run();
+        // Armour is issued by plan rather than authored a billet at a time,
+        // so a contributed pattern proves itself by being reachable through a
+        // sheet the company can field, not by appearing in a picker.
         SquadArmorDoctrine armor = roster.armory().armorDoctrines().stream()
-                .filter(doctrine -> "OC Ceramic Issue".equals(doctrine.displayName()))
+                .filter(doctrine -> doctrine.issueIds().contains("example.armor-ceramic"))
                 .findFirst().orElseThrow();
         MarineSquad squad = roster.squads().stream()
                 .filter(candidate -> !candidate.reserve()).findFirst().orElseThrow();
@@ -245,16 +244,35 @@ class SubmodEquipmentContributionTest {
         MarineSoldier issued = roster.squadMembers(squad).get(0);
         assertEquals("example.weapon-needle-rifle", issued.primaryId());
         assertTrue(issued.primaryDef() != null);
-        assertEquals("example.armor-ceramic", issued.armorId());
-        assertNull(issued.armor(), "custom player armor must not require an enum constant");
         assertEquals("example.special-signal-smoke", issued.specialEquipmentId());
         assertTrue(issued.specialEquipmentDef() != null);
+
+        // Which billet wears the contributed suit is the sheet's business: it
+        // fills each role from the best owned pattern for that job, so the test
+        // asks whether the pattern reached the field rather than whether it
+        // reached billet one.
+        MarineSoldier wearing = roster.squadMembers(squad).stream()
+                .filter(member -> "example.armor-ceramic".equals(member.armorId()))
+                .findFirst().orElseThrow(() -> new AssertionError(
+                        "no billet wears the contributed armour: "
+                                + roster.squadMembers(squad).stream()
+                                .map(MarineSoldier::armorId).toList()));
+        assertNull(wearing.armor(), "custom player armor must not require an enum constant");
 
         MarineLoadout deployed = CampaignMarineDeployment.freeze(roster, 1).seat(0);
         assertEquals("example.weapon-needle-rifle", deployed.primaryDef().id);
         assertEquals("example.special-signal-smoke", deployed.specialDef().id());
-        assertEquals("ARMY_GREEN", deployed.armorFamily.name());
         return roster;
+    }
+
+    /** Which active billet the sheet put the named pattern on. */
+    private static int billetWearing(MarineRoster roster, String armorId) {
+        List<MarineSoldier> active = roster.activeSoldiers();
+        for (int index = 0; index < active.size(); index++) {
+            if (armorId.equals(active.get(index).armorId())) return index;
+        }
+        throw new AssertionError("no active billet wears " + armorId + ": "
+                + active.stream().map(MarineSoldier::armorId).toList());
     }
 
     private static MarineRoster roundTrip(MarineRoster roster) throws Exception {
@@ -309,6 +327,12 @@ class SubmodEquipmentContributionTest {
         if (armor == null) throw new IllegalStateException("Missing core armor.line fixture");
         armor.put("id", "example.armor-ceramic");
         armor.getJSONObject("catalog").put("displayName", "Example ceramic armor");
+        // Tri-Tachyon has no LINE pattern of its own, so a contributed one is
+        // the only candidate for that role in a corporate tactic sheet. Cloning
+        // a Hegemony line suit instead left the contribution permanently
+        // shadowed by the core pattern it copied, which proves nothing about
+        // whether a submod can add armour ({@code role-and-access.md}).
+        armor.getJSONObject("catalog").put("tradition", "tritachyon");
         return new JSONObject().put("armor", new JSONArray().put(armor));
     }
 

@@ -198,8 +198,6 @@ public final class FleetArmoryScreen implements Screen {
             props.put("teamTabs", designerViewModel.teamTabs());
             props.put("billets", designerViewModel.billets());
             props.put("feedback", designerViewModel.feedback());
-            props.put("showWeapons", designerViewModel.showWeapons());
-            props.put("showArmor", designerViewModel.showArmor());
             props.put("newDraft", designerViewModel.newDraft());
             props.put("cloneSelected", designerViewModel.cloneSelected());
             props.put("saveAsNew", designerViewModel.saveAsNew());
@@ -276,7 +274,7 @@ public final class FleetArmoryScreen implements Screen {
     private void showDesigner() {
         designerViewModel = new EquipmentDoctrineDesignerViewModel(
                 reactor, roster, viewModel.selectedSquadId(),
-                viewModel.selectedWeaponDoctrineId(), viewModel.selectedArmorDoctrineId());
+                viewModel.selectedWeaponDoctrineId());
         view = View.DESIGNER;
         if (viewport != null) installDocument(false);
     }

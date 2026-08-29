@@ -470,18 +470,6 @@ public final class FleetArmoryViewModel {
                     armorCapabilities(issued),
                     () -> selectArmorDoctrine(plan.id())));
         }
-        for (SquadArmorDoctrine custom : roster.armory().customArmorDoctrines()) {
-            SquadLoadoutPresentationDef presentation = loadoutPresentation(
-                    custom.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
-                    maximumArmorTier(custom), custom.description());
-            if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
-            String id = "armor-doctrine:" + custom.id();
-            tiles.add(doctrineTile(id, custom.id().equals(selected),
-                    custom.displayName(), presentation, doctrineMetadata(presentation),
-                    "Hand-authored  ·  fixed patterns", armorDistribution(custom),
-                    armorCapabilities(custom),
-                    () -> selectArmorDoctrine(custom.id())));
-        }
         return List.copyOf(tiles);
     }
 
@@ -532,12 +520,16 @@ public final class FleetArmoryViewModel {
         return known;
     }
 
+    /**
+     * Every authored sheet, always. A sheet names roles and the armoury fills
+     * them from whatever is owned, so there is no such thing as one this company
+     * cannot field — the worst case is a role marked "(no kit)" on the section
+     * line and filled with line armour ({@code role-and-access.md}). Weapons
+     * still gate on collected cards, which is why the weapon count above it does
+     * real work and this one is a total.
+     */
     private int knownArmorLoadouts() {
-        int known = 0;
-        for (SquadArmorDoctrine doctrine : roster.armory().armorDoctrines()) {
-            if (roster.armory().canAuthorArmorDoctrineIds(doctrine.issueIds())) known++;
-        }
-        return known;
+        return roster.armory().armorDoctrines().size();
     }
 
     /**
