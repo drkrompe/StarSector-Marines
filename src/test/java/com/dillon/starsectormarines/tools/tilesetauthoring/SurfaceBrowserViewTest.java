@@ -124,8 +124,14 @@ public class SurfaceBrowserViewTest {
         view.setPurposes(SurfaceCatalog.scan(Paths.get("").toAbsolutePath()));
 
         assertTrue(view.select("WALL"), "WALL must be offered");
-        assertEquals(1, view.shownCandidateCount(),
-                "one block fills WALL today, and it should be listed");
+        // Not a census - how many walls the project has is content that moves.
+        // What matters is that picking a surface offers something and arms the
+        // handoff on the one actually being drawn.
+        assertTrue(view.shownCandidateCount() >= 1, "WALL must offer its candidates");
+        SurfaceCatalog.Candidate picked = view.selectedCandidate();
+        assertNotNull(picked, "the in-use candidate should come up selected");
+        assertEquals("urban.wall", picked.blockId(), "the wall in use is preselected");
+        assertTrue(picked.isEditable(), "and its sheet is the one the handoff opens");
 
         view.setSize(280, 460);
         layOut(view);

@@ -46,8 +46,12 @@ public class TileRegistryCellLabelTest {
         // exporting the three cells the game actually asks it for.
         GridBlockDef road = reg.block("road.road");
         assertNotNull(road, "urban-tileset-2 no longer defines road.road");
-        assertEquals("road-nw",
-                reg.cellLabel(road.sheetPath, road.originCol, road.originRow).name);
+        // A block member is labelled by its block and slot, which is what the
+        // exporter writes; the hand-written sheet's own name for the cell
+        // survives as the description beside it.
+        CellLabel roadNw = reg.cellLabel(road.sheetPath, road.originCol, road.originRow);
+        assertEquals("road.road nw", roadNw.name);
+        assertEquals("road-nw", roadNw.description);
 
         assertEquals("grass-1", firstCellLabel(reg, "floors.grass").name);
         assertEquals("water.water v1", firstCellLabel(reg, "water.water").name);
