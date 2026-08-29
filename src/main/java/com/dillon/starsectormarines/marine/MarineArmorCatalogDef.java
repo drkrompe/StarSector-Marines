@@ -4,11 +4,19 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/** Data-authored identity, presentation, appearance family, and combat values for infantry armor. */
+/**
+ * Data-authored identity, presentation, appearance family, and combat values for
+ * infantry armor.
+ *
+ * <p>{@link #role} is a closed vocabulary rather than the free display text it
+ * replaced. What a pattern is <em>for</em> has to be countable before the
+ * catalog's shape can be checked at all ({@code role-and-access.md}); a word
+ * only the Armory read could say anything, and did.
+ */
 public record MarineArmorCatalogDef(
         String id,
         String displayName,
-        String unitClass,
+        ArmorRole role,
         String description,
         int tier,
         String iconPath,
@@ -36,7 +44,7 @@ public record MarineArmorCatalogDef(
         return new MarineArmorCatalogDef(
                 id,
                 requireText(catalog, "displayName", id),
-                requireText(catalog, "unitClass", id),
+                ArmorRole.parse(catalog.optString("role", null), id),
                 requireText(catalog, "description", id),
                 tier,
                 requireText(catalog, "iconPath", id),

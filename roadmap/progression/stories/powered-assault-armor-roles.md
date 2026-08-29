@@ -9,7 +9,7 @@ perception contract.
 
 Written: 2026-08-24
 
-Updated: 2026-08-28 — shipped the Fleet Armory pattern comparison surface (`FleetArmoryViewModel.armorComparisonCards`, `armory-armor-comparison.mlx`) so every catalogued pattern reads side by side; explicit role/provenance data fields remain outstanding.
+Updated: 2026-08-29 — the closed armor-role vocabulary shipped as `ArmorRole` (UNPOWERED/RECON/LINE/ASSAULT/SUPPORT), replacing the free-text `unitClass`; provenance as data remains outstanding. See `role-and-access.md` for why the role axis is now load-bearing and what the catalog's shape still owes it.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`,
 and `faction-lore-nouns.md` before implementing this story.
