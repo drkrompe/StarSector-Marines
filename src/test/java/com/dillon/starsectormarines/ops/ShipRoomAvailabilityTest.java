@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -190,25 +191,63 @@ class ShipRoomAvailabilityTest {
 
     /**
      * The way to the whole ship is the one route on headquarters that is not a
-     * navigation button, so it carries the same three states itself.
+     * navigation button, so it carries the same states itself — and, being the
+     * only place the wait is described in words, it says which half of the work
+     * she is in and how long it has been.
      */
     @Test
-    void theWayAboardSaysWhenSheIsBeingGotReady() {
-        Map<String, Object> waiting = new LinkedHashMap<>();
-        CompanyHqViewModel.putShipView(waiting, true);
-        Map<String, Object> ready = new LinkedHashMap<>();
-        CompanyHqViewModel.putShipView(ready, false);
+    void theWayAboardSaysWhatSheIsDoing() {
+        CompanyHqViewModel.ShipView ready = CompanyHqViewModel.shipViewReady();
+        CompanyHqViewModel.ShipView laying = CompanyHqViewModel.shipViewWorking(
+                CompanyDeck.Work.LAYING_OUT, 4.2f);
+        CompanyHqViewModel.ShipView mustering = CompanyHqViewModel.shipViewWorking(
+                CompanyDeck.Work.MUSTERING, 9.6f);
 
-        assertEquals("GETTING HER READY", waiting.get("shipViewLabel"));
-        assertTrue(((String) waiting.get("shipViewClasses")).contains("hq-ship-waiting"));
-        assertTrue(((String) waiting.get("shipViewLabelClasses"))
-                        .contains("hq-ship-waiting-label"),
+        assertEquals("WALK THE SHIP", ready.label());
+        assertFalse(ready.classes().contains("waiting"),
+                "a ship that is ready was still shown as being got ready");
+        assertFalse(ready.labelClasses().contains("waiting"));
+
+        assertTrue(laying.label().startsWith("LAYING OUT HER DECK"), laying.label());
+        assertTrue(mustering.label().startsWith("MUSTERING HER WATCH"), mustering.label());
+        assertTrue(laying.classes().contains("hq-ship-waiting"));
+        assertTrue(laying.labelClasses().contains("hq-ship-waiting-label"),
                 "the wording dimmed with the tile but the text it is written in did not");
 
-        assertEquals("WALK THE SHIP", ready.get("shipViewLabel"));
-        assertFalse(((String) ready.get("shipViewClasses")).contains("waiting"),
-                "a ship that is ready was still shown as being got ready");
-        assertFalse(((String) ready.get("shipViewLabelClasses")).contains("waiting"));
+        // Whole seconds, so the wait reads as a count rather than a flicker.
+        assertTrue(laying.label().endsWith("4S"), laying.label());
+        assertTrue(mustering.label().endsWith("9S"), mustering.label());
+    }
+
+    /**
+     * The loader sweeps rather than filling to a percentage.
+     *
+     * <p>There is no honest percentage to show: half of laying a deck out is a
+     * circulation pass that runs until no further cut earns itself, so there is
+     * no total to count against. What the bar has to say is only that the work
+     * is alive — so what is pinned is that it moves, and that it keeps moving
+     * rather than parking at full.
+     */
+    @Test
+    void theLoaderSweepsRatherThanFillingUp() {
+        Set<String> widths = new LinkedHashSet<>();
+        for (int frame = 0; frame < 60; frame++) {
+            widths.add(CompanyHqViewModel.shipViewWorking(
+                    CompanyDeck.Work.LAYING_OUT, frame / 30f).fillStyle());
+        }
+
+        assertTrue(widths.size() > 8, "the loader barely moved across two seconds");
+        assertEquals("width: 0%;", CompanyHqViewModel.shipViewWorking(
+                        CompanyDeck.Work.LAYING_OUT, 0f).fillStyle(),
+                "the sweep does not start empty");
+        assertTrue(widths.contains("width: 0%;"),
+                "the sweep never returns, so a long wait ends up parked at full");
+
+        // A ready ship's track is a hole in the tile rather than an empty bar.
+        assertEquals("width: 0%;", CompanyHqViewModel.shipViewReady().fillStyle());
+        assertEquals("hq-ship-track-idle", CompanyHqViewModel.shipViewReady().trackClasses());
+        assertEquals("hq-ship-track", CompanyHqViewModel.shipViewWorking(
+                CompanyDeck.Work.LAYING_OUT, 1f).trackClasses());
     }
 
     /** What the shell asks of a ship whose deck is in hand. */

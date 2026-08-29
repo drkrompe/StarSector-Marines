@@ -7,7 +7,9 @@ Written: 2026-08-26
 Updated: 2026-08-29 - getting the company ship ready happens away from the
 frame that opens the shell; every way aboard says a room is being got ready
 rather than that the hull lacks it, keeps its route while it waits, and is
-rebuilt where it stands when she arrives; a laid-out deck outlives the panel that
+rebuilt where it stands when she arrives, and where there is room for words it
+names the work, counts the seconds and sweeps a bar rather than pretending to a
+percentage; a laid-out deck outlives the panel that
 asked for it, so a hull is laid out once per game rather than once per visit;
 and a fleet comparison is a fleet of decks and is laid out off the frame: the screen opens on the list, says which hulls it is still reading,
 and fills each row in as its deck lands, keeping only the deck of the hull on
@@ -558,6 +560,15 @@ it. So the shell has three answers rather than two, and it carries them
 wherever a way aboard appears - the navigation buttons and headquarters' own
 way onto the ship alike, since a tile that looked ordinary and did nothing
 would read as a broken button rather than as a wait.
+
+Where there is room for words, the wait says what it is: which half of the work
+she is in, how long it has been, and a bar that moves. **The bar sweeps rather
+than filling to a percentage, because there is no honest percentage to show.**
+Half of laying a deck out is a circulation pass that runs until no further cut
+earns itself, so there is nothing to count against; a bar that guessed would be
+a bar that lied, and the one thing a player needs from it - that the work is
+alive rather than stuck - a sweep says truthfully. The seconds beside it answer
+the rest.
 
 A page that is somewhere aboard is simply not routed to until the ship is ready,
 **guarded where routing happens rather than at each button**. Two reasons, and

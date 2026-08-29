@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.campaign.CompanyStanding;
 import com.dillon.starsectormarines.campaign.OfficerMoodReader;
 import com.dillon.starsectormarines.campaign.PlayerEventNotice;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.event.PlayerEventTarget;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -49,7 +50,7 @@ final class CompanyHqViewModel {
 
     static CompanyHqViewModel current(
             Function<RoomPurpose, MarineOpsPageNav.Aboard> aboard,
-            boolean shipGettingReady,
+            Object shipView,
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
@@ -64,7 +65,7 @@ final class CompanyHqViewModel {
         CampaignState state = script != null ? script.state() : null;
         List<CompanyNews.Entry> news = CompanyNews.latest(
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
-        return build(standing, clocks, news, day, aboard, shipGettingReady,
+        return build(standing, clocks, news, day, aboard, shipView,
                 openBarracks, openArmory,
                 openMechLab, openShipTransfer, openShipView, close, respond);
     }
@@ -75,7 +76,7 @@ final class CompanyHqViewModel {
             List<CompanyNews.Entry> news,
             int day,
             Function<RoomPurpose, MarineOpsPageNav.Aboard> aboard,
-            boolean shipGettingReady,
+            Object shipView,
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
@@ -128,7 +129,7 @@ final class CompanyHqViewModel {
         props.put("shipAction", openShipTransfer);
         props.put("shipLabel", shipLabel());
         props.put("shipViewAction", openShipView);
-        putShipView(props, shipGettingReady);
+        props.put("shipView", shipView);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, aboard, close,
                 () -> { }, openBarracks, openArmory, openMechLab);
         return new CompanyHqViewModel(props);
@@ -153,26 +154,69 @@ final class CompanyHqViewModel {
     }
 
     /**
-     * How the way aboard reads while her deck is still being laid out.
+     * The way aboard, as the tile draws it.
      *
      * <p>The one route to the whole ship, and the only one on this page that is
-     * not a navigation button. It says what is happening rather than going
-     * quiet: a tile that looked ordinary and did nothing would read as a
-     * broken button, and the wait is a real thing the shell is doing.
+     * not a navigation button. While she is being got ready it says what is
+     * happening rather than going quiet: a tile that looked ordinary and did
+     * nothing would read as a broken button, and the wait is a real thing the
+     * shell is doing.
      *
-     * <p>The action stays wired, because she stops being got ready. These
-     * properties are read once when the page is built, and routing is what
-     * refuses the trip until she is ready — so the tile corrects itself even
-     * if nothing rebuilds it.
+     * <p>Carried as one value rather than four properties so the page can be
+     * handed a signal of it and redraw the whole tile as the work moves. The
+     * colour is on the label as well as the button, because a class on the
+     * button around it does not reach the text inside.
      */
-    static void putShipView(Map<String, Object> props, boolean gettingReady) {
-        props.put("shipViewLabel", gettingReady ? "GETTING HER READY" : "WALK THE SHIP");
-        props.put("shipViewClasses",
-                gettingReady ? "hq-ship-button hq-ship-waiting" : "hq-ship-button");
-        // The wording is on the label and so is its colour: a class on the
-        // button around it does not reach the text inside.
-        props.put("shipViewLabelClasses", "label heading hq-ship-label"
-                + (gettingReady ? " hq-ship-waiting-label" : ""));
+    record ShipView(String label, String classes, String labelClasses,
+                    String trackClasses, String fillStyle)
+            implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "label" -> label;
+                case "classes" -> classes;
+                case "labelClasses" -> labelClasses;
+                case "trackClasses" -> trackClasses;
+                case "fillStyle" -> fillStyle;
+                default -> null;
+            };
+        }
+    }
+
+    /**
+     * How long one sweep of the loader takes. Slow enough to read as one
+     * gesture rather than a flicker, quick enough that a stalled shell would
+     * be obvious.
+     */
+    private static final float SWEEP_SECONDS = 1.4f;
+
+    /** She is aboard-able, and the tile is an ordinary way in. */
+    static ShipView shipViewReady() {
+        return new ShipView("WALK THE SHIP", "hq-ship-button",
+                "label heading hq-ship-label", "hq-ship-track-idle", "width: 0%;");
+    }
+
+    /**
+     * She is being got ready, and the tile says which half of it she is in and
+     * how long it has been.
+     *
+     * <p>The bar sweeps rather than filling to a percentage. There is no honest
+     * percentage to show: half of laying a deck out is a circulation pass that
+     * runs until no further cut earns itself, so there is no total to count
+     * against, and a bar that guessed would be a bar that lied. What the sweep
+     * says is only that the work is alive, which is the question a player is
+     * actually asking — and the seconds beside it answer the rest.
+     */
+    static ShipView shipViewWorking(CompanyDeck.Work work, float seconds) {
+        String doing = work == CompanyDeck.Work.MUSTERING
+                ? "MUSTERING HER WATCH" : "LAYING OUT HER DECK";
+        float sweep = SWEEP_SECONDS <= 0f ? 0f : (seconds % SWEEP_SECONDS) / SWEEP_SECONDS;
+        return new ShipView(
+                doing + "  \u00b7  " + Math.max(0, (int) seconds) + "S",
+                "hq-ship-button hq-ship-waiting",
+                "label heading hq-ship-label hq-ship-waiting-label",
+                "hq-ship-track",
+                "width: " + Math.round(sweep * 100f) + "%;");
     }
 
     /**
@@ -184,7 +228,7 @@ final class CompanyHqViewModel {
      */
     static CompanyHqViewModel gettingReadyPreview() {
         Map<String, Object> props = preview().props();
-        putShipView(props, true);
+        props.put("shipView", shipViewWorking(CompanyDeck.Work.LAYING_OUT, 4.9f));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
                 purpose -> MarineOpsPageNav.Aboard.UNKNOWN,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
@@ -198,7 +242,7 @@ final class CompanyHqViewModel {
         props.put("shipAction", (Runnable) () -> { });
         props.put("shipLabel", "VALKYRIE  ·  CHANGE SHIP");
         props.put("shipViewAction", (Runnable) () -> { });
-        putShipView(props, false);
+        props.put("shipView", shipViewReady());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         props.put("assessmentHeader", "BRIDGE ADJUTANT  //  DAILY ASSESSMENT");
