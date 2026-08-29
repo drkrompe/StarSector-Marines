@@ -537,7 +537,7 @@ public class ConquestCommandTest {
     }
 
     @Test
-    public void localContactAndHostileFrontBehindSquadDoNotCreateLaneStage() {
+    public void aSquadInContactIsOrderedToAttackForwardRatherThanLeftUnassigned() {
         BattleSimulation localSim = tallExteriorSim(40);
         Squad engaged = addMarineSquad(localSim, 5f, 20f);
         addDefender(localSim, 5, 22);
@@ -547,8 +547,16 @@ public class ConquestCommandTest {
 
         tick(localCommand, localSim);
 
-        assertNull(engaged.assignedObjective,
-                "local engagement owns the squad without a competing lane marker");
+        // The lane stage refuses a squad in contact, which used to leave the
+        // squads doing the actual fighting with no order at all — the largest
+        // single source of command-unassigned pulses in the Conquest evidence.
+        // An attack move is what the commander should have been saying.
+        ObjectiveAssignment attack = engaged.assignedObjective;
+        assertNotNull(attack, "a squad in contact is still the commander's to direct");
+        assertEquals(AssignmentKind.ATTACK_MOVE, attack.kind());
+        assertTrue(attack.targetCellY() > 20,
+                "the attack move sends the squad forward through the contact, "
+                        + "not to a standoff behind it");
         assertTrue(localCommand.frontSnapshot().squadFor(engaged.id).localContact());
 
         BattleSimulation passedSim = tallExteriorSim(120);
