@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.panel.BattleCommsPanel;
+import com.dillon.starsectormarines.battle.ui.panel.CommandPowerTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
@@ -187,6 +188,10 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleHud hud;
     /** MLX-authored player-facing command chrome: time controls and capture state. */
     private BattleHudOverlay retainedOverlay;
+    /** MLX-authored compact command-power deck at bottom-center. */
+    private BattlePowerOverlay retainedPowerOverlay;
+    /** World click/reticle half of the power flow; card selection lives in MLX. */
+    private CommandPowerTargetingPanel commandPowerTargeting;
     /** Shared selection state read by HUD panels (and, later, a world-picker). Survives across attach()/rebuild() cycles; self-heals when the selected squad disappears. */
     private final Selection selection = new Selection();
     /** Shared debug cell-highlight overlay — populated by HUD panels, rendered between the grid pass and the unit sprites. */
@@ -362,6 +367,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             retainedOverlay.update(dt, ctx != null ? ctx.getBattleSimulation() : null,
                     speedMultiplier);
         }
+        if (retainedPowerOverlay != null) {
+            retainedPowerOverlay.update(dt,
+                    ctx != null ? ctx.getBattleSimulation() : null);
+        }
         // Park the OpenAL listener at the camera focus every frame so positional SFX (gunfire,
         // explosions, ambient loops, death VO) pan + attenuate around what the player is looking
         // at. setListenerPosOverrideOneFrame is a one-frame override, so it has to be re-armed
@@ -512,6 +521,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getGroundParallax().dispose();
         renderer.getGroundLights().clear();
         if (retainedOverlay != null) retainedOverlay.detach();
+        if (retainedPowerOverlay != null) retainedPowerOverlay.detach();
 
         if (!audioActive) return;
         audioActive = false;
@@ -532,11 +542,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         // claim their own rows via consume(); WorldPicker only fires on the
         // leftover unconsumed clicks that landed in the world rect.
         hud.addPanel(new WorldPicker(this));
-        // Command-power bar (bottom-center) + click-to-target. Added after
-        // WorldPicker so reverse-order input lets it claim the button click and
-        // the targeting world-click before the picker turns them into a squad
-        // selection; when not targeting, world clicks fall through to the picker.
-        hud.addPanel(new com.dillon.starsectormarines.battle.ui.panel.CommandPowerPanel(this));
+        // The MLX power tray owns cards; this small world-layer partner owns
+        // only its reticle and next-click targeting. Added after WorldPicker so
+        // an armed power claims the map click before squad selection sees it.
+        commandPowerTargeting = new CommandPowerTargetingPanel(this);
+        hud.addPanel(commandPowerTargeting);
         hud.addPanel(new TaskForceStatusPanel(this));
         hud.addPanel(new SquadDetailPanel(this));
         // Per-squad GOAP plan readout. It has no all-squad overview: the
@@ -624,6 +634,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             retainedOverlay = new BattleHudOverlay(value -> speedMultiplier = value);
         }
         retainedOverlay.attach(position, sim, speedMultiplier);
+        if (retainedPowerOverlay == null) {
+            retainedPowerOverlay = new BattlePowerOverlay(
+                    commandPowerTargeting::toggle,
+                    commandPowerTargeting::targetingPowerId);
+        }
+        retainedPowerOverlay.attach(position, sim);
     }
 
     private void toggleConquestPicture(Faction perspective) {
@@ -994,10 +1010,11 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void processInput(List<InputEventAPI> events) {
-        // The retained command rail gets first claim on its compact top-right
-        // rectangle. Everywhere else its viewport misses and input continues
-        // to the legacy Back button, debug HUD, and battlefield picker.
+        // Retained command surfaces claim only their compact corner/tray
+        // rectangles. Everywhere else input continues to the legacy Back
+        // button, debug HUD, and battlefield picker.
         if (retainedOverlay != null) retainedOverlay.processInput(events);
+        if (retainedPowerOverlay != null) retainedPowerOverlay.processInput(events);
         widgets.processInput(events);
         // HUD gets first crack after widgets so a click on a squad row doesn't
         // also pan the camera or hit a future world-picker on the cells the
@@ -1130,8 +1147,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (hud != null) hud.render(alphaMult);
 
         // Player-facing MLX chrome paints above the debug HUD. Its root is
-        // transparent, so only the compact command rail touches the canvas.
+        // transparent, so only the compact command surfaces touch the canvas.
         if (retainedOverlay != null) retainedOverlay.render(alphaMult);
+        if (retainedPowerOverlay != null) retainedPowerOverlay.render(alphaMult);
 
         if (sim != null && sim.isComplete()) {
             renderBanner(sim.getWinner(), alphaMult);
