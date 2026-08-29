@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Container;
@@ -22,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -78,6 +80,77 @@ public class TilesetWalkthroughTest {
         visited.add("picked");
         wizard.refresh();
         assertNull(wizard.currentStep().blocker(), "answering the step unblocks it");
+    }
+
+    /**
+     * Picking on a screen enables the button that leaves it.
+     *
+     * <p>The wizard re-reads a step's blocker when a screen is shown, and a
+     * selection changing raises no event it hears — so a screen whose list is
+     * not wired back to it sits with the step answered and Next dead. That
+     * shipped: WALL could be selected and "See what fills it" stayed grey.
+     *
+     * <p>Tested through the real page rather than through the wizard, because
+     * what broke was the wiring between them and nothing else can show that.
+     */
+    @Test
+    void pickingOnAScreenEnablesTheButtonThatLeavesIt() throws Exception {
+        TilesetAuthoringPage page = new TilesetAuthoringPage(context());
+        try {
+            enter(page, TilesetWorkflow.SURFACE);
+            TilesetWizard wizard = wizardOf(page);
+            assertFalse(wizard.canAdvance(), "nothing picked yet, so there is nowhere to go");
+
+            assertTrue(browserOf(page).select("WALL"), "WALL must be offered");
+            assertTrue(wizard.canAdvance(),
+                    "a surface is picked, so the step is answered and Next must be live");
+            assertNull(wizard.currentStep().blocker());
+        } finally {
+            page.close();
+        }
+    }
+
+    /** The same wiring on the other walkthrough: picking a sheet enables Open it. */
+    @Test
+    void pickingASheetEnablesOpeningIt() throws Exception {
+        TilesetAuthoringPage page = new TilesetAuthoringPage(context());
+        try {
+            enter(page, TilesetWorkflow.SHEET);
+            TilesetWizard wizard = wizardOf(page);
+            assertFalse(wizard.canAdvance(), "no sheet picked yet");
+
+            TilesetLibraryView library = libraryOf(page);
+            library.setSheets(TilesetLibrary.scan(Paths.get("").toAbsolutePath()));
+            selectFirstSheet(library);
+            assertTrue(wizard.canAdvance(), "a sheet is picked, so Open it must be live");
+        } finally {
+            page.close();
+        }
+    }
+
+    private static TilesetWizard wizardOf(TilesetAuthoringPage page) throws Exception {
+        Field field = TilesetAuthoringPage.class.getDeclaredField("wizard");
+        field.setAccessible(true);
+        return (TilesetWizard) field.get(page);
+    }
+
+    private static SurfaceBrowserView browserOf(TilesetAuthoringPage page) throws Exception {
+        Field field = TilesetAuthoringPage.class.getDeclaredField("surfaces");
+        field.setAccessible(true);
+        return (SurfaceBrowserView) field.get(page);
+    }
+
+    private static TilesetLibraryView libraryOf(TilesetAuthoringPage page) throws Exception {
+        Field field = TilesetAuthoringPage.class.getDeclaredField("library");
+        field.setAccessible(true);
+        return (TilesetLibraryView) field.get(page);
+    }
+
+    /** Click the first row of the sheet strip, the way a person would. */
+    private static void selectFirstSheet(TilesetLibraryView library) throws Exception {
+        Field field = TilesetLibraryView.class.getDeclaredField("list");
+        field.setAccessible(true);
+        ((JList<?>) field.get(library)).setSelectedIndex(0);
     }
 
     /** The chooser and the first screen of each walkthrough, painted. */

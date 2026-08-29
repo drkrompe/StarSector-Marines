@@ -1,23 +1,31 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Rectangle;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -43,14 +51,18 @@ public final class SurfaceBrowserView {
     /** How large one deck cell is drawn in the big preview. */
     private static final int ROOM_CELL = 56;
 
-    private final DefaultListModel<SurfaceCatalog.Purpose> purposeModel = new DefaultListModel<>();
-    private final JList<SurfaceCatalog.Purpose> purposes = new JList<>(purposeModel);
+    /** One grid per section, in reading order, sharing one selection between them. */
+    private final List<JList<SurfaceCatalog.Purpose>> sections = new ArrayList<>();
+    private final List<JList<SurfaceCatalog.Purpose>> gridsToReflow = new ArrayList<>();
+    private final JPanel sectionStack = new WidthTrackingStack();
+    private boolean clearingOtherSections;
     private final DefaultListModel<SurfaceCatalog.Candidate> candidateModel =
             new DefaultListModel<>();
     private final JList<SurfaceCatalog.Candidate> candidates = new JList<>(candidateModel);
     private final JLabel roomPreview = new JLabel("", SwingConstants.CENTER);
     private final JLabel provenance = new JLabel(" ");
     private final BlockPreview previews;
+    private Runnable onSelectionChanged = () -> {};
 
     private final JPanel purposeScreen = new JPanel(new BorderLayout(0, 4));
     private final JPanel setScreen = new JPanel(new BorderLayout(8, 4));
@@ -63,18 +75,16 @@ public final class SurfaceBrowserView {
     public SurfaceBrowserView(BlockPreview previews, Consumer<SurfaceCatalog.Candidate> onOpen) {
         this.previews = previews;
 
-        purposes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        purposes.setCellRenderer(new PurposeCell());
-        grid(purposes);
-        purposes.addListSelectionListener(event -> {
-            if (!event.getValueIsAdjusting()) showCandidates();
-        });
+        sectionStack.setLayout(new BoxLayout(sectionStack, BoxLayout.Y_AXIS));
 
         candidates.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         candidates.setCellRenderer(new CandidateCell());
         grid(candidates);
         candidates.addListSelectionListener(event -> {
-            if (!event.getValueIsAdjusting()) showPickedCandidate();
+            if (!event.getValueIsAdjusting()) {
+                showPickedCandidate();
+                onSelectionChanged.run();
+            }
         });
         candidates.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent event) {
@@ -84,8 +94,13 @@ public final class SurfaceBrowserView {
             }
         });
 
-        JScrollPane purposeScroll = new JScrollPane(purposes);
+        JScrollPane purposeScroll = new JScrollPane(sectionStack);
         purposeScroll.getVerticalScrollBar().setUnitIncrement(24);
+        purposeScroll.addComponentListener(new ComponentAdapter() {
+            @Override public void componentResized(ComponentEvent event) {
+                reflow(purposeScroll.getViewport().getWidth());
+            }
+        });
         purposeScreen.add(purposeScroll, BorderLayout.CENTER);
 
         JScrollPane candidateScroll = new JScrollPane(candidates);
@@ -121,6 +136,16 @@ public final class SurfaceBrowserView {
         list.setFixedCellHeight(TILE.height);
     }
 
+    /**
+     * Say who to tell when the selection moves.
+     *
+     * <p>A screen's precondition is usually this selection, and nothing else can
+     * see it change.
+     */
+    public void onSelectionChanged(Runnable listener) {
+        this.onSelectionChanged = listener;
+    }
+
     /** Screen one: every surface the generator can ask for. */
     public JPanel purposeScreen() {
         return purposeScreen;
@@ -138,34 +163,163 @@ public final class SurfaceBrowserView {
         setActions.revalidate();
     }
 
-    /** Replace the listing, keeping the operator on the surface they were on. */
+    /**
+     * Replace the listing, keeping the operator on the surface they were on.
+     *
+     * <p>Rebuilt rather than refilled: which sections exist depends on what was
+     * scanned, and a heading over an empty grid is worse than no heading.
+     */
     public void setPurposes(List<SurfaceCatalog.Purpose> scanned) {
-        SurfaceCatalog.Purpose keep = purposes.getSelectedValue();
-        purposeModel.clear();
-        int restore = -1;
-        for (SurfaceCatalog.Purpose purpose : scanned) {
-            if (keep != null && keep.name().equals(purpose.name())) restore = purposeModel.size();
-            purposeModel.addElement(purpose);
+        SurfaceCatalog.Purpose keep = selectedPurpose();
+        sections.clear();
+        gridsToReflow.clear();
+        sectionStack.removeAll();
+
+        SurfaceCategory.Setting heading = null;
+        for (SurfaceCategory.Section section : SurfaceCategory.sectionsOf(scanned)) {
+            if (section.setting() != heading) {
+                heading = section.setting();
+                sectionStack.add(header(heading.label(), 15f, 12));
+            }
+            sectionStack.add(header(section.kind().label(), 12f, 4));
+
+            DefaultListModel<SurfaceCatalog.Purpose> model = new DefaultListModel<>();
+            for (SurfaceCatalog.Purpose purpose : scanned) {
+                if (SurfaceCategory.of(purpose.name()).equals(section)) model.addElement(purpose);
+            }
+            sectionStack.add(sectionGrid(model));
         }
-        if (restore >= 0) purposes.setSelectedIndex(restore);
+        reflow(purposeScreen.getWidth() > 0 ? purposeScreen.getWidth() : 960);
+        sectionStack.revalidate();
+        sectionStack.repaint();
+
+        if (keep != null) select(keep.name());
         showCandidates();
+    }
+
+    /** One section's grid, sharing the single selection with every other. */
+    private JComponent sectionGrid(DefaultListModel<SurfaceCatalog.Purpose> model) {
+        JList<SurfaceCatalog.Purpose> grid = new JList<>(model);
+        grid.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        grid.setCellRenderer(new PurposeCell());
+        grid(grid);
+        grid.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // A wrapping list decides its columns from its own width, and a vertical
+        // BoxLayout offers it only its preferred one - so it comes out a single
+        // tile wide however much room the window has. Telling it how many
+        // columns to use, from the width the pane actually has, is what makes it
+        // a grid rather than a column.
+        grid.setVisibleRowCount(0);
+        gridsToReflow.add(grid);
+        grid.addListSelectionListener(event -> {
+            if (event.getValueIsAdjusting() || clearingOtherSections) return;
+            if (grid.getSelectedValue() == null) return;
+            // One selection across every section: the grids are a single list
+            // that happens to be drawn under headings.
+            clearingOtherSections = true;
+            try {
+                for (JList<SurfaceCatalog.Purpose> other : sections) {
+                    if (other != grid) other.clearSelection();
+                }
+            } finally {
+                clearingOtherSections = false;
+            }
+            showCandidates();
+            onSelectionChanged.run();
+        });
+        sections.add(grid);
+        return grid;
+    }
+
+    /**
+     * Re-column every section for the width the pane now has.
+     *
+     * <p>Called on resize and after a rebuild. A wrapping list will not do this
+     * for itself inside a vertical stack: it is asked for a preferred size
+     * before it has a width, answers as though it had one column, and is then
+     * given exactly that.
+     */
+    void reflow(int available) {
+        // A width of nothing is a resize that arrived before the pane had one,
+        // and acting on it collapses every section to a single column - which is
+        // then what a later paint draws, because nothing re-columns it. Ignore
+        // it and wait for a width worth laying out to.
+        if (available < TILE.width) return;
+
+        int columns = Math.max(1, (available - 12) / TILE.width);
+        for (JList<SurfaceCatalog.Purpose> grid : gridsToReflow) {
+            int rows = (grid.getModel().getSize() + columns - 1) / columns;
+            grid.setVisibleRowCount(Math.max(1, rows));
+            int height = Math.max(1, rows) * TILE.height + 4;
+            grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
+            grid.setPreferredSize(new Dimension(columns * TILE.width, height));
+        }
+        sectionStack.revalidate();
+    }
+
+    /** How many rows the nth section is laid out in — for a test of the columning. */
+    int rowsInSection(int index) {
+        return gridsToReflow.get(index).getVisibleRowCount();
+    }
+
+    /** How many sections the listing built. */
+    int sectionCount() {
+        return gridsToReflow.size();
+    }
+
+    /**
+     * A vertical stack that is always exactly as wide as the scroll pane
+     * showing it, so its sections can fill the window rather than the width
+     * their contents happened to prefer.
+     */
+    private static final class WidthTrackingStack extends JPanel implements Scrollable {
+        @Override public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+        @Override public int getScrollableUnitIncrement(Rectangle r, int o, int d) {
+            return 24;
+        }
+        @Override public int getScrollableBlockIncrement(Rectangle r, int o, int d) {
+            return 120;
+        }
+        @Override public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+        @Override public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
+    }
+
+    private static JComponent header(String text, float size, int topGap) {
+        JLabel label = new JLabel(text);
+        label.setFont(label.getFont().deriveFont(Font.BOLD, size));
+        label.setForeground(new Color(0x3A, 0x42, 0x4E));
+        label.setBorder(BorderFactory.createEmptyBorder(topGap, 6, 2, 6));
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        label.setMaximumSize(new Dimension(Integer.MAX_VALUE, label.getPreferredSize().height));
+        return label;
     }
 
     /** Show one surface by name, as if it had been clicked. */
     public boolean select(String surfaceName) {
-        for (int index = 0; index < purposeModel.size(); index++) {
-            if (purposeModel.get(index).name().equalsIgnoreCase(surfaceName)) {
-                purposes.setSelectedIndex(index);
-                purposes.ensureIndexIsVisible(index);
-                showCandidates();
-                return true;
+        for (JList<SurfaceCatalog.Purpose> grid : sections) {
+            for (int index = 0; index < grid.getModel().getSize(); index++) {
+                if (grid.getModel().getElementAt(index).name().equalsIgnoreCase(surfaceName)) {
+                    grid.setSelectedIndex(index);
+                    grid.ensureIndexIsVisible(index);
+                    return true;
+                }
             }
         }
         return false;
     }
 
     public SurfaceCatalog.Purpose selectedPurpose() {
-        return purposes.getSelectedValue();
+        for (JList<SurfaceCatalog.Purpose> grid : sections) {
+            SurfaceCatalog.Purpose picked = grid.getSelectedValue();
+            if (picked != null) return picked;
+        }
+        return null;
     }
 
     public SurfaceCatalog.Candidate selectedCandidate() {
@@ -185,7 +339,7 @@ public final class SurfaceBrowserView {
      */
     private void showCandidates() {
         candidateModel.clear();
-        SurfaceCatalog.Purpose purpose = purposes.getSelectedValue();
+        SurfaceCatalog.Purpose purpose = selectedPurpose();
         int inUse = -1;
         if (purpose != null) {
             for (SurfaceCatalog.Candidate candidate : purpose.candidates()) {

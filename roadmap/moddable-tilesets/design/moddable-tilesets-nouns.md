@@ -203,6 +203,12 @@ documents; a written-down list of "these are the walls" would be a second
 authority over a fact those files already state, and would go stale the first
 time a block was renamed in the one file that defines it.
 
+The authoring tool groups the surfaces for browsing — where a thing is, then
+what kind of thing it is — and that grouping is deliberately not part of this
+model. Nothing the generator does depends on it, and putting it on
+`GroundKind` or `SurfaceRole` would make a browsing convenience look like an
+authority those enums answer to.
+
 Choosing between candidates is done by looking at them. A block id says which
 sheet a thing came from and nothing about what it is: two walls are a masonry
 wall and a sandbag revetment, and only the picture separates them. So a surface
