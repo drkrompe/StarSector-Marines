@@ -337,6 +337,18 @@ an installation: a runway, three berths, two sheds, a tower and a vehicle park.
 The compact site is two berths, one shed, and no strip at all, in about two
 fifths of the ground.
 
+The lot also **turns**. Its pieces are all placed in its own frame — along the
+frontage and into the depth, never in map x and y — so facing it any of four
+ways is a change to two accessors and everything follows. A site anywhere but a
+fortress ward fronts onto whatever it was built along, and that can be any
+direction.
+
+**A quarter turn is a rotation; a half turn must be a mirror.** Props are drawn
+lit from one direction, so turning a vehicle through a hundred and eighty
+degrees lights it from underneath and it reads as upside down. Mirroring turns
+it round and keeps the light where it was. A vertical flip through a half turn
+is the horizontal mirror that does it.
+
 **A site with no runway is not a diminished airfield; it is what most airbases
 are.** Aircraft that land vertically need somewhere to stand and somewhere to be
 worked on, and a strip is what gets added when something has to roll. The
