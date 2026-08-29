@@ -143,6 +143,12 @@ Do not run builds or leave generated task files there.
   The Tilesets page turns a raw art sheet into a loadable tileset. It lists every
   sheet under `art-source/tilesets/` with its state — raw, seeded, annotated,
   exported — so sheets are picked from the project rather than browsed for.
+  Its **Surfaces** tab is the same workspace entered from the other end: pick
+  what is needed — a wall, a floor — and it lists every block that could fill it
+  across all sheets, marking the one the mapping uses and whether its slicing can
+  be edited. Opening a candidate loads the sheet it was cut from with its slots
+  already selected. A block that exists only in an exported tileset can be seen
+  but not re-cut, and the panel says so instead of offering a dead edit.
   Dropping a raw sheet there is enough to make it appear; a hand-written document
   carrying settings but no pieces is a valid seed and is sliced on open.
   The page finds pieces by keying on alpha and proposes a footprint for each from
@@ -190,7 +196,7 @@ Do not run builds or leave generated task files there.
   if a later replacement fails.
 - `tools/authoring.sh <tool> [json]` (or `tools/authoring.cmd`) → call one
   authoring tool and exit. This is the **default** way to reach the authoring
-  tools headlessly — list/measure/read/write/slice/fit/split/export a tileset,
+  tools headlessly — list what can be a wall, list/measure/read/write/slice/fit/split/export a tileset,
   declare
   or dissolve one of its autotile blocks, render its map-preview comparison, run the snapshot catalog — with no workbench window
   and nothing to start first. `--list` names the tools, `--describe <tool>`

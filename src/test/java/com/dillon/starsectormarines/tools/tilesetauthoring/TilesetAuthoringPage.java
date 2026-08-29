@@ -49,9 +49,11 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Turns a raw art sheet into a tileset the game can load.
@@ -107,6 +109,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
     private final List<TilesetExport.BlockSpec> blocks = new ArrayList<>();
     private final TilesetLibraryView library = new TilesetLibraryView(this::openFromLibrary);
+    private final SurfaceBrowserView surfaces = new SurfaceBrowserView(this::openCandidate);
+    private JTable table;
     private TilesetMapPanel mapPanel;
 
     private BufferedImage source;
@@ -227,7 +231,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         });
         bar.add(export);
 
-        JTable table = new JTable(model);
+        table = new JTable(model);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         table.getSelectionModel().addListSelectionListener(e -> {
             model.selectedRows = table.getSelectedRows();
@@ -282,8 +286,12 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         JSplitPane rightSide = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                 tableScroll, previews);
         rightSide.setResizeWeight(0.45);
+        // Two ways in over one editor: pick a sheet, or pick what is needed.
+        JTabbedPane ways = new JTabbedPane();
+        ways.addTab("Sheets", library);
+        ways.addTab("Surfaces", surfaces);
         JSplitPane sheetSide = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                library, new JScrollPane(view));
+                ways, new JScrollPane(view));
         sheetSide.setResizeWeight(0.0);
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sheetSide, rightSide);
         split.setResizeWeight(0.5);
@@ -334,7 +342,74 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private void rescanLibrary() {
         List<TilesetLibrary.Sheet> sheets = TilesetLibrary.scan(context.projectRoot());
         library.setSheets(sheets);
+        rescanSurfaces();
         context.reportStatus(sheets.size() + " sheets in " + TilesetLibrary.SOURCE_DIR);
+    }
+
+    /**
+     * Re-derive what can fill each surface.
+     *
+     * <p>A failure here is reported and dropped rather than raised. The surface
+     * listing is a second way to find a sheet, so a mapping that will not parse
+     * should cost the operator that convenience and not the editor.
+     */
+    private void rescanSurfaces() {
+        try {
+            surfaces.setPurposes(SurfaceCatalog.scan(context.projectRoot()));
+        } catch (Exception failure) {
+            surfaces.setPurposes(List.of());
+            context.reportStatus("Could not read the surface mapping: " + failure.getMessage());
+        }
+    }
+
+    /**
+     * Open the sheet a candidate was cut from with its slots already selected.
+     *
+     * <p>This is the handoff the surface listing exists for. Landing on the
+     * right sheet is only half of it: a wall is nine pieces among a hundred on
+     * the plate, and finding them again by eye is the work the listing just
+     * did.
+     */
+    private void openCandidate(SurfaceCatalog.Candidate candidate) {
+        if (candidate == null || candidate.document() == null) return;
+        openDocumentAt(candidate.document());
+        // openDocumentAt reports its own failure and leaves the previous sheet
+        // loaded. Selecting rows then would pick pieces out of whatever was
+        // already open, which looks like the handoff worked.
+        if (!candidate.document().equals(documentPath)) return;
+        int[] rows = rowsFor(model.entries,
+                candidate.slots().stream().map(SurfaceCatalog.Slot::pieceId).toList());
+        selectRows(rows);
+        context.reportStatus(candidate.blockId() + " — " + rows.length + " of "
+                + candidate.slots().size() + " slots selected on " + candidate.sheetName());
+    }
+
+    /**
+     * The rows holding {@code pieceIds}, in table order.
+     *
+     * <p>A slot names a piece that the document said was there when the block
+     * was declared. Re-slicing can rename pieces, so a slot may name one that no
+     * longer exists; those are dropped rather than reported as selected, which
+     * is why the caller says how many of how many it found.
+     */
+    static int[] rowsFor(List<TilesetExport.Entry> entries, List<String> pieceIds) {
+        if (entries == null || pieceIds == null || pieceIds.isEmpty()) return new int[0];
+        Set<String> wanted = new HashSet<>(pieceIds);
+        List<Integer> rows = new ArrayList<>();
+        for (int row = 0; row < entries.size(); row++) {
+            if (wanted.contains(entries.get(row).id)) rows.add(row);
+        }
+        int[] indices = new int[rows.size()];
+        for (int i = 0; i < indices.length; i++) indices[i] = rows.get(i);
+        return indices;
+    }
+
+    /** Select {@code rows} in the entry table and scroll the first into view. */
+    private void selectRows(int[] rows) {
+        if (table == null) return;
+        table.clearSelection();
+        for (int row : rows) table.addRowSelectionInterval(row, row);
+        if (rows.length > 0) table.scrollRectToVisible(table.getCellRect(rows[0], 0, true));
     }
 
     /**

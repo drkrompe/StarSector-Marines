@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — walls, doorways and roofs are dispatched by the mapping's `surfaceRender` section rather than by ids compiled into the render systems.
+Updated: 2026-08-29 — walls, doorways and roofs dispatch through the mapping's `surfaceRender` section, and content is found by purpose as well as by sheet.
 
 Read `stories.md` for open work.
 
@@ -182,6 +182,26 @@ and described by a generated tileset definition. The slicing is repeatable and
 the annotation is not, so the annotation is saved to an authoring document
 beside the raw sheet and can be resumed, corrected, and re-sliced without being
 lost.
+
+Content is also *found* by purpose rather than by sheet. Ingesting art is
+sheet-first — this plate arrived, cut it, say what its pieces are — but needing
+art is not: the work starts from a wall being wanted, and which of the project's
+sheets holds one is the answer rather than the question. So a **surface listing**
+derives, for every ground kind and surface role, the blocks that could fill it,
+whichever sheet they were packed on, marking the one the mapping uses. It is
+derived on every read from the mapping, the tilesets, and the authoring
+documents; a written-down list of "these are the walls" would be a second
+authority over a fact those files already state, and would go stale the first
+time a block was renamed in the one file that defines it.
+
+The listing reports whether a candidate's slicing can be edited, and that is a
+real distinction rather than a caveat. A block declared by an authoring document
+can be re-cut, because the document records which pieces of which raw sheet it
+was made from. A block that exists only in an exported tileset can be seen and
+mapped but not re-cut, because nothing in the project records that. Sheets
+derived by script rather than exported from a document are in the second
+category, and the listing says so rather than offering an edit that leads
+nowhere.
 
 These properties of that pass are part of the model rather than of the tool:
 

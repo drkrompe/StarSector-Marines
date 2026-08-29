@@ -43,6 +43,7 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
     public List<McpTool> tools() {
         return List.of(
                 new ListSheets(),
+                new SurfaceListingTool(),
                 new MeasureSheet(),
                 new ReadDocument(),
                 new WriteDocument(),
