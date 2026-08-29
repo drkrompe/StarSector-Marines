@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — Conquest arrival fleets are mission-shaped across reusable zones and carry deterministic per-craft launch and re-arm variance.
+Updated: 2026-08-28 — a loading sortie flies with whoever boarded when its deadline passes, and hands back the crew it leaves behind.
 
 ## Purpose
 
@@ -104,7 +104,19 @@ same as one that has landed. Boarding has a deadline, because the squad walking
 out to it can be killed on the way: without one, a sortie whose squad died in
 the yard would hold its hardstand for the rest of the battle and the air arm
 would quietly stop existing. Whoever reached the ramp goes; the seats their
-friends would have filled stay empty. `LOITER_IF_ARMED` preserves bounded fire support;
+friends would have filled stay empty. The deadline **scrubs a sortie only when
+nobody boarded** — boarding takes a passenger off the roster, so cancelling on
+top of people who made it aboard does not call off a delivery, it deletes them.
+
+A sortie borrows its crew and gives back whoever it did not take. While it is
+loading, the crew is held at an authority nothing outranks, so no other order
+can pull the boarding party apart mid-lift; when the sortie closes — lifted or
+scrubbed — the survivors pass to whoever the delivery policy names, normally
+the mission commander. Handing them over rather than merely releasing them is
+the load-bearing part: a commander's pool is what it owns, so an unclaimed
+squad is every bit as stranded as an over-claimed one. Without the handoff the
+ground crew that did not fly stands on the pad for the rest of the battle while
+each new sortie marches another four out to join them. `LOITER_IF_ARMED` preserves bounded fire support;
 `DEPART` takes off immediately even when the hull has weapons. It is an air
 entity throughout that lifecycle, not a temporary handle or a parallel id
 space. Transport survival, payload delivery, and optional mounted fire support
