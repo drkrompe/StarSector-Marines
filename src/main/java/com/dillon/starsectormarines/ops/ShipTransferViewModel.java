@@ -10,13 +10,17 @@ import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -25,9 +29,23 @@ import java.util.function.Supplier;
  *
  * <p>Every candidate is read as a generated deck, because the question is not
  * how large a hull is but what would be aboard her. A ship's plan and her
- * facility counts come from one generation apiece, held once the player has
- * looked at her — generating every deck in the fleet to draw one list would put
- * a second of work in front of a screen that shows one ship at a time.
+ * facility counts come from one generation apiece, held once she has been read.
+ *
+ * <p>That makes opening this screen a whole fleet's worth of layout work, and
+ * a capital's deck is seconds of it. <b>None of it happens on the frame the
+ * player is waiting on.</b> The screen opens on a list that says which hulls it
+ * is still laying out, the hulls go down across every core at hand, and each
+ * row fills in as its deck lands — so a fleet with two capitals in it costs the
+ * same to open as a fleet of frigates.
+ *
+ * <p>The ship on the stage is laid out first, because hers is the plan being
+ * drawn and the one the player is waiting to see. Hers is also the only deck
+ * kept: a deck is megabytes of grid, and the rest are read for what is aboard
+ * them and dropped.
+ *
+ * <p>The fleet itself is read once rather than once per question asked about
+ * it, and a hull is laid out once rather than once for her plan and again for
+ * her facility counts.
  *
  * <p>The comparison is always against where they live now. A screen that rated
  * hulls in the abstract would be a datasheet; the player is asking whether to
@@ -73,7 +91,16 @@ public final class ShipTransferViewModel {
     private final Consumer<String> moveAboard;
     private final CompanyMeans means;
     private final Map<String, ShipInterior> interiors = new HashMap<>();
-    private final Map<String, CompanyDeck> plans = new HashMap<>();
+    /** Hulls being laid out off this thread, by ship id. @see #advance() */
+    private final Map<String, CompletableFuture<Laid>> laying = new LinkedHashMap<>();
+    /** The ship the plan view draws — the one hull whose deck is kept. */
+    private String stagedShipId;
+    private CompanyDeck staged;
+    /** The fleet as it stood when this screen last read it. @see #fleet() */
+    private List<Candidate> ships;
+
+    /** A hull laid out: what is aboard her, and her deck where it is being kept. */
+    private record Laid(ShipInterior interior, CompanyDeck deck) {}
     private final MutableSignal<String> selectedShipId;
     private final MutableSignal<Integer> revision;
     private final ComputedSignal<List<CandidateRow>> candidateRows;
@@ -189,9 +216,49 @@ public final class ShipTransferViewModel {
      */
     public CompanyDeck selectedPlan() {
         Candidate ship = selected();
-        if (ship == null) return null;
-        return plans.computeIfAbsent(ship.id(),
-                id -> new CompanyDeck(ship.ship(), CompanyShipDesignation.deckSeedFor(id)));
+        return ship != null && ship.id().equals(stagedShipId) ? staged : null;
+    }
+
+    /**
+     * Take delivery of any hull that has finished being laid out.
+     *
+     * <p>Called by the screen on its own clock rather than waited on, which is
+     * the whole point: a deck lands when it lands and the list says so until it
+     * does. Nothing here generates anything — the work happened elsewhere and
+     * this is where its result becomes something the screen may read, on the
+     * one thread that reads it.
+     *
+     * @return whether anything landed, so a caller may skip the rest of a frame
+     */
+    /**
+     * Whether any hull is still being laid out.
+     *
+     * <p>For a caller that wants the finished fleet rather than the screen's
+     * behaviour — evidence rendering, and the tests that pin what a row says
+     * once its deck has landed.
+     */
+    public boolean reading() {
+        return !laying.isEmpty();
+    }
+
+    public boolean advance() {
+        if (laying.isEmpty()) return false;
+        boolean landed = false;
+        Iterator<Map.Entry<String, CompletableFuture<Laid>>> reading =
+                laying.entrySet().iterator();
+        while (reading.hasNext()) {
+            Map.Entry<String, CompletableFuture<Laid>> entry = reading.next();
+            if (!entry.getValue().isDone()) continue;
+            reading.remove();
+            Laid laid = entry.getValue().join();
+            interiors.put(entry.getKey(), laid.interior());
+            if (laid.deck() != null && entry.getKey().equals(stagedShipId)) {
+                staged = laid.deck();
+            }
+            landed = true;
+        }
+        if (landed) revision.update(value -> value + 1);
+        return landed;
     }
 
     /** Show this ship. Ignored for one the player does not own. */
@@ -233,14 +300,32 @@ public final class ShipTransferViewModel {
     }
 
     public void refresh() {
+        ships = null;
         revision.update(value -> value + 1);
+    }
+
+    /**
+     * The player's ships, read once rather than once per question.
+     *
+     * <p>Reading the fleet is not free. A ship that has taken damage is read as
+     * she would be without it, which clones her variant, lifts her d-mods and
+     * builds a throwaway member to ask the game what that comes to. A dozen
+     * signals on this screen each want to know which ship is selected, or which
+     * one is home, and every one of them was re-reading the whole fleet to find
+     * out.
+     */
+    private List<Candidate> fleet() {
+        if (ships == null) ships = List.copyOf(fleet.get());
+        return ships;
     }
 
     private List<CandidateRow> buildCandidateRows() {
         revision.get();
+        List<Candidate> owned = fleet();
+        readAhead(owned);
         ShipInterior quarters = interiorOf(homeShip());
         List<CandidateRow> rows = new ArrayList<>();
-        for (Candidate ship : fleet.get()) {
+        for (Candidate ship : owned) {
             ShipInterior interior = interiorOf(ship);
             boolean here = isHome(ship);
             String classes = "transfer-row"
@@ -250,12 +335,28 @@ public final class ShipTransferViewModel {
             String id = "transfer-ship:" + ship.id();
             rows.add(new CandidateRow(id, id + ":name", id + ":hull", id + ":detail",
                     id + ":cost", classes, ship.name(), ship.designation(),
-                    berths(interior),
-                    here ? "HOME" : !ship.quarters() ? "TOO SMALL TO LIVE ABOARD"
-                            : cost(quarters, interior),
+                    interior == null ? "laying out her deck" : berths(interior),
+                    rowCost(ship, quarters, interior, here),
                     () -> selectedShipId.set(ship.id())));
         }
         return List.copyOf(rows);
+    }
+
+    /**
+     * The right-hand column of a row: what she is, or what she would cost.
+     *
+     * <p>Silent rather than wrong while a hull is still being laid out. A
+     * comparison needs both decks, and reading a half-laid fleet as though the
+     * missing half were a company with nowhere to live would tell the player
+     * their own ship had no berthing.
+     */
+    private String rowCost(Candidate ship, ShipInterior quarters,
+                           ShipInterior interior, boolean here) {
+        if (here) return "HOME";
+        if (!ship.quarters()) return "TOO SMALL TO LIVE ABOARD";
+        if (interior == null) return "";
+        if (quarters == null && !unquartered()) return "";
+        return cost(quarters, interior);
     }
 
     private List<FacilityCell> buildFacilityCells() {
@@ -428,10 +529,72 @@ public final class ShipTransferViewModel {
                 + " +" + (purposes.size() - ROW_LOSSES) + " more";
     }
 
+    /**
+     * Set every hull this list will ask about going, and wait for none of them.
+     *
+     * <p>A row says how many berths a hull has and what moving aboard her would
+     * cost the company, and neither is a number any datasheet holds: a room the
+     * deck could not fit is a room the ship does not have, so the only way to
+     * answer is to lay the deck out. A fleet nobody has looked at yet is
+     * therefore a fleet of decks, and a capital's is seconds of work.
+     *
+     * <p>They are independent — each generated from its own seed into its own
+     * grids, and everything they consult is fixed before the game starts — so
+     * they go together, and the row for a hull says she is being laid out until
+     * she is. The ship on the stage goes first, because hers is the picture the
+     * player is waiting for.
+     */
+    private void readAhead(List<Candidate> owned) {
+        Candidate showing = selected();
+        if (showing != null && !showing.id().equals(stagedShipId)) {
+            stagedShipId = showing.id();
+            staged = null;
+        }
+        if (showing != null) layOut(showing);
+        for (Candidate ship : owned) layOut(ship);
+    }
+
+    /**
+     * Start laying her out, unless she is already read and there is no picture
+     * of her wanted, or she is already being laid out.
+     */
+    private void layOut(Candidate ship) {
+        String id = ship.id();
+        if (laying.containsKey(id)) return;
+        boolean keep = id.equals(stagedShipId);
+        if (!(keep && staged == null) && interiors.containsKey(id)) return;
+        if (!ship.ship().habitable()) {
+            interiors.put(id, new ShipInterior(ship.ship(), Map.of()));
+            return;
+        }
+        long seed = CompanyShipDesignation.deckSeedFor(id);
+        laying.put(id, CompletableFuture.supplyAsync(() -> lay(ship, seed, keep)));
+    }
+
+    /**
+     * One hull laid out, away from the screen's thread.
+     *
+     * <p>A hull that cannot be laid out is recorded as holding nothing rather
+     * than left unread, because an unread hull is asked for again on the next
+     * frame and a hull that fails once fails every time.
+     */
+    private static Laid lay(Candidate ship, long seed, boolean keep) {
+        try {
+            CompanyDeck deck = new CompanyDeck(ship.ship(), seed);
+            return new Laid(ShipInterior.of(ship.ship(), deck.rooms()),
+                    keep ? deck : null);
+        } catch (RuntimeException notLaid) {
+            Global.getLogger(ShipTransferViewModel.class).warn(
+                    "ShipTransferViewModel: could not lay out " + ship.name() + " ("
+                            + notLaid.getClass().getSimpleName() + ": "
+                            + notLaid.getMessage() + "); she is shown as holding nothing");
+            return new Laid(new ShipInterior(ship.ship(), Map.of()), null);
+        }
+    }
+
+    /** What is aboard her, or null while her deck is still being laid out. */
     private ShipInterior interiorOf(Candidate ship) {
-        if (ship == null) return null;
-        return interiors.computeIfAbsent(ship.id(), id -> ShipInterior.of(
-                ship.ship(), CompanyShipDesignation.deckSeedFor(id)));
+        return ship == null ? null : interiors.get(ship.id());
     }
 
     private Candidate homeShip() {
@@ -441,13 +604,13 @@ public final class ShipTransferViewModel {
     private Candidate selected() {
         Candidate chosen = find(selectedShipId.get());
         if (chosen != null) return chosen;
-        List<Candidate> ships = fleet.get();
-        return ships.isEmpty() ? null : ships.get(0);
+        List<Candidate> owned = fleet();
+        return owned.isEmpty() ? null : owned.get(0);
     }
 
     private Candidate find(String shipId) {
         if (shipId == null) return null;
-        for (Candidate ship : fleet.get()) {
+        for (Candidate ship : fleet()) {
             if (ship.id().equals(shipId)) return ship;
         }
         return null;
