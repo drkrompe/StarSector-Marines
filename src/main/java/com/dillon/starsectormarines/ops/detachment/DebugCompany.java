@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
-import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
+import com.dillon.starsectormarines.marine.SquadArmorPlan;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
@@ -69,20 +69,21 @@ public final class DebugCompany {
         int count = normalizeSquads(squads);
         Random rng = loadoutRandom != null ? loadoutRandom : new Random();
         List<SquadWeaponDoctrine> weapons = randomizedWeaponDoctrines(count, rng);
-        List<SquadArmorDoctrine> armor = randomizedArmorDoctrines(count, rng, resolved.plan);
+        List<SquadArmorPlan> armorPlans = randomizedArmorPlans(count, rng);
         MarineRoster roster = new MarineRoster();
-        stockArmory(roster.armory(), resolved, weapons, armor);
+        stockArmory(roster.armory(), resolved, weapons);
+        stockArmor(roster.armory(), resolved);
         for (int s = 0; s < count; s++) {
             MarineSquad squad = roster.createSquad();
             SquadWeaponDoctrine weaponDoctrine = weapons.get(s);
-            SquadArmorDoctrine armorDoctrine = armor.get(s);
+            SquadArmorPlan armorPlan = armorPlans.get(s);
             List<MarineSoldier> recruits =
                     roster.recruitToSquad(squad.id(), MarineSquad.CAPACITY);
             if (recruits.size() != MarineSquad.CAPACITY) {
                 throw new IllegalStateException("Debug squad complement was not filled");
             }
             SquadEquipmentResult result = roster.applySquadEquipmentVariant(
-                    squad.id(), weaponDoctrine.id(), armorDoctrine.id(),
+                    squad.id(), weaponDoctrine.id(), armorPlan.id(),
                     debugGrades(weaponDoctrine, resolved.plan));
             if (result != SquadEquipmentResult.APPLIED) {
                 throw new IllegalStateException("Debug squad loadout refused: " + result);
@@ -127,11 +128,9 @@ public final class DebugCompany {
      * does not mint legacy printed-inventory entries per marine.
      */
     private static void stockArmory(MarineArmory armory, DebugCompanyStage stage,
-                                    List<SquadWeaponDoctrine> weapons,
-                                    List<SquadArmorDoctrine> armor) {
+                                    List<SquadWeaponDoctrine> weapons) {
         for (int squad = 0; squad < weapons.size(); squad++) {
             SquadWeaponDoctrine weaponDoctrine = weapons.get(squad);
-            SquadArmorDoctrine armorDoctrine = armor.get(squad);
             List<EquipmentGrade> grades = debugGrades(weaponDoctrine, stage.plan);
             for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
                 SquadWeaponIssue issue = weaponDoctrine.issue(billet);
@@ -141,7 +140,6 @@ public final class DebugCompany {
                 if (secondary != null) {
                     armory.unlockSecondary(secondary);
                 }
-                armory.unlockArmor(armorDoctrine.issueId(billet));
             }
         }
     }
@@ -171,28 +169,33 @@ public final class DebugCompany {
      * randomized — which faction's kit at that ceiling — while the stage keeps
      * meaning what it says about company quality.
      */
-    private static List<SquadArmorDoctrine> randomizedArmorDoctrines(
-            int count, Random rng, DebugBilletPlan plan) {
-        List<SquadArmorDoctrine> admissible = new ArrayList<>();
-        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
-            if (bestArmorTier(doctrine) == plan.maxArmorTier()) admissible.add(doctrine);
+    private static List<SquadArmorPlan> randomizedArmorPlans(
+            int count, Random rng) {
+        List<SquadArmorPlan> plans = SquadEquipmentDoctrines.armorPlans();
+        if (plans.isEmpty()) {
+            throw new IllegalStateException("No authored armour plans");
         }
-        if (admissible.isEmpty()) {
-            throw new IllegalStateException("No authored armor doctrine tops out at tier "
-                    + plan.maxArmorTier() + "; the stage ladder has outrun the catalog");
-        }
-        return shuffledBatches(admissible, count, rng);
+        return shuffledBatches(plans, count, rng);
     }
 
-    /** The best-protected billet in a doctrine — what the squad reads as. */
-    static int bestArmorTier(SquadArmorDoctrine doctrine) {
-        int best = 0;
-        for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
-            MarineArmorCatalogDef def = MarineArmorCatalogRegistry.installed() == null ? null
-                    : MarineArmorCatalogRegistry.installed().get(doctrine.issueId(billet));
-            if (def != null) best = Math.max(best, def.tier());
+    /**
+     * What this company has collected: every pattern the catalog offers at or
+     * below the stage's ceiling.
+     *
+     * <p>This is the access half of {@code role-and-access.md}, and it is the
+     * only place the stage's tier appears. A plan is admissible at every stage —
+     * a poor company runs the same sections as a rich one — and the ceiling
+     * decides what those sections are wearing rather than which sections exist.
+     * The rule it replaced admitted only doctrines whose <em>best</em> billet
+     * matched the ceiling exactly, which is why a Hardened company could field
+     * nothing but assault suits.
+     */
+    private static void stockArmor(MarineArmory armory, DebugCompanyStage stage) {
+        MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
+        if (catalog == null) return;
+        for (MarineArmorCatalogDef pattern : catalog.all()) {
+            if (pattern.tier() <= stage.plan.maxArmorTier()) armory.unlockArmor(pattern.id());
         }
-        return best;
     }
 
     /** A shuffle bag gives small debug companies variety without forbidding repeats at scale. */

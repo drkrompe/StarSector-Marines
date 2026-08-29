@@ -1197,13 +1197,23 @@ public class MarineRoster implements Serializable {
                 MarineSoldier teamLeader = seniorOnTeam(squad, team, onDuty);
                 if (teamLeader != null) teamLeader.setEnlistedRank(EnlistedRank.LANCE_CORPORAL);
             }
-            // Stripes follow the band the squad's kit fields its NCO at. With
-            // experience issued rather than accumulated, a marine never grows
-            // into sergeant's stripes; the company equips its way there.
-            leader.setEnlistedRank(
-                    SquadExperienceStandard.bandFor(leader).minimumXp
-                            >= ExperienceTier.VETERAN.minimumXp
-                            ? EnlistedRank.SERGEANT : EnlistedRank.CORPORAL);
+            // Stripes follow the band the SQUAD's kit fields, not the one suit
+            // its senior marine happens to be wearing. With experience issued
+            // rather than accumulated, a marine never grows into sergeant's
+            // stripes; the company equips its way there — and a company equips a
+            // squad, not a billet.
+            //
+            // Reading the leader's own suit was indistinguishable from reading
+            // the squad's while every marine in it wore the same pattern. Once
+            // armour is issued per role ({@code role-and-access.md}), it is not:
+            // a section whose scout is in a cheaper specialist suit would lose
+            // its sergeant to the accident of who happened to be senior.
+            int squadBand = 0;
+            for (MarineSoldier member : onDuty) {
+                squadBand = Math.max(squadBand, SquadExperienceStandard.bandFor(member).minimumXp);
+            }
+            leader.setEnlistedRank(squadBand >= ExperienceTier.VETERAN.minimumXp
+                    ? EnlistedRank.SERGEANT : EnlistedRank.CORPORAL);
         }
     }
 

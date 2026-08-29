@@ -185,6 +185,63 @@ class AirbaseLotTest {
         assertTrue(open >= 4, axis + ": a fence with no gate makes the lot a pocket");
     }
 
+    /**
+     * A way in on every side.
+     *
+     * <p>Front and back are how the base is used. The two ends are how
+     * everybody else gets past it: a lot gated on one axis only is a wall
+     * across the map for anything trying to move along the other, and the
+     * fortress ward it sits in is wider than it is deep.
+     */
+    @ParameterizedTest
+    @EnumSource(value = TraversalAxis.class, names = { "SOUTH_TO_NORTH", "WEST_TO_EAST" })
+    void thereIsAGateOnEverySide(TraversalAxis axis) {
+        Lot lot = author(axis);
+        assertTrue(openOnSide(lot, lot.left(), lot.bottom(), lot.left(), lot.top()),
+                axis + ": no way through the west side");
+        assertTrue(openOnSide(lot, lot.right(), lot.bottom(), lot.right(), lot.top()),
+                axis + ": no way through the east side");
+        assertTrue(openOnSide(lot, lot.left(), lot.bottom(), lot.right(), lot.bottom()),
+                axis + ": no way through the south side");
+        assertTrue(openOnSide(lot, lot.left(), lot.top(), lot.right(), lot.top()),
+                axis + ": no way through the north side");
+    }
+
+    /** Whether any cell along this edge run can be walked through. */
+    private static boolean openOnSide(Lot lot, int x0, int y0, int x1, int y1) {
+        for (int x = x0; x <= x1; x++) {
+            for (int y = y0; y <= y1; y++) {
+                if (lot.grid().isWalkable(x, y)) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The fence leaves room to walk past it.
+     *
+     * <p>A lot whose fence sits on the boundary of its own reservation can be
+     * packed flush against, and the way round the base is then whatever the
+     * packing happened to leave — including nothing. The clearance is part of
+     * what a host reserves, so this pins that the lot does not quietly spend it.
+     */
+    @ParameterizedTest
+    @EnumSource(value = TraversalAxis.class, names = { "SOUTH_TO_NORTH", "WEST_TO_EAST" })
+    void theFenceKeepsItsClearanceUntouched(TraversalAxis axis) {
+        Lot lot = author(axis);
+        for (int ring = 1; ring <= AirbaseLot.CLEARANCE; ring++) {
+            for (int x = lot.left() - ring; x <= lot.right() + ring; x++) {
+                for (int y = lot.bottom() - ring; y <= lot.top() + ring; y++) {
+                    boolean onRing = x == lot.left() - ring || x == lot.right() + ring
+                            || y == lot.bottom() - ring || y == lot.top() + ring;
+                    if (!onRing) continue;
+                    assertTrue(lot.grid().isWalkable(x, y), axis + ": " + x + "," + y
+                            + " is " + ring + " cells outside the fence and cannot be walked");
+                }
+            }
+        }
+    }
+
     /** Cells reachable on foot from {@code (x, y)}. */
     private static boolean[][] flood(NavigationGrid grid, int x, int y) {
         boolean[][] seen = new boolean[grid.getWidth()][grid.getHeight()];

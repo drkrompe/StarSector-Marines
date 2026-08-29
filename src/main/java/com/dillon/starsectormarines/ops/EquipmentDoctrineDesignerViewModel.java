@@ -406,13 +406,13 @@ public final class EquipmentDoctrineDesignerViewModel {
         if (id == null) return false;
         return kind.get() == Kind.WEAPON
                 ? SquadEquipmentDoctrines.weaponById(id) == null
-                : SquadEquipmentDoctrines.armorById(id) == null;
+                : SquadEquipmentDoctrines.armorPlanById(id) == null;
     }
 
     private boolean customId(String id) {
         return kind.peek() == Kind.WEAPON
                 ? SquadEquipmentDoctrines.weaponById(id) == null
-                : SquadEquipmentDoctrines.armorById(id) == null;
+                : SquadEquipmentDoctrines.armorPlanById(id) == null;
     }
 
     private boolean assignedSource() {
