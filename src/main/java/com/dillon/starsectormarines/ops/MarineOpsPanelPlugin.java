@@ -67,6 +67,8 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     private Runnable dismissDialog;
     private ScreenId lastScreenId;
     private boolean intelAudioActive;
+    /** Whether the ship was ready last frame. @see #advance */
+    private boolean shipWasReady;
 
     public MarineOpsPanelPlugin(PlanetAPI planet) {
         this(planet, null);
@@ -144,6 +146,17 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         // them, which is the difference between a ship and a diorama.
         CompanyDeck ship = ctx.companyDeck();
         if (ship != null) ship.advance(amount);
+        // A page built while she was still being got ready shows her rooms as
+        // pending, and it is the page the player is looking at. Nothing on it
+        // would ever say otherwise: properties are read when a page is built,
+        // and the only thing that rebuilds one is going somewhere else. So the
+        // page is rebuilt where it stands, once, the frame she arrives.
+        boolean ready = ship != null && ship.ready();
+        if (ready && !shipWasReady) {
+            shipWasReady = true;
+            screens.get(id).detach();
+            screens.get(id).attach(position, ctx, dismissDialog);
+        }
         screens.get(id).advance(amount);
     }
 

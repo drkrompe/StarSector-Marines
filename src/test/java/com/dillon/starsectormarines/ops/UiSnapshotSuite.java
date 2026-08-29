@@ -135,6 +135,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("company-hq-bridge-wide.png",
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
+                // The one state the shell can be in that nothing else draws:
+                // her deck is still being laid out, so the rooms aboard read as
+                // pending rather than as places the hull does not have.
+                new SnapshotArtifact("company-hq-getting-ready-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.gettingReadyPreview())),
                 new SnapshotArtifact("company-hq-bridge-low-resolution.png",
                         renderCompanyHq(context, renderer, 1163, 625, 1f)),
                 new SnapshotArtifact("company-hq-bridge-ui-scale-150.png",
@@ -224,13 +231,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderCompanyHq(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale) throws Exception {
+        return renderCompanyHq(context, renderer, width, height, uiScale,
+                CompanyHqViewModel.preview());
+    }
+
+    private static BufferedImage renderCompanyHq(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale,
+            CompanyHqViewModel viewModel) throws Exception {
         Reactor reactor = new Reactor();
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), COMPANY_HQ_COMPONENTS);
         loader.reload();
 
         try (MarkupInstance instance = loader.build(
-                reactor, "company-hq", CompanyHqViewModel.preview().props())) {
+                reactor, "company-hq", viewModel.props())) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
