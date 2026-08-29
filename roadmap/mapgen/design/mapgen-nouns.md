@@ -4,8 +4,8 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — the airbase lot comes in two sizes, the compact one a
-runway-less landing site, with every invariant asserted at both.
+Updated: 2026-08-29 — the airbase lot turns four ways, comes in three sizes, and
+the smallest is promoted into a city block as a civil landing site.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -355,6 +355,31 @@ worked on, and a strip is what gets added when something has to roll. The
 compact size therefore fits where the full one cannot — a city block, a
 compound's yard, a map that is not a fortress — and it is the shape a player's
 own arrival wants: a berth, its servicing, and a fence round the lot.
+
+**Whether a base is operational is the host's call, not the lot's.** The
+geometry is identical either way; what changes is who picks its berths up. A
+fortress ward publishes garrison berths, which supply an air arm and can be
+taken to stop it. A city block publishes a civil landing pad and no airbase
+node, so nothing flies from it and nothing gates on holding it — it is a place
+a mission can put somebody down, and a walled lot with hard cover to fight over
+once they are. Building a second, cosmetic airbase to get the second behaviour
+would be two things to keep in step for no reason.
+
+**A city landmark is promoted from what is left, after the compounds have
+claimed.** Promoted rather than rolled per block, because only a handful of
+blocks can hold one and a per-block roll would put it on a minority of seeds and
+never where it fits best. After the compounds, because compound seeding takes
+the largest leaf it can find — which is the same leaf a landmark wants. Run
+before it, the promotion is silently overwritten on every seed: nothing appears
+and nothing complains.
+
+**Ask the lot whether it fits; never restate its size.** A host that encodes
+what an airbase needs as its own pair of numbers will disagree with the lot
+eventually, and the way it disagrees is that the host promotes a block the lot
+then declines — a city with no airbase and no error. The same mistake in
+another form is choosing an orientation from the block's proportions: that
+reasoning assumes a lot wider than it is deep, and the compact sizes are not.
+Try each facing and take one that fits.
 
 The lot knows nothing about where its rectangle came from, so a fortress ward, a
 city compound, or a future installation map can each reserve one and hand it

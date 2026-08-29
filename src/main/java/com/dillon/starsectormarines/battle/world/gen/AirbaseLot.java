@@ -50,9 +50,15 @@ public final class AirbaseLot {
      *
      * <p>{@link #PAD} is a landing site: two berths, one shed, and no strip at
      * all. A quarter of the ground, and it fits where the large one cannot —
-     * a city block, a compound's yard, a map that is not a fortress. It is also
-     * the shape a player's own arrival wants, which is a berth with somewhere
-     * to put the aircraft's servicing and a fence round the lot.
+     * a compound's yard, a claim across a few city blocks, a map that is not a
+     * fortress. It is the shape a player's own arrival wants.
+     *
+     * <p>{@link #STRIP} is one berth and its shed, sized to drop straight into
+     * a single city block. Measured on a Conquest map the largest blocks run to
+     * about eighteen by sixteen, so this is what an airbase looks like when it
+     * has to be a block rather than claim several — and a block is already
+     * bounded by streets, which is why it is the one size that reserves no
+     * clearance of its own.
      *
      * <p>A site with no runway is not a diminished airfield; it is the thing
      * most airbases actually are. Aircraft that land vertically need somewhere
@@ -60,8 +66,9 @@ public final class AirbaseLot {
      * something has to roll.
      */
     public enum Size {
-        FIELD(44, 24, 4, true, 3, 2, 11, 8, 5, 4, 3, 2),
-        PAD(22, 19, 0, false, 2, 1, 11, 8, 5, 3, 2, 1);
+        FIELD(44, 24, 4, true, 3, 2, 11, 8, 5, 4, 3, 2, 2),
+        PAD(22, 19, 0, false, 2, 1, 11, 8, 5, 3, 2, 1, 2),
+        STRIP(14, 16, 0, false, 1, 1, 9, 7, 5, 1, 1, 1, 0);
 
         /** Cells across the lot, fence to fence. */
         public final int width;
@@ -84,10 +91,20 @@ public final class AirbaseLot {
         /** Ranks and files of parked vehicles. */
         final int parkRanks;
         final int parkFiles;
+        /**
+         * Cells of clear ground kept outside the fence.
+         *
+         * <p>Zero for a site that fills a city block, because a block is
+         * already bounded by streets and the way past it exists whether the lot
+         * reserves it or not. A lot carved out of a larger reservation has no
+         * such guarantee and buys its own.
+         */
+        final int clearance;
 
         Size(int width, int depth, int runwayDepth, boolean tower,
              int pads, int hangars, int hangarWidth, int hangarDepth,
-             int hangarOpening, int taxiway, int parkRanks, int parkFiles) {
+             int hangarOpening, int taxiway, int parkRanks, int parkFiles,
+             int clearance) {
             this.width = width;
             this.depth = depth;
             this.runwayDepth = runwayDepth;
@@ -100,7 +117,14 @@ public final class AirbaseLot {
             this.taxiway = taxiway;
             this.parkRanks = parkRanks;
             this.parkFiles = parkFiles;
+            this.clearance = clearance;
         }
+
+        /** Cells of clear ground this size keeps outside its fence. */
+        public int clearance() { return clearance; }
+
+        /** Berths this size carries. */
+        public int pads() { return pads; }
     }
 
     /**
@@ -184,17 +208,6 @@ public final class AirbaseLot {
     }
 
     /**
-     * Cells of clear ground kept outside the fence, all the way round.
-     *
-     * <p>A fence on the boundary of its own reservation is one a building can
-     * be packed flush against, and the gap between it and the next wall is then
-     * whatever the packing happened to leave — including nothing. A lot that
-     * blocks the way past it has made the map worse in exchange for reading
-     * well, so the clearance is reserved with the lot rather than hoped for.
-     */
-    public static final int CLEARANCE = 2;
-
-    /**
      * A berth is five cells square, which is what {@link LandingPad} authors.
      * It does not scale with the lot: an aircraft is the size it is, and a
      * compact base is one with fewer berths rather than smaller ones.
@@ -210,19 +223,25 @@ public final class AirbaseLot {
     /** Cells across a gate. Three, so a fire team is channelled rather than filtered one at a time. */
     private static final int GATE_WIDTH = 3;
 
+    /** Cells across one gate — the only opening a fence is allowed. */
+    public static int gateWidth() { return GATE_WIDTH; }
+
+    /** Sides a lot is gated on. Every one of them, so the base never walls off a direction. */
+    public static int gatedSides() { return 4; }
+
     /** Ground this size and its clearance need, for a host sizing an envelope that has to contain one. */
     public static int area(Size size) {
-        return (size.width + CLEARANCE * 2) * (size.depth + CLEARANCE * 2);
+        return (size.width + size.clearance * 2) * (size.depth + size.clearance * 2);
     }
 
     /** Cells across the reservation a host must set aside, clearance included. */
     public static int reservedSpanX(Size size, Facing facing) {
-        return spanX(size, facing) + CLEARANCE * 2;
+        return spanX(size, facing) + size.clearance * 2;
     }
 
     /** Cells down the reservation a host must set aside, clearance included. */
     public static int reservedSpanY(Size size, Facing facing) {
-        return spanY(size, facing) + CLEARANCE * 2;
+        return spanY(size, facing) + size.clearance * 2;
     }
 
     /**
@@ -265,9 +284,30 @@ public final class AirbaseLot {
     private final boolean alongY;
     private final LandingPad.Approach approach;
     private final Size size;
+    private final LandingPad.Purpose purpose;
 
+    /**
+     * A lot whose berths are a working garrison field.
+     */
     public AirbaseLot(int left, int bottom, int right, int top,
                       Facing facing, Size size) {
+        this(left, bottom, right, top, facing, size,
+                LandingPad.Purpose.GARRISON_AIRFIELD);
+    }
+
+    /**
+     * A lot whose berths are published for {@code purpose}.
+     *
+     * <p>Whether a base is <em>operational</em> is the host's call, not the
+     * lot's. The geometry is the same either way — the same paving, sheds,
+     * markings and fence — and what changes is who picks the berths up: a
+     * garrison field supplies an air arm and can be taken to stop it, while a
+     * civil pad is somewhere to put an aircraft down and nothing more. Building
+     * a second, cosmetic airbase to get the second behaviour would be two
+     * things to keep in step for no reason.
+     */
+    public AirbaseLot(int left, int bottom, int right, int top,
+                      Facing facing, Size size, LandingPad.Purpose purpose) {
         this.left = left;
         this.bottom = bottom;
         this.right = right;
@@ -276,6 +316,7 @@ public final class AirbaseLot {
         this.alongY = facing.alongY;
         this.approach = facing.approach;
         this.size = size;
+        this.purpose = purpose;
     }
 
     /** Cells across the lot on the map's x axis, for the given facing. */
@@ -312,8 +353,8 @@ public final class AirbaseLot {
      * way round.
      */
     private void pave(GenContext ctx) {
-        for (int x = left - CLEARANCE; x <= right + CLEARANCE; x++) {
-            for (int y = bottom - CLEARANCE; y <= top + CLEARANCE; y++) {
+        for (int x = left - size.clearance; x <= right + size.clearance; x++) {
+            for (int y = bottom - size.clearance; y <= top + size.clearance; y++) {
                 if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
                 boolean insideFence = x >= left && x <= right && y >= bottom && y <= top;
                 ctx.grid.setWalkableFloor(x, y);
@@ -364,7 +405,7 @@ public final class AirbaseLot {
             int cx = alongY ? along : row;
             int cy = alongY ? row : along;
             markBerth(ctx, cx, cy);
-            ctx.landingPads.add(LandingPad.garrison(cx, cy, approach));
+            ctx.landingPads.add(berth(cx, cy));
         }
     }
 
@@ -452,6 +493,13 @@ public final class AirbaseLot {
             "doodad.parked-flatbed-truck",
             "doodad.parked-cargo-truck",
     };
+
+    /** One berth, published for whatever this lot is for. */
+    private LandingPad berth(int cx, int cy) {
+        return purpose == LandingPad.Purpose.GARRISON_AIRFIELD
+                ? LandingPad.garrison(cx, cy, approach)
+                : LandingPad.civilian(cx, cy, approach);
+    }
 
     /** Paint one berth so a stand reads as a stand from across the lot. */
     private void markBerth(GenContext ctx, int centreX, int centreY) {

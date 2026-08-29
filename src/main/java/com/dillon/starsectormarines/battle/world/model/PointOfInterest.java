@@ -33,7 +33,14 @@ public final class PointOfInterest {
         DEPOT,
         RESIDENTIAL,
         ADMINISTRATIVE,
-        MEDICAL
+        MEDICAL,
+        /**
+         * A civil landing site — a berth, its shed, and the lot round them.
+         * Not an air arm: nothing flies from it and no commander gates on
+         * holding it. It is a place a mission can put somebody down, and a
+         * walled lot with hard cover in it to fight over once they are.
+         */
+        LANDING_SITE
     }
 
     public final Kind kind;
