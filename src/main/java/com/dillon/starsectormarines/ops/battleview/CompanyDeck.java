@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 /**
@@ -50,10 +51,18 @@ import java.util.function.Supplier;
  * capital transport is a few hundred hands and well under a millisecond a
  * frame, against a sixteen millisecond budget.
  *
- * <p>She is built when the operations panel starts ticking her rather than in
- * the constructor, which is a matter of when rather than whether — the context
- * is assembled before the panel is on screen, and generating a deck there would
- * put the work in front of the first frame instead of behind it.
+ * <p><b>Getting her ready happens away from the frame.</b> Laying a capital's
+ * deck out and crewing her is seconds of arithmetic, and doing it on the frame
+ * that is drawing the shell is the difference between opening operations and
+ * waiting for it. None of that work touches anything the game owns — it is our
+ * own generator writing into its own grids — so it is done on another thread,
+ * and the shell shows the rooms aboard her as being got ready until they are.
+ *
+ * <p>Two things are pinned to this thread on either side of that. Who is
+ * aboard is read <em>before</em> the work is handed over, because the roster is
+ * campaign state and the campaign is still running. Her renderer is built
+ * <em>after</em> it comes back, because it reads sheets the game loaded and
+ * those belong here.
  */
 public final class CompanyDeck {
 
@@ -74,6 +83,8 @@ public final class CompanyDeck {
     private MapResult deck;
     private DeckGraph rooms;
     private ShipDeckBattleScene scene;
+    /** Her deck being laid out and her watch mustered, off the frame. @see #ready() */
+    private CompletableFuture<ShipDeckBattleScene> gettingReady;
     private float elapsedSeconds;
 
     /**
@@ -189,15 +200,73 @@ public final class CompanyDeck {
     public ShipDeckBattleScene scene() {
         ensureSceneSprites();
         if (scene != null) return scene;
+        if (!ship.habitable()) {
+            throw new IllegalStateException(
+                    "a " + ship.hullClass() + " has no interior to walk around");
+        }
+        // Somebody wants her now. Wait for the work rather than hand back
+        // nothing: the routes to the pages that would have to cope with nothing
+        // are closed until she is ready, so anybody arriving here has decided
+        // they would rather wait.
+        adopt(getReady().join());
+        return scene;
+    }
+
+    /**
+     * Whether she can be walked around yet, setting her being got ready going
+     * if nobody has.
+     *
+     * <p>What the shell asks before it offers a way aboard, and what the panel
+     * asks before it runs her. Answering no is not a failure — it is the whole
+     * point, and it lasts as long as laying out a deck and mustering a watch
+     * takes, which for a capital is seconds.
+     */
+    public boolean ready() {
+        if (scene != null) return true;
+        if (!ship.habitable()) return false;
+        CompletableFuture<ShipDeckBattleScene> work = getReady();
+        if (!work.isDone()) return false;
+        adopt(work.join());
+        return true;
+    }
+
+    /**
+     * Lay her out and muster her watch, away from this thread.
+     *
+     * <p>The roster is read here rather than out there. Who is aboard is
+     * campaign state, the campaign is still running, and a supplier called from
+     * another thread would be reading the company while it changes.
+     */
+    private CompletableFuture<ShipDeckBattleScene> getReady() {
+        if (gettingReady != null) return gettingReady;
+        List<MechVariant> berthed = lance.get();
+        List<MarineSoldier> roll = company.get();
+        gettingReady = LaidDecks.off(() -> muster(berthed, roll));
+        return gettingReady;
+    }
+
+    /** @see #getReady() */
+    private ShipDeckBattleScene muster(List<MechVariant> berthed, List<MarineSoldier> roll) {
         generate();
-        scene = new ShipDeckBattleScene(deck, rooms, seed, sprites);
-        scene.occupyGantries(lance.get());
+        ShipDeckBattleScene manned = new ShipDeckBattleScene(deck, rooms, seed, null);
+        manned.occupyGantries(berthed);
         // The company musters before the ship is crewed, so the berthing is
         // filled by marines who are on the roster rather than topped up with
         // hands who are not.
-        musterCompany();
-        scene.manDeck();
-        return scene;
+        musterCompany(manned, roll);
+        manned.manDeck();
+        return manned;
+    }
+
+    /**
+     * Take delivery of the ship, and give her the means to draw herself.
+     *
+     * <p>On this thread, because a renderer reads sheets the game loaded.
+     */
+    private void adopt(ShipDeckBattleScene manned) {
+        ensureSceneSprites();
+        manned.attachRenderer(sprites);
+        scene = manned;
     }
 
     /**
@@ -239,11 +308,10 @@ public final class CompanyDeck {
      * are on no muster roll - and the player would find strangers asleep in
      * their own ship.
      */
-    private void musterCompany() {
-        List<MarineSoldier> roll = company.get();
+    private void musterCompany(ShipDeckBattleScene manned, List<MarineSoldier> roll) {
         List<MarineSoldier> remaining = roll == null ? List.of() : roll;
         for (DeckGraph.Compartment berthing : berthings()) {
-            long[] billeted = scene.muster(berthing, remaining);
+            long[] billeted = manned.muster(berthing, remaining);
             int taken = 0;
             for (int index = 0; index < billeted.length; index++) {
                 if (billeted[index] == 0L) continue;
@@ -337,7 +405,10 @@ public final class CompanyDeck {
     public void advance(float dt) {
         if (!(dt > 0f)) return;
         if (!ship.habitable()) return;
-        scene();
+        // Not yet, and not waited for. A ship still being got ready has no
+        // clock to run, and the frame this is called on is the one the player
+        // is looking at.
+        if (!ready()) return;
         elapsedSeconds += dt;
         scene.advanceTo(elapsedSeconds);
     }
@@ -357,12 +428,16 @@ public final class CompanyDeck {
     public void dismiss() {
         if (scene != null) scene.close();
         scene = null;
+        // Whatever was being got ready is let go rather than waited for. The
+        // deck it was laying out is kept by LaidDecks either way, so the work
+        // is not wasted even when its ship is.
+        gettingReady = null;
         mustered.clear();
         quarters.clear();
         elapsedSeconds = 0f;
     }
 
-    private void generate() {
+    private synchronized void generate() {
         if (deck != null) return;
         if (!ship.habitable()) {
             throw new IllegalStateException(
