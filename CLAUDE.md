@@ -275,7 +275,7 @@ The discovered suite ids and default output directories are:
 | `deployable-cover` | Animated controlled comparison of a placed revetment: the same fire into a covered lane, an open lane, and a screened post shot from the flank | `build/snapshots/deployable-cover/` |
 | `integral-system-fx` | A running integral system's halo: a narrow authored screen beside a wide one draining their soak pools, one breaking under concentrated fire, and one pattern's screen at four facings | `build/snapshots/integral-system-fx/` |
 | `perception-sweep` | The player's own picture — fog overlay and hidden-unit gating included — before, during, and after a Janus sensor sweep | `build/snapshots/perception-sweep/` |
-| `airfield-sortie` | Animated pair of one reinforcement sortie loading on its own hardstand: the crew's walk to the pad unopposed, and the same walk under fire | `build/snapshots/airfield-sortie/` |
+| `airfield-sortie` | Three animated loops of one garrison airfield: a sortie's crew walking to the pad unopposed, the same walk under fire, and a fire team burning the based aircraft on their stands | `build/snapshots/airfield-sortie/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote
@@ -301,12 +301,21 @@ one behavior: the scene found a real aperture-derivation bug in minutes that
 two full Conquest runs had hidden entirely.
 
 `AirfieldSortieScene` is the second: a garrison airfield, a shuttle on its
-hardstand, and the crew that has to walk out to board it, recorded twice — once
-unopposed and once with a marine fire team on the walk. It exists because the
+hardstand, and the crew that has to walk out to board it, recorded three ways —
+unopposed, with a marine fire team on the walk, and with a fire team on the
+apron burning the based aircraft where they stand. It exists because the
 unit tests around embarkation each pin one link (the means sets the state, the
 system takes a marine aboard, the gate rejects without a field) and none of them
 can show the thing the change was for: that the crossing is a stretch of time
 during which somebody can be shot.
+
+**A scene's marines need a squad and a weapon, or they are scenery.** A unit
+spawned from a bare `EntitySpec` carries no loadout and cannot fire, and target
+acquisition runs off the squad, so an "ambush" of unarmed, unsquadded marines is
+six people standing in a field watching a crew walk past. This scene recorded
+exactly that for a while, and its under-fire loop reported a delivery that was
+never actually contested. Seed a loadout and mint a squad, then check the
+recording says what you think it says.
 
 Prefer a scene over a mission harness whenever the question is about one
 behavior rather than about a whole battle's balance, and add another scene
@@ -315,8 +324,15 @@ rather than widening this one past what its name claims.
 **A scene needs both sides on the map even when only one of them acts.** The
 simulation returns immediately once a side is absent, so a scene with a lone
 faction never advances a tick — and one whose only enemies die mid-recording
-freezes at that instant with the clock stopped. Both airfield loops keep a
+freezes at that instant with the clock stopped. Every airfield loop keeps a
 single distant marine nobody can reach for exactly this reason.
+
+That is not always enough. A side present only as *structures* can still be a
+decided battle, and a decided battle stops ticking everything, aircraft
+included — the airfield raid loop, whose defenders are three parked hulls,
+recorded six marines standing perfectly still for its whole length until the
+scene called `setMissionCompletionEnabled(false)`. A scene is about one
+behaviour and not about who wins; turn the terminal check off.
 
 The scene is reached through its snapshot suite —
 `gradlew.bat createSnapshots -Psnapshot=frontage-scene` — which plays it and
