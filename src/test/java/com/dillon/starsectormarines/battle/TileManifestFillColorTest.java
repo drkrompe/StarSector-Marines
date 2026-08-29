@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 
 import org.junit.jupiter.api.Test;
@@ -11,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Regression guard for the fill colors in {@link TileManifest}. Samples the
@@ -32,8 +35,13 @@ public class TileManifestFillColorTest {
     @Test
     void roadFillMatchesSheet() throws Exception {
         BufferedImage img = load();
-        // Road autotile center cell (13, 1) is opaque — sample directly.
-        int sampled = sampleRgb(img, 13, 1, TILE / 2, TILE / 2);
+        // The road block's centre cell is opaque, so sample it directly - but
+        // ask the block where it is. This line named cell (13, 1) until the
+        // sheet started exporting from its authoring document and the packer
+        // moved it, which is the coordinate-into-a-repacked-atlas hazard.
+        GridBlockDef road = TileRegistry.installed().block("road.road");
+        assertNotNull(road, "urban-tileset-2 no longer defines road.road");
+        int sampled = sampleRgb(img, road.originCol + 1, road.originRow + 1, TILE / 2, TILE / 2);
         assertEquals(TileManifest.ROAD_FILL_RGB, sampled,
                 () -> String.format("ROAD_FILL_RGB drifted from sheet — declared 0x%06X, sampled 0x%06X",
                         TileManifest.ROAD_FILL_RGB, sampled));

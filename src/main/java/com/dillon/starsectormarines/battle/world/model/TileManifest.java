@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.world.model;
 
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+
 /**
  * Compatibility vocabulary for battle tile rendering that has not yet moved
  * behind the data registries. The authoritative built-in tile, block, and prop
@@ -88,7 +91,9 @@ public final class TileManifest {
      * darker road autotile, which is close enough to "sidewalk" for now.
      * Replace once a real sidewalk tile gets added to the sheet.
      */
-    public static final TileFrame SIDEWALK = new TileFrame(11, 1);
+    public static TileFrame sidewalk() {
+        return single("road.sidewalk", 11, 1);
+    }
 
     /**
      * Landing-zone pad decal stamped under each shuttle's touchdown cell.
@@ -99,7 +104,9 @@ public final class TileManifest {
      * reads as deliberate because of the surrounding open ground, but the
      * decal itself is off. Replace once a real LZ marker tile gets added.
      */
-    public static final TileFrame LZ_PAD = new TileFrame(16, 2);
+    public static TileFrame lzPad() {
+        return single("road.lz-marker", 16, 2);
+    }
 
     /**
      * Top-left cell of the turret-wall 3×3 autotile block on {@link #ROAD_SHEET}.
@@ -121,7 +128,9 @@ public final class TileManifest {
      * (col 11, row 2) reads as an industrial fixture and visually distinguishes
      * a beach LIGHT post from a port MEDIUM embankment.
      */
-    public static final TileFrame LIGHT_POST_VENT = new TileFrame(11, 2);
+    public static TileFrame lightPostVent() {
+        return single("road.vent", 11, 2);
+    }
 
     /**
      * Tile frame for one cell of a MEDIUM/LARGE defense-post embankment ring,
@@ -133,9 +142,8 @@ public final class TileManifest {
      * matching {@link #pickWallTile}'s row convention.
      */
     public static TileFrame turretEmbankment(int relX, int relY) {
-        return new TileFrame(
-                TURRET_EMBANKMENT_COL_ORIGIN + (relX + 1),
-                TURRET_EMBANKMENT_ROW_ORIGIN + (1 - relY));
+        return ringCell("road.embankment", relX, relY,
+                TURRET_EMBANKMENT_COL_ORIGIN, TURRET_EMBANKMENT_ROW_ORIGIN);
     }
 
     /**
@@ -150,9 +158,50 @@ public final class TileManifest {
     private static final int TURRET_BOW_ROW_ORIGIN = 0;
 
     public static TileFrame turretBowOut(int relX, int relY) {
-        return new TileFrame(
-                TURRET_BOW_COL_ORIGIN + (relX + 1),
-                TURRET_BOW_ROW_ORIGIN + (1 - relY));
+        return ringCell("road.courtyard", relX, relY,
+                TURRET_BOW_COL_ORIGIN, TURRET_BOW_ROW_ORIGIN);
+    }
+
+    /**
+     * One cell of a 3x3 ring block, chosen by where the cell sits relative to
+     * the post's centre.
+     *
+     * <p>{@code relX, relY} are in {@code [-1, +1]}, and {@code relY > 0} means
+     * north of the centre. Both are turned into the block layout's own
+     * "the exterior is on this side" mask, which is what puts the outward-facing
+     * cap on the outward-facing edge.
+     *
+     * <p>The block is asked for by id. The origin arguments are the fallback
+     * this sheet was hand-cut at, for a caller with no registry installed - a
+     * preview scene, or a test that stamps a post without the catalog.
+     */
+    private static TileFrame ringCell(String blockId, int relX, int relY,
+                                      int fallbackCol, int fallbackRow) {
+        GridBlockDef block = block(blockId);
+        if (block == null) {
+            return new TileFrame(fallbackCol + (relX + 1), fallbackRow + (1 - relY));
+        }
+        int[] cell = block.resolve(relY > 0, relY < 0, relX > 0, relX < 0);
+        return cell == null
+                ? new TileFrame(fallbackCol + (relX + 1), fallbackRow + (1 - relY))
+                : new TileFrame(cell[0], cell[1]);
+    }
+
+    /**
+     * The one cell of a single-cell block, or the coordinate the sheet was
+     * hand-cut at when no registry is installed.
+     */
+    private static TileFrame single(String blockId, int fallbackCol, int fallbackRow) {
+        GridBlockDef block = block(blockId);
+        if (block == null) return new TileFrame(fallbackCol, fallbackRow);
+        int[] cell = block.resolve(false, false, false, false);
+        return cell == null ? new TileFrame(fallbackCol, fallbackRow)
+                : new TileFrame(cell[0], cell[1]);
+    }
+
+    private static GridBlockDef block(String blockId) {
+        TileRegistry registry = TileRegistry.installed();
+        return registry == null ? null : registry.block(blockId);
     }
 
     /**

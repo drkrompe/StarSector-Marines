@@ -565,7 +565,7 @@ public final class DefensePostStamper implements GenStage {
 
     private static TileManifest.TileFrame barrierTile(DefensePostLayoutDef.Cell cell) {
         return switch (cell.appearance()) {
-            case VENT -> TileManifest.LIGHT_POST_VENT;
+            case VENT -> TileManifest.lightPostVent();
             case EMBANKMENT -> TileManifest.turretEmbankment(
                     cell.facing().x(), cell.facing().y());
             case BOW_OUT -> TileManifest.turretBowOut(
