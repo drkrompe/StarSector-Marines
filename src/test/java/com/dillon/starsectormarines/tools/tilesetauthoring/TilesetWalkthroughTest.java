@@ -10,6 +10,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -93,6 +94,11 @@ public class TilesetWalkthroughTest {
             // Drive it the way a click would, then paint what that shows.
             enter(page, workflow);
             write(root, "walkthrough-" + workflow.name().toLowerCase() + "-1.png");
+            if (workflow == TilesetWorkflow.SURFACE) {
+                // The screen this workflow exists for: the set of walls.
+                advance(page, "WALL");
+                write(root, "walkthrough-surface-2-the-set.png");
+            }
             page.close();
         }
     }
@@ -103,6 +109,21 @@ public class TilesetWalkthroughTest {
                 "enterWorkflow", TilesetWorkflow.class);
         method.setAccessible(true);
         method.invoke(page, workflow);
+    }
+
+    /** Pick a surface on screen one and step to the set, the way a click would. */
+    private static void advance(TilesetAuthoringPage page, String surface) throws Exception {
+        Field browser = TilesetAuthoringPage.class.getDeclaredField("surfaces");
+        browser.setAccessible(true);
+        SurfaceBrowserView surfaces = (SurfaceBrowserView) browser.get(page);
+        assertTrue(surfaces.select(surface), surface + " must be offered");
+
+        Field wizardField = TilesetAuthoringPage.class.getDeclaredField("wizard");
+        wizardField.setAccessible(true);
+        TilesetWizard wizard = (TilesetWizard) wizardField.get(page);
+        Method next = TilesetWizard.class.getDeclaredMethod("goNext");
+        next.setAccessible(true);
+        next.invoke(wizard);
     }
 
     private static AuthoringPageContext context() {
