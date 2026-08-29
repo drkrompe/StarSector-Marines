@@ -705,6 +705,14 @@ leashed to the route, resume when the threat releases. Morale remains the
 escape — a squad with no composed team left releases the order like any other
 mission goal.
 
+Advancing under contact is one behaviour, not a property of the kind of place
+being advanced on. A squad crossing to an assigned room and a squad attacking
+toward a bare cell commit on the same threat score, bound by fire team the same
+way, and hold the same open-ground echelon; only the arrival test differs. The
+destination is therefore a parameter of the advance rather than a fact about
+the action, and a new order that moves a squad toward contact inherits the
+behaviour instead of restating a thinner version of it.
+
 **Squads under one attack move are a maneuver group, the way fire teams inside
 a squad are.** Left to themselves, several squads converging on one position
 each reach the same correct-in-isolation conclusion — form a line and shoot —
