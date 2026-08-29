@@ -1,13 +1,13 @@
 # Role and access
 
 Status: ACTIVE — direction for how equipment is organised and how a squad is
-put together. The role vocabulary is closed, the matrix is filled, and both are
-under test. Doctrine still fuses role with access; that is the remaining work.
+put together. Shipped: the role vocabulary, the filled matrix, provenance as
+data, and doctrine as a role mix resolved against access.
 
 Written: 2026-08-29
-Updated: 2026-08-29 — role became closed validated data (`ArmorRole`), the
-matrix was filled with six patterns, and `ArmorCatalogShapeTest` asserts both
-role span and the capability ladder.
+Updated: 2026-08-29 — role, tradition and the filled matrix all landed, and
+`SquadArmorPlan` replaced the pattern-naming doctrine: a plan names a role mix
+and a tradition, and `ArmorIssueResolver` issues it from available stock.
 
 Read `progression-nouns.md` for the standing rules equipment must obey,
 `integral-system-slate.md` for which traditions build a suit capability and
@@ -86,17 +86,36 @@ something already there.
 A squad is twelve marines in three fire teams of four. The composition is the
 doctrine's business and the kit quality is the company's, so:
 
-- **A doctrine names a role mix**, per billet, the way it already names patterns
-  per billet. "One scout, one support, four assault, six line" is a doctrine.
-  So is "twelve assault" — a deliberately lopsided breach unit, which becomes a
-  real doctrinal choice with a real cost rather than the only thing the top of
-  the ladder can mean.
-- **Access resolves each slot to a pattern.** The same doctrine at tier II and
-  at tier IV is the same unit, better equipped.
-- **Tradition chooses among the patterns access allows.** A Hegemony company and
-  a Tri-Tachyon one resolve the same role at the same tier to different suits,
-  which is where `equipment-lore-catalog.md`'s provenance rules keep applying
-  unchanged.
+- **A plan names a role mix**, per billet — `SquadRoleMix`. "One scout, one
+  support, four assault, six line" is a plan. So is "two teams of breachers" — a
+  deliberately lopsided unit, which becomes a real doctrinal choice with a real
+  cost rather than the only thing the top of the ladder can mean.
+- **Available stock resolves each slot to a pattern**, through
+  `ArmorIssueResolver`. The same plan at tier II and at tier IV is the same
+  unit, better equipped. Nothing in the resolver reads a tier: access is
+  expressed as "which patterns may I use", so a company ceiling, a player's
+  unlocked cards, and a test's hand-picked set all go through one rule.
+- **Tradition chooses among what access allows**, and it is now data
+  (`ArmorTradition`) rather than a sentence in a description.
+
+**Tradition outranks tier, deliberately.** A Hegemony plan issues its own
+tier-III Pathfinder to a recon billet rather than the League's tier-IV Outrider,
+because a Hegemony section fields Hegemony kit. Buying the better scout suit
+means buying into another tradition, which is a real decision rather than an
+automatic upgrade. It also means a section can be mixed-tier by intent, and two
+consequences follow that are worth stating:
+
+- **An armour plan can no longer be refused for missing stock.** It names roles,
+  and the armoury fills them from whatever is owned — degrading to worse kit,
+  and finally to line kit for a role nobody has bought. A company that has never
+  bought a scout suit still fields its sections; it just has no scout in one.
+  Composition is the plan's business and supply is the armoury's, and only the
+  weapon side can now refuse an issue.
+- **A squad's experience band is the squad's, not one marine's.** Experience is
+  issued with the armour, so reading the leader's own suit was indistinguishable
+  from reading the squad's while all twelve wore the same pattern. It is not any
+  more: a section whose scout wears a cheaper specialist suit would otherwise
+  lose its sergeant to the accident of who happened to be senior.
 
 The three bands that motivated this doc then fall out of the model instead of
 being special-cased:
@@ -215,17 +234,16 @@ rectangular.
 
 ## Consequences
 
-- `SquadArmorDoctrine` changes shape: a role mix per billet rather than a
-  pattern per billet, resolved against an access level.
+- `SquadArmorPlan` is the authored form; `SquadArmorDoctrine` survives as the
+  *resolved* twelve, which is what the Armory, saves and custom loadouts already
+  understood. Nothing about persistence changed.
 - `DebugCompany`'s `bestArmorTier(doctrine) == plan.maxArmorTier()` exact match
-  is deleted rather than relaxed. It exists only because doctrines carry tier;
-  once they carry roles, a company applies its access to whatever doctrine it
-  is running.
-- `DebugCompanyStage`'s ladder is separately non-monotonic — Veteran Company is
-  HARDENED, Reinforced drops back to SEASONED, Full Strength returns to
-  HARDENED — so a company currently loses its battlesuits by growing. That is a
-  standalone defect and should be fixed on its own rather than folded into this
-  work.
+  is deleted rather than relaxed. It existed only because doctrines carried
+  tier; a company now applies its ceiling to whatever plan it is running, and
+  every plan is admissible at every stage.
+- `DebugCompanyStage`'s ladder was non-monotonic — Reinforced dropped back to
+  SEASONED between two HARDENED stages, so a company lost its battlesuits by
+  growing. Fixed alongside this work.
 - `unitClass` became `ArmorRole`, validated at parse time — the closed vocabulary
   `powered-assault-armor-roles.md` had outstanding. Two of the five words it
   replaced were retired rather than translated: SECURITY was a price band and

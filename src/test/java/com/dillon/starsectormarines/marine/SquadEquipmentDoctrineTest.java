@@ -17,28 +17,31 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadEquipmentDoctrineTest {
 
+    /**
+     * Every authored plan issues a whole squad and is presentable.
+     *
+     * <p>This replaced a test that counted plans per power band. Bands were a
+     * property of the old model, in which a doctrine named twelve concrete
+     * patterns and therefore carried a tier — the thing
+     * {@code role-and-access.md} separated. A plan has no tier: the same plan
+     * issues tier-I kit to a poor company and tier-IV kit to a rich one.
+     */
     @Test
-    void armorDoctrinesFormFactionSidegradesAcrossExplicitPowerBands() {
-        int[] doctrinesByTier = new int[5];
-        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
-            assertEquals(MarineSquad.CAPACITY, doctrine.issueIds().size());
-            doctrine.issueIds().forEach(MarineArmorCatalogRegistry::require);
-            SquadLoadoutPresentationDef presentation =
-                    SquadLoadoutPresentationRegistry.get(doctrine.id());
-            assertNotNull(presentation, doctrine.id() + " has authored tier and lore");
-            doctrinesByTier[presentation.tier()]++;
+    void everyArmorPlanIssuesAWholeSquadFromWhateverIsAvailable() {
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            assertEquals(MarineSquad.CAPACITY, plan.mix().billets().size(), plan.id());
+            SquadArmorDoctrine issued = ArmorIssueResolver.resolveUnrestricted(plan);
+            assertEquals(MarineSquad.CAPACITY, issued.issueIds().size(), plan.id());
+            issued.issueIds().forEach(MarineArmorCatalogRegistry::require);
+            assertNotNull(SquadLoadoutPresentationRegistry.get(plan.id()),
+                    plan.id() + " has authored lore");
         }
-
-        assertEquals(19, SquadEquipmentDoctrines.armorDoctrines().size());
-        assertEquals(1, doctrinesByTier[1], "frontier garbage protection remains the baseline");
-        assertEquals(6, doctrinesByTier[2], "light/security factions share a power band");
-        assertEquals(6, doctrinesByTier[3], "line factions share a power band");
-        assertEquals(6, doctrinesByTier[4], "heavy factions share a power band");
 
         MarineArmorCatalogDef cordon =
                 MarineArmorCatalogRegistry.require("armor.cordon-shell");
@@ -155,11 +158,25 @@ class SquadEquipmentDoctrineTest {
         for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
             int leader = team * MarineSquad.TEAM_SIZE;
             assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), preview.billet(leader).primaryDef());
-            assertEquals(MarineArmorPattern.MILITIA, preview.billet(leader).armor());
-            assertEquals("armor.cordon-shell", preview.billet(leader + 1).armorId());
-            assertEquals("armor.lashplate-harness", preview.billet(leader + 2).armorId());
-            assertEquals(MarineArmorPattern.ARMORLESS,
-                    preview.billet(leader + 3).armor());
+            // Armour is issued per billet ROLE now, from what the roster owns,
+            // so the pattern is not fixed by the plan. A starter company owns no
+            // recon or support kit at all, which is the resolver's documented
+            // fallback rather than a defect: you cannot field a scout until you
+            // buy a scout suit, and a marine in the wrong suit beats a marine in
+            // none.
+            SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(
+                    SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+            for (int local = 0; local < MarineSquad.TEAM_SIZE; local++) {
+                int billet = leader + local;
+                ArmorRole wanted = plan.roleAt(billet);
+                ArmorRole worn = MarineArmorCatalogRegistry.require(
+                        preview.billet(billet).armorId()).role();
+                boolean ownsWanted = MarineArmorCatalogRegistry.installed().all().stream()
+                        .anyMatch(pattern -> pattern.role() == wanted
+                                && roster.armory().ownsArmorTemplate(pattern.id()));
+                assertEquals(ownsWanted ? wanted : ArmorRole.LINE, worn,
+                        "billet " + billet + " wanted a " + wanted.key);
+            }
             for (int local = 1; local < MarineSquad.TEAM_SIZE; local++) {
                 assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
                         preview.billet(leader + local).primaryDef());
@@ -196,7 +213,9 @@ class SquadEquipmentDoctrineTest {
         assertEquals(MarineSquad.CAPACITY, preview.billets().size());
         assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID), preview.billet(1).primaryDef());
         assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), preview.billet(1).specialDef());
-        assertEquals("armor.cordon-shell", preview.billet(1).armorId());
+        assertEquals(SquadEquipmentDoctrines.armorPlanById(
+                        SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR).roleAt(1),
+                MarineArmorCatalogRegistry.require(preview.billet(1).armorId()).role());
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
                 squad.id(), SquadEquipmentDoctrines.LUDDIC_PATH_ASSAULT_WEAPONS,
                 SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
@@ -232,8 +251,15 @@ class SquadEquipmentDoctrineTest {
             assertEquals(fatigues.billet(billet).specialEquipmentId(),
                     combatArmor.billet(billet).specialEquipmentId());
         }
-        assertEquals(MarineArmorPattern.MILITIA, fatigues.billet(0).armor());
-        assertEquals(MarineArmorPattern.ARMY_GREEN, combatArmor.billet(0).armor());
+        // Two plans, one weapon doctrine: the weapons are identical above and
+        // the armour is not, which is the whole claim in this test's name. The
+        // literal patterns are no longer the plan's to fix — they come from what
+        // the roster owns — so this asserts the difference rather than naming it.
+        assertNotEquals(fatigues.billets().stream()
+                        .map(SquadEquipmentBillet::armorId).toList(),
+                combatArmor.billets().stream()
+                        .map(SquadEquipmentBillet::armorId).toList(),
+                "two armour plans should not issue the same twelve suits");
     }
 
     @Test
@@ -248,8 +274,22 @@ class SquadEquipmentDoctrineTest {
         String priorWeaponDoctrine = squad.weaponDoctrineId();
         String priorArmorDoctrine = squad.armorDoctrineId();
 
+        // The refusal comes from the weapon side. An armour plan names roles
+        // rather than patterns and is issued from what the armoury already owns,
+        // so it degrades to worse kit instead of being refused for missing
+        // stock — a change of behaviour, and a deliberate one: composition is
+        // the plan's business and supply is the armoury's.
+        String unaffordableWeapons = null;
+        for (SquadWeaponDoctrine candidate : SquadEquipmentDoctrines.weaponDoctrines()) {
+            if (!roster.armory().canAuthorWeaponDoctrine(candidate.issues())) {
+                unaffordableWeapons = candidate.id();
+                break;
+            }
+        }
+        assertNotNull(unaffordableWeapons, "fixture assumption: a starter armoury cannot"
+                + " author every authored weapon doctrine");
         assertEquals(SquadEquipmentResult.MISSING_TEMPLATE, roster.applySquadEquipment(
-                squad.id(), SquadEquipmentDoctrines.LUDDIC_PATH_ASSAULT_WEAPONS,
+                squad.id(), unaffordableWeapons,
                 SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR));
 
         assertEquals(priorWeapons, roster.manningMemberIds(squad).stream()
@@ -339,8 +379,8 @@ class SquadEquipmentDoctrineTest {
                         SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS).issues());
         SquadArmorDoctrine customArmor = roster.armory().createArmorDoctrineIds(
                 "My Field Protection",
-                SquadEquipmentDoctrines.armorById(
-                        SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR).issueIds());
+                roster.armory().issue(SquadEquipmentDoctrines.armorPlanById(
+                        SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR)).issueIds());
 
         assertTrue(roster.previewSquadEquipment(
                 squad.id(), customWeapons.id(), customArmor.id()).canApply());

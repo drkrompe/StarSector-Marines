@@ -144,94 +144,89 @@ public final class SquadEquipmentDoctrines {
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID))));
 
-    private static final List<SquadArmorDoctrine> ARMOR = List.of(
-            armorDoctrineIds(FIELD_FATIGUES_ARMOR, "Frontier Patchwork Protection",
-                    "Each team stretches one Ward kit over fatigues, a surplus shell, and a breaker harness.",
-                    concat(
-                            List.of(MarineArmorPattern.MILITIA.id,
-                                    CORDON_SHELL, LASHPLATE_HARNESS,
-                                    MarineArmorPattern.ARMORLESS.id),
-                            List.of(MarineArmorPattern.MILITIA.id,
-                                    CORDON_SHELL, LASHPLATE_HARNESS,
-                                    MarineArmorPattern.ARMORLESS.id),
-                            List.of(MarineArmorPattern.MILITIA.id,
-                                    CORDON_SHELL, LASHPLATE_HARNESS,
-                                    MarineArmorPattern.ARMORLESS.id))),
-            armorDoctrine(SINDRIAN_SECURITY_ARMOR, "Sindrian Civilian Security Equipment",
-                    "Low-to-medium tier security protection mixed by billet.",
-                    concat(repeat(MarineArmorPattern.ARMORLESS, 4),
-                            repeat(MarineArmorPattern.MILITIA, 4),
-                            repeat(MarineArmorPattern.BLUE_SCOUT, 4))),
-            armorDoctrine(HEGEMONY_AUXILIARY_ARMOR, "Hegemony Auxiliary Protection",
-                    "Ward kits back a limited Legionary issue for disciplined auxiliary sections.",
-                    concat(repeat(MarineArmorPattern.MILITIA, 9),
-                            repeat(MarineArmorPattern.ARMY_GREEN, 3))),
-            armorDoctrine(LEAGUE_MOBILE_ARMOR, "League Mobile Guard Protection",
-                    "Imported Janus suits and common Ward kits keep a coalition screen moving.",
-                    concat(repeat(MarineArmorPattern.BLUE_SCOUT, 6),
-                            repeat(MarineArmorPattern.MILITIA, 6))),
-            armorDoctrine(CHURCH_WARDEN_ARMOR, "Church Warden Protection",
-                    "Parish Ward kits surround a few carefully maintained Legionary shells.",
-                    concat(repeat(MarineArmorPattern.MILITIA, 10),
-                            repeat(MarineArmorPattern.ARMY_GREEN, 2))),
-            armorDoctrine(OUTLAW_RAIDER_ARMOR, "Outlaw Raider Protection",
-                    "Quick Blackforge rigs cover the assault billets; expendable hands keep fatigues.",
-                    concat(repeat(MarineArmorPattern.OUTLAW, 10),
-                            repeat(MarineArmorPattern.ARMORLESS, 2))),
-            armorDoctrine(RECON_ARMOR, "Tri-Tachyon Recon Protection",
-                    "Janus scout suits concentrated on operators with lighter local-security backing.",
-                    concat(repeat(MarineArmorPattern.BLUE_SCOUT, 8),
-                            repeat(MarineArmorPattern.MILITIA, 4))),
-            armorDoctrine(FLEET_COMBAT_ARMOR, "Hegemony Line Protection",
-                    "Standardized Legionary plate dominates a fully powered contact-line issue.",
-                    concat(repeat(MarineArmorPattern.ARMY_GREEN, 8),
-                            repeat(MarineArmorPattern.CHARCOAL, 4))),
-            armorDoctrine(LEAGUE_LINE_ARMOR, "League Coalition Line Protection",
-                    "A uniform Bastion schedule keeps member-world replacements interchangeable.",
-                    repeat(MarineArmorPattern.CHARCOAL, MarineSquad.CAPACITY)),
-            armorDoctrineIds(CORPORATE_LINE_ARMOR, "Tri-Tachyon Response Protection",
-                    "Aegis composite suits trade plate mass for speed and hostile-fire disruption.",
-                    repeat(AEGIS_COMPOSITE, MarineSquad.CAPACITY)),
-            armorDoctrineIds(CHURCH_LINE_ARMOR, "Church Palatine Protection",
-                    "Sanctioned legacy suits make a slow, unusually resistant defensive line.",
-                    repeat(PALATINE, MarineSquad.CAPACITY)),
-            armorDoctrineIds(SINDRIAN_LINE_ARMOR, "Sindrian State Line Protection",
-                    "Furnace suits carry thick sacrificial laminates behind a conspicuous advance.",
-                    repeat(FURNACE_LINE, MarineSquad.CAPACITY)),
-            armorDoctrineIds(OUTLAW_LINE_ARMOR, "Outlaw Veteran Protection",
-                    "Reaver rigs favor raw plate volume and assault speed over resistance quality.",
-                    repeat(REAVER, MarineSquad.CAPACITY)),
-            armorDoctrine(HEGEMONY_SHOCK_ARMOR, "Hegemony XIV Shock Protection",
-                    "A full establishment of standardized XIV battlesuits for a deliberate breach.",
-                    repeat(MarineArmorPattern.RED_ELITE, MarineSquad.CAPACITY)),
-            armorDoctrineIds(CORPORATE_HEAVY_ARMOR, "Tri-Tachyon Specter Protection",
-                    "Composite battlesuits preserve corporate mobility and target denial at heavy scale.",
-                    repeat(SPECTER_HEAVY, MarineSquad.CAPACITY)),
-            armorDoctrineIds(LEAGUE_HEAVY_ARMOR, "League Bulwark Protection",
-                    "Modular coalition battlesuits balance plate, handling, and field replacement.",
-                    repeat(BULWARK_HEAVY, MarineSquad.CAPACITY)),
-            armorDoctrineIds(KNIGHTS_HEAVY_ARMOR, "Knights Reliquary Protection",
-                    "Consecrated legacy shells accept immense weight to turn aside heavy fire.",
-                    repeat(RELIQUARY_HEAVY, MarineSquad.CAPACITY)),
-            armorDoctrineIds(LIONS_GUARD_HEAVY_ARMOR, "Lion's Guard Mantle Protection",
-                    "Prestige suits carry a vast armor reserve at the cost of speed and subtlety.",
-                    repeat(LIONS_MANTLE, MarineSquad.CAPACITY)),
-            armorDoctrineIds(OUTLAW_HEAVY_ARMOR, "Outlaw Foundry-Breaker Protection",
-                    "Industrial walking tanks survive through crude mass rather than rated protection.",
-                    repeat(FOUNDRY_BREAKER, MarineSquad.CAPACITY)));
+    /**
+     * The authored armour intent, one entry per named section. Each says what
+     * jobs its billets do and whose kit it draws on; what those billets actually
+     * wear is resolved against available stock by
+     * {@link ArmorIssueResolver}.
+     *
+     * <p>These replaced nineteen doctrines that each named twelve concrete
+     * patterns, and seventeen of those named the <em>same</em> pattern twelve
+     * times. That is why a fully equipped company fielded twelve identical
+     * breachers: the only way to express "better kit" was to adopt a different
+     * doctrine, and at the top of the ladder every doctrine was an assault one.
+     */
+    private static final List<SquadArmorPlan> ARMOR_PLANS = List.of(
+            plan(FIELD_FATIGUES_ARMOR, "Frontier Patchwork Protection",
+                    "Whatever the station had, organised the way a band organises itself.",
+                    ArmorTradition.INDEPENDENT, SquadRoleMix.IRREGULAR),
+            plan(SINDRIAN_SECURITY_ARMOR, "Sindrian Civilian Security Equipment",
+                    "Security contracts, run as a line section because that is the drill they were taught.",
+                    ArmorTradition.SINDRIAN_DIKTAT, SquadRoleMix.LINE_HOLD),
+            plan(HEGEMONY_AUXILIARY_ARMOR, "Hegemony Auxiliary Protection",
+                    "Auxiliary sections keep the Hegemony's shape on a fraction of its issue.",
+                    ArmorTradition.HEGEMONY, SquadRoleMix.LINE_HOLD),
+            plan(LEAGUE_MOBILE_ARMOR, "League Mobile Guard Protection",
+                    "A coalition screen that expects to move and to be seen doing it.",
+                    ArmorTradition.PERSEAN, SquadRoleMix.RECONNAISSANCE),
+            plan(CHURCH_WARDEN_ARMOR, "Church Warden Protection",
+                    "Parish wardens hold a place; they do not go out looking for one.",
+                    ArmorTradition.LUDDIC_CHURCH, SquadRoleMix.LINE_HOLD),
+            plan(OUTLAW_RAIDER_ARMOR, "Outlaw Raider Protection",
+                    "A raiding band: everybody fights, two carry the heavy thing, nobody scouts for long.",
+                    ArmorTradition.PIRATES, SquadRoleMix.IRREGULAR),
+            plan(RECON_ARMOR, "Tri-Tachyon Recon Protection",
+                    "Corporate operators, weighted toward the half of the section that is paid to see.",
+                    ArmorTradition.TRITACHYON, SquadRoleMix.RECONNAISSANCE),
+            plan(FLEET_COMBAT_ARMOR, "Hegemony Line Protection",
+                    "The standard section, and what every other composition is measured against.",
+                    ArmorTradition.HEGEMONY, SquadRoleMix.BALANCED),
+            plan(LEAGUE_LINE_ARMOR, "League Coalition Line Protection",
+                    "Interchangeable by design, so a member world can replace any billet in it.",
+                    ArmorTradition.PERSEAN, SquadRoleMix.BALANCED),
+            plan(CORPORATE_LINE_ARMOR, "Tri-Tachyon Response Protection",
+                    "A response section: quick, well-sighted, and unwilling to stand and trade.",
+                    ArmorTradition.TRITACHYON, SquadRoleMix.BALANCED),
+            plan(CHURCH_LINE_ARMOR, "Church Palatine Protection",
+                    "Sanctioned kit and a section that intends to still be there afterwards.",
+                    ArmorTradition.LUDDIC_CHURCH, SquadRoleMix.LINE_HOLD),
+            plan(SINDRIAN_LINE_ARMOR, "Sindrian State Line Protection",
+                    "A conspicuous advance, which is most of the point of it.",
+                    ArmorTradition.SINDRIAN_DIKTAT, SquadRoleMix.BALANCED),
+            plan(OUTLAW_LINE_ARMOR, "Outlaw Veteran Protection",
+                    "Veterans of a trade that rewards volume and speed over anything else.",
+                    ArmorTradition.PIRATES, SquadRoleMix.BALANCED),
+            plan(HEGEMONY_SHOCK_ARMOR, "Hegemony XIV Shock Protection",
+                    "A deliberate breach: two teams through the door and one making the hole bigger.",
+                    ArmorTradition.HEGEMONY, SquadRoleMix.BREACH),
+            plan(CORPORATE_HEAVY_ARMOR, "Tri-Tachyon Specter Protection",
+                    "The same breach, bought from a company that sells prediction rather than plate.",
+                    ArmorTradition.TRITACHYON, SquadRoleMix.BREACH),
+            plan(LEAGUE_HEAVY_ARMOR, "League Bulwark Protection",
+                    "Coalition breach formations, built so the marine beside you need not be from your navy.",
+                    ArmorTradition.PERSEAN, SquadRoleMix.BREACH),
+            plan(KNIGHTS_HEAVY_ARMOR, "Knights Reliquary Protection",
+                    "A Knight crosses the room in front of somebody else, and the section is arranged around that.",
+                    ArmorTradition.KNIGHTS_OF_LUDD, SquadRoleMix.BREACH),
+            plan(LIONS_GUARD_HEAVY_ARMOR, "Lion's Guard Mantle Protection",
+                    "Prestige issue, spent as spectacle, in the composition spectacle requires.",
+                    ArmorTradition.LIONS_GUARD, SquadRoleMix.BREACH),
+            plan(OUTLAW_HEAVY_ARMOR, "Outlaw Foundry-Breaker Protection",
+                    "Industrial rigs pointed at a door by people with no formal doctrine at all.",
+                    ArmorTradition.PIRATES, SquadRoleMix.BREACH));
 
     private SquadEquipmentDoctrines() {}
 
     public static List<SquadWeaponDoctrine> weaponDoctrines() { return WEAPONS; }
-    public static List<SquadArmorDoctrine> armorDoctrines() { return ARMOR; }
+    public static List<SquadArmorPlan> armorPlans() { return ARMOR_PLANS; }
 
     public static SquadWeaponDoctrine weaponById(String id) {
         for (SquadWeaponDoctrine doctrine : WEAPONS) if (doctrine.id().equals(id)) return doctrine;
         return null;
     }
 
-    public static SquadArmorDoctrine armorById(String id) {
-        for (SquadArmorDoctrine doctrine : ARMOR) if (doctrine.id().equals(id)) return doctrine;
+    public static SquadArmorPlan armorPlanById(String id) {
+        for (SquadArmorPlan plan : ARMOR_PLANS) if (plan.id().equals(id)) return plan;
         return null;
     }
 
@@ -243,14 +238,9 @@ public final class SquadEquipmentDoctrines {
         return new SquadWeaponDoctrine(id, name, description, issues);
     }
 
-    private static SquadArmorDoctrine armorDoctrine(
-            String id, String name, String description, List<MarineArmorPattern> issues) {
-        return new SquadArmorDoctrine(id, name, description, issues);
-    }
-
-    private static SquadArmorDoctrine armorDoctrineIds(
-            String id, String name, String description, List<String> issueIds) {
-        return SquadArmorDoctrine.fromIds(id, name, description, issueIds);
+    private static SquadArmorPlan plan(String id, String name, String description,
+                                       ArmorTradition tradition, SquadRoleMix mix) {
+        return new SquadArmorPlan(id, name, description, tradition, mix);
     }
 
     @SafeVarargs
