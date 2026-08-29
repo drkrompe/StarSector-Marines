@@ -107,13 +107,20 @@ public interface Action {
     }
 
     /**
-     * Whether the infantry dispatcher may initiate an opportunity rocket
-     * before this action or fill an otherwise-empty primary fire intent after
-     * it executes. Most movement and posture actions permit both. Mission
-     * movement and defensive holds should retain this safety net: a passing
-     * shot does not replace an action's movement objective or assigned
-     * position. An override is reserved for an explicit scripted ceasefire or
-     * a move-only coordinated role, not ordinary tactical doctrine.
+     * Whether the infantry dispatcher may initiate the general opportunity
+     * special-equipment path before this action, or fill an otherwise-empty
+     * primary fire intent after it executes. Most movement and posture actions
+     * permit both. Mission movement and defensive holds should retain this
+     * safety net: a passing shot does not replace an action's movement
+     * objective or assigned position. An override is reserved for an explicit
+     * scripted ceasefire or a move-only coordinated role, not ordinary
+     * tactical doctrine.
+     *
+     * <p>Returning {@code false} does <em>not</em> silence an anti-hardened
+     * rocket. The dispatcher still consults
+     * {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tryHardenedOpportunity},
+     * because a turret or drone hub in range is the advance's problem rather
+     * than a diversion from it.
      */
     default boolean permitsOpportunityFire() {
         return true;

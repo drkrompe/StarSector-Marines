@@ -7,7 +7,7 @@ Written: 2026-08-23
 Updated: 2026-08-29 — the airbase lot turns four ways, comes in three sizes, and
 reaches the city as either a block-sized site or a multi-block compound claim
 placed on the ground that claim actually owns, whose made surface the terrain
-passes no longer repaint.
+passes no longer repaint and no doorway opens into.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -400,6 +400,27 @@ and the building carried on outside the site, and nothing detected it because
 both halves were individually correct. The ground a claim may build on is cells
 inside a member leaf, plus cells inside no leaf at all — the street frames
 between members, which belong to nobody. Everything else is somebody's block.
+
+**Nothing stands in a doorway, and what happens to the thing standing there
+depends on whose ground it is on.** A door is cut by whichever pass built the
+wall it is in; the ground outside it is dressed by a pass that runs later and
+knows nothing about it. Measured over ten cities, thirty of six and a half
+thousand doorways opened straight into something solid — a crate, a bollard, a
+compound's own fence — and none of them was placed in error. Only a
+reconciliation after every pass has finished can see it, which is what it is:
+not a rule imposed on the passes that place things, because any of them may
+legitimately want that cell and none can see what the others did.
+
+Scenery in front of a door is scenery in the wrong place, so it goes and the
+cell is walkable again; removing it can only add connectivity, which is the
+whole of that argument. **A door onto a facility's own made ground never opened
+onto the street.** A perimeter is not clutter, and punching a hole in it to
+honour a neighbour's door gives a civilian building a private way into a fenced
+lot — so the threshold becomes wall instead, and only when it is a dead-end
+stub, which is a local check that the seal cannot cut anything off. A threshold
+with two ways out joins two places and is left exactly as it was: a cosmetic
+rule does not get to sever a map. Thirty blocked doorways became one, and no
+cell anywhere became unreachable.
 
 **A biome is the ground a place is built on, not the ground a place is made
 of.** The beach override repaints outdoor ground as sand so a shore reads as one
