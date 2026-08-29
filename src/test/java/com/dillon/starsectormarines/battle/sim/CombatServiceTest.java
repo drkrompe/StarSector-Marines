@@ -117,4 +117,81 @@ public class CombatServiceTest {
         assertEquals(EquipmentGrade.SURPLUS, combat.equipmentGrade(id));
         assertEquals(veteran, combat.soldierProfile(id));
     }
+
+    // ---------------------------------------------------------------- incoming fire
+
+    /** Ticks equivalent to one half-life of the incoming-fire signal. */
+    private static int oneHalfLife() {
+        return Math.round(CombatService.INCOMING_PRESSURE_HALF_LIFE_SECONDS
+                / BattleSimulation.TICK_DT);
+    }
+
+    @Test
+    public void nobodyShootingAtYouReadsAsNoPressure() {
+        UnitRosterService r = roster();
+        long id = r.spawn(unit("u"));
+        assertEquals(0f, r.combat().incomingPressure(id, 0), 1e-4f);
+    }
+
+    /**
+     * Rounds accumulate. Two rounds in the same tick is twice the fire one round
+     * is, which is the property the waste guard rests on — a threshold that
+     * could not tell a burst from a stray shot would gate on nothing.
+     */
+    @Test
+    public void roundsLandingNearYouAccumulate() {
+        UnitRosterService r = roster();
+        CombatService combat = r.combat();
+        long id = r.spawn(unit("u"));
+        combat.recordIncomingFire(id, 9, 4, 0);
+        float afterOne = combat.incomingPressure(id, 0);
+        combat.recordIncomingFire(id, 9, 4, 0);
+        assertEquals(2f * afterOne, combat.incomingPressure(id, 0), 1e-4f);
+    }
+
+    /**
+     * And it fades, so a firefight that has moved on stops looking like one.
+     * Pinned against the declared half-life rather than a literal, so retuning
+     * the constant retunes the test with it.
+     */
+    @Test
+    public void pressureHalvesOverTheDeclaredHalfLife() {
+        UnitRosterService r = roster();
+        CombatService combat = r.combat();
+        long id = r.spawn(unit("u"));
+        combat.recordIncomingFire(id, 9, 4, 0);
+        float atOnce = combat.incomingPressure(id, 0);
+        assertEquals(atOnce / 2f, combat.incomingPressure(id, oneHalfLife()), 1e-3f);
+        assertEquals(atOnce / 4f, combat.incomingPressure(id, 2 * oneHalfLife()), 1e-3f);
+    }
+
+    /**
+     * A later round is measured from its own arrival, not from the first one.
+     * Decaying to now before adding is what makes that true, and getting it
+     * wrong would make sustained fire read as a single fading shot.
+     */
+    @Test
+    public void aLaterRoundRestartsTheClockOnWhatIsLeft() {
+        UnitRosterService r = roster();
+        CombatService combat = r.combat();
+        long id = r.spawn(unit("u"));
+        combat.recordIncomingFire(id, 9, 4, 0);
+        combat.recordIncomingFire(id, 9, 4, oneHalfLife());
+        assertEquals(1.5f, combat.incomingPressure(id, oneHalfLife()), 1e-3f,
+                "half of the first round plus all of the second");
+    }
+
+    /** The bearing rides along, because a screen has to know which way to face. */
+    @Test
+    public void theMostRecentRoundsBearingIsKept() {
+        UnitRosterService r = roster();
+        CombatService combat = r.combat();
+        long id = r.spawn(unit("u"));
+        combat.recordIncomingFire(id, 9, 4, 0);
+        assertEquals(9, combat.incomingFromX(id));
+        assertEquals(4, combat.incomingFromY(id));
+        combat.recordIncomingFire(id, 21, 7, 1);
+        assertEquals(21, combat.incomingFromX(id));
+        assertEquals(7, combat.incomingFromY(id));
+    }
 }

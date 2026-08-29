@@ -11,10 +11,8 @@ import org.json.JSONObject;
  * <p>The inner bound is the whole judgement. A payload delivered into something
  * already at arm's length wastes a use the rifle would have covered anyway, and
  * an explosive one lands its splash on the wearer's own side of the fight. So
- * the number here reads the opposite way to
- * {@link CrossingUnderFireSpec#threatRadiusCells()} — that one is an outer
- * bound past which the moment has not arrived, this one an inner bound inside
- * which it has already passed.
+ * the number here is an inner bound inside which the moment has already
+ * passed, rather than a threshold something has to rise to meet.
  *
  * <p>The outer bound is not authored here: it is the referenced weapon's own
  * range, which {@code moddable-weapons-nouns.md} already owns. Restating it
