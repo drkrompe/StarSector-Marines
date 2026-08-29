@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -228,6 +229,54 @@ class ConvoyMeansTest {
     void canonicalConquestMapsCommitFromDefenderRearOnBothAxes() {
         assertCanonicalRearDispatch(TraversalAxis.SOUTH_TO_NORTH);
         assertCanonicalRearDispatch(TraversalAxis.WEST_TO_EAST);
+    }
+
+    /**
+     * The probe answers for the delivery, not for the map.
+     *
+     * <p>A graph gate sits on the map edge and an APC's body does not, so the
+     * truck stages one cell in — and if that cell will not take the full pose
+     * there is no way onto the map from this gate at all. Asking only whether
+     * the graph has perimeter nodes said yes to every one of these.
+     */
+    @Test
+    void aRearGateThatCannotTakeATruckIsRefusedByTheProbe() {
+        BattleSimulation sim = supplied(openSim());
+        ConvoyMeans means = means(TraversalAxis.SOUTH_TO_NORTH, northGraph(), 20);
+        ReinforcementRequest req = request(15, 10);
+        assertTrue(means.canFulfill(sim, req),
+                "an open rear gate is a gate a truck can use");
+
+        sim.getGrid().setWalkable(15, HEIGHT - 3, false);
+
+        assertFalse(means.canFulfill(sim, req),
+                "and a blocked one is refused before an attempt is spent on it");
+        assertEquals(Float.MAX_VALUE, means.arrivalSeconds(sim, req),
+                "a means that cannot come never quotes a time");
+    }
+
+    /**
+     * Perimeter nodes on the wrong edge are not entries. Under a strict
+     * defender-rear deployment the eligible set is the rear edge alone, and a
+     * graph that only reaches the map's flank has nowhere to bring a truck on
+     * — however many perimeter nodes it has.
+     */
+    @Test
+    void aGraphWithNoRearGateIsRefusedByTheProbe() {
+        BattleSimulation sim = supplied(openSim());
+        ConvoyMeans means = means(TraversalAxis.SOUTH_TO_NORTH, eastGraph(), 20);
+
+        assertFalse(means.canFulfill(sim, request(15, 10)));
+        assertEquals(ReinforcementDispatchResult.REJECTED,
+                means.dispatch(sim, request(15, 10)),
+                "and the commit still agrees with the probe");
+    }
+
+    /** A convoy is loaded out of the armory; without one there is nothing to ferry. */
+    private static BattleSimulation supplied(BattleSimulation sim) {
+        sim.getCompoundService().register(new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5, 4, 4, 6, 6, Faction.DEFENDER, 50, 4));
+        return sim;
     }
 
     private static ConvoyMeans means(TraversalAxis axis, RoadGraph graph,
