@@ -46,6 +46,21 @@ public final class BlockPreview {
     }
 
     /**
+     * Drop every decoded sheet and every thumbnail cut from one.
+     *
+     * <p>Called when an atlas is re-exported. Not merely so the pictures stop
+     * being old: the catalog is re-read after an export, so the block
+     * coordinates are the new packing while a held image is the previous sheet,
+     * and the room view — which is drawn cell by cell rather than cached whole —
+     * then reads the new cells out of the old atlas and shows art from
+     * somewhere else entirely.
+     */
+    public void forget() {
+        atlases.clear();
+        thumbnails.clear();
+    }
+
+    /**
      * The block's own cells, scaled to fit a {@code size} square.
      *
      * <p>Cached: a list cell renderer is asked for this on every repaint, and

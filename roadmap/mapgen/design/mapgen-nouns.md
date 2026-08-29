@@ -373,6 +373,19 @@ the largest leaf it can find — which is the same leaf a landmark wants. Run
 before it, the promotion is silently overwritten on every seed: nothing appears
 and nothing complains.
 
+**A gate is only a gate if it opens onto something.** On a compact lot a shed's
+back sits against the perimeter, and a gap cut in the fence there is a doorway
+into masonry — it reads from outside as a way in and is not one. A side closed
+by a building is closed honestly, so the rule is that every side is either gated
+or built against, and at least two are gated: two is what makes a lot a
+through-route rather than a cul-de-sac, and four is only available when nothing
+is built against the fence.
+
+**A rank of berths is centred; a single one is not.** Centring one berth on a
+small lot puts it in the middle of the only open ground there is and leaves a
+useless margin all round it. Set into a corner it leaves one continuous piece of
+apron, which is where the vehicles go and where anyone crossing the lot walks.
+
 **Ask the lot whether it fits; never restate its size.** A host that encodes
 what an airbase needs as its own pair of numbers will disagree with the lot
 eventually, and the way it disagrees is that the host promotes a block the lot
