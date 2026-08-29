@@ -117,10 +117,11 @@ The alternatives, kept because the reasoning is what makes the choice legible:
   by coordinate, as the "bow out" embankment. Exporting only the declared blocks
   dropped them, which is how they were found. They are `road.embankment` and
   `road.vent` now, and all of them resolve by id.
-- **`floor-materials` is still a second producer, of a different sheet.**
-  `Floors_Tiles.png` is a fixed-grid sheet still produced by
-  `normalize_tilesets.py` and its materials are still pasted in by the manifest,
-  addressed by `cell` rather than by pixel rectangle. That is tolerable exactly
-  while its plate stays opaque and the exporter does not own it; keying that
-  plate is what would force the same move, and
-  `KeyedSheetsAreExportedNotNormalizedTest` is what would say so.
+- **`floor-materials` is gone, and so is every other second producer.**
+  Closed 2026-08-29. `Floors_Tiles` exports from its authoring document: its
+  seventeen addressed cells of 650, with `floors.stone` and `floors.sand` taking
+  their picture from the same materials the manifest used to paste, byte for byte.
+  `normalize_tilesets.py`, `pack_texture_atlas.py` and `texture-atlases.json` are
+  deleted. What replaced the manifest is the same `material` field this document
+  argued for on `nature-tiles`, so the two sheets now say the same thing the same
+  way.

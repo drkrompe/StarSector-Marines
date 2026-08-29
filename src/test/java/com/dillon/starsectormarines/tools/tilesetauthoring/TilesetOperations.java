@@ -459,17 +459,8 @@ public final class TilesetOperations {
             return exportStrip(document, sheet, readMaterials(projectRoot, document), name,
                     sheetPath, atlasPath, tilesetPath, cardPath);
         }
-        for (TilesetExport.Entry entry : document.entries) {
-            if (entry.included && entry.hasMaterial()) {
-                throw new IOException(entry.id + " takes its picture from the material "
-                        + entry.material + ", but this sheet exports as a cell grid, which "
-                        + "packs every piece from the plate. The material would be dropped "
-                        + "without anything saying so.");
-            }
-        }
-
-        BufferedImage atlas =
-                TilesetExport.atlas(sheet, document.entries, document.blocks, document.cellPx);
+        BufferedImage atlas = TilesetExport.atlas(sheet, document.entries, document.blocks,
+                document.cellPx, readMaterials(projectRoot, document));
         TilesetExport.write(atlas,
                 TilesetExport.tileset(sheetPath, document.cellPx, document.entries, document.blocks),
                 atlasPath, tilesetPath);

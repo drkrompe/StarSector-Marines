@@ -1104,8 +1104,8 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                         + "slice it first.");
             }
             BufferedImage sheet = TilesetOperations.readSheet(context.projectRoot(), document);
-            BufferedImage atlas = TilesetExport.atlas(
-                    sheet, document.entries, document.blocks, document.cellPx);
+            BufferedImage atlas = TilesetExport.atlas(sheet, document.entries, document.blocks,
+                    document.cellPx, TilesetOperations.readMaterials(context.projectRoot(), document));
             List<TilesetMapPreview.Substitution> bindings =
                     TilesetOperations.bindings(document.entries, document.blocks);
 

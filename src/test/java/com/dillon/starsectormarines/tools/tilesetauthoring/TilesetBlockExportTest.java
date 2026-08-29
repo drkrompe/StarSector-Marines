@@ -79,7 +79,7 @@ class TilesetBlockExportTest {
                 List.of(new TilesetExport.BlockSpec(BLOCK, GridLayout.WALL_3X3, FILL));
 
         BufferedImage source = sheet(10);
-        BufferedImage atlas = TilesetExport.atlas(source, entries, blocks, CELL);
+        BufferedImage atlas = TilesetExport.atlas(source, entries, blocks, CELL, TilesetExport.Materials.NONE);
         JSONObject tileset = TilesetExport.tileset("graphics/test.png", CELL, entries, blocks);
 
         TileRegistry registry = new TileRegistry();
@@ -177,7 +177,7 @@ class TilesetBlockExportTest {
         List<TilesetExport.BlockSpec> blocks =
                 List.of(new TilesetExport.BlockSpec(BLOCK, GridLayout.WALL_3X3, FILL));
 
-        BufferedImage atlas = TilesetExport.atlas(sheet(9), entries, blocks, CELL);
+        BufferedImage atlas = TilesetExport.atlas(sheet(9), entries, blocks, CELL, TilesetExport.Materials.NONE);
         TilesetExport.Packing packing = TilesetExport.pack(entries, blocks);
 
         assertEquals(3, packing.columns());

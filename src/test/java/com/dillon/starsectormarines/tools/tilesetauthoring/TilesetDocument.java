@@ -130,10 +130,13 @@ public final class TilesetDocument {
                 if (!entry.passable) o.put("passable", false);
                 if (!entry.validOn.isEmpty()) o.put("validOn", new JSONArray(entry.validOn));
                 if (!entry.label.isEmpty()) o.put("name", entry.label);
-                if (entry.spriteBorderX > 0 || entry.spriteBorderY > 0) {
-                    o.put("spriteBorderPx",
-                            new JSONArray().put(entry.spriteBorderX).put(entry.spriteBorderY));
-                }
+            }
+            // Not strip-only: a fixed-grid ground field carries the same drawn
+            // rim and needs the same treatment, so a border written here has to
+            // survive being read back whichever shape the sheet is.
+            if (entry.spriteBorderX > 0 || entry.spriteBorderY > 0) {
+                o.put("spriteBorderPx",
+                        new JSONArray().put(entry.spriteBorderX).put(entry.spriteBorderY));
             }
             if (entry.hasMaterial()) o.put("material", entry.material);
             if (entry.isBlockMember()) {

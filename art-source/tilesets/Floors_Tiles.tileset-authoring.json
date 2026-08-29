@@ -1,7 +1,34 @@
 {
   "alphaMin": 40,
-  "blocks": [],
+  "blocks": [
+    {
+      "id": "floors.grass",
+      "layout": "variants"
+    },
+    {
+      "id": "floors.dirt",
+      "layout": "variants"
+    },
+    {
+      "id": "floors.stone",
+      "layout": "variants"
+    },
+    {
+      "id": "floors.sand",
+      "layout": "variants"
+    },
+    {
+      "id": "floors.brick",
+      "layout": "variants"
+    }
+  ],
   "cellPx": 56,
+  "cut": {
+    "originX": 0.0,
+    "originY": 0.0,
+    "pitchX": 47.55,
+    "pitchY": 49.34615384615385
+  },
   "entries": [
     {
       "cover": "none",
@@ -10,11 +37,11 @@
         1
       ],
       "id": "doodad.floors.c0r0",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -25,11 +52,11 @@
         1
       ],
       "id": "doodad.floors.c1r0",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -40,11 +67,11 @@
         1
       ],
       "id": "doodad.floors.c2r0",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -55,11 +82,11 @@
         1
       ],
       "id": "doodad.floors.c3r0",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -70,11 +97,11 @@
         1
       ],
       "id": "doodad.floors.c4r0",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -85,11 +112,11 @@
         1
       ],
       "id": "doodad.floors.c5r0",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -100,11 +127,11 @@
         1
       ],
       "id": "doodad.floors.c6r0",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -115,11 +142,11 @@
         1
       ],
       "id": "doodad.floors.c7r0",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -130,11 +157,11 @@
         1
       ],
       "id": "doodad.floors.c8r0",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -145,11 +172,11 @@
         1
       ],
       "id": "doodad.floors.c9r0",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -160,11 +187,11 @@
         1
       ],
       "id": "doodad.floors.c10r0",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -175,11 +202,11 @@
         1
       ],
       "id": "doodad.floors.c11r0",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -190,11 +217,11 @@
         1
       ],
       "id": "doodad.floors.c12r0",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -205,11 +232,11 @@
         1
       ],
       "id": "doodad.floors.c13r0",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -220,11 +247,11 @@
         1
       ],
       "id": "doodad.floors.c14r0",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -235,11 +262,11 @@
         1
       ],
       "id": "doodad.floors.c15r0",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -250,11 +277,11 @@
         1
       ],
       "id": "doodad.floors.c16r0",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -265,11 +292,11 @@
         1
       ],
       "id": "doodad.floors.c17r0",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -280,11 +307,11 @@
         1
       ],
       "id": "doodad.floors.c18r0",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -295,11 +322,11 @@
         1
       ],
       "id": "doodad.floors.c19r0",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -310,11 +337,11 @@
         1
       ],
       "id": "doodad.floors.c20r0",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -325,11 +352,11 @@
         1
       ],
       "id": "doodad.floors.c21r0",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -340,11 +367,11 @@
         1
       ],
       "id": "doodad.floors.c22r0",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -355,11 +382,11 @@
         1
       ],
       "id": "doodad.floors.c23r0",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         0,
-        49,
+        47,
         49
       ]
     },
@@ -370,11 +397,11 @@
         1
       ],
       "id": "doodad.floors.c24r0",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         0,
-        49,
+        48,
         49
       ]
     },
@@ -385,11 +412,11 @@
         1
       ],
       "id": "doodad.floors.c0r1",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -400,11 +427,11 @@
         1
       ],
       "id": "doodad.floors.c1r1",
-      "included": true,
+      "included": false,
       "rect": [
+        48,
         49,
-        49,
-        49,
+        47,
         50
       ]
     },
@@ -415,11 +442,11 @@
         1
       ],
       "id": "doodad.floors.c2r1",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -430,11 +457,11 @@
         1
       ],
       "id": "doodad.floors.c3r1",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         49,
-        49,
+        47,
         50
       ]
     },
@@ -445,11 +472,11 @@
         1
       ],
       "id": "doodad.floors.c4r1",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -460,11 +487,11 @@
         1
       ],
       "id": "doodad.floors.c5r1",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         49,
-        49,
+        47,
         50
       ]
     },
@@ -475,11 +502,11 @@
         1
       ],
       "id": "doodad.floors.c6r1",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -490,11 +517,11 @@
         1
       ],
       "id": "doodad.floors.c7r1",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         49,
-        49,
+        47,
         50
       ]
     },
@@ -505,11 +532,11 @@
         1
       ],
       "id": "doodad.floors.c8r1",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -520,11 +547,11 @@
         1
       ],
       "id": "doodad.floors.c9r1",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -535,11 +562,11 @@
         1
       ],
       "id": "doodad.floors.c10r1",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         49,
-        49,
+        47,
         50
       ]
     },
@@ -550,11 +577,11 @@
         1
       ],
       "id": "doodad.floors.c11r1",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -565,11 +592,11 @@
         1
       ],
       "id": "doodad.floors.c12r1",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         49,
-        49,
+        47,
         50
       ]
     },
@@ -580,11 +607,11 @@
         1
       ],
       "id": "doodad.floors.c13r1",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -595,11 +622,11 @@
         1
       ],
       "id": "doodad.floors.c14r1",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         49,
-        49,
+        47,
         50
       ]
     },
@@ -610,11 +637,11 @@
         1
       ],
       "id": "doodad.floors.c15r1",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -625,15 +652,16 @@
         1
       ],
       "id": "doodad.floors.c16r1",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         49,
-        49,
+        47,
         50
       ]
     },
     {
+      "block": "floors.brick",
       "cover": "none",
       "footprintCells": [
         1,
@@ -641,11 +669,17 @@
       ],
       "id": "doodad.floors.c17r1",
       "included": true,
+      "note": "fl-tile-1",
       "rect": [
-        833,
+        808,
         49,
-        49,
+        48,
         50
+      ],
+      "slot": "v1",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
@@ -655,11 +689,11 @@
         1
       ],
       "id": "doodad.floors.c18r1",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         49,
-        49,
+        47,
         50
       ]
     },
@@ -670,11 +704,11 @@
         1
       ],
       "id": "doodad.floors.c19r1",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -685,11 +719,11 @@
         1
       ],
       "id": "doodad.floors.c20r1",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -700,11 +734,11 @@
         1
       ],
       "id": "doodad.floors.c21r1",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         49,
-        49,
+        47,
         50
       ]
     },
@@ -715,11 +749,11 @@
         1
       ],
       "id": "doodad.floors.c22r1",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -730,11 +764,11 @@
         1
       ],
       "id": "doodad.floors.c23r1",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         49,
-        49,
+        47,
         50
       ]
     },
@@ -745,11 +779,11 @@
         1
       ],
       "id": "doodad.floors.c24r1",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         49,
-        49,
+        48,
         50
       ]
     },
@@ -760,11 +794,11 @@
         1
       ],
       "id": "doodad.floors.c0r2",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -775,11 +809,11 @@
         1
       ],
       "id": "doodad.floors.c1r2",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         99,
-        49,
+        47,
         49
       ]
     },
@@ -790,11 +824,11 @@
         1
       ],
       "id": "doodad.floors.c2r2",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -805,11 +839,11 @@
         1
       ],
       "id": "doodad.floors.c3r2",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         99,
-        49,
+        47,
         49
       ]
     },
@@ -820,11 +854,11 @@
         1
       ],
       "id": "doodad.floors.c4r2",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -835,11 +869,11 @@
         1
       ],
       "id": "doodad.floors.c5r2",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         99,
-        49,
+        47,
         49
       ]
     },
@@ -850,11 +884,11 @@
         1
       ],
       "id": "doodad.floors.c6r2",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -865,11 +899,11 @@
         1
       ],
       "id": "doodad.floors.c7r2",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         99,
-        49,
+        47,
         49
       ]
     },
@@ -880,11 +914,11 @@
         1
       ],
       "id": "doodad.floors.c8r2",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -895,11 +929,11 @@
         1
       ],
       "id": "doodad.floors.c9r2",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -910,11 +944,11 @@
         1
       ],
       "id": "doodad.floors.c10r2",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         99,
-        49,
+        47,
         49
       ]
     },
@@ -925,11 +959,11 @@
         1
       ],
       "id": "doodad.floors.c11r2",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -940,11 +974,11 @@
         1
       ],
       "id": "doodad.floors.c12r2",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         99,
-        49,
+        47,
         49
       ]
     },
@@ -955,11 +989,11 @@
         1
       ],
       "id": "doodad.floors.c13r2",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -970,11 +1004,11 @@
         1
       ],
       "id": "doodad.floors.c14r2",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         99,
-        49,
+        47,
         49
       ]
     },
@@ -985,15 +1019,16 @@
         1
       ],
       "id": "doodad.floors.c15r2",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         99,
-        49,
+        48,
         49
       ]
     },
     {
+      "block": "floors.brick",
       "cover": "none",
       "footprintCells": [
         1,
@@ -1001,14 +1036,21 @@
       ],
       "id": "doodad.floors.c16r2",
       "included": true,
+      "note": "fl-tile-2",
       "rect": [
-        784,
+        761,
         99,
-        49,
+        47,
         49
+      ],
+      "slot": "v2",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
+      "block": "floors.brick",
       "cover": "none",
       "footprintCells": [
         1,
@@ -1016,14 +1058,21 @@
       ],
       "id": "doodad.floors.c17r2",
       "included": true,
+      "note": "fl-tile-3",
       "rect": [
-        833,
+        808,
         99,
-        49,
+        48,
         49
+      ],
+      "slot": "v3",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
+      "block": "floors.brick",
       "cover": "none",
       "footprintCells": [
         1,
@@ -1031,11 +1080,17 @@
       ],
       "id": "doodad.floors.c18r2",
       "included": true,
+      "note": "fl-tile-4",
       "rect": [
-        882,
+        856,
         99,
-        49,
+        47,
         49
+      ],
+      "slot": "v4",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
@@ -1045,11 +1100,11 @@
         1
       ],
       "id": "doodad.floors.c19r2",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -1060,11 +1115,11 @@
         1
       ],
       "id": "doodad.floors.c20r2",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -1075,11 +1130,11 @@
         1
       ],
       "id": "doodad.floors.c21r2",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         99,
-        49,
+        47,
         49
       ]
     },
@@ -1090,11 +1145,11 @@
         1
       ],
       "id": "doodad.floors.c22r2",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -1105,11 +1160,11 @@
         1
       ],
       "id": "doodad.floors.c23r2",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         99,
-        49,
+        47,
         49
       ]
     },
@@ -1120,11 +1175,11 @@
         1
       ],
       "id": "doodad.floors.c24r2",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         99,
-        49,
+        48,
         49
       ]
     },
@@ -1135,12 +1190,12 @@
         1
       ],
       "id": "doodad.floors.c0r3",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1150,12 +1205,12 @@
         1
       ],
       "id": "doodad.floors.c1r3",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -1165,12 +1220,12 @@
         1
       ],
       "id": "doodad.floors.c2r3",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1180,12 +1235,12 @@
         1
       ],
       "id": "doodad.floors.c3r3",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -1195,12 +1250,12 @@
         1
       ],
       "id": "doodad.floors.c4r3",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1210,12 +1265,12 @@
         1
       ],
       "id": "doodad.floors.c5r3",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -1225,12 +1280,12 @@
         1
       ],
       "id": "doodad.floors.c6r3",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1240,12 +1295,12 @@
         1
       ],
       "id": "doodad.floors.c7r3",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -1255,12 +1310,12 @@
         1
       ],
       "id": "doodad.floors.c8r3",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1270,12 +1325,12 @@
         1
       ],
       "id": "doodad.floors.c9r3",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1285,12 +1340,12 @@
         1
       ],
       "id": "doodad.floors.c10r3",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -1300,12 +1355,12 @@
         1
       ],
       "id": "doodad.floors.c11r3",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1315,12 +1370,12 @@
         1
       ],
       "id": "doodad.floors.c12r3",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -1330,12 +1385,12 @@
         1
       ],
       "id": "doodad.floors.c13r3",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1345,12 +1400,12 @@
         1
       ],
       "id": "doodad.floors.c14r3",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -1360,12 +1415,12 @@
         1
       ],
       "id": "doodad.floors.c15r3",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1375,15 +1430,16 @@
         1
       ],
       "id": "doodad.floors.c16r3",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
+      "block": "floors.brick",
       "cover": "none",
       "footprintCells": [
         1,
@@ -1391,11 +1447,17 @@
       ],
       "id": "doodad.floors.c17r3",
       "included": true,
+      "note": "fl-tile-5",
       "rect": [
-        833,
+        808,
         148,
-        49,
-        50
+        48,
+        49
+      ],
+      "slot": "v5",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
@@ -1405,12 +1467,12 @@
         1
       ],
       "id": "doodad.floors.c18r3",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -1420,12 +1482,12 @@
         1
       ],
       "id": "doodad.floors.c19r3",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1435,12 +1497,12 @@
         1
       ],
       "id": "doodad.floors.c20r3",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1450,12 +1512,12 @@
         1
       ],
       "id": "doodad.floors.c21r3",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -1465,12 +1527,12 @@
         1
       ],
       "id": "doodad.floors.c22r3",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1480,12 +1542,12 @@
         1
       ],
       "id": "doodad.floors.c23r3",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         148,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -1495,12 +1557,12 @@
         1
       ],
       "id": "doodad.floors.c24r3",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         148,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -1510,12 +1572,12 @@
         1
       ],
       "id": "doodad.floors.c0r4",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        198,
-        49,
-        49
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1525,12 +1587,12 @@
         1
       ],
       "id": "doodad.floors.c1r4",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        198,
-        49,
-        49
+        48,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1540,12 +1602,12 @@
         1
       ],
       "id": "doodad.floors.c2r4",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        198,
-        49,
-        49
+        95,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1555,12 +1617,12 @@
         1
       ],
       "id": "doodad.floors.c3r4",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        198,
-        49,
-        49
+        143,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1570,12 +1632,12 @@
         1
       ],
       "id": "doodad.floors.c4r4",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        198,
-        49,
-        49
+        190,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1585,12 +1647,12 @@
         1
       ],
       "id": "doodad.floors.c5r4",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        198,
-        49,
-        49
+        238,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1600,12 +1662,12 @@
         1
       ],
       "id": "doodad.floors.c6r4",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        198,
-        49,
-        49
+        285,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1615,12 +1677,12 @@
         1
       ],
       "id": "doodad.floors.c7r4",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        198,
-        49,
-        49
+        333,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1630,12 +1692,12 @@
         1
       ],
       "id": "doodad.floors.c8r4",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        198,
-        49,
-        49
+        380,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1645,12 +1707,12 @@
         1
       ],
       "id": "doodad.floors.c9r4",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        198,
-        49,
-        49
+        428,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1660,12 +1722,12 @@
         1
       ],
       "id": "doodad.floors.c10r4",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        198,
-        49,
-        49
+        476,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1675,12 +1737,12 @@
         1
       ],
       "id": "doodad.floors.c11r4",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        198,
-        49,
-        49
+        523,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1690,12 +1752,12 @@
         1
       ],
       "id": "doodad.floors.c12r4",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        198,
-        49,
-        49
+        571,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1705,12 +1767,12 @@
         1
       ],
       "id": "doodad.floors.c13r4",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        198,
-        49,
-        49
+        618,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1720,12 +1782,12 @@
         1
       ],
       "id": "doodad.floors.c14r4",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        198,
-        49,
-        49
+        666,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1735,12 +1797,12 @@
         1
       ],
       "id": "doodad.floors.c15r4",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        198,
-        49,
-        49
+        713,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1750,12 +1812,12 @@
         1
       ],
       "id": "doodad.floors.c16r4",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        198,
-        49,
-        49
+        761,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1765,12 +1827,12 @@
         1
       ],
       "id": "doodad.floors.c17r4",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        198,
-        49,
-        49
+        808,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1780,12 +1842,12 @@
         1
       ],
       "id": "doodad.floors.c18r4",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        198,
-        49,
-        49
+        856,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1795,12 +1857,12 @@
         1
       ],
       "id": "doodad.floors.c19r4",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        198,
-        49,
-        49
+        903,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1810,12 +1872,12 @@
         1
       ],
       "id": "doodad.floors.c20r4",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        198,
-        49,
-        49
+        951,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1825,12 +1887,12 @@
         1
       ],
       "id": "doodad.floors.c21r4",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        198,
-        49,
-        49
+        999,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1840,12 +1902,12 @@
         1
       ],
       "id": "doodad.floors.c22r4",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        198,
-        49,
-        49
+        1046,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1855,12 +1917,12 @@
         1
       ],
       "id": "doodad.floors.c23r4",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        198,
-        49,
-        49
+        1094,
+        197,
+        47,
+        50
       ]
     },
     {
@@ -1870,12 +1932,12 @@
         1
       ],
       "id": "doodad.floors.c24r4",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        198,
-        49,
-        49
+        1141,
+        197,
+        48,
+        50
       ]
     },
     {
@@ -1885,11 +1947,11 @@
         1
       ],
       "id": "doodad.floors.c0r5",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -1900,11 +1962,11 @@
         1
       ],
       "id": "doodad.floors.c1r5",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -1915,11 +1977,11 @@
         1
       ],
       "id": "doodad.floors.c2r5",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -1930,11 +1992,11 @@
         1
       ],
       "id": "doodad.floors.c3r5",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -1945,11 +2007,11 @@
         1
       ],
       "id": "doodad.floors.c4r5",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -1960,11 +2022,11 @@
         1
       ],
       "id": "doodad.floors.c5r5",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -1975,11 +2037,11 @@
         1
       ],
       "id": "doodad.floors.c6r5",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -1990,11 +2052,11 @@
         1
       ],
       "id": "doodad.floors.c7r5",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -2005,11 +2067,11 @@
         1
       ],
       "id": "doodad.floors.c8r5",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -2020,11 +2082,11 @@
         1
       ],
       "id": "doodad.floors.c9r5",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -2035,11 +2097,11 @@
         1
       ],
       "id": "doodad.floors.c10r5",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -2050,11 +2112,11 @@
         1
       ],
       "id": "doodad.floors.c11r5",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -2065,11 +2127,11 @@
         1
       ],
       "id": "doodad.floors.c12r5",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -2080,11 +2142,11 @@
         1
       ],
       "id": "doodad.floors.c13r5",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -2095,11 +2157,11 @@
         1
       ],
       "id": "doodad.floors.c14r5",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -2110,11 +2172,11 @@
         1
       ],
       "id": "doodad.floors.c15r5",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -2125,11 +2187,11 @@
         1
       ],
       "id": "doodad.floors.c16r5",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -2140,11 +2202,11 @@
         1
       ],
       "id": "doodad.floors.c17r5",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -2155,11 +2217,11 @@
         1
       ],
       "id": "doodad.floors.c18r5",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -2170,11 +2232,11 @@
         1
       ],
       "id": "doodad.floors.c19r5",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -2185,11 +2247,11 @@
         1
       ],
       "id": "doodad.floors.c20r5",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -2200,11 +2262,11 @@
         1
       ],
       "id": "doodad.floors.c21r5",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -2215,11 +2277,11 @@
         1
       ],
       "id": "doodad.floors.c22r5",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -2230,11 +2292,11 @@
         1
       ],
       "id": "doodad.floors.c23r5",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         247,
-        49,
+        47,
         49
       ]
     },
@@ -2245,11 +2307,11 @@
         1
       ],
       "id": "doodad.floors.c24r5",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         247,
-        49,
+        48,
         49
       ]
     },
@@ -2260,12 +2322,12 @@
         1
       ],
       "id": "doodad.floors.c0r6",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2275,12 +2337,12 @@
         1
       ],
       "id": "doodad.floors.c1r6",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2290,12 +2352,12 @@
         1
       ],
       "id": "doodad.floors.c2r6",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2305,12 +2367,12 @@
         1
       ],
       "id": "doodad.floors.c3r6",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2320,12 +2382,12 @@
         1
       ],
       "id": "doodad.floors.c4r6",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2335,12 +2397,12 @@
         1
       ],
       "id": "doodad.floors.c5r6",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2350,12 +2412,12 @@
         1
       ],
       "id": "doodad.floors.c6r6",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2365,12 +2427,12 @@
         1
       ],
       "id": "doodad.floors.c7r6",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2380,12 +2442,12 @@
         1
       ],
       "id": "doodad.floors.c8r6",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2395,12 +2457,12 @@
         1
       ],
       "id": "doodad.floors.c9r6",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2410,12 +2472,12 @@
         1
       ],
       "id": "doodad.floors.c10r6",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2425,12 +2487,12 @@
         1
       ],
       "id": "doodad.floors.c11r6",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2440,12 +2502,12 @@
         1
       ],
       "id": "doodad.floors.c12r6",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2455,12 +2517,12 @@
         1
       ],
       "id": "doodad.floors.c13r6",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2470,12 +2532,12 @@
         1
       ],
       "id": "doodad.floors.c14r6",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2485,12 +2547,12 @@
         1
       ],
       "id": "doodad.floors.c15r6",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2500,12 +2562,12 @@
         1
       ],
       "id": "doodad.floors.c16r6",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2515,12 +2577,12 @@
         1
       ],
       "id": "doodad.floors.c17r6",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2530,12 +2592,12 @@
         1
       ],
       "id": "doodad.floors.c18r6",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2545,12 +2607,12 @@
         1
       ],
       "id": "doodad.floors.c19r6",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2560,12 +2622,12 @@
         1
       ],
       "id": "doodad.floors.c20r6",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2575,12 +2637,12 @@
         1
       ],
       "id": "doodad.floors.c21r6",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2590,12 +2652,12 @@
         1
       ],
       "id": "doodad.floors.c22r6",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2605,12 +2667,12 @@
         1
       ],
       "id": "doodad.floors.c23r6",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         296,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -2620,12 +2682,12 @@
         1
       ],
       "id": "doodad.floors.c24r6",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         296,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -2635,12 +2697,12 @@
         1
       ],
       "id": "doodad.floors.c0r7",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        346,
-        49,
-        49
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2650,12 +2712,12 @@
         1
       ],
       "id": "doodad.floors.c1r7",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        346,
-        49,
-        49
+        48,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2665,12 +2727,12 @@
         1
       ],
       "id": "doodad.floors.c2r7",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        346,
-        49,
-        49
+        95,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2680,12 +2742,12 @@
         1
       ],
       "id": "doodad.floors.c3r7",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        346,
-        49,
-        49
+        143,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2695,12 +2757,12 @@
         1
       ],
       "id": "doodad.floors.c4r7",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        346,
-        49,
-        49
+        190,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2710,12 +2772,12 @@
         1
       ],
       "id": "doodad.floors.c5r7",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        346,
-        49,
-        49
+        238,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2725,12 +2787,12 @@
         1
       ],
       "id": "doodad.floors.c6r7",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        346,
-        49,
-        49
+        285,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2740,12 +2802,12 @@
         1
       ],
       "id": "doodad.floors.c7r7",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        346,
-        49,
-        49
+        333,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2755,12 +2817,12 @@
         1
       ],
       "id": "doodad.floors.c8r7",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        346,
-        49,
-        49
+        380,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2770,12 +2832,12 @@
         1
       ],
       "id": "doodad.floors.c9r7",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        346,
-        49,
-        49
+        428,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2785,12 +2847,12 @@
         1
       ],
       "id": "doodad.floors.c10r7",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        346,
-        49,
-        49
+        476,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2800,12 +2862,12 @@
         1
       ],
       "id": "doodad.floors.c11r7",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        346,
-        49,
-        49
+        523,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2815,12 +2877,12 @@
         1
       ],
       "id": "doodad.floors.c12r7",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        346,
-        49,
-        49
+        571,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2830,12 +2892,12 @@
         1
       ],
       "id": "doodad.floors.c13r7",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        346,
-        49,
-        49
+        618,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2845,12 +2907,12 @@
         1
       ],
       "id": "doodad.floors.c14r7",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        346,
-        49,
-        49
+        666,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2860,12 +2922,12 @@
         1
       ],
       "id": "doodad.floors.c15r7",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        346,
-        49,
-        49
+        713,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2875,12 +2937,12 @@
         1
       ],
       "id": "doodad.floors.c16r7",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        346,
-        49,
-        49
+        761,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2890,12 +2952,12 @@
         1
       ],
       "id": "doodad.floors.c17r7",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        346,
-        49,
-        49
+        808,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2905,12 +2967,12 @@
         1
       ],
       "id": "doodad.floors.c18r7",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        346,
-        49,
-        49
+        856,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2920,12 +2982,12 @@
         1
       ],
       "id": "doodad.floors.c19r7",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        346,
-        49,
-        49
+        903,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2935,12 +2997,12 @@
         1
       ],
       "id": "doodad.floors.c20r7",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        346,
-        49,
-        49
+        951,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2950,12 +3012,12 @@
         1
       ],
       "id": "doodad.floors.c21r7",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        346,
-        49,
-        49
+        999,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2965,12 +3027,12 @@
         1
       ],
       "id": "doodad.floors.c22r7",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        346,
-        49,
-        49
+        1046,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -2980,12 +3042,12 @@
         1
       ],
       "id": "doodad.floors.c23r7",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        346,
-        49,
-        49
+        1094,
+        345,
+        47,
+        50
       ]
     },
     {
@@ -2995,12 +3057,12 @@
         1
       ],
       "id": "doodad.floors.c24r7",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        346,
-        49,
-        49
+        1141,
+        345,
+        48,
+        50
       ]
     },
     {
@@ -3010,11 +3072,11 @@
         1
       ],
       "id": "doodad.floors.c0r8",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3025,11 +3087,11 @@
         1
       ],
       "id": "doodad.floors.c1r8",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3040,11 +3102,11 @@
         1
       ],
       "id": "doodad.floors.c2r8",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3055,11 +3117,11 @@
         1
       ],
       "id": "doodad.floors.c3r8",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3070,11 +3132,11 @@
         1
       ],
       "id": "doodad.floors.c4r8",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3085,11 +3147,11 @@
         1
       ],
       "id": "doodad.floors.c5r8",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3100,11 +3162,11 @@
         1
       ],
       "id": "doodad.floors.c6r8",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3115,11 +3177,11 @@
         1
       ],
       "id": "doodad.floors.c7r8",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3130,11 +3192,11 @@
         1
       ],
       "id": "doodad.floors.c8r8",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3145,11 +3207,11 @@
         1
       ],
       "id": "doodad.floors.c9r8",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3160,11 +3222,11 @@
         1
       ],
       "id": "doodad.floors.c10r8",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3175,11 +3237,11 @@
         1
       ],
       "id": "doodad.floors.c11r8",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3190,11 +3252,11 @@
         1
       ],
       "id": "doodad.floors.c12r8",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3205,11 +3267,11 @@
         1
       ],
       "id": "doodad.floors.c13r8",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3220,11 +3282,11 @@
         1
       ],
       "id": "doodad.floors.c14r8",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3235,11 +3297,11 @@
         1
       ],
       "id": "doodad.floors.c15r8",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3250,11 +3312,11 @@
         1
       ],
       "id": "doodad.floors.c16r8",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3265,11 +3327,11 @@
         1
       ],
       "id": "doodad.floors.c17r8",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3280,11 +3342,11 @@
         1
       ],
       "id": "doodad.floors.c18r8",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3295,11 +3357,11 @@
         1
       ],
       "id": "doodad.floors.c19r8",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3310,11 +3372,11 @@
         1
       ],
       "id": "doodad.floors.c20r8",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3325,11 +3387,11 @@
         1
       ],
       "id": "doodad.floors.c21r8",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3340,11 +3402,11 @@
         1
       ],
       "id": "doodad.floors.c22r8",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3355,11 +3417,11 @@
         1
       ],
       "id": "doodad.floors.c23r8",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         395,
-        49,
+        47,
         49
       ]
     },
@@ -3370,11 +3432,11 @@
         1
       ],
       "id": "doodad.floors.c24r8",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         395,
-        49,
+        48,
         49
       ]
     },
@@ -3385,12 +3447,12 @@
         1
       ],
       "id": "doodad.floors.c0r9",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3400,12 +3462,12 @@
         1
       ],
       "id": "doodad.floors.c1r9",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3415,12 +3477,12 @@
         1
       ],
       "id": "doodad.floors.c2r9",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3430,12 +3492,12 @@
         1
       ],
       "id": "doodad.floors.c3r9",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3445,12 +3507,12 @@
         1
       ],
       "id": "doodad.floors.c4r9",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3460,12 +3522,12 @@
         1
       ],
       "id": "doodad.floors.c5r9",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3475,12 +3537,12 @@
         1
       ],
       "id": "doodad.floors.c6r9",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3490,12 +3552,12 @@
         1
       ],
       "id": "doodad.floors.c7r9",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3505,12 +3567,12 @@
         1
       ],
       "id": "doodad.floors.c8r9",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3520,12 +3582,12 @@
         1
       ],
       "id": "doodad.floors.c9r9",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3535,12 +3597,12 @@
         1
       ],
       "id": "doodad.floors.c10r9",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3550,12 +3612,12 @@
         1
       ],
       "id": "doodad.floors.c11r9",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3565,12 +3627,12 @@
         1
       ],
       "id": "doodad.floors.c12r9",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3580,12 +3642,12 @@
         1
       ],
       "id": "doodad.floors.c13r9",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3595,12 +3657,12 @@
         1
       ],
       "id": "doodad.floors.c14r9",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3610,12 +3672,12 @@
         1
       ],
       "id": "doodad.floors.c15r9",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3625,12 +3687,12 @@
         1
       ],
       "id": "doodad.floors.c16r9",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3640,12 +3702,12 @@
         1
       ],
       "id": "doodad.floors.c17r9",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3655,12 +3717,12 @@
         1
       ],
       "id": "doodad.floors.c18r9",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3670,12 +3732,12 @@
         1
       ],
       "id": "doodad.floors.c19r9",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3685,12 +3747,12 @@
         1
       ],
       "id": "doodad.floors.c20r9",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3700,12 +3762,12 @@
         1
       ],
       "id": "doodad.floors.c21r9",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3715,12 +3777,12 @@
         1
       ],
       "id": "doodad.floors.c22r9",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3730,12 +3792,12 @@
         1
       ],
       "id": "doodad.floors.c23r9",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         444,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -3745,12 +3807,12 @@
         1
       ],
       "id": "doodad.floors.c24r9",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         444,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -3760,15 +3822,16 @@
         1
       ],
       "id": "doodad.floors.c0r10",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        494,
-        49,
-        49
+        493,
+        48,
+        50
       ]
     },
     {
+      "block": "floors.grass",
       "cover": "none",
       "footprintCells": [
         1,
@@ -3776,14 +3839,21 @@
       ],
       "id": "doodad.floors.c1r10",
       "included": true,
+      "note": "grass-1",
       "rect": [
-        49,
-        494,
-        49,
-        49
+        48,
+        493,
+        47,
+        50
+      ],
+      "slot": "v1",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
+      "block": "floors.grass",
       "cover": "none",
       "footprintCells": [
         1,
@@ -3791,14 +3861,21 @@
       ],
       "id": "doodad.floors.c2r10",
       "included": true,
+      "note": "grass-2",
       "rect": [
-        98,
-        494,
-        49,
-        49
+        95,
+        493,
+        48,
+        50
+      ],
+      "slot": "v2",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
+      "block": "floors.grass",
       "cover": "none",
       "footprintCells": [
         1,
@@ -3806,11 +3883,17 @@
       ],
       "id": "doodad.floors.c3r10",
       "included": true,
+      "note": "grass-3",
       "rect": [
-        147,
-        494,
-        49,
-        49
+        143,
+        493,
+        47,
+        50
+      ],
+      "slot": "v3",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
@@ -3820,12 +3903,12 @@
         1
       ],
       "id": "doodad.floors.c4r10",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        494,
-        49,
-        49
+        190,
+        493,
+        48,
+        50
       ]
     },
     {
@@ -3835,15 +3918,16 @@
         1
       ],
       "id": "doodad.floors.c5r10",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        494,
-        49,
-        49
+        238,
+        493,
+        47,
+        50
       ]
     },
     {
+      "block": "floors.stone",
       "cover": "none",
       "footprintCells": [
         1,
@@ -3851,14 +3935,18 @@
       ],
       "id": "doodad.floors.c6r10",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-mountain/stone.png",
+      "note": "stone-1",
       "rect": [
-        294,
-        494,
-        49,
-        49
-      ]
+        285,
+        493,
+        48,
+        50
+      ],
+      "slot": "v1"
     },
     {
+      "block": "floors.stone",
       "cover": "none",
       "footprintCells": [
         1,
@@ -3866,14 +3954,18 @@
       ],
       "id": "doodad.floors.c7r10",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-mountain/stone.png",
+      "note": "stone-2",
       "rect": [
-        343,
-        494,
-        49,
-        49
-      ]
+        333,
+        493,
+        47,
+        50
+      ],
+      "slot": "v2"
     },
     {
+      "block": "floors.stone",
       "cover": "none",
       "footprintCells": [
         1,
@@ -3881,12 +3973,15 @@
       ],
       "id": "doodad.floors.c8r10",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-mountain/stone.png",
+      "note": "stone-3",
       "rect": [
-        392,
-        494,
-        49,
-        49
-      ]
+        380,
+        493,
+        48,
+        50
+      ],
+      "slot": "v3"
     },
     {
       "cover": "none",
@@ -3895,12 +3990,12 @@
         1
       ],
       "id": "doodad.floors.c9r10",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        494,
-        49,
-        49
+        428,
+        493,
+        48,
+        50
       ]
     },
     {
@@ -3910,15 +4005,16 @@
         1
       ],
       "id": "doodad.floors.c10r10",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        494,
-        49,
-        49
+        476,
+        493,
+        47,
+        50
       ]
     },
     {
+      "block": "floors.dirt",
       "cover": "none",
       "footprintCells": [
         1,
@@ -3926,14 +4022,21 @@
       ],
       "id": "doodad.floors.c11r10",
       "included": true,
+      "note": "dirt-1",
       "rect": [
-        539,
-        494,
-        49,
-        49
+        523,
+        493,
+        48,
+        50
+      ],
+      "slot": "v1",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
+      "block": "floors.dirt",
       "cover": "none",
       "footprintCells": [
         1,
@@ -3941,14 +4044,21 @@
       ],
       "id": "doodad.floors.c12r10",
       "included": true,
+      "note": "dirt-2",
       "rect": [
-        588,
-        494,
-        49,
-        49
+        571,
+        493,
+        47,
+        50
+      ],
+      "slot": "v2",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
+      "block": "floors.dirt",
       "cover": "none",
       "footprintCells": [
         1,
@@ -3956,11 +4066,17 @@
       ],
       "id": "doodad.floors.c13r10",
       "included": true,
+      "note": "dirt-3",
       "rect": [
-        637,
-        494,
-        49,
-        49
+        618,
+        493,
+        48,
+        50
+      ],
+      "slot": "v3",
+      "spriteBorderPx": [
+        7,
+        7
       ]
     },
     {
@@ -3970,12 +4086,12 @@
         1
       ],
       "id": "doodad.floors.c14r10",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        494,
-        49,
-        49
+        666,
+        493,
+        47,
+        50
       ]
     },
     {
@@ -3985,12 +4101,12 @@
         1
       ],
       "id": "doodad.floors.c15r10",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        494,
-        49,
-        49
+        713,
+        493,
+        48,
+        50
       ]
     },
     {
@@ -4000,12 +4116,12 @@
         1
       ],
       "id": "doodad.floors.c16r10",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        494,
-        49,
-        49
+        761,
+        493,
+        47,
+        50
       ]
     },
     {
@@ -4015,12 +4131,12 @@
         1
       ],
       "id": "doodad.floors.c17r10",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        494,
-        49,
-        49
+        808,
+        493,
+        48,
+        50
       ]
     },
     {
@@ -4030,12 +4146,12 @@
         1
       ],
       "id": "doodad.floors.c18r10",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        494,
-        49,
-        49
+        856,
+        493,
+        47,
+        50
       ]
     },
     {
@@ -4045,12 +4161,12 @@
         1
       ],
       "id": "doodad.floors.c19r10",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        494,
-        49,
-        49
+        903,
+        493,
+        48,
+        50
       ]
     },
     {
@@ -4060,12 +4176,12 @@
         1
       ],
       "id": "doodad.floors.c20r10",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        494,
-        49,
-        49
+        951,
+        493,
+        48,
+        50
       ]
     },
     {
@@ -4075,12 +4191,12 @@
         1
       ],
       "id": "doodad.floors.c21r10",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        494,
-        49,
-        49
+        999,
+        493,
+        47,
+        50
       ]
     },
     {
@@ -4090,12 +4206,12 @@
         1
       ],
       "id": "doodad.floors.c22r10",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        494,
-        49,
-        49
+        1046,
+        493,
+        48,
+        50
       ]
     },
     {
@@ -4105,12 +4221,12 @@
         1
       ],
       "id": "doodad.floors.c23r10",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        494,
-        49,
-        49
+        1094,
+        493,
+        47,
+        50
       ]
     },
     {
@@ -4120,12 +4236,12 @@
         1
       ],
       "id": "doodad.floors.c24r10",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        494,
-        49,
-        49
+        1141,
+        493,
+        48,
+        50
       ]
     },
     {
@@ -4135,12 +4251,12 @@
         1
       ],
       "id": "doodad.floors.c0r11",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4150,12 +4266,12 @@
         1
       ],
       "id": "doodad.floors.c1r11",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4165,12 +4281,12 @@
         1
       ],
       "id": "doodad.floors.c2r11",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4180,12 +4296,12 @@
         1
       ],
       "id": "doodad.floors.c3r11",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4195,12 +4311,12 @@
         1
       ],
       "id": "doodad.floors.c4r11",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4210,12 +4326,12 @@
         1
       ],
       "id": "doodad.floors.c5r11",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4225,12 +4341,12 @@
         1
       ],
       "id": "doodad.floors.c6r11",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4240,12 +4356,12 @@
         1
       ],
       "id": "doodad.floors.c7r11",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4255,12 +4371,12 @@
         1
       ],
       "id": "doodad.floors.c8r11",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4270,12 +4386,12 @@
         1
       ],
       "id": "doodad.floors.c9r11",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4285,12 +4401,12 @@
         1
       ],
       "id": "doodad.floors.c10r11",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4300,12 +4416,12 @@
         1
       ],
       "id": "doodad.floors.c11r11",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4315,12 +4431,12 @@
         1
       ],
       "id": "doodad.floors.c12r11",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4330,12 +4446,12 @@
         1
       ],
       "id": "doodad.floors.c13r11",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4345,12 +4461,12 @@
         1
       ],
       "id": "doodad.floors.c14r11",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4360,12 +4476,12 @@
         1
       ],
       "id": "doodad.floors.c15r11",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4375,12 +4491,12 @@
         1
       ],
       "id": "doodad.floors.c16r11",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4390,12 +4506,12 @@
         1
       ],
       "id": "doodad.floors.c17r11",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4405,12 +4521,12 @@
         1
       ],
       "id": "doodad.floors.c18r11",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4420,12 +4536,12 @@
         1
       ],
       "id": "doodad.floors.c19r11",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4435,12 +4551,12 @@
         1
       ],
       "id": "doodad.floors.c20r11",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4450,12 +4566,12 @@
         1
       ],
       "id": "doodad.floors.c21r11",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4465,12 +4581,12 @@
         1
       ],
       "id": "doodad.floors.c22r11",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4480,12 +4596,12 @@
         1
       ],
       "id": "doodad.floors.c23r11",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         543,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -4495,12 +4611,12 @@
         1
       ],
       "id": "doodad.floors.c24r11",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         543,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -4510,12 +4626,12 @@
         1
       ],
       "id": "doodad.floors.c0r12",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        593,
-        49,
-        49
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4525,12 +4641,12 @@
         1
       ],
       "id": "doodad.floors.c1r12",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        593,
-        49,
-        49
+        48,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4540,12 +4656,12 @@
         1
       ],
       "id": "doodad.floors.c2r12",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        593,
-        49,
-        49
+        95,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4555,12 +4671,12 @@
         1
       ],
       "id": "doodad.floors.c3r12",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        593,
-        49,
-        49
+        143,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4570,12 +4686,12 @@
         1
       ],
       "id": "doodad.floors.c4r12",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        593,
-        49,
-        49
+        190,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4585,12 +4701,12 @@
         1
       ],
       "id": "doodad.floors.c5r12",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        593,
-        49,
-        49
+        238,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4600,12 +4716,12 @@
         1
       ],
       "id": "doodad.floors.c6r12",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        593,
-        49,
-        49
+        285,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4615,12 +4731,12 @@
         1
       ],
       "id": "doodad.floors.c7r12",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        593,
-        49,
-        49
+        333,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4630,12 +4746,12 @@
         1
       ],
       "id": "doodad.floors.c8r12",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        593,
-        49,
-        49
+        380,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4645,12 +4761,12 @@
         1
       ],
       "id": "doodad.floors.c9r12",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        593,
-        49,
-        49
+        428,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4660,12 +4776,12 @@
         1
       ],
       "id": "doodad.floors.c10r12",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        593,
-        49,
-        49
+        476,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4675,12 +4791,12 @@
         1
       ],
       "id": "doodad.floors.c11r12",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        593,
-        49,
-        49
+        523,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4690,12 +4806,12 @@
         1
       ],
       "id": "doodad.floors.c12r12",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        593,
-        49,
-        49
+        571,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4705,12 +4821,12 @@
         1
       ],
       "id": "doodad.floors.c13r12",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        593,
-        49,
-        49
+        618,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4720,12 +4836,12 @@
         1
       ],
       "id": "doodad.floors.c14r12",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        593,
-        49,
-        49
+        666,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4735,12 +4851,12 @@
         1
       ],
       "id": "doodad.floors.c15r12",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        593,
-        49,
-        49
+        713,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4750,12 +4866,12 @@
         1
       ],
       "id": "doodad.floors.c16r12",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        593,
-        49,
-        49
+        761,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4765,12 +4881,12 @@
         1
       ],
       "id": "doodad.floors.c17r12",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        593,
-        49,
-        49
+        808,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4780,12 +4896,12 @@
         1
       ],
       "id": "doodad.floors.c18r12",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        593,
-        49,
-        49
+        856,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4795,12 +4911,12 @@
         1
       ],
       "id": "doodad.floors.c19r12",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        593,
-        49,
-        49
+        903,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4810,12 +4926,12 @@
         1
       ],
       "id": "doodad.floors.c20r12",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        593,
-        49,
-        49
+        951,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4825,12 +4941,12 @@
         1
       ],
       "id": "doodad.floors.c21r12",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        593,
-        49,
-        49
+        999,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4840,12 +4956,12 @@
         1
       ],
       "id": "doodad.floors.c22r12",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        593,
-        49,
-        49
+        1046,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4855,12 +4971,12 @@
         1
       ],
       "id": "doodad.floors.c23r12",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        593,
-        49,
-        49
+        1094,
+        592,
+        47,
+        50
       ]
     },
     {
@@ -4870,12 +4986,12 @@
         1
       ],
       "id": "doodad.floors.c24r12",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        593,
-        49,
-        49
+        1141,
+        592,
+        48,
+        50
       ]
     },
     {
@@ -4885,11 +5001,11 @@
         1
       ],
       "id": "doodad.floors.c0r13",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -4900,11 +5016,11 @@
         1
       ],
       "id": "doodad.floors.c1r13",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -4915,11 +5031,11 @@
         1
       ],
       "id": "doodad.floors.c2r13",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -4930,11 +5046,11 @@
         1
       ],
       "id": "doodad.floors.c3r13",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -4945,11 +5061,11 @@
         1
       ],
       "id": "doodad.floors.c4r13",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -4960,11 +5076,11 @@
         1
       ],
       "id": "doodad.floors.c5r13",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -4975,11 +5091,11 @@
         1
       ],
       "id": "doodad.floors.c6r13",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -4990,11 +5106,11 @@
         1
       ],
       "id": "doodad.floors.c7r13",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -5005,11 +5121,11 @@
         1
       ],
       "id": "doodad.floors.c8r13",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -5020,11 +5136,11 @@
         1
       ],
       "id": "doodad.floors.c9r13",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -5035,11 +5151,11 @@
         1
       ],
       "id": "doodad.floors.c10r13",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -5050,11 +5166,11 @@
         1
       ],
       "id": "doodad.floors.c11r13",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -5065,11 +5181,11 @@
         1
       ],
       "id": "doodad.floors.c12r13",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -5080,11 +5196,11 @@
         1
       ],
       "id": "doodad.floors.c13r13",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -5095,11 +5211,11 @@
         1
       ],
       "id": "doodad.floors.c14r13",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -5110,11 +5226,11 @@
         1
       ],
       "id": "doodad.floors.c15r13",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -5125,11 +5241,11 @@
         1
       ],
       "id": "doodad.floors.c16r13",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -5140,11 +5256,11 @@
         1
       ],
       "id": "doodad.floors.c17r13",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -5155,11 +5271,11 @@
         1
       ],
       "id": "doodad.floors.c18r13",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -5170,11 +5286,11 @@
         1
       ],
       "id": "doodad.floors.c19r13",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -5185,11 +5301,11 @@
         1
       ],
       "id": "doodad.floors.c20r13",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -5200,11 +5316,11 @@
         1
       ],
       "id": "doodad.floors.c21r13",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -5215,11 +5331,11 @@
         1
       ],
       "id": "doodad.floors.c22r13",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -5230,11 +5346,11 @@
         1
       ],
       "id": "doodad.floors.c23r13",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         642,
-        49,
+        47,
         49
       ]
     },
@@ -5245,11 +5361,11 @@
         1
       ],
       "id": "doodad.floors.c24r13",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         642,
-        49,
+        48,
         49
       ]
     },
@@ -5260,12 +5376,12 @@
         1
       ],
       "id": "doodad.floors.c0r14",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5275,12 +5391,12 @@
         1
       ],
       "id": "doodad.floors.c1r14",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         691,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -5290,12 +5406,12 @@
         1
       ],
       "id": "doodad.floors.c2r14",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5305,12 +5421,12 @@
         1
       ],
       "id": "doodad.floors.c3r14",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         691,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -5320,12 +5436,12 @@
         1
       ],
       "id": "doodad.floors.c4r14",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5335,15 +5451,16 @@
         1
       ],
       "id": "doodad.floors.c5r14",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         691,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
+      "block": "floors.sand",
       "cover": "none",
       "footprintCells": [
         1,
@@ -5351,14 +5468,18 @@
       ],
       "id": "doodad.floors.c6r14",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-desert/sand.png",
+      "note": "sand-2",
       "rect": [
-        294,
+        285,
         691,
-        49,
-        50
-      ]
+        48,
+        49
+      ],
+      "slot": "v1"
     },
     {
+      "block": "floors.sand",
       "cover": "none",
       "footprintCells": [
         1,
@@ -5366,14 +5487,18 @@
       ],
       "id": "doodad.floors.c7r14",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-desert/sand.png",
+      "note": "sand-3",
       "rect": [
-        343,
+        333,
         691,
-        49,
-        50
-      ]
+        47,
+        49
+      ],
+      "slot": "v2"
     },
     {
+      "block": "floors.sand",
       "cover": "none",
       "footprintCells": [
         1,
@@ -5381,12 +5506,15 @@
       ],
       "id": "doodad.floors.c8r14",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-desert/sand.png",
+      "note": "sand-4",
       "rect": [
-        392,
+        380,
         691,
-        49,
-        50
-      ]
+        48,
+        49
+      ],
+      "slot": "v3"
     },
     {
       "cover": "none",
@@ -5395,12 +5523,12 @@
         1
       ],
       "id": "doodad.floors.c9r14",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5410,12 +5538,12 @@
         1
       ],
       "id": "doodad.floors.c10r14",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         691,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -5425,12 +5553,12 @@
         1
       ],
       "id": "doodad.floors.c11r14",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5440,12 +5568,12 @@
         1
       ],
       "id": "doodad.floors.c12r14",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         691,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -5455,12 +5583,12 @@
         1
       ],
       "id": "doodad.floors.c13r14",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5470,12 +5598,12 @@
         1
       ],
       "id": "doodad.floors.c14r14",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         691,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -5485,12 +5613,12 @@
         1
       ],
       "id": "doodad.floors.c15r14",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5500,12 +5628,12 @@
         1
       ],
       "id": "doodad.floors.c16r14",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         691,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -5515,12 +5643,12 @@
         1
       ],
       "id": "doodad.floors.c17r14",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5530,12 +5658,12 @@
         1
       ],
       "id": "doodad.floors.c18r14",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         691,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -5545,12 +5673,12 @@
         1
       ],
       "id": "doodad.floors.c19r14",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5560,12 +5688,12 @@
         1
       ],
       "id": "doodad.floors.c20r14",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5575,12 +5703,12 @@
         1
       ],
       "id": "doodad.floors.c21r14",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         691,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -5590,12 +5718,12 @@
         1
       ],
       "id": "doodad.floors.c22r14",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5605,12 +5733,12 @@
         1
       ],
       "id": "doodad.floors.c23r14",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         691,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -5620,12 +5748,12 @@
         1
       ],
       "id": "doodad.floors.c24r14",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         691,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -5635,12 +5763,12 @@
         1
       ],
       "id": "doodad.floors.c0r15",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        741,
-        49,
-        49
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5650,12 +5778,12 @@
         1
       ],
       "id": "doodad.floors.c1r15",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        741,
-        49,
-        49
+        48,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5665,12 +5793,12 @@
         1
       ],
       "id": "doodad.floors.c2r15",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        741,
-        49,
-        49
+        95,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5680,12 +5808,12 @@
         1
       ],
       "id": "doodad.floors.c3r15",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        741,
-        49,
-        49
+        143,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5695,12 +5823,12 @@
         1
       ],
       "id": "doodad.floors.c4r15",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        741,
-        49,
-        49
+        190,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5710,12 +5838,12 @@
         1
       ],
       "id": "doodad.floors.c5r15",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        741,
-        49,
-        49
+        238,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5725,12 +5853,12 @@
         1
       ],
       "id": "doodad.floors.c6r15",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        741,
-        49,
-        49
+        285,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5740,12 +5868,12 @@
         1
       ],
       "id": "doodad.floors.c7r15",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        741,
-        49,
-        49
+        333,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5755,12 +5883,12 @@
         1
       ],
       "id": "doodad.floors.c8r15",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        741,
-        49,
-        49
+        380,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5770,12 +5898,12 @@
         1
       ],
       "id": "doodad.floors.c9r15",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        741,
-        49,
-        49
+        428,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5785,12 +5913,12 @@
         1
       ],
       "id": "doodad.floors.c10r15",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        741,
-        49,
-        49
+        476,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5800,12 +5928,12 @@
         1
       ],
       "id": "doodad.floors.c11r15",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        741,
-        49,
-        49
+        523,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5815,12 +5943,12 @@
         1
       ],
       "id": "doodad.floors.c12r15",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        741,
-        49,
-        49
+        571,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5830,12 +5958,12 @@
         1
       ],
       "id": "doodad.floors.c13r15",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        741,
-        49,
-        49
+        618,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5845,12 +5973,12 @@
         1
       ],
       "id": "doodad.floors.c14r15",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        741,
-        49,
-        49
+        666,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5860,12 +5988,12 @@
         1
       ],
       "id": "doodad.floors.c15r15",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        741,
-        49,
-        49
+        713,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5875,12 +6003,12 @@
         1
       ],
       "id": "doodad.floors.c16r15",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        741,
-        49,
-        49
+        761,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5890,12 +6018,12 @@
         1
       ],
       "id": "doodad.floors.c17r15",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        741,
-        49,
-        49
+        808,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5905,12 +6033,12 @@
         1
       ],
       "id": "doodad.floors.c18r15",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        741,
-        49,
-        49
+        856,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5920,12 +6048,12 @@
         1
       ],
       "id": "doodad.floors.c19r15",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        741,
-        49,
-        49
+        903,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5935,12 +6063,12 @@
         1
       ],
       "id": "doodad.floors.c20r15",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        741,
-        49,
-        49
+        951,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5950,12 +6078,12 @@
         1
       ],
       "id": "doodad.floors.c21r15",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        741,
-        49,
-        49
+        999,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5965,12 +6093,12 @@
         1
       ],
       "id": "doodad.floors.c22r15",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        741,
-        49,
-        49
+        1046,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -5980,12 +6108,12 @@
         1
       ],
       "id": "doodad.floors.c23r15",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        741,
-        49,
-        49
+        1094,
+        740,
+        47,
+        50
       ]
     },
     {
@@ -5995,12 +6123,12 @@
         1
       ],
       "id": "doodad.floors.c24r15",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        741,
-        49,
-        49
+        1141,
+        740,
+        48,
+        50
       ]
     },
     {
@@ -6010,12 +6138,12 @@
         1
       ],
       "id": "doodad.floors.c0r16",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6025,12 +6153,12 @@
         1
       ],
       "id": "doodad.floors.c1r16",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6040,12 +6168,12 @@
         1
       ],
       "id": "doodad.floors.c2r16",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6055,12 +6183,12 @@
         1
       ],
       "id": "doodad.floors.c3r16",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6070,12 +6198,12 @@
         1
       ],
       "id": "doodad.floors.c4r16",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6085,12 +6213,12 @@
         1
       ],
       "id": "doodad.floors.c5r16",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6100,12 +6228,12 @@
         1
       ],
       "id": "doodad.floors.c6r16",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6115,12 +6243,12 @@
         1
       ],
       "id": "doodad.floors.c7r16",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6130,12 +6258,12 @@
         1
       ],
       "id": "doodad.floors.c8r16",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6145,12 +6273,12 @@
         1
       ],
       "id": "doodad.floors.c9r16",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6160,12 +6288,12 @@
         1
       ],
       "id": "doodad.floors.c10r16",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6175,12 +6303,12 @@
         1
       ],
       "id": "doodad.floors.c11r16",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6190,12 +6318,12 @@
         1
       ],
       "id": "doodad.floors.c12r16",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6205,12 +6333,12 @@
         1
       ],
       "id": "doodad.floors.c13r16",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6220,12 +6348,12 @@
         1
       ],
       "id": "doodad.floors.c14r16",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6235,12 +6363,12 @@
         1
       ],
       "id": "doodad.floors.c15r16",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6250,12 +6378,12 @@
         1
       ],
       "id": "doodad.floors.c16r16",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6265,12 +6393,12 @@
         1
       ],
       "id": "doodad.floors.c17r16",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6280,12 +6408,12 @@
         1
       ],
       "id": "doodad.floors.c18r16",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6295,12 +6423,12 @@
         1
       ],
       "id": "doodad.floors.c19r16",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6310,12 +6438,12 @@
         1
       ],
       "id": "doodad.floors.c20r16",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6325,12 +6453,12 @@
         1
       ],
       "id": "doodad.floors.c21r16",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6340,12 +6468,12 @@
         1
       ],
       "id": "doodad.floors.c22r16",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6355,12 +6483,12 @@
         1
       ],
       "id": "doodad.floors.c23r16",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         790,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -6370,12 +6498,12 @@
         1
       ],
       "id": "doodad.floors.c24r16",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         790,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -6385,11 +6513,11 @@
         1
       ],
       "id": "doodad.floors.c0r17",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        840,
-        49,
+        839,
+        48,
         49
       ]
     },
@@ -6400,11 +6528,11 @@
         1
       ],
       "id": "doodad.floors.c1r17",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        840,
-        49,
+        48,
+        839,
+        47,
         49
       ]
     },
@@ -6415,11 +6543,11 @@
         1
       ],
       "id": "doodad.floors.c2r17",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        840,
-        49,
+        95,
+        839,
+        48,
         49
       ]
     },
@@ -6430,11 +6558,11 @@
         1
       ],
       "id": "doodad.floors.c3r17",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        840,
-        49,
+        143,
+        839,
+        47,
         49
       ]
     },
@@ -6445,11 +6573,11 @@
         1
       ],
       "id": "doodad.floors.c4r17",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        840,
-        49,
+        190,
+        839,
+        48,
         49
       ]
     },
@@ -6460,11 +6588,11 @@
         1
       ],
       "id": "doodad.floors.c5r17",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        840,
-        49,
+        238,
+        839,
+        47,
         49
       ]
     },
@@ -6475,11 +6603,11 @@
         1
       ],
       "id": "doodad.floors.c6r17",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        840,
-        49,
+        285,
+        839,
+        48,
         49
       ]
     },
@@ -6490,11 +6618,11 @@
         1
       ],
       "id": "doodad.floors.c7r17",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        840,
-        49,
+        333,
+        839,
+        47,
         49
       ]
     },
@@ -6505,11 +6633,11 @@
         1
       ],
       "id": "doodad.floors.c8r17",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        840,
-        49,
+        380,
+        839,
+        48,
         49
       ]
     },
@@ -6520,11 +6648,11 @@
         1
       ],
       "id": "doodad.floors.c9r17",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        840,
-        49,
+        428,
+        839,
+        48,
         49
       ]
     },
@@ -6535,11 +6663,11 @@
         1
       ],
       "id": "doodad.floors.c10r17",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        840,
-        49,
+        476,
+        839,
+        47,
         49
       ]
     },
@@ -6550,11 +6678,11 @@
         1
       ],
       "id": "doodad.floors.c11r17",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        840,
-        49,
+        523,
+        839,
+        48,
         49
       ]
     },
@@ -6565,11 +6693,11 @@
         1
       ],
       "id": "doodad.floors.c12r17",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        840,
-        49,
+        571,
+        839,
+        47,
         49
       ]
     },
@@ -6580,11 +6708,11 @@
         1
       ],
       "id": "doodad.floors.c13r17",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        840,
-        49,
+        618,
+        839,
+        48,
         49
       ]
     },
@@ -6595,11 +6723,11 @@
         1
       ],
       "id": "doodad.floors.c14r17",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        840,
-        49,
+        666,
+        839,
+        47,
         49
       ]
     },
@@ -6610,11 +6738,11 @@
         1
       ],
       "id": "doodad.floors.c15r17",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        840,
-        49,
+        713,
+        839,
+        48,
         49
       ]
     },
@@ -6625,11 +6753,11 @@
         1
       ],
       "id": "doodad.floors.c16r17",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        840,
-        49,
+        761,
+        839,
+        47,
         49
       ]
     },
@@ -6640,11 +6768,11 @@
         1
       ],
       "id": "doodad.floors.c17r17",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        840,
-        49,
+        808,
+        839,
+        48,
         49
       ]
     },
@@ -6655,11 +6783,11 @@
         1
       ],
       "id": "doodad.floors.c18r17",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        840,
-        49,
+        856,
+        839,
+        47,
         49
       ]
     },
@@ -6670,11 +6798,11 @@
         1
       ],
       "id": "doodad.floors.c19r17",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        840,
-        49,
+        903,
+        839,
+        48,
         49
       ]
     },
@@ -6685,11 +6813,11 @@
         1
       ],
       "id": "doodad.floors.c20r17",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        840,
-        49,
+        951,
+        839,
+        48,
         49
       ]
     },
@@ -6700,11 +6828,11 @@
         1
       ],
       "id": "doodad.floors.c21r17",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        840,
-        49,
+        999,
+        839,
+        47,
         49
       ]
     },
@@ -6715,11 +6843,11 @@
         1
       ],
       "id": "doodad.floors.c22r17",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        840,
-        49,
+        1046,
+        839,
+        48,
         49
       ]
     },
@@ -6730,11 +6858,11 @@
         1
       ],
       "id": "doodad.floors.c23r17",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        840,
-        49,
+        1094,
+        839,
+        47,
         49
       ]
     },
@@ -6745,11 +6873,11 @@
         1
       ],
       "id": "doodad.floors.c24r17",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        840,
-        49,
+        1141,
+        839,
+        48,
         49
       ]
     },
@@ -6760,12 +6888,12 @@
         1
       ],
       "id": "doodad.floors.c0r18",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        889,
-        49,
-        49
+        888,
+        48,
+        50
       ]
     },
     {
@@ -6775,12 +6903,12 @@
         1
       ],
       "id": "doodad.floors.c1r18",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        889,
-        49,
-        49
+        48,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -6790,12 +6918,12 @@
         1
       ],
       "id": "doodad.floors.c2r18",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        889,
-        49,
-        49
+        95,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -6805,12 +6933,12 @@
         1
       ],
       "id": "doodad.floors.c3r18",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        889,
-        49,
-        49
+        143,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -6820,12 +6948,12 @@
         1
       ],
       "id": "doodad.floors.c4r18",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        889,
-        49,
-        49
+        190,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -6835,12 +6963,12 @@
         1
       ],
       "id": "doodad.floors.c5r18",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        889,
-        49,
-        49
+        238,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -6850,12 +6978,12 @@
         1
       ],
       "id": "doodad.floors.c6r18",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        889,
-        49,
-        49
+        285,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -6865,12 +6993,12 @@
         1
       ],
       "id": "doodad.floors.c7r18",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        889,
-        49,
-        49
+        333,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -6880,12 +7008,12 @@
         1
       ],
       "id": "doodad.floors.c8r18",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        889,
-        49,
-        49
+        380,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -6895,12 +7023,12 @@
         1
       ],
       "id": "doodad.floors.c9r18",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        889,
-        49,
-        49
+        428,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -6910,12 +7038,12 @@
         1
       ],
       "id": "doodad.floors.c10r18",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        889,
-        49,
-        49
+        476,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -6925,12 +7053,12 @@
         1
       ],
       "id": "doodad.floors.c11r18",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        889,
-        49,
-        49
+        523,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -6940,12 +7068,12 @@
         1
       ],
       "id": "doodad.floors.c12r18",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        889,
-        49,
-        49
+        571,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -6955,12 +7083,12 @@
         1
       ],
       "id": "doodad.floors.c13r18",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        889,
-        49,
-        49
+        618,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -6970,12 +7098,12 @@
         1
       ],
       "id": "doodad.floors.c14r18",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        889,
-        49,
-        49
+        666,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -6985,12 +7113,12 @@
         1
       ],
       "id": "doodad.floors.c15r18",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        889,
-        49,
-        49
+        713,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -7000,12 +7128,12 @@
         1
       ],
       "id": "doodad.floors.c16r18",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        889,
-        49,
-        49
+        761,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -7015,12 +7143,12 @@
         1
       ],
       "id": "doodad.floors.c17r18",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        889,
-        49,
-        49
+        808,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -7030,12 +7158,12 @@
         1
       ],
       "id": "doodad.floors.c18r18",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        889,
-        49,
-        49
+        856,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -7045,12 +7173,12 @@
         1
       ],
       "id": "doodad.floors.c19r18",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        889,
-        49,
-        49
+        903,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -7060,12 +7188,12 @@
         1
       ],
       "id": "doodad.floors.c20r18",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        889,
-        49,
-        49
+        951,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -7075,12 +7203,12 @@
         1
       ],
       "id": "doodad.floors.c21r18",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        889,
-        49,
-        49
+        999,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -7090,12 +7218,12 @@
         1
       ],
       "id": "doodad.floors.c22r18",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        889,
-        49,
-        49
+        1046,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -7105,12 +7233,12 @@
         1
       ],
       "id": "doodad.floors.c23r18",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        889,
-        49,
-        49
+        1094,
+        888,
+        47,
+        50
       ]
     },
     {
@@ -7120,12 +7248,12 @@
         1
       ],
       "id": "doodad.floors.c24r18",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        889,
-        49,
-        49
+        1141,
+        888,
+        48,
+        50
       ]
     },
     {
@@ -7135,12 +7263,12 @@
         1
       ],
       "id": "doodad.floors.c0r19",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7150,12 +7278,12 @@
         1
       ],
       "id": "doodad.floors.c1r19",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7165,12 +7293,12 @@
         1
       ],
       "id": "doodad.floors.c2r19",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7180,12 +7308,12 @@
         1
       ],
       "id": "doodad.floors.c3r19",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7195,12 +7323,12 @@
         1
       ],
       "id": "doodad.floors.c4r19",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7210,12 +7338,12 @@
         1
       ],
       "id": "doodad.floors.c5r19",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7225,12 +7353,12 @@
         1
       ],
       "id": "doodad.floors.c6r19",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7240,12 +7368,12 @@
         1
       ],
       "id": "doodad.floors.c7r19",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7255,12 +7383,12 @@
         1
       ],
       "id": "doodad.floors.c8r19",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7270,12 +7398,12 @@
         1
       ],
       "id": "doodad.floors.c9r19",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7285,12 +7413,12 @@
         1
       ],
       "id": "doodad.floors.c10r19",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7300,12 +7428,12 @@
         1
       ],
       "id": "doodad.floors.c11r19",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7315,12 +7443,12 @@
         1
       ],
       "id": "doodad.floors.c12r19",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7330,12 +7458,12 @@
         1
       ],
       "id": "doodad.floors.c13r19",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7345,12 +7473,12 @@
         1
       ],
       "id": "doodad.floors.c14r19",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7360,12 +7488,12 @@
         1
       ],
       "id": "doodad.floors.c15r19",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7375,12 +7503,12 @@
         1
       ],
       "id": "doodad.floors.c16r19",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7390,12 +7518,12 @@
         1
       ],
       "id": "doodad.floors.c17r19",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7405,12 +7533,12 @@
         1
       ],
       "id": "doodad.floors.c18r19",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7420,12 +7548,12 @@
         1
       ],
       "id": "doodad.floors.c19r19",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7435,12 +7563,12 @@
         1
       ],
       "id": "doodad.floors.c20r19",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7450,12 +7578,12 @@
         1
       ],
       "id": "doodad.floors.c21r19",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7465,12 +7593,12 @@
         1
       ],
       "id": "doodad.floors.c22r19",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7480,12 +7608,12 @@
         1
       ],
       "id": "doodad.floors.c23r19",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         938,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -7495,12 +7623,12 @@
         1
       ],
       "id": "doodad.floors.c24r19",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         938,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -7510,11 +7638,11 @@
         1
       ],
       "id": "doodad.floors.c0r20",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        988,
-        49,
+        987,
+        48,
         49
       ]
     },
@@ -7525,11 +7653,11 @@
         1
       ],
       "id": "doodad.floors.c1r20",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        988,
-        49,
+        48,
+        987,
+        47,
         49
       ]
     },
@@ -7540,11 +7668,11 @@
         1
       ],
       "id": "doodad.floors.c2r20",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        988,
-        49,
+        95,
+        987,
+        48,
         49
       ]
     },
@@ -7555,11 +7683,11 @@
         1
       ],
       "id": "doodad.floors.c3r20",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        988,
-        49,
+        143,
+        987,
+        47,
         49
       ]
     },
@@ -7570,11 +7698,11 @@
         1
       ],
       "id": "doodad.floors.c4r20",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        988,
-        49,
+        190,
+        987,
+        48,
         49
       ]
     },
@@ -7585,11 +7713,11 @@
         1
       ],
       "id": "doodad.floors.c5r20",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        988,
-        49,
+        238,
+        987,
+        47,
         49
       ]
     },
@@ -7600,11 +7728,11 @@
         1
       ],
       "id": "doodad.floors.c6r20",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        988,
-        49,
+        285,
+        987,
+        48,
         49
       ]
     },
@@ -7615,11 +7743,11 @@
         1
       ],
       "id": "doodad.floors.c7r20",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        988,
-        49,
+        333,
+        987,
+        47,
         49
       ]
     },
@@ -7630,11 +7758,11 @@
         1
       ],
       "id": "doodad.floors.c8r20",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        988,
-        49,
+        380,
+        987,
+        48,
         49
       ]
     },
@@ -7645,11 +7773,11 @@
         1
       ],
       "id": "doodad.floors.c9r20",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        988,
-        49,
+        428,
+        987,
+        48,
         49
       ]
     },
@@ -7660,11 +7788,11 @@
         1
       ],
       "id": "doodad.floors.c10r20",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        988,
-        49,
+        476,
+        987,
+        47,
         49
       ]
     },
@@ -7675,11 +7803,11 @@
         1
       ],
       "id": "doodad.floors.c11r20",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        988,
-        49,
+        523,
+        987,
+        48,
         49
       ]
     },
@@ -7690,11 +7818,11 @@
         1
       ],
       "id": "doodad.floors.c12r20",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        988,
-        49,
+        571,
+        987,
+        47,
         49
       ]
     },
@@ -7705,11 +7833,11 @@
         1
       ],
       "id": "doodad.floors.c13r20",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        988,
-        49,
+        618,
+        987,
+        48,
         49
       ]
     },
@@ -7720,11 +7848,11 @@
         1
       ],
       "id": "doodad.floors.c14r20",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        988,
-        49,
+        666,
+        987,
+        47,
         49
       ]
     },
@@ -7735,11 +7863,11 @@
         1
       ],
       "id": "doodad.floors.c15r20",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        988,
-        49,
+        713,
+        987,
+        48,
         49
       ]
     },
@@ -7750,11 +7878,11 @@
         1
       ],
       "id": "doodad.floors.c16r20",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        988,
-        49,
+        761,
+        987,
+        47,
         49
       ]
     },
@@ -7765,11 +7893,11 @@
         1
       ],
       "id": "doodad.floors.c17r20",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        988,
-        49,
+        808,
+        987,
+        48,
         49
       ]
     },
@@ -7780,11 +7908,11 @@
         1
       ],
       "id": "doodad.floors.c18r20",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        988,
-        49,
+        856,
+        987,
+        47,
         49
       ]
     },
@@ -7795,11 +7923,11 @@
         1
       ],
       "id": "doodad.floors.c19r20",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        988,
-        49,
+        903,
+        987,
+        48,
         49
       ]
     },
@@ -7810,11 +7938,11 @@
         1
       ],
       "id": "doodad.floors.c20r20",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        988,
-        49,
+        951,
+        987,
+        48,
         49
       ]
     },
@@ -7825,11 +7953,11 @@
         1
       ],
       "id": "doodad.floors.c21r20",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        988,
-        49,
+        999,
+        987,
+        47,
         49
       ]
     },
@@ -7840,11 +7968,11 @@
         1
       ],
       "id": "doodad.floors.c22r20",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        988,
-        49,
+        1046,
+        987,
+        48,
         49
       ]
     },
@@ -7855,11 +7983,11 @@
         1
       ],
       "id": "doodad.floors.c23r20",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        988,
-        49,
+        1094,
+        987,
+        47,
         49
       ]
     },
@@ -7870,11 +7998,11 @@
         1
       ],
       "id": "doodad.floors.c24r20",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        988,
-        49,
+        1141,
+        987,
+        48,
         49
       ]
     },
@@ -7885,12 +8013,12 @@
         1
       ],
       "id": "doodad.floors.c0r21",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        1037,
-        49,
-        49
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -7900,12 +8028,12 @@
         1
       ],
       "id": "doodad.floors.c1r21",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        1037,
-        49,
-        49
+        48,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -7915,12 +8043,12 @@
         1
       ],
       "id": "doodad.floors.c2r21",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        1037,
-        49,
-        49
+        95,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -7930,12 +8058,12 @@
         1
       ],
       "id": "doodad.floors.c3r21",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        1037,
-        49,
-        49
+        143,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -7945,12 +8073,12 @@
         1
       ],
       "id": "doodad.floors.c4r21",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        1037,
-        49,
-        49
+        190,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -7960,12 +8088,12 @@
         1
       ],
       "id": "doodad.floors.c5r21",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        1037,
-        49,
-        49
+        238,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -7975,12 +8103,12 @@
         1
       ],
       "id": "doodad.floors.c6r21",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        1037,
-        49,
-        49
+        285,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -7990,12 +8118,12 @@
         1
       ],
       "id": "doodad.floors.c7r21",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        1037,
-        49,
-        49
+        333,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -8005,12 +8133,12 @@
         1
       ],
       "id": "doodad.floors.c8r21",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        1037,
-        49,
-        49
+        380,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -8020,12 +8148,12 @@
         1
       ],
       "id": "doodad.floors.c9r21",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        1037,
-        49,
-        49
+        428,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -8035,12 +8163,12 @@
         1
       ],
       "id": "doodad.floors.c10r21",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        1037,
-        49,
-        49
+        476,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -8050,12 +8178,12 @@
         1
       ],
       "id": "doodad.floors.c11r21",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        1037,
-        49,
-        49
+        523,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -8065,12 +8193,12 @@
         1
       ],
       "id": "doodad.floors.c12r21",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        1037,
-        49,
-        49
+        571,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -8080,12 +8208,12 @@
         1
       ],
       "id": "doodad.floors.c13r21",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        1037,
-        49,
-        49
+        618,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -8095,12 +8223,12 @@
         1
       ],
       "id": "doodad.floors.c14r21",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        1037,
-        49,
-        49
+        666,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -8110,12 +8238,12 @@
         1
       ],
       "id": "doodad.floors.c15r21",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        1037,
-        49,
-        49
+        713,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -8125,12 +8253,12 @@
         1
       ],
       "id": "doodad.floors.c16r21",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        1037,
-        49,
-        49
+        761,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -8140,12 +8268,12 @@
         1
       ],
       "id": "doodad.floors.c17r21",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        1037,
-        49,
-        49
+        808,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -8155,12 +8283,12 @@
         1
       ],
       "id": "doodad.floors.c18r21",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        1037,
-        49,
-        49
+        856,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -8170,12 +8298,12 @@
         1
       ],
       "id": "doodad.floors.c19r21",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        1037,
-        49,
-        49
+        903,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -8185,12 +8313,12 @@
         1
       ],
       "id": "doodad.floors.c20r21",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        1037,
-        49,
-        49
+        951,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -8200,12 +8328,12 @@
         1
       ],
       "id": "doodad.floors.c21r21",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        1037,
-        49,
-        49
+        999,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -8215,12 +8343,12 @@
         1
       ],
       "id": "doodad.floors.c22r21",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        1037,
-        49,
-        49
+        1046,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -8230,12 +8358,12 @@
         1
       ],
       "id": "doodad.floors.c23r21",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        1037,
-        49,
-        49
+        1094,
+        1036,
+        47,
+        50
       ]
     },
     {
@@ -8245,12 +8373,12 @@
         1
       ],
       "id": "doodad.floors.c24r21",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        1037,
-        49,
-        49
+        1141,
+        1036,
+        48,
+        50
       ]
     },
     {
@@ -8260,12 +8388,12 @@
         1
       ],
       "id": "doodad.floors.c0r22",
-      "included": true,
+      "included": false,
       "rect": [
         0,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8275,12 +8403,12 @@
         1
       ],
       "id": "doodad.floors.c1r22",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
+        48,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8290,12 +8418,12 @@
         1
       ],
       "id": "doodad.floors.c2r22",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
+        95,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8305,12 +8433,12 @@
         1
       ],
       "id": "doodad.floors.c3r22",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
+        143,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8320,12 +8448,12 @@
         1
       ],
       "id": "doodad.floors.c4r22",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
+        190,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8335,12 +8463,12 @@
         1
       ],
       "id": "doodad.floors.c5r22",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
+        238,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8350,12 +8478,12 @@
         1
       ],
       "id": "doodad.floors.c6r22",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
+        285,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8365,12 +8493,12 @@
         1
       ],
       "id": "doodad.floors.c7r22",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
+        333,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8380,12 +8508,12 @@
         1
       ],
       "id": "doodad.floors.c8r22",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
+        380,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8395,12 +8523,12 @@
         1
       ],
       "id": "doodad.floors.c9r22",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
+        428,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8410,12 +8538,12 @@
         1
       ],
       "id": "doodad.floors.c10r22",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
+        476,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8425,12 +8553,12 @@
         1
       ],
       "id": "doodad.floors.c11r22",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
+        523,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8440,12 +8568,12 @@
         1
       ],
       "id": "doodad.floors.c12r22",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
+        571,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8455,12 +8583,12 @@
         1
       ],
       "id": "doodad.floors.c13r22",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
+        618,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8470,12 +8598,12 @@
         1
       ],
       "id": "doodad.floors.c14r22",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
+        666,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8485,12 +8613,12 @@
         1
       ],
       "id": "doodad.floors.c15r22",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
+        713,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8500,12 +8628,12 @@
         1
       ],
       "id": "doodad.floors.c16r22",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
+        761,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8515,12 +8643,12 @@
         1
       ],
       "id": "doodad.floors.c17r22",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
+        808,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8530,12 +8658,12 @@
         1
       ],
       "id": "doodad.floors.c18r22",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
+        856,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8545,12 +8673,12 @@
         1
       ],
       "id": "doodad.floors.c19r22",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
+        903,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8560,12 +8688,12 @@
         1
       ],
       "id": "doodad.floors.c20r22",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
+        951,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8575,12 +8703,12 @@
         1
       ],
       "id": "doodad.floors.c21r22",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
+        999,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8590,12 +8718,12 @@
         1
       ],
       "id": "doodad.floors.c22r22",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
+        1046,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8605,12 +8733,12 @@
         1
       ],
       "id": "doodad.floors.c23r22",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
+        1094,
         1086,
-        49,
-        50
+        47,
+        49
       ]
     },
     {
@@ -8620,12 +8748,12 @@
         1
       ],
       "id": "doodad.floors.c24r22",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
+        1141,
         1086,
-        49,
-        50
+        48,
+        49
       ]
     },
     {
@@ -8635,11 +8763,11 @@
         1
       ],
       "id": "doodad.floors.c0r23",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        1136,
-        49,
+        1135,
+        48,
         49
       ]
     },
@@ -8650,11 +8778,11 @@
         1
       ],
       "id": "doodad.floors.c1r23",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        1136,
-        49,
+        48,
+        1135,
+        47,
         49
       ]
     },
@@ -8665,11 +8793,11 @@
         1
       ],
       "id": "doodad.floors.c2r23",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        1136,
-        49,
+        95,
+        1135,
+        48,
         49
       ]
     },
@@ -8680,11 +8808,11 @@
         1
       ],
       "id": "doodad.floors.c3r23",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        1136,
-        49,
+        143,
+        1135,
+        47,
         49
       ]
     },
@@ -8695,11 +8823,11 @@
         1
       ],
       "id": "doodad.floors.c4r23",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        1136,
-        49,
+        190,
+        1135,
+        48,
         49
       ]
     },
@@ -8710,11 +8838,11 @@
         1
       ],
       "id": "doodad.floors.c5r23",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        1136,
-        49,
+        238,
+        1135,
+        47,
         49
       ]
     },
@@ -8725,11 +8853,11 @@
         1
       ],
       "id": "doodad.floors.c6r23",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        1136,
-        49,
+        285,
+        1135,
+        48,
         49
       ]
     },
@@ -8740,11 +8868,11 @@
         1
       ],
       "id": "doodad.floors.c7r23",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        1136,
-        49,
+        333,
+        1135,
+        47,
         49
       ]
     },
@@ -8755,11 +8883,11 @@
         1
       ],
       "id": "doodad.floors.c8r23",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        1136,
-        49,
+        380,
+        1135,
+        48,
         49
       ]
     },
@@ -8770,11 +8898,11 @@
         1
       ],
       "id": "doodad.floors.c9r23",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        1136,
-        49,
+        428,
+        1135,
+        48,
         49
       ]
     },
@@ -8785,11 +8913,11 @@
         1
       ],
       "id": "doodad.floors.c10r23",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        1136,
-        49,
+        476,
+        1135,
+        47,
         49
       ]
     },
@@ -8800,11 +8928,11 @@
         1
       ],
       "id": "doodad.floors.c11r23",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        1136,
-        49,
+        523,
+        1135,
+        48,
         49
       ]
     },
@@ -8815,11 +8943,11 @@
         1
       ],
       "id": "doodad.floors.c12r23",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        1136,
-        49,
+        571,
+        1135,
+        47,
         49
       ]
     },
@@ -8830,11 +8958,11 @@
         1
       ],
       "id": "doodad.floors.c13r23",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        1136,
-        49,
+        618,
+        1135,
+        48,
         49
       ]
     },
@@ -8845,11 +8973,11 @@
         1
       ],
       "id": "doodad.floors.c14r23",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        1136,
-        49,
+        666,
+        1135,
+        47,
         49
       ]
     },
@@ -8860,11 +8988,11 @@
         1
       ],
       "id": "doodad.floors.c15r23",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        1136,
-        49,
+        713,
+        1135,
+        48,
         49
       ]
     },
@@ -8875,11 +9003,11 @@
         1
       ],
       "id": "doodad.floors.c16r23",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        1136,
-        49,
+        761,
+        1135,
+        47,
         49
       ]
     },
@@ -8890,11 +9018,11 @@
         1
       ],
       "id": "doodad.floors.c17r23",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        1136,
-        49,
+        808,
+        1135,
+        48,
         49
       ]
     },
@@ -8905,11 +9033,11 @@
         1
       ],
       "id": "doodad.floors.c18r23",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        1136,
-        49,
+        856,
+        1135,
+        47,
         49
       ]
     },
@@ -8920,11 +9048,11 @@
         1
       ],
       "id": "doodad.floors.c19r23",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        1136,
-        49,
+        903,
+        1135,
+        48,
         49
       ]
     },
@@ -8935,11 +9063,11 @@
         1
       ],
       "id": "doodad.floors.c20r23",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        1136,
-        49,
+        951,
+        1135,
+        48,
         49
       ]
     },
@@ -8950,11 +9078,11 @@
         1
       ],
       "id": "doodad.floors.c21r23",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        1136,
-        49,
+        999,
+        1135,
+        47,
         49
       ]
     },
@@ -8965,11 +9093,11 @@
         1
       ],
       "id": "doodad.floors.c22r23",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        1136,
-        49,
+        1046,
+        1135,
+        48,
         49
       ]
     },
@@ -8980,11 +9108,11 @@
         1
       ],
       "id": "doodad.floors.c23r23",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        1136,
-        49,
+        1094,
+        1135,
+        47,
         49
       ]
     },
@@ -8995,11 +9123,11 @@
         1
       ],
       "id": "doodad.floors.c24r23",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        1136,
-        49,
+        1141,
+        1135,
+        48,
         49
       ]
     },
@@ -9010,11 +9138,11 @@
         1
       ],
       "id": "doodad.floors.c0r24",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        1185,
-        49,
+        1184,
+        48,
         50
       ]
     },
@@ -9025,11 +9153,11 @@
         1
       ],
       "id": "doodad.floors.c1r24",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        1185,
-        49,
+        48,
+        1184,
+        47,
         50
       ]
     },
@@ -9040,11 +9168,11 @@
         1
       ],
       "id": "doodad.floors.c2r24",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        1185,
-        49,
+        95,
+        1184,
+        48,
         50
       ]
     },
@@ -9055,11 +9183,11 @@
         1
       ],
       "id": "doodad.floors.c3r24",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        1185,
-        49,
+        143,
+        1184,
+        47,
         50
       ]
     },
@@ -9070,11 +9198,11 @@
         1
       ],
       "id": "doodad.floors.c4r24",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        1185,
-        49,
+        190,
+        1184,
+        48,
         50
       ]
     },
@@ -9085,11 +9213,11 @@
         1
       ],
       "id": "doodad.floors.c5r24",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        1185,
-        49,
+        238,
+        1184,
+        47,
         50
       ]
     },
@@ -9100,11 +9228,11 @@
         1
       ],
       "id": "doodad.floors.c6r24",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        1185,
-        49,
+        285,
+        1184,
+        48,
         50
       ]
     },
@@ -9115,11 +9243,11 @@
         1
       ],
       "id": "doodad.floors.c7r24",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        1185,
-        49,
+        333,
+        1184,
+        47,
         50
       ]
     },
@@ -9130,11 +9258,11 @@
         1
       ],
       "id": "doodad.floors.c8r24",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        1185,
-        49,
+        380,
+        1184,
+        48,
         50
       ]
     },
@@ -9145,11 +9273,11 @@
         1
       ],
       "id": "doodad.floors.c9r24",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        1185,
-        49,
+        428,
+        1184,
+        48,
         50
       ]
     },
@@ -9160,11 +9288,11 @@
         1
       ],
       "id": "doodad.floors.c10r24",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        1185,
-        49,
+        476,
+        1184,
+        47,
         50
       ]
     },
@@ -9175,11 +9303,11 @@
         1
       ],
       "id": "doodad.floors.c11r24",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        1185,
-        49,
+        523,
+        1184,
+        48,
         50
       ]
     },
@@ -9190,11 +9318,11 @@
         1
       ],
       "id": "doodad.floors.c12r24",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        1185,
-        49,
+        571,
+        1184,
+        47,
         50
       ]
     },
@@ -9205,11 +9333,11 @@
         1
       ],
       "id": "doodad.floors.c13r24",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        1185,
-        49,
+        618,
+        1184,
+        48,
         50
       ]
     },
@@ -9220,11 +9348,11 @@
         1
       ],
       "id": "doodad.floors.c14r24",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        1185,
-        49,
+        666,
+        1184,
+        47,
         50
       ]
     },
@@ -9235,11 +9363,11 @@
         1
       ],
       "id": "doodad.floors.c15r24",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        1185,
-        49,
+        713,
+        1184,
+        48,
         50
       ]
     },
@@ -9250,11 +9378,11 @@
         1
       ],
       "id": "doodad.floors.c16r24",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        1185,
-        49,
+        761,
+        1184,
+        47,
         50
       ]
     },
@@ -9265,11 +9393,11 @@
         1
       ],
       "id": "doodad.floors.c17r24",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        1185,
-        49,
+        808,
+        1184,
+        48,
         50
       ]
     },
@@ -9280,11 +9408,11 @@
         1
       ],
       "id": "doodad.floors.c18r24",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        1185,
-        49,
+        856,
+        1184,
+        47,
         50
       ]
     },
@@ -9295,11 +9423,11 @@
         1
       ],
       "id": "doodad.floors.c19r24",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        1185,
-        49,
+        903,
+        1184,
+        48,
         50
       ]
     },
@@ -9310,11 +9438,11 @@
         1
       ],
       "id": "doodad.floors.c20r24",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        1185,
-        49,
+        951,
+        1184,
+        48,
         50
       ]
     },
@@ -9325,11 +9453,11 @@
         1
       ],
       "id": "doodad.floors.c21r24",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        1185,
-        49,
+        999,
+        1184,
+        47,
         50
       ]
     },
@@ -9340,11 +9468,11 @@
         1
       ],
       "id": "doodad.floors.c22r24",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        1185,
-        49,
+        1046,
+        1184,
+        48,
         50
       ]
     },
@@ -9355,11 +9483,11 @@
         1
       ],
       "id": "doodad.floors.c23r24",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        1185,
-        49,
+        1094,
+        1184,
+        47,
         50
       ]
     },
@@ -9370,11 +9498,11 @@
         1
       ],
       "id": "doodad.floors.c24r24",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        1185,
-        49,
+        1141,
+        1184,
+        48,
         50
       ]
     },
@@ -9385,11 +9513,11 @@
         1
       ],
       "id": "doodad.floors.c0r25",
-      "included": true,
+      "included": false,
       "rect": [
         0,
-        1235,
-        49,
+        1234,
+        48,
         49
       ]
     },
@@ -9400,11 +9528,11 @@
         1
       ],
       "id": "doodad.floors.c1r25",
-      "included": true,
+      "included": false,
       "rect": [
-        49,
-        1235,
-        49,
+        48,
+        1234,
+        47,
         49
       ]
     },
@@ -9415,11 +9543,11 @@
         1
       ],
       "id": "doodad.floors.c2r25",
-      "included": true,
+      "included": false,
       "rect": [
-        98,
-        1235,
-        49,
+        95,
+        1234,
+        48,
         49
       ]
     },
@@ -9430,11 +9558,11 @@
         1
       ],
       "id": "doodad.floors.c3r25",
-      "included": true,
+      "included": false,
       "rect": [
-        147,
-        1235,
-        49,
+        143,
+        1234,
+        47,
         49
       ]
     },
@@ -9445,11 +9573,11 @@
         1
       ],
       "id": "doodad.floors.c4r25",
-      "included": true,
+      "included": false,
       "rect": [
-        196,
-        1235,
-        49,
+        190,
+        1234,
+        48,
         49
       ]
     },
@@ -9460,11 +9588,11 @@
         1
       ],
       "id": "doodad.floors.c5r25",
-      "included": true,
+      "included": false,
       "rect": [
-        245,
-        1235,
-        49,
+        238,
+        1234,
+        47,
         49
       ]
     },
@@ -9475,11 +9603,11 @@
         1
       ],
       "id": "doodad.floors.c6r25",
-      "included": true,
+      "included": false,
       "rect": [
-        294,
-        1235,
-        49,
+        285,
+        1234,
+        48,
         49
       ]
     },
@@ -9490,11 +9618,11 @@
         1
       ],
       "id": "doodad.floors.c7r25",
-      "included": true,
+      "included": false,
       "rect": [
-        343,
-        1235,
-        49,
+        333,
+        1234,
+        47,
         49
       ]
     },
@@ -9505,11 +9633,11 @@
         1
       ],
       "id": "doodad.floors.c8r25",
-      "included": true,
+      "included": false,
       "rect": [
-        392,
-        1235,
-        49,
+        380,
+        1234,
+        48,
         49
       ]
     },
@@ -9520,11 +9648,11 @@
         1
       ],
       "id": "doodad.floors.c9r25",
-      "included": true,
+      "included": false,
       "rect": [
-        441,
-        1235,
-        49,
+        428,
+        1234,
+        48,
         49
       ]
     },
@@ -9535,11 +9663,11 @@
         1
       ],
       "id": "doodad.floors.c10r25",
-      "included": true,
+      "included": false,
       "rect": [
-        490,
-        1235,
-        49,
+        476,
+        1234,
+        47,
         49
       ]
     },
@@ -9550,11 +9678,11 @@
         1
       ],
       "id": "doodad.floors.c11r25",
-      "included": true,
+      "included": false,
       "rect": [
-        539,
-        1235,
-        49,
+        523,
+        1234,
+        48,
         49
       ]
     },
@@ -9565,11 +9693,11 @@
         1
       ],
       "id": "doodad.floors.c12r25",
-      "included": true,
+      "included": false,
       "rect": [
-        588,
-        1235,
-        49,
+        571,
+        1234,
+        47,
         49
       ]
     },
@@ -9580,11 +9708,11 @@
         1
       ],
       "id": "doodad.floors.c13r25",
-      "included": true,
+      "included": false,
       "rect": [
-        637,
-        1235,
-        49,
+        618,
+        1234,
+        48,
         49
       ]
     },
@@ -9595,11 +9723,11 @@
         1
       ],
       "id": "doodad.floors.c14r25",
-      "included": true,
+      "included": false,
       "rect": [
-        686,
-        1235,
-        49,
+        666,
+        1234,
+        47,
         49
       ]
     },
@@ -9610,11 +9738,11 @@
         1
       ],
       "id": "doodad.floors.c15r25",
-      "included": true,
+      "included": false,
       "rect": [
-        735,
-        1235,
-        49,
+        713,
+        1234,
+        48,
         49
       ]
     },
@@ -9625,11 +9753,11 @@
         1
       ],
       "id": "doodad.floors.c16r25",
-      "included": true,
+      "included": false,
       "rect": [
-        784,
-        1235,
-        49,
+        761,
+        1234,
+        47,
         49
       ]
     },
@@ -9640,11 +9768,11 @@
         1
       ],
       "id": "doodad.floors.c17r25",
-      "included": true,
+      "included": false,
       "rect": [
-        833,
-        1235,
-        49,
+        808,
+        1234,
+        48,
         49
       ]
     },
@@ -9655,11 +9783,11 @@
         1
       ],
       "id": "doodad.floors.c18r25",
-      "included": true,
+      "included": false,
       "rect": [
-        882,
-        1235,
-        49,
+        856,
+        1234,
+        47,
         49
       ]
     },
@@ -9670,11 +9798,11 @@
         1
       ],
       "id": "doodad.floors.c19r25",
-      "included": true,
+      "included": false,
       "rect": [
-        931,
-        1235,
-        49,
+        903,
+        1234,
+        48,
         49
       ]
     },
@@ -9685,11 +9813,11 @@
         1
       ],
       "id": "doodad.floors.c20r25",
-      "included": true,
+      "included": false,
       "rect": [
-        980,
-        1235,
-        49,
+        951,
+        1234,
+        48,
         49
       ]
     },
@@ -9700,11 +9828,11 @@
         1
       ],
       "id": "doodad.floors.c21r25",
-      "included": true,
+      "included": false,
       "rect": [
-        1029,
-        1235,
-        49,
+        999,
+        1234,
+        47,
         49
       ]
     },
@@ -9715,11 +9843,11 @@
         1
       ],
       "id": "doodad.floors.c22r25",
-      "included": true,
+      "included": false,
       "rect": [
-        1078,
-        1235,
-        49,
+        1046,
+        1234,
+        48,
         49
       ]
     },
@@ -9730,11 +9858,11 @@
         1
       ],
       "id": "doodad.floors.c23r25",
-      "included": true,
+      "included": false,
       "rect": [
-        1127,
-        1235,
-        49,
+        1094,
+        1234,
+        47,
         49
       ]
     },
@@ -9745,11 +9873,11 @@
         1
       ],
       "id": "doodad.floors.c24r25",
-      "included": true,
+      "included": false,
       "rect": [
-        1176,
-        1235,
-        49,
+        1141,
+        1234,
+        48,
         49
       ]
     }
@@ -9757,7 +9885,7 @@
   "gridCols": 25,
   "gridRows": 26,
   "idPrefix": "doodad.floors",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Cut once, then annotate: slicing finds the plate as one fused piece again, so re-slicing has nothing to add. 1225x1284 at 25x26. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Most of its cells are ground variants selected by pool membership rather than props, so adopting it means authoring blocks, not doodads.",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom. 1225x1284 at 25x26.\n\nThe game asks this sheet for seventeen of its 650 cells: five variant pools and nothing else. Those seventeen are included and the rest are not, so the atlas holds seventeen tiles rather than the plate's 650. Everything else stays here in the raw art and in these entries; including a cell is all it takes to bring one back.\n\nTwo pools take their picture from a tileable material rather than from the plate. floors.stone and floors.sand were pasted in by texture-atlases.json, which is why all three cells of each are the same pixels - the paste wrote one 52x52 tile into all of them, so the hash pick between 'variants' has always been a no-op. Preserved as three so this export is provably the same art; reducing each to one is a content decision.\n\nThe eleven plate cells carry a 7px sprite border. ImageGen drew a dark rim around each isolated cell, and a repeating ground field shows that rim as a lattice at every tile boundary, so the border is mirrored away from the interior.",
   "sheet": "art-source/tilesets/Floors_Tiles.raw.png",
   "sheetName": "Floors_Tiles"
 }

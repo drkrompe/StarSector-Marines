@@ -93,7 +93,7 @@ class SheetSlicerTest {
         assertEquals(1, entries.get(1).col);
         assertEquals(3, entries.get(2).col, "the two-cell piece should advance the cursor by two");
 
-        BufferedImage atlas = TilesetExport.atlas(source, entries, List.of(), 64);
+        BufferedImage atlas = TilesetExport.atlas(source, entries, List.of(), 64, TilesetExport.Materials.NONE);
         assertEquals(4 * 64, atlas.getWidth());
         assertEquals(64, atlas.getHeight());
         // Stretched to fill, so the far corner of the two-cell slot is covered.
