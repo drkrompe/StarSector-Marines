@@ -246,12 +246,22 @@ public final class AirbaseLot {
 
     /** Cells across the reservation a host must set aside, clearance included. */
     public static int reservedSpanX(Size size, Facing facing) {
-        return spanX(size, facing) + size.clearance * 2;
+        return reservedSpanX(size, facing, size.clearance);
+    }
+
+    /** Cells across a reservation that keeps {@code clearance} of its own. */
+    public static int reservedSpanX(Size size, Facing facing, int clearance) {
+        return spanX(size, facing) + clearance * 2;
     }
 
     /** Cells down the reservation a host must set aside, clearance included. */
     public static int reservedSpanY(Size size, Facing facing) {
-        return spanY(size, facing) + size.clearance * 2;
+        return reservedSpanY(size, facing, size.clearance);
+    }
+
+    /** Cells down a reservation that keeps {@code clearance} of its own. */
+    public static int reservedSpanY(Size size, Facing facing, int clearance) {
+        return spanY(size, facing) + clearance * 2;
     }
 
     /**
@@ -295,6 +305,19 @@ public final class AirbaseLot {
     private final LandingPad.Approach approach;
     private final Size size;
     private final LandingPad.Purpose purpose;
+    /**
+     * Clear ground this placement keeps outside its fence.
+     *
+     * <p>The size's own figure by default, and the host's to override, because
+     * whether the surround already exists is something only the host knows. A
+     * lot carved out of a packed ward has buildings pressed against it and must
+     * buy its own; a lot filling a city block or a claim across several is
+     * bounded by the streets they front onto, and reserving more is asking for
+     * ground that is already there. Insisting on it cost the city its larger
+     * base for a while: the claim's usable ground measured exactly the lot and
+     * the request measured the lot plus four.
+     */
+    private final int clearance;
 
     /**
      * A lot whose berths are a working garrison field.
@@ -318,6 +341,13 @@ public final class AirbaseLot {
      */
     public AirbaseLot(int left, int bottom, int right, int top,
                       Facing facing, Size size, LandingPad.Purpose purpose) {
+        this(left, bottom, right, top, facing, size, purpose, size.clearance);
+    }
+
+    /** A lot that keeps {@code clearance} cells of its own outside the fence. */
+    public AirbaseLot(int left, int bottom, int right, int top,
+                      Facing facing, Size size, LandingPad.Purpose purpose,
+                      int clearance) {
         this.left = left;
         this.bottom = bottom;
         this.right = right;
@@ -327,6 +357,7 @@ public final class AirbaseLot {
         this.approach = facing.approach;
         this.size = size;
         this.purpose = purpose;
+        this.clearance = clearance;
     }
 
     /** Cells across the lot on the map's x axis, for the given facing. */
@@ -363,8 +394,8 @@ public final class AirbaseLot {
      * way round.
      */
     private void pave(GenContext ctx) {
-        for (int x = left - size.clearance; x <= right + size.clearance; x++) {
-            for (int y = bottom - size.clearance; y <= top + size.clearance; y++) {
+        for (int x = left - clearance; x <= right + clearance; x++) {
+            for (int y = bottom - clearance; y <= top + clearance; y++) {
                 if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
                 boolean insideFence = x >= left && x <= right && y >= bottom && y <= top;
                 ctx.grid.setWalkableFloor(x, y);
