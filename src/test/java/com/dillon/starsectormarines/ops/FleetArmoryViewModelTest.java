@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -280,6 +281,50 @@ class FleetArmoryViewModelTest {
         }
         assertTrue(viewModel.armorComparisonSummary().get()
                 .startsWith(expectedOrder.size() + " armor patterns"));
+    }
+
+    /**
+     * <b>The decision surface has to carry the decision.</b> A sheet's other two
+     * lines say which roles it organises and which patterns fill them; neither
+     * tells a player that one sheet fields seven braces and another fields four
+     * breachers, unless they have the catalog memorised. The capability line is
+     * derived from the issue rather than authored, so it stays true as the
+     * company's stock improves.
+     */
+    @Test
+    void everyTacticSheetSaysWhatItsTwelveBilletsWouldCarry() {
+        MarineRoster roster = fullSquad();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
+
+        int inspected = 0;
+        for (FleetArmoryViewModel.DoctrineTile tile : viewModel.armorDoctrineTiles().get()) {
+            String planId = tile.id().substring("armor-doctrine:".length());
+            SquadArmorDoctrine issued = roster.armory().armorDoctrines().stream()
+                    .filter(doctrine -> doctrine.id().equals(planId))
+                    .findFirst().orElseThrow();
+
+            Map<String, Integer> expected = new LinkedHashMap<>();
+            for (String issueId : issued.issueIds()) {
+                MarineArmorCatalogDef pattern = MarineArmorCatalogRegistry.installed().get(issueId);
+                if (pattern != null && pattern.hasIntegralSystem()) {
+                    expected.merge(pattern.integralSystem().familyName(), 1, Integer::sum);
+                }
+            }
+            if (expected.isEmpty()) {
+                assertEquals("Nothing beyond plate and training", tile.carries(),
+                        planId + " issues nothing that carries a system, and a blank line"
+                                + " reads as a line that failed to render");
+                continue;
+            }
+            inspected++;
+            for (Map.Entry<String, Integer> family : expected.entrySet()) {
+                assertTrue(tile.carries().contains(family.getValue() + " " + family.getKey()),
+                        planId + " puts " + family.getValue() + " x " + family.getKey()
+                                + " in the field and does not say so: " + tile.carries());
+            }
+        }
+        assertTrue(inspected > 0,
+                "no armour sheet issues a single capability, so this proves nothing");
     }
 
     @Test

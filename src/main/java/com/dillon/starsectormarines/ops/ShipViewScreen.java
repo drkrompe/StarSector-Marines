@@ -113,7 +113,7 @@ public final class ShipViewScreen implements Screen {
         props.put("roomCopy", "Drag to look around her. Wheel to close in, WASD to walk the view.");
         props.put("contextLabel", "COMPANY SHIP / UNDERWAY");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
-                context::shipHasRoom,
+                context::roomAboard,
                 this::close,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),
