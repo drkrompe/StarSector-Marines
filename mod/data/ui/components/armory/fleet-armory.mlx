@@ -13,7 +13,7 @@
     <div id="squad-overview-intro" class="panel">
       <div id="squad-overview-heading" class="label heading tone-edge">PRIMARY FORMATION</div>
       <div id="squad-overview-summary" class="label surface-dark">{companySummary}</div>
-      <div id="squad-overview-copy" class="label tone-muted">Select a squad to inspect its marines and issue squad weapon and armor equipment.</div>
+      <div id="squad-overview-copy" class="label tone-muted">Select a squad to inspect its marines and assign its weapon loadout and tactic sheet.</div>
     </div>
 
     <armory-squad-list squadCards="{squadCards}" />

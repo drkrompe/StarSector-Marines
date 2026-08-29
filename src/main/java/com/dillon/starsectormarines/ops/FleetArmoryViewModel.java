@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.ArmorRole;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
@@ -22,6 +23,7 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SoldierCareer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.SquadArmorPlan;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadEquipmentBillet;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
@@ -39,8 +41,10 @@ import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 
 /**
@@ -164,7 +168,7 @@ public final class FleetArmoryViewModel {
         loadoutFilter = reactor.signal(LoadoutFilter.ALL);
         domainRevision = reactor.signal(0);
         feedback = reactor.signal(Feedback.neutral(
-                "Hover equipment names for field notes. Choose squad equipment, inspect each team, then issue when ready."));
+                "Hover equipment names for field notes. Assign a weapon loadout and a tactic sheet, then issue to the squad."));
 
         companySummary = reactor.computed(this::buildCompanySummary);
         squadCards = reactor.computed(this::buildSquadCards);
@@ -435,7 +439,8 @@ public final class FleetArmoryViewModel {
             if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
             String id = "weapon-doctrine:" + doctrine.id();
             tiles.add(doctrineTile(id, doctrine.id().equals(selected),
-                    doctrine.displayName(), presentation, weaponDistribution(doctrine),
+                    doctrine.displayName(), presentation, doctrineMetadata(presentation),
+                    "", weaponDistribution(doctrine),
                     () -> selectWeaponDoctrine(doctrine.id())));
         }
         return List.copyOf(tiles);
@@ -445,36 +450,55 @@ public final class FleetArmoryViewModel {
         domainRevision.get();
         String selected = selectedArmorDoctrineId.get();
         List<DoctrineTile> tiles = new ArrayList<>();
-        for (SquadArmorDoctrine doctrine : roster.armory().armorDoctrines()) {
-            boolean available = roster.armory().canAuthorArmorDoctrineIds(doctrine.issueIds());
-            if (!available) continue;
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            SquadArmorDoctrine issued = roster.armory().issue(plan);
             SquadLoadoutPresentationDef presentation = loadoutPresentation(
-                    doctrine.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
-                    maximumArmorTier(doctrine), doctrine.description());
+                    plan.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
+                    maximumArmorTier(issued), plan.description());
             if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
-            String id = "armor-doctrine:" + doctrine.id();
-            tiles.add(doctrineTile(id, doctrine.id().equals(selected),
-                    doctrine.displayName(), presentation, armorDistribution(doctrine),
-                    () -> selectArmorDoctrine(doctrine.id())));
+            String id = "armor-doctrine:" + plan.id();
+            // The authored tier is what the sheet IS; the issued band is what
+            // this company would actually put in the field today. Showing both
+            // is the point of the picker under role-and-access.md — a sheet does
+            // not get better, the kit filling it does.
+            String metadata = titleCase(plan.tradition().key.replace('_', ' '))
+                    + "  ·  FIELDS TIER " + tierMark(maximumArmorTier(issued));
+            tiles.add(doctrineTile(id, plan.id().equals(selected),
+                    plan.displayName(), presentation, metadata,
+                    roleComposition(plan), armorDistribution(issued),
+                    () -> selectArmorDoctrine(plan.id())));
+        }
+        for (SquadArmorDoctrine custom : roster.armory().customArmorDoctrines()) {
+            SquadLoadoutPresentationDef presentation = loadoutPresentation(
+                    custom.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
+                    maximumArmorTier(custom), custom.description());
+            if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
+            String id = "armor-doctrine:" + custom.id();
+            tiles.add(doctrineTile(id, custom.id().equals(selected),
+                    custom.displayName(), presentation, doctrineMetadata(presentation),
+                    "Hand-authored  ·  fixed patterns", armorDistribution(custom),
+                    () -> selectArmorDoctrine(custom.id())));
         }
         return List.copyOf(tiles);
     }
 
     private static DoctrineTile doctrineTile(
             String id, boolean selected, String name,
-            SquadLoadoutPresentationDef presentation, String distribution,
-            Runnable select) {
+            SquadLoadoutPresentationDef presentation, String metadata,
+            String composition, String distribution, Runnable select) {
         String rarityClass = presentation.rarity().cssClass();
         String classes = "doctrine-tile " + rarityClass
                 + (selected ? " selected" : "");
         return new DoctrineTile(id, id + ":header", id + ":name", id + ":rarity",
                 id + ":metadata-row", id + ":metadata", id + ":description",
-                id + ":distribution", classes,
+                id + ":composition", id + ":distribution", classes,
                 "doctrine-rarity label " + rarityClass,
-                name, presentation.rarity().displayName(),
-                "TIER " + tierMark(presentation.tier()) + "  ·  "
-                        + presentation.provenance(),
-                presentation.lore(), distribution, select);
+                name, presentation.rarity().displayName(), metadata,
+                presentation.lore(), composition, distribution, select);
+    }
+
+    private static String doctrineMetadata(SquadLoadoutPresentationDef presentation) {
+        return "TIER " + tierMark(presentation.tier()) + "  ·  " + presentation.provenance();
     }
 
     private List<LoadoutFilterOption> buildLoadoutFilters() {
@@ -639,8 +663,8 @@ public final class FleetArmoryViewModel {
         SquadArmorDoctrine doctrine = roster.armory().armorDoctrineById(
                 selectedArmorDoctrineId.get());
         return doctrine != null
-                ? "Selected  ·  " + doctrine.displayName()
-                : "Choose armor equipment";
+                ? "Assigned  ·  " + doctrine.displayName()
+                : "Assign a tactic sheet";
     }
 
     private List<MarineViewerCard> buildMarineCards() {
@@ -855,6 +879,42 @@ public final class FleetArmoryViewModel {
         for (var issue : doctrine.issues()) if (issue.specialEquipmentId() != null) specials++;
         if (specials > 0) parts.add(specials + " special");
         return String.join("  ·  ", parts);
+    }
+
+    /**
+     * The section this sheet organises, as billet counts by role. This is the
+     * half a player is actually choosing between: it does not change when the
+     * company gets richer, which is exactly what distinguishes it from the issue
+     * line beneath it ({@code role-and-access.md}).
+     */
+    private String roleComposition(SquadArmorPlan plan) {
+        Map<ArmorRole, Integer> counts = new EnumMap<>(ArmorRole.class);
+        for (ArmorRole role : plan.mix().billets()) counts.merge(role, 1, Integer::sum);
+        List<String> parts = new ArrayList<>();
+        for (ArmorRole role : ArmorRole.values()) {
+            Integer count = counts.get(role);
+            if (count == null) continue;
+            String part = count + " " + role.displayName().toLowerCase(Locale.ROOT);
+            // A role this company owns nothing for is filled with line kit by the
+            // resolver, silently. Saying so here is what turns a sheet the player
+            // cannot yet field into a reason to buy something: the ISSUED line
+            // below would otherwise just show twelve of the wrong suit and no
+            // explanation ({@code role-and-access.md}).
+            if (!ownsAnyPatternFor(role)) part += " (no kit)";
+            parts.add(part);
+        }
+        return String.join("  ·  ", parts);
+    }
+
+    private boolean ownsAnyPatternFor(ArmorRole role) {
+        MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
+        if (catalog == null) return true;
+        for (MarineArmorCatalogDef pattern : catalog.all()) {
+            if (pattern.role() == role && roster.armory().ownsArmorTemplate(pattern.id())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String armorDistribution(SquadArmorDoctrine doctrine) {
@@ -1225,12 +1285,22 @@ public final class FleetArmoryViewModel {
         };
     }
 
+    /**
+     * One buyable sheet in the picker.
+     *
+     * <p>{@code composition} and {@code distribution} are the two halves of what
+     * a squad's armour actually is ({@code role-and-access.md}): the first is
+     * the section this sheet organises — fixed, and what the player is choosing
+     * between — and the second is what the company's own stock currently puts in
+     * those billets. A weapon sheet has no composition and leaves it blank.
+     */
     public record DoctrineTile(
             String id, String headerId, String nameId, String rarityId,
             String metadataRowId, String metadataId, String descriptionId,
-            String distributionId, String classes, String rarityClasses,
+            String compositionId, String distributionId,
+            String classes, String rarityClasses,
             String name, String rarity, String metadata,
-            String description, String distribution,
+            String description, String composition, String distribution,
             Runnable select) implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -1242,6 +1312,7 @@ public final class FleetArmoryViewModel {
                 case "metadataRowId" -> metadataRowId;
                 case "metadataId" -> metadataId;
                 case "descriptionId" -> descriptionId;
+                case "compositionId" -> compositionId;
                 case "distributionId" -> distributionId;
                 case "classes" -> classes;
                 case "rarityClasses" -> rarityClasses;
@@ -1249,6 +1320,7 @@ public final class FleetArmoryViewModel {
                 case "rarity" -> rarity;
                 case "metadata" -> metadata;
                 case "description" -> description;
+                case "composition" -> composition;
                 case "distribution" -> distribution;
                 case "select" -> select;
                 default -> throw new IllegalArgumentException("Unknown doctrine-tile property");
