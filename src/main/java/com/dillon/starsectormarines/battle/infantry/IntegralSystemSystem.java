@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.marine.MissilePodSpec;
 import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
 import com.dillon.starsectormarines.marine.SightedStandoffSpec;
 
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -85,6 +86,53 @@ import java.util.Random;
  * because it is the more interesting half of the model to prove out.
  */
 public final class IntegralSystemSystem {
+
+    /**
+     * <b>TESTING SCAFFOLD — not a shipping behaviour.</b> Overrides when a
+     * screen is raised so that "is the trigger too rare, or is the effect not
+     * drawing?" can be answered by removing the first possibility.
+     *
+     * <p>Set with {@code -Dmarines.debug.screenTrigger=<mode>}:
+     * <ul>
+     *   <li>{@code off} — the shipped policy decides, as it does in a real game.
+     *   <li>{@code damage} — raise it the moment anything hurts the wearer.
+     *       Narrower than it sounds and narrower than the shipped policy:
+     *       measured over a Conquest battle it fired 54 times against the
+     *       policy's 78, because most rounds miss and a miss is still fire you
+     *       are under.
+     *   <li>{@code always} — raise it whenever it is off cooldown, with no
+     *       reason at all. The only mode that makes the treatment continuously
+     *       visible: duty cycle becomes duration/(duration+cooldown), roughly a
+     *       fifth of the time, against the shipped policy's measured 0.6%.
+     * </ul>
+     *
+     * <p>Every mode but {@code off} makes durability measurement meaningless —
+     * a screen is up during fights that would not have had one.
+     */
+    public enum DebugScreenTrigger { OFF, DAMAGE, ALWAYS }
+
+    /** The scaffold mode in force. {@link DebugScreenTrigger#OFF} is the shipping value. */
+    public static final DebugScreenTrigger DEBUG_SCREEN_TRIGGER = DebugScreenTrigger.valueOf(
+            System.getProperty("marines.debug.screenTrigger", "ALWAYS").toUpperCase(Locale.ROOT));
+
+    /**
+     * How recently a hit has to have landed to still count as "just now" under
+     * {@link DebugScreenTrigger#DAMAGE}. A third of a second, so one round
+     * raises the screen once rather than re-raising it every tick of a burst.
+     */
+    private static final int DEBUG_RECENT_DAMAGE_TICKS = 10;
+
+    static {
+        if (DEBUG_SCREEN_TRIGGER != DebugScreenTrigger.OFF) {
+            // Announced rather than silent. A scaffold that only shows up as
+            // "the shields look wrong" is a scaffold that gets shipped.
+            System.err.println("[starsector-marines] INTEGRAL SYSTEM DEBUG SCAFFOLD ACTIVE: "
+                    + "screens raise on " + DEBUG_SCREEN_TRIGGER
+                    + ", not on the shipped policy. Set"
+                    + " -Dmarines.debug.screenTrigger=off (or change the default in"
+                    + " IntegralSystemSystem) before judging balance.");
+        }
+    }
 
     /** Below this, the unit is standing still and has nothing to charge through. */
     private static final float MOVING_EPSILON = 1e-3f;
@@ -228,6 +276,14 @@ public final class IntegralSystemSystem {
                                      MovementService movement) {
         CombatService combat = rosterService.combat();
         if (!combat.has(id)) return false;
+        switch (DEBUG_SCREEN_TRIGGER) {
+            case ALWAYS -> { return true; }
+            case DAMAGE -> {
+                return combat.ticksSinceDamaged(id, sim.getSimTickIndex())
+                        <= DEBUG_RECENT_DAMAGE_TICKS;
+            }
+            case OFF -> { /* the shipped policy below decides */ }
+        }
         float pressure = combat.incomingPressure(id, sim.getSimTickIndex());
         if (pressure < spec.incomingPressureThreshold()) return false;
 
