@@ -127,11 +127,19 @@ public final class TilesetWizard extends JPanel {
         return steps.size();
     }
 
+    /** Whether Next is live — the button's own state, not a second opinion. */
+    public boolean canAdvance() {
+        return next.isEnabled();
+    }
+
     /**
      * Re-read the step's own answer to whether it is finished.
      *
-     * <p>A step's precondition is usually a selection somewhere in its body, so
-     * nothing tells the wizard when it changes. The body calls this.
+     * <p>A step's precondition is usually a selection somewhere in its body, and
+     * a selection changing raises no event the wizard hears. Whatever owns that
+     * selection has to say so, which is why every screen with one is wired to
+     * call this. Forgetting it leaves Next dead with the step already answered,
+     * which reads as the tool being broken.
      */
     public void refresh() {
         WizardStep step = currentStep();
