@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
+import com.dillon.starsectormarines.diagnostics.ProcessExitWatchdog;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -58,6 +59,10 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     @Override
     public void onApplicationLoad() throws Exception {
         LOG.info("Starsector Marines: jar loaded");
+        // Armed before any catalog loads so a load-time failure is described
+        // too. Silent process deaths have no stack to catch; see
+        // ProcessExitWatchdog for how to read the log tail after one.
+        ProcessExitWatchdog.install(DevConfig.PROCESS_HEARTBEAT_SECONDS);
         MarineCatalogManifest marineCatalogs = MarineCatalogManifest.discoverEnabled();
         // Tile definitions and generation mappings use the same enabled-provider
         // manifest as equipment. Mappings follow tiles so every referenced visual
