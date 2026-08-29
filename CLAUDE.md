@@ -147,13 +147,24 @@ Do not run builds or leave generated task files there.
   in the order they were written, with the cut, the annotation, the grouping and
   the export interleaved — which is a palette for somebody who already knows the
   procedure and nothing at all for somebody who does not.
-  **What can be a wall?** starts from a need: every `GroundKind` and
-  `SurfaceRole` the generator can ask for, with every block in the project that
-  could fill it, marked with the one the mapping uses and with whether its
-  slicing can be edited. Choosing one opens the sheet it was cut from with its
-  slots already selected, then goes on to grouping and export. A block that
-  exists only in an exported tileset can be seen but not re-cut, and the screen
-  says so instead of offering a dead edit.
+  **What can be a wall?** is about the surface, not about sheets. Screen one is
+  a grid of every `GroundKind` and `SurfaceRole` the generator can ask for, in
+  alphabetical order, each showing a 100px picture of whatever is drawn for it
+  today. Screen two is **the set**: every block in the project that could fill
+  that surface, whichever sheet it is on, as a grid of pictures — because
+  `urban.wall` and `road.embankment` are both walls and are nothing alike to
+  look at. The one in use comes up selected and is drawn large beside the grid
+  **as a room**, three cells on a side, which is the only view that shows a
+  mirrored wall.
+  Four things can be done to the set. **Draw this one** points the surface at
+  the chosen block by editing the mapping in place — a surgical replacement of
+  one value, validated against the real catalog before it lands, because
+  re-serialising that file would reorder every key in it. **Add one from a
+  sheet…** hands off to the ingest walkthrough, which is the only place sheets
+  appear in this flow. **Open its sheet** loads the block's document with its
+  slots already selected. **Remove from the set** dissolves the block, giving
+  its pieces back as doodads; it is refused while the mapping still points
+  there, since a surface with no block is a startup crash.
   **New art arrived** is the ingest sequence: pick a sheet, find the pieces,
   say what each piece is, group blocks, name and size the output, save and
   export. A screen will not advance until it has been answered, and says what it

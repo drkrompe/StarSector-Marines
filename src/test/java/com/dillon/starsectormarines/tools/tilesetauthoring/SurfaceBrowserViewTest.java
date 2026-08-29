@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
+import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Graphics2D;
@@ -37,7 +38,7 @@ public class SurfaceBrowserViewTest {
     void theAdviceSaysWhyOpeningIsUnavailable() {
         SurfaceCatalog.Candidate shipped = new SurfaceCatalog.Candidate(
                 "floors.grass", SurfaceCatalog.VARIANT_POOL, "Floors_Tiles",
-                null, List.of(), true);
+                null, List.of(), true, null);
         SurfaceCatalog.Purpose grass = new SurfaceCatalog.Purpose(
                 "GRASS", SurfaceCatalog.GROUND_KIND, "floors.grass",
                 SurfaceCatalog.VARIANT_POOL, List.of(shipped));
@@ -49,7 +50,7 @@ public class SurfaceBrowserViewTest {
         SurfaceCatalog.Candidate authored = new SurfaceCatalog.Candidate(
                 "urban.wall", "wall-3x3", "urban-tileset",
                 Paths.get("art-source/tilesets/urban-tileset.tileset-authoring.json"),
-                List.of(new SurfaceCatalog.Slot("doodad.urban.c3r0", "nw", true)), true);
+                List.of(new SurfaceCatalog.Slot("doodad.urban.c3r0", "nw", true)), true, null);
         assertTrue(SurfaceBrowserView.adviceFor(grass, authored).contains("1 slots selected"));
     }
 
@@ -69,17 +70,18 @@ public class SurfaceBrowserViewTest {
     @Test
     void theProjectsSurfacesPaint() throws Exception {
         AtomicReference<SurfaceCatalog.Candidate> opened = new AtomicReference<>();
-        SurfaceBrowserView view = new SurfaceBrowserView(opened::set);
+        SurfaceBrowserView view = new SurfaceBrowserView(new BlockPreview(Paths.get("").toAbsolutePath()), opened::set);
         List<SurfaceCatalog.Purpose> purposes =
                 SurfaceCatalog.scan(Paths.get("").toAbsolutePath());
         view.setPurposes(purposes);
-        view.setSize(280, 460);
-        layOut(view);
+        JPanel screen = view.purposeScreen();
+        screen.setSize(280, 460);
+        layOut(screen);
 
         BufferedImage painted = new BufferedImage(280, 460, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = painted.createGraphics();
         try {
-            view.paint(graphics);
+            screen.paint(graphics);
         } finally {
             graphics.dispose();
         }
@@ -120,7 +122,7 @@ public class SurfaceBrowserViewTest {
     @Test
     void pickingASurfaceOffersItsCandidatesAndHandsOneBack() throws Exception {
         AtomicReference<SurfaceCatalog.Candidate> opened = new AtomicReference<>();
-        SurfaceBrowserView view = new SurfaceBrowserView(opened::set);
+        SurfaceBrowserView view = new SurfaceBrowserView(new BlockPreview(Paths.get("").toAbsolutePath()), opened::set);
         view.setPurposes(SurfaceCatalog.scan(Paths.get("").toAbsolutePath()));
 
         assertTrue(view.select("WALL"), "WALL must be offered");
@@ -133,12 +135,13 @@ public class SurfaceBrowserViewTest {
         assertEquals("urban.wall", picked.blockId(), "the wall in use is preselected");
         assertTrue(picked.isEditable(), "and its sheet is the one the handoff opens");
 
-        view.setSize(280, 460);
-        layOut(view);
+        JPanel screen = view.purposeScreen();
+        screen.setSize(280, 460);
+        layOut(screen);
         BufferedImage painted = new BufferedImage(280, 460, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = painted.createGraphics();
         try {
-            view.paint(graphics);
+            screen.paint(graphics);
         } finally {
             graphics.dispose();
         }
