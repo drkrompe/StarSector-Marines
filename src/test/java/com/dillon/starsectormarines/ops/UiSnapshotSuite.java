@@ -135,6 +135,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("company-hq-bridge-wide.png",
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
+                // The one state the shell can be in that nothing else draws:
+                // her deck is still being laid out, so the rooms aboard read as
+                // pending rather than as places the hull does not have.
+                new SnapshotArtifact("company-hq-getting-ready-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.gettingReadyPreview())),
                 new SnapshotArtifact("company-hq-bridge-low-resolution.png",
                         renderCompanyHq(context, renderer, 1163, 625, 1f)),
                 new SnapshotArtifact("company-hq-bridge-ui-scale-150.png",
@@ -196,10 +203,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-equipment-designer-low-resolution.png",
                         renderEquipmentDesigner(context, renderer, 1163, 625)),
-                new SnapshotArtifact("fleet-armory-integral-system-designer-wide.png",
-                        renderEquipmentDesigner(
-                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
-                                SquadEquipmentDoctrines.OUTLAW_HEAVY_ARMOR)),
                 new SnapshotArtifact("fleet-armory-armor-comparison-wide.png",
                         renderArmorComparison(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -224,13 +227,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderCompanyHq(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale) throws Exception {
+        return renderCompanyHq(context, renderer, width, height, uiScale,
+                CompanyHqViewModel.preview());
+    }
+
+    private static BufferedImage renderCompanyHq(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale,
+            CompanyHqViewModel viewModel) throws Exception {
         Reactor reactor = new Reactor();
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), COMPANY_HQ_COMPONENTS);
         loader.reload();
 
         try (MarkupInstance instance = loader.build(
-                reactor, "company-hq", CompanyHqViewModel.preview().props())) {
+                reactor, "company-hq", viewModel.props())) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
@@ -548,27 +559,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderEquipmentDesigner(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
-        return renderEquipmentDesigner(context, renderer, width, height, null);
-    }
-
-    /**
-     * @param armorDoctrineId when non-null, opens the armor page on that
-     *                        schedule instead of the weapon page. The armor page
-     *                        is where a pattern's integral system is read before
-     *                        it is issued ({@code integral-armor-systems.md}).
-     */
-    private static BufferedImage renderEquipmentDesigner(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, String armorDoctrineId) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         FleetArmoryViewModel armory = new FleetArmoryViewModel(reactor, roster);
         EquipmentDoctrineDesignerViewModel designer = new EquipmentDoctrineDesignerViewModel(
                 reactor, roster, armory.selectedSquadId(),
-                armory.selectedWeaponDoctrineId(),
-                armorDoctrineId != null ? armorDoctrineId : armory.selectedArmorDoctrineId());
-        if (armorDoctrineId != null) designer.showArmor().run();
+                armory.selectedWeaponDoctrineId());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
         loader.reload();
@@ -784,8 +781,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("teamTabs", viewModel.teamTabs());
         props.put("billets", viewModel.billets());
         props.put("feedback", viewModel.feedback());
-        props.put("showWeapons", viewModel.showWeapons());
-        props.put("showArmor", viewModel.showArmor());
         props.put("newDraft", viewModel.newDraft());
         props.put("cloneSelected", viewModel.cloneSelected());
         props.put("saveAsNew", viewModel.saveAsNew());

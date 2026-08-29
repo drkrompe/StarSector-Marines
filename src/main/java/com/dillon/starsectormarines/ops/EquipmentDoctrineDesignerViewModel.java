@@ -8,9 +8,6 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
-import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
-import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
@@ -40,18 +37,14 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     private final MarineRoster roster;
     private final String squadId;
-    private final MutableSignal<Kind> kind;
     private final MutableSignal<String> sourceId;
     private final MutableSignal<String> draftName;
     private final MutableSignal<Integer> selectedTeam;
     private final MutableSignal<Integer> revision;
     private final MutableSignal<String> feedback;
     private String weaponSourceId;
-    private String armorSourceId;
     private String weaponDraftName;
-    private String armorDraftName;
     private final List<SquadWeaponIssue> weaponIssues = new ArrayList<>();
-    private final List<String> armorIssues = new ArrayList<>();
     private final ComputedSignal<List<DefinitionTile>> definitions;
     private final ComputedSignal<List<TeamTab>> teamTabs;
     private final ComputedSignal<List<BilletCard>> billets;
@@ -62,13 +55,12 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     public EquipmentDoctrineDesignerViewModel(
             Reactor reactor, MarineRoster roster, String squadId,
-            String weaponDoctrineId, String armorDoctrineId) {
+            String weaponDoctrineId) {
         if (reactor == null || roster == null) {
             throw new IllegalArgumentException("Designer requires reactor and roster");
         }
         this.roster = roster;
         this.squadId = squadId;
-        kind = reactor.signal(Kind.WEAPON);
         sourceId = reactor.signal(null);
         draftName = reactor.signal("");
         selectedTeam = reactor.signal(0);
@@ -78,16 +70,13 @@ public final class EquipmentDoctrineDesignerViewModel {
         definitions = reactor.computed(this::buildDefinitions);
         teamTabs = reactor.computed(this::buildTeamTabs);
         billets = reactor.computed(this::buildBillets);
-        heading = reactor.computed(() -> kind.get() == Kind.WEAPON
-                ? "WEAPON EQUIPMENT DEFINITION" : "ARMOR EQUIPMENT DEFINITION");
-        subheading = reactor.computed(() -> kind.get() == Kind.WEAPON
-                ? "Collected primary, grade, and special template cards for all twelve billets."
-                : "Collected armor template cards for all twelve billets; patterns may be mixed.");
+        heading = reactor.computed(() -> "WEAPON EQUIPMENT DEFINITION");
+        subheading = reactor.computed(() ->
+                "Collected primary, grade, and special template cards for all twelve billets."
+                        + "  Armour is issued as a tactic sheet, not authored a billet at a time.");
         renameDisabled = reactor.computed(() -> !customSource());
         deleteDisabled = reactor.computed(() -> !customSource() || assignedSource());
         loadWeapon(validWeaponId(weaponDoctrineId));
-        loadArmor(validArmorId(armorDoctrineId), false);
-        kind.set(Kind.WEAPON);
         sourceId.set(weaponSourceId);
         draftName.set(weaponDraftName);
         touch();
@@ -103,8 +92,6 @@ public final class EquipmentDoctrineDesignerViewModel {
     public Signal<String> feedback() { return feedback; }
     public Signal<Boolean> renameDisabled() { return renameDisabled; }
     public Signal<Boolean> deleteDisabled() { return deleteDisabled; }
-    public Runnable showWeapons() { return () -> switchKind(Kind.WEAPON); }
-    public Runnable showArmor() { return () -> switchKind(Kind.ARMOR); }
     public Runnable newDraft() { return this::startNewDraft; }
     public Runnable cloneSelected() { return this::cloneDraft; }
     public Runnable saveAsNew() { return this::saveDraft; }
@@ -115,31 +102,40 @@ public final class EquipmentDoctrineDesignerViewModel {
         return squad != null ? squad.name() : "Squad";
     }
 
+    /**
+     * The billet as the preview should draw it: the weapon being authored here,
+     * worn over whatever the squad's assigned tactic sheet actually issues that
+     * billet.
+     *
+     * <p>The armour is read rather than edited, which is the whole shape of this
+     * screen now — a marine still has to be drawn wearing something, and the
+     * honest something is the suit they would deploy in.
+     */
     public FireTeamBillet viewerBilletAt(int localIndex) {
         int index = selectedTeam.peek() * MarineSquad.TEAM_SIZE + localIndex;
         if (index < 0 || index >= MarineSquad.CAPACITY
-                || weaponIssues.size() != MarineSquad.CAPACITY
-                || armorIssues.size() != MarineSquad.CAPACITY) return null;
+                || weaponIssues.size() != MarineSquad.CAPACITY) return null;
         SquadWeaponIssue weapon = weaponIssues.get(index);
         return new FireTeamBillet(weapon.role(), weapon.primaryId(), weapon.grade(),
-                weapon.specialEquipmentId(), armorIssues.get(index));
+                weapon.specialEquipmentId(), issuedArmorId(index));
     }
 
-    private void switchKind(Kind next) {
-        if (kind.peek() == next) return;
-        rememberCurrent();
-        kind.set(next);
-        sourceId.set(next == Kind.WEAPON ? weaponSourceId : armorSourceId);
-        draftName.set(next == Kind.WEAPON ? weaponDraftName : armorDraftName);
-        feedback.set((next == Kind.WEAPON ? "Weapon" : "Armor")
-                + " definition resumed; the other draft remains intact.");
-        touch();
+    /** What the squad's assigned sheet puts on this billet, for the preview only. */
+    private String issuedArmorId(int index) {
+        MarineSquad squad = roster.squadById(squadId);
+        String sheetId = squad != null ? squad.armorDoctrineId() : null;
+        SquadArmorDoctrine issued = roster.armory().armorDoctrineById(
+                sheetId != null ? sheetId : SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+        if (issued == null) {
+            issued = roster.armory().armorDoctrineById(
+                    SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+        }
+        return issued.issueIds().get(index);
     }
 
     private void loadWeapon(String id) {
         SquadWeaponDoctrine doctrine = roster.armory().weaponDoctrineById(id);
         if (doctrine == null) return;
-        kind.set(Kind.WEAPON);
         sourceId.set(doctrine.id());
         draftName.set(doctrine.displayName());
         weaponSourceId = doctrine.id();
@@ -149,40 +145,16 @@ public final class EquipmentDoctrineDesignerViewModel {
         touch();
     }
 
-    private void loadArmor(String id, boolean changeKind) {
-        SquadArmorDoctrine doctrine = roster.armory().armorDoctrineById(id);
-        if (doctrine == null) return;
-        if (changeKind) kind.set(Kind.ARMOR);
-        sourceId.set(doctrine.id());
-        draftName.set(doctrine.displayName());
-        armorSourceId = doctrine.id();
-        armorDraftName = doctrine.displayName();
-        armorIssues.clear();
-        armorIssues.addAll(doctrine.issueIds());
-        touch();
-    }
-
     private String validWeaponId(String preferred) {
         if (roster.armory().weaponDoctrineById(preferred) != null) return preferred;
         return SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS;
     }
 
-    private String validArmorId(String preferred) {
-        if (roster.armory().armorDoctrineById(preferred) != null) return preferred;
-        return SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR;
-    }
-
     private List<DefinitionTile> buildDefinitions() {
         revision.get();
         List<DefinitionTile> result = new ArrayList<>();
-        if (kind.get() == Kind.WEAPON) {
-            for (SquadWeaponDoctrine doctrine : roster.armory().weaponDoctrines()) {
-                result.add(tile(doctrine.id(), doctrine.displayName()));
-            }
-        } else {
-            for (SquadArmorDoctrine doctrine : roster.armory().armorDoctrines()) {
-                result.add(tile(doctrine.id(), doctrine.displayName()));
-            }
+        for (SquadWeaponDoctrine doctrine : roster.armory().weaponDoctrines()) {
+            result.add(tile(doctrine.id(), doctrine.displayName()));
         }
         return List.copyOf(result);
     }
@@ -196,8 +168,7 @@ public final class EquipmentDoctrineDesignerViewModel {
     }
 
     private void select(String id) {
-        if (kind.peek() == Kind.WEAPON) loadWeapon(id);
-        else loadArmor(id, true);
+        loadWeapon(id);
         feedback.set("Loaded " + draftName.peek() + ". Changes remain a draft until saved as new.");
     }
 
@@ -220,41 +191,21 @@ public final class EquipmentDoctrineDesignerViewModel {
         for (int local = 0; local < MarineSquad.TEAM_SIZE; local++) {
             int billet = team * MarineSquad.TEAM_SIZE + local;
             String prefix = "designer-billet:" + local;
-            if (kind.get() == Kind.WEAPON) {
-                SquadWeaponIssue issue = weaponIssues.get(billet);
-                result.add(new BilletCard(prefix, prefix + ":top",
-                        "designer-marine-preview:" + local,
-                        prefix + ":title", prefix + ":flavor", prefix + ":stats",
-                        prefix + ":role",
-                        prefix + ":primary", prefix + ":grade", prefix + ":special",
-                        TEAM_NAMES.get(team) + "  /  " + (local + 1),
-                        weaponFlavor(issue), weaponStats(prefix, issue),
-                        "designer-stat-fill weapon-stat-fill",
-                        "Role  ·  " + issue.role(),
-                        "Primary  ·  " + issue.primaryDef().catalogName(issue.grade().tier),
-                        "Grade  ·  " + title(issue.grade().name()),
-                        "Special  ·  " + specialName(issue.specialDef()),
-                        () -> cycleRole(billet), () -> cycleWeapon(billet),
-                        () -> cycleGrade(billet), () -> cycleSpecial(billet)));
-            } else {
-                MarineArmorCatalogDef armor = MarineArmorCatalogRegistry.require(
-                        armorIssues.get(billet));
-                result.add(new BilletCard(prefix, prefix + ":top",
-                        "designer-marine-preview:" + local,
-                        prefix + ":title", prefix + ":flavor", prefix + ":stats",
-                        prefix + ":role",
-                        prefix + ":primary", prefix + ":grade", prefix + ":special",
-                        TEAM_NAMES.get(team) + "  /  " + (local + 1),
-                        armorFlavor(armor), armorStats(prefix, armor),
-                        "designer-stat-fill armor-stat-fill",
-                        "Armor  ·  " + armor.displayName(),
-                        "Protection  ·  " + Math.round(armor.armorCapacity()) + " / "
-                                + Math.round(armor.armorRating()),
-                        "Evasion  ·  " + signedPercent(1f - armor.incomingAccuracyMult()),
-                        "Move  ·  " + signedPercent(armor.moveSpeedMult() - 1f),
-                        () -> cycleArmor(billet), () -> cycleArmor(billet),
-                        () -> cycleArmor(billet), () -> cycleArmor(billet)));
-            }
+            SquadWeaponIssue issue = weaponIssues.get(billet);
+            result.add(new BilletCard(prefix, prefix + ":top",
+                    "designer-marine-preview:" + local,
+                    prefix + ":title", prefix + ":flavor", prefix + ":stats",
+                    prefix + ":role",
+                    prefix + ":primary", prefix + ":grade", prefix + ":special",
+                    TEAM_NAMES.get(team) + "  /  " + (local + 1),
+                    weaponFlavor(issue), weaponStats(prefix, issue),
+                    "designer-stat-fill weapon-stat-fill",
+                    "Role  ·  " + issue.role(),
+                    "Primary  ·  " + issue.primaryDef().catalogName(issue.grade().tier),
+                    "Grade  ·  " + title(issue.grade().name()),
+                    "Special  ·  " + specialName(issue.specialDef()),
+                    () -> cycleRole(billet), () -> cycleWeapon(billet),
+                    () -> cycleGrade(billet), () -> cycleSpecial(billet)));
         }
         return List.copyOf(result);
     }
@@ -326,20 +277,9 @@ public final class EquipmentDoctrineDesignerViewModel {
         changed("Special equipment changed to " + specialName(next) + ".");
     }
 
-    private void cycleArmor(int index) {
-        String current = armorIssues.get(index);
-        List<EquipmentTemplateCard> cards = ownedCards(EquipmentTemplateCard.Kind.ARMOR);
-        int currentIndex = indexOfEquipment(cards, current, null);
-        String next = cards.isEmpty() ? current
-                : cards.get((currentIndex + 1 + cards.size()) % cards.size()).equipmentId();
-        armorIssues.set(index, next);
-        changed("Armor changed to "
-                + MarineArmorCatalogRegistry.require(next).displayName() + ".");
-    }
-
     private void startNewDraft() {
         sourceId.set(null);
-        draftName.set(kind.peek() == Kind.WEAPON ? "New Weapon Equipment" : "New Armor Equipment");
+        draftName.set("New Weapon Equipment");
         rememberCurrent();
         feedback.set("New unsaved definition. Edit any billet, then Save as New.");
         touch();
@@ -358,67 +298,46 @@ public final class EquipmentDoctrineDesignerViewModel {
             feedback.set("A definition name is required before saving.");
             return;
         }
-        if (kind.peek() == Kind.WEAPON) {
-            if (!roster.armory().canAuthorWeaponDoctrine(weaponIssues)) {
-                feedback.set("Collect every referenced weapon and special template card before saving.");
-                return;
-            }
-            SquadWeaponDoctrine saved = roster.armory().createWeaponDoctrine(
-                    draftName.peek(), List.copyOf(weaponIssues));
-            sourceId.set(saved.id());
-        } else {
-            if (!roster.armory().canAuthorArmorDoctrineIds(armorIssues)) {
-                feedback.set("Collect every referenced armor template card before saving.");
-                return;
-            }
-            SquadArmorDoctrine saved = roster.armory().createArmorDoctrineIds(
-                    draftName.peek(), List.copyOf(armorIssues));
-            sourceId.set(saved.id());
+        if (!roster.armory().canAuthorWeaponDoctrine(weaponIssues)) {
+            feedback.set("Collect every referenced weapon and special template card before saving.");
+            return;
         }
+        SquadWeaponDoctrine saved = roster.armory().createWeaponDoctrine(
+                draftName.peek(), List.copyOf(weaponIssues));
+        sourceId.set(saved.id());
         rememberCurrent();
         feedback.set("Saved " + draftName.peek() + ". It is now available for squad issue.");
         touch();
     }
 
     private void renameSource() {
-        boolean renamed = kind.peek() == Kind.WEAPON
-                ? roster.armory().renameWeaponDoctrine(sourceId.peek(), draftName.peek())
-                : roster.armory().renameArmorDoctrine(sourceId.peek(), draftName.peek());
+        boolean renamed = roster.armory().renameWeaponDoctrine(
+                sourceId.peek(), draftName.peek());
         feedback.set(renamed ? "Definition renamed." : "Only player-authored definitions can be renamed.");
         touch();
     }
 
     private void deleteSource() {
-        boolean deleted = kind.peek() == Kind.WEAPON
-                ? roster.deleteWeaponDoctrine(sourceId.peek())
-                : roster.deleteArmorDoctrine(sourceId.peek());
-        if (!deleted) {
+        if (!roster.deleteWeaponDoctrine(sourceId.peek())) {
             feedback.set("Assigned and built-in definitions cannot be deleted.");
             return;
         }
         feedback.set("Definition deleted. Existing issued equipment was not changed.");
-        if (kind.peek() == Kind.WEAPON) loadWeapon(validWeaponId(null));
-        else loadArmor(validArmorId(null), true);
+        loadWeapon(validWeaponId(null));
     }
 
     private boolean customSource() {
         String id = sourceId.get();
-        if (id == null) return false;
-        return kind.get() == Kind.WEAPON
-                ? SquadEquipmentDoctrines.weaponById(id) == null
-                : SquadEquipmentDoctrines.armorPlanById(id) == null;
+        return id != null && SquadEquipmentDoctrines.weaponById(id) == null;
     }
 
     private boolean customId(String id) {
-        return kind.peek() == Kind.WEAPON
-                ? SquadEquipmentDoctrines.weaponById(id) == null
-                : SquadEquipmentDoctrines.armorPlanById(id) == null;
+        return SquadEquipmentDoctrines.weaponById(id) == null;
     }
 
     private boolean assignedSource() {
         String id = sourceId.get();
-        return kind.get() == Kind.WEAPON
-                ? roster.isWeaponDoctrineAssigned(id) : roster.isArmorDoctrineAssigned(id);
+        return roster.isWeaponDoctrineAssigned(id);
     }
 
     private void changed(String message) {
@@ -434,22 +353,12 @@ public final class EquipmentDoctrineDesignerViewModel {
     }
 
     private void rememberCurrent() {
-        if (kind.peek() == Kind.WEAPON) {
-            weaponSourceId = sourceId.peek();
-            weaponDraftName = draftName.peek();
-        } else {
-            armorSourceId = sourceId.peek();
-            armorDraftName = draftName.peek();
-        }
+        weaponSourceId = sourceId.peek();
+        weaponDraftName = draftName.peek();
     }
 
     private static String specialName(SpecialEquipmentDef special) {
         return special != null ? special.displayName() : "None";
-    }
-
-    private static String signedPercent(float value) {
-        int percent = Math.round(value * 100f);
-        return (percent > 0 ? "+" : "") + percent + "%";
     }
 
     private static String weaponFlavor(SquadWeaponIssue issue) {
@@ -463,29 +372,6 @@ public final class EquipmentDoctrineDesignerViewModel {
         return role != null && !role.isBlank()
                 ? title(role) + " billet · " + issue.primaryDef().displayName + "."
                 : "Line billet · reliable general-purpose issue.";
-    }
-
-    /**
-     * The one line on a designer tile that is not already a stat meter. A suit
-     * carrying an integral system spends it on the system: this is the screen
-     * where the pattern is actually chosen, and the four scalars beneath it
-     * cannot express the thing that makes a late pattern worth wanting
-     * ({@code integral-armor-systems.md}). Patterns without one keep the
-     * silhouette copy, which is all they have to say.
-     */
-    private static String armorFlavor(MarineArmorCatalogDef armor) {
-        if (IntegralSystemCopy.carried(armor)) return IntegralSystemCopy.tile(armor);
-        if (armor.id().equals(MarineArmorPattern.ARMORLESS.id)) {
-            return "Unplated fatigues · mobility over protection.";
-        }
-        if (armor.id().equals(MarineArmorPattern.MILITIA.id)
-                || armor.id().equals(MarineArmorPattern.OUTLAW.id)) {
-            return "Patchwork protection · light plate, low burden.";
-        }
-        if (armor.moveSpeedMult() >= 1f) {
-            return "Mobile protection · speed under fire.";
-        }
-        return "Combat protection · plate traded for mobility.";
     }
 
     private static List<StatMeter> weaponStats(String cardId, SquadWeaponIssue issue) {
@@ -503,23 +389,6 @@ public final class EquipmentDoctrineDesignerViewModel {
                         String.format(Locale.ROOT, "%.0f%%", accuracy * 100f), accuracy, 1f),
                 statMeter(cardId + ":dps", "DPS", formatOneDecimal(dps),
                         dps, maximumWeaponDps(profile)));
-    }
-
-    private static List<StatMeter> armorStats(String cardId, MarineArmorCatalogDef armor) {
-        float evasion = 1f - armor.incomingAccuracyMult();
-        return List.of(
-                statMeter(cardId + ":armor-value", "ARMOR",
-                        String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
-                        armor.armorCapacity(), maximumArmorCapacity()),
-                statMeter(cardId + ":resist", "RESIST",
-                        String.format(Locale.ROOT, "%.0f", armor.armorRating()),
-                        armor.armorRating(), maximumArmorRating()),
-                statMeter(cardId + ":move", "MOVE",
-                        String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult() * 100f),
-                        armor.moveSpeedMult(), maximumMoveSpeed()),
-                statMeter(cardId + ":evasion", "EVA",
-                        signedPercent(1f - armor.incomingAccuracyMult()),
-                        evasion, maximumEvasion()));
     }
 
     private static StatMeter statMeter(
@@ -568,38 +437,6 @@ public final class EquipmentDoctrineDesignerViewModel {
         return maximum;
     }
 
-    private static float maximumArmorCapacity() {
-        float maximum = 1f;
-        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, armor.armorCapacity());
-        }
-        return maximum;
-    }
-
-    private static float maximumArmorRating() {
-        float maximum = 1f;
-        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, armor.armorRating());
-        }
-        return maximum;
-    }
-
-    private static float maximumMoveSpeed() {
-        float maximum = 1f;
-        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, armor.moveSpeedMult());
-        }
-        return maximum;
-    }
-
-    private static float maximumEvasion() {
-        float maximum = 0.01f;
-        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, 1f - armor.incomingAccuracyMult());
-        }
-        return maximum;
-    }
-
     private static String title(String value) {
         String lower = value.toLowerCase().replace('_', ' ');
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
@@ -625,7 +462,6 @@ public final class EquipmentDoctrineDesignerViewModel {
         return values.get((index + 1 + values.size()) % values.size());
     }
 
-    private enum Kind { WEAPON, ARMOR }
 
     public record DefinitionTile(String id, String nameId, String descriptionId,
                                  String name, String description, String classes,
