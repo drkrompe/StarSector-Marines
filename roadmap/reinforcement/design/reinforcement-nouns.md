@@ -4,7 +4,7 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — made means commitment transactional and added Conquest convoy command handoff.
+Updated: 2026-08-28 — the embarking crew is sent to the ramp and holds it as a site, and a closed sortie hands its survivors to the commander.
 
 ## Vocabulary
 
@@ -26,6 +26,10 @@ Battle setup registers the applicable triggers and a priority-ordered means ladd
 Before ordinary dispatch, the system reserves one reinforcement ticket from the requesting side. A request that cannot yet pay remains pending for a later cadence. Each means reports `COMMITTED`, `REJECTED`, or `RETRYABLE`: only a committed actor or squad consumes the ordinary ticket, rejection falls through to the next provider, and retryable state refunds and requeues without trying a lower-priority means. If every means rejects, the ordinary ticket is refunded and the request is dropped as a map/supply diagnostic. Prepaid counterattack requests are different: their reserve was paid at muster, so dispatch neither spends again nor refunds an undeliverable launched request.
 
 A shuttle means with an authored airfield **loads on the ground**: it holds the craft on a hardstand and marches an embarking squad out from the side's own rear edge to board it, so the delivery costs visible people crossing visible ground before it costs anything else. `air-nouns.md` owns that phase. The means still creates ordinary actors on both sides of it — an ordinary infantry squad walking to the field, an ordinary air sortie leaving it.
+
+The crew is sent to **the ramp**, not to the airfield. An apron is a wide place and its tactical node anchors at the middle of one, so a crew given the node arrives on the field several cells from the aircraft — outside the reach the sortie loads from — and stands there until the sortie times out, while the next sortie marches four more out to join them. The destination is therefore the pad cell itself, and it is the same point the air layer measures boarding from, so where the crew was sent and where the crew is taken aboard cannot drift apart.
+
+What they are given is an ordinary hold-this-place task, the kind a garrison gets. Waiting for a lift is not a bespoke behaviour and does not deserve one: a crew on that task walks to the pad, stands in a fire-team footprint that fits inside the boarding reach, breaks off to engage what it can see, and turns toward gunfire it can hear. The sortie contributes a destination; the infantry layer supplies the conduct. This is why an attacker who reaches the field finds ground crew fighting for it rather than passengers queueing.
 
 The selected means creates normal battle actors rather than a reinforcement-specific simulation path. A convoy follows the vehicle/delivery model owned by `convoy-nouns.md`; a shuttle follows the air transport model owned by `air-nouns.md`; a walk-in creates an ordinary infantry squad. Each defender means receives the same battle-frozen ground roster as initial allocation: convoys and walk-ins draw bulk issue, while shuttle drops draw elite issue. Once delivered, the squad enters the normal roster, commander, and tactical-assignment flow.
 

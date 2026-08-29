@@ -3,7 +3,12 @@ package com.dillon.starsectormarines.battle.command.reinforcement;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -20,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -265,5 +271,126 @@ public class ShuttleMeansTest {
         sim.getCompoundService().register(airbase(3, 9));
         assertTrue(means.canFulfill(sim, req),
                 "and holding the field restores it");
+    }
+
+    /**
+     * A wide field with the ramp off to one side, placed at the far end of the
+     * map from the defender rear so the crew has an actual walk. The node
+     * anchors at the middle of the apron, which is what a real one does.
+     */
+    private static TacticalNode wideAirbase(int centreX, int centreY) {
+        return new TacticalNode(TacticalNode.Kind.AIRBASE, centreX, centreY,
+                centreX - 5, centreY - 2, centreX + 5, centreY + 2,
+                Faction.DEFENDER, 65, 3);
+    }
+
+    /** A commander that owns the squads its deliveries bring, the way the Conquest defender does. */
+    private static DeliveryDeploymentPolicy commanderOwning(String issuer) {
+        return req -> new DeliveryDeployment(req.rallyX, req.rallyY, -1,
+                false, false, SquadCommandClaim.mission(issuer, "relief"));
+    }
+
+    /**
+     * The crew is sent to the ramp, not to the middle of the field.
+     *
+     * <p>An apron is wide and its tactical node anchors at the centre of it, so
+     * "go to the airfield" puts a crew down several cells from the aircraft —
+     * outside the reach the sortie loads from. They then stand there until the
+     * sortie times out, and the next sortie marches four more out to join them,
+     * which is the pile that appears beside a working airfield.
+     */
+    @Test
+    public void theCrewIsSentToTheRampRatherThanTheMiddleOfTheField() {
+        BattleSimulation sim = openSim();
+        sim.setTacticalMap(new TacticalMap(List.of(
+                commandPost(2, 2), wideAirbase(6, 2))));
+        LandingPad pad = LandingPad.garrison(1, 2, LandingPad.Approach.SOUTH);
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, null, List.of(pad));
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 3, 3);
+
+        means.dispatch(sim, req);
+
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        Squad crew = sim.getSquad(mission.embarkSquadId);
+        assertNotNull(crew, "the crew was put on the map");
+        ObjectiveAssignment task = crew.assignedObjective;
+        assertNotNull(task, "a crew with no task is a crew that mills");
+        assertEquals(AssignmentKind.DEFEND_SITE, task.kind(),
+                "waiting on a lift is holding a place, which the infantry layer"
+                        + " already knows how to do");
+        assertEquals(pad.centerX, task.targetCellX(), "sent to the ramp");
+        assertEquals(pad.centerY, task.targetCellY(), "sent to the ramp");
+    }
+
+    /**
+     * A sortie borrows its crew and gives back whoever it did not take.
+     *
+     * <p>Held at reinforcement authority the survivors outrank the mission
+     * commander, which is correct while the aircraft is waiting for them and
+     * wrong the moment it is not: they would stand on the pad for the rest of
+     * the battle, unusable, while the field kept marching out replacements.
+     */
+    @Test
+    public void aClosedSortieHandsItsCrewToTheCommander() {
+        BattleSimulation sim = openSim();
+        sim.setTacticalMap(new TacticalMap(List.of(
+                commandPost(2, 2), wideAirbase(6, 2))));
+        LandingPad pad = LandingPad.garrison(1, 2, LandingPad.Approach.SOUTH);
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, commanderOwning("defender-command"),
+                List.of(pad));
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 3, 3);
+
+        means.dispatch(sim, req);
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        int crewId = mission.embarkSquadId;
+        assertEquals(CommandAuthority.REINFORCEMENT,
+                sim.getSquadCommandDirective(crewId).authority(),
+                "nothing outbids the lift while it is still loading");
+
+        // Out of time with nobody aboard: the sortie is scrubbed.
+        mission.boardingPatience = 0.001f;
+        sim.advance(1f / 30f);
+
+        CommandDirective owner = sim.getSquadCommandDirective(crewId);
+        assertNotNull(owner, "the crew is somebody's");
+        assertEquals(CommandAuthority.MISSION_COMMAND, owner.authority());
+        assertEquals("defender-command", owner.issuer(),
+                "handed to the commander, which is the pool it draws from");
+    }
+
+    /**
+     * Running out of time does not throw away the people who made it aboard.
+     *
+     * <p>Boarding takes a marine off the roster, so scrubbing a sortie that had
+     * already loaded somebody deleted them rather than cancelling a delivery.
+     */
+    @Test
+    public void aSortieThatLoadedAnybodyFliesWhenTimeRunsOut() {
+        BattleSimulation sim = openSim();
+        sim.setTacticalMap(new TacticalMap(List.of(
+                commandPost(2, 2), wideAirbase(6, 2))));
+        LandingPad pad = LandingPad.garrison(1, 2, LandingPad.Approach.SOUTH);
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, null, List.of(pad));
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 3, 3);
+
+        means.dispatch(sim, req);
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        // Two up the ramp, the rest still out on the field, and the clock gone.
+        mission.marinesRemaining = 2;
+        mission.boardingPatience = 0.001f;
+        sim.advance(1f / 30f);
+
+        assertFalse(mission.state == ShuttleState.GONE,
+                "the two who boarded were carried off the map, not deleted");
+        assertEquals(2, mission.marinesRemaining, "and they are still aboard");
     }
 }

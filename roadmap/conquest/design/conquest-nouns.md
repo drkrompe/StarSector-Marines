@@ -5,7 +5,8 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 Written: 2026-08-23
 
 Updated: 2026-08-28 — made the footprint-resolved capture room authoritative
-across capture, command, execution, presentation, and evidence.
+across capture, command, execution, presentation, and evidence, and scoped
+occupancy to the footprint as well so an open compound is capturable.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -89,6 +90,19 @@ Conquest — where victory requires every compound to flip — is an unwinnable
 mission rather than a cosmetic defect. Bounding the search to the compound's
 own footprint is what keeps the room its own: a compound never captures in a
 neighbour's room or out on the parade ground.
+
+Occupancy is scoped the same way. A side holds a compound by standing inside
+its footprint **and** in its capture room; the room alone is not enough. For an
+enclosed compound the two agree, because its room lies wholly within its
+footprint, and the footprint clause decides nothing. For an **open compound**
+it decides everything. An airfield has no walls, so the room its apron belongs
+to is the outdoors: on a generated ward a 216-cell apron resolves to a zone of
+1341 cells, nearly half the map's walkable area. Read from the room alone, such
+a compound is contested by the first marine to stand anywhere outside a
+building, and then frozen there forever, because every defender outdoors is
+equally present and a two-sided room pauses the timer. It shows permanently
+mid-capture and can neither fall nor be held. The same misreading takes any
+building the moment its wall is breached into the street.
 
 The resolved capture cell and its live zone identity are the compound's
 authoritative tactical target. Command assignment, reachability, keep

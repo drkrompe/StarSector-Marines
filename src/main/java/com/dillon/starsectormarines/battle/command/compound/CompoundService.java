@@ -213,6 +213,42 @@ public final class CompoundService {
     };
 
     /**
+     * Whether {@code faction} is standing on this compound's own ground.
+     *
+     * <p>Both halves of the test carry weight. The zone answers "is this the
+     * room the compound is taken in", which keeps somebody on the far side of
+     * a partition from counting. The compound's own footprint answers "is this
+     * <em>here</em>", which the zone cannot: a zone is a connected walkable
+     * region and nothing about it is bounded by a structure.
+     *
+     * <p>For a building the two agree — an enclosed compound's room lies
+     * wholly inside its footprint — so the footprint clause costs a bounds
+     * check and changes no outcome. For an <em>open</em> compound it is the
+     * whole answer. An airfield is paved ground with no walls, so its room is
+     * the outdoors: measured on a generated ward, one apron of 216 cells
+     * resolved to a zone of 1341, nearly half the map's walkable area. Asking
+     * the zone alone put the field in permanent CONTESTED from the first
+     * marine to set foot outdoors anywhere, and froze it there because the
+     * defenders outdoors were equally "present". The same reading would take
+     * any building whose wall is breached into the street.
+     */
+    public static boolean occupiedBy(Record record, int zoneId,
+                                     Faction faction, BattleView sim) {
+        if (record == null || faction == null || sim == null || zoneId < 0) return false;
+        TacticalNode node = record.node;
+        ZoneGraph zones = sim.getZoneGraph();
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != faction) continue;
+            int x = sim.world().cellX(unit);
+            int y = sim.world().cellY(unit);
+            if (x < node.left || x > node.right || y < node.top || y > node.bottom) continue;
+            if (zones.zoneIdAt(x, y) == zoneId) return true;
+        }
+        return false;
+    }
+
+    /**
      * True iff at least one compound of {@code kind} is in a state that lets
      * {@code faction} draw supply from it. Defender-side reads "still
      * defender-held or contested" — supply hasn't fully fallen yet, so the
