@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.fortress;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fit.VehicleBayFitting;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
@@ -154,12 +155,22 @@ public final class FortressProgram {
      * a change to it.
      */
     public static int envelopeArea(List<FortressBuilding> program) {
-        // The apron is ground the ward holds but no building stands on, so it
-        // is added rather than scaled: the slack covers what packing wastes
-        // around buildings, and an airfield is not waste. The airfield takes
-        // what the packing left rather than a reservation, so this is what makes
-        // sure there is something left for it to take.
-        return Math.round(floorArea(program) * SLACK) + FortressAirfield.apronArea();
+        // The airbase lot is ground the ward holds but no building stands on,
+        // so it is added rather than scaled: the slack covers what packing
+        // wastes around buildings, and a facility is not waste. The lot is
+        // reserved out of the ward before packing, so this is what makes sure
+        // the ward is sized to afford it.
+        return buildingGround(program) + AirbaseLot.area();
+    }
+
+    /**
+     * The ground this program's buildings need to pack, before anything else in
+     * the ward is allowed to claim any. A host reserving a lot inside the ward
+     * checks what it wants to take against this: below it, buildings start
+     * going unplaced.
+     */
+    public static int buildingGround(List<FortressBuilding> program) {
+        return Math.round(floorArea(program) * SLACK);
     }
 
     /** Ground per cell of building floor. Measured, not guessed — see {@link #envelopeArea}. */

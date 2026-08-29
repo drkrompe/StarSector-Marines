@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — walls, doorways and roofs dispatch through the mapping's `surfaceRender` section; content is found by purpose as well as by sheet; and a block may be a variant pool as well as an autotile.
+Updated: 2026-08-29 — walls, doorways and roofs dispatch through the mapping's `surfaceRender` section; content is found by purpose as well as by sheet; a block may be a variant pool as well as an autotile; and every sheet is exported from its authoring document.
 
 Read `stories.md` for open work.
 
@@ -224,6 +224,16 @@ These properties of that pass are part of the model rather than of the tool:
   origin plus a layout offset, so they must be packed as one contiguous patch
   and the packer reports where it put them. A slot a sheet does not fill stays
   empty; a hollow layout's fill colour is exactly what that case is for.
+- **A repeating surface says so, and is treated for it.** Two authored markers
+  carry that claim, and both mean the same thing from different directions: a
+  *material* says the picture comes from a tileable file rather than from the
+  plate, and a *sprite border* says the plate's own art carries a drawn rim that
+  has to be mirrored away or the field shows a lattice at every tile boundary.
+  A piece that claims neither is packed as it was cut. The treatment is per
+  piece rather than per sheet because it is a statement about the object: the
+  same dark edge is a rim on a field and the drawn edge of a paving slab that
+  has to keep it, and nothing about the pixels tells the two apart. Applying it
+  to a whole sheet instead softens art that was never a repeating field.
 - **Only kept pieces are packed.** A sheet's unused art does not reach the
   atlas, so a tileset's size reflects what the game uses rather than what was
   drawn. Nothing is lost by leaving a cell out: the raw plate and the document's

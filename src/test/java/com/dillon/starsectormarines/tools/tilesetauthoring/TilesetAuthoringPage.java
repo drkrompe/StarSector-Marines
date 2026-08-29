@@ -267,7 +267,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             @Override public BufferedImage atlas() {
                 if (source == null || model.entries.isEmpty()) return null;
                 return TilesetExport.atlas(source, model.entries, blocks,
-                        (Integer) cellPx.getValue());
+                        (Integer) cellPx.getValue(), materials);
             }
 
             @Override public int cellPx() {
@@ -947,7 +947,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         }
         try {
             int cell = (Integer) cellPx.getValue();
-            BufferedImage atlas = TilesetExport.atlas(source, model.entries, blocks, cell);
+            BufferedImage atlas =
+                    TilesetExport.atlas(source, model.entries, blocks, cell, materials);
             BufferedImage image = TilesetPreview.render(atlas,
                     TilesetExport.tileset(
                             "graphics/doodads/preview.png", cell, model.entries, blocks),

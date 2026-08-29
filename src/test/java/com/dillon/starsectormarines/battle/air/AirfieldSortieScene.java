@@ -16,7 +16,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
-import com.dillon.starsectormarines.battle.world.gen.fortress.FortressAirfield;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -66,9 +66,9 @@ final class AirfieldSortieScene {
     static final int WIDTH = 64;
     static final int HEIGHT = 48;
 
-    /** The band the apron is allowed to sit in, so the crew has ground to cross. */
-    private static final int FIELD_BAND_BOTTOM = 18;
-    private static final int FIELD_BAND_TOP = 30;
+    /** Where the lot sits on this scene's map, leaving the crew ground to cross. */
+    private static final int LOT_LEFT = 8;
+    private static final int LOT_BOTTOM = 14;
 
     /** Far from the field, so the delivery is a flight rather than a hop. */
     private static final int RALLY_X = 32;
@@ -134,16 +134,15 @@ final class AirfieldSortieScene {
         // and the whole value of watching this is that it is the field the
         // generator actually lays down — hardstands, bowsers, fuel point, mast.
         GenContext gen = new GenContext(grid, topology, new Random(seed), WIDTH, HEIGHT, seed);
-        // Sited in the middle band rather than wherever it fits. In a ward the
-        // field is in the rear and the crew comes from the rear edge, so the
-        // walk is short; here it is the subject, and a scene that put the pad
-        // beside the spawn would record five marines stepping aboard and
-        // nothing else.
-        FortressAirfield field = FortressAirfield.site(gen, ground,
-                TraversalAxis.SOUTH_TO_NORTH, 2, FIELD_BAND_BOTTOM,
-                WIDTH - 3, FIELD_BAND_TOP);
-        if (field == null) throw new IllegalStateException("no room for an airfield");
-        field.author(gen, TraversalAxis.SOUTH_TO_NORTH);
+        // The production lot, placed by hand at a fixed rectangle. A ward hands
+        // it one that its own packing reserved; a scene has no packing, so it
+        // states the rectangle and gets the same base. Set back from the
+        // marines' spawn edge so the crew's walk is the subject rather than a
+        // step: in a ward the base is in the rear and that walk is short.
+        AirbaseLot lot = new AirbaseLot(LOT_LEFT, LOT_BOTTOM,
+                LOT_LEFT + AirbaseLot.WIDTH - 1, LOT_BOTTOM + AirbaseLot.DEPTH - 1,
+                TraversalAxis.SOUTH_TO_NORTH);
+        lot.author(gen, new Random(seed));
         rememberPads(gen.landingPads);
 
         BattleSimulation sim = serialSimulation(grid, topology, seed);

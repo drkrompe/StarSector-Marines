@@ -393,6 +393,17 @@ class ProjectTilesetToolsTest {
         // to keep its own file name for the copy to resolve.
         Files.copy(sheet.rawSheet(), sourceDir.resolve(sheet.rawSheet().getFileName()));
         Files.copy(sheet.document(), TilesetDocument.pathFor(root, name));
+        // A frame may take its picture from a tileable material outside the sheet
+        // directory. The fixture has to carry those too, or exporting it reads a
+        // file that is not in this root and fails on something that is not the
+        // behaviour under test.
+        for (TilesetExport.Entry entry : TilesetDocument.read(sheet.document()).entries) {
+            if (!entry.included || !entry.hasMaterial()) continue;
+            Path from = TilesetOperations.resolve(Path.of("").toAbsolutePath(), entry.material);
+            Path to = TilesetOperations.resolve(root, entry.material);
+            Files.createDirectories(to.getParent());
+            if (!Files.exists(to)) Files.copy(from, to);
+        }
     }
 
     private static void copyTree(Path from, Path to) throws IOException {

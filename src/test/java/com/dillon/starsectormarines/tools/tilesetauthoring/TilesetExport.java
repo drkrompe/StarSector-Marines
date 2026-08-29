@@ -373,9 +373,26 @@ public final class TilesetExport {
         return new Packing(Math.max(1, widest), Math.max(1, cursorY + shelfHeight), origins);
     }
 
-    /** Draw every included entry into its packed slot, stretched to fill it. */
+    /**
+     * Draw every included entry into its packed slot, stretched to fill it.
+     *
+     * <p>A piece that says it is a repeating surface gets the surface
+     * treatment; anything else is drawn as it was cut. The two markers are the
+     * same ones the strip shape already uses: a {@code material} means the
+     * picture comes from a tileable file rather than from the plate, and a
+     * {@code spriteBorderPx} means the plate's own art carries a drawn rim that
+     * has to be mirrored away or it tiles as a lattice.
+     *
+     * <p>The treatment is authored per piece rather than applied to every
+     * frame, and that is not a convenience. Area-averaging and sharpening a
+     * whole sheet changes art that was never a repeating field: measured on
+     * {@code urban-tileset}, 38% of the sheet moves and the wall panel's rivets
+     * and a crate's edges go soft. A piece that has not claimed to be a surface
+     * is left alone.
+     */
     public static BufferedImage atlas(BufferedImage source, List<Entry> entries,
-                                      List<BlockSpec> blocks, int cellPx) {
+                                      List<BlockSpec> blocks, int cellPx,
+                                      Materials materials) {
         Packing packing = pack(entries, blocks);
         BufferedImage atlas = new BufferedImage(
                 packing.columns() * cellPx, packing.rows() * cellPx, BufferedImage.TYPE_INT_ARGB);
@@ -395,10 +412,24 @@ public final class TilesetExport {
             // and a crate's edges go soft. Bringing both halves here would
             // change every grid sheet already exported, so it belongs with the
             // ground sheets that need it rather than with a packing change.
-            g.drawImage(
-                    source.getSubimage(p.x(), p.y(), p.width(), p.height()),
-                    entry.col * cellPx, entry.row * cellPx,
-                    width * cellPx, height * cellPx, null);
+            int frameWidth = width * cellPx;
+            int frameHeight = height * cellPx;
+            if (entry.hasMaterial()) {
+                g.drawImage(wrapped(requireMaterial(entry, materials)),
+                        entry.col * cellPx, entry.row * cellPx,
+                        frameWidth, frameHeight, null);
+            } else if (entry.spriteBorderX > 0 || entry.spriteBorderY > 0) {
+                g.drawImage(
+                        mirrorSpriteBorder(
+                                sharpen(fitted(source, p, frameWidth, frameHeight)),
+                                entry.spriteBorderX, entry.spriteBorderY),
+                        entry.col * cellPx, entry.row * cellPx, null);
+            } else {
+                g.drawImage(
+                        source.getSubimage(p.x(), p.y(), p.width(), p.height()),
+                        entry.col * cellPx, entry.row * cellPx,
+                        frameWidth, frameHeight, null);
+            }
         }
         g.dispose();
         return atlas;
@@ -603,6 +634,33 @@ public final class TilesetExport {
                 out.setRGB(x, y, material.getRGB(Math.floorMod(x - MATERIAL_GUARD_PX, width), sy));
             }
         }
+        return out;
+    }
+
+    /**
+     * A cut piece at the size its frame needs, by whichever filter suits the
+     * direction.
+     *
+     * <p>{@link #resample} averages every source pixel into its destination,
+     * which is what reduction needs and what enlargement cannot use: asked to
+     * grow 49 pixels into 56 it finds one source pixel per destination pixel and
+     * degenerates to nearest neighbour, which is blocky. A plate cut smaller
+     * than its cell is the ordinary case for a fixed-grid ground sheet, so both
+     * directions have to be right.
+     */
+    private static BufferedImage fitted(BufferedImage source, SheetSlicer.Piece piece,
+                                        int width, int height) {
+        if (piece.width() >= width && piece.height() >= height) {
+            return resample(source, piece, width, height);
+        }
+        BufferedImage out = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = out.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.drawImage(source.getSubimage(piece.x(), piece.y(), piece.width(), piece.height()),
+                0, 0, width, height, null);
+        g.dispose();
         return out;
     }
 

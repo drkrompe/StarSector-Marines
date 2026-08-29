@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
@@ -109,8 +110,27 @@ public final class FortressWardStage implements GenStage {
         boolean[][] buildable = buildable(ctx, ward, citadel, roads);
         boolean[][] circulation = hasAny(roads) ? roads : approach(ctx, ward, axis);
 
+        // The airbase takes its lot before anything is packed, and out of the
+        // ward's own end rather than its middle. Claimed after packing it would
+        // get whatever shape the leftovers had, which is a shallow strip; taken
+        // from the middle it would sever the ward's spine, which is how an
+        // earlier reservation left a ward every building could reach and no
+        // convoy could cross.
+        int[] lot = airbaseLot(ward, axis, citadel, roads);
+        if (lot != null) {
+            for (int x = lot[0]; x <= lot[2]; x++) {
+                for (int y = lot[1]; y <= lot[3]; y++) buildable[x][y] = false;
+            }
+        }
+
         FortressInterior.Result result = FortressInterior.pack(
                 ctx, buildable, circulation, axis, FortressProgram.ward());
+        if (lot != null) {
+            new AirbaseLot(lot[0] + AirbaseLot.CLEARANCE, lot[1] + AirbaseLot.CLEARANCE,
+                    lot[2] - AirbaseLot.CLEARANCE, lot[3] - AirbaseLot.CLEARANCE, axis)
+                    .author(ctx, ctx.rng);
+            emitAirbaseNode(ctx, lot);
+        }
         ctx.put(BspKeys.FORTRESS_WARD, ward);
         emitTacticalNodes(ctx, result);
     }
@@ -158,6 +178,70 @@ public final class FortressWardStage implements GenStage {
                 lateralLo + (lateralRoom - lateral) / 2, lateral);
         if (ward[0] < 1 || ward[1] < 1 || ward[2] > mapW - 2 || ward[3] > mapH - 2) return null;
         return ward;
+    }
+
+    /**
+     * The airbase's rectangle inside the ward, or null when the ward is too
+     * small to hold one without eating the buildings.
+     *
+     * <p>Pinned to the lateral end furthest from the citadel: the fortress's
+     * own centre of gravity stays clear, and a base at the end of the ward
+     * takes width off one side rather than cutting the ward in two. Depth is
+     * taken from the back, so the runway ends up along the ward's front where
+     * an aircraft has an open run at it.
+     */
+    private static int[] airbaseLot(int[] ward, TraversalAxis axis,
+                                    Compound citadel, boolean[][] roadCells) {
+        boolean alongY = axis == TraversalAxis.SOUTH_TO_NORTH;
+        // The reservation is the lot plus the clear ground kept outside its
+        // fence. Reserving only the lot lets a building pack flush against the
+        // fence, and the way past the base is then whatever the packing left.
+        int spanX = AirbaseLot.reservedSpanX(axis);
+        int spanY = AirbaseLot.reservedSpanY(axis);
+        int wardW = ward[2] - ward[0] + 1;
+        int wardH = ward[3] - ward[1] + 1;
+        if (spanX > wardW || spanY > wardH) return null;
+
+        // What the buildings still need after the lot is taken. Below the
+        // packing slack they start going unplaced, and a base is not worth a
+        // third of the fortress.
+        int remaining = wardW * wardH - spanX * spanY;
+        if (remaining < FortressProgram.buildingGround(FortressProgram.ward())) return null;
+
+        boolean citadelLow = citadel != null
+                && (alongY ? (citadel.left + citadel.right) / 2 < (ward[0] + ward[2]) / 2
+                           : (citadel.top + citadel.bottom) / 2 < (ward[1] + ward[3]) / 2);
+        int left = alongY
+                ? (citadelLow ? ward[2] - spanX + 1 : ward[0])
+                : ward[0];
+        int bottom = alongY
+                ? ward[1]
+                : (citadelLow ? ward[3] - spanY + 1 : ward[1]);
+        int[] lot = { left, bottom, left + spanX - 1, bottom + spanY - 1 };
+        if (lot[0] < ward[0] || lot[1] < ward[1]
+                || lot[2] > ward[2] || lot[3] > ward[3]) return null;
+        if (roadCells != null && crossesRoad(lot, roadCells)) return null;
+        return lot;
+    }
+
+    /** Whether a kept road runs through this rectangle. The ward keeps exactly one, and the base does not get to sever it. */
+    private static boolean crossesRoad(int[] rect, boolean[][] roadCells) {
+        for (int x = rect[0]; x <= rect[2]; x++) {
+            for (int y = rect[1]; y <= rect[3]; y++) {
+                if (x < roadCells.length && y < roadCells[x].length && roadCells[x][y]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** The airbase as one position to take, the same shape the old airfield published. */
+    private static void emitAirbaseNode(GenContext ctx, int[] lot) {
+        ctx.tactical.add(new TacticalNode(TacticalNode.Kind.AIRBASE,
+                (lot[0] + lot[2]) / 2, (lot[1] + lot[3]) / 2,
+                lot[0], lot[1], lot[2], lot[3],
+                Faction.DEFENDER, 65, 3, false));
     }
 
     /** Assemble a ward rectangle from its depth run and its lateral run. */
