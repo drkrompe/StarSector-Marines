@@ -42,6 +42,7 @@ public final class SurfaceBrowserView extends JPanel {
     private final JList<SurfaceCatalog.Candidate> candidates = new JList<>(candidateModel);
     private final JLabel advice = new JLabel(" ");
     private final JButton open = new JButton("Open its sheet");
+    private final JPanel foot;
 
     /**
      * @param onOpen given the candidate to open — the page answers by loading its
@@ -93,8 +94,21 @@ public final class SurfaceBrowserView extends JPanel {
         foot.add(advice, BorderLayout.NORTH);
         foot.add(open, BorderLayout.SOUTH);
 
+        this.foot = foot;
         add(split, BorderLayout.CENTER);
         add(foot, BorderLayout.SOUTH);
+    }
+
+    /**
+     * Drop this panel's own advice line and Open button.
+     *
+     * <p>Inside a walkthrough the screen already has a footer saying what is
+     * still needed and a button that leaves the step. Two of each, one greyed
+     * out for a reason printed twice, reads as a bug rather than as guidance.
+     */
+    public void hideOwnActions() {
+        remove(foot);
+        revalidate();
     }
 
     /** Replace the listing, keeping the operator on the surface they were looking at. */
