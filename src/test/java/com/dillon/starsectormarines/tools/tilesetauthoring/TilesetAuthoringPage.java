@@ -110,7 +110,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
     private final List<TilesetExport.BlockSpec> blocks = new ArrayList<>();
     private final TilesetLibraryView library = new TilesetLibraryView(this::openFromLibrary);
-    private final SurfaceBrowserView surfaces = new SurfaceBrowserView(this::openCandidate);
+    private final BlockPreview blockPreviews;
+    private final SurfaceBrowserView surfaces;
     private JTable table;
     private JScrollPane tableScroll;
     private JScrollPane sheetPicture;
@@ -163,6 +164,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
     public TilesetAuthoringPage(AuthoringPageContext context) {
         this.context = context;
+        this.blockPreviews = new BlockPreview(context.projectRoot());
+        this.surfaces = new SurfaceBrowserView(blockPreviews, this::openCandidate);
         this.wizard = new TilesetWizard(this::showChooser, context::reportStatus);
 
         table = new JTable(model);
@@ -259,30 +262,130 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private List<WizardStep> surfaceWalkthrough() {
         return List.of(
                 new LambdaStep("What do you need?",
-                        "Every surface the generator can ask for, and every block in the "
-                                + "project that could fill it.",
-                        () -> {
-                            surfaces.hideOwnActions();
-                            return surfaces;
-                        })
+                        "Every surface the generator can ask for, with a picture of whatever is "
+                                + "drawn for it today.",
+                        surfaces::purposeScreen)
                         .onEnter(this::rescanSurfaces)
-                        .blockedWhen(() -> {
-                            SurfaceCatalog.Candidate picked = surfaces.selectedCandidate();
-                            if (picked == null) return "Pick a surface, then the block to work on";
-                            if (!picked.isEditable()) {
-                                return picked.sheetName() + " ships as a tileset with no "
-                                        + "authoring document, so its slicing cannot be edited";
-                            }
-                            return null;
-                        })
-                        .onLeave(() -> openCandidate(surfaces.selectedCandidate()))
-                        .nextLabel("Open its sheet"),
+                        .blockedWhen(() -> surfaces.selectedPurpose() == null
+                                ? "Pick a surface" : null)
+                        .nextLabel("See what fills it"),
 
-                groupingStep("Group the pieces into the block's slots",
-                        "The sheet opens with this block's pieces already selected. A slot says "
-                                + "where the exterior is, not which neighbour is a wall."),
+                new LambdaStep("The set",
+                        "Every block in the project that could fill this surface, whichever "
+                                + "sheet it is on. Choose which one is drawn, or add another.",
+                        this::surfaceSetBody)
+                        .onEnter(this::describeSurfaceSet)
+                        .last());
+    }
 
-                exportStep());
+    /**
+     * Screen two of the purpose-first walkthrough: the set, and what can be done
+     * to it.
+     *
+     * <p>This is where the workflow ends for somebody working on walls. Opening
+     * a sheet is one thing that can be done here — the one that adds a wall —
+     * rather than the road every path leads down.
+     */
+    private JPanel surfaceSetBody() {
+        surfaces.setSetActions(List.of(
+                button("Draw this one", this::useSelectedCandidate),
+                button("Add one from a sheet…", () -> enterWorkflow(TilesetWorkflow.SHEET)),
+                button("Open its sheet", () -> openCandidate(surfaces.selectedCandidate())),
+                button("Remove from the set", this::removeSelectedCandidate)));
+        return surfaces.setScreen();
+    }
+
+    /** Say what the chosen set holds, so the status line is not stale from the screen before. */
+    private void describeSurfaceSet() {
+        SurfaceCatalog.Purpose purpose = surfaces.selectedPurpose();
+        if (purpose == null) return;
+        int count = surfaces.shownCandidateCount();
+        context.reportStatus(purpose.name() + " — " + count
+                + (count == 1 ? " block could fill it" : " blocks could fill it")
+                + (purpose.isUnmapped() ? ", none of them mapped" : ", drawn as " + purpose.mappedId()));
+    }
+
+    /**
+     * Point the chosen surface at the chosen block and save the mapping.
+     *
+     * <p>The other half of showing the alternatives. Seeing them is worth little
+     * if choosing one means finding the mapping file and retyping an id the
+     * listing already knows.
+     */
+    /**
+     * Dissolve the chosen block, so it stops being one of the things that could
+     * fill this surface.
+     *
+     * <p>Its pieces are not deleted. A released member keeps its id, footprint
+     * and annotation — it was always a piece of the sheet, and only the
+     * membership is withdrawn — so this is undone by grouping them again.
+     *
+     * <p>Refused while the mapping still points here. A surface whose block no
+     * longer exists is a startup crash rather than a wrong-looking map, and the
+     * order to do it in is: draw something else first, then remove this.
+     */
+    private void removeSelectedCandidate() {
+        SurfaceCatalog.Purpose purpose = surfaces.selectedPurpose();
+        SurfaceCatalog.Candidate candidate = surfaces.selectedCandidate();
+        if (purpose == null || candidate == null) return;
+        if (candidate.inUse()) {
+            AuthoringMessages.info(root, "Remove from the set",
+                    candidate.blockId() + " is what " + purpose.name() + " is drawn with, so "
+                            + "removing it would leave the surface pointing at nothing. Draw "
+                            + "another one first.");
+            return;
+        }
+        if (!candidate.isEditable()) {
+            AuthoringMessages.info(root, "Remove from the set",
+                    candidate.blockId() + " is on " + candidate.sheetName() + ", which has no "
+                            + "authoring document. There is nothing here that declares it, so "
+                            + "there is nothing here to withdraw.");
+            return;
+        }
+        int answer = JOptionPane.showConfirmDialog(root,
+                "Dissolve " + candidate.blockId() + " on " + candidate.sheetName() + "?\n\n"
+                        + "Its " + candidate.slots().size() + " pieces go back to being doodads, "
+                        + "keeping their ids and annotation. The sheet is saved and re-exported, "
+                        + "so its atlas is repacked.",
+                "Remove from the set", JOptionPane.OK_CANCEL_OPTION);
+        if (answer != JOptionPane.OK_OPTION) return;
+
+        try {
+            openDocumentAt(candidate.document());
+            if (!candidate.document().equals(documentPath)) return;
+            TilesetOperations.removeBlock(model.entries, blocks, candidate.blockId());
+            model.setEntries(model.entries);
+            view.setEntries(model.entries);
+            markDirty();
+            saveDocument();
+            export();
+            rescanSurfaces();
+            surfaces.select(purpose.name());
+        } catch (Exception failure) {
+            AuthoringMessages.error(root, "Remove from the set",
+                    "Could not dissolve " + candidate.blockId(), failure);
+        }
+    }
+
+    private void useSelectedCandidate() {
+        SurfaceCatalog.Purpose purpose = surfaces.selectedPurpose();
+        SurfaceCatalog.Candidate candidate = surfaces.selectedCandidate();
+        if (purpose == null || candidate == null) return;
+        if (candidate.inUse()) {
+            AuthoringMessages.info(root, "Draw this one",
+                    candidate.blockId() + " is already what " + purpose.name() + " is drawn with.");
+            return;
+        }
+        try {
+            SurfaceMapping.use(context.projectRoot(), purpose.name(), purpose.vocabulary(),
+                    candidate.blockId());
+            rescanSurfaces();
+            surfaces.select(purpose.name());
+            context.reportStatus(purpose.name() + " is now drawn with " + candidate.blockId());
+        } catch (Exception failure) {
+            AuthoringMessages.error(root, "Draw this one",
+                    "Could not point " + purpose.name() + " at " + candidate.blockId(), failure);
+        }
     }
 
     /** Start from art: cut it, say what it is, group it, export it. */

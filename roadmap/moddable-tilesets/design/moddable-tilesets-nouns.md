@@ -203,6 +203,22 @@ documents; a written-down list of "these are the walls" would be a second
 authority over a fact those files already state, and would go stale the first
 time a block was renamed in the one file that defines it.
 
+Choosing between candidates is done by looking at them. A block id says which
+sheet a thing came from and nothing about what it is: two walls are a masonry
+wall and a sandbag revetment, and only the picture separates them. So a surface
+and its candidates are shown as pictures, and the candidate is also drawn as a
+room three cells on a side — the one view in which a wall assigned inside out is
+visible, because every cell of such a room has a distinct neighbour mask.
+
+Which candidate a surface uses is part of the mapping, so choosing one is a
+mapping edit rather than an authoring one. It is made in place, as a replacement
+of one value, and validated against the whole catalog before it lands: a
+re-serialised mapping loses the ordering of a hand-maintained file, and a
+mapping naming an id nothing defines is a startup crash rather than a
+wrong-looking map. Withdrawing a candidate is the opposite act — the block is
+dissolved and its pieces go back to being doodads — and is refused while the
+mapping still points at it.
+
 The listing reports whether a candidate's slicing can be edited, and that is a
 real distinction rather than a caveat. A block declared by an authoring document
 can be re-cut, because the document records which pieces of which raw sheet it
