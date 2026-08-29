@@ -72,6 +72,24 @@ its fraction across its arc for the window's duration
 | `armor.reliquary-heavy` | Knights of Ludd | **Consecrated advance** | Barely faster than standing still, for a very long time, behind the best screen anyone has. A Knight crosses the room in front of somebody else. |
 | `armor.lions-mantle` | Sindrian Lion's Guard | **Blazon advance** | One grand gesture per engagement: long, bright, well covered, and then thirty seconds of nothing. Spectacle priced as spectacle. |
 | `armor.foundry-breaker` | Pirate / Pather | **Breaching assist** | The crude copy, and the only one without a proper designation. The biggest raw shove in the family, over almost immediately, behind a sheet of scrap, followed by the longest sulk. |
+| `armor.vigil` | Sindrian Diktat | **Suppression brace** | The tier-III rung, and the only one. A shield and a shove, both adequate, neither remarkable — the version of the idea a state can afford to issue to everybody. |
+
+**A capability ladders within its role.** The family spans three tiers now — the
+Kestrel riot shell at II, the Vigil at III, and the six battlesuits at IV — and
+the rule that binds them is that the *floor* rises: every suit at a tier is worth
+more than every suit at the tier below, not merely the best against the best.
+
+What "worth more" means cannot be a single authored number, because these suits
+are side-grades and their headline numbers disagree by sevenfold at one tier. It
+is the screen over the arc it actually covers, plus the shove priced in
+soak-equivalents, scaled by how much of the time the system is up. Measured that
+way the six tier-IV suits come out within about 1.4x of each other per
+activation and differ mainly in availability, which is what a side-grade family
+should look like and is not something anyone authored deliberately — it is what
+the numbers already said once there was a way to ask.
+
+`ArmorCatalogShapeTest` owns that measure and the rule. It is a comparison index
+for the catalog's shape and never a balance model: the game reads none of it.
 
 Two of these are honest about being weak in the current build. The Consecrated
 and Blazon advances spend most of their design on the screen, so until the
