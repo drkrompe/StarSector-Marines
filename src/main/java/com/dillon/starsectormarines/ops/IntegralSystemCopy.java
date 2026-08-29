@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.BraceSpec;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
+import com.dillon.starsectormarines.marine.FieldAidSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MissilePodSpec;
@@ -96,6 +98,7 @@ final class IntegralSystemCopy {
             // described as "the suit is exactly the suit it was" afterward —
             // a spent salvo doesn't revert anything, it's just gone.
             parts.add(system.breacherAssist() != null || system.perceptionSweep() != null
+                    || system.brace() != null
                     ? effect + ", then the suit is exactly the suit it was."
                     : effect + ".");
         }
@@ -130,6 +133,19 @@ final class IntegralSystemCopy {
                     + (sweep.wallReadRadiusCells() > 0f
                             ? ", " + cells(sweep.wallReadRadiusCells()) + " of it through walls"
                             : "");
+        }
+        BraceSpec brace = system.brace();
+        if (brace != null) {
+            // Both halves or neither. A stance quoted only for what it buys is
+            // the brochure this class exists not to be, and the cost is the
+            // part a player has to weigh.
+            return percent(brace.accuracyMult() - 1f) + " steadier, "
+                    + percent(1f - brace.moveSpeedMult()) + " slower";
+        }
+        FieldAidSpec aid = system.fieldAid();
+        if (aid != null) {
+            return "Puts " + damage(aid.restoredHealth()) + " back, "
+                    + cells(aid.reachCells()) + " reach";
         }
         return "";
     }
@@ -172,6 +188,22 @@ final class IntegralSystemCopy {
                     ? read + ", carrying through walls within "
                             + cells(sweep.wallReadRadiusCells()) + " of them and no further"
                     : read + ", stopped by every wall in the way";
+        }
+        BraceSpec brace = system.brace();
+        if (brace != null) {
+            return "Plants: while it holds, the wearer's fire is "
+                    + percent(brace.accuracyMult() - 1f) + " steadier and they move "
+                    + percent(1f - brace.moveSpeedMult()) + " slower. The cost is the"
+                    + " whole point -- a marine braced in the wrong place is committed"
+                    + " to being there";
+        }
+        FieldAidSpec aid = system.fieldAid();
+        if (aid != null) {
+            return "Kneels beside a squadmate within " + cells(aid.reachCells())
+                    + " who is below " + percent(aid.treatBelowHealthFraction())
+                    + " of their health and puts " + damage(aid.restoredHealth())
+                    + " back on their feet, out of a satchel that does not refill."
+                    + " The wearer never treats themselves";
         }
         return "";
     }

@@ -222,6 +222,11 @@ public class InfantryWeapons {
                     dist, effectiveRange);
         }
         accuracy *= stance.accuracyMult;
+        // A planted suit's whole contribution, read through at the moment the
+        // round leaves rather than written onto the shooter: nothing to restore
+        // when the stance expires, so it cannot leave a remainder behind
+        // ({@code integral-system-slate.md}). One for everybody else.
+        accuracy = Math.min(1f, accuracy * roster.integralSystems().accuracyMultiplier(shooter));
 
         StructureDef turretStructure = shooterType.isTurret()
                 ? roster.turretState().structure(shooter) : null;

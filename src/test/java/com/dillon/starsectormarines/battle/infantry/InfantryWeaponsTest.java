@@ -13,6 +13,11 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
+import com.dillon.starsectormarines.marine.BraceSpec;
+import com.dillon.starsectormarines.marine.HoldingFiringPositionSpec;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.IntegralSystemEffect;
+import com.dillon.starsectormarines.marine.SpecialResourceMode;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -97,12 +102,110 @@ class InfantryWeaponsTest {
         assertEquals(6, f.sim.telemetry().roundsFired(f.shooter));
     }
 
+
+    /**
+     * A braced marine measurably shoots better, measured at the seam where it
+     * would have to be true: the highest aim roll a round still lands on target
+     * with. The stance is read through at fire time rather than written onto the
+     * shooter, so this is the only place the improvement exists at all
+     * ({@code integral-system-slate.md}).
+     */
+    @Test
+    void aBracedMarineLandsRoundsAnUnbracedOneWouldHaveMissedWith() {
+        float unbraced = highestAimRollThatLands(false);
+        float braced = highestAimRollThatLands(true);
+
+        assertTrue(braced > unbraced,
+                "planting has to buy something at the trigger: unbraced landed up to "
+                        + unbraced + ", braced up to " + braced);
+    }
+
+    /** And gives it all back the moment the stance expires. */
+    @Test
+    void anExpiredBraceLeavesTheShooterExactlyAsItWasIssued() {
+        float issued = highestAimRollThatLands(false);
+        Fixture f = bracedFixture();
+        BattleSimulation sim = f.sim();
+        sim.integralSystems().activate(f.shooter());
+        for (int tick = 0; tick < 400; tick++) {
+            sim.integralSystems().tick(f.shooter(), BattleSimulation.TICK_DT);
+        }
+        assertFalse(sim.integralSystems().isActive(f.shooter()));
+
+        assertEquals(issued, highestAimRollThatLands(f, false), 1e-6f,
+                "an expired stance leaves no remainder behind");
+    }
+
+    /**
+     * The largest aim roll this shooter still puts on the target with, to a
+     * hundredth. Everything downstream of the aim roll is held centred, so the
+     * only thing that moves the answer is the accuracy the fire seam computed.
+     */
+    private static float highestAimRollThatLands(boolean braced) {
+        Fixture f = bracedFixture();
+        if (braced) f.sim().integralSystems().activate(f.shooter());
+        return highestAimRollThatLands(f, braced);
+    }
+
+    private static float highestAimRollThatLands(Fixture f, boolean expectBraced) {
+        assertEquals(expectBraced, f.sim().integralSystems().isActive(f.shooter()));
+        float best = -1f;
+        for (int step = 0; step <= 100; step++) {
+            float roll = step / 100f;
+            f.weapons().fireShot(f.shooter(), f.target(), FireStance.STANCED,
+                    new FirstThenCentered(roll));
+            for (ShotService.PendingImpact impact : drainImpacts(f.shots())) {
+                if (impact.victimId == f.target()) best = roll;
+            }
+        }
+        return best;
+    }
+
+    private static Fixture bracedFixture() {
+        return fixture(ExperienceTier.REGULAR, false,
+                WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), brace());
+    }
+
+    private static IntegralSystemDef brace() {
+        return new IntegralSystemDef("system.test-brace", "Test brace",
+                EquipmentGrade.SERVICE, "Planted.", IntegralSystemEffect.BRACE,
+                SpecialResourceMode.COOLDOWN, 5f, 18f, 0,
+                null, null, null, new BraceSpec(0.4f, 1.6f),
+                new HoldingFiringPositionSpec(0.5f, 4f));
+    }
+
+    /**
+     * The aim roll under test, then a centred everything-else. Keeps one shot's
+     * outcome a function of the accuracy alone rather than of how many samples
+     * the trajectory happened to draw.
+     */
+    private static final class FirstThenCentered extends Random {
+        private final float first;
+        private boolean used;
+
+        FirstThenCentered(float first) {
+            this.first = first;
+        }
+
+        @Override
+        public float nextFloat() {
+            if (used) return 0.5f;
+            used = true;
+            return first;
+        }
+    }
+
     private static Fixture fixture(ExperienceTier experience, boolean friendlyInLane) {
         return fixture(experience, friendlyInLane, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
     }
 
     private static Fixture fixture(ExperienceTier experience, boolean friendlyInLane,
                                    WeaponDef weapon) {
+        return fixture(experience, friendlyInLane, weapon, null);
+    }
+
+    private static Fixture fixture(ExperienceTier experience, boolean friendlyInLane,
+                                   WeaponDef weapon, IntegralSystemDef system) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) grid.setWalkableFloor(x, y);
@@ -112,7 +215,8 @@ class InfantryWeaponsTest {
                 SoldierAptitude.STEADY, experience.minimumXp);
         long shooter = sim.spawn(new EntitySpec("shooter", Faction.MARINE,
                 UnitType.MARINE, 2, ROW)
-                .primaryWeapon(weapon, EquipmentGrade.SERVICE, profile));
+                .primaryWeapon(weapon, EquipmentGrade.SERVICE, profile)
+                .integralSystem(system));
         long friendly = sim.spawn(new EntitySpec("friendly", Faction.MARINE,
                 UnitType.MARINE, 11, friendlyInLane ? ROW : ROW + 3));
         long target = sim.spawn(new EntitySpec("target", Faction.DEFENDER,
