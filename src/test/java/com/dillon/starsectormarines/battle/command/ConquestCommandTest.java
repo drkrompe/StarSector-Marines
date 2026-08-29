@@ -1388,6 +1388,106 @@ public class ConquestCommandTest {
                 "an unseen hostile must not change the Marine command directive");
     }
 
+    /** Open ground tall enough to put a compound well beyond the front's reach. */
+    private static BattleSimulation deepExteriorSim(int height, int compoundY) {
+        NavigationGrid grid = new NavigationGrid(W, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        carveRoom(grid, 15, compoundY);
+        return new BattleSimulation(grid, new CellTopology(W, height));
+    }
+
+    @Test
+    public void aCompoundBeyondTheFrontEarnsNoDistantDetachment() {
+        // Before the gate existed, distance from the *squad* was the only
+        // ranking and the front was never consulted, so every uncaptured
+        // compound on the map was a standing target for every squad.
+        int compoundY = 5 + ConquestCommand.CAPTURE_FRONT_REACH_CELLS + 20;
+        BattleSimulation sim = deepExteriorSim(compoundY + 10, compoundY);
+        registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                15, compoundY, 14, compoundY - 1, 16, compoundY + 1,
+                Faction.DEFENDER, 80, 4));
+        Squad squad = addMarineSquad(sim, 15f, 5f);
+        ConquestCommand command = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+
+        tick(command, sim);
+
+        assertFalse(isSecureCompound(squad),
+                "a compound the front has not come near is not worth detaching to");
+    }
+
+    @Test
+    public void theFrontComingWithinReachOpensTheCompound() {
+        int compoundY = 5 + ConquestCommand.CAPTURE_FRONT_REACH_CELLS + 20;
+        BattleSimulation sim = deepExteriorSim(compoundY + 10, compoundY);
+        registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                15, compoundY, 14, compoundY - 1, 16, compoundY + 1,
+                Faction.DEFENDER, 80, 4));
+        Squad squad = addMarineSquad(sim, 15f, 5f);
+        // A second squad carries the line forward to within the reach margin.
+        // The lead is a property of the track, not of the squad being sent.
+        Squad lead = addMarineSquad(sim, 15f, compoundY - 2f);
+        ConquestCommand command = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+
+        tick(command, sim);
+
+        assertTrue(isSecureCompound(squad) || isSecureCompound(lead),
+                "once the line reaches it, the compound is capture work again");
+    }
+
+    @Test
+    public void anUntouchedFlankStaysClosedWhileTheFarSideAdvances() {
+        int compoundY = 5 + ConquestCommand.CAPTURE_FRONT_REACH_CELLS + 20;
+        BattleSimulation sim = deepExteriorSim(compoundY + 10, compoundY);
+        registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                15, compoundY, 14, compoundY - 1, 16, compoundY + 1,
+                Faction.DEFENDER, 80, 4));
+        Squad rear = addMarineSquad(sim, 15f, 5f);
+        // Deep advance two tracks away. A neighbouring track is abreast of the
+        // compound; the far edge of the map is not, and must not open it.
+        addMarineSquad(sim, 1f, compoundY + 2f);
+        ConquestCommand command = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+
+        tick(command, sim);
+
+        assertFalse(isSecureCompound(rear),
+                "the far side of the map advancing is not this compound's front");
+    }
+
+    @Test
+    public void groundTheFrontHasTakenStaysOpenAfterTheLeadSquadDies() {
+        int compoundY = 5 + ConquestCommand.CAPTURE_FRONT_REACH_CELLS + 20;
+        BattleSimulation sim = deepExteriorSim(compoundY + 10, compoundY);
+        registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                15, compoundY, 14, compoundY - 1, 16, compoundY + 1,
+                Faction.DEFENDER, 80, 4));
+        Squad rear = addMarineSquad(sim, 15f, 5f);
+        Squad lead = addMarineSquad(sim, 15f, compoundY - 2f);
+        // A third squad so MIN_FRONT_RESERVE_SQUADS is satisfied by somebody
+        // other than the one under test: with a lone survivor the reserve rule
+        // holds it on the front and the latch never gets a chance to speak.
+        Squad support = addMarineSquad(sim, 15f, 6f);
+        ConquestCommand command = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        tick(command, sim);
+        assertTrue(isSecureCompound(rear) || isSecureCompound(lead)
+                || isSecureCompound(support));
+
+        // The lead is the foremost *living* squad, so a live reading makes the
+        // line un-reach ground it has already taken the moment that squad dies
+        // — closing the compound and pulling the detachment off mid-approach.
+        // Let the arbiter release the dead squad's directive on its own rather
+        // than clearing assignments by hand: a hand-cleared objective leaves a
+        // still-stable directive standing and the retained proposal never
+        // rewrites it, which tests the harness instead of the gate.
+        lead.aliveMembers = 0;
+        tick(command, sim);
+
+        assertTrue(isSecureCompound(rear) || isSecureCompound(support),
+                "the front having reached a place is a fact about the battle, "
+                        + "not a reading of this pulse");
+    }
+
     private static void tick(ConquestCommand command, BattleSimulation sim) {
         CommanderService.runSingle(command, ConquestCommandDisclosure.INSTANCE,
                 sim);
