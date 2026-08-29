@@ -48,6 +48,18 @@ public enum BlockKind {
      */
     SPACEPORT_PAD,
 
+    /**
+     * A small airbase filling one city block — a berth, its shed, parked
+     * vehicles and a fence, at {@code AirbaseLot.Size.STRIP}. Scenery rather
+     * than an air arm: it publishes a civil landing pad and no AIRBASE node, so
+     * nothing flies from it and nothing gates on holding it. Tactically it is a
+     * walled lot with hard cover in it and a building to fight through, which
+     * is a good block to meet on the way to somewhere else.
+     *
+     * <p>Filled by {@code AirbasePadFiller}.
+     */
+    AIRBASE_PAD,
+
     /** Green block — grass blob center, sparse stone paths, optional benches. Low cover. */
     PARK,
 
