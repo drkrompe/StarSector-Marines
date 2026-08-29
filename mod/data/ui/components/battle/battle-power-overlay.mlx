@@ -1,0 +1,124 @@
+<template props="commandPoints,commandPointFillStyle,supplies,powerCards,targetingClasses,targetingLabel">
+  <div id="battle-power-overlay" class="battle-power-overlay">
+    <div id="battle-power-targeting" class="{targetingClasses}">
+      <div id="battle-power-targeting-label" class="label heading targeting-label">{targetingLabel}</div>
+      <div id="battle-power-targeting-hint" class="label targeting-hint">LMB CONFIRM · RMB CANCEL</div>
+    </div>
+    <div id="battle-power-deck" class="power-deck">
+      <div id="battle-power-resources" class="power-resources">
+        <div id="battle-power-resource-title" class="label heading resource-title">COMMAND</div>
+        <div id="battle-power-cp" class="label heading resource-cp">{commandPoints}</div>
+        <div id="battle-power-cp-track" class="resource-track">
+          <div id="battle-power-cp-fill" class="resource-fill" style="{commandPointFillStyle}" />
+        </div>
+        <div id="battle-power-supplies" class="label resource-supplies">{supplies}</div>
+      </div>
+      <div id="battle-power-cards" class="power-cards">
+        <button each="power in powerCards" key="{power.id}" id="{power.id}" class="{power.classes}" style="{power.style}" disabled="{power.disabled}" onclick="{power.action}">
+          <div id="{power.nameId}" class="label heading power-name">{power.name}</div>
+          <div id="{power.metaId}" class="power-meta">
+            <div id="{power.costId}" class="label power-cost">{power.cost}</div>
+            <div id="{power.statusId}" class="label heading power-status">{power.status}</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .battle-power-overlay {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    background-color: transparent;
+    overflow: hidden;
+  }
+
+  .label { overflow: hidden; white-space: nowrap; }
+  .heading { font-family: heading; }
+
+  .power-targeting {
+    width: 100%;
+    height: 14px;
+    flex-direction: row;
+    padding: 4px 7px;
+    border-width: 1px;
+    border-color: #ffd464;
+    background-color: #241f12ed;
+  }
+
+  .power-targeting-hidden {
+    height: 0px;
+    padding: 0px;
+    border-width: 0px;
+    opacity: 0;
+  }
+
+  .targeting-label { height: 14px; flex-grow: 1; color: #ffd464; }
+  .targeting-hint { width: 190px; height: 14px; text-align: right; color: #bcae82; }
+
+  .power-deck {
+    width: 100%;
+    height: 52px;
+    flex-direction: row;
+    padding: 5px;
+    gap: 5px;
+    border-width: 1px;
+    border-color: #4f6d8e;
+    background-color: #0b111be8;
+  }
+
+  .power-resources {
+    width: 88px;
+    height: 48px;
+    flex-direction: column;
+    padding: 2px 4px;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  .resource-title { width: 100%; height: 12px; color: #8b9aaf; }
+  .resource-cp { width: 100%; height: 12px; color: #c8e0ff; }
+  .resource-track { width: 100%; height: 3px; background-color: #172231; }
+  .resource-fill { height: 100%; background-color: #6ed7ff; }
+  .resource-supplies { width: 100%; height: 12px; color: #8294a8; }
+
+  .power-cards {
+    height: 52px;
+    flex-grow: 1;
+    flex-direction: row;
+    gap: 5px;
+    overflow: hidden;
+  }
+
+  .power-card {
+    width: 96px;
+    height: 38px;
+    flex-direction: column;
+    padding: 6px 7px;
+    gap: 5px;
+    border-width: 1px;
+    border-color: #31485f;
+    background-color: #142131e8;
+    color: #aebdce;
+    text-align: left;
+    overflow: hidden;
+  }
+
+  .power-card:hover { background-color: #243d56; border-color: #6ed7ff; }
+  .power-card:active { background-color: #315070; }
+  .power-ready { border-color: #4f6d8e; }
+  .power-disabled { background-color: #111821d6; border-color: #263747; }
+  .power-armed { background-color: #3a3018; border-color: #ffd464; color: #ffd464; }
+  .power-name { width: 100%; height: 17px; color: #aebdce; }
+  .power-meta { width: 100%; height: 14px; flex-direction: row; }
+  .power-cost { height: 14px; flex-grow: 1; color: #8fb9db; }
+  .power-status { width: 46px; height: 14px; text-align: right; color: #78d494; }
+  .power-disabled .power-cost { color: #58697a; }
+  .power-disabled .power-name { color: #667789; }
+  .power-disabled .power-status { color: #7b8795; }
+  .power-armed .power-name { color: #ffd464; }
+  .power-armed .power-cost { color: #bcae82; }
+  .power-armed .power-status { color: #ffd464; }
+</style>

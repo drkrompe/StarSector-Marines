@@ -122,6 +122,13 @@ toolkit remains presentation infrastructure rather than company or inventory aut
 Barracks and Mech Lab headless evidence collect the same bounded battle-simulation
 commands as the live views and substitute only the final Java2D drain; HQ and Armory
 evidence also render as deterministic PNGs without launching the game.
+In battle, one fixed task-force plate replaces the scale-bound squad roster;
+squad detail and GOAP diagnostics exist only for the squad selected in the world.
+An MLX-authored command rail holds time selection and a compact, map-conditional
+capture ledger while world markers remain the primary objective read. A second
+bounded MLX tray compresses the five-slot command-power deck and its resource
+states at bottom-center; only the world reticle and targeting click remain in
+the battle HUD layer.
 See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation

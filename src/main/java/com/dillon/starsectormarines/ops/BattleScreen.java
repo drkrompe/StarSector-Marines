@@ -26,12 +26,12 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
-import com.dillon.starsectormarines.battle.ui.compound.CompoundProgressPanel;
 import com.dillon.starsectormarines.battle.ui.panel.BattleCommsPanel;
+import com.dillon.starsectormarines.battle.ui.panel.CommandPowerTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
-import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
+import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
@@ -112,14 +112,9 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final Logger LOG = Global.getLogger(BattleScreen.class);
 
     private static final Color HEADER_COLOR   = new Color(0xC8, 0xE0, 0xFF);
-    private static final Color ACTIVE_SPEED   = new Color(0xFF, 0xB8, 0x00);
     private static final Color BANNER_BG      = new Color(0x10, 0x14, 0x1E);
     private static final Color VICTORY_COLOR  = new Color(0x80, 0xE0, 0x80);
     private static final Color DEFEAT_COLOR   = new Color(0xE0, 0x60, 0x60);
-    private static final float SPEED_BTN_W    = 60f;
-    private static final float SPEED_BTN_H    = 32f;
-    private static final float SPEED_BTN_GAP  = 6f;
-    private static final float SPEED_MARK_H   = 3f;
 
     /** Sound IDs declared in mod/data/config/sounds.json. */
     private static final String[] BATTLE_MUSIC_POOL = {
@@ -188,14 +183,15 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final float DISTANT_BOOM_PITCH_JITTER = 0.15f;
     /** Probability that a distant-boom event uses the dedicated muffled clip; otherwise pull from the pool and pitch-down. */
     private static final float DISTANT_BOOM_MUFFLED_CHANCE = 0.6f;
-    private static final float[] SPEED_OPTIONS = {0f, 1f, 2f, 4f};
-    private static final String[] SPEED_KEYS   = {
-            "battleSpeedPause", "battleSpeed1x", "battleSpeed2x", "battleSpeed4x"
-    };
-
     private final WidgetRoot widgets = new WidgetRoot();
     /** Battle HUD — squad overview/detail panels today; mini-map + objectives later. Lazy-built once {@link #layout} and {@link #camera} are ready, then reused across rebuilds. */
     private BattleHud hud;
+    /** MLX-authored player-facing command chrome: time controls and capture state. */
+    private BattleHudOverlay retainedOverlay;
+    /** MLX-authored compact command-power deck at bottom-center. */
+    private BattlePowerOverlay retainedPowerOverlay;
+    /** World click/reticle half of the power flow; card selection lives in MLX. */
+    private CommandPowerTargetingPanel commandPowerTargeting;
     /** Shared selection state read by HUD panels (and, later, a world-picker). Survives across attach()/rebuild() cycles; self-heals when the selected squad disappears. */
     private final Selection selection = new Selection();
     /** Shared debug cell-highlight overlay — populated by HUD panels, rendered between the grid pass and the unit sprites. */
@@ -212,9 +208,6 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private final CameraControls cameraControls = new CameraControls(true);
     private float speedMultiplier = 1f;
-    /** Pixel x-center of each speed button, captured at layout time for the active-marker dot. */
-    private final float[] speedBtnCenterX = new float[SPEED_OPTIONS.length];
-    private float speedBtnBottomY;
     /** Tracks the last-seen sim completion flag so we can rebuild widgets when it flips. */
     private boolean lastSimComplete;
     /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
@@ -347,6 +340,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH, layout.cellSize);
         ensureHud();
+        ensureRetainedOverlay(sim);
         lastSimComplete = sim != null && sim.isComplete();
 
         // Bottom-left action button — Back when in-progress, Continue when done.
@@ -359,27 +353,6 @@ public class BattleScreen implements Screen, BattleUiContext {
                 Strings.get(actionLabelKey),
                 layout.backX + 12f, layout.backY + BattleLayout.BACK_H - 6f, HEADER_COLOR));
 
-        // Speed buttons (top-right of controls strip)
-        float rowW = SPEED_OPTIONS.length * SPEED_BTN_W
-                + (SPEED_OPTIONS.length - 1) * SPEED_BTN_GAP;
-        float startX = layout.controlsX + layout.controlsW - rowW;
-        float btnY = layout.controlsY + (layout.controlsH - SPEED_BTN_H) / 2f;
-        speedBtnBottomY = btnY;
-        for (int i = 0; i < SPEED_OPTIONS.length; i++) {
-            float bx = startX + i * (SPEED_BTN_W + SPEED_BTN_GAP);
-            final float target = SPEED_OPTIONS[i];
-            ButtonWidget btn = new ButtonWidget(bx, btnY, SPEED_BTN_W, SPEED_BTN_H,
-                    () -> speedMultiplier = target);
-            widgets.add(btn);
-            // Center the label inside the button.
-            String label = Strings.get(SPEED_KEYS[i]);
-            float labelW = Fonts.ORBITRON_20.measureWidth(label);
-            float labelX = bx + (SPEED_BTN_W - labelW) / 2f;
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, label,
-                    labelX, btnY + SPEED_BTN_H - 6f, HEADER_COLOR));
-            speedBtnCenterX[i] = bx + SPEED_BTN_W / 2f;
-        }
-
     }
 
     @Override
@@ -390,6 +363,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         // state still update when the sim is paused. Panels' update() just
         // refreshes their cached views over the sim — cheap even at every frame.
         if (hud != null) hud.update(dt);
+        if (retainedOverlay != null) {
+            retainedOverlay.update(dt, ctx != null ? ctx.getBattleSimulation() : null,
+                    speedMultiplier);
+        }
+        if (retainedPowerOverlay != null) {
+            retainedPowerOverlay.update(dt,
+                    ctx != null ? ctx.getBattleSimulation() : null);
+        }
         // Park the OpenAL listener at the camera focus every frame so positional SFX (gunfire,
         // explosions, ambient loops, death VO) pan + attenuate around what the player is looking
         // at. setListenerPosOverrideOneFrame is a one-frame override, so it has to be re-armed
@@ -539,6 +520,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Same leak concern as the decal accumulator, for the S2/S3 ground FBO set.
         renderer.getGroundParallax().dispose();
         renderer.getGroundLights().clear();
+        if (retainedOverlay != null) retainedOverlay.detach();
+        if (retainedPowerOverlay != null) retainedPowerOverlay.detach();
 
         if (!audioActive) return;
         audioActive = false;
@@ -559,16 +542,15 @@ public class BattleScreen implements Screen, BattleUiContext {
         // claim their own rows via consume(); WorldPicker only fires on the
         // leftover unconsumed clicks that landed in the world rect.
         hud.addPanel(new WorldPicker(this));
-        // Command-power bar (bottom-center) + click-to-target. Added after
-        // WorldPicker so reverse-order input lets it claim the button click and
-        // the targeting world-click before the picker turns them into a squad
-        // selection; when not targeting, world clicks fall through to the picker.
-        hud.addPanel(new com.dillon.starsectormarines.battle.ui.panel.CommandPowerPanel(this));
-        hud.addPanel(new SquadOverviewPanel(this));
+        // The MLX power tray owns cards; this small world-layer partner owns
+        // only its reticle and next-click targeting. Added after WorldPicker so
+        // an armed power claims the map click before squad selection sees it.
+        commandPowerTargeting = new CommandPowerTargetingPanel(this);
+        hud.addPanel(commandPowerTargeting);
+        hud.addPanel(new TaskForceStatusPanel(this));
         hud.addPanel(new SquadDetailPanel(this));
-        // Per-squad GOAP plan readout. Compact when nothing is selected; full
-        // plan + predicate grid when WorldPicker (or the Overview rows) put a
-        // squad id into Selection.
+        // Per-squad GOAP plan readout. It has no all-squad overview: the
+        // diagnostic opens only while WorldPicker has a squad in Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
         // Per-phase tick wall-time profile (top-left). DevConfig-gated; informs
         // the upcoming DoD / ECS refactor by showing which tick phases are
@@ -640,15 +622,24 @@ public class BattleScreen implements Screen, BattleUiContext {
                 () -> turretAuthor.active = !turretAuthor.active);
         hud.addPanel(debugPanel);
         hud.addPanel(turretAuthor);
-        // Compound-progress strip (Conquest-only — auto-hides when no
-        // compounds are registered). Sibling to the world-anchored
-        // CompoundMarkerRenderer instance constructed in this screen; the
-        // panel handles the at-a-glance "captured / total" read.
-        hud.addPanel(new CompoundProgressPanel(this));
         // Player-facing battle dispatch surface. Added last so urgent comms
         // plates and the counterattack signpost paint above ordinary HUD
         // chrome; the panel is read-only and never consumes input.
         hud.addPanel(new BattleCommsPanel(this));
+    }
+
+    /** Installs or relayouts the retained overlay without rebuilding its reactive tree. */
+    private void ensureRetainedOverlay(BattleSimulation sim) {
+        if (retainedOverlay == null) {
+            retainedOverlay = new BattleHudOverlay(value -> speedMultiplier = value);
+        }
+        retainedOverlay.attach(position, sim, speedMultiplier);
+        if (retainedPowerOverlay == null) {
+            retainedPowerOverlay = new BattlePowerOverlay(
+                    commandPowerTargeting::toggle,
+                    commandPowerTargeting::targetingPowerId);
+        }
+        retainedPowerOverlay.attach(position, sim);
     }
 
     private void toggleConquestPicture(Faction perspective) {
@@ -1019,6 +1010,11 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void processInput(List<InputEventAPI> events) {
+        // Retained command surfaces claim only their compact corner/tray
+        // rectangles. Everywhere else input continues to the legacy Back
+        // button, debug HUD, and battlefield picker.
+        if (retainedOverlay != null) retainedOverlay.processInput(events);
+        if (retainedPowerOverlay != null) retainedPowerOverlay.processInput(events);
         widgets.processInput(events);
         // HUD gets first crack after widgets so a click on a squad row doesn't
         // also pan the camera or hit a future world-picker on the cells the
@@ -1145,13 +1141,15 @@ public class BattleScreen implements Screen, BattleUiContext {
             glPopAttrib();
         }
 
-        renderSpeedMarker(alphaMult);
-
         // HUD sits above the world layer but below the victory/defeat banner — a
         // mid-battle squad-select shouldn't be visually competing with the
-        // end-of-battle takeover. Drawn after the speed-marker so the marker's
-        // tiny indicator dot never gets clipped by a panel beneath it.
+        // end-of-battle takeover.
         if (hud != null) hud.render(alphaMult);
+
+        // Player-facing MLX chrome paints above the debug HUD. Its root is
+        // transparent, so only the compact command surfaces touch the canvas.
+        if (retainedOverlay != null) retainedOverlay.render(alphaMult);
+        if (retainedPowerOverlay != null) retainedPowerOverlay.render(alphaMult);
 
         if (sim != null && sim.isComplete()) {
             renderBanner(sim.getWinner(), alphaMult);
@@ -1169,19 +1167,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void advanceRoofAlphaLerp(BattleSimulation sim, float dt) {
         if (sim == null) return;
         BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), dt);
-    }
-
-    /** Amber underline under whichever speed button is currently active. */
-    private void renderSpeedMarker(float alphaMult) {
-        int activeIdx = -1;
-        for (int i = 0; i < SPEED_OPTIONS.length; i++) {
-            if (SPEED_OPTIONS[i] == speedMultiplier) { activeIdx = i; break; }
-        }
-        if (activeIdx < 0) return;
-        float w = SPEED_BTN_W - 16f;
-        float markX = speedBtnCenterX[activeIdx] - w / 2f;
-        float markY = speedBtnBottomY - SPEED_MARK_H - 2f;
-        fillRect(markX, markY, w, SPEED_MARK_H, ACTIVE_SPEED, alphaMult);
     }
 
     private void renderBanner(Faction winner, float alphaMult) {

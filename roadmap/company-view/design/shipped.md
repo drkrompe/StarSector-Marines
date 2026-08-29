@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-08-25 — folded the completed shipboard Barracks into the company-view model.
+Updated: 2026-08-29 — folded the scale-invariant battle HUD into the company-view model.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -12,3 +12,4 @@ Updated: 2026-08-25 — folded the completed shipboard Barracks into the company
 | `c14-fire-team-equipment-templates.md` | 2026-08-25 | this change | `company-view-nouns.md` — legacy compatibility input and replacement squad equipment doctrine |
 | `c9-fire-teams-as-the-maneuver-element.md` | 2026-08-23 | this change | `company-view-nouns.md` — stable battle teams, clearance-aware formations, bounding, and reachable fix-and-flank |
 | `c16-shipboard-barracks.md` | 2026-08-25 | this change | `company-view-nouns.md` — read-only quarters, roster projection, ambient tasks, and bounded live-fire presentation |
+| `c5-battle-hud-company-rollup.md` | 2026-08-29 | this change | `company-view-nouns.md` — scale-invariant task-force status and selection-scoped squad diagnostics |
