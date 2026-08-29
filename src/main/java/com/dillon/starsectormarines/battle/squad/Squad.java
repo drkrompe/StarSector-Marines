@@ -153,6 +153,12 @@ public final class Squad {
     private volatile List<BelievedContact> believedContacts = List.of();
     /** Immutable belief-derived tactical summary published once per sim tick. */
     public volatile SquadContactPicture contactPicture = SquadContactPicture.NONE;
+    /**
+     * This squad's part in a cooperating attack, published once per sim tick
+     * after {@link #contactPicture} and before the replan. {@code NONE} for
+     * every squad not under an attack-move order.
+     */
+    public volatile SquadAssaultPicture assaultPicture = SquadAssaultPicture.NONE;
     /** One-tick planner interrupt set when the selected local doctrine changes. */
     public volatile boolean _contactDoctrineChangedThisTick;
     /** Distinguishes the compatibility projection from an anonymous audio bearing. */
