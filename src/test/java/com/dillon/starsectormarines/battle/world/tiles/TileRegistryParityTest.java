@@ -53,9 +53,9 @@ public class TileRegistryParityTest {
             new G("nature.tuft-1",        NATURE_SHEET, 9,  TileLayer.PLANT,  TileCover.NONE,  true),
             new G("nature.tuft-2",        NATURE_SHEET, 10, TileLayer.PLANT,  TileCover.NONE,  true),
             new G("nature.shrub-3",       NATURE_SHEET, 11, TileLayer.PLANT,  TileCover.NONE,  true),
-            new G("nature.rock-small-1",  NATURE_SHEET, 12, TileLayer.ROCK,   TileCover.NONE,  true),
-            new G("nature.rock-small-2",  NATURE_SHEET, 13, TileLayer.ROCK,   TileCover.NONE,  true),
-            new G("nature.rock-small-3",  NATURE_SHEET, 14, TileLayer.ROCK,   TileCover.NONE,  true),
+            new G("nature.tuft-3",        NATURE_SHEET, 12, TileLayer.PLANT,  TileCover.NONE,  true),
+            new G("nature.rock-small-1",  NATURE_SHEET, 13, TileLayer.ROCK,   TileCover.NONE,  true),
+            new G("nature.rock-small-2",  NATURE_SHEET, 14, TileLayer.ROCK,   TileCover.NONE,  true),
             new G("nature.rock-medium-1", NATURE_SHEET, 15, TileLayer.ROCK,   TileCover.LIGHT, true),
             new G("nature.rock-medium-2", NATURE_SHEET, 16, TileLayer.ROCK,   TileCover.LIGHT, true),
             new G("nature.rock-large-1",  NATURE_SHEET, 17, TileLayer.ROCK,   TileCover.HEAVY, false),
@@ -106,9 +106,10 @@ public class TileRegistryParityTest {
         TileRegistry reg = loadRegistry();
         Set<String> grasses = Set.of("nature.grass-1", "nature.grass-2");
         Set<String> waters = Set.of("nature.water-1", "nature.water-2");
-        List<String> plants = List.of("nature.shrub-1", "nature.shrub-2", "nature.tuft-1", "nature.tuft-2", "nature.shrub-3");
+        List<String> plants = List.of("nature.shrub-1", "nature.shrub-2", "nature.tuft-1", "nature.tuft-2",
+                "nature.tuft-3", "nature.shrub-3");
         List<String> rocks = List.of(
-                "nature.rock-small-1", "nature.rock-small-2", "nature.rock-small-3",
+                "nature.rock-small-1", "nature.rock-small-2",
                 "nature.rock-medium-1", "nature.rock-medium-2",
                 "nature.rock-large-1", "nature.rock-large-2", "nature.rock-large-3");
         List<String> natureGrounds = GOLDEN.stream()
