@@ -104,6 +104,86 @@ public final class AirbaseLot {
     }
 
     /**
+     * Which edge of the lot the approach is on — and therefore which way the
+     * whole base is turned.
+     *
+     * <p>Four, not two. The lot used to take a traversal axis, which gave it
+     * the two orientations a fortress ward needs: a base at the bottom of the
+     * map facing the attacker, or one at the left facing the same way. Anywhere
+     * else on a map, the direction that matters is the one the site actually
+     * fronts onto — the road it opens off, the edge it was built along — and
+     * that can be any of four.
+     *
+     * <p>Rotation is safe here because every piece of the lot is already placed
+     * in the lot's own frame: <em>along</em> the frontage and <em>into</em> the
+     * depth, never in map x and y. Turning the base is therefore a change to
+     * two accessors — where the depth starts and which way it runs — and the
+     * runway, berths, sheds, park and tower all follow without knowing.
+     */
+    public enum Facing {
+        /** Approach from low y; the strip lies along the lot's south edge. */
+        SOUTH(true, 1, LandingPad.Approach.SOUTH, 0, false),
+        /** Approach from high y — the half turn, taken as a mirror. */
+        NORTH(true, -1, LandingPad.Approach.NORTH, 0, true),
+        /** Approach from low x. */
+        WEST(false, 1, LandingPad.Approach.WEST, 1, false),
+        /** Approach from high x. */
+        EAST(false, -1, LandingPad.Approach.EAST, 1, true);
+
+        /** Whether the lot's depth runs along the map's y axis. */
+        final boolean alongY;
+        /** Which way "deeper into the lot" runs on that axis. */
+        final int sign;
+        final LandingPad.Approach approach;
+        /**
+         * Quarter turns anything with a front takes when the lot is turned.
+         *
+         * <p>The paving, the walls and the markings are all symmetric enough
+         * not to care, but a truck is drawn facing somewhere. Six of them
+         * pointing the same way on a lot that has been turned is the one thing
+         * that gives a rotation away.
+         *
+         * <p><b>A quarter turn is a rotation; a half turn must be a mirror.</b>
+         * The art is drawn lit from one direction, so turning a vehicle through
+         * a hundred and eighty degrees lights it from underneath and it reads as
+         * upside down. The two facings opposite the baselines therefore keep
+         * their neighbour's rotation and mirror it instead.
+         */
+        final int quarterTurns;
+        final boolean mirrored;
+
+        Facing(boolean alongY, int sign, LandingPad.Approach approach,
+               int quarterTurns, boolean mirrored) {
+            this.alongY = alongY;
+            this.sign = sign;
+            this.approach = approach;
+            this.quarterTurns = quarterTurns;
+            this.mirrored = mirrored;
+        }
+
+        /** Whether the lot's depth runs along the map's y axis. */
+        public boolean alongY() { return alongY; }
+
+        /** Which way "deeper into the lot" runs on that axis. */
+        public int sign() { return sign; }
+
+        /** Quarter turns a directional prop takes at this facing. */
+        public int quarterTurns() { return quarterTurns; }
+
+        /** Whether a directional prop is mirrored rather than turned further. */
+        public boolean mirrored() { return mirrored; }
+
+        /**
+         * The facing a mission's traversal axis implies: the base fronts onto
+         * the side the attacker arrives from, so an aircraft comes in over the
+         * ward rather than over the wall behind it.
+         */
+        public static Facing of(TraversalAxis axis) {
+            return axis == TraversalAxis.SOUTH_TO_NORTH ? SOUTH : WEST;
+        }
+    }
+
+    /**
      * Cells of clear ground kept outside the fence, all the way round.
      *
      * <p>A fence on the boundary of its own reservation is one a building can
@@ -136,13 +216,13 @@ public final class AirbaseLot {
     }
 
     /** Cells across the reservation a host must set aside, clearance included. */
-    public static int reservedSpanX(Size size, TraversalAxis axis) {
-        return spanX(size, axis) + CLEARANCE * 2;
+    public static int reservedSpanX(Size size, Facing facing) {
+        return spanX(size, facing) + CLEARANCE * 2;
     }
 
     /** Cells down the reservation a host must set aside, clearance included. */
-    public static int reservedSpanY(Size size, TraversalAxis axis) {
-        return spanY(size, axis) + CLEARANCE * 2;
+    public static int reservedSpanY(Size size, Facing facing) {
+        return spanY(size, facing) + CLEARANCE * 2;
     }
 
     /**
@@ -181,29 +261,31 @@ public final class AirbaseLot {
     private final int bottom;
     private final int right;
     private final int top;
+    private final Facing facing;
     private final boolean alongY;
     private final LandingPad.Approach approach;
     private final Size size;
 
     public AirbaseLot(int left, int bottom, int right, int top,
-                      TraversalAxis axis, Size size) {
+                      Facing facing, Size size) {
         this.left = left;
         this.bottom = bottom;
         this.right = right;
         this.top = top;
-        this.alongY = axis == TraversalAxis.SOUTH_TO_NORTH;
-        this.approach = alongY ? LandingPad.Approach.SOUTH : LandingPad.Approach.WEST;
+        this.facing = facing;
+        this.alongY = facing.alongY;
+        this.approach = facing.approach;
         this.size = size;
     }
 
-    /** Cells across the lot on the map's x axis, for the given approach. */
-    public static int spanX(Size size, TraversalAxis axis) {
-        return axis == TraversalAxis.SOUTH_TO_NORTH ? size.width : size.depth;
+    /** Cells across the lot on the map's x axis, for the given facing. */
+    public static int spanX(Size size, Facing facing) {
+        return facing.alongY ? size.width : size.depth;
     }
 
-    /** Cells across the lot on the map's y axis, for the given approach. */
-    public static int spanY(Size size, TraversalAxis axis) {
-        return axis == TraversalAxis.SOUTH_TO_NORTH ? size.depth : size.width;
+    /** Cells across the lot on the map's y axis, for the given facing. */
+    public static int spanY(Size size, Facing facing) {
+        return facing.alongY ? size.depth : size.width;
     }
 
     /**
@@ -320,15 +402,31 @@ public final class AirbaseLot {
                         GROUND_SUPPORT[slot++ % GROUND_SUPPORT.length]);
                 if (truck == null) continue;
                 if (x < left + 1 || y < bottom + 1) continue;
-                if (x + truck.footprintCellsX - 1 > right - 1) continue;
-                if (y + truck.footprintCellsY - 1 > top - 1) continue;
+                // Turned with the lot, and measured after turning: a truck
+                // rotated a quarter turn is two cells across and three deep
+                // rather than the other way round, so a park that fitted on one
+                // facing would hang over the fence on the next.
+                int spanX = turnedSpanX(truck);
+                int spanY = turnedSpanY(truck);
+                if (x + spanX - 1 > right - 1) continue;
+                if (y + spanY - 1 > top - 1) continue;
                 // Never on a berth. A compact lot has the park close enough to
                 // the stands that "it fits inside the fence" stops being the
                 // same question as "it is not on the aircraft".
-                if (onABerth(ctx, x, y, truck.footprintCellsX, truck.footprintCellsY)) continue;
-                ctx.doodads.add(new Doodad(x, y, truck));
+                if (onABerth(ctx, x, y, spanX, spanY)) continue;
+                ctx.doodads.add(new Doodad(x, y, truck, facing.quarterTurns, facing.mirrored));
             }
         }
+    }
+
+    /** A prop's span on the map's x axis once the lot's turn is applied. */
+    private int turnedSpanX(DoodadDef def) {
+        return (facing.quarterTurns & 1) == 0 ? def.footprintCellsX : def.footprintCellsY;
+    }
+
+    /** A prop's span on the map's y axis once the lot's turn is applied. */
+    private int turnedSpanY(DoodadDef def) {
+        return (facing.quarterTurns & 1) == 0 ? def.footprintCellsY : def.footprintCellsX;
     }
 
     /** Whether this footprint would stand on any berth already marked out. */
@@ -690,12 +788,13 @@ public final class AirbaseLot {
 
     /** The lot's front edge on the depth axis — the side the attacker approaches from. */
     private int depthStart() {
-        return alongY ? bottom + 1 : left + 1;
+        if (alongY) return facing.sign > 0 ? bottom + 1 : top - 1;
+        return facing.sign > 0 ? left + 1 : right - 1;
     }
 
     /** Which way "deeper into the lot" runs on the depth axis. */
     private int depthSign() {
-        return 1;
+        return facing.sign;
     }
 
     /** Low end of the lot's long axis. */

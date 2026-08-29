@@ -142,7 +142,7 @@ final class AirfieldSortieScene {
         AirbaseLot.Size size = AirbaseLot.Size.FIELD;
         AirbaseLot lot = new AirbaseLot(LOT_LEFT, LOT_BOTTOM,
                 LOT_LEFT + size.width - 1, LOT_BOTTOM + size.depth - 1,
-                TraversalAxis.SOUTH_TO_NORTH, size);
+                AirbaseLot.Facing.SOUTH, size);
         lot.author(gen, new Random(seed));
         rememberPads(gen.landingPads);
 
