@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — a frame's picture may be a declared tileable material, sized by that material plus the renderer's ground inset; a sheet has exactly one producer; a piece may be drawn as several bodies; a repeating field is solid and carries a sprite border that is not part of the surface.
+Updated: 2026-08-29 — walls, doorways and roofs are dispatched by the mapping's `surfaceRender` section rather than by ids compiled into the render systems.
 
 Read `stories.md` for open work.
 
@@ -31,6 +31,12 @@ override layer: changing core generation policy remains a deliberate core edit.
 - A **grid block** is a named fixed-grid surface. Its named layout remains a
   code algorithm; the definition supplies the asset coordinates or a stable
   variant pool.
+- A **surface role** is a thing the renderer draws that is not a ground kind:
+  the wall, the open doorway, and the intact roof. Ground kinds and surface
+  roles are orthogonal per cell rather than alternatives — a cell has exactly
+  one ground kind and may additionally be a wall, a doorway, or roofed — so
+  they are two key spaces, not one. Both are dispatched by the mapping, and a
+  role that no mapping names falls back to the id this mod ships for it.
 - A **doodad** is a prop with an authored source cell and intrinsic tactical
   properties. A doodad definition says what the prop is; a pool says where
   generation may choose it. Prop is a role, not a size or a subject: a
@@ -152,6 +158,16 @@ directional edge cover on adjacent standable cells; it never publishes both
 shapes. Map generation must tag such props as fixtures so finalization does not
 promote them to walls. Water is the complementary zero-cover blocker: it is
 non-walkable and see-through but explicitly supplies no edge profile.
+
+Render dispatch covers both key spaces. Ground kinds resolve through the
+mapping's `groundRender` section and surface roles through its `surfaceRender`
+section; neither the wall, the doorway, nor the roof is named by the render
+systems any more. That symmetry is the point rather than a tidiness: while the
+orthogonal surfaces resolved by compiled id, a second wall could be authored,
+slotted, and exported correctly and still never be drawn, and nothing anywhere
+failed — every id resolved and every cell was opaque. A surface that is drawn
+but not dispatchable is authorable only in appearance, so any new one joins the
+role vocabulary at the same time as the code that draws it.
 
 `GenMappingRegistry` is also the storage location for surface-relief material
 overrides. The tile feature owns the mapping container and its load order;

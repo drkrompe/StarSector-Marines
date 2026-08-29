@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
+import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.catalog.CatalogSource;
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest.CatalogFile;
@@ -26,8 +28,8 @@ import java.util.Set;
  * generated things" data half of moddable-tilesets Phase 2, loaded from
  * {@code data/tilesets/*.mapping.json}. Sibling to {@link TileRegistry}: that
  * one owns the tile/doodad <em>defs</em> (what art exists); this one owns how
- * gen <em>uses</em> them: ordered doodad pools, {@code GroundKind} render
- * dispatch, per-{@code BlockKind} filler parameters, and surface-relief
+ * gen <em>uses</em> them: ordered doodad pools, {@code GroundKind} and
+ * {@link SurfaceRole} render dispatch, per-{@code BlockKind} filler parameters, and surface-relief
  * material overrides.
  *
  * <p>The data/algorithm seam holds: pools/membership are data here; the scatter
@@ -52,6 +54,9 @@ public final class GenMappingRegistry {
     /** {@link GroundKind} -> the tileset block/tile id its primary surface renders as. The render-dispatch data half ({@code GroundRenderSystem} reads it instead of hardcoding ids). */
     private final Map<GroundKind, String> groundRender = new EnumMap<>(GroundKind.class);
     private final Map<GroundKind, CatalogSource> groundRenderSources = new EnumMap<>(GroundKind.class);
+    /** {@link SurfaceRole} -> the tileset block/tile id that orthogonal surface renders as. The wall, doorway and roof half of render dispatch; {@code groundRender}'s sibling, separate because the two vocabularies are orthogonal per cell. */
+    private final Map<SurfaceRole, String> surfaceRender = new EnumMap<>(SurfaceRole.class);
+    private final Map<SurfaceRole, CatalogSource> surfaceRenderSources = new EnumMap<>(SurfaceRole.class);
     /** {@link BlockKind} -> its code filler's tunables (pools/chances). The filler reads these instead of hardcoding them; the carve/scatter algorithm stays in the filler. */
     private final Map<BlockKind, FillerParams> fillerParams = new EnumMap<>(BlockKind.class);
     private final Map<BlockKind, CatalogSource> fillerSources = new EnumMap<>(BlockKind.class);
@@ -100,6 +105,16 @@ public final class GenMappingRegistry {
                 groundRenderSources.put(kind, source);
             }
         }
+        JSONObject surfaces = root.optJSONObject("surfaceRender");
+        if (surfaces != null) {
+            for (Iterator<String> it = surfaces.keys(); it.hasNext(); ) {
+                String roleName = it.next();
+                SurfaceRole role = SurfaceRole.valueOf(roleName);
+                requireUnique("surface render mapping", role, surfaceRenderSources, source);
+                surfaceRender.put(role, surfaces.getString(roleName));
+                surfaceRenderSources.put(role, source);
+            }
+        }
         JSONObject fillers = root.optJSONObject("fillers");
         if (fillers != null) {
             for (Iterator<String> it = fillers.keys(); it.hasNext(); ) {
@@ -114,7 +129,7 @@ public final class GenMappingRegistry {
         if (macroHeight != null) {
             for (Iterator<String> it = macroHeight.keys(); it.hasNext(); ) {
                 String key = it.next();
-                if (!"WALL".equals(key)) GroundKind.valueOf(key);
+                if (SurfaceRole.fromKeyOrNull(key) == null) GroundKind.valueOf(key);
                 requireUnique("macro-height mapping", key, macroHeightSources, source);
                 macroHeightOverride.put(key, (float) macroHeight.getDouble(key));
                 macroHeightSources.put(key, source);
@@ -165,6 +180,40 @@ public final class GenMappingRegistry {
      */
     public String groundBlockId(GroundKind kind) {
         return groundRender.get(kind);
+    }
+
+    /**
+     * The tileset block/tile id {@code role} renders as, or {@code null} if
+     * unmapped — in which case the consumer keeps its compiled fallback, the
+     * same way an absent {@code groundRender} entry leaves a kind undrawn.
+     *
+     * <p>This is what makes a second authored wall reachable: the renderer asks
+     * for the wall, not for {@code urban.wall}.
+     */
+    public String surfaceBlockId(SurfaceRole role) {
+        return surfaceRender.get(role);
+    }
+
+    /**
+     * The block id {@code role} resolves to right now — the installed mapping's
+     * entry, else {@link SurfaceRole#shippedBlockId()}. Never {@code null}, so
+     * a caller with no catalog still draws this mod's own art.
+     */
+    public static String installedSurfaceBlockId(SurfaceRole role) {
+        GenMappingRegistry mapping = installed();
+        String id = (mapping == null) ? null : mapping.surfaceBlockId(role);
+        return id != null ? id : role.shippedBlockId();
+    }
+
+    /**
+     * The {@link GridBlockDef} {@code role} resolves to, or {@code null} when no
+     * tile catalog is installed or the mapped id names no block. Resolves the
+     * role for callers that hold no mapping of their own, such as preview
+     * scenes and the render passes that need the block once per frame.
+     */
+    public static GridBlockDef installedSurfaceBlock(SurfaceRole role) {
+        TileRegistry tiles = TileRegistry.installed();
+        return (tiles == null) ? null : tiles.block(installedSurfaceBlockId(role));
     }
 
     /** The code filler's data tunables for {@code kind}, or {@code null} if none authored. */
@@ -247,6 +296,15 @@ public final class GenMappingRegistry {
                 throw new IllegalStateException("GenMappingRegistry: ground render mapping '"
                         + entry.getKey() + "' from "
                         + groundRenderSources.get(entry.getKey()).describe()
+                        + " references unknown tile or block id '" + id + "'");
+            }
+        }
+        for (Map.Entry<SurfaceRole, String> entry : surfaceRender.entrySet()) {
+            String id = entry.getValue();
+            if (!tiles.has(id) && !tiles.hasBlock(id)) {
+                throw new IllegalStateException("GenMappingRegistry: surface render mapping '"
+                        + entry.getKey() + "' from "
+                        + surfaceRenderSources.get(entry.getKey()).describe()
                         + " references unknown tile or block id '" + id + "'");
             }
         }
