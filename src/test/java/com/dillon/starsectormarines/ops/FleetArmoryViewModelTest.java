@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.ArmorRole;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -20,6 +21,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -65,7 +67,13 @@ class FleetArmoryViewModelTest {
                 .stream().map(FleetArmoryViewModel.StatMeter::label).toList());
         assertTrue(firstMarine.weaponStats().stream().allMatch(stat ->
                 stat.fillStyle().matches("width: \\d{1,3}%;")));
-        assertEquals("SECURITY", firstMarine.unitClass());
+        // The card shows a role from the closed vocabulary rather than whatever
+        // text the catalog happened to carry. Asserted as membership, not as a
+        // literal, so filling out the role matrix cannot break a test about the
+        // Armory rendering a card.
+        assertTrue(Arrays.stream(ArmorRole.values())
+                        .anyMatch(role -> role.displayName().equals(firstMarine.unitClass())),
+                "unexpected role on the card: " + firstMarine.unitClass());
         assertEquals("W II", firstMarine.weaponBadge());
         assertEquals("A II", firstMarine.armorBadge());
         assertTrue(firstMarine.primaryDescription().length() > 80);

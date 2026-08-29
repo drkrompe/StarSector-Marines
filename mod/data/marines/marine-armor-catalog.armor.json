@@ -4,7 +4,7 @@
       "id": "armor.field-fatigues",
       "catalog": {
         "displayName": "Domain-pattern vac fatigues",
-        "unitClass": "LINE",
+        "role": "unpowered",
         "description": "Domain-pattern vac fatigues remain the working uniform of crews, militias, and cash-poor infantry. Local factories preserve the seals; unrestricted movement comes at the price of dangerous exposure.",
         "tier": 1,
         "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
@@ -15,7 +15,7 @@
       "id": "armor.cordon-shell",
       "catalog": {
         "displayName": "Cordon surplus shell",
-        "unitClass": "SECURITY",
+        "role": "line",
         "description": "Cordon shells are obsolete station-security cuirasses sold after their seals, shock liners, or liability tags fail inspection. A local armorer can make one wearable again, but mismatched plates and tired joints leave the user with protection no professional force would call dependable.",
         "tier": 1,
         "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
@@ -26,7 +26,7 @@
       "id": "armor.lashplate-harness",
       "catalog": {
         "displayName": "Lashplate salvage harness",
-        "unitClass": "RAIDER",
+        "role": "line",
         "description": "A Lashplate harness is a cargo frame, pressure web, and slabs of whatever a breaker crew could drill and wire into place. The mass can catch fragments and weak rounds, but crude balance, exposed lines, and almost nonexistent material matching make it cheap protection for expendable hands.",
         "tier": 1,
         "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
@@ -37,7 +37,7 @@
       "id": "armor.combat",
       "catalog": {
         "displayName": "Bastion line armor",
-        "unitClass": "LINE",
+        "role": "line",
         "description": "Kazeron's Bastion pattern lets League member worlds replace one another's plates and seals. Layered laminate trades modest mobility for dependable coalition line protection.",
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
@@ -48,7 +48,7 @@
       "id": "armor.aegis-composite",
       "catalog": {
         "displayName": "Aegis composite line suit",
-        "unitClass": "LINE",
+        "role": "support",
         "description": "Tri-Tachyon's Aegis exchanges thick conventional plate for laminated composites, predictive threat displays, and powered balance correction. It cannot absorb a slugging match like Legionary armor, but it moves quickly and presents a difficult firing solution.",
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
@@ -78,7 +78,7 @@
       "id": "armor.palatine",
       "catalog": {
         "displayName": "Palatine legacy line suit",
-        "unitClass": "LINE",
+        "role": "line",
         "description": "Church armorers rebuild Palatine suits from inherited pressure shells, hand-fitted ceramic, and carefully husbanded powered joints. The result is slow and laborious to maintain, but unusually resistant once a sanctioned guardian sets their feet.",
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
@@ -89,7 +89,7 @@
       "id": "armor.furnace-line",
       "catalog": {
         "displayName": "Furnace state line suit",
-        "unitClass": "LINE",
+        "role": "line",
         "description": "Sindrian Furnace armor surrounds a conventional pressure frame with thick petrochemical laminate and conspicuous state fittings. It carries more sacrificial plate than its peers, while heat, weight, and an unsubtle silhouette punish prolonged maneuver.",
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
@@ -100,7 +100,7 @@
       "id": "armor.reaver",
       "catalog": {
         "displayName": "Reaver reinforced rig",
-        "unitClass": "RAIDER",
+        "role": "line",
         "description": "A Reaver rig is a Blackforge frame that survived long enough to acquire powered bracing and another generation of ship plate. It is fast for its bulk and can soak punishment, but poor material matching gives penetrators few reasons to stop.",
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
@@ -111,7 +111,7 @@
       "id": "armor.scout",
       "catalog": {
         "displayName": "Janus scout suit",
-        "unitClass": "SCOUT",
+        "role": "recon",
         "description": "Tri-Tachyon's Janus suit hides composite segments beneath a sensor hood and electronic-warfare weave. Corporate scouts prize its speed; gray-market users struggle with the interfaces.",
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
@@ -142,7 +142,7 @@
       "id": "armor.heavy",
       "catalog": {
         "displayName": "XIV heavy battlesuit",
-        "unitClass": "ASSAULT",
+        "role": "assault",
         "description": "The XIV heavy battlesuit is the Hegemony's Domain-spec answer to a breach: dense ceramic, powered bracing, and standardized hardpoints. It survives punishment at an obvious cost in speed.",
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
@@ -175,7 +175,7 @@
       "id": "armor.specter-heavy",
       "catalog": {
         "displayName": "Specter composite battlesuit",
-        "unitClass": "ASSAULT",
+        "role": "assault",
         "description": "The Specter is a corporate breach shell built around high-output joints, composite armor, and continuous threat prediction. It gives up the XIV pattern's raw staying power to cross exposed ground faster and remain unexpectedly elusive for a walking tank.",
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
@@ -208,7 +208,7 @@
       "id": "armor.bulwark-heavy",
       "catalog": {
         "displayName": "Bulwark coalition battlesuit",
-        "unitClass": "ASSAULT",
+        "role": "assault",
         "description": "The League's Bulwark program favors modular plate blocks, replaceable actuators, and control standards that member worlds can reproduce. It lacks any one spectacular advantage and instead preserves credible protection, handling, and coalition repairability together.",
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
@@ -241,7 +241,7 @@
       "id": "armor.reliquary-heavy",
       "catalog": {
         "displayName": "Reliquary consecrated battlesuit",
-        "unitClass": "ASSAULT",
+        "role": "assault",
         "description": "Each Reliquary shell is an artisan-restored legacy machine entrusted only to a Knight who has passed the Church's trials of custody. Dense fitted armor turns aside heavy fire, but conservative governors and immense mass make the wearer deliberate rather than swift.",
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
@@ -274,7 +274,7 @@
       "id": "armor.lions-mantle",
       "catalog": {
         "displayName": "Lion's Mantle guard battlesuit",
-        "unitClass": "ASSAULT",
+        "role": "assault",
         "description": "Lion's Mantle suits carry thick Sindrian laminates, oversized cooling loops, and enough polished state ornament to make concealment irrelevant. Privileged logistics buy an enormous armor reserve; weight and silhouette leave the operator dependent on a disciplined advance.",
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
@@ -307,7 +307,7 @@
       "id": "armor.foundry-breaker",
       "catalog": {
         "displayName": "Foundry-breaker industrial rig",
-        "unitClass": "ASSAULT",
+        "role": "assault",
         "description": "Foundry-breakers begin as cargo exoskeletons and end beneath welded ship plate, illicit servos, and whatever shock padding a raider cell can steal. The crude mass takes extraordinary punishment before coming apart, but offers poor resistance and nearly no tactical grace.",
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
@@ -340,7 +340,7 @@
       "id": "armor.outlaw",
       "catalog": {
         "displayName": "Blackforge patchwork rig",
-        "unitClass": "RAIDER",
+        "role": "line",
         "description": "Blackforge rig means cut-down security armor, industrial exoframe, ship plate, and hand-fitted seals from pirate or Pather shops. No two suits agree; the better examples are quick and stubborn.",
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
@@ -351,7 +351,7 @@
       "id": "armor.line",
       "catalog": {
         "displayName": "Legionary line suit",
-        "unitClass": "LINE",
+        "role": "line",
         "description": "The Hegemony's Legionary suit favors interchangeable plates, pressure integrity, and field-serviceable joints. It is heavier than scout gear and built for disciplined formations far from a depot.",
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
@@ -362,7 +362,7 @@
       "id": "armor.militia",
       "catalog": {
         "displayName": "Ward security kit",
-        "unitClass": "SECURITY",
+        "role": "line",
         "description": "Ward is the frontier name for locally assembled torso plate, sealed helmet, and available impact layers. Stations, Church villages, and auxiliaries issue it to section leaders.",
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"

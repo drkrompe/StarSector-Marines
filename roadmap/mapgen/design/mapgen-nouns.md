@@ -4,6 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
+Updated: 2026-08-29 — the airfield is a facility: a walled hangar sheltering one
+berth, set back off its own paving, inside a fence with a gate front and back.
+
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
 field-revetment profile that law admits; added the Conquest fortress ward,
@@ -265,6 +268,35 @@ connected, fully checked, and impassable to the one thing that mattered. Ground
 that was already spare cannot do that. The price is that an airfield is not
 guaranteed — a ward whose packing left no clear stretch has none, the same way a
 compound with no wing a bay fits in has no vehicle shed.
+
+A field is a **facility**, not a marked rectangle: a hangar, stands, and a
+fence. The shed is a real building — a wall ring with an aircraft-wide opening
+onto the taxiway rather than a marine-wide door — and it is paid for out of the
+row of stands rather than added to the envelope. That is forced rather than
+chosen. Measured across eight seeds, unclaimed yard is plentiful at the apron's
+eight-cell depth (eleven to forty-six cells wide) and all but gone at ten, where
+most seeds offer a single column; an airfield that needed two more rows would
+simply stop existing. So the aircraft count is unchanged and their exposure is
+not — two stand in the open where any sight line can burn them, and the third is
+behind a wall an attacker has to enter or breach. That is the whole value of the
+building, and it is why the shed is a wall rather than differently-coloured
+paint.
+
+**A shed set flush against the edge of its own paving opens onto the outside.**
+The apron's front rows are the taxiway; a hangar that takes the full depth puts
+its mouth on the outermost row, where the only approach is from beyond the
+fence. The crew then has to leave the airfield and come back in to reach an
+aircraft parked in the middle of it. A hangar is therefore set back by the same
+row the stands leave, and berth reachability is asserted on both traversal axes,
+because a mirrored layout is exactly where that error hides.
+
+The fence takes only cells that are still unclaimed yard and skips the rest,
+which is both what the envelope allows and how a real compound fence behaves —
+it runs until it meets the side of a building and starts again after it. It
+carries a gate front and back. Two gates is a safety property rather than a
+flourish: a ring that fully encloses the apron makes a pocket, and a pocket
+whose only gate faces the wrong way sends the ground crew the long way round
+their own airfield, or seals the field off from the ward entirely.
 
 **Wedging is a hull's virtue and a compound's defect.** A packer scores a
 position by how tightly it wedges against something already solid, which is
