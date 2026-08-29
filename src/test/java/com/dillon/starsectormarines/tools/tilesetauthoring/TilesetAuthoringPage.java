@@ -30,6 +30,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -111,6 +112,16 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private final TilesetLibraryView library = new TilesetLibraryView(this::openFromLibrary);
     private final SurfaceBrowserView surfaces = new SurfaceBrowserView(this::openCandidate);
     private JTable table;
+    private JScrollPane tableScroll;
+    private JScrollPane sheetPicture;
+    private JTabbedPane previews;
+
+    /** The two screens the page alternates between: the chooser and a walkthrough. */
+    private static final String CHOOSER = "chooser";
+    private static final String WIZARD = "wizard";
+    private final JPanel screens = new JPanel(new CardLayout());
+    private TilesetWizard wizard;
+    private TilesetWorkflow workflow;
     private TilesetMapPanel mapPanel;
 
     private BufferedImage source;
@@ -152,84 +163,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
     public TilesetAuthoringPage(AuthoringPageContext context) {
         this.context = context;
-
-        JToolBar bar = new JToolBar();
-        bar.setFloatable(false);
-        bar.add(new AbstractAction("Open selected") {
-            @Override public void actionPerformed(ActionEvent e) {
-                openSelectedFromLibrary();
-            }
-        });
-        bar.add(new AbstractAction("Rescan") {
-            @Override public void actionPerformed(ActionEvent e) {
-                rescanLibrary();
-            }
-        });
-        bar.addSeparator();
-        bar.add(new AbstractAction("Browse…") {
-            @Override public void actionPerformed(ActionEvent e) {
-                openSheet();
-            }
-        });
-        bar.add(new AbstractAction("Save document") {
-            @Override public void actionPerformed(ActionEvent e) {
-                saveDocument();
-            }
-        });
-        bar.add(new AbstractAction("Re-slice") {
-            @Override public void actionPerformed(ActionEvent e) {
-                slice();
-            }
-        });
-        bar.addSeparator();
-        bar.add(new JLabel(" alpha ≥ "));
-        bar.add(small(alphaMin, 60));
-        bar.add(new JLabel("  grid "));
-        bar.add(small(gridCols, 50));
-        bar.add(new JLabel(" x "));
-        bar.add(small(gridRows, 50));
-        bar.add(new AbstractAction("Split selected on grid") {
-            @Override public void actionPerformed(ActionEvent e) {
-                splitSelected();
-            }
-        });
-        bar.add(new AbstractAction("Fit grid to art…") {
-            @Override public void actionPerformed(ActionEvent e) {
-                fitGrid();
-            }
-        });
-        bar.add(new AbstractAction("Group selected as block…") {
-            @Override public void actionPerformed(ActionEvent e) {
-                groupSelected();
-            }
-        });
-        bar.addSeparator();
-        bar.add(new JLabel(" id prefix "));
-        bar.add(small(idPrefix, 140));
-        bar.add(new JLabel("  sheet "));
-        bar.add(small(sheetName, 110));
-        bar.add(new JLabel("  cellPx "));
-        bar.add(small(cellPx, 70));
-        bar.addSeparator();
-        bar.add(new JLabel(" cell on screen "));
-        bar.add(small(screenCellPx, 66));
-        bar.add(new AbstractAction("Refresh preview") {
-            @Override public void actionPerformed(ActionEvent e) {
-                refreshPreview();
-            }
-        });
-        bar.addSeparator();
-        bar.add(new AbstractAction("Copy selection for LLM") {
-            @Override public void actionPerformed(ActionEvent e) {
-                copySelectionForModel();
-            }
-        });
-        JButton export = new JButton(new AbstractAction("Export tileset") {
-            @Override public void actionPerformed(ActionEvent e) {
-                export();
-            }
-        });
-        bar.add(export);
+        this.wizard = new TilesetWizard(this::showChooser, context::reportStatus);
 
         table = new JTable(model);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
@@ -283,24 +217,262 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         previews.addTab("Compartment", previewScroll);
         previews.addTab("Map", mapPanel);
 
-        JSplitPane rightSide = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-                tableScroll, previews);
-        rightSide.setResizeWeight(0.45);
-        // Two ways in over one editor: pick a sheet, or pick what is needed.
-        JTabbedPane ways = new JTabbedPane();
-        ways.addTab("Sheets", library);
-        ways.addTab("Surfaces", surfaces);
-        JSplitPane sheetSide = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                ways, new JScrollPane(view));
-        sheetSide.setResizeWeight(0.0);
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sheetSide, rightSide);
-        split.setResizeWeight(0.5);
+        this.tableScroll = tableScroll;
+        this.previews = previews;
+        this.sheetPicture = new JScrollPane(view);
 
         summary.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
         rescanLibrary();
-        root.add(bar, BorderLayout.NORTH);
-        root.add(split, BorderLayout.CENTER);
+
+        screens.add(new WorkflowChooser(this::enterWorkflow), CHOOSER);
+        screens.add(wizard, WIZARD);
+        root.add(screens, BorderLayout.CENTER);
         root.add(summary, BorderLayout.SOUTH);
+        showChooser();
+    }
+
+    /** Back to the first screen: what are you doing? */
+    private void showChooser() {
+        ((CardLayout) screens.getLayout()).show(screens, CHOOSER);
+        context.reportStatus("Pick what you are here to do");
+    }
+
+    /** Begin the chosen walkthrough at its first screen. */
+    private void enterWorkflow(TilesetWorkflow workflow) {
+        this.workflow = workflow;
+        wizard.start(switch (workflow) {
+            case SURFACE -> surfaceWalkthrough();
+            case SHEET -> sheetWalkthrough();
+            case LOOK -> lookWalkthrough();
+        });
+        ((CardLayout) screens.getLayout()).show(screens, WIZARD);
+    }
+
+    // ---- walkthroughs --------------------------------------------------------
+    //
+    // Each screen holds only the controls its own step needs, which is the whole
+    // difference from the toolbar this replaced: a command belonging to the cut
+    // no longer sits beside one belonging to the export, and neither is reachable
+    // before the sheet it would act on is open.
+
+    /** Start from a need: a wall is wanted, and the sheet is the answer. */
+    private List<WizardStep> surfaceWalkthrough() {
+        return List.of(
+                new LambdaStep("What do you need?",
+                        "Every surface the generator can ask for, and every block in the "
+                                + "project that could fill it.",
+                        () -> {
+                            surfaces.hideOwnActions();
+                            return surfaces;
+                        })
+                        .onEnter(this::rescanSurfaces)
+                        .blockedWhen(() -> {
+                            SurfaceCatalog.Candidate picked = surfaces.selectedCandidate();
+                            if (picked == null) return "Pick a surface, then the block to work on";
+                            if (!picked.isEditable()) {
+                                return picked.sheetName() + " ships as a tileset with no "
+                                        + "authoring document, so its slicing cannot be edited";
+                            }
+                            return null;
+                        })
+                        .onLeave(() -> openCandidate(surfaces.selectedCandidate()))
+                        .nextLabel("Open its sheet"),
+
+                groupingStep("Group the pieces into the block's slots",
+                        "The sheet opens with this block's pieces already selected. A slot says "
+                                + "where the exterior is, not which neighbour is a wall."),
+
+                exportStep());
+    }
+
+    /** Start from art: cut it, say what it is, group it, export it. */
+    private List<WizardStep> sheetWalkthrough() {
+        return List.of(
+                pickSheetStep("Pick a sheet",
+                        "Raw art nobody has annotated, a sheet part-way through, or one already "
+                                + "exported. Each row says which it is."),
+
+                new LambdaStep("Find the pieces",
+                        "Slicing keys on alpha. A plate drawn edge to edge has no gaps to find, "
+                                + "so it is cut on its stated grid instead.",
+                        this::cutBody)
+                        .onEnter(() -> cutBody().revalidate())
+                        .blockedWhen(() -> model.entries.isEmpty()
+                                ? "Slice or split the sheet so it has pieces to annotate" : null),
+
+                new LambdaStep("Say what each piece is",
+                        "Pick pieces on the picture and edit the row: an id, how much deck it "
+                                + "covers, what it hides you from. None of that is measurable.",
+                        this::annotateBody)
+                        .onEnter(() -> annotateBody().revalidate()),
+
+                groupingStep("Group pieces into blocks",
+                        "A wall or a corner set is a block whose slots the pieces fill. Skip this "
+                                + "for a sheet that is only props."),
+
+                new LambdaStep("Name and size the output",
+                        "What the exported tileset is called, what its ids are prefixed with, and "
+                                + "how many pixels a cell is packed at.",
+                        this::outputBody)
+                        .blockedWhen(() -> sheetName.getText().isBlank()
+                                ? "Give the sheet a name — it names the tileset and its card" : null),
+
+                exportStep());
+    }
+
+    /** Look at it. Nothing on these screens writes. */
+    private List<WizardStep> lookWalkthrough() {
+        return List.of(
+                pickSheetStep("Pick a sheet to look at",
+                        "Nothing on the next screen writes anything."),
+                new LambdaStep("Look at it",
+                        "The tileset as the game loads it, at deck scale; and a generated map "
+                                + "drawn with it beside the one that ships.",
+                        this::lookBody)
+                        .onEnter(() -> {
+                            lookBody().revalidate();
+                            refreshPreview();
+                        })
+                        .last());
+    }
+
+    // ---- screens shared between walkthroughs ---------------------------------
+
+    private WizardStep pickSheetStep(String title, String blurb) {
+        return new LambdaStep(title, blurb, () -> library)
+                .onEnter(this::rescanLibrary)
+                .blockedWhen(() -> library.selected() == null ? "Pick a sheet from the list" : null)
+                .onLeave(this::openSelectedFromLibrary)
+                .nextLabel("Open it");
+    }
+
+    private WizardStep groupingStep(String title, String blurb) {
+        return new LambdaStep(title, blurb, this::groupBody)
+                .onEnter(() -> groupBody().revalidate());
+    }
+
+    private WizardStep exportStep() {
+        return new LambdaStep("Save and export",
+                "Saving keeps the annotation. Exporting writes the atlas, the tileset the game "
+                        + "loads, and the catalog card that says what each id is.",
+                this::exportBody)
+                .onEnter(() -> exportBody().revalidate())
+                .last();
+    }
+
+    // ---- screen bodies -------------------------------------------------------
+    //
+    // The picture of the sheet and the annotation table are wanted by several
+    // screens. Swing moves a component when it is added somewhere else, so each
+    // body re-parents what it needs on the way in rather than every screen
+    // owning a copy of it.
+
+    private JPanel cutScreen;
+    private JPanel annotateScreen;
+    private JPanel groupScreen;
+    private JPanel outputScreen;
+    private JPanel exportScreen;
+    private JPanel lookScreen;
+
+    private JPanel cutBody() {
+        if (cutScreen == null) {
+            JPanel actions = actionRow();
+            actions.add(new JLabel("alpha ≥ "));
+            actions.add(small(alphaMin, 60));
+            actions.add(button("Re-slice", this::slice));
+            actions.add(new JLabel("   grid "));
+            actions.add(small(gridCols, 50));
+            actions.add(new JLabel(" x "));
+            actions.add(small(gridRows, 50));
+            actions.add(button("Split selected on grid", this::splitSelected));
+            actions.add(button("Fit grid to art…", this::fitGrid));
+            cutScreen = withActions(actions);
+        }
+        cutScreen.add(sheetPicture, BorderLayout.CENTER);
+        return cutScreen;
+    }
+
+    private JPanel annotateBody() {
+        if (annotateScreen == null) {
+            JPanel actions = actionRow();
+            actions.add(button("Copy selection for LLM", this::copySelectionForModel));
+            annotateScreen = withActions(actions);
+        }
+        annotateScreen.add(splitOf(sheetPicture, tableScroll), BorderLayout.CENTER);
+        return annotateScreen;
+    }
+
+    private JPanel groupBody() {
+        if (groupScreen == null) {
+            JPanel actions = actionRow();
+            actions.add(button("Group selected as block…", this::groupSelected));
+            groupScreen = withActions(actions);
+        }
+        groupScreen.add(splitOf(sheetPicture, tableScroll), BorderLayout.CENTER);
+        return groupScreen;
+    }
+
+    private JPanel outputBody() {
+        if (outputScreen == null) {
+            JPanel actions = actionRow();
+            actions.add(new JLabel(" sheet "));
+            actions.add(small(sheetName, 140));
+            actions.add(new JLabel("   id prefix "));
+            actions.add(small(idPrefix, 160));
+            actions.add(new JLabel("   cellPx "));
+            actions.add(small(cellPx, 70));
+            outputScreen = withActions(actions);
+        }
+        outputScreen.add(previews, BorderLayout.CENTER);
+        return outputScreen;
+    }
+
+    private JPanel exportBody() {
+        if (exportScreen == null) {
+            JPanel actions = actionRow();
+            actions.add(button("Save document", this::saveDocument));
+            actions.add(button("Export tileset", this::export));
+            exportScreen = withActions(actions);
+        }
+        exportScreen.add(previews, BorderLayout.CENTER);
+        return exportScreen;
+    }
+
+    private JPanel lookBody() {
+        if (lookScreen == null) {
+            JPanel actions = actionRow();
+            actions.add(new JLabel(" cell on screen "));
+            actions.add(small(screenCellPx, 66));
+            actions.add(button("Refresh preview", this::refreshPreview));
+            lookScreen = withActions(actions);
+        }
+        lookScreen.add(previews, BorderLayout.CENTER);
+        return lookScreen;
+    }
+
+    /** A screen: its own controls across the top, its working area beneath. */
+    private static JPanel withActions(JPanel actions) {
+        JPanel panel = new JPanel(new BorderLayout(0, 6));
+        panel.add(actions, BorderLayout.NORTH);
+        return panel;
+    }
+
+    private static JPanel actionRow() {
+        return new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+    }
+
+    private static JButton button(String label, Runnable action) {
+        return new JButton(new AbstractAction(label) {
+            @Override public void actionPerformed(ActionEvent event) {
+                action.run();
+            }
+        });
+    }
+
+    private static JSplitPane splitOf(JComponent left, JComponent right) {
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+        split.setResizeWeight(0.55);
+        return split;
     }
 
     private static JComponent small(JComponent field, int width) {
