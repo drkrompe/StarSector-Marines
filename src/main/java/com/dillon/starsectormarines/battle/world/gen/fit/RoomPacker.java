@@ -175,6 +175,8 @@ public final class RoomPacker {
      * few are unlikely to be the ones a passage happens to run past.
      */
     private static final int HOOKUP_ATTEMPTS = 40;
+    /** How many placements the scan keeps; the deepest search reads that many. */
+    private static final int SHORTLIST = Math.max(PLACEMENT_ATTEMPTS, HOOKUP_ATTEMPTS);
     private static final int[][] STEPS = { { 0, -1 }, { 0, 1 }, { -1, 0 }, { 1, 0 } };
 
     /** Cost of running a passage through deck nobody claimed. */
@@ -222,6 +224,11 @@ public final class RoomPacker {
     private final int width;
     private final int height;
     private int[][] claimedSum;
+    /**
+     * Walkable floor, summed the same way, so a solid room's whole bulkhead
+     * ring can be judged without walking it. @see #ringContact
+     */
+    private int[][] floorSum;
 
     /**
      * @param buildable cells rooms may occupy; everything else is outside
@@ -465,6 +472,49 @@ public final class RoomPacker {
     private record Candidate(RoomShape shape, RoomPose pose, int x, int y, int score) {}
 
     /**
+     * The best few placements the scan has seen, kept as they arrive.
+     *
+     * <p>Only the best {@link #HOOKUP_ATTEMPTS} are ever tried, and open deck
+     * offers tens of thousands of legal positions for a single compartment.
+     * Collecting all of them to sort them and read the top allocated a
+     * candidate for every one.
+     *
+     * <p>Ordered exactly as the sort it replaces: by score, and otherwise by
+     * the order the scan reached them. A placement equal to one already held
+     * goes behind it, which is what a stable sort of the whole scan did.
+     */
+    private static final class Shortlist {
+
+        private final Candidate[] held;
+        private int size;
+
+        Shortlist(int capacity) {
+            held = new Candidate[capacity];
+        }
+
+        void offer(Candidate candidate) {
+            if (size == held.length && !precedes(candidate, held[size - 1])) return;
+            int at = size < held.length ? size : held.length - 1;
+            while (at > 0 && precedes(candidate, held[at - 1])) at--;
+            System.arraycopy(held, at, held, at + 1, Math.min(size, held.length - 1) - at);
+            held[at] = candidate;
+            if (size < held.length) size++;
+        }
+
+        List<Candidate> best() {
+            return List.of(Arrays.copyOf(held, size));
+        }
+
+        private static boolean precedes(Candidate candidate, Candidate other) {
+            if (candidate.score() != other.score()) {
+                return candidate.score() > other.score();
+            }
+            if (candidate.x() != other.x()) return candidate.x() < other.x();
+            return candidate.y() < other.y();
+        }
+    }
+
+    /**
      * The poses a room may be laid down in.
      *
      * <p>Rotations only, deduplicated by mask, unless the arrangement is handed
@@ -556,20 +606,26 @@ public final class RoomPacker {
      * leave collects into passages instead of scattering as slivers.
      */
     private List<Candidate> candidates(Request request, List<RoomPose> poses) {
-        List<Candidate> found = new ArrayList<>();
+        Shortlist found = new Shortlist(SHORTLIST);
         for (RoomPose pose : poses) {
             RoomShape shape = request.shape().posed(pose);
             int w = shape.width();
             int h = shape.height();
             int slack = w * h - shape.area();
+            boolean solid = slack == 0;
             for (int x = 0; x + w <= width; x++) {
                 for (int y = 0; y + h <= height; y++) {
                     // Necessary condition first: if the bounding box is more
                     // occupied than the shape's own holes could absorb, no
                     // per-cell test can save it.
-                    if (sum(claimedSum, x, y, w, h) > slack) continue;
-                    if (!floorFits(shape, x, y)) continue;
-                    int contact = wallContact(shape, x, y);
+                    int occupied = sum(claimedSum, x, y, w, h);
+                    if (occupied > slack) continue;
+                    // A footprint with no holes cannot disagree with its own
+                    // bounding box, so nothing claimed inside it is the whole
+                    // of the floor test.
+                    if (!solid && occupied > 0 && !floorFits(shape, x, y)) continue;
+                    int contact = solid ? ringContact(x, y, w, h)
+                            : wallContact(shape, x, y);
                     if (contact < 0) continue;
                     if (!meetsEdge(request.contact(), shape, x, y)) continue;
                     int belongs = request.affinity().prefers(x + w / 2, y + h / 2)
@@ -577,16 +633,41 @@ public final class RoomPacker {
                     int excess = massing.sharedSeamAllowance() == Integer.MAX_VALUE ? 0
                             : Math.max(0, glue(shape, x, y)
                                     - massing.sharedSeamAllowance());
-                    found.add(new Candidate(shape, pose, x, y,
+                    found.offer(new Candidate(shape, pose, x, y,
                             belongs + contact + ctx.rng.nextInt(3)
                                     - excess * massing.seamPenalty()));
                 }
             }
         }
-        found.sort(Comparator.comparingInt(Candidate::score).reversed()
-                .thenComparingInt(Candidate::x)
-                .thenComparingInt(Candidate::y));
-        return found;
+        return found.best();
+    }
+
+    /**
+     * The bulkhead ring of a solid footprint, judged from the summed tables
+     * rather than walked.
+     *
+     * <p>A footprint with no holes reserves exactly the ring one cell outside
+     * its own box, corners included, so what {@link #wallContact} counts a cell
+     * at a time is the difference between two rectangles. That matters because
+     * this is the innermost thing the packer does: every position of every pose
+     * of every room asks it, which on a capital's deck is a few hundred
+     * thousand questions per compartment. Walking the ring is what made laying
+     * out a large hull a matter of tens of seconds.
+     *
+     * <p>The tables are over the padded masks, whose border is claimed and is
+     * never floor — which is exactly how the walked form treats a ring cell
+     * lying off the deck.
+     *
+     * @return how much of the ring backs onto something solid, or -1 where it
+     *     crosses walkable floor and the placement is illegal
+     */
+    private int ringContact(int x, int y, int w, int h) {
+        if (sum(floorSum, x - 1, y - 1, w + 2, h + 2)
+                - sum(floorSum, x, y, w, h) > 0) {
+            return -1;
+        }
+        return sum(claimedSum, x - 1, y - 1, w + 2, h + 2)
+                - sum(claimedSum, x, y, w, h);
     }
 
     /** Whether every cell of the shape lands on unclaimed deck. */
@@ -1158,6 +1239,7 @@ public final class RoomPacker {
 
     private void rebuildSums() {
         claimedSum = prefix(claimed);
+        floorSum = prefix(floor);
     }
 
     /** Summed-area table over the padded mask, so the bounding-box reject is four lookups. */

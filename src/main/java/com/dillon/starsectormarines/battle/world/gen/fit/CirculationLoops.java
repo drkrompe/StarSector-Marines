@@ -1,12 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.fit;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.List;
-import java.util.PriorityQueue;
 
 /**
  * Finds the one cut that most shortens the walk between two parts of a
@@ -105,10 +102,15 @@ public final class CirculationLoops {
         Grid grid = new Grid(routable, circulation, throughable,
                 routable.length, routable[0].length);
 
+        List<Integer> tips = deadEnds(grid);
+        if (tips.isEmpty()) return null;
+        Scratch scratch = new Scratch(grid, policy);
+
         Link best = null;
         long bestScore = 0;
-        for (int tip : deadEnds(grid)) {
-            Link link = fromDeadEnd(grid, policy, walk(grid, tip));
+        for (int tip : tips) {
+            walk(grid, tip, scratch.walk, scratch.queue);
+            Link link = fromDeadEnd(grid, policy, scratch);
             if (link == null) continue;
             long score = (long) link.saving() * 1000L / link.cost();
             if (best != null && score <= bestScore) continue;
@@ -234,38 +236,36 @@ public final class CirculationLoops {
      *     is both what a departure is charged and what an arrival is scored
      *     against
      */
-    private static Link fromDeadEnd(Grid grid, Policy policy, int[] walk) {
-        int cells = grid.width() * grid.height();
-        int[] reach = new int[cells];
-        int[] cut = new int[cells];
-        int[] steps = new int[cells];
-        int[] cameFrom = new int[cells];
+    private static Link fromDeadEnd(Grid grid, Policy policy, Scratch scratch) {
+        int[] walk = scratch.walk;
+        int[] reach = scratch.reach;
+        int[] cut = scratch.cut;
+        int[] steps = scratch.steps;
+        int[] cameFrom = scratch.cameFrom;
         Arrays.fill(reach, Integer.MAX_VALUE);
         Arrays.fill(cameFrom, -1);
+        scratch.clearFrontier();
 
-        PriorityQueue<int[]> frontier = new PriorityQueue<>(
-                Comparator.<int[]>comparingInt(entry -> entry[1])
-                        .thenComparingInt(entry -> entry[0]));
-        for (int x = 0; x < grid.width(); x++) {
-            for (int y = 0; y < grid.height(); y++) {
-                int step = grid.routable()[x][y];
-                if (step < 0 || step > policy.maxCutCost()) continue;
-                int departure = departure(grid, walk, x, y);
-                if (departure < 0) continue;
-                int index = grid.index(x, y);
-                reach[index] = departure + step;
-                cut[index] = step;
-                steps[index] = departure + 1;
-                frontier.add(new int[]{ index, reach[index] });
-            }
+        // Where a cut may leave the network at all is a fact about the deck
+        // rather than about this dead end, so it is found once for the whole
+        // run; only how far it is walked to changes from tip to tip.
+        for (int site = 0; site < scratch.siteCount; site++) {
+            int index = scratch.sites[site];
+            int departure = departure(scratch, site, walk);
+            if (departure < 0) continue;
+            int step = grid.routable()[index / grid.height()][index % grid.height()];
+            reach[index] = departure + step;
+            cut[index] = step;
+            steps[index] = departure + 1;
+            scratch.push(reach[index], index);
         }
 
         Link best = null;
         long bestScore = 0;
-        while (!frontier.isEmpty()) {
-            int[] entry = frontier.poll();
-            int index = entry[0];
-            if (entry[1] > reach[index]) continue;
+        while (scratch.frontierSize > 0) {
+            long entry = scratch.pop();
+            int index = (int) (entry & 0xffffffffL);
+            if ((int) (entry >>> 32) > reach[index]) continue;
             int x = index / grid.height();
             int y = index % grid.height();
 
@@ -293,25 +293,134 @@ public final class CirculationLoops {
                 cut[neighbour] = cut[index] + step;
                 steps[neighbour] = steps[index] + 1;
                 cameFrom[neighbour] = index;
-                frontier.add(new int[]{ neighbour, next });
+                scratch.push(next, neighbour);
             }
         }
         return best;
     }
 
     /**
+     * Working memory for one run of {@link #best}, and the departure sites it
+     * shares between dead ends.
+     *
+     * <p>A deck is searched once per dead end and a large one has upwards of a
+     * hundred, so everything here was previously allocated, filled and thrown
+     * away that many times over — including a frontier of boxed pairs and a
+     * queue of boxed integers, which between them dominated the pass.
+     *
+     * <p>The frontier is ordered by cost and then by cell, exactly as the
+     * comparator it replaces: both pack into one long, and comparing those
+     * longs is the same order.
+     */
+    private static final class Scratch {
+
+        private final int[] walk;
+        private final int[] queue;
+        private final int[] reach;
+        private final int[] cut;
+        private final int[] steps;
+        private final int[] cameFrom;
+        /** Cells a cut may set out from — see {@link #departure}. */
+        private final int[] sites;
+        /** Which sides of each site are network a cut could leave by. */
+        private final byte[] siteSides;
+        private final int siteCount;
+        private final Grid grid;
+        private long[] frontier = new long[64];
+        private int frontierSize;
+
+        Scratch(Grid grid, Policy policy) {
+            this.grid = grid;
+            int cells = grid.width() * grid.height();
+            walk = new int[cells];
+            queue = new int[cells];
+            reach = new int[cells];
+            cut = new int[cells];
+            steps = new int[cells];
+            cameFrom = new int[cells];
+            int[] found = new int[cells];
+            byte[] sides = new byte[cells];
+            int held = 0;
+            for (int x = 0; x < grid.width(); x++) {
+                for (int y = 0; y < grid.height(); y++) {
+                    int step = grid.routable()[x][y];
+                    if (step < 0 || step > policy.maxCutCost()) continue;
+                    int mask = 0;
+                    for (int side = 0; side < STEPS.length; side++) {
+                        int nx = x + STEPS[side][0];
+                        int ny = y + STEPS[side][1];
+                        if (!grid.inBounds(nx, ny) || !grid.circulation()[nx][ny]) continue;
+                        if (!grid.crossesCleanly(x, y, -STEPS[side][0], -STEPS[side][1])) {
+                            continue;
+                        }
+                        mask |= 1 << side;
+                    }
+                    if (mask == 0) continue;
+                    found[held] = grid.index(x, y);
+                    sides[held] = (byte) mask;
+                    held++;
+                }
+            }
+            sites = found;
+            siteSides = sides;
+            siteCount = held;
+        }
+
+        void clearFrontier() {
+            frontierSize = 0;
+        }
+
+        void push(int cost, int index) {
+            if (frontierSize == frontier.length) {
+                frontier = Arrays.copyOf(frontier, frontierSize * 2);
+            }
+            long entry = ((long) cost << 32) | index;
+            int at = frontierSize++;
+            while (at > 0) {
+                int parent = (at - 1) / 2;
+                if (frontier[parent] <= entry) break;
+                frontier[at] = frontier[parent];
+                at = parent;
+            }
+            frontier[at] = entry;
+        }
+
+        long pop() {
+            long top = frontier[0];
+            long last = frontier[--frontierSize];
+            if (frontierSize > 0) {
+                int at = 0;
+                while (true) {
+                    int child = at * 2 + 1;
+                    if (child >= frontierSize) break;
+                    if (child + 1 < frontierSize && frontier[child + 1] < frontier[child]) {
+                        child++;
+                    }
+                    if (last <= frontier[child]) break;
+                    frontier[at] = frontier[child];
+                    at = child;
+                }
+                frontier[at] = last;
+            }
+            return top;
+        }
+    }
+
+    /**
      * How far the dead end must be walked to set out from this cell, or -1 when
      * a cut may not leave the network here at all.
      */
-    private static int departure(Grid grid, int[] walk, int x, int y) {
+    private static int departure(Scratch scratch, int site, int[] walk) {
+        Grid grid = scratch.grid;
+        int index = scratch.sites[site];
+        int x = index / grid.height();
+        int y = index % grid.height();
+        int mask = scratch.siteSides[site];
         int nearest = -1;
-        for (int[] side : STEPS) {
-            int nx = x + side[0];
-            int ny = y + side[1];
-            if (!grid.inBounds(nx, ny) || !grid.circulation()[nx][ny]) continue;
-            int from = walk[grid.index(nx, ny)];
+        for (int side = 0; side < STEPS.length; side++) {
+            if ((mask & (1 << side)) == 0) continue;
+            int from = walk[grid.index(x + STEPS[side][0], y + STEPS[side][1])];
             if (from < 0) continue;
-            if (!grid.crossesCleanly(x, y, -side[0], -side[1])) continue;
             if (nearest < 0 || from < nearest) nearest = from;
         }
         return nearest;
@@ -358,13 +467,19 @@ public final class CirculationLoops {
 
     /** Walking distance from one circulation cell to every other, or -1 where it does not reach. */
     private static int[] walk(Grid grid, int start) {
-        int[] dist = new int[grid.width() * grid.height()];
+        int cells = grid.width() * grid.height();
+        return walk(grid, start, new int[cells], new int[cells]);
+    }
+
+    /** @param dist filled with the answer; {@code queue} is scratch of the same size */
+    private static int[] walk(Grid grid, int start, int[] dist, int[] queue) {
         Arrays.fill(dist, -1);
-        Deque<Integer> queue = new ArrayDeque<>();
+        int head = 0;
+        int tail = 0;
         dist[start] = 0;
-        queue.add(start);
-        while (!queue.isEmpty()) {
-            int index = queue.poll();
+        queue[tail++] = start;
+        while (head < tail) {
+            int index = queue[head++];
             int x = index / grid.height();
             int y = index % grid.height();
             for (int[] side : STEPS) {
@@ -374,7 +489,7 @@ public final class CirculationLoops {
                 int neighbour = grid.index(nx, ny);
                 if (dist[neighbour] >= 0) continue;
                 dist[neighbour] = dist[index] + 1;
-                queue.add(neighbour);
+                queue[tail++] = neighbour;
             }
         }
         return dist;
