@@ -71,8 +71,14 @@ public final class SurfaceCategory {
      *
      * <p>Written out rather than derived. Whether {@code RUBBLE} is a floor is a
      * judgement about what it is — a floor that used to be a wall — and no rule
-     * over the name or the enum would reach it. A surface missing from here
-     * falls to Outdoors / Other, which is visible rather than silent.
+     * over the name or the enum would reach it.
+     *
+     * <p>Every surface must be here. A missing one still browses, filed under
+     * Outdoors / Other by {@link #of}, but that fallback exists so the panel
+     * cannot break rather than as somewhere for new surfaces to accumulate
+     * unnoticed — {@code SurfaceCategoryTest} fails the build for one that is
+     * not filed. Adding a {@code GroundKind} is a decision about what the thing
+     * is, and this is where that decision is written down.
      */
     private static final Map<String, Section> FILED = filed();
 
@@ -100,6 +106,11 @@ public final class SurfaceCategory {
         filed.put("LZ_MARKER", new Section(Setting.OUTDOORS, Kind.OTHER));
         filed.put("WATER", new Section(Setting.OUTDOORS, Kind.OTHER));
         return Map.copyOf(filed);
+    }
+
+    /** Every surface this table files, for a test that nothing is missing. */
+    public static Set<String> filedNames() {
+        return FILED.keySet();
     }
 
     /** Which section {@code surfaceName} is filed under. */

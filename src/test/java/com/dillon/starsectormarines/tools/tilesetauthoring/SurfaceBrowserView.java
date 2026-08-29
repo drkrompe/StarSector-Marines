@@ -20,8 +20,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Rectangle;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -96,11 +94,6 @@ public final class SurfaceBrowserView {
 
         JScrollPane purposeScroll = new JScrollPane(sectionStack);
         purposeScroll.getVerticalScrollBar().setUnitIncrement(24);
-        purposeScroll.addComponentListener(new ComponentAdapter() {
-            @Override public void componentResized(ComponentEvent event) {
-                reflow(purposeScroll.getViewport().getWidth());
-            }
-        });
         purposeScreen.add(purposeScroll, BorderLayout.CENTER);
 
         JScrollPane candidateScroll = new JScrollPane(candidates);
@@ -189,7 +182,9 @@ public final class SurfaceBrowserView {
             }
             sectionStack.add(sectionGrid(model));
         }
-        reflow(purposeScreen.getWidth() > 0 ? purposeScreen.getWidth() : 960);
+        // Column once now, so the first preferred-size query the scroll pane
+        // makes is already sensible; doLayout refines it for the real width.
+        reflow(sectionStack.getWidth() > 0 ? sectionStack.getWidth() : 960);
         sectionStack.revalidate();
         sectionStack.repaint();
 
@@ -254,7 +249,6 @@ public final class SurfaceBrowserView {
             grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
             grid.setPreferredSize(new Dimension(columns * TILE.width, height));
         }
-        sectionStack.revalidate();
     }
 
     /** How many rows the nth section is laid out in — for a test of the columning. */
@@ -272,7 +266,23 @@ public final class SurfaceBrowserView {
      * showing it, so its sections can fill the window rather than the width
      * their contents happened to prefer.
      */
-    private static final class WidthTrackingStack extends JPanel implements Scrollable {
+    private final class WidthTrackingStack extends JPanel implements Scrollable {
+
+        /**
+         * Column the sections for the width this stack has, then lay out.
+         *
+         * <p>Done here rather than from a resize listener. A listener runs on
+         * the event thread while whatever asked for the layout may be on
+         * another, and both then write the same components' maximum sizes —
+         * which surfaced as a null maximum size inside {@code BoxLayout}, seen
+         * only when the suite ran the panel and a sibling test together. Laying
+         * out is single-threaded by definition, so doing it here cannot race.
+         */
+        @Override public void doLayout() {
+            reflow(getWidth());
+            super.doLayout();
+        }
+
         @Override public Dimension getPreferredScrollableViewportSize() {
             return getPreferredSize();
         }
