@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 /** Shared property contract for the persistent shipboard-room navigation shell. */
 final class MarineOpsPageNav {
@@ -24,6 +24,18 @@ final class MarineOpsPageNav {
      * let a hull exist that the player cannot navigate at all. Company
      * headquarters is the company, not a wardroom.
      */
+    /**
+     * What the shell knows about a room aboard the company ship.
+     *
+     * <p>Three answers rather than two. "She has no mech bay" and "she has not
+     * been laid out yet" would both be a dead button, and they are not remotely
+     * the same thing to tell a player: the first is a fact about the hull they
+     * chose and the second is a wait of a second or two. A shell that showed
+     * the second as the first would be telling somebody their capital had no
+     * bay, and they would believe it.
+     */
+    enum Aboard { YES, NO, UNKNOWN }
+
     enum Page {
         HQ(null, "hq"),
         BARRACKS(RoomPurpose.BARRACKS, "barracks"),
@@ -65,9 +77,9 @@ final class MarineOpsPageNav {
             return room;
         }
 
-        /** Whether a ship offering these rooms can be shown this page. */
-        boolean availableAboard(Predicate<RoomPurpose> aboard) {
-            return room == null || aboard.test(room);
+        /** What a ship offering these rooms can say about this page. */
+        Aboard availableAboard(Function<RoomPurpose, Aboard> aboard) {
+            return room == null ? Aboard.YES : aboard.apply(room);
         }
     }
 
@@ -75,7 +87,7 @@ final class MarineOpsPageNav {
      * A ship with every room, for fixtures and tools that are not aboard a
      * particular hull and have no business pretending to be.
      */
-    static final Predicate<RoomPurpose> ANY_SHIP = purpose -> true;
+    static final Function<RoomPurpose, Aboard> ANY_SHIP = purpose -> Aboard.YES;
 
     private MarineOpsPageNav() {
     }
@@ -85,7 +97,7 @@ final class MarineOpsPageNav {
      *     does not have is shown unavailable and does nothing when clicked
      */
     static void put(Map<String, Object> props, Page current,
-                    Predicate<RoomPurpose> aboard,
+                    Function<RoomPurpose, Aboard> aboard,
                     Runnable returnAction, Runnable hqAction,
                     Runnable barracksAction,
                     Runnable armoryAction, Runnable mechLabAction) {
@@ -101,7 +113,7 @@ final class MarineOpsPageNav {
 
     /** Compatibility helper for focused fixtures that do not exercise room routing. */
     static void put(Map<String, Object> props, Page current,
-                    Predicate<RoomPurpose> aboard,
+                    Function<RoomPurpose, Aboard> aboard,
                     Runnable returnAction, Runnable hqAction,
                     Runnable armoryAction, Runnable mechLabAction) {
         put(props, current, aboard, returnAction, hqAction, () -> { },
@@ -109,16 +121,16 @@ final class MarineOpsPageNav {
     }
 
     private static void put(Map<String, Object> props, Page page, Page current,
-                            Predicate<RoomPurpose> aboard, Runnable action) {
+                            Function<RoomPurpose, Aboard> aboard, Runnable action) {
         String name = page.button();
         Runnable wired = required(action, name + "Action");
-        boolean available = page.availableAboard(aboard);
+        Aboard available = page.availableAboard(aboard);
         // An unavailable page keeps its button rather than losing it, so the
         // player can see that the ship has no such place instead of wondering
         // where the Mech Lab went. Its action is dropped here rather than left
         // to the styling, because a route nothing can reach is the actual rule
         // and a greyed-out button that still worked would be a lie.
-        props.put(name + "Action", available ? wired : (Runnable) () -> { });
+        props.put(name + "Action", available == Aboard.YES ? wired : (Runnable) () -> { });
         props.put(name + "Classes", classes(page == current, available));
     }
 
@@ -127,8 +139,9 @@ final class MarineOpsPageNav {
         return action;
     }
 
-    private static String classes(boolean current, boolean available) {
-        if (!available) return "page-nav-absent";
+    private static String classes(boolean current, Aboard available) {
+        if (available == Aboard.UNKNOWN) return "page-nav-waiting";
+        if (available == Aboard.NO) return "page-nav-absent";
         return current ? "selected page-nav-current" : "";
     }
 }
