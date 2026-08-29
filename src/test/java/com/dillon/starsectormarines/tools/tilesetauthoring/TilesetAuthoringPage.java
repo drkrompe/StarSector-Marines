@@ -27,6 +27,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 import java.awt.BorderLayout;
@@ -167,6 +169,17 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         this.blockPreviews = new BlockPreview(context.projectRoot());
         this.surfaces = new SurfaceBrowserView(blockPreviews, this::openCandidate);
         this.wizard = new TilesetWizard(this::showChooser, context::reportStatus);
+        // Every screen whose Next depends on a selection has to tell the wizard
+        // when that selection moves; nothing else can see it. Without these the
+        // step is answered and the button stays dead, which reads as a bug in
+        // the tool rather than as a missing answer.
+        surfaces.onSelectionChanged(this::refreshStep);
+        library.addSelectionListener(this::refreshStep);
+        sheetName.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent event) { refreshStep(); }
+            @Override public void removeUpdate(DocumentEvent event) { refreshStep(); }
+            @Override public void changedUpdate(DocumentEvent event) { refreshStep(); }
+        });
 
         table = new JTable(model);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
@@ -232,6 +245,16 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         root.add(screens, BorderLayout.CENTER);
         root.add(summary, BorderLayout.SOUTH);
         showChooser();
+    }
+
+    /**
+     * Re-ask the screen on show whether it is finished.
+     *
+     * <p>Called from anything a step's precondition reads: a selection, a text
+     * field, the pieces a slice found.
+     */
+    private void refreshStep() {
+        if (wizard != null) wizard.refresh();
     }
 
     /** Back to the first screen: what are you doing? */
@@ -1264,6 +1287,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     }
 
     private void report() {
+        refreshStep();
         int included = 0;
         int cells = 0;
         for (TilesetExport.Entry entry : model.entries) {

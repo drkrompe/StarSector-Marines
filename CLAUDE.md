@@ -148,9 +148,13 @@ Do not run builds or leave generated task files there.
   the export interleaved — which is a palette for somebody who already knows the
   procedure and nothing at all for somebody who does not.
   **What can be a wall?** is about the surface, not about sheets. Screen one is
-  a grid of every `GroundKind` and `SurfaceRole` the generator can ask for, in
-  alphabetical order, each showing a 100px picture of whatever is drawn for it
-  today. Screen two is **the set**: every block in the project that could fill
+  a grid of every `GroundKind` and `SurfaceRole` the generator can ask for, each
+  showing a 100px picture of whatever is drawn for it today, grouped
+  **Structure** then **Outdoors** and within each **Walls / Floors / Other**.
+  That grouping is a browsing aid owned by the tool, not vocabulary the game
+  consults — nothing resolves differently because a surface is filed under
+  Outdoors — and it is kept off `GroundKind` and `SurfaceRole` for exactly that
+  reason. Screen two is **the set**: every block in the project that could fill
   that surface, whichever sheet it is on, as a grid of pictures — because
   `urban.wall` and `road.embankment` are both walls and are nothing alike to
   look at. The one in use comes up selected and is drawn large beside the grid
