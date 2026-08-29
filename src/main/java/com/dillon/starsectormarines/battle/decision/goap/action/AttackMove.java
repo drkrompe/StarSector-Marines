@@ -133,11 +133,13 @@ public final class AttackMove extends AbstractZoneAction {
             return ActionStatus.RUNNING;
         }
 
-        if (holdsForQuietEchelon(member, squad, sim, aim[0], aim[1])) {
-            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-            return ActionStatus.RUNNING;
-        }
-
+        // Deliberately no quiet echelon. That hold exists so a squad crossing
+        // to an assigned room arrives with a readable team footprint, and it
+        // fires only when the squad has no contacts at all — on an attack move
+        // that is formation decoration charged against the one order whose job
+        // is to get somewhere and fight. Enabling it here multiplied quiet
+        // non-closing time ninefold and cost both canonical fixtures their
+        // terminal result.
         advanceIntoZone(member, squad, sim, aim[0], aim[1], true);
         return ActionStatus.RUNNING;
     }
