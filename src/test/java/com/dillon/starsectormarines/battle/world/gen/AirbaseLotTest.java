@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -241,6 +242,45 @@ class AirbaseLotTest {
             }
         }
     }
+
+    /**
+     * The way out of a berth is kept clear.
+     *
+     * <p>The base's ground vehicles used to stand one in front of each berth,
+     * which put a heavy-cover truck straight across the taxiway — the strip
+     * everybody on the base walks between the sheds and the aircraft, and the
+     * strip the aircraft itself rolls out along. They park at the end of the
+     * apron now, and this is the guard against them drifting back.
+     *
+     * <p>Scoped to the three rows immediately behind each berth, which is
+     * unambiguously taxiway: far enough from the sheds not to be about what is
+     * inside them, and close enough to the berth to be exactly the ground the
+     * old placement occupied.
+     */
+    @ParameterizedTest
+    @EnumSource(value = TraversalAxis.class, names = { "SOUTH_TO_NORTH", "WEST_TO_EAST" })
+    void theGroundBehindEachBerthIsClear(TraversalAxis axis) {
+        Lot lot = author(axis);
+        boolean alongY = axis == TraversalAxis.SOUTH_TO_NORTH;
+        for (LandingPad pad : berths(lot)) {
+            for (Doodad d : lot.ctx().doodads) {
+                if (d.cover == Doodad.COVER_NONE) continue;
+                int across = alongY ? d.cellY : d.cellX;
+                int back = alongY ? pad.top() : pad.right();
+                if (across <= back || across > back + TAXIWAY_ROWS) continue;
+                int along = alongY ? d.cellX : d.cellY;
+                int lo = alongY ? pad.left() : pad.bottom();
+                int hi = alongY ? pad.right() : pad.top();
+                if (along < lo || along > hi) continue;
+                throw new AssertionError(axis + ": something solid is parked at "
+                        + d.cellX + "," + d.cellY + ", on the way out of the berth at "
+                        + pad.centerX + "," + pad.centerY);
+            }
+        }
+    }
+
+    /** Rows behind a berth that belong to the taxiway rather than to a shed. */
+    private static final int TAXIWAY_ROWS = 3;
 
     /** Cells reachable on foot from {@code (x, y)}. */
     private static boolean[][] flood(NavigationGrid grid, int x, int y) {
