@@ -113,6 +113,15 @@ Do not run builds or leave generated task files there.
   cyan marine, red defender, and yellow civilian markers for whole-map review. Optional
   `-PgifFrameDelayMillis=125`, `-PsnapshotWidth=960`, and
   `-PsnapshotHeight=640` arguments control review playback and output size.
+- `gradlew.bat crewEvidence` → crews a transport and a capital from their own
+  room programs, runs each for four minutes of ship's time, and reports what the
+  complement actually spent it doing: the idle share, the activity histogram, the
+  longest unbroken stretch of doing nothing, how many are still alive, and which
+  compartment purposes hold anybody. Opt-in and excluded from `test` — it costs
+  minutes of wall clock and needs two whole hulls to answer its question. The
+  standing goal is an idle share of zero, with the resting, socialising and
+  exercising columns carrying the crew's off-watch time instead; see
+  `CrewLivelinessEvidence` for why the dead count as idle.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
   suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,layers,perception-sweep,point-defence,ship-decks,turrets,ui`

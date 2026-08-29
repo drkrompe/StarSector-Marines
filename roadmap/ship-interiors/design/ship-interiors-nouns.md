@@ -313,6 +313,20 @@ produced it.
 
 ## Ambient life
 
+**A ship carries rooms for not working in.** A crew lounge and a gymnasium are
+programmed from the whole complement, alongside the heads, the mess and the sick
+bay, and for the same reason: a passenger has more need of somewhere to be than a
+rating with a watch to keep. They are the answer to a question the berthing story
+asked and could not solve inside a berth — eight by six holds two ranks of racks
+and the passage between them and nothing else, so a lounge is a room of its own,
+which is what a ship actually does.
+
+They are not decoration. The whole ambient model exists so that nobody stands
+about for want of something to do, and the only idleness worth having is the kind
+somebody chose. Without a room to choose, there is nowhere for that choice to
+happen, and the ship's third state — neither asleep nor at work — has no shape
+but standing in a passage.
+
 Every furnished compartment is somebody's, or it is honestly nobody's. A ship
 publishes work at her heads, her sick berth, her armoury counter, her holds and
 boat bays, her plant and her drive, and her bridge, and carries a trade for each:
@@ -557,6 +571,23 @@ same rule decides who a range target belongs to. A target frame is a combatant
 as far as the roster is concerned, so a hostile one would have the firing detail
 flee the paper it came to shoot at — it is the deck's own equipment, and it takes
 the deck's own side.
+
+**A drill may not cost the ship a hand.** Practice fires a real round through the
+ordinary pipeline, which is the point of resolving it rather than posing it — but
+ordinary fire has friendly contacts, damped by a damage multiplier and a
+discipline roll and real nonetheless. On a firing line whose lanes are two cells
+apart, fired every few seconds for as long as the ship is under way, damped and
+real converges on certain: a seeded capital ran four minutes and buried two
+marines. So a drill round is suppressed at the impact rather than at the
+trajectory — it still flies down the lane it was aimed along and still strikes
+the butts — and nothing but the target frame can be hurt by it.
+
+The cost of getting this wrong was not obvious, which is why it is worth naming.
+A crew member killed on the range is not merely one hand short: they are also an
+actor with no ambient pose, and every instrument that asks "is anybody standing
+about?" counts a corpse as somebody standing about. The ship's own range was
+quietly manufacturing the exact defect the ambient model exists to prevent, and
+reading as one.
 
 A practice stop is the one job that **resolves** rather than only posing. The
 fitting already bound each firing point to the butts it faces, so the stop's

@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-08-26
 
-Updated: 2026-08-28 — the mech bay, berthing, the mess and the firing range are
+Updated: 2026-08-28 — every shipboard purpose is themed and published, not just the two this story scoped: the bridge is a plot with the watch ringed round it, the machinery spaces are flats of plant with a board and a defect list, both bays are worked hard, and a crew lounge and gymnasium were added because off-watch had nowhere to happen. The blocking defect turned out to be in the floor rather than in any theme — a standing cell was held as required circulation, so one walled-in work point cost its room the entire fill and five purposes shipped as bare deck. What remains is the empty-region instrument. Earlier: the mech bay, berthing, the mess and the firing range are
 furnished and publish affordances and task points. Berthing came out with no room
 for a lounge at its authored size, so that part of the scope is now a question
 about the recipe rather than about the fill.
@@ -87,7 +87,15 @@ which is presentation only.
 
 ## Constraints
 
-- Fixtures use existing registry doodad ids. This story adds no art.
+- Fixtures use registry doodad ids. This constraint was written to keep the
+  story about arranging rooms rather than about drawing them, and it held until
+  the rooms ran out of things to be arranged from: a gymnasium and a drive room
+  cannot be built from crates under hopeful names, which is the failure
+  `RoomFittings` warns about. Eleven props were generated, most of them
+  multi-cell, and the rule that survives is the one that mattered — **a fitting
+  only ever names an id the registry already has.** A missing id makes `place`
+  return false silently, and a fitting whose kit half-exists comes out bare with
+  nothing to say it went wrong.
 - Decorative placement cannot silently alter topology; anything that blocks,
   covers, or breaks a sightline declares it.
 - Capacity is not duplicated. The fixture count is the capacity; do not introduce

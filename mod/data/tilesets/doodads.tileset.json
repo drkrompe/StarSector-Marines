@@ -390,6 +390,135 @@
       "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.55
+    },
+    {
+      "id": "doodad.industrial-reactor-housing",
+      "col": 5,
+      "row": 8,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.industrial-turbine-set",
+      "col": 0,
+      "row": 10,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        5,
+        2
+      ]
+    },
+    {
+      "id": "doodad.industrial-switchboard",
+      "col": 5,
+      "row": 10,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preferredWallSide": "N"
+    },
+    {
+      "id": "doodad.industrial-pump-set",
+      "col": 0,
+      "row": 9,
+      "cover": "med",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.industrial-engine-control-board",
+      "col": 5,
+      "row": 11,
+      "cover": "med",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preferredWallSide": "N"
+    },
+    {
+      "id": "doodad.military-nav-plot",
+      "col": 0,
+      "row": 12,
+      "cover": "med",
+      "ballisticHalfHeight": 0.42,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.gym-weight-rack",
+      "col": 3,
+      "row": 9,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.gym-bench-press",
+      "col": 7,
+      "row": 8,
+      "cover": "med",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.gym-ergometer",
+      "col": 3,
+      "row": 12,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.gym-treadmill",
+      "col": 4,
+      "row": 12,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.gym-kit-locker",
+      "col": 5,
+      "row": 12,
+      "cover": "med",
+      "ballisticHalfHeight": 0.35
+    },
+    {
+      "id": "doodad.gym-mat",
+      "col": 6,
+      "row": 12,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
     }
   ],
   "cells": [
@@ -666,6 +795,78 @@
       "row": 8,
       "name": "Courtyard planter vertical",
       "description": "Raised concrete shrub planter aligned north-south."
+    },
+    {
+      "col": 5,
+      "row": 8,
+      "name": "Reactor housing",
+      "description": "Shielded reactor can, two cells square."
+    },
+    {
+      "col": 0,
+      "row": 10,
+      "name": "Turbine set",
+      "description": "Main turbine and its casing, five cells along the shaft."
+    },
+    {
+      "col": 5,
+      "row": 10,
+      "name": "Switchboard",
+      "description": "Wall-mounted power distribution board."
+    },
+    {
+      "col": 0,
+      "row": 9,
+      "name": "Pump set",
+      "description": "Paired pumps on a common bedplate."
+    },
+    {
+      "col": 5,
+      "row": 11,
+      "name": "Engine control board",
+      "description": "Manned board for the drive and its auxiliaries."
+    },
+    {
+      "col": 0,
+      "row": 12,
+      "name": "Navigation plot",
+      "description": "Hexagonal holographic command plot, three cells across."
+    },
+    {
+      "col": 3,
+      "row": 9,
+      "name": "Weight rack",
+      "description": "Two-tier dumbbell and plate rack."
+    },
+    {
+      "col": 7,
+      "row": 8,
+      "name": "Weight bench",
+      "description": "Flat bench with loaded barbell uprights."
+    },
+    {
+      "col": 3,
+      "row": 12,
+      "name": "Rowing ergometer",
+      "description": "Sliding-seat rowing machine."
+    },
+    {
+      "col": 4,
+      "row": 12,
+      "name": "Treadmill",
+      "description": "Shipboard running belt with console."
+    },
+    {
+      "col": 5,
+      "row": 12,
+      "name": "Kit locker",
+      "description": "Open locker of towels, rope and wraps."
+    },
+    {
+      "col": 6,
+      "row": 12,
+      "name": "Training mat",
+      "description": "Quartered rubber deck mat."
     }
   ]
 }

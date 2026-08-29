@@ -42,34 +42,47 @@ public final class CompartmentFillStage implements GenStage {
         }
         for (DeckGraph.Compartment compartment : graph.compartments()) {
             RoomFitting fitting = RoomFittings.forPurpose(compartment.purpose());
-            if (fitting == null) continue;
-
             int doodads = ctx.doodads.size();
             int berths = ctx.gantries.size();
             int work = ctx.fixtureTasks.size();
             RoomFloor floor = new RoomFloor(ctx, compartment, fit);
-            fitting.fit(floor);
-            // Work nobody can walk to goes before the room is judged on whether
-            // it can be walked through, because otherwise it reads as exactly
-            // that failure and takes the whole fill with it.
-            floor.dropUnreachableWork();
-            if (floor.circulationSurvives()) {
-                // Deck the fill wants shut is closed only now, because a fill
-                // that is thrown away must not leave a strip of the room that
-                // nothing can cross and nothing explains.
-                floor.seal();
-            } else {
-                // Roll the room back to bare deck rather than ship one that
-                // cannot be walked through — and roll back everything the
-                // fitting published, not merely what it can be seen to have
-                // placed. A rolled-back bay that kept its berths was a bay
-                // offering to service machines on empty painted floor, and it
-                // stayed that way precisely because nothing about it looked
-                // wrong from the outside.
-                ctx.doodads.subList(doodads, ctx.doodads.size()).clear();
-                ctx.gantries.subList(berths, ctx.gantries.size()).clear();
-                ctx.fixtureTasks.subList(work, ctx.fixtureTasks.size()).clear();
-            }
+            if (fitting != null) furnish(ctx, floor, fitting, doodads, berths, work);
+            // Last, and for every compartment rather than every furnished one. A
+            // room is worth looking into because it is a room; a bare pocket on
+            // a rounds circuit is a door somebody opens, and leaving it off the
+            // round because nothing was authored inside it would make the ship's
+            // patrol a tour of its workshops.
+            floor.roundsPoint();
+        }
+    }
+
+    /**
+     * Run one room's authored fill, and keep it only if the room can still be
+     * walked through afterwards.
+     */
+    private void furnish(GenContext ctx, RoomFloor floor, RoomFitting fitting,
+                         int doodads, int berths, int work) {
+        fitting.fit(floor);
+        // Work nobody can walk to goes before the room is judged on whether
+        // it can be walked through, because otherwise it reads as exactly
+        // that failure and takes the whole fill with it.
+        floor.dropUnreachableWork();
+        if (floor.circulationSurvives()) {
+            // Deck the fill wants shut is closed only now, because a fill
+            // that is thrown away must not leave a strip of the room that
+            // nothing can cross and nothing explains.
+            floor.seal();
+        } else {
+            // Roll the room back to bare deck rather than ship one that
+            // cannot be walked through — and roll back everything the
+            // fitting published, not merely what it can be seen to have
+            // placed. A rolled-back bay that kept its berths was a bay
+            // offering to service machines on empty painted floor, and it
+            // stayed that way precisely because nothing about it looked
+            // wrong from the outside.
+            ctx.doodads.subList(doodads, ctx.doodads.size()).clear();
+            ctx.gantries.subList(berths, ctx.gantries.size()).clear();
+            ctx.fixtureTasks.subList(work, ctx.fixtureTasks.size()).clear();
         }
     }
 }

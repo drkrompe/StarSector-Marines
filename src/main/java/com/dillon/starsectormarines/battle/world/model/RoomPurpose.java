@@ -122,4 +122,19 @@ public enum RoomPurpose {
      * distinct from the auxiliary machinery spaces forward of it.
      */
     ENGINE_ROOM,
+    /**
+     * Ship deck — crew lounge. Somewhere to be that is not a bunk, a table or a
+     * work station.
+     *
+     * <p>Distinct from {@link #MESS_HALL}, which is a room people are fed in on
+     * a schedule and leave. This is the one compartment aboard whose purpose is
+     * that nothing in particular is happening in it, which is why a ship that
+     * lacks it has a complement who can only ever be asleep or at work.
+     */
+    CREW_LOUNGE,
+    /**
+     * Ship deck — exercise space. Clear deck with the gear round the edges of
+     * it, like a range or a bay: what the room is for is the empty middle.
+     */
+    GYMNASIUM,
 }
