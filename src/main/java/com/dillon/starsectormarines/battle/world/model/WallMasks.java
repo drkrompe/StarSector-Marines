@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 /**
  * Shared utilities for the per-cell wall-direction mask carried by
@@ -57,22 +56,21 @@ public final class WallMasks {
      * cell is fully enclosed (no exterior face) — caller paints a
      * solid fill there because the source's center cell is transparent.
      *
-     * <p>Resolves the {@code urban.wall} {@link GridBlockDef} from the
-     * {@link TileRegistry} (moddable-tilesets Phase 1c); falls back to the
-     * static {@link TileManifest#pickWallTile} when the registry isn't
-     * installed.
+     * <p>The caller supplies the wall block, because which block is the wall is
+     * a {@link SurfaceRole#WALL} mapping question and the render systems that
+     * hold the mapping resolve it once per pass rather than once per cell.
+     * A {@code null} block falls back to the static
+     * {@link TileManifest#pickWallTile}.
      *
      * <p>The fallback is a last resort, not a second authority. It carries the
      * origin the sheet was hand-cut at, and the atlas is now packed by the
      * tileset exporter, which is free to move the block. Prefer the block.
      */
-    public static TileManifest.TileFrame pickTileFromMask(int wallDirMask) {
+    public static TileManifest.TileFrame pickTileFromMask(int wallDirMask, GridBlockDef wall) {
         boolean n = (wallDirMask & CellTopology.WALL_DIR_N) != 0;
         boolean s = (wallDirMask & CellTopology.WALL_DIR_S) != 0;
         boolean e = (wallDirMask & CellTopology.WALL_DIR_E) != 0;
         boolean w = (wallDirMask & CellTopology.WALL_DIR_W) != 0;
-        TileRegistry reg = TileRegistry.installed();
-        GridBlockDef wall = (reg == null) ? null : reg.block("urban.wall");
         if (wall == null) return TileManifest.pickWallTile(n, s, e, w);
         int[] c = wall.resolve(n, s, e, w);
         return c == null ? null : new TileManifest.TileFrame(c[0], c[1]);

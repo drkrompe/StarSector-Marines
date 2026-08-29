@@ -14,6 +14,11 @@
     "BRICK":     "floors.brick",
     "WATER":     "water.water"
   },
+  "surfaceRender": {
+    "WALL": "urban.wall",
+    "DOOR_OPEN": "urban.door-open",
+    "ROOF": "floors.brick"
+  },
   "fillers": {
     "NATURE_GRASSLAND": {
       "groundPool": [
