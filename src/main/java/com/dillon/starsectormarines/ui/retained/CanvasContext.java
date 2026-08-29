@@ -44,6 +44,26 @@ public abstract class CanvasContext {
         return drawHostPass(pass);
     }
 
+    /**
+     * Where this canvas's content box sits on the render host, or null when this
+     * backend runs no host passes.
+     *
+     * <p>A producer that draws canvas primitives which have to line up with what
+     * a {@link #hostPass} draws needs this, because the two spaces genuinely
+     * differ. A host pass is projected in host pixels with its Y axis running
+     * <em>up</em>; canvas coordinates are surface units with Y running
+     * <em>down</em>, and the surface is stretched onto the content box by a
+     * factor that is not the same on both axes. Anything placed in one space and
+     * drawn in the other has to convert, and the numbers to convert with are
+     * exactly this rectangle's.
+     *
+     * <p>Answerable before any pass has run, so a backdrop can be positioned and
+     * then painted over.
+     */
+    public CanvasHostViewport hostViewport() {
+        return null;
+    }
+
     public final void fillRect(float x, float y, float width, float height, Color color) {
         requireRect(x, y, width, height);
         drawFillRect(x, y, width, height, requireColor(color));
