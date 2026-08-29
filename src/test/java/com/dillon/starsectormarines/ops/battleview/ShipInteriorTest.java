@@ -52,6 +52,15 @@ class ShipInteriorTest {
     }
 
     @Test
+    @DisplayName("a deck already laid out is read to the same answer as a seed")
+    void readingADeckAgreesWithGeneratingOne() {
+        CompanyDeck deck = new CompanyDeck(TRANSPORT, SEED);
+
+        assertEquals(ShipInterior.of(TRANSPORT, SEED).facilities(),
+                ShipInterior.of(TRANSPORT, deck.rooms()).facilities());
+    }
+
+    @Test
     @DisplayName("a hull with no interior holds nothing rather than refusing to say")
     void anUninhabitableHullHoldsNothing() {
         ShipInterior none = ShipInterior.of(FIGHTER, SEED);

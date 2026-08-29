@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -34,6 +35,28 @@ class CityLandingSiteTest {
         return map.pointsOfInterest.stream()
                 .filter(poi -> poi.kind == PointOfInterest.Kind.LANDING_SITE)
                 .toList();
+    }
+
+    /**
+     * A site is never smaller than the smallest airbase there is.
+     *
+     * <p>The claim can come up short and the filler falls back through the
+     * sizes, so what a city gets is whatever fitted. What it must never be is
+     * something in between — a lot laid into a rectangle too small for it,
+     * which is how a berth ends up outside its own fence.
+     */
+    @Test
+    void everyLandingSiteIsAWholeAirbase() {
+        for (long seed : new long[]{ 1L, 7L, 13L, 42L, 100L }) {
+            for (PointOfInterest site : sitesOn(seed)) {
+                int w = site.right - site.left + 1;
+                int h = site.bottom - site.top + 1;
+                int smallest = Math.min(AirbaseLot.Size.STRIP.width,
+                        AirbaseLot.Size.STRIP.depth);
+                assertTrue(Math.min(w, h) >= smallest, "seed " + seed + ": a "
+                        + w + "x" + h + " site is smaller than the smallest airbase");
+            }
+        }
     }
 
     @Test

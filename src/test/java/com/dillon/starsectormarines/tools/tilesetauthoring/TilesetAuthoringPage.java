@@ -325,8 +325,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
      */
     private WizardStep adjustCutStep(boolean last) {
         LambdaStep step = new LambdaStep("Adjust the cut",
-                "Pick a piece on the left and move its rectangle. Only that piece moves — "
-                        + "re-slicing to fix one of them moves every other piece too.",
+                "Pick a piece on the left — or a whole block, which arrives selected — and "
+                        + "move the grid it sits on. Only the selection moves; re-slicing to "
+                        + "fix one cell of it moves every other piece on the sheet too.",
                 this::adjustCutBody)
                 .onEnter(this::showSelectedCut);
         return last ? step.last() : step;
@@ -343,41 +344,39 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         return adjustCutScreen;
     }
 
-    /** Show whichever piece the entry table has selected. */
+    /** Show the grid whichever pieces the entry table has selected form. */
     private void showSelectedCut() {
-        int[] rows = table == null ? new int[0] : table.getSelectedRows();
-        TilesetExport.Entry picked = rows.length > 0 && rows[0] < model.entries.size()
-                ? model.entries.get(rows[0]) : null;
-        cutAdjuster.show(source, picked);
+        cutAdjuster.show(source, selectedEntries());
         refreshStep();
     }
 
     /**
-     * Apply the adjusted rectangle, save the document, and re-export.
+     * Apply the adjusted grid, save the document, and re-export.
      *
      * <p>All three, because a cut is only fixed once the atlas is packed from
      * it. Saving the document alone leaves the sheet the game loads with the
-     * old rectangle and nothing saying they disagree.
+     * old rectangles and nothing saying they disagree.
      */
     private void saveAdjustedCut() {
-        TilesetExport.Entry entry = cutAdjuster.entry();
-        if (entry == null || source == null) return;
-        SheetSlicer.Piece proposed = cutAdjuster.proposed();
+        GridPatch proposed = cutAdjuster.proposedPatch();
+        if (proposed == null || source == null) return;
+        int[] rows = table == null ? new int[0] : table.getSelectedRows();
         try {
-            SheetSlicer.Piece was = TilesetOperations.setCut(model.entries, entry.id,
-                    proposed.x(), proposed.y(), proposed.width(), proposed.height(),
-                    source.getWidth(), source.getHeight());
+            GridPatch.Applied applied = proposed.applyTo(source.getWidth(), source.getHeight());
             model.setEntries(model.entries);
             view.setEntries(model.entries);
             markDirty();
             saveDocument();
             export();
-            cutAdjuster.show(source, entry);
-            context.reportStatus(entry.id + " cut moved from " + was.x() + "," + was.y()
-                    + " of " + was.width() + "x" + was.height() + " and re-exported");
+            // The selection is what the adjuster is a view of, and refreshing
+            // the table drops it. Put it back, so the screen comes back showing
+            // the cut that was just corrected rather than nothing.
+            selectRows(rows);
+            showSelectedCut();
+            context.reportStatus(applied.summary() + ", saved and re-exported");
         } catch (Exception failure) {
             AuthoringMessages.error(root, "Save and re-export",
-                    "Could not move " + entry.id + "'s cut", failure);
+                    "Could not move the cut", failure);
         }
     }
 

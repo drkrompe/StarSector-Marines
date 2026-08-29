@@ -174,17 +174,32 @@ Do not run builds or leave generated task files there.
   its pieces back as doodads; it is refused while the mapping still points
   there, since a surface with no block is a startup crash. Next opens the
   block's sheet on a third screen, **Adjust the cut**.
-  That screen moves one piece's rectangle and nothing else. Slicing keys on
+  That screen moves the selection's rectangle and nothing else. Slicing keys on
   alpha and splitting divides by a stated pitch, and both are right most of the
   time and wrong for a particular piece — a prop whose contact shadow was keyed
   away with it, a cell whose seam sits a pixel off the line through its
-  neighbours — so re-slicing to fix one of them moves every other piece too. The
-  cut is drawn over the plate magnified six times with the excluded pixels
-  dimmed, because a boundary one pixel out is invisible at 1:1. Saving applies
-  the move, writes the document and re-exports, since a cut is only fixed once
-  the atlas is packed from it. `tileset_set_cut` is the same operation
-  headless, previewing by default and refusing a rectangle that leaves the
-  sheet. The screen is also the fourth of the ingest walkthrough.
+  neighbours — so re-slicing to fix one of them moves every other piece too.
+  **The selection moves as one grid**, because that is the shape the fault
+  usually has: a wall block's nine cells are one plate cut on one grid, and
+  correcting them a cell at a time is nine edits that have to agree and will
+  not. So the controls are a `GridCut`'s — where the first line falls, and how
+  big one cell is — and one piece is simply the 1x1 case. `GridPatch` derives
+  that grid from where the pieces actually sit rather than from their slot
+  names, since a selection may be a whole plate or a row of four; edges within
+  a quarter of a cell of each other are one grid line, so a cell already nudged
+  by a pixel stays in its column. A selection that is not a filled rectangle of
+  cells is refused and says so. The cut is drawn over the plate magnified, with
+  the seams between cells drawn and the excluded pixels dimmed, because a
+  boundary one pixel out is invisible at 1:1 and a pitch a fraction out shows
+  up against the interior seams rather than the boundary. Adopting a grid says
+  how far it would move the cells that are already there, and applies to all of
+  them or none. Saving applies the move, writes the document and re-exports,
+  since a cut is only fixed once the atlas is packed from it — and a re-export
+  drops the held atlas and thumbnails, because the picture a preview is holding
+  came from the sheet that was just replaced. `tileset_set_cut` is the
+  single-piece operation headless, previewing by default and refusing a
+  rectangle that leaves the sheet. The screen is also the fourth of the ingest
+  walkthrough.
   **New art arrived** is the ingest sequence: pick a sheet, find the pieces,
   say what each piece is, group blocks, name and size the output, save and
   export. A screen will not advance until it has been answered, and says what it

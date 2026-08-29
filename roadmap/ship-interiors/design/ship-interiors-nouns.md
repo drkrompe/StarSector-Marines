@@ -4,7 +4,10 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-28 - every furnished compartment now publishes work and carries
+Updated: 2026-08-29 - a fleet comparison is a fleet of decks and is laid out off
+the frame: the screen opens on the list, says which hulls it is still reading,
+and fills each row in as its deck lands, keeping only the deck of the hull on
+the stage. Earlier: every furnished compartment now publishes work and carries
 a trade of its own, and a task point nobody can reach costs the point rather than
 the room's whole fill. Earlier: berthing is split between the ship's own hands and the
 ground force she carries, so a berth is an assignment rather than an amenity;
@@ -525,6 +528,24 @@ not do for us. With a home to measure against, the answer is what moving would
 give up; without one, it is simply what she lacks. One screen answers both, and
 a candidate is read the same way either time - as a generated deck, from the
 generator and the seed her real interior would use.
+
+**A comparison of a fleet is a fleet of decks, and none of it happens on the
+frame the player is waiting on.** The honest answer to what a hull would give
+the company exists only once her deck is laid out - a room the deck could not
+fit is a room the ship does not have - so a list of eight candidates is eight
+generations, and a capital's is seconds of work on its own. The screen therefore
+opens on the list and says which hulls it is still laying out; they go down
+together across whatever cores are there, and each row fills in when its own
+deck lands. A row that does not know yet says so and says nothing else - a
+half-read fleet compared as though the missing half were a company with nowhere
+to live would tell the player their own ship had no berthing.
+
+Only the hull on the stage keeps her deck, and hers is laid out first. A deck is
+megabytes of grid, and the rest of the fleet is read for what is aboard and then
+dropped, so holding every candidate the player had clicked would trade the pause
+for a leak. Laying a deck out is kept free of shared mutable state for exactly
+this reason: each runs from its own seed into its own grids, and everything
+either of them consults is settled before the game starts.
 
 **A room screen says where it is by asking.** The heading over a room view is
 the ship, the compartment's longitudinal zone and side of the spine, and its

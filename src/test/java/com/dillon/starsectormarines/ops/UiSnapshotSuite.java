@@ -270,6 +270,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         ShipTransferViewModel viewModel = new ShipTransferViewModel(
                 reactor, () -> fleet, () -> home, moved -> { }, means);
         viewModel.select(fleet.get(Math.min(selected, fleet.size() - 1)).id());
+        // Evidence is of the finished screen rather than of the moment it
+        // opens: the decks are laid out off the screen's thread, and every row
+        // says so until its own has landed.
+        viewModel.candidateRows().get();
+        while (viewModel.reading()) {
+            if (viewModel.advance()) viewModel.candidateRows().get();
+            else Thread.onSpinWait();
+        }
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), SHIP_TRANSFER_COMPONENTS);

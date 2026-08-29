@@ -5,7 +5,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 Written: 2026-08-23
 
 Updated: 2026-08-29 — the airbase lot turns four ways, comes in three sizes, and
-the smallest is promoted into a city block as a civil landing site.
+reaches the city as either a block-sized site or a multi-block compound claim.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -372,6 +372,22 @@ never where it fits best. After the compounds, because compound seeding takes
 the largest leaf it can find — which is the same leaf a landmark wants. Run
 before it, the promotion is silently overwritten on every seed: nothing appears
 and nothing complains.
+
+**A city landmark too big for a block is a compound claim, not a second
+mechanism.** Compounds already take two or three adjacent leaves and dissolve
+the street frames between them into one interior, which is exactly what a lot
+wider than a block needs. An airbase is therefore one more thing a claim can be,
+seeded after the bases and before the claims run — after, so it does not fight
+the military base for the largest leaf; before, so its own claim still gets to
+grow.
+
+**Sizes are a fallback ladder, so a short claim is a smaller base rather than a
+hole.** A claim's rectangle is whatever its members turned out to be and not
+what was asked for, so a filler that only knew the large size would paint
+nothing on a claim that came up short — a gap in the city with no error. The
+seed demotes to the block-sized kind when it cannot claim at all, and the filler
+falls back through the sizes when the claim is smaller than hoped. The worst
+case at every step is a smaller airbase.
 
 **A gate is only a gate if it opens onto something.** On a compact lot a shed's
 back sits against the perimeter, and a gap cut in the fence there is a doorway
