@@ -23,6 +23,11 @@ public interface WizardStep {
     /**
      * The working area. Built once and reused, so a step may hold widgets
      * shared with other steps and re-parent them in {@link #onEnter()}.
+     *
+     * <p>Asking twice must give back the one screen, not a second one over the
+     * first. The wizard asks twice on every entry, and a body that builds a new
+     * container each time leaves the previous one parented and emptied - which
+     * paints over its replacement as a blank screen.
      */
     JComponent body();
 
