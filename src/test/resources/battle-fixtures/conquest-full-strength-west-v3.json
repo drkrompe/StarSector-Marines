@@ -3390,11 +3390,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 20,
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 11,
+        "armorFamily": "FURNACE_LINE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.9200000166893005,
+        "armorRating": 8,
         "campaignSoldierId": "full-strength-marine-152",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -3407,7 +3407,7 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
@@ -3456,11 +3456,11 @@
         "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 20,
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 11,
+        "armorFamily": "FURNACE_LINE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.9200000166893005,
+        "armorRating": 8,
         "campaignSoldierId": "full-strength-marine-155",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -3473,7 +3473,7 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
@@ -5766,11 +5766,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 20,
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 11,
+        "armorFamily": "FURNACE_LINE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.9200000166893005,
+        "armorRating": 8,
         "campaignSoldierId": "full-strength-marine-260",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -5783,7 +5783,7 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
@@ -5832,11 +5832,11 @@
         "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 20,
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 11,
+        "armorFamily": "FURNACE_LINE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.9200000166893005,
+        "armorRating": 8,
         "campaignSoldierId": "full-strength-marine-263",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -5849,7 +5849,7 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },

@@ -153,9 +153,17 @@ and the ladder between them becomes the thing that expresses access:
   strongest, and the Specter proves it: masterwork build, nearly the smallest
   pool, sold on recycle speed. Tier is the strength axis; grade remains the
   character axis; a suit may be a masterwork example of a cheap tier.
-- Because a capability then exists at two tiers, the ladder is *checkable*. A
-  tier-IV system weaker than its tier-II sibling in every axis is a bug a test
-  can refuse, which is not possible while each effect is a singleton.
+- Because a capability then exists at more than one tier, the ladder is
+  *checkable*, and the claim is stronger than it first looks: **every** suit at a
+  tier must be worth more than **every** suit below it. A tier that only raised
+  its ceiling would let a company pay for tier IV and be handed something worse
+  than what it already owned.
+- That comparison needs an index rather than an authored field, because suits
+  within one tier are deliberate side-grades whose headline numbers disagree
+  sevenfold. `ArmorCatalogShapeTest` owns it: a screen counts over the arc it
+  covers, a shove is priced in soak-equivalents, and the total is scaled by how
+  much of the time the system is up. It is a shape check and the game never
+  reads it.
 
 ## The role set
 
