@@ -246,7 +246,13 @@ publishes the same berths a mech bay does, and what occupies one remains the
 host's decision from a roster.
 
 An **airfield** is the first structure whose substance is open ground rather
-than enclosed floor. Its apron is paved yard with berths marked on it, and its
+than enclosed floor. Its apron is dressed rather than merely marked: paint alone
+makes helipads, and what tells a reader it is an airfield is everything standing
+around the aircraft that is not the aircraft — the bowser each stand is fuelled
+from, the tooling between one stand and the next, a fuel point at one end of the
+line and a mast at the other. None of that dressing closes a cell, because the
+apron has to stay ground people cross under fire; and the berths themselves stay
+bare, because something has to be able to land on them. Its apron is paved yard with berths marked on it, and its
 hardstands are the aviation form of a machine berth: generation authors the
 clear footprint and the approach direction, and what stands there is the host's
 to decide from a roster. It is therefore sited in what the packing left over

@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -38,13 +41,32 @@ public final class FortressAirfield {
     private static final int PAD = 5;
     /** Wingtip clearance between neighbouring hardstands. */
     private static final int PAD_GAP = 2;
-    /** Hardstands in a row. Four is a flight — enough to read as a field, not a helipad. */
-    private static final int PADS = 4;
+    /**
+     * Hardstands in a row.
+     *
+     * <p>Three rather than four. A fourth stand only repeats the third, while
+     * the paving it costs is the same paving the end bays need — and a field
+     * with a fuel point at one end and a mast at the other reads as an airfield
+     * in a way that a longer row of identical squares does not. Four stands
+     * plus ends came to thirty-two cells across, which the yard a packed ward
+     * leaves over could not offer on any seed.
+     */
+    private static final int PADS = 3;
     /** The strip behind the hardstands that crews and vehicles move along. */
     private static final int TAXIWAY = 3;
 
+    /**
+     * Apron kept clear at each end of the line of stands.
+     *
+     * <p>Without it the stands butt against the edge of the paving and the
+     * field has no ends — nowhere for the fuel point, nowhere for the mast, and
+     * nothing to tell one end of a repeating strip from the other.
+     */
+    private static final int END_BAY = 4;
+
     /** Cells across the apron, and the depth it needs behind them. */
-    private static final int APRON_WIDTH = PADS * PAD + (PADS - 1) * PAD_GAP;
+    private static final int APRON_WIDTH =
+            PADS * PAD + (PADS - 1) * PAD_GAP + 2 * END_BAY;
     private static final int APRON_DEPTH = PAD + TAXIWAY;
 
     /** What the yard pass leaves behind, and therefore what counts as spare. */
@@ -164,15 +186,18 @@ public final class FortressAirfield {
         }
 
         boolean alongY = axis == TraversalAxis.SOUTH_TO_NORTH;
+        int[][] pads = new int[PADS][2];
         for (int i = 0; i < PADS; i++) {
-            int offset = i * (PAD + PAD_GAP) + PAD / 2;
+            int offset = END_BAY + i * (PAD + PAD_GAP) + PAD / 2;
             // Hardstands sit at the rear of the apron; the taxiway is the strip
             // in front of them, which is the side the aircraft leave over.
-            int centreX = alongY ? left + offset : right - PAD / 2;
-            int centreY = alongY ? top - PAD / 2 : bottom + offset;
-            markHardstand(ctx, centreX, centreY);
-            ctx.landingPads.add(LandingPad.garrison(centreX, centreY, approach));
+            pads[i][0] = alongY ? left + offset : right - PAD / 2;
+            pads[i][1] = alongY ? top - PAD / 2 : bottom + offset;
+            markHardstand(ctx, pads[i][0], pads[i][1]);
+            ctx.landingPads.add(LandingPad.garrison(pads[i][0], pads[i][1], approach));
         }
+
+        dress(ctx, pads, alongY);
 
         int centreX = (left + right) / 2;
         int centreY = (bottom + top) / 2;
@@ -181,7 +206,7 @@ public final class FortressAirfield {
                 Faction.DEFENDER, 65, 3, false));
     }
 
-    /** Paint one berth's footprint so a pad reads as a pad from across the yard. */
+    /** Paint one berth's footprint so a stand reads as a stand from across the yard. */
     private void markHardstand(GenContext ctx, int centreX, int centreY) {
         for (int x = centreX - PAD / 2; x <= centreX + PAD / 2; x++) {
             for (int y = centreY - PAD / 2; y <= centreY + PAD / 2; y++) {
@@ -189,6 +214,103 @@ public final class FortressAirfield {
                 ctx.topology.setGroundKind(x, y, HARDSTAND);
             }
         }
+    }
+
+    /**
+     * Put the ground equipment on the apron.
+     *
+     * <p>Paint alone makes helipads. What tells you a field is an airfield is
+     * everything standing around the aircraft that is not the aircraft: the
+     * bowser it is fuelled from, the pallets and drums waiting to go aboard,
+     * the tooling between one stand and the next, the mast at the end of the
+     * line. A marked rectangle with nothing on it reads as a marked rectangle.
+     *
+     * <p>None of it closes a cell. Every piece here is cover and something to
+     * look at, and the apron stays ground people cross under fire — which is
+     * the whole tactical point of an airfield and would be given away by
+     * furnishing it into a maze. The hardstands themselves stay bare, because a
+     * berth is a clear footprint by law: something has to be able to land on it.
+     */
+    private void dress(GenContext ctx, int[][] pads, boolean alongY) {
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return;
+
+        for (int i = 0; i < pads.length; i++) {
+            int padX = pads[i][0];
+            int padY = pads[i][1];
+
+            // Equipment in the gap to the next stand, where a real field keeps
+            // the tooling it does not want under an aircraft.
+            if (i < pads.length - 1) {
+                int gapX = alongY ? padX + PAD / 2 + 1 : padX;
+                int gapY = alongY ? padY : padY + PAD / 2 + 1;
+                place(ctx, registry, pads, BETWEEN_STANDS[i % BETWEEN_STANDS.length],
+                        gapX, gapY);
+            }
+
+            // Ground support on the taxiway side, one item per stand, so the
+            // line of hardstands reads as aircraft being worked on rather than
+            // a row of empty squares.
+            int servedX = alongY ? padX - 1 : padX - PAD / 2 - 3;
+            int servedY = alongY ? padY - PAD / 2 - 3 : padY - 1;
+            place(ctx, registry, pads, GROUND_SUPPORT[i % GROUND_SUPPORT.length],
+                    servedX, servedY);
+        }
+
+        // The fuel point at one end of the apron and the mast at the other, in
+        // the bays kept clear for them, so the field has ends rather than being
+        // a repeating strip.
+        int nearX = alongY ? left + 1 : left + 1;
+        int nearY = alongY ? top - 3 : bottom + 1;
+        int farX = alongY ? right - 3 : left + 1;
+        int farY = alongY ? top - 3 : top - 3;
+        place(ctx, registry, pads, "doodad.industrial-fluid-tank", nearX, nearY);
+        place(ctx, registry, pads, "doodad.industrial-drum-cluster", nearX + 2, nearY);
+        place(ctx, registry, pads, "doodad.military-radar-dish", farX, farY);
+        place(ctx, registry, pads, "doodad.industrial-generator", farX, farY - 3);
+    }
+
+    /**
+     * What stands beside each hardstand, cycled so neighbouring stands differ.
+     *
+     * <p>A tanker for fuel, a utility truck for the crew, a flatbed for what is
+     * going aboard, and a cargo truck bringing more — the vehicles that are
+     * always somewhere on an apron and never all in the same place.
+     */
+    private static final String[] GROUND_SUPPORT = {
+            "doodad.parked-tanker-truck",
+            "doodad.parked-utility-truck",
+            "doodad.parked-flatbed-truck",
+            "doodad.parked-cargo-truck",
+    };
+
+    /** Tooling and load parked between one stand and the next. */
+    private static final String[] BETWEEN_STANDS = {
+            "doodad.industrial-pallet-stack",
+            "doodad.industrial-cable-reel",
+            "doodad.industrial-crate-stack",
+    };
+
+    /** Place one piece, if the registry knows it and it fits clear of the berths. */
+    private void place(GenContext ctx, TileRegistry registry, int[][] pads,
+                       String id, int x, int y) {
+        DoodadDef def = registry.doodad(id);
+        if (def == null) return;
+        for (int i = 0; i < def.footprintCellsX; i++) {
+            for (int j = 0; j < def.footprintCellsY; j++) {
+                int cx = x + i;
+                int cy = y + j;
+                if (cx < left || cx > right || cy < bottom || cy > top) return;
+                // Never on a berth: the pad has to stay clear for something to
+                // land on it.
+                for (int[] pad : pads) {
+                    if (Math.abs(cx - pad[0]) <= PAD / 2 && Math.abs(cy - pad[1]) <= PAD / 2) {
+                        return;
+                    }
+                }
+            }
+        }
+        ctx.doodads.add(new Doodad(x, y, def));
     }
 
     /**
