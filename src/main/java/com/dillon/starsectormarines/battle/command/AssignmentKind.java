@@ -26,6 +26,12 @@ package com.dillon.starsectormarines.battle.command;
  *   <li>{@link #ADVANCE_TRACK} — move an attacking Conquest squad to a safe
  *       staging cell behind its believed lane front. The assignment carries
  *       an own-force destination, never a hostile identity.</li>
+ *   <li>{@link #ATTACK_MOVE} — advance to a cell and destroy what is met on
+ *       the way, resuming the advance once the ground is clear. The squad
+ *       keeps the order through contact rather than surrendering it, and
+ *       cooperates with siblings under the same order instead of every squad
+ *       forming its own frontal line. The assignment still carries only an
+ *       own-force destination.</li>
  *   <li>{@link #SECURE_COMPOUND} — push into a compound's zone, clear it, then
  *       hold until the compound's capture timer completes. Issued by
  *       {@code ConquestCommand} for zones containing uncaptured compounds
@@ -56,6 +62,12 @@ public enum AssignmentKind {
     /** Hold a coarse Assault security area at a commander-selected walkable rally. */
     DEFEND_AREA,
     ADVANCE_TRACK,
+    /**
+     * Advance to a cell and engage what is met on the way — an attack move.
+     * Distinct from {@link #ADVANCE_TRACK}, which stages behind a believed
+     * front and yields its order the moment contact exists.
+     */
+    ATTACK_MOVE,
     SECURE_COMPOUND,
     HOLD_NODE,
     RUSH_OBJECTIVE,

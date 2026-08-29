@@ -201,7 +201,7 @@ public final class ReinforceContact implements Goal {
      * cell makes {@link FlankApproach} complete and hand control back to the
      * ordinary engagement planner instead of orbiting the structure.
      */
-    static int[] snapToReachable(int x, int y, Squad squad, BattleView sim) {
+    public static int[] snapToReachable(int x, int y, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int[] origin = squadOrigin(squad, sim);
         int bestX = origin[0];

@@ -45,6 +45,7 @@ import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.BattleResources;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceRecorder;
+import com.dillon.starsectormarines.battle.squad.AssaultCoordinationSystem;
 import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
@@ -263,6 +264,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final com.dillon.starsectormarines.battle.squad.SquadMoraleSystem squadMorale;
     /** Per-tick squad-level GOAP replan pass — dispatches each squad to drone / mech / infantry behavior. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadReplanSystem squadReplan;
+    /** Divides a shared contact between squads under one attack-move order. */
+    private final AssaultCoordinationSystem assaultCoordination;
     /** Per-tick win-condition evaluator — pure function over the objective list; sim writes the {@link #complete}/{@link #winner} fields on terminal result. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.command.objective.WinCheckSystem winCheck =
             new com.dillon.starsectormarines.battle.command.objective.WinCheckSystem();
@@ -569,6 +572,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.squadMorale = new com.dillon.starsectormarines.battle.squad.SquadMoraleSystem(
                 rosterService, shots);
         this.squadReplan = new com.dillon.starsectormarines.battle.squad.SquadReplanSystem(rosterService);
+        this.assaultCoordination = new AssaultCoordinationSystem(rosterService);
         this.squadFormUp = new SquadFormUpSystem(rosterService);
         this.attackerIndex = new com.dillon.starsectormarines.battle.decision.AttackerIndexService(rosterService);
         this.tacticalScoring = new com.dillon.starsectormarines.battle.decision.TacticalScoring(
@@ -1523,6 +1527,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.SQUAD_ALERT);
         tacticalScoring.updateContactPictures(simTickIndex);
         tickProfile.lap(TickProfile.Phase.CONTACT_PICTURE);
+        // Divide a shared contact between the squads attacking it, after every
+        // contact picture exists and before any of them plans against it — so
+        // cooperating squads read one answer rather than each deciding it is
+        // the one who should form the firing line.
+        assaultCoordination.tick(simTickIndex);
         // Morale recovery + hysteresis. Reads the freshly-set _engagedThisTick
         // flag from SquadAlertSystem: a squad out of contact this tick
         // recovers; a squad in contact holds. Runs before the GOAP replan so
