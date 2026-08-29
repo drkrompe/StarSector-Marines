@@ -147,18 +147,24 @@ public final class TileManifest {
     }
 
     /**
-     * Matching 3×3 to {@link #turretEmbankment} from the first block of
-     * urban-tileset-2 (cols 0-2). Chunkier wall art that "bows outward" —
-     * used for defense-post shapes that protrude into the kill zone (WEDGE,
-     * TRAPEZOID) so the embankment reads as a heavier earthwork than the
-     * thinner block-2 ring used for straight LINE emplacements. Same
-     * {@code relX, relY} convention as {@link #turretEmbankment}.
+     * Matching 3×3 to {@link #turretEmbankment}: the {@code road.revetment}
+     * block. Chunkier wall art that "bows outward" — used for defense-post
+     * shapes that protrude into the kill zone (WEDGE, TRAPEZOID) so the
+     * earthwork reads as heavier than the thinner ring used for straight LINE
+     * emplacements. Same {@code relX, relY} convention as
+     * {@link #turretEmbankment}.
+     *
+     * <p>This was {@code road.courtyard} until 2026-08-29, when the two were
+     * split. One block was serving as a ground surface and as defensive cover
+     * at once, so redrawing a courtyard as flatter paving would have quietly
+     * changed what a turret hides behind. They share their art today and are
+     * free to stop.
      */
     private static final int TURRET_BOW_COL_ORIGIN = 0;
     private static final int TURRET_BOW_ROW_ORIGIN = 0;
 
     public static TileFrame turretBowOut(int relX, int relY) {
-        return ringCell("road.courtyard", relX, relY,
+        return ringCell("road.revetment", relX, relY,
                 TURRET_BOW_COL_ORIGIN, TURRET_BOW_ROW_ORIGIN);
     }
 

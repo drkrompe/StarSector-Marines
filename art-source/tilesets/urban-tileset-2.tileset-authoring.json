@@ -34,6 +34,10 @@
     {
       "id": "road.vent",
       "layout": "single"
+    },
+    {
+      "id": "road.revetment",
+      "layout": "wall-3x3"
     }
   ],
   "cellPx": 32,
@@ -53,7 +57,7 @@
       ],
       "id": "doodad.road.c0r0",
       "included": true,
-      "note": "turret-bow-nw · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
+      "note": "Courtyard paving seen where it meets a wall. The open interior is not art at all - perimeter-3x3 resolves to nothing there and the block fill 0x3B4753 is what covers it, which is most of what a courtyard looks like. Its ring doubled as turret cover until 2026-08-29; that is road.revetment now, so this can be redrawn as flatter paving.",
       "rect": [
         0,
         0,
@@ -71,7 +75,7 @@
       ],
       "id": "doodad.road.c1r0",
       "included": true,
-      "note": "turret-bow-n · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
+      "note": "Courtyard paving seen where it meets a wall. The open interior is not art at all - perimeter-3x3 resolves to nothing there and the block fill 0x3B4753 is what covers it, which is most of what a courtyard looks like. Its ring doubled as turret cover until 2026-08-29; that is road.revetment now, so this can be redrawn as flatter paving.",
       "rect": [
         32,
         0,
@@ -89,7 +93,7 @@
       ],
       "id": "doodad.road.c2r0",
       "included": true,
-      "note": "turret-bow-ne · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
+      "note": "Courtyard paving seen where it meets a wall. The open interior is not art at all - perimeter-3x3 resolves to nothing there and the block fill 0x3B4753 is what covers it, which is most of what a courtyard looks like. Its ring doubled as turret cover until 2026-08-29; that is road.revetment now, so this can be redrawn as flatter paving.",
       "rect": [
         64,
         0,
@@ -348,7 +352,7 @@
       ],
       "id": "doodad.road.c0r1",
       "included": true,
-      "note": "turret-bow-w · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
+      "note": "Courtyard paving seen where it meets a wall. The open interior is not art at all - perimeter-3x3 resolves to nothing there and the block fill 0x3B4753 is what covers it, which is most of what a courtyard looks like. Its ring doubled as turret cover until 2026-08-29; that is road.revetment now, so this can be redrawn as flatter paving.",
       "rect": [
         0,
         32,
@@ -366,7 +370,7 @@
       ],
       "id": "doodad.road.c1r1",
       "included": false,
-      "note": "DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
+      "note": "Courtyard paving seen where it meets a wall. The open interior is not art at all - perimeter-3x3 resolves to nothing there and the block fill 0x3B4753 is what covers it, which is most of what a courtyard looks like. Its ring doubled as turret cover until 2026-08-29; that is road.revetment now, so this can be redrawn as flatter paving.",
       "rect": [
         32,
         32,
@@ -384,7 +388,7 @@
       ],
       "id": "doodad.road.c2r1",
       "included": true,
-      "note": "turret-bow-e · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
+      "note": "Courtyard paving seen where it meets a wall. The open interior is not art at all - perimeter-3x3 resolves to nothing there and the block fill 0x3B4753 is what covers it, which is most of what a courtyard looks like. Its ring doubled as turret cover until 2026-08-29; that is road.revetment now, so this can be redrawn as flatter paving.",
       "rect": [
         64,
         32,
@@ -642,7 +646,7 @@
       ],
       "id": "doodad.road.c0r2",
       "included": true,
-      "note": "turret-bow-sw · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
+      "note": "Courtyard paving seen where it meets a wall. The open interior is not art at all - perimeter-3x3 resolves to nothing there and the block fill 0x3B4753 is what covers it, which is most of what a courtyard looks like. Its ring doubled as turret cover until 2026-08-29; that is road.revetment now, so this can be redrawn as flatter paving.",
       "rect": [
         0,
         64,
@@ -660,7 +664,7 @@
       ],
       "id": "doodad.road.c1r2",
       "included": true,
-      "note": "turret-bow-s · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
+      "note": "Courtyard paving seen where it meets a wall. The open interior is not art at all - perimeter-3x3 resolves to nothing there and the block fill 0x3B4753 is what covers it, which is most of what a courtyard looks like. Its ring doubled as turret cover until 2026-08-29; that is road.revetment now, so this can be redrawn as flatter paving.",
       "rect": [
         32,
         64,
@@ -678,7 +682,7 @@
       ],
       "id": "doodad.road.c2r2",
       "included": true,
-      "note": "turret-bow-se · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
+      "note": "Courtyard paving seen where it meets a wall. The open interior is not art at all - perimeter-3x3 resolves to nothing there and the block fill 0x3B4753 is what covers it, which is most of what a courtyard looks like. Its ring doubled as turret cover until 2026-08-29; that is road.revetment now, so this can be redrawn as flatter paving.",
       "rect": [
         64,
         64,
@@ -931,6 +935,168 @@
         32
       ],
       "slot": "only"
+    },
+    {
+      "block": "road.revetment",
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.revetment.nw",
+      "included": true,
+      "note": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "slot": "nw"
+    },
+    {
+      "block": "road.revetment",
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.revetment.n",
+      "included": true,
+      "note": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
+      "rect": [
+        32,
+        0,
+        32,
+        32
+      ],
+      "slot": "n"
+    },
+    {
+      "block": "road.revetment",
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.revetment.ne",
+      "included": true,
+      "note": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
+      "rect": [
+        64,
+        0,
+        32,
+        32
+      ],
+      "slot": "ne"
+    },
+    {
+      "block": "road.revetment",
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.revetment.w",
+      "included": true,
+      "note": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
+      "rect": [
+        0,
+        32,
+        32,
+        32
+      ],
+      "slot": "w"
+    },
+    {
+      "block": "road.revetment",
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.revetment.center",
+      "included": false,
+      "note": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
+      "rect": [
+        32,
+        32,
+        32,
+        32
+      ],
+      "slot": "center"
+    },
+    {
+      "block": "road.revetment",
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.revetment.e",
+      "included": true,
+      "note": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
+      "rect": [
+        64,
+        32,
+        32,
+        32
+      ],
+      "slot": "e"
+    },
+    {
+      "block": "road.revetment",
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.revetment.sw",
+      "included": true,
+      "note": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
+      "rect": [
+        0,
+        64,
+        32,
+        32
+      ],
+      "slot": "sw"
+    },
+    {
+      "block": "road.revetment",
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.revetment.s",
+      "included": true,
+      "note": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
+      "rect": [
+        32,
+        64,
+        32,
+        32
+      ],
+      "slot": "s"
+    },
+    {
+      "block": "road.revetment",
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.revetment.se",
+      "included": true,
+      "note": "Directional heavy cover for a turret emplacement, the outward-bowed ring DefensePostStamper places around WEDGE and TRAPEZOID posts. Same art as road.courtyard today and cut from the same cells: the two were one block until 2026-08-29, serving as a ground surface and as cover at once, and were split so either can be redrawn without the other. Slot names read as the exterior side, which for a ring is the side facing out of the post.",
+      "rect": [
+        64,
+        64,
+        32,
+        32
+      ],
+      "slot": "se"
     }
   ],
   "gridCols": 17,
