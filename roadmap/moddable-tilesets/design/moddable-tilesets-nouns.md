@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — walls, doorways and roofs dispatch through the mapping's `surfaceRender` section; content is found by purpose as well as by sheet; a block may be a variant pool as well as an autotile; and every sheet is exported from its authoring document.
+Updated: 2026-08-29 — walls, doorways and roofs dispatch through the mapping's `surfaceRender` section; content is found by purpose as well as by sheet; a block may be a variant pool as well as an autotile; every sheet is exported from its authoring document; and authoring is reached as a walkthrough.
 
 Read `stories.md` for open work.
 
@@ -182,6 +182,15 @@ and described by a generated tileset definition. The slicing is repeatable and
 the annotation is not, so the annotation is saved to an authoring document
 beside the raw sheet and can be resumed, corrected, and re-sliced without being
 lost.
+
+Authoring is reached as a **walkthrough** rather than as a workspace. Three
+ways in — start from a need, start from a sheet, or only look — each a sequence
+of screens carrying one step apiece, in order, with a way back. The distinction
+is not cosmetic: presenting every command at once states that they are peers and
+leaves their order to be learned elsewhere, when in fact the cut precedes the
+annotation, the annotation precedes the grouping, and the export presumes all
+three. A screen that cannot be finished says what it still wants, so a step that
+is not yet possible reads as a question rather than as a disabled control.
 
 Content is also *found* by purpose rather than by sheet. Ingesting art is
 sheet-first — this plate arrived, cut it, say what its pieces are — but needing
