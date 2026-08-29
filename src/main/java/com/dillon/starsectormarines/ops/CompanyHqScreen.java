@@ -2,11 +2,13 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CompanyClocks;
+import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
@@ -26,6 +28,17 @@ public final class CompanyHqScreen implements Screen {
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
+
+    /**
+     * The way aboard, redrawn as the ship is got ready.
+     *
+     * <p>A signal rather than a property because this one tile moves while the
+     * page stands still: everything else here is settled when the page is built
+     * and this is a loader. Held across rebuilds of the document so the sweep
+     * does not restart when the campaign hour turns over.
+     */
+    private final MutableSignal<CompanyHqViewModel.ShipView> shipView =
+            reactor.signal(CompanyHqViewModel.shipViewReady());
 
     private MarineOpsContext context;
     private Runnable dismissDialog;
@@ -52,9 +65,10 @@ public final class CompanyHqScreen implements Screen {
     }
 
     private void installDocument() {
+        readShipView();
         CompanyHqViewModel viewModel = CompanyHqViewModel.current(
                 context::roomAboard,
-                context.shipGettingReady(),
+                shipView,
                 this::onBarracks,
                 this::onArmory,
                 this::onMechLab,
@@ -93,7 +107,8 @@ public final class CompanyHqScreen implements Screen {
                 "page-nav-mech-lab",
                 "company-hq-assessment",
                 "company-hq-main", "company-hq-sidebar", "company-hq-force",
-                "company-hq-ship",
+                "company-hq-ship", "company-hq-ship-view",
+                "company-hq-ship-view-track", "company-hq-ship-view-fill",
                 "company-hq-finance", "company-hq-standing", "company-hq-board",
                 "company-hq-obligation-list", "company-hq-news-list")) {
             component.requireElement(id);
@@ -136,8 +151,23 @@ public final class CompanyHqScreen implements Screen {
         if (dismissDialog != null) dismissDialog.run();
     }
 
+    /**
+     * What the tile aboard should say this frame.
+     *
+     * <p>Written every frame and changed only when it differs, so a ready ship
+     * costs one comparison and a ship being got ready redraws one tile.
+     */
+    private void readShipView() {
+        CompanyDeck ship = context == null ? null : context.companyDeck();
+        shipView.set(ship == null || !ship.gettingReady()
+                ? CompanyHqViewModel.shipViewReady()
+                : CompanyHqViewModel.shipViewWorking(
+                        ship.work(), ship.gettingReadySeconds()));
+    }
+
     @Override
     public void advance(float dt) {
+        readShipView();
         int currentHour = campaignHour();
         if (document != null && currentHour != projectedCampaignHour) {
             projectedCampaignHour = currentHour;

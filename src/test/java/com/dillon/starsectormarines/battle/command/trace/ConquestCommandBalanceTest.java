@@ -195,6 +195,28 @@ class ConquestCommandBalanceTest {
                 + "\nsecond: " + excerpt(secondValue, character));
     }
 
+    /**
+     * Renders an order mix as shares of published directives, largest first.
+     * Percentages are integers deliberately: this is a "what was this battle
+     * made of" reading, and a tenth of a percent of one squad-pulse is noise
+     * dressed as precision.
+     */
+    private static String orderMix(CommandTraceAnalyzer.OrderMixMetrics mix) {
+        int total = mix.totalSquadPulses();
+        if (total == 0) return "no published directives.";
+        StringBuilder out = new StringBuilder();
+        for (CommandTraceAnalyzer.OrderShare share : mix.shares()) {
+            if (out.length() > 0) out.append(", ");
+            out.append(share.kind()).append(' ')
+                    .append(Math.round(100.0 * share.squadPulses() / total))
+                    .append("% (").append(share.squadPulses())
+                    .append(" pulses / ").append(share.squadTicks())
+                    .append(" ticks)");
+        }
+        return out.append(" of ").append(total)
+                .append(" squad-pulses.").toString();
+    }
+
     private static int firstDifferingCharacter(String first, String second) {
         int shared = Math.min(first.length(), second.length());
         int character = 0;
@@ -322,6 +344,10 @@ class ConquestCommandBalanceTest {
                     .append("|\n");
         }
         out.append("\n## Command diagnostics\n");
+        // What the battle was actually made of. Every other metric here
+        // describes how well a given order went; none of them says which
+        // orders there were, and two runs that play nothing alike score
+        // similarly on all of them.
         for (ReportRow row : rows) {
             Analysis analysis = row.analysis;
             CommandTraceAnalyzer.FactionMetrics marine =
@@ -364,6 +390,10 @@ class ConquestCommandBalanceTest {
                     .append(inactivity.unclassifiedSquadPulses()).append(" / ")
                     .append(inactivity.unclassifiedSquadTicks())
                     .append(" (squad-pulses / squad-ticks).\n")
+                    .append("- Marine order mix: ")
+                    .append(orderMix(marine.orderMix())).append("\n")
+                    .append("- Defender order mix: ")
+                    .append(orderMix(defender.orderMix())).append("\n")
                     .append("- Marine distant captures deferred for front resistance: ")
                     .append(marine.distantCaptureDeferredSquadPulses())
                     .append(" squad-pulses.\n")
