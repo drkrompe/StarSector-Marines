@@ -56,7 +56,8 @@
         { "templateId": "equipment-template:armor.pathfinder", "sources": {"license": 4, "recovery": 4} },
         { "templateId": "equipment-template:armor.redoubt", "sources": {"patron": 3, "recovery": 3} },
         { "templateId": "equipment-template:armor.outrider", "sources": {"patron": 2, "recovery": 2} },
-        { "templateId": "equipment-template:armor.arbalest", "sources": {"patron": 3, "recovery": 2} }
+        { "templateId": "equipment-template:armor.arbalest", "sources": {"patron": 3, "recovery": 2} },
+        { "templateId": "equipment-template:armor.vigil", "sources": {"license": 5, "recovery": 4} }
       ]
     },
     {
@@ -181,7 +182,8 @@
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 9 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 7 } },
         { "templateId": "equipment-template:special.field-revetment", "sources": { "market": 8 } },
-        { "templateId": "equipment-template:armor.redoubt", "sources": {"patron": 4, "recovery": 3} }
+        { "templateId": "equipment-template:armor.redoubt", "sources": {"patron": 4, "recovery": 3} },
+        { "templateId": "equipment-template:armor.vigil", "sources": {"license": 9, "recovery": 4} }
       ]
     },
     {

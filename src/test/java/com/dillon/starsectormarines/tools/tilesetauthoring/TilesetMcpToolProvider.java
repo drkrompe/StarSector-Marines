@@ -51,6 +51,7 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                 new FitGrid(),
                 new SplitOnGrid(),
                 new SetBlock(),
+                new CutAdjustTool(),
                 new RemoveBlock(),
                 new ExportTileset(),
                 new MapPreview());

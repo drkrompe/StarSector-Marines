@@ -2,7 +2,10 @@ package com.dillon.starsectormarines.marine;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -131,58 +134,103 @@ class ArmorCatalogShapeTest {
     }
 
     /**
-     * A capability gets stronger as the suits carrying it do. Compared between
-     * consecutive <em>populated</em> tiers and on each effect's own headline
-     * axis, because a capability may skip a tier and because suits within one
-     * tier are deliberately side-grades of each other — the Foundry-breaker and
-     * the Reliquary are both tier IV and differ sevenfold.
+     * <b>Every</b> suit at a tier carries a better version of its capability
+     * than <b>every</b> suit at the tier below. Not best-against-best: the floor
+     * rises, which is what makes a tier mean something when a role spans several
+     * ({@code role-and-access.md}).
      *
-     * <p>This is what {@code role-and-access.md} means by a capability having
-     * its own scaling ladder, and it could not be written at all until an effect
-     * existed at two tiers.
+     * <p>Compared on {@link #systemValue}, not on any single authored number,
+     * because the suits within one tier are deliberate side-grades and their
+     * headline numbers disagree wildly — the Foundry-breaker refuses four points
+     * of damage where the Reliquary refuses twenty-seven, and both are tier IV.
+     * What they have in common is roughly how much they are worth per activation
+     * once the shove is counted; where they differ is how often they can spend
+     * it.
      */
     @Test
-    void aCapabilityGetsStrongerWithTheTierOfTheSuitCarryingIt() {
-        Map<IntegralSystemEffect, Map<Integer, Float>> best = new EnumMap<>(IntegralSystemEffect.class);
+    void everySuitAtATierCarriesABetterSystemThanEverySuitBelowIt() {
+        Map<IntegralSystemEffect, Map<Integer, List<Rung>>> ladders =
+                new EnumMap<>(IntegralSystemEffect.class);
         for (MarineArmorCatalogDef pattern : catalog().all()) {
             IntegralSystemDef system = pattern.integralSystem();
             if (system == null) continue;
-            Float strength = headlineStrength(system);
-            if (strength == null) continue;
-            best.computeIfAbsent(system.effect(), key -> new TreeMap<>())
-                    .merge(pattern.tier(), strength, Math::max);
+            Double value = systemValue(system);
+            if (value == null) continue;
+            ladders.computeIfAbsent(system.effect(), key -> new TreeMap<>())
+                    .computeIfAbsent(pattern.tier(), key -> new ArrayList<>())
+                    .add(new Rung(pattern.id(), value));
         }
-        assumeTrue(!best.isEmpty(), "no catalogued pattern carries a system here");
-        best.forEach((effect, byTier) -> {
+        assumeTrue(!ladders.isEmpty(), "no catalogued pattern carries a system here");
+
+        ladders.forEach((effect, byTier) -> {
+            Rung previousCeiling = null;
             Integer previousTier = null;
-            float previousBest = Float.NEGATIVE_INFINITY;
-            for (Map.Entry<Integer, Float> rung : byTier.entrySet()) {
-                assertTrue(rung.getValue() >= previousBest,
-                        "the best '" + effect.key + "' at tier " + rung.getKey() + " ("
-                                + rung.getValue() + ") is weaker than the best at tier "
-                                + previousTier + " (" + previousBest + "), so upgrading"
-                                + " the suit downgrades the capability");
+            for (Map.Entry<Integer, List<Rung>> rung : byTier.entrySet()) {
+                Rung floor = rung.getValue().stream()
+                        .min(Comparator.comparingDouble(Rung::value)).orElseThrow();
+                if (previousCeiling != null) {
+                    assertTrue(floor.value() > previousCeiling.value(),
+                            effect.key + ": " + floor.id() + " at tier " + rung.getKey()
+                                    + " is worth " + round(floor.value()) + ", which does not"
+                                    + " beat " + previousCeiling.id() + " at tier "
+                                    + previousTier + " on " + round(previousCeiling.value())
+                                    + " — a tier has to raise the floor, not just the ceiling");
+                }
+                previousCeiling = rung.getValue().stream()
+                        .max(Comparator.comparingDouble(Rung::value)).orElseThrow();
                 previousTier = rung.getKey();
-                previousBest = rung.getValue();
             }
         });
     }
 
+    private record Rung(String id, double value) {}
+
     /**
-     * The axis an effect is measured along when asking whether it got stronger.
-     * Each is the number that entry's own catalog copy is really selling — the
-     * pool a screen refuses, how far a sweep reads, how many rounds a rack
-     * holds. Returns null for an effect with no such axis yet, which is skipped
-     * rather than guessed at.
+     * A rough index of what one system is worth, for ladder comparison only.
+     *
+     * <p>Deliberately not a balance model and never read by the game. It exists
+     * because "stronger" has to mean something comparable before a ladder can be
+     * checked, and no single authored field is that thing: a screen suit and a
+     * shove suit spend the same tier budget on different axes.
+     *
+     * <p>A screen counts for the arc it actually covers, a shove is priced in
+     * soak-equivalents, and the total is scaled by how much of the time the
+     * system is available. Comparison is only ever between tiers of the SAME
+     * effect, so the units need not mean anything across effects.
      */
-    private static Float headlineStrength(IntegralSystemDef system) {
+    private static Double systemValue(IntegralSystemDef system) {
         return switch (system.effect()) {
-            case BREACHER_ASSIST -> system.breacherAssist() != null
-                    ? system.breacherAssist().screenSoak() : null;
-            case PERCEPTION_SWEEP -> system.perceptionSweep() != null
-                    ? system.perceptionSweep().revealRangeCells() : null;
-            case MISSILE_POD -> system.usesAmmunition() ? (float) system.startingAmmo() : null;
+            case BREACHER_ASSIST -> {
+                BreacherAssistSpec screen = system.breacherAssist();
+                if (screen == null) yield null;
+                double perActivation = screen.screenSoak() * (screen.shieldedArcDegrees() / 360.0)
+                        + SHOVE_IN_SOAK_POINTS * (screen.moveSpeedMult() - 1.0);
+                yield perActivation * duty(system);
+            }
+            case PERCEPTION_SWEEP -> system.perceptionSweep() == null ? null
+                    : system.perceptionSweep().revealRangeCells() * duty(system);
+            case MISSILE_POD -> system.usesAmmunition() ? (double) system.startingAmmo() : null;
         };
+    }
+
+    /**
+     * What a full point of movement multiplier is worth against a point of soak.
+     * A guess, and the only one in this file — chosen so that the Foundry-breaker,
+     * whose authored copy says its whole value is the shove and its screen is
+     * scrap, comes out comparable per activation to the suits that spent the same
+     * budget the other way.
+     */
+    private static final double SHOVE_IN_SOAK_POINTS = 30.0;
+
+    /** The share of the time a cooldown-gated system is actually up. */
+    private static double duty(IntegralSystemDef system) {
+        double window = system.durationSeconds();
+        double cycle = window + system.cooldownSeconds();
+        return cycle <= 0 ? 1.0 : window / cycle;
+    }
+
+    private static String round(double value) {
+        return String.valueOf(Math.round(value * 100) / 100.0);
     }
 
     private static Map<ArmorRole, Map<Integer, Set<String>>> matrix() {
