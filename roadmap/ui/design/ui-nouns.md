@@ -4,9 +4,9 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — the built-in element vocabulary now includes an image
-element that paints one authored asset through the existing canvas sprite
-primitive, aspect-fitted inside its content box.
+Updated: 2026-08-29 — the host-pass viewport is answerable before the pass runs,
+and the rule that a host-drawn world owns the coordinate space is stated for
+backdrops and for the camera a player flies, not only for overlays.
 
 ## Purpose
 
@@ -319,9 +319,25 @@ bounded live-host pass. The pass receives the absolute content-box viewport plus
 the canvas surface dimensions, remains inside the painter's active clip, and must
 restore its local GL state. It does not receive input or document ownership. A
 headless target declines the pass, so the producer must emit deterministic canvas
-evidence from the same scene dimensions and camera contract. When the host and
-surface aspect ratios differ, overlay geometry converts through that viewport;
-independent canvas stretching may not distort a battle renderer's square cells.
+evidence from the same scene dimensions and camera contract. That viewport is
+answerable before any pass runs, so a producer may place a backdrop under the
+world as readily as an overlay over it.
+
+**A world drawn by a host pass owns the coordinate space, and everything a
+producer draws around it converts into that space rather than the reverse.** The
+pass projects in host pixels with Y running up; canvas primitives are in surface
+units with Y running down, and the two axes are stretched by different factors
+whenever the surface aspect and the content box disagree. Independent canvas
+stretching may not distort a battle renderer's square cells, so a camera framed
+on the surface instead of on the host viewport is wrong even before it moves:
+its cells are square in a space nothing is drawn in. A camera the player flies is
+therefore stated on the host rect, pointer samples are converted into it, and
+overlay and backdrop geometry converts back out of it per axis.
+
+The failure this describes is quiet. Centred and unzoomed, a surface-stated
+camera agrees with the pass by coincidence, and the disagreement appears only
+once the view moves — as a backdrop sliding against its own map at a rate set by
+the stretch, and travelling the wrong way entirely in the vertical.
 
 Layered character authoring is a separate desktop concern rather than another game
 screen. A unit-layer document separates a unit's equipment variants from its named
