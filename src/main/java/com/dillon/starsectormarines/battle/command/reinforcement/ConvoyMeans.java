@@ -115,7 +115,16 @@ public final class ConvoyMeans implements ReinforcementMeans {
                 TacticalNode.Kind.ARMORY, Faction.DEFENDER)) {
             return false;
         }
-        return !graph.perimeterNodes().isEmpty();
+        // And somewhere a truck can actually come on at. This used to ask only
+        // whether the road graph had perimeter nodes at all, which is a
+        // question about the map rather than about the delivery: a graph gate
+        // one cell inside the edge is not a valid pose for a full APC body, so
+        // a map can be covered in perimeter nodes and admit no vehicle
+        // anywhere. Measured on a production Conquest fixture, every one of
+        // sixteen convoy dispatches failed for exactly that and every one of
+        // them was promised first — the probe said yes, the commit proved
+        // otherwise, and the request fell through having burned the attempt.
+        return entryNode(sim, deploymentFor(req)) != null;
     }
 
     /**
@@ -131,19 +140,49 @@ public final class ConvoyMeans implements ReinforcementMeans {
     @Override
     public float arrivalSeconds(BattleView sim, ReinforcementRequest req) {
         DeliveryDeployment deployment = deploymentFor(req);
-        List<RoadGraph.Node> perimeter = deployment.strictDefenderRearEntry()
-                ? defenderRearPerimeter(graph.perimeterNodes(),
-                        sim.getGrid().getWidth(), sim.getGrid().getHeight())
-                : defenderSidePerimeter(graph.perimeterNodes(),
-                        sim.getGrid().getWidth(), sim.getGrid().getHeight());
-        if (perimeter.isEmpty()) return Float.MAX_VALUE;
-        List<RoadGraph.Node> nearest = sortedByDistance(perimeter,
-                deployment.hintX(), deployment.hintY());
-        RoadGraph.Node entry = nearest.get(0);
+        RoadGraph.Node entry = entryNode(sim, deployment);
+        if (entry == null) return Float.MAX_VALUE;
         float dx = entry.cellX - deployment.hintX();
         float dy = entry.cellY - deployment.hintY();
         float drive = (float) Math.sqrt(dx * dx + dy * dy) * ROAD_DETOUR;
         return PENDING_SEC + drive / VehicleType.HEAVY_APC.maxSpeed;
+    }
+
+    /**
+     * The perimeter gate a truck would come on at for this delivery — the one
+     * nearest the drop that can actually take a full APC body — or null when
+     * no eligible gate can.
+     *
+     * <p>Shared by the feasibility probe and the arrival estimate so the entry
+     * that decides whether this means can deliver is the same entry it quotes
+     * a time from. Rebuilds the clearance mask per call for the reason
+     * {@link #clearanceFor} gives: wrecks close cells during a battle, and a
+     * retained mask would keep promising an entry that a burnt-out truck is
+     * now sitting in.
+     *
+     * <p><b>A necessary condition, not the proof.</b> The drive itself is
+     * still proven at commit, because proving it costs about seventy
+     * milliseconds against this probe's half of one — far too much for
+     * something asked of every means on every request, and asked again by the
+     * counterattack muster on its own cadence. What this closes is the failure
+     * that actually occurs: across twenty-two measured route plans on the
+     * canonical fixtures, every single failure was the entry, and none was the
+     * route or the destination.
+     */
+    private RoadGraph.Node entryNode(BattleView sim, DeliveryDeployment deployment) {
+        int width = sim.getGrid().getWidth();
+        int height = sim.getGrid().getHeight();
+        List<RoadGraph.Node> perimeter = deployment.strictDefenderRearEntry()
+                ? defenderRearPerimeter(graph.perimeterNodes(), width, height)
+                : defenderSidePerimeter(graph.perimeterNodes(), width, height);
+        if (perimeter.isEmpty()) return null;
+        VehicleClearance clearance = clearanceFor(sim,
+                VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells));
+        for (RoadGraph.Node node : sortedByDistance(perimeter,
+                deployment.hintX(), deployment.hintY())) {
+            if (perimeterRouteCell(clearance, node, width, height) != null) return node;
+        }
+        return null;
     }
 
     /** This request's delivery terms, or the legacy ones on a battle with no commanding authority. */
@@ -339,7 +378,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
     }
 
     /** Lazily bakes (and caches) the per-battle terrain cost field from the map's ground kinds. */
-    private TerrainCostField costFieldFor(BattleControl sim) {
+    private TerrainCostField costFieldFor(BattleView sim) {
         if (costField == null) costField = TerrainCostField.from(sim.getTopology());
         return costField;
     }
@@ -349,7 +388,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * cells during the battle, so retaining the original mask would let later
      * reinforcements prove routes through destroyed vehicles.
      */
-    private VehicleClearance clearanceFor(BattleControl sim, int radius) {
+    private VehicleClearance clearanceFor(BattleView sim, int radius) {
         return VehicleClearance.erode(sim.getGrid(), radius);
     }
 
