@@ -85,6 +85,9 @@ public final class CompanyDeck {
     private ShipDeckBattleScene scene;
     /** Her deck being laid out and her watch mustered, off the frame. @see #ready() */
     private CompletableFuture<ShipDeckBattleScene> gettingReady;
+    /** What she is doing meanwhile; written where the work is and read here. */
+    private volatile Work work = Work.LAYING_OUT;
+    private float gettingReadySeconds;
     private float elapsedSeconds;
 
     /**
@@ -138,8 +141,45 @@ public final class CompanyDeck {
         this(ship, seed, null, null, null, false);
     }
 
+    /**
+     * What a ship that is not ready yet is doing.
+     *
+     * <p>Two steps rather than a fraction, because the honest answer to "how
+     * far along" is not available: half of laying a deck out is a circulation
+     * pass that runs until no further cut earns itself, which has no total to
+     * count against. What can be said truthfully is which of the two pieces of
+     * work she is in, and how long it has been.
+     */
+    public enum Work {
+        /** Her deck: the hull profile, the spine, the compartments, the passages. */
+        LAYING_OUT,
+        /** Her people: the machines into their berths, the company into the racks. */
+        MUSTERING
+    }
+
     public CompanyShip ship() {
         return ship;
+    }
+
+    /** @see Work */
+    public Work work() {
+        return work;
+    }
+
+    /**
+     * Whether she is still being got ready — false for a hull nobody could live
+     * in, which is not waiting for anything.
+     */
+    public boolean gettingReady() {
+        return ship.habitable() && !ready();
+    }
+
+    /**
+     * How long she has been got ready, in the shell's own clock rather than the
+     * wall's: it counts the frames the player has actually been waiting.
+     */
+    public float gettingReadySeconds() {
+        return gettingReadySeconds;
     }
 
     /**
@@ -247,7 +287,9 @@ public final class CompanyDeck {
 
     /** @see #getReady() */
     private ShipDeckBattleScene muster(List<MechVariant> berthed, List<MarineSoldier> roll) {
+        work = Work.LAYING_OUT;
         generate();
+        work = Work.MUSTERING;
         ShipDeckBattleScene manned = new ShipDeckBattleScene(deck, rooms, seed, null);
         manned.occupyGantries(berthed);
         // The company musters before the ship is crewed, so the berthing is
@@ -408,7 +450,10 @@ public final class CompanyDeck {
         // Not yet, and not waited for. A ship still being got ready has no
         // clock to run, and the frame this is called on is the one the player
         // is looking at.
-        if (!ready()) return;
+        if (!ready()) {
+            gettingReadySeconds += dt;
+            return;
+        }
         elapsedSeconds += dt;
         scene.advanceTo(elapsedSeconds);
     }
@@ -432,6 +477,8 @@ public final class CompanyDeck {
         // deck it was laying out is kept by LaidDecks either way, so the work
         // is not wasted even when its ship is.
         gettingReady = null;
+        work = Work.LAYING_OUT;
+        gettingReadySeconds = 0f;
         mustered.clear();
         quarters.clear();
         elapsedSeconds = 0f;

@@ -1,4 +1,4 @@
-<template props="purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty,shipAction,shipLabel,shipViewAction,shipViewLabel,shipViewClasses,shipViewLabelClasses">
+<template props="purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty,shipAction,shipLabel,shipViewAction,shipView">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="{purpose}" />
 
@@ -28,8 +28,11 @@
           <button id="company-hq-ship" class="hq-ship-button" onclick="{shipAction}">
             <div id="company-hq-ship-label" class="label heading hq-ship-label">{shipLabel}</div>
           </button>
-          <button id="company-hq-ship-view" class="{shipViewClasses}" onclick="{shipViewAction}">
-            <div id="company-hq-ship-view-label" class="{shipViewLabelClasses}">{shipViewLabel}</div>
+          <button id="company-hq-ship-view" class="{shipView.classes}" onclick="{shipViewAction}">
+            <div id="company-hq-ship-view-label" class="{shipView.labelClasses}">{shipView.label}</div>
+            <div id="company-hq-ship-view-track" class="{shipView.trackClasses}">
+              <div id="company-hq-ship-view-fill" class="hq-ship-fill" style="{shipView.fillStyle}" />
+            </div>
           </button>
         </div>
 
@@ -178,10 +181,15 @@
   .rumor-surface { background-color: #172638; border-color: #6ed7ff; }
   .empty-copy { height: 22px; padding: 3px; }
 
-  .hq-ship-button { width: 100%; height: 30px; padding: 6px; border-width: 1px; border-color: #31485f; }
+  .hq-ship-button { width: 100%; height: 34px; padding: 6px; border-width: 1px; border-color: #31485f; }
   /* A ship still being laid out. Dimmed rather than dead: the trip is refused
      until she is ready and taken the moment she is. */
   .hq-ship-waiting { border-color: #2d4250; background-color: #101a22; }
   .hq-ship-waiting-label { color: #6f8797; }
   .hq-ship-label { width: 100%; height: 18px; text-align: center; }
+  /* The loader under the wording. Present at the same height whether or not
+     she is being got ready, so the tile does not change shape when she is. */
+  .hq-ship-track-idle { width: 100%; height: 4px; flex-direction: row; }
+  .hq-ship-track { width: 100%; height: 4px; flex-direction: row; background-color: #0c1620; }
+  .hq-ship-fill { height: 100%; background-color: #4d7ea0; }
 </style>
