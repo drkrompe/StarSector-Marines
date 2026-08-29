@@ -535,7 +535,7 @@ public final class FleetArmoryViewModel {
                     "comparison-card",
                     armor.displayName(),
                     "TIER " + tierMark(armor.tier()),
-                    titleCase(armor.unitClass()),
+                    armor.role().displayName(),
                     armorComparisonStats(id, armor),
                     IntegralSystemCopy.tile(armor),
                     IntegralSystemCopy.iconPath(armor),
@@ -685,7 +685,7 @@ public final class FleetArmoryViewModel {
                     marineName(soldier), billet != null ? billet.name() : "Unfilled billet",
                     marineStatus(soldier), serviceSummary(soldier),
                     personnelSummary(soldier),
-                    armorCatalog != null ? armorCatalog.unitClass() : "VACANT",
+                    armorCatalog != null ? armorCatalog.role().displayName() : "VACANT",
                     billet != null ? "W " + billet.grade().tierMark() : "W —",
                     billet != null ? "A " + tierMark(armorCatalog.tier()) : "A —",
                     billet != null ? primary.catalogName(billet.grade().tier) + "  ·  "
