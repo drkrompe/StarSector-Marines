@@ -137,4 +137,16 @@ public enum RoomPurpose {
      * it, like a range or a bay: what the room is for is the empty middle.
      */
     GYMNASIUM,
+    /**
+     * Ship deck — the bridge. Where the ship is conned from.
+     *
+     * <p>Split out of {@link #CONTROL_ROOM} rather than sharing it. A purpose is
+     * the whole of the dispatch that decides how a room is furnished, so a
+     * purpose shared between a ship's bridge, a factory's process-control booth
+     * and a fortress guard post means all three get whichever of those a fitting
+     * was written for — and a nav plot ringed by watchkeepers duly turned up in
+     * a guard post. Rooms that are furnished differently are different purposes,
+     * however similar the word for them is.
+     */
+    BRIDGE,
 }

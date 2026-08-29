@@ -36,31 +36,33 @@ public final class RoomFittings {
         // arrangement, different room, because a bunk belongs to somebody.
         register(new BerthingFitting(RoomPurpose.CREW_QUARTERS, "doodad.chest-2"));
 
-        // Tables with their seating. A mess is chairs or it is a hall — and the
-        // job is at a chair rather than at the table, because a table is where
-        // four people sit and a seat is where one of them does.
-        register(new AisleFitting(RoomPurpose.MESS_HALL, FixtureGroup.of(
-                "doodad.office-conference-table", 3, 2,
-                new Satellite("doodad.chair-south-green", 0, 1, Affordance.MESS),
-                new Satellite("doodad.chair-south-yellow", 2, 1, Affordance.MESS))));
+        // A galley, a counter, and the floor past it: see MessHallFitting. This
+        // is the one room aboard that is a workplace and an amenity at once, and
+        // ranked tables could only express the second — a hall where the whole
+        // ship ate three meals a day that nobody made.
+        register(new MessHallFitting());
 
-        // Racks against the bulkhead with the ready crates that get drawn from.
-        // The counter is the crate rather than the rack: a weapon is handed over
-        // where it is broken out, and the rack behind it is stock.
-        register(new AisleFitting(RoomPurpose.ARMORY, FixtureGroup.of(
-                "doodad.shelf-1", 2, 2,
-                new Satellite("doodad.crate", 1, 1, Affordance.ISSUE))));
+        // A counter with a workshop behind it, not a stockroom with guns in it:
+        // see ArmoryFitting. The counter is the arrangement — it divides the
+        // room into the apron anybody queues on and the secure floor only the
+        // armourer goes behind, where the racks, the ready-use lockers, the
+        // bench a weapon is actually mended at and the ammunition kept apart
+        // from the arms all live. Ranked like any other room it stamped ISSUE on
+        // every length of shelf, which is six armourers in a room that has one.
+        register(new ArmoryFitting());
 
-        // Stores are stacked, not shelved: pallets and drums, packed close.
-        // Stowage is work between two points rather than at one, so a hold
-        // publishes it at the stacks that get broken down and built back up.
-        register(new AisleFitting(RoomPurpose.STOCKROOM, FixtureGroup.working(
-                "doodad.industrial-crate-stack", 2, 2, Affordance.STOW,
-                new Satellite("doodad.industrial-drum-cluster", 1, 1))));
+        // Racked and inventoried rather than stacked: rack runs against both
+        // long bulkheads with a gangway between them, stock in known places at
+        // either end of a run, a tally taken along the way and a damaged
+        // consignment standing against it. See StockroomFitting.
+        register(new StockroomFitting());
 
-        register(new AisleFitting(RoomPurpose.LOADING_BAY, FixtureGroup.working(
-                "doodad.industrial-pallet-stack", 2, 2, Affordance.STOW,
-                new Satellite("doodad.box", 1, 1))));
+        // A working floor arranged around one hatch, not a second stockroom:
+        // marshalling floor kept clear down the middle to break a load down on,
+        // outbound pallets staged along one flank, and the dispatch desk,
+        // loader and conveyor working the hatch end of the other. See
+        // LoadingBayFitting. Three holds fitted alike are one hold three times.
+        register(new LoadingBayFitting());
 
         // Machinery is a hierarchy, not a repeat: heavy plant against the
         // outboard bulkhead, the auxiliaries that serve it ranked inboard,
@@ -70,25 +72,38 @@ public final class RoomFittings {
         register(MachinerySpaceFitting.driveRoom());
         register(MachinerySpaceFitting.auxiliaryPlant());
 
-        register(new AisleFitting(RoomPurpose.PARTS_CAGE, FixtureGroup.working(
-                "doodad.shelf-2", 2, 2, Affordance.STOW,
-                new Satellite("doodad.industrial-scrap-pile", 1, 1))));
+        // A counter behind a wire front rather than shelves down both
+        // bulkheads: the issue side is somewhere to stand and be served, the
+        // stock side racks its bins dense, and the one gate between them falls
+        // out of where the gangway crosses rather than being cut for it. See
+        // PartsCageFitting.
+        register(new PartsCageFitting());
 
         // The console, not the racks. A server room is somewhere a reading is
         // taken; the racks are what it is taken from.
+        //
+        // The group is one rank deep rather than two, because that is how deep
+        // it actually reaches. A declared depth the satellite never occupies is
+        // not slack: at this room's five-by-four it tripped the aisle fitting's
+        // one-rank-beats-none fallback and left half the floor bare.
         register(new AisleFitting(RoomPurpose.SERVER_ROOM, FixtureGroup.of(
-                "doodad.office-server-rack", 2, 2,
-                new Satellite("doodad.industrial-control-console", 1, 1,
+                "doodad.office-server-rack", 2, 1,
+                new Satellite("doodad.industrial-control-console", 1, 0,
                         Affordance.READOUT))));
 
-        // A ward bed is work rather than rest: it is checked and made up whether
-        // or not anybody is in it, and a bunk is somewhere else entirely.
-        register(new AisleFitting(RoomPurpose.PATIENT_WARD, FixtureGroup.working(
-                "doodad.residential-bed-h", 2, 2, Affordance.TREAT,
-                new Satellite("doodad.chest-2", 1, 1))));
+        // A ward plus the things that make it clinical: see SickBayFitting.
+        // Beds ranked with their own monitors and a stretcher's width of clear
+        // floor beside each, a treatment station and a secured dispensary that
+        // are not beds, and the desk the ward is actually written up at. Ranked
+        // as one domestic bed repeated, it read as a dormitory — and a ward bed
+        // is work rather than rest, which nothing in that arrangement said.
+        register(new SickBayFitting());
 
-        register(new AisleFitting(RoomPurpose.WASHROOM, FixtureGroup.working(
-                "doodad.box", 1, 2, Affordance.WASH)));
+        // Basins against one bulkhead, stalls against the other, the middle
+        // left to walk through: see WashroomFitting. This is the most used room
+        // on the ship — everybody aboard, several times a watch — and it was
+        // furnished with a single crate for the whole complement to queue at.
+        register(new WashroomFitting());
 
         // A bridge is a plot with the watch ringed round it, facing inward over
         // their own boards: see BridgeFitting. Ranked in aisles it read as a
@@ -107,12 +122,6 @@ public final class RoomFittings {
                 new Satellite("doodad.chair-south-green", 0, 1),
                 new Satellite("doodad.chair-south-yellow", 2, 1))));
 
-        // Islands, not ranks: seating grouped round tables with deck between the
-        // groups, and one motif never repeated twice running. See
-        // LoungeFitting. Sofas ranked down both bulkheads seat the same
-        // complement and read as a waiting room, which is the one thing a room
-        // for choosing to be in must not read as.
-
         // Rooms whose point is the empty middle. Gear against the bulkheads,
         // deck clear for the machine or the lane.
         // A mech bay is bays, not one room: see VehicleBayFitting.
@@ -125,6 +134,11 @@ public final class RoomFittings {
         // the middle, publishing stowage and nothing else.
         register(new BoatBayFitting());
 
+        // Islands, not ranks: seating grouped round tables with deck between the
+        // groups, and one motif never repeated twice running. See
+        // LoungeFitting. Sofas ranked down both bulkheads seat the same
+        // complement and read as a waiting room, which is the one thing a room
+        // for choosing to be in must not read as.
         register(new LoungeFitting());
 
         // Gear against the bulkheads and matting on the deck between them, with

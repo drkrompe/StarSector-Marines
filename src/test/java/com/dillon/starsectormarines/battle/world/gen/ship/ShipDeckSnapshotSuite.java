@@ -116,7 +116,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
      * them: a cut across the hull, not a wash over it.
      */
     private static final Map<RoomPurpose, Color> ROOM_COLORS = Map.ofEntries(
-            Map.entry(RoomPurpose.CONTROL_ROOM, new Color(0x8d, 0x6f, 0xc9)),
+            Map.entry(RoomPurpose.BRIDGE, new Color(0x8d, 0x6f, 0xc9)),
             Map.entry(RoomPurpose.BARRACKS, new Color(0x3f, 0x7f, 0xc4)),
             Map.entry(RoomPurpose.CREW_QUARTERS, new Color(0x2f, 0x5a, 0x8c)),
             Map.entry(RoomPurpose.ARMORY, new Color(0xc4, 0x4b, 0x4b)),

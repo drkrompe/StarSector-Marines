@@ -204,7 +204,7 @@ class BridgeStationsRingThePlotTest {
                 mapWidth, mapHeight, 7L);
         // One hatch on the beam, where the widest part of a diamond is, so the
         // approach has to cross every ring of the arrangement to reach the plot.
-        Room room = new Room(shape, 4, 4, pose, RoomPurpose.CONTROL_ROOM,
+        Room room = new Room(shape, 4, 4, pose, RoomPurpose.BRIDGE,
                 List.of(new Doorway(3, 4 + shape.height() / 2)));
         RoomFloor floor = new RoomFloor(ctx, room, RoomFit.STANDARD);
         new BridgeFitting().fit(floor);

@@ -522,7 +522,7 @@ public final class ShipTransferViewModel {
             case FIRING_RANGE -> "Range";
             case MESS_HALL -> "Mess";
             case CREW_QUARTERS -> "Crew quarters";
-            case CONTROL_ROOM -> "Bridge";
+            case BRIDGE -> "Bridge";
             default -> words(purpose.name());
         };
     }

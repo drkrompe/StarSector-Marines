@@ -519,6 +519,301 @@
         2,
         2
       ]
+    },
+    {
+      "id": "doodad.ship-washbasin-run",
+      "col": 3,
+      "row": 14,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ship-head-stall-bank",
+      "col": 0,
+      "row": 15,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.galley-range",
+      "col": 6,
+      "row": 14,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.galley-prep-bench",
+      "col": 7,
+      "row": 14,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "doodad.galley-servery-counter",
+      "col": 5,
+      "row": 13,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45
+    },
+    {
+      "id": "doodad.galley-scullery-sink",
+      "col": 3,
+      "row": 15,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.galley-cold-store",
+      "col": 4,
+      "row": 15,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.mess-table-long",
+      "col": 0,
+      "row": 17,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.medical-ward-bed-head-n",
+      "col": 5,
+      "row": 15,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preferredWallSide": "N"
+    },
+    {
+      "id": "doodad.medical-ward-bed-head-s",
+      "col": 6,
+      "row": 16,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preferredWallSide": "S"
+    },
+    {
+      "id": "doodad.medical-ward-bed-head-e",
+      "col": 3,
+      "row": 17,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preferredWallSide": "E"
+    },
+    {
+      "id": "doodad.medical-ward-bed-head-w",
+      "col": 3,
+      "row": 18,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preferredWallSide": "W"
+    },
+    {
+      "id": "doodad.medical-monitor-stack",
+      "col": 5,
+      "row": 17,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.medical-treatment-table",
+      "col": 5,
+      "row": 18,
+      "cover": "med",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.medical-supply-trolley",
+      "col": 7,
+      "row": 17,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.medical-drug-locker",
+      "col": 0,
+      "row": 19,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": "doodad.medical-scrub-sink",
+      "col": 7,
+      "row": 18,
+      "cover": "light",
+      "ballisticHalfHeight": 0.35
+    },
+    {
+      "id": "doodad.medical-privacy-screen",
+      "col": 3,
+      "row": 19,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.stores-rack-run",
+      "col": 4,
+      "row": 19,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": "doodad.stores-roller-conveyor",
+      "col": 0,
+      "row": 20,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": "doodad.stores-cargo-loader",
+      "col": 3,
+      "row": 20,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.stores-cage-front",
+      "col": 7,
+      "row": 19,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "doodad.stores-bin-rack",
+      "col": 5,
+      "row": 20,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.armoury-issue-counter",
+      "col": 0,
+      "row": 21,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.armoury-rifle-rack",
+      "col": 2,
+      "row": 21,
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preferredWallSide": "N"
+    },
+    {
+      "id": "doodad.armoury-ready-locker",
+      "col": 0,
+      "row": 22,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preferredWallSide": "W"
+    },
+    {
+      "id": "doodad.armoury-ammo-locker",
+      "col": 5,
+      "row": 21,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preferredWallSide": "E"
+    },
+    {
+      "id": "doodad.armoury-cleaning-bench",
+      "col": 3,
+      "row": 23,
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        1
+      ]
     }
   ],
   "cells": [
@@ -867,6 +1162,174 @@
       "row": 12,
       "name": "Training mat",
       "description": "Quartered rubber deck mat."
+    },
+    {
+      "col": 3,
+      "row": 14,
+      "name": "Washbasin run",
+      "description": "Three basins in a row, mounted flush to the bulkhead."
+    },
+    {
+      "col": 0,
+      "row": 15,
+      "name": "Head stall bank",
+      "description": "Three enclosed stalls in a row, doors facing the walk-through."
+    },
+    {
+      "col": 6,
+      "row": 14,
+      "name": "Galley range",
+      "description": "Four-hob cooking block with a splash rail on three sides."
+    },
+    {
+      "col": 7,
+      "row": 14,
+      "name": "Preparation bench",
+      "description": "Steel worktop with a rinsing basin, knife rail and pots."
+    },
+    {
+      "col": 5,
+      "row": 13,
+      "name": "Servery counter",
+      "description": "One hot-well section of a serving counter, with its tray rail."
+    },
+    {
+      "col": 3,
+      "row": 15,
+      "name": "Scullery sink",
+      "description": "Double sink and draining board at the end of a galley line."
+    },
+    {
+      "col": 4,
+      "row": 15,
+      "name": "Cold store",
+      "description": "Latched refrigerated provisions chest."
+    },
+    {
+      "col": 0,
+      "row": 17,
+      "name": "Mess table",
+      "description": "Long dining table with a fixed bench down each side."
+    },
+    {
+      "col": 5,
+      "row": 15,
+      "name": "Ward bed, head north",
+      "description": "Sick-bay bed with rails and a chart clip, head to the north."
+    },
+    {
+      "col": 6,
+      "row": 16,
+      "name": "Ward bed, head south",
+      "description": "Sick-bay bed with rails and a chart clip, head to the south."
+    },
+    {
+      "col": 3,
+      "row": 17,
+      "name": "Ward bed, head east",
+      "description": "Sick-bay bed with rails and a chart clip, head to the east."
+    },
+    {
+      "col": 3,
+      "row": 18,
+      "name": "Ward bed, head west",
+      "description": "Sick-bay bed with rails and a chart clip, head to the west."
+    },
+    {
+      "col": 5,
+      "row": 17,
+      "name": "Patient monitor",
+      "description": "Vitals monitor on its stand at the head of a bed."
+    },
+    {
+      "col": 5,
+      "row": 18,
+      "name": "Treatment table",
+      "description": "Narrow procedure table with a hinged head and an instrument tray."
+    },
+    {
+      "col": 7,
+      "row": 17,
+      "name": "Supply trolley",
+      "description": "Wheeled cart of dressings, dishes and vials."
+    },
+    {
+      "col": 0,
+      "row": 19,
+      "name": "Drug locker bank",
+      "description": "Secured dispensary lockers against the bulkhead."
+    },
+    {
+      "col": 7,
+      "row": 18,
+      "name": "Scrub sink",
+      "description": "Deep clinical sink with an elbow tap."
+    },
+    {
+      "col": 3,
+      "row": 19,
+      "name": "Privacy screen",
+      "description": "Folding screen drawn round a bed or a table."
+    },
+    {
+      "col": 4,
+      "row": 19,
+      "name": "Stores rack run",
+      "description": "Three-bay shelving run, boxed stock on both tiers."
+    },
+    {
+      "col": 0,
+      "row": 20,
+      "name": "Roller conveyor",
+      "description": "Straight powered roller section with hazard-striped rails."
+    },
+    {
+      "col": 3,
+      "row": 20,
+      "name": "Cargo loader",
+      "description": "Compact powered pallet loader, forks extended."
+    },
+    {
+      "col": 7,
+      "row": 19,
+      "name": "Cage front",
+      "description": "Wire-mesh security front with an issue service window."
+    },
+    {
+      "col": 5,
+      "row": 20,
+      "name": "Small-bin rack",
+      "description": "Dense small-parts bin rack against a bulkhead."
+    },
+    {
+      "col": 0,
+      "row": 21,
+      "name": "Issue counter",
+      "description": "Secure weapons-issue desk with a pass-through slot."
+    },
+    {
+      "col": 2,
+      "row": 21,
+      "name": "Rifle rack",
+      "description": "Long arms racked side by side against a backing panel."
+    },
+    {
+      "col": 0,
+      "row": 22,
+      "name": "Ready-use lockers",
+      "description": "A bank of three secured ready-use weapon lockers."
+    },
+    {
+      "col": 5,
+      "row": 21,
+      "name": "Ammunition cage",
+      "description": "Mesh-fronted cage of stacked ammunition crates."
+    },
+    {
+      "col": 3,
+      "row": 23,
+      "name": "Cleaning bench",
+      "description": "Bench with a weapon in its cradle, parts tray and rod."
     }
   ]
 }

@@ -78,7 +78,7 @@ public final class DeckPlanCanvas implements CanvasProducer {
             new Keyed(RoomPurpose.MESS_HALL, new Color(0xC9, 0xA2, 0x5E), "Mess"),
             new Keyed(RoomPurpose.PATIENT_WARD, new Color(0xE0, 0xE4, 0xEA), "Sick bay"),
             new Keyed(RoomPurpose.STOCKROOM, new Color(0x9A, 0x7A, 0x45), "Hold"),
-            new Keyed(RoomPurpose.CONTROL_ROOM, new Color(0x8D, 0x6F, 0xC9), "Bridge"));
+            new Keyed(RoomPurpose.BRIDGE, new Color(0x8D, 0x6F, 0xC9), "Bridge"));
 
     private static final Map<RoomPurpose, Color> NOTABLE = notable();
 

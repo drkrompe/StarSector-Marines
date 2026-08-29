@@ -82,6 +82,17 @@ public enum CrewRole {
             Amenities.AND_A_BUNK),
 
     /**
+     * Feeds the ship. The galley is the only compartment aboard that has to be
+     * worked because of how many people are <em>not</em> working in it.
+     *
+     * <p>Draws from the holds, which is why stores are on the list: a galley
+     * with no run to the dry stores is a room where food appears.
+     */
+    COOK(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
+            onWatchWith(Affordance.COOK, Affordance.STOW),
+            Amenities.AND_A_BUNK),
+
+    /**
      * Off watch: eating, washing and keeping their shooting in around the ship,
      * sleeping and squaring their kit away in their own berthing.
      */
@@ -89,21 +100,6 @@ public enum CrewRole {
             onWatchWith(Affordance.MESS, Affordance.PRACTICE),
             List.of(Affordance.REST, Affordance.STOW));
 
-    /**
-     * What everybody aboard does when they are not working.
-     *
-     * <p>Shared because it is not a fact about a trade. A technician and an
-     * armourer sleep, wash, sit in the lounge and use the gym in exactly the
-     * same rooms and for the same reasons, and writing the list per role only
-     * creates the opportunity for one of them to be quietly missing an amenity
-     * the ship has.
-     *
-     * <p>The lounge and the gym are the point of the list rather than trimming
-     * on it. A complement whose only off-watch options are a bunk and a mess
-     * table can be asleep, eating, or at work; give it somewhere to sit and
-     * somewhere to train and the third state stops being "standing in a
-     * passage".
-     */
     /**
      * A trade's own work, and then the rooms everybody aboard uses.
      *
@@ -278,7 +274,7 @@ public enum CrewRole {
      */
     public static AmbientActivity activityFor(Affordance affordance) {
         return switch (affordance) {
-            case SERVICE, FABRICATE, TREAT, ISSUE, TEND, REPAIR -> AmbientActivity.WORKING;
+            case SERVICE, FABRICATE, TREAT, ISSUE, TEND, REPAIR, COOK -> AmbientActivity.WORKING;
             case STOW, READOUT, WATCH, ROUNDS -> AmbientActivity.INSPECTING;
             case REST, WASH -> AmbientActivity.RESTING;
             case MESS, UNWIND -> AmbientActivity.SOCIALIZING;
@@ -314,6 +310,9 @@ public enum CrewRole {
             case READOUT -> 13f;
             case REST -> 41f;
             case MESS -> 34f;
+            // Longer than eating, because a sitting is served out of work that
+            // started well before it and carries on after.
+            case COOK -> 39f;
             case PRACTICE -> 19f;
             case WASH -> 8f;
             case TREAT -> 31f;

@@ -22,6 +22,22 @@ public enum Affordance {
     MESS,
 
     /**
+     * The galley: a range, a prep bench, a servery, the scullery behind it.
+     * Somewhere the ship's food is made rather than eaten.
+     *
+     * <p>Distinct from {@link #MESS}, and the distinction is the whole reason
+     * this exists. Eating is not work — it is what a watch does between shifts,
+     * and a room affording it is somewhere people visit. Cooking is a trade,
+     * done continuously, by hands posted to it. Folding the two together gave a
+     * ship whose entire complement ate three meals a day that nobody made.
+     *
+     * <p>Nothing else aboard has this shape: the mess hall is the one
+     * compartment that is a workplace and an amenity at once, for two different
+     * populations, at the same moment.
+     */
+    COOK,
+
+    /**
      * Stores handling: breaking down a pallet, restowing a rack, walking a part
      * from one stack to another. Alone among the affordances the work is
      * <em>between</em> points rather than at one, so a compartment with a single
@@ -149,7 +165,7 @@ public enum Affordance {
     public boolean duty() {
         return switch (this) {
             case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND,
-                    ROUNDS, REPAIR -> true;
+                    ROUNDS, REPAIR, COOK -> true;
             case REST, MESS, PRACTICE, WASH, UNWIND, EXERCISE -> false;
         };
     }
