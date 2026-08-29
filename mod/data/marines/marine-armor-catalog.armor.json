@@ -598,6 +598,70 @@
           "shieldedArcDegrees": 120.0
         }
       }
+    },
+    {
+      "id": "armor.orderly",
+      "catalog": {
+        "displayName": "Orderly aid harness",
+        "role": "support",
+        "tradition": "luddic_church",
+        "description": "Parish infirmaries have kitted out stretcher parties for three centuries and see no reason to stop because the stretcher party is now under fire. The harness carries dressings, plasma and a folding litter where a weapons carrier would stow ammunition, and it is issued to whichever member of the section can be trusted to keep using it while being shot at.",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+      },
+      "battle": {
+        "appearanceFamily": "MILITIA",
+        "armorCapacity": 5.0,
+        "armorRating": 4.0,
+        "moveSpeedMult": 0.99,
+        "incomingAccuracyMult": 1.0,
+        "integralSystem": {
+          "id": "system.parish-aid",
+          "grade": "service",
+          "displayName": "Parish aid",
+          "description": "Kneel down, find the hole, close it, and get them back on their feet. It is not sophisticated and it does not need to be: most of what puts a marine out of a fight is bleeding, and most of that is answered by somebody willing to stop and deal with it. The satchel holds what it holds.",
+          "effect": "field-aid",
+          "resource": "ammunition",
+          "policy": "wounded-squadmate-in-reach",
+          "reachCells": 3.0,
+          "treatBelowHealthFraction": 0.6,
+          "restoredHealth": 8.0,
+          "durationSeconds": 1.5,
+          "startingAmmo": 3
+        }
+      }
+    },
+    {
+      "id": "armor.corpsman",
+      "catalog": {
+        "displayName": "Corpsman field rig",
+        "role": "support",
+        "tradition": "hegemony",
+        "description": "Hegemony line establishments budget one trained corpsman per section and equip them properly: a powered harness that carries a surgeon's worth of consumables, keeps them cold, and leaves both hands free. The Navy's own figure for what it buys is a third of the casualties it would otherwise ship home.",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+      },
+      "battle": {
+        "appearanceFamily": "ARMY_GREEN",
+        "armorCapacity": 15.0,
+        "armorRating": 10.0,
+        "moveSpeedMult": 0.9,
+        "incomingAccuracyMult": 0.96,
+        "integralSystem": {
+          "id": "system.corpsman-kit",
+          "grade": "milspec",
+          "displayName": "Corpsman kit",
+          "description": "The same act the parish orderly performs, done by somebody taught how and carrying enough to do it repeatedly. It reaches a little further, is worth putting on a marine who is merely hurt rather than nearly finished, and does not run out halfway through the fight it was brought for.",
+          "effect": "field-aid",
+          "resource": "ammunition",
+          "policy": "wounded-squadmate-in-reach",
+          "reachCells": 4.0,
+          "treatBelowHealthFraction": 0.75,
+          "restoredHealth": 22.0,
+          "durationSeconds": 1.5,
+          "startingAmmo": 5
+        }
+      }
     }
   ]
 }

@@ -41,12 +41,6 @@
     }
   ],
   "cellPx": 32,
-  "cut": {
-    "originX": 0.0,
-    "originY": 0.0,
-    "pitchX": 32.0,
-    "pitchY": 32.0
-  },
   "entries": [
     {
       "block": "road.courtyard",
@@ -252,7 +246,7 @@
       "included": true,
       "note": "fl-2",
       "rect": [
-        352,
+        344,
         0,
         32,
         32
@@ -546,7 +540,7 @@
       "included": true,
       "note": "fl-3",
       "rect": [
-        352,
+        344,
         32,
         32,
         32
@@ -842,7 +836,7 @@
       "included": true,
       "note": "grate-1",
       "rect": [
-        352,
+        344,
         64,
         32,
         32
@@ -929,10 +923,10 @@
       "included": true,
       "note": "grate-2",
       "rect": [
-        512,
-        64,
-        32,
-        32
+        508,
+        65,
+        34,
+        29
       ],
       "slot": "only"
     },
