@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
@@ -175,6 +176,7 @@ public final class GroundRenderSystem implements RenderSystem {
         Color roadFill = blockFill("road.road", ROAD_FILL);
         String streetTileId = (genMapping == null) ? "urban3.street-square"
                 : genMapping.groundBlockId(CellTopology.GroundKind.STREET);
+        String doorOpenId = surfaceBlockId(SurfaceRole.DOOR_OPEN);
 
         for (int y = view.minY(); y <= view.maxY(); y++) {
             for (int x = view.minX(); x <= view.maxX(); x++) {
@@ -241,23 +243,35 @@ public final class GroundRenderSystem implements RenderSystem {
                 if (oi >= 0 && tileReg != null) natureTile(tileReg.byIndex(oi), x, y);
 
                 if (grid.isDoorway(x, y) && !topology.isRubble(x, y) && tileReg != null) {
-                    urbanTile(blockFrame("urban.door-open", false, false, false, false), x, y, 0);
+                    urbanTile(blockFrame(doorOpenId, false, false, false, false), x, y, 0);
                 }
             }
         }
     }
 
+    /**
+     * The block id an orthogonal surface renders as — this system's mapping
+     * when it has one, else the id this mod ships for the role. Sits beside the
+     * ground dispatch so both halves of render dispatch read the same way.
+     */
+    private String surfaceBlockId(SurfaceRole role) {
+        String id = (genMapping == null) ? null : genMapping.surfaceBlockId(role);
+        return id != null ? id : role.shippedBlockId();
+    }
+
     // ---- wall pass -----------------------------------------------------------
 
     private void emitWalls(NavigationGrid grid, CellTopology topology, VisibleCellRect view) {
-        // Fill color for the enclosed (no-frame) wall cell comes from the
-        // urban.wall block's fillRgb — data-driven, falling back to WALL_COLOR.
-        GridBlockDef wallBlock = (tileReg == null) ? null : tileReg.block("urban.wall");
+        // Which block is the wall is a surfaceRender.WALL mapping question, and
+        // the enclosed (no-frame) cell's fill is that block's own fillRgb.
+        // Resolved once per pass, so pickTileFromMask does no lookup per cell.
+        GridBlockDef wallBlock = (tileReg == null) ? null
+                : tileReg.block(surfaceBlockId(SurfaceRole.WALL));
         Color wallFill = (wallBlock != null && wallBlock.fillRgb != null) ? new Color(wallBlock.fillRgb) : WALL_COLOR;
         for (int y = view.minY(); y <= view.maxY(); y++) {
             for (int x = view.minX(); x <= view.maxX(); x++) {
                 if (!topology.isWall(x, y)) continue;
-                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(topology.getWallDirMask(x, y));
+                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(topology.getWallDirMask(x, y), wallBlock);
                 if (tile == null) fillCell(x, y, wallFill);
                 else urbanTile(tile, x, y, 0);
                 if (topology.isWindow(x, y)) windowPane(topology, x, y);
