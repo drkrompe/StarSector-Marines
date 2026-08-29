@@ -51,9 +51,17 @@ public enum InfantryPayload implements AirDeliveryPayload {
             // the squad lands already assigned to what the sortie was flown for
             // instead of arriving owned but idle. Same shape as the convoy's
             // deboard; see GroundSystem.
+            ObjectiveAssignment initialAssignment = null;
             if (mission.commandOwnsObjective && mission.assignNode != null) {
-                context.claimSquadCommand(mission.commandClaim,
-                        ObjectiveAssignment.holdNode(mission.squadId, mission.assignNode));
+                initialAssignment = ObjectiveAssignment.holdNode(
+                        mission.squadId, mission.assignNode);
+            } else if (mission.commandOwnsObjective
+                    && mission.assignZoneId != ObjectiveAssignment.UNSCOPED) {
+                initialAssignment = ObjectiveAssignment.clearZone(
+                        mission.squadId, mission.assignZoneId);
+            }
+            if (initialAssignment != null) {
+                context.claimSquadCommand(mission.commandClaim, initialAssignment);
             } else {
                 context.claimSquadCommand(mission.squadId, mission.commandClaim);
             }

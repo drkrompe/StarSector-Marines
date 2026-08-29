@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
@@ -205,11 +206,24 @@ public final class ShuttleMission {
     public TacticalNode assignNode;
 
     /**
+     * Zone fallback for an objective that is not backed by a tactical node.
+     *
+     * <p>Not every objective a request names sits on an authored place. A lost
+     * zone is somewhere the defender used to hold and no longer does, and the
+     * nearest tactical node may be well outside the tolerance that would make
+     * it the same position. Without this the squad lands owned but with nothing
+     * to do, and the objective the sortie was flown for is lost at the ramp.
+     * Mirrors {@link com.dillon.starsectormarines.battle.vehicle.VehicleMission#assignZoneId}.
+     */
+    public int assignZoneId = ObjectiveAssignment.UNSCOPED;
+
+    /**
      * Whether the delivering authority owns {@link #assignNode} as a real
      * objective, rather than merely naming somewhere for the squad to start.
      *
-     * <p>Set, the deboarded squad is claimed <em>with</em> a hold on that node,
-     * so it lands already tasked with the thing the sortie was flown for and
+     * <p>Set, the deboarded squad is claimed <em>with</em> its task — a hold on
+     * that node, or a clear of {@link #assignZoneId} when the objective has no
+     * node — so it lands already doing the thing the sortie was flown for and
      * its owner can retask it once that is done. Unset — a drop with no
      * commanding authority to ask — the squad is claimed bare, exactly as
      * before. Same field and same meaning as the convoy's.
