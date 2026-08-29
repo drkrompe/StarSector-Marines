@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.InteriorChange;
+import com.dillon.starsectormarines.ops.battleview.LaidDecks;
 import com.dillon.starsectormarines.ops.battleview.ShipInterior;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
@@ -47,7 +48,9 @@ import java.util.function.Supplier;
  *
  * <p>The fleet itself is read once rather than once per question asked about
  * it, and a hull is laid out once rather than once for her plan and again for
- * her facility counts.
+ * her facility counts. What was aboard a hull outlives the screen entirely —
+ * see {@link com.dillon.starsectormarines.ops.battleview.LaidDecks} — so the
+ * second visit to this page costs nothing for every ship the first one read.
  *
  * <p>The comparison is always against where they live now. A screen that rated
  * hulls in the abstract would be a datasheet; the player is asking whether to
@@ -586,12 +589,20 @@ public final class ShipTransferViewModel {
         String id = ship.id();
         if (laying.containsKey(id)) return;
         boolean keep = id.equals(stagedShipId);
-        if (!(keep && staged == null) && interiors.containsKey(id)) return;
+        boolean wantsDeck = keep && staged == null;
+        if (!wantsDeck && interiors.containsKey(id)) return;
         if (!ship.ship().habitable()) {
             interiors.put(id, new ShipInterior(ship.ship(), Map.of()));
             return;
         }
         long seed = CompanyShipDesignation.deckSeedFor(id);
+        // A hull somebody has already looked over is answered now rather than
+        // put down to be laid out again. The panel is rebuilt every time the
+        // player opens it, so without this the second visit costs exactly what
+        // the first one did.
+        ShipInterior known = LaidDecks.known(ship.ship(), seed);
+        if (known != null) interiors.put(id, known);
+        if (known != null && !wantsDeck) return;
         laying.put(id, CompletableFuture.supplyAsync(() -> lay(ship, seed, keep), YARD));
     }
 
@@ -604,9 +615,15 @@ public final class ShipTransferViewModel {
      */
     private static Laid lay(Candidate ship, long seed, boolean keep) {
         try {
+            if (!keep) return new Laid(LaidDecks.aboard(ship.ship(), seed), null);
+            // The hull on the stage is drawn as well as counted, so her deck is
+            // laid out whether or not what is aboard her is already known - and
+            // what is aboard her is then read off it rather than asked for
+            // separately.
             CompanyDeck deck = new CompanyDeck(ship.ship(), seed);
-            return new Laid(ShipInterior.of(ship.ship(), deck.rooms()),
-                    keep ? deck : null);
+            ShipInterior read = ShipInterior.of(ship.ship(), deck.rooms());
+            LaidDecks.aboard(ship.ship(), seed, read);
+            return new Laid(read, deck);
         } catch (RuntimeException notLaid) {
             Global.getLogger(ShipTransferViewModel.class).warn(
                     "ShipTransferViewModel: could not lay out " + ship.name() + " ("
