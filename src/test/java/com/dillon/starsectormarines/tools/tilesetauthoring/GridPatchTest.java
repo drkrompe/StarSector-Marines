@@ -145,16 +145,116 @@ public class GridPatchTest {
                 "and adopting the grid says how far it would move it back");
     }
 
+    /**
+     * A variant pool's cells are a cross, and that is one grid.
+     *
+     * <p>{@code floors.brick} really is five cells on {@code Floors_Tiles}: one,
+     * then three, then one, on the sheet's own 47.55px pitch. Requiring a filled
+     * rectangle refused it for a reason that had nothing to do with the art —
+     * they were cut on one grid and moving that grid is the whole point.
+     */
     @Test
-    void aSelectionThatIsNotAFilledRectangleIsNotAGrid() {
-        List<TilesetExport.Entry> entries = new ArrayList<>(plate(0, 0, 2, 2, 32));
-        entries.remove(3);
+    void aVariantPoolsCrossOfCellsIsTheGridItLiesOn() {
+        GridCut sheet = new GridCut(19, 4, 0.0, 47.55, 0.0, 49.346153846);
+        int[][] cross = {{17, 1}, {16, 2}, {17, 2}, {18, 2}, {17, 3}};
+        List<TilesetExport.Entry> entries = new ArrayList<>();
+        for (int[] at : cross) {
+            TilesetExport.Entry entry = new TilesetExport.Entry(
+                    sheet.cell(at[0], at[1]), "doodad.floors.c" + at[0] + "r" + at[1]);
+            entry.blockId = "floors.brick";
+            entries.add(entry);
+        }
+
+        GridPatch patch = patchOf(entries);
+
+        assertEquals(3, patch.cut().cols());
+        assertEquals(3, patch.cut().rows());
+        assertTrue(patch.isSparse(), "five cells do not fill a 3x3");
+        assertEquals(0, patch.drift(),
+                "the pitch they were cut on must be read back exactly");
+        assertEquals(47.55, patch.cut().pitchX(), 0.2);
+    }
+
+    /** A sparse patch moves its own cells and invents nothing for the empty ones. */
+    @Test
+    void movingASparsePatchMovesOnlyTheCellsInIt() throws IOException {
+        List<TilesetExport.Entry> entries = new ArrayList<>(plate(0, 0, 3, 3, 32));
+        entries.removeIf(entry -> !entry.id.endsWith("c1r1") && !entry.id.endsWith("c2r2"));
+        GridPatch patch = patchOf(entries);
+
+        GridPatch.Applied applied = patch
+                .withCut(patch.cut().withColumnAxis(2.0, 32.0))
+                .applyTo(512, 192);
+
+        assertEquals(2, applied.moved(), "only the selected cells are the patch");
+        assertEquals(new SheetSlicer.Piece(2, 32, 32, 32), entries.get(0).piece);
+        assertEquals(new SheetSlicer.Piece(34, 64, 32, 32), entries.get(1).piece);
+    }
+
+    /** Pieces no single origin and pitch can describe are not a patch at all. */
+    @Test
+    void piecesThatAreNotOnOneLatticeAreRefused() {
+        List<TilesetExport.Entry> entries = List.of(
+                new TilesetExport.Entry(new SheetSlicer.Piece(0, 0, 32, 32), "prop-a"),
+                new TilesetExport.Entry(new SheetSlicer.Piece(500, 0, 32, 32), "prop-b"));
 
         GridPatch.Derived derived = GridPatch.of(entries);
 
         assertNull(derived.patch());
-        assertTrue(derived.refusal().contains("2x2"), derived.refusal());
-        assertTrue(derived.refusal().contains("filled"), derived.refusal());
+        assertTrue(derived.refusal().contains("evenly"), derived.refusal());
+        assertTrue(derived.refusal().contains("Pick one cell"), derived.refusal());
+    }
+
+    /** A refusal names the block when the selection is one, since that is what was picked. */
+    @Test
+    void aRefusalNamesTheBlockItWasAskedAbout() {
+        List<TilesetExport.Entry> entries = new ArrayList<>();
+        for (int[] at : new int[][]{{0, 0}, {500, 0}}) {
+            TilesetExport.Entry entry = new TilesetExport.Entry(
+                    new SheetSlicer.Piece(at[0], at[1], 32, 32), "cell-" + at[0]);
+            entry.blockId = "floors.brick";
+            entries.add(entry);
+        }
+
+        assertTrue(GridPatch.of(entries).refusal().startsWith("floors.brick's 2 cells"),
+                GridPatch.of(entries).refusal());
+    }
+
+    /**
+     * A selection that skips a column still lands on the right addresses.
+     *
+     * <p>Numbering the lines it does have 0, 1, 2 would put the fourth cell where
+     * the third belongs, and the grid would come out a quarter narrower than the
+     * plate it describes.
+     */
+    @Test
+    void aSkippedColumnKeepsItsPlaceInTheLattice() {
+        List<TilesetExport.Entry> entries = new ArrayList<>(plate(0, 0, 4, 1, 32));
+        entries.remove(1);
+
+        GridPatch patch = patchOf(entries);
+
+        assertEquals(4, patch.cut().cols(), "three cells spanning four columns");
+        assertEquals(32.0, patch.cut().pitchX(), 0.5);
+        assertEquals(0, patch.drift());
+    }
+
+    /**
+     * A plate cut with gutters is counted on its step, not on its cell size.
+     *
+     * <p>Three cells 40 apart are three columns. Estimating the lattice from how
+     * wide a cell is reads the third one as column 3 of four, which is a plate a
+     * third too wide with a hole in it.
+     */
+    @Test
+    void aPlateWithGuttersIsCountedOnItsStep() {
+        List<TilesetExport.Entry> entries = new ArrayList<>();
+        for (int col = 0; col < 3; col++) {
+            entries.add(new TilesetExport.Entry(
+                    new SheetSlicer.Piece(col * 40, 0, 32, 32), "cell-" + col));
+        }
+
+        assertEquals(3, patchOf(entries).cut().cols());
     }
 
     @Test
