@@ -4,7 +4,10 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — belief now expires two ways: decay for a hostile
+Updated: 2026-08-29 — an emplacement is never a shot of opportunity: a
+move-only role still commits anti-hardened direct fire while the rest of the
+special-equipment path stays behind its gate.
+Earlier: belief now expires two ways: decay for a hostile
 merely gone unobserved, immediate removal once its identity stops
 resolving. Also that day — cohesion moved from the squad to the fire team: morale is
 held, drained, and broken per team, a broken team peels to cover while its
@@ -669,6 +672,18 @@ move to strictly better directional cover; subsequent mission-action ticks
 preserve that short cover move but continue to suppress the objective route.
 This lets a receiving line improve accidental contact positions between bursts
 without turning RECEIVE into a pursuit or moving the whole squad in lockstep.
+
+**An emplacement is never a shot of opportunity.** A move-only coordinated
+role — the moving half of a bound, a squad crossing to its assigned room —
+withholds ordinary opportunity fire, because a passing shot must not divert an
+element that was told to move. Anti-hardened direct fire is exempt from that
+rule in both directions: a turret, drone hub, or heavy chassis in range is the
+reason the advance is in trouble rather than a distraction from it, and the
+carrier of the only weapon that meaningfully hurts it is precisely the marine
+the suppression used to silence. The exemption is narrow and is about the
+equipment rather than the moment: tools that spend a squad resource or freeze
+their carrier to place something — satchel, frag, deployables, close-contact —
+stay behind the gate.
 
 Fireteams are the infantry maneuver unit. They can receive distinct roles in a
 shared squad step: a recoverable ambush can displace the exposed team while a
