@@ -12,6 +12,7 @@
       "id": "nature.grass-1",
       "included": true,
       "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/grass.png",
       "name": "grass",
       "note": "grass field — primary outdoor surface, hash-paired with grass-2",
       "rect": [
@@ -19,8 +20,7 @@
         299,
         103,
         108
-      ],
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/grass.png"
+      ]
     },
     {
       "cover": "none",
@@ -31,6 +31,7 @@
       "id": "nature.grass-2",
       "included": true,
       "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/grass.png",
       "name": "grass-alt",
       "note": "grass field, second variant — the pair is picked per cell by TileManifest",
       "rect": [
@@ -38,8 +39,7 @@
         299,
         103,
         108
-      ],
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/grass.png"
+      ]
     },
     {
       "cover": "none",
@@ -50,6 +50,7 @@
       "id": "nature.dirt-1",
       "included": true,
       "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/dirt.png",
       "name": "dirt",
       "note": "bare dirt field — hash-paired with dirt-2",
       "rect": [
@@ -57,8 +58,7 @@
         299,
         105,
         108
-      ],
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/dirt.png"
+      ]
     },
     {
       "cover": "none",
@@ -69,6 +69,7 @@
       "id": "nature.dirt-2",
       "included": true,
       "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/dirt.png",
       "name": "dirt-alt",
       "note": "bare dirt field, second variant",
       "rect": [
@@ -76,8 +77,7 @@
         299,
         104,
         108
-      ],
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/dirt.png"
+      ]
     },
     {
       "cover": "none",
@@ -88,6 +88,7 @@
       "id": "nature.sand",
       "included": true,
       "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-desert/nature-sand.png",
       "name": "sand",
       "note": "sand field with dune grass — defined but not currently dispatched to; the SAND ground kind maps to floors.sand",
       "rect": [
@@ -95,8 +96,7 @@
         299,
         105,
         108
-      ],
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-desert/nature-sand.png"
+      ]
     },
     {
       "cover": "none",
@@ -258,11 +258,11 @@
         1,
         1
       ],
-      "id": "nature.rock-small-1",
+      "id": "nature.tuft-3",
       "included": true,
-      "layer": "rock",
-      "name": "rocks-small",
-      "note": "MISLABELLED: this frame is a sixth plant, a tall grass tuft, not a rock. The sheet carries six plants and seven rock groups; the tileset was written for five and eight, so every id from this frame on names the picture before it. The id is live in three rockPool entries of urban.mapping.json, which is why it is recorded here rather than quietly corrected: renaming it is a content change with its own review, not a re-export.",
+      "layer": "plant",
+      "name": "grass-tuft-tall",
+      "note": "tall wild grass tuft — the sheet’s sixth plant. It sat in the rock range and was scattered as a rock until 2026-08-29; the prompt asked for five plants and eight rock groups and the art came back with six and seven.",
       "rect": [
         1357,
         309,
@@ -270,9 +270,8 @@
         91
       ],
       "validOn": [
-        "layer:ground",
-        "!nature.water-1",
-        "!nature.water-2"
+        "nature.grass-1",
+        "nature.grass-2"
       ]
     },
     {
@@ -281,10 +280,10 @@
         1,
         1
       ],
-      "id": "nature.rock-small-2",
+      "id": "nature.rock-small-1",
       "included": true,
       "layer": "rock",
-      "name": "rocks-small-2",
+      "name": "rocks-small",
       "note": "three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
       "rect": [
         1486,
@@ -304,11 +303,11 @@
         1,
         1
       ],
-      "id": "nature.rock-small-3",
+      "id": "nature.rock-small-2",
       "included": true,
       "layer": "rock",
-      "name": "rocks-small-3",
-      "note": "three small stones, one larger — a tighter scatter than rock-small-2",
+      "name": "rocks-small-2",
+      "note": "three small stones, one larger — a tighter scatter than rock-small-1",
       "rect": [
         1572,
         331,

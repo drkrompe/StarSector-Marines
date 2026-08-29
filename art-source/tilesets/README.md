@@ -124,7 +124,7 @@ Sheet-specific constraints:
 - `urban-tileset-3`: preserve exactly 7 auto-sliced sprites in their original order and footprints with at least 4 transparent pixels between frames.
 - `Floors_Tiles`: preserve a 25x26 grid of 16px cells and all grass, stone, dirt, brick, snow, and sand autotile families and transition directions.
 - `Water_tiles`: preserve a 25x25 grid of 16px cells, four top island sprites, the water edge/corner family, center textures, and shoreline topology.
-- `nature-tiles`: preserve exactly 20 auto-sliced sprites in order, with at least 4 transparent pixels between frames. The prompt said "7 ground, 5 plants, 3 small-rock groups, 2 medium, 3 large"; the art is 7 ground, **6** plants and **7** rock groups, which is why `nature.rock-small-1` names a grass tuft.
+- `nature-tiles`: preserve exactly 20 auto-sliced sprites in order, with at least 4 transparent pixels between frames. The prompt said "7 ground, 5 plants, 3 small-rock groups, 2 medium, 3 large"; the art came back as 7 ground, **6** plants and **7** rock groups. The ids followed the prompt rather than the art until 2026-08-29, so frame 12 — a tall grass tuft — was named `nature.rock-small-1` and scattered as a rock; it is now `nature.tuft-3` and the small rocks are numbered from frame 13.
 
 ## Normalization strategy
 

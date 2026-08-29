@@ -60,8 +60,8 @@ class NatureTilesAlphaTest {
             "nature.grass-1", "nature.grass-2", "nature.dirt-1", "nature.dirt-2",
             "nature.sand", "nature.water-1", "nature.water-2",
             "nature.shrub-1", "nature.shrub-2", "nature.tuft-1", "nature.tuft-2",
-            "nature.shrub-3",
-            "nature.rock-small-1", "nature.rock-small-2", "nature.rock-small-3",
+            "nature.shrub-3", "nature.tuft-3",
+            "nature.rock-small-1", "nature.rock-small-2",
             "nature.rock-medium-1", "nature.rock-medium-2",
             "nature.rock-large-1", "nature.rock-large-2", "nature.rock-large-3");
 
@@ -79,8 +79,8 @@ class NatureTilesAlphaTest {
 
     static {
         for (String id : FRAMES) BODIES.put(id, 1);
+        BODIES.put("nature.rock-small-1", 3);
         BODIES.put("nature.rock-small-2", 3);
-        BODIES.put("nature.rock-small-3", 3);
         BODIES.put("nature.rock-medium-2", 2);
     }
 
@@ -100,9 +100,9 @@ class NatureTilesAlphaTest {
         LABELS.put("nature.tuft-1", "grass-tuft");
         LABELS.put("nature.tuft-2", "grass-tuft-alt");
         LABELS.put("nature.shrub-3", "shrub-variant");
+        LABELS.put("nature.tuft-3", "grass-tuft-tall");
         LABELS.put("nature.rock-small-1", "rocks-small");
         LABELS.put("nature.rock-small-2", "rocks-small-2");
-        LABELS.put("nature.rock-small-3", "rocks-small-3");
         LABELS.put("nature.rock-medium-1", "rock-medium");
         LABELS.put("nature.rock-medium-2", "rock-medium-2");
         LABELS.put("nature.rock-large-1", "rock-large");
