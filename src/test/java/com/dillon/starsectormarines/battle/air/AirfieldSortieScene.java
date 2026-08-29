@@ -5,8 +5,10 @@ import com.dillon.starsectormarines.battle.command.reinforcement.ShuttleMeans;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -41,10 +43,18 @@ import java.util.Random;
  * can be shot, and that shooting them stops the lift without touching the
  * aircraft.
  *
- * <p>So the scene is built as a pair. The same field, the same sortie, the same
- * seed; in one the crew walks out unopposed, and in the other a marine fire team
- * is already sitting on the approach to the pad. Watching them side by side is
- * the whole argument for loading on the ground rather than spawning loaded.
+ * <p>So the scene is built as a set. The same field, the same seed. In the
+ * first the crew walks out unopposed; in the second a marine fire team is
+ * already sitting on the approach to the pad. Watching those two side by side
+ * is the whole argument for loading on the ground rather than spawning loaded.
+ *
+ * <p>The third asks the other question a field raises, and it is not about a
+ * crew at all: what happens when the attacker goes for the aircraft instead of
+ * the sortie. The aircraft standing on the hardstands are real units, so a fire
+ * team can burn them where they sit, and a field with nothing left on it stops
+ * answering requests however firmly its ground is still held. That is a
+ * different way to end an enemy's air from taking the compound, and this is
+ * where it is visible.
  *
  * <p>The map is authored rather than generated. A conquest map's airfield is
  * the real thing and is exercised by the generator's own tests; here it would
@@ -64,6 +74,17 @@ final class AirfieldSortieScene {
     private static final int RALLY_X = 32;
     private static final int RALLY_Y = 6;
 
+    /** Fixed roll for every marine kit in the scene, so the recordings stay deterministic. */
+    private static final long RIFLE_SEED = 4242L;
+
+    /**
+     * The raid's fire team: strung out along the apron, a few cells in front of
+     * the stands — close enough that the hulls are inside rifle reach the
+     * moment the recording starts.
+     */
+    private static final int RAID_STANDOFF = 4;
+    private static final int RAID_SIZE = 6;
+
     /** Where the opposed variant puts its fire team: on the crew's line of march. */
     private static final int AMBUSH_X = 31;
     private static final int AMBUSH_Y = 40;
@@ -77,7 +98,17 @@ final class AirfieldSortieScene {
      * recording whose final caption reads "sortie gone" has thrown away the one
      * fact the whole loop exists to report.
      */
-    record Scene(BattleSimulation sim, long shuttleId, boolean opposed, String[] outcome) {}
+    /** What a given recording is about. */
+    enum Variant {
+        /** The crew walks out and boards with nobody shooting at them. */
+        UNOPPOSED,
+        /** The same walk with a marine fire team astride it. */
+        UNDER_FIRE,
+        /** No sortie: a fire team on the field, burning the aircraft on their stands. */
+        RAID
+    }
+
+    record Scene(BattleSimulation sim, long shuttleId, Variant variant, String[] outcome) {}
 
     private AirfieldSortieScene() {}
 
@@ -85,7 +116,7 @@ final class AirfieldSortieScene {
      * Stand up the field, dispatch one sortie, and optionally put a fire team
      * across the walk to the pad.
      */
-    static Scene build(long seed, boolean opposed) {
+    static Scene build(long seed, Variant variant) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology topology = new CellTopology(WIDTH, HEIGHT);
         boolean[][] ground = new boolean[WIDTH][HEIGHT];
@@ -113,8 +144,16 @@ final class AirfieldSortieScene {
                 WIDTH - 3, FIELD_BAND_TOP);
         if (field == null) throw new IllegalStateException("no room for an airfield");
         field.author(gen, TraversalAxis.SOUTH_TO_NORTH);
+        rememberPads(gen.landingPads);
 
         BattleSimulation sim = serialSimulation(grid, topology, seed);
+        // These recordings are about one behaviour, not about who wins, and a
+        // terminal battle stops ticking — including the aircraft. The raid
+        // variant needs this outright: its defender side is three parked hulls
+        // and nothing else, so the battle is decided on the first tick and the
+        // whole loop would record six marines standing perfectly still. The
+        // sortie variants need it for the same reason once their crew is dead.
+        sim.setMissionCompletionEnabled(false);
         // The command post is the other half of the supply gate. It sits well
         // clear of the field so the recording is about the airfield alone.
         TacticalNode commandPost = new TacticalNode(TacticalNode.Kind.COMMAND_POST,
@@ -124,13 +163,32 @@ final class AirfieldSortieScene {
         sim.setTacticalMap(new TacticalMap(nodes));
         for (Doodad doodad : gen.doodads) sim.addDoodad(doodad);
 
+        // Real aircraft on the hardstands, registered the way BattleSetup does
+        // it. Without this the field is scenery and a sortie conjures its craft
+        // at the pad — which is exactly the thing based aircraft replaced, and
+        // would make this recording a picture of the old behaviour.
+        for (LandingPad pad : gen.landingPads) {
+            if (pad.purpose != LandingPad.Purpose.GARRISON_AIRFIELD) continue;
+            sim.getAirfieldService().addBerth(pad, ShuttleMeans.SORTIE_TYPE,
+                    AirBody.facingToward(pad.approach.dx, pad.approach.dy));
+        }
+        // One tick to stand them up before anybody is asked about them.
+        sim.advance(1f / 30f);
+
         // Both variants need marines on the map, because the simulation stops
         // the instant a side is absent — one faction present is a finished
         // battle, and a finished battle does not tick an aircraft. The
         // unopposed variant therefore puts a lone marine in the far corner,
         // nowhere near the field or the crew's line of march: the sortie is
         // unopposed where it matters, which is what the pair is comparing.
-        spawnMarines(sim, opposed);
+        spawnMarines(sim, variant);
+
+        if (variant == Variant.RAID) {
+            // Nothing is dispatched. The recording is about the aircraft on the
+            // ground, and a sortie in the air would only take one of them out
+            // of the picture.
+            return new Scene(sim, 0L, variant, new String[]{ null });
+        }
 
         ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
                 null, RiskLevel.LOW, null,
@@ -141,14 +199,14 @@ final class AirfieldSortieScene {
 
         long[] air = sim.getAirEntityIds();
         if (air.length == 0) throw new IllegalStateException("the scene dispatched no sortie");
-        return new Scene(sim, air[0], opposed, new String[]{ null });
+        return new Scene(sim, air[0], variant, new String[]{ null });
     }
 
     /**
      * The marine presence: a fire team astride the walk to the pad, or a single
      * distant observer that only keeps the battle live.
      */
-    private static void spawnMarines(BattleSimulation sim, boolean opposed) {
+    private static void spawnMarines(BattleSimulation sim, Variant variant) {
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE_BLUE);
         Squad squad = sim.getSquad(squadId);
         List<int[]> cells = new ArrayList<>();
@@ -159,23 +217,81 @@ final class AirfieldSortieScene {
         // on its pad and the clock stopped. One marine nobody can reach keeps
         // the clock running so the deadline is allowed to expire.
         cells.add(new int[]{ 2, 2 });
-        if (opposed) {
+        if (variant == Variant.UNDER_FIRE) {
             for (int i = 0; i < AMBUSH_SIZE; i++) {
                 cells.add(new int[]{ AMBUSH_X - AMBUSH_SIZE / 2 + i, AMBUSH_Y });
             }
         }
+        MarineLoadout[] kit = InfantryLoadoutRolls.playerSquad(
+                cells.size(), new Random(RIFLE_SEED));
         int index = 0;
         for (int[] cell : cells) {
-            EntitySpec spec = new EntitySpec("ambush-" + index++, Faction.MARINE,
+            EntitySpec spec = new EntitySpec("ambush-" + index, Faction.MARINE,
                     UnitType.MARINE_BLUE, cell[0], cell[1]);
+            // Rifles. A marine spawned without a loadout carries nothing and
+            // cannot shoot, so an "ambush" of them is six people standing in a
+            // field watching a crew walk past — which is what this variant
+            // recorded before anyone checked.
+            kit[index].seedInto(spec);
+            index++;
             spec.role(UnitRole.GARRISON).home(cell[0], cell[1]).squad(squadId);
             sim.spawn(spec);
         }
         if (squad != null) squad.originalSize = cells.size();
+        if (variant == Variant.RAID) spawnRaid(sim);
     }
 
-    /** What the sortie is doing right now, in the words the caption uses. */
+    /** The berths a raid is aimed at, filled in when the field is authored. */
+    private static final List<int[]> RAID_TARGET_PADS = new ArrayList<>();
+
+    private static void rememberPads(List<LandingPad> pads) {
+        RAID_TARGET_PADS.clear();
+        for (LandingPad pad : pads) {
+            if (pad.purpose == LandingPad.Purpose.GARRISON_AIRFIELD) {
+                RAID_TARGET_PADS.add(new int[]{ pad.centerX, pad.centerY });
+            }
+        }
+    }
+
+    /**
+     * The raiding fire team: a marine squad on the apron itself, pushing the
+     * airfield.
+     *
+     * <p>Not a garrison like the ambush team. A garrison holds a post and
+     * shoots what walks into it, which is exactly right for an ambush on
+     * somebody's line of march and exactly wrong here — a parked aircraft never
+     * walks anywhere, so a garrison would sit and look at it. These are given
+     * the field as an objective and push it, the same way the frontage scene's
+     * assault squads are pointed at a compound.
+     */
+    private static void spawnRaid(BattleSimulation sim) {
+        if (RAID_TARGET_PADS.isEmpty()) throw new IllegalStateException("no hardstands to raid");
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        MarineLoadout[] kit = InfantryLoadoutRolls.playerSquad(
+                RAID_SIZE, new Random(RIFLE_SEED));
+        // Spread across the apron in front of the stands, within rifle reach of
+        // the hulls. Placed off the pads the generator actually laid down
+        // rather than a guessed cell: the field moves with the seed, and a fire
+        // team standing where the apron used to be shoots nothing.
+        int[] first = RAID_TARGET_PADS.get(0);
+        int[] last = RAID_TARGET_PADS.get(RAID_TARGET_PADS.size() - 1);
+        int span = Math.max(1, last[0] - first[0]);
+        for (int i = 0; i < RAID_SIZE; i++) {
+            int x = first[0] + span * i / Math.max(1, RAID_SIZE - 1);
+            int y = first[1] - RAID_STANDOFF;
+            EntitySpec spec = new EntitySpec("raid-" + i, Faction.MARINE,
+                    UnitType.MARINE, x, y);
+            kit[i].seedInto(spec);
+            spec.squad(squadId);
+            sim.spawn(spec);
+        }
+        if (squad != null) squad.originalSize = RAID_SIZE;
+    }
+
+    /** What the recording is showing right now, in the words the caption uses. */
     static String phase(Scene scene) {
+        if (scene.variant() == Variant.RAID) return raidPhase(scene);
         ShuttleMission mission = scene.sim().world().mission(scene.shuttleId());
         if (mission == null) {
             return scene.outcome()[0] != null ? scene.outcome()[0] : "sortie gone";
@@ -197,18 +313,49 @@ final class AirfieldSortieScene {
         };
     }
 
+    /**
+     * The raid caption: how much of the field is left, and whether it can still
+     * put anything in the air.
+     */
+    private static String raidPhase(Scene scene) {
+        AirfieldService field = scene.sim().getAirfieldService();
+        int standing = 0;
+        int burned = 0;
+        for (AirfieldService.Berth berth : field.berths()) {
+            if (berth.state == AirfieldService.BerthState.DESTROYED) burned++;
+            else standing++;
+        }
+        if (standing == 0) {
+            scene.outcome()[0] = "FIELD BURNED — " + burned + " aircraft lost, no lift";
+            return scene.outcome()[0];
+        }
+        return standing + " aircraft standing  •  " + burned + " burned"
+                + (field.hasAirworthyAirframe() ? "  •  field can still fly" : "");
+    }
+
+    /** Aircraft still standing on their hardstands. */
+    static int aircraftStanding(Scene scene) {
+        int standing = 0;
+        for (AirfieldService.Berth berth : scene.sim().getAirfieldService().berths()) {
+            if (berth.state != AirfieldService.BerthState.DESTROYED) standing++;
+        }
+        return standing;
+    }
+
     private static int aboardTimeLeft(ShuttleMission mission) {
         return Math.max(0, Math.round(mission.boardingPatience));
     }
 
-    /** Whether the sortie has run its course, one way or the other. */
+    /** Whether the recording has run its course, one way or the other. */
     static boolean finished(Scene scene) {
+        if (scene.variant() == Variant.RAID) return aircraftStanding(scene) == 0;
         ShuttleMission mission = scene.sim().world().mission(scene.shuttleId());
         return mission == null || mission.state == ShuttleState.GONE;
     }
 
     /** How many of the embarking crew are still alive and walking. */
     static int crewStillWalking(Scene scene) {
+        if (scene.variant() == Variant.RAID) return 0;
         ShuttleMission mission = scene.sim().world().mission(scene.shuttleId());
         if (mission == null || mission.embarkSquadId == Squad.NO_SQUAD) return 0;
         return scene.sim().squadMemberCount(mission.embarkSquadId);

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.air.AirfieldSortieScene.Scene;
+import com.dillon.starsectormarines.battle.air.AirfieldSortieScene.Variant;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -13,15 +14,21 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Animated comparison of one reinforcement sortie loading on its own airfield,
- * played twice: once with the crew's walk to the pad unopposed, and once with a
- * marine fire team sitting on it.
+ * Three recordings of the same airfield. Two are one reinforcement sortie
+ * loading on its own hardstand — the crew's walk to the pad unopposed, and the
+ * same walk with a marine fire team sitting on it. The third is the field being
+ * taken apart instead: a fire team on the apron, burning the aircraft where
+ * they stand.
  *
- * <p>The caption names the sortie's phase and how many of the crew are still
+ * <p>The sortie captions name the phase and how many of the crew are still
  * walking, because that is the whole thing worth watching. A shuttle that
  * spawns loaded has no frames between "requested" and "arriving"; this one has
  * a minute of them, and what happens in that minute is the difference between
  * a delivery and a lost sortie.
+ *
+ * <p>The raid caption counts hulls, because that is what is at stake there: a
+ * field with nothing left standing on it stops answering requests, and it never
+ * gets those aircraft back.
  */
 public final class AirfieldSortieSnapshotSuite implements SnapshotSuite {
 
@@ -39,7 +46,7 @@ public final class AirfieldSortieSnapshotSuite implements SnapshotSuite {
     @Override public String id() { return "airfield-sortie"; }
 
     @Override public String label() {
-        return "Airfield sortie: a crew walks out to its shuttle, opposed and not";
+        return "Airfield: a crew walks out to its shuttle, opposed and not, and the field burned";
     }
 
     @Override
@@ -47,13 +54,14 @@ public final class AirfieldSortieSnapshotSuite implements SnapshotSuite {
         BattleReviewFrameRenderer renderer =
                 new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT);
         return List.of(
-                record(renderer, "unopposed", false),
-                record(renderer, "under-fire", true));
+                record(renderer, "unopposed", Variant.UNOPPOSED),
+                record(renderer, "under-fire", Variant.UNDER_FIRE),
+                record(renderer, "raid", Variant.RAID));
     }
 
     private SnapshotArtifact record(BattleReviewFrameRenderer renderer, String label,
-                                    boolean opposed) throws Exception {
-        Scene scene = AirfieldSortieScene.build(SEED, opposed);
+                                    Variant variant) throws Exception {
+        Scene scene = AirfieldSortieScene.build(SEED, variant);
         BattleSimulation sim = scene.sim();
         List<BufferedImage> frames = new ArrayList<>(TICKS / FRAME_EVERY_TICKS + 1);
         // Runs to the sortie's end rather than the battle's. A scene with one
@@ -74,6 +82,10 @@ public final class AirfieldSortieSnapshotSuite implements SnapshotSuite {
     }
 
     private static String caption(Scene scene, String label, int tick) {
+        if (scene.variant() == Variant.RAID) {
+            return String.format(Locale.ROOT, "%s  •  t%-4d  •  %s",
+                    label, tick, AirfieldSortieScene.phase(scene));
+        }
         return String.format(Locale.ROOT, "%s  •  t%-4d  •  %s  •  %d crew walking",
                 label, tick, AirfieldSortieScene.phase(scene),
                 AirfieldSortieScene.crewStillWalking(scene));
