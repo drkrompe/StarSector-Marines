@@ -19,6 +19,8 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -103,9 +105,28 @@ public class CutAdjustTest {
         TilesetExport.Entry entry = threePieces().get(0);
         CutAdjusterView adjuster = new CutAdjusterView(() -> { }, () -> { });
 
-        adjuster.show(sheet, entry);
-        assertEquals(entry.piece, adjuster.proposed(), "it opens on the cut as it stands");
+        adjuster.show(sheet, List.of(entry));
+        assertEquals(entry.piece, adjuster.proposedPatch().bounds(),
+                "it opens on the cut as it stands");
         assertTrue(!adjuster.isChanged(), "and reports nothing changed until something does");
+    }
+
+    /** A selection that forms no grid leaves the controls dead and says why. */
+    @Test
+    void anAdjusterShownARaggedSelectionSaysSo() {
+        BufferedImage sheet = new BufferedImage(200, 64, BufferedImage.TYPE_INT_ARGB);
+        CutAdjusterView adjuster = new CutAdjusterView(() -> { }, () -> { });
+
+        adjuster.show(sheet, threePieces().subList(0, 2));
+        assertNotNull(adjuster.patch(), "two cells side by side are a 2x1 grid");
+
+        List<TilesetExport.Entry> ragged = new ArrayList<>(threePieces());
+        ragged.add(new TilesetExport.Entry(new SheetSlicer.Piece(0, 40, 32, 20), "piece-3"));
+        adjuster.show(sheet, ragged);
+
+        assertNull(adjuster.patch(), "four cells on a 3x2 grid are not a filled rectangle");
+        assertNull(adjuster.proposedPatch());
+        assertTrue(!adjuster.isChanged());
     }
 
     /**
@@ -120,8 +141,70 @@ public class CutAdjustTest {
 
         TilesetExport.Entry entry = new TilesetExport.Entry(
                 new SheetSlicer.Piece(32, 0, 32, 32), "doodad.road.c1r0");
+        Path out = paint(sheet, List.of(entry), "cut-adjuster.png");
+        BufferedImage painted = ImageIO.read(out.toFile());
+
+        assertTrue(distinctColours(painted) > 8,
+                "the magnified cut painted nothing legible — see " + out.toAbsolutePath());
+        assertTrue(hasCutOutline(painted),
+                "the cut rectangle should be drawn over the plate — see " + out.toAbsolutePath());
+    }
+
+    /**
+     * A whole block, magnified, with the seams between its cells drawn.
+     *
+     * <p>The seams are the point: a pitch a third of a pixel out is invisible
+     * against the outer boundary and obvious against the two lines inside it. So
+     * the check is geometric — a line straight across the middle of the picture
+     * crosses two cut edges for one cell and four for a 3x3, the extra two being
+     * the seams. Counting cut-coloured pixels instead would pass on a bigger
+     * boundary alone.
+     */
+    @Test
+    void theMagnifiedPatchDrawsTheSeamsBetweenItsCells() throws Exception {
+        Path atlas = Paths.get("mod", "graphics", "tilesets", "urban-tileset-2.png");
+        assertTrue(Files.isRegularFile(atlas), "no sheet at " + atlas);
+        BufferedImage sheet = ImageIO.read(atlas.toFile());
+
+        List<TilesetExport.Entry> block = new ArrayList<>();
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                block.add(new TilesetExport.Entry(
+                        new SheetSlicer.Piece(96 + col * 32, row * 32, 32, 32),
+                        "doodad.road.c" + (3 + col) + "r" + row));
+            }
+        }
+        Path patch = paint(sheet, block, "cut-adjuster-block.png");
+        Path one = paint(sheet, block.subList(0, 1), "cut-adjuster-one-cell.png");
+
+        assertEquals(2, cutEdgesAcross(ImageIO.read(one.toFile())),
+                "one cell is drawn with two vertical edges — see " + one.toAbsolutePath());
+        assertEquals(4, cutEdgesAcross(ImageIO.read(patch.toFile())),
+                "a 3x3 adds a seam between each pair of columns — see "
+                        + patch.toAbsolutePath());
+    }
+
+    /**
+     * How many separate cut-coloured edges a line across the middle of the
+     * picture crosses.
+     */
+    private static int cutEdgesAcross(BufferedImage image) {
+        int y = image.getHeight() / 2;
+        int crossings = 0;
+        boolean inEdge = false;
+        for (int x = 0; x < image.getWidth(); x++) {
+            boolean cut = isCut(new Color(image.getRGB(x, y)));
+            if (cut && !inEdge) crossings++;
+            inEdge = cut;
+        }
+        return crossings;
+    }
+
+    /** Paint the adjuster showing {@code selected}, and keep the picture. */
+    private static Path paint(BufferedImage sheet, List<TilesetExport.Entry> selected,
+                              String name) throws IOException {
         CutAdjusterView adjuster = new CutAdjusterView(() -> { }, () -> { });
-        adjuster.show(sheet, entry);
+        adjuster.show(sheet, selected);
         adjuster.setSize(720, 480);
         layOut(adjuster);
 
@@ -133,26 +216,24 @@ public class CutAdjustTest {
             graphics.dispose();
         }
         Files.createDirectories(EVIDENCE);
-        Path out = EVIDENCE.resolve("cut-adjuster.png");
+        Path out = EVIDENCE.resolve(name);
         ImageIO.write(painted, "PNG", out.toFile());
-
-        assertTrue(distinctColours(painted) > 8,
-                "the magnified cut painted nothing legible — see " + out.toAbsolutePath());
-        assertTrue(hasCutOutline(painted),
-                "the cut rectangle should be drawn over the plate — see " + out.toAbsolutePath());
+        return out;
     }
+
 
     /** The cut is drawn in a colour nothing on these sheets uses. */
     private static boolean hasCutOutline(BufferedImage image) {
         for (int y = 0; y < image.getHeight(); y += 2) {
             for (int x = 0; x < image.getWidth(); x += 2) {
-                Color pixel = new Color(image.getRGB(x, y));
-                if (pixel.getBlue() > 200 && pixel.getGreen() > 150 && pixel.getRed() < 110) {
-                    return true;
-                }
+                if (isCut(new Color(image.getRGB(x, y)))) return true;
             }
         }
         return false;
+    }
+
+    private static boolean isCut(Color pixel) {
+        return pixel.getBlue() > 200 && pixel.getGreen() > 150 && pixel.getRed() < 110;
     }
 
     private static void layOut(Component component) {
