@@ -56,6 +56,22 @@
     color: #55626b;
   }
 
+  /* A room aboard a ship still being laid out. Told apart from one she does not
+     have, because a hull that cannot hold a bay never will and this is a wait
+     of a second or two. */
+  #marine-ops-page-routes .page-nav-waiting {
+    background-color: #101a22;
+    border-color: #2d4250;
+    color: #6f8797;
+    opacity: 0.8;
+  }
+
+  #marine-ops-page-routes .page-nav-waiting:hover {
+    background-color: #101a22;
+    border-color: #2d4250;
+    color: #6f8797;
+  }
+
   #marine-ops-page-context {
     width: 0px;
     flex-grow: 1;

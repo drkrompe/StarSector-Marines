@@ -207,10 +207,21 @@ public class MarineOpsContext {
         return List.copyOf(aboard);
     }
 
-    /** What the company ship has, for the room screens' navigation shell. */
-    public boolean shipHasRoom(RoomPurpose purpose) {
+    /**
+     * What the company ship has, for the room screens' navigation shell.
+     *
+     * <p>Three answers, because two would make the shell lie. A hull that
+     * cannot hold a vehicle bay never will, and a hull whose deck is still
+     * being laid out has one or does not and nobody knows yet — and the second
+     * lasts a second or two. Reported as the first, it would tell a player
+     * their capital had no bay.
+     */
+    MarineOpsPageNav.Aboard roomAboard(RoomPurpose purpose) {
         CompanyDeck ship = companyDeck();
-        return ship != null && ship.has(purpose);
+        if (ship == null) return MarineOpsPageNav.Aboard.NO;
+        if (!ship.ready()) return MarineOpsPageNav.Aboard.UNKNOWN;
+        return ship.has(purpose)
+                ? MarineOpsPageNav.Aboard.YES : MarineOpsPageNav.Aboard.NO;
     }
 
     public Client getSelectedClient() {
@@ -319,8 +330,27 @@ public class MarineOpsContext {
     }
 
     /** Request a screen transition; the plugin observes this and re-attaches. */
+    /**
+     * Show this screen, unless it is a room aboard a ship that is not ready to
+     * be walked around.
+     *
+     * <p>A room view is a camera on a deck, and until she is laid out and
+     * crewed there is nothing for it to be a camera on. She is got ready away
+     * from the frame the player is looking at, so the honest thing is for the
+     * route not to be taken — the shell shows those pages as being got ready
+     * rather than as absent, and they open the moment she is. Guarded here
+     * rather than at each button because there is more than one way to a room:
+     * the navigation shell, headquarters' own tiles, and whatever comes next.
+     */
     public void goTo(ScreenId screen) {
+        if (screen != null && screen.aboard() && !shipReady()) return;
         this.currentScreen = screen;
+    }
+
+    /** Whether the company ship can be walked around yet. */
+    private boolean shipReady() {
+        CompanyDeck ship = companyDeck();
+        return ship != null && ship.ready();
     }
 
     /** Opens the owned-company landing view used by the campaign Company HQ. */
