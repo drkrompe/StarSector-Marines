@@ -29,7 +29,6 @@ public final class MarineArmory implements Serializable {
     /** Player-authored squad weapon definitions. Authoring never consumes stock. */
     private List<SquadWeaponDoctrine> customWeaponDoctrines = new ArrayList<>();
     /** Player-authored squad armour definitions. Authoring never consumes stock. */
-    private List<SquadArmorDoctrine> customArmorDoctrines = new ArrayList<>();
 
     public MarineArmory() {
         seedStarterIssue();
@@ -94,20 +93,6 @@ public final class MarineArmory implements Serializable {
         }
         return true;
     }
-    public boolean canAuthorArmorDoctrine(List<MarineArmorPattern> issues) {
-        if (issues == null || issues.size() != MarineSquad.CAPACITY) return false;
-        for (MarineArmorPattern armor : issues) {
-            if (!ownsArmorTemplate(armor)) return false;
-        }
-        return true;
-    }
-    public boolean canAuthorArmorDoctrineIds(List<String> issueIds) {
-        if (issueIds == null || issueIds.size() != MarineSquad.CAPACITY) return false;
-        for (String armorId : issueIds) {
-            if (!ownsArmorTemplate(armorId)) return false;
-        }
-        return true;
-    }
     public List<FireTeamTemplateCard> templateCards() {
         return Collections.unmodifiableList(templateCards);
     }
@@ -121,27 +106,29 @@ public final class MarineArmory implements Serializable {
         return Collections.unmodifiableList(result);
     }
     /**
-     * The built-in plans issued from what this armoury owns, plus any custom
-     * doctrines authored by hand.
+     * Every authored plan, issued from what this armoury owns.
      *
      * <p>A plan names roles rather than patterns, so this is where "the standard
      * section" becomes twelve concrete suits — the best owned for each billet's
      * job. Two companies running the same plan therefore field the same section
      * in different kit, which is the whole point of separating the two
      * ({@code role-and-access.md}).
+     *
+     * <p><b>There is no hand-authored armour catalog, deliberately.</b> A player
+     * once built armour definitions a billet at a time, twelve concrete patterns
+     * frozen at the moment of saving; that predates the plan model and directly
+     * contradicts it. Such a definition names the militia vest twelve times and
+     * goes on naming it long after the company can afford siege plate, because
+     * nothing in it says what the billets are <em>for</em>. Weapons are still
+     * authored per billet — a fire-team lead's carbine is a real choice with no
+     * role model above it — and armour is not.
      */
     public List<SquadArmorDoctrine> armorDoctrines() {
         List<SquadArmorDoctrine> result = new ArrayList<>();
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
             result.add(issue(plan));
         }
-        result.addAll(customArmorDoctrines);
         return Collections.unmodifiableList(result);
-    }
-
-    /** The hand-authored doctrines only — the built-ins are plans and are issued. */
-    public List<SquadArmorDoctrine> customArmorDoctrines() {
-        return Collections.unmodifiableList(customArmorDoctrines);
     }
 
     /** Issues one plan from this armoury's own stock. */
@@ -159,12 +146,7 @@ public final class MarineArmory implements Serializable {
     }
     public SquadArmorDoctrine armorDoctrineById(String id) {
         SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(id);
-        if (plan != null) return issue(plan);
-        if (id == null) return null;
-        for (SquadArmorDoctrine doctrine : customArmorDoctrines) {
-            if (doctrine != null && id.equals(doctrine.id())) return doctrine;
-        }
-        return null;
+        return plan != null ? issue(plan) : null;
     }
 
     public SquadWeaponDoctrine createWeaponDoctrine(
@@ -173,28 +155,10 @@ public final class MarineArmory implements Serializable {
                 displayName, issues, true);
     }
 
-    public SquadArmorDoctrine createArmorDoctrine(
-            String displayName, List<MarineArmorPattern> issues) {
-        return createArmorDoctrine("custom:armor:" + UUID.randomUUID(),
-                displayName, issues, true);
-    }
-
-    public SquadArmorDoctrine createArmorDoctrineIds(
-            String displayName, List<String> issueIds) {
-        return createArmorDoctrineIds("custom:armor:" + UUID.randomUUID(),
-                displayName, issueIds, true);
-    }
-
     public SquadWeaponDoctrine cloneWeaponDoctrine(String sourceId) {
         SquadWeaponDoctrine source = weaponDoctrineById(sourceId);
         return source != null
                 ? createWeaponDoctrine(source.displayName() + " Copy", source.issues()) : null;
-    }
-
-    public SquadArmorDoctrine cloneArmorDoctrine(String sourceId) {
-        SquadArmorDoctrine source = armorDoctrineById(sourceId);
-        return source != null
-                ? createArmorDoctrineIds(source.displayName() + " Copy", source.issueIds()) : null;
     }
 
     public boolean renameWeaponDoctrine(String id, String displayName) {
@@ -206,26 +170,10 @@ public final class MarineArmory implements Serializable {
         return true;
     }
 
-    public boolean renameArmorDoctrine(String id, String displayName) {
-        int index = customArmorDoctrineIndex(id);
-        if (index < 0 || displayName == null || displayName.isBlank()) return false;
-        SquadArmorDoctrine existing = customArmorDoctrines.get(index);
-        customArmorDoctrines.set(index, SquadArmorDoctrine.fromIds(
-                existing.id(), displayName, existing.description(), existing.issueIds()));
-        return true;
-    }
-
     boolean deleteWeaponDoctrine(String id) {
         int index = customWeaponDoctrineIndex(id);
         if (index < 0) return false;
         customWeaponDoctrines.remove(index);
-        return true;
-    }
-
-    boolean deleteArmorDoctrine(String id) {
-        int index = customArmorDoctrineIndex(id);
-        if (index < 0) return false;
-        customArmorDoctrines.remove(index);
         return true;
     }
 
@@ -236,12 +184,6 @@ public final class MarineArmory implements Serializable {
                 : createWeaponDoctrine(id, displayName, issues, false);
     }
 
-    SquadArmorDoctrine ensureArmorDoctrine(
-            String id, String displayName, List<MarineArmorPattern> issues) {
-        SquadArmorDoctrine existing = armorDoctrineById(id);
-        return existing != null ? existing
-                : createArmorDoctrine(id, displayName, issues, false);
-    }
     public FireTeamTemplateCard templateCardById(String id) {
         if (id == null) return null;
         for (FireTeamTemplateCard card : templateCards) {
@@ -482,51 +424,10 @@ public final class MarineArmory implements Serializable {
         return doctrine;
     }
 
-    private SquadArmorDoctrine createArmorDoctrine(
-            String id, String displayName, List<MarineArmorPattern> issues,
-            boolean requireOwnedTemplates) {
-        if (armorDoctrineById(id) != null) {
-            throw new IllegalArgumentException("Armor doctrine id already exists: " + id);
-        }
-        if (requireOwnedTemplates && !canAuthorArmorDoctrine(issues)) {
-            throw new IllegalArgumentException(
-                    "Armor definition requires an unowned equipment template");
-        }
-        SquadArmorDoctrine doctrine = new SquadArmorDoctrine(
-                id, displayName, "Player-authored squad armour definition.", issues);
-        customArmorDoctrines.add(doctrine);
-        return doctrine;
-    }
-
-    private SquadArmorDoctrine createArmorDoctrineIds(
-            String id, String displayName, List<String> issueIds,
-            boolean requireOwnedTemplates) {
-        if (armorDoctrineById(id) != null) {
-            throw new IllegalArgumentException("Armor doctrine id already exists: " + id);
-        }
-        if (requireOwnedTemplates && !canAuthorArmorDoctrineIds(issueIds)) {
-            throw new IllegalArgumentException(
-                    "Armor definition requires an unowned equipment template");
-        }
-        SquadArmorDoctrine doctrine = SquadArmorDoctrine.fromIds(
-                id, displayName, "Player-authored squad armour definition.", issueIds);
-        customArmorDoctrines.add(doctrine);
-        return doctrine;
-    }
-
     private int customWeaponDoctrineIndex(String id) {
         if (id == null) return -1;
         for (int index = 0; index < customWeaponDoctrines.size(); index++) {
             SquadWeaponDoctrine doctrine = customWeaponDoctrines.get(index);
-            if (doctrine != null && id.equals(doctrine.id())) return index;
-        }
-        return -1;
-    }
-
-    private int customArmorDoctrineIndex(String id) {
-        if (id == null) return -1;
-        for (int index = 0; index < customArmorDoctrines.size(); index++) {
-            SquadArmorDoctrine doctrine = customArmorDoctrines.get(index);
             if (doctrine != null && id.equals(doctrine.id())) return index;
         }
         return -1;
@@ -556,11 +457,8 @@ public final class MarineArmory implements Serializable {
         if (templateCards == null) templateCards = new ArrayList<>();
         if (squadArrangements == null) squadArrangements = new ArrayList<>();
         if (customWeaponDoctrines == null) customWeaponDoctrines = new ArrayList<>();
-        if (customArmorDoctrines == null) customArmorDoctrines = new ArrayList<>();
         customWeaponDoctrines.removeIf(doctrine -> doctrine == null
                 || SquadEquipmentDoctrines.weaponById(doctrine.id()) != null);
-        customArmorDoctrines.removeIf(doctrine -> doctrine == null
-                || SquadEquipmentDoctrines.armorPlanById(doctrine.id()) != null);
         migrateLegacyPrimaryKeys();
         migrateLegacySecondaryKeys();
         migrateLegacyTemplateOwnership();

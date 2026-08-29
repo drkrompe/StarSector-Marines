@@ -346,9 +346,20 @@ what lets a player learn to judge a hostile formation on sight.
 ### Kit and armory
 
 The armory has three deliberately separate layers. Equipment template cards are
-permanent collected capability. Weapon and Armor definitions are reusable
-twelve-billet intent authored only from collected templates. The exact kit on a
-marine is the materialized result. Issuing changed incoming kit consumes
+permanent collected capability. A **weapon definition** is reusable twelve-billet
+intent authored only from collected templates; a **tactic sheet** is the armour
+half and is *not* authored the same way — it names roles and a tradition, and the
+armoury fills them from the best owned pattern for each job
+(`role-and-access.md`). The exact kit on a marine is the materialized result.
+
+**Armour is never authored a billet at a time, and there is no way to.** The
+player could once build armour definitions by cycling twelve concrete patterns,
+which froze them: such a definition names the militia vest twelve times and goes
+on naming it long after the company can afford siege plate, because nothing in it
+says what the billets are *for*. That path is gone. A weapon definition stays
+per-billet because a fire-team lead's carbine is a real choice with no role model
+above it, and because a weapon has no equivalent of "the best owned suit for this
+job" to resolve against. Issuing changed incoming kit consumes
 base-game supplies, heavy armaments, and heavy machinery as one atomic squad
 transaction; unchanged kit costs nothing, removed kit grants no refund, and food
 remains available to later sustainment costs without being forced into routine

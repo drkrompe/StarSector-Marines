@@ -4,9 +4,9 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.IntegralSystemEffect;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ class EquipmentDoctrineDesignerViewModelTest {
     }
 
     @Test
-    void primaryGradeAndArmorPickersSkipUncollectedCards() {
+    void primaryAndGradePickersSkipUncollectedCards() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         EquipmentDoctrineDesignerViewModel designer = designer(roster);
@@ -49,17 +49,6 @@ class EquipmentDoctrineDesignerViewModelTest {
         }
         assertFalse(grades.contains(EquipmentGrade.MILSPEC));
         assertFalse(grades.contains(EquipmentGrade.MASTERWORK));
-
-        designer.showArmor().run();
-        Set<MarineArmorPattern> armor = new HashSet<>();
-        for (int index = 0; index < 10; index++) {
-            designer.billets().get().get(0).cyclePrimary().run();
-            armor.add(designer.viewerBilletAt(0).armor());
-        }
-        assertTrue(armor.contains(MarineArmorPattern.CHARCOAL));
-        assertTrue(armor.contains(MarineArmorPattern.ARMY_GREEN));
-        assertFalse(armor.contains(MarineArmorPattern.BLUE_SCOUT));
-        assertFalse(armor.contains(MarineArmorPattern.RED_ELITE));
     }
 
     @Test
@@ -82,24 +71,44 @@ class EquipmentDoctrineDesignerViewModelTest {
                 .map(EquipmentDoctrineDesignerViewModel.StatMeter::fillStyle).toList();
         assertNotEquals(before, after);
 
-        viewModel.showArmor().run();
-        EquipmentDoctrineDesignerViewModel.BilletCard armor =
-                viewModel.billets().get().get(0);
-        assertEquals(List.of("ARMOR", "RESIST", "MOVE", "EVA"), armor.stats().stream()
-                .map(EquipmentDoctrineDesignerViewModel.StatMeter::label).toList());
-        // The patchwork doctrine's first billet wears a ward vest, and a ward
-        // vest carries a brace now. A card leads with the capability whenever
-        // there is one; the descriptive prose is what a pattern with nothing to
-        // say falls back to.
-        assertTrue(armor.flavor().contains(IntegralSystemEffect.BRACE.displayName),
-                "the issued pattern carries a brace, so its card says so: " + armor.flavor());
+    }
+
+    /**
+     * <b>The designer authors weapons and nothing else.</b> Armour used to be a
+     * second page here, twelve concrete patterns picked a billet at a time and
+     * frozen at the moment of saving — which is the artifact the plan model
+     * exists to remove, and which no longer has a way in
+     * ({@code role-and-access.md}). The marine is still drawn wearing something,
+     * and the honest something is what the squad's assigned sheet issues.
+     */
+    @Test
+    void theDesignerDrawsTheArmourTheAssignedSheetIssuesAndCannotChangeIt() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        MarineSquad squad = roster.squads().get(0);
+        EquipmentDoctrineDesignerViewModel designer = designer(roster);
+
+        String sheetId = squad.armorDoctrineId() != null
+                ? squad.armorDoctrineId() : SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR;
+        SquadArmorDoctrine issued = roster.armory().armorDoctrineById(sheetId);
+        assertEquals(issued.issueIds().get(0), designer.viewerBilletAt(0).armorId(),
+                "the preview wears what the squad's own sheet issues");
+
+        String before = designer.viewerBilletAt(0).armorId();
+        for (EquipmentDoctrineDesignerViewModel.BilletCard card : designer.billets().get()) {
+            card.cycleRole().run();
+            card.cyclePrimary().run();
+            card.cycleGrade().run();
+            card.cycleSpecial().run();
+        }
+        assertEquals(before, designer.viewerBilletAt(0).armorId(),
+                "no control on this screen may change what a billet wears");
     }
 
     private static EquipmentDoctrineDesignerViewModel designer(MarineRoster roster) {
         return new EquipmentDoctrineDesignerViewModel(
                 new Reactor(), roster, roster.squads().get(0).id(),
-                SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+                SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS);
     }
 
     private static Set<SpecialEquipmentDef> cycleSpecials(

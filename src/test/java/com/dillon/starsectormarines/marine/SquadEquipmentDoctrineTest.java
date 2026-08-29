@@ -377,15 +377,15 @@ class SquadEquipmentDoctrineTest {
                 "My Fleet Issue",
                 SquadEquipmentDoctrines.weaponById(
                         SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS).issues());
-        SquadArmorDoctrine customArmor = roster.armory().createArmorDoctrineIds(
-                "My Field Protection",
-                roster.armory().issue(SquadEquipmentDoctrines.armorPlanById(
-                        SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR)).issueIds());
+        // Only weapons are player-authored. Armour is a sheet, and the sheet
+        // this squad is issued is a built-in plan resolved against what the
+        // armoury owns ({@code role-and-access.md}).
+        String sheet = SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR;
 
         assertTrue(roster.previewSquadEquipment(
-                squad.id(), customWeapons.id(), customArmor.id()).canApply());
+                squad.id(), customWeapons.id(), sheet).canApply());
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
-                squad.id(), customWeapons.id(), customArmor.id()));
+                squad.id(), customWeapons.id(), sheet));
         assertFalse(roster.deleteWeaponDoctrine(customWeapons.id()),
                 "an assigned custom definition remains protected");
 
