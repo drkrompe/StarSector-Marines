@@ -98,6 +98,13 @@ The alternatives, kept because the reasoning is what makes the choice legible:
   frames 15 through 19 were checked against the pictures and were already
   right, so this was one misnamed frame rather than a shift running through the
   range.
+- **`urban-tileset-2` cannot be migrated, and that is not a scheduling
+  question.** Only a 3x3 patch of it has raw art in the project:
+  `normalize_spaceport_apron.py` composites nine downsampled panels into columns
+  6 through 8 and leaves the rest of the sheet alone. The other 42 cells have no
+  master under `art-source/` at all — the shipped PNG is the only copy. Nothing
+  can export it until that art exists, so the circularity there is not a
+  producer to retire but a gap in the sources.
 - **`floor-materials` is still a second producer, of a different sheet.**
   `Floors_Tiles.png` is a fixed-grid sheet still produced by
   `normalize_tilesets.py` and its materials are still pasted in by the manifest,
