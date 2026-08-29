@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -236,6 +237,15 @@ public interface BattleView {
 
     /** Compound capture/garrison service — zone-ownership queries. Read-only in the replan window (same returned-handle caveat as {@link #getTacticalScoring}). */
     CompoundService getCompoundService();
+
+    /**
+     * The garrison airfield's berths — what is parked, away, refitting, or
+     * burned. Empty on a battle whose map has no authored field.
+     *
+     * <p>Read by the air means as a supply question: a field with no airworthy
+     * aircraft cannot fly a sortie however firmly its ground is still held.
+     */
+    AirfieldService getAirfieldService();
 
     /** Per-cell structural topology (walls/roofs/cover classes). Rebuilt on map modification. */
     CellTopology getTopology();

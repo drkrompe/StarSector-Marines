@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -67,8 +68,16 @@ public final class ShuttleMeans implements ReinforcementMeans {
     /** Cells the off-map entry sits outside the grid. Mirrors {@code BattleSetup.SHUTTLE_OFFMAP_Y}; duplicated here so the means is self-contained and the existing constant stays {@code private}. */
     private static final float OFFMAP_PAD = 8f;
 
-    /** Default shuttle for SMALL strength. Nimble, 4-capacity — single-squad reinforcement reads as quick-response delivery. */
-    private static final ShuttleType DEFAULT_TYPE = ShuttleType.AEROSHUTTLE;
+    /**
+     * Default shuttle for SMALL strength. Nimble, 4-capacity — single-squad
+     * reinforcement reads as quick-response delivery.
+     *
+     * <p>Public because it is also what stands on a garrison hardstand: the
+     * aircraft a field is based with has to be the aircraft its sorties fly, or
+     * an attacker burns one hull and a different one takes off.
+     */
+    public static final ShuttleType SORTIE_TYPE = ShuttleType.AEROSHUTTLE;
+    private static final ShuttleType DEFAULT_TYPE = SORTIE_TYPE;
 
     private final TraversalAxis axis;
     private final GroundRosterProfile groundRoster;
@@ -143,6 +152,14 @@ public final class ShuttleMeans implements ReinforcementMeans {
                 TacticalNode.Kind.AIRBASE, Faction.DEFENDER)) {
             return false;
         }
+        // And an aircraft to fly. Holding the ground and having something to
+        // put in the air are different things, and both have to be true: a
+        // field whose aircraft have been burned on their pads supplies nothing
+        // however firmly its perimeter is still held.
+        if (!sim.getAirfieldService().berths().isEmpty()
+                && !sim.getAirfieldService().hasAirworthyAirframe()) {
+            return false;
+        }
         int[] centre = deliveryCentre(req);
         return new LandingZoneScorer(sim.getGrid(), sim.getTopology())
                 .bestNear(centre[0], centre[1], LZ_SCAN_RADIUS, SHUTTLE_MIN_CLEARANCE) != null;
@@ -165,7 +182,17 @@ public final class ShuttleMeans implements ReinforcementMeans {
 
         float lzX = lz[0] + 0.5f;
         float lzY = lz[1] + 0.5f;
-        float[] entry = sortieFrom(req, lzX, lzY, grid);
+
+        // An aircraft off the field is a specific aircraft standing on a
+        // specific pad, not a new one conjured at those coordinates. Taking it
+        // from its berth is what makes the field finite: the hull that leaves
+        // is the hull that was there, damage and all, and the pad it left is
+        // empty until it comes back.
+        AirfieldService.Berth berth = sim.getAirfieldService()
+                .nearestAirworthy(lzX, lzY);
+        float[] entry = berth != null
+                ? sortieFromBerth(berth)
+                : sortieFrom(req, lzX, lzY, grid);
 
         long shuttleId = sim.spawnShuttle(
                 DEFAULT_TYPE, req.side,
@@ -174,6 +201,10 @@ public final class ShuttleMeans implements ReinforcementMeans {
                 entry[2], entry[3],
                 /*pendingDelay*/ 0f);
         ShuttleMission mission = sim.world().mission(shuttleId);
+        if (berth != null) {
+            mission.hp = sim.getAirfieldService().launch(berth);
+            mission.homeBerth = berth;
+        }
         // Whoever the delivery policy says owns a delivered squad — the mission
         // commander on a battle that has one. A sortie's passengers are the
         // commander's people once they are on the ground, the same as a
@@ -316,6 +347,17 @@ public final class ShuttleMeans implements ReinforcementMeans {
         mission.embarkHandoff = deploymentPolicy != null
                 ? deployment.squadClaim() : null;
         return true;
+    }
+
+    /**
+     * Entry and exit for a sortie flying off a berth: that berth's pad, both
+     * ways. An aircraft based somewhere leaves from where it stands and comes
+     * home to the same place.
+     */
+    private static float[] sortieFromBerth(AirfieldService.Berth berth) {
+        float padX = berth.pad.centerX + 0.5f;
+        float padY = berth.pad.centerY + 0.5f;
+        return new float[]{ padX, padY, padX, padY };
     }
 
     /** This side's airbase, which is where its aircraft are and where a crew walks to. */

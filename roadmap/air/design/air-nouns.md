@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — a loading sortie flies with whoever boarded when its deadline passes, and hands back the crew it leaves behind.
+Updated: 2026-08-29 — aircraft are based on the garrison airfield: a unit on the ground, an air entity in the air, and a handoff at each end.
 
 ## Purpose
 
@@ -87,6 +87,55 @@ Shuttles are the shipped proof of the air model. A transport owns a sortie:
 it waits or re-arms off-map, enters toward a landing berth, delivers the
 mission-authored passenger count, then follows an explicit post-delivery
 disposition.
+
+### Based aircraft
+
+An aircraft is **two representations, one thing**. In the air it is an air
+entity. On its hardstand it is an ordinary grid unit, and a launch or a landing
+is a handoff between them.
+
+The split is deliberate and load-bearing. An air entity carries no grid or
+combat components, which is what lets every grid walk in the battle skip air
+for free; a parked aircraft, meanwhile, has to be perceived, gated by fog,
+traced against line of sight, hit, attributed, killed and wrecked — all
+grid/combat concerns. Teaching the combat stack an air-aware branch in each of
+them would buy a handful of shootable aircraft at the cost of that property
+forever. Being a unit on the ground buys the same behaviour for nothing. The
+unit is a target and never a weapon: it is a structure, so it neither aims nor
+fires, and what it does is stand there and be worth shooting.
+
+The **berth** is the thing with identity, not the airframe. A hardstand is
+authored into the map and stays put; the aircraft on it comes and goes and may
+never come back, and the state an attacker is trying to create — this pad had an
+aircraft and now does not — has nowhere to live if the aircraft is the record.
+A berth is parked, away, refitting, or destroyed, and the unit standing on it
+is a consequence of that state rather than a thing anybody places directly.
+
+Three rules give the field its stakes:
+
+- **The hull is continuous.** An aircraft that comes home shot up parks shot up,
+  and is written off on the ground by that much less fire. A sortie flies the
+  hull that was standing there, not a fresh one conjured at those coordinates.
+- **Loss is permanent.** An airframe burned on its pad or lost over the
+  objective is not replaced, and its berth is written off for the battle. A
+  field is a finite thing to lose.
+- **A turnaround is a window.** Servicing used to be free and instant because it
+  happened off-map at a carrier nobody could reach. On a field it happens on
+  ground the attacker can walk onto, so it takes long enough that a field cannot
+  answer two requests back to back.
+
+Every way a sortie can end draws one distinction: a craft that reached its own
+pad is an aircraft home from a job, and one that ended any other way is an
+aircraft that did not come back.
+
+This is a second and independent way to end an enemy's air. Holding the
+`AIRBASE` compound is the other, and the two ask genuinely different questions —
+a field held with every aircraft burning supplies nothing, and a field lost with
+the aircraft intact takes them with it.
+
+Distinct from the **scenery hulls** that dress surplus civilian port berths.
+Those are props: no unit, no HP, and nothing flies them. They look identical on
+the map and are not the same kind of thing at all.
 
 A sortie flown from an **authored airfield** has one more phase in front of
 that. The craft starts down on its own hardstand and **loads on the ground**:

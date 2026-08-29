@@ -80,6 +80,7 @@ public class FacingSystemTest {
         for (UnitType t : UnitType.values()) {
             boolean expectSheetDrawn = t != UnitType.TURRET
                     && t != UnitType.DRONE_HUB_STRUCTURE
+                    && t != UnitType.BASED_AIRCRAFT
                     && t != UnitType.RANGE_TARGET
                     && t != UnitType.DRONE;
             assertEquals(expectSheetDrawn, t.drawnAsSheet(), t.name());

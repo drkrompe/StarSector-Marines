@@ -107,6 +107,18 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
     long queueSpawn(EntitySpec spec);
 
     /**
+     * Take a unit off the map without killing it — no death event, no corpse,
+     * no wreck. The registry contract holds afterwards: a released id resolves
+     * to null and reads as not alive.
+     *
+     * <p>This is not a kill and must not be used as one. It exists for a unit
+     * that has stopped being a unit rather than stopped existing — an airframe
+     * leaving its hardstand to become an air entity is the case it was added
+     * for. Anything that should read as a death goes through {@code applyDamage}.
+     */
+    void releaseFromRegistry(long entityId);
+
+    /**
      * Spawn a shuttle into the air system (shuttle reinforcement / garrison drop) and
      * return its world entity id. Configure the rest by id — {@code world().mission(id)}
      * for the mission bag (cycles, loadouts, garrison node), {@code attachAirTurrets} for
