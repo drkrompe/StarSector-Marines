@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import java.awt.image.BufferedImage;
@@ -73,9 +76,9 @@ class KeyedSheetsAreExportedNotNormalizedTest {
     @Test
     void everySheetTheNormalizeScriptClaimsIsAnOpaquePlate() throws IOException {
         List<String> claimed = claimedRawSheets();
-        assertTrue(claimed.size() >= 2, "parsed " + claimed.size() + " sheets out of "
-                + SCRIPT + "; the spec tuples changed shape and this guard no longer reads "
-                + "them, so it is no longer guarding anything");
+        assertTrue(!claimed.isEmpty(), "parsed no sheets out of " + SCRIPT + "; either the "
+                + "spec tuples changed shape and this guard no longer reads them, or the "
+                + "script produces nothing and should be deleted rather than left armed");
         List<String> keyed = new ArrayList<>();
         for (String raw : claimed) {
             if (carriesKeyedAlpha(TILESETS.resolve(raw))) keyed.add(raw);
@@ -84,6 +87,38 @@ class KeyedSheetsAreExportedNotNormalizedTest {
                 + "atlases are exported from their authoring documents; normalizing them "
                 + "would rebuild them from the alpha of the export being overwritten and "
                 + "silently revert it. Remove them from GRID_SPECS/STRIP_SPECS in " + SCRIPT);
+    }
+
+    /**
+     * The second way a sheet leaves this script, measured the same way.
+     *
+     * <p>A keyed plate is not the only thing that takes the claim away. An
+     * authoring document that declares <em>blocks</em> has said which cells the
+     * game addresses and under what id, which is an exported tileset in all but
+     * the writing of it — and that is true whether or not the plate it was cut
+     * from needed keying. {@code Water_tiles} left by this door: its plate is
+     * opaque and always was, because every cell the game asks it for is opaque.
+     */
+    @Test
+    void noSheetTheNormalizeScriptClaimsIsExportedFromItsDocument()
+            throws IOException, JSONException {
+        List<String> exported = new ArrayList<>();
+        for (String raw : claimedRawSheets()) {
+            if (documentDeclaresBlocks(raw)) exported.add(raw);
+        }
+        assertEquals(List.of(), exported, "these sheets' authoring documents declare the "
+                + "blocks their atlases hold, so the exporter is their producer; normalizing "
+                + "them would overwrite that export. Remove them from GRID_SPECS in " + SCRIPT);
+    }
+
+    /** Whether {@code raw}'s authoring document names any block. */
+    private static boolean documentDeclaresBlocks(String raw)
+            throws IOException, JSONException {
+        Path document = TILESETS.resolve(
+                raw.replace(".raw.png", "") + ".tileset-authoring.json");
+        if (!Files.isRegularFile(document)) return false;
+        JSONArray blocks = new JSONObject(Files.readString(document)).optJSONArray("blocks");
+        return blocks != null && blocks.length() > 0;
     }
 
     /**
@@ -114,13 +149,18 @@ class KeyedSheetsAreExportedNotNormalizedTest {
      * both checks at once and leave them passing.
      */
     @Test
-    void theWithdrawnSheetsStillCarryTheAlphaThatWithdrewThem() throws IOException {
+    void theWithdrawnSheetsStillCarryTheAlphaThatWithdrewThem()
+            throws IOException, JSONException {
         for (String name : List.of("urban-tileset.raw.png", "urban-tileset-3.raw.png",
                 "nature-tiles.raw.png")) {
             assertTrue(carriesKeyedAlpha(TILESETS.resolve(name)),
                     name + " no longer carries its own alpha; it is not re-exportable and "
                             + "the guard that keeps it out of the normalize script is inert");
         }
+        assertTrue(documentDeclaresBlocks("Water_tiles.raw.png"),
+                "Water_tiles' document no longer declares its water.water pool; its plate is "
+                        + "opaque, so that declaration is the only thing withdrawing it from "
+                        + "the normalize script and the guard is inert without it");
     }
 
     /**

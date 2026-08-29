@@ -16,6 +16,7 @@ refused here rather than silently reverted.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
 
 import numpy as np
@@ -41,7 +42,6 @@ class GridSpec:
 
 GRID_SPECS = (
     GridSpec("Floors_Tiles.png", "Floors_Tiles.raw.png", "Floors_Tiles.png"),
-    GridSpec("Water_tiles.png", "Water_tiles.raw.png", "Water_tiles.png"),
 )
 
 # Three sheets that were once listed above are deliberately absent, and the
@@ -64,39 +64,23 @@ GRID_GROUND_EDGE_CELLS = {
         (
             (17, 1), (16, 2), (17, 2), (18, 2), (17, 3),  # brick
             (1, 10), (2, 10), (3, 10),                    # grass
-            (6, 10), (7, 10), (8, 10),                    # stone
             (11, 10), (12, 10), (13, 10),                 # dirt
-            (6, 14), (7, 14), (8, 14),                    # sand
         ),
         7,
     ),
-    "Water_tiles.png": (
-        16,
-        ((6, 7), (7, 7), (8, 7)),
-        2,
-    ),
 }
 
-# The three generated sand variants have different left/right
-# brightness ramps. Each one is seamless with itself after edge cleanup, but
-# the runtime hash pool places unlike variants beside each other and exposes a
-# periodic vertical join. Normalize only their horizontal edge columns to the
-# shared pool mean; retain each variant's interior and top/bottom texture.
-GRID_HORIZONTAL_EDGE_POOLS = {
-    "Floors_Tiles.png": (
-        56,
-        ((6, 14), (7, 14), (8, 14)),
-        10,
-    ),
-}
+# Both sand-pool treatments were removed on 2026-08-29 along with the stone and
+# sand rows of the table above. They existed to hide a periodic vertical join
+# where the runtime hash pool placed unlike sand variants side by side. There is
+# no such join: floor-materials pastes one 52x52 tile into all three sand cells
+# and all three stone cells after this pass, so the three "variants" are the
+# same pixels and the treatments were computed and then overwritten. Removing
+# them leaves both atlases byte-identical, which is how it was established
+# rather than argued.
+GRID_HORIZONTAL_EDGE_POOLS: dict[str, tuple] = {}
 
-GRID_HORIZONTAL_BIAS_POOLS = {
-    "Floors_Tiles.png": (
-        56,
-        ((6, 14), (7, 14), (8, 14)),
-        0.85,
-    ),
-}
+GRID_HORIZONTAL_BIAS_POOLS: dict[str, tuple] = {}
 
 
 def _bbox(mask: np.ndarray) -> tuple[int, int, int, int]:
@@ -272,29 +256,51 @@ def validate() -> None:
             raise ValueError(f"{spec.output}: fixed-grid alpha topology changed")
 
 
+def _document_declares_blocks(raw_name: str) -> bool:
+    """Whether this sheet's authoring document says what its atlas contains.
+
+    A seed describes a sheet: where it is, how to cut it, what its cells are. A
+    document that goes on to declare *blocks* has done more than describe - it
+    has said which of those cells the game addresses and under what id, which is
+    the whole content of an exported tileset. Once that exists the exporter is
+    the producer and this script is not.
+    """
+    document = HERE / (raw_name.replace(".raw.png", "") + ".tileset-authoring.json")
+    if not document.exists():
+        return False
+    with document.open(encoding="utf-8") as handle:
+        return bool(json.load(handle).get("blocks"))
+
+
 def _refuse_keyed_raw_sheets() -> None:
-    """Refuse to run against any sheet whose raw art carries its own alpha.
+    """Refuse to run against any sheet this script no longer produces.
 
     This script derives an atlas by transferring fresh colour onto the alpha of
     the atlas it is about to overwrite. That makes the shipped file its own
-    input, which is fine only while the raw plate is opaque and has therefore
-    recorded nothing about what is background and what is art.
+    input, which is fine only while nothing else claims to produce it.
 
-    A raw sheet that has been keyed has recorded exactly that, at the source,
-    per cell. Its atlas is exported from its authoring document instead, and
-    this script is not its producer. Running it anyway would rebuild the sheet
-    from the alpha topology of the file it is replacing and silently revert the
-    export: a valid PNG, the right size, the wrong art, and nothing red at the
-    moment it happens.
+    Two things take that claim away, and both are read off the files rather than
+    written down here. A **keyed raw plate** has recorded, at the source and per
+    cell, what is background and what is art - the thing this script was
+    borrowing from the shipped atlas. A **document that declares blocks** has
+    recorded which cells the game addresses and under what id, which is an
+    exported tileset in all but the writing of it.
 
-    The withdrawal is measured rather than declared. Keying the plate *is* the
-    withdrawal, so there is no flag to set, no list to keep in step, and nothing
-    for the next person to have read. Removing a sheet from the spec tuples
-    above without this check would be an instruction, and an instruction is
-    followed until it isn't.
+    Running anyway would rebuild the sheet from the alpha topology of the file
+    it is replacing and silently revert that export: a valid PNG, the right
+    size, the wrong art, and nothing red at the moment it happens.
+
+    The withdrawal is measured rather than declared. Keying a plate, or
+    declaring its blocks, *is* the withdrawal - so there is no flag to set, no
+    list to keep in step, and nothing for the next person to have read. Removing
+    a sheet from the spec tuples above without this check would be an
+    instruction, and an instruction is followed until it isn't.
     """
     keyed = []
     for spec in GRID_SPECS:
+        if _document_declares_blocks(spec.raw):
+            keyed.append(spec.raw)
+            continue
         with Image.open(HERE / spec.raw) as image:
             if "A" not in image.getbands():
                 continue
@@ -303,12 +309,13 @@ def _refuse_keyed_raw_sheets() -> None:
             keyed.append(spec.raw)
     if keyed:
         raise SystemExit(
-            "refusing to run: " + ", ".join(keyed) + " carries its own keyed "
-            "alpha, so its atlas is exported from its authoring document and "
-            "this script is not its producer. Normalizing it would rebuild it "
-            "from the alpha of the atlas it is about to overwrite, silently "
-            "reverting that export. Remove it from GRID_SPECS and "
-            "export it through the tileset authoring exporter instead."
+            "refusing to run: " + ", ".join(keyed) + " is produced by the tileset "
+            "authoring exporter, not by this script - its raw plate carries its "
+            "own keyed alpha, or its authoring document declares the blocks its "
+            "atlas holds. Normalizing it would rebuild it from the alpha of the "
+            "atlas it is about to overwrite, silently reverting that export. "
+            "Remove it from GRID_SPECS and export it through the tileset "
+            "authoring exporter instead."
         )
 
 

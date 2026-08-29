@@ -93,6 +93,7 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
     private static String layoutNames() {
         List<String> names = new ArrayList<>();
         for (GridLayout layout : GridLayout.values()) names.add(TilesetExport.jsonLayout(layout));
+        names.add(TilesetExport.VARIANT_POOL);
         return String.join(", ", names);
     }
 
@@ -757,7 +758,10 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                             + "Naming one that already exists redeclares its layout and fill.")
                     .requiredString("layout", "One of " + layoutNames() + ". wall-3x3 is the "
                             + "usual choice for a wall set: it leaves the fully enclosed case "
-                            + "to the fill colour instead of to art.")
+                            + "to the fill colour instead of to art. Use "
+                            + TilesetExport.VARIANT_POOL + " for interchangeable ground "
+                            + "variants picked by hashing the cell rather than by geometry; "
+                            + "its slots are v1, v2, ... for as many as you name.")
                     .string("fillRgb", "0xRRGGBB painted where the layout resolves to nothing "
                             + "- the interior of a wall-3x3, the open middle of a "
                             + "perimeter-3x3. Omit for a layout with no such case.")
@@ -784,7 +788,7 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
             String layoutName = arguments.optString("layout", "").trim();
             GridLayout layout;
             try {
-                layout = GridLayout.fromJson(layoutName);
+                layout = TilesetExport.layoutFromJson(layoutName);
             } catch (IllegalArgumentException unknown) {
                 return McpToolResult.failure("unknown layout '" + layoutName + "'. Use one of "
                         + layoutNames() + ".");
@@ -800,13 +804,19 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
             }
 
             TilesetDocument document = documentFor(context.projectRoot(), name);
-            List<String> layoutSlots = BlockSlots.of(layout);
+            JSONObject requestedSlots = arguments.optJSONObject("slots");
+            // A pool is as long as the caller makes it: its slots are v1..vN for
+            // however many variants were named, where a layout's slots are fixed
+            // by its geometry.
+            List<String> layoutSlots = layout == null
+                    ? BlockSlots.pool(Math.max(1, requestedSlots == null ? 0 : requestedSlots.length()))
+                    : BlockSlots.of(layout);
 
             // Requested slots are normalized and checked against the layout before
             // any piece is looked up, so a caller who mistyped a slot is told about
             // the slot rather than about the piece that happened to be named in it.
             Map<String, String> requested = new LinkedHashMap<>();
-            JSONObject slots = arguments.optJSONObject("slots");
+            JSONObject slots = requestedSlots;
             List<String> keys = new ArrayList<>();
             if (slots != null) {
                 for (Iterator<?> named = slots.keys(); named.hasNext(); ) {
@@ -816,7 +826,9 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
             Collections.sort(keys);
             for (String key : keys) {
                 String slot = key.trim().toLowerCase();
-                if (!BlockSlots.fits(layout, slot)) {
+                boolean known = layout == null ? layoutSlots.contains(slot)
+                        : BlockSlots.fits(layout, slot);
+                if (!known) {
                     return McpToolResult.failure("'" + key + "' is not a slot of " + layoutName
                             + ". Its slots are " + String.join(", ", layoutSlots) + ".");
                 }

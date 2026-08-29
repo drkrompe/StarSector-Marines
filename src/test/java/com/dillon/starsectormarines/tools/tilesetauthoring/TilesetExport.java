@@ -18,7 +18,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -241,6 +243,10 @@ public final class TilesetExport {
      */
     public static final class BlockSpec {
         public String id;
+        /**
+         * The autotile geometry this block resolves through, or {@code null}
+         * when it is a {@linkplain #isPool() variant pool}.
+         */
         public GridLayout layout;
         /** {@code 0xRRGGBB} painted for the layout's null case, or null when it has none. */
         public Integer fillRgb;
@@ -249,6 +255,21 @@ public final class TilesetExport {
             this.id = id;
             this.layout = layout;
             this.fillRgb = fillRgb;
+        }
+
+        /**
+         * Whether this block is a pool of interchangeable variants rather than
+         * an autotile.
+         *
+         * <p>The two are different shapes, not settings of one. An autotile
+         * answers "which cell for this neighbour mask" and therefore occupies a
+         * fixed patch its origin plus an offset addresses. A pool answers
+         * "any of these", is picked by hashing the cell's coordinate, and has
+         * no geometry at all — so it is written as an explicit list of cells
+         * and the packer is free to lay it out as a plain run.
+         */
+        public boolean isPool() {
+            return layout == null;
         }
     }
 
@@ -288,8 +309,23 @@ public final class TilesetExport {
             group.add(entry);
             members.put(entry.blockId, group);
             BlockSpec spec = specs.get(entry.blockId);
+            if (spec != null && spec.isPool()) {
+                // Width is filled in below once every member has been seen: a
+                // pool's extent is how many variants it has, which is not known
+                // at its first one.
+                units.add(new Unit(entry.blockId, 0, 1, group));
+                continue;
+            }
             int span = spec == null ? 3 : spec.layout.span();
             units.add(new Unit(entry.blockId, span, span, group));
+        }
+        // A pool reserves one cell per variant, so its unit is sized after the
+        // sweep that collects them.
+        for (int i = 0; i < units.size(); i++) {
+            Unit unit = units.get(i);
+            if (unit.blockId() != null && unit.width() == 0) {
+                units.set(i, new Unit(unit.blockId(), unit.members().size(), 1, unit.members()));
+            }
         }
 
         Map<String, int[]> origins = new LinkedHashMap<>();
@@ -309,10 +345,25 @@ public final class TilesetExport {
                 entry.row = cursorY;
             } else {
                 origins.put(unit.blockId(), new int[]{cursorX, cursorY});
-                for (Entry entry : unit.members()) {
-                    int[] offset = BlockSlots.offset(entry.slot);
-                    entry.col = cursorX + offset[0];
-                    entry.row = cursorY + offset[1];
+                BlockSpec spec = specs.get(unit.blockId());
+                if (spec != null && spec.isPool()) {
+                    // Ordinal, not geometric: a pool's cells are a list laid in a
+                    // run, and a gap in its slot numbering would leave a hole in
+                    // it. Placed in slot order rather than document order so v1
+                    // is the run's first cell whichever order the pieces were cut.
+                    List<Entry> ordered = new ArrayList<>(unit.members());
+                    ordered.sort(Comparator.comparingInt(e -> BlockSlots.variantIndex(e.slot)));
+                    int offset = 0;
+                    for (Entry entry : ordered) {
+                        entry.col = cursorX + offset++;
+                        entry.row = cursorY;
+                    }
+                } else {
+                    for (Entry entry : unit.members()) {
+                        int[] offset = BlockSlots.offset(entry.slot);
+                        entry.col = cursorX + offset[0];
+                        entry.row = cursorY + offset[1];
+                    }
                 }
             }
             cursorX += unit.width();
@@ -339,12 +390,46 @@ public final class TilesetExport {
             int width = entry.isBlockMember() ? 1 : entry.footprintX;
             int height = entry.isBlockMember() ? 1 : entry.footprintY;
             g.drawImage(
-                    source.getSubimage(p.x(), p.y(), p.width(), p.height()),
+                    reduced(source.getSubimage(p.x(), p.y(), p.width(), p.height()),
+                            width * cellPx, height * cellPx),
                     entry.col * cellPx, entry.row * cellPx,
                     width * cellPx, height * cellPx, null);
         }
         g.dispose();
         return atlas;
+    }
+
+    /**
+     * Halve {@code piece} repeatedly until one more bilinear step reaches the
+     * target, and return whatever is left for the caller to draw.
+     *
+     * <p>Bilinear samples four source pixels. Asked to reduce by three, it
+     * therefore reads four of every nine and simply discards the rest, which on
+     * a plate cut at 50px into 16px cells throws away more than half the art and
+     * comes out soft and aliased. Halving first keeps every pixel contributing:
+     * each step averages all four of its inputs, so the result approximates a
+     * box filter over the whole source.
+     *
+     * <p>Enlargement and reductions under 2x pass straight through — there is
+     * nothing to average, and a needless copy would only round twice.
+     */
+    static BufferedImage reduced(BufferedImage piece, int targetWidth, int targetHeight) {
+        BufferedImage current = piece;
+        while (current.getWidth() >= targetWidth * 2 && current.getHeight() >= targetHeight * 2
+                && current.getWidth() > 1 && current.getHeight() > 1) {
+            int halfWidth = Math.max(targetWidth, current.getWidth() / 2);
+            int halfHeight = Math.max(targetHeight, current.getHeight() / 2);
+            BufferedImage half = new BufferedImage(halfWidth, halfHeight,
+                    BufferedImage.TYPE_INT_ARGB);
+            Graphics2D step = half.createGraphics();
+            step.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            step.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            step.drawImage(current, 0, 0, halfWidth, halfHeight, null);
+            step.dispose();
+            current = half;
+        }
+        return current;
     }
 
     /**
@@ -783,9 +868,22 @@ public final class TilesetExport {
             if (origin == null) continue;   // every member excluded — the block is not in this sheet
             JSONObject o = new JSONObject();
             o.put("id", spec.id);
-            o.put("origin", new JSONArray().put(origin[0]).put(origin[1]));
-            o.put("layout", jsonLayout(spec.layout));
-            if (spec.fillRgb != null) o.put("fillRgb", String.format("0x%06X", spec.fillRgb));
+            if (spec.isPool()) {
+                List<Entry> pooled = new ArrayList<>();
+                for (Entry entry : entries) {
+                    if (entry.included && spec.id.equals(entry.blockId)) pooled.add(entry);
+                }
+                pooled.sort(Comparator.comparingInt((Entry e) -> e.row).thenComparingInt(e -> e.col));
+                JSONArray cellList = new JSONArray();
+                for (Entry entry : pooled) {
+                    cellList.put(new JSONArray().put(entry.col).put(entry.row));
+                }
+                o.put("cells", cellList);
+            } else {
+                o.put("origin", new JSONArray().put(origin[0]).put(origin[1]));
+                o.put("layout", jsonLayout(spec.layout));
+                if (spec.fillRgb != null) o.put("fillRgb", String.format("0x%06X", spec.fillRgb));
+            }
             blockArray.put(o);
         }
 
@@ -837,9 +935,29 @@ public final class TilesetExport {
         return o;
     }
 
-    /** The {@code layout} spelling {@link GridLayout#fromJson} reads back. */
+    /**
+     * How a block's shape is spelled in JSON: a {@link GridLayout}'s own name,
+     * or {@link #VARIANT_POOL} for a pool, which has no layout.
+     */
     public static String jsonLayout(GridLayout layout) {
-        return layout.name().toLowerCase().replace("_3x3", "-3x3");
+        if (layout == null) return VARIANT_POOL;
+        return layout.name().toLowerCase(Locale.ROOT).replace("_3x3", "-3x3");
+    }
+
+    /**
+     * The {@code layout} a pool declares in an authoring document.
+     *
+     * <p>It is deliberately not a {@link GridLayout}: a pool resolves by
+     * hashing a coordinate, not by a neighbour mask, so giving it a member of
+     * the geometry enum would put it where every autotile resolver would then
+     * have to special-case it out again.
+     */
+    public static final String VARIANT_POOL = "variants";
+
+    /** The shape named by {@code spelling}, or {@code null} for a pool. */
+    public static GridLayout layoutFromJson(String spelling) {
+        return VARIANT_POOL.equalsIgnoreCase(spelling.trim()) ? null
+                : GridLayout.fromJson(spelling);
     }
 
     /**

@@ -172,9 +172,12 @@ Do not run builds or leave generated task files there.
   **Copy selection for LLM** writes a labelled contact sheet of the picked cells
   under `build/tileset-authoring/` and puts a table of their current annotation,
   keyed by the same coordinates, on the clipboard with that image's path.
-  A piece becomes a doodad or a cell of a named autotile block; walls
-  and corners are authored by grouping pieces into a block's slots, which the
-  packer places as one contiguous patch. A sheet whose document carries a
+  A piece becomes a doodad or a cell of a named block; walls
+  and corners are authored by grouping pieces into an autotile block's slots,
+  which the packer places as one contiguous patch. A block declared with layout
+  `variants` is instead a pool of interchangeable ground tiles picked by hashing
+  the cell — slots `v1`, `v2`, ... — written as an explicit cell list and packed
+  as a run, which is the shape `water.water` and the `floors.*` families load in. A sheet whose document carries a
   `strip` block exports as a sliced auto-strip instead: frames in a row at an
   authored scale, addressed by frame index rather than `(col, row)`, which is
   the shape `urban-tileset-3` and `nature-tiles` load in. Export writes a packed

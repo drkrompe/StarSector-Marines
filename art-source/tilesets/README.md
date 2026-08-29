@@ -123,21 +123,35 @@ Sheet-specific constraints:
 - `urban-tileset-2`: preserve a 17x3 grid of 32px cells, every 3x3 logical block, road edges, center openings, and blank cells.
 - `urban-tileset-3`: preserve exactly 7 auto-sliced sprites in their original order and footprints with at least 4 transparent pixels between frames.
 - `Floors_Tiles`: preserve a 25x26 grid of 16px cells and all grass, stone, dirt, brick, snow, and sand autotile families and transition directions.
-- `Water_tiles`: preserve a 25x25 grid of 16px cells, four top island sprites, the water edge/corner family, center textures, and shoreline topology.
+- `Water_tiles`: preserve a 25x25 grid of 16px cells, four top island sprites, the water edge/corner family, center textures, and shoreline topology. The shipped atlas holds only the three centre cells of `water.water` — the rest of the plate is kept here, and including a cell in the authoring document is all it takes to bring one back.
 - `nature-tiles`: preserve exactly 20 auto-sliced sprites in order, with at least 4 transparent pixels between frames. The prompt said "7 ground, 5 plants, 3 small-rock groups, 2 medium, 3 large"; the art came back as 7 ground, **6** plants and **7** rock groups. The ids followed the prompt rather than the art until 2026-08-29, so frame 12 — a tall grass tuft — was named `nature.rock-small-1` and scattered as a rock; it is now `nature.tuft-3` and the small rocks are numbered from frame 13.
 
 ## Normalization strategy
 
 The scripts preserve the runtime canvas dimensions and alpha topology:
 normalization fits generated content into the current production content bounds
-and restores its alpha mask exactly. Only fixed-grid sheets are produced this
-way now — `Floors_Tiles` and `Water_tiles`.
+and restores its alpha mask exactly. One sheet is produced this way now —
+`Floors_Tiles`.
+
+`Water_tiles` left on 2026-08-29. It did not need keying: every cell the game
+asks that sheet for is fully opaque, and the alpha the script so carefully
+restored described the 622 cells nothing addresses. Its document declares the
+`water.water` pool instead, and declaring blocks is now the second measured
+withdrawal from this script alongside a keyed plate.
 
 The current normalized pass fits whole content into the production bounds. After
 fitting, it removes ImageGen's dark isolated-sprite outline from the reusable
-brick, grass, stone, dirt, sand, and water cells on the 16px fixed grids, by
-mirroring a narrow band of neighbouring interior rows and columns through each
-tile edge.
+brick, grass and dirt cells by mirroring a narrow band of neighbouring interior
+rows and columns through each tile edge.
+
+The stone and sand cells were treated the same way until 2026-08-29, along with
+two further passes that matched the sand variants' join bands and flattened
+their shared palette drift. All of it was dead: `floor-materials` pastes one
+52x52 tile into all three stone cells and all three sand cells *after* this
+pass, so the treatments were computed and then overwritten, and the join those
+two passes existed to hide cannot occur between three identical tiles. Removing
+them leaves both atlases byte-identical, which is how it was established rather
+than argued.
 
 The auto-strip half of that pass is gone. It carried twenty pinned frame boxes
 into `nature-tiles.png` and a ground-edge band beside them — coordinates into an

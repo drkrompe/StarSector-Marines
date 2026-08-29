@@ -39,9 +39,26 @@ public class TileRegistryCellLabelTest {
         assertNotNull(chair, "urban-tileset no longer defines doodad.chair-south-yellow");
         assertEquals("doodad.chair-south-yellow",
                 reg.cellLabel(chair.sheetPath, chair.col, chair.row).name);
-        assertEquals("road-nw", reg.cellLabel("graphics/tilesets/urban-tileset-2.png", 12, 0).name);
-        assertEquals("grass-1", reg.cellLabel("graphics/tilesets/Floors_Tiles.png", 1, 10).name);
-        assertEquals("water-edge-s", reg.cellLabel("graphics/tilesets/Water_tiles.png", 8, 0).name);
+        // Same rule for the block sheets: ask the block where its cells are
+        // rather than writing a coordinate down. A pinned (col, row) here is the
+        // hazard the whole id-addressing law exists for, and it bit exactly once
+        // - this line named Water_tiles cell (8, 0) until that sheet started
+        // exporting the three cells the game actually asks it for.
+        GridBlockDef road = reg.block("road.road");
+        assertNotNull(road, "urban-tileset-2 no longer defines road.road");
+        assertEquals("road-nw",
+                reg.cellLabel(road.sheetPath, road.originCol, road.originRow).name);
+
+        assertEquals("grass-1", firstCellLabel(reg, "floors.grass").name);
+        assertEquals("water.water v1", firstCellLabel(reg, "water.water").name);
+    }
+
+    /** The label on a variant pool's first cell, wherever the packer put it. */
+    private static CellLabel firstCellLabel(TileRegistry reg, String blockId) {
+        GridBlockDef block = reg.block(blockId);
+        assertNotNull(block, "no block " + blockId);
+        assertTrue(block.isVariantPool(), blockId + " is no longer a variant pool");
+        return reg.cellLabel(block.sheetPath, block.cells[0][0], block.cells[0][1]);
     }
 
     @Test

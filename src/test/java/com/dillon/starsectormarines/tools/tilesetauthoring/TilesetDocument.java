@@ -230,7 +230,7 @@ public final class TilesetDocument {
             JSONObject o = blockArray.getJSONObject(i);
             doc.blocks.add(new TilesetExport.BlockSpec(
                     o.getString("id"),
-                    GridLayout.fromJson(o.getString("layout")),
+                    TilesetExport.layoutFromJson(o.getString("layout")),
                     o.has("fillRgb") ? Integer.decode(o.getString("fillRgb")) : null));
         }
         JSONArray array = root.optJSONArray("entries");

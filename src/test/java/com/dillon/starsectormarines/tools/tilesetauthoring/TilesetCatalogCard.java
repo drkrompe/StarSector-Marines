@@ -47,8 +47,9 @@ public final class TilesetCatalogCard {
         }
         if (!present.isEmpty()) {
             out.append("## Blocks\n\n");
-            out.append("An autotile block is selected by id; the game picks which of its cells to\n");
-            out.append("draw from the surrounding walls, so a block is used as one thing.\n\n");
+            out.append("A block is selected by id and used as one thing. An autotile block lets\n");
+            out.append("the game pick which of its cells to draw from the surrounding walls; a\n");
+            out.append("variant pool has no geometry and is picked by hashing the cell.\n\n");
             out.append("| id | layout | note | tags |\n|---|---|---|---|\n");
             for (TilesetExport.BlockSpec spec : present) {
                 TilesetExport.Entry origin = originMember(entries, spec.id);
