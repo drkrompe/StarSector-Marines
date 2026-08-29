@@ -85,13 +85,19 @@ The alternatives, kept because the reasoning is what makes the choice legible:
 
 ## What is also wrong here, and is not the export's fault
 
-- **`nature.rock-small-1` draws a plant.** The sheet carries six plants and
-  seven rock groups; the tileset was written for five and eight, so frame 12 —
-  a tall grass tuft — is named as a small rock and sits in every `rockPool` in
-  `urban.mapping.json`. It carries no cover, so nothing about the fight changes;
-  a bush simply appears where a rock was asked for. Renaming it is a content
-  change with its own review, not part of a re-export, so it is recorded on the
-  piece's own annotation and left alone.
+- **`nature.rock-small-1` drew a plant.** Fixed 2026-08-29. The sheet carries
+  six plants and seven rock groups and the ids were written for five and eight,
+  so frame 12 — a tall grass tuft — was named as a small rock and sat in every
+  `rockPool` in `urban.mapping.json`: one entry in five on grassland and
+  wetland, one in eight on beaches. It carried no cover, so nothing about the
+  fight changed; a bush simply appeared where a rock was asked for. It is now
+  `nature.tuft-3` in the plant pools, and the small rocks are renumbered from
+  frame 13 so the names run contiguously again. The re-export is byte-identical
+  in the atlas — only the names moved — so the derived height and normal
+  companions stayed valid. Worth keeping in view: the cover and passability on
+  frames 15 through 19 were checked against the pictures and were already
+  right, so this was one misnamed frame rather than a shift running through the
+  range.
 - **`floor-materials` is still a second producer, of a different sheet.**
   `Floors_Tiles.png` is a fixed-grid sheet still produced by
   `normalize_tilesets.py` and its materials are still pasted in by the manifest,

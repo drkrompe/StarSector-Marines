@@ -26,9 +26,9 @@ the strip that id resolves to, counting from the left.
 | 9 | `nature.tuft-1` | grass-tuft | plant | none | yes | upright grass tuft | — |
 | 10 | `nature.tuft-2` | grass-tuft-alt | plant | none | yes | wider grass tuft, second variant | — |
 | 11 | `nature.shrub-3` | shrub-variant | plant | none | yes | young palm — the one plant with a visible trunk | — |
-| 12 | `nature.rock-small-1` | rocks-small | rock | none | yes | MISLABELLED: this frame is a sixth plant, a tall grass tuft, not a rock. The sheet carries six plants and seven rock groups; the tileset was written for five and eight, so every id from this frame on names the picture before it. The id is live in three rockPool entries of urban.mapping.json, which is why it is recorded here rather than quietly corrected: renaming it is a content change with its own review, not a re-export. | — |
-| 13 | `nature.rock-small-2` | rocks-small-2 | rock | none | yes | three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on | — |
-| 14 | `nature.rock-small-3` | rocks-small-3 | rock | none | yes | three small stones, one larger — a tighter scatter than rock-small-2 | — |
+| 12 | `nature.tuft-3` | grass-tuft-tall | plant | none | yes | tall wild grass tuft — the sheet’s sixth plant. It sat in the rock range and was scattered as a rock until 2026-08-29; the prompt asked for five plants and eight rock groups and the art came back with six and seven. | — |
+| 13 | `nature.rock-small-1` | rocks-small | rock | none | yes | three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on | — |
+| 14 | `nature.rock-small-2` | rocks-small-2 | rock | none | yes | three small stones, one larger — a tighter scatter than rock-small-1 | — |
 | 15 | `nature.rock-medium-1` | rock-medium | rock | light | yes | a boulder with two stones at its foot — light cover, still walkable | — |
 | 16 | `nature.rock-medium-2` | rock-medium-2 | rock | light | yes | a single tilted boulder with a detached pebble — light cover, still walkable | — |
 | 17 | `nature.rock-large-1` | rock-large | rock | heavy | no | a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art and no destructible HP | — |
