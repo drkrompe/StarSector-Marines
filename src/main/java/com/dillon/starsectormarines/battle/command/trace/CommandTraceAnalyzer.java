@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -61,7 +62,8 @@ public final class CommandTraceAnalyzer {
             int unmobilizedThreatEpisodes,
             int peakPublishedTrackShareBasisPoints,
             PhysicalProgressMetrics physicalProgress,
-            CommandInactivityMetrics commandInactivity) {
+            CommandInactivityMetrics commandInactivity,
+            OrderMixMetrics orderMix) {
 
         public FactionMetrics {
             publishedMobilizationLatenciesTicks =
@@ -70,6 +72,31 @@ public final class CommandTraceAnalyzer {
                     ? physicalProgress : PhysicalProgressMetrics.empty();
             commandInactivity = commandInactivity != null
                     ? commandInactivity : CommandInactivityMetrics.empty();
+            orderMix = orderMix != null ? orderMix : OrderMixMetrics.empty();
+        }
+
+        public FactionMetrics(int perspectiveSamples, int retargets,
+                              int releases, int reissues,
+                              int rejectedProposals, int stabilityHolds,
+                              int unassignedSquadPulses,
+                              int unassignedSquadTicks,
+                              int unreachableSquadPulses,
+                              int noActionableSquadPulses,
+                              int distantCaptureDeferredSquadPulses,
+                              long reserveSquadTicks,
+                              List<Integer> mobilizationLatencies,
+                              int unmobilizedThreatEpisodes,
+                              int peakTrackShare,
+                              PhysicalProgressMetrics physicalProgress,
+                              CommandInactivityMetrics commandInactivity) {
+            this(perspectiveSamples, retargets, releases, reissues,
+                    rejectedProposals, stabilityHolds,
+                    unassignedSquadPulses, unassignedSquadTicks,
+                    unreachableSquadPulses, noActionableSquadPulses,
+                    distantCaptureDeferredSquadPulses, reserveSquadTicks,
+                    mobilizationLatencies, unmobilizedThreatEpisodes,
+                    peakTrackShare, physicalProgress, commandInactivity,
+                    OrderMixMetrics.empty());
         }
 
         public FactionMetrics(int perspectiveSamples, int retargets,
@@ -116,6 +143,51 @@ public final class CommandTraceAnalyzer {
                     CommandInactivityMetrics.empty());
         }
     }
+
+    /**
+     * What the commander actually spent its squads on, as a share of published
+     * directives. The unassigned pulses are a bucket like any other, so the
+     * shares sum to the whole and "the commander said nothing" is visible
+     * beside the orders it did give.
+     *
+     * <p>This answers a question no other metric here does. Latency, churn and
+     * travel all describe how well a given order went; none of them says which
+     * orders a battle was made of. A Conquest run that is nine-tenths compound
+     * capture and a run that is nine-tenths lane fighting play nothing alike
+     * and score similarly on everything else.
+     *
+     * <p>Ticks are attributed at the pulse interval that published the order,
+     * so a long-lived directive weighs more than one replaced on the next
+     * pulse. Shares are ordered by squad-pulses and then by name, which keeps
+     * the row byte-stable across the duplicate replay.
+     */
+    public record OrderMixMetrics(List<OrderShare> shares) {
+
+        public OrderMixMetrics {
+            shares = List.copyOf(shares);
+        }
+
+        public static OrderMixMetrics empty() {
+            return new OrderMixMetrics(List.of());
+        }
+
+        /** Bucket used for a pulse that published no assignment at all. */
+        public static final String UNASSIGNED = "(unassigned)";
+
+        public int totalSquadPulses() {
+            int total = 0;
+            for (OrderShare share : shares) total += share.squadPulses();
+            return total;
+        }
+
+        /** The order the commander leaned on most, or empty when nothing was published. */
+        public String dominantKind() {
+            return shares.isEmpty() ? "" : shares.get(0).kind();
+        }
+    }
+
+    /** One assignment kind's share of a perspective's published directives. */
+    public record OrderShare(String kind, int squadPulses, long squadTicks) { }
 
     /** Mutually-exclusive explanations for command-unassigned Conquest time. */
     public record CommandInactivityMetrics(
@@ -493,6 +565,20 @@ public final class CommandTraceAnalyzer {
                         metrics.noActionableSquadPulses());
                 numberField(out, "distantCaptureDeferredSquadPulses",
                         metrics.distantCaptureDeferredSquadPulses());
+                out.append(",\"orderMix\":[");
+                boolean firstShare = true;
+                for (OrderShare share : metrics.orderMix().shares()) {
+                    if (!firstShare) out.append(',');
+                    firstShare = false;
+                    out.append('{');
+                    string(out, "kind");
+                    out.append(':');
+                    string(out, share.kind());
+                    numberField(out, "squadPulses", share.squadPulses());
+                    longField(out, "squadTicks", share.squadTicks());
+                    out.append('}');
+                }
+                out.append(']');
                 CommandInactivityMetrics inactivity = metrics.commandInactivity();
                 out.append(",\"commandInactivity\":{");
                 rawNumberField(out, "lifecycleSquadPulses",
@@ -812,6 +898,7 @@ public final class CommandTraceAnalyzer {
         int unreachablePulses = 0;
         int noActionablePulses = 0;
         int distantCaptureDeferredPulses = 0;
+        Map<String, long[]> orderMix = new HashMap<>();
         InactivityAccumulator inactivity = new InactivityAccumulator();
         long reserveTicks = 0;
         int peakShare = 0;
@@ -874,6 +961,14 @@ public final class CommandTraceAnalyzer {
             for (int i = 0; i < actions.length(); i++) {
                 JSONObject action = actions.getJSONObject(i);
                 String reason = action.getString("reason");
+                if (!baseline) {
+                    String kind = nullableString(action, "assignmentKind");
+                    long[] tally = orderMix.computeIfAbsent(
+                            kind != null ? kind : OrderMixMetrics.UNASSIGNED,
+                            k -> new long[2]);
+                    tally[0]++;
+                    tally[1] += intervalTicks;
+                }
                 if (!baseline && action.optBoolean(
                         "distantCaptureDeferred", false)) {
                     distantCaptureDeferredPulses++;
@@ -966,7 +1061,24 @@ public final class CommandTraceAnalyzer {
                 reissues, rejected, stabilityHolds, unassignedPulses,
                 unassignedTicks, unreachablePulses, noActionablePulses,
                 distantCaptureDeferredPulses, reserveTicks, latencies,
-                unanswered, peakShare, physical, inactivity.metrics());
+                unanswered, peakShare, physical, inactivity.metrics(),
+                orderMixMetrics(orderMix));
+    }
+
+    /**
+     * Orders by squad-pulses descending, then by name. The name tie-break is
+     * what keeps the row identical across the duplicate replay — a map's
+     * iteration order is not a fact about the battle.
+     */
+    private static OrderMixMetrics orderMixMetrics(Map<String, long[]> tally) {
+        List<OrderShare> shares = new ArrayList<>(tally.size());
+        for (Map.Entry<String, long[]> entry : tally.entrySet()) {
+            shares.add(new OrderShare(entry.getKey(),
+                    (int) entry.getValue()[0], entry.getValue()[1]));
+        }
+        shares.sort(Comparator.comparingInt(OrderShare::squadPulses).reversed()
+                .thenComparing(OrderShare::kind));
+        return new OrderMixMetrics(shares);
     }
 
     private static InactivityCause inactivityCause(int schemaVersion,
