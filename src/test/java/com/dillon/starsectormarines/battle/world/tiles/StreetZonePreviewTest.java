@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
@@ -571,7 +573,8 @@ public class StreetZonePreviewTest {
             for (int y = 0; y < gridH; y++) {
                 if (!topology.isWall(x, y)) continue;
                 int mask = topology.getWallDirMask(x, y);
-                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(mask);
+                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(mask,
+                        GenMappingRegistry.installedSurfaceBlock(SurfaceRole.WALL));
                 if (tile == null) {
                     g.setColor(WALL_CENTER);
                     g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
@@ -704,7 +707,8 @@ public class StreetZonePreviewTest {
             for (int y = 0; y < gridH; y++) {
                 if (!topology.isWall(x, y)) continue;
                 int mask = topology.getWallDirMask(x, y);
-                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(mask);
+                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(mask,
+                        GenMappingRegistry.installedSurfaceBlock(SurfaceRole.WALL));
                 if (tile == null) {
                     g.setColor(WALL_CENTER);
                     g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,

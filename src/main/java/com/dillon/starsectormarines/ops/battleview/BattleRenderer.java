@@ -25,8 +25,9 @@ import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.DrawListRenderer;
@@ -444,11 +445,11 @@ public class BattleRenderer {
         if (buildings == null || buildings.isEmpty()) return;
         // Floors sheet is ensured at BattleScreen.attach; collect stays GL-free. Guard covers the not-loaded case.
         if (sprites.floorsSheet() == null) return;
-        // Roof brick is the floors.brick variant-pool block (center pick, (x,y)-hashed).
-        // Registry is process-wide/stable for the battle, so resolve the block once here.
-        TileRegistry reg = TileRegistry.installed();
-        if (reg == null) return;
-        GridBlockDef brick = reg.block("floors.brick");
+        // What a roof is drawn as is a surfaceRender.ROOF mapping question; it
+        // happens to be a floor block, read as paving from above. Variant-pool
+        // block, center pick, (x,y)-hashed. Registry is process-wide/stable for
+        // the battle, so resolve the block once here.
+        GridBlockDef brick = GenMappingRegistry.installedSurfaceBlock(SurfaceRole.ROOF);
         if (brick == null) return;
 
         CellTopology topology = sim.getTopology();
