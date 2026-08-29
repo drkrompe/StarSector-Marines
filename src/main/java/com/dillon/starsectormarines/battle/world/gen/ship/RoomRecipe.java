@@ -96,7 +96,7 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
      * packer handles a shape that is not a rectangle.
      */
     public static final RoomRecipe COMMAND = new RoomRecipe(
-            RoomPurpose.CONTROL_ROOM, RoomShape.of(
+            RoomPurpose.BRIDGE, RoomShape.of(
                     ".....###.....",
                     "...#######...",
                     "..#########..",

@@ -131,6 +131,16 @@ rather than a state a person falls into. A complement whose only options are a
 bunk and a bench can be asleep or at work, and everything else it does is the
 defect wearing the costume of rest.
 
+**A room can be a workplace and an amenity at once, and one room is.** Everywhere
+else the two are cleanly separate: a machinery space is worked and visited by
+nobody, a lounge is visited and worked by nobody. The mess is both, for two
+different populations, at the same moment — the ship's cooks are on watch in the
+room the whole complement passes through to eat. Eating and cooking are therefore
+different affordances rather than one, and only the second is duty: a compartment
+that published only "somewhere to eat" gave a ship whose entire company ate three
+meals a day that nobody made. Where a fitting draws that line on the deck is what
+a serving counter is for.
+
 That is also why **an amenity is on watch, not off**. The two lists divide by
 *where*, not by *when*: an off-watch job can only be done in one's own quarters,
 and an on-watch job is done in a room of its own. Reading "not work" as "off

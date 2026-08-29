@@ -907,6 +907,36 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     the bow is packed wall-to-wall; that is a question about where the program
     puts its rooms, not about how tightly it puts them.
 
+24. **A line of fixtures across a room is a wall unless it is told not to be.**
+    The arrangements that read best are lines and flats — a stove line, a rank
+    of benches, a counter — and every one of them severs the room it crosses.
+    The counter usually gets a gap because the gap is visibly part of the
+    design; the line *behind* the counter does not, and then the way through
+    opens onto an unbroken row of benches and the whole working end is walled
+    off from the ship. It never looks wrong: the plan reads as a galley, and the
+    only symptom is that every job past the line is silently dropped as
+    unreachable. So a fitting that lays a line lays the way through it in the
+    same breath, and the check for it is that nothing was dropped rather than
+    that the room looks right.
+
+25. **A fitting names only ids the registry has, and says what it does without
+    them.** A missing id makes placement fail silently, so a theme whose kit
+    half-exists comes out bare with nothing to say why. Naming only what exists
+    is the rule; it is not sufficient on its own, because the art for a new room
+    and the room's arrangement do not have to land in the same commit. A fitting
+    therefore carries a **stand-in** for each piece — something that has been in
+    the set since the beginning — so a galley whose art has not been packed yet
+    is a worse-looking galley rather than an empty hall. Read the fallback's own
+    footprint, not the authored one: a stand-in of a different size laid out to
+    the size of the piece it replaces is how a room fills itself wrong.
+
+    **A threshold derived from art alone moves with the art.** Sized only from
+    what has to fit, a galley became possible in a nine-cell cabin the moment its
+    stand-ins were small — and every cooking point is a posting, so the ship
+    acquires a watch of cooks in a room that cannot hold a range. Where the line
+    falls between "the ship's galley" and "somewhere else to eat" is a judgement
+    about the room, so it is stated rather than measured.
+
 ## Boundaries
 
 `mapgen-nouns.md` owns the generation request, recipe, context, stage, room

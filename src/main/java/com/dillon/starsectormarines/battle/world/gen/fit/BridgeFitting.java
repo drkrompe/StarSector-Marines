@@ -137,7 +137,7 @@ public final class BridgeFitting implements RoomFitting {
 
     @Override
     public RoomPurpose purpose() {
-        return RoomPurpose.CONTROL_ROOM;
+        return RoomPurpose.BRIDGE;
     }
 
     @Override

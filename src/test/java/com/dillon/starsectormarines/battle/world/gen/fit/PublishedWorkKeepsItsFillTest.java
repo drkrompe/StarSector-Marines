@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -66,10 +67,21 @@ class PublishedWorkKeepsItsFillTest {
      * <p>Dropping it is the whole of the fix, so the count has to be a real one:
      * a room that published every point it laid down would pass the test above
      * for the wrong reason, by no longer checking reachability at all.
+     *
+     * <p>Asked of a fitting written here to strand one, rather than of whichever
+     * fitting the ward happens to be registered with. Pointed at the registry it
+     * passed only for as long as that room was sloppy enough to wall a point in,
+     * and failed the day the sick bay was arranged well — a test that breaks
+     * when the code improves is testing the wrong thing.
      */
     @Test
     void workNobodyCanWalkToIsWithdrawn() {
-        assertTrue(fit(RoomPurpose.PATIENT_WARD, 14, 10).dropped() > 0,
+        Fitted fitted = fit(RoomPurpose.PATIENT_WARD, 14, 10, new AisleFitting(
+                RoomPurpose.PATIENT_WARD, AisleFitting.FixtureGroup.working(
+                        "doodad.residential-bed-h", 2, 2, Affordance.TREAT,
+                        new AisleFitting.FixtureGroup.Satellite("doodad.chest-2", 1, 1))));
+
+        assertTrue(fitted.dropped() > 0,
                 "no point was withdrawn, so nothing tests that unreachable work is");
     }
 

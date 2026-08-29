@@ -625,6 +625,333 @@
       ],
       "padding": 0,
       "order": 95
+    },
+    "galley-range.png": {
+      "id": "doodad.galley-range",
+      "name": "Galley range",
+      "description": "Four-hob cooking block with a splash rail on three sides.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "order": 110
+    },
+    "galley-prep-bench.png": {
+      "id": "doodad.galley-prep-bench",
+      "name": "Preparation bench",
+      "description": "Steel worktop with a rinsing basin, knife rail and pots.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        1,
+        3
+      ],
+      "order": 111
+    },
+    "galley-servery-counter.png": {
+      "id": "doodad.galley-servery-counter",
+      "name": "Servery counter",
+      "description": "One hot-well section of a serving counter, with its tray rail.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "order": 112
+    },
+    "galley-scullery-sink.png": {
+      "id": "doodad.galley-scullery-sink",
+      "name": "Scullery sink",
+      "description": "Double sink and draining board at the end of a galley line.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "order": 113
+    },
+    "galley-cold-store.png": {
+      "id": "doodad.galley-cold-store",
+      "name": "Cold store",
+      "description": "Latched refrigerated provisions chest.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "order": 114
+    },
+    "mess-table-long.png": {
+      "id": "doodad.mess-table-long",
+      "name": "Mess table",
+      "description": "Long dining table with a fixed bench down each side.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "order": 115
+    },
+    "ship-washbasin-run.png": {
+      "id": "doodad.ship-washbasin-run",
+      "name": "Washbasin run",
+      "description": "Three basins in a row, mounted flush to the bulkhead.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "order": 100
+    },
+    "ship-head-stall-bank.png": {
+      "id": "doodad.ship-head-stall-bank",
+      "name": "Head stall bank",
+      "description": "Three enclosed stalls in a row, doors facing the walk-through.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "order": 101
+    },
+    "stores-rack-run.png": {
+      "id": "doodad.stores-rack-run",
+      "name": "Stores rack run",
+      "description": "Three-bay shelving run, boxed stock on both tiers.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "order": 130
+    },
+    "stores-roller-conveyor.png": {
+      "id": "doodad.stores-roller-conveyor",
+      "name": "Roller conveyor",
+      "description": "Straight powered roller section with hazard-striped rails.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "order": 131
+    },
+    "stores-cargo-loader.png": {
+      "id": "doodad.stores-cargo-loader",
+      "name": "Cargo loader",
+      "description": "Compact powered pallet loader, forks extended.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "order": 132
+    },
+    "stores-cage-front.png": {
+      "id": "doodad.stores-cage-front",
+      "name": "Cage front",
+      "description": "Wire-mesh security front with an issue service window.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        1,
+        3
+      ],
+      "order": 133
+    },
+    "stores-bin-rack.png": {
+      "id": "doodad.stores-bin-rack",
+      "name": "Small-bin rack",
+      "description": "Dense small-parts bin rack against a bulkhead.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "order": 134
+    },
+    "armoury-issue-counter.png": {
+      "id": "doodad.armoury-issue-counter",
+      "name": "Issue counter",
+      "description": "Secure weapons-issue desk with a pass-through slot.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "order": 140
+    },
+    "armoury-rifle-rack.png": {
+      "id": "doodad.armoury-rifle-rack",
+      "name": "Rifle rack",
+      "description": "Long arms racked side by side against a backing panel.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preferredWallSide": "N",
+      "order": 141
+    },
+    "armoury-ready-locker.png": {
+      "id": "doodad.armoury-ready-locker",
+      "name": "Ready-use lockers",
+      "description": "A bank of three secured ready-use weapon lockers.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preferredWallSide": "W",
+      "order": 142
+    },
+    "armoury-ammo-locker.png": {
+      "id": "doodad.armoury-ammo-locker",
+      "name": "Ammunition cage",
+      "description": "Mesh-fronted cage of stacked ammunition crates.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preferredWallSide": "E",
+      "order": 143
+    },
+    "armoury-cleaning-bench.png": {
+      "id": "doodad.armoury-cleaning-bench",
+      "name": "Cleaning bench",
+      "description": "Bench with a weapon in its cradle, parts tray and rod.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "order": 144
+    },
+    "medical-ward-bed-head-n.png": {
+      "id": "doodad.medical-ward-bed-head-n",
+      "name": "Ward bed, head north",
+      "description": "Sick-bay bed with rails and a chart clip, head to the north.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preferredWallSide": "N",
+      "order": 120
+    },
+    "medical-ward-bed-head-s.png": {
+      "id": "doodad.medical-ward-bed-head-s",
+      "name": "Ward bed, head south",
+      "description": "Sick-bay bed with rails and a chart clip, head to the south.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preferredWallSide": "S",
+      "order": 121
+    },
+    "medical-ward-bed-head-e.png": {
+      "id": "doodad.medical-ward-bed-head-e",
+      "name": "Ward bed, head east",
+      "description": "Sick-bay bed with rails and a chart clip, head to the east.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preferredWallSide": "E",
+      "order": 122
+    },
+    "medical-ward-bed-head-w.png": {
+      "id": "doodad.medical-ward-bed-head-w",
+      "name": "Ward bed, head west",
+      "description": "Sick-bay bed with rails and a chart clip, head to the west.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preferredWallSide": "W",
+      "order": 123
+    },
+    "medical-monitor-stack.png": {
+      "id": "doodad.medical-monitor-stack",
+      "name": "Patient monitor",
+      "description": "Vitals monitor on its stand at the head of a bed.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "order": 124
+    },
+    "medical-treatment-table.png": {
+      "id": "doodad.medical-treatment-table",
+      "name": "Treatment table",
+      "description": "Narrow procedure table with a hinged head and an instrument tray.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "order": 125
+    },
+    "medical-supply-trolley.png": {
+      "id": "doodad.medical-supply-trolley",
+      "name": "Supply trolley",
+      "description": "Wheeled cart of dressings, dishes and vials.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "order": 126
+    },
+    "medical-drug-locker.png": {
+      "id": "doodad.medical-drug-locker",
+      "name": "Drug locker bank",
+      "description": "Secured dispensary lockers against the bulkhead.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "order": 127
+    },
+    "medical-scrub-sink.png": {
+      "id": "doodad.medical-scrub-sink",
+      "name": "Scrub sink",
+      "description": "Deep clinical sink with an elbow tap.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "order": 128
+    },
+    "medical-privacy-screen.png": {
+      "id": "doodad.medical-privacy-screen",
+      "name": "Privacy screen",
+      "description": "Folding screen drawn round a bed or a table.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "order": 129
     }
   }
 }

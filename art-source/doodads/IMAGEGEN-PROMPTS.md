@@ -239,3 +239,43 @@ Per-master primary requests and material details:
   planter usable as low cover; dark soil, dense hardy shrubs, chipped
   weathered-gray concrete, muted green foliage, leaves contained inside the
   transparent padding.
+
+## Shipboard washroom additions
+
+The heads were furnished with a single crate standing in for the whole
+compartment; `WashroomFitting` ranks real basins against one bulkhead and real
+stalls against the other, which needed multi-cell plumbing art the doodad
+registry did not have. Generated with the built-in image tool in
+`stylized-concept` mode, transparent background.
+
+Shared rendering contract, matching the gritty blue-gray and olive military
+set already in the atlas:
+
+```text
+Asset type: a single top-down tactical-game doodad sprite for a game tile
+atlas.
+Scene/backdrop: genuinely transparent background with clean alpha.
+Style/medium: pixelated-realistic strict top-down game sprite, crisp clustered
+pixels, restrained detail that survives reduction to small size, matching a
+gritty blue-gray and olive sci-fi military/naval tileset.
+Composition: orthographic 90-degree top-down, centered, generous even padding,
+full object visible, long axis horizontal.
+Lighting: subtle overhead upper-left object-local highlights only.
+Constraints: exactly one isolated multi-cell fixture; no floor, base tile,
+cast shadow, people, readable text, logo, watermark, scenery, or magenta; no
+isometric or perspective view.
+```
+
+Per-asset primary requests:
+
+- `ship-washbasin-run.png`: three identical steel basins mounted side by side
+  in a single continuous wall-mounted counter unit; gunmetal/steel basins with
+  small chrome taps, a shallow counter lip, drain circles visible in each
+  basin; long axis horizontal, proportioned roughly 3 wide by 1 deep — a
+  shallow, wide fixture, authored `footprintCells: [3, 1]`.
+- `ship-head-stall-bank.png`: a bank of three enclosed toilet stalls in a row,
+  each a compact steel-and-composite cubicle with a visible toilet fixture and
+  thin partition walls between stalls, door gap facing outward on one long
+  side; gunmetal/steel and dull olive-gray palette; long axis horizontal,
+  proportioned roughly 3 wide by 2 deep — a squarer, deeper fixture than the
+  basin run, authored `footprintCells: [3, 2]`.
