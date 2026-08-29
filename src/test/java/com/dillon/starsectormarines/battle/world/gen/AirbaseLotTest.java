@@ -211,35 +211,48 @@ class AirbaseLotTest {
     }
 
     /**
-     * A way in on every side.
+     * Every side is either gated or built against, and at least two are gated.
      *
-     * <p>Front and back are how the base is used. The two ends are how
-     * everybody else gets past it: a lot gated on one axis only is a wall
-     * across the map for anything trying to move along the other, and the
-     * fortress ward it sits in is wider than it is deep.
+     * <p>Front and back are how the base is used; the ends are how everybody
+     * else gets past it, so a lot gated on one axis only is a wall across the
+     * map for anything moving along the other. But a gate has to open onto
+     * something. On a compact lot the shed's back sits against the perimeter,
+     * and a gap cut there is a doorway into masonry: it reads from outside as a
+     * way in and is not one. A side closed by a building is closed honestly.
+     *
+     * <p>Two gates rather than four, then, because two is what makes the lot a
+     * through-route rather than a cul-de-sac, and four is only available when
+     * nothing is built against the fence.
      */
     @ParameterizedTest
     @MethodSource("shapes")
-    void thereIsAGateOnEverySide(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+    void everySideIsGatedOrBuiltAgainst(AirbaseLot.Size size, AirbaseLot.Facing facing) {
         Lot lot = author(size, facing);
-        assertTrue(openOnSide(lot, lot.left(), lot.bottom(), lot.left(), lot.top()),
-                size + " " + facing + ": no way through the west side");
-        assertTrue(openOnSide(lot, lot.right(), lot.bottom(), lot.right(), lot.top()),
-                size + " " + facing + ": no way through the east side");
-        assertTrue(openOnSide(lot, lot.left(), lot.bottom(), lot.right(), lot.bottom()),
-                size + " " + facing + ": no way through the south side");
-        assertTrue(openOnSide(lot, lot.left(), lot.top(), lot.right(), lot.top()),
-                size + " " + facing + ": no way through the north side");
-    }
-
-    /** Whether any cell along this edge run can be walked through. */
-    private static boolean openOnSide(Lot lot, int x0, int y0, int x1, int y1) {
-        for (int x = x0; x <= x1; x++) {
-            for (int y = y0; y <= y1; y++) {
-                if (lot.grid().isWalkable(x, y)) return true;
+        int gated = 0;
+        for (int side = 0; side < 4; side++) {
+            boolean open = false;
+            boolean builtAgainst = false;
+            for (int x = lot.left(); x <= lot.right(); x++) {
+                for (int y = lot.bottom(); y <= lot.top(); y++) {
+                    boolean onSide = switch (side) {
+                        case 0 -> x == lot.left();
+                        case 1 -> x == lot.right();
+                        case 2 -> y == lot.bottom();
+                        default -> y == lot.top();
+                    };
+                    if (!onSide) continue;
+                    if (lot.grid().isWalkable(x, y)) open = true;
+                    int inX = x == lot.left() ? x + 1 : x == lot.right() ? x - 1 : x;
+                    int inY = y == lot.bottom() ? y + 1 : y == lot.top() ? y - 1 : y;
+                    if (lot.topology().isWall(inX, inY)) builtAgainst = true;
+                }
             }
+            assertTrue(open || builtAgainst, size + " " + facing + ": side " + side
+                    + " is fenced shut with open ground behind it and no gate");
+            if (open) gated++;
         }
-        return false;
+        assertTrue(gated >= 2, size + " " + facing + ": only " + gated
+                + " side(s) let anyone in, which makes the lot a cul-de-sac");
     }
 
     /**
