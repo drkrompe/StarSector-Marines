@@ -572,6 +572,48 @@ public final class TilesetOperations {
     }
 
     /**
+     * Move one piece's cut, leaving everything else about it alone.
+     *
+     * <p>The slicer finds pieces by keying on alpha and the grid cutter divides
+     * a plate by a stated pitch, and both are right most of the time and wrong
+     * for a particular piece: a prop whose shadow was keyed away with it, a cell
+     * whose seam sits a pixel off the line through the others. Re-slicing or
+     * re-fitting to fix one of those moves every other piece too, which is a
+     * poor trade for a two-pixel correction.
+     *
+     * <p>So this changes exactly one rectangle. The piece keeps its id, its
+     * footprint, its block membership and its annotation, because none of those
+     * are being questioned — only where on the plate the picture is.
+     *
+     * @return the piece as it was, so a caller can say what it changed
+     * @throws IOException if the rectangle would leave the sheet or be empty
+     */
+    public static SheetSlicer.Piece setCut(List<TilesetExport.Entry> entries, String entryId,
+                                           int x, int y, int width, int height,
+                                           int sheetWidth, int sheetHeight) throws IOException {
+        TilesetExport.Entry entry = null;
+        for (TilesetExport.Entry candidate : entries) {
+            if (candidate.id.equals(entryId)) {
+                entry = candidate;
+                break;
+            }
+        }
+        if (entry == null) {
+            throw new IOException("no piece '" + entryId + "' on this sheet");
+        }
+        if (width < 1 || height < 1) {
+            throw new IOException("a cut of " + width + "x" + height + " has no picture in it");
+        }
+        if (x < 0 || y < 0 || x + width > sheetWidth || y + height > sheetHeight) {
+            throw new IOException("a cut at " + x + "," + y + " of " + width + "x" + height
+                    + " runs off a " + sheetWidth + "x" + sheetHeight + " sheet");
+        }
+        SheetSlicer.Piece was = entry.piece;
+        entry.piece = new SheetSlicer.Piece(x, y, width, height);
+        return was;
+    }
+
+    /**
      * Dissolve a block, handing its cells back as doodads.
      *
      * <p>A released member keeps its id, footprint and annotation: it was always
