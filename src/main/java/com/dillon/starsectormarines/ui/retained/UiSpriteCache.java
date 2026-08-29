@@ -39,10 +39,21 @@ public final class UiSpriteCache implements UiImageResolver {
         try {
             Global.getSettings().loadTexture(path);
             SpriteAPI sprite = Global.getSettings().getSprite(path);
-            if (sprite == null) return null;
+            // Said once, because the outcome is cached. A caller that draws
+            // nothing and says nothing is the failure mode this whole class
+            // exists downstream of: a hull backdrop that simply did not appear.
+            if (sprite == null) {
+                Global.getLogger(UiSpriteCache.class)
+                        .warn("Retained UI image not found: " + path);
+                return null;
+            }
             float width = sprite.getWidth();
             float height = sprite.getHeight();
-            if (!(width > 0f) || !(height > 0f)) return null;
+            if (!(width > 0f) || !(height > 0f)) {
+                Global.getLogger(UiSpriteCache.class)
+                        .warn("Retained UI image has no extent: " + path);
+                return null;
+            }
             return new UiImage(sprite, width, height);
         } catch (Exception failure) {
             Global.getLogger(UiSpriteCache.class)
