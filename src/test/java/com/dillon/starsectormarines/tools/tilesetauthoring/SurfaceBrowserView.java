@@ -3,64 +3,78 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * The other way into the workspace: pick what is needed, not which file to open.
+ * The two screens of the purpose-first walkthrough: what is needed, and what
+ * the project has for it.
  *
- * <p>The sheet library beside this one answers "which art do I have"; this
- * answers "what can be a wall". They are the same workspace reached from
- * opposite ends, which is why they sit as two tabs over one editor rather than
- * as two pages — picking a wall here and picking its sheet there both end with
- * that sheet open and its pieces selected.
+ * <p>Kept in one class because they are one selection. Choosing a surface on
+ * the first screen is what the second screen is a list of, and splitting them
+ * into two components would mean wiring that selection between them for no gain.
  *
- * <p>Choosing a surface lists every block that could fill it, marked with the
- * one the mapping uses and with whether its slicing can be edited. Opening a
- * candidate is the handoff: the sheet it was cut from opens and its slots come
- * up selected, so the pieces behind the wall are the ones already picked out.
+ * <p>Both are pictures rather than lists of ids. {@code urban.wall} and
+ * {@code road.embankment} are both walls and are nothing alike — masonry and a
+ * sandbag embankment — and only looking at them says which is which. Both are
+ * alphabetical, because these are lists a name is looked up in.
  */
-public final class SurfaceBrowserView extends JPanel {
+public final class SurfaceBrowserView {
+
+    /** Edge of a tile's thumbnail, in pixels. */
+    private static final int THUMB = 100;
+    /** A grid tile: the picture, and two lines of caption under it. */
+    private static final Dimension TILE = new Dimension(THUMB + 24, THUMB + 34);
+    /** How large one deck cell is drawn in the big preview. */
+    private static final int ROOM_CELL = 56;
 
     private final DefaultListModel<SurfaceCatalog.Purpose> purposeModel = new DefaultListModel<>();
     private final JList<SurfaceCatalog.Purpose> purposes = new JList<>(purposeModel);
     private final DefaultListModel<SurfaceCatalog.Candidate> candidateModel =
             new DefaultListModel<>();
     private final JList<SurfaceCatalog.Candidate> candidates = new JList<>(candidateModel);
-    private final JLabel advice = new JLabel(" ");
-    private final JButton open = new JButton("Open its sheet");
-    private final JPanel foot;
+    private final JLabel roomPreview = new JLabel("", SwingConstants.CENTER);
+    private final JLabel provenance = new JLabel(" ");
+    private final BlockPreview previews;
+
+    private final JPanel purposeScreen = new JPanel(new BorderLayout(0, 4));
+    private final JPanel setScreen = new JPanel(new BorderLayout(8, 4));
+    private final JPanel setActions = new JPanel();
 
     /**
-     * @param onOpen given the candidate to open — the page answers by loading its
-     *               document and selecting the pieces its slots were cut from
+     * @param previews where the pictures come from
+     * @param onOpen   given a candidate to open in the sheet editor
      */
-    public SurfaceBrowserView(Consumer<SurfaceCatalog.Candidate> onOpen) {
-        super(new BorderLayout(0, 4));
+    public SurfaceBrowserView(BlockPreview previews, Consumer<SurfaceCatalog.Candidate> onOpen) {
+        this.previews = previews;
 
         purposes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         purposes.setCellRenderer(new PurposeCell());
+        grid(purposes);
         purposes.addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) showCandidates();
         });
 
         candidates.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         candidates.setCellRenderer(new CandidateCell());
+        grid(candidates);
         candidates.addListSelectionListener(event -> {
-            if (!event.getValueIsAdjusting()) updateOpenAction();
+            if (!event.getValueIsAdjusting()) showPickedCandidate();
         });
         candidates.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent event) {
@@ -70,48 +84,61 @@ public final class SurfaceBrowserView extends JPanel {
             }
         });
 
-        open.setEnabled(false);
-        open.addActionListener(event -> {
-            if (canOpen()) onOpen.accept(candidates.getSelectedValue());
-        });
-
         JScrollPane purposeScroll = new JScrollPane(purposes);
-        purposeScroll.setBorder(BorderFactory.createTitledBorder("What is needed"));
-        purposeScroll.setPreferredSize(new Dimension(260, 240));
+        purposeScroll.getVerticalScrollBar().setUnitIncrement(24);
+        purposeScreen.add(purposeScroll, BorderLayout.CENTER);
 
         JScrollPane candidateScroll = new JScrollPane(candidates);
-        candidateScroll.setBorder(BorderFactory.createTitledBorder("What could fill it"));
-        candidateScroll.setPreferredSize(new Dimension(260, 200));
+        candidateScroll.getVerticalScrollBar().setUnitIncrement(24);
+        candidateScroll.setPreferredSize(new Dimension(3 * TILE.width + 30, 320));
 
-        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-                purposeScroll, candidateScroll);
-        split.setResizeWeight(0.55);
+        roomPreview.setBorder(BorderFactory.createTitledBorder(
+                "Drawn as a room — every cell of a 3×3 has a different mask"));
+        roomPreview.setPreferredSize(new Dimension(320, 260));
+        provenance.setFont(provenance.getFont().deriveFont(Font.PLAIN, 11f));
+        provenance.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
 
-        advice.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
-        advice.setFont(advice.getFont().deriveFont(Font.PLAIN, 11f));
+        JPanel right = new JPanel(new BorderLayout(0, 4));
+        right.add(roomPreview, BorderLayout.CENTER);
+        right.add(provenance, BorderLayout.SOUTH);
 
-        JPanel foot = new JPanel(new BorderLayout(0, 2));
-        foot.add(advice, BorderLayout.NORTH);
-        foot.add(open, BorderLayout.SOUTH);
-
-        this.foot = foot;
-        add(split, BorderLayout.CENTER);
-        add(foot, BorderLayout.SOUTH);
+        setScreen.add(candidateScroll, BorderLayout.WEST);
+        setScreen.add(right, BorderLayout.CENTER);
+        setScreen.add(setActions, BorderLayout.SOUTH);
     }
 
     /**
-     * Drop this panel's own advice line and Open button.
+     * Lay a list out as a wrapping grid of tiles rather than a column of rows.
      *
-     * <p>Inside a walkthrough the screen already has a footer saying what is
-     * still needed and a button that leaves the step. Two of each, one greyed
-     * out for a reason printed twice, reads as a bug rather than as guidance.
+     * <p>These are pictures being compared. A column gives each one a whole line
+     * of the window and shows six of nineteen; a grid shows all of them at once,
+     * which is what makes it a choice rather than a scroll.
      */
-    public void hideOwnActions() {
-        remove(foot);
-        revalidate();
+    private static void grid(JList<?> list) {
+        list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+        list.setVisibleRowCount(0);
+        list.setFixedCellWidth(TILE.width);
+        list.setFixedCellHeight(TILE.height);
     }
 
-    /** Replace the listing, keeping the operator on the surface they were looking at. */
+    /** Screen one: every surface the generator can ask for. */
+    public JPanel purposeScreen() {
+        return purposeScreen;
+    }
+
+    /** Screen two: what the project has for the chosen surface. */
+    public JPanel setScreen() {
+        return setScreen;
+    }
+
+    /** Put the actions that manage the set along the bottom of screen two. */
+    public void setSetActions(List<JButton> buttons) {
+        setActions.removeAll();
+        for (JButton button : buttons) setActions.add(button);
+        setActions.revalidate();
+    }
+
+    /** Replace the listing, keeping the operator on the surface they were on. */
     public void setPurposes(List<SurfaceCatalog.Purpose> scanned) {
         SurfaceCatalog.Purpose keep = purposes.getSelectedValue();
         purposeModel.clear();
@@ -124,10 +151,7 @@ public final class SurfaceBrowserView extends JPanel {
         showCandidates();
     }
 
-    /**
-     * Show one surface by name, as if it had been clicked. Returns whether it
-     * was there to show.
-     */
+    /** Show one surface by name, as if it had been clicked. */
     public boolean select(String surfaceName) {
         for (int index = 0; index < purposeModel.size(); index++) {
             if (purposeModel.get(index).name().equalsIgnoreCase(surfaceName)) {
@@ -140,34 +164,48 @@ public final class SurfaceBrowserView extends JPanel {
         return false;
     }
 
-    /** The candidate currently picked, or null. */
+    public SurfaceCatalog.Purpose selectedPurpose() {
+        return purposes.getSelectedValue();
+    }
+
     public SurfaceCatalog.Candidate selectedCandidate() {
         return candidates.getSelectedValue();
     }
 
-    /** How many blocks the picked surface is offering. */
     public int shownCandidateCount() {
         return candidateModel.size();
     }
 
     /**
-     * List what could fill the chosen surface and pick the first one.
+     * List what could fill the chosen surface, and start on the one being drawn.
      *
-     * <p>Candidates sort in-use first, so the default pick is the art actually
-     * being drawn — which is what someone asking "what is the wall" wants to
-     * look at. Leaving nothing picked would leave the one action on this panel
-     * greyed out until a second click that has only one sensible target.
+     * <p>The list is alphabetical, so the one in use is not first. It is still
+     * what somebody asking "what is the wall" came to look at, so it is what
+     * comes up selected.
      */
     private void showCandidates() {
         candidateModel.clear();
         SurfaceCatalog.Purpose purpose = purposes.getSelectedValue();
+        int inUse = -1;
         if (purpose != null) {
             for (SurfaceCatalog.Candidate candidate : purpose.candidates()) {
+                if (candidate.inUse()) inUse = candidateModel.size();
                 candidateModel.addElement(candidate);
             }
         }
-        if (!candidateModel.isEmpty()) candidates.setSelectedIndex(0);
-        updateOpenAction();
+        if (!candidateModel.isEmpty()) {
+            candidates.setSelectedIndex(Math.max(0, inUse));
+            candidates.ensureIndexIsVisible(Math.max(0, inUse));
+        }
+        showPickedCandidate();
+    }
+
+    private void showPickedCandidate() {
+        SurfaceCatalog.Candidate picked = candidates.getSelectedValue();
+        BufferedImage room = picked == null ? null : previews.room(picked.block(), ROOM_CELL);
+        roomPreview.setIcon(room == null ? null : new ImageIcon(room));
+        roomPreview.setText(room == null ? "no picture for this block" : "");
+        provenance.setText(picked == null ? " " : provenanceOf(picked));
     }
 
     private boolean canOpen() {
@@ -175,21 +213,24 @@ public final class SurfaceBrowserView extends JPanel {
         return candidate != null && candidate.isEditable();
     }
 
-    private void updateOpenAction() {
-        open.setEnabled(canOpen());
-        advice.setText(adviceFor(purposes.getSelectedValue(), candidates.getSelectedValue()));
+    /** Where a candidate came from, and whether its slicing can still be changed. */
+    static String provenanceOf(SurfaceCatalog.Candidate candidate) {
+        if (candidate == null) return " ";
+        String where = candidate.isEditable()
+                ? "cut from " + candidate.sheetName() + ", " + candidate.slots().size() + " slots"
+                : "on " + candidate.sheetName() + ", which has no authoring document — it can be "
+                        + "used but not re-cut";
+        return candidate.blockId() + " · " + candidate.shape() + " · " + where;
     }
 
     /**
-     * What to do next, in the operator's terms. A dead "Open" button with no
-     * reason beside it reads as a broken tool rather than as art with no
-     * authoring document behind it.
+     * What to do next, in the operator's terms. A dead button with no reason
+     * beside it reads as a broken tool rather than as art with no document
+     * behind it.
      */
     static String adviceFor(SurfaceCatalog.Purpose purpose, SurfaceCatalog.Candidate candidate) {
         if (purpose == null) return "Pick what you need.";
-        if (purpose.isUnmapped()) {
-            return purpose.name() + " has nothing mapped to it.";
-        }
+        if (purpose.isUnmapped()) return purpose.name() + " has nothing mapped to it.";
         if (candidate == null) {
             if (purpose.candidates().isEmpty()) {
                 return purpose.name() + " is filled by a sliced tile, not a block.";
@@ -204,36 +245,46 @@ public final class SurfaceBrowserView extends JPanel {
                 + " slots selected.";
     }
 
-    /** The needs, with what fills each one, so the list is readable without opening anything. */
-    private static final class PurposeCell extends DefaultListCellRenderer {
+    /** A surface, with a picture of whatever is drawn for it today. */
+    private final class PurposeCell extends DefaultListCellRenderer {
         @Override
         public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                       boolean selected, boolean focused) {
             super.getListCellRendererComponent(list, value, index, selected, focused);
             SurfaceCatalog.Purpose purpose = (SurfaceCatalog.Purpose) value;
-            String filled = purpose.isUnmapped() ? "nothing mapped" : purpose.mappedId();
-            setText("<html><b>" + purpose.name() + "</b> &nbsp;<font size=-2>"
-                    + purpose.vocabulary() + "</font><br><font size=-2>" + filled
-                    + "</font></html>");
+            SurfaceCatalog.Candidate live = purpose.inUse();
+            tile(this, live == null ? null : previews.patch(live.block(), THUMB),
+                    purpose.name(),
+                    purpose.isUnmapped() ? "nothing mapped" : purpose.mappedId());
             return this;
         }
     }
 
-    /** The candidates, each saying where it came from and whether it is live. */
-    private static final class CandidateCell extends DefaultListCellRenderer {
+    /** A block that could fill the chosen surface, with a picture of it. */
+    private final class CandidateCell extends DefaultListCellRenderer {
         @Override
         public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                       boolean selected, boolean focused) {
             super.getListCellRendererComponent(list, value, index, selected, focused);
             SurfaceCatalog.Candidate candidate = (SurfaceCatalog.Candidate) value;
-            String provenance = candidate.isEditable()
-                    ? candidate.sheetName() + ", " + candidate.slots().size() + " slots"
-                    : candidate.sheetName() + ", shipped only";
-            setText("<html>" + (candidate.inUse() ? "<b>" : "") + candidate.blockId()
-                    + (candidate.inUse() ? "</b> &nbsp;<font size=-2>in use</font>" : "")
-                    + "<br><font size=-2>" + provenance + "</font></html>");
+            tile(this, previews.patch(candidate.block(), THUMB),
+                    candidate.blockId(),
+                    candidate.inUse() ? "in use" : candidate.sheetName());
             return this;
         }
     }
 
+    /** One tile of the grid: the picture above, two short lines under it. */
+    private static void tile(DefaultListCellRenderer cell, BufferedImage picture,
+                             String name, String under) {
+        cell.setIcon(picture == null ? null : new ImageIcon(picture));
+        cell.setHorizontalAlignment(SwingConstants.CENTER);
+        cell.setHorizontalTextPosition(SwingConstants.CENTER);
+        cell.setVerticalTextPosition(SwingConstants.BOTTOM);
+        cell.setIconTextGap(4);
+        cell.setBorder(BorderFactory.createEmptyBorder(6, 4, 6, 4));
+        // Centred, and small enough that a long id still fits the tile it names.
+        cell.setText("<html><center><b>" + name + "</b><br><font size=-2>" + under
+                + "</font></center></html>");
+    }
 }
