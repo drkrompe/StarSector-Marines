@@ -501,7 +501,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 // deathSink takes the dying id straight into the id-native
                 // deathsThisFrame list (read post-advance by the death-voice
                 // consumers via identity()/world() by-id — IDENTITY survives release).
-                id -> deathsThisFrame.add(id), deathDispatcher, rng);
+                id -> deathsThisFrame.add(id), deathDispatcher, () -> simTickIndex, rng);
         this.vehicleDamageResolver = new VehicleDamageResolver(rosterService);
         this.damageService = new DamageService(
                 (target, attacker, damage, penetration, moraleImpact) -> {

@@ -184,6 +184,28 @@ public final class CombatService {
         return stored * (float) Math.pow(0.5, elapsedSeconds / INCOMING_PRESSURE_HALF_LIFE_SECONDS);
     }
 
+    /**
+     * Records that a hit landed on {@code id} at {@code simTick}. Unlike
+     * {@link #recordIncomingFire}, this is damage that actually arrived and
+     * carries no requirement that the target could see where it came from.
+     */
+    public void recordDamageTaken(long id, int simTick) {
+        if (!has(id)) return;
+        entityWorld.setInt(id, components.COMBAT,
+                BattleComponents.COMBAT_LAST_DAMAGED_TICK, simTick + 1);
+    }
+
+    /**
+     * Ticks since a hit last landed on {@code id}, or {@link Integer#MAX_VALUE}
+     * if none ever has.
+     */
+    public int ticksSinceDamaged(long id, int simTick) {
+        if (!has(id)) return Integer.MAX_VALUE;
+        int stored = entityWorld.getInt(id, components.COMBAT,
+                BattleComponents.COMBAT_LAST_DAMAGED_TICK);
+        return stored == 0 ? Integer.MAX_VALUE : simTick - (stored - 1);
+    }
+
     /** Cell x the most recent incoming round came from. Meaningless at zero pressure. */
     public int incomingFromX(long id) {
         return has(id) ? entityWorld.getInt(id, components.COMBAT,

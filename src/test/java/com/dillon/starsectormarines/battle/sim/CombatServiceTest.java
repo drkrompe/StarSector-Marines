@@ -194,4 +194,56 @@ public class CombatServiceTest {
         assertEquals(21, combat.incomingFromX(id));
         assertEquals(7, combat.incomingFromY(id));
     }
+
+    /**
+     * Never having been hit is distinguishable from having been hit on tick
+     * zero. The column starts at zero for every fresh combatant, so the stamp is
+     * stored plus one — get that wrong and every marine spawns believing it was
+     * just shot.
+     */
+    @Test
+    public void neverHavingBeenHitIsNotTheSameAsHitOnTickZero() {
+        UnitRosterService r = roster();
+        CombatService combat = r.combat();
+        long never = r.spawn(unit("never"));
+        long hit = r.spawn(unit("hit"));
+        assertEquals(Integer.MAX_VALUE, combat.ticksSinceDamaged(never, 0));
+        combat.recordDamageTaken(hit, 0);
+        assertEquals(0, combat.ticksSinceDamaged(hit, 0));
+    }
+
+    @Test
+    public void damageRecencyCountsFromTheLastHit() {
+        UnitRosterService r = roster();
+        CombatService combat = r.combat();
+        long id = r.spawn(unit("u"));
+        combat.recordDamageTaken(id, 100);
+        assertEquals(20, combat.ticksSinceDamaged(id, 120));
+        combat.recordDamageTaken(id, 118);
+        assertEquals(2, combat.ticksSinceDamaged(id, 120),
+                "a later hit resets the clock");
+    }
+
+    /**
+     * Damage taken and incoming pressure are different facts and must not be
+     * derived from one another: a round that misses is fire you are under but
+     * did not hurt you, and a round from something you cannot see hurt you
+     * without ever being fire you could see coming.
+     */
+    @Test
+    public void damageAndIncomingPressureAreIndependent() {
+        UnitRosterService r = roster();
+        CombatService combat = r.combat();
+        long id = r.spawn(unit("u"));
+
+        combat.recordIncomingFire(id, 3, 3, 0);
+        assertTrue(combat.incomingPressure(id, 0) > 0f);
+        assertEquals(Integer.MAX_VALUE, combat.ticksSinceDamaged(id, 0),
+                "a near miss is not a hit");
+
+        long other = r.spawn(unit("v"));
+        combat.recordDamageTaken(other, 0);
+        assertEquals(0f, combat.incomingPressure(other, 0), 1e-4f,
+                "a hit from something unseen is not fire you could see coming");
+    }
 }
