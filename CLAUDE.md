@@ -345,7 +345,7 @@ The discovered suite ids and default output directories are:
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
 | `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |
-| `ui` | Retained Marine Ops screens at authored viewport sizes | `build/snapshots/ui/` |
+| `ui` | Marine Ops screens at authored viewport sizes, including the scale-invariant battle task-force plate | `build/snapshots/ui/` |
 | `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
 | `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving | `build/snapshots/point-defence/` |
 | `deployable-cover` | Animated controlled comparison of a placed revetment: the same fire into a covered lane, an open lane, and a screened post shot from the flank | `build/snapshots/deployable-cover/` |
