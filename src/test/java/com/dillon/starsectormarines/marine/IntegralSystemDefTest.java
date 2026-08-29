@@ -193,7 +193,7 @@ class IntegralSystemDefTest {
                 .put("id", "armor.plain")
                 .put("catalog", new JSONObject()
                         .put("displayName", "Plain suit")
-                        .put("unitClass", "LINE")
+                        .put("role", "line")
                         .put("description", "Nothing but numbers.")
                         .put("tier", 3)
                         .put("iconPath", "graphics/ui/armory/armor-tier-3-combat.png"))

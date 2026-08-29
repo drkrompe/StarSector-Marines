@@ -104,15 +104,28 @@ says "predictive threat displays" and "a difficult firing solution," which a
 self-selecting missile lock is a truer reading of than a dodge would be — the
 Specter already owns that half of "predictive."
 
-One more is a candidate, gated on simulation work this doc doesn't own:
+Both are candidates, gated on simulation work this doc doesn't own:
 
 | Pattern | Tradition | Candidate capability | Needs from the simulation |
 | --- | --- | --- | --- |
 | `armor.line` or `armor.furnace-line` | Hegemony or Sindrian Diktat | **Brace** — a line suit planting as a firing platform: markedly steadier, and committed to standing there. | A stance with a real movement cost; accuracy as a timed effect. `firing-platform-integral-systems.md` picks whichever of the two the stance actually suits. |
+| A SUPPORT pattern, tradition unpicked | — | **Field aid** — the squad medic: a marine who can put somebody back on their feet rather than watching them bleed out where they fell. | Casualties that are recoverable rather than only dead, and a wounded state with a clock on it. Nothing in the durability model expresses that today. |
 
 Holding ground moved to the line role once the assault heavies took breaching,
 and the split is better for it: **assault crosses, line holds.** That reads from
 the role name alone, which the earlier allocation did not.
+
+The medic is the same reasoning applied to the role `role-and-access.md` adds.
+A support suit is what the squad carries things for, and keeping people alive is
+the least replaceable of those things — but it is the one candidate here that
+needs a new *simulation* concept rather than a new number, because a marine
+today is alive or dead with nothing in between for a medic to act on. Recorded
+so the role has a destination, not because it is next.
+
+Note also what the SUPPORT role fixes retroactively: the Aegis's pod is
+described above as "a deliberate choice among three plausible homes" that landed
+on a line suit. It landed there because there was no support role to land in.
+There is now, and the Aegis is its first member.
 
 Everything else in the catalog carries nothing, on purpose. The Church's
 Palatine, the League's Bastion, the pirate Reaver, and every tier-I and

@@ -1,10 +1,12 @@
 # Role and access
 
 Status: ACTIVE — direction for how equipment is organised and how a squad is
-put together. Nothing here is implemented; the catalog is currently organised
-the way this doc argues against.
+put together. The role vocabulary is closed and the catalog's shape is under
+test; the matrix it describes is not yet filled.
 
 Written: 2026-08-29
+Updated: 2026-08-29 — role became closed validated data (`ArmorRole`) and
+`ArmorCatalogShapeTest` now reads the whole table. SUPPORT is adopted.
 
 Read `progression-nouns.md` for the standing rules equipment must obey,
 `integral-system-slate.md` for which traditions build a suit capability and
@@ -150,16 +152,17 @@ vocabulary would already retire them:
   rifleman is a line marine in outlaw-made armour, and the tradition already
   carries that flavour without needing a role slot.
 
-The one open question is whether a fourth role is missing. A squad plainly has a
-marine who carries the heavy or indirect weapon, and `integral-system-slate.md`
-records that the micro-missile pod's home was "a deliberate choice among three
-plausible homes" before settling on a *line* suit — which is what having nowhere
-to put it looks like. A **support** role would be the natural owner of a pod.
+A fourth is adopted: **support** — the marine carrying the heavy or indirect
+weapon, and whatever else the squad needs carried for it.
+`integral-system-slate.md` records that the micro-missile pod's home was "a
+deliberate choice among three plausible homes" before settling on a *line* suit,
+which is what having nowhere to put it looks like. The Aegis is that role's first
+member, and the pod stops being a line suit's oddity.
 
-Adding it is not free: it widens a vocabulary that story deliberately closed at
-three, and the alternative reading — that carrying the heavy weapon is a billet
-within a line squad rather than a different kind of suit — is defensible and
-costs nothing. This doc does not settle it.
+The vocabulary is therefore `ArmorRole`: UNPOWERED, RECON, LINE, ASSAULT,
+SUPPORT. It is closed and validated at parse time, which is what makes the
+catalog's shape countable at all — the free text it replaced could describe a
+price band or a manufacturer and nothing would object.
 
 ## Which cells to fill
 
@@ -168,14 +171,14 @@ an empty cell is a statement that nobody builds that thing.
 
 The gaps that matter, in order:
 
-1. **Tier-IV SCOUT and tier-IV LINE.** Without these the top of the ladder is
+1. **Tier-IV RECON and tier-IV LINE.** Without these the top of the ladder is
    assault-only and the whole problem persists. These are the cells that make
    a fully equipped squad legible as a squad.
 2. **A cheap ASSAULT pattern.** Breaching is a role, so a poor company should be
    able to field a bad breacher. Gating the role behind prestige is what makes
    it read as a reward rather than a job.
 3. **SUPPORT across the range**, if the role is adopted.
-4. **Tier-III SCOUT**, so the scout's own ladder has a middle rung rather than
+4. **Tier-III RECON**, so recon's own ladder has a middle rung rather than
    jumping II to IV.
 
 Deliberately *not* filled: a tier-I version of everything. `integral-system-slate.md`'s
@@ -210,10 +213,11 @@ rectangular.
   HARDENED — so a company currently loses its battlesuits by growing. That is a
   standalone defect and should be fixed on its own rather than folded into this
   work.
-- `unitClass` becomes a validated role rather than free display text, which is
-  what lets a doctrine name one. This is `powered-assault-armor-roles.md`'s
-  outstanding "closed armor-role vocabulary" item, and that story owns it; this
-  doc only says why it is now blocking something.
+- `unitClass` became `ArmorRole`, validated at parse time — the closed vocabulary
+  `powered-assault-armor-roles.md` had outstanding. Two of the five words it
+  replaced were retired rather than translated: SECURITY was a price band and
+  RAIDER was provenance, so their patterns are line suits that happen to be cheap
+  or pirate-made.
 - `integral-system-slate.md` gains the tier ladder for each capability it
   already lists; its role rule is unchanged.
 
@@ -228,5 +232,13 @@ only exists in the shape of the whole table. It surfaced when a player-facing
 question ("why do I never see this ability?") was chased far enough to notice
 that a fully equipped company can only buy one role.
 
-A rule about a catalog's shape needs a check that reads the whole catalog. That
-is the acceptance most worth carrying into the work below.
+A rule about a catalog's shape needs a check that reads the whole catalog.
+`ArmorCatalogShapeTest` is that check. It pins what holds today — every role has
+a pattern, every role is reachable through the player's own supply, and no
+capability is carried by two roles — and *reports* the role/tier matrix rather
+than asserting it, because the invariant this doc actually wants does not hold
+yet and a failing test is not a plan.
+
+**Turning that report into an assertion is the acceptance for filling the
+matrix.** Three roles are confined to a single tier today: recon at II, support
+at III, assault at IV.
