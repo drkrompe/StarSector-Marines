@@ -4,8 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — the airfield became a reusable airbase lot: runway, apron
-berths, worked hangars and a fence, reserved out of the ward before packing.
+Updated: 2026-08-29 — the airbase lot gained a control tower, bays inside its
+hangars, gates on every side, reserved clearance outside its fence, and markings
+laid as floor rather than as ground.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -299,6 +300,23 @@ the front of its own paving, where its mouth opened onto the far side of the
 fence and the crew had to leave the base to reach an aircraft parked in the
 middle of it. Reachability from outside the lot is asserted on both traversal
 axes, because a mirrored layout is where that hides.
+
+A lot **reserves the ground outside its own fence**, not just the ground under
+it. A fence on the boundary of its reservation is one a building can be packed
+flush against, and the way past the base is then whatever the packing happened to
+leave — including nothing. A facility that blocks travel round it has made the
+map worse in exchange for reading well. It also carries **a gate on every side**:
+front and back are how the base is used, and the two ends are how everybody else
+gets past it.
+
+**Markings are laid on a surface, not made of it.** A runway or a berth painted
+as a ground *kind* is only visible while it contrasts with the ground beside it,
+and the ground palette is not any one feature's to hold still: a re-export of the
+floor sheet turned a marked strip and the apron round it into the same colour
+without touching a line of the airbase. Paint goes on top, as floor, which is
+also how a ship's deck marks a machine bay — a striped edge round a clear middle,
+because the middle is where the thing stands and a filled rectangle would be
+drawn over by it.
 
 The lot knows nothing about where its rectangle came from, so a fortress ward, a
 city compound, or a future installation map can each reserve one and hand it

@@ -39,13 +39,44 @@ public final class AirbaseLot {
     /** Cells front to back, fence to fence. */
     public static final int DEPTH = 24;
 
-    /** Ground the lot needs, for a host sizing an envelope that has to contain one. */
+    /**
+     * Cells of clear ground kept outside the fence, all the way round.
+     *
+     * <p>A fence on the boundary of its own reservation is a fence somebody can
+     * be packed flush against, and the gap between it and the next wall is then
+     * whatever the packing happened to leave — including nothing. A lot that
+     * blocks the way past it has made the map worse in exchange for reading
+     * well, so the clearance is reserved with the lot rather than hoped for.
+     */
+    public static final int CLEARANCE = 2;
+
+    /** Ground the lot and its clearance need, for a host sizing an envelope that has to contain one. */
     public static int area() {
-        return WIDTH * DEPTH;
+        return (WIDTH + CLEARANCE * 2) * (DEPTH + CLEARANCE * 2);
+    }
+
+    /** Cells across the reservation a host must set aside, clearance included. */
+    public static int reservedSpanX(TraversalAxis axis) {
+        return spanX(axis) + CLEARANCE * 2;
+    }
+
+    /** Cells down the reservation a host must set aside, clearance included. */
+    public static int reservedSpanY(TraversalAxis axis) {
+        return spanY(axis) + CLEARANCE * 2;
     }
 
     /** Rows of runway along the approach edge. Wide enough to read as a strip rather than a path. */
     private static final int RUNWAY_DEPTH = 4;
+    /**
+     * The control tower's bay at one end of the strip.
+     *
+     * <p>Beside the runway rather than behind the sheds, because what a tower
+     * is for is seeing the strip. It is the one building on the lot that faces
+     * outward, and putting it at the end of the runway is what makes the strip
+     * read as something being run rather than a painted rectangle.
+     */
+    private static final int TOWER_WIDTH = 7;
+    private static final int TOWER_DEPTH = 5;
     /** Rows between the runway and the apron, so the two read as separate surfaces. */
     private static final int RUNWAY_MARGIN = 1;
     /** A berth is five cells square, which is what {@link LandingPad} authors. */
@@ -107,6 +138,7 @@ public final class AirbaseLot {
         berths(ctx);
         hangars(ctx, rng);
         groundSupport(ctx);
+        tower(ctx);
         fence(ctx);
     }
 
@@ -130,12 +162,24 @@ public final class AirbaseLot {
      * behind it.
      */
     private void runway(GenContext ctx) {
+        TileRegistry registry = TileRegistry.installed();
         int depth = depthStart();
         for (int step = 0; step < RUNWAY_DEPTH; step++) {
-            for (int along = alongLo() + 1; along <= alongHi() - 1; along++) {
+            for (int along = alongLo() + 1 + TOWER_WIDTH; along <= alongHi() - 1; along++) {
                 int x = alongY ? along : depth + depthSign() * step;
                 int y = alongY ? depth + depthSign() * step : along;
                 ctx.topology.setGroundKind(x, y, MARKED);
+                // Edge lines, laid as floor rather than as a ground kind. A
+                // marking that is a kind of ground is only visible while it
+                // contrasts with the ground beside it, and the ground palette
+                // is not this feature's to hold still — a re-export of the
+                // floor sheet turned a marked strip and the apron round it into
+                // the same colour without touching a line of this. Paint is a
+                // thing laid on a surface; it belongs on top of one.
+                if (registry == null) continue;
+                if (step != 0 && step != RUNWAY_DEPTH - 1) continue;
+                DoodadDef line = registry.doodad(BAY_EDGE);
+                if (line != null) ctx.doodads.add(new Doodad(x, y, line));
             }
         }
     }
@@ -193,10 +237,20 @@ public final class AirbaseLot {
 
     /** Paint one berth so a stand reads as a stand from across the lot. */
     private void markBerth(GenContext ctx, int centreX, int centreY) {
+        TileRegistry registry = TileRegistry.installed();
         for (int x = centreX - PAD / 2; x <= centreX + PAD / 2; x++) {
             for (int y = centreY - PAD / 2; y <= centreY + PAD / 2; y++) {
                 if (x < left || x > right || y < bottom || y > top) continue;
                 ctx.topology.setGroundKind(x, y, MARKED);
+                // Painted edge, clear middle — the same treatment a machine bay
+                // gets, for the same reason: the middle is where the thing
+                // stands, and a filled rectangle would be drawn over by it.
+                if (registry == null) continue;
+                boolean edge = Math.abs(x - centreX) == PAD / 2
+                        || Math.abs(y - centreY) == PAD / 2;
+                if (!edge) continue;
+                DoodadDef paint = registry.doodad(BAY_EDGE);
+                if (paint != null) ctx.doodads.add(new Doodad(x, y, paint));
             }
         }
     }
@@ -258,57 +312,191 @@ public final class AirbaseLot {
                 ctx.topology.setGroundKind(x, y, APRON);
             }
         }
-        workInterior(ctx, rng, hLeft + 1, hBottom + 1, hRight - 1, hTop - 1);
+        workInterior(ctx, rng, hLeft + 1, hBottom + 1, hRight - 1, hTop - 1, frontDepth);
     }
 
     /**
-     * Dress a shed's interior as somewhere people work.
+     * Work a shed's interior around the thing it is for: a marked bay with a
+     * shuttle-sized clear middle, a station at its head, and stores behind.
      *
-     * <p>An empty shed is a box. What makes it read as a maintenance hangar is
-     * the tooling in it, and what makes that tooling worth generating is that
-     * the people who work here are units on the map: a bay with a bench and a
-     * parts stack against the wall gives them somewhere to be, and gives
-     * whoever fights through it something to fight around.
+     * <p>Scattering kit along the walls read as a shed somebody had left things
+     * in. What a maintenance hangar actually has is a <em>berth</em> — a
+     * marked-out rectangle of floor a machine stands in, framed, with the work
+     * arranged around it. That is exactly the shape a mech bay already uses on
+     * a ship's deck, so this borrows its treatment rather than inventing a
+     * second visual language for the same idea: a striped edge round a grated
+     * field, which reads as serviceable floor rather than as ground.
      *
-     * <p>The middle stays clear. A hangar's floor is where the aircraft goes,
-     * so the kit lines the walls, which is both how a real one is arranged and
-     * what keeps the shed crossable.
+     * <p>The middle stays empty on purpose and the arrangement is what makes it
+     * legible. The bay is where the aircraft goes; the station at its head is
+     * where the work on that aircraft is run from; the stores are behind the
+     * station against the back wall, out of the way of both. The flanks are
+     * left clear, which is where a technician stands — so when workers arrive
+     * they have somewhere to be that is beside the aircraft rather than on top
+     * of it.
      */
     private void workInterior(GenContext ctx, Random rng,
-                              int inLeft, int inBottom, int inRight, int inTop) {
+                              int inLeft, int inBottom, int inRight, int inTop,
+                              int frontDepth) {
         TileRegistry registry = TileRegistry.installed();
         if (registry == null) return;
+
+        // The bay: shuttle-sized, pushed to the mouth so the aircraft stands
+        // where it can roll straight out, with the head of the bay at the back.
+        boolean headAtHigh = alongY ? frontDepth < inBottom : frontDepth < inLeft;
+        int bayLeft = alongY ? inLeft + (inRight - inLeft + 1 - PAD) / 2 : inLeft;
+        int bayRight = alongY ? bayLeft + PAD - 1 : inRight;
+        int bayBottom = alongY ? inBottom : inBottom + (inTop - inBottom + 1 - PAD) / 2;
+        int bayTop = alongY ? inTop : bayBottom + PAD - 1;
+        if (alongY) {
+            if (headAtHigh) bayTop = inTop - 1; else bayBottom = inBottom + 1;
+            if (headAtHigh) bayBottom = bayTop - PAD + 1; else bayTop = bayBottom + PAD - 1;
+        } else {
+            if (headAtHigh) bayRight = inRight - 1; else bayLeft = inLeft + 1;
+            if (headAtHigh) bayLeft = bayRight - PAD + 1; else bayRight = bayLeft + PAD - 1;
+        }
+        paveBay(ctx, registry, bayLeft, bayBottom, bayRight, bayTop);
+
+        // The station at the head of the bay, against the back wall: a tool to
+        // make a part at and the terminal its condition is read off.
+        int headAlongLo = alongY ? bayLeft : bayBottom;
+        for (int i = 0; i < BAY_STATION.length; i++) {
+            int along = headAlongLo + 1 + i;
+            int across = alongY
+                    ? (headAtHigh ? inTop : inBottom)
+                    : (headAtHigh ? inRight : inLeft);
+            int x = alongY ? along : across;
+            int y = alongY ? across : along;
+            place(ctx, registry, BAY_STATION[i], x, y, inLeft, inBottom, inRight, inTop);
+        }
+
+        // Stores in the corners the bay does not reach, which is where the
+        // stock in a shed of this shape actually ends up.
         int slot = 0;
         for (int x = inLeft; x <= inRight; x++) {
             for (int y = inBottom; y <= inTop; y++) {
+                if (x >= bayLeft - 1 && x <= bayRight + 1
+                        && y >= bayBottom - 1 && y <= bayTop + 1) continue;
                 boolean againstWall = x == inLeft || x == inRight
                         || y == inBottom || y == inTop;
                 if (!againstWall) continue;
                 if (rng.nextFloat() > WORKSHOP_DENSITY) continue;
-                DoodadDef kit = registry.doodad(WORKSHOP_KIT[slot++ % WORKSHOP_KIT.length]);
-                if (kit == null) continue;
-                if (x + kit.footprintCellsX - 1 > inRight) continue;
-                if (y + kit.footprintCellsY - 1 > inTop) continue;
-                ctx.doodads.add(new Doodad(x, y, kit));
+                place(ctx, registry, WORKSHOP_KIT[slot++ % WORKSHOP_KIT.length],
+                        x, y, inLeft, inBottom, inRight, inTop);
             }
         }
     }
 
-    /** Share of wall-adjacent interior cells that carry something. Enough to read as worked, not packed. */
-    private static final float WORKSHOP_DENSITY = 0.35f;
+    /**
+     * Paint a berth: a striped edge round a grated field.
+     *
+     * <p>Floor doodads rather than a ground kind, which is how a ship's deck
+     * marks its machine bays. A hangar floor is a made surface with markings on
+     * it, and the ground palette has no word for that.
+     */
+    private void paveBay(GenContext ctx, TileRegistry registry,
+                         int bLeft, int bBottom, int bRight, int bTop) {
+        for (int x = bLeft; x <= bRight; x++) {
+            for (int y = bBottom; y <= bTop; y++) {
+                boolean edge = x == bLeft || x == bRight || y == bBottom || y == bTop;
+                String id = edge ? BAY_EDGE : BAY_FIELD[(x + y) & 1];
+                DoodadDef tile = registry.doodad(id);
+                if (tile != null) ctx.doodads.add(new Doodad(x, y, tile));
+            }
+        }
+    }
+
+    /** Place one piece if it is known and fits inside the shed. */
+    private void place(GenContext ctx, TileRegistry registry, String id,
+                       int x, int y, int inLeft, int inBottom, int inRight, int inTop) {
+        DoodadDef def = registry.doodad(id);
+        if (def == null) return;
+        if (x < inLeft || y < inBottom) return;
+        if (x + def.footprintCellsX - 1 > inRight) return;
+        if (y + def.footprintCellsY - 1 > inTop) return;
+        ctx.doodads.add(new Doodad(x, y, def));
+    }
+
+    /** Marked edge of a berth — the same striped deck a machine bay is edged with. */
+    private static final String BAY_EDGE = "doodad.fl-striped-yellow";
+    /** The berth's field, checkered so it reads as plate rather than a painted block. */
+    private static final String[] BAY_FIELD = { "doodad.fl-grate-1", "doodad.fl-grate-2" };
+
+    /** The station at the head of a bay, where the work on that aircraft is run from. */
+    private static final String[] BAY_STATION = {
+            "doodad.industrial-machine-tool",
+            "doodad.industrial-control-console",
+    };
+
+    /** Share of the corners a shed's stock fills. Enough to read as worked, not packed. */
+    private static final float WORKSHOP_DENSITY = 0.5f;
 
     /**
-     * What an aircraft shed has in it. Cycled rather than rolled so one shed
-     * never comes out as six of the same crate.
+     * What a shed keeps behind the station. Cycled rather than rolled so one
+     * hangar never comes out as six of the same crate.
      */
     private static final String[] WORKSHOP_KIT = {
             "doodad.industrial-crate-stack",
             "doodad.industrial-cable-reel",
             "doodad.industrial-pallet-stack",
             "doodad.industrial-drum-cluster",
-            "doodad.industrial-fluid-tank",
-            "doodad.industrial-generator",
     };
+
+    /**
+     * The control tower, at the end of the strip.
+     *
+     * <p>The one building on the lot that faces outward. Everything else here is
+     * arranged around an aircraft; this is arranged around the runway, which is
+     * why it sits beside the strip rather than behind the sheds, and why the
+     * runway is laid short of it rather than through it.
+     *
+     * <p>Walled like the sheds, with its door onto the apron. A tower whose only
+     * way in was from the runway would have its crew crossing the strip to get
+     * to work.
+     */
+    private void tower(GenContext ctx) {
+        TileRegistry registry = TileRegistry.installed();
+        int tAlongLo = alongLo() + 1;
+        int tAlongHi = tAlongLo + TOWER_WIDTH - 1;
+        int tFront = depthStart();
+        int tBack = tFront + depthSign() * (TOWER_DEPTH - 1);
+        int tLeft = alongY ? tAlongLo : Math.min(tFront, tBack);
+        int tRight = alongY ? tAlongHi : Math.max(tFront, tBack);
+        int tBottom = alongY ? Math.min(tFront, tBack) : tAlongLo;
+        int tTop = alongY ? Math.max(tFront, tBack) : tAlongHi;
+        int doorCentre = (tAlongLo + tAlongHi) / 2;
+
+        for (int x = tLeft; x <= tRight; x++) {
+            for (int y = tBottom; y <= tTop; y++) {
+                boolean ring = x == tLeft || x == tRight || y == tBottom || y == tTop;
+                if (!ring) continue;
+                boolean onBack = alongY ? y == tBack : x == tBack;
+                int along = alongY ? x : y;
+                if (onBack && along == doorCentre) {
+                    ctx.grid.setWalkableFloor(x, y);
+                    ctx.grid.setDoorway(x, y, true);
+                    ctx.grid.openAllEdges(x, y);
+                    ctx.topology.setGroundKind(x, y, MARKED);
+                    continue;
+                }
+                ctx.grid.setWalkable(x, y, false);
+                int mask = 0;
+                if (y + 1 > tTop) mask |= CellTopology.WALL_DIR_N;
+                if (y - 1 < tBottom) mask |= CellTopology.WALL_DIR_S;
+                if (x + 1 > tRight) mask |= CellTopology.WALL_DIR_E;
+                if (x - 1 < tLeft) mask |= CellTopology.WALL_DIR_W;
+                ctx.topology.setWall(x, y, true);
+                ctx.topology.orWallDirMask(x, y, mask);
+                ctx.topology.setGroundKind(x, y, APRON);
+            }
+        }
+        if (registry == null) return;
+        // What a tower is: somewhere to watch from and somewhere to talk from.
+        place(ctx, registry, "doodad.industrial-control-console",
+                tLeft + 1, tBottom + 1, tLeft + 1, tBottom + 1, tRight - 1, tTop - 1);
+        place(ctx, registry, "doodad.military-radar-dish",
+                tRight - 1, tTop - 1, tLeft + 1, tBottom + 1, tRight - 1, tTop - 1);
+    }
 
     /**
      * The perimeter, with a gate front and back.
@@ -320,15 +508,24 @@ public final class AirbaseLot {
     private void fence(GenContext ctx) {
         TileRegistry registry = TileRegistry.installed();
         if (registry == null) return;
-        int gateCentre = (alongLo() + alongHi()) / 2;
+        int gateAlong = (alongLo() + alongHi()) / 2;
+        int gateAcross = alongY ? (bottom + top) / 2 : (left + right) / 2;
         for (int x = left; x <= right; x++) {
             for (int y = bottom; y <= top; y++) {
                 boolean ring = x == left || x == right || y == bottom || y == top;
                 if (!ring) continue;
-                boolean gateSide = alongY ? (y == bottom || y == top)
+                // A gate on every side. Front and back are how the base is used;
+                // the two ends are how everybody else gets past it. A lot with
+                // gates on one axis only is a wall across the map for anything
+                // trying to move along the other.
+                boolean onLongSide = alongY ? (y == bottom || y == top)
                         : (x == left || x == right);
                 int along = alongY ? x : y;
-                if (gateSide && Math.abs(along - gateCentre) <= GATE_WIDTH / 2) {
+                int across = alongY ? y : x;
+                boolean gate = onLongSide
+                        ? Math.abs(along - gateAlong) <= GATE_WIDTH / 2
+                        : Math.abs(across - gateAcross) <= GATE_WIDTH / 2;
+                if (gate) {
                     ctx.grid.setWalkableFloor(x, y);
                     ctx.grid.openAllEdges(x, y);
                     ctx.topology.setGroundKind(x, y, MARKED);
