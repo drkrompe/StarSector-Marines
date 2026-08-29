@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -218,18 +219,32 @@ public final class ShuttleMeans implements ReinforcementMeans {
      * aircraft.
      *
      * <p>The squad walks in from the side's own rear edge, the same place the
-     * walk-in means brings one on, and is pointed at the airbase node so the
-     * ordinary patrol routing takes it there. Nothing here steers anybody: the
-     * craft waits, {@code AirSystem} takes aboard whoever reaches the ramp, and
-     * the sortie leaves when it is full or when there is no one else coming.
+     * walk-in means brings one on, and is sent to <em>the ramp</em> rather than
+     * to the airfield. The distinction is the whole of whether anyone boards.
+     * An apron is a wide place — three stands across some twenty-seven cells —
+     * and its tactical node anchors at the centre of it, so a crew pointed at
+     * the node arrives on the field several cells from the aircraft, outside
+     * the reach {@code AirSystem} loads from, and mills there until the sortie
+     * times out. Every sortie then left another four standing on the paving.
+     *
+     * <p>What they are given is a defend-site task on the pad cell, which is
+     * how a garrison is told to hold a place: they walk to it, stand in a
+     * fire-team footprint that fits inside the boarding reach, break off to
+     * shoot at what they can see, and turn toward gunfire they can hear. That
+     * is what a ground crew waiting on a lift should look like, and it costs
+     * no bespoke behaviour — the sortie contributes a destination and the
+     * ordinary infantry layer supplies the conduct.
+     *
+     * <p>Nothing here steers anybody: the craft waits, {@code AirSystem} takes
+     * aboard whoever reaches the ramp, and the sortie leaves when it is full or
+     * when there is no one else coming.
      *
      * @return false when there is no airbase to march to or nowhere to march
      *         from, leaving the sortie loaded as it always was
      */
     private boolean embarkOnPad(BattleControl sim, ReinforcementRequest req,
                                 ShuttleMission mission) {
-        TacticalNode field = airbaseNode(sim, req);
-        if (field == null) return false;
+        if (airbaseNode(sim, req) == null) return false;
         int[] primary = WalkInMeans.pickPrimaryCell(sim, req, axis);
         if (primary == null) return false;
         List<int[]> cells = WalkInMeans.collectAdjacentCells(sim.getGrid(),
@@ -242,6 +257,12 @@ public final class ShuttleMeans implements ReinforcementMeans {
         UnitType infantryType = effectiveRoster != null
                 ? effectiveRoster.unitType(GroundRosterProfile.ForceTier.ELITE)
                 : FactionUnitRoster.forFaction(req.side).elite();
+
+        // The ramp, not the field. This is the same point AirSystem measures
+        // its boarding reach from, so "where the crew was sent" and "where the
+        // crew is taken aboard" cannot drift apart.
+        int padX = (int) Math.floor(mission.entryX);
+        int padY = (int) Math.floor(mission.entryY);
 
         Squad squad = null;
         int marched = 0;
@@ -258,9 +279,9 @@ public final class ShuttleMeans implements ReinforcementMeans {
             unit.role(UnitRole.PATROL);
             if (squad == null) {
                 int sid = sim.mintSquad(req.side, infantryType);
-                SquadCommandClaim.reinforcement(req.reason.name()).apply(sim, sid);
+                SquadCommandClaim.reinforcement(req.reason.name()).apply(sim,
+                        ObjectiveAssignment.defendSite(sid, padX, padY));
                 squad = sim.getSquad(sid);
-                if (squad != null) squad.assignedNode = field;
             }
             if (squad != null) unit.squad(squad.id);
             sim.spawn(unit);
@@ -273,7 +294,24 @@ public final class ShuttleMeans implements ReinforcementMeans {
         mission.marinesRemaining = 0;
         mission.embarkSquadId = squad.id;
         mission.boardingPatience = BOARDING_PATIENCE;
+        // Whoever the lift does not take stops being the air arm's the moment
+        // the sortie closes, and becomes the commander's like any other squad.
+        mission.embarkHandoff = handoffClaim(req);
         return true;
+    }
+
+    /**
+     * Who inherits the boarding party when the sortie closes.
+     *
+     * <p>The delivery policy already mints exactly this claim for the squads a
+     * convoy brings in, so a crew handed back lands in the same pool by the
+     * same authority as any other delivered squad. With no policy to ask there
+     * is nobody to hand them to, and they are simply let go.
+     */
+    private SquadCommandClaim handoffClaim(ReinforcementRequest req) {
+        if (deploymentPolicy == null) return null;
+        DeliveryDeployment deployment = deploymentPolicy.deploymentFor(req);
+        return deployment == null ? null : deployment.squadClaim();
     }
 
     /** This side's airbase, which is where its aircraft are and where a crew walks to. */

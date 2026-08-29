@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -395,12 +396,24 @@ public class AirSystem {
                     mission.boardingPatience -= dt;
                     embark(mission);
                     if (readyToLift(mission)) {
+                        closeBoarding(mission);
                         beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
                         mission.state = ShuttleState.INCOMING;
                     } else if (mission.boardingPatience <= 0f) {
-                        // Nobody made it out to the pad. The sortie is off, and
-                        // the craft does not squat on the hardstand forever.
-                        mission.state = ShuttleState.GONE;
+                        // Out of time. Anyone already up the ramp flies — they
+                        // were taken off the roster to board, so scrubbing on
+                        // top of them would not cancel a delivery, it would
+                        // quietly delete the people who made it. The sortie is
+                        // only off when nobody did, and either way the craft
+                        // does not squat on the hardstand forever.
+                        boolean anybodyAboard = mission.marinesRemaining > 0;
+                        closeBoarding(mission);
+                        if (anybodyAboard) {
+                            beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
+                            mission.state = ShuttleState.INCOMING;
+                        } else {
+                            mission.state = ShuttleState.GONE;
+                        }
                     }
                     break;
 
@@ -733,6 +746,29 @@ public class AirSystem {
             roster.release(gathered[i]);
             mission.marinesRemaining++;
         }
+    }
+
+    /**
+     * End the boarding party's tour with the sortie.
+     *
+     * <p>Whoever is still on the field did not fly, and the aircraft has no
+     * further claim on them. Handing them to the mission commander puts them
+     * back in the pool it draws threat responses from; releasing them outright
+     * would only strip the label, since an unowned squad is not in that pool
+     * either. Nobody left alive means nobody to hand over.
+     */
+    private void closeBoarding(ShuttleMission mission) {
+        int squadId = mission.embarkSquadId;
+        if (squadId == Squad.NO_SQUAD) return;
+        mission.embarkSquadId = Squad.NO_SQUAD;
+        if (commandControl == null || mission.embarkHandoff == null) return;
+        if (!squadStillComing(squadId)) return;
+        commandControl.handoffSquadCommand(squadId,
+                SquadCommandClaim.REINFORCEMENT_ISSUER,
+                mission.embarkHandoff.authority(),
+                mission.embarkHandoff.issuer(),
+                /*nextAssignment*/ null,
+                "sortie closed");
     }
 
     /**
