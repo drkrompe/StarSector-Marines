@@ -113,6 +113,24 @@ public final class ConquestCommand implements ConquestFrontCommand,
     /** Keep at least one executable, actionable squad on a live front. */
     public static final int MIN_FRONT_RESERVE_SQUADS = 1;
 
+    /**
+     * How far ahead of its track's friendly lead a compound may sit and still
+     * earn a distant capture detachment. Roughly one lane bound: the front is
+     * about to arrive there, rather than being somewhere else entirely.
+     *
+     * <p>Without this bound every uncaptured compound on the map is a standing
+     * target for every squad at every pulse, because the distant fill ranks
+     * candidates by distance from the <em>squad</em> and never consults the
+     * front at all. A fourteen-compound map then offers more capture slots
+     * than the attacker has squads, and the whole force is continuously
+     * detached to walk at unscouted objectives — measured at 89% of published
+     * marine directives before this gate existed.
+     */
+    public static final int CAPTURE_FRONT_REACH_CELLS = 24;
+
+    /** {@link #friendlyLeadForward} sentinel: no living friendly holds this track. */
+    private static final int NO_FRIENDLY_LEAD = Integer.MIN_VALUE;
+
     /** Stand this many cells behind the nearest believed hostile in a track. */
     static final int TRACK_LINE_STANDOFF_CELLS = 8;
     /** A staging marker may lead the current friendly line by at most this much. */
@@ -177,6 +195,19 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private int[] zoneMarkerX;
     private int[] zoneMarkerY;
     /** Sticky squad → strip-index assignment. First observation by centroid lateral coord wins; survives squad death-and-respawn since squad ids are monotonic. Sentinel-default {@code -1} stands in for "no assignment yet." */
+    /**
+     * Capture zones whose compound the front has reached at some point.
+     *
+     * <p>The gate is latched because <b>the front reaching a place is a fact
+     * about the battle, not a reading of this pulse.</b> Computed live it
+     * flickers: the lead is the foremost living squad on the track, so the
+     * moment that squad dies the line "un-reaches" ground it had already taken
+     * and every compound behind it closes again, pulling the detachments off
+     * mid-approach. Unlatched, this gate tripled assignment churn — 68 marine
+     * retargets became 638 on one fixture — and pushed the other past its tick
+     * budget without resolving.
+     */
+    private final IntOpenHashSet frontReachedCaptureZones = new IntOpenHashSet();
     private final Int2IntOpenHashMap squadStripIdx = new Int2IntOpenHashMap();
     {
         squadStripIdx.defaultReturnValue(-1);
@@ -516,10 +547,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
      *       they do not consume the distant-detachment allowance. This is the
      *       only way a fresh assignment enters a contested compound.</li>
      *   <li><b>Uncontested distant fill.</b> Greedily assign nearest pairs up
-     *       to the ordinary per-compound quotas. While an uncommitted squad
-     *       can act on front resistance, fresh distant departures are globally
-     *       bounded so at least one executable actionable squad remains on the
-     *       front. With no actionable resistance the ordinary quotas apply.</li>
+     *       to the ordinary per-compound quotas, among compounds the front has
+     *       reached or passed ({@link #frontHasReached}). While an uncommitted
+     *       squad can act on front resistance, fresh distant departures are
+     *       globally bounded so at least one executable actionable squad
+     *       remains on the front. With no actionable resistance the ordinary
+     *       quotas apply.</li>
      * </ol>
      */
     private void assignCompoundCaptures(List<PlanningSquad> squads,
@@ -528,6 +561,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                                         Map<Integer, SquadDirective> directives,
                                         ConquestCommandFrame frame) {
         if (compoundTargets.isEmpty() || squads.isEmpty()) return;
+        latchFrontReach(frame);
 
         int n = compoundTargets.size();
         int[] slots = new int[n];        // remaining capture slots per compound
@@ -598,6 +632,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 }
                 for (int i = 0; i < n; i++) {
                     if (slots[i] <= 0 || contested[i]) continue;
+                    if (!frontHasReached(compoundTargets.get(i))) continue;
                     if (!reachableZone(squad, compoundTargets.get(i).captureZoneId,
                             frame)) continue;
                     float d = distSq(squad, compoundTargets.get(i));
@@ -633,11 +668,68 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 for (int i = 0; i < n; i++) {
                     if (slots[i] <= 0 || contested[i]) continue;
                     CompoundTarget t = compoundTargets.get(i);
+                    // Only a slot this squad could actually have filled counts
+                    // as deferred. A compound the front has not reached was
+                    // never on offer, and reporting it as withheld for front
+                    // resistance would misattribute the gate below.
+                    if (!frontHasReached(t)) continue;
                     if (squadAdjacentToCompound(squad, t, frame)) continue;
                     if (!reachableZone(squad, t.captureZoneId, frame)) continue;
                     deferredCaptures.add(squad.id);
                     break;
                 }
+            }
+        }
+    }
+
+    /**
+     * Whether the front has come far enough along the compound's own track for
+     * a distant detachment to be sending squads <em>with</em> the advance
+     * rather than past it. True once the track's friendly lead has reached
+     * within {@link #CAPTURE_FRONT_REACH_CELLS} of the capture cell, and
+     * thereafter for everything the line has left behind.
+     *
+     * <p>This gate applies only to the distant fill. A squad already holding a
+     * capture keeps it, and a squad standing at a compound commits to it,
+     * whatever the front is doing — those two are about ground already won,
+     * not about detaching somebody to walk at ground nobody has seen.
+     *
+     * <p>The lead is read from the compound's own track and its immediate
+     * neighbours, because a squad one track over at the same depth is abreast
+     * of the compound rather than somewhere else — the same neighbour-support
+     * law the track partition already runs on. Two tracks away is not: an
+     * untouched flank does not become claimable because the far side of the
+     * map advanced, which is the behaviour this gate exists to remove.
+     */
+    private boolean frontHasReached(CompoundTarget t) {
+        return frontReachedCaptureZones.contains(t.captureZoneId);
+    }
+
+    /**
+     * Latches every compound the front now reaches. Evaluated once per pulse
+     * for the whole set rather than lazily inside a candidate filter, because
+     * the front's reach is a property of the battle rather than of whichever
+     * allocation phase happened to ask. Lazy evaluation missed the case that
+     * matters most: a compound taken by a squad already standing at it commits
+     * in the adjacent phase, which never consults the gate, so the one
+     * compound the front had provably arrived at was the one it never recorded.
+     */
+    private void latchFrontReach(ConquestCommandFrame frame) {
+        for (CompoundTarget t : compoundTargets) {
+            if (frontReachedCaptureZones.contains(t.captureZoneId)) continue;
+            int track = trackLayout.trackForCell(t.captureCellX, t.captureCellY);
+            if (track < 0 || track >= STRIP_COUNT) continue;
+            int lead = NO_FRIENDLY_LEAD;
+            for (int neighbour = track - 1; neighbour <= track + 1; neighbour++) {
+                if (neighbour < 0 || neighbour >= STRIP_COUNT) continue;
+                lead = Math.max(lead,
+                        friendlyLeadForward(neighbour, NO_FRIENDLY_LEAD, frame));
+            }
+            if (lead == NO_FRIENDLY_LEAD) continue;
+            int compoundForward = Math.round(trackLayout.forwardCoordinate(
+                    t.captureCellX + 0.5f, t.captureCellY + 0.5f));
+            if (compoundForward <= lead + CAPTURE_FRONT_REACH_CELLS) {
+                frontReachedCaptureZones.add(t.captureZoneId);
             }
         }
     }
