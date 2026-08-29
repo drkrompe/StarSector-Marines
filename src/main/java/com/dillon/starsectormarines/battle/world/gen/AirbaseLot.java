@@ -97,9 +97,36 @@ public final class AirbaseLot {
     /** Cells across a gate in the fence. */
     private static final int GATE_WIDTH = 3;
 
-    /** Paving. */
-    private static final GroundKind APRON = GroundKind.STONE;
-    /** Runway and hardstand marking, the same hazard treatment a vehicle bay uses. */
+    /**
+     * The four surfaces a base is made of, and they are four because a reader
+     * has to be able to tell them apart at map zoom.
+     *
+     * <p>The apron is asphalt — a made outdoor surface, and light enough to
+     * read as one. It was the stone blob, which a re-export of the floor sheet
+     * turned dark navy: a whole lot the same colour as a courtyard, with the
+     * markings on it invisible. The runway is deliberately a <em>different</em>
+     * tarmac from the apron rather than the same surface with paint on it,
+     * because a strip is a different piece of civil engineering from the ground
+     * beside it and should look like one.
+     *
+     * <p>Buildings get an indoor floor. A hangar floored in the same tarmac as
+     * the apron outside it reads as a roofed bit of apron; what makes a shed a
+     * building from above is that the surface changes at its wall.
+     *
+     * <p>And the ground outside the fence is paved as a verge — the city's own
+     * sidewalk, because that is what it is. The clearance is reserved so people
+     * can walk round the base, and reserved dirt in the middle of a made
+     * facility reads as ground the lot forgot rather than as the way past it.
+     * It is deliberately not the polished tile the civic and commercial
+     * interiors use: a surface that says "indoors" everywhere else on the map
+     * does not stop saying it out here.
+     */
+    private static final GroundKind APRON = GroundKind.STREET;
+    private static final GroundKind RUNWAY = GroundKind.COURTYARD;
+    private static final GroundKind INSIDE = GroundKind.INDOOR;
+    private static final GroundKind VERGE = GroundKind.SIDEWALK;
+
+    /** Hazard marking, the same treatment a vehicle bay's berth is edged with. */
     private static final GroundKind MARKED = GroundKind.STRIPED;
 
     private final int left;
@@ -142,13 +169,23 @@ public final class AirbaseLot {
         fence(ctx);
     }
 
-    /** Everything inside the fence is made surface, and claimed so nothing else takes it. */
+    /**
+     * Everything inside the fence is made surface, and claimed so nothing else
+     * takes it; everything in the clearance outside it is paved as a verge.
+     *
+     * <p>The verge is not decoration. It is the ground the lot reserved so
+     * people can get past the base, and leaving it as raw dirt in the middle of
+     * a made facility reads as ground nobody thought about rather than as the
+     * way round.
+     */
     private void pave(GenContext ctx) {
-        for (int x = left; x <= right; x++) {
-            for (int y = bottom; y <= top; y++) {
+        for (int x = left - CLEARANCE; x <= right + CLEARANCE; x++) {
+            for (int y = bottom - CLEARANCE; y <= top + CLEARANCE; y++) {
+                if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
+                boolean insideFence = x >= left && x <= right && y >= bottom && y <= top;
                 ctx.grid.setWalkableFloor(x, y);
-                ctx.topology.setGroundKind(x, y, APRON);
-                ctx.topology.setRoomPurpose(x, y, RoomPurpose.HANGAR);
+                ctx.topology.setGroundKind(x, y, insideFence ? APRON : VERGE);
+                if (insideFence) ctx.topology.setRoomPurpose(x, y, RoomPurpose.HANGAR);
             }
         }
     }
@@ -165,10 +202,10 @@ public final class AirbaseLot {
         TileRegistry registry = TileRegistry.installed();
         int depth = depthStart();
         for (int step = 0; step < RUNWAY_DEPTH; step++) {
-            for (int along = alongLo() + 1 + TOWER_WIDTH; along <= alongHi() - 1; along++) {
+            for (int along = alongLo() + 1; along <= alongHi() - 1; along++) {
                 int x = alongY ? along : depth + depthSign() * step;
                 int y = alongY ? depth + depthSign() * step : along;
-                ctx.topology.setGroundKind(x, y, MARKED);
+                ctx.topology.setGroundKind(x, y, RUNWAY);
                 // Edge lines, laid as floor rather than as a ground kind. A
                 // marking that is a kind of ground is only visible while it
                 // contrasts with the ground beside it, and the ground palette
@@ -309,7 +346,12 @@ public final class AirbaseLot {
                 if (x - 1 < hLeft) mask |= CellTopology.WALL_DIR_W;
                 ctx.topology.setWall(x, y, true);
                 ctx.topology.orWallDirMask(x, y, mask);
-                ctx.topology.setGroundKind(x, y, APRON);
+                ctx.topology.setGroundKind(x, y, INSIDE);
+            }
+        }
+        for (int x = hLeft + 1; x <= hRight - 1; x++) {
+            for (int y = hBottom + 1; y <= hTop - 1; y++) {
+                ctx.topology.setGroundKind(x, y, INSIDE);
             }
         }
         workInterior(ctx, rng, hLeft + 1, hBottom + 1, hRight - 1, hTop - 1, frontDepth);
@@ -456,9 +498,14 @@ public final class AirbaseLot {
      */
     private void tower(GenContext ctx) {
         TileRegistry registry = TileRegistry.installed();
+        // Behind the strip, not on the end of it. A tower closing off a runway
+        // is a building in the one place nothing should be — and it is the
+        // first thing an aircraft would meet. Set back into the apron band at
+        // the lot's end, it overlooks the whole strip without standing on any
+        // part of it, and the runway runs the full length of the lot again.
         int tAlongLo = alongLo() + 1;
         int tAlongHi = tAlongLo + TOWER_WIDTH - 1;
-        int tFront = depthStart();
+        int tFront = depthStart() + depthSign() * (RUNWAY_DEPTH + RUNWAY_MARGIN);
         int tBack = tFront + depthSign() * (TOWER_DEPTH - 1);
         int tLeft = alongY ? tAlongLo : Math.min(tFront, tBack);
         int tRight = alongY ? tAlongHi : Math.max(tFront, tBack);
@@ -487,7 +534,12 @@ public final class AirbaseLot {
                 if (x - 1 < tLeft) mask |= CellTopology.WALL_DIR_W;
                 ctx.topology.setWall(x, y, true);
                 ctx.topology.orWallDirMask(x, y, mask);
-                ctx.topology.setGroundKind(x, y, APRON);
+                ctx.topology.setGroundKind(x, y, INSIDE);
+            }
+        }
+        for (int x = tLeft + 1; x <= tRight - 1; x++) {
+            for (int y = tBottom + 1; y <= tTop - 1; y++) {
+                ctx.topology.setGroundKind(x, y, INSIDE);
             }
         }
         if (registry == null) return;

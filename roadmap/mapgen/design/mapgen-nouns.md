@@ -309,6 +309,16 @@ map worse in exchange for reading well. It also carries **a gate on every side**
 front and back are how the base is used, and the two ends are how everybody else
 gets past it.
 
+**A facility is made of distinct surfaces, and there are four of them because a
+reader has to tell them apart at map zoom.** The apron is asphalt; the runway is
+a *different* tarmac rather than the apron with paint on it, because a strip is a
+different piece of civil engineering from the ground beside it; buildings take an
+indoor floor, since what makes a shed read as a building from above is that the
+surface changes at its wall; and the clearance outside the fence is the city's
+own sidewalk. Reaching for a ground kind by how it looks today is how a verge
+ends up paved in the polished tile every civic interior uses — a surface that
+says "indoors" everywhere else does not stop saying it out here.
+
 **Markings are laid on a surface, not made of it.** A runway or a berth painted
 as a ground *kind* is only visible while it contrasts with the ground beside it,
 and the ground palette is not any one feature's to hold still: a re-export of the
