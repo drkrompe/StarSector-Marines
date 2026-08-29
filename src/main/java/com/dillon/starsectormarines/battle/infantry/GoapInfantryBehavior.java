@@ -102,11 +102,17 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      * Lifecycle prep called once before {@link Action#execute} each tick:
      * advance a committed special-equipment action if active (short-circuits the action
      * for this tick), tick cooldowns, then opportunistically commit a rocket
-     * if the current action permits opportunity fire and a turret-of-opportunity
-     * sits in range with LOS. Returns {@code false} when the unit is locked in
-     * aim (existing or freshly initiated) — caller should skip
-     * {@code action.execute} this frame. Satchels use this seam only for a
-     * hardened target already in contact range; they never author an approach.
+     * if a turret-of-opportunity sits in range with LOS. Returns {@code false}
+     * when the unit is locked in aim (existing or freshly initiated) — caller
+     * should skip {@code action.execute} this frame. Satchels use this seam only
+     * for a hardened target already in contact range; they never author an approach.
+     *
+     * <p>{@code permitsOpportunityFire} narrows rather than disables that
+     * commit. A move-only coordinated role withholds the general special-
+     * equipment path — satchel, frag, deployable, close-contact — because each
+     * spends a squad resource or freezes the carrier mid-bound. It still
+     * reaches {@link InfantryUnitPrep#tryHardenedOpportunity}, so an advancing
+     * squad answers an emplacement with the one weapon that hurts it.
      */
     public static boolean prepareForAction(long unit, BattleControl sim,
                                            boolean permitsOpportunityFire) {
@@ -114,7 +120,15 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         InfantryUnitPrep.tickCooldowns(unit, sim.world());
         if (SatchelTactics.evadeFriendlyCharge(unit, sim)) return false;
         if (FragGrenadeTactics.evadeKnownGrenade(unit, sim)) return false;
-        if (permitsOpportunityFire && InfantryUnitPrep.tryOpportunitySpecial(unit, sim)) return false;
+        if (permitsOpportunityFire) {
+            if (InfantryUnitPrep.tryOpportunitySpecial(unit, sim)) return false;
+        } else if (InfantryUnitPrep.tryHardenedOpportunity(unit, sim)) {
+            // A move-only coordinated role still answers an emplacement. The
+            // suppression above exists so a passing shot cannot divert the
+            // moving half of a bound; a turret or hub in rocket range is the
+            // reason the advance is in trouble, not a distraction from it.
+            return false;
+        }
         return true;
     }
 
