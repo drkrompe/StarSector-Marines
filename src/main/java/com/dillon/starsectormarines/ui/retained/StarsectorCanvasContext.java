@@ -63,12 +63,34 @@ final class StarsectorCanvasContext extends CanvasContext {
                 metrics.scaleY() * viewport.documentScale(), color, alphaMult());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>A caller may hand over a live handle or only the asset path, and both
+     * are legal — the path is the canvas API's authority and the handle is an
+     * optimisation for producers that already hold one. This backend used to
+     * accept only the handle and threw on the path, which made a producer that
+     * drew from a path work perfectly in the snapshot suite and crash the
+     * campaign render loop. Resolving the path here is what the two backends
+     * agreeing actually requires.
+     *
+     * <p>An asset that will not resolve is skipped rather than thrown on. The
+     * painter runs every frame inside the game's own render call, so a missing
+     * texture that throws takes the screen down; one that is absent leaves a
+     * hole in a picture. {@link UiSpriteCache} logs the failure once and
+     * remembers it, so the hole is explained without costing a frame.
+     */
     @Override
-    protected void drawSprite(String sourcePath, SpriteAPI sprite, float centerX, float centerY,
+    protected void drawSprite(String sourcePath, SpriteAPI liveSprite,
+                              float centerX, float centerY,
                               float width, float height, float angleDegrees, Color tint,
                               CanvasSpriteRegion region, CanvasBlend blend) {
+        SpriteAPI sprite = liveSprite;
         if (sprite == null) {
-            throw new IllegalArgumentException("Starsector canvas requires a live sprite handle");
+            UiImage resolved = UiSpriteCache.shared().resolve(sourcePath);
+            if (resolved == null) return;
+            sprite = resolved.liveSprite();
+            if (sprite == null) return;
         }
         CanvasMetrics metrics = metrics();
         float textureWidth = sprite.getTextureWidth();
