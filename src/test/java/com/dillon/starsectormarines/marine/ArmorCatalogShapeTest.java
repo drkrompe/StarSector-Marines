@@ -210,6 +210,11 @@ class ArmorCatalogShapeTest {
             case PERCEPTION_SWEEP -> system.perceptionSweep() == null ? null
                     : system.perceptionSweep().revealRangeCells() * duty(system);
             case MISSILE_POD -> system.usesAmmunition() ? (double) system.startingAmmo() : null;
+            // Everything one satchel puts back over a whole battle. Reach and
+            // the treat-below threshold improve with tier too, but they decide
+            // WHO gets a dressing rather than what one is worth.
+            case FIELD_AID -> system.fieldAid() == null || !system.usesAmmunition() ? null
+                    : (double) system.fieldAid().restoredHealth() * system.startingAmmo();
         };
     }
 

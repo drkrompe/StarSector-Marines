@@ -85,7 +85,19 @@ public enum SpecialAiPolicy {
      * their own eyes do not reach past. Dead ground is the moment; what gets
      * spent on it may do no more than look at it.
      */
-    APPROACHING_DEAD_GROUND("approaching-dead-ground");
+    APPROACHING_DEAD_GROUND("approaching-dead-ground"),
+    /**
+     * A squadmate hurt badly enough to be worth a dressing, close enough to
+     * reach, and still on their feet. Names the moment rather than the
+     * capability, like every policy here: what arrives is somebody who needs
+     * help, and what gets spent on them is the carrier's business.
+     *
+     * <p>The carrier is never their own patient. A medic who treated themselves
+     * first would be a self-heal wearing a squad system's name, and the value of
+     * this role is that it belongs to the section rather than to the marine
+     * carrying it.
+     */
+    WOUNDED_SQUADMATE_IN_REACH("wounded-squadmate-in-reach");
 
     public final String key;
 

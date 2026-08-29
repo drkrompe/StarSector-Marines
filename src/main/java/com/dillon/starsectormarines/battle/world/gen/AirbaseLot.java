@@ -68,7 +68,7 @@ public final class AirbaseLot {
     public enum Size {
         FIELD(44, 24, 4, true, 3, 2, 11, 8, 5, 4, 3, 2, 2),
         PAD(22, 19, 0, false, 2, 1, 11, 8, 5, 3, 2, 1, 2),
-        STRIP(14, 16, 0, false, 1, 1, 9, 7, 5, 1, 1, 1, 0);
+        STRIP(14, 16, 0, false, 1, 1, 9, 7, 5, 2, 1, 1, 0);
 
         /** Cells across the lot, fence to fence. */
         public final int width;
@@ -215,8 +215,18 @@ public final class AirbaseLot {
     private static final int PAD = 5;
     /** Wingtip clearance between neighbouring berths. */
     private static final int PAD_GAP = 3;
-    /** Rows between the runway and the apron, so the two read as separate surfaces. */
-    private static final int RUNWAY_MARGIN = 1;
+    /**
+     * Rows between the runway and the apron, so the two read as separate
+     * surfaces — and nothing at all on a site with no runway.
+     *
+     * <p>Charged unconditionally it is a row of apron that exists to separate
+     * the strip from something, on a lot that has no strip. On the compact
+     * sizes that row is the difference between a shed with room in front of it
+     * and a shed with none.
+     */
+    private int runwayMargin() {
+        return size.runwayDepth > 0 ? 1 : 0;
+    }
     /** The control tower's footprint, on a lot that runs its own traffic. */
     private static final int TOWER_WIDTH = 7;
     private static final int TOWER_DEPTH = 5;
@@ -397,9 +407,16 @@ public final class AirbaseLot {
 
     /** Berths in a row on the apron, behind the runway and in front of the sheds. */
     private void berths(GenContext ctx) {
-        int row = depthStart() + depthSign() * (size.runwayDepth + RUNWAY_MARGIN + PAD / 2 + 1);
+        int row = depthStart() + depthSign() * (size.runwayDepth + runwayMargin() + PAD / 2 + 1);
         int span = size.pads * PAD + (size.pads - 1) * PAD_GAP;
-        int start = (alongLo() + alongHi() - span) / 2 + PAD / 2;
+        // A rank of berths is centred; a single one is not. Centring one berth
+        // on a small lot puts it in the middle of the only open ground there
+        // is and leaves a useless margin all the way round it. Set into a
+        // corner it leaves one continuous piece of apron instead, which is
+        // where the vehicles go and where anyone crossing the lot walks.
+        int start = size.pads > 1
+                ? (alongLo() + alongHi() - span) / 2 + PAD / 2
+                : alongLo() + 2 + PAD / 2;
         for (int i = 0; i < size.pads; i++) {
             int along = start + i * (PAD + PAD_GAP);
             int cx = alongY ? along : row;
@@ -434,7 +451,7 @@ public final class AirbaseLot {
         int slot = 0;
         for (int rank = 0; rank < size.parkRanks; rank++) {
             int across = depthStart()
-                    + depthSign() * (size.runwayDepth + RUNWAY_MARGIN + 1 + rank * PARK_RANK_PITCH);
+                    + depthSign() * (size.runwayDepth + runwayMargin() + 1 + rank * PARK_RANK_PITCH);
             for (int file = 0; file < size.parkFiles; file++) {
                 int along = alongHi() - 1 - (file + 1) * PARK_FILE_PITCH + 1;
                 int x = alongY ? along : across;
@@ -537,7 +554,7 @@ public final class AirbaseLot {
         // the fence overwrites it — two hangars with three walls each, which
         // looks almost right and is open at the back.
         int frontDepth = depthStart()
-                + depthSign() * (size.runwayDepth + RUNWAY_MARGIN + PAD + size.taxiway);
+                + depthSign() * (size.runwayDepth + runwayMargin() + PAD + size.taxiway);
         int span = size.hangars * size.hangarWidth + (size.hangars - 1) * (size.hangarWidth / 2);
         int start = (alongLo() + alongHi() - span) / 2;
         for (int i = 0; i < size.hangars; i++) {
@@ -735,7 +752,7 @@ public final class AirbaseLot {
         // part of it, and the runway runs the full length of the lot again.
         int tAlongLo = alongLo() + 1;
         int tAlongHi = tAlongLo + TOWER_WIDTH - 1;
-        int tFront = depthStart() + depthSign() * (size.runwayDepth + RUNWAY_MARGIN);
+        int tFront = depthStart() + depthSign() * (size.runwayDepth + runwayMargin());
         int tBack = tFront + depthSign() * (TOWER_DEPTH - 1);
         int tLeft = alongY ? tAlongLo : Math.min(tFront, tBack);
         int tRight = alongY ? tAlongHi : Math.max(tFront, tBack);
@@ -807,7 +824,13 @@ public final class AirbaseLot {
                 boolean gate = onLongSide
                         ? Math.abs(along - gateAlong) <= GATE_WIDTH / 2
                         : Math.abs(across - gateAcross) <= GATE_WIDTH / 2;
-                if (gate) {
+                // A gate is only a gate if it opens onto something. On a
+                // compact lot a shed's back wall can sit against the fence, and
+                // a gap cut in the perimeter there is a doorway into masonry —
+                // it reads as a way in from outside and is not one. Skipping it
+                // leaves the fence solid where the building already closes the
+                // line, which is what a real compound looks like.
+                if (gate && opensOntoTheLot(ctx, x, y)) {
                     ctx.grid.setWalkableFloor(x, y);
                     ctx.grid.openAllEdges(x, y);
                     ctx.topology.setGroundKind(x, y, MARKED);
@@ -822,6 +845,14 @@ public final class AirbaseLot {
                 ctx.doodads.add(new Doodad(x, y, post));
             }
         }
+    }
+
+    /** Whether the cell one step inside this perimeter cell can be stood on. */
+    private boolean opensOntoTheLot(GenContext ctx, int x, int y) {
+        int inX = x == left ? x + 1 : x == right ? x - 1 : x;
+        int inY = y == bottom ? y + 1 : y == top ? y - 1 : y;
+        if (inX < 0 || inY < 0 || inX >= ctx.width || inY >= ctx.height) return false;
+        return ctx.grid.isWalkable(inX, inY) && !ctx.topology.isWall(inX, inY);
     }
 
     private String fenceId(int x, int y) {

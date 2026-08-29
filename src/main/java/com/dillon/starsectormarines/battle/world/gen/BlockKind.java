@@ -60,6 +60,22 @@ public enum BlockKind {
      */
     AIRBASE_PAD,
 
+    /**
+     * Multi-leaf airbase seed — a landing site claimed across two or three
+     * adjacent blocks, filled at {@code AirbaseLot.Size.PAD}: two berths, a
+     * shed, and a vehicle park inside one fence.
+     *
+     * <p>Demotes to {@link #AIRBASE_PAD} when the claim comes up short, which
+     * is the whole reason the two sizes are worth having as a pair. A seed that
+     * cannot get its neighbours is still a block that can hold the small one,
+     * so the failure mode of "no room for the bigger base" is a smaller base
+     * rather than no base.
+     *
+     * <p>Scenery like its smaller sibling: a civil landing pad and no airbase
+     * node. Filled by {@code AirbaseCompoundFiller}.
+     */
+    AIRBASE_COMPOUND,
+
     /** Green block — grass blob center, sparse stone paths, optional benches. Low cover. */
     PARK,
 
