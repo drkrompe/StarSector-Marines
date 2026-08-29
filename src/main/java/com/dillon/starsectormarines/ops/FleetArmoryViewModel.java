@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
@@ -440,7 +441,7 @@ public final class FleetArmoryViewModel {
             String id = "weapon-doctrine:" + doctrine.id();
             tiles.add(doctrineTile(id, doctrine.id().equals(selected),
                     doctrine.displayName(), presentation, doctrineMetadata(presentation),
-                    "", weaponDistribution(doctrine),
+                    "", weaponDistribution(doctrine), "",
                     () -> selectWeaponDoctrine(doctrine.id())));
         }
         return List.copyOf(tiles);
@@ -466,6 +467,7 @@ public final class FleetArmoryViewModel {
             tiles.add(doctrineTile(id, plan.id().equals(selected),
                     plan.displayName(), presentation, metadata,
                     roleComposition(plan), armorDistribution(issued),
+                    armorCapabilities(issued),
                     () -> selectArmorDoctrine(plan.id())));
         }
         for (SquadArmorDoctrine custom : roster.armory().customArmorDoctrines()) {
@@ -477,6 +479,7 @@ public final class FleetArmoryViewModel {
             tiles.add(doctrineTile(id, custom.id().equals(selected),
                     custom.displayName(), presentation, doctrineMetadata(presentation),
                     "Hand-authored  ·  fixed patterns", armorDistribution(custom),
+                    armorCapabilities(custom),
                     () -> selectArmorDoctrine(custom.id())));
         }
         return List.copyOf(tiles);
@@ -485,16 +488,16 @@ public final class FleetArmoryViewModel {
     private static DoctrineTile doctrineTile(
             String id, boolean selected, String name,
             SquadLoadoutPresentationDef presentation, String metadata,
-            String composition, String distribution, Runnable select) {
+            String composition, String distribution, String carries, Runnable select) {
         String rarityClass = presentation.rarity().cssClass();
         String classes = "doctrine-tile " + rarityClass
                 + (selected ? " selected" : "");
         return new DoctrineTile(id, id + ":header", id + ":name", id + ":rarity",
                 id + ":metadata-row", id + ":metadata", id + ":description",
-                id + ":composition", id + ":distribution", classes,
+                id + ":composition", id + ":distribution", id + ":carries", classes,
                 "doctrine-rarity label " + rarityClass,
                 name, presentation.rarity().displayName(), metadata,
-                presentation.lore(), composition, distribution, select);
+                presentation.lore(), composition, distribution, carries, select);
     }
 
     private static String doctrineMetadata(SquadLoadoutPresentationDef presentation) {
@@ -917,6 +920,40 @@ public final class FleetArmoryViewModel {
         return false;
     }
 
+    /**
+     * What this sheet's twelve billets would carry, counted by capability
+     * family rather than by pattern.
+     *
+     * <p>The line beneath it already names the patterns, and a player who knows
+     * the catalog by heart could derive this from those names. Nobody should
+     * have to: the whole reason a role mix is worth choosing between is that one
+     * sheet puts a sensor sweep and seven braces in the field where another puts
+     * four breachers, and that difference was previously visible only by opening
+     * Compare Patterns and cross-referencing twelve names.
+     *
+     * <p>Ordered by how many marines carry each, so the sheet's dominant
+     * character reads first and a clipped line loses the least. Derived from the
+     * <em>issued</em> doctrine rather than the plan, so it improves as the
+     * company's stock does — the same rule the issue line follows.
+     */
+    private static String armorCapabilities(SquadArmorDoctrine doctrine) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (String issueId : doctrine.issueIds()) {
+            MarineArmorCatalogDef pattern = MarineArmorCatalogRegistry.installed().get(issueId);
+            if (pattern == null || !pattern.hasIntegralSystem()) continue;
+            counts.merge(pattern.integralSystem().familyName(), 1, Integer::sum);
+        }
+        if (counts.isEmpty()) return "Nothing beyond plate and training";
+        List<Map.Entry<String, Integer>> ranked = new ArrayList<>(counts.entrySet());
+        ranked.sort(Map.Entry.<String, Integer>comparingByValue().reversed()
+                .thenComparing(Map.Entry.comparingByKey()));
+        List<String> parts = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : ranked) {
+            parts.add(entry.getValue() + " " + entry.getKey());
+        }
+        return String.join("  ·  ", parts);
+    }
+
     private static String armorDistribution(SquadArmorDoctrine doctrine) {
         List<String> parts = new ArrayList<>();
         for (MarineArmorCatalogDef pattern : MarineArmorCatalogRegistry.installed().all()) {
@@ -1288,19 +1325,23 @@ public final class FleetArmoryViewModel {
     /**
      * One buyable sheet in the picker.
      *
-     * <p>{@code composition} and {@code distribution} are the two halves of what
-     * a squad's armour actually is ({@code role-and-access.md}): the first is
-     * the section this sheet organises — fixed, and what the player is choosing
-     * between — and the second is what the company's own stock currently puts in
-     * those billets. A weapon sheet has no composition and leaves it blank.
+     * <p>{@code composition}, {@code distribution} and {@code carries} are the
+     * three halves — the word is wrong and the split is not — of what a squad's
+     * armour actually is ({@code role-and-access.md}). The first is the section
+     * this sheet organises: fixed, and the thing the player is choosing between.
+     * The second is which patterns the company's own stock currently puts in
+     * those billets. The third is what those patterns <em>do</em>, which is the
+     * half a player cannot work out from the other two without knowing the
+     * catalog by heart. A weapon sheet has none of them and leaves them blank.
      */
     public record DoctrineTile(
             String id, String headerId, String nameId, String rarityId,
             String metadataRowId, String metadataId, String descriptionId,
-            String compositionId, String distributionId,
+            String compositionId, String distributionId, String carriesId,
             String classes, String rarityClasses,
             String name, String rarity, String metadata,
             String description, String composition, String distribution,
+            String carries,
             Runnable select) implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -1314,6 +1355,7 @@ public final class FleetArmoryViewModel {
                 case "descriptionId" -> descriptionId;
                 case "compositionId" -> compositionId;
                 case "distributionId" -> distributionId;
+                case "carriesId" -> carriesId;
                 case "classes" -> classes;
                 case "rarityClasses" -> rarityClasses;
                 case "name" -> name;
@@ -1322,6 +1364,7 @@ public final class FleetArmoryViewModel {
                 case "description" -> description;
                 case "composition" -> composition;
                 case "distribution" -> distribution;
+                case "carries" -> carries;
                 case "select" -> select;
                 default -> throw new IllegalArgumentException("Unknown doctrine-tile property");
             };
