@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -85,7 +86,7 @@ class ShipRoomAvailabilityTest {
             if (!ship.habitable()) continue;
             CompanyDeck deck = new CompanyDeck(ship, SEED);
             Map<String, Object> props = new LinkedHashMap<>();
-            MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, deck::has,
+            MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, laidOut(deck),
                     () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
 
             for (MarineOpsPageNav.Page page : MarineOpsPageNav.Page.values()) {
@@ -129,7 +130,7 @@ class ShipRoomAvailabilityTest {
         boolean[] opened = new boolean[3];
         Map<String, Object> props = new LinkedHashMap<>();
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
-                Set.of(RoomPurpose.ARMORY)::contains,
+                only(RoomPurpose.ARMORY),
                 () -> { }, () -> { },
                 () -> opened[0] = true, () -> opened[1] = true, () -> opened[2] = true);
 
@@ -149,6 +150,49 @@ class ShipRoomAvailabilityTest {
     }
 
     /**
+     * A ship still being laid out is not a ship without rooms.
+     *
+     * <p>Both are a button that does nothing, and they are not the same thing
+     * to be told: a hull that cannot hold a bay never will, and this is a wait
+     * of a second or two while a capital's deck is packed. Shown as absence it
+     * would tell the player their own ship had no mech bay, and they would have
+     * no reason to doubt it.
+     */
+    @Test
+    void aShipStillBeingLaidOutIsNotAShipWithoutRooms() {
+        boolean[] opened = new boolean[3];
+        Map<String, Object> props = new LinkedHashMap<>();
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
+                purpose -> MarineOpsPageNav.Aboard.UNKNOWN,
+                () -> { }, () -> { },
+                () -> opened[0] = true, () -> opened[1] = true, () -> opened[2] = true);
+
+        assertEquals("page-nav-waiting", props.get("barracksClasses"));
+        assertEquals("page-nav-waiting", props.get("armoryClasses"));
+        assertEquals("page-nav-waiting", props.get("mechLabClasses"));
+
+        ((Runnable) props.get("barracksAction")).run();
+        ((Runnable) props.get("armoryAction")).run();
+        ((Runnable) props.get("mechLabAction")).run();
+        for (boolean went : opened) {
+            assertFalse(went, "a room was entered before the ship had been laid out");
+        }
+    }
+
+    /** What the shell asks of a ship whose deck is in hand. */
+    private static Function<RoomPurpose, MarineOpsPageNav.Aboard> laidOut(CompanyDeck deck) {
+        return purpose -> deck.has(purpose)
+                ? MarineOpsPageNav.Aboard.YES : MarineOpsPageNav.Aboard.NO;
+    }
+
+    /** A ship with exactly these rooms and no others. */
+    private static Function<RoomPurpose, MarineOpsPageNav.Aboard> only(RoomPurpose... rooms) {
+        Set<RoomPurpose> has = Set.of(rooms);
+        return purpose -> has.contains(purpose)
+                ? MarineOpsPageNav.Aboard.YES : MarineOpsPageNav.Aboard.NO;
+    }
+
+    /**
      * Headquarters is never a room. Gating it would let a hull exist that the
      * player cannot navigate at all, and the company is not a compartment.
      */
@@ -156,7 +200,8 @@ class ShipRoomAvailabilityTest {
     void headquartersIsReachableOnAnyHull() {
         Map<String, Object> props = new LinkedHashMap<>();
         boolean[] wentHome = new boolean[1];
-        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS, purpose -> false,
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
+                purpose -> MarineOpsPageNav.Aboard.NO,
                 () -> { }, () -> wentHome[0] = true,
                 () -> { }, () -> { }, () -> { });
         ((Runnable) props.get("hqAction")).run();

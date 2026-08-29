@@ -14,11 +14,11 @@ public enum ScreenId {
      */
     COMPANY_HQ,
     /** Read-only shipboard marine-quarters browser; safe without a planet. */
-    BARRACKS,
+    BARRACKS(true),
     /** Which ship in the fleet the company lives aboard; safe without a planet. */
     SHIP_TRANSFER,
     /** The whole company ship, running, with the camera in the player's hands. */
-    SHIP_VIEW,
+    SHIP_VIEW(true),
     /** Dev-only retained document and host-capability proof; safe without a planet. */
     UI_WORKBENCH,
     MISSION_SELECT,
@@ -27,11 +27,33 @@ public enum ScreenId {
     /** Production retained formation/template/refit slice; safe without a planet. */
     FLEET_ARMORY,
     /** Retained support-lance and mech-subsystem room; safe without a planet. */
-    MECH_LAB,
+    MECH_LAB(true),
     BRIEFING,
     SQUAD_DEPLOYMENT,
     STATIONING,
     BATTLE,
     RESULTS,
-    LOOT
+    LOOT;
+
+    private final boolean aboard;
+
+    ScreenId() {
+        this(false);
+    }
+
+    ScreenId(boolean aboard) {
+        this.aboard = aboard;
+    }
+
+    /**
+     * Whether this screen stands somewhere aboard the company ship, and so has
+     * nothing to show until her deck has been laid out and crewed.
+     *
+     * <p>Company headquarters is deliberately not one: it is the company rather
+     * than a room, which is what makes it reachable by a company whose ship is
+     * still being got ready — and by one that has no ship at all.
+     */
+    public boolean aboard() {
+        return aboard;
+    }
 }
