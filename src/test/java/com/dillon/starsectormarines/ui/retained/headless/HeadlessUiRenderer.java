@@ -377,13 +377,21 @@ public final class HeadlessUiRenderer {
         }
 
         @Override
+        public CanvasHostViewport hostViewport() {
+            if (hostPassRenderer == null) return null;
+            CanvasMetrics metrics = metrics();
+            Rect content = metrics.contentBox();
+            return new CanvasHostViewport(
+                    0f, 0f, content.width(), content.height(),
+                    metrics.surfaceWidth(), metrics.surfaceHeight());
+        }
+
+        @Override
         protected boolean drawHostPass(CanvasHostPass pass) {
             if (hostPassRenderer == null) return false;
             CanvasMetrics metrics = metrics();
             Rect content = metrics.contentBox();
-            CanvasHostViewport viewport = new CanvasHostViewport(
-                    0f, 0f, content.width(), content.height(),
-                    metrics.surfaceWidth(), metrics.surfaceHeight());
+            CanvasHostViewport viewport = hostViewport();
             // Native host passes resolve their camera directly in the physical content
             // box. Replay those resolved coordinates without stretching them through the
             // canvas's authored surface a second time.
