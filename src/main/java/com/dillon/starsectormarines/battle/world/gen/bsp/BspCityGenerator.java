@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.AirbasePadFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCivicFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
@@ -32,6 +33,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportDistrictF
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.WastelandRubbleFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.WaterfrontFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BeachShorelineStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.AirbasePadSeedStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BiomeGroundOverrideStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BspPartitionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundClaimStage;
@@ -129,6 +131,7 @@ public final class BspCityGenerator implements MapGenerator {
         register(new FortifiedPostFiller());
         register(new LandingZoneFiller());
         register(new SpaceportFiller());
+        register(new AirbasePadFiller());
         register(new PlazaFiller());
         register(new ParkFiller());
         register(new IndustrialYardFiller());
@@ -170,6 +173,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new LabelLeavesStage(),                     // Step 2
                 new CompoundSeedStage(),                    // Step 2a   conquest-only
                 new CompoundClaimStage(),                   // Step 2b
+                new AirbasePadSeedStage(),                  // Step 2b' city landmark
                 new RoadGraphStage(),                       // Step 2c
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
                 new PedestrianFrameStage(),                 // Step 3a'

@@ -132,8 +132,8 @@ public final class FortressWardStage implements GenStage {
         FortressInterior.Result result = FortressInterior.pack(
                 ctx, buildable, circulation, axis, FortressProgram.ward());
         if (lot != null) {
-            new AirbaseLot(lot[0] + AirbaseLot.CLEARANCE, lot[1] + AirbaseLot.CLEARANCE,
-                    lot[2] - AirbaseLot.CLEARANCE, lot[3] - AirbaseLot.CLEARANCE,
+            new AirbaseLot(lot[0] + WARD_AIRBASE.clearance(), lot[1] + WARD_AIRBASE.clearance(),
+                    lot[2] - WARD_AIRBASE.clearance(), lot[3] - WARD_AIRBASE.clearance(),
                     AirbaseLot.Facing.of(axis), WARD_AIRBASE).author(ctx, ctx.rng);
             emitAirbaseNode(ctx, lot);
         }

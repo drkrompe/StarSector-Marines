@@ -139,6 +139,11 @@ public final class MarineArmory implements Serializable {
         return Collections.unmodifiableList(result);
     }
 
+    /** The hand-authored doctrines only — the built-ins are plans and are issued. */
+    public List<SquadArmorDoctrine> customArmorDoctrines() {
+        return Collections.unmodifiableList(customArmorDoctrines);
+    }
+
     /** Issues one plan from this armoury's own stock. */
     public SquadArmorDoctrine issue(SquadArmorPlan plan) {
         return ArmorIssueResolver.resolve(plan, pattern -> ownsArmorTemplate(pattern.id()));
@@ -430,6 +435,17 @@ public final class MarineArmory implements Serializable {
         unlockArmor(MarineArmorPattern.MILITIA);
         unlockArmor(MarineArmorPattern.CHARCOAL);
         unlockArmor(MarineArmorPattern.ARMY_GREEN);
+        // A section has somebody who goes through the door first and somebody
+        // who carries the heavy thing. Both are basic rather than specialist, so
+        // the cheapest surplus example of each is starter issue: without them
+        // every tactic sheet reads as twelve line suits and the whole role model
+        // is invisible at game start ({@code role-and-access.md}).
+        //
+        // Recon is deliberately NOT seeded. A dedicated scout suit is the first
+        // specialist purchase worth making, and leaving that one gap is what
+        // keeps the picker's "no kit" marker meaningful instead of universal.
+        unlockArmor("armor.riot-shell");
+        unlockArmor("armor.packframe");
     }
 
     private void seedStarterCards() {
