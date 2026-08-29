@@ -427,6 +427,13 @@ read. There is no full-height objective roster, and maps without compounds pay
 only for the time-control row. Java projects live state and actions into the
 retained model; MLX owns the hierarchy and presentation.
 
+The same retained path owns a bounded bottom-center command-power tray. Its
+resource block and compact cards replace the manually painted power menu, and
+the tray grows only by a narrow instruction strip while a power is armed.
+World targeting remains outside MLX so the reticle, invalid-target feedback,
+cancel gesture, and activation click stay in battlefield coordinates and ahead
+of squad picking.
+
 ## Battle maneuver doctrine
 
 The player and the mission commander continue to assign objectives to squads.

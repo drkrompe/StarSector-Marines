@@ -126,7 +126,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/mech-lab/mech-lab.mlx");
     private static final List<String> BATTLE_HUD_COMPONENTS =
-            List.of(BattleHudOverlay.COMPONENT_PATH);
+            List.of(BattleHudOverlay.COMPONENT_PATH,
+                    BattlePowerOverlay.COMPONENT_PATH);
 
     @Override
     public String id() {
@@ -241,6 +242,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("battle-hud-command-overlay-wide.png",
                         renderBattleHudCommandOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-powers-targeting-wide.png",
+                        renderBattleHudPowerOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)));
     }
 
@@ -291,6 +295,49 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             TacticalNode.Kind kind, CompoundService.CompoundState state,
             float progress) {
         return new BattleHudOverlayModel.CaptureObjective(kind, state, progress);
+    }
+
+    /** Full-screen evidence for the compact power deck in its armed state. */
+    private static BufferedImage renderBattleHudPowerOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        BufferedImage image = renderBattleHudCommandOverlay(
+                context, renderer, width, height);
+        Reactor reactor = new Reactor();
+        BattlePowerOverlayModel model = new BattlePowerOverlayModel(reactor, ignored -> { });
+        List<BattlePowerOverlayModel.PowerState> powers = List.of(
+                power("recon_ping", "Recon Ping", 2f, 0, 7.4f, -1),
+                power("mech_support", "Mech Support", 4f, 0, 0f, 2),
+                power("emergency_resupply", "Resupply", 3f, 0, 0f, 1),
+                power("orbital_barrage", "Orbital Barrage", 4f, 20, 0f, 1),
+                power("marine_insertion", "Marine Drop", 3f, 2, 0f, 0));
+        model.updateProjected(4f, 10f, 22, powers, "orbital_barrage");
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattlePowerOverlay.COMPONENT, model.props())) {
+            BattlePowerOverlay.wireLayout(instance);
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            int overlayWidth = Math.round(BattlePowerOverlay.documentWidth(powers.size()));
+            int overlayHeight = Math.round(BattlePowerOverlay.TARGETING_HEIGHT);
+            BufferedImage overlay = renderer.render(document, overlayWidth, overlayHeight);
+            Graphics2D graphics = image.createGraphics();
+            graphics.drawImage(overlay,
+                    (width - overlay.getWidth()) / 2,
+                    height - 12 - overlay.getHeight(), null);
+            graphics.dispose();
+            return image;
+        }
+    }
+
+    private static BattlePowerOverlayModel.PowerState power(
+            String id, String name, float cp, int supplies,
+            float cooldown, int charges) {
+        return new BattlePowerOverlayModel.PowerState(
+                id, name, cp, supplies, cooldown, charges);
     }
 
     /**

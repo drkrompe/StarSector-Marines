@@ -4,7 +4,7 @@ Status: ACTIVE — fleet-sourced availability, pre-battle commitment, and simula
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — retained capacity/reach boundaries and added map-authored shield and orbital-battery targeting constraints.
+Updated: 2026-08-29 — folded the compact retained battle tray and world-targeting presentation into the standing model.
 
 ## Vocabulary
 
@@ -24,6 +24,15 @@ The campaign fleet and mission own source facts. The power catalog interprets co
 Mission launch resolves that input once into a detachment, filters it through the command deck, and injects only the resulting capability lists into battle. The battle therefore receives powers, shuttle delivery, and fighter cover as battle-native support rather than as a live campaign fleet dependency.
 
 In battle, the command-power service owns command points, cooldowns, charges, pending activations, and transient power effects. The UI may arm a targeting mode and enqueue a request, but only the simulation commits it after checking roster membership, affordability, charges, cooldown, and target validity. A committed power spends its current at-use resources, begins pacing, then enacts its effect. Recon's temporary reveal is simulation state projected through the existing fog presentation seam; it is not a separate fog authority.
+
+The in-battle roster is presented as one bounded bottom-center MLX tray, not a
+free-growing menu. A compact command-resource block and at most the five
+budgeted power cards expose ready, cooldown, affordability, supply, charge, and
+spent states. Arming a card adds only a narrow targeting instruction strip.
+The retained tray owns card hierarchy and selection input; a separate
+world-layer targeting panel owns the cursor reticle, target validity, RMB
+cancellation, and the next map click. That separation keeps targeting a
+view-layer state and preserves the simulation-owned activation boundary.
 
 The current catalog demonstrates five distinct expressions of the same contract: recon, mech support, emergency resupply, orbital barrage, and marine insertion. A capability may become a direct battlefield power or scale one; ship-only survival flavor does neither and is not a command-power source.
 
