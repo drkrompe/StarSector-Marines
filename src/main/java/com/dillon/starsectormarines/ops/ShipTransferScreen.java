@@ -164,8 +164,14 @@ public final class ShipTransferScreen implements Screen {
         if (dismissDialog != null) dismissDialog.run();
     }
 
+    /**
+     * <p>The view model is asked first, because a deck landing is what makes
+     * the list change: the rows are recomputed from it during the flush below,
+     * so taking delivery afterwards would show the fleet one frame stale.
+     */
     @Override
     public void advance(float dt) {
+        if (viewModel != null) viewModel.advance();
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
     }

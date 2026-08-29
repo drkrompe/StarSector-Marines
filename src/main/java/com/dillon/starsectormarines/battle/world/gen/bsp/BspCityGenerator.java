@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.AirbaseCompoundFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.AirbasePadFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCivicFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
@@ -148,6 +149,7 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new IndustrialCompoundFiller());
         registerCompound(new MedicalCampusFiller());
         registerCompound(new SpaceportDistrictFiller());
+        registerCompound(new AirbaseCompoundFiller());
 
         this.conquestRecipe = buildConquestRecipe();
         this.legacyRecipe = buildLegacyRecipe();
@@ -172,8 +174,8 @@ public final class BspCityGenerator implements MapGenerator {
                 new ZoningOverlayStage(),                   // Step 1c
                 new LabelLeavesStage(),                     // Step 2
                 new CompoundSeedStage(),                    // Step 2a   conquest-only
+                new AirbasePadSeedStage(),                  // Step 2a'  city landmark
                 new CompoundClaimStage(),                   // Step 2b
-                new AirbasePadSeedStage(),                  // Step 2b' city landmark
                 new RoadGraphStage(),                       // Step 2c
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
                 new PedestrianFrameStage(),                 // Step 3a'
