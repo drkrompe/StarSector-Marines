@@ -39,12 +39,11 @@ import java.util.List;
  * {@code AirSystem} — this class only writes the spawn-time inputs the
  * sim already consumes for marine drops.
  *
- * <p>Priority slot is between {@link ConvoyMeans} (most readable, needs
- * road graph) and {@link WalkInMeans} (always-feasible floor). A defender
- * rally on a road-less map but near walkable ground gets a shuttle
- * instead of dropping straight to walk-in; a rally in a clogged interior
- * with no LZ within {@link #LZ_SCAN_RADIUS} cells of the rally yields to
- * walk-in.
+ * <p>Selected against {@link ConvoyMeans} and {@link WalkInMeans} on
+ * {@link #arrivalSeconds}, not on a registration slot. A rally in a clogged
+ * interior with no LZ within {@link #LZ_SCAN_RADIUS} cells is infeasible and
+ * yields; a rally the trucks would take a minute to reach is where a sortie
+ * wins on merit.
  *
  * <p>Narrative read: shuttle reinforcement is an elite strike team deploying
  * via aircraft. It explicitly selects the requesting faction's elite roster
@@ -103,6 +102,13 @@ public final class ShuttleMeans implements ReinforcementMeans {
      * on the way does not park an aircraft for the rest of the battle.
      */
     private static final float BOARDING_PATIENCE = 90f;
+
+    /**
+     * How much longer a walk across a built-up map is than the straight line
+     * it covers. The crew goes round the buildings between the rear edge and
+     * the field like anyone else.
+     */
+    private static final float FOOT_DETOUR = 1.35f;
 
     /** Hardstands on the garrison's own airfield, in map order. Empty on a map with none. */
     private final List<LandingPad> airfield;
@@ -163,6 +169,57 @@ public final class ShuttleMeans implements ReinforcementMeans {
         int[] centre = deliveryCentre(req);
         return new LandingZoneScorer(sim.getGrid(), sim.getTopology())
                 .bestNear(centre[0], centre[1], LZ_SCAN_RADIUS, SHUTTLE_MIN_CLEARANCE) != null;
+    }
+
+    /**
+     * How long a sortie takes to put a squad down: the crew's walk out to the
+     * ramp, then the flight.
+     *
+     * <p>The walk is the half that matters. An aircraft is three or four times
+     * a truck's speed and would win every request on flight time alone, which
+     * would leave the convoy as dead as the airfield was — but a sortie off an
+     * authored field does not leave until somebody has boarded it, and those
+     * people start at the side's own rear edge and cross the ground between.
+     * Counting that walk is what makes air the answer to a call the trucks
+     * cannot reach in time rather than the answer to all of them.
+     *
+     * <p>A sortie with no field behind it flies in loaded from off-map and
+     * owes no walk at all.
+     */
+    @Override
+    public float arrivalSeconds(BattleView sim, ReinforcementRequest req) {
+        int[] centre = deliveryCentre(req);
+        AirfieldService.Berth berth = sim.getAirfieldService()
+                .nearestAirworthy(centre[0] + 0.5f, centre[1] + 0.5f);
+        float fromX = berth != null ? berth.pad.centerX : centre[0];
+        float fromY = berth != null ? berth.pad.centerY : centre[1];
+        float flight = distance(fromX, fromY, centre[0], centre[1])
+                / Math.max(0.1f, DEFAULT_TYPE.maxSpeed);
+        return crewWalkSeconds(sim, req, berth) + flight;
+    }
+
+    /**
+     * Sim-seconds the ground crew spends walking to the ramp, or zero for a
+     * sortie that arrives already loaded.
+     *
+     * <p>Measured from the same perimeter cell {@link #embarkOnPad} actually
+     * marches them in from, so the estimate and the delivery agree about where
+     * the crew comes from.
+     */
+    private float crewWalkSeconds(BattleView sim, ReinforcementRequest req,
+                                  AirfieldService.Berth berth) {
+        if (berth == null || airfield.isEmpty()) return 0f;
+        int[] from = WalkInMeans.pickPrimaryCell(sim, req, axis);
+        if (from == null) return 0f;
+        float walk = distance(from[0], from[1], berth.pad.centerX, berth.pad.centerY)
+                * FOOT_DETOUR;
+        return walk / Math.max(0.1f, UnitType.MARINE.moveSpeed);
+    }
+
+    private static float distance(float ax, float ay, float bx, float by) {
+        float dx = ax - bx;
+        float dy = ay - by;
+        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     @Override

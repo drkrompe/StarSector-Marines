@@ -186,6 +186,12 @@ public class FrontLineReinforcementTriggerTest {
             }
 
             @Override
+            public float arrivalSeconds(BattleView view,
+                                        ReinforcementRequest request) {
+                return 1f;
+            }
+
+            @Override
             public ReinforcementDispatchResult dispatch(
                     BattleControl control, ReinforcementRequest request) {
                 return ReinforcementDispatchResult.REJECTED;

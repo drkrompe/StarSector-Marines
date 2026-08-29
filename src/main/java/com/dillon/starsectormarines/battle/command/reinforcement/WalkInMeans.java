@@ -59,6 +59,13 @@ public final class WalkInMeans implements ReinforcementMeans {
      */
     public static final int SQUAD_SIZE = 3;
 
+    /**
+     * How much longer a march across a built-up map is than the straight line
+     * it covers. Infantry go round the blocks between the rear edge and the
+     * rally like everyone else.
+     */
+    private static final float FOOT_DETOUR = 1.35f;
+
     /** Manhattan radius from the rally to look for a compound-kind tactical node to anchor on. Tight — the rally hint already points at a meaningful cell, so we shouldn't drift far. */
     private static final int RALLY_NODE_SEARCH_RADIUS = 6;
 
@@ -94,6 +101,26 @@ public final class WalkInMeans implements ReinforcementMeans {
             return false;
         }
         return pickPrimaryCell(sim, req) != null;
+    }
+
+    /**
+     * How long the march takes: from the rear-edge cell these people come on
+     * at, to the rally, on foot.
+     *
+     * <p>Always the slowest of the installed means over any real distance,
+     * which is the honest reason it reads as the floor. It is not selected
+     * because it is registered last — it is selected when nothing else can
+     * deliver at all, and it is chosen on merit when the position needing
+     * force is close enough to the rear that walking there is simply quickest.
+     */
+    @Override
+    public float arrivalSeconds(BattleView sim, ReinforcementRequest req) {
+        int[] primary = pickPrimaryCell(sim, req);
+        if (primary == null) return Float.MAX_VALUE;
+        float dx = primary[0] - req.rallyX;
+        float dy = primary[1] - req.rallyY;
+        float march = (float) Math.sqrt(dx * dx + dy * dy) * FOOT_DETOUR;
+        return march / Math.max(0.1f, UnitType.MARINE.moveSpeed);
     }
 
     @Override
