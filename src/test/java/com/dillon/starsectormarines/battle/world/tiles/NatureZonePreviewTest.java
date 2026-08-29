@@ -320,11 +320,11 @@ public class NatureZonePreviewTest {
         TileDef[] plantPool = {
                 reg.tile("nature.shrub-1"), reg.tile("nature.shrub-2"),
                 reg.tile("nature.tuft-1"),  reg.tile("nature.tuft-2"),
-                reg.tile("nature.shrub-3"),
+                reg.tile("nature.shrub-3"), reg.tile("nature.tuft-3"),
         };
         // Rock overlays — valid on any non-water surface.
         TileDef[] rockPool = {
-                reg.tile("nature.rock-small-1"), reg.tile("nature.rock-small-2"), reg.tile("nature.rock-small-3"),
+                reg.tile("nature.rock-small-1"), reg.tile("nature.rock-small-2"),
                 reg.tile("nature.rock-medium-1"), reg.tile("nature.rock-medium-2"),
                 reg.tile("nature.rock-large-1"),  reg.tile("nature.rock-large-2"),
         };

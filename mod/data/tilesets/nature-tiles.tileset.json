@@ -111,8 +111,19 @@
       ]
     },
     {
-      "description": "MISLABELLED: this frame is a sixth plant, a tall grass tuft, not a rock. The sheet carries six plants and seven rock groups; the tileset was written for five and eight, so every id from this frame on names the picture before it. The id is live in three rockPool entries of urban.mapping.json, which is why it is recorded here rather than quietly corrected: renaming it is a content change with its own review, not a re-export.",
+      "description": "tall wild grass tuft \u2014 the sheet\u2019s sixth plant. It sat in the rock range and was scattered as a rock until 2026-08-29; the prompt asked for five plants and eight rock groups and the art came back with six and seven.",
       "frame": 12,
+      "id": "nature.tuft-3",
+      "layer": "plant",
+      "name": "grass-tuft-tall",
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
+      ]
+    },
+    {
+      "description": "three separate pebbles, widely scattered \u2014 one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
+      "frame": 13,
       "id": "nature.rock-small-1",
       "layer": "rock",
       "name": "rocks-small",
@@ -123,23 +134,11 @@
       ]
     },
     {
-      "description": "three separate pebbles, widely scattered \u2014 one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
-      "frame": 13,
+      "description": "three small stones, one larger \u2014 a tighter scatter than rock-small-1",
+      "frame": 14,
       "id": "nature.rock-small-2",
       "layer": "rock",
       "name": "rocks-small-2",
-      "validOn": [
-        "layer:ground",
-        "!nature.water-1",
-        "!nature.water-2"
-      ]
-    },
-    {
-      "description": "three small stones, one larger \u2014 a tighter scatter than rock-small-2",
-      "frame": 14,
-      "id": "nature.rock-small-3",
-      "layer": "rock",
-      "name": "rocks-small-3",
       "validOn": [
         "layer:ground",
         "!nature.water-1",

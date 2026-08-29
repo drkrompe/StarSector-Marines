@@ -72,8 +72,8 @@ class NatureTilesStripPackingTest {
             "nature.grass-1", "nature.grass-2", "nature.dirt-1", "nature.dirt-2",
             "nature.sand", "nature.water-1", "nature.water-2",
             "nature.shrub-1", "nature.shrub-2", "nature.tuft-1", "nature.tuft-2",
-            "nature.shrub-3",
-            "nature.rock-small-1", "nature.rock-small-2", "nature.rock-small-3",
+            "nature.shrub-3", "nature.tuft-3",
+            "nature.rock-small-1", "nature.rock-small-2",
             "nature.rock-medium-1", "nature.rock-medium-2",
             "nature.rock-large-1", "nature.rock-large-2", "nature.rock-large-3");
 
