@@ -66,6 +66,17 @@ public final class Shift {
     /** How far apart in the loop two consecutive members start. */
     private static final float PHASE_STEP = 1.7f;
 
+    /**
+     * How many places a circuit job reaches for.
+     *
+     * <p>A bound rather than a target: a ship with three machinery spaces has a
+     * three-stop repair round, and that is correct. What it stops is a patrol of
+     * a hundred and nineteen compartments — a rotation nobody completes, whose
+     * walker is permanently in a passage, which is the shape this whole model
+     * exists to avoid, arrived at by being too thorough.
+     */
+    private static final int CIRCUIT_STOPS = 6;
+
     private final CrewRole role;
     private final JobSite base;
     private final List<JobSite> sites;
@@ -76,6 +87,44 @@ public final class Shift {
 
     /** One job, and the site whose claim group it belongs to. */
     private record Placed(FixtureTask task, JobSite site) {}
+
+    /**
+     * A circuit's legs: one stop per <em>site</em>, not per fixture.
+     *
+     * <p>A claim group is a site and an affordance together, so four defects in
+     * one machinery space are four places in one group. Emitting a stop for each
+     * of them puts four consecutive stops on the same group, and the claim
+     * service hands back the claim already held for it — so the walker
+     * &quot;moves&quot; to a destination they are standing on, arrives at once,
+     * and works the same defect four times over. A round is a round of the
+     * ship, and the compartment is the unit of it.
+     *
+     * <p>Which defect within a compartment is still the member's own, so two
+     * technicians sent to the same space do not both make for the same machine.
+     * The claim service would separate them anyway; starting them apart means it
+     * does not have to.
+     */
+    private static List<Placed> oneLegPerSite(List<Placed> places, int index) {
+        Map<Integer, List<Placed>> bySite = new LinkedHashMap<>();
+        for (Placed placed : places) {
+            bySite.computeIfAbsent(placed.site().id(), key -> new ArrayList<>()).add(placed);
+        }
+        List<Placed> legs = new ArrayList<>(bySite.size());
+        for (List<Placed> atSite : bySite.values()) {
+            legs.add(atSite.get(Math.floorMod(index, atSite.size())));
+        }
+        return legs;
+    }
+
+    /** One authored job as a stop on somebody's route. */
+    private static AmbientTaskRoute.Stop stopAt(Placed placed, Affordance job) {
+        FixtureTask task = placed.task();
+        return new AmbientTaskRoute.Stop(
+                task.cellX() + 0.5f, task.cellY() + 0.5f,
+                CrewRole.dwellFor(job), CrewRole.activityFor(job),
+                task.fixtureX() + 0.5f, task.fixtureY() + 0.5f,
+                JobBoard.group(placed.site().id(), job));
+    }
 
     private Shift(CrewRole role, List<JobSite> sites, AmbientThreatPolicy threatPolicy,
                   Map<Affordance, List<Placed>> byJob, List<Affordance> order, boolean spans) {
@@ -116,19 +165,13 @@ public final class Shift {
         sites.add(posted);
         if (candidates != null) {
             for (Affordance job : role.jobs()) {
-                if (offers(posted, role, job, authored, berthed)) continue;
-                JobSite nearest = null;
-                long best = Long.MAX_VALUE;
-                for (JobSite candidate : candidates) {
-                    if (candidate.id() == posted.id()) continue;
-                    if (!offers(candidate, role, job, authored, berthed)) continue;
-                    long span = distanceSquared(posted, candidate);
-                    if (span < best) {
-                        best = span;
-                        nearest = candidate;
-                    }
-                }
-                if (nearest != null && !sites.contains(nearest)) sites.add(nearest);
+                // A circuit reaches for several places whether or not the
+                // posting itself offers the job: a round that stopped at the
+                // door of the room it started in is not a round.
+                int wanted = CrewRole.isCircuit(job) ? CIRCUIT_STOPS
+                        : offers(posted, role, job, authored, berthed) ? 0 : 1;
+                addNearest(sites, candidates, posted, role, job,
+                        authored, berthed, wanted);
             }
         }
         return of(role, sites, authored, berthed, threatPolicy);
@@ -179,6 +222,36 @@ public final class Shift {
         Affordance trade = role.trade();
         if (trade != null) return offers(posted, role, trade, authored, berthed);
         return posted.purpose() == role.quarters();
+    }
+
+    /**
+     * Take on the nearest {@code wanted} sites offering this job that the shift
+     * has not already got.
+     *
+     * <p>Ordered by distance from the <em>posting</em> rather than from the last
+     * site taken, because the question is which places somebody stationed here
+     * would actually reach. Chaining nearest-to-the-last would let a round walk
+     * itself across the hull one compartment at a time and never come back.
+     */
+    private static void addNearest(List<JobSite> sites, List<? extends JobSite> candidates,
+                                   JobSite posted, CrewRole role, Affordance job,
+                                   List<FixtureTask> authored, boolean[] berthed,
+                                   int wanted) {
+        for (int taken = 0; taken < wanted; taken++) {
+            JobSite nearest = null;
+            long best = Long.MAX_VALUE;
+            for (JobSite candidate : candidates) {
+                if (candidate.id() == posted.id() || sites.contains(candidate)) continue;
+                if (!offers(candidate, role, job, authored, berthed)) continue;
+                long span = distanceSquared(posted, candidate);
+                if (span < best) {
+                    best = span;
+                    nearest = candidate;
+                }
+            }
+            if (nearest == null) return;
+            sites.add(nearest);
+        }
     }
 
     /** Whether this site has a live job of that kind, and it is this role's. */
@@ -292,6 +365,10 @@ public final class Shift {
         if (CrewRole.isBerthing(base.purpose())) return atBase(Affordance.REST);
         int fewest = Integer.MAX_VALUE;
         for (Affordance job : order) {
+            // A circuit is contended by the whole ship and satisfied anywhere on
+            // it, so counting the one rounds point in this room would cap the
+            // compartment at a single hand.
+            if (CrewRole.isCircuit(job)) continue;
             int here = atBase(job);
             if (here > 0) fewest = Math.min(fewest, here);
         }
@@ -322,13 +399,16 @@ public final class Shift {
         for (int step = 0; step < order.size(); step++) {
             Affordance job = order.get((start + step) % order.size());
             List<Placed> places = byJob.get(job);
-            Placed placed = places.get(Math.floorMod(index, places.size()));
-            FixtureTask task = placed.task();
-            stops.add(new AmbientTaskRoute.Stop(
-                    task.cellX() + 0.5f, task.cellY() + 0.5f,
-                    CrewRole.dwellFor(job), CrewRole.activityFor(job),
-                    task.fixtureX() + 0.5f, task.fixtureY() + 0.5f,
-                    JobBoard.group(placed.site().id(), job)));
+            if (CrewRole.isCircuit(job)) {
+                // Every place it reaches, in one turn of the rotation, offset
+                // per member so two walkers on the same round are not in step.
+                List<Placed> legs = oneLegPerSite(places, index);
+                for (int leg = 0; leg < legs.size(); leg++) {
+                    stops.add(stopAt(legs.get(Math.floorMod(index + leg, legs.size())), job));
+                }
+            } else {
+                stops.add(stopAt(places.get(Math.floorMod(index, places.size())), job));
+            }
         }
         String id = role.name().toLowerCase(Locale.ROOT) + "-" + base.id() + "-" + index;
         return new AmbientTaskRoute(id, index * PHASE_STEP, WALK_SPEED,

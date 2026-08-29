@@ -34,6 +34,21 @@ import java.util.List;
  * leaves those cells clear. The machines themselves are units, not scenery, so
  * whoever hosts the deck fills the berths from a roster: the player's own lance
  * when this bay is their lab, somebody else's when the deck is a prize.
+ *
+ * <p><b>A mech bay is the busiest compartment aboard, and its work is of
+ * several kinds.</b> A berthed machine is serviced from five distinct positions rather
+ * than one, because panels come off along both flanks and somebody is at its
+ * head as well as under it. The gaps between bays are the bay's stores, worked
+ * down a single-file aisle: stowage at the stacks, and a tally taken at the
+ * terminal where each run begins. The shop at the end makes and counts. And a
+ * deterministic slice of the bay's own equipment — a gantry rail, the shop's
+ * plant — carries a defect list, which is what takes a hand to a corner nobody
+ * otherwise had a reason to visit.
+ *
+ * <p>All of it is bounded by the room, not by a number written here. Bays are
+ * laid while the length allows, stores fill the gaps those bays leave, and the
+ * shop works whatever depth it is given — so a longer compartment is a busier
+ * one for the same reason it services more machines.
  */
 public final class VehicleBayFitting implements RoomFitting {
 
@@ -49,6 +64,37 @@ public final class VehicleBayFitting implements RoomFitting {
     public static final int SHOP_WIDTH = 7;
     /** Cells of bulkhead a doorway may take, which is what a machine needs to pass. */
     private static final int DOORWAY = 2;
+    /**
+     * Shallowest bay that can carry a working gap amidships in its gantry runs.
+     *
+     * <p>Below this the gap would be against either the head or the mouth, and
+     * an access platform a stride from one somebody already has is not a second
+     * place to work — it is the same place, published twice.
+     */
+    private static final int MIN_WAIST_DEPTH = 5;
+    /** A bay too shallow to open a waist in its frame runs. */
+    private static final int NO_WAIST = Integer.MIN_VALUE;
+    /** Cells between one stores job and the next down a gap's aisle. */
+    private static final int STORES_PITCH = 2;
+    /**
+     * Which of the bay's own equipment stands on the defect list, as a stride
+     * over the order it is laid in.
+     *
+     * <p>A stride rather than a draw. Generation is reproducible from its seed
+     * and a fitting holds no random source at all, so a list picked by an
+     * unseeded roll would give the same room a different set of snags every time
+     * it was built — and the one thing a defect has to do is still be there when
+     * somebody walks back to it. Laying order is stable geometry, so this is
+     * stable too.
+     *
+     * <p>The list falls on gear that affords nothing else: a gantry rail, and
+     * the shop's plant. That is deliberate rather than convenient. A defect is
+     * what takes a hand to a corner of the bay nobody otherwise had a reason to
+     * visit, and one written over a bench's routine work would move a job rather
+     * than add one.
+     */
+    private static final int DEFECT_STRIDE = 3;
+    private static final int DEFECT_PHASE = 1;
     /**
      * Cells at the forward end kept as the vestibule: the athwartships run that
      * joins the bay's two doors to each other and to the service lane.
@@ -80,15 +126,14 @@ public final class VehicleBayFitting implements RoomFitting {
     private static final String[] FLOOR_FIELD = { "doodad.fl-grate-1", "doodad.fl-grate-2" };
 
     /**
-     * The gantry frame down each side of a bay, and the clutter that collects
-     * between bays.
+     * The gantry frame down each side of a bay.
      *
      * <p>A bay is framed, not decorated. Scattering single tools down its sides
      * read as props left lying about; what a servicing bay actually has is
-     * continuous structure the machine stands inside, with the loose gear —
-     * drums, reels, spoil — pushed into the gaps between bays where it is out of
-     * the way. Fence runs are the closest thing in the registry to a gantry rail
-     * seen from above, and they read as one because they are unbroken.
+     * continuous structure the machine stands inside. Fence runs are the closest
+     * thing in the registry to a gantry rail seen from above, and they read as
+     * one because they run: the two breaks in each are the ways into the frame
+     * rather than places the drawing gave up.
      */
     private static final String FRAME_ALONG_X = "doodad.industrial-fence-straight-h";
     private static final String FRAME_ALONG_Y = "doodad.industrial-fence-straight-v";
@@ -109,13 +154,27 @@ public final class VehicleBayFitting implements RoomFitting {
             Affordance.FABRICATE,
             Affordance.READOUT };
 
-    /** Loose gear, pushed into the gaps between bays. */
-    private static final String[] BAY_CLUTTER = {
+    /**
+     * The bay's stores, stacked down both sides of the gap between one bay and
+     * the next.
+     *
+     * <p>Stock and loose gear in one list, because that is what the gap holds:
+     * the pallet that came aboard with the last consignment stands next to the
+     * cable reel nobody has put away, and telling one from the other is the work
+     * rather than the premise.
+     */
+    private static final String[] GAP_STORES = {
+            "doodad.industrial-crate-stack",
             "doodad.industrial-drum-cluster",
+            "doodad.industrial-pallet-stack",
             "doodad.industrial-cable-reel",
+            "doodad.industrial-dumpster",
             "doodad.industrial-scrap-pile",
-            "doodad.industrial-pipe-bundle",
-            "doodad.industrial-pallet-stack" };
+            "doodad.box",
+            "doodad.industrial-pipe-bundle" };
+
+    /** The terminal a run of stores is tallied against, at its outboard end. */
+    private static final String GAP_TALLY = "doodad.industrial-control-console";
 
     /** The fab shop: benches, stock, and the console that runs it. */
     private static final String[] SHOP = {
@@ -128,7 +187,20 @@ public final class VehicleBayFitting implements RoomFitting {
             "doodad.office-server-rack",
             "doodad.industrial-generator" };
 
-    /** What each of those is for, in the same order. Plant is not a workplace. */
+    /**
+     * What each of those is for, in the same order.
+     *
+     * <p>Plant is not a workplace: a generator and a fluid tank are the shop's
+     * services rather than its benches, and routine work published at them would
+     * station somebody at the wall. They earn their keep on the defect list
+     * instead, which is the one thing that does take a hand to them.
+     *
+     * <p>Everything else is somebody's, and the two kinds of somebody are kept
+     * apart on purpose. Stowage is handling — a pallet broken down, a rack
+     * restowed, a part walked from one stack to the next — and a readout is
+     * counting, taken off a terminal with no hand laid on the stock. A shop that
+     * published only the first has stores nobody has ever inventoried.
+     */
     private static final Affordance[] SHOP_WORK = {
             Affordance.READOUT,
             Affordance.FABRICATE,
@@ -136,7 +208,7 @@ public final class VehicleBayFitting implements RoomFitting {
             Affordance.STOW,
             null,
             Affordance.STOW,
-            null,
+            Affordance.READOUT,
             null };
 
     @Override
@@ -198,12 +270,13 @@ public final class VehicleBayFitting implements RoomFitting {
         reserve(floor, vestibule, laneFrom, bayLimit - vestibule, laneSpan);
 
         int cursor = vestibule;
+        int bay = 0;
         while (cursor + BAY_WIDTH <= bayLimit) {
-            layBay(floor, cursor, 0, bayDepth, true);
+            layBay(floor, cursor, 0, bayDepth, true, bay++);
             if (facingRanks) {
-                layBay(floor, cursor, across - bayDepth, bayDepth, false);
+                layBay(floor, cursor, across - bayDepth, bayDepth, false, bay++);
             }
-            layClutter(floor, cursor + BAY_WIDTH, across, bayDepth, facingRanks);
+            layStores(floor, cursor + BAY_WIDTH, bayLimit, across, bayDepth, facingRanks);
             cursor += BAY_WIDTH + BAY_GAP;
         }
 
@@ -249,7 +322,7 @@ public final class VehicleBayFitting implements RoomFitting {
      * the bay was left as painted floor.
      */
     private void layBay(RoomFloor floor,
-                        int origin, int band, int depth, boolean headOutboard) {
+                        int origin, int band, int depth, boolean headOutboard, int bay) {
         mark(floor, origin, band, BAY_WIDTH, depth);
         paveBay(floor, origin, band, depth);
 
@@ -258,6 +331,9 @@ public final class VehicleBayFitting implements RoomFitting {
         int berthFrom = headOutboard ? band + 1 : band;
         int berth = berth(floor, origin + 1, berthFrom,
                 BAY_WIDTH - 2, depth - 1, headOutboard);
+        int waist = depth >= MIN_WAIST_DEPTH
+                ? head + (headOutboard ? depth / 2 : -(depth / 2))
+                : NO_WAIST;
 
         // The station sits at the head of the bay, against the outer bulkhead,
         // so it never stands between the machine and the lane it leaves by.
@@ -266,23 +342,29 @@ public final class VehicleBayFitting implements RoomFitting {
                     BAY_STATION_WORK[i]);
         }
 
-        layFrame(floor, origin, band, depth, head, mouth, true);
-        layFrame(floor, origin + BAY_WIDTH - 1, band, depth, head, mouth, false);
-        layService(floor, origin, mouth, head, berth);
+        layFrame(floor, origin, band, depth, head, mouth, waist, true);
+        layFrame(floor, origin + BAY_WIDTH - 1, band, depth, head, mouth, waist, false);
+        layService(floor, origin, mouth, head, waist, berth,
+                bay % DEFECT_STRIDE == DEFECT_PHASE);
     }
 
     /**
-     * The gantry frame down one working column of a bay, stopping a cell short
-     * of the mouth.
+     * The gantry frame down one working column of a bay, broken at the mouth and
+     * again at the waist.
      *
-     * <p>Unbroken is the whole point. A run of separate tools down the side of a
-     * bay reads as clutter; a continuous rail reads as structure the machine is
-     * standing inside. The cell left open at the mouth is the shoulder a
-     * technician comes in at, which is the one thing an unbroken run would take
-     * away.
+     * <p>Continuous is still the point. A run of separate tools down the side of
+     * a bay reads as clutter; a rail broken twice in seven cells reads as
+     * structure the machine is standing inside, with the two ways into it a
+     * frame has to have.
+     *
+     * <p>Both breaks are places to work rather than gaps in the drawing. The
+     * mouth is the shoulder a technician comes in at; the waist is the access
+     * platform amidships, and it is what lets a machine be worked on by more
+     * than the two people its mouth admits.
      */
     private void layFrame(RoomFloor floor, int column,
-                          int band, int depth, int head, int mouth, boolean nearSide) {
+                          int band, int depth, int head, int mouth, int waist,
+                          boolean nearSide) {
         // The run is drawn in deck space, so the sprite has to be chosen there
         // too: a rail authored running fore-and-aft is athwartships once the
         // room is turned, and a compass-named piece cannot be turned with it.
@@ -290,7 +372,7 @@ public final class VehicleBayFitting implements RoomFitting {
         String straight = run[0] != 0 ? FRAME_ALONG_X : FRAME_ALONG_Y;
         for (int step = 0; step < depth; step++) {
             int across = band + step;
-            if (across == mouth) continue;
+            if (across == mouth || across == waist) continue;
             place(floor, column, across,
                     across == head ? corner(floor, nearSide, head < mouth) : straight);
         }
@@ -308,21 +390,54 @@ public final class VehicleBayFitting implements RoomFitting {
     }
 
     /**
-     * Where a technician stands to work on the machine in this bay: the two
-     * shoulders at the mouth, either side of it.
+     * Every place a technician stands to work on the machine in this bay: the
+     * two shoulders at the mouth, the two access platforms at the waist, and the
+     * spare cell across the head from the station.
      *
-     * <p>Bound to the berth rather than to the cell, because the work only
-     * exists while something is parked there. An empty bay is somewhere to walk
-     * through, not somewhere to weld.
+     * <p>All of it bound to the berth rather than to the cell, because the work
+     * only exists while something is parked there. That has to stay true however
+     * many positions a bay gains, or an empty bay reads as five people welding
+     * air.
+     *
+     * <p>Five positions rather than one because a berthed walker is not one job.
+     * Panels come off along both flanks, a fitter goes underneath from the
+     * mouth, and somebody is at its head where the station is. They are distinct
+     * places at distinct parts of the machine, which is the difference between
+     * more work and the same work counted again — and a bay that published a
+     * single point had a rank of gantries with room for two people in it.
      */
-    private void layService(RoomFloor floor,
-                            int origin, int mouth, int head, int berth) {
+    private void layService(RoomFloor floor, int origin,
+                            int mouth, int head, int waist, int berth, boolean defect) {
         int inboard = mouth < head ? mouth + 1 : mouth - 1;
         for (int column : new int[]{ origin, origin + BAY_WIDTH - 1 }) {
-            int[] stand = floor.toLocal(column, mouth);
-            int[] frame = floor.toLocal(column, inboard);
-            floor.berthFixtureTask(stand[0], stand[1], berth, frame[0], frame[1]);
+            berthTask(floor, column, mouth, berth, column, inboard);
         }
+
+        // Across the head from the station, where the machine's front is. The
+        // station takes the cells beside the frame corner, so a wider station
+        // simply leaves nothing here rather than standing somebody on itself.
+        int spare = origin + 1 + BAY_STATION.length;
+        if (spare <= origin + BAY_WIDTH - 2) {
+            berthTask(floor, spare, head, berth, spare, head + Integer.signum(mouth - head));
+        }
+
+        if (waist == NO_WAIST) return;
+        berthTask(floor, origin + BAY_WIDTH - 1, waist, berth, origin + BAY_WIDTH - 2, waist);
+        berthTask(floor, origin, waist, berth, origin + 1, waist);
+        if (!defect) return;
+
+        // The snag on this bay's port rail, stood at from inside the bay beside
+        // it and published against the frame rather than against the berth: a
+        // defect does not clear itself when the walker drives out.
+        //
+        // Added rather than substituted, and that is the whole reason it is not
+        // simply written over one of the service positions. Every berth aboard
+        // is worked from the same number of places, so a bay filling up moves
+        // the ship's servicing work one berth at a time - and a berth that
+        // quietly offered one position fewer because it had drawn a defect would
+        // make that arithmetic untrue in a way nobody could see from the deck.
+        int rail = waist + Integer.signum(head - waist);
+        task(floor, origin + 1, rail, Affordance.REPAIR, origin, rail);
     }
 
     /**
@@ -362,36 +477,88 @@ public final class VehicleBayFitting implements RoomFitting {
     }
 
     /**
-     * Loose gear in the gap between one bay and the next, clear of the lane.
+     * The gap between one bay and the next, worked as the bay's stores: stacks
+     * down both sides of a single-file aisle running from the outer bulkhead in
+     * to the service lane.
      *
-     * <p>Scenery, deliberately: the gap is where what nobody has dealt with yet
-     * gets pushed, and it is packed tightly enough that somewhere to stand in it
-     * would be walled in by the next drum. Stores worth handling live in the
-     * shop, where there is room to carry a part from one stack to another.
+     * <p>The gap used to be scenery, and the reason given was that it was packed
+     * tightly enough that anywhere to stand in it would be walled in by the next
+     * drum. That was true of the packing rather than of the gap. Opening one file
+     * down the middle costs a third of the stock and buys what the stock was
+     * missing: somewhere to stand between two stacks, which is the whole
+     * difference between stores and texture.
+     *
+     * <p>The aisle is reserved before anything is stacked and meets the service
+     * lane at the inboard end of each run, so it is circulation as well as a
+     * workplace. A stores lane that dead-ended would be a pocket the fill had to
+     * be lucky to leave reachable.
+     *
+     * <p>Two jobs at two kinds of fixture, because they are two jobs. The tally
+     * is taken at a terminal against the outer bulkhead where a run starts; the
+     * handling is at the stacks along it, and it alternates sides so a part is
+     * carried across the aisle rather than set down where it was picked up. Work
+     * goes at a pitch rather than at every stack, which leaves every other cell
+     * of a one-cell aisle clear for somebody to get past whoever is already
+     * working in it.
      */
-    private void layClutter(RoomFloor floor,
-                            int from, int across, int bayDepth, boolean facingRanks) {
+    private void layStores(RoomFloor floor, int from, int limit,
+                           int across, int bayDepth, boolean facingRanks) {
+        int width = Math.min(BAY_GAP, limit - from);
+        if (width <= 0) return;
+        if (width < 3) {
+            // Too narrow to stack either side of an aisle. Left as lane rather
+            // than packed with stock, because a remainder nobody can work is
+            // deck the service lane may as well have.
+            reserve(floor, from, 0, width, across);
+            return;
+        }
+
+        int aisle = from + width / 2;
+        reserve(floor, aisle, 0, 1, across);
+
+        // Seeded off the gap's own column, so two gaps do not stack identical
+        // stock in identical order and the same gap stacks the same way every
+        // time this room is built.
         int index = from;
-        for (int offset = 0; offset < BAY_GAP; offset++) {
-            for (int step = 0; step < bayDepth; step += 3) {
-                place(floor, from + offset, step,
-                        BAY_CLUTTER[index++ % BAY_CLUTTER.length]);
-                if (facingRanks) {
-                    place(floor, from + offset, across - 1 - step,
-                            BAY_CLUTTER[index++ % BAY_CLUTTER.length]);
+        int ranks = facingRanks ? 2 : 1;
+        for (int rank = 0; rank < ranks; rank++) {
+            for (int step = 0; step < bayDepth; step++) {
+                int row = rank == 0 ? step : across - 1 - step;
+                boolean outboard = step == 0;
+                for (int column = from; column < from + width; column++) {
+                    if (column == aisle) continue;
+                    place(floor, column, row,
+                            outboard && column < aisle
+                                    ? GAP_TALLY
+                                    : GAP_STORES[index++ % GAP_STORES.length]);
+                }
+                if (outboard) {
+                    task(floor, aisle, row, Affordance.READOUT, aisle - 1, row);
+                } else if (step % STORES_PITCH == 0) {
+                    int flank = (step / STORES_PITCH) % 2 == 0 ? aisle - 1 : aisle + 1;
+                    task(floor, aisle, row, Affordance.STOW, flank, row);
                 }
             }
         }
     }
 
-    /** The workshop at one end, worked densely because it is where the work happens. */
+    /**
+     * The workshop at one end, worked densely because it is where the work
+     * happens, and carrying the half of the bay's defect list that is not a
+     * gantry.
+     */
     private void layShop(RoomFloor floor,
                          int from, int along, int across) {
         int index = 0;
+        int plant = 0;
         for (int offset = from; offset < along; offset += 2) {
             for (int depth = 0; depth < across; depth += 2) {
                 int pick = index++ % SHOP.length;
-                place(floor, offset, depth, SHOP[pick], SHOP_WORK[pick]);
+                Affordance work = SHOP_WORK[pick];
+                if (work == null && plant++ % DEFECT_STRIDE == DEFECT_PHASE) {
+                    work = Affordance.REPAIR;
+                }
+                place(floor, offset, depth, SHOP[pick], work);
             }
         }
     }
@@ -411,6 +578,22 @@ public final class VehicleBayFitting implements RoomFitting {
         }
         int[] cell = floor.toLocal(along, across);
         floor.place(id, cell[0], cell[1], affordance);
+    }
+
+    /** Work at a cell this arrangement chose itself, authored canonically. */
+    private void task(RoomFloor floor, int cellAlong, int cellAcross,
+                      Affordance affordance, int fixtureAlong, int fixtureAcross) {
+        int[] stand = floor.toLocal(cellAlong, cellAcross);
+        int[] fixture = floor.toLocal(fixtureAlong, fixtureAcross);
+        floor.fixtureTask(stand[0], stand[1], affordance, fixture[0], fixture[1]);
+    }
+
+    /** The same, for work done on whatever is parked in {@code berth}. */
+    private void berthTask(RoomFloor floor, int cellAlong, int cellAcross,
+                           int berth, int fixtureAlong, int fixtureAcross) {
+        int[] stand = floor.toLocal(cellAlong, cellAcross);
+        int[] fixture = floor.toLocal(fixtureAlong, fixtureAcross);
+        floor.berthFixtureTask(stand[0], stand[1], berth, fixture[0], fixture[1]);
     }
 
     private void reserve(RoomFloor floor,

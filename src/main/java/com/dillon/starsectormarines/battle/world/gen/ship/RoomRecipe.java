@@ -209,6 +209,30 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
             RoomPurpose.LOADING_BAY, RoomShape.rectangle(18, 12), DeckZone.AFT, 200);
 
     /**
+     * The crew lounge: somewhere to be that is not a bunk, a mess table or a
+     * work station.
+     *
+     * <p>Amidships and sized from the whole complement, because everybody
+     * aboard uses it and a passenger has more need of it than a rating does.
+     * The berthing story asked for a lounge inside a berth compartment and the
+     * answer came back that eight by six holds two ranks of racks and the
+     * passage between them and nothing else — so it is a room of its own, which
+     * is what a ship actually does.
+     */
+    public static final RoomRecipe LOUNGE = new RoomRecipe(
+            RoomPurpose.CREW_LOUNGE, RoomShape.rectangle(16, 12),
+            DeckZone.MIDSHIPS, 70);
+
+    /**
+     * The gymnasium. Clear deck with the gear round the edges of it: what the
+     * room is for is the empty middle, which makes it a cousin of the range and
+     * the vehicle bay rather than of the mess.
+     */
+    public static final RoomRecipe GYM = new RoomRecipe(
+            RoomPurpose.GYMNASIUM, RoomShape.rectangle(14, 10),
+            DeckZone.MIDSHIPS, 90);
+
+    /**
      * The small rooms that exist because the packing left somewhere to put
      * them: lockers, cable trunks, a pump room, a spares cage. They have no
      * zone, are never owed by the program, and are fitted last into whatever
