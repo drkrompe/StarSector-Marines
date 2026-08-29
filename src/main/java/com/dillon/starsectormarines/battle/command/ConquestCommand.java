@@ -422,6 +422,27 @@ public final class ConquestCommand implements ConquestFrontCommand,
                         directives.put(squad.id, planned);
                         continue;
                     }
+                    TrackStage attack = !finalCompoundConvergence
+                            ? laneAttackChoice(squad, preferredTrack, frame)
+                            : null;
+                    if (attack != null) {
+                        ObjectiveAssignment cur = squad.assignedObjective;
+                        if (cur == null
+                                || cur.kind() != AssignmentKind.ATTACK_MOVE
+                                || cur.targetCellX() != attack.cellX()
+                                || cur.targetCellY() != attack.cellY()) {
+                            squad.assignedObjective = ObjectiveAssignment.attackMove(
+                                    squad.id, attack.cellX(), attack.cellY());
+                        }
+                        SquadDirective planned = directive(squad,
+                                preferredTrack, attack.trackIndex(),
+                                AssignmentReason.TRACK_LINE_ATTACK);
+                        if (deferredCaptures.contains(squad.id)) {
+                            planned = planned.withDistantCaptureDeferred();
+                        }
+                        directives.put(squad.id, planned);
+                        continue;
+                    }
                     squad.assignedObjective = null;
                     SquadDirective planned = directive(squad, preferredTrack,
                             preferredTrack,
@@ -960,7 +981,33 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     private TrackStage laneStageChoice(PlanningSquad squad, int track,
                                        ConquestCommandFrame frame) {
-        if (squad.localContact || track < 0 || track >= STRIP_COUNT) return null;
+        if (squad.localContact) return null;
+        return laneForwardChoice(squad, track, frame, false);
+    }
+
+    /**
+     * The in-contact half of the same lane derivation. A squad already fighting
+     * on its track used to receive nothing at all — the stage refuses local
+     * contact, so the pulse fell through to NO_ACTIONABLE_TRACK_TARGET and the
+     * squad kept only whatever the engagement goals decided for themselves.
+     * That is the single largest source of command-unassigned pulses in the
+     * Conquest evidence, and it is not idleness: it is the commander declining
+     * to say anything to the squads doing the actual fighting.
+     *
+     * <p>An attack move is what it should have been saying. The destination is
+     * derived the same way, minus the standoff bound — a squad ordered to clear
+     * forward is not staging behind the frontier it is being sent through.
+     */
+    private TrackStage laneAttackChoice(PlanningSquad squad, int track,
+                                        ConquestCommandFrame frame) {
+        if (!squad.localContact) return null;
+        return laneForwardChoice(squad, track, frame, true);
+    }
+
+    private TrackStage laneForwardChoice(PlanningSquad squad, int track,
+                                         ConquestCommandFrame frame,
+                                         boolean attacking) {
+        if (track < 0 || track >= STRIP_COUNT) return null;
         CommanderInfluenceSnapshot influence = frame.influence();
         if (influence == null) return null;
 
@@ -986,7 +1033,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         int squadForward = Math.round(trackLayout.forwardCoordinate(
                 squad.centroidX, squad.centroidY));
         int friendlyLead = friendlyLeadForward(track, squadForward, frame);
-        int safeFront = nearestHostileForward == Integer.MAX_VALUE
+        int safeFront = attacking || nearestHostileForward == Integer.MAX_VALUE
                 ? Integer.MAX_VALUE
                 : nearestHostileForward - TRACK_LINE_STANDOFF_CELLS;
         int supportedFront = friendlyLead + TRACK_LINE_LEAD_CELLS;
@@ -1432,8 +1479,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     || reason == AssignmentReason.NO_ACTIONABLE_TRACK_TARGET) {
                 return CommandStabilityBreak.CONTEXT_INVALIDATED;
             }
-        } else if (old.kind() == AssignmentKind.ADVANCE_TRACK) {
-            if (reason != AssignmentReason.TRACK_LINE_ADVANCE) {
+        } else if (old.kind() == AssignmentKind.ADVANCE_TRACK
+                || old.kind() == AssignmentKind.ATTACK_MOVE) {
+            AssignmentReason keeps = old.kind() == AssignmentKind.ATTACK_MOVE
+                    ? AssignmentReason.TRACK_LINE_ATTACK
+                    : AssignmentReason.TRACK_LINE_ADVANCE;
+            if (reason != keeps) {
                 return CommandStabilityBreak.CONTEXT_INVALIDATED;
             }
             if (!frame.topology().inBounds(old.targetCellX(), old.targetCellY())

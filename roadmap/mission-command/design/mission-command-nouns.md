@@ -4,7 +4,9 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — made navigation-revision caching and commander-pulse
+Updated: 2026-08-29 — added the order mix: which orders a battle was actually
+made of, with unassigned pulses as a bucket rather than an omission.
+Earlier: made navigation-revision caching and commander-pulse
 performance evidence part of the shared command boundary.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
@@ -134,6 +136,22 @@ topology, source aggregation, and propagation publish their own refresh counts
 and costs; they may be triggered by command frame capture or tactical GOAP and
 must not be added to the enclosing phase. These are timing diagnostics, not
 commander facts, and never enter deterministic traces.
+
+An **order mix** is a perspective's published directives broken down by
+assignment kind, as squad-pulses and squad-ticks. It answers the one question
+the rest of the evidence cannot: not how well an order went, but which orders
+the battle was made of. Latency, churn, travel and capture all describe the
+fate of a directive already issued, and two runs that play nothing alike — one
+that is nine-tenths compound capture, one that is nine-tenths lane fighting —
+score similarly on every one of them.
+
+Pulses with no published assignment are a bucket in the mix rather than an
+omission, so the shares cover the whole and "the commander said nothing" is
+legible beside what it did say. That bucket is deliberately not a defect
+reading: a perspective whose force is mostly born garrisons and payload guards
+holds most of its squads outside the command pool by design, and the mix cannot
+currently tell that apart from a commander with nothing to say. Reading a large
+unassigned share as a fault requires checking pool ownership first.
 
 A **command trace** has perspective streams and a separately labelled neutral
 referee stream. Perspective events contain only published command facts.
