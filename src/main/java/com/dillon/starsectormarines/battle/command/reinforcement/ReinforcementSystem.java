@@ -6,11 +6,15 @@ import com.dillon.starsectormarines.battle.command.ResourceType;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 /**
  * Stateless-data per-tick driver for {@link ReinforcementService} — the
  * Services-own-state / Systems-process shape. On its slow-tick cadence it polls
  * every registered trigger, then drains the Service's request queue and
- * dispatches each request to the first means that can fulfill it.
+ * dispatches each request to the means that would answer it soonest.
  *
  * <p>A <b>System</b> (processor): it owns only the cadence {@link #accumulator}
  * (transient bookkeeping); the trigger/means registries and the pending queue
@@ -41,9 +45,9 @@ public final class ReinforcementSystem {
     /**
      * Slow-tick: accumulate {@code dt}, and when the cadence period elapses
      * poll every trigger, then drain the queue and dispatch each request to
-     * the first means that can fulfill it. Requests that no means can
-     * fulfill are logged as bugged-map diagnostics and dropped; requests no
-     * pool can pay for are re-queued for the next tick.
+     * the soonest-arriving means that can fulfill it. Requests that no means
+     * can fulfill are logged as bugged-map diagnostics and dropped; requests
+     * no pool can pay for are re-queued for the next tick.
      */
     public void tick(float dt, BattleControl sim) {
         if (service.triggers().isEmpty() && service.isPendingEmpty()) return;
@@ -62,6 +66,50 @@ public final class ReinforcementSystem {
         }
     }
 
+    /**
+     * The means that can serve this request, soonest-arriving first.
+     *
+     * <p>Every feasible means is asked when it would arrive and the whole set
+     * is ordered by the answer, rather than the registration order handing the
+     * request to the first one that merely said yes. A strict priority list
+     * makes everything below the top of it unreachable for as long as the top
+     * is feasible, which is not a fallback ladder but a single means with two
+     * spares: a garrison airfield measured on a production Conquest map flew
+     * nothing at all across a whole battle, because the convoy above it could
+     * always deliver and so was always asked.
+     *
+     * <p>Registration order survives as the tie-break, so means that would
+     * arrive together still resolve deterministically and in the order the
+     * battle installed them.
+     */
+    private List<ReinforcementMeans> soonestFirst(BattleControl sim,
+                                                  ReinforcementRequest req) {
+        List<ReinforcementMeans> all = service.means();
+        List<Candidate> feasible = new ArrayList<>(all.size());
+        for (int i = 0; i < all.size(); i++) {
+            ReinforcementMeans m = all.get(i);
+            if (!m.canFulfill(sim, req)) continue;
+            feasible.add(new Candidate(m, m.arrivalSeconds(sim, req), i));
+        }
+        feasible.sort(CANDIDATE_ORDER);
+        List<ReinforcementMeans> ordered = new ArrayList<>(feasible.size());
+        for (Candidate c : feasible) ordered.add(c.means);
+        return ordered;
+    }
+
+    /** One feasible means, when it says it would arrive, and where it was registered. */
+    private record Candidate(ReinforcementMeans means, float arrivalSeconds, int registered) { }
+
+    /**
+     * Soonest arrival first, registration order on a tie. A means that answers
+     * with a NaN sorts last rather than corrupting the order, because a
+     * comparator that is not a total order throws out of {@code List.sort}.
+     */
+    private static final Comparator<Candidate> CANDIDATE_ORDER =
+            Comparator.comparingDouble((Candidate c) ->
+                            Float.isNaN(c.arrivalSeconds) ? Float.MAX_VALUE : c.arrivalSeconds)
+                    .thenComparingInt(Candidate::registered);
+
     private boolean dispatch(BattleControl sim, ReinforcementRequest req) {
         float cost = resources.reinforcementCost();
         // Prepaid requests (the bulge counterattack's up-front earmark, see
@@ -72,20 +120,18 @@ public final class ReinforcementSystem {
         if (!req.prepaid && !resources.tryConsume(req.side, ResourceType.REINFORCEMENT, cost)) {
             return false;
         }
-        for (ReinforcementMeans m : service.means()) {
-            if (m.canFulfill(sim, req)) {
-                ReinforcementDispatchResult result = m.dispatch(sim, req);
-                if (result == ReinforcementDispatchResult.COMMITTED) {
-                    return true;
+        for (ReinforcementMeans m : soonestFirst(sim, req)) {
+            ReinforcementDispatchResult result = m.dispatch(sim, req);
+            if (result == ReinforcementDispatchResult.COMMITTED) {
+                return true;
+            }
+            if (result == ReinforcementDispatchResult.RETRYABLE) {
+                if (!req.prepaid) {
+                    resources.produce(req.side, ResourceType.REINFORCEMENT, cost);
                 }
-                if (result == ReinforcementDispatchResult.RETRYABLE) {
-                    if (!req.prepaid) {
-                        resources.produce(req.side, ResourceType.REINFORCEMENT, cost);
-                    }
-                    LOG.debug("reinforcement: retry deferred " + req + " after "
-                            + m.getClass().getSimpleName());
-                    return false;
-                }
+                LOG.debug("reinforcement: retry deferred " + req + " after "
+                        + m.getClass().getSimpleName());
+                return false;
             }
         }
         if (!req.prepaid) {

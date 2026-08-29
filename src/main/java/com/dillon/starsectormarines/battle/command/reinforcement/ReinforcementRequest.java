@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * A request for "more units" posted by a {@link ReinforcementTrigger} and
- * offered in priority order until a {@link ReinforcementMeans} commits it.
+ * offered to the feasible means in arrival order until one commits it.
  * See {@code reinforcement-nouns.md}.
  *
  * <p>Side capability: the request type can represent defenders or attackers,

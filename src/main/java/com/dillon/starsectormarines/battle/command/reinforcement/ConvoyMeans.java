@@ -48,6 +48,14 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private static final float PENDING_SEC = 6f;
     /** Cells the off-map staging waypoint sits beyond the perimeter — the truck visibly drives onto the map rather than popping in at the edge. */
     private static final float OFFMAP_PAD = 6f;
+    /**
+     * How much longer a drive is than the straight line it covers.
+     *
+     * <p>Roads bend round blocks and a truck takes the junctions that exist
+     * rather than the ones it would like. Used only to compare this means
+     * against the others, so it wants to be about right rather than exact.
+     */
+    private static final float ROAD_DETOUR = 1.4f;
     /** Minimum cell separation between a fresh dispatch's destination junction and any already-active convoy truck's LZ. Soft preference — route candidates degrade to overlap only after separated peers. */
     private static final int MIN_DEST_SEPARATION = 4;
     /** Max Chebyshev rings used to resolve an interior junction onto the vehicle-clearance mask. */
@@ -110,13 +118,45 @@ public final class ConvoyMeans implements ReinforcementMeans {
         return !graph.perimeterNodes().isEmpty();
     }
 
+    /**
+     * How long a truck takes to reach the drop: the drive in from the nearest
+     * eligible perimeter entry, plus the staging delay before it appears.
+     *
+     * <p>Estimated off a straight line rather than the real route, which is not
+     * a corner cut but the only affordable answer — proving a route is the
+     * expensive half of {@link #dispatch} and this runs on every request for
+     * every means. The straight line is scaled by {@link #ROAD_DETOUR} because
+     * a drive through a city never is one.
+     */
+    @Override
+    public float arrivalSeconds(BattleView sim, ReinforcementRequest req) {
+        DeliveryDeployment deployment = deploymentFor(req);
+        List<RoadGraph.Node> perimeter = deployment.strictDefenderRearEntry()
+                ? defenderRearPerimeter(graph.perimeterNodes(),
+                        sim.getGrid().getWidth(), sim.getGrid().getHeight())
+                : defenderSidePerimeter(graph.perimeterNodes(),
+                        sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        if (perimeter.isEmpty()) return Float.MAX_VALUE;
+        List<RoadGraph.Node> nearest = sortedByDistance(perimeter,
+                deployment.hintX(), deployment.hintY());
+        RoadGraph.Node entry = nearest.get(0);
+        float dx = entry.cellX - deployment.hintX();
+        float dy = entry.cellY - deployment.hintY();
+        float drive = (float) Math.sqrt(dx * dx + dy * dy) * ROAD_DETOUR;
+        return PENDING_SEC + drive / VehicleType.HEAVY_APC.maxSpeed;
+    }
+
+    /** This request's delivery terms, or the legacy ones on a battle with no commanding authority. */
+    private DeliveryDeployment deploymentFor(ReinforcementRequest req) {
+        if (deploymentPolicy == null) return DeliveryDeployment.legacy(req);
+        DeliveryDeployment deployment = deploymentPolicy.deploymentFor(req);
+        return deployment != null ? deployment : DeliveryDeployment.legacy(req);
+    }
+
     @Override
     public ReinforcementDispatchResult dispatch(BattleControl sim,
                                                 ReinforcementRequest req) {
-        DeliveryDeployment deployment = deploymentPolicy != null
-                ? deploymentPolicy.deploymentFor(req)
-                : DeliveryDeployment.legacy(req);
-        if (deployment == null) deployment = DeliveryDeployment.legacy(req);
+        DeliveryDeployment deployment = deploymentFor(req);
         int rx = deployment.hintX();
         int ry = deployment.hintY();
         int gw = sim.getGrid().getWidth();
