@@ -457,14 +457,14 @@ public final class BattleSetup {
     /** Drops a yellow-striped landing-pad doodad under each LZ cell so the touchdown reads as a deliberate landing on a marked pad. Lives on the road sheet, drawn between floor and units. */
     private static void stampLzPads(BattleSimulation sim, List<LandingPad> lzCells) {
         for (LandingPad lz : lzCells) {
-            sim.addDoodad(new Doodad(lz.centerX, lz.centerY, TileManifest.LZ_PAD, true, Doodad.COVER_NONE));
+            sim.addDoodad(new Doodad(lz.centerX, lz.centerY, TileManifest.lzPad(), true, Doodad.COVER_NONE));
         }
     }
 
     /** Conquest keeps its beachhead-cell picker rather than consuming civilian berths. */
     private static void stampLzCellMarkers(BattleSimulation sim, List<int[]> lzCells) {
         for (int[] lz : lzCells) {
-            sim.addDoodad(new Doodad(lz[0], lz[1], TileManifest.LZ_PAD, true, Doodad.COVER_NONE));
+            sim.addDoodad(new Doodad(lz[0], lz[1], TileManifest.lzPad(), true, Doodad.COVER_NONE));
         }
     }
 

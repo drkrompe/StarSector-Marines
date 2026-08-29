@@ -1,0 +1,941 @@
+{
+  "alphaMin": 40,
+  "blocks": [
+    {
+      "fillRgb": "0x2F3D4A",
+      "id": "road.road",
+      "layout": "perimeter-3x3"
+    },
+    {
+      "fillRgb": "0x3B4753",
+      "id": "road.courtyard",
+      "layout": "perimeter-3x3"
+    },
+    {
+      "id": "road.striped",
+      "layout": "striped-3x3"
+    },
+    {
+      "id": "road.tile",
+      "layout": "single"
+    },
+    {
+      "id": "road.sidewalk",
+      "layout": "single"
+    },
+    {
+      "id": "road.lz-marker",
+      "layout": "single"
+    },
+    {
+      "id": "road.embankment",
+      "layout": "wall-3x3"
+    },
+    {
+      "id": "road.vent",
+      "layout": "single"
+    }
+  ],
+  "cellPx": 32,
+  "cut": {
+    "originX": 0.0,
+    "originY": 0.0,
+    "pitchX": 32.0,
+    "pitchY": 32.0
+  },
+  "entries": [
+    {
+      "block": "road.courtyard",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c0r0",
+      "included": true,
+      "note": "turret-bow-nw",
+      "rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "slot": "nw"
+    },
+    {
+      "block": "road.courtyard",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c1r0",
+      "included": true,
+      "note": "turret-bow-n",
+      "rect": [
+        32,
+        0,
+        32,
+        32
+      ],
+      "slot": "n"
+    },
+    {
+      "block": "road.courtyard",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c2r0",
+      "included": true,
+      "note": "turret-bow-ne",
+      "rect": [
+        64,
+        0,
+        32,
+        32
+      ],
+      "slot": "ne"
+    },
+    {
+      "block": "road.embankment",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c3r0",
+      "included": true,
+      "note": "turret-wall-nw",
+      "rect": [
+        96,
+        0,
+        32,
+        32
+      ],
+      "slot": "nw"
+    },
+    {
+      "block": "road.embankment",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c4r0",
+      "included": true,
+      "note": "turret-wall-n",
+      "rect": [
+        128,
+        0,
+        32,
+        32
+      ],
+      "slot": "n"
+    },
+    {
+      "block": "road.embankment",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c5r0",
+      "included": true,
+      "note": "turret-wall-ne",
+      "rect": [
+        160,
+        0,
+        32,
+        32
+      ],
+      "slot": "ne"
+    },
+    {
+      "block": "road.striped",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c6r0",
+      "included": true,
+      "note": "fl-striped-nw",
+      "rect": [
+        192,
+        0,
+        32,
+        32
+      ],
+      "slot": "nw"
+    },
+    {
+      "block": "road.striped",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c7r0",
+      "included": true,
+      "note": "fl-striped-n",
+      "rect": [
+        224,
+        0,
+        32,
+        32
+      ],
+      "slot": "n"
+    },
+    {
+      "block": "road.striped",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c8r0",
+      "included": true,
+      "note": "fl-striped-ne",
+      "rect": [
+        256,
+        0,
+        32,
+        32
+      ],
+      "slot": "ne"
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c9r0",
+      "included": false,
+      "note": "fl-1",
+      "rect": [
+        288,
+        0,
+        32,
+        32
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c10r0",
+      "included": false,
+      "rect": [
+        320,
+        0,
+        32,
+        32
+      ]
+    },
+    {
+      "block": "road.tile",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c11r0",
+      "included": true,
+      "note": "fl-2",
+      "rect": [
+        352,
+        0,
+        32,
+        32
+      ],
+      "slot": "only"
+    },
+    {
+      "block": "road.road",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c12r0",
+      "included": true,
+      "note": "road-nw",
+      "rect": [
+        384,
+        0,
+        32,
+        32
+      ],
+      "slot": "nw"
+    },
+    {
+      "block": "road.road",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c13r0",
+      "included": true,
+      "note": "road-n",
+      "rect": [
+        416,
+        0,
+        32,
+        32
+      ],
+      "slot": "n"
+    },
+    {
+      "block": "road.road",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c14r0",
+      "included": true,
+      "note": "road-ne",
+      "rect": [
+        448,
+        0,
+        32,
+        32
+      ],
+      "slot": "ne"
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c15r0",
+      "included": false,
+      "rect": [
+        480,
+        0,
+        32,
+        32
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c16r0",
+      "included": false,
+      "rect": [
+        512,
+        0,
+        32,
+        32
+      ]
+    },
+    {
+      "block": "road.courtyard",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c0r1",
+      "included": true,
+      "note": "turret-bow-w",
+      "rect": [
+        0,
+        32,
+        32,
+        32
+      ],
+      "slot": "w"
+    },
+    {
+      "block": "road.courtyard",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c1r1",
+      "included": false,
+      "rect": [
+        32,
+        32,
+        32,
+        32
+      ],
+      "slot": "center"
+    },
+    {
+      "block": "road.courtyard",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c2r1",
+      "included": true,
+      "note": "turret-bow-e",
+      "rect": [
+        64,
+        32,
+        32,
+        32
+      ],
+      "slot": "e"
+    },
+    {
+      "block": "road.embankment",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c3r1",
+      "included": true,
+      "note": "turret-wall-w",
+      "rect": [
+        96,
+        32,
+        32,
+        32
+      ],
+      "slot": "w"
+    },
+    {
+      "block": "road.embankment",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c4r1",
+      "included": false,
+      "rect": [
+        128,
+        32,
+        32,
+        32
+      ],
+      "slot": "center"
+    },
+    {
+      "block": "road.embankment",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c5r1",
+      "included": true,
+      "note": "turret-wall-e",
+      "rect": [
+        160,
+        32,
+        32,
+        32
+      ],
+      "slot": "e"
+    },
+    {
+      "block": "road.striped",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c6r1",
+      "included": true,
+      "note": "fl-striped-w",
+      "rect": [
+        192,
+        32,
+        32,
+        32
+      ],
+      "slot": "w"
+    },
+    {
+      "block": "road.striped",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c7r1",
+      "included": false,
+      "rect": [
+        224,
+        32,
+        32,
+        32
+      ],
+      "slot": "center"
+    },
+    {
+      "block": "road.striped",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c8r1",
+      "included": true,
+      "note": "fl-striped-e",
+      "rect": [
+        256,
+        32,
+        32,
+        32
+      ],
+      "slot": "e"
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c9r1",
+      "included": false,
+      "note": "fl-arrow-se",
+      "rect": [
+        288,
+        32,
+        32,
+        32
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c10r1",
+      "included": false,
+      "note": "fl-arrow-sw",
+      "rect": [
+        320,
+        32,
+        32,
+        32
+      ]
+    },
+    {
+      "block": "road.sidewalk",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c11r1",
+      "included": true,
+      "note": "fl-3",
+      "rect": [
+        352,
+        32,
+        32,
+        32
+      ],
+      "slot": "only"
+    },
+    {
+      "block": "road.road",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c12r1",
+      "included": true,
+      "note": "road-w",
+      "rect": [
+        384,
+        32,
+        32,
+        32
+      ],
+      "slot": "w"
+    },
+    {
+      "block": "road.road",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c13r1",
+      "included": true,
+      "note": "road",
+      "rect": [
+        416,
+        32,
+        32,
+        32
+      ],
+      "slot": "center"
+    },
+    {
+      "block": "road.road",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c14r1",
+      "included": true,
+      "note": "road-e",
+      "rect": [
+        448,
+        32,
+        32,
+        32
+      ],
+      "slot": "e"
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c15r1",
+      "included": false,
+      "rect": [
+        480,
+        32,
+        32,
+        32
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c16r1",
+      "included": false,
+      "rect": [
+        512,
+        32,
+        32,
+        32
+      ]
+    },
+    {
+      "block": "road.courtyard",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c0r2",
+      "included": true,
+      "note": "turret-bow-sw",
+      "rect": [
+        0,
+        64,
+        32,
+        32
+      ],
+      "slot": "sw"
+    },
+    {
+      "block": "road.courtyard",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c1r2",
+      "included": true,
+      "note": "turret-bow-s",
+      "rect": [
+        32,
+        64,
+        32,
+        32
+      ],
+      "slot": "s"
+    },
+    {
+      "block": "road.courtyard",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c2r2",
+      "included": true,
+      "note": "turret-bow-se",
+      "rect": [
+        64,
+        64,
+        32,
+        32
+      ],
+      "slot": "se"
+    },
+    {
+      "block": "road.embankment",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c3r2",
+      "included": true,
+      "note": "turret-wall-sw",
+      "rect": [
+        96,
+        64,
+        32,
+        32
+      ],
+      "slot": "sw"
+    },
+    {
+      "block": "road.embankment",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c4r2",
+      "included": true,
+      "note": "turret-wall-s",
+      "rect": [
+        128,
+        64,
+        32,
+        32
+      ],
+      "slot": "s"
+    },
+    {
+      "block": "road.embankment",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c5r2",
+      "included": true,
+      "note": "turret-wall-se",
+      "rect": [
+        160,
+        64,
+        32,
+        32
+      ],
+      "slot": "se"
+    },
+    {
+      "block": "road.striped",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c6r2",
+      "included": true,
+      "note": "fl-striped-sw",
+      "rect": [
+        192,
+        64,
+        32,
+        32
+      ],
+      "slot": "sw"
+    },
+    {
+      "block": "road.striped",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c7r2",
+      "included": true,
+      "note": "fl-striped-s",
+      "rect": [
+        224,
+        64,
+        32,
+        32
+      ],
+      "slot": "s"
+    },
+    {
+      "block": "road.striped",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c8r2",
+      "included": true,
+      "note": "fl-striped-se",
+      "rect": [
+        256,
+        64,
+        32,
+        32
+      ],
+      "slot": "se"
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c9r2",
+      "included": false,
+      "note": "fl-arrow-ne",
+      "rect": [
+        288,
+        64,
+        32,
+        32
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c10r2",
+      "included": false,
+      "note": "fl-arrow-nw",
+      "rect": [
+        320,
+        64,
+        32,
+        32
+      ]
+    },
+    {
+      "block": "road.vent",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c11r2",
+      "included": true,
+      "note": "grate-1",
+      "rect": [
+        352,
+        64,
+        32,
+        32
+      ],
+      "slot": "only"
+    },
+    {
+      "block": "road.road",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c12r2",
+      "included": true,
+      "note": "road-sw",
+      "rect": [
+        384,
+        64,
+        32,
+        32
+      ],
+      "slot": "sw"
+    },
+    {
+      "block": "road.road",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c13r2",
+      "included": true,
+      "note": "road-s",
+      "rect": [
+        416,
+        64,
+        32,
+        32
+      ],
+      "slot": "s"
+    },
+    {
+      "block": "road.road",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c14r2",
+      "included": true,
+      "note": "road-se",
+      "rect": [
+        448,
+        64,
+        32,
+        32
+      ],
+      "slot": "se"
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c15r2",
+      "included": false,
+      "rect": [
+        480,
+        64,
+        32,
+        32
+      ]
+    },
+    {
+      "block": "road.lz-marker",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.road.c16r2",
+      "included": true,
+      "note": "grate-2",
+      "rect": [
+        512,
+        64,
+        32,
+        32
+      ],
+      "slot": "only"
+    }
+  ],
+  "gridCols": 17,
+  "gridRows": 3,
+  "idPrefix": "doodad.road",
+  "note": "THE RAW ART HERE IS THE SHIPPED ATLAS, COPIED. This sheet had no master: normalize_spaceport_apron.py composited nine downsampled panels into columns 6 through 8 and never touched the other 42 cells, whose only copy was the file in mod/graphics. Adopting that file as the source is what makes the sheet exportable at all - there was nothing else to export from.\n\nSo the cut is 1:1: 17x3 cells of 32px at origin 0 with a pitch of 32, which is the grid the atlas was already on. Nothing is resampled and nothing is re-keyed; every included cell carries the pixels and the alpha it shipped with. That is the whole point - the adoption must not change the art, only where it is authored from.\n\nroad.embankment and road.vent are declared here for the first time. Their art always shipped on this sheet, but no tileset named it: DefensePostStamper reached the turret embankment and the vent grate through raw (col, row) constants in TileManifest, so packing only the six declared blocks silently dropped ten cells the game draws. road.courtyard's nine cells were reached the same way, as the 'bow out' embankment, and are now resolved through the block they already were.\n\nTwo cells are deliberately left out: the centres of road.courtyard and road.striped are transparent on the sheet, and an unfilled slot in a hollow layout is exactly what its fill colour is for.\n\nThe apron patch is baked in. art-source/tilesets/urban-tileset-2-spaceport-apron.raw.png is kept as the generated source of columns 6-8, but nothing composites it any more.",
+  "sheet": "art-source/tilesets/urban-tileset-2.raw.png",
+  "sheetName": "urban-tileset-2"
+}
