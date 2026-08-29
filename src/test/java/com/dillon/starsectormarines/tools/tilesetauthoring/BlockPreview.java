@@ -76,7 +76,7 @@ public final class BlockPreview {
 
         BufferedImage out = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = out.createGraphics();
-        checker(g, size);
+        ground(g, block, size);
         // Nearest neighbour: this is pixel art being magnified, and a smoothed
         // thumbnail of a tile says less about the tile than a blocky one does.
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
@@ -122,7 +122,7 @@ public final class BlockPreview {
         BufferedImage out = new BufferedImage(span * screenCellPx, span * screenCellPx,
                 BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = out.createGraphics();
-        checker(g, Math.max(out.getWidth(), out.getHeight()));
+        ground(g, block, Math.max(out.getWidth(), out.getHeight()));
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         TileSink sink = new Graphics2DTileSink(g, atlas);
@@ -157,6 +157,27 @@ public final class BlockPreview {
         }
         atlases.put(sheetPath, read);
         return read;
+    }
+
+    /**
+     * What lies behind the block's cells: its fill colour, or a transparency
+     * checker when it has none.
+     *
+     * <p>Not decoration. A hollow layout resolves to <em>nothing</em> for one of
+     * its cases — the enclosed cell of a wall, the open middle of a courtyard —
+     * and the renderer paints the block's {@code fillRgb} there. That fill is
+     * most of what a courtyard looks like on the map: flat paving, with the ring
+     * art only where it meets a wall. Drawing the nine cells over a checker
+     * shows the ring and none of the surface, so a courtyard reads as a berm
+     * rather than as the pavement it is.
+     */
+    private static void ground(Graphics2D g, GridBlockDef block, int size) {
+        if (block.fillRgb == null) {
+            checker(g, size);
+            return;
+        }
+        g.setColor(new Color(block.fillRgb));
+        g.fillRect(0, 0, size, size);
     }
 
     private static void checker(Graphics2D g, int size) {

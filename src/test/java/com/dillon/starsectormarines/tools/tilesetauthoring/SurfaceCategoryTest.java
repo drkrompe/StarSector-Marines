@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,13 +23,42 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class SurfaceCategoryTest {
 
+    /**
+     * Every surface the game has is filed explicitly.
+     *
+     * <p>{@code SurfaceCategory.of} falls back to Outdoors / Other so the panel
+     * cannot break on a surface it has not met, and this is what stops that
+     * fallback becoming a place new surfaces quietly pile up. Adding a
+     * {@code GroundKind} is a decision about what the thing is; this fails until
+     * somebody makes it.
+     */
     @Test
-    void everySurfaceIsFiledSomewhere() throws Exception {
-        for (SurfaceCatalog.Purpose purpose : SurfaceCatalog.scan(Paths.get("").toAbsolutePath())) {
-            SurfaceCategory.Section section = SurfaceCategory.of(purpose.name());
-            assertNotNull(section, purpose.name() + " is not filed");
-            assertNotNull(section.label());
+    void everySurfaceIsFiledExplicitly() {
+        List<String> unfiled = new ArrayList<>();
+        for (GroundKind kind : GroundKind.values()) {
+            if (kind == GroundKind.VOID) continue;   // not a surface: the absence of deck
+            if (!SurfaceCategory.filedNames().contains(kind.name())) unfiled.add(kind.name());
         }
+        for (SurfaceRole role : SurfaceRole.values()) {
+            if (!SurfaceCategory.filedNames().contains(role.name())) unfiled.add(role.name());
+        }
+        assertEquals(List.of(), unfiled,
+                "file these in SurfaceCategory — under Structure or Outdoors, and as a wall, a "
+                        + "floor, or neither. Where a surface belongs is a judgement about what "
+                        + "it is, so there is nothing to derive it from.");
+    }
+
+    /** And nothing is filed that no longer exists. */
+    @Test
+    void nothingIsFiledThatTheGameNoLongerHas() {
+        List<String> known = new ArrayList<>();
+        for (GroundKind kind : GroundKind.values()) known.add(kind.name());
+        for (SurfaceRole role : SurfaceRole.values()) known.add(role.name());
+
+        List<String> stale = SurfaceCategory.filedNames().stream()
+                .filter(name -> !known.contains(name))
+                .toList();
+        assertEquals(List.of(), stale, "these are filed but are no longer surfaces");
     }
 
     @Test
@@ -74,6 +106,7 @@ public class SurfaceCategoryTest {
                 new BlockPreview(Paths.get("").toAbsolutePath()), candidate -> { });
         view.setPurposes(SurfaceCatalog.scan(Paths.get("").toAbsolutePath()));
         assertTrue(view.sectionCount() > 0, "the listing should have built sections");
+        view.reflow(960);
 
         view.reflow(960);
         int[] wide = new int[view.sectionCount()];

@@ -209,6 +209,20 @@ model. Nothing the generator does depends on it, and putting it on
 `GroundKind` or `SurfaceRole` would make a browsing convenience look like an
 authority those enums answer to.
 
+A hollow layout resolves to *nothing* for one of its cases — the enclosed cell
+of a wall, the open middle of a courtyard — and the block's fill colour is what
+the renderer paints there. That fill is not a fallback: for a courtyard it is
+most of what the surface looks like, with the ring art only where it meets a
+wall. Anything showing a block to be chosen between has to show the fill too,
+or a paved yard reads as an earthwork.
+
+One block may serve two purposes at once. `road.courtyard` is the courtyard
+ground surface and, through the same mask, the outward-bowed heavy cover that
+rings a turret emplacement. That is legitimate — the art is a revetment either
+way — but it means editing such a block changes a ground surface and a piece of
+defensive cover together, so the dual use is recorded on the block's own cells
+where anyone re-cutting them will read it.
+
 Choosing between candidates is done by looking at them. A block id says which
 sheet a thing came from and nothing about what it is: two walls are a masonry
 wall and a sandbag revetment, and only the picture separates them. So a surface

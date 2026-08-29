@@ -154,7 +154,12 @@ Do not run builds or leave generated task files there.
   That grouping is a browsing aid owned by the tool, not vocabulary the game
   consults — nothing resolves differently because a surface is filed under
   Outdoors — and it is kept off `GroundKind` and `SurfaceRole` for exactly that
-  reason. Screen two is **the set**: every block in the project that could fill
+  reason. Every surface must be filed explicitly; `SurfaceCategoryTest` fails
+  the build for one that is not, because where a surface belongs is a judgement
+  and there is nothing to derive it from. A preview paints the block's
+  `fillRgb` behind its cells, since that fill is what the renderer draws for the
+  case a hollow layout leaves empty — most of a courtyard is the fill, and shown
+  on a transparency checker it reads as an earthwork rather than paving. Screen two is **the set**: every block in the project that could fill
   that surface, whichever sheet it is on, as a grid of pictures — because
   `urban.wall` and `road.embankment` are both walls and are nothing alike to
   look at. The one in use comes up selected and is drawn large beside the grid
