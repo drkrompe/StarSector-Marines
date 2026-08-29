@@ -7,6 +7,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Graphics2D;
@@ -25,7 +26,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -126,6 +129,94 @@ public class TilesetWalkthroughTest {
         } finally {
             page.close();
         }
+    }
+
+    /**
+     * A screen asked for its body twice is one screen, not two of them.
+     *
+     * <p>The wizard asks twice on every entry: once through the step's own
+     * {@code onEnter}, once to put the body on screen. A body that built a new
+     * container each time left the previous one parented at the bounds it was
+     * last laid out with, and emptied, because the new one had taken the shared
+     * components off it. An empty panel over the real one paints as a blank
+     * screen, and that is what "Say what each piece is" showed from its second
+     * visit onward: its toolbar, and nothing else.
+     */
+    @Test
+    void aScreenAskedForItsBodyTwiceIsStillOneScreen() throws Exception {
+        TilesetAuthoringPage page = new TilesetAuthoringPage(context());
+        try {
+            for (WizardStep step : sheetWalkthrough(page)) {
+                JComponent screen = enter(step);
+                int children = screen.getComponentCount();
+                assertSame(screen, enter(step), step.title() + " must reuse its screen");
+                assertEquals(children, screen.getComponentCount(),
+                        step.title() + " stacked a second body over the first");
+            }
+        } finally {
+            page.close();
+        }
+    }
+
+    /**
+     * A screen gets back what the screen after it borrowed.
+     *
+     * <p>The picture of the sheet and the annotation table are shared, and
+     * "Adjust the cut" takes the table. Going back to the screen before it has
+     * to put the table back, or the walkthrough only reads correctly forwards.
+     */
+    @Test
+    void goingBackToAScreenGetsBackWhatTheNextOneBorrowed() throws Exception {
+        TilesetAuthoringPage page = new TilesetAuthoringPage(context());
+        try {
+            List<WizardStep> steps = sheetWalkthrough(page);
+            WizardStep adjust = named(steps, "Adjust the cut");
+            WizardStep annotate = named(steps, "Say what each piece is");
+            JComponent picture = fieldOf(page, "sheetPicture");
+            JComponent table = fieldOf(page, "tableScroll");
+
+            enter(annotate);
+            enter(adjust);
+            JSplitPane split = (JSplitPane) fieldOf(page, "annotateSplit");
+            assertNotSame(table, split.getRightComponent(),
+                    "the cut screen is the one that borrows the table");
+
+            enter(annotate);
+            assertSame(picture, split.getLeftComponent(), "the picture is back");
+            assertSame(table, split.getRightComponent(), "the table is back");
+        } finally {
+            page.close();
+        }
+    }
+
+    /**
+     * Show a step the way the wizard does: its {@code onEnter} first, then its
+     * body. Both reach the page's body method, and only the second is cached -
+     * so on every visit after the first, {@code onEnter} is the only thing that
+     * re-parents the shared components, and the only thing that could stack a
+     * container over them.
+     */
+    private static JComponent enter(WizardStep step) {
+        step.onEnter();
+        return step.body();
+    }
+
+    private static WizardStep named(List<WizardStep> steps, String title) {
+        return steps.stream().filter(step -> step.title().equals(title)).findFirst()
+                .orElseThrow(() -> new AssertionError("no step called " + title));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<WizardStep> sheetWalkthrough(TilesetAuthoringPage page) throws Exception {
+        Method method = TilesetAuthoringPage.class.getDeclaredMethod("sheetWalkthrough");
+        method.setAccessible(true);
+        return (List<WizardStep>) method.invoke(page);
+    }
+
+    private static JComponent fieldOf(TilesetAuthoringPage page, String name) throws Exception {
+        Field field = TilesetAuthoringPage.class.getDeclaredField(name);
+        field.setAccessible(true);
+        return (JComponent) field.get(page);
     }
 
     private static TilesetWizard wizardOf(TilesetAuthoringPage page) throws Exception {
