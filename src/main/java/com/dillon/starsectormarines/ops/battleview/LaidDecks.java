@@ -8,7 +8,11 @@ import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckGenerator;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 /**
  * What has already been laid out, kept for as long as the game is running.
@@ -51,6 +55,28 @@ public final class LaidDecks {
     private static final int HULLS_REMEMBERED = 256;
 
     private static final Map<Hull, ShipInterior> ABOARD = new ConcurrentHashMap<>();
+
+    /**
+     * Where hulls are laid out, and how much of the machine that is allowed to
+     * take.
+     *
+     * <p>Half the cores, and never the whole machine. The campaign is still
+     * being drawn while this work runs, and a shell that opens instantly by
+     * taking every core to do it has moved the stutter rather than removed it.
+     * Deliberately not the common pool for the same reason — its parallelism is
+     * every core but one, which on a small machine is every core the game has.
+     *
+     * <p>Daemon threads, so a hull still being laid out is never what keeps the
+     * game from closing.
+     */
+    private static final Executor YARD = Executors.newFixedThreadPool(
+            Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
+            runnable -> {
+                Thread hand = new Thread(runnable, "marine-ops-deck-layout");
+                hand.setDaemon(true);
+                hand.setPriority(Thread.NORM_PRIORITY - 2);
+                return hand;
+            });
 
     private static Hull homeHull;
     private static MapResult homeMap;
@@ -144,6 +170,18 @@ public final class LaidDecks {
     /** Whether this hull's deck is the one being kept. */
     static synchronized boolean isHomeDeck(CompanyShip ship, long seed) {
         return ship != null && homeMap != null && Hull.of(ship, seed).equals(homeHull);
+    }
+
+    /**
+     * Do this away from the frame.
+     *
+     * <p>Everything laying a deck out touches is either ours or immutable, so
+     * the only rule is the one the callers keep: whatever reads the campaign or
+     * the game's assets is read before the work is handed over, and whatever
+     * draws is done after it comes back.
+     */
+    public static <T> CompletableFuture<T> off(Supplier<T> work) {
+        return CompletableFuture.supplyAsync(work, YARD);
     }
 
     /**
