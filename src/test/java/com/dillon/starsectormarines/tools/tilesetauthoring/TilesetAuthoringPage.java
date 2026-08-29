@@ -114,6 +114,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private final TilesetLibraryView library = new TilesetLibraryView(this::openFromLibrary);
     private final BlockPreview blockPreviews;
     private final SurfaceBrowserView surfaces;
+    private final CutAdjusterView cutAdjuster =
+            new CutAdjusterView(this::refreshStep, this::saveAdjustedCut);
     private JTable table;
     private JScrollPane tableScroll;
     private JScrollPane sheetPicture;
@@ -187,6 +189,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             model.selectedRows = table.getSelectedRows();
             if (!syncingSelection) view.showSelection(model.selectedRows);
             describeSelectedSlot();
+            showSelectedCut();
         });
         // The picture is the surface the work happens on, so a selection made
         // there drives the table rather than the other way round. The guard is
@@ -298,7 +301,84 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                                 + "sheet it is on. Choose which one is drawn, or add another.",
                         this::surfaceSetBody)
                         .onEnter(this::describeSurfaceSet)
-                        .last());
+                        .blockedWhen(() -> {
+                            SurfaceCatalog.Candidate picked = surfaces.selectedCandidate();
+                            if (picked == null) return "Pick one of them";
+                            if (!picked.isEditable()) {
+                                return picked.sheetName() + " has no authoring document, so its "
+                                        + "cut cannot be adjusted — it can still be drawn with";
+                            }
+                            return null;
+                        })
+                        .onLeave(() -> openCandidate(surfaces.selectedCandidate()))
+                        .nextLabel("Open its sheet"),
+
+                adjustCutStep(true));
+    }
+
+    /**
+     * The screen a piece's cut is corrected on.
+     *
+     * <p>Reached from either walkthrough, because a bad cut is found either way
+     * round: from the surface, when the wall being drawn has a sliver of its
+     * neighbour on one edge; or from the sheet, while annotating it.
+     */
+    private WizardStep adjustCutStep(boolean last) {
+        LambdaStep step = new LambdaStep("Adjust the cut",
+                "Pick a piece on the left and move its rectangle. Only that piece moves — "
+                        + "re-slicing to fix one of them moves every other piece too.",
+                this::adjustCutBody)
+                .onEnter(this::showSelectedCut);
+        return last ? step.last() : step;
+    }
+
+    private JPanel adjustCutScreen;
+
+    private JPanel adjustCutBody() {
+        if (adjustCutScreen == null) {
+            adjustCutScreen = new JPanel(new BorderLayout(0, 6));
+        }
+        adjustCutScreen.removeAll();
+        adjustCutScreen.add(splitOf(tableScroll, cutAdjuster), BorderLayout.CENTER);
+        return adjustCutScreen;
+    }
+
+    /** Show whichever piece the entry table has selected. */
+    private void showSelectedCut() {
+        int[] rows = table == null ? new int[0] : table.getSelectedRows();
+        TilesetExport.Entry picked = rows.length > 0 && rows[0] < model.entries.size()
+                ? model.entries.get(rows[0]) : null;
+        cutAdjuster.show(source, picked);
+        refreshStep();
+    }
+
+    /**
+     * Apply the adjusted rectangle, save the document, and re-export.
+     *
+     * <p>All three, because a cut is only fixed once the atlas is packed from
+     * it. Saving the document alone leaves the sheet the game loads with the
+     * old rectangle and nothing saying they disagree.
+     */
+    private void saveAdjustedCut() {
+        TilesetExport.Entry entry = cutAdjuster.entry();
+        if (entry == null || source == null) return;
+        SheetSlicer.Piece proposed = cutAdjuster.proposed();
+        try {
+            SheetSlicer.Piece was = TilesetOperations.setCut(model.entries, entry.id,
+                    proposed.x(), proposed.y(), proposed.width(), proposed.height(),
+                    source.getWidth(), source.getHeight());
+            model.setEntries(model.entries);
+            view.setEntries(model.entries);
+            markDirty();
+            saveDocument();
+            export();
+            cutAdjuster.show(source, entry);
+            context.reportStatus(entry.id + " cut moved from " + was.x() + "," + was.y()
+                    + " of " + was.width() + "x" + was.height() + " and re-exported");
+        } catch (Exception failure) {
+            AuthoringMessages.error(root, "Save and re-export",
+                    "Could not move " + entry.id + "'s cut", failure);
+        }
     }
 
     /**
@@ -313,7 +393,6 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         surfaces.setSetActions(List.of(
                 button("Draw this one", this::useSelectedCandidate),
                 button("Add one from a sheet…", () -> enterWorkflow(TilesetWorkflow.SHEET)),
-                button("Open its sheet", () -> openCandidate(surfaces.selectedCandidate())),
                 button("Remove from the set", this::removeSelectedCandidate)));
         return surfaces.setScreen();
     }
@@ -425,6 +504,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                         .onEnter(() -> cutBody().revalidate())
                         .blockedWhen(() -> model.entries.isEmpty()
                                 ? "Slice or split the sheet so it has pieces to annotate" : null),
+
+                adjustCutStep(false),
 
                 new LambdaStep("Say what each piece is",
                         "Pick pieces on the picture and edit the row: an id, how much deck it "

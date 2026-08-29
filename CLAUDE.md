@@ -170,10 +170,21 @@ Do not run builds or leave generated task files there.
   one value, validated against the real catalog before it lands, because
   re-serialising that file would reorder every key in it. **Add one from a
   sheet…** hands off to the ingest walkthrough, which is the only place sheets
-  appear in this flow. **Open its sheet** loads the block's document with its
-  slots already selected. **Remove from the set** dissolves the block, giving
+  appear in this flow. **Remove from the set** dissolves the block, giving
   its pieces back as doodads; it is refused while the mapping still points
-  there, since a surface with no block is a startup crash.
+  there, since a surface with no block is a startup crash. Next opens the
+  block's sheet on a third screen, **Adjust the cut**.
+  That screen moves one piece's rectangle and nothing else. Slicing keys on
+  alpha and splitting divides by a stated pitch, and both are right most of the
+  time and wrong for a particular piece — a prop whose contact shadow was keyed
+  away with it, a cell whose seam sits a pixel off the line through its
+  neighbours — so re-slicing to fix one of them moves every other piece too. The
+  cut is drawn over the plate magnified six times with the excluded pixels
+  dimmed, because a boundary one pixel out is invisible at 1:1. Saving applies
+  the move, writes the document and re-exports, since a cut is only fixed once
+  the atlas is packed from it. `tileset_set_cut` is the same operation
+  headless, previewing by default and refusing a rectangle that leaves the
+  sheet. The screen is also the fourth of the ingest walkthrough.
   **New art arrived** is the ingest sequence: pick a sheet, find the pieces,
   say what each piece is, group blocks, name and size the output, save and
   export. A screen will not advance until it has been answered, and says what it
@@ -238,7 +249,7 @@ Do not run builds or leave generated task files there.
   if a later replacement fails.
 - `tools/authoring.sh <tool> [json]` (or `tools/authoring.cmd`) → call one
   authoring tool and exit. This is the **default** way to reach the authoring
-  tools headlessly — list what can be a wall, list/measure/read/write/slice/fit/split/export a tileset,
+  tools headlessly — list what can be a wall, list/measure/read/write/slice/fit/split/export a tileset, move one piece's cut,
   declare
   or dissolve one of its autotile blocks, render its map-preview comparison, run the snapshot catalog — with no workbench window
   and nothing to start first. `--list` names the tools, `--describe <tool>`

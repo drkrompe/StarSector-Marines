@@ -564,6 +564,40 @@
           "weaponId": "weapon.micro-missile"
         }
       }
+    },
+    {
+      "id": "armor.vigil",
+      "catalog": {
+        "displayName": "Vigil suppression shell",
+        "role": "assault",
+        "tradition": "sindrian_diktat",
+        "description": "Diktat state security orders these by the crate for work its own citizens are not supposed to hear about. It is a riot shell built up until it can take a rifle round rather than a thrown brick -- heavier than the pattern it descends from, lighter than anything the Lion's Guard would deign to wear, and issued to people expected to go through a door on a schedule.",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+      },
+      "battle": {
+        "appearanceFamily": "FURNACE_LINE",
+        "armorCapacity": 11.0,
+        "armorRating": 8.0,
+        "moveSpeedMult": 0.92,
+        "incomingAccuracyMult": 0.98,
+        "integralSystem": {
+          "id": "system.suppression-brace",
+          "grade": "service",
+          "displayName": "Suppression brace",
+          "description": "A shield and a shove, both adequate, neither remarkable. It is the version of the idea a state can afford to issue to everybody, and it is worth exactly what the Diktat pays for it: enough to get a section through a doorway that a riot shell would not have survived, and nowhere near enough to make that pleasant.",
+          "effect": "breacher-assist",
+          "policy": "exposed-under-fire",
+          "incomingPressureThreshold": 2.0,
+          "maxCoverLevel": 1,
+          "resource": "cooldown",
+          "durationSeconds": 3.0,
+          "cooldownSeconds": 24.0,
+          "moveSpeedMult": 1.15,
+          "screenSoak": 7.0,
+          "shieldedArcDegrees": 120.0
+        }
+      }
     }
   ]
 }
