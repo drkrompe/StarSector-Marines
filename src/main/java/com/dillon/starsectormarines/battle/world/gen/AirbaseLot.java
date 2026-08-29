@@ -164,7 +164,7 @@ public final class AirbaseLot {
         runway(ctx);
         berths(ctx);
         hangars(ctx, rng);
-        groundSupport(ctx);
+        vehiclePark(ctx);
         tower(ctx);
         fence(ctx);
     }
@@ -236,40 +236,59 @@ public final class AirbaseLot {
     }
 
     /**
-     * The vehicles that live on an apron, one in front of each berth.
+     * The vehicle park, at the end of the apron opposite the tower.
      *
-     * <p>Paint alone makes helipads. What tells a reader this is a working
-     * airfield is everything standing around the aircraft that is not the
-     * aircraft — the bowser it is fuelled from, the crew truck, the flatbed
-     * with what is going aboard. None of it closes a cell: the apron has to
-     * stay ground people cross under fire, which is the whole tactical point of
-     * an airfield, and the berths stay bare because something has to land on
-     * them.
+     * <p>These used to stand one in front of each berth, which is where a
+     * bowser is while it is working and nowhere a vehicle is parked. It also
+     * put them across the taxiway — the strip the crew walks from the sheds to
+     * the aircraft — so the base's own ground traffic was blocking the one path
+     * everybody on it uses. Ground vehicles are kept somewhere, and that
+     * somewhere is a park.
+     *
+     * <p>Ranked at the far end, so the two ends of the apron are the two things
+     * that are not aircraft: the tower at one, the vehicles at the other, and
+     * the berths and their taxiway clear between them.
+     *
+     * <p>It is also the base's one piece of hard cover. A truck stops rifle
+     * fire, and six of them in ranks is a fight worth having — an attacker
+     * crossing open apron can reach the park and work up it, which is a better
+     * problem than a single truck sitting alone in front of a shed.
      */
-    private void groundSupport(GenContext ctx) {
+    private void vehiclePark(GenContext ctx) {
         TileRegistry registry = TileRegistry.installed();
         if (registry == null) return;
-        int row = depthStart() + depthSign() * (RUNWAY_DEPTH + RUNWAY_MARGIN + PAD + 1);
-        int span = PADS * PAD + (PADS - 1) * PAD_GAP;
-        int start = (alongLo() + alongHi() - span) / 2 + PAD / 2;
-        for (int i = 0; i < PADS; i++) {
-            int along = start + i * (PAD + PAD_GAP);
-            int x = alongY ? along - 1 : row;
-            int y = alongY ? row : along - 1;
-            DoodadDef kit = registry.doodad(GROUND_SUPPORT[i % GROUND_SUPPORT.length]);
-            if (kit == null) continue;
-            if (x < left + 1 || y < bottom + 1) continue;
-            if (x + kit.footprintCellsX - 1 > right - 1) continue;
-            if (y + kit.footprintCellsY - 1 > top - 1) continue;
-            ctx.doodads.add(new Doodad(x, y, kit));
+        int slot = 0;
+        for (int rank = 0; rank < PARK_RANKS; rank++) {
+            int across = depthStart()
+                    + depthSign() * (RUNWAY_DEPTH + RUNWAY_MARGIN + 1 + rank * PARK_RANK_PITCH);
+            for (int file = 0; file < PARK_FILES; file++) {
+                int along = alongHi() - 1 - (file + 1) * PARK_FILE_PITCH + 1;
+                int x = alongY ? along : across;
+                int y = alongY ? across : along;
+                DoodadDef truck = registry.doodad(
+                        GROUND_SUPPORT[slot++ % GROUND_SUPPORT.length]);
+                if (truck == null) continue;
+                if (x < left + 1 || y < bottom + 1) continue;
+                if (x + truck.footprintCellsX - 1 > right - 1) continue;
+                if (y + truck.footprintCellsY - 1 > top - 1) continue;
+                ctx.doodads.add(new Doodad(x, y, truck));
+            }
         }
     }
 
-    /** What stands beside each berth, cycled so neighbouring stands differ. */
+    /** Rows of parked vehicles, and files across each row. */
+    private static final int PARK_RANKS = 3;
+    private static final int PARK_FILES = 2;
+    /** Pitch between ranks and files — a truck's own span plus room to walk between. */
+    private static final int PARK_RANK_PITCH = 3;
+    private static final int PARK_FILE_PITCH = 4;
+
+    /** What the base runs on the ground. Cycled so a rank is not six of the same truck. */
     private static final String[] GROUND_SUPPORT = {
             "doodad.parked-tanker-truck",
             "doodad.parked-utility-truck",
             "doodad.parked-flatbed-truck",
+            "doodad.parked-cargo-truck",
     };
 
     /** Paint one berth so a stand reads as a stand from across the lot. */
