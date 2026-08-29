@@ -159,13 +159,10 @@ public final class FortressInterior {
         stampWalls(ctx, placed);
         furnish(ctx, placed);
         stampWindows(ctx, placed);
-        // The airfield goes in what the packing left over, so it is sited after
-        // the yard has been opened and there is a yard to look at. Bounds names
-        // its vertical extent top-down; the airfield asks in grid terms, where a
-        // larger y is further north.
-        FortressAirfield airfield = FortressAirfield.site(ctx, ground, axis,
-                bounds.left(), bounds.top(), bounds.right(), bounds.bottom());
-        if (airfield != null) airfield.author(ctx, axis);
+        // The airbase is not packed here. It is a lot reserved out of the ward
+        // before any of this ran (see FortressWardStage), because an airfield
+        // built from leftovers gets the shape leftovers have — a shallow strip,
+        // never a facility.
         return new Result(placed, unplaced);
     }
 
