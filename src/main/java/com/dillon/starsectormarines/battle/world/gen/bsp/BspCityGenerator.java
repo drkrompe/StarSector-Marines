@@ -44,6 +44,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ConcentricLayoutS
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CoreSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.DiamondLayoutStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CorridorStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.DoorwayClearanceStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FillDispatchStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
@@ -188,6 +189,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new KeepEntryChamberStamper(),              // Step 3c'''
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b
+                new DoorwayClearanceStage(),                // Step 4c   nothing stands in a doorway
                 new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
                 new OverwatchTowerStage(),                  // taxonomy consumer — corner-tower guns
                 new SpawnAnchorStage(),                     // spawn anchors
@@ -222,6 +224,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new KeepEntryChamberStamper(),              // Step 3c'''
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b
+                new DoorwayClearanceStage(),                // Step 4c   nothing stands in a doorway
                 new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
                 new SpawnAnchorStage(),                     // spawn anchors
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
