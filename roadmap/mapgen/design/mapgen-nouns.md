@@ -4,8 +4,8 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — the airfield is a facility: a walled hangar sheltering one
-berth, set back off its own paving, inside a fence with a gate front and back.
+Updated: 2026-08-29 — the airfield became a reusable airbase lot: runway, apron
+berths, worked hangars and a fence, reserved out of the ward before packing.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -248,55 +248,61 @@ likewise a map fact rather than a shipboard one — a fortress vehicle shed
 publishes the same berths a mech bay does, and what occupies one remains the
 host's decision from a roster.
 
-An **airfield** is the first structure whose substance is open ground rather
-than enclosed floor. Its apron is dressed rather than merely marked: paint alone
-makes helipads, and what tells a reader it is an airfield is everything standing
-around the aircraft that is not the aircraft — the bowser each stand is fuelled
-from, the tooling between one stand and the next, a fuel point at one end of the
-line and a mast at the other. None of that dressing closes a cell, because the
-apron has to stay ground people cross under fire; and the berths themselves stay
-bare, because something has to be able to land on them. Its apron is paved yard with berths marked on it, and its
-hardstands are the aviation form of a machine berth: generation authors the
-clear footprint and the approach direction, and what stands there is the host's
-to decide from a roster. It is therefore sited in what the packing left over
-rather than claimed before it — which is the opposite of the rule for buildings,
-and deliberately so. **A reservation made before packing reshapes every
-placement around itself, and generation cannot see what that costs.** An apron
-claimed up front produced a ward where every building still had its door and its
-route, and no heavy vehicle could reach the defender rear at all: walkable,
-connected, fully checked, and impassable to the one thing that mattered. Ground
-that was already spare cannot do that. The price is that an airfield is not
-guaranteed — a ward whose packing left no clear stretch has none, the same way a
-compound with no wing a bay fits in has no vehicle shed.
+An **airbase lot** is the first thing generation places that is a *facility*
+rather than a building or a piece of ground: a runway along its approach edge, an
+apron with berths on it, hangars behind them, and a fence round the whole thing
+with a gate front and back. Front to back it is laid out in the order an
+aircraft moves through it, and the pieces are sized against each other rather
+than against whatever was left over.
 
-A field is a **facility**, not a marked rectangle: a hangar, stands, and a
-fence. The shed is a real building — a wall ring with an aircraft-wide opening
-onto the taxiway rather than a marine-wide door — and it is paid for out of the
-row of stands rather than added to the envelope. That is forced rather than
-chosen. Measured across eight seeds, unclaimed yard is plentiful at the apron's
-eight-cell depth (eleven to forty-six cells wide) and all but gone at ten, where
-most seeds offer a single column; an airfield that needed two more rows would
-simply stop existing. So the aircraft count is unchanged and their exposure is
-not — two stand in the open where any sight line can burn them, and the third is
-behind a wall an attacker has to enter or breach. That is the whole value of the
-building, and it is why the shed is a wall rather than differently-coloured
-paint.
+**A lot is claimed, not found.** An airfield built out of what a packer left
+behind gets the shape leftovers have, and leftovers are shallow — measured on a
+packed ward, unclaimed yard runs eleven to forty-six cells wide at a depth of
+eight and all but vanishes at ten. That is enough for a marked apron and nowhere
+near enough for a facility, which is why the earlier airfield was one. The lot is
+therefore reserved out of the ward before packing and the buildings pack around
+it.
 
-**A shed set flush against the edge of its own paving opens onto the outside.**
-The apron's front rows are the taxiway; a hangar that takes the full depth puts
-its mouth on the outermost row, where the only approach is from beyond the
-fence. The crew then has to leave the airfield and come back in to reach an
-aircraft parked in the middle of it. A hangar is therefore set back by the same
-row the stands leave, and berth reachability is asserted on both traversal axes,
-because a mirrored layout is exactly where that error hides.
+That reservation is the thing an earlier attempt got wrong, and the difference is
+*where*. An apron claimed in the middle of a ward reshaped every placement around
+itself and produced a map where every building had its door and its route and no
+heavy vehicle could reach the defender rear at all — walkable, connected, fully
+checked, and impassable to the one thing that mattered. A lot pinned to the
+ward's lateral end takes width off one side instead of cutting the ward in two,
+and it yields outright to the one road the ward keeps: a base that would sever
+that route is not sited at all.
 
-The fence takes only cells that are still unclaimed yard and skips the rest,
-which is both what the envelope allows and how a real compound fence behaves —
-it runs until it meets the side of a building and starts again after it. It
-carries a gate front and back. Two gates is a safety property rather than a
-flourish: a ring that fully encloses the apron makes a pocket, and a pocket
-whose only gate faces the wrong way sends the ground crew the long way round
-their own airfield, or seals the field off from the ward entirely.
+**The ward has to be able to afford it.** Sizing is not a preference here but an
+arithmetic fact — a ward's width is capped by the map's own, and at the previous
+full-strength scale the spare inside it was exactly the old apron and nothing
+more. A facility costs a thousand cells; the map grew to pay for it, because the
+alternative was a third of the fortress's buildings going unplaced. A host
+reserving a lot checks what it wants to take against the program's building
+ground and declines rather than starving the packing.
+
+Berths belong **on the apron**, never inside a shed. A hangar is where an
+aircraft is worked on and a berth is where one waits to fly; a berth indoors
+makes its crew walk through a building to board and hides the aircraft from the
+fight the airfield exists to be part of. The sheds are real buildings — a wall
+ring with an aircraft-wide opening onto the apron, not a marine-wide door — and
+they are worked inside, because what makes a shed read as a maintenance hangar is
+the tooling in it, and because the people who work there are units who need
+somewhere to be. The kit lines the walls and the middle stays clear, which is
+both how a real one is arranged and what keeps the shed crossable.
+
+**Depth budgets are exact, and being one row out is invisible.** The stack behind
+the runway — strip, margin, berths, taxiway, sheds — has to land the sheds' back
+wall inside the fence. One row further and the fence overwrites it, leaving two
+hangars with three walls each: something that looks almost right in a render and
+is open at the back. The same class of error put an earlier shed flush against
+the front of its own paving, where its mouth opened onto the far side of the
+fence and the crew had to leave the base to reach an aircraft parked in the
+middle of it. Reachability from outside the lot is asserted on both traversal
+axes, because a mirrored layout is where that hides.
+
+The lot knows nothing about where its rectangle came from, so a fortress ward, a
+city compound, or a future installation map can each reserve one and hand it
+over.
 
 **Wedging is a hull's virtue and a compound's defect.** A packer scores a
 position by how tightly it wedges against something already solid, which is
