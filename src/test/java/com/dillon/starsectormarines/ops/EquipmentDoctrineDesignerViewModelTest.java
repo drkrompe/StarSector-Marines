@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.IntegralSystemEffect;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -86,7 +87,12 @@ class EquipmentDoctrineDesignerViewModelTest {
                 viewModel.billets().get().get(0);
         assertEquals(List.of("ARMOR", "RESIST", "MOVE", "EVA"), armor.stats().stream()
                 .map(EquipmentDoctrineDesignerViewModel.StatMeter::label).toList());
-        assertTrue(armor.flavor().contains("Patchwork protection"));
+        // The patchwork doctrine's first billet wears a ward vest, and a ward
+        // vest carries a brace now. A card leads with the capability whenever
+        // there is one; the descriptive prose is what a pattern with nothing to
+        // say falls back to.
+        assertTrue(armor.flavor().contains(IntegralSystemEffect.BRACE.displayName),
+                "the issued pattern carries a brace, so its card says so: " + armor.flavor());
     }
 
     private static EquipmentDoctrineDesignerViewModel designer(MarineRoster roster) {

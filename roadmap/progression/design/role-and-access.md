@@ -121,10 +121,11 @@ consequences follow that are worth stating:
 The three bands that motivated this doc then fall out of the model instead of
 being special-cased:
 
-1. **Early.** A role mix at tiers I–II. Only the scout billet's pattern carries
-   a capability, so exactly one marine in the squad has one.
-2. **Established.** Tier III. Scout, line and support patterns each carry
-   theirs, so capability is varied within the squad, by role.
+1. **Early.** A role mix at tiers I–II. The scout billet's pattern carries a
+   capability and so does a line billet in militia kit, so a starting squad has
+   two, and they are nothing alike.
+2. **Established.** Tier III. Scout, line, assault and support patterns each
+   carry theirs, so capability is varied within the squad, by role.
 3. **Specialist.** A lopsided doctrine at tier IV — every marine a breacher —
    chosen because that is what the unit is for, and paid for in what it gives
    up.
@@ -208,9 +209,16 @@ an appearance family and a tier icon that already shipped:
 | Kestrel riot shell | assault | II | Corporate security surplus | A real shield and no shove worth the name |
 | Packframe support harness | support | II | Independent crews | One rocket on a welded rail |
 | Pathfinder recon suit | recon | III | Hegemony | A survey array that reads further than a Janus and announces itself doing it |
-| Redoubt siege plate | line | IV | Hegemony | Nothing — it holds a breach somebody else made |
+| Redoubt siege plate | line | IV | Hegemony | The steadiest brace anyone fields, because it was never going anywhere |
 | Outrider deep-recon suit | recon | IV | Persean League | The deepest return anyone fields, built to be shared |
 | Arbalest support battlesuit | support | IV | Hegemony | Four rounds and a doctrine for spending them |
+
+The Redoubt shipped carrying nothing, and that was honest at the time: the LINE
+role had no capability at all, and inventing one for the top of its ladder would
+have been the "give a faction a system so it has one" failure at role scale.
+What it was waiting for was the brace — the answer to what a line suit is *for* —
+which now runs on three of them and gives that role the same shape the others
+have.
 
 Each was written to be a different suit rather than a scaled copy, per the
 standing rule below. The Kestrel is the clearest case: it is the only breacher

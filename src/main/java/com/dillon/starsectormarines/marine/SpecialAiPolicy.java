@@ -97,7 +97,21 @@ public enum SpecialAiPolicy {
      * this role is that it belongs to the section rather than to the marine
      * carrying it.
      */
-    WOUNDED_SQUADMATE_IN_REACH("wounded-squadmate-in-reach");
+    WOUNDED_SQUADMATE_IN_REACH("wounded-squadmate-in-reach"),
+    /**
+     * Standing where the carrier means to stand, shooting at something far
+     * enough off to be worth being steady for, with nobody close enough to make
+     * being committed a mistake. Three facts and no opinion: the carrier's path
+     * is exhausted, they hold a live engagement out past a share of their own
+     * reach, and the nearest hostile is further off than the suit's authored
+     * break-off.
+     *
+     * <p>The mirror of {@link #EXPOSED_UNDER_FIRE}, and named to be read beside
+     * it. That policy is the moment for a marine who cannot answer what is
+     * shooting at them; this one is the moment for a marine who can, and whose
+     * whole problem is hitting with it.
+     */
+    HOLDING_A_FIRING_POSITION("holding-a-firing-position");
 
     public final String key;
 

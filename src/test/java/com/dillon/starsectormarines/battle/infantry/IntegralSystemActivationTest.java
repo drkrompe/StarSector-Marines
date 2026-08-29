@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.marine.BraceSpec;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
+import com.dillon.starsectormarines.marine.HoldingFiringPositionSpec;
 import com.dillon.starsectormarines.marine.ExposedUnderFireSpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -37,6 +39,8 @@ class IntegralSystemActivationTest {
     private static final float BOOST = 1.45f;
     private static final float SOAK = 20f;
     private static final float ARC = 120f;
+    private static final float PLANTED = 0.4f;
+    private static final float STEADIED = 1.6f;
     private static final float TICK = 0.1f;
 
     @Test
@@ -248,6 +252,53 @@ class IntegralSystemActivationTest {
         assertTrue(systems.canActivate(id), "it arrives ready");
     }
 
+
+    /**
+     * The brace, and the mirror of the assist above: the same recomputation
+     * pointed the other way. What it buys is read at the trigger rather than
+     * stored, so this is the whole of what a running stance does to the wearer
+     * itself — it gets slower, and it stays exactly as tough as it was.
+     */
+    @Test
+    void bracingSlowsTheSuitDownForItsDurationAndThenPutsItBack() {
+        UnitRosterService roster = roster();
+        long line = roster.spawn(marine().integralSystem(brace()));
+        IntegralSystemService systems = roster.integralSystems();
+        float issued = roster.movement().moveSpeed(line);
+
+        assertEquals(1f, systems.accuracyMultiplier(line), 1e-6f, "not while it is idle");
+        assertTrue(systems.activate(line));
+
+        assertEquals(issued * PLANTED, roster.movement().moveSpeed(line), 1e-4f);
+        assertEquals(PLANTED, systems.moveSpeedMultiplier(line), 1e-6f);
+        assertEquals(STEADIED, systems.accuracyMultiplier(line), 1e-6f);
+
+        drain(systems, line, DURATION);
+
+        assertFalse(systems.isActive(line));
+        assertEquals(issued, roster.movement().moveSpeed(line), 1e-4f,
+                "the suit is exactly the suit it was");
+        assertEquals(1f, systems.accuracyMultiplier(line), 1e-6f);
+    }
+
+    /** Planting repeatedly starts from the issued speed rather than compounding. */
+    @Test
+    void repeatedBracesDoNotCompound() {
+        UnitRosterService roster = roster();
+        long line = roster.spawn(marine().integralSystem(brace()));
+        IntegralSystemService systems = roster.integralSystems();
+        float issued = roster.movement().moveSpeed(line);
+
+        for (int run = 0; run < 4; run++) {
+            assertTrue(systems.activate(line), "run " + run);
+            assertEquals(issued * PLANTED, roster.movement().moveSpeed(line), 1e-4f,
+                    "run " + run + " should start from the issued speed");
+            drain(systems, line, COOLDOWN);
+            assertEquals(issued, roster.movement().moveSpeed(line), 1e-4f,
+                    "run " + run + " should end back at the issued speed");
+        }
+    }
+
     private static UnitRosterService roster() {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
     }
@@ -261,8 +312,17 @@ class IntegralSystemActivationTest {
                 "system.test-assist", "Breaching assist", EquipmentGrade.SERVICE, "Rams and a screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 DURATION, COOLDOWN, 0,
-                new BreacherAssistSpec(BOOST, SOAK, ARC), null, null,
+                new BreacherAssistSpec(BOOST, SOAK, ARC), null, null, null,
                 new ExposedUnderFireSpec(2f, 1f));
+    }
+
+    private static IntegralSystemDef brace() {
+        return new IntegralSystemDef(
+                "system.test-brace", "Firing brace", EquipmentGrade.SERVICE, "Planted.",
+                IntegralSystemEffect.BRACE, SpecialResourceMode.COOLDOWN,
+                DURATION, COOLDOWN, 0,
+                null, null, null, new BraceSpec(PLANTED, STEADIED),
+                new HoldingFiringPositionSpec(0.5f, 4f));
     }
 
     private static IntegralSystemDef missilePod() {
@@ -270,7 +330,7 @@ class IntegralSystemActivationTest {
                 "system.test-pod", "Predictive volley", EquipmentGrade.SERVICE, "A brace of missiles.",
                 IntegralSystemEffect.MISSILE_POD, SpecialResourceMode.AMMUNITION,
                 1f, 0f, 2,
-                null, new MissilePodSpec("weapon.micro-missile"), null,
+                null, new MissilePodSpec("weapon.micro-missile"), null, null,
                 new SightedStandoffSpec(5f));
     }
 }

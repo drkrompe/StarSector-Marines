@@ -66,7 +66,23 @@ public enum IntegralSystemEffect {
      * already there in every battle ({@code integral-system-slate.md}).
      */
     FIELD_AID("field-aid", "Field aid",
-            "graphics/ui/armory/system-field-aid.png");
+            "graphics/ui/armory/system-field-aid.png"),
+
+    /**
+     * A timed stance: the wearer plants, shoots markedly straighter, and gives
+     * up most of their mobility for as long as it runs. The other half of the
+     * model from {@link #BREACHER_ASSIST} and deliberately its mirror —
+     * <b>assault crosses, line holds</b> — which is why one speeds the wearer up
+     * behind a screen and this one slows them down behind nothing
+     * ({@code integral-system-slate.md}).
+     *
+     * <p>Stays the right side of the durability line by improving what the
+     * wearer <em>hits</em> rather than what hits the wearer. A stance that
+     * refused incoming fire would be mitigation with a posture's name on it, and
+     * the concept that owns bounded directional absorption already exists.
+     */
+    BRACE("brace", "Firing brace",
+            "graphics/ui/armory/system-firing-brace.png");
 
     public final String key;
 

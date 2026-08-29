@@ -44,6 +44,7 @@ public record IntegralSystemDef(
         BreacherAssistSpec breacherAssist,
         MissilePodSpec missilePod,
         PerceptionSweepSpec perceptionSweep,
+        BraceSpec brace,
         IntegralSystemPolicySpec policy) implements Serializable {
 
     /**
@@ -97,6 +98,7 @@ public record IntegralSystemDef(
         BreacherAssistSpec breacher = null;
         MissilePodSpec missilePod = null;
         PerceptionSweepSpec perceptionSweep = null;
+        BraceSpec brace = null;
         switch (effect) {
             case BREACHER_ASSIST -> {
                 if (resourceMode != SpecialResourceMode.COOLDOWN) {
@@ -123,6 +125,17 @@ public record IntegralSystemDef(
                 }
                 perceptionSweep = PerceptionSweepSpec.parse(json, armorId, id);
             }
+            case BRACE -> {
+                // Planting is a commitment, not a payload. What a stance costs
+                // is the time it takes to be able to plant again, so it waits
+                // like a screen does rather than running out like a satchel.
+                if (resourceMode != SpecialResourceMode.COOLDOWN) {
+                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
+                            + "' is a brace and must be cooldown-gated: standing still is not a"
+                            + " payload that runs out.");
+                }
+                brace = BraceSpec.parse(json, armorId, id);
+            }
         }
 
         return new IntegralSystemDef(
@@ -138,6 +151,7 @@ public record IntegralSystemDef(
                 breacher,
                 missilePod,
                 perceptionSweep,
+                brace,
                 parsePolicy(json, armorId, id, effect));
     }
 
@@ -158,6 +172,8 @@ public record IntegralSystemDef(
                     new SpecialAiPolicy[] {SpecialAiPolicy.APPROACHING_DEAD_GROUND};
             case FIELD_AID ->
                     new SpecialAiPolicy[] {SpecialAiPolicy.WOUNDED_SQUADMATE_IN_REACH};
+            case BRACE ->
+                    new SpecialAiPolicy[] {SpecialAiPolicy.HOLDING_A_FIRING_POSITION};
         };
     }
 
@@ -176,6 +192,8 @@ public record IntegralSystemDef(
                         ApproachingDeadGroundSpec.parse(json, armorId, systemId);
                 case WOUNDED_SQUADMATE_IN_REACH ->
                         FieldAidSpec.parse(json, armorId, systemId);
+                case HOLDING_A_FIRING_POSITION ->
+                        HoldingFiringPositionSpec.parse(json, armorId, systemId);
                 default -> throw new JSONException("Integral system '" + systemId + "' on armor '"
                         + armorId + "' declares AI policy '" + declared.key
                         + "', which has no authored parameters for an integral system");
@@ -200,6 +218,11 @@ public record IntegralSystemDef(
     /** This system's field-aid judgement, or null when it declares another policy. */
     public FieldAidSpec fieldAid() {
         return policy instanceof FieldAidSpec spec ? spec : null;
+    }
+
+    /** This system's firing-position judgement, or null when it declares another policy. */
+    public HoldingFiringPositionSpec holdingFiringPosition() {
+        return policy instanceof HoldingFiringPositionSpec spec ? spec : null;
     }
 
     /** This system's standoff parameters, or null when it declares another policy. */
