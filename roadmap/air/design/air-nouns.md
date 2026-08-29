@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — aircraft are based on the garrison airfield, and a delivery that cannot unload leaves rather than parking.
+Updated: 2026-08-29 — a parked airframe destroyed on its stand goes up, and the fire is worth standing back from.
 
 ## Purpose
 
@@ -129,6 +129,21 @@ Three rules give the field its stakes:
   happened off-map at a carrier nobody could reach. On a field it happens on
   ground the attacker can walk onto, so it takes long enough that a field cannot
   answer two requests back to back.
+- **An airframe destroyed on its stand goes up.** It is a full tank under a thin
+  skin, and that is the whole reason burning one is worth a fire team's time; a
+  hull that simply stopped existing was a target with a lot of hit points and
+  nothing else. It leaves a fireball, a burning wreck, and a blast that catches
+  whoever is beside it — the raiders who walked onto the apron included, since
+  fire does not check anybody's colours, and the ground crew that came out to
+  fly it. Recorded: burning three aircraft from four cells away cost about half
+  a six-man fire team. Riflemen out-range that comfortably, so the price is for
+  standing on the apron rather than for the raid.
+
+The fire **does not chain**. Its reach is sized to the stand and the apron
+around it and stops short of the next hardstand, which an authored field puts
+eight cells away. A blast that took its neighbours with it would make one
+satchel worth an entire airfield and delete the only decision a raid contains,
+which is how much of the field to spend the visit on.
 
 Every way a sortie can end draws one distinction: a craft that reached its own
 pad is an aircraft home from a job, and one that ended any other way is an

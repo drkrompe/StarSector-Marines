@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
+import com.dillon.starsectormarines.battle.air.AirframeCookOffSystem;
 import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.BattleResources;
@@ -206,6 +207,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final HeavyWeapons heavy;
     /** Physics-based AoE pipeline — owns the in-flight rocket queue and drains expired entries into splash + wall damage. Both infantry rockets and mech HE rockets queue here through {@link Detonations#queue}. */
     private final Detonations detonations;
+    /** Sets off a parked airframe destroyed on its hardstand. Subscribed to the death mailbox. */
+    private final AirframeCookOffSystem airframeCookOff;
     /** Mission objective list + per-tick dispatch + the default eliminate-each-other backstop. The {@link #addObjective}/{@link #getObjectives} delegates below forward here; the OBJECTIVES phase + first-tick backstop install go through it. */
     private final ObjectivesService objectivesService = new ObjectivesService();
     /**
@@ -592,6 +595,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 () -> simTickIndex, rng);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapEditor, effects, noiseEvents, this::applyPendingImpact);
+        // Subscribed here rather than with the other demolition handlers above
+        // because a burning airframe needs the detonation pipeline, and that
+        // is the line it comes into existence on.
+        this.airframeCookOff = new AirframeCookOffSystem(effects, detonations, rosterService);
+        deathDispatcher.subscribe(airframeCookOff::onDeath);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
         // Constructed here (rather than alongside the other early per-unit
         // systems above) because a missile-pod salvo needs the same

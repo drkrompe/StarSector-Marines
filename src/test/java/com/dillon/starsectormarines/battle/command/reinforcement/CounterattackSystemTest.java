@@ -112,6 +112,9 @@ public class CounterattackSystemTest {
         public boolean canFulfill(BattleView sim, ReinforcementRequest req) { return true; }
 
         @Override
+        public float arrivalSeconds(BattleView sim, ReinforcementRequest req) { return 1f; }
+
+        @Override
         public ReinforcementDispatchResult dispatch(
                 BattleControl sim, ReinforcementRequest req) {
             return ReinforcementDispatchResult.COMMITTED;
@@ -593,6 +596,11 @@ public class CounterattackSystemTest {
             @Override
             public boolean canFulfill(BattleView sim, ReinforcementRequest req) {
                 return true;
+            }
+
+            @Override
+            public float arrivalSeconds(BattleView sim, ReinforcementRequest req) {
+                return 1f;
             }
 
             @Override
