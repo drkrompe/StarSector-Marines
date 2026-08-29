@@ -25,7 +25,20 @@ import java.util.function.Function;
 /** Narrow deployment API handed to an {@link AirDeliveryPayload}. */
 public final class AirDeliveryContext {
 
-    private static final int DEBOARD_SCAN_RADIUS = 5;
+    /**
+     * How far from the LZ a passenger may be set down.
+     *
+     * <p>The search is nearest-first, so this is a bound on the bad case rather
+     * than a target: with a free cell beside the ramp nothing reaches past one
+     * ring. It used to be five, which is a sensible distance for "don't scatter
+     * a squad across the map" and a catastrophic one for "there is nowhere to
+     * stand" — a squad that lands and holds around its own LZ can fill every
+     * cell within five, and the craft then retries forever and never departs.
+     * Twice the reach costs a slightly wider spill in the crowded case and
+     * removes the deadlock entirely; {@code UNLOAD_PATIENCE_SEC} in
+     * {@code AirSystem} covers the case where even this finds nothing.
+     */
+    private static final int DEBOARD_SCAN_RADIUS = 10;
 
     public final ShuttleMission mission;
     public final ShuttleType carrier;

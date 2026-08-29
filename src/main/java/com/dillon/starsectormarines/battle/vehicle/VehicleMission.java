@@ -98,6 +98,14 @@ public final class VehicleMission {
      */
     public TacticalNode assignNode;
 
+    /**
+     * Sim-seconds this vehicle has been stopped without managing to set anybody
+     * down. Reset by every successful deboard. Mirrors the air mission's clock
+     * and exists for the same reason: a delivery with nowhere to unload is a
+     * failed delivery, not one that waits forever holding its passengers.
+     */
+    public float unloadStalledFor;
+
     /** Zone fallback for an objective that is not backed by a tactical node. */
     public int assignZoneId = ObjectiveAssignment.UNSCOPED;
 
