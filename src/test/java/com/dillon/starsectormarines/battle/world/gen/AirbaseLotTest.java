@@ -6,6 +6,10 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
+import java.util.ArrayList;
+import java.util.stream.Stream;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.ArrayDeque;
@@ -13,6 +17,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -33,9 +38,26 @@ class AirbaseLotTest {
     private record Lot(NavigationGrid grid, CellTopology topology, GenContext ctx,
                        int left, int bottom, int right, int top) {}
 
-    private static Lot author(TraversalAxis axis) {
-        int spanX = AirbaseLot.spanX(axis);
-        int spanY = AirbaseLot.spanY(axis);
+    /**
+     * Every size on every approach.
+     *
+     * <p>The invariants below are the lot's, not the large one's. A compact
+     * site that quietly dropped a gate, parked a truck on a berth, or walled a
+     * berth into its shed would be just as broken and much easier to miss.
+     */
+    static Stream<Arguments> shapes() {
+        List<Arguments> out = new ArrayList<>();
+        for (AirbaseLot.Size size : AirbaseLot.Size.values()) {
+            for (AirbaseLot.Facing facing : AirbaseLot.Facing.values()) {
+                out.add(Arguments.of(size, facing));
+            }
+        }
+        return out.stream();
+    }
+
+    private static Lot author(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+        int spanX = AirbaseLot.spanX(size, facing);
+        int spanY = AirbaseLot.spanY(size, facing);
         int w = spanX + MARGIN * 2;
         int h = spanY + MARGIN * 2;
         NavigationGrid grid = new NavigationGrid(w, h);
@@ -50,7 +72,7 @@ class AirbaseLotTest {
         GenContext ctx = new GenContext(grid, topology, new Random(1L), w, h, 1L);
         int left = MARGIN;
         int bottom = MARGIN;
-        new AirbaseLot(left, bottom, left + spanX - 1, bottom + spanY - 1, axis)
+        new AirbaseLot(left, bottom, left + spanX - 1, bottom + spanY - 1, facing, size)
                 .author(ctx, new Random(1L));
         return new Lot(grid, topology, ctx, left, bottom,
                 left + spanX - 1, bottom + spanY - 1);
@@ -72,21 +94,22 @@ class AirbaseLotTest {
      * base and come back in to board an aircraft parked in the middle of it.
      */
     @ParameterizedTest
-    @EnumSource(value = TraversalAxis.class, names = { "SOUTH_TO_NORTH", "WEST_TO_EAST" })
-    void everyBerthIsClearAndReachableFromOutside(TraversalAxis axis) {
-        Lot lot = author(axis);
+    @MethodSource("shapes")
+    void everyBerthIsClearAndReachableFromOutside(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+        Lot lot = author(size, facing);
         List<LandingPad> berths = berths(lot);
-        assertEquals(3, berths.size(), axis + ": three berths on the apron");
+        assertEquals(size == AirbaseLot.Size.FIELD ? 3 : 2, berths.size(),
+                size + " " + facing + ": the berths this size carries");
 
         boolean[][] reached = flood(lot.grid(), 0, 0);
         for (LandingPad pad : berths) {
             for (int x = pad.left(); x <= pad.right(); x++) {
                 for (int y = pad.bottom(); y <= pad.top(); y++) {
-                    assertTrue(lot.grid().isWalkable(x, y), axis + ": berth cell "
+                    assertTrue(lot.grid().isWalkable(x, y), size + " " + facing + ": berth cell "
                             + x + "," + y + " is not clear");
                 }
             }
-            assertTrue(reached[pad.centerX][pad.centerY], axis + ": the berth at "
+            assertTrue(reached[pad.centerX][pad.centerY], size + " " + facing + ": the berth at "
                     + pad.centerX + "," + pad.centerY + " cannot be walked to from off the lot");
         }
     }
@@ -100,30 +123,29 @@ class AirbaseLotTest {
      * be part of.
      */
     @ParameterizedTest
-    @EnumSource(value = TraversalAxis.class, names = { "SOUTH_TO_NORTH", "WEST_TO_EAST" })
-    void noBerthIsInsideAShed(TraversalAxis axis) {
-        Lot lot = author(axis);
+    @MethodSource("shapes")
+    void noBerthIsInsideAShed(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+        Lot lot = author(size, facing);
         for (LandingPad pad : berths(lot)) {
-            assertTrue(openToTheSky(lot, pad.centerX, pad.centerY), axis
+            assertFalse(underRoof(lot, pad.centerX, pad.centerY), size + " " + facing
                     + ": the berth at " + pad.centerX + "," + pad.centerY
-                    + " is walled in — berths belong on the apron");
+                    + " is under a roof — berths belong on the apron");
         }
     }
 
-    /** Whether a straight run in some direction leaves the lot without meeting a wall. */
-    private static boolean openToTheSky(Lot lot, int cx, int cy) {
-        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] step : steps) {
-            boolean clear = true;
-            for (int i = 1; i <= AirbaseLot.DEPTH; i++) {
-                int x = cx + step[0] * i;
-                int y = cy + step[1] * i;
-                if (x < lot.left() || x > lot.right() || y < lot.bottom() || y > lot.top()) break;
-                if (lot.topology().isWall(x, y)) { clear = false; break; }
-            }
-            if (clear) return true;
-        }
-        return false;
+    /**
+     * Whether this cell is under a roof, asked of the floor rather than
+     * inferred from the walls.
+     *
+     * <p>Two earlier versions of this guessed. "Can you walk out in a straight
+     * line" says yes for anything in a shed, because a hangar has a mouth and
+     * that is the direction the aircraft leaves by; "is it flanked by walls"
+     * says yes for things the question was never about. The lot already floors
+     * its buildings differently from its apron — that is the whole point of
+     * the surface changing at a wall — so the floor is the answer.
+     */
+    private static boolean underRoof(Lot lot, int x, int y) {
+        return lot.topology().getGroundKind(x, y) == GroundKind.INDOOR;
     }
 
     /**
@@ -133,30 +155,26 @@ class AirbaseLotTest {
      * cheapest honest assertion that they exist as structures at all.
      */
     @ParameterizedTest
-    @EnumSource(value = TraversalAxis.class, names = { "SOUTH_TO_NORTH", "WEST_TO_EAST" })
-    void theShedsAreWalledAndWorked(TraversalAxis axis) {
-        Lot lot = author(axis);
+    @MethodSource("shapes")
+    void theShedsAreWalledAndWorked(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+        Lot lot = author(size, facing);
         int walls = 0;
         for (int x = lot.left(); x <= lot.right(); x++) {
             for (int y = lot.bottom(); y <= lot.top(); y++) {
                 if (lot.topology().isWall(x, y)) walls++;
             }
         }
-        assertTrue(walls > 40, axis + ": two sheds should carry a wall ring each, found "
-                + walls + " wall cells");
+        assertTrue(walls > 20, size + " " + facing
+                + ": every shed should carry a wall ring, found " + walls + " wall cells");
 
         // And they have kit in them. A shed with nothing in it is a box.
         long inside = lot.ctx().doodads.stream()
-                .filter(d -> insideAShed(lot, d.cellX, d.cellY))
+                .filter(d -> underRoof(lot, d.cellX, d.cellY))
                 .count();
-        assertTrue(inside >= 4, axis + ": the sheds should be worked, found "
+        assertTrue(inside >= 2, size + " " + facing + ": the sheds should be worked, found "
                 + inside + " pieces of kit inside them");
     }
 
-    /** Whether this cell sits in a walled pocket rather than out on the apron. */
-    private static boolean insideAShed(Lot lot, int x, int y) {
-        return !openToTheSky(lot, x, y);
-    }
 
     /**
      * The fence encloses the lot and still lets people in.
@@ -167,9 +185,9 @@ class AirbaseLotTest {
      * posts.
      */
     @ParameterizedTest
-    @EnumSource(value = TraversalAxis.class, names = { "SOUTH_TO_NORTH", "WEST_TO_EAST" })
-    void theFenceEnclosesTheLotAndHasAWayIn(TraversalAxis axis) {
-        Lot lot = author(axis);
+    @MethodSource("shapes")
+    void theFenceEnclosesTheLotAndHasAWayIn(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+        Lot lot = author(size, facing);
         int posts = 0;
         int open = 0;
         for (int x = lot.left(); x <= lot.right(); x++) {
@@ -181,9 +199,9 @@ class AirbaseLotTest {
                 else posts++;
             }
         }
-        assertTrue(posts > open * 4, axis + ": the perimeter should be mostly fence — "
+        assertTrue(posts > open * 4, size + " " + facing + ": the perimeter should be mostly fence — "
                 + posts + " posts against " + open + " open cells");
-        assertTrue(open >= 4, axis + ": a fence with no gate makes the lot a pocket");
+        assertTrue(open >= 4, size + " " + facing + ": a fence with no gate makes the lot a pocket");
     }
 
     /**
@@ -195,17 +213,17 @@ class AirbaseLotTest {
      * fortress ward it sits in is wider than it is deep.
      */
     @ParameterizedTest
-    @EnumSource(value = TraversalAxis.class, names = { "SOUTH_TO_NORTH", "WEST_TO_EAST" })
-    void thereIsAGateOnEverySide(TraversalAxis axis) {
-        Lot lot = author(axis);
+    @MethodSource("shapes")
+    void thereIsAGateOnEverySide(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+        Lot lot = author(size, facing);
         assertTrue(openOnSide(lot, lot.left(), lot.bottom(), lot.left(), lot.top()),
-                axis + ": no way through the west side");
+                size + " " + facing + ": no way through the west side");
         assertTrue(openOnSide(lot, lot.right(), lot.bottom(), lot.right(), lot.top()),
-                axis + ": no way through the east side");
+                size + " " + facing + ": no way through the east side");
         assertTrue(openOnSide(lot, lot.left(), lot.bottom(), lot.right(), lot.bottom()),
-                axis + ": no way through the south side");
+                size + " " + facing + ": no way through the south side");
         assertTrue(openOnSide(lot, lot.left(), lot.top(), lot.right(), lot.top()),
-                axis + ": no way through the north side");
+                size + " " + facing + ": no way through the north side");
     }
 
     /** Whether any cell along this edge run can be walked through. */
@@ -227,16 +245,16 @@ class AirbaseLotTest {
      * what a host reserves, so this pins that the lot does not quietly spend it.
      */
     @ParameterizedTest
-    @EnumSource(value = TraversalAxis.class, names = { "SOUTH_TO_NORTH", "WEST_TO_EAST" })
-    void theFenceKeepsItsClearanceUntouched(TraversalAxis axis) {
-        Lot lot = author(axis);
+    @MethodSource("shapes")
+    void theFenceKeepsItsClearanceUntouched(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+        Lot lot = author(size, facing);
         for (int ring = 1; ring <= AirbaseLot.CLEARANCE; ring++) {
             for (int x = lot.left() - ring; x <= lot.right() + ring; x++) {
                 for (int y = lot.bottom() - ring; y <= lot.top() + ring; y++) {
                     boolean onRing = x == lot.left() - ring || x == lot.right() + ring
                             || y == lot.bottom() - ring || y == lot.top() + ring;
                     if (!onRing) continue;
-                    assertTrue(lot.grid().isWalkable(x, y), axis + ": " + x + "," + y
+                    assertTrue(lot.grid().isWalkable(x, y), size + " " + facing + ": " + x + "," + y
                             + " is " + ring + " cells outside the fence and cannot be walked");
                 }
             }
@@ -258,21 +276,24 @@ class AirbaseLotTest {
      * old placement occupied.
      */
     @ParameterizedTest
-    @EnumSource(value = TraversalAxis.class, names = { "SOUTH_TO_NORTH", "WEST_TO_EAST" })
-    void theGroundBehindEachBerthIsClear(TraversalAxis axis) {
-        Lot lot = author(axis);
-        boolean alongY = axis == TraversalAxis.SOUTH_TO_NORTH;
+    @MethodSource("shapes")
+    void theGroundBehindEachBerthIsClear(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+        Lot lot = author(size, facing);
+        boolean alongY = facing.alongY();
         for (LandingPad pad : berths(lot)) {
             for (Doodad d : lot.ctx().doodads) {
                 if (d.cover == Doodad.COVER_NONE) continue;
                 int across = alongY ? d.cellY : d.cellX;
-                int back = alongY ? pad.top() : pad.right();
-                if (across <= back || across > back + TAXIWAY_ROWS) continue;
+                int back = alongY
+                        ? (facing.sign() > 0 ? pad.top() : pad.bottom())
+                        : (facing.sign() > 0 ? pad.right() : pad.left());
+                int depth = (across - back) * facing.sign();
+                if (depth <= 0 || depth > TAXIWAY_ROWS) continue;
                 int along = alongY ? d.cellX : d.cellY;
                 int lo = alongY ? pad.left() : pad.bottom();
                 int hi = alongY ? pad.right() : pad.top();
                 if (along < lo || along > hi) continue;
-                throw new AssertionError(axis + ": something solid is parked at "
+                throw new AssertionError(size + " " + facing + ": something solid is parked at "
                         + d.cellX + "," + d.cellY + ", on the way out of the berth at "
                         + pad.centerX + "," + pad.centerY);
             }

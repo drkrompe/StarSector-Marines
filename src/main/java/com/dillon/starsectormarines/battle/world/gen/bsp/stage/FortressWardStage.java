@@ -84,6 +84,12 @@ public final class FortressWardStage implements GenStage {
     /** Cells the ward widens by while looking for enough buildable ground. */
     private static final int LATERAL_STEP = 6;
 
+    /**
+     * The airbase a fortress ward builds. A ward has the ground for the whole
+     * installation, which is the one place on the map that does.
+     */
+    private static final AirbaseLot.Size WARD_AIRBASE = AirbaseLot.Size.FIELD;
+
     /** Ward cells the packer may not build on but must be able to cross. */
     private static final int APPROACH_WIDTH = 2;
 
@@ -127,8 +133,8 @@ public final class FortressWardStage implements GenStage {
                 ctx, buildable, circulation, axis, FortressProgram.ward());
         if (lot != null) {
             new AirbaseLot(lot[0] + AirbaseLot.CLEARANCE, lot[1] + AirbaseLot.CLEARANCE,
-                    lot[2] - AirbaseLot.CLEARANCE, lot[3] - AirbaseLot.CLEARANCE, axis)
-                    .author(ctx, ctx.rng);
+                    lot[2] - AirbaseLot.CLEARANCE, lot[3] - AirbaseLot.CLEARANCE,
+                    AirbaseLot.Facing.of(axis), WARD_AIRBASE).author(ctx, ctx.rng);
             emitAirbaseNode(ctx, lot);
         }
         ctx.put(BspKeys.FORTRESS_WARD, ward);
@@ -196,8 +202,9 @@ public final class FortressWardStage implements GenStage {
         // The reservation is the lot plus the clear ground kept outside its
         // fence. Reserving only the lot lets a building pack flush against the
         // fence, and the way past the base is then whatever the packing left.
-        int spanX = AirbaseLot.reservedSpanX(axis);
-        int spanY = AirbaseLot.reservedSpanY(axis);
+        AirbaseLot.Facing facing = AirbaseLot.Facing.of(axis);
+        int spanX = AirbaseLot.reservedSpanX(WARD_AIRBASE, facing);
+        int spanY = AirbaseLot.reservedSpanY(WARD_AIRBASE, facing);
         int wardW = ward[2] - ward[0] + 1;
         int wardH = ward[3] - ward[1] + 1;
         if (spanX > wardW || spanY > wardH) return null;
