@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — aircraft are based on the garrison airfield: a unit on the ground, an air entity in the air, and a handoff at each end.
+Updated: 2026-08-29 — aircraft are based on the garrison airfield, and a delivery that cannot unload leaves rather than parking.
 
 ## Purpose
 
@@ -147,6 +147,17 @@ happens to be drawn. One that has to be loaded has both: the garrison commits
 people who can be seen and shot, they cross open ground to reach the field, and
 an attacker standing on the airfield — or merely shooting across it — has
 stopped the lift without touching the aircraft.
+
+**Unloading is bounded at both ends of the trip.** A passenger needs somewhere
+to stand, and a landing zone can have nowhere: a squad that lands and holds
+around its own drop point fills the search on its own. The craft reaches further
+before it gives up — the search is nearest-first, so a wider bound costs nothing
+when the ramp is clear and only spreads the spill when it is not — and if there
+is genuinely nothing, it leaves with whoever is still aboard. Waiting is not an
+option a delivery has: an undelivered passenger is a failed delivery, while a
+craft that retries forever holds its landing zone for the rest of the battle,
+never departs, and reports nothing. The same rule and the same reason apply to a
+convoy stopped on its drop point; `convoy-nouns.md` owns that vehicle.
 
 A loading craft is on the ground and is not shootable-down as an aircraft, the
 same as one that has landed. Boarding has a deadline, because the squad walking
