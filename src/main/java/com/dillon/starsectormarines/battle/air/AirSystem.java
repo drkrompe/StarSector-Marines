@@ -74,6 +74,18 @@ public class AirSystem {
      */
     private static final float BOARDING_REACH = 3.5f;
 
+    /**
+     * Sim-seconds a landed craft keeps trying to set a passenger down before
+     * it gives up and leaves with them.
+     *
+     * <p>Generous against a normal unload — a full transport empties in a few
+     * seconds at its deboard interval — so this only ever fires when the LZ is
+     * genuinely sealed: a squad holding on top of its own drop point, or an
+     * interior packed wall to wall. Reaching further (see the deboard scan
+     * radius) removes most of those; this is the floor under the rest.
+     */
+    private static final float UNLOAD_PATIENCE_SEC = 20f;
+
     /** Distance threshold (cells) at which a DEPARTING shuttle transitions to GONE / next cycle. Larger than the LZ threshold because exit points sit well off-map and we don't need pinpoint accuracy. */
     private static final float SHUTTLE_EXIT_ARRIVAL_DIST = 1.0f;
     /** Cell radius around a flying turret's origin where walls are treated as transparent — models the shuttle being "above" its containing building. Tuned to typical building wall thickness; past this, real LOS rules apply. */
@@ -465,6 +477,7 @@ public class AirSystem {
 
                 case LANDED:
                     mission.deboardCountdown -= dt;
+                    if (mission.marinesRemaining > 0) mission.unloadStalledFor += dt;
                     if (mission.deboardCountdown <= 0f && mission.marinesRemaining > 0) {
                         AirDeliveryPayload payload = mission.payload != null
                                 ? mission.payload : InfantryPayload.INSTANCE;
@@ -472,8 +485,24 @@ public class AirSystem {
                                 navigation, roster, addUnitSink, resupply, commandControl))) {
                             mission.marinesRemaining--;
                             mission.deboardedThisSortie++;
+                            mission.unloadStalledFor = 0f;
                         }
                         mission.deboardCountdown = type.deboardInterval;
+                    }
+                    // Nowhere to put anybody, for long enough that there is not
+                    // going to be. The craft leaves with whoever is still
+                    // aboard rather than holding the LZ for the rest of the
+                    // battle: an undelivered passenger is a failed delivery,
+                    // and a parked aircraft that never departs is a silent one.
+                    if (mission.marinesRemaining > 0
+                            && mission.unloadStalledFor >= UNLOAD_PATIENCE_SEC) {
+                        LOG.warn("air: " + world.airType(id) + " could not unload "
+                                + mission.marinesRemaining + " of its passengers at ("
+                                + mission.lzX + "," + mission.lzY
+                                + ") — no standable cell within " + UNLOAD_PATIENCE_SEC
+                                + "s. Departing with them aboard.");
+                        mission.marinesRemaining = 0;
+                        mission.awaitingEvacuees = false;
                     }
                     if (mission.marinesRemaining == 0
                             && !mission.awaitingEvacuees) {
