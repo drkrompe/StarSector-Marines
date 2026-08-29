@@ -156,6 +156,8 @@ public record IntegralSystemDef(
             case MISSILE_POD -> new SpecialAiPolicy[] {SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT};
             case PERCEPTION_SWEEP ->
                     new SpecialAiPolicy[] {SpecialAiPolicy.APPROACHING_DEAD_GROUND};
+            case FIELD_AID ->
+                    new SpecialAiPolicy[] {SpecialAiPolicy.WOUNDED_SQUADMATE_IN_REACH};
         };
     }
 
@@ -172,6 +174,8 @@ public record IntegralSystemDef(
                 case SIGHTED_STANDOFF_CONTACT -> SightedStandoffSpec.parse(json, armorId, systemId);
                 case APPROACHING_DEAD_GROUND ->
                         ApproachingDeadGroundSpec.parse(json, armorId, systemId);
+                case WOUNDED_SQUADMATE_IN_REACH ->
+                        FieldAidSpec.parse(json, armorId, systemId);
                 default -> throw new JSONException("Integral system '" + systemId + "' on armor '"
                         + armorId + "' declares AI policy '" + declared.key
                         + "', which has no authored parameters for an integral system");
@@ -191,6 +195,11 @@ public record IntegralSystemDef(
     /** This system's exposure/pressure judgement, or null when it declares another policy. */
     public ExposedUnderFireSpec exposedUnderFire() {
         return policy instanceof ExposedUnderFireSpec spec ? spec : null;
+    }
+
+    /** This system's field-aid judgement, or null when it declares another policy. */
+    public FieldAidSpec fieldAid() {
+        return policy instanceof FieldAidSpec spec ? spec : null;
     }
 
     /** This system's standoff parameters, or null when it declares another policy. */

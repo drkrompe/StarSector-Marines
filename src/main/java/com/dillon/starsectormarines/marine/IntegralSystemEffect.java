@@ -7,11 +7,19 @@ import org.json.JSONException;
  * ({@code integral-armor-systems.md}).
  *
  * <p>Every value here must express itself as <b>behaviour</b> — movement,
- * protection with a clock on it, a delivered payload, perception. An effect
- * whose whole contribution is "more effective hit points" does not belong in
- * this enum: late equipment is meant to get more interesting, not harder to
- * kill, and the measured campaign arc is already bought mostly on the shooter's
- * side ({@code progression-nouns.md}).
+ * protection with a clock on it, a delivered payload, perception, care. An
+ * effect whose whole contribution is "more effective hit points" does not
+ * belong in this enum: late equipment is meant to get more interesting, not
+ * harder to kill, and the measured campaign arc is already bought mostly on the
+ * shooter's side ({@code progression-nouns.md}).
+ *
+ * <p>{@link #FIELD_AID} sits closest to that line and stays the right side of
+ * it. What it buys is not the wearer surviving longer — the wearer gains
+ * nothing at all — but a <em>squadmate</em> getting back up, out of a finite
+ * satchel, by a marine who had to be next to them to do it. It undoes damage
+ * already taken rather than pre-empting damage to come, and it is spent on
+ * somebody else. A system that healed its own wearer passively would be the
+ * thing this rule forbids.
  */
 public enum IntegralSystemEffect {
 
@@ -42,7 +50,23 @@ public enum IntegralSystemEffect {
      * perception.
      */
     PERCEPTION_SWEEP("perception-sweep", "Sensor sweep",
-            "graphics/ui/armory/system-sensor-sweep.png");
+            "graphics/ui/armory/system-sensor-sweep.png"),
+
+    /**
+     * Treatment for a wounded squadmate within arm's reach, out of a finite
+     * satchel. Answers what the marine carrying the section's heavy load is
+     * carrying besides ammunition, and it is the only effect here whose whole
+     * value lands on somebody other than the wearer.
+     *
+     * <p>Deliberately treats the walking wounded rather than the dead. A marine
+     * in this simulation is alive or dead with nothing in between, so a system
+     * built around recovering casualties would need a concept that does not
+     * exist yet; a system built around the trooper still on their feet at a
+     * third of their health needs nothing new at all, and that trooper is
+     * already there in every battle ({@code integral-system-slate.md}).
+     */
+    FIELD_AID("field-aid", "Field aid",
+            "graphics/ui/armory/system-field-aid.png");
 
     public final String key;
 

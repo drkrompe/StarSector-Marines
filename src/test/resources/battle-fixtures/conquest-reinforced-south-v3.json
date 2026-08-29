@@ -3043,11 +3043,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorCapacity": 5,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.9900000095367432,
+        "armorRating": 4,
         "campaignSoldierId": "reinforced-marine-136",
         "campaignSquad": {
           "fireTeamIndex": 0,
@@ -3060,7 +3060,7 @@
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": null
       },
@@ -3131,11 +3131,11 @@
         "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 17,
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorCapacity": 5,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.9900000095367432,
+        "armorRating": 4,
         "campaignSoldierId": "reinforced-marine-140",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -3148,7 +3148,7 @@
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": null
       },
@@ -4099,11 +4099,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorCapacity": 5,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.9900000095367432,
+        "armorRating": 4,
         "campaignSoldierId": "reinforced-marine-184",
         "campaignSquad": {
           "fireTeamIndex": 0,
@@ -4116,7 +4116,7 @@
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": null
       },
@@ -4187,11 +4187,11 @@
         "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 17,
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorCapacity": 5,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.9900000095367432,
+        "armorRating": 4,
         "campaignSoldierId": "reinforced-marine-188",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -4204,7 +4204,7 @@
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": null
       },
