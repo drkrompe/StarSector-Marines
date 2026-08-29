@@ -143,16 +143,29 @@ public class BspMapSpritePreviewTest {
     @Test
     void renderForwardBunkerWindow() throws Exception {
         Files.createDirectories(OUT_DIR);
-        long seed = 777L;
-        MapResult map = new BspCityGenerator().generate(
-                BattleSetup.CONQUEST_GRID_W,
-                BattleSetup.CONQUEST_GRID_H,
-                seed, TraversalAxis.SOUTH_TO_NORTH);
-        TacticalNode bunker = map.tacticalMap.ofKind(TacticalNode.Kind.FORWARD_BUNKER)
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new AssertionError(
-                        "Conquest preview seed must contain a forward bunker"));
+        // Whichever of these seeds lays down a bunker. A fixed seed pins this
+        // render to one map's luck: not every Conquest seed has a forward
+        // bunker on it, so a resize that shuffles the layout fails the test for
+        // having generated a different city rather than a broken window.
+        MapResult map = null;
+        TacticalNode bunker = null;
+        long seed = 0L;
+        for (long candidateSeed : new long[]{ 777L, 3L, 5L, 7L, 11L, 42L }) {
+            MapResult candidate = new BspCityGenerator().generate(
+                    BattleSetup.CONQUEST_GRID_W,
+                    BattleSetup.CONQUEST_GRID_H,
+                    candidateSeed, TraversalAxis.SOUTH_TO_NORTH);
+            List<TacticalNode> bunkers =
+                    candidate.tacticalMap.ofKind(TacticalNode.Kind.FORWARD_BUNKER);
+            if (bunkers.isEmpty()) continue;
+            map = candidate;
+            bunker = bunkers.get(0);
+            seed = candidateSeed;
+            break;
+        }
+        if (bunker == null) {
+            throw new AssertionError("no Conquest seed in the sweep laid down a forward bunker");
+        }
 
         int margin = 3;
         int widthCells = bunker.right - bunker.left + 1 + margin * 2;
