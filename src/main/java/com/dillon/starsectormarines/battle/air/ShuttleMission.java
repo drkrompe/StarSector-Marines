@@ -206,6 +206,18 @@ public final class ShuttleMission {
     public TacticalNode assignNode;
 
     /**
+     * The berth this sortie flew off, or null for a craft that came from
+     * off-map.
+     *
+     * <p>An aircraft based on a field is borrowed from a hardstand and owes
+     * itself back to it. Carrying the berth on the mission is what closes that
+     * loop: the craft knows where home is, so a completed sortie parks and a
+     * lost one writes the berth off, without the field having to guess which of
+     * its aircraft failed to come back.
+     */
+    public AirfieldService.Berth homeBerth;
+
+    /**
      * Zone fallback for an objective that is not backed by a tactical node.
      *
      * <p>Not every objective a request names sits on an authored place. A lost
