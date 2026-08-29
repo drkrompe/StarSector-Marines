@@ -368,6 +368,178 @@
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
       },
       "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96 }
+    },
+    {
+      "id": "armor.pathfinder",
+      "catalog": {
+        "displayName": "Pathfinder recon suit",
+        "role": "recon",
+        "description": "The Hegemony does not buy corporate sensor suits; it strips a Legionary down to the frame and hangs a surveying array off it. The Pathfinder is heavier, louder, and far easier to fix than anything Tri-Tachyon sells a scout, and an auxiliary can be taught to run one in a fortnight.",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+      },
+      "battle": {
+        "appearanceFamily": "BLUE_SCOUT",
+        "armorCapacity": 8.0,
+        "armorRating": 6.0,
+        "moveSpeedMult": 1.01,
+        "incomingAccuracyMult": 0.93,
+        "integralSystem": {
+          "id": "system.survey-sweep",
+          "grade": "milspec",
+          "displayName": "Survey sweep",
+          "description": "A mapping array asked to do something it was not sold for. It reads further than a Janus hood and holds the return longer, because it is bigger and the Hegemony does not mind that it announces itself doing so. Everyone within a few streets knows a survey sweep happened. Doctrine treats that as somebody else's problem.",
+          "effect": "perception-sweep",
+          "policy": "approaching-dead-ground",
+          "lookaheadCells": 8.0,
+          "resource": "cooldown",
+          "durationSeconds": 5.0,
+          "cooldownSeconds": 18.0,
+          "revealRangeCells": 50.0,
+          "wallReadRadiusCells": 8.0
+        }
+      }
+    },
+    {
+      "id": "armor.outrider",
+      "catalog": {
+        "displayName": "Outrider deep-recon suit",
+        "role": "recon",
+        "description": "One League member world builds the shell, another the array, a third the endurance pack, and the coalition argues about the interfaces for a decade. What comes out is a scout suit a section can live in for a week, and that puts everything it sees on a net six navies can read.",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+      },
+      "battle": {
+        "appearanceFamily": "BLUE_SCOUT",
+        "armorCapacity": 14.0,
+        "armorRating": 9.0,
+        "moveSpeedMult": 0.98,
+        "incomingAccuracyMult": 0.9,
+        "integralSystem": {
+          "id": "system.coalition-read",
+          "grade": "masterwork",
+          "displayName": "Coalition read",
+          "description": "The deepest active return anyone fields, and the only one built to be shared rather than owned. It opens the ground ahead, reads well past the nearer walls, and recovers quickly enough that an outrider can spend it twice crossing one street. What it costs is the pack, the weight, and the certainty that anybody listening heard it.",
+          "effect": "perception-sweep",
+          "policy": "approaching-dead-ground",
+          "lookaheadCells": 9.0,
+          "resource": "cooldown",
+          "durationSeconds": 6.0,
+          "cooldownSeconds": 16.0,
+          "revealRangeCells": 58.0,
+          "wallReadRadiusCells": 10.0
+        }
+      }
+    },
+    {
+      "id": "armor.redoubt",
+      "catalog": {
+        "displayName": "Redoubt siege plate",
+        "role": "line",
+        "description": "Hegemony siege issue: Legionary plate with every weight limit taken off, because the marine wearing it is not expected to go anywhere. It is what holds a breach once the assault sections have made one, and it is miserable to walk any distance in.",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+      },
+      "battle": {
+        "appearanceFamily": "CHARCOAL",
+        "armorCapacity": 22.0,
+        "armorRating": 13.0,
+        "moveSpeedMult": 0.78,
+        "incomingAccuracyMult": 0.99
+      }
+    },
+    {
+      "id": "armor.riot-shell",
+      "catalog": {
+        "displayName": "Kestrel riot shell",
+        "role": "assault",
+        "description": "Corporate security surplus, sold by the container to anyone who will take it. It was built to walk a picket line into a crowd, so it has a real shield and almost no assist worth the name -- and it turns out a station corridor is not so different from a picket line.",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+      },
+      "battle": {
+        "appearanceFamily": "MILITIA",
+        "armorCapacity": 6.0,
+        "armorRating": 5.0,
+        "moveSpeedMult": 0.97,
+        "incomingAccuracyMult": 0.97,
+        "integralSystem": {
+          "id": "system.riot-brace",
+          "grade": "surplus",
+          "displayName": "Riot brace",
+          "description": "The shield comes up and the frame locks behind it. That is the whole system: no shove, no crossing speed, nothing a breach family would recognise as an assist. What it does have is a genuine shield, which covers a narrow slice of one direction and covers it better than a suit this cheap has any right to.",
+          "effect": "breacher-assist",
+          "policy": "exposed-under-fire",
+          "incomingPressureThreshold": 1.5,
+          "maxCoverLevel": 0,
+          "resource": "cooldown",
+          "durationSeconds": 3.0,
+          "cooldownSeconds": 24.0,
+          "moveSpeedMult": 1.06,
+          "screenSoak": 3.0,
+          "shieldedArcDegrees": 70.0
+        }
+      }
+    },
+    {
+      "id": "armor.packframe",
+      "catalog": {
+        "displayName": "Packframe support harness",
+        "role": "support",
+        "description": "An unpowered cargo frame with the load arms cut short and a launch rail welded where a crate used to sit. Independent crews build them because a section that can put one rocket into a bunker is worth more than a section that cannot, and because the frame was already in the hold.",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+      },
+      "battle": {
+        "appearanceFamily": "OUTLAW",
+        "armorCapacity": 6.0,
+        "armorRating": 3.0,
+        "moveSpeedMult": 0.96,
+        "incomingAccuracyMult": 1.02,
+        "integralSystem": {
+          "id": "system.rail-shot",
+          "grade": "surplus",
+          "displayName": "Rail shot",
+          "description": "One missile, on a rail, aimed by the wearer turning to face the thing. There is no threat display and there is no second round: the frame carries what it was loaded with in the hold, and the crew decided which target was worth it before the drop. Often they decided wrong.",
+          "effect": "missile-pod",
+          "resource": "ammunition",
+          "policy": "sighted-standoff-contact",
+          "minimumStandoffCells": 7.0,
+          "durationSeconds": 1.0,
+          "startingAmmo": 1,
+          "weaponId": "weapon.micro-missile"
+        }
+      }
+    },
+    {
+      "id": "armor.arbalest",
+      "catalog": {
+        "displayName": "Arbalest support battlesuit",
+        "role": "support",
+        "description": "The Hegemony's answer to carrying the heavy thing: a powered suit built around the rack rather than a suit with a rack added to it. It is slower than a Legionary and worth every second of that, because the section walking with it can ask for indirect fire and get it from inside the room.",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+      },
+      "battle": {
+        "appearanceFamily": "ARMY_GREEN",
+        "armorCapacity": 17.0,
+        "armorRating": 11.0,
+        "moveSpeedMult": 0.84,
+        "incomingAccuracyMult": 0.99,
+        "integralSystem": {
+          "id": "system.battery-volley",
+          "grade": "milspec",
+          "displayName": "Battery volley",
+          "description": "Four rounds in the rack and a doctrine for spending them. Where the Aegis waits for a firing solution its own display likes, the Arbalest waits for a target its section commander would call worth a missile, and then sends more of them than the Aegis carries in total. It is not cleverer. It is a battery.",
+          "effect": "missile-pod",
+          "resource": "ammunition",
+          "policy": "sighted-standoff-contact",
+          "minimumStandoffCells": 6.0,
+          "durationSeconds": 1.0,
+          "startingAmmo": 4,
+          "weaponId": "weapon.micro-missile"
+        }
+      }
     }
   ]
 }
