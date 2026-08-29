@@ -204,6 +204,18 @@ public final class ShuttleMission {
      */
     public TacticalNode assignNode;
 
+    /**
+     * Whether the delivering authority owns {@link #assignNode} as a real
+     * objective, rather than merely naming somewhere for the squad to start.
+     *
+     * <p>Set, the deboarded squad is claimed <em>with</em> a hold on that node,
+     * so it lands already tasked with the thing the sortie was flown for and
+     * its owner can retask it once that is done. Unset — a drop with no
+     * commanding authority to ask — the squad is claimed bare, exactly as
+     * before. Same field and same meaning as the convoy's.
+     */
+    public boolean commandOwnsObjective;
+
     /** Sim-seconds of fire-support fuel left; seeded on HOVER_STATION entry, counted down each tick, hits zero → DEPARTING. */
     public float hoverTimerSec;
 

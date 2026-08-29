@@ -16,7 +16,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -284,10 +286,15 @@ public class ShuttleMeansTest {
                 Faction.DEFENDER, 65, 3);
     }
 
-    /** A commander that owns the squads its deliveries bring, the way the Conquest defender does. */
+    /**
+     * A commander that owns the squads its deliveries bring, the way the
+     * Conquest defender does — including owning the objective whenever the
+     * request names one, which is what decides whether a delivered squad lands
+     * already tasked.
+     */
     private static DeliveryDeploymentPolicy commanderOwning(String issuer) {
         return req -> new DeliveryDeployment(req.rallyX, req.rallyY, -1,
-                false, false, SquadCommandClaim.mission(issuer, "relief"));
+                false, req.hasObjective(), SquadCommandClaim.mission(issuer, "relief"));
     }
 
     /**
@@ -392,5 +399,77 @@ public class ShuttleMeansTest {
         assertFalse(mission.state == ShuttleState.GONE,
                 "the two who boarded were carried off the map, not deleted");
         assertEquals(2, mission.marinesRemaining, "and they are still aboard");
+    }
+
+    /**
+     * A shuttle's passengers belong to the commander that asked for them.
+     *
+     * <p>They used to be claimed for the air arm, which outranks mission
+     * command, so every squad a shuttle ever dropped was frozen on the task it
+     * landed with for the rest of the battle — the commander could see it and
+     * could not move it. The convoy has always handed its passengers over; this
+     * is the shuttle doing the same.
+     */
+    @Test
+    public void aDeliveredSquadBelongsToTheCommanderThatAskedForIt() {
+        BattleSimulation sim = openSim();
+        TacticalNode objective = commandPost(6, 6);
+        sim.setTacticalMap(new TacticalMap(List.of(objective)));
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, commanderOwning("conquest-defender"), List.of());
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 6, 6, 6, 6);
+
+        // Both sides on the map, in opposite corners and out of each other's
+        // reach: the simulation does not advance a tick while one is absent,
+        // and a shuttle that never flies never deboards.
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 0, 0));
+        sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, W - 1, H - 1));
+
+        means.dispatch(sim, req);
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertEquals(CommandAuthority.MISSION_COMMAND,
+                mission.commandClaim.authority());
+        assertEquals("conquest-defender", mission.commandClaim.issuer());
+        assertTrue(mission.commandOwnsObjective,
+                "the request named an objective, so the commander owns it");
+        assertEquals(objective, mission.assignNode);
+
+        // Fly it in and put somebody on the ground.
+        for (int i = 0; i < 1800 && mission.squadId == Squad.NO_SQUAD; i++) {
+            sim.advance(1f / 30f);
+        }
+        assertTrue(mission.squadId != Squad.NO_SQUAD,
+                "the sortie deboarded somebody: state=" + mission.state);
+
+        CommandDirective owner = sim.getSquadCommandDirective(mission.squadId);
+        assertNotNull(owner, "the delivered squad is owned");
+        assertEquals(CommandAuthority.MISSION_COMMAND, owner.authority());
+        assertEquals("conquest-defender", owner.issuer());
+        assertNotNull(owner.assignment(),
+                "and lands tasked with what it was flown for, not merely owned");
+        assertEquals(AssignmentKind.HOLD_NODE, owner.assignment().kind());
+        assertEquals(objective, owner.assignment().targetNode());
+    }
+
+    /**
+     * With no commanding authority to ask, a drop is claimed exactly as before.
+     */
+    @Test
+    public void anUncommandedDropKeepsReinforcementOwnership() {
+        BattleSimulation sim = openSim();
+        sim.setTacticalMap(new TacticalMap(List.of(commandPost(6, 6))));
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH);
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 6, 6, 6, 6);
+
+        means.dispatch(sim, req);
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertEquals(CommandAuthority.REINFORCEMENT,
+                mission.commandClaim.authority());
+        assertFalse(mission.commandOwnsObjective,
+                "nobody owns an objective on a battle with no commander to own it");
     }
 }
