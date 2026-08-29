@@ -18,8 +18,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
  * and throws if invoked without it (recipe membership, not a self-gate, keeps it
  * off the legacy path).
  *
- * <p>Skips {@link GroundKind#INDOOR} (preserve building floors) and
- * {@link GroundKind#WATER} (preserve waterfront water bands), but rewrites
+ * <p>Skips {@link GroundKind#INDOOR} (preserve building floors),
+ * {@link GroundKind#WATER} (preserve waterfront water bands), and any cell a
+ * facility claimed as made ground, but rewrites
  * STREET / COURTYARD / GRASS / DIRT / STONE / TILE / etc. The visual effect:
  * the entire beach reads as continuous sand even though the BSP infill still
  * produced varied block kinds (parks become sand "scrub," roads become "beach
@@ -42,6 +43,11 @@ public final class BiomeGroundOverrideStage implements GenStage {
             for (int x = 0; x < w; x++) {
                 if (!grid.isWalkable(x, y)) continue;
                 if (biomeMap.biomeAt(x, y) != BiomeKind.BEACH) continue;
+                // A biome is the ground a place is built on, not the ground a
+                // place is made of. An apron, a runway and painted berth
+                // markings are engineering; sanding them leaves a fenced
+                // airbase floored in beach with its markings eaten away.
+                if (ctx.isMadeGround(x, y)) continue;
                 GroundKind g = topology.getGroundKind(x, y);
                 if (g == GroundKind.INDOOR || g == GroundKind.WATER) continue;
                 topology.setGroundKind(x, y, GroundKind.SAND);

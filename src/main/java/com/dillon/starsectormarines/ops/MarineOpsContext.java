@@ -155,7 +155,7 @@ public class MarineOpsContext {
         if (companyDeck != null) companyDeck.dismiss();
         companyDeckShipId = hull;
         CompanyShip ship = CompanyShipResolver.read(aboard);
-        companyDeck = ship == null ? null : new CompanyDeck(ship,
+        companyDeck = ship == null ? null : CompanyDeck.home(ship,
                 CompanyShipDesignation.deckSeedFor(hull),
                 new BattleSprites(), MarineOpsContext::companyLance,
                 MarineOpsContext::companyMarines);

@@ -187,8 +187,16 @@ Do not run builds or leave generated task files there.
   that grid from where the pieces actually sit rather than from their slot
   names, since a selection may be a whole plate or a row of four; edges within
   a quarter of a cell of each other are one grid line, so a cell already nudged
-  by a pixel stays in its column. A selection that is not a filled rectangle of
-  cells is refused and says so. The cut is drawn over the plate magnified, with
+  by a pixel stays in its column, and which lattice index each line holds is
+  recovered from the spacing, so a selection that skips a column still lands on
+  the right addresses. **A patch is a lattice, not a rectangle**: the selection
+  need not fill the grid it lies on. `floors.brick` is five cells in a plus —
+  one, then three, then one, on the sheet's own 47.55px pitch — which is an
+  ordinary variant pool cut on one grid, and requiring a filled rectangle
+  refused it for a reason that had nothing to do with the art. What is refused
+  is pieces no single origin and pitch describes, and the reason is written
+  where the picture would have been, because it is a paragraph and the caption
+  is a label in a split pane. The cut is drawn over the plate magnified, with
   the seams between cells drawn and the excluded pixels dimmed, because a
   boundary one pixel out is invisible at 1:1 and a pitch a fraction out shows
   up against the interior seams rather than the boundary. Adopting a grid says

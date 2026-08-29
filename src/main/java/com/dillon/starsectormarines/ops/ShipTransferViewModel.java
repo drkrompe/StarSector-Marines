@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.InteriorChange;
+import com.dillon.starsectormarines.ops.battleview.LaidDecks;
 import com.dillon.starsectormarines.ops.battleview.ShipInterior;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
@@ -21,6 +22,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -45,7 +48,9 @@ import java.util.function.Supplier;
  *
  * <p>The fleet itself is read once rather than once per question asked about
  * it, and a hull is laid out once rather than once for her plan and again for
- * her facility counts.
+ * her facility counts. What was aboard a hull outlives the screen entirely —
+ * see {@link com.dillon.starsectormarines.ops.battleview.LaidDecks} — so the
+ * second visit to this page costs nothing for every ship the first one read.
  *
  * <p>The comparison is always against where they live now. A screen that rated
  * hulls in the abstract would be a datasheet; the player is asking whether to
@@ -60,6 +65,28 @@ public final class ShipTransferViewModel {
 
     /** Losses named on one row of the fleet list before the rest are counted. */
     private static final int ROW_LOSSES = 2;
+
+    /**
+     * Where hulls are laid out, and how much of the machine that is allowed to
+     * take.
+     *
+     * <p>Half the cores, and never the whole machine. The campaign is still
+     * being drawn behind this dialog, and a screen that answers instantly by
+     * taking every core to do it has moved the stutter rather than removed it.
+     * Deliberately not the common pool for the same reason — its parallelism is
+     * every core but one, which on a small machine is every core the game has.
+     *
+     * <p>Daemon threads, so a fleet still being read is never what keeps the
+     * game from closing.
+     */
+    private static final Executor YARD = Executors.newFixedThreadPool(
+            Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
+            runnable -> {
+                Thread hand = new Thread(runnable, "marine-ops-deck-layout");
+                hand.setDaemon(true);
+                hand.setPriority(Thread.NORM_PRIORITY - 2);
+                return hand;
+            });
 
     /** The places a company weighs a hull on, in the order they are read. */
     private static final RoomPurpose[] COMPARED = {
@@ -562,13 +589,21 @@ public final class ShipTransferViewModel {
         String id = ship.id();
         if (laying.containsKey(id)) return;
         boolean keep = id.equals(stagedShipId);
-        if (!(keep && staged == null) && interiors.containsKey(id)) return;
+        boolean wantsDeck = keep && staged == null;
+        if (!wantsDeck && interiors.containsKey(id)) return;
         if (!ship.ship().habitable()) {
             interiors.put(id, new ShipInterior(ship.ship(), Map.of()));
             return;
         }
         long seed = CompanyShipDesignation.deckSeedFor(id);
-        laying.put(id, CompletableFuture.supplyAsync(() -> lay(ship, seed, keep)));
+        // A hull somebody has already looked over is answered now rather than
+        // put down to be laid out again. The panel is rebuilt every time the
+        // player opens it, so without this the second visit costs exactly what
+        // the first one did.
+        ShipInterior known = LaidDecks.known(ship.ship(), seed);
+        if (known != null) interiors.put(id, known);
+        if (known != null && !wantsDeck) return;
+        laying.put(id, CompletableFuture.supplyAsync(() -> lay(ship, seed, keep), YARD));
     }
 
     /**
@@ -580,9 +615,15 @@ public final class ShipTransferViewModel {
      */
     private static Laid lay(Candidate ship, long seed, boolean keep) {
         try {
+            if (!keep) return new Laid(LaidDecks.aboard(ship.ship(), seed), null);
+            // The hull on the stage is drawn as well as counted, so her deck is
+            // laid out whether or not what is aboard her is already known - and
+            // what is aboard her is then read off it rather than asked for
+            // separately.
             CompanyDeck deck = new CompanyDeck(ship.ship(), seed);
-            return new Laid(ShipInterior.of(ship.ship(), deck.rooms()),
-                    keep ? deck : null);
+            ShipInterior read = ShipInterior.of(ship.ship(), deck.rooms());
+            LaidDecks.aboard(ship.ship(), seed, read);
+            return new Laid(read, deck);
         } catch (RuntimeException notLaid) {
             Global.getLogger(ShipTransferViewModel.class).warn(
                     "ShipTransferViewModel: could not lay out " + ship.name() + " ("
