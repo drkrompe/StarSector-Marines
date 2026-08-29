@@ -14,10 +14,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -113,10 +115,10 @@ public final class CutAdjusterView extends JPanel {
     }
 
     /**
-     * Show the grid {@code selected} forms on {@code sheet}.
+     * Show the grid {@code selected} lies on, on {@code sheet}.
      *
-     * <p>A selection that is not a filled rectangle of cells leaves the controls
-     * dead and says why, rather than adjusting some subset of it.
+     * <p>A selection no single grid describes leaves the controls dead and says
+     * why in the picture's place, rather than adjusting some subset of it.
      */
     public void show(BufferedImage sheet, List<TilesetExport.Entry> selected) {
         this.sheet = sheet;
@@ -168,13 +170,22 @@ public final class CutAdjusterView extends JPanel {
 
     private void describe() {
         if (patch == null) {
-            caption.setText(refusal == null ? "Pick a piece to adjust." : refusal);
+            // The picture carries the reason. It is a paragraph, and a label
+            // truncates it at whatever width the split pane happens to be —
+            // which turns an explanation into "... so it has to be a filled s..".
+            caption.setText(" ");
             return;
         }
         GridPatch now = proposedPatch();
-        String what = patch.cells().size() == 1
+        String grid = patch.cut().cols() + "x" + patch.cut().rows();
+        // A sparse patch says so, because the grid it lies on is the thing the
+        // controls move and a lattice much bigger than the selection is how a
+        // wrong one looks: "2 of 17x1" is two props that were never one plate.
+        String what = patch.cells().size() == 1 && !patch.isSparse()
                 ? patch.cells().get(0).entry().id
-                : patch.cut().cols() + "x" + patch.cut().rows() + " cells";
+                : patch.isSparse()
+                        ? patch.cells().size() + " of " + grid + " cells"
+                        : grid + " cells";
         int drift = now.drift();
         if (drift == 0) {
             caption.setText(what + " — " + describe(patch.bounds())
@@ -230,7 +241,11 @@ public final class CutAdjusterView extends JPanel {
             try {
                 g.setColor(new Color(0x1B, 0x20, 0x27));
                 g.fillRect(0, 0, getWidth(), getHeight());
-                if (sheet == null || patch == null) return;
+                if (patch == null) {
+                    drawReason(g, refusal == null ? "Pick a piece to adjust." : refusal);
+                    return;
+                }
+                if (sheet == null) return;
 
                 GridPatch proposed = proposedPatch();
                 SheetSlicer.Piece bounds = proposed.bounds();
@@ -288,6 +303,33 @@ public final class CutAdjusterView extends JPanel {
                 g.drawRect(cutX, cutY, cutW, cutH);
             } finally {
                 g.dispose();
+            }
+        }
+
+        /** Say why there is no picture, in the space the picture would have used. */
+        private void drawReason(Graphics2D g, String reason) {
+            g.setFont(getFont().deriveFont(Font.PLAIN, 13f));
+            FontMetrics metrics = g.getFontMetrics();
+            int wrapAt = Math.max(120, getWidth() - 80);
+            List<String> lines = new ArrayList<>();
+            StringBuilder line = new StringBuilder();
+            for (String word : reason.split(" ")) {
+                String candidate = line.isEmpty() ? word : line + " " + word;
+                if (!line.isEmpty() && metrics.stringWidth(candidate) > wrapAt) {
+                    lines.add(line.toString());
+                    line = new StringBuilder(word);
+                } else {
+                    line = new StringBuilder(candidate);
+                }
+            }
+            if (!line.isEmpty()) lines.add(line.toString());
+
+            g.setColor(new Color(0xA8, 0xB4, 0xC2));
+            int step = metrics.getHeight() + 3;
+            int top = (getHeight() - lines.size() * step) / 2 + metrics.getAscent();
+            for (int i = 0; i < lines.size(); i++) {
+                String text = lines.get(i);
+                g.drawString(text, (getWidth() - metrics.stringWidth(text)) / 2, top + i * step);
             }
         }
 
