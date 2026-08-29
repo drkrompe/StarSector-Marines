@@ -210,5 +210,19 @@ public final class DevConfig {
     @DebugOnly
     public static final boolean SURFACE_RELIEF_PARALLAX = true;
 
+    /**
+     * Seconds between {@code ProcessExitWatchdog} liveness lines in the game
+     * log; {@code 0} disables the heartbeat while leaving the shutdown hook and
+     * uncaught-exception handler armed.
+     *
+     * <p>One line per interval is the only evidence that survives a death the
+     * JVM never sees — a driver-level crash runs no shutdown hook and throws no
+     * Java exception, so the last heartbeat is what dates it and carries the
+     * heap and direct-buffer trend leading into it. Ten seconds is fine against
+     * a log the loader already fills with thousands of lines a second.
+     */
+    @DebugOnly
+    public static final long PROCESS_HEARTBEAT_SECONDS = 10L;
+
     private DevConfig() {}
 }
