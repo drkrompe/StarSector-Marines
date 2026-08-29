@@ -24,8 +24,8 @@
   ],
   "cellPx": 56,
   "cut": {
-    "originX": 0.0,
-    "originY": 0.0,
+    "originX": 0,
+    "originY": 0,
     "pitchX": 47.55,
     "pitchY": 49.34615384615385
   },
@@ -671,10 +671,10 @@
       "included": true,
       "note": "fl-tile-1",
       "rect": [
-        808,
-        49,
-        48,
-        50
+        770,
+        11,
+        126,
+        122
       ],
       "slot": "v1",
       "spriteBorderPx": [

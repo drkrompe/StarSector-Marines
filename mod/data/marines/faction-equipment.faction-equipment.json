@@ -57,7 +57,9 @@
         { "templateId": "equipment-template:armor.redoubt", "sources": {"patron": 3, "recovery": 3} },
         { "templateId": "equipment-template:armor.outrider", "sources": {"patron": 2, "recovery": 2} },
         { "templateId": "equipment-template:armor.arbalest", "sources": {"patron": 3, "recovery": 2} },
-        { "templateId": "equipment-template:armor.vigil", "sources": {"license": 5, "recovery": 4} }
+        { "templateId": "equipment-template:armor.vigil", "sources": {"license": 5, "recovery": 4} },
+        { "templateId": "equipment-template:armor.orderly", "sources": {"market": 9, "recovery": 4} },
+        { "templateId": "equipment-template:armor.corpsman", "sources": {"patron": 2, "recovery": 2} }
       ]
     },
     {
@@ -77,7 +79,8 @@
         { "templateId": "equipment-template:special.field-revetment", "sources": { "market": 12 } },
         { "templateId": "equipment-template:armor.pathfinder", "sources": {"license": 8, "recovery": 4} },
         { "templateId": "equipment-template:armor.redoubt", "sources": {"patron": 6, "recovery": 3} },
-        { "templateId": "equipment-template:armor.arbalest", "sources": {"patron": 5, "recovery": 3} }
+        { "templateId": "equipment-template:armor.arbalest", "sources": {"patron": 5, "recovery": 3} },
+        { "templateId": "equipment-template:armor.corpsman", "sources": {"patron": 6, "recovery": 3} }
       ]
     },
     {
@@ -132,7 +135,8 @@
         { "templateId": "equipment-template:armor.palatine", "sources": { "license": 10, "patron": 5 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "market": 7, "recovery": 5 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 6 } },
-        { "templateId": "equipment-template:special.field-revetment", "sources": { "market": 6, "recovery": 4 } }
+        { "templateId": "equipment-template:special.field-revetment", "sources": { "market": 6, "recovery": 4 } },
+        { "templateId": "equipment-template:armor.orderly", "sources": {"market": 14, "recovery": 5} }
       ]
     },
     {
