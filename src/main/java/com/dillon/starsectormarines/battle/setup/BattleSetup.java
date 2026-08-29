@@ -125,6 +125,7 @@ import java.util.HashSet;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
@@ -1158,7 +1159,8 @@ public final class BattleSetup {
         // axis flips deterministically off the first bit of our wrapper RNG.
         // The target world's profile (planetary defenses, …) rides in so the
         // overwatch line reflects how fortified the planet is.
-        MapResult map = MAP_GEN.generate(gridW, gridH, seed, axis, profile);
+        ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile);
+        MapResult map = generated.map();
 
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
         ShuttleArrivalPlan requestedArrivalPlan = arrivalPlan != null
@@ -1180,7 +1182,8 @@ public final class BattleSetup {
         // {@link #linkGuardpostSquads} below — that's the difference from the
         // non-conquest path, which stamps the same shapes unmanned via
         // {@code DefensePostStamper.stampNonConquest}.
-        MapBuild build = buildMap(map, vehiclePlacements, defenders.defensePosts(), seed);
+        MapBuild build = buildMap(map, vehiclePlacements, defenders.defensePosts(),
+                generated.seed());
         BattleSimulation sim = build.sim();
         sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
@@ -1545,6 +1548,41 @@ public final class BattleSetup {
         rs.addMeans(new ShuttleMeans(axis, groundRoster, risk,
                 deliveryPolicy, map.landingPads));
         rs.addMeans(new WalkInMeans(axis, groundRoster, risk));
+    }
+
+    /** A generated conquest map and the seed that actually produced it. */
+    private record ConquestMap(MapResult map, long seed) { }
+
+    /** Seeds tried before a map that does not meet the mission's requirements is an error. */
+    private static final int CONQUEST_MAP_ATTEMPTS = 8;
+
+    /**
+     * A conquest map that is actually a conquest map.
+     *
+     * <p>Generation declines politely all the way down — a ward with no room
+     * builds no airfield, a claim that came up short takes a smaller lot — and
+     * none of those passes knows what the mission was promised. A quarter of
+     * conquest battles shipped without a garrison airfield that way, and the
+     * only symptom was an enemy whose reinforcements all came from off map.
+     *
+     * <p>So the finished map is checked against what the mission requires, and
+     * a map that falls short is re-rolled rather than played. The seed is the
+     * generator's only input, so a different seed is the whole of the fix; the
+     * first attempt uses the caller's own seed, which is why an ordinary battle
+     * is bit-for-bit what it was. Running out of seeds is a real fault and says
+     * so rather than handing back a map the mission cannot be played on.
+     */
+    private static ConquestMap conquestMap(int gridW, int gridH, long seed,
+                                           TraversalAxis axis, TargetProfile profile) {
+        EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
+        for (int attempt = 0; attempt < CONQUEST_MAP_ATTEMPTS; attempt++) {
+            long mapSeed = seed + attempt * 0x9E3779B97F4A7C15L;
+            MapResult map = MAP_GEN.generate(gridW, gridH, mapSeed, axis, profile);
+            missing = MissionMapRequirements.missingFrom(MissionType.CONQUEST, map);
+            if (missing.isEmpty()) return new ConquestMap(map, mapSeed);
+        }
+        throw new IllegalStateException(MissionMapRequirements.describeFailure(
+                MissionType.CONQUEST, seed, CONQUEST_MAP_ATTEMPTS, missing));
     }
 
     /**
