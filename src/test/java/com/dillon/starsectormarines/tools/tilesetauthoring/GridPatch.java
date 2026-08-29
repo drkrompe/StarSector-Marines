@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * The grid a set of cut cells already forms, so it can be moved as one.
+ * The grid a set of cut cells already lies on, so it can be moved as one.
  *
  * <p>A wall block is nine cells of one plate, and what is wrong with it is
  * almost never wrong with one of them. The grid it was cut on starts two pixels
@@ -22,14 +24,20 @@ import java.util.List;
  * vocabulary the sheet-wide fit uses, and for the same reason: pitch is one
  * cell's size, and moving the origin must not resize anything.
  *
+ * <p><b>A patch is a lattice, not a rectangle.</b> The selection does not have
+ * to fill the grid it lies on. {@code floors.brick} is five cells in a plus —
+ * one, then three, then one — which is a perfectly ordinary variant pool cut
+ * from one sheet on one pitch, and moving that pitch is exactly what somebody
+ * would want to do to it. Requiring a filled rectangle refused it for a reason
+ * that had nothing to do with the art.
+ *
  * <p><b>The addressing is measured, not declared.</b> A block's slot names say
  * {@code nw..se} and would give a 3x3 its addresses directly, but only a 3x3,
- * and only a block — while the thing an operator selects is a rectangle of
- * cells, which may be a whole plate, a row of four, or one piece. So columns and
- * rows come from where the pieces actually sit. Edges within a quarter of a cell
- * of each other are taken to be the same grid line, because a cell somebody has
- * already nudged by a pixel is still in its column, and a real neighbouring
- * column is a whole cell away.
+ * and only a block. So columns and rows come from where the pieces actually sit:
+ * edges within a quarter of a cell of each other are one grid line, because a
+ * cell somebody has already nudged by a pixel is still in its column. Which
+ * lattice index each line holds is then recovered from the spacing, so a
+ * selection that skips a column still lands on the right addresses.
  *
  * <p>One piece is a 1x1 patch, which is what keeps a single-cell correction and
  * a whole-plate correction the same operation rather than two.
@@ -44,11 +52,11 @@ public record GridPatch(GridCut cut, List<Placed> cells) {
     public record Placed(TilesetExport.Entry entry, int col, int row) {}
 
     /**
-     * Either the grid a selection forms, or why it does not form one.
+     * Either the grid a selection lies on, or why it lies on none.
      *
-     * <p>Not an exception: selecting an L of cells is a thing an operator does
-     * on the way to selecting the right ones, and the screen has to be able to
-     * say so while they are still choosing.
+     * <p>Not an exception: selecting two unrelated props is a thing an operator
+     * does on the way to selecting the right ones, and the screen has to be able
+     * to say so while they are still choosing.
      */
     public record Derived(GridPatch patch, String refusal) {
 
@@ -67,13 +75,13 @@ public record GridPatch(GridCut cut, List<Placed> cells) {
     }
 
     /**
-     * The grid {@code selected} forms, or the reason it forms none.
+     * The grid {@code selected} lies on, or the reason it lies on none.
      *
-     * <p>The only structural refusal is an arrangement that is not a filled
-     * rectangle. A patch whose cells are slightly irregular is accepted and
-     * regularized on save — that is the correction being asked for — and how far
-     * adopting the grid would move them is reported rather than hidden; see
-     * {@link #drift()}.
+     * <p>Two refusals, both structural: pieces whose spacing no single origin and
+     * pitch can describe, and two pieces claiming one cell. A patch whose cells
+     * are slightly irregular is accepted and regularized on save — that is the
+     * correction being asked for — and how far adopting the grid would move them
+     * is reported rather than hidden; see {@link #drift()}.
      */
     public static Derived of(List<TilesetExport.Entry> selected) {
         if (selected == null || selected.isEmpty()) {
@@ -81,26 +89,23 @@ public record GridPatch(GridCut cut, List<Placed> cells) {
         }
         Axis columns = axis(selected, true);
         Axis rows = axis(selected, false);
-        int wanted = columns.count() * rows.count();
-        if (wanted != selected.size()) {
-            return new Derived(null, selected.size() + " pieces lie on "
-                    + columns.count() + " columns and " + rows.count() + " rows, which is a "
-                    + columns.count() + "x" + rows.count() + " grid of " + wanted
-                    + " cells. A patch is moved as one grid, so it has to be a filled "
-                    + "rectangle of cells — select a whole block, a whole plate, or one piece.");
+        if (!columns.regular() || !rows.regular()) {
+            return new Derived(null, subject(selected) + " are not spaced evenly enough to be "
+                    + "one grid — no single origin and pitch says where they all sit. Pick one "
+                    + "cell to move on its own.");
         }
-        List<Placed> placed = new ArrayList<>(wanted);
-        TilesetExport.Entry[] taken = new TilesetExport.Entry[wanted];
+        List<Placed> placed = new ArrayList<>(selected.size());
+        Map<Long, TilesetExport.Entry> taken = new HashMap<>();
         for (int i = 0; i < selected.size(); i++) {
-            int col = columns.band()[i];
-            int row = rows.band()[i];
-            int at = row * columns.count() + col;
-            if (taken[at] != null) {
-                return new Derived(null, selected.get(i).id + " and " + taken[at].id
+            int col = columns.index()[i];
+            int row = rows.index()[i];
+            TilesetExport.Entry clash =
+                    taken.put((long) row * Integer.MAX_VALUE + col, selected.get(i));
+            if (clash != null) {
+                return new Derived(null, selected.get(i).id + " and " + clash.id
                         + " are both column " + col + ", row " + row + " of the selection, so it "
                         + "is not one grid. Pieces that overlap cannot be re-cut together.");
             }
-            taken[at] = selected.get(i);
             placed.add(new Placed(selected.get(i), col, row));
         }
         placed.sort(Comparator.comparingInt(Placed::row).thenComparingInt(Placed::col));
@@ -119,14 +124,30 @@ public record GridPatch(GridCut cut, List<Placed> cells) {
         return cut.cell(placed.col(), placed.row());
     }
 
-    /** The union of every cell this patch's cut names. */
+    /** Whether the members leave cells of their grid empty. */
+    public boolean isSparse() {
+        return cells.size() < cut.cols() * cut.rows();
+    }
+
+    /**
+     * The union of the members' cells.
+     *
+     * <p>The members', not the grid's: a sparse patch's empty cells are not part
+     * of the selection, and drawing the picture around them would dim art that
+     * the operator did not leave out.
+     */
     public SheetSlicer.Piece bounds() {
-        SheetSlicer.Piece first = cut.cell(0, 0);
-        SheetSlicer.Piece last = cut.cell(cut.cols() - 1, cut.rows() - 1);
-        int left = Math.min(first.x(), last.x());
-        int top = Math.min(first.y(), last.y());
-        int right = Math.max(first.x() + first.width(), last.x() + last.width());
-        int bottom = Math.max(first.y() + first.height(), last.y() + last.height());
+        int left = Integer.MAX_VALUE;
+        int top = Integer.MAX_VALUE;
+        int right = Integer.MIN_VALUE;
+        int bottom = Integer.MIN_VALUE;
+        for (Placed placed : cells) {
+            SheetSlicer.Piece cell = cellOf(placed);
+            left = Math.min(left, cell.x());
+            top = Math.min(top, cell.y());
+            right = Math.max(right, cell.x() + cell.width());
+            bottom = Math.max(bottom, cell.y() + cell.height());
+        }
         return new SheetSlicer.Piece(left, top, right - left, bottom - top);
     }
 
@@ -183,11 +204,24 @@ public record GridPatch(GridCut cut, List<Placed> cells) {
                         Math.abs((now.y() + now.height()) - (was.y() + was.height()))));
     }
 
+    /** How a refusal names what was selected: by its block when they share one. */
+    private static String subject(List<TilesetExport.Entry> selected) {
+        String block = selected.get(0).blockId;
+        if (block != null && !block.isEmpty()) {
+            for (TilesetExport.Entry entry : selected) {
+                if (!block.equals(entry.blockId)) return "These " + selected.size() + " pieces";
+            }
+            return block + "'s " + selected.size() + " cells";
+        }
+        return "These " + selected.size() + " pieces";
+    }
+
     /**
-     * One axis of the arrangement: how many lines the pieces fall on, where the
-     * first is, how far apart they are, and which line each piece sits on.
+     * One axis of the arrangement: how many lattice lines it spans, where line
+     * zero is, how far apart the lines are, which line each piece sits on, and
+     * whether a single origin and pitch actually describe them.
      */
-    private record Axis(int count, double origin, double pitch, int[] band) {}
+    private record Axis(int count, double origin, double pitch, int[] index, boolean regular) {}
 
     private static Axis axis(List<TilesetExport.Entry> selected, boolean horizontal) {
         int size = selected.size();
@@ -198,13 +232,46 @@ public record GridPatch(GridCut cut, List<Placed> cells) {
             start[i] = horizontal ? piece.x() : piece.y();
             extent[i] = horizontal ? piece.width() : piece.height();
         }
-        double tolerance = tolerance(extent);
 
+        int[] band = new int[size];
+        List<List<Integer>> bands = cluster(start, extent, band);
+        int lines = bands.size();
+        double[] bandStart = new double[lines];
+        double[] bandEnd = new double[lines];
+        for (int b = 0; b < lines; b++) {
+            bandStart[b] = mean(bands.get(b), start, null);
+            bandEnd[b] = mean(bands.get(b), start, extent);
+        }
+
+        double coarse = coarsePitch(bandStart, extent);
+        int[] line = lattice(bandStart, coarse);
+        double[] fit = fitLine(bandStart, bandEnd, line);
+        double origin = fit[0];
+        double pitch = fit[1] > 0 ? fit[1] : coarse;
+
+        // A band that does not sit on the line the fit predicts for it means the
+        // pieces were never on one grid, and adopting one would move them a long
+        // way to pretend otherwise.
+        double slack = Math.max(2.0, coarse / 4.0);
+        boolean regular = true;
+        for (int b = 0; b < lines; b++) {
+            regular &= Math.abs(bandStart[b] - (origin + line[b] * pitch)) <= slack
+                    && Math.abs(bandEnd[b] - (origin + (line[b] + 1) * pitch)) <= slack;
+        }
+
+        int[] index = new int[size];
+        for (int i = 0; i < size; i++) index[i] = line[band[i]];
+        return new Axis(line[lines - 1] + 1, origin, pitch, index, regular);
+    }
+
+    /** Group starts that are the same grid line, filling {@code band} per piece. */
+    private static List<List<Integer>> cluster(int[] start, int[] extent, int[] band) {
+        int size = start.length;
+        double tolerance = tolerance(extent);
         Integer[] order = new Integer[size];
         for (int i = 0; i < size; i++) order[i] = i;
         Arrays.sort(order, Comparator.comparingInt(i -> start[i]));
 
-        int[] band = new int[size];
         List<List<Integer>> bands = new ArrayList<>();
         List<Integer> current = new ArrayList<>();
         for (int i = 0; i < size; i++) {
@@ -217,10 +284,78 @@ public record GridPatch(GridCut cut, List<Placed> cells) {
             current.add(at);
         }
         bands.add(current);
+        return bands;
+    }
 
-        double origin = mean(bands.get(0), start, null);
-        double last = mean(bands.get(bands.size() - 1), start, extent);
-        return new Axis(bands.size(), origin, (last - origin) / bands.size(), band);
+    /**
+     * A first estimate of the pitch, good enough to recover lattice indices.
+     *
+     * <p>The smallest step between adjacent grid lines, because that step is one
+     * pitch whenever any two selected cells are neighbours — which is the normal
+     * case and is true even when the selection skips a column elsewhere. A cell's
+     * own size is the fallback for a lone line, and only that: a plate cut with
+     * gutters has cells narrower than its pitch, and estimating from them reads
+     * a 40px grid of 32px cells as a 32px one.
+     */
+    private static double coarsePitch(double[] bandStart, int[] extent) {
+        double smallest = Double.MAX_VALUE;
+        for (int b = 1; b < bandStart.length; b++) {
+            smallest = Math.min(smallest, bandStart[b] - bandStart[b - 1]);
+        }
+        if (smallest == Double.MAX_VALUE || smallest <= 0) {
+            double total = 0;
+            for (int one : extent) total += one;
+            smallest = Math.max(1.0, total / extent.length);
+        }
+        return smallest;
+    }
+
+    /**
+     * Which lattice index each grid line holds.
+     *
+     * <p>Consecutive indices are the fallback rather than the rule: a selection
+     * that skips a whole column has a gap of two pitches in it, and numbering its
+     * lines 0, 1, 2 would place the third cell where the second belongs.
+     */
+    private static int[] lattice(double[] bandStart, double coarse) {
+        int[] line = new int[bandStart.length];
+        for (int b = 1; b < bandStart.length; b++) {
+            line[b] = (int) Math.round((bandStart[b] - bandStart[0]) / coarse);
+            if (line[b] <= line[b - 1]) {
+                for (int i = 0; i < line.length; i++) line[i] = i;
+                return line;
+            }
+        }
+        return line;
+    }
+
+    /**
+     * Least squares of {@code y = origin + pitch * index} over every band edge.
+     *
+     * <p>Both edges of every band, so a lone line still determines a pitch — its
+     * start is index {@code k} and its end is index {@code k + 1} — and so a wide
+     * plate's pitch is measured across its whole span rather than from one cell.
+     * That span is what recovers a fraction: sixteen columns place the pitch far
+     * more precisely than any single width can.
+     */
+    private static double[] fitLine(double[] bandStart, double[] bandEnd, int[] line) {
+        int count = 2 * bandStart.length;
+        double sumK = 0;
+        double sumY = 0;
+        double sumKK = 0;
+        double sumKY = 0;
+        for (int b = 0; b < bandStart.length; b++) {
+            double first = line[b];
+            double second = line[b] + 1;
+            sumK += first + second;
+            sumY += bandStart[b] + bandEnd[b];
+            sumKK += first * first + second * second;
+            sumKY += first * bandStart[b] + second * bandEnd[b];
+        }
+        double denominator = count * sumKK - sumK * sumK;
+        if (denominator == 0) return new double[]{bandStart[0], 0};
+        double pitch = (count * sumKY - sumK * sumY) / denominator;
+        return new double[]{(sumY - pitch * sumK) / count, pitch};
     }
 
     /**

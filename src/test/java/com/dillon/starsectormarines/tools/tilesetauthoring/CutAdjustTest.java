@@ -111,22 +111,50 @@ public class CutAdjustTest {
         assertTrue(!adjuster.isChanged(), "and reports nothing changed until something does");
     }
 
-    /** A selection that forms no grid leaves the controls dead and says why. */
+    /** A selection no grid describes leaves the controls dead and says why. */
     @Test
-    void anAdjusterShownARaggedSelectionSaysSo() {
-        BufferedImage sheet = new BufferedImage(200, 64, BufferedImage.TYPE_INT_ARGB);
+    void anAdjusterShownPiecesThatAreNotOneGridSaysSo() {
+        BufferedImage sheet = new BufferedImage(800, 64, BufferedImage.TYPE_INT_ARGB);
         CutAdjusterView adjuster = new CutAdjusterView(() -> { }, () -> { });
 
         adjuster.show(sheet, threePieces().subList(0, 2));
         assertNotNull(adjuster.patch(), "two cells side by side are a 2x1 grid");
 
-        List<TilesetExport.Entry> ragged = new ArrayList<>(threePieces());
-        ragged.add(new TilesetExport.Entry(new SheetSlicer.Piece(0, 40, 32, 20), "piece-3"));
-        adjuster.show(sheet, ragged);
+        List<TilesetExport.Entry> apart = new ArrayList<>(threePieces().subList(0, 1));
+        apart.add(new TilesetExport.Entry(new SheetSlicer.Piece(700, 0, 32, 32), "piece-far"));
+        adjuster.show(sheet, apart);
 
-        assertNull(adjuster.patch(), "four cells on a 3x2 grid are not a filled rectangle");
+        assertNull(adjuster.patch(), "two props 700px apart were never one plate");
         assertNull(adjuster.proposedPatch());
         assertTrue(!adjuster.isChanged());
+    }
+
+    /**
+     * The reason is drawn where the picture would have been.
+     *
+     * <p>It is a paragraph, and the caption it used to occupy is a label in a
+     * split pane — which truncated it at whatever width the divider happened to
+     * be, turning an explanation into an unfinished sentence.
+     */
+    @Test
+    void aRefusalIsDrawnInThePicturesPlace() throws Exception {
+        BufferedImage sheet = new BufferedImage(800, 64, BufferedImage.TYPE_INT_ARGB);
+        List<TilesetExport.Entry> apart = new ArrayList<>(threePieces().subList(0, 1));
+        apart.add(new TilesetExport.Entry(new SheetSlicer.Piece(700, 0, 32, 32), "piece-far"));
+
+        Path out = paint(sheet, apart, "cut-adjuster-refused.png");
+        BufferedImage painted = ImageIO.read(out.toFile());
+
+        int written = 0;
+        for (int y = 90; y < 400; y++) {
+            for (int x = 0; x < painted.getWidth(); x++) {
+                Color pixel = new Color(painted.getRGB(x, y));
+                if (pixel.getRed() > 120 && pixel.getBlue() > 120) written++;
+            }
+        }
+        assertTrue(written > 200,
+                "the reason should be written across the empty picture — see "
+                        + out.toAbsolutePath());
     }
 
     /**
