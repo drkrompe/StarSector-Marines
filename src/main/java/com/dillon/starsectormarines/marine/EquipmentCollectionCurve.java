@@ -11,10 +11,10 @@ import java.util.Set;
 /** Deterministic safety-net breadth for a company that misses ordinary card sources. */
 final class EquipmentCollectionCurve {
 
-    static final int FIVE_VICTORY_TARGET = 21;
-    static final int FIFTEEN_VICTORY_TARGET = 25;
-    static final int THIRTY_VICTORY_TARGET = 29;
-    static final int FORTY_VICTORY_TARGET = 30;
+    static final int FIVE_VICTORY_TARGET = 23;
+    static final int FIFTEEN_VICTORY_TARGET = 27;
+    static final int THIRTY_VICTORY_TARGET = 31;
+    static final int FORTY_VICTORY_TARGET = 32;
 
     private static final List<String> FALLBACK_ORDER = List.of(
             EquipmentTemplateCatalog.primaryId(
@@ -45,9 +45,14 @@ final class EquipmentCollectionCurve {
 
     static int minimumCollectedAtVictories(int victories) {
         int wins = Math.max(0, victories);
-        if (wins < 2) return 16;
-        if (wins == 2) return 18;
-        if (wins == 3) return 19;
+        // Every rung counts starter issue as well as awarded cards, so all of
+        // them moved by two when a starter section gained its breacher and its
+        // weapons carrier ({@code role-and-access.md}). Shifting the whole curve
+        // rather than absorbing the difference keeps the number of cards the
+        // safety net itself awards — and therefore the pacing — unchanged.
+        if (wins < 2) return 18;
+        if (wins == 2) return 20;
+        if (wins == 3) return 21;
         if (wins < 5) return FIVE_VICTORY_TARGET;
         if (wins <= 15) {
             return FIVE_VICTORY_TARGET
