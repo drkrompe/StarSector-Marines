@@ -15,7 +15,7 @@ variant pool has no geometry and is picked by hashing the cell.
 | id | layout | note | tags |
 |---|---|---|---|
 | `road.road` | perimeter-3x3 | road-nw | — |
-| `road.courtyard` | perimeter-3x3 | turret-bow-nw | — |
+| `road.courtyard` | perimeter-3x3 | turret-bow-nw · DOUBLE DUTY: this ring is also the "bow out" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover. | — |
 | `road.striped` | striped-3x3 | fl-striped-nw | — |
 | `road.tile` | single | fl-2 | — |
 | `road.sidewalk` | single | fl-3 | — |

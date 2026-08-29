@@ -34,15 +34,159 @@ import java.util.Random;
  */
 public final class AirbaseLot {
 
-    /** Cells across the lot, fence to fence. */
-    public static final int WIDTH = 44;
-    /** Cells front to back, fence to fence. */
-    public static final int DEPTH = 24;
+    /**
+     * How much airbase this is.
+     *
+     * <p>The same laws at two scales rather than two designs. Everything that
+     * makes a base legible — berths on the apron and never inside a shed, a
+     * marked bay in each shed with the work arranged round it, a fence with a
+     * way in on every side, clear ground reserved outside it — holds at both,
+     * because those are properties of an airbase and not of a big one. What
+     * changes is how much of it there is.
+     *
+     * <p>{@link #FIELD} is an installation: a runway, three berths, two sheds,
+     * a control tower and a vehicle park. It is what a fortress ward builds
+     * when it has the ground for it.
+     *
+     * <p>{@link #PAD} is a landing site: two berths, one shed, and no strip at
+     * all. A quarter of the ground, and it fits where the large one cannot —
+     * a city block, a compound's yard, a map that is not a fortress. It is also
+     * the shape a player's own arrival wants, which is a berth with somewhere
+     * to put the aircraft's servicing and a fence round the lot.
+     *
+     * <p>A site with no runway is not a diminished airfield; it is the thing
+     * most airbases actually are. Aircraft that land vertically need somewhere
+     * to stand and somewhere to be worked on, and a strip is what you add when
+     * something has to roll.
+     */
+    public enum Size {
+        FIELD(44, 24, 4, true, 3, 2, 11, 8, 5, 4, 3, 2),
+        PAD(22, 19, 0, false, 2, 1, 11, 8, 5, 3, 2, 1);
+
+        /** Cells across the lot, fence to fence. */
+        public final int width;
+        /** Cells front to back, fence to fence. */
+        public final int depth;
+        /** Rows of runway along the approach edge, or zero for a site with no strip. */
+        final int runwayDepth;
+        /** Whether the lot runs its own air traffic. */
+        final boolean tower;
+        /** Berths on the apron. */
+        final int pads;
+        /** Sheds, and their footprint outer wall to outer wall. */
+        final int hangars;
+        final int hangarWidth;
+        final int hangarDepth;
+        /** Cells of a shed's frontage that stand open. Aircraft-sized, not a door. */
+        final int hangarOpening;
+        /** The strip between the berths and the shed frontage. */
+        final int taxiway;
+        /** Ranks and files of parked vehicles. */
+        final int parkRanks;
+        final int parkFiles;
+
+        Size(int width, int depth, int runwayDepth, boolean tower,
+             int pads, int hangars, int hangarWidth, int hangarDepth,
+             int hangarOpening, int taxiway, int parkRanks, int parkFiles) {
+            this.width = width;
+            this.depth = depth;
+            this.runwayDepth = runwayDepth;
+            this.tower = tower;
+            this.pads = pads;
+            this.hangars = hangars;
+            this.hangarWidth = hangarWidth;
+            this.hangarDepth = hangarDepth;
+            this.hangarOpening = hangarOpening;
+            this.taxiway = taxiway;
+            this.parkRanks = parkRanks;
+            this.parkFiles = parkFiles;
+        }
+    }
+
+    /**
+     * Which edge of the lot the approach is on — and therefore which way the
+     * whole base is turned.
+     *
+     * <p>Four, not two. The lot used to take a traversal axis, which gave it
+     * the two orientations a fortress ward needs: a base at the bottom of the
+     * map facing the attacker, or one at the left facing the same way. Anywhere
+     * else on a map, the direction that matters is the one the site actually
+     * fronts onto — the road it opens off, the edge it was built along — and
+     * that can be any of four.
+     *
+     * <p>Rotation is safe here because every piece of the lot is already placed
+     * in the lot's own frame: <em>along</em> the frontage and <em>into</em> the
+     * depth, never in map x and y. Turning the base is therefore a change to
+     * two accessors — where the depth starts and which way it runs — and the
+     * runway, berths, sheds, park and tower all follow without knowing.
+     */
+    public enum Facing {
+        /** Approach from low y; the strip lies along the lot's south edge. */
+        SOUTH(true, 1, LandingPad.Approach.SOUTH, 0, false),
+        /** Approach from high y — the half turn, taken as a mirror. */
+        NORTH(true, -1, LandingPad.Approach.NORTH, 0, true),
+        /** Approach from low x. */
+        WEST(false, 1, LandingPad.Approach.WEST, 1, false),
+        /** Approach from high x. */
+        EAST(false, -1, LandingPad.Approach.EAST, 1, true);
+
+        /** Whether the lot's depth runs along the map's y axis. */
+        final boolean alongY;
+        /** Which way "deeper into the lot" runs on that axis. */
+        final int sign;
+        final LandingPad.Approach approach;
+        /**
+         * Quarter turns anything with a front takes when the lot is turned.
+         *
+         * <p>The paving, the walls and the markings are all symmetric enough
+         * not to care, but a truck is drawn facing somewhere. Six of them
+         * pointing the same way on a lot that has been turned is the one thing
+         * that gives a rotation away.
+         *
+         * <p><b>A quarter turn is a rotation; a half turn must be a mirror.</b>
+         * The art is drawn lit from one direction, so turning a vehicle through
+         * a hundred and eighty degrees lights it from underneath and it reads as
+         * upside down. The two facings opposite the baselines therefore keep
+         * their neighbour's rotation and mirror it instead.
+         */
+        final int quarterTurns;
+        final boolean mirrored;
+
+        Facing(boolean alongY, int sign, LandingPad.Approach approach,
+               int quarterTurns, boolean mirrored) {
+            this.alongY = alongY;
+            this.sign = sign;
+            this.approach = approach;
+            this.quarterTurns = quarterTurns;
+            this.mirrored = mirrored;
+        }
+
+        /** Whether the lot's depth runs along the map's y axis. */
+        public boolean alongY() { return alongY; }
+
+        /** Which way "deeper into the lot" runs on that axis. */
+        public int sign() { return sign; }
+
+        /** Quarter turns a directional prop takes at this facing. */
+        public int quarterTurns() { return quarterTurns; }
+
+        /** Whether a directional prop is mirrored rather than turned further. */
+        public boolean mirrored() { return mirrored; }
+
+        /**
+         * The facing a mission's traversal axis implies: the base fronts onto
+         * the side the attacker arrives from, so an aircraft comes in over the
+         * ward rather than over the wall behind it.
+         */
+        public static Facing of(TraversalAxis axis) {
+            return axis == TraversalAxis.SOUTH_TO_NORTH ? SOUTH : WEST;
+        }
+    }
 
     /**
      * Cells of clear ground kept outside the fence, all the way round.
      *
-     * <p>A fence on the boundary of its own reservation is a fence somebody can
+     * <p>A fence on the boundary of its own reservation is one a building can
      * be packed flush against, and the gap between it and the next wall is then
      * whatever the packing happened to leave — including nothing. A lot that
      * blocks the way past it has made the map worse in exchange for reading
@@ -50,82 +194,98 @@ public final class AirbaseLot {
      */
     public static final int CLEARANCE = 2;
 
-    /** Ground the lot and its clearance need, for a host sizing an envelope that has to contain one. */
-    public static int area() {
-        return (WIDTH + CLEARANCE * 2) * (DEPTH + CLEARANCE * 2);
-    }
-
-    /** Cells across the reservation a host must set aside, clearance included. */
-    public static int reservedSpanX(TraversalAxis axis) {
-        return spanX(axis) + CLEARANCE * 2;
-    }
-
-    /** Cells down the reservation a host must set aside, clearance included. */
-    public static int reservedSpanY(TraversalAxis axis) {
-        return spanY(axis) + CLEARANCE * 2;
-    }
-
-    /** Rows of runway along the approach edge. Wide enough to read as a strip rather than a path. */
-    private static final int RUNWAY_DEPTH = 4;
     /**
-     * The control tower's bay at one end of the strip.
-     *
-     * <p>Beside the runway rather than behind the sheds, because what a tower
-     * is for is seeing the strip. It is the one building on the lot that faces
-     * outward, and putting it at the end of the runway is what makes the strip
-     * read as something being run rather than a painted rectangle.
+     * A berth is five cells square, which is what {@link LandingPad} authors.
+     * It does not scale with the lot: an aircraft is the size it is, and a
+     * compact base is one with fewer berths rather than smaller ones.
      */
-    private static final int TOWER_WIDTH = 7;
-    private static final int TOWER_DEPTH = 5;
-    /** Rows between the runway and the apron, so the two read as separate surfaces. */
-    private static final int RUNWAY_MARGIN = 1;
-    /** A berth is five cells square, which is what {@link LandingPad} authors. */
     private static final int PAD = 5;
     /** Wingtip clearance between neighbouring berths. */
     private static final int PAD_GAP = 3;
-    /** Berths on the apron. */
-    private static final int PADS = 3;
-    /** The strip between the berths and the hangar frontage. */
-    private static final int TAXIWAY = 4;
-    /** Hangar footprint, outer wall to outer wall. */
-    private static final int HANGAR_WIDTH = 11;
-    private static final int HANGAR_DEPTH = 8;
-    /** Sheds on the lot. */
-    private static final int HANGARS = 2;
-    /** Cells of a hangar's frontage that stand open. Aircraft-sized, not a door. */
-    private static final int HANGAR_OPENING = 5;
-    /** Cells across a gate in the fence. */
+    /** Rows between the runway and the apron, so the two read as separate surfaces. */
+    private static final int RUNWAY_MARGIN = 1;
+    /** The control tower's footprint, on a lot that runs its own traffic. */
+    private static final int TOWER_WIDTH = 7;
+    private static final int TOWER_DEPTH = 5;
+    /** Cells across a gate. Three, so a fire team is channelled rather than filtered one at a time. */
     private static final int GATE_WIDTH = 3;
 
-    /** Paving. */
-    private static final GroundKind APRON = GroundKind.STONE;
-    /** Runway and hardstand marking, the same hazard treatment a vehicle bay uses. */
+    /** Ground this size and its clearance need, for a host sizing an envelope that has to contain one. */
+    public static int area(Size size) {
+        return (size.width + CLEARANCE * 2) * (size.depth + CLEARANCE * 2);
+    }
+
+    /** Cells across the reservation a host must set aside, clearance included. */
+    public static int reservedSpanX(Size size, Facing facing) {
+        return spanX(size, facing) + CLEARANCE * 2;
+    }
+
+    /** Cells down the reservation a host must set aside, clearance included. */
+    public static int reservedSpanY(Size size, Facing facing) {
+        return spanY(size, facing) + CLEARANCE * 2;
+    }
+
+    /**
+     * The four surfaces a base is made of, and they are four because a reader
+     * has to be able to tell them apart at map zoom.
+     *
+     * <p>The apron is asphalt — a made outdoor surface, and light enough to
+     * read as one. It was the stone blob, which a re-export of the floor sheet
+     * turned dark navy: a whole lot the same colour as a courtyard, with the
+     * markings on it invisible. The runway is deliberately a <em>different</em>
+     * tarmac from the apron rather than the same surface with paint on it,
+     * because a strip is a different piece of civil engineering from the ground
+     * beside it and should look like one.
+     *
+     * <p>Buildings get an indoor floor. A hangar floored in the same tarmac as
+     * the apron outside it reads as a roofed bit of apron; what makes a shed a
+     * building from above is that the surface changes at its wall.
+     *
+     * <p>And the ground outside the fence is paved as a verge — the city's own
+     * sidewalk, because that is what it is. The clearance is reserved so people
+     * can walk round the base, and reserved dirt in the middle of a made
+     * facility reads as ground the lot forgot rather than as the way past it.
+     * It is deliberately not the polished tile the civic and commercial
+     * interiors use: a surface that says "indoors" everywhere else on the map
+     * does not stop saying it out here.
+     */
+    private static final GroundKind APRON = GroundKind.STREET;
+    private static final GroundKind RUNWAY = GroundKind.COURTYARD;
+    private static final GroundKind INSIDE = GroundKind.INDOOR;
+    private static final GroundKind VERGE = GroundKind.SIDEWALK;
+
+    /** Hazard marking, the same treatment a vehicle bay's berth is edged with. */
     private static final GroundKind MARKED = GroundKind.STRIPED;
 
     private final int left;
     private final int bottom;
     private final int right;
     private final int top;
+    private final Facing facing;
     private final boolean alongY;
     private final LandingPad.Approach approach;
+    private final Size size;
 
-    public AirbaseLot(int left, int bottom, int right, int top, TraversalAxis axis) {
+    public AirbaseLot(int left, int bottom, int right, int top,
+                      Facing facing, Size size) {
         this.left = left;
         this.bottom = bottom;
         this.right = right;
         this.top = top;
-        this.alongY = axis == TraversalAxis.SOUTH_TO_NORTH;
-        this.approach = alongY ? LandingPad.Approach.SOUTH : LandingPad.Approach.WEST;
+        this.facing = facing;
+        this.alongY = facing.alongY;
+        this.approach = facing.approach;
+        this.size = size;
     }
 
-    /** Cells across the lot on the map's x axis, for the given approach. */
-    public static int spanX(TraversalAxis axis) {
-        return axis == TraversalAxis.SOUTH_TO_NORTH ? WIDTH : DEPTH;
+    /** Cells across the lot on the map's x axis, for the given facing. */
+    public static int spanX(Size size, Facing facing) {
+        return facing.alongY ? size.width : size.depth;
     }
 
-    /** Cells across the lot on the map's y axis, for the given approach. */
-    public static int spanY(TraversalAxis axis) {
-        return axis == TraversalAxis.SOUTH_TO_NORTH ? DEPTH : WIDTH;
+    /** Cells across the lot on the map's y axis, for the given facing. */
+    public static int spanY(Size size, Facing facing) {
+        return facing.alongY ? size.depth : size.width;
     }
 
     /**
@@ -137,18 +297,28 @@ public final class AirbaseLot {
         runway(ctx);
         berths(ctx);
         hangars(ctx, rng);
-        groundSupport(ctx);
+        vehiclePark(ctx);
         tower(ctx);
         fence(ctx);
     }
 
-    /** Everything inside the fence is made surface, and claimed so nothing else takes it. */
+    /**
+     * Everything inside the fence is made surface, and claimed so nothing else
+     * takes it; everything in the clearance outside it is paved as a verge.
+     *
+     * <p>The verge is not decoration. It is the ground the lot reserved so
+     * people can get past the base, and leaving it as raw dirt in the middle of
+     * a made facility reads as ground nobody thought about rather than as the
+     * way round.
+     */
     private void pave(GenContext ctx) {
-        for (int x = left; x <= right; x++) {
-            for (int y = bottom; y <= top; y++) {
+        for (int x = left - CLEARANCE; x <= right + CLEARANCE; x++) {
+            for (int y = bottom - CLEARANCE; y <= top + CLEARANCE; y++) {
+                if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
+                boolean insideFence = x >= left && x <= right && y >= bottom && y <= top;
                 ctx.grid.setWalkableFloor(x, y);
-                ctx.topology.setGroundKind(x, y, APRON);
-                ctx.topology.setRoomPurpose(x, y, RoomPurpose.HANGAR);
+                ctx.topology.setGroundKind(x, y, insideFence ? APRON : VERGE);
+                if (insideFence) ctx.topology.setRoomPurpose(x, y, RoomPurpose.HANGAR);
             }
         }
     }
@@ -164,11 +334,11 @@ public final class AirbaseLot {
     private void runway(GenContext ctx) {
         TileRegistry registry = TileRegistry.installed();
         int depth = depthStart();
-        for (int step = 0; step < RUNWAY_DEPTH; step++) {
-            for (int along = alongLo() + 1 + TOWER_WIDTH; along <= alongHi() - 1; along++) {
+        for (int step = 0; step < size.runwayDepth; step++) {
+            for (int along = alongLo() + 1; along <= alongHi() - 1; along++) {
                 int x = alongY ? along : depth + depthSign() * step;
                 int y = alongY ? depth + depthSign() * step : along;
-                ctx.topology.setGroundKind(x, y, MARKED);
+                ctx.topology.setGroundKind(x, y, RUNWAY);
                 // Edge lines, laid as floor rather than as a ground kind. A
                 // marking that is a kind of ground is only visible while it
                 // contrasts with the ground beside it, and the ground palette
@@ -177,7 +347,7 @@ public final class AirbaseLot {
                 // the same colour without touching a line of this. Paint is a
                 // thing laid on a surface; it belongs on top of one.
                 if (registry == null) continue;
-                if (step != 0 && step != RUNWAY_DEPTH - 1) continue;
+                if (step != 0 && step != size.runwayDepth - 1) continue;
                 DoodadDef line = registry.doodad(BAY_EDGE);
                 if (line != null) ctx.doodads.add(new Doodad(x, y, line));
             }
@@ -186,10 +356,10 @@ public final class AirbaseLot {
 
     /** Berths in a row on the apron, behind the runway and in front of the sheds. */
     private void berths(GenContext ctx) {
-        int row = depthStart() + depthSign() * (RUNWAY_DEPTH + RUNWAY_MARGIN + PAD / 2 + 1);
-        int span = PADS * PAD + (PADS - 1) * PAD_GAP;
+        int row = depthStart() + depthSign() * (size.runwayDepth + RUNWAY_MARGIN + PAD / 2 + 1);
+        int span = size.pads * PAD + (size.pads - 1) * PAD_GAP;
         int start = (alongLo() + alongHi() - span) / 2 + PAD / 2;
-        for (int i = 0; i < PADS; i++) {
+        for (int i = 0; i < size.pads; i++) {
             int along = start + i * (PAD + PAD_GAP);
             int cx = alongY ? along : row;
             int cy = alongY ? row : along;
@@ -199,40 +369,88 @@ public final class AirbaseLot {
     }
 
     /**
-     * The vehicles that live on an apron, one in front of each berth.
+     * The vehicle park, at the end of the apron opposite the tower.
      *
-     * <p>Paint alone makes helipads. What tells a reader this is a working
-     * airfield is everything standing around the aircraft that is not the
-     * aircraft — the bowser it is fuelled from, the crew truck, the flatbed
-     * with what is going aboard. None of it closes a cell: the apron has to
-     * stay ground people cross under fire, which is the whole tactical point of
-     * an airfield, and the berths stay bare because something has to land on
-     * them.
+     * <p>These used to stand one in front of each berth, which is where a
+     * bowser is while it is working and nowhere a vehicle is parked. It also
+     * put them across the taxiway — the strip the crew walks from the sheds to
+     * the aircraft — so the base's own ground traffic was blocking the one path
+     * everybody on it uses. Ground vehicles are kept somewhere, and that
+     * somewhere is a park.
+     *
+     * <p>Ranked at the far end, so the two ends of the apron are the two things
+     * that are not aircraft: the tower at one, the vehicles at the other, and
+     * the berths and their taxiway clear between them.
+     *
+     * <p>It is also the base's one piece of hard cover. A truck stops rifle
+     * fire, and six of them in ranks is a fight worth having — an attacker
+     * crossing open apron can reach the park and work up it, which is a better
+     * problem than a single truck sitting alone in front of a shed.
      */
-    private void groundSupport(GenContext ctx) {
+    private void vehiclePark(GenContext ctx) {
         TileRegistry registry = TileRegistry.installed();
         if (registry == null) return;
-        int row = depthStart() + depthSign() * (RUNWAY_DEPTH + RUNWAY_MARGIN + PAD + 1);
-        int span = PADS * PAD + (PADS - 1) * PAD_GAP;
-        int start = (alongLo() + alongHi() - span) / 2 + PAD / 2;
-        for (int i = 0; i < PADS; i++) {
-            int along = start + i * (PAD + PAD_GAP);
-            int x = alongY ? along - 1 : row;
-            int y = alongY ? row : along - 1;
-            DoodadDef kit = registry.doodad(GROUND_SUPPORT[i % GROUND_SUPPORT.length]);
-            if (kit == null) continue;
-            if (x < left + 1 || y < bottom + 1) continue;
-            if (x + kit.footprintCellsX - 1 > right - 1) continue;
-            if (y + kit.footprintCellsY - 1 > top - 1) continue;
-            ctx.doodads.add(new Doodad(x, y, kit));
+        int slot = 0;
+        for (int rank = 0; rank < size.parkRanks; rank++) {
+            int across = depthStart()
+                    + depthSign() * (size.runwayDepth + RUNWAY_MARGIN + 1 + rank * PARK_RANK_PITCH);
+            for (int file = 0; file < size.parkFiles; file++) {
+                int along = alongHi() - 1 - (file + 1) * PARK_FILE_PITCH + 1;
+                int x = alongY ? along : across;
+                int y = alongY ? across : along;
+                DoodadDef truck = registry.doodad(
+                        GROUND_SUPPORT[slot++ % GROUND_SUPPORT.length]);
+                if (truck == null) continue;
+                if (x < left + 1 || y < bottom + 1) continue;
+                // Turned with the lot, and measured after turning: a truck
+                // rotated a quarter turn is two cells across and three deep
+                // rather than the other way round, so a park that fitted on one
+                // facing would hang over the fence on the next.
+                int spanX = turnedSpanX(truck);
+                int spanY = turnedSpanY(truck);
+                if (x + spanX - 1 > right - 1) continue;
+                if (y + spanY - 1 > top - 1) continue;
+                // Never on a berth. A compact lot has the park close enough to
+                // the stands that "it fits inside the fence" stops being the
+                // same question as "it is not on the aircraft".
+                if (onABerth(ctx, x, y, spanX, spanY)) continue;
+                ctx.doodads.add(new Doodad(x, y, truck, facing.quarterTurns, facing.mirrored));
+            }
         }
     }
 
-    /** What stands beside each berth, cycled so neighbouring stands differ. */
+    /** A prop's span on the map's x axis once the lot's turn is applied. */
+    private int turnedSpanX(DoodadDef def) {
+        return (facing.quarterTurns & 1) == 0 ? def.footprintCellsX : def.footprintCellsY;
+    }
+
+    /** A prop's span on the map's y axis once the lot's turn is applied. */
+    private int turnedSpanY(DoodadDef def) {
+        return (facing.quarterTurns & 1) == 0 ? def.footprintCellsY : def.footprintCellsX;
+    }
+
+    /** Whether this footprint would stand on any berth already marked out. */
+    private boolean onABerth(GenContext ctx, int x, int y, int spanX, int spanY) {
+        for (LandingPad pad : ctx.landingPads) {
+            if (pad.purpose != LandingPad.Purpose.GARRISON_AIRFIELD) continue;
+            if (x + spanX - 1 < pad.left() || x > pad.right()) continue;
+            if (y + spanY - 1 < pad.bottom() || y > pad.top()) continue;
+            return true;
+        }
+        return false;
+    }
+
+    /** Rows of parked vehicles, and files across each row. */
+    /** Pitch between ranks and files — a truck's own span plus room to walk between. */
+    private static final int PARK_RANK_PITCH = 3;
+    private static final int PARK_FILE_PITCH = 4;
+
+    /** What the base runs on the ground. Cycled so a rank is not six of the same truck. */
     private static final String[] GROUND_SUPPORT = {
             "doodad.parked-tanker-truck",
             "doodad.parked-utility-truck",
             "doodad.parked-flatbed-truck",
+            "doodad.parked-cargo-truck",
     };
 
     /** Paint one berth so a stand reads as a stand from across the lot. */
@@ -271,18 +489,18 @@ public final class AirbaseLot {
         // the fence overwrites it — two hangars with three walls each, which
         // looks almost right and is open at the back.
         int frontDepth = depthStart()
-                + depthSign() * (RUNWAY_DEPTH + RUNWAY_MARGIN + PAD + TAXIWAY);
-        int span = HANGARS * HANGAR_WIDTH + (HANGARS - 1) * (HANGAR_WIDTH / 2);
+                + depthSign() * (size.runwayDepth + RUNWAY_MARGIN + PAD + size.taxiway);
+        int span = size.hangars * size.hangarWidth + (size.hangars - 1) * (size.hangarWidth / 2);
         int start = (alongLo() + alongHi() - span) / 2;
-        for (int i = 0; i < HANGARS; i++) {
-            int alongLo = start + i * (HANGAR_WIDTH + HANGAR_WIDTH / 2);
-            stampHangar(ctx, rng, frontDepth, alongLo, alongLo + HANGAR_WIDTH - 1);
+        for (int i = 0; i < size.hangars; i++) {
+            int alongLo = start + i * (size.hangarWidth + size.hangarWidth / 2);
+            stampHangar(ctx, rng, frontDepth, alongLo, alongLo + size.hangarWidth - 1);
         }
     }
 
     private void stampHangar(GenContext ctx, Random rng,
                              int frontDepth, int alongLo, int alongHi) {
-        int backDepth = frontDepth + depthSign() * (HANGAR_DEPTH - 1);
+        int backDepth = frontDepth + depthSign() * (size.hangarDepth - 1);
         int hLeft = alongY ? alongLo : Math.min(frontDepth, backDepth);
         int hRight = alongY ? alongHi : Math.max(frontDepth, backDepth);
         int hBottom = alongY ? Math.min(frontDepth, backDepth) : alongLo;
@@ -295,7 +513,7 @@ public final class AirbaseLot {
                 if (!ring) continue;
                 boolean onFront = alongY ? y == frontDepth : x == frontDepth;
                 int along = alongY ? x : y;
-                if (onFront && Math.abs(along - openCentre) <= HANGAR_OPENING / 2) {
+                if (onFront && Math.abs(along - openCentre) <= size.hangarOpening / 2) {
                     ctx.grid.setWalkableFloor(x, y);
                     ctx.grid.openAllEdges(x, y);
                     ctx.topology.setGroundKind(x, y, MARKED);
@@ -309,7 +527,12 @@ public final class AirbaseLot {
                 if (x - 1 < hLeft) mask |= CellTopology.WALL_DIR_W;
                 ctx.topology.setWall(x, y, true);
                 ctx.topology.orWallDirMask(x, y, mask);
-                ctx.topology.setGroundKind(x, y, APRON);
+                ctx.topology.setGroundKind(x, y, INSIDE);
+            }
+        }
+        for (int x = hLeft + 1; x <= hRight - 1; x++) {
+            for (int y = hBottom + 1; y <= hTop - 1; y++) {
+                ctx.topology.setGroundKind(x, y, INSIDE);
             }
         }
         workInterior(ctx, rng, hLeft + 1, hBottom + 1, hRight - 1, hTop - 1, frontDepth);
@@ -455,10 +678,16 @@ public final class AirbaseLot {
      * to work.
      */
     private void tower(GenContext ctx) {
+        if (!size.tower) return;
         TileRegistry registry = TileRegistry.installed();
+        // Behind the strip, not on the end of it. A tower closing off a runway
+        // is a building in the one place nothing should be — and it is the
+        // first thing an aircraft would meet. Set back into the apron band at
+        // the lot's end, it overlooks the whole strip without standing on any
+        // part of it, and the runway runs the full length of the lot again.
         int tAlongLo = alongLo() + 1;
         int tAlongHi = tAlongLo + TOWER_WIDTH - 1;
-        int tFront = depthStart();
+        int tFront = depthStart() + depthSign() * (size.runwayDepth + RUNWAY_MARGIN);
         int tBack = tFront + depthSign() * (TOWER_DEPTH - 1);
         int tLeft = alongY ? tAlongLo : Math.min(tFront, tBack);
         int tRight = alongY ? tAlongHi : Math.max(tFront, tBack);
@@ -487,7 +716,12 @@ public final class AirbaseLot {
                 if (x - 1 < tLeft) mask |= CellTopology.WALL_DIR_W;
                 ctx.topology.setWall(x, y, true);
                 ctx.topology.orWallDirMask(x, y, mask);
-                ctx.topology.setGroundKind(x, y, APRON);
+                ctx.topology.setGroundKind(x, y, INSIDE);
+            }
+        }
+        for (int x = tLeft + 1; x <= tRight - 1; x++) {
+            for (int y = tBottom + 1; y <= tTop - 1; y++) {
+                ctx.topology.setGroundKind(x, y, INSIDE);
             }
         }
         if (registry == null) return;
@@ -554,12 +788,13 @@ public final class AirbaseLot {
 
     /** The lot's front edge on the depth axis — the side the attacker approaches from. */
     private int depthStart() {
-        return alongY ? bottom + 1 : left + 1;
+        if (alongY) return facing.sign > 0 ? bottom + 1 : top - 1;
+        return facing.sign > 0 ? left + 1 : right - 1;
     }
 
     /** Which way "deeper into the lot" runs on the depth axis. */
     private int depthSign() {
-        return 1;
+        return facing.sign;
     }
 
     /** Low end of the lot's long axis. */

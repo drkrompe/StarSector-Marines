@@ -68,14 +68,15 @@ public class SurfaceCatalogTest {
     void onlyABlockWithAuthoredSlotsCanBeReCut() {
         SurfaceCatalog.Candidate shipped = new SurfaceCatalog.Candidate(
                 "floors.grass", SurfaceCatalog.VARIANT_POOL, "Floors_Tiles",
-                null, List.of(), true);
+                null, List.of(), true, null);
         assertFalse(shipped.isEditable());
         assertTrue(shipped.describe().contains("shipped only"));
 
         SurfaceCatalog.Candidate authored = new SurfaceCatalog.Candidate(
                 "urban.wall", "wall-3x3", "urban-tileset",
                 Paths.get("art-source/tilesets/urban-tileset.tileset-authoring.json"),
-                List.of(new SurfaceCatalog.Slot("doodad.urban.c3r0", "nw", true)), true);
+                List.of(new SurfaceCatalog.Slot("doodad.urban.c3r0", "nw", true)), true,
+                wall("urban.wall"));
         assertTrue(authored.isEditable());
         assertTrue(authored.describe().contains("1 slots authored"));
     }

@@ -77,6 +77,15 @@ public final class DrawList {
         slot(layer).setSheetQuadFlippedV(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, r, g, b, a);
     }
 
+    /** Vertically-mirrored sheet-quad at an angle — a half turn of it is a horizontal mirror. */
+    public void addSheetQuadFlippedV(RenderLayer layer, SpriteAPI sheet,
+                                     int srcX, int srcY, int srcW, int srcH,
+                                     float cx, float cy, float w, float h, float angleDeg,
+                                     float r, float g, float b, float a) {
+        slot(layer).setSheetQuadFlippedV(sheet, srcX, srcY, srcW, srcH,
+                cx, cy, w, h, angleDeg, r, g, b, a);
+    }
+
     public void addSprite(RenderLayer layer, SpriteAPI sprite,
                           float cx, float cy, float w, float h, float angleDeg,
                           float r, float g, float b, float a) {

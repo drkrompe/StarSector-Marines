@@ -79,11 +79,33 @@ public final class Doodad {
      * {@link DoodadCover}, and {@link #fromRoadSheet} from whether the def lives
      * on {@link TileManifest#ROAD_SHEET}. The registry-fed prop ctor.
      */
+    /**
+     * Whether this prop is drawn mirrored rather than merely turned.
+     *
+     * <p>For anything with a side to it — a vehicle above all — a half turn is
+     * the wrong operation. The art is drawn lit from one direction, so rotating
+     * it through a hundred and eighty degrees lights it from underneath and it
+     * reads as upside down. Mirroring turns it round and keeps the light where
+     * it was. Quarter turns are fine as rotations; the half turn is not.
+     */
+    public final boolean mirrored;
+
     public Doodad(int cellX, int cellY, DoodadDef def) {
         this(cellX, cellY, def, 0);
     }
 
     /** Builds one placed orientation without requiring duplicate asset definitions. */
+    /** A placed prop turned and, where its art demands it, mirrored rather than turned. */
+    public Doodad(int cellX, int cellY, DoodadDef def, int quarterTurns, boolean mirrored) {
+        this(cellX, cellY, new TileManifest.TileFrame(def.col, def.row),
+                def.sheetPath, def.cover.level(), def.ballisticHalfHeight,
+                def.footprintCellsX, def.footprintCellsY,
+                rotatedWidth(def.footprintCellsX, def.footprintCellsY, quarterTurns),
+                rotatedHeight(def.footprintCellsX, def.footprintCellsY, quarterTurns),
+                rotateSide(def.preferredWallSide, quarterTurns),
+                def.sourceCellPx, quarterTurns, mirrored);
+    }
+
     public Doodad(int cellX, int cellY, DoodadDef def, int quarterTurns) {
         this(cellX, cellY, new TileManifest.TileFrame(def.col, def.row),
                 def.sheetPath, def.cover.level(), def.ballisticHalfHeight,
@@ -152,6 +174,17 @@ public final class Doodad {
                    int footprintCellsX, int footprintCellsY,
                    WallSide preferredWallSide, int sourceCellPx,
                    int quarterTurns) {
+        this(cellX, cellY, tile, sheetPath, cover, ballisticHalfHeight,
+                sourceCellsX, sourceCellsY, footprintCellsX, footprintCellsY,
+                preferredWallSide, sourceCellPx, quarterTurns, false);
+    }
+
+    private Doodad(int cellX, int cellY, TileManifest.TileFrame tile,
+                   String sheetPath, int cover, float ballisticHalfHeight,
+                   int sourceCellsX, int sourceCellsY,
+                   int footprintCellsX, int footprintCellsY,
+                   WallSide preferredWallSide, int sourceCellPx,
+                   int quarterTurns, boolean mirrored) {
         if (footprintCellsX <= 0 || footprintCellsY <= 0) {
             throw new IllegalArgumentException("Doodad footprint must be positive");
         }
@@ -171,6 +204,7 @@ public final class Doodad {
         this.footprintCellsY = footprintCellsY;
         this.preferredWallSide = preferredWallSide;
         this.quarterTurns = quarterTurns;
+        this.mirrored = mirrored;
     }
 
     public boolean occupiesCell(int x, int y) {

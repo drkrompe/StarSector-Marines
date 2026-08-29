@@ -71,9 +71,11 @@ public final class SurfaceCatalog {
      * @param document  the authoring document that declares it, or null
      * @param slots     the pieces assigned to its slots; empty when unauthored
      * @param inUse     whether the mapping currently points the purpose here
+     * @param block     the loaded definition, so a chooser can draw it
      */
     public record Candidate(String blockId, String shape, String sheetName,
-                            Path document, List<Slot> slots, boolean inUse) {
+                            Path document, List<Slot> slots, boolean inUse,
+                            GridBlockDef block) {
 
         /**
          * Whether the slicing behind this block can be edited.
@@ -151,6 +153,7 @@ public final class SurfaceCatalog {
             purposes.add(purpose(role.name(), SURFACE_ROLE,
                     mapping.surfaceBlockId(role), tiles, documents));
         }
+        purposes.sort(Comparator.comparing(Purpose::name));
         return purposes;
     }
 
@@ -188,8 +191,10 @@ public final class SurfaceCatalog {
                 if (!shape.equals(shapeOf(block))) continue;
                 candidates.add(candidate(block, documents, block.id.equals(mappedId)));
             }
-            candidates.sort(Comparator.comparing(Candidate::inUse).reversed()
-                    .thenComparing(Candidate::blockId));
+            // Alphabetical rather than in-use first: this is a list somebody
+            // looks a name up in, and a row that moves when the mapping changes
+            // is a row that has to be found again.
+            candidates.sort(Comparator.comparing(Candidate::blockId));
         }
         return new Purpose(name, vocabulary, mappedId, shape, List.copyOf(candidates));
     }
@@ -210,7 +215,7 @@ public final class SurfaceCatalog {
             }
         }
         return new Candidate(block.id, shapeOf(block), sheetName,
-                slots.isEmpty() ? null : source.path(), List.copyOf(slots), inUse);
+                slots.isEmpty() ? null : source.path(), List.copyOf(slots), inUse, block);
     }
 
     /** The layout name a block resolves by, in the spelling its JSON uses. */
