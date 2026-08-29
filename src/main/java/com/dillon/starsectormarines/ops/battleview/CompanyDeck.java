@@ -62,6 +62,11 @@ public final class CompanyDeck {
     private final BattleSprites sprites;
     private final Supplier<List<MechVariant>> lance;
     private final Supplier<List<MarineSoldier>> company;
+    /**
+     * Whether this is the ship the company lives aboard, whose deck is laid out
+     * once and kept. @see LaidDecks
+     */
+    private final boolean home;
     /** Soldier id to the marine standing aboard, for anyone the ship could billet. */
     private final Map<String, Long> mustered = new HashMap<>();
     /** Soldier id to the compartment their bunk is in. */
@@ -86,17 +91,40 @@ public final class CompanyDeck {
     public CompanyDeck(CompanyShip ship, long seed, BattleSprites sprites,
                        Supplier<List<MechVariant>> lance,
                        Supplier<List<MarineSoldier>> company) {
+        this(ship, seed, sprites, lance, company, false);
+    }
+
+    private CompanyDeck(CompanyShip ship, long seed, BattleSprites sprites,
+                        Supplier<List<MechVariant>> lance,
+                        Supplier<List<MarineSoldier>> company, boolean home) {
         if (ship == null) throw new IllegalArgumentException("a company ship is required");
         this.ship = ship;
         this.seed = seed;
         this.sprites = sprites;
         this.lance = lance == null ? List::of : lance;
         this.company = company == null ? List::of : company;
+        this.home = home;
+    }
+
+    /**
+     * The ship the company lives aboard.
+     *
+     * <p>Told apart from any other hull because hers is the one deck worth
+     * keeping: the panel is built afresh every time the player opens it and
+     * asks for the same ship every time, so she is laid out once for the whole
+     * session rather than once per visit. Everything else about her is still
+     * built fresh — she is crewed from the roster as it stands, so a watch is
+     * never one the company no longer has.
+     */
+    public static CompanyDeck home(CompanyShip ship, long seed, BattleSprites sprites,
+                                   Supplier<List<MechVariant>> lance,
+                                   Supplier<List<MarineSoldier>> company) {
+        return new CompanyDeck(ship, seed, sprites, lance, company, true);
     }
 
     /** A ship nobody will draw, nothing is berthed in, and nobody is billeted on. */
     public CompanyDeck(CompanyShip ship, long seed) {
-        this(ship, seed, null, null, null);
+        this(ship, seed, null, null, null, false);
     }
 
     public CompanyShip ship() {
@@ -339,6 +367,12 @@ public final class CompanyDeck {
         if (!ship.habitable()) {
             throw new IllegalStateException(
                     "a " + ship.hullClass() + " has no interior to walk around");
+        }
+        if (home) {
+            LaidDecks.Laid laid = LaidDecks.homeDeck(ship, seed);
+            deck = laid.map();
+            rooms = laid.rooms();
+            return;
         }
         ShipDeckGenerator generator = new ShipDeckGenerator();
         deck = generator.generateDeck(ship.deckPlan(), seed, ship.outline());

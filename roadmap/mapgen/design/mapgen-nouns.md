@@ -5,7 +5,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 Written: 2026-08-23
 
 Updated: 2026-08-29 — the airbase lot turns four ways, comes in three sizes, and
-reaches the city as either a block-sized site or a multi-block compound claim.
+reaches the city as either a block-sized site or a multi-block compound claim
+placed on the ground that claim actually owns, whose made surface the terrain
+passes no longer repaint.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -388,6 +390,40 @@ nothing on a claim that came up short — a gap in the city with no error. The
 seed demotes to the block-sized kind when it cannot claim at all, and the filler
 falls back through the sizes when the claim is smaller than hoped. The worst
 case at every step is a smaller airbase.
+
+**A claim's bounding box is not the ground it owns.** Members are rarely a neat
+rectangle — two leaves offset, or three in an L — so the box drawn round them
+contains cells belonging to leaves that are *not* members, and those leaves are
+filled by their own fillers either side of this one. Building in the box put a
+city building through the airbase's own fence: the perimeter ran across a wall
+and the building carried on outside the site, and nothing detected it because
+both halves were individually correct. The ground a claim may build on is cells
+inside a member leaf, plus cells inside no leaf at all — the street frames
+between members, which belong to nobody. Everything else is somebody's block.
+
+**A biome is the ground a place is built on, not the ground a place is made
+of.** The beach override repaints outdoor ground as sand so a shore reads as one
+continuous strand, which is right for a road, a park or a yard and wrong for a
+facility: an apron, a runway and painted berth markings are engineering, and
+sanding them left a fenced airbase floored in beach with each berth's outline
+eaten away in ragged patches. Nothing was misbehaving — the terrain pass runs
+after the fill that laid them, and both halves were doing their job. So a
+facility **claims the surface it made**, and terrain passes leave those cells
+alone; the shoreline pass already kept a road reservation dry for the same
+reason, and this is that exemption generalised. Only what is inside the fence is
+claimed. The verge outside is ground the lot *reserved* rather than ground it
+*made*, and a shore that reaches the fence line and stops is exactly right.
+
+**Clearance belongs to the placement, not to the size.** What the reservation
+outside the fence buys is a way past the base, and whether that has to be bought
+depends on where the lot is going. A lot carved out of a larger reservation has
+no guarantee of one and must reserve it; a lot filling a city claim is already
+bounded by the streets its members front onto, and charging it two cells all
+round is asking for a lot four cells wider than the one the claim can hold. That
+arithmetic is invisible: the claim measured at exactly the compact size, the
+placement search found nowhere for it, and every seed quietly fell back to the
+smallest base. The size says what it wants by default; the host that knows the
+ground says what it gets.
 
 **A gate is only a gate if it opens onto something.** On a compact lot a shed's
 back sits against the perimeter, and a gap cut in the fence there is a doorway

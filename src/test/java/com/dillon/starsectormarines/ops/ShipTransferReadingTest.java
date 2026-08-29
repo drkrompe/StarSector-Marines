@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
+import com.dillon.starsectormarines.ops.battleview.LaidDecks;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +40,17 @@ class ShipTransferReadingTest {
                             20, 50, 30, 0.5f)));
         }
         return List.copyOf(ships);
+    }
+
+    /**
+     * What the shell remembers outlives a screen, and these hulls are the same
+     * hulls in every one of these tests — so a screen that opened a moment ago
+     * would hand the next one its answers, and the row that should say it is
+     * still laying a deck out would already know.
+     */
+    @BeforeEach
+    void freshStart() {
+        LaidDecks.forget();
     }
 
     @Test
@@ -85,6 +98,18 @@ class ShipTransferReadingTest {
         assertTrue(read.stream().allMatch(row -> row.detail().contains("berth")),
                 "once the decks land every row says what she berths: "
                         + read.stream().map(ShipTransferViewModel.CandidateRow::detail)
+                                .toList());
+
+        // The panel is thrown away and rebuilt on every visit, so the second one
+        // is a different screen over the same fleet. It should not wait.
+        ShipTransferViewModel returning = new ShipTransferViewModel(new Reactor(),
+                () -> ships, () -> FOUNDING, moved -> { },
+                CompanyMeans.of(20, 1, 100_000));
+        List<ShipTransferViewModel.CandidateRow> again = returning.candidateRows().get();
+
+        assertTrue(again.stream().allMatch(row -> row.detail().contains("berth")),
+                "coming back should cost nothing for a fleet already read: "
+                        + again.stream().map(ShipTransferViewModel.CandidateRow::detail)
                                 .toList());
     }
 
