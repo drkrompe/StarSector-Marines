@@ -334,13 +334,15 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     }
 
     private JPanel adjustCutScreen;
+    private JSplitPane adjustCutSplit;
 
     private JPanel adjustCutBody() {
         if (adjustCutScreen == null) {
             adjustCutScreen = new JPanel(new BorderLayout(0, 6));
+            adjustCutSplit = splitOf(tableScroll, cutAdjuster);
+            adjustCutScreen.add(adjustCutSplit, BorderLayout.CENTER);
         }
-        adjustCutScreen.removeAll();
-        adjustCutScreen.add(splitOf(tableScroll, cutAdjuster), BorderLayout.CENTER);
+        refill(adjustCutSplit, tableScroll, cutAdjuster);
         return adjustCutScreen;
     }
 
@@ -589,7 +591,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
     private JPanel cutScreen;
     private JPanel annotateScreen;
+    private JSplitPane annotateSplit;
     private JPanel groupScreen;
+    private JSplitPane groupSplit;
     private JPanel outputScreen;
     private JPanel exportScreen;
     private JPanel lookScreen;
@@ -617,8 +621,10 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             JPanel actions = actionRow();
             actions.add(button("Copy selection for LLM", this::copySelectionForModel));
             annotateScreen = withActions(actions);
+            annotateSplit = splitOf(sheetPicture, tableScroll);
+            annotateScreen.add(annotateSplit, BorderLayout.CENTER);
         }
-        annotateScreen.add(splitOf(sheetPicture, tableScroll), BorderLayout.CENTER);
+        refill(annotateSplit, sheetPicture, tableScroll);
         return annotateScreen;
     }
 
@@ -627,8 +633,10 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             JPanel actions = actionRow();
             actions.add(button("Group selected as block…", this::groupSelected));
             groupScreen = withActions(actions);
+            groupSplit = splitOf(sheetPicture, tableScroll);
+            groupScreen.add(groupSplit, BorderLayout.CENTER);
         }
-        groupScreen.add(splitOf(sheetPicture, tableScroll), BorderLayout.CENTER);
+        refill(groupSplit, sheetPicture, tableScroll);
         return groupScreen;
     }
 
@@ -693,6 +701,27 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
         split.setResizeWeight(0.55);
         return split;
+    }
+
+    /**
+     * Put the shared components back into a screen's split.
+     *
+     * <p>A screen's containers are built once and refilled, never rebuilt. A
+     * body is asked for twice on every entry - once by the step's own
+     * {@code onEnter}, once by the wizard putting it on screen - so a body that
+     * built a new split each time left the previous one parented, holding the
+     * bounds it was last laid out with, and emptied, because the new split had
+     * taken both components off it. An empty panel over the real one is a blank
+     * screen: "Say what each piece is" showed nothing but its toolbar from its
+     * second visit onward.
+     *
+     * <p>Only what actually moved is moved. Re-setting a component a split
+     * already holds makes {@link JSplitPane} drop and re-add it, which throws
+     * away the divider the operator dragged.
+     */
+    private static void refill(JSplitPane split, JComponent left, JComponent right) {
+        if (split.getLeftComponent() != left) split.setLeftComponent(left);
+        if (split.getRightComponent() != right) split.setRightComponent(right);
     }
 
     private static JComponent small(JComponent field, int width) {
