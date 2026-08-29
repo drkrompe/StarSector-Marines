@@ -174,10 +174,13 @@ setting paragraph, and deterministic twelve-billet distribution. Tier describes
 expected capability while rarity describes acquisition scarcity and presentation.
 Rarity is never a random-roll weight, and selection never rolls equipment from a pool.
 
-The separate equipment designer uses the same visual language before a definition
-is saved: each billet card keeps a compact live render in its upper-right corner,
-reserves a short line for role or equipment flavor, and shows fixed-scale capability
-meters beside exact values. Those scales use catalog ceilings rather than the other
+The separate equipment designer authors **weapons only**, and uses the same visual
+language before a definition is saved: each billet card keeps a compact live
+render in its upper-right corner, wearing whatever the squad's assigned tactic
+sheet issues that billet — read, never edited, because a marine still has to be
+drawn wearing something and the honest something is what they would deploy in.
+Each card also reserves a short line for role or equipment flavor, and shows
+fixed-scale capability meters beside exact values. Those scales use catalog ceilings rather than the other
 three visible billets, so cycling an item produces a meaningful at-a-glance change
 and team selection cannot rewrite the comparison baseline.
 
@@ -190,16 +193,21 @@ writes both ids together, and materializes all twelve exact issues onto
 `MarineSoldier`, which remains the battle-facing state consumed by deployment.
 Later inventory changes do not silently optimize or reshuffle that result.
 
-Built-in definitions are authored deterministic distributions rather than live
-best-fit allocators. This makes faction-flavored profiles such as **Sindrian
-Civilian Security Equipment** or **Luddic Path Assault Equipment** explainable in
-preview and stable after issue. Player-authored definitions persist in `MarineArmory`
-beside that immutable built-in catalog. Authoring consumes nothing and may mix every
-billet, but every referenced primary-and-grade, armor pattern, and special must have
-a collected equipment template card. Cargo, readiness, and stationing constrain the
+Built-in weapon definitions are authored deterministic distributions rather than
+live best-fit allocators. This makes faction-flavored profiles such as **Luddic
+Path Assault Equipment** explainable in preview and stable after issue.
+Player-authored weapon definitions persist in `MarineArmory` beside that immutable
+built-in catalog. Authoring consumes nothing and may mix every billet, but every
+referenced primary-and-grade and special must have a collected equipment template
+card.
+
+Armour deliberately has no equivalent. A tactic sheet is a role mix plus a
+tradition, resolved against owned stock every time it is read
+(`role-and-access.md`), so it cannot be frozen and there is nothing for a player
+to author into it. Cargo, readiness, and stationing constrain the
 later squad issue.
 
-Built-in armor definitions form explicit capability bands rather than a single
+Catalogued armour patterns form explicit capability bands rather than a single
 faction ladder. Tier I is the universal unpowered baseline. Tiers II, III, and IV
 each contain multiple faction-authored equivalents, and equal tier means comparable
 battlefield ambition rather than identical values: Hegemony patterns emphasize

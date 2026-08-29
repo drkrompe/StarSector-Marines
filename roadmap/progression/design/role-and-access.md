@@ -263,9 +263,13 @@ and no reason for it. Naming the gap where the choice is made turns an
 unfillable sheet into the thing it should be: a reason to go and buy a scout
 suit.
 
-A hand-authored custom doctrine still names patterns outright and says so where
-its composition would go: it is a fixed loadout rather than a sheet, and the two
-should not look alike.
+**The third line is what the section would carry.** SECTION says which jobs the
+sheet organises and ISSUED says which patterns fill them; neither tells a player
+that one sheet fields nine braces and another fields four breachers unless they
+have the catalog by heart. CARRIES counts the issued twelve by capability family,
+ordered by headcount. Like ISSUED it is derived from the issue rather than the
+plan, so it improves as the company's stock does; a sheet whose patterns carry
+nothing says so rather than rendering blank.
 
 ## What this does not change
 

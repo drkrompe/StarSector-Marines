@@ -1,4 +1,4 @@
-<template props="squadName,designerHeading,designerSubheading,draftName,editName,definitions,teamTabs,billets,feedback,showWeapons,showArmor,newDraft,cloneSelected,saveAsNew,rename,renameDisabled,delete,deleteDisabled,backToFireTeams,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="squadName,designerHeading,designerSubheading,draftName,editName,definitions,teamTabs,billets,feedback,newDraft,cloneSelected,saveAsNew,rename,renameDisabled,delete,deleteDisabled,backToFireTeams,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
   <div id="equipment-designer-root" class="equipment-designer-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT DESIGNER" />
 
@@ -17,8 +17,6 @@
         <div id="designer-heading" class="label heading tone-edge">{designerHeading}</div>
         <div id="designer-subheading" class="label tone-muted">{designerSubheading}</div>
       </div>
-      <button id="show-weapon-definitions" onclick="{showWeapons}">Weapon Equipment</button>
-      <button id="show-armor-definitions" onclick="{showArmor}">Armor Equipment</button>
     </div>
 
     <div id="designer-definition-library" class="panel">
