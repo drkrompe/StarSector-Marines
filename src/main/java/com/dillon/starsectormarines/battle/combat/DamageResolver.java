@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 import java.util.Random;
+import java.util.function.IntSupplier;
 import java.util.function.LongConsumer;
 
 /**
@@ -67,6 +68,7 @@ public final class DamageResolver {
     private final EquipmentDropService equipmentDrops;
     private final LongConsumer deathSink;
     private final DeathDispatcher deathDispatcher;
+    private final IntSupplier simTick;
     private final Random rng;
     private final DurabilityModel.Resolution durability = new DurabilityModel.Resolution();
 
@@ -75,6 +77,7 @@ public final class DamageResolver {
                           EquipmentDropService equipmentDrops,
                           LongConsumer deathSink,
                           DeathDispatcher deathDispatcher,
+                          IntSupplier simTick,
                           Random rng) {
         this.grid = navigation.getGrid();
         this.squads = roster.getSquadsMap();
@@ -82,6 +85,7 @@ public final class DamageResolver {
         this.equipmentDrops = equipmentDrops;
         this.deathSink = deathSink;
         this.deathDispatcher = deathDispatcher;
+        this.simTick = simTick;
         this.rng = rng;
     }
 
@@ -142,6 +146,12 @@ public final class DamageResolver {
         float armorBefore = hasArmor ? world.armor(targetId) : 0f;
         float armorRating = hasArmor ? world.armorRating(targetId) : 0f;
         float postCoverDamage = damage * (1f - dr) * world.damageTakenMult(targetId);
+        // Stamped before mitigation and armour have their say: "a hit landed on
+        // me" is true whatever eventually absorbed it, and a screen that ate the
+        // whole round is still evidence somebody is shooting.
+        if (postCoverDamage > 0f) {
+            roster.combat().recordDamageTaken(targetId, simTick.getAsInt());
+        }
         // Mitigation resolves here — after cover, before armor — because the arc
         // is measured against the target's facing at the moment the hit lands,
         // and this is the one seam that knows both. An unattributed hit has no

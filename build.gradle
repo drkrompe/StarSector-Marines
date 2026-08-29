@@ -101,6 +101,12 @@ dependencies {
 // renders review frames through the very renderer that was running out.
 tasks.withType(Test).configureEach {
     maxHeapSize = '2g'
+    // Every JVM-side measurement — the suite, commander evidence, snapshots —
+    // measures shipping behaviour, never the debug scaffold. Without this,
+    // IntegralSystemSystem's screen-trigger override would raise a screen in
+    // every scene, the policy tests would be asserting nothing, and evidence
+    // runs would report a battle nobody can play.
+    systemProperty 'marines.debug.screenTrigger', 'off'
 }
 
 test {

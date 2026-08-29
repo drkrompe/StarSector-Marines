@@ -208,6 +208,17 @@ public final class BattleComponents {
     public static final int COMBAT_INCOMING_FROM_X = 21;
     /** {@link #COMBAT} field 22: cell y the most recent incoming round was fired from (INT). Meaningless at zero pressure. */
     public static final int COMBAT_INCOMING_FROM_Y = 22;
+    /**
+     * {@link #COMBAT} field 23: sim tick a hit last landed on this combatant,
+     * stored plus one so the zero every fresh column starts at means "never"
+     * rather than "on tick zero" (INT). Read it through
+     * {@code CombatService.ticksSinceDamaged}, never raw.
+     *
+     * <p>Distinct from {@link #COMBAT_INCOMING_PRESSURE}, which counts rounds landing
+     * <em>near</em> it from a shooter it can see. This is damage that actually
+     * arrived, from anywhere, seen or not.
+     */
+    public static final int COMBAT_LAST_DAMAGED_TICK = 23;
 
     /** {@link #MOVEMENT} field 0: repeating [0,1) walk-stride phase, advanced by distance traveled — one full cycle per cell (FLOAT). Presentation-only: read by {@code battle.appearance.FacingSystem} for the locomotion pose; the sim never gates on it. */
     public static final int MOVEMENT_GAIT_PHASE = 0;
@@ -1102,7 +1113,8 @@ public final class BattleComponents {
                 FieldKind.OBJECT, FieldKind.OBJECT,
                 FieldKind.LONG, FieldKind.FLOAT,
                 FieldKind.INT, FieldKind.INT,
-                FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.INT);
+                FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.INT,
+                FieldKind.INT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);
