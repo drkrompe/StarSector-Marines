@@ -4,6 +4,9 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
+Updated: 2026-08-29 — a mission now states the map features it requires and a
+map that falls short is re-rolled rather than played.
+
 Updated: 2026-08-28 — made the footprint-resolved capture room authoritative
 across capture, command, execution, presentation, and evidence, and scoped
 occupancy to the footprint as well so an open compound is capturable.
@@ -13,6 +16,39 @@ defender's supply hubs through the city, and finish at the keep. It is not a
 race to erase every defender from the map. Reinforcement makes intact
 territory costly to leave behind; compound control gives the battle a durable
 end condition.
+
+## The map a mission requires
+
+A mission is a promise about the fight, and part of that promise is structural:
+conquest promises a fortified defender with a keep to take, an air arm with a
+field to fly from, and a shore to land on. **A map that lacks one of those is
+not a conquest map**, however correct every pass that built it was.
+
+Generation cannot notice this on its own, and the failure is silent by
+construction. Every pass declines politely — a ward with no room builds no
+airfield, a claim that came up short takes a smaller lot, a stamper with
+nowhere to stand emits nothing — and each of those is the right local decision
+made by something that does not know what the mission was promised. A quarter
+of conquest battles shipped with no garrison airfield that way. The only
+symptom was an enemy whose reinforcements all arrived from off map, which reads
+as a balance choice rather than as a missing building.
+
+So the requirement is stated **next to the mission** rather than inside the
+pass that happens to satisfy it, and checked against the **finished map** — a
+question about the output, which does not care which pass produced it and keeps
+working when one is replaced.
+
+**A map that falls short is re-rolled, and only then an error.** The seed is
+the generator's only input, so a different seed is the whole of the fix, and
+the first attempt is always the caller's own seed — an ordinary battle is
+bit-for-bit what it was. Running out of seeds is a real fault and says which
+features were missing, because handing back an invalid map is exactly how the
+missing airfield survived as long as it did.
+
+**A mission with nothing stated requires nothing.** Requirements are a claim
+about a particular mission, and inventing one for a mission nobody has thought
+about turns a working battle into a crash. Conquest is currently the only
+mission that makes structural demands.
 
 ## Authored siege pressure
 
