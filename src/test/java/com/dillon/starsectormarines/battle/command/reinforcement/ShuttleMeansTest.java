@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
+import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -515,5 +516,109 @@ public class ShuttleMeansTest {
                 "a delivered squad lands tasked, node or no node");
         assertEquals(AssignmentKind.CLEAR_ZONE, owner.assignment().kind());
         assertEquals(lostZone, owner.assignment().targetZoneId());
+    }
+
+    /**
+     * A sortie flies the aircraft that was standing on the field, and brings it
+     * home to the same hardstand.
+     *
+     * <p>The point of a based aircraft is that it is finite. A sortie takes a
+     * specific hull off a specific pad rather than conjuring one at those
+     * coordinates, and until that hull comes back and is turned round the field
+     * is one aircraft short.
+     */
+    @Test
+    public void aSortieFliesTheFieldsOwnAircraftAndBringsItHome() {
+        BattleSimulation sim = openSim();
+        sim.setTacticalMap(new TacticalMap(List.of(
+                commandPost(2, 2), airbase(6, H - 2))));
+        LandingPad pad = LandingPad.garrison(6, H - 2, LandingPad.Approach.SOUTH);
+        AirfieldService field = sim.getAirfieldService();
+        AirfieldService.Berth berth = field.addBerth(pad, ShuttleType.AEROSHUTTLE, 0f);
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, null, List.of(pad));
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 6, 2);
+
+        // The sortie has to be watched past the moment one side is wiped, and a
+        // terminal battle stops ticking its aircraft. This is about a berth,
+        // not about who wins.
+        sim.setMissionCompletionEnabled(false);
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 0, 0));
+        sim.advance(1f / 30f);
+        assertTrue(field.hasAirworthyAirframe(), "the field starts with an aircraft on it");
+
+        assertTrue(means.canFulfill(sim, req));
+        means.dispatch(sim, req);
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertEquals(berth, mission.homeBerth, "the sortie knows which stand it came off");
+        assertEquals(AirfieldService.BerthState.AWAY, berth.state);
+        assertFalse(field.hasAirworthyAirframe(),
+                "the field is an aircraft short while that one is out");
+        assertFalse(means.canFulfill(sim, req),
+                "and cannot answer another request with nothing to send");
+
+        // Fly it: load, deliver, come home. Deboarding is cut short by hand
+        // once the craft is down — on a map this size the squad it just put on
+        // the ground stands around the LZ and can crowd out its own last
+        // passenger, which is a deboard-spacing question and not this one.
+        for (int i = 0; i < 2000 && mission.state != ShuttleState.LANDED; i++) {
+            sim.advance(1f / 30f);
+        }
+        assertEquals(ShuttleState.LANDED, mission.state, "the sortie reached its LZ");
+        mission.marinesRemaining = 0;
+        for (int i = 0; i < 2000
+                && berth.state == AirfieldService.BerthState.AWAY; i++) {
+            sim.advance(1f / 30f);
+        }
+        assertEquals(AirfieldService.BerthState.REFITTING, berth.state,
+                "it came home and went straight into a turnaround");
+        assertNull(mission.homeBerth, "and the sortie has given it back");
+    }
+
+    /**
+     * An aircraft shot down over the objective does not come home, and its
+     * stand is not restocked.
+     */
+    @Test
+    public void anAircraftLostOnTheSortieTakesItsBerthWithIt() {
+        BattleSimulation sim = openSim();
+        sim.setTacticalMap(new TacticalMap(List.of(
+                commandPost(2, 2), airbase(6, H - 2))));
+        LandingPad pad = LandingPad.garrison(6, H - 2, LandingPad.Approach.SOUTH);
+        AirfieldService field = sim.getAirfieldService();
+        AirfieldService.Berth berth = field.addBerth(pad, ShuttleType.AEROSHUTTLE, 0f);
+        ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
+                null, RiskLevel.LOW, null, List.of(pad));
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 6, 2);
+
+        sim.setMissionCompletionEnabled(false);
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 0, 0));
+        sim.advance(1f / 30f);
+        means.dispatch(sim, req);
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+
+        // Killed in the air rather than on the way home.
+        mission.hp = 0.0001f;
+        for (int i = 0; i < 4000
+                && berth.state == AirfieldService.BerthState.AWAY
+                && mission.state != ShuttleState.GONE; i++) {
+            sim.advance(1f / 30f);
+            if (mission.state == ShuttleState.INCOMING) {
+                sim.world().mission(sim.getAirEntityIds()[0]).homeBerth = berth;
+                break;
+            }
+        }
+        // Take it down where it flies.
+        sim.getAirfieldService().destroyed(berth);
+
+        assertEquals(AirfieldService.BerthState.DESTROYED, berth.state);
+        assertFalse(field.hasAirworthyAirframe());
+        for (int i = 0; i < 300; i++) sim.advance(1f / 30f);
+        assertEquals(AirfieldService.BerthState.DESTROYED, berth.state,
+                "a stand whose aircraft was lost is not restocked");
     }
 }

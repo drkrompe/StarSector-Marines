@@ -9,6 +9,9 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.AnimationClip;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
+import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
@@ -100,6 +103,7 @@ public final class UnitRenderService implements RenderSystem {
         sweepFootprints(ctx, out);
         sweepTurretBodies(ctx, out);
         sweepHubBodies(ctx, out);
+        sweepBasedAircraft(ctx, out);
         sweepDeadSprites(ctx, out);
         sweepLiveSprites(ctx, out);
         sweepDurabilityBars(ctx, out);
@@ -192,6 +196,48 @@ public final class UnitRenderService implements RenderSystem {
             float cy = cam.cellToScreenY(world.renderY(u));
             emitWholeSprite(out, hub, 0f, DroneHub.VISUAL_CELLS * cellPx,
                     cx, cy, alphaMult);
+        }
+    }
+
+    /**
+     * Airframes standing on their hardstands: one whole-hull sprite each, at
+     * the berth's facing.
+     *
+     * <p>Drawn here, with the units, rather than beside the scenery hulls in
+     * {@link ParkedAircraftRenderSystem}. The two look identical and are not the
+     * same thing: a scenery hull on a civilian berth is a prop, while this is a
+     * live unit that fog gates, that takes fire, and that carries a durability
+     * bar. Drawing it in the unit pass is what keeps those for free.
+     *
+     * <p>Hull length and pivot come from the same resolvers the scenery pass
+     * and the flying pass use, so one aircraft looks like itself parked, based,
+     * and in the air.
+     */
+    private void sweepBasedAircraft(RenderContext ctx, DrawList out) {
+        AirfieldService airfield = ctx.sim.getAirfieldService();
+        if (airfield.berths().isEmpty()) return;
+        BattleCamera cam = ctx.camera;
+        float cellPx = cam.cellPxSize();
+        float alphaMult = ctx.alphaMult;
+        World world = ctx.sim.world();
+        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
+            long u = ctx.sim.liveUnitAt(i);
+            if (!ctx.sim.identity().type(u).isBasedAircraft()) continue;
+            AirfieldService.Berth berth = airfield.berthOf(u);
+            if (berth == null) continue;
+            ShuttleSpriteCache cache = sprites.shuttleSprites().get(berth.type);
+            if (cache == null || cache.sprite == null) continue;
+
+            float hullLenCells = HullFootprintResolver.visualLengthCells(
+                    berth.type.renderHullId());
+            float[] pivot = HullPivotResolver.pivotOffset(berth.type.renderHullId());
+            float rad = (float) Math.toRadians(berth.facingDegrees);
+            float c = (float) Math.cos(rad);
+            float sn = (float) Math.sin(rad);
+            float cx = cam.cellToScreenX(world.renderX(u) + pivot[0] * c - pivot[1] * sn);
+            float cy = cam.cellToScreenY(world.renderY(u) + pivot[0] * sn + pivot[1] * c);
+            emitWholeSprite(out, cache, berth.facingDegrees,
+                    hullLenCells * cellPx, cx, cy, alphaMult);
         }
     }
 
@@ -711,6 +757,11 @@ public final class UnitRenderService implements RenderSystem {
                 bodyPx = turretState.mount(u).visualCells * cellPx;
             } else if (type.isDroneHub()) {
                 bodyPx = DroneHub.VISUAL_CELLS * cellPx;
+            } else if (type.isBasedAircraft()) {
+                AirfieldService.Berth berth = ctx.sim.getAirfieldService().berthOf(u);
+                bodyPx = (berth != null
+                        ? HullFootprintResolver.visualLengthCells(berth.type.renderHullId())
+                        : 1f) * cellPx;
             } else {
                 bodyPx = unitSize * appearance.renderScale;
             }

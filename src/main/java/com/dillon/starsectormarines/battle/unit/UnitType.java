@@ -49,6 +49,8 @@ public enum UnitType {
     DRONE_HUB_STRUCTURE ("",                       null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    8.0f,  FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.5f, 0.70f),
     /** Autonomous defensive drone launched from a {@link com.dillon.starsectormarines.battle.drone.DroneHub}. Combatant so marines target it, but the sprite path is empty because the drone uses a per-instance vanilla drone sprite (see {@link com.dillon.starsectormarines.battle.drone.Drone#SPRITE_PATH}), same convention as {@link #TURRET} / {@link #DRONE_HUB_STRUCTURE}. HP / speed are set on the instance, not here. */
     DRONE      ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.35f, 0.35f),
+    /** An aircraft standing on a garrison hardstand — the grid-unit half of a based aircraft (see {@link com.dillon.starsectormarines.battle.air.BasedAircraft}). Combatant so it is targeted and damaged where it stands, but its role is {@link UnitRole#STRUCTURE}: no aim loop, no firing. Sprite path is empty because it draws its own hull, the same convention as {@link #TURRET} / {@link #DRONE_HUB_STRUCTURE}; HP and armor are set on the instance from the hull it represents. */
+    BASED_AIRCRAFT ("",                            null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.5f, 0.70f),
     /** Fast biological close-contact attacker for the civilian-rescue swarm payload. Append-only; legacy ALIEN remains the generic ranged-stat archetype. */
     SWARM_RUNNER("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,  20.0f, 5.0f, 3.2f, 1.0f, 0.7f, 1.5f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 0.3f, 0.30f);
 
@@ -133,8 +135,17 @@ public enum UnitType {
      * predicate becomes two.
      */
     public boolean isStatic() {
-        return this == TURRET || this == DRONE_HUB_STRUCTURE || this == RANGE_TARGET;
+        return this == TURRET || this == DRONE_HUB_STRUCTURE || this == RANGE_TARGET
+                || this == BASED_AIRCRAFT;
     }
+
+    /**
+     * Whether this archetype is an aircraft standing on its hardstand — the
+     * type tag the render pass and the airfield's own tick use, in the same
+     * place {@link #isTurret} and {@link #isDrone} sit. An aircraft in the air
+     * is not this: it is an air entity with no unit type at all.
+     */
+    public boolean isBasedAircraft() { return this == BASED_AIRCRAFT; }
 
     /**
      * Whether this archetype is a drone launch hub — the classification gate
@@ -190,8 +201,8 @@ public enum UnitType {
      * component at spawn ({@code UnitRosterService.allocate}) and that the
      * render tier's {@code RenderAppearance.derive} defers to (this is the
      * single source of truth; the render-tier switch used to duplicate it).
-     * {@link #isStatic} types ({@link #TURRET} / {@link #DRONE_HUB_STRUCTURE})
-     * draw as whole rotated sprites instead, and {@link #DRONE} draws in its
+     * {@link #isStatic} types ({@link #TURRET} / {@link #DRONE_HUB_STRUCTURE} /
+     * {@link #BASED_AIRCRAFT}) draw as whole rotated sprites instead, and {@link #DRONE} draws in its
      * own layer — everything else (infantry, mechs, civilians) is sheet-drawn.
      */
     public boolean drawnAsSheet() { return !isStatic() && this != DRONE; }

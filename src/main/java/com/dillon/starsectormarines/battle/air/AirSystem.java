@@ -89,6 +89,12 @@ public class AirSystem {
     private final EffectsService effects;   // crash FX on shoot-down (smoke plume + burning wreck)
     private final ResupplyService resupply;
     private final SquadDirectiveControl commandControl;
+    /**
+     * The berths a based sortie belongs to, or null on a battle with no
+     * authored field. Set after construction because the field is registered
+     * with the reinforcement layer, well after the air system exists.
+     */
+    private AirfieldService airfield;
 
     /**
      * The air entity ids this system drives — the stable per-tick iteration
@@ -240,6 +246,30 @@ public class AirSystem {
      * gather-then-apply, no structural change during a live walk. A multi-sortie
      * re-arm loops back to PENDING, never reaching GONE, so it is never reaped.
      */
+    /** Tells this system which field its based sorties belong to. */
+    public void setAirfield(AirfieldService airfield) {
+        this.airfield = airfield;
+    }
+
+    /**
+     * Hands a based sortie's airframe back to the berth it flew off.
+     *
+     * <p>Every way a sortie can end runs through here, and the distinction it
+     * draws is the only one that matters: a craft that reached its own pad is
+     * an aircraft home from a job and goes back on the stand with whatever hull
+     * it has left, while one that ended any other way — shot down, scrubbed,
+     * lost — is an aircraft that did not come back, and its berth is written
+     * off for the battle. A field is a finite thing to lose.
+     */
+    private void handBackToField(ShuttleMission mission, boolean recovered) {
+        AirfieldService.Berth berth = mission.homeBerth;
+        if (berth == null) return;
+        mission.homeBerth = null;
+        if (airfield == null) return;
+        if (recovered) airfield.recover(berth, mission.hp);
+        else airfield.destroyed(berth);
+    }
+
     private void reapGoneCraft() {
         for (Iterator<Long> it = air.iterator(); it.hasNext(); ) {
             long id = it.next();
@@ -335,6 +365,7 @@ public class AirSystem {
         effects.spawnSmokePlume(wx + 0.5f, wy + 0.5f);
         effects.spawnSmokingWreck(wx, wy);
 
+        handBackToField(mission, /*recovered*/ false);
         mission.state = ShuttleState.GONE;
         LOG.info("air: shuttle " + world.airType(id) + " shot down by " + posts + " AA post(s) with "
                 + mission.marinesRemaining + " marine(s) still aboard.");
@@ -412,6 +443,10 @@ public class AirSystem {
                             beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
                             mission.state = ShuttleState.INCOMING;
                         } else {
+                            // Scrubbed on the pad with nobody aboard. The
+                            // aircraft never went anywhere, so it is still the
+                            // field's and goes straight back on its stand.
+                            handBackToField(mission, /*recovered*/ true);
                             mission.state = ShuttleState.GONE;
                         }
                     }
@@ -544,7 +579,12 @@ public class AirSystem {
                             mission.state = ShuttleState.PENDING;
                         } else {
                             // Terminal — the craft is done; reapGoneCraft destroys
-                            // it (and every component) at end of tick.
+                            // it (and every component) at end of tick. A craft
+                            // flying off a berth is not done at all, though: it
+                            // has landed at home, and the air entity ends
+                            // because the aircraft has stopped being one, not
+                            // because it has stopped existing.
+                            handBackToField(mission, /*recovered*/ true);
                             mission.state = ShuttleState.GONE;
                         }
                     }

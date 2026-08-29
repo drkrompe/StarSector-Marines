@@ -39,6 +39,7 @@ public class RenderAppearanceTest {
             // WHOLE_SPRITE/NONE arm.
             boolean structural = t == UnitType.TURRET
                     || t == UnitType.DRONE_HUB_STRUCTURE
+                    || t == UnitType.BASED_AIRCRAFT
                     || t == UnitType.RANGE_TARGET
                     || t == UnitType.DRONE;
             if (!structural) {
@@ -67,7 +68,11 @@ public class RenderAppearanceTest {
 
     @Test
     public void turretsAndHubsAreWholeSpriteFootprintDrawers() {
-        for (UnitType t : new UnitType[]{UnitType.TURRET, UnitType.DRONE_HUB_STRUCTURE}) {
+        // A based aircraft joins them: it is drawn as a whole hull rather than
+        // a facing-indexed sheet, and it carries a durability bar because it is
+        // a thing that can be shot where it stands.
+        for (UnitType t : new UnitType[]{UnitType.TURRET, UnitType.DRONE_HUB_STRUCTURE,
+                UnitType.BASED_AIRCRAFT}) {
             RenderAppearance app = RenderAppearance.of(t);
             assertEquals(SpriteKind.WHOLE_SPRITE, app.spriteKind, "spriteKind for " + t);
             assertTrue(app.drawsFootprint, "drawsFootprint for " + t);
