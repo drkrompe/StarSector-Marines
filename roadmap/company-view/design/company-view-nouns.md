@@ -4,9 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — grounded built-in equipment provenance, distributed
-Conquest deployment across mission-configured Aeroshuttle pairs and drop zones,
-and removed authored ceilings from debug force-size controls.
+Updated: 2026-08-29 — replaced scale-bound battle lists with the fixed
+task-force plate and MLX command rail; squad detail plus GOAP diagnostics are
+explicitly selection-scoped.
 
 ## Purpose
 
@@ -393,6 +393,46 @@ carries campaign-shaped identity without touching campaign state.
 The standing law is **values cross the campaign-to-battle seam; campaign
 objects do not**. Labels remain stable, battle code never resolves the roster,
 and generated personnel never gain campaign identity by accident.
+
+## Battle HUD
+
+The default battle HUD is a scale-invariant task-force projection, not a squad
+browser. One fixed plate reports effective squads out of all Marine squads that
+have landed, living marines out of peak landed strength, the living squads'
+engaged / suspicious / unaware mix, and aggregate cohesion. Wiped squads remain
+in the committed denominator; an alive morale-broken squad is not combat
+effective. The plate snapshots those values before render and never retains a
+live simulation entity.
+
+The battlefield is the squad browser. Picking a unit establishes the existing
+view-only `Selection`; a Marine squad then replaces the force plate with its
+member detail in the left dock, using the frozen `campaignLabel` with a numeric
+fallback. The selected squad's GOAP debugger may open in the right dock for the
+same selection. Clearing selection, clicking empty ground, or losing the squad
+closes both. There is no default all-squad GOAP overview and no scrolling battle
+roster, because either one grows with force size and turns the tactical canvas
+into a data wall. Defender selection may still open the diagnostic without
+pretending defenders belong to the player's company.
+
+These surfaces remain read-only. Selection does not write an assignment,
+objective, waypoint, or any other mission-command input.
+
+Player-facing battle chrome uses the retained MLX path. One compact top-right
+command rail owns pause / 1x / 2x / 4x time selection and, only on maps with
+capturable compounds, the capture ledger. The ledger reports secured out of
+total, keeps one stable abbreviated chip per compound, groups the secured /
+contested / hostile counts, and spends a progress bar only on the most advanced
+contested site. World-anchored compound markers remain the primary spatial
+read. There is no full-height objective roster, and maps without compounds pay
+only for the time-control row. Java projects live state and actions into the
+retained model; MLX owns the hierarchy and presentation.
+
+The same retained path owns a bounded bottom-center command-power tray. Its
+resource block and compact cards replace the manually painted power menu, and
+the tray grows only by a narrow instruction strip while a power is armed.
+World targeting remains outside MLX so the reticle, invalid-target feedback,
+cancel gesture, and activation click stay in battlefield coordinates and ahead
+of squad picking.
 
 ## Battle maneuver doctrine
 

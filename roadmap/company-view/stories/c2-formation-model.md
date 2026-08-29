@@ -5,11 +5,11 @@
 
 Status: PLANNED
 Written: 2026-08-22
-Updated: 2026-08-23 — migrated under `company-view-nouns.md`.
+Updated: 2026-08-29 — removed the shipped battle HUD from this campaign read
+model's dependency set.
 
-No dependencies. Prerequisite for `c3-company-card-stack.md`,
-`c4-whereabouts-and-deployed-state.md`, and
-`c5-battle-hud-company-rollup.md`.
+No dependencies. Prerequisite for `c3-company-card-stack.md` and
+`c4-whereabouts-and-deployed-state.md`.
 
 Read `company-view-nouns.md` before changing this story.
 
@@ -132,8 +132,8 @@ mission concern, not an organization concern.
 
 - Does the snapshot belong in `ops/detachment/` or in `marine/` beside the
   roster it derives from? `detachment/` is the better fit for a frozen
-  view, but a battle-side consumer (C5) reads a *different* structure
-  anyway, so nothing forces the choice. Leaning `ops/detachment/`.
+  view, while the shipped battle HUD reads a different battle-lifetime
+  structure, so nothing forces the choice. Leaning `ops/detachment/`.
 - Should the builder be incremental (cache + invalidate on roster
   mutation)? No — build it on view rebuild, measure if it ever matters.
   A company is tens of objects.

@@ -40,6 +40,7 @@ final class MarineOpsThemes {
                                 opacity 100ms linear;
                 }
                 button.selected { background-color: #315070; border-color: #6ed7ff; }
+                button.power-armed { background-color: #3a3018; border-color: #ffd464; color: #ffd464; }
                 button:hover { background-color: #2a4968; }
                 button:active { background-color: #466f92; }
                 button:focus-visible { border-color: #ffd464; }
@@ -78,6 +79,7 @@ final class MarineOpsThemes {
                                 opacity 100ms linear;
                 }
                 button.selected { background-color: #225b75; border-color: #63e8ff; }
+                button.power-armed { background-color: #3a3018; border-color: #ffe45c; color: #ffe45c; }
                 button:hover { background-color: #15577b; }
                 button:active { background-color: #2185b4; }
                 button:focus-visible { border-color: #ffe45c; }

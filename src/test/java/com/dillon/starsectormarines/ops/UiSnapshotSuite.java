@@ -10,6 +10,12 @@ import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
+import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.VanillaHullSilhouettes;
@@ -37,6 +43,12 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
@@ -113,6 +125,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> MECH_LAB_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/mech-lab/mech-lab.mlx");
+    private static final List<String> BATTLE_HUD_COMPONENTS =
+            List.of(BattleHudOverlay.COMPONENT_PATH,
+                    BattlePowerOverlay.COMPONENT_PATH);
 
     @Override
     public String id() {
@@ -221,7 +236,249 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, true)),
                 new SnapshotArtifact("mech-lab-hound-empty-socket-wide.png",
                         renderMechLab(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true)));
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true)),
+                new SnapshotArtifact("battle-hud-task-force-wide.png",
+                        renderBattleHudTaskForce(
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-command-overlay-wide.png",
+                        renderBattleHudCommandOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-powers-targeting-wide.png",
+                        renderBattleHudPowerOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)));
+    }
+
+    /** Full-screen evidence for the production MLX command rail over battle contrast. */
+    private static BufferedImage renderBattleHudCommandOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        BufferedImage image = renderBattleHudTaskForce(width, height);
+        Reactor reactor = new Reactor();
+        BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
+                ignored -> { }, "Pause", "1x", "2x", "4x");
+        model.updateProjected(2f, List.of(
+                capture(TacticalNode.Kind.COMMAND_POST,
+                        CompoundService.CompoundState.MARINE_HELD, 0f),
+                capture(TacticalNode.Kind.BARRACKS,
+                        CompoundService.CompoundState.CONTESTED, 0.62f),
+                capture(TacticalNode.Kind.ARMORY,
+                        CompoundService.CompoundState.DEFENDER_HELD, 0f),
+                capture(TacticalNode.Kind.BARRACKS,
+                        CompoundService.CompoundState.MARINE_HELD, 0f),
+                capture(TacticalNode.Kind.ARMORY,
+                        CompoundService.CompoundState.DEFENDER_HELD, 0f),
+                capture(TacticalNode.Kind.BARRACKS,
+                        CompoundService.CompoundState.DEFENDER_HELD, 0f),
+                capture(TacticalNode.Kind.ARMORY,
+                        CompoundService.CompoundState.MARINE_HELD, 0f)));
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattleHudOverlay.COMPONENT, model.props())) {
+            BattleHudOverlay.wireLayout(instance);
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            BufferedImage overlay = renderer.render(document,
+                    Math.round(BattleHudOverlay.DOCUMENT_WIDTH),
+                    Math.round(BattleHudOverlay.OBJECTIVE_HEIGHT));
+            Graphics2D graphics = image.createGraphics();
+            graphics.drawImage(overlay,
+                    width - 12 - overlay.getWidth(), 12, null);
+            graphics.dispose();
+            return image;
+        }
+    }
+
+    private static BattleHudOverlayModel.CaptureObjective capture(
+            TacticalNode.Kind kind, CompoundService.CompoundState state,
+            float progress) {
+        return new BattleHudOverlayModel.CaptureObjective(kind, state, progress);
+    }
+
+    /** Full-screen evidence for the compact power deck in its armed state. */
+    private static BufferedImage renderBattleHudPowerOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        BufferedImage image = renderBattleHudCommandOverlay(
+                context, renderer, width, height);
+        Reactor reactor = new Reactor();
+        BattlePowerOverlayModel model = new BattlePowerOverlayModel(reactor, ignored -> { });
+        List<BattlePowerOverlayModel.PowerState> powers = List.of(
+                power("recon_ping", "Recon Ping", 2f, 0, 7.4f, -1),
+                power("mech_support", "Mech Support", 4f, 0, 0f, 2),
+                power("emergency_resupply", "Resupply", 3f, 0, 0f, 1),
+                power("orbital_barrage", "Orbital Barrage", 4f, 20, 0f, 1),
+                power("marine_insertion", "Marine Drop", 3f, 2, 0f, 0));
+        model.updateProjected(4f, 10f, 22, powers, "orbital_barrage");
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattlePowerOverlay.COMPONENT, model.props())) {
+            BattlePowerOverlay.wireLayout(instance);
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            int overlayWidth = Math.round(BattlePowerOverlay.documentWidth(powers.size()));
+            int overlayHeight = Math.round(BattlePowerOverlay.TARGETING_HEIGHT);
+            BufferedImage overlay = renderer.render(document, overlayWidth, overlayHeight);
+            Graphics2D graphics = image.createGraphics();
+            graphics.drawImage(overlay,
+                    (width - overlay.getWidth()) / 2,
+                    height - 12 - overlay.getHeight(), null);
+            graphics.dispose();
+            return image;
+        }
+    }
+
+    private static BattlePowerOverlayModel.PowerState power(
+            String id, String name, float cp, int supplies,
+            float cooldown, int charges) {
+        return new BattlePowerOverlayModel.PowerState(
+                id, name, cp, supplies, cooldown, charges);
+    }
+
+    /**
+     * Full-viewport scale evidence for the production task-force plate. The
+     * backdrop is only a neutral contrast field; every HUD operation, value,
+     * and coordinate comes through {@link TaskForceStatusPanel#paint} — the
+     * same method the live OpenGL panel invokes.
+     */
+    private static BufferedImage renderBattleHudTaskForce(int width, int height) {
+        BufferedImage image = new BufferedImage(width, height,
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        paintBattleContrastField(graphics, width, height);
+
+        TaskForceStatusPanel.Snapshot snapshot =
+                TaskForceStatusPanel.Snapshot.capture(battleHudSquads());
+        TaskForceStatusPanel.paint(new HeadlessTaskForcePaintTarget(graphics, height),
+                snapshot, 12f, 56f, 1f);
+        graphics.dispose();
+        return image;
+    }
+
+    /** Representative late-battle force state at the scale the old list could not hold. */
+    private static List<Squad> battleHudSquads() {
+        List<Squad> squads = new ArrayList<>();
+        for (int index = 0; index < 44; index++) {
+            Squad squad = new Squad(index + 1, Faction.MARINE);
+            squad.originalSize = 12;
+            squad.aliveMembers = index < 3 ? 0 : index < 9
+                    ? 5 : 9 + index % 4;
+            squad.moraleBroken = index >= 3 && index < 9;
+            squad.morale = squad.moraleBroken ? 0.12f : 0.66f + (index % 3) * 0.08f;
+            squad.alertLevel = switch (index % 4) {
+                case 0, 1 -> SquadAlertLevel.ENGAGED;
+                case 2 -> SquadAlertLevel.SUSPICIOUS;
+                default -> SquadAlertLevel.UNAWARE;
+            };
+            squads.add(squad);
+        }
+        return squads;
+    }
+
+    private static void paintBattleContrastField(Graphics2D graphics,
+                                                 int width, int height) {
+        graphics.setColor(new Color(8, 13, 18));
+        graphics.fillRect(0, 0, width, height);
+        graphics.setColor(new Color(28, 35, 40));
+        graphics.fillRect(78, 48, width - 156, height - 96);
+        graphics.setColor(new Color(38, 45, 48));
+        graphics.fillRect(width / 2 - 130, 48, 260, height - 96);
+        graphics.setColor(new Color(18, 24, 29));
+        graphics.fillRect(210, 170, 460, 310);
+        graphics.fillRect(width - 690, 180, 480, 360);
+        graphics.fillRect(680, 650, 520, 250);
+        graphics.setColor(new Color(53, 63, 68));
+        graphics.setStroke(new BasicStroke(1f));
+        for (int x = 78; x < width - 78; x += 32) {
+            graphics.drawLine(x, 48, x, height - 48);
+        }
+        for (int y = 48; y < height - 48; y += 32) {
+            graphics.drawLine(78, y, width - 78, y);
+        }
+    }
+
+    /** Java2D drain for the task-force panel's backend-neutral paint seam. */
+    private static final class HeadlessTaskForcePaintTarget
+            implements TaskForceStatusPanel.PaintTarget {
+        private final Graphics2D graphics;
+        private final int imageHeight;
+
+        private HeadlessTaskForcePaintTarget(Graphics2D graphics, int imageHeight) {
+            this.graphics = graphics;
+            this.imageHeight = imageHeight;
+        }
+
+        @Override
+        public void filledRect(float x, float y, float width, float height,
+                               Color color, float alphaMult) {
+            graphics.setColor(alpha(color, alphaMult));
+            graphics.fillRect(Math.round(x), top(y, height),
+                    Math.round(width), Math.round(height));
+        }
+
+        @Override
+        public void borderRect(float x, float y, float width, float height,
+                               Color color, float alphaMult) {
+            graphics.setColor(alpha(color, alphaMult));
+            graphics.setStroke(new BasicStroke(1f));
+            graphics.drawRect(Math.round(x), top(y, height),
+                    Math.round(width), Math.round(height));
+        }
+
+        @Override
+        public void disc(float centerX, float centerY, float radius,
+                         Color color, float alphaMult) {
+            graphics.setColor(alpha(color, alphaMult));
+            graphics.fill(new Ellipse2D.Float(centerX - radius,
+                    imageHeight - centerY - radius, radius * 2f, radius * 2f));
+        }
+
+        @Override
+        public void text(TaskForceStatusPanel.TextRole role, String text,
+                         float x, float y, Color color, float alphaMult) {
+            int style = role == TaskForceStatusPanel.TextRole.HEADER
+                    ? Font.BOLD : Font.PLAIN;
+            graphics.setFont(new Font(Font.SANS_SERIF, style, 12));
+            graphics.setColor(alpha(color, alphaMult));
+            graphics.drawString(text, x, imageHeight - y + 10f);
+        }
+
+        @Override
+        public void moraleBar(float x, float y, float width, float height,
+                              float morale, float cap, boolean broken,
+                              float breakThreshold, float alphaMult) {
+            float fill = cap > 0f ? Math.max(0f, Math.min(1f, morale / cap)) : 0f;
+            filledRect(x, y, width, height, new Color(0x14, 0x18, 0x20), alphaMult);
+            Color fillColor = fill > 0.5f ? new Color(0x40, 0xC0, 0x40)
+                    : fill > 0.3f ? new Color(0xE0, 0xC0, 0x40)
+                    : new Color(0xE0, 0x50, 0x40);
+            if (fill > 0f) filledRect(x, y, width * fill, height, fillColor, alphaMult);
+            float tickX = x + width * Math.max(0f, Math.min(1f, breakThreshold));
+            filledRect(tickX, y - 1f, 1.5f, height + 2f,
+                    new Color(0xF0, 0xF0, 0xF0, 0xD0), alphaMult);
+            borderRect(x, y, width, height,
+                    broken ? new Color(0xE0, 0x40, 0x40)
+                            : new Color(0x60, 0x80, 0xA0), alphaMult);
+        }
+
+        private int top(float y, float height) {
+            return Math.round(imageHeight - y - height);
+        }
+
+        private static Color alpha(Color color, float alphaMult) {
+            int alpha = Math.round(color.getAlpha()
+                    * Math.max(0f, Math.min(1f, alphaMult)));
+            return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
+        }
     }
 
     private static BufferedImage renderCompanyHq(

@@ -17,16 +17,15 @@ import java.util.List;
  * viewport into a squad selection: nearest live unit (any faction) within a
  * forgiveness radius wins. A click on empty world space clears selection.
  *
- * <p>Pairs with the existing {@code SquadOverviewPanel} row clicks — both write
- * to {@link Selection}, so {@code SquadPlanDebugPanel} can show a filtered
- * detail view for whichever squad was last picked, regardless of how it was
- * picked. Defender squads aren't reachable from the overview panel today, so
- * world-picking is the only way to inspect their GOAP plan for debugging
+ * <p>The world is the battle's squad browser. It writes the shared
+ * {@link Selection}, and the selected-squad detail and GOAP diagnostic react
+ * to that one view-only state while the default HUD remains a force-level
+ * rollup. Defender squads are reachable through the same picker for debugging
  * garrison behavior.
  *
- * <p>Registered after the row-clicking panels in {@code BattleHud} so those
- * still claim their own click events first; this picker only fires on the
- * leftover clicks that landed in the world, not in a UI dock.
+ * <p>Registered before the visible panels in {@code BattleHud}; reverse input
+ * order lets those panels claim their controls first, so this picker receives
+ * only leftover clicks in the world.
  */
 public final class WorldPicker implements HudPanel {
 

@@ -4,7 +4,7 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — a request goes to the means that would answer it soonest rather than to the first one on a priority list that says it could.
+Updated: 2026-08-29 — a request goes to the means that would answer it soonest, and a means that says it could deliver has to be able to.
 
 ## Vocabulary
 
@@ -23,6 +23,24 @@ Updated: 2026-08-29 — a request goes to the means that would answer it soonest
 ## Ownership and flow
 
 Battle setup registers the applicable triggers and a set of means. The reinforcement service owns that registry and the pending request queue; the reinforcement system polls triggers on its slow cadence, drains requests in FIFO order, and for each request asks every means whether it can serve it, then offers the attempt to whichever of the feasible ones says it would arrive soonest. Registration order survives only as the tie-break, so a battle still dispatches the same way twice.
+
+**A probe must be a necessary condition for the commit it precedes.** A means
+that can say yes where the commit always fails is not a cheap approximation; it
+is a means that cannot be deselected. It wins the pick on a delivery it will
+never make, burns the attempt, and answers yes to anything that asks whether
+*anyone* could deliver — which is how a counterattack comes to earmark its
+reserve on a truck that has nowhere to drive onto the map. The convoy's probe
+asked whether the road graph had perimeter nodes, which is a fact about the map;
+what it needed to ask was whether any eligible gate can take a full vehicle
+body, which is a fact about the delivery, and on a production fixture the
+difference was every single dispatch.
+
+Where proving the whole delivery is too expensive to ask on every request — the
+convoy's route proof costs about seventy milliseconds, against half of one for
+its probe, and the muster asks on its own cadence besides — the probe closes the
+failure that actually occurs and the remaining gap is named rather than left
+implicit. Measured across the canonical fixtures, no probe now says yes to a
+request its commit then rejects.
 
 **Feasibility is not selection.** A strict priority list makes everything below the top of it unreachable for exactly as long as the top is feasible, which is not a ladder of fallbacks but one means with two spares. The garrison airfield is the case that proved it: on a production Conquest map the convoy could deliver every request and so was asked every request, the aircraft never flew once in a whole battle, and burning them on their pads denied the defender nothing. Selection therefore asks a question the means can lose — when would you get there — and a means that is merely available no longer excludes a better one.
 
@@ -57,6 +75,7 @@ Each means still rejects a request once its corresponding defender supply chain 
 7. A target may not stay suppressed merely because a delivery pipeline failed. Dispatch state is provisional until an assigned live squad closes the loop, with a bounded recovery path for lost deliveries.
 8. Faction identity is data on every request, but symmetric behavior is not implied by the type. The installed ladder is defender-side; marine-side triggers, supply interpretation, and means eligibility require explicit authority.
 9. The frozen ground roster chooses defender unit tier and equipment/protection identity. It does not decide force quantity, support eligibility, delivery feasibility, AI, objectives, or the player's campaign roster.
+10. A feasibility probe is a necessary condition for its own commit. It may be cheaper than the commit and may still be wrong, but it must never be wrong in the direction that promises a delivery the commit cannot make, and whatever it does not prove must be stated where the probe is written.
 
 ## Boundaries and extension paths
 

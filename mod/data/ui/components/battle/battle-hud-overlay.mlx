@@ -1,0 +1,142 @@
+<template props="timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle">
+  <div id="battle-hud-overlay" class="battle-hud-overlay">
+    <div id="battle-time-control" class="battle-time-control">
+      <div id="battle-time-label" class="label heading time-label">{timeLabel}</div>
+      <div id="battle-time-options" class="time-options">
+        <button id="battle-time-pause" class="{pauseClasses}" style="{pauseStyle}" onclick="{pauseAction}">{pauseLabel}</button>
+        <button id="battle-time-normal" class="{normalClasses}" style="{normalStyle}" onclick="{normalAction}">{normalLabel}</button>
+        <button id="battle-time-double" class="{doubleClasses}" style="{doubleStyle}" onclick="{doubleAction}">{doubleLabel}</button>
+        <button id="battle-time-quad" class="{quadClasses}" style="{quadStyle}" onclick="{quadAction}">{quadLabel}</button>
+      </div>
+    </div>
+
+    <div id="battle-objectives" class="{objectivePanelClasses}">
+      <div id="battle-objective-header" class="objective-header">
+        <div id="battle-objective-title" class="label heading objective-title">CAPTURE</div>
+        <div id="battle-objective-score" class="label heading objective-score">{objectiveScore}</div>
+      </div>
+      <div id="battle-objective-chips" class="objective-chips">
+        <div each="chip in objectiveChips" key="{chip.id}" id="{chip.id}" class="{chip.classes}">{chip.label}</div>
+      </div>
+      <div id="battle-objective-tally" class="label objective-tally">{objectiveTally}</div>
+      <div id="battle-objective-focus" class="{objectiveFocusClasses}">
+        <div id="battle-objective-focus-label" class="label heading objective-focus-label">{objectiveFocus}</div>
+        <div id="battle-objective-progress" class="objective-progress-track">
+          <div id="battle-objective-progress-fill" class="objective-progress-fill" style="{objectiveProgressStyle}" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .battle-hud-overlay {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    gap: 6px;
+    background-color: transparent;
+    overflow: hidden;
+  }
+
+  .label { overflow: hidden; white-space: nowrap; }
+  .heading { font-family: heading; }
+
+  .battle-time-control {
+    width: 100%;
+    height: 42px;
+    flex-direction: row;
+    padding: 5px;
+    gap: 5px;
+    border-width: 1px;
+    border-color: #4f6d8e;
+    background-color: #0b111bd9;
+  }
+
+  .time-label {
+    width: 56px;
+    height: 30px;
+    padding: 8px 5px;
+    color: #8b9aaf;
+  }
+
+  .time-options {
+    height: 30px;
+    flex-direction: row;
+    flex-grow: 1;
+    gap: 3px;
+  }
+
+  .time-button {
+    height: 30px;
+    flex-grow: 1;
+    padding: 7px 3px;
+    border-width: 1px;
+    border-color: #31485f;
+    background-color: #142131e8;
+    font-family: heading;
+    text-align: center;
+    color: #aebdce;
+  }
+
+  .time-button:hover { background-color: #243d56; border-color: #6ed7ff; }
+  .time-button:active { background-color: #315070; }
+  .time-selected {
+    background-color: #3a3018;
+    border-color: #ffd464;
+    color: #ffd464;
+  }
+
+  .objective-panel {
+    width: 100%;
+    height: 116px;
+    flex-direction: column;
+    padding: 7px;
+    gap: 5px;
+    border-width: 1px;
+    border-color: #4f6d8e;
+    background-color: #0b111bd9;
+    overflow: hidden;
+  }
+
+  .objective-panel-hidden {
+    height: 0px;
+    padding: 0px;
+    gap: 0px;
+    border-width: 0px;
+    opacity: 0;
+  }
+
+  .objective-header { width: 100%; height: 17px; flex-direction: row; }
+  .objective-title { flex-grow: 1; color: #8b9aaf; }
+  .objective-score { width: 68px; text-align: right; color: #ffd464; }
+
+  .objective-chips {
+    width: 100%;
+    height: 23px;
+    flex-direction: row;
+    gap: 4px;
+    overflow: hidden;
+  }
+
+  .objective-chip {
+    width: 23px;
+    height: 23px;
+    padding: 5px 2px;
+    border-width: 1px;
+    font-family: heading;
+    text-align: center;
+  }
+
+  .objective-hostile { background-color: #351d22; border-color: #e98b83; color: #e98b83; }
+  .objective-contested { background-color: #3a3018; border-color: #ffd464; color: #ffd464; }
+  .objective-secured { background-color: #132b22; border-color: #78d494; color: #78d494; }
+
+  .objective-tally { width: 100%; height: 15px; color: #a8b6c6; }
+
+  .objective-focus { width: 100%; height: 27px; flex-direction: column; gap: 4px; }
+  .objective-focus-hidden { height: 0px; gap: 0px; opacity: 0; overflow: hidden; }
+  .objective-focus-label { width: 100%; height: 15px; color: #ffd464; }
+  .objective-progress-track { width: 100%; height: 4px; background-color: #172231; }
+  .objective-progress-fill { height: 100%; background-color: #ffd464; }
+</style>
