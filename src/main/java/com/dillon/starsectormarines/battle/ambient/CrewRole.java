@@ -43,49 +43,107 @@ public enum CrewRole {
      * is the work; the parts run and the readout are what the work needs.
      */
     MECH_TECH(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
-            List.of(Affordance.SERVICE, Affordance.STOW, Affordance.READOUT),
-            List.of(Affordance.REST, Affordance.WASH)),
+            onWatchWith(Affordance.SERVICE, Affordance.REPAIR,
+                    Affordance.STOW, Affordance.READOUT),
+            Amenities.AND_A_BUNK),
 
     /** Makes and repairs the parts a bay consumes, at the bench rather than the machine. */
     MACHINIST(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
-            List.of(Affordance.FABRICATE, Affordance.STOW),
-            List.of(Affordance.REST, Affordance.WASH)),
+            onWatchWith(Affordance.FABRICATE, Affordance.REPAIR, Affordance.STOW),
+            Amenities.AND_A_BUNK),
 
     /**
      * Keeps the ship running: the plant forward of the transom and the drive
      * against it, plus the readings that say whether either is happy.
      */
     ENGINE_WATCH(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
-            List.of(Affordance.TEND, Affordance.READOUT, Affordance.STOW),
-            List.of(Affordance.REST, Affordance.WASH)),
+            onWatchWith(Affordance.TEND, Affordance.REPAIR,
+                    Affordance.READOUT, Affordance.STOW),
+            Amenities.AND_A_BUNK),
 
     /** Keeps the sick berth ready, whether or not anybody is in it. */
     MEDIC(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
-            List.of(Affordance.TREAT, Affordance.STOW),
-            List.of(Affordance.REST, Affordance.WASH)),
+            onWatchWith(Affordance.TREAT, Affordance.STOW),
+            Amenities.AND_A_BUNK),
 
     /** Stands the ship's watch: the bridge, and the consoles that watch the plant. */
     BRIDGE_WATCH(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
-            List.of(Affordance.WATCH, Affordance.READOUT),
-            List.of(Affordance.REST, Affordance.WASH)),
+            onWatchWith(Affordance.WATCH, Affordance.READOUT),
+            Amenities.AND_A_BUNK),
 
     /** Issues weapons and takes them back in, and keeps the racks straight. */
     ARMOURER(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
-            List.of(Affordance.ISSUE, Affordance.STOW),
-            List.of(Affordance.REST, Affordance.WASH)),
+            onWatchWith(Affordance.ISSUE, Affordance.ROUNDS, Affordance.STOW),
+            Amenities.AND_A_BUNK),
 
     /** Works the holds and the boat bay: stores in, stores out, and the tally. */
     STOREKEEPER(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
-            List.of(Affordance.STOW, Affordance.READOUT),
-            List.of(Affordance.REST, Affordance.WASH)),
+            onWatchWith(Affordance.STOW, Affordance.READOUT),
+            Amenities.AND_A_BUNK),
 
     /**
      * Off watch: eating, washing and keeping their shooting in around the ship,
      * sleeping and squaring their kit away in their own berthing.
      */
     MARINE(RoomPurpose.BARRACKS, UnitType.MARINE,
-            List.of(Affordance.MESS, Affordance.PRACTICE),
-            List.of(Affordance.REST, Affordance.STOW, Affordance.WASH));
+            onWatchWith(Affordance.MESS, Affordance.PRACTICE),
+            List.of(Affordance.REST, Affordance.STOW));
+
+    /**
+     * What everybody aboard does when they are not working.
+     *
+     * <p>Shared because it is not a fact about a trade. A technician and an
+     * armourer sleep, wash, sit in the lounge and use the gym in exactly the
+     * same rooms and for the same reasons, and writing the list per role only
+     * creates the opportunity for one of them to be quietly missing an amenity
+     * the ship has.
+     *
+     * <p>The lounge and the gym are the point of the list rather than trimming
+     * on it. A complement whose only off-watch options are a bunk and a mess
+     * table can be asleep, eating, or at work; give it somewhere to sit and
+     * somewhere to train and the third state stops being "standing in a
+     * passage".
+     */
+    /**
+     * A trade's own work, and then the rooms everybody aboard uses.
+     *
+     * <p>Written once rather than per role, because which amenities a ship has
+     * is a fact about the ship and not about the trade. Spelt out per role it is
+     * only an opportunity for one of them to be quietly missing a washroom.
+     */
+    private static List<Affordance> onWatchWith(Affordance... trade) {
+        List<Affordance> jobs = new ArrayList<>(List.of(trade));
+        jobs.addAll(Amenities.ANY_ROOM);
+        return List.copyOf(jobs);
+    }
+
+    private static final class Amenities {
+
+        /**
+         * The rooms a trade visits that are nobody's workplace: the heads, the
+         * lounge, the gymnasium.
+         *
+         * <p>On watch rather than off, and the distinction is not about when
+         * somebody goes. A job is <b>off watch</b> when it can only be done in
+         * one's own quarters — a bunk, a locker — and <b>on watch</b> when it is
+         * done in a room of its own. Reading "not work" as "off watch" put the
+         * ship's washrooms, lounges and gymnasia beyond everybody's reach at
+         * once: the claim rule fences an off-watch job to the role's own
+         * berthing, so twelve heads and four lounges published work that no
+         * member of the crew was allowed to claim, and the rooms generated
+         * furnished and stayed empty.
+         *
+         * <p>None of them are {@link Affordance#duty}, so none of them make a
+         * room a posting. Somewhere to wash is not a billet.
+         */
+        private static final List<Affordance> ANY_ROOM = List.of(
+                Affordance.WASH, Affordance.UNWIND, Affordance.EXERCISE);
+
+        /** A bunk, which is the one thing that is genuinely one's own. */
+        private static final List<Affordance> AND_A_BUNK = List.of(Affordance.REST);
+
+        private Amenities() { }
+    }
 
     private final RoomPurpose quarters;
     private final UnitType unit;
@@ -142,12 +200,37 @@ public enum CrewRole {
      * point - so a room that published stowage was a billet for all of them, and
      * a hull with nineteen spares pockets crewed a thousand engineers. Where a
      * watch is stationed is settled by whose room it is.
+     *
+     * <p>A {@linkplain #isCircuit circuit} job is never a trade, however early
+     * it appears in the list. Rounds and defects are deliberately everywhere -
+     * that is what makes them circuits - so reading either as a station would
+     * make every compartment on the ship a posting and put a watch in each.
      */
     public Affordance trade() {
         for (Affordance job : onWatch) {
-            if (job.duty()) return job;
+            if (job.duty() && !isCircuit(job)) return job;
         }
         return null;
+    }
+
+    /**
+     * Whether this job is done in several places in one turn of the rotation
+     * rather than in one.
+     *
+     * <p>Almost every job aboard is somewhere you go: a bench, a bunk, a lane.
+     * Two are not. Rounds are made <em>of</em> the walk — a compartment is
+     * looked into and left, and the next one is the point — and a defect list is
+     * wherever the defects happen to be. Given one stop each, like every other
+     * job, they collapse into their opposite: a master-at-arms who walks to the
+     * nearest compartment and stands in it, and a technician who tends the same
+     * fault forever.
+     *
+     * <p>So a circuit job earns a stop at every place the shift reaches that
+     * offers it, and members start at different points on the ring so that two
+     * patrols are not the same patrol.
+     */
+    public static boolean isCircuit(Affordance affordance) {
+        return affordance == Affordance.ROUNDS || affordance == Affordance.REPAIR;
     }
 
     /** The jobs this role works in a compartment that is somebody's workplace. */
@@ -195,10 +278,11 @@ public enum CrewRole {
      */
     public static AmbientActivity activityFor(Affordance affordance) {
         return switch (affordance) {
-            case SERVICE, FABRICATE, TREAT, ISSUE, TEND -> AmbientActivity.WORKING;
-            case STOW, READOUT, WATCH -> AmbientActivity.INSPECTING;
+            case SERVICE, FABRICATE, TREAT, ISSUE, TEND, REPAIR -> AmbientActivity.WORKING;
+            case STOW, READOUT, WATCH, ROUNDS -> AmbientActivity.INSPECTING;
             case REST, WASH -> AmbientActivity.RESTING;
-            case MESS -> AmbientActivity.SOCIALIZING;
+            case MESS, UNWIND -> AmbientActivity.SOCIALIZING;
+            case EXERCISE -> AmbientActivity.EXERCISING;
             case PRACTICE -> AmbientActivity.PRACTICING_EQUIPMENT;
         };
     }
@@ -236,6 +320,12 @@ public enum CrewRole {
             case WATCH -> 46f;
             case ISSUE -> 17f;
             case TEND -> 25f;
+            case REPAIR -> 37f;
+            case UNWIND -> 44f;
+            case EXERCISE -> 27f;
+            // A compartment looked into and left. The shortest job aboard,
+            // because what rounds are made of is the walk between them.
+            case ROUNDS -> 6f;
         };
     }
 }

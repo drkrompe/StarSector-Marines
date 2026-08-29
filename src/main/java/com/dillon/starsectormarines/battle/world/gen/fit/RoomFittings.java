@@ -62,16 +62,13 @@ public final class RoomFittings {
                 "doodad.industrial-pallet-stack", 2, 2, Affordance.STOW,
                 new Satellite("doodad.box", 1, 1))));
 
-        // Machinery: the plant and the pipework running off it. The work is at
-        // the plant — a pipe run is what the plant needs, not a second machine.
-        register(new AisleFitting(RoomPurpose.PRODUCTION_FLOOR, FixtureGroup.working(
-                "doodad.industrial-generator", 3, 3, Affordance.TEND,
-                new Satellite("doodad.industrial-pipe-bundle", 2, 1))));
-
-        register(new AisleFitting(RoomPurpose.ENGINE_ROOM, FixtureGroup.working(
-                "doodad.industrial-fluid-tank", 3, 3, Affordance.TEND,
-                new Satellite("doodad.industrial-cable-reel", 2, 2),
-                new Satellite("doodad.industrial-pipe-bundle", 0, 2))));
+        // Machinery is a hierarchy, not a repeat: heavy plant against the
+        // outboard bulkhead, the auxiliaries that serve it ranked inboard,
+        // pipework threaded between them, a board somebody stands a watch at,
+        // and a standing list of defects. See MachinerySpaceFitting. Ranked as
+        // one machine repeated down both sides, a drive room read as shelving.
+        register(MachinerySpaceFitting.driveRoom());
+        register(MachinerySpaceFitting.auxiliaryPlant());
 
         register(new AisleFitting(RoomPurpose.PARTS_CAGE, FixtureGroup.working(
                 "doodad.shelf-2", 2, 2, Affordance.STOW,
@@ -93,12 +90,11 @@ public final class RoomFittings {
         register(new AisleFitting(RoomPurpose.WASHROOM, FixtureGroup.working(
                 "doodad.box", 1, 2, Affordance.WASH)));
 
-        // The bridge is consoles around a plot, not ranks of furniture, but the
-        // aisle arrangement still reads correctly at this size. The console is
-        // the watch station; the plot is what the watch stands around.
-        register(new AisleFitting(RoomPurpose.CONTROL_ROOM, FixtureGroup.working(
-                "doodad.military-command-console", 2, 2, Affordance.WATCH,
-                new Satellite("doodad.military-tactical-table", 1, 1))));
+        // A bridge is a plot with the watch ringed round it, facing inward over
+        // their own boards: see BridgeFitting. Ranked in aisles it read as a
+        // warehouse of identical consoles, because ranks are what a warehouse
+        // is made of.
+        register(new BridgeFitting());
 
         // Furnished and deliberately publishing nothing. A briefing is an event
         // rather than a watch, and giving these chairs a job would station
@@ -111,16 +107,31 @@ public final class RoomFittings {
                 new Satellite("doodad.chair-south-green", 0, 1),
                 new Satellite("doodad.chair-south-yellow", 2, 1))));
 
+        // Islands, not ranks: seating grouped round tables with deck between the
+        // groups, and one motif never repeated twice running. See
+        // LoungeFitting. Sofas ranked down both bulkheads seat the same
+        // complement and read as a waiting room, which is the one thing a room
+        // for choosing to be in must not read as.
+
         // Rooms whose point is the empty middle. Gear against the bulkheads,
         // deck clear for the machine or the lane.
         // A mech bay is bays, not one room: see VehicleBayFitting.
         register(new VehicleBayFitting());
 
-        // A boat bay is worked as a hold is: the deck is kept clear for the
-        // boat, and the stores that go up and down with it are along the sides.
-        register(new PerimeterFitting(RoomPurpose.HANGAR, FixtureGroup.working(
-                "doodad.industrial-crate-stack", 2, 2, Affordance.STOW,
-                new Satellite("doodad.industrial-cable-reel", 1, 1))));
+        // Four worked bulkhead runs around a clear deck: see BoatBayFitting. The
+        // clear middle is a constraint on the room rather than the room — a boat
+        // is moved through it and troops form up on it — and fitting the bay as
+        // though the constraint were the design made it a hold with a hole in
+        // the middle, publishing stowage and nothing else.
+        register(new BoatBayFitting());
+
+        register(new LoungeFitting());
+
+        // Gear against the bulkheads and matting on the deck between them, with
+        // the training stations out on the floor facing inboard: see
+        // GymFitting. What the room is for is the middle, so the middle is
+        // reserved before anything is placed.
+        register(new GymFitting());
 
         // A range is a firing line looking down lanes, not gear round a clear
         // middle: see FiringRangeFitting. The perimeter treatment kept the deck

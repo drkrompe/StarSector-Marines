@@ -3,7 +3,10 @@
     "cover": "none",
     "padding": 2,
     "scale": 1.0,
-    "offset": [0, 0]
+    "offset": [
+      0,
+      0
+    ]
   },
   "assets": {
     "sandbag-corner-nw.png": {
@@ -11,7 +14,7 @@
       "name": "Sandbag corner NW",
       "description": "Ring corner connecting east and south.",
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30,
+      "ballisticHalfHeight": 0.3,
       "order": 10
     },
     "sandbag-straight-n.png": {
@@ -19,7 +22,7 @@
       "name": "Sandbag straight north",
       "description": "Horizontal north edge of a defensive ring.",
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30,
+      "ballisticHalfHeight": 0.3,
       "order": 11
     },
     "sandbag-corner-ne.png": {
@@ -27,7 +30,7 @@
       "name": "Sandbag corner NE",
       "description": "Ring corner connecting west and south.",
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30,
+      "ballisticHalfHeight": 0.3,
       "order": 12
     },
     "sandbag-straight-w.png": {
@@ -35,7 +38,7 @@
       "name": "Sandbag straight west",
       "description": "Vertical west edge of a defensive ring.",
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30,
+      "ballisticHalfHeight": 0.3,
       "order": 13
     },
     "sandbag-straight-e.png": {
@@ -43,7 +46,7 @@
       "name": "Sandbag straight east",
       "description": "Vertical east edge of a defensive ring.",
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30,
+      "ballisticHalfHeight": 0.3,
       "order": 14
     },
     "sandbag-corner-sw.png": {
@@ -51,7 +54,7 @@
       "name": "Sandbag corner SW",
       "description": "Ring corner connecting east and north.",
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30,
+      "ballisticHalfHeight": 0.3,
       "order": 15
     },
     "sandbag-straight-s.png": {
@@ -59,7 +62,7 @@
       "name": "Sandbag straight south",
       "description": "Horizontal south edge of a defensive ring.",
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30,
+      "ballisticHalfHeight": 0.3,
       "order": 16
     },
     "sandbag-corner-se.png": {
@@ -67,14 +70,14 @@
       "name": "Sandbag corner SE",
       "description": "Ring corner connecting west and north.",
       "cover": "heavy",
-      "ballisticHalfHeight": 0.30,
+      "ballisticHalfHeight": 0.3,
       "order": 17
     },
     "industrial-crate-stack.png": {
       "id": "doodad.industrial-crate-stack",
       "name": "Industrial crate stack",
       "cover": "heavy",
-      "ballisticHalfHeight": 0.60,
+      "ballisticHalfHeight": 0.6,
       "order": 30
     },
     "industrial-drum-cluster.png": {
@@ -89,7 +92,7 @@
       "id": "doodad.industrial-cable-reel",
       "name": "Industrial cable reel",
       "cover": "med",
-      "ballisticHalfHeight": 0.40,
+      "ballisticHalfHeight": 0.4,
       "order": 32
     },
     "industrial-generator.png": {
@@ -103,7 +106,7 @@
       "id": "doodad.industrial-dumpster",
       "name": "Industrial dumpster",
       "cover": "heavy",
-      "ballisticHalfHeight": 0.50,
+      "ballisticHalfHeight": 0.5,
       "order": 34
     },
     "industrial-pipe-bundle.png": {
@@ -117,7 +120,7 @@
       "id": "doodad.industrial-pallet-stack",
       "name": "Stacked cargo pallets",
       "cover": "med",
-      "ballisticHalfHeight": 0.30,
+      "ballisticHalfHeight": 0.3,
       "scale": 0.9,
       "order": 36
     },
@@ -144,7 +147,7 @@
       "description": "Tall reinforced process tank with valve manifold.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.82,
-      "scale": 0.90,
+      "scale": 0.9,
       "order": 39
     },
     "industrial-control-console.png": {
@@ -279,7 +282,10 @@
       "description": "Two-cell municipal workstation suite with terminal, storage, and privacy panels.",
       "cover": "med",
       "ballisticHalfHeight": 0.45,
-      "footprintCells": [2, 2],
+      "footprintCells": [
+        2,
+        2
+      ],
       "scale": 0.94,
       "order": 63
     },
@@ -289,7 +295,10 @@
       "description": "Two-cell municipal data cabinet with status lights.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.75,
-      "footprintCells": [1, 2],
+      "footprintCells": [
+        1,
+        2
+      ],
       "scale": 0.92,
       "order": 64
     },
@@ -299,7 +308,10 @@
       "description": "Large administrative planning table with inset presentation display.",
       "cover": "med",
       "ballisticHalfHeight": 0.38,
-      "footprintCells": [3, 2],
+      "footprintCells": [
+        3,
+        2
+      ],
       "scale": 0.92,
       "order": 65
     },
@@ -309,7 +321,10 @@
       "description": "Broad two-station public reception counter.",
       "cover": "med",
       "ballisticHalfHeight": 0.45,
-      "footprintCells": [3, 2],
+      "footprintCells": [
+        3,
+        2
+      ],
       "scale": 0.96,
       "order": 66
     },
@@ -318,8 +333,11 @@
       "name": "Civic records bank",
       "description": "Wall-side archive cabinets with a compact communications terminal.",
       "cover": "med",
-      "ballisticHalfHeight": 0.50,
-      "footprintCells": [2, 1],
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        1
+      ],
       "scale": 0.96,
       "order": 67
     },
@@ -329,7 +347,10 @@
       "description": "Low civilian bed with its head against the west wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
-      "footprintCells": [2, 1],
+      "footprintCells": [
+        2,
+        1
+      ],
       "preferredWallSide": "W",
       "scale": 0.96,
       "order": 70
@@ -340,7 +361,10 @@
       "description": "Low civilian bed with its head against the east wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
-      "footprintCells": [2, 1],
+      "footprintCells": [
+        2,
+        1
+      ],
       "preferredWallSide": "E",
       "scale": 0.96,
       "order": 71
@@ -351,7 +375,10 @@
       "description": "Low civilian bed with its head against the south wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
-      "footprintCells": [1, 2],
+      "footprintCells": [
+        1,
+        2
+      ],
       "preferredWallSide": "S",
       "scale": 0.96,
       "order": 72
@@ -362,7 +389,10 @@
       "description": "Low civilian bed with its head against the north wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
-      "footprintCells": [1, 2],
+      "footprintCells": [
+        1,
+        2
+      ],
       "preferredWallSide": "N",
       "scale": 0.96,
       "order": 73
@@ -373,7 +403,10 @@
       "description": "Low two-seat civilian sofa facing south into the room.",
       "cover": "med",
       "ballisticHalfHeight": 0.42,
-      "footprintCells": [2, 1],
+      "footprintCells": [
+        2,
+        1
+      ],
       "preferredWallSide": "N",
       "scale": 0.94,
       "order": 74
@@ -384,7 +417,10 @@
       "description": "Low two-seat civilian sofa facing north into the room.",
       "cover": "med",
       "ballisticHalfHeight": 0.42,
-      "footprintCells": [2, 1],
+      "footprintCells": [
+        2,
+        1
+      ],
       "preferredWallSide": "S",
       "scale": 0.94,
       "order": 75
@@ -395,7 +431,10 @@
       "description": "Low two-seat civilian sofa facing east into the room.",
       "cover": "med",
       "ballisticHalfHeight": 0.42,
-      "footprintCells": [1, 2],
+      "footprintCells": [
+        1,
+        2
+      ],
       "preferredWallSide": "W",
       "scale": 0.94,
       "order": 76
@@ -406,7 +445,10 @@
       "description": "Low two-seat civilian sofa facing west into the room.",
       "cover": "med",
       "ballisticHalfHeight": 0.42,
-      "footprintCells": [1, 2],
+      "footprintCells": [
+        1,
+        2
+      ],
       "preferredWallSide": "E",
       "scale": 0.94,
       "order": 77
@@ -436,6 +478,153 @@
       "description": "Per-asset values override the defaults.",
       "cover": "med",
       "order": 10
+    },
+    "industrial-reactor-housing.png": {
+      "id": "doodad.industrial-reactor-housing",
+      "name": "Reactor housing",
+      "description": "Shielded reactor can, two cells square.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "order": 80
+    },
+    "industrial-turbine-set.png": {
+      "id": "doodad.industrial-turbine-set",
+      "name": "Turbine set",
+      "description": "Main turbine and its casing, five cells along the shaft.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        5,
+        2
+      ],
+      "order": 81
+    },
+    "industrial-switchboard.png": {
+      "id": "doodad.industrial-switchboard",
+      "name": "Switchboard",
+      "description": "Wall-mounted power distribution board.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preferredWallSide": "N",
+      "order": 82
+    },
+    "industrial-pump-set.png": {
+      "id": "doodad.industrial-pump-set",
+      "name": "Pump set",
+      "description": "Paired pumps on a common bedplate.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "order": 83
+    },
+    "industrial-engine-control-board.png": {
+      "id": "doodad.industrial-engine-control-board",
+      "name": "Engine control board",
+      "description": "Manned board for the drive and its auxiliaries.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preferredWallSide": "N",
+      "order": 84
+    },
+    "military-nav-plot.png": {
+      "id": "doodad.military-nav-plot",
+      "name": "Navigation plot",
+      "description": "Hexagonal holographic command plot, three cells across.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.42,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "scale": 0.95,
+      "order": 85
+    },
+    "gym-weight-rack.png": {
+      "id": "doodad.gym-weight-rack",
+      "name": "Weight rack",
+      "description": "Two-tier dumbbell and plate rack.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "order": 90
+    },
+    "gym-bench-press.png": {
+      "id": "doodad.gym-bench-press",
+      "name": "Weight bench",
+      "description": "Flat bench with loaded barbell uprights.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "order": 91
+    },
+    "gym-ergometer.png": {
+      "id": "doodad.gym-ergometer",
+      "name": "Rowing ergometer",
+      "description": "Sliding-seat rowing machine.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "order": 92
+    },
+    "gym-treadmill.png": {
+      "id": "doodad.gym-treadmill",
+      "name": "Treadmill",
+      "description": "Shipboard running belt with console.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "order": 93
+    },
+    "gym-kit-locker.png": {
+      "id": "doodad.gym-kit-locker",
+      "name": "Kit locker",
+      "description": "Open locker of towels, rope and wraps.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "order": 94
+    },
+    "gym-mat.png": {
+      "id": "doodad.gym-mat",
+      "name": "Training mat",
+      "description": "Quartered rubber deck mat.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "padding": 0,
+      "order": 95
     }
   }
 }

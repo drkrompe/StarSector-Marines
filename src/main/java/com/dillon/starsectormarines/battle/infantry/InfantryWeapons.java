@@ -152,7 +152,29 @@ public class InfantryWeapons {
      * <p>Public because behaviors call this when firing.
      */
     public void fireShot(long shooter, long target, FireStance stance) {
-        fireShot(shooter, target, stance, rng);
+        fireShot(shooter, target, stance, rng, false);
+    }
+
+    /**
+     * The same shot, fired on a range, where nothing but the butts may be hurt.
+     *
+     * <p>A drill is a real shot in every respect a viewer can see — the round
+     * leaves the muzzle, flies, and strikes the target frame through the
+     * ordinary pipeline, which is the whole point of resolving practice rather
+     * than posing it. What it may not do is put the ship's company in the sick
+     * bay. Ordinary fire has friendly contacts, damped by a damage multiplier
+     * and a discipline roll but real; on a firing line whose lanes are a couple
+     * of cells apart, fired every few seconds for as long as the ship is under
+     * way, damped and real converges on certain. A seeded capital ran four
+     * minutes and buried a marine.
+     *
+     * <p>Suppressed at the impact rather than at the trajectory, so the round
+     * still passes down the lane it was aimed along and the shot looks like a
+     * shot. It is the deck's own equipment being fired at the deck's own paper;
+     * the one thing a drill must not do is cost the ship a hand.
+     */
+    public void fireDrillShot(long shooter, long target, FireStance stance) {
+        fireShot(shooter, target, stance, rng, true);
     }
 
     /**
@@ -163,6 +185,14 @@ public class InfantryWeapons {
      * the trajectory is already resolved.
      */
     void fireShot(long shooter, long target, FireStance stance, Random rng) {
+        fireShot(shooter, target, stance, rng, false);
+    }
+
+    /**
+     * @param drill whether this is practice, in which case nothing but
+     *     {@code target} may take damage; see {@link #fireDrillShot}
+     */
+    void fireShot(long shooter, long target, FireStance stance, Random rng, boolean drill) {
         World world = roster.world();
         Faction shooterFaction = roster.identity().faction(shooter);
         UnitType shooterType = roster.identity().type(shooter);
@@ -231,7 +261,7 @@ public class InfantryWeapons {
         float fromY = world.renderY(shooter);
         for (BallisticResolver.Resolution res : resolutions) {
             roster.telemetry().recordRoundFired(shooter);
-            if (res.victimId() != 0L) {
+            if (res.victimId() != 0L && (!drill || res.victimId() == target)) {
                 // Friendly-fire damage is pre-multiplied at queue time (see
                 // PendingImpact's javadoc) — the sink applies it as-is.
                 float appliedDamage = res.friendlyHit()

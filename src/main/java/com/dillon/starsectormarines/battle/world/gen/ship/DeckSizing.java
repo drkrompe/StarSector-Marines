@@ -174,8 +174,9 @@ public final class DeckSizing {
      * ship, which is what fills a hull that the working spaces alone leave
      * hollow.
      *
-     * <p>Heads, mess and sick bay scale with the whole complement, because a
-     * passenger eats too. <b>Berths do not.</b> A berth is an assignment rather
+     * <p>Heads, mess, sick bay, lounge and gymnasium scale with the whole
+     * complement, because a passenger eats and sits down too — and has more need
+     * of somewhere to be than a rating with a watch to keep. <b>Berths do not.</b> A berth is an assignment rather
      * than an amenity — nobody sleeps in somebody else's bunk — so the ship
      * berths her own hands from minimum crew and the ground force from lift.
      *
@@ -196,6 +197,11 @@ public final class DeckSizing {
         add(rooms, RoomRecipe.MESS, RoomRecipe.MESS.countFor(maxCrew));
         if (substantial) {
             add(rooms, RoomRecipe.SICK_BAY, RoomRecipe.SICK_BAY.countFor(maxCrew));
+            // Somewhere to be off watch that is not a bunk. A hull below
+            // destroyer size has neither the room nor a complement large enough
+            // to need one, and gets the same answer as she gets for a sick bay.
+            add(rooms, RoomRecipe.LOUNGE, RoomRecipe.LOUNGE.countFor(maxCrew));
+            add(rooms, RoomRecipe.GYM, RoomRecipe.GYM.countFor(maxCrew));
         }
     }
 
