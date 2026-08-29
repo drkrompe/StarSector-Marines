@@ -126,7 +126,8 @@ public final class FortressWardStage implements GenStage {
         FortressInterior.Result result = FortressInterior.pack(
                 ctx, buildable, circulation, axis, FortressProgram.ward());
         if (lot != null) {
-            new AirbaseLot(lot[0], lot[1], lot[2], lot[3], axis)
+            new AirbaseLot(lot[0] + AirbaseLot.CLEARANCE, lot[1] + AirbaseLot.CLEARANCE,
+                    lot[2] - AirbaseLot.CLEARANCE, lot[3] - AirbaseLot.CLEARANCE, axis)
                     .author(ctx, ctx.rng);
             emitAirbaseNode(ctx, lot);
         }
@@ -192,8 +193,11 @@ public final class FortressWardStage implements GenStage {
     private static int[] airbaseLot(int[] ward, TraversalAxis axis,
                                     Compound citadel, boolean[][] roadCells) {
         boolean alongY = axis == TraversalAxis.SOUTH_TO_NORTH;
-        int spanX = AirbaseLot.spanX(axis);
-        int spanY = AirbaseLot.spanY(axis);
+        // The reservation is the lot plus the clear ground kept outside its
+        // fence. Reserving only the lot lets a building pack flush against the
+        // fence, and the way past the base is then whatever the packing left.
+        int spanX = AirbaseLot.reservedSpanX(axis);
+        int spanY = AirbaseLot.reservedSpanY(axis);
         int wardW = ward[2] - ward[0] + 1;
         int wardH = ward[3] - ward[1] + 1;
         if (spanX > wardW || spanY > wardH) return null;
