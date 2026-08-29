@@ -194,6 +194,7 @@ class IntegralSystemDefTest {
                 .put("catalog", new JSONObject()
                         .put("displayName", "Plain suit")
                         .put("role", "line")
+                        .put("tradition", "hegemony")
                         .put("description", "Nothing but numbers.")
                         .put("tier", 3)
                         .put("iconPath", "graphics/ui/armory/armor-tier-3-combat.png"))

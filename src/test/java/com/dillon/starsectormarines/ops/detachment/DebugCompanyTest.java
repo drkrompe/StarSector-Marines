@@ -15,7 +15,11 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.ArmorIssueResolver;
+import com.dillon.starsectormarines.marine.ArmorRole;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
+import com.dillon.starsectormarines.marine.SquadArmorPlan;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
@@ -32,6 +36,7 @@ import java.util.Random;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -99,27 +104,36 @@ class DebugCompanyTest {
     @Test
     void stripesAndBandsFollowTheArmourEachSquadWasIssued() {
         // Experience is issued with the armour, so a stage no longer authors a
-        // band directly: the randomized armour doctrine each squad rolls does.
-        // What must hold is that the two agree — an NCO wearing a veteran-band
-        // suit wears sergeant's stripes, and one below that does not.
+        // band directly: the armour a squad is issued does. What must hold is
+        // that the two agree.
+        //
+        // The band is the SQUAD's, not the leader's own suit. Armour is issued
+        // per role now, so a section's scout or weapons carrier may wear a
+        // cheaper specialist pattern than its riflemen — reading one marine's
+        // suit would hand out stripes on the accident of who happened to be
+        // senior ({@code role-and-access.md}).
         MarineRoster established = DebugCompany.roster(DebugCompanyStage.ESTABLISHED);
 
         for (String squadId : DebugCompany.lineSquadIds(established)) {
             MarineSquad squad = established.squadById(squadId);
             MarineSoldier leader = established.squadLeader(squad);
             assertNotNull(leader);
-            boolean veteranBand = SquadExperienceStandard.bandFor(leader).minimumXp
-                    >= ExperienceTier.VETERAN.minimumXp;
-            assertSame(veteranBand ? EnlistedRank.SERGEANT : EnlistedRank.CORPORAL,
+            int squadBand = 0;
+            for (String memberId : established.manningMemberIds(squad)) {
+                squadBand = Math.max(squadBand, SquadExperienceStandard
+                        .bandFor(established.soldierById(memberId)).minimumXp);
+            }
+            assertSame(squadBand >= ExperienceTier.VETERAN.minimumXp
+                            ? EnlistedRank.SERGEANT : EnlistedRank.CORPORAL,
                     leader.enlistedRank(),
-                    "stripes track the band the leader's issued suit fields");
+                    "stripes track the band the squad's issued kit fields");
         }
     }
 
     @Test
     void everySquadReceivesOneRandomizedAuthoredLoadout() {
         int catalogPass = Math.max(SquadEquipmentDoctrines.weaponDoctrines().size(),
-                SquadEquipmentDoctrines.armorDoctrines().size());
+                SquadEquipmentDoctrines.armorPlans().size());
         MarineRoster roster = DebugCompany.roster(
                 DebugCompanyStage.VETERAN_COMPANY, catalogPass, new Random(7_211L));
         Set<String> weaponDoctrines = new HashSet<>();
@@ -158,38 +172,72 @@ class DebugCompanyTest {
         assertEquals(SquadEquipmentDoctrines.weaponDoctrines().size(),
                 weaponDoctrines.size(),
                 "the first shuffle bag exposes every faction-flavored weapon doctrine");
-        // Armour decides the band, so a stage draws only from the doctrines that
-        // top out at what it has collected. Coverage is therefore per band.
-        Set<String> admissible = new HashSet<>();
-        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
-            if (DebugCompany.bestArmorTier(doctrine)
-                    == DebugCompanyStage.VETERAN_COMPANY.plan.maxArmorTier()) {
-                admissible.add(doctrine.id());
-            }
+        // Every plan is admissible at every stage. Composition is not a function
+        // of wealth: a poor company runs the same sections as a rich one and
+        // wears worse kit doing it ({@code role-and-access.md}).
+        Set<String> authored = new HashSet<>();
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            authored.add(plan.id());
         }
-        assertEquals(admissible, armorDoctrines,
-                "the first shuffle bag exposes every armor doctrine at the stage's band");
+        assertEquals(authored, armorDoctrines,
+                "the first shuffle bag exposes every authored armour plan");
     }
 
+    /**
+     * A company that grows richer wears better kit in the same sections.
+     *
+     * <p>The invariant this replaced asked that every doctrine sit in some
+     * stage's band, which was the old model's way of saying no authored loadout
+     * was unreachable. Bands are gone: every plan is reachable at every stage,
+     * so the question worth asking now is whether access actually does anything.
+     * It compares the same plan issued at the lowest and highest stage ceilings
+     * and requires the richer one to be at least as good in every billet.
+     */
     @Test
-    void theStageBandsBetweenThemReachEveryArmorDoctrine() {
-        // A doctrine no stage can draw is unreachable from the debug company,
-        // which is how an authored loadout quietly stops being exercised.
-        Set<String> reachable = new HashSet<>();
-        for (DebugBilletPlan plan : DebugBilletPlan.values()) {
-            for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
-                if (DebugCompany.bestArmorTier(doctrine) == plan.maxArmorTier()) {
-                    reachable.add(doctrine.id());
+    void aRicherCompanyWearsBetterKitInTheSameSection() {
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            SquadArmorDoctrine poor = issuedAtCeiling(plan, DebugBilletPlan.STARTER_ISSUE);
+            SquadArmorDoctrine rich = issuedAtCeiling(plan, DebugBilletPlan.HARDENED);
+            for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+                int poorTier = MarineArmorCatalogRegistry.require(poor.issueId(billet)).tier();
+                int richTier = MarineArmorCatalogRegistry.require(rich.issueId(billet)).tier();
+                assertTrue(richTier >= poorTier,
+                        plan.id() + " billet " + billet + ": a hardened company is issued tier "
+                                + richTier + " where a starter company gets tier " + poorTier);
+            }
+            assertNotEquals(poor.issueIds(), rich.issueIds(),
+                    plan.id() + " issues identical kit at both ends of the ladder,"
+                            + " so access is doing nothing");
+        }
+    }
+
+    /**
+     * The same section, at both ends of the ladder, is still the same section.
+     * Access changes what a billet wears and never what job it does.
+     */
+    @Test
+    void accessChangesTheKitAndNeverTheComposition() {
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            for (DebugBilletPlan ceiling : DebugBilletPlan.values()) {
+                SquadArmorDoctrine issued = issuedAtCeiling(plan, ceiling);
+                for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+                    ArmorRole wanted = plan.roleAt(billet);
+                    ArmorRole worn = MarineArmorCatalogRegistry
+                            .require(issued.issueId(billet)).role();
+                    assertEquals(wanted, worn,
+                            plan.id() + " at tier " + ceiling.maxArmorTier() + " billet "
+                                    + billet + " wanted a " + wanted.key + " and was issued a "
+                                    + worn.key);
                 }
             }
         }
-        Set<String> authored = new HashSet<>();
-        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
-            authored.add(doctrine.id());
-        }
-        assertEquals(authored, reachable,
-                "every authored armor doctrine sits in some stage's band");
     }
+
+    private static SquadArmorDoctrine issuedAtCeiling(SquadArmorPlan plan, DebugBilletPlan ceiling) {
+        return ArmorIssueResolver.resolve(plan,
+                pattern -> pattern.tier() <= ceiling.maxArmorTier());
+    }
+
 
     @Test
     void theSquadDialResizesWithoutChangingQuality() {

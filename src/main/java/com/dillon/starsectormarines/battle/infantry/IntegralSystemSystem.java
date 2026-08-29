@@ -113,7 +113,7 @@ public final class IntegralSystemSystem {
 
     /** The scaffold mode in force. {@link DebugScreenTrigger#OFF} is the shipping value. */
     public static final DebugScreenTrigger DEBUG_SCREEN_TRIGGER = DebugScreenTrigger.valueOf(
-            System.getProperty("marines.debug.screenTrigger", "ALWAYS").toUpperCase(Locale.ROOT));
+            System.getProperty("marines.debug.screenTrigger", "OFF").toUpperCase(Locale.ROOT));
 
     /**
      * How recently a hit has to have landed to still count as "just now" under
