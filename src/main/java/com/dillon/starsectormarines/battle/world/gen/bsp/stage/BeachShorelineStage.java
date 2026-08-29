@@ -55,11 +55,12 @@ public final class BeachShorelineStage implements GenStage {
             throw new IllegalStateException(
                     "BeachShorelineStage requires BIOME_MAP — conquest recipe only");
         }
-        applyBeachShoreline(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS), biomeMap,
+        applyBeachShoreline(ctx, ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS), biomeMap,
                 ctx.get(BspKeys.ROAD_RESERVATION), ctx.doodads, ctx.rng);
     }
 
-    private void applyBeachShoreline(NavigationGrid grid, CellTopology topology,
+    private void applyBeachShoreline(GenContext ctx,
+                                     NavigationGrid grid, CellTopology topology,
                                      TraversalAxis axis, BiomeMap biomeMap,
                                      boolean[][] roadReservation,
                                      List<Doodad> doodads, Random rng) {
@@ -85,6 +86,9 @@ public final class BeachShorelineStage implements GenStage {
                 // jetty or pier here; drowning the cell would orphan the
                 // convoy's perimeter exit. Leave it dry.
                 if (roadReservation[x][y]) continue;
+                // Same reasoning one step further out: a facility's made
+                // ground is engineering the sea does not get to take.
+                if (ctx.isMadeGround(x, y)) continue;
                 stampShorelineCell(grid, topology, x, y);
             }
         }

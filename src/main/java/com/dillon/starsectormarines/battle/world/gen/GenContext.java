@@ -82,6 +82,22 @@ public final class GenContext {
      */
     public final List<DefensePost> defensePosts = new ArrayList<>();
 
+    /**
+     * Cells a facility has engineered, which terrain passes must not repaint.
+     *
+     * <p>A biome is the ground a place is built on, not the ground a place is
+     * made of. The beach override repaints outdoor ground as sand so a shore
+     * reads as one continuous strand — correct for a road, a park, a yard — and
+     * it took an airbase apron with it, leaving berth markings eaten away in
+     * ragged patches and a fenced lot floored in beach. The shoreline pass
+     * already keeps a road reservation dry for the same reason; this is that
+     * exemption generalised, so anything that lays a made surface can claim it.
+     *
+     * <p>Only the surface is claimed. What may still be built, walked, or
+     * fought over on these cells is nobody's business here.
+     */
+    private final boolean[] madeGround;
+
     // --- blackboard: optional / domain overlays ---
 
     private final Map<GenKey<?>, Object> store = new HashMap<>();
@@ -94,6 +110,19 @@ public final class GenContext {
         this.width = width;
         this.height = height;
         this.seed = seed;
+        this.madeGround = new boolean[Math.max(0, width * height)];
+    }
+
+    /** Claim {@code (x, y)} as an engineered surface no terrain pass may repaint. */
+    public void markMadeGround(int x, int y) {
+        if (x < 0 || y < 0 || x >= width || y >= height) return;
+        madeGround[y * width + x] = true;
+    }
+
+    /** Whether a facility has claimed {@code (x, y)} as an engineered surface. */
+    public boolean isMadeGround(int x, int y) {
+        if (x < 0 || y < 0 || x >= width || y >= height) return false;
+        return madeGround[y * width + x];
     }
 
     /** Bind {@code value} under {@code key}. Last write wins. */

@@ -400,7 +400,15 @@ public final class AirbaseLot {
                 boolean insideFence = x >= left && x <= right && y >= bottom && y <= top;
                 ctx.grid.setWalkableFloor(x, y);
                 ctx.topology.setGroundKind(x, y, insideFence ? APRON : VERGE);
-                if (insideFence) ctx.topology.setRoomPurpose(x, y, RoomPurpose.HANGAR);
+                if (!insideFence) continue;
+                ctx.topology.setRoomPurpose(x, y, RoomPurpose.HANGAR);
+                // Claimed against the terrain passes that run after fill. The
+                // beach override repaints outdoor ground as sand, and it took
+                // the apron and half of each berth's markings with it — a
+                // fenced airbase floored in beach. Only inside the fence: the
+                // verge outside is ground the lot reserved rather than ground
+                // it made, and a shore reaching the fence line is right.
+                ctx.markMadeGround(x, y);
             }
         }
     }
