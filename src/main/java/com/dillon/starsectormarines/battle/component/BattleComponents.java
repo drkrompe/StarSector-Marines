@@ -191,6 +191,23 @@ public final class BattleComponents {
     public static final int COMBAT_LAST_FIRE_GATE = 17;
     /** {@link #COMBAT} field 18: sim tick on which {@link #COMBAT_LAST_FIRE_GATE} was authored, {@code 0} before any intent was consumed (INT). */
     public static final int COMBAT_LAST_FIRE_GATE_TICK = 18;
+    /**
+     * {@link #COMBAT} field 19: decaying count of rounds that have recently landed
+     * near this combatant from a shooter it has line of sight to (FLOAT).
+     *
+     * <p>Stored undecayed as of {@link #COMBAT_INCOMING_PRESSURE_TICK} and decayed
+     * on read, so the signal costs one write per incoming round rather than a sweep
+     * over every combatant every tick. Read it through
+     * {@code CombatService.incomingPressure(id, simTick)}; the raw field is
+     * meaningless without its tick.
+     */
+    public static final int COMBAT_INCOMING_PRESSURE = 19;
+    /** {@link #COMBAT} field 20: sim tick {@link #COMBAT_INCOMING_PRESSURE} was last written at (INT). */
+    public static final int COMBAT_INCOMING_PRESSURE_TICK = 20;
+    /** {@link #COMBAT} field 21: cell x the most recent incoming round was fired from (INT). Meaningless at zero pressure. */
+    public static final int COMBAT_INCOMING_FROM_X = 21;
+    /** {@link #COMBAT} field 22: cell y the most recent incoming round was fired from (INT). Meaningless at zero pressure. */
+    public static final int COMBAT_INCOMING_FROM_Y = 22;
 
     /** {@link #MOVEMENT} field 0: repeating [0,1) walk-stride phase, advanced by distance traveled — one full cycle per cell (FLOAT). Presentation-only: read by {@code battle.appearance.FacingSystem} for the locomotion pose; the sim never gates on it. */
     public static final int MOVEMENT_GAIT_PHASE = 0;
@@ -1084,7 +1101,8 @@ public final class BattleComponents {
                 FieldKind.LONG, FieldKind.INT, FieldKind.INT,
                 FieldKind.OBJECT, FieldKind.OBJECT,
                 FieldKind.LONG, FieldKind.FLOAT,
-                FieldKind.INT, FieldKind.INT);
+                FieldKind.INT, FieldKind.INT,
+                FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.INT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);

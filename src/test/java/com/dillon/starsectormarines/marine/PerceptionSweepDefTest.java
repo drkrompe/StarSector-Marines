@@ -87,8 +87,9 @@ class PerceptionSweepDefTest {
     @Test
     void aSweepMayOnlyDeclareTheDeadGroundMoment() throws JSONException {
         JSONObject crossing = sweep()
-                .put("policy", SpecialAiPolicy.CROSSING_UNDER_FIRE.key)
-                .put("threatRadiusCells", 12.0);
+                .put("policy", SpecialAiPolicy.EXPOSED_UNDER_FIRE.key)
+                .put("incomingPressureThreshold", 2.0)
+                .put("maxCoverLevel", 1);
         JSONException onSweep = assertThrows(JSONException.class,
                 () -> IntegralSystemDef.parse(crossing, "armor.test"));
         assertTrue(onSweep.getMessage().contains(SpecialAiPolicy.APPROACHING_DEAD_GROUND.key),
@@ -110,7 +111,7 @@ class PerceptionSweepDefTest {
                 .put("shieldedArcDegrees", 140.0);
         JSONException onAssist = assertThrows(JSONException.class,
                 () -> IntegralSystemDef.parse(deadGroundOnAnAssist, "armor.test"));
-        assertTrue(onAssist.getMessage().contains(SpecialAiPolicy.CROSSING_UNDER_FIRE.key),
+        assertTrue(onAssist.getMessage().contains(SpecialAiPolicy.EXPOSED_UNDER_FIRE.key),
                 onAssist.getMessage());
     }
 

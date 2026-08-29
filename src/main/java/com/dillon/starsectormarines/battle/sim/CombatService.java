@@ -125,6 +125,77 @@ public final class CombatService {
                 InfantryCombatStats.cooldown(weapon, grade, profile));
     }
 
+    // ---- incoming fire ----
+    //
+    // "Somebody is shooting at me right now, and I can see where from." Written
+    // by SquadAlertSystem's per-tick shot scan, which already gathers everyone
+    // near each round's impact and tests line of sight back to the muzzle; this
+    // keeps the individual and the bearing that scan used to discard.
+
+    /**
+     * Sim-seconds for an unrepeated round's contribution to fall to half. Two
+     * seconds is short enough that a stray shot has faded before the next
+     * decision and long enough that a sustained exchange accumulates rather
+     * than sawtoothing between rounds.
+     *
+     * <p>This is a property of the signal — how long being shot at stays true —
+     * and so is shared by every consumer. What counts as <em>enough</em>
+     * incoming to act on is a judgement about the actor and is authored there.
+     */
+    public static final float INCOMING_PRESSURE_HALF_LIFE_SECONDS = 2f;
+
+
+    /**
+     * Records one round landing near {@code id} from a hostile it can see, at
+     * cell {@code (fromCellX, fromCellY)}.
+     *
+     * <p>Decays what was already there to {@code simTick} before adding, so the
+     * stored value is always "pressure as of its own tick" and a long quiet
+     * stretch costs nothing to skip.
+     */
+    public void recordIncomingFire(long id, int fromCellX, int fromCellY, int simTick) {
+        if (!has(id)) return;
+        float decayed = incomingPressure(id, simTick);
+        entityWorld.setFloat(id, components.COMBAT,
+                BattleComponents.COMBAT_INCOMING_PRESSURE, decayed + 1f);
+        entityWorld.setInt(id, components.COMBAT,
+                BattleComponents.COMBAT_INCOMING_PRESSURE_TICK, simTick);
+        entityWorld.setInt(id, components.COMBAT,
+                BattleComponents.COMBAT_INCOMING_FROM_X, fromCellX);
+        entityWorld.setInt(id, components.COMBAT,
+                BattleComponents.COMBAT_INCOMING_FROM_Y, fromCellY);
+    }
+
+    /**
+     * How much fire {@code id} is under as of {@code simTick}: roughly the
+     * number of rounds that have landed near it within the last couple of
+     * seconds, from shooters it can see. Zero for a combatant nobody is
+     * shooting at, and for a non-combatant.
+     */
+    public float incomingPressure(long id, int simTick) {
+        if (!has(id)) return 0f;
+        float stored = entityWorld.getFloat(id, components.COMBAT,
+                BattleComponents.COMBAT_INCOMING_PRESSURE);
+        if (stored <= 0f) return 0f;
+        int elapsedTicks = simTick - entityWorld.getInt(id, components.COMBAT,
+                BattleComponents.COMBAT_INCOMING_PRESSURE_TICK);
+        if (elapsedTicks <= 0) return stored;
+        float elapsedSeconds = elapsedTicks * BattleSimulation.TICK_DT;
+        return stored * (float) Math.pow(0.5, elapsedSeconds / INCOMING_PRESSURE_HALF_LIFE_SECONDS);
+    }
+
+    /** Cell x the most recent incoming round came from. Meaningless at zero pressure. */
+    public int incomingFromX(long id) {
+        return has(id) ? entityWorld.getInt(id, components.COMBAT,
+                BattleComponents.COMBAT_INCOMING_FROM_X) : 0;
+    }
+
+    /** Cell y the most recent incoming round came from. Meaningless at zero pressure. */
+    public int incomingFromY(long id) {
+        return has(id) ? entityWorld.getInt(id, components.COMBAT,
+                BattleComponents.COMBAT_INCOMING_FROM_Y) : 0;
+    }
+
     public long targetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID); }
 
     /**

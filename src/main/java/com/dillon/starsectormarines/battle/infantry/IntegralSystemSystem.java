@@ -8,17 +8,16 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
-import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
-import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.ApproachingDeadGroundSpec;
-import com.dillon.starsectormarines.marine.CrossingUnderFireSpec;
+import com.dillon.starsectormarines.marine.ExposedUnderFireSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MissilePodSpec;
 import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
@@ -45,6 +44,25 @@ import java.util.Random;
  * would be one author's judgement about one suit imposed on every system that
  * will ever exist, which is exactly what the authored policy replaced
  * ({@code progression-nouns.md}).
+ *
+ * <p><b>What is a fact and what is a judgement.</b> Whether a marine is under
+ * fire, how much of it, from where, whether the ground covers that bearing,
+ * whether they are under way, and whether the shooter is beyond their reach are
+ * all facts, computed here and not authorable — a suit does not get an opinion
+ * about whether it is being shot at. The only authored numbers are the two that
+ * price the cooldown: how much incoming is worth spending on, and how much
+ * cover makes spending pointless. That split is why the occasions can be added
+ * to without touching a catalog, and why retuning a suit never needs code.
+ *
+ * <p><b>Read facts that do not depend on where in the tick they are asked.</b>
+ * This sweep runs <em>ahead</em> of the movement pass, so that an activation's
+ * speed multiplier is already in place when the wearer steps. That means every
+ * mover's applied velocity is the zero {@code MovementService.beginTick} just
+ * wrote, and any trigger reading it is dead on arrival — which is exactly what
+ * happened to this policy's predecessor, silently, for its whole shipped life.
+ * Path state ({@code MovementService.settled}) and the incoming-fire signal
+ * ({@code CombatService.incomingPressure}, written by {@code SquadAlertSystem}
+ * earlier in the same tick) both read the same from anywhere in the tick.
  *
  * <p><b>Nothing here reads faction.</b> A defender in a system-carrying pattern
  * reaches this sweep through the same component the player's marines do and is
@@ -75,7 +93,6 @@ public final class IntegralSystemSystem {
     private final BallisticResolver resolver;
     private final ShotService shots;
     private final Random rng;
-    private final LongBucket nearbyHostiles = new LongBucket();
 
     public IntegralSystemSystem(UnitRosterService rosterService, BallisticResolver resolver,
                                 ShotService shots, Random rng) {
@@ -113,10 +130,8 @@ public final class IntegralSystemSystem {
             IntegralSystemDef def = systems.spec(id);
             if (def == null) continue;
             switch (def.aiPolicy()) {
-                case CROSSING_UNDER_FIRE -> {
-                    CrossingUnderFireSpec crossing = def.crossingUnderFire();
-                    if (isMoving(id, movement)
-                            && hostileWithin(id, sim, crossing.threatRadiusCells())) {
+                case EXPOSED_UNDER_FIRE -> {
+                    if (exposedUnderFire(id, def.exposedUnderFire(), sim, movement)) {
                         systems.activate(id);
                     }
                 }
@@ -127,6 +142,12 @@ public final class IntegralSystemSystem {
                     }
                 }
                 case APPROACHING_DEAD_GROUND -> {
+                    // KNOWN DEAD: this reads applied velocity, which is always
+                    // the zero MovementService.beginTick wrote, because this
+                    // sweep runs ahead of the movement pass by design. Unlike
+                    // the crossing test above it cannot simply switch to path
+                    // state — it needs a heading, not a yes/no — so it is
+                    // pending the same treatment rather than fixed in passing.
                     ApproachingDeadGroundSpec ahead = def.approachingDeadGround();
                     if (isMoving(id, movement)
                             && deadGroundAhead(id, sim, movement, ahead.lookaheadCells())) {
@@ -191,15 +212,51 @@ public final class IntegralSystemSystem {
         return Math.abs(vx) > MOVING_EPSILON || Math.abs(vy) > MOVING_EPSILON;
     }
 
-    private boolean hostileWithin(long id, BattleSimulation sim, float radius) {
-        UnitSpatialIndex index = sim.getUnitIndex();
-        if (index == null) return false;
-        Faction faction = rosterService.identity().faction(id);
-        if (faction == null) return false;
-        nearbyHostiles.clear();
-        index.gatherOtherFactionCombatants(
-                sim.world().x(id), sim.world().y(id), radius, faction, nearbyHostiles);
-        return nearbyHostiles.size > 0;
+    /**
+     * Whether this carrier is taking fire it cannot presently answer, somewhere
+     * the ground is not answering it either.
+     *
+     * <p>Read in the order the questions get cheaper to be wrong about. Enough
+     * fire first, because a screen spent on a stray round is the whole waste
+     * this policy exists to avoid and no later term can undo it. Then the
+     * bearing's cover, because cover resolves ahead of a screen in the
+     * durability model — fire the wall is already stopping is fire the screen
+     * would be paid to stop twice. Only then the two occasions, which are the
+     * cheap part.
+     */
+    private boolean exposedUnderFire(long id, ExposedUnderFireSpec spec, BattleSimulation sim,
+                                     MovementService movement) {
+        CombatService combat = rosterService.combat();
+        if (!combat.has(id)) return false;
+        float pressure = combat.incomingPressure(id, sim.getSimTickIndex());
+        if (pressure < spec.incomingPressureThreshold()) return false;
+
+        World world = rosterService.world();
+        int cellX = world.cellX(id);
+        int cellY = world.cellY(id);
+        int fromX = combat.incomingFromX(id);
+        int fromY = combat.incomingFromY(id);
+        if (sim.getGrid().getCoverAt(cellX, cellY, fromX - cellX, fromY - cellY)
+                > spec.maxCoverLevel()) {
+            return false;
+        }
+
+        // Occasion one: crossing ground. Path state, not applied velocity —
+        // this sweep deliberately runs ahead of the movement pass so an
+        // activation's speed multiplier is in place before the wearer steps,
+        // which means every mover's velocity here is the zero beginTick just
+        // wrote. An unexhausted path is what "under way" actually means and it
+        // reads the same wherever in the tick it is asked.
+        if (!movement.settled(id)) return true;
+
+        // Occasion two: outranged. They can reach the carrier and the carrier
+        // cannot reach back, so there is no version of shooting first that
+        // solves this.
+        float reach = combat.attackRange(id);
+        if (reach <= 0f) return false;
+        float dx = fromX + 0.5f - world.x(id);
+        float dy = fromY + 0.5f - world.y(id);
+        return dx * dx + dy * dy > reach * reach;
     }
 
     /**

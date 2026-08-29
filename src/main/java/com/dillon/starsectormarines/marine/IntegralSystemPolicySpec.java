@@ -21,7 +21,7 @@ import java.io.Serializable;
  * than a nullable field to a widening bag.
  */
 public sealed interface IntegralSystemPolicySpec extends Serializable
-        permits ApproachingDeadGroundSpec, CrossingUnderFireSpec, SightedStandoffSpec {
+        permits ApproachingDeadGroundSpec, ExposedUnderFireSpec, SightedStandoffSpec {
 
     /** The closed policy these parameters belong to. */
     SpecialAiPolicy aiPolicy();
