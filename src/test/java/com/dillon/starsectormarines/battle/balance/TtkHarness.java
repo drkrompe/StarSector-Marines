@@ -303,7 +303,7 @@ public final class TtkHarness {
         return new IntegralSystemDef("system.ttk-screen", "Measured screen", EquipmentGrade.SERVICE,
                 "Held up for the whole measurement.", IntegralSystemEffect.BREACHER_ASSIST,
                 SpecialResourceMode.COOLDOWN, 1f, 2f, 0,
-                new BreacherAssistSpec(1.01f, screen.soak(), screen.arcDegrees()), null, null,
+                new BreacherAssistSpec(1.01f, screen.soak(), screen.arcDegrees()), null, null, null,
                 new ExposedUnderFireSpec(2f, 1f));
     }
 

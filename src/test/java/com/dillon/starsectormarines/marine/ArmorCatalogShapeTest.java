@@ -215,6 +215,16 @@ class ArmorCatalogShapeTest {
             // WHO gets a dressing rather than what one is worth.
             case FIELD_AID -> system.fieldAid() == null || !system.usesAmmunition() ? null
                     : (double) system.fieldAid().restoredHealth() * system.startingAmmo();
+            // Steadiness bought, net of the mobility handed over for it, scaled
+            // by how much of the time it can be had. A heavier suit gives up a
+            // smaller share of a smaller speed, which is a real advantage and
+            // the reason the ladder's top rung both hits harder and commits
+            // less than the sandbag at the bottom of it.
+            case BRACE -> {
+                BraceSpec brace = system.brace();
+                yield brace == null ? null
+                        : (brace.accuracyMult() - 1.0) * brace.moveSpeedMult() * duty(system);
+            }
         };
     }
 

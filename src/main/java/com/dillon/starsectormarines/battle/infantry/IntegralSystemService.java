@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.marine.BraceSpec;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
@@ -138,7 +139,27 @@ public final class IntegralSystemService {
         IntegralSystemDef def = spec(id);
         if (def == null || !isActive(id)) return 1f;
         BreacherAssistSpec breacher = def.breacherAssist();
-        return breacher != null ? breacher.moveSpeedMult() : 1f;
+        if (breacher != null) return breacher.moveSpeedMult();
+        BraceSpec brace = def.brace();
+        return brace != null ? brace.moveSpeedMult() : 1f;
+    }
+
+    /**
+     * What this unit's running system does to the accuracy of its own fire, or
+     * {@code 1} when nothing is running. Only a brace contributes one.
+     *
+     * <p><b>Read through at fire time rather than written onto the unit.</b>
+     * Movement speed has to be stored because the mover reads a column; accuracy
+     * has a seam at the moment a shot leaves the barrel, and taking it there
+     * means there is no stored value to restore and therefore no residue an
+     * expiry could leave behind. The service's standing "recomputed, never
+     * accumulated" rule holds here for free.
+     */
+    public float accuracyMultiplier(long id) {
+        IntegralSystemDef def = spec(id);
+        if (def == null || !isActive(id)) return 1f;
+        BraceSpec brace = def.brace();
+        return brace != null ? brace.accuracyMult() : 1f;
     }
 
     /**
@@ -158,6 +179,16 @@ public final class IntegralSystemService {
     }
 
     private void applyEffect(long id, IntegralSystemDef def) {
+        BraceSpec brace = def.brace();
+        if (brace != null) {
+            // The whole cost of a stance, and the same recomputation the boost
+            // uses in the opposite direction — one path to the live speed means
+            // a brace and a boost cannot compound and neither leaves a
+            // remainder. A suit carries one system, so they never coexist, but
+            // the arithmetic does not depend on that staying true.
+            setMoveSpeedFromBase(id, brace.moveSpeedMult());
+            return;
+        }
         BreacherAssistSpec breacher = def.breacherAssist();
         if (breacher == null) return;
         setMoveSpeedFromBase(id, breacher.moveSpeedMult());

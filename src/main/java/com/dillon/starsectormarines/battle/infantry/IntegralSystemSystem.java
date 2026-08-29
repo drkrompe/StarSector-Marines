@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.ApproachingDeadGroundSpec;
 import com.dillon.starsectormarines.marine.ExposedUnderFireSpec;
 import com.dillon.starsectormarines.marine.FieldAidSpec;
+import com.dillon.starsectormarines.marine.HoldingFiringPositionSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MissilePodSpec;
 import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
@@ -51,12 +52,14 @@ import java.util.Random;
  *
  * <p><b>What is a fact and what is a judgement.</b> Whether a marine is under
  * fire, how much of it, from where, whether the ground covers that bearing,
- * whether they are under way, and whether the shooter is beyond their reach are
- * all facts, computed here and not authorable — a suit does not get an opinion
- * about whether it is being shot at. The only authored numbers are the two that
- * price the cooldown: how much incoming is worth spending on, and how much
- * cover makes spending pointless. That split is why the occasions can be added
- * to without touching a catalog, and why retuning a suit never needs code.
+ * whether they are under way, what they are engaging, how far off it is, and
+ * who else is standing near them are all facts, computed here and not
+ * authorable — a suit does not get an opinion about whether it is being shot at
+ * or whether it has stopped walking. The authored numbers are only ever the
+ * ones that price the spend: how much incoming is worth a cooldown, how much
+ * cover makes spending pointless, how far out is worth planting for, how close
+ * is too close to be planted. That split is why the occasions can be added to
+ * without touching a catalog, and why retuning a suit never needs code.
  *
  * <p><b>Read facts that do not depend on where in the tick they are asked.</b>
  * This sweep runs <em>ahead</em> of the movement pass, so that an activation's
@@ -203,6 +206,11 @@ public final class IntegralSystemSystem {
                     ApproachingDeadGroundSpec ahead = def.approachingDeadGround();
                     if (isMoving(id, movement)
                             && deadGroundAhead(id, sim, movement, ahead.lookaheadCells())) {
+                        systems.activate(id);
+                    }
+                }
+                case HOLDING_A_FIRING_POSITION -> {
+                    if (holdingFiringPosition(id, def.holdingFiringPosition(), sim, movement)) {
                         systems.activate(id);
                     }
                 }
@@ -375,6 +383,53 @@ public final class IntegralSystemSystem {
         float dx = fromX + 0.5f - world.x(id);
         float dy = fromY + 0.5f - world.y(id);
         return dx * dx + dy * dy > reach * reach;
+    }
+
+    /**
+     * Whether this carrier is standing where they mean to stand, shooting at
+     * something worth being steady for, with nobody about to arrive.
+     *
+     * <p>The mirror of {@link #exposedUnderFire}, and read in the same order:
+     * the cheapest disqualifier first, the authored judgements last. A marine
+     * still under way has not chosen a position yet; one with nothing engaged
+     * has nothing to be steady <em>for</em>; one shooting across a room gains
+     * little, because accuracy has barely fallen off at that distance. The
+     * break-off check is last because it is the only one that costs a spatial
+     * query.
+     *
+     * <p><b>Path state, never applied velocity.</b> This sweep runs ahead of the
+     * movement pass, so every mover's velocity here is the zero
+     * {@code MovementService.beginTick} just wrote — a stance keyed off it would
+     * fire on everybody, every tick, which is the same defect that made this
+     * policy's sibling never fire at all.
+     */
+    private boolean holdingFiringPosition(long id, HoldingFiringPositionSpec spec,
+                                          BattleSimulation sim, MovementService movement) {
+        if (spec == null) return false;
+        if (!movement.settled(id)) return false;
+
+        CombatService combat = rosterService.combat();
+        if (!combat.has(id)) return false;
+        long target = combat.targetId(id);
+        if (target == 0L || !rosterService.isAliveById(target)) return false;
+
+        float reach = combat.attackRange(id);
+        if (reach <= 0f) return false;
+        World world = rosterService.world();
+        float dx = world.x(target) - world.x(id);
+        float dy = world.y(target) - world.y(id);
+        float minimum = spec.minimumTargetRangeFraction() * reach;
+        if (dx * dx + dy * dy < minimum * minimum) return false;
+
+        // Planting with somebody about to be on top of you is the mistake the
+        // commitment makes possible, so the suit that suffers most for it says
+        // so in its own break-off distance.
+        UnitSpatialIndex index = sim.getUnitIndex();
+        if (index == null) return true;
+        Faction faction = rosterService.identity().faction(id);
+        if (faction == null) return false;
+        return index.countOtherFactionCombatants(world.x(id), world.y(id),
+                spec.breakOffRangeCells(), faction, id) == 0;
     }
 
     /**

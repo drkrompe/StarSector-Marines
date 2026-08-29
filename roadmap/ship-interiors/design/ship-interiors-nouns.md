@@ -4,8 +4,9 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-29 - a fleet comparison is a fleet of decks and is laid out off
-the frame: the screen opens on the list, says which hulls it is still reading,
+Updated: 2026-08-29 - a laid-out deck outlives the panel that asked for it, so
+a hull is laid out once per game rather than once per visit; and a fleet
+comparison is a fleet of decks and is laid out off the frame: the screen opens on the list, says which hulls it is still reading,
 and fills each row in as its deck lands, keeping only the deck of the hull on
 the stage. Earlier: every furnished compartment now publishes work and carries
 a trade of its own, and a task point nobody can reach costs the point rather than
@@ -528,6 +529,29 @@ not do for us. With a home to measure against, the answer is what moving would
 give up; without one, it is simply what she lacks. One screen answers both, and
 a candidate is read the same way either time - as a generated deck, from the
 generator and the seed her real interior would use.
+
+**A deck outlives the panel that asked for it.** The operations panel is built
+afresh every time the player opens it, so anything a screen holds is thrown away
+between visits — and laying a deck out is the most expensive thing the shell
+does. What was found out about a hull is therefore kept for as long as the game
+is running, keyed on what a deck is generated from rather than on which ship it
+is: a hull that has been refitted owes a different program and is a different
+deck, while a hull that came home shot up is the same one, because a ship is
+read as she would be whole.
+
+What is kept differs by what it costs to keep. What is aboard a hull is a dozen
+counts, so every hull the player has ever looked over is remembered. A deck is
+megabytes of grid, so exactly one is kept — the ship the company lives aboard,
+who is asked for again on every single visit, where every other hull is looked
+at once and would only be evicting her.
+
+Keeping a deck and re-crewing it is sound because **running a deck leaves no
+mark on it**: nobody aboard the company ship shoots, so her floor, her doors,
+her walls and her fixtures read identically after a watch has lived on them.
+That is what lets the ship be crewed from the roster as it stands on every
+visit rather than remembered along with her plan — a watch is never one the
+company no longer has. A deck that could be fought over would have to be copied
+rather than reused.
 
 **A comparison of a fleet is a fleet of decks, and none of it happens on the
 frame the player is waiting on.** The honest answer to what a hull would give

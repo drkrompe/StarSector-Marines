@@ -373,7 +373,23 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "ARMY_GREEN", "armorCapacity": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97 }
+      "battle": { "appearanceFamily": "ARMY_GREEN", "armorCapacity": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97,
+        "integralSystem": {
+          "id": "system.legionary-brace",
+          "grade": "milspec",
+          "displayName": "Legionary brace",
+          "description": "The suit's own answer to the problem the sandbag solves badly: the hip and knee actuators lock against each other into a frame the marine is standing inside rather than holding up, and the shoulder becomes a mount instead of a joint. Field-serviceable, like everything else the Hegemony issues, and expected to be serviced -- a brace is a mechanism, and a mechanism that has planted a thousand times knows it.",
+          "effect": "brace",
+          "resource": "cooldown",
+          "policy": "holding-a-firing-position",
+          "minimumTargetRangeFraction": 0.45,
+          "breakOffRangeCells": 5.0,
+          "durationSeconds": 5.0,
+          "cooldownSeconds": 18.0,
+          "moveSpeedMult": 0.45,
+          "accuracyMult": 1.3
+        }
+      }
     },
     {
       "id": "armor.militia",
@@ -385,7 +401,23 @@
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
       },
-      "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96 }
+      "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96,
+        "integralSystem": {
+          "id": "system.sandbag-rest",
+          "grade": "surplus",
+          "displayName": "Sandbagged rest",
+          "description": "There is nothing in the vest that does this. What there is, is a section leader who has been told where the lane is, a wall or a bipod or a sack of ballast to lay the weapon across, and the patience to stay behind it. It is the cheapest version of the idea and the one every other version is a refinement of.",
+          "effect": "brace",
+          "resource": "cooldown",
+          "policy": "holding-a-firing-position",
+          "minimumTargetRangeFraction": 0.55,
+          "breakOffRangeCells": 6.0,
+          "durationSeconds": 4.0,
+          "cooldownSeconds": 20.0,
+          "moveSpeedMult": 0.3,
+          "accuracyMult": 1.2
+        }
+      }
     },
     {
       "id": "armor.pathfinder",
@@ -466,7 +498,22 @@
         "armorCapacity": 22.0,
         "armorRating": 13.0,
         "moveSpeedMult": 0.78,
-        "incomingAccuracyMult": 0.99
+        "incomingAccuracyMult": 0.99,
+        "integralSystem": {
+          "id": "system.redoubt-platform",
+          "grade": "milspec",
+          "displayName": "Redoubt firing platform",
+          "description": "Siege plate is the Legionary with the weight limits taken off, and the brace is what gets the most out of that: there is enough mass in the suit to plant against that the marine inside stops being a person aiming a weapon and becomes the ground the weapon is aimed from. It holds longer, recovers quicker, and costs proportionally less mobility than the lighter brace does, for the plain reason that there was less of it to give up.",
+          "effect": "brace",
+          "resource": "cooldown",
+          "policy": "holding-a-firing-position",
+          "minimumTargetRangeFraction": 0.4,
+          "breakOffRangeCells": 4.0,
+          "durationSeconds": 6.0,
+          "cooldownSeconds": 15.0,
+          "moveSpeedMult": 0.55,
+          "accuracyMult": 1.45
+        }
       }
     },
     {

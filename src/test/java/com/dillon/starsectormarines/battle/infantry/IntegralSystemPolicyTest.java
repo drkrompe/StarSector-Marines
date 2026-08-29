@@ -106,6 +106,11 @@ class IntegralSystemPolicyTest {
                                 && system.fieldAid().restoredHealth() > 0f,
                         pattern.id() + " must author how far it will go and what a"
                                 + " dressing is worth");
+                case HOLDING_A_FIRING_POSITION -> assertTrue(
+                        system.holdingFiringPosition().minimumTargetRangeFraction() > 0f
+                                && system.holdingFiringPosition().breakOffRangeCells() > 0f,
+                        pattern.id() + " must author how far out is worth planting for and"
+                                + " how close is too close to be planted");
                 default -> fail(pattern.id() + " declares a policy with no authored parameters: "
                         + system.aiPolicy().key);
             }
@@ -442,6 +447,62 @@ class IntegralSystemPolicyTest {
                         + " policy included, must be the one the previous owner fought with");
     }
 
+
+    // ---------------------------------------------------------------- the brace
+
+    /**
+     * The line role's own moment. A marine who has stopped where they mean to
+     * be, holds a live engagement out where accuracy has fallen off, and has
+     * nobody about to arrive, plants — which is the whole of
+     * <b>assault crosses, line holds</b> expressed as a trigger.
+     */
+    @Test
+    void aMarineHoldingAPositionAtRangeBraces() {
+        assertTrue(braces(BraceScene.holding()));
+    }
+
+    /**
+     * Crossing is the other family's occasion. A marine still walking has not
+     * chosen a position yet, so there is nothing to commit to.
+     */
+    @Test
+    void aMarineStillUnderWayDoesNotBrace() {
+        assertFalse(braces(BraceScene.holding().crossing()));
+    }
+
+    /**
+     * Steadiness is worth having where it is scarce. At half a room the round
+     * was going to land anyway, and spending a stance on it is the waste the
+     * authored fraction exists to refuse.
+     */
+    @Test
+    void aTargetTooCloseToBeWorthPlantingForIsRefused() {
+        assertTrue(braces(BraceScene.holding().targetAt(16)),
+                "sixteen cells is past half the wearer's reach");
+        assertFalse(braces(BraceScene.holding().targetAt(7)),
+                "seven cells is not -- and is still outside the break-off, so this is the"
+                        + " range judgement answering rather than the proximity one");
+    }
+
+    /**
+     * The commitment's own counterplay. Planting with somebody about to be on
+     * top of you is the mistake the cost makes possible, and the suit that pays
+     * most for it names the distance at which it will not.
+     */
+    @Test
+    void aContactInsideTheBreakOffDistanceStopsTheStanceBeingWorthIt() {
+        assertFalse(braces(BraceScene.holding().withContactAt(2)),
+                "somebody two cells away is inside the authored break-off");
+        assertTrue(braces(BraceScene.holding().withContactAt(9)),
+                "somebody nine cells away is not");
+    }
+
+    /** Nothing engaged is nothing to be steady for. */
+    @Test
+    void aMarineWithNothingEngagedDoesNotBrace() {
+        assertFalse(braces(BraceScene.holding().engagingNothing()));
+    }
+
     // ---------------------------------------------------------------- scenes
 
     /**
@@ -538,6 +599,59 @@ class IntegralSystemPolicyTest {
             }
         }
         return false;
+    }
+
+
+    /**
+     * One wearer with a reach, one thing it is engaging, and optionally somebody
+     * else standing nearby. The stance resolves from path state, an engagement,
+     * a distance and a proximity count, so the scene needs no ballistics at all:
+     * what varies between cases is exactly the four facts the policy reads.
+     */
+    private static final class BraceScene {
+
+        private static final float REACH = 20f;
+        private static final float MINIMUM_FRACTION = 0.5f;
+        private static final float BREAK_OFF = 4f;
+
+        private int targetDistance = 15;
+        private int contactDistance = -1;
+        private boolean crossing;
+        private boolean engaged = true;
+
+        static BraceScene holding() { return new BraceScene(); }
+
+        BraceScene targetAt(int cells) { this.targetDistance = cells; return this; }
+        BraceScene withContactAt(int cells) { this.contactDistance = cells; return this; }
+        BraceScene crossing() { this.crossing = true; return this; }
+        BraceScene engagingNothing() { this.engaged = false; return this; }
+    }
+
+    /** Plays {@code scene} for one sweep and answers whether the wearer planted. */
+    private static boolean braces(BraceScene scene) {
+        BattleSimulation sim = arena();
+        long wearer = sim.spawn(carrier("wearer", Faction.MARINE)
+                .integralSystem(brace(BraceScene.MINIMUM_FRACTION, BraceScene.BREAK_OFF))
+                .attackRange(BraceScene.REACH)
+                .moveSpeed(scene.crossing ? 2f : 0f)
+                .hp(SURVIVES_THE_SCENE).maxHp(SURVIVES_THE_SCENE));
+        long target = sim.spawn(named("target", Faction.DEFENDER,
+                CARRIER_X + scene.targetDistance));
+        if (scene.contactDistance > 0) {
+            sim.spawn(named("contact", Faction.DEFENDER, CARRIER_X + scene.contactDistance));
+        }
+        // One settled tick so the spatial index holds everybody; the engagement
+        // and the path are written afterwards, because a two-tick walk would
+        // have exhausted the short path this scene uses to mean "under way".
+        advance(sim, 1);
+        assertFalse(sim.integralSystems().isActive(wearer),
+                "fixture assumption: the settle tick offers the stance no reason of its own");
+
+        if (scene.engaged) sim.getRoster().combat().setTargetId(wearer, target);
+        if (scene.crossing) sim.setPath(wearer, crossingPath());
+
+        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
+        return sim.integralSystems().isActive(wearer);
     }
 
     /** A short there-and-back that keeps a crossing wearer on roughly its own ground. */
@@ -705,6 +819,33 @@ class IntegralSystemPolicyTest {
                     .put("restoredHealth", restoredHealth)
                     .put("durationSeconds", 1.5)
                     .put("startingAmmo", 3), "armor.test");
+        } catch (JSONException failure) {
+            throw new AssertionError("test fixture should parse", failure);
+        }
+    }
+
+    private static EntitySpec named(String id, Faction faction, int cellX) {
+        return new EntitySpec(id, faction, UnitType.MILITIA, cellX, ROW)
+                .moveSpeed(0f).hp(SURVIVES_THE_SCENE).maxHp(SURVIVES_THE_SCENE);
+    }
+
+    private static IntegralSystemDef brace(float minimumTargetRangeFraction,
+                                           float breakOffRangeCells) {
+        try {
+            return IntegralSystemDef.parse(new JSONObject()
+                    .put("id", "system.test-brace")
+                    .put("grade", "service")
+                    .put("displayName", "Test brace")
+                    .put("description", "Planted, and going nowhere for a while.")
+                    .put("effect", "brace")
+                    .put("resource", "cooldown")
+                    .put("policy", SpecialAiPolicy.HOLDING_A_FIRING_POSITION.key)
+                    .put("minimumTargetRangeFraction", minimumTargetRangeFraction)
+                    .put("breakOffRangeCells", breakOffRangeCells)
+                    .put("durationSeconds", 5.0)
+                    .put("cooldownSeconds", 18.0)
+                    .put("moveSpeedMult", 0.4)
+                    .put("accuracyMult", 1.3), "armor.test");
         } catch (JSONException failure) {
             throw new AssertionError("test fixture should parse", failure);
         }

@@ -22,7 +22,7 @@ import java.io.Serializable;
  */
 public sealed interface IntegralSystemPolicySpec extends Serializable
         permits ApproachingDeadGroundSpec, ExposedUnderFireSpec, FieldAidSpec,
-                SightedStandoffSpec {
+                HoldingFiringPositionSpec, SightedStandoffSpec {
 
     /** The closed policy these parameters belong to. */
     SpecialAiPolicy aiPolicy();
