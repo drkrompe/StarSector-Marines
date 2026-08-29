@@ -91,6 +91,12 @@ public final class AirDeliveryContext {
         if (claim != null) claim.apply(commandControl, squadId);
     }
 
+    /** Applies optional spawn-time ownership together with the squad's first task, atomically by issuer. */
+    public void claimSquadCommand(SquadCommandClaim claim,
+                                  ObjectiveAssignment assignment) {
+        if (claim != null) claim.apply(commandControl, assignment);
+    }
+
     public void assignSquadCommand(ObjectiveAssignment assignment,
                                    CommandAuthority authority,
                                    String issuer, String reason) {

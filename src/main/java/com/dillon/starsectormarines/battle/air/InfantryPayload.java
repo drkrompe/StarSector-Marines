@@ -47,7 +47,16 @@ public enum InfantryPayload implements AirDeliveryPayload {
             mission.squadId = mission.arrivalGroupId >= 0
                     ? context.squadForArrivalGroup(type)
                     : context.mintSquad(type);
-            context.claimSquadCommand(mission.squadId, mission.commandClaim);
+            // Claimed with the task where the delivering authority owns one, so
+            // the squad lands already assigned to what the sortie was flown for
+            // instead of arriving owned but idle. Same shape as the convoy's
+            // deboard; see GroundSystem.
+            if (mission.commandOwnsObjective && mission.assignNode != null) {
+                context.claimSquadCommand(mission.commandClaim,
+                        ObjectiveAssignment.holdNode(mission.squadId, mission.assignNode));
+            } else {
+                context.claimSquadCommand(mission.squadId, mission.commandClaim);
+            }
             if (mission.rescueMilitiaTransport) {
                 Squad guard = context.squad(mission.squadId);
                 if (guard != null) {
