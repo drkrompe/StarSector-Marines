@@ -56,7 +56,7 @@ class ArmorCatalogShapeTest {
         for (ArmorRole role : jobs()) {
             assertTrue(counts.getOrDefault(role, 0) > 0,
                     "no catalogued pattern is a " + role.key + " suit, so no squad can"
-                            + " field that role at any price: " + render(counts));
+                            + " field that role at any price: " + renderCounts(counts));
         }
     }
 
@@ -109,39 +109,109 @@ class ArmorCatalogShapeTest {
     }
 
     /**
-     * The shape this catalog is supposed to have, reported rather than asserted.
+     * <b>The invariant this whole file exists for.</b> Every job is available at
+     * more than one level of equipment, so buying up the ladder upgrades a
+     * marine rather than changing what they are.
      *
-     * <p>The invariant {@code role-and-access.md} actually wants — every job
-     * spans more than one tier, so buying up the ladder upgrades a marine
-     * instead of re-roling them — is <b>not</b> asserted here, because it does
-     * not hold yet and a failing test is not a plan. Filling the matrix is that
-     * doc's next unit of work, and turning the printed report below into an
-     * assertion is its acceptance.
+     * <p>The catalog failed this for its entire life before the matrix was
+     * filled: recon existed only at tier II, support only at III, assault only
+     * at IV. That is what made a fully equipped company field nothing but
+     * assault suits and therefore gave every marine in it the same capability —
+     * not a rule about tiers granting abilities, but a table with no other cell
+     * to buy.
      */
     @Test
-    void reportsTheRoleAndTierMatrix() {
+    void everyRoleIsAvailableAtMoreThanOneTier() {
+        Map<ArmorRole, Map<Integer, Set<String>>> matrix = matrix();
+        for (ArmorRole role : jobs()) {
+            assertTrue(matrix.getOrDefault(role, Map.of()).size() > 1,
+                    role.key + " exists at a single tier, so a company that can afford"
+                            + " better stops being able to field it:\n" + render(matrix));
+        }
+    }
+
+    /**
+     * A capability gets stronger as the suits carrying it do. Compared between
+     * consecutive <em>populated</em> tiers and on each effect's own headline
+     * axis, because a capability may skip a tier and because suits within one
+     * tier are deliberately side-grades of each other — the Foundry-breaker and
+     * the Reliquary are both tier IV and differ sevenfold.
+     *
+     * <p>This is what {@code role-and-access.md} means by a capability having
+     * its own scaling ladder, and it could not be written at all until an effect
+     * existed at two tiers.
+     */
+    @Test
+    void aCapabilityGetsStrongerWithTheTierOfTheSuitCarryingIt() {
+        Map<IntegralSystemEffect, Map<Integer, Float>> best = new EnumMap<>(IntegralSystemEffect.class);
+        for (MarineArmorCatalogDef pattern : catalog().all()) {
+            IntegralSystemDef system = pattern.integralSystem();
+            if (system == null) continue;
+            Float strength = headlineStrength(system);
+            if (strength == null) continue;
+            best.computeIfAbsent(system.effect(), key -> new TreeMap<>())
+                    .merge(pattern.tier(), strength, Math::max);
+        }
+        assumeTrue(!best.isEmpty(), "no catalogued pattern carries a system here");
+        best.forEach((effect, byTier) -> {
+            Integer previousTier = null;
+            float previousBest = Float.NEGATIVE_INFINITY;
+            for (Map.Entry<Integer, Float> rung : byTier.entrySet()) {
+                assertTrue(rung.getValue() >= previousBest,
+                        "the best '" + effect.key + "' at tier " + rung.getKey() + " ("
+                                + rung.getValue() + ") is weaker than the best at tier "
+                                + previousTier + " (" + previousBest + "), so upgrading"
+                                + " the suit downgrades the capability");
+                previousTier = rung.getKey();
+                previousBest = rung.getValue();
+            }
+        });
+    }
+
+    /**
+     * The axis an effect is measured along when asking whether it got stronger.
+     * Each is the number that entry's own catalog copy is really selling — the
+     * pool a screen refuses, how far a sweep reads, how many rounds a rack
+     * holds. Returns null for an effect with no such axis yet, which is skipped
+     * rather than guessed at.
+     */
+    private static Float headlineStrength(IntegralSystemDef system) {
+        return switch (system.effect()) {
+            case BREACHER_ASSIST -> system.breacherAssist() != null
+                    ? system.breacherAssist().screenSoak() : null;
+            case PERCEPTION_SWEEP -> system.perceptionSweep() != null
+                    ? system.perceptionSweep().revealRangeCells() : null;
+            case MISSILE_POD -> system.usesAmmunition() ? (float) system.startingAmmo() : null;
+        };
+    }
+
+    private static Map<ArmorRole, Map<Integer, Set<String>>> matrix() {
         Map<ArmorRole, Map<Integer, Set<String>>> matrix = new EnumMap<>(ArmorRole.class);
-        int topTier = 0;
         for (MarineArmorCatalogDef pattern : catalog().all()) {
             matrix.computeIfAbsent(pattern.role(), key -> new TreeMap<>())
                     .computeIfAbsent(pattern.tier(), key -> new TreeSet<>())
                     .add(pattern.id());
-            topTier = Math.max(topTier, pattern.tier());
         }
-        StringBuilder report = new StringBuilder("armour catalog role x tier:\n");
+        return matrix;
+    }
+
+    /** The whole table, for a failure that shows the shape rather than one cell. */
+    private static String render(Map<ArmorRole, Map<Integer, Set<String>>> matrix) {
+        int topTier = matrix.values().stream()
+                .flatMap(byTier -> byTier.keySet().stream())
+                .mapToInt(Integer::intValue).max().orElse(0);
+        StringBuilder out = new StringBuilder();
         for (ArmorRole role : ArmorRole.values()) {
             Map<Integer, Set<String>> byTier = matrix.getOrDefault(role, Map.of());
-            report.append(String.format("  %-10s", role.key));
+            out.append(String.format("  %-10s", role.key));
             for (int tier = 1; tier <= topTier; tier++) {
                 Set<String> cell = byTier.getOrDefault(tier, Set.of());
-                report.append(String.format(" | %d:%s", tier,
+                out.append(String.format(" | %d:%s", tier,
                         cell.isEmpty() ? "-" : String.valueOf(cell.size())));
             }
-            int tiersSpanned = byTier.size();
-            report.append(tiersSpanned <= 1 && role != ArmorRole.UNPOWERED
-                    ? "   <- confined to one tier\n" : "\n");
+            out.append('\n');
         }
-        System.out.println(report);
+        return out.toString();
     }
 
     private static Map<ArmorRole, Integer> countByRole(MarineArmorCatalogRegistry catalog) {
@@ -152,7 +222,7 @@ class ArmorCatalogShapeTest {
         return counts;
     }
 
-    private static String render(Map<ArmorRole, Integer> counts) {
+    private static String renderCounts(Map<ArmorRole, Integer> counts) {
         StringBuilder out = new StringBuilder();
         for (ArmorRole role : ArmorRole.values()) {
             if (out.length() > 0) out.append(", ");
