@@ -926,11 +926,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorCapacity": 5,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.9900000095367432,
+        "armorRating": 4,
         "campaignSoldierId": "full-strength-marine-040",
         "campaignSquad": {
           "fireTeamIndex": 0,
@@ -943,7 +943,7 @@
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": null
       },
@@ -1014,11 +1014,11 @@
         "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 17,
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorCapacity": 5,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.9900000095367432,
+        "armorRating": 4,
         "campaignSoldierId": "full-strength-marine-044",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -1031,7 +1031,7 @@
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": null
       },
@@ -4886,11 +4886,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorCapacity": 5,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.9900000095367432,
+        "armorRating": 4,
         "campaignSoldierId": "full-strength-marine-220",
         "campaignSquad": {
           "fireTeamIndex": 0,
@@ -4903,7 +4903,7 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": null
       },
@@ -4974,11 +4974,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorCapacity": 5,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.9900000095367432,
+        "armorRating": 4,
         "campaignSoldierId": "full-strength-marine-224",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -4991,7 +4991,7 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": null
       },
@@ -6734,11 +6734,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorCapacity": 5,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.9900000095367432,
+        "armorRating": 4,
         "campaignSoldierId": "full-strength-marine-304",
         "campaignSquad": {
           "fireTeamIndex": 0,
@@ -6751,7 +6751,7 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": "special.rocket-launcher"
       },
@@ -6822,11 +6822,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorCapacity": 5,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.9900000095367432,
+        "armorRating": 4,
         "campaignSoldierId": "full-strength-marine-308",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -6839,7 +6839,7 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "LIMITED",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": "special.anti-materiel-rifle"
       },

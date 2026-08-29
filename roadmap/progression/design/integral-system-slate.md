@@ -74,6 +74,14 @@ its fraction across its arc for the window's duration
 | `armor.foundry-breaker` | Pirate / Pather | **Breaching assist** | The crude copy, and the only one without a proper designation. The biggest raw shove in the family, over almost immediately, behind a sheet of scrap, followed by the longest sulk. |
 | `armor.vigil` | Sindrian Diktat | **Suppression brace** | The tier-III rung, and the only one. A shield and a shove, both adequate, neither remarkable — the version of the idea a state can afford to issue to everybody. |
 
+**A medic's value lands on somebody else.** Field aid is the only effect in the
+slate whose whole contribution goes to another marine, and the two rules that
+keep it honest are both in `FieldAidSpec`: the carrier is never their own
+patient, and the reach is short enough that the fiction stays a marine kneeling
+next to another marine rather than a turret with a healing beam. A self-healing
+version would be exactly the "more effective hit points" that
+{@code IntegralSystemEffect} forbids.
+
 **A capability ladders within its role.** The family spans three tiers now — the
 Kestrel riot shell at II, the Vigil at III, and the six battlesuits at IV — and
 the rule that binds them is that the *floor* rises: every suit at a tier is worth
@@ -102,11 +110,13 @@ suit is for.
 Not a family. Each is one capability on one named pattern, because that pattern
 is the one built for it.
 
-Two are shipped:
+Four are shipped:
 
 | Pattern | Tradition | System | The character it buys |
 | --- | --- | --- | --- |
 | `armor.aegis-composite` | Tri-Tachyon | **Predictive volley** | The Specter's threat display is spent on evasion because breaching is what that suit is *for*; the Aegis is a line suit built to present a difficult firing solution rather than to cross a room, so its own display is spent the other direction — locking a shot instead of dodging one. A small salvo of `weapon.micro-missile` rounds, self-targeted, from a rack of two that does not refill. |
+| `armor.orderly` | Luddic Church | **Parish aid** | A stretcher party that stayed on the field. Three dressings, a short reach, and a threshold that will not spend one on a scratch — the cheapest possible version of somebody stopping to help. |
+| `armor.corpsman` | Hegemony | **Corpsman kit** | The same act performed by somebody taught how and carrying enough to repeat it. Reaches further, is worth spending on a marine merely hurt rather than nearly finished, and does not run out halfway through the fight it was brought for. |
 | `armor.scout` | Tri-Tachyon (Janus) | **Aperture read** | The only system that changes nothing about a fight except what the player can see of it. One wide active return, spent when the scout is walking onto ground they cannot see into: it opens the room they are standing against and a short way past its nearer walls, and then the walls start working again. It costs a long recovery and buys no advantage that walking round the corner would not have bought. |
 
 That is a deliberate choice among three plausible homes. The faction lore
@@ -127,18 +137,24 @@ Both are candidates, gated on simulation work this doc doesn't own:
 | Pattern | Tradition | Candidate capability | Needs from the simulation |
 | --- | --- | --- | --- |
 | `armor.line` or `armor.furnace-line` | Hegemony or Sindrian Diktat | **Brace** — a line suit planting as a firing platform: markedly steadier, and committed to standing there. | A stance with a real movement cost; accuracy as a timed effect. `firing-platform-integral-systems.md` picks whichever of the two the stance actually suits. |
-| A SUPPORT pattern, tradition unpicked | — | **Field aid** — the squad medic: a marine who can put somebody back on their feet rather than watching them bleed out where they fell. | Casualties that are recoverable rather than only dead, and a wounded state with a clock on it. Nothing in the durability model expresses that today. |
+
 
 Holding ground moved to the line role once the assault heavies took breaching,
 and the split is better for it: **assault crosses, line holds.** That reads from
 the role name alone, which the earlier allocation did not.
 
-The medic is the same reasoning applied to the role `role-and-access.md` adds.
-A support suit is what the squad carries things for, and keeping people alive is
-the least replaceable of those things — but it is the one candidate here that
-needs a new *simulation* concept rather than a new number, because a marine
-today is alive or dead with nothing in between for a medic to act on. Recorded
-so the role has a destination, not because it is next.
+The medic is the same reasoning applied to the role `role-and-access.md` adds,
+and it shipped by looking at the wrong end of the problem first.
+
+It was parked because a marine here is alive or dead with nothing in between, so
+recovering casualties needs a concept the simulation does not have. That framing
+was the blocker, and it was avoidable: **the wounded are already there.** Every
+battle has troopers walking around at a third of their health, and a system that
+treats *them* needs nothing new at all. Handling bodies can wait for the concept
+that would make it possible; patching people up could not, and never needed to.
+
+Worth keeping as a general lesson: a capability parked behind a missing concept
+is worth re-reading for the version of itself that does not need it.
 
 Note also what the SUPPORT role fixes retroactively: the Aegis's pod is
 described above as "a deliberate choice among three plausible homes" that landed

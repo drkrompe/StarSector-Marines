@@ -101,6 +101,11 @@ class IntegralSystemPolicyTest {
                 case APPROACHING_DEAD_GROUND -> assertTrue(
                         system.approachingDeadGround().lookaheadCells() > 0f,
                         pattern.id() + " must author how far ahead it calls 'ahead'");
+                case WOUNDED_SQUADMATE_IN_REACH -> assertTrue(
+                        system.fieldAid().reachCells() > 0f
+                                && system.fieldAid().restoredHealth() > 0f,
+                        pattern.id() + " must author how far it will go and what a"
+                                + " dressing is worth");
                 default -> fail(pattern.id() + " declares a policy with no authored parameters: "
                         + system.aiPolicy().key);
             }
@@ -257,6 +262,104 @@ class IntegralSystemPolicyTest {
                 "a suit that looks eight cells ahead sees the wall six cells away");
         assertFalse(sweepSpendsItself(1, /*lookahead*/ 3f),
                 "one that looks three does not");
+    }
+
+    /**
+     * The medic's whole point: a squadmate who was bleeding is not, and it cost
+     * a dressing out of a finite satchel.
+     */
+    @Test
+    void aMedicTreatsTheWorstWoundedSquadmateWithinReach() {
+        BattleSimulation sim = arena();
+        long medic = sim.spawn(carrier("medic", Faction.MARINE)
+                .integralSystem(medicKit(/*reach*/ 5f, /*below*/ 0.6f, /*restores*/ 20f)));
+        long scratched = sim.spawn(patient("scratched", CARRIER_X + 1));
+        long bleeding = sim.spawn(patient("bleeding", CARRIER_X + 2));
+        sim.spawn(hostile(Faction.DEFENDER, CARRIER_X + 30));
+        advance(sim, 4);
+        sim.world().setHp(scratched, 90f);
+        sim.world().setHp(bleeding, 20f);
+
+        int dressings = sim.integralSystems().ammo(medic);
+        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
+
+        assertEquals(40f, sim.world().hp(bleeding), 1e-3f,
+                "the worst wounded squadmate is the one treated");
+        assertEquals(90f, sim.world().hp(scratched), 1e-3f,
+                "a marine above the authored threshold is not worth a dressing");
+        assertEquals(dressings - 1, sim.integralSystems().ammo(medic),
+                "treatment costs one dressing");
+    }
+
+    /** A satchel is not spent on people who are fine. */
+    @Test
+    void aSectionWithNobodyHurtEnoughKeepsItsDressings() {
+        BattleSimulation sim = arena();
+        long medic = sim.spawn(carrier("medic", Faction.MARINE)
+                .integralSystem(medicKit(5f, 0.6f, 20f)));
+        long fine = sim.spawn(patient("fine", CARRIER_X + 1));
+        sim.spawn(hostile(Faction.DEFENDER, CARRIER_X + 30));
+        advance(sim, 4);
+        sim.world().setHp(fine, 95f);
+
+        int dressings = sim.integralSystems().ammo(medic);
+        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
+        assertEquals(dressings, sim.integralSystems().ammo(medic));
+    }
+
+    /**
+     * Reach is short on purpose. A medic is a marine kneeling next to another
+     * marine, not a turret with a healing beam, so a casualty across the street
+     * is somebody else's problem.
+     */
+    @Test
+    void aWoundedMarineOutOfReachIsNotTreated() {
+        BattleSimulation sim = arena();
+        long medic = sim.spawn(carrier("medic", Faction.MARINE)
+                .integralSystem(medicKit(/*reach*/ 3f, 0.6f, 20f)));
+        long distant = sim.spawn(patient("distant", CARRIER_X + 12));
+        sim.spawn(hostile(Faction.DEFENDER, CARRIER_X + 30));
+        advance(sim, 4);
+        sim.world().setHp(distant, 20f);
+
+        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
+        assertEquals(20f, sim.world().hp(distant), 1e-3f);
+    }
+
+    /**
+     * The carrier is never their own patient. A medic who treated themselves
+     * first would be a self-heal wearing a squad system's name, and the value of
+     * the role is that it belongs to the section.
+     */
+    @Test
+    void aMedicWillNotTreatThemselves() {
+        BattleSimulation sim = arena();
+        long medic = sim.spawn(carrier("medic", Faction.MARINE)
+                .integralSystem(medicKit(5f, 0.6f, 20f)).hp(100f).maxHp(100f));
+        sim.spawn(hostile(Faction.DEFENDER, CARRIER_X + 30));
+        advance(sim, 4);
+        sim.world().setHp(medic, 15f);
+
+        int dressings = sim.integralSystems().ammo(medic);
+        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
+        assertEquals(15f, sim.world().hp(medic), 1e-3f,
+                "the medic is bleeding and the satchel stays shut");
+        assertEquals(dressings, sim.integralSystems().ammo(medic));
+    }
+
+    /** A dressing tops a marine up rather than over. */
+    @Test
+    void treatmentNeverPushesAPatientPastTheirOwnMaximum() {
+        BattleSimulation sim = arena();
+        long medic = sim.spawn(carrier("medic", Faction.MARINE)
+                .integralSystem(medicKit(5f, 0.9f, /*restores*/ 500f)));
+        long patient = sim.spawn(patient("patient", CARRIER_X + 1));
+        sim.spawn(hostile(Faction.DEFENDER, CARRIER_X + 30));
+        advance(sim, 4);
+        sim.world().setHp(patient, 50f);
+
+        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
+        assertEquals(sim.world().maxHp(patient), sim.world().hp(patient), 1e-3f);
     }
 
     // ---------------------------------------------------------------- defenders
@@ -571,6 +674,37 @@ class IntegralSystemPolicyTest {
             return IntegralSystemDef.parse(breacherAssistJson()
                     .put("incomingPressureThreshold", pressureThreshold)
                     .put("maxCoverLevel", maxCoverLevel), "armor.test");
+        } catch (JSONException failure) {
+            throw new AssertionError("test fixture should parse", failure);
+        }
+    }
+
+    /**
+     * A squadmate who spawns whole. Tests wound them after the arena has
+     * settled, because the medic is a live system in live ticks: a marine who
+     * spawns bleeding has already been treated by the time anything is read.
+     */
+    private static EntitySpec patient(String id, int cellX) {
+        return new EntitySpec(id, Faction.MARINE, UnitType.MARINE, cellX, ROW)
+                .moveSpeed(0f).hp(100f).maxHp(100f);
+    }
+
+    private static IntegralSystemDef medicKit(float reachCells, float belowFraction,
+                                              float restoredHealth) {
+        try {
+            return IntegralSystemDef.parse(new JSONObject()
+                    .put("id", "system.test-aid")
+                    .put("grade", "service")
+                    .put("displayName", "Test aid")
+                    .put("description", "A satchel and somebody willing to kneel down.")
+                    .put("effect", "field-aid")
+                    .put("resource", "ammunition")
+                    .put("policy", SpecialAiPolicy.WOUNDED_SQUADMATE_IN_REACH.key)
+                    .put("reachCells", reachCells)
+                    .put("treatBelowHealthFraction", belowFraction)
+                    .put("restoredHealth", restoredHealth)
+                    .put("durationSeconds", 1.5)
+                    .put("startingAmmo", 3), "armor.test");
         } catch (JSONException failure) {
             throw new AssertionError("test fixture should parse", failure);
         }
