@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.command.compound;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -12,17 +11,21 @@ import java.util.Set;
 
 /**
  * Slow-tick consumer that drives the compound capture state machine. Each
- * cadence period it samples per-compound zone occupancy via
- * {@link ZoneQueries#zoneClear} and writes the resulting state /
+ * cadence period it samples per-compound occupancy via
+ * {@link CompoundService#occupiedBy} and writes the resulting state /
  * hold-timer / capture-progress back to {@link CompoundService}.
  *
  * <p>Cadence mirrors
  * {@link com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService}
  * — 1 Hz. Capture is inherently slow (a few seconds of "hold the room");
- * the slower poll keeps the per-compound {@code zoneClear} scan off the
+ * the slower poll keeps the per-compound occupancy scan off the
  * per-frame hot path. The system is stateless w.r.t. game state — the
  * accumulator field is pure tick-pacing plumbing, same shape as the
  * accumulator in {@link com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService}.
+ *
+ * <p>Occupancy is scoped to the compound's own footprint as well as its
+ * room — see {@link CompoundService#occupiedBy} for why an open compound
+ * such as an airfield is otherwise permanently contested.
  *
  * <p>The same state machine handles capture and recapture. A defender
  * re-entering a marine-held compound returns it to {@code CONTESTED}; the
@@ -44,7 +47,7 @@ public final class CompoundCaptureSystem {
     /**
      * Advance the capture state machine. Accumulates {@code dt} and only
      * walks the record list when the cadence period elapses; per-cell
-     * occupancy reads (via {@link ZoneQueries#zoneClear}) iterate the live
+     * occupancy reads (via {@link CompoundService#occupiedBy}) iterate the live
      * unit list once per compound per slow tick.
      */
     public void tick(float dt, BattleView sim, CompoundService service) {
@@ -69,8 +72,10 @@ public final class CompoundCaptureSystem {
                 continue;
             }
 
-            boolean defendersPresent = !ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim);
-            boolean marinesPresent   = !ZoneQueries.zoneClear(zoneId, Faction.MARINE, sim);
+            boolean defendersPresent = CompoundService.occupiedBy(
+                    r, zoneId, Faction.DEFENDER, sim);
+            boolean marinesPresent = CompoundService.occupiedBy(
+                    r, zoneId, Faction.MARINE, sim);
 
             switch (r.state) {
                 case DEFENDER_HELD -> {
