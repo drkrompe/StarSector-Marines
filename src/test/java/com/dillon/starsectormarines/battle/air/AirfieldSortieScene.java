@@ -139,9 +139,10 @@ final class AirfieldSortieScene {
         // states the rectangle and gets the same base. Set back from the
         // marines' spawn edge so the crew's walk is the subject rather than a
         // step: in a ward the base is in the rear and that walk is short.
+        AirbaseLot.Size size = AirbaseLot.Size.FIELD;
         AirbaseLot lot = new AirbaseLot(LOT_LEFT, LOT_BOTTOM,
-                LOT_LEFT + AirbaseLot.WIDTH - 1, LOT_BOTTOM + AirbaseLot.DEPTH - 1,
-                TraversalAxis.SOUTH_TO_NORTH);
+                LOT_LEFT + size.width - 1, LOT_BOTTOM + size.depth - 1,
+                AirbaseLot.Facing.SOUTH, size);
         lot.author(gen, new Random(seed));
         rememberPads(gen.landingPads);
 

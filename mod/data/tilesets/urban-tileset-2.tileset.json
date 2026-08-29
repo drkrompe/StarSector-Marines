@@ -71,19 +71,19 @@
   "cells": [
     {
       "col": 0,
-      "description": "turret-bow-nw",
+      "description": "turret-bow-nw · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "name": "road.courtyard nw",
       "row": 0
     },
     {
       "col": 1,
-      "description": "turret-bow-n",
+      "description": "turret-bow-n · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "name": "road.courtyard n",
       "row": 0
     },
     {
       "col": 2,
-      "description": "turret-bow-ne",
+      "description": "turret-bow-ne · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "name": "road.courtyard ne",
       "row": 0
     },
@@ -149,13 +149,13 @@
     },
     {
       "col": 0,
-      "description": "turret-bow-w",
+      "description": "turret-bow-w · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "name": "road.courtyard w",
       "row": 1
     },
     {
       "col": 2,
-      "description": "turret-bow-e",
+      "description": "turret-bow-e · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "name": "road.courtyard e",
       "row": 1
     },
@@ -209,19 +209,19 @@
     },
     {
       "col": 0,
-      "description": "turret-bow-sw",
+      "description": "turret-bow-sw · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "name": "road.courtyard sw",
       "row": 2
     },
     {
       "col": 1,
-      "description": "turret-bow-s",
+      "description": "turret-bow-s · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "name": "road.courtyard s",
       "row": 2
     },
     {
       "col": 2,
-      "description": "turret-bow-se",
+      "description": "turret-bow-se · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "name": "road.courtyard se",
       "row": 2
     },

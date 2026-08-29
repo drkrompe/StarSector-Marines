@@ -4,9 +4,8 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — the airbase lot gained a control tower, bays inside its
-hangars, gates on every side, reserved clearance outside its fence, and markings
-laid as floor rather than as ground.
+Updated: 2026-08-29 — the airbase lot comes in two sizes, the compact one a
+runway-less landing site, with every invariant asserted at both.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -309,6 +308,16 @@ map worse in exchange for reading well. It also carries **a gate on every side**
 front and back are how the base is used, and the two ends are how everybody else
 gets past it.
 
+**A facility is made of distinct surfaces, and there are four of them because a
+reader has to tell them apart at map zoom.** The apron is asphalt; the runway is
+a *different* tarmac rather than the apron with paint on it, because a strip is a
+different piece of civil engineering from the ground beside it; buildings take an
+indoor floor, since what makes a shed read as a building from above is that the
+surface changes at its wall; and the clearance outside the fence is the city's
+own sidewalk. Reaching for a ground kind by how it looks today is how a verge
+ends up paved in the polished tile every civic interior uses — a surface that
+says "indoors" everywhere else does not stop saying it out here.
+
 **Markings are laid on a surface, not made of it.** A runway or a berth painted
 as a ground *kind* is only visible while it contrasts with the ground beside it,
 and the ground palette is not any one feature's to hold still: a re-export of the
@@ -317,6 +326,35 @@ without touching a line of the airbase. Paint goes on top, as floor, which is
 also how a ship's deck marks a machine bay — a striped edge round a clear middle,
 because the middle is where the thing stands and a filled rectangle would be
 drawn over by it.
+
+The lot comes in **sizes**, and they are the same laws at two scales rather than
+two designs. Berths on the apron and never inside a shed, a marked bay in each
+shed with the work arranged round it, a gate on every side, clear ground
+reserved outside the fence, markings laid as floor — those are properties of an
+airbase, not of a big one, and every one of them is asserted at every size on
+both traversal axes. What changes is how much of it there is. The full field is
+an installation: a runway, three berths, two sheds, a tower and a vehicle park.
+The compact site is two berths, one shed, and no strip at all, in about two
+fifths of the ground.
+
+The lot also **turns**. Its pieces are all placed in its own frame — along the
+frontage and into the depth, never in map x and y — so facing it any of four
+ways is a change to two accessors and everything follows. A site anywhere but a
+fortress ward fronts onto whatever it was built along, and that can be any
+direction.
+
+**A quarter turn is a rotation; a half turn must be a mirror.** Props are drawn
+lit from one direction, so turning a vehicle through a hundred and eighty
+degrees lights it from underneath and it reads as upside down. Mirroring turns
+it round and keeps the light where it was. A vertical flip through a half turn
+is the horizontal mirror that does it.
+
+**A site with no runway is not a diminished airfield; it is what most airbases
+are.** Aircraft that land vertically need somewhere to stand and somewhere to be
+worked on, and a strip is what gets added when something has to roll. The
+compact size therefore fits where the full one cannot — a city block, a
+compound's yard, a map that is not a fortress — and it is the shape a player's
+own arrival wants: a berth, its servicing, and a fence round the lot.
 
 The lot knows nothing about where its rectangle came from, so a fortress ward, a
 city compound, or a future installation map can each reserve one and hand it

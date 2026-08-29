@@ -81,6 +81,17 @@ public final class DoodadRenderSystem implements RenderSystem {
         int sourceHeight = cell * d.sourceCellsY;
         float cx = cam.cellToScreenX(d.cellX + d.footprintCellsX * 0.5f);
         float cy = cam.cellToScreenY(d.cellY + d.footprintCellsY * 0.5f);
+        if (d.mirrored) {
+            // A vertical flip through a half turn is a horizontal mirror, which
+            // is what a prop drawn from one side needs to face the other way.
+            // Rotating it instead lights it from underneath.
+            out.addSheetQuadFlippedV(RenderLayer.DOODADS, sheet,
+                    srcX, srcY, sourceWidth, sourceHeight,
+                    cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY,
+                    d.quarterTurns * 90f + 180f,
+                    1f, 1f, 1f, alphaMult);
+            return;
+        }
         out.addSheetQuad(RenderLayer.DOODADS, sheet,
                 srcX, srcY, sourceWidth, sourceHeight,
                 cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY,

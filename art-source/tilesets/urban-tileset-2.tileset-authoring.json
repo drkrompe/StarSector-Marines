@@ -53,7 +53,7 @@
       ],
       "id": "doodad.road.c0r0",
       "included": true,
-      "note": "turret-bow-nw",
+      "note": "turret-bow-nw · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "rect": [
         0,
         0,
@@ -71,7 +71,7 @@
       ],
       "id": "doodad.road.c1r0",
       "included": true,
-      "note": "turret-bow-n",
+      "note": "turret-bow-n · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "rect": [
         32,
         0,
@@ -89,7 +89,7 @@
       ],
       "id": "doodad.road.c2r0",
       "included": true,
-      "note": "turret-bow-ne",
+      "note": "turret-bow-ne · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "rect": [
         64,
         0,
@@ -348,7 +348,7 @@
       ],
       "id": "doodad.road.c0r1",
       "included": true,
-      "note": "turret-bow-w",
+      "note": "turret-bow-w · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "rect": [
         0,
         32,
@@ -366,6 +366,7 @@
       ],
       "id": "doodad.road.c1r1",
       "included": false,
+      "note": "DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "rect": [
         32,
         32,
@@ -383,7 +384,7 @@
       ],
       "id": "doodad.road.c2r1",
       "included": true,
-      "note": "turret-bow-e",
+      "note": "turret-bow-e · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "rect": [
         64,
         32,
@@ -641,7 +642,7 @@
       ],
       "id": "doodad.road.c0r2",
       "included": true,
-      "note": "turret-bow-sw",
+      "note": "turret-bow-sw · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "rect": [
         0,
         64,
@@ -659,7 +660,7 @@
       ],
       "id": "doodad.road.c1r2",
       "included": true,
-      "note": "turret-bow-s",
+      "note": "turret-bow-s · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "rect": [
         32,
         64,
@@ -677,7 +678,7 @@
       ],
       "id": "doodad.road.c2r2",
       "included": true,
-      "note": "turret-bow-se",
+      "note": "turret-bow-se · DOUBLE DUTY: this ring is also the \"bow out\" heavy cover DefensePostStamper rings WEDGE and TRAPEZOID turret emplacements with, resolved by the same mask through TileManifest.turretBowOut. Changing this art changes both a ground surface and a piece of defensive cover.",
       "rect": [
         64,
         64,

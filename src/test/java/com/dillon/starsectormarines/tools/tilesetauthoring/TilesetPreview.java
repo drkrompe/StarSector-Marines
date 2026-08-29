@@ -160,7 +160,7 @@ public final class TilesetPreview {
     }
 
     /** Cells across the smallest room that exercises every case of a 3x3 layout. */
-    private static final int ROOM_SPAN = 3;
+    static final int ROOM_SPAN = 3;
 
     /**
      * Draw one block as a room three cells on a side.
@@ -171,7 +171,7 @@ public final class TilesetPreview {
      * reads it: the exterior lies beyond whichever sides of the room this cell
      * sits on.
      */
-    private static void drawBlockRoom(Graphics2D g, TileSink sink, FixedGridTileDrawer drawer,
+    static void drawBlockRoom(Graphics2D g, TileSink sink, FixedGridTileDrawer drawer,
                                       GridBlockDef block, int originPx, int topPx, int screenCellPx) {
         for (int row = 0; row < ROOM_SPAN; row++) {
             for (int col = 0; col < ROOM_SPAN; col++) {

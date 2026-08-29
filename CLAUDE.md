@@ -140,15 +140,49 @@ Do not run builds or leave generated task files there.
   `tileset_measure` tool measures a sheet and drafts its authoring seed, and
   `ProjectTilesetSeedsTest` fails the build for raw art that arrives without
   one.
-  The Tilesets page turns a raw art sheet into a loadable tileset. It lists every
-  sheet under `art-source/tilesets/` with its state — raw, seeded, annotated,
-  exported — so sheets are picked from the project rather than browsed for.
-  Its **Surfaces** tab is the same workspace entered from the other end: pick
-  what is needed — a wall, a floor — and it lists every block that could fill it
-  across all sheets, marking the one the mapping uses and whether its slicing can
-  be edited. Opening a candidate loads the sheet it was cut from with its slots
-  already selected. A block that exists only in an exported tileset can be seen
-  but not re-cut, and the panel says so instead of offering a dead edit.
+  The Tilesets page opens on a question rather than on a workspace: **what are
+  you doing?** Three ways in, each a walkthrough of numbered screens with Back
+  and Next, and each screen holding only the controls its own step needs. The
+  page used to present every command at once on one toolbar — seventeen controls
+  in the order they were written, with the cut, the annotation, the grouping and
+  the export interleaved — which is a palette for somebody who already knows the
+  procedure and nothing at all for somebody who does not.
+  **What can be a wall?** is about the surface, not about sheets. Screen one is
+  a grid of every `GroundKind` and `SurfaceRole` the generator can ask for, each
+  showing a 100px picture of whatever is drawn for it today, grouped
+  **Structure** then **Outdoors** and within each **Walls / Floors / Other**.
+  That grouping is a browsing aid owned by the tool, not vocabulary the game
+  consults — nothing resolves differently because a surface is filed under
+  Outdoors — and it is kept off `GroundKind` and `SurfaceRole` for exactly that
+  reason. Every surface must be filed explicitly; `SurfaceCategoryTest` fails
+  the build for one that is not, because where a surface belongs is a judgement
+  and there is nothing to derive it from. A preview paints the block's
+  `fillRgb` behind its cells, since that fill is what the renderer draws for the
+  case a hollow layout leaves empty — most of a courtyard is the fill, and shown
+  on a transparency checker it reads as an earthwork rather than paving. Screen two is **the set**: every block in the project that could fill
+  that surface, whichever sheet it is on, as a grid of pictures — because
+  `urban.wall` and `road.embankment` are both walls and are nothing alike to
+  look at. The one in use comes up selected and is drawn large beside the grid
+  **as a room**, three cells on a side, which is the only view that shows a
+  mirrored wall.
+  Four things can be done to the set. **Draw this one** points the surface at
+  the chosen block by editing the mapping in place — a surgical replacement of
+  one value, validated against the real catalog before it lands, because
+  re-serialising that file would reorder every key in it. **Add one from a
+  sheet…** hands off to the ingest walkthrough, which is the only place sheets
+  appear in this flow. **Open its sheet** loads the block's document with its
+  slots already selected. **Remove from the set** dissolves the block, giving
+  its pieces back as doodads; it is refused while the mapping still points
+  there, since a surface with no block is a startup crash.
+  **New art arrived** is the ingest sequence: pick a sheet, find the pieces,
+  say what each piece is, group blocks, name and size the output, save and
+  export. A screen will not advance until it has been answered, and says what it
+  wants rather than grepping out a disabled button — "Slice or split the sheet
+  so it has pieces to annotate".
+  **Just look at it** opens a sheet and shows the tileset as the game loads it
+  and a generated map drawn with it. Nothing on those screens writes.
+  The sheet list itself is found rather than browsed for: every sheet under
+  `art-source/tilesets/` with its state — raw, seeded, annotated, exported.
   Dropping a raw sheet there is enough to make it appear; a hand-written document
   carrying settings but no pieces is a valid seed and is sliced on open.
   The page finds pieces by keying on alpha and proposes a footprint for each from
@@ -177,10 +211,15 @@ Do not run builds or leave generated task files there.
   which the packer places as one contiguous patch. A block declared with layout
   `variants` is instead a pool of interchangeable ground tiles picked by hashing
   the cell — slots `v1`, `v2`, ... — written as an explicit cell list and packed
-  as a run, which is the shape `water.water` and the `floors.*` families load in. A sheet whose document carries a
+  as a run, which is the shape `water.water` and the `floors.*` families load in.
+  A sheet whose document carries a
   `strip` block exports as a sliced auto-strip instead: frames in a row at an
   authored scale, addressed by frame index rather than `(col, row)`, which is
-  the shape `urban-tileset-3` and `nature-tiles` load in. Export writes a packed
+  the shape `urban-tileset-3` and `nature-tiles` load in. A frame may declare a
+  `material` — its picture comes from a tileable file rather than from the plate
+  — or a `spriteBorderPx`, which mirrors away the drawn rim that would otherwise
+  tile as a lattice; both work on either shape, and a piece claiming neither is
+  packed as it was cut. Export writes a packed
   atlas holding only
   the included pieces, its `*.tileset.json`, and a generated `*.tileset.md`
   catalog card; the atlas goes to `graphics/tilesets/` when the sheet declares
