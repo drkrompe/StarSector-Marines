@@ -157,7 +157,7 @@ public final class UrbanMapGenerator implements MapGenerator {
 
         List<Doodad> doodads = scatterDoodads(grid, pois, poiThemes, rng);
         for (int[] plaza : skyPortPlazas) {
-            doodads.add(new Doodad(plaza[0], plaza[1], TileManifest.LZ_PAD, true, Doodad.COVER_NONE));
+            doodads.add(new Doodad(plaza[0], plaza[1], TileManifest.lzPad(), true, Doodad.COVER_NONE));
         }
 
         int[] marine   = pickSpawnAnchor(grid, skyPortPlazas, 1, 1, width / 2,        height - 1, rng);

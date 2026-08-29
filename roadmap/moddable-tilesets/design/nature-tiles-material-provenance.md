@@ -98,13 +98,25 @@ The alternatives, kept because the reasoning is what makes the choice legible:
   frames 15 through 19 were checked against the pictures and were already
   right, so this was one misnamed frame rather than a shift running through the
   range.
-- **`urban-tileset-2` cannot be migrated, and that is not a scheduling
-  question.** Only a 3x3 patch of it has raw art in the project:
-  `normalize_spaceport_apron.py` composites nine downsampled panels into columns
-  6 through 8 and leaves the rest of the sheet alone. The other 42 cells have no
-  master under `art-source/` at all — the shipped PNG is the only copy. Nothing
-  can export it until that art exists, so the circularity there is not a
-  producer to retire but a gap in the sources.
+- **`urban-tileset-2` had no master, so the shipped atlas became one.**
+  Adopted 2026-08-29. Only a 3x3 patch of it had raw art:
+  `normalize_spaceport_apron.py` composited nine downsampled panels into columns
+  6 through 8 and never touched the other 42 cells, whose only copy was the file
+  in `mod/graphics`. Copying that file to `art-source/` and cutting it 1:1 is
+  what made the sheet exportable at all — there was nothing else to export from.
+  Adopting a shipped file as its own source is worth doing only under that
+  condition and only at 1:1: nothing is resampled and nothing re-keyed, so the
+  adoption is provable rather than merely plausible. It was proved — every
+  visible pixel is unchanged, alpha included; the only differences are 1187
+  fully transparent pixels whose leftover colour is now zero.
+
+  Packing it revealed what a script-produced sheet can hide. Ten cells the game
+  draws were in no tileset at all: `DefensePostStamper` reached the turret
+  embankment and the vent grate through raw `(col, row)` constants in
+  `TileManifest`, and `road.courtyard`'s nine cells were reached a second time,
+  by coordinate, as the "bow out" embankment. Exporting only the declared blocks
+  dropped them, which is how they were found. They are `road.embankment` and
+  `road.vent` now, and all of them resolve by id.
 - **`floor-materials` is still a second producer, of a different sheet.**
   `Floors_Tiles.png` is a fixed-grid sheet still produced by
   `normalize_tilesets.py` and its materials are still pasted in by the manifest,

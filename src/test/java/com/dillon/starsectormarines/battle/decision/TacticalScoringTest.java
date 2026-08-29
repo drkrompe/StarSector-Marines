@@ -69,7 +69,7 @@ public class TacticalScoringTest {
         assertEquals(Doodad.COVER_MED,   new Doodad(3, 3, reg.doodad("doodad.box")).cover);
         assertEquals(Doodad.COVER_HEAVY, new Doodad(4, 4, reg.doodad("doodad.shelf-dam-1")).cover);
         assertEquals(Doodad.COVER_LIGHT, new Doodad(5, 5, reg.doodad("doodad.decal-rubble-1")).cover);
-        assertEquals(Doodad.COVER_NONE,  new Doodad(6, 6, TileManifest.LZ_PAD, true, Doodad.COVER_NONE).cover);
+        assertEquals(Doodad.COVER_NONE,  new Doodad(6, 6, TileManifest.lzPad(), true, Doodad.COVER_NONE).cover);
     }
 
     @Test
