@@ -64,7 +64,13 @@
     { "equipmentId": "armor.foundry-breaker", "accessTier": "prestige", "issueCost": { "supplies": 3, "heavyArmaments": 2, "heavyMachinery": 3 } },
     { "equipmentId": "armor.outlaw", "accessTier": "common", "issueCost": { "supplies": 1 } },
     { "equipmentId": "armor.line", "accessTier": "advanced", "issueCost": { "supplies": 2, "heavyMachinery": 1 } },
-    { "equipmentId": "armor.militia", "accessTier": "common", "issueCost": { "supplies": 1 } }
+    { "equipmentId": "armor.militia", "accessTier": "common", "issueCost": { "supplies": 1 } },
+    { "equipmentId": "armor.riot-shell", "accessTier": "common", "issueCost": {"supplies": 1} },
+    { "equipmentId": "armor.packframe", "accessTier": "common", "issueCost": {"supplies": 1} },
+    { "equipmentId": "armor.pathfinder", "accessTier": "advanced", "issueCost": {"supplies": 2, "heavyMachinery": 1} },
+    { "equipmentId": "armor.redoubt", "accessTier": "prestige", "issueCost": {"supplies": 3, "heavyArmaments": 1, "heavyMachinery": 2} },
+    { "equipmentId": "armor.outrider", "accessTier": "prestige", "issueCost": {"supplies": 3, "heavyMachinery": 3} },
+    { "equipmentId": "armor.arbalest", "accessTier": "prestige", "issueCost": {"supplies": 4, "heavyArmaments": 2, "heavyMachinery": 2} }
   ],
   "specialEquipment": [
     { "equipmentId": "special.rocket-launcher", "accessTier": "advanced", "issueCost": { "supplies": 3, "heavyArmaments": 2, "heavyMachinery": 1 } },
