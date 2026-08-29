@@ -361,7 +361,7 @@ public class MarineOpsContext {
      */
     boolean shipGettingReady() {
         CompanyDeck ship = companyDeck();
-        return ship != null && !ship.ready();
+        return ship != null && ship.gettingReady();
     }
 
     /** Opens the owned-company landing view used by the campaign Company HQ. */
