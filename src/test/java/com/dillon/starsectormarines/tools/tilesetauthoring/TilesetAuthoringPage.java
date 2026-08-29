@@ -300,7 +300,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                         "Every block in the project that could fill this surface, whichever "
                                 + "sheet it is on. Choose which one is drawn, or add another.",
                         this::surfaceSetBody)
-                        .onEnter(this::describeSurfaceSet)
+                        .onEnter(this::showSurfaceSet)
                         .blockedWhen(() -> {
                             SurfaceCatalog.Candidate picked = surfaces.selectedCandidate();
                             if (picked == null) return "Pick one of them";
@@ -395,6 +395,20 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 button("Add one from a sheet…", () -> enterWorkflow(TilesetWorkflow.SHEET)),
                 button("Remove from the set", this::removeSelectedCandidate)));
         return surfaces.setScreen();
+    }
+
+    /**
+     * Re-read the set on the way in, then say what it holds.
+     *
+     * <p>A screen shows what is true when it is arrived at. Coming back here
+     * from the cut screen means an export may have happened in between, and the
+     * set is exactly what that changes.
+     */
+    private void showSurfaceSet() {
+        SurfaceCatalog.Purpose was = surfaces.selectedPurpose();
+        rescanSurfaces();
+        if (was != null) surfaces.select(was.name());
+        describeSurfaceSet();
     }
 
     /** Say what the chosen set holds, so the status line is not stale from the screen before. */
@@ -1348,6 +1362,10 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             // would not have chosen is a startup crash, not a visible difference.
             TilesetOperations.ExportResult exported =
                     TilesetOperations.export(context.projectRoot(), currentDocument(), source);
+            // The atlas on disk is a different file now, and the catalog about to
+            // be re-read describes the new packing. A picture held from the old
+            // one would be drawn at the new coordinates.
+            blockPreviews.forget();
             rescanLibrary();
             context.reportStatus("Wrote " + exported.atlasPath() + ", "
                     + exported.tilesetPath() + " and " + exported.cardPath());
