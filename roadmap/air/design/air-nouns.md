@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — a parked airframe destroyed on its stand goes up, and the fire is worth standing back from.
+Updated: 2026-08-30 — the hull an airframe leaves on its stand stays there, charred.
 
 ## Purpose
 
@@ -117,7 +117,7 @@ can burn what is standing on it without going indoors — the exposure is the
 point, and it is what makes a raid on the field a real alternative to taking the
 compound. `mapgen-nouns.md` owns the lot's geometry.
 
-Three rules give the field its stakes:
+Four rules give the field its stakes:
 
 - **The hull is continuous.** An aircraft that comes home shot up parks shot up,
   and is written off on the ground by that much less fire. A sortie flies the
@@ -144,6 +144,17 @@ around it and stops short of the next hardstand, which an authored field puts
 eight cells away. A blast that took its neighbours with it would make one
 satchel worth an entire airfield and delete the only decision a raid contains,
 which is how much of the field to spend the visit on.
+
+**The wreck stays on the concrete.** What the fire leaves is the aircraft's own
+hull, charred — the same sprite drawn dark, at the place and bearing it was
+standing, for the rest of the battle. The smoke that marks a fresh kill burns
+out in half a minute, and with nothing permanent behind it a burned field looks
+exactly like a field whose aircraft happen to be away, which is precisely the
+question a raider walked over there to settle. It is drawn off the berth rather
+than off the airframe, because the airframe is dead, released and gone by the
+time anybody looks at the pad again, and the berth is the thing that outlives
+what stands on it. An aircraft lost over the objective leaves an empty stand:
+the same terminal state, and deliberately not the same picture.
 
 Every way a sortie can end draws one distinction: a craft that reached its own
 pad is an aircraft home from a job, and one that ended any other way is an

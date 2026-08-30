@@ -39,8 +39,11 @@ public final class AirfieldSystem {
                 case PARKED -> {
                     if (berth.airframeId != 0L && !sim.world().isAlive(berth.airframeId)) {
                         // Burned where it stood. The berth is written off for
-                        // the battle; nothing replaces it.
-                        service.destroyed(berth);
+                        // the battle, nothing replaces it, and the hulk stays
+                        // on the concrete — this is the one death path that
+                        // leaves wreckage on a pad, so it is the one that says
+                        // so.
+                        service.burnedOnPad(berth);
                     } else if (berth.airframeId == 0L) {
                         place(sim, service, berth);
                     }
