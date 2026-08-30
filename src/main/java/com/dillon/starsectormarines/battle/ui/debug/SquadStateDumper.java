@@ -61,6 +61,12 @@ import java.util.Map;
  * the user wants to capture "why is this squad doing X right now" for
  * offline inspection. Overwrites on each click; copy the file out of
  * common/ if you want a history.
+ *
+ * <p>Every section but one is a single instant, which answers "why X" and not
+ * "why X, then Y, then X again". The panel therefore drives a
+ * {@link SquadOrderRecorder} over the frames leading up to the write and hands
+ * it in, adding an {@code orderHistory} section that tallies the orders the
+ * squad actually held across the window.
  */
 @DebugOnly
 public final class SquadStateDumper {
@@ -82,6 +88,22 @@ public final class SquadStateDumper {
      */
     public static String dump(Squad squad, BattleSimulation sim, WorldState worldState,
                               long selectedUnitEntityId) {
+        return dump(squad, sim, worldState, selectedUnitEntityId, null);
+    }
+
+    /**
+     * As {@link #dump(Squad, BattleSimulation, WorldState, long)}, plus an
+     * {@code orderHistory} section built by a {@link SquadOrderRecorder} that
+     * watched this squad over the frames leading up to the write.
+     *
+     * <p>Everything else in the dump is a single instant, which cannot show a
+     * squad swapping orders several times a second — the recorder's tallies
+     * are the only part of the file that can. {@code recorder} may be
+     * {@code null}, in which case the section is omitted entirely rather than
+     * written empty.
+     */
+    public static String dump(Squad squad, BattleSimulation sim, WorldState worldState,
+                              long selectedUnitEntityId, SquadOrderRecorder recorder) {
         if (squad == null || sim == null) return null;
         try {
             JSONObject root = new JSONObject();
@@ -91,6 +113,7 @@ public final class SquadStateDumper {
             root.put("members", buildMembersJson(squad, sim, selectedUnitEntityId));
             root.put("currentGoal", buildGoalJson(squad));
             root.put("currentPlan", buildPlanJson(squad, sim));
+            if (recorder != null) root.put("orderHistory", recorder.toJson());
             root.put("worldState", buildPredicateJson(worldState));
             JSONObject clearZone = buildClearZoneReachabilityJson(squad, sim);
             if (clearZone != null) root.put("clearZoneReachability", clearZone);
