@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 /**
@@ -109,7 +110,31 @@ public final class ShuttleRenderSystem implements RenderSystem {
 
             emitTurrets(out, cam, cellPx, alphaMult, body, scaleMult, altOffset,
                     ctx.sim.getAirTurretMounts(id));
+
+            // Durability, for as long as it is on the map — in the air as much
+            // as on its wheels. An aircraft used to carry a bar only while it
+            // was a parked grid unit, so the whole airborne part of its life,
+            // which is the part somebody is shooting at, showed nothing.
+            emitDurability(out, cx, cy, pxH, pxW, alphaMult,
+                    world.airFaction(id), mission.hp, frame.maxHp());
         }
+    }
+
+    /**
+     * Draws the aircraft's structure bar under its hull.
+     *
+     * <p>Sized and placed off the <em>drawn</em> hull rather than off the cell
+     * grid, so the bar tracks the altitude zoom and the altitude Y-offset
+     * instead of sitting under where the aircraft would be if it were on the
+     * ground. An airframe with no stated maximum draws nothing, which is
+     * {@link DurabilityBarDecor}'s own rule rather than a second one here.
+     */
+    private static void emitDurability(DrawList out, float cx, float cy,
+                                       float pxH, float pxW, float alphaMult,
+                                       Faction faction, float hp, float maxHp) {
+        float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
+        DurabilityBarDecor.emit(out, RenderLayer.SHUTTLES, Allegiance.of(faction),
+                cx, barY, pxW, hp, maxHp, alphaMult);
     }
 
     private void emitTurrets(DrawList out, BattleCamera cam, float cellPx, float alphaMult,
