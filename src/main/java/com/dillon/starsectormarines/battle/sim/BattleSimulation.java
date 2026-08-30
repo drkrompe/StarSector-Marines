@@ -59,6 +59,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSyste
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
+import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -899,6 +900,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Fire-burst events emitted by smoking wrecks during the last advance (burn phase only). Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
     public List<float[]> getFireBurstsThisFrame() { return effects.getFireBurstsThisFrame(); }
     public List<float[]> getHeavyImpactsThisFrame() { return effects.getHeavyImpactsThisFrame(); }
+    /** Rounds an aircraft (or any other carrier) put on the ground during the last advance. Presentation only — the delivery itself already resolved. */
+    public List<OrdnanceRelease> getOrdnanceReleasesThisFrame() { return effects.getOrdnanceReleasesThisFrame(); }
     /** Wall-collapse dust-burst events queued this advance. Each entry is {x, y} at the collapsed cell's center. Drained by {@code FlybyOverlay} which owns the dust-particle pool. */
     public List<float[]> getWallDustsThisFrame() { return effects.getWallDustsThisFrame(); }
 

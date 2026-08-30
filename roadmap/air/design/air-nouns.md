@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — an aircraft on its wheels can actually be shot at.
+Updated: 2026-08-30 — a gun run can be seen and heard.
 
 ## Purpose
 
@@ -289,6 +289,39 @@ Measured on a lattice of markers under one pass, the kinds come out visibly
 apart: a beam lands **about half as wide across the run** as a cannon does
 (1.0 cells against 1.9), which is the difference between painting a line and
 throwing craters.
+
+**And they are told apart at a glance and with your eyes shut.** A delivery is
+a thing to watch: the round leaves the nose, crosses open ground, and arrives.
+The three kinds get three pictures and three sounds rather than one effect
+scaled by calibre, because that difference is the only way a player reads which
+aircraft is over them. A cannon throws a fast stream of hot streaks that arrive
+short of where they were aimed and kick up dirt, under a thinned burst of gun
+fire. A beam is a narrow line that is simply *there* the instant it is
+released, dragged along under one held tone. A stick of bombs falls visibly —
+long enough to watch it come down — and lands as the same blast an airframe
+cooking off on its stand makes.
+
+The presentation keys on the **delivery**, not on the carrier. A shell, a beam
+and a bomb are what the effects are chosen by; nothing in the treatment knows
+an aircraft exists, so a later carrier that puts rounds on the ground the same
+way inherits all of it. The simulation resolves the delivery and publishes what
+happened; what it looks and sounds like is the presentation tier's business
+alone, and no rendering decision is readable from the simulation.
+
+**A round arrives when the picture says it does.** The delivery resolves the
+instant it is released, but a bomb is drawn falling for a third of a second, so
+the blast waits for the bomb rather than preceding it.
+
+**A cadence is not a volume.** A rotary cannon releases fourteen rounds a
+second and a beam twenty-four; a clip per round is not a louder gun, it is a
+wall of overlapping voices in which nothing else in the battle can be heard.
+Fire cues are thinned to a cadence that reads as a burst, and the beam — which
+is one continuous sound rather than a series of events — is a held loop left to
+lapse when the firing stops.
+
+Every clip is one of the base game's own mono weapon files, registered under our
+own id against the read-only install rather than copied, the same way the
+vehicle engine loops resolve. Nothing is redistributed.
 
 A **strike sortie** is the reason a station has sheds. An armed aircraft
 leaves on the field's own decision rather than on a request for passengers,
