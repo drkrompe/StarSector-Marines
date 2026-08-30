@@ -122,14 +122,17 @@ public final class AttackMove extends AbstractZoneAction {
         int[] aim = maneuverAim(squad, assault, sim);
 
         // Deliberately no bound, though the shared machinery is right here and
-        // this order is the obvious candidate for it. Measured over the
-        // canonical matrix, bounding attack moves cost reinforced-south 7300
-        // ticks and 46 defender kills and returned nothing on full-strength-west.
-        // Gating it to the threat's beaten zone changed neither fixture by a
-        // single tick, which says the price is the tactic itself and not
-        // bounding at nothing: moving half a squad at a time up a long route
-        // is simply slower than the ground is dangerous. A room crossing is
-        // short enough to afford it; an attack move across a map is not.
+        // this order is the obvious candidate for it.
+        //
+        // Held off by decision rather than by measurement: over the canonical
+        // matrix, bounding attack moves moved neither fixture by a single tick
+        // in either direction. A control run at the commit before the bound was
+        // added returned the same numbers as every run after it, so the earlier
+        // reading of a large cost was a concurrent change to the reinforcement
+        // system arriving on a merge, not this. The bound has no measured price
+        // here and no measured benefit either, which is its own result: these
+        // two fixtures cannot see it, and a claim about it needs a scene built
+        // to ask the question rather than a whole-battle harness.
         clearBounding(squad);
 
         // Deliberately no quiet echelon. That hold exists so a squad crossing
