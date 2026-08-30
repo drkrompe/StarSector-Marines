@@ -615,6 +615,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 squads, committed, frame);
         int actionableRemaining = actionableFrontSquads.size();
 
+
         // Phase 3: greedy nearest-pair fill of uncontested compounds.
         // Non-actionable squads are preferred for capture. An actionable
         // squad may depart only while another executable actionable squad
@@ -631,7 +632,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     continue;
                 }
                 for (int i = 0; i < n; i++) {
-                    if (slots[i] <= 0 || contested[i]) continue;
+                    if (slots[i] <= 0) continue;
+                    if (contested[i] && !unattended(i, slots)) continue;
                     if (!frontHasReached(compoundTargets.get(i))) continue;
                     if (!reachableZone(squad, compoundTargets.get(i).captureZoneId,
                             frame)) continue;
@@ -666,7 +668,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 if (committed.contains(squad.id)) continue;
                 if (!actionableFrontSquads.contains(squad.id)) continue;
                 for (int i = 0; i < n; i++) {
-                    if (slots[i] <= 0 || contested[i]) continue;
+                    if (slots[i] <= 0) continue;
+                    if (contested[i] && !unattended(i, slots)) continue;
                     CompoundTarget t = compoundTargets.get(i);
                     // Only a slot this squad could actually have filled counts
                     // as deferred. A compound the front has not reached was
@@ -701,6 +704,24 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * untouched flank does not become claimable because the far side of the
      * map advanced, which is the behaviour this gate exists to remove.
      */
+    /**
+     * Whether nobody has been committed to this compound yet — every slot it
+     * asked for is still open after the preserve and adjacent passes.
+     *
+     * <p>This is what re-opens a contested compound to distant allocation. The
+     * exclusion exists so the commander does not feed squads piecemeal into a
+     * defended place on top of the ones already going, and that reason
+     * evaporates when nobody is going at all: a contested objective with no
+     * squad on it is not being assaulted carefully, it is being ignored. A
+     * battle was observed at thirteen compounds taken and one contested sitting
+     * at zero percent, with fifty-nine squads and no reserve, because the only
+     * path to a contested compound ran through squads that happened to be
+     * standing beside it and none was.
+     */
+    private boolean unattended(int index, int[] slots) {
+        return slots[index] >= compoundTargets.get(index).desiredSquads;
+    }
+
     private boolean frontHasReached(CompoundTarget t) {
         return frontReachedCaptureZones.contains(t.captureZoneId);
     }
