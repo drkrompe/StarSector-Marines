@@ -302,7 +302,7 @@ public final class RoomPacker {
      * @param mayTunnel whether the room is worth cutting a fresh passage to
      */
     public Placed place(Request request, boolean mayTunnel) {
-        RoomFitting fitting = RoomFittings.forPurpose(request.purpose());
+        RoomFitting fitting = RoomFittings.forRoom(ctx, request.purpose(), request.shape());
         List<Hookup> hookups = fitting == null ? List.of() : fitting.hookups(request.shape());
         boolean handed = fitting != null && fitting.handed();
         List<Candidate> candidates =

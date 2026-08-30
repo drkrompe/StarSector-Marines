@@ -114,6 +114,7 @@ final class MarineOpsThemes {
         return new UiTheme(StyleSheet.parse(SHEET_NAME, css),
                 Map.of("body", Fonts.INSIGNIA_15_AA,
                         "heading", Fonts.ORBITRON_12_BOLD,
+                        "compact", Fonts.ORBITRON_10,
                         "title", Fonts.ORBITRON_16));
     }
 

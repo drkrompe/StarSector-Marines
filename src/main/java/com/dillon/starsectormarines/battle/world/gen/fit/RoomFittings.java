@@ -1,8 +1,13 @@
 package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenKey;
 import com.dillon.starsectormarines.battle.world.gen.fit.AisleFitting.FixtureGroup;
 import com.dillon.starsectormarines.battle.world.gen.fit.AisleFitting.FixtureGroup.Satellite;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.AuthoredFitting;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayout;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayouts;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.EnumMap;
@@ -23,6 +28,19 @@ import java.util.Map;
 public final class RoomFittings {
 
     private RoomFittings() {}
+
+    /**
+     * How well this map's rooms are fitted out, for choosing among authored
+     * layouts. Published by the generator that knows; absent for a map with no
+     * refit notion, which reads as {@link RoomFit#STANDARD}.
+     *
+     * <p>On the blackboard rather than in a constructor because the level is
+     * wanted in two places on opposite sides of the pipeline — the packer, which
+     * reads a room's authored doors before placing it, and the fill stage, which
+     * furnishes it afterwards — and threading a parameter between them would
+     * mean changing the placer's signature to carry something it does not use.
+     */
+    public static final GenKey<RoomFit> ROOM_FIT = GenKey.of("roomFit");
 
     private static final Map<RoomPurpose, RoomFitting> BY_PURPOSE = new EnumMap<>(RoomPurpose.class);
 
@@ -160,5 +178,31 @@ public final class RoomFittings {
     /** The fitting for this purpose, or null where none is authored yet. */
     public static RoomFitting forPurpose(RoomPurpose purpose) {
         return purpose == null ? null : BY_PURPOSE.get(purpose);
+    }
+
+    /**
+     * The fitting for a room of this purpose, footprint and refit level: an
+     * authored layout where one exists, and otherwise the procedural fitting.
+     *
+     * <p>All three parts of the key have to agree, which is what keeps a ship's
+     * armoury layout out of a fortress armoury of a different size. A purpose
+     * nobody has authored, or a level nobody has drawn, falls through to the
+     * program that has always furnished it, so authoring one room disturbs
+     * nothing else on any deck.
+     */
+    public static RoomFitting forRoom(GenContext ctx, RoomPurpose purpose, RoomShape shape) {
+        return forRoom(purpose, shape, levelOf(ctx));
+    }
+
+    /** The refit level this map is being furnished at. */
+    public static RoomFit levelOf(GenContext ctx) {
+        RoomFit level = ctx == null ? null : ctx.get(ROOM_FIT);
+        return level == null ? RoomFit.STANDARD : level;
+    }
+
+    public static RoomFitting forRoom(RoomPurpose purpose, RoomShape shape, RoomFit fit) {
+        if (purpose == null) return null;
+        RoomLayout layout = RoomLayouts.installed().find(purpose, shape, fit);
+        return layout != null ? new AuthoredFitting(layout) : BY_PURPOSE.get(purpose);
     }
 }
