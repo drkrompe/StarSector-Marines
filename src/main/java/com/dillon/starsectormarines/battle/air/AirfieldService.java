@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
 
@@ -49,10 +50,30 @@ public final class AirfieldService {
      * and by {@link #launch} / {@link #recover}. Public fields kept primitive in
      * the same style as {@code CompoundService.Record}.
      */
+    /** What kind of place an aircraft is kept in. */
+    public enum Kind {
+        /**
+         * A marked stand out on the apron. An aircraft here lifts off it
+         * vertically and is boarded from outside.
+         */
+        HARDSTAND,
+        /**
+         * A bay inside a hangar. An aircraft here is under cover and cannot
+         * lift off where it stands — it taxis out and uses the strip, which is
+         * why a field with no runway bases nothing in its sheds.
+         */
+        SHELTER
+    }
+
     public static final class Berth {
+        /** The stand this berth is, or null for a shelter — nothing lands in a shed. */
         public final LandingPad pad;
+        /** Where the aircraft stands, whichever kind of place this is. */
+        public final int centerX;
+        public final int centerY;
+        public final Kind kind;
         public final ShuttleType type;
-        /** Which way the parked hull points — its pad's approach bearing. */
+        /** Which way the parked hull points — its pad's approach bearing, or out of its shed. */
         public final float facingDegrees;
 
         public BerthState state = BerthState.PARKED;
@@ -83,7 +104,15 @@ public final class AirfieldService {
         public boolean wreckOnPad;
 
         Berth(LandingPad pad, ShuttleType type, float facingDegrees) {
+            this(pad, pad.centerX, pad.centerY, Kind.HARDSTAND, type, facingDegrees);
+        }
+
+        Berth(LandingPad pad, int centerX, int centerY, Kind kind,
+              ShuttleType type, float facingDegrees) {
             this.pad = pad;
+            this.centerX = centerX;
+            this.centerY = centerY;
+            this.kind = kind;
             this.type = type;
             this.facingDegrees = facingDegrees;
             this.hullHp = type.maxHp;
@@ -178,6 +207,20 @@ public final class AirfieldService {
         return berth;
     }
 
+    /**
+     * Registers one hangar bay and the aircraft kept in it.
+     *
+     * <p>Only worth doing on a field with a strip: an aircraft in a shed
+     * reaches the air by taxiing out and rolling, so basing one where there is
+     * nothing to roll down strands it in the shed for the battle.
+     */
+    public Berth addShelterBerth(Gantry shelter, ShuttleType type) {
+        Berth berth = new Berth(null, shelter.centerX, shelter.centerY,
+                Kind.SHELTER, type, shelter.facing.degrees());
+        berths.add(berth);
+        return berth;
+    }
+
     /** Every berth on the field, in registration order. */
     public List<Berth> berths() {
         return Collections.unmodifiableList(berths);
@@ -200,12 +243,25 @@ public final class AirfieldService {
      * to.
      */
     public Berth nearestAirworthy(float x, float y) {
+        return nearestAirworthy(x, y, Kind.HARDSTAND);
+    }
+
+    /**
+     * The airworthy berth of {@code kind} nearest {@code (x, y)}, or null.
+     *
+     * <p>Split by kind because the two are not interchangeable and a caller
+     * always knows which it wants: a vertical-lift transport needs a stand it
+     * can rise off, and a craft that rolls needs a shed it can taxi out of.
+     * Handing a shuttle a shelter would strand it; handing a rolling craft a
+     * hardstand would have it take off from the middle of the apron.
+     */
+    public Berth nearestAirworthy(float x, float y, Kind kind) {
         Berth best = null;
         float bestDistance = Float.MAX_VALUE;
         for (Berth berth : berths) {
-            if (!berth.airworthy()) continue;
-            float dx = berth.pad.centerX - x;
-            float dy = berth.pad.centerY - y;
+            if (!berth.airworthy() || berth.kind != kind) continue;
+            float dx = berth.centerX - x;
+            float dy = berth.centerY - y;
             float distance = dx * dx + dy * dy;
             if (distance < bestDistance) {
                 bestDistance = distance;
