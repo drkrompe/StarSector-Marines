@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a taxiing aircraft goes round the hangar, not through it.
+Updated: 2026-08-30 — a landing is captured on the centreline, not flown onto a point.
 
 ## Purpose
 
@@ -290,6 +290,16 @@ the threshold, a wait if the strip is busy, and then the roll itself, which is
 the only part where the aircraft is accelerating and not yet flying. Coming
 home it is the same in reverse — touch down at the end it reaches first, roll
 out to the far one, turn off, taxi back to its own shed.
+
+**A landing is captured, not flown.** The approach is two legs: out to a point
+on the extended centreline, which may be reached from any direction, and then
+down it to the threshold — and because that second leg *is* the runway axis,
+the aircraft is lined up on arrival without anybody testing its heading. At the
+threshold the simulation takes the aircraft over: it is put on the centreline
+pointing along it and the rollout is driven from there, with the nose held on
+the strip for the whole of it. Asking the steering to brake a flying body onto
+a point left craft arriving crabbed and pirouetting on the runway to sort
+themselves out.
 
 **Coming home is not leaving.** A craft that rolled off a strip owes itself back
 to it, and the leg that takes it there is an approach: it steers to a runway

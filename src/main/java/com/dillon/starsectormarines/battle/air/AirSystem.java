@@ -110,6 +110,15 @@ public class AirSystem {
      * position has arrived when it is over it.
      */
     private static final float STRIKE_ARRIVAL_DIST = 2.0f;
+
+    /**
+     * How far out on the extended centreline a homebound aircraft joins final.
+     *
+     * <p>Long enough that the last leg is unmistakably the runway axis and the
+     * craft is straight by the time it reaches the threshold; short enough that
+     * a field near a map edge still has room for it.
+     */
+    private static final float APPROACH_LEAD_CELLS = 14f;
     /** Cell radius around a flying turret's origin where walls are treated as transparent — models the shuttle being "above" its containing building. Tuned to typical building wall thickness; past this, real LOS rules apply. */
     private static final float SHUTTLE_AIR_LOS_RADIUS = 3.5f;
 
@@ -562,17 +571,37 @@ public class AirSystem {
                     break;
 
                 case RETURNING:
-                    // An approach, so it is flown like one: braking onto the
-                    // threshold and losing height the whole way rather than
-                    // climbing out. A craft that arrives to find the strip in
-                    // use simply stays here, stopped off the threshold, until
-                    // whoever is rolling has finished with it.
+                    // An approach, so it is flown like one: losing height the
+                    // whole way rather than climbing out.
                     AirSteeringSystem.steer(body, mission.exitX, mission.exitY,
-                            SteeringMode.BRAKE_TO_STATION, flight, dt);
+                            mission.onFinalApproach ? SteeringMode.CRUISE
+                                    : SteeringMode.BRAKE_TO_STATION, flight, dt);
                     updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY,
                             /*incoming*/ true, dt);
-                    if (body.distanceTo(mission.exitX, mission.exitY) < THRESHOLD_ARRIVAL_DIST
-                            && airfield != null && airfield.claimRunway(id)) {
+                    if (body.distanceTo(mission.exitX, mission.exitY) >= THRESHOLD_ARRIVAL_DIST) {
+                        break;
+                    }
+                    if (!mission.onFinalApproach) {
+                        // Out on the extended centreline. Turn in; the leg from
+                        // here to the threshold is the runway axis.
+                        mission.onFinalApproach = true;
+                        mission.exitX = mission.touchdownX;
+                        mission.exitY = mission.touchdownY;
+                        beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
+                        break;
+                    }
+                    // Over the threshold, lined up. A craft that finds the strip
+                    // in use holds here until whoever is rolling is done with it.
+                    if (airfield != null && airfield.claimRunway(id)) {
+                        // Takeover. The landing itself is not flown: the
+                        // aircraft is put on the centreline pointing down it and
+                        // the rollout is driven from there. Asking the steering
+                        // to brake a flying body onto a point left it arriving
+                        // crabbed and pirouetting on the runway to sort itself
+                        // out.
+                        body.teleport(mission.touchdownX, mission.touchdownY,
+                                AirBody.facingToward(mission.holdX - mission.touchdownX,
+                                        mission.holdY - mission.touchdownY));
                         world.setAltitudeT(id, 0f);
                         mission.state = ShuttleState.LANDING_ROLL;
                     }
@@ -580,6 +609,12 @@ public class AirSystem {
 
                 case LANDING_ROLL:
                     world.setAltitudeT(id, 0f);
+                    // Still railroaded: the nose is held on the centreline for
+                    // the whole rollout, so the aircraft slows down the runway
+                    // rather than weathercocking across it.
+                    body.facingDegrees = AirBody.facingToward(
+                            mission.holdX - mission.touchdownX,
+                            mission.holdY - mission.touchdownY);
                     AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
                             SteeringMode.BRAKE_TO_STATION, GroundHandling.rolling(flight), dt);
                     if (body.distanceTo(mission.holdX, mission.holdY) < THRESHOLD_ARRIVAL_DIST) {
@@ -955,8 +990,13 @@ public class AirSystem {
         if (mission.usesRunway && strip != null) {
             float[] touchdown = strip.touchdownThreshold(body.x, body.y);
             mission.landOnRunway(strip, body.x, body.y, mission.shelterX, mission.shelterY);
-            mission.exitX = touchdown[0];
-            mission.exitY = touchdown[1];
+            // Out to the extended centreline first. The leg after this one is
+            // the runway axis, which is what lines the aircraft up without
+            // anybody having to test its heading.
+            float[] joinFinal = strip.approachPoint(touchdown, APPROACH_LEAD_CELLS);
+            mission.onFinalApproach = false;
+            mission.exitX = joinFinal[0];
+            mission.exitY = joinFinal[1];
             // Not held at cruise the way a departure out of a hover is: this
             // leg is a descent, and the altitude lerp has to be free to run it
             // down to the threshold.

@@ -276,6 +276,20 @@ public final class ShuttleMission {
     public boolean strikeSortie;
 
     /**
+     * Whether this homebound craft has joined final and is flying the runway
+     * axis rather than manoeuvring to reach it.
+     *
+     * <p>The approach is two legs on purpose. The first goes to a point out on
+     * the extended centreline and may be flown from any direction; the second
+     * goes from there to the threshold, which is the runway axis, so the
+     * aircraft is lined up by arrival without anybody testing its heading.
+     */
+    public boolean onFinalApproach;
+
+    /** The threshold this approach is aimed at — where the takeover puts the aircraft down. */
+    public float touchdownX, touchdownY;
+
+    /**
      * The route this aircraft is taxiing, and how far along it is.
      *
      * <p>An aircraft on its wheels goes round the hangar it came out of rather
@@ -343,8 +357,16 @@ public final class ShuttleMission {
     public void landOnRunway(Runway strip, float fromX, float fromY,
                              float shelterX, float shelterY) {
         float[] rollout = strip.departureThreshold(fromX, fromY);
+        float[] touchdown = strip.opposite(rollout);
         this.holdX = rollout[0];
         this.holdY = rollout[1];
+        // Both ends, together. The rollout target alone is not enough to fly a
+        // landing: the takeover and the roll both need to know which way down
+        // the strip the aircraft is pointing, and deriving that from one end
+        // and the craft's position gets it wrong the moment the craft is past
+        // the threshold.
+        this.touchdownX = touchdown[0];
+        this.touchdownY = touchdown[1];
         this.shelterX = shelterX;
         this.shelterY = shelterY;
         this.usesRunway = true;
