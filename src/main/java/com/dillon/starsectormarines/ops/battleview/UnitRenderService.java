@@ -337,10 +337,11 @@ public final class UnitRenderService implements RenderSystem {
         float screenX = baseX + spunX * faceCos - spunY * faceSin;
         float screenY = baseY + spunX * faceSin + spunY * faceCos;
 
+        float stripAcross = (u1 - u0) * acrossPx;
+        float stripAlong = (v1 - v0) * alongPx;
         out.addSheetQuad(RenderLayer.UNITS, cache.sprite, srcX, srcY, srcRight - srcX, srcBottom - srcY,
                 screenX, screenY,
-                (u1 - u0) * acrossPx + WRECK_SEAM_BLEED_PX * 2f,
-                (v1 - v0) * alongPx + WRECK_SEAM_BLEED_PX * 2f,
+                stripAcross + bleed(stripAcross), stripAlong + bleed(stripAlong),
                 facing + spinDegrees,
                 BURNT_HULL_R, BURNT_HULL_G, BURNT_HULL_B, alphaMult);
     }
@@ -351,14 +352,30 @@ public final class UnitRenderService implements RenderSystem {
      * <p>Adjacent strips of one piece are meant to be continuous metal, but
      * their corners are computed independently and land a hair apart, which
      * under rotation shows as a hairline of background through the middle of a
-     * panel. Stated in pixels rather than as a fraction because that is what
-     * the fault is: a seam is about a pixel wide whether the wreck is drawn at
-     * twenty pixels or two hundred, so a percentage closes it at one zoom and
-     * not the other. The tear boundaries this must not spoil come from the
-     * piece assignment and are unaffected — a piece only ever bleeds into the
-     * gap it opened.
+     * panel. Stated in pixels because that is what the fault is: a seam is
+     * about a pixel wide whether the wreck is drawn at twenty pixels or two
+     * hundred, so a percentage closes it at one zoom and not the other.
      */
     private static final float WRECK_SEAM_BLEED_PX = 0.75f;
+
+    /**
+     * The most of its own size a strip may add, whatever
+     * {@link #WRECK_SEAM_BLEED_PX} asks for.
+     *
+     * <p>A hull drawn small enough puts the whole tear inside a couple of
+     * pixels, and there a fixed pixel of bleed is not a hairline fix — it is
+     * several times the strip. Left unbounded it tripled every piece and fused
+     * the tears shut, so a review frame of a burnt airfield showed three dark
+     * blobs where three broken aircraft should have been. Whichever bound bites
+     * is the right one: at a readable zoom the pixel closes the seam, and when
+     * the wreck is a smudge on the map there was never a seam to see.
+     */
+    private static final float WRECK_SEAM_BLEED_LIMIT = 0.08f;
+
+    /** Total growth for a strip of {@code extent} screen pixels — half of it at each end. */
+    private static float bleed(float extent) {
+        return 2f * Math.min(WRECK_SEAM_BLEED_PX, extent * WRECK_SEAM_BLEED_LIMIT);
+    }
 
     /**
      * The tear for one hardstand, worked out once and kept.
