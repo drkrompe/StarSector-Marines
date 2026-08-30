@@ -47,6 +47,7 @@ import com.dillon.starsectormarines.battle.command.BattleResources;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceRecorder;
 import com.dillon.starsectormarines.battle.squad.AssaultCoordinationSystem;
+import com.dillon.starsectormarines.battle.squad.SquadContactOnsetSystem;
 import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
@@ -272,6 +273,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final com.dillon.starsectormarines.battle.squad.SquadReplanSystem squadReplan;
     /** Divides a shared contact between squads under one attack-move order. */
     private final AssaultCoordinationSystem assaultCoordination;
+    private final SquadContactOnsetSystem squadContactOnset;
     /** Per-tick win-condition evaluator — pure function over the objective list; sim writes the {@link #complete}/{@link #winner} fields on terminal result. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.command.objective.WinCheckSystem winCheck =
             new com.dillon.starsectormarines.battle.command.objective.WinCheckSystem();
@@ -593,6 +595,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.attackerIndex = new com.dillon.starsectormarines.battle.decision.AttackerIndexService(rosterService);
         this.tacticalScoring = new com.dillon.starsectormarines.battle.decision.TacticalScoring(
                 navigation, rosterService, attackerIndex, shots, doodadService);
+        this.squadContactOnset = new SquadContactOnsetSystem(
+                rosterService, tacticalScoring);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
                 rosterService, damageService, tickInnerProfile);
         this.ambientTasks = new AmbientTaskService(
@@ -1561,6 +1565,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // contact picture exists and before any of them plans against it — so
         // cooperating squads read one answer rather than each deciding it is
         // the one who should form the firing line.
+        // One member's contact becomes the squad's before anything plans
+        // against it: the cooperating group below reads it to know who is
+        // looking at whom, and the advance reads it to know not to walk past
+        // somebody a member is already face to face with.
+        squadContactOnset.tick(simTickIndex);
         assaultCoordination.tick(simTickIndex);
         // Morale recovery + hysteresis. Reads the freshly-set _engagedThisTick
         // flag from SquadAlertSystem: a squad out of contact this tick

@@ -7,7 +7,9 @@ Written: 2026-08-23
 Updated: 2026-08-30 — added the two onset moments: somebody opening at close
 quarters, and somebody taking this marine as their target. Both are situations
 rather than places, which is what lets a screen answer them in a room, a
-breach, a treeline or a hallway.
+breach, a treeline or a hallway. Also that day — an onset is published for the
+whole squad, and the contact drill that would halt an advance on one is
+recorded as measured and withheld.
 
 Also 2026-08-30 — made battle Mech role overrides a serialized local-plan
 interrupt while preserving mission authority, beliefs, and per-member doctrine.
@@ -730,6 +732,45 @@ kind of thing that rule exists to refuse. It is admissible here because the
 responder is worn: a receiver that tells its wearer they have been painted is
 ordinary hardware. Read from a plain infantry behaviour it would be
 clairvoyance, and the distinction is not decorative.
+
+### An onset belongs to the squad
+
+An onset happens to one person and is not personal. The marine who comes round
+a corner into somebody is the squad's first indication that the ground ahead is
+not what it thought, and left personal it is answered personally — that marine
+screens or goes to ground while the others walk past the same bearing one at a
+time, which is the failure the cooperation layer exists to remove. So a squad
+publishes at most one onset per tick: what a member is looking at, how far off
+it is, and which of the two moments it is.
+
+This is kept distinct from the squad's **contact picture**, which is an
+aggregate over believed contacts and moves at its own pace. The picture's
+unhurriedness is deliberate and useful everywhere else; an onset is the instant
+one marine's own eyes changed the situation. A squad whose picture has not
+caught up is grouped with its cooperating siblings on its onset instead, which
+is the same honesty rule rather than an exception to it — a member looking at a
+hostile right now is a stronger claim to have seen it than an aggregate still
+being assembled.
+
+**A contact drill — halting an advance because of an onset — is built, tested,
+and off.** The reasoning is sound and the measurement disagreed with it: against
+a control on the same tree, halting for a contact within knife range cost the
+reinforced-south fixture a capture and a compound and killed fewer defenders,
+and made full-strength-west fourteen percent longer. Squads that stop for
+whatever is nearest arrive later, and in a mission decided partly on a clock,
+later is fewer objectives. The gap is the trigger rather than the idea: range
+alone says nothing about what the contact is, whether it can be safely walked
+past, or whether somebody is already answering it. It stays behind
+`battle.squad.contactDrill` for the next attempt at that trigger.
+
+Two laws survived the attempt and are worth keeping whatever the trigger
+becomes. **A forced commit must not outlive its cause**: setting the commit flag
+every tick a contact stands there defeats the hysteresis underneath it, so an
+enemy who breaks off still pins the squad — a latch with no exit rather than a
+drill. Range is what releases it. And **the odds are a real answer, not an
+oversight**: a squad that outnumbers one weak contact presses past it with
+moving fire on purpose, and a layer that overrides that turns every straggler
+into a halt.
 
 ### The attack move and its cooperating group
 
