@@ -141,6 +141,7 @@
       "render": {
         "heldSpriteFamily": "RIFLE",
         "tracerColor": "FFD6A0",
+        "tracerTailCells": 0.50,
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.16
       },
@@ -253,6 +254,7 @@
       },
       "render": {
         "tracerColor": "FFE8C0",
+        "tracerTailCells": 0.55,
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.18
       },

@@ -10,6 +10,8 @@
         "aoeRadius": 0.6, "wallDamage": 3
       },
       "render": {
+        "tracerColor": "FFE8C0",
+        "tracerTailCells": 0.45,
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.22
       },
@@ -227,6 +229,8 @@
         "minRange": 3.0, "aoeRadius": 0.8, "wallDamage": 5, "flightSec": 0.18
       },
       "render": {
+        "tracerColor": "FFD6A0",
+        "tracerTailCells": 0.55,
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.22
       },
