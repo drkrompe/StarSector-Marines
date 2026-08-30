@@ -55,7 +55,28 @@ public enum ShuttleState {
      * was nowhere on the map for it to load.
      */
     LOADING,
-    INCOMING, LANDED, HOVER_STATION, DEPARTING,
+    INCOMING, LANDED, HOVER_STATION,
+    /**
+     * Flying a straight line through the target with the guns going.
+     *
+     * <p>Not a hover. An aircraft that station-keeps over a position is a
+     * helicopter with the serial numbers filed off, and it wants turrets
+     * because nothing about where it points has anything to do with where it
+     * shoots. A machine that runs in, fires along its own nose and overshoots
+     * is aimed by being flown, which is what makes the airframe the weapon.
+     */
+    ATTACK_RUN,
+    /**
+     * Coming round for another pass: out, wide, and back onto a fresh bearing.
+     *
+     * <p>Its own phase because the turn is most of the time an attack takes
+     * and none of the damage. A fighter cannot pivot on the spot at the end of
+     * a run — it is carrying its speed through the turn — so the circuit is
+     * wide, and the wait between passes is the window the target has to get
+     * out of the open.
+     */
+    REPOSITION,
+    DEPARTING,
     /**
      * Flying home to its own field, and lined up on the strip.
      *

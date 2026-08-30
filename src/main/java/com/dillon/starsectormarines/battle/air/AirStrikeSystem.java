@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -118,17 +117,14 @@ public final class AirStrikeSystem {
         mission.fireSupportSec = LOITER_SEC;
         mission.postDeliveryDisposition = PostDeliveryDisposition.LOITER_IF_ARMED;
         sim.world().kinematics(craft).teleport(shelterX, shelterY, shed.facingDegrees);
-        if (AirArmament.equip(sim, craft, TurretRole.A2G) == 0 && !warnedUnarmed) {
-            // Says so once rather than every sortie. The mounts come from the
-            // hull's own weapon slots, which need the game loaded to read — so
-            // this is normal in a headless run and a real fault in a battle.
-            // Flying anyway is deliberate: refusing would silently delete the
-            // air arm in exactly the environment where nobody would notice,
-            // and an aircraft that cannot shoot still rolls out, crosses the
-            // map and can be shot at, which is most of what a sortie is.
+        // No turrets. The aircraft is the weapon: it carries its guns on its
+        // nose and aims them by flying, so what it needs is a strafe profile
+        // and not a mount. A hull with neither still flies the sortie and says
+        // so once — it rolls out, crosses the map and can be shot at, which is
+        // most of what a sortie is.
+        if (shed.airframe.strafe() == null && !warnedUnarmed) {
             warnedUnarmed = true;
-            LOG.warn("air: " + shed.airframe + " flew a strike unarmed — no weapon"
-                    + " slots resolved for hull '" + shed.airframe.renderHullId() + "'");
+            LOG.warn("air: " + shed.airframe + " flew a strike with no guns to run in with");
         }
         mission.departFromRunway(strip, shelterX, shelterY, targetX, targetY);
     }

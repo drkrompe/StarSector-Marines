@@ -276,6 +276,25 @@ public final class ShuttleMission {
     public boolean strikeSortie;
 
     /**
+     * The line this attack run is flying: in from {@code runFrom}, through the
+     * target, out to {@code runTo}.
+     *
+     * <p>Held for the whole run rather than recomputed per tick, because a run
+     * that re-aims while it is being flown is a hover with extra steps. The
+     * target moves; the run does not.
+     */
+    public float runFromX, runFromY, runToX, runToY;
+
+    /** Passes this sortie has left before it turns for home. */
+    public int passesLeft;
+
+    /** Counts down to the next round while the guns are firing. */
+    public float fireCooldown;
+
+    /** Bearing the last run came in on, so the next one comes from somewhere else. */
+    public float lastRunBearingDeg;
+
+    /**
      * Whether this homebound craft has joined final and is flying the runway
      * axis rather than manoeuvring to reach it.
      *

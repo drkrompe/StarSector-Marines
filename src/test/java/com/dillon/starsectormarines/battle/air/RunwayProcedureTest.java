@@ -260,12 +260,13 @@ class RunwayProcedureTest {
      * <p>The distinction the phase exists for. A transport's business at the
      * far end is its ramp, so it touches down; an aircraft sent to attack a
      * position has no reason to put its wheels on it and every reason not to.
-     * Before this, reaching the fire-support loiter went by way of a landing,
-     * so a fighter sent against an objective sat on it at zero altitude for a
-     * tick first.
+     * Before this, reaching the fire support went by way of a landing, so a
+     * fighter sent against an objective sat on it at zero altitude for a tick
+     * first — and then hovered over it, which is the other half of the same
+     * mistake.
      */
     @Test
-    void aStrikeSortieWorksOverItsObjectiveAndNeverLandsOnIt() {
+    void aStrikeSortieRunsAtItsObjectiveAndNeverLandsOnIt() {
         try (BattleSimulation sim = openSimulation()) {
             AirfieldService airfield = sim.getAirfieldService();
             AirfieldService.Berth shed = airfield.addShelterBerth(
@@ -288,13 +289,16 @@ class RunwayProcedureTest {
             for (int i = 0; i < 6000 && mission.state != ShuttleState.GONE; i++) {
                 sim.advance(BattleSimulation.TICK_DT);
                 seen.add(mission.state);
-                if (mission.state == ShuttleState.HOVER_STATION) {
+                if (mission.state == ShuttleState.ATTACK_RUN
+                        || mission.state == ShuttleState.REPOSITION) {
                     lowestOverTarget = Math.min(lowestOverTarget, sim.world().altitudeT(fighter));
                 }
             }
 
-            assertTrue(seen.contains(ShuttleState.HOVER_STATION),
-                    "never went on station over the objective: " + seen);
+            assertTrue(seen.contains(ShuttleState.ATTACK_RUN),
+                    "never made a run at the objective: " + seen);
+            assertTrue(seen.contains(ShuttleState.REPOSITION),
+                    "made one pass and left rather than coming round: " + seen);
             assertFalse(seen.contains(ShuttleState.LANDED),
                     "a strike aircraft touched down on its own target");
             assertTrue(lowestOverTarget > 0.5f,

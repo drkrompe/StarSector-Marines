@@ -96,14 +96,20 @@ class AirStrikeSystemTest {
         shed(sim, 33, 20);
         massMarines(sim, 45, 30, 6);
 
-        advance(sim, 120 * 30);
-
-        int out = 0;
-        for (long id : sim.getAirEntityIds()) {
-            ShuttleMission m = sim.world().mission(id);
-            if (m != null && m.strikeSortie) out++;
+        // Watched across the whole window rather than sampled at the end: a
+        // sortie completes and goes home, so the instant a test happens to look
+        // says nothing about whether two were ever up together.
+        int mostAtOnce = 0;
+        for (int t = 0; t < 120 * 30; t++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            int out = 0;
+            for (long id : sim.getAirEntityIds()) {
+                ShuttleMission m = sim.world().mission(id);
+                if (m != null && m.strikeSortie) out++;
+            }
+            mostAtOnce = Math.max(mostAtOnce, out);
         }
-        assertEquals(1, out, "the field scrambled everything it had");
+        assertEquals(1, mostAtOnce, "the field scrambled everything it had");
     }
 
     /** Scattered enemies are not worth a sortie. */

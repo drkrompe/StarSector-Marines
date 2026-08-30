@@ -645,6 +645,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
         this.airSystem.setAirfield(airfieldService);
+        // A gun run delivers through the same AoE pipeline as every other
+        // explosion, so the air system needs it too.
+        this.airSystem.setDetonations(detonations);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
                 turretFire, rng, this::spawn, this, effects);
         this.vehicleDamageResolver.setDestructionSink(groundSystem::destroyVehicle);
