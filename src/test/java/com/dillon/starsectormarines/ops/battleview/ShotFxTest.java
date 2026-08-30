@@ -93,6 +93,14 @@ public class ShotFxTest {
             assertFalse(weapon.fx.layers(FxSlot.IMPACT).isEmpty(),
                     "turret impact particles are authored: " + structure.id);
 
+            if (TurretCatalogRegistry.VULCAN_STRUCTURE_ID.equals(structure.id)) {
+                assertTracerTail(fx, weapon, 0.45f, "Vulcan");
+            } else if (TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID.equals(structure.id)) {
+                assertTracerTail(fx, weapon, 0.55f, "heavy MG");
+            } else {
+                assertNull(fx.tracerTail(), "turret has no authored tracer tail: " + structure.id);
+            }
+
             if (TurretCatalogRegistry.LOCUST_STRUCTURE_ID.equals(structure.id)) {
                 assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
             } else {
@@ -150,6 +158,8 @@ public class ShotFxTest {
                 assertNotNull(fx.tracerTail(), "SMG flechettes carry compact tracer tails");
                 assertEquals(0.40f, fx.tracerTail().lengthCells(), 0f);
                 assertSame(w.tracerColor(), fx.tracerTail().color());
+            } else if (WeaponRegistry.SQUAD_AUTOMATIC_ID.equals(w.id)) {
+                assertTracerTail(fx, w, 0.50f, "squad automatic");
             } else {
                 assertNull(fx.tracerTail(), "primary has no authored tracer tail: " + w);
             }
@@ -237,6 +247,11 @@ public class ShotFxTest {
                     || WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(w.id);
             assertEquals(expectedTrail, !w.fx.layers(FxSlot.TRAIL).isEmpty(),
                     "authored trail for " + w);
+            if (WeaponRegistry.MECH_CHAINGUN_ID.equals(w.id)) {
+                assertTracerTail(fx, w, 0.55f, "mech chaingun");
+            } else {
+                assertNull(fx.tracerTail(), "mech weapon has no authored tracer tail: " + w);
+            }
             assertTrue(fx.travels(), "mech body travels: " + w);
             assertFalse(fx.boostRamp(), "mech weapons don't boost-ramp: " + w);
             assertNull(fx.contrail(), "mech weapons carry no contrail ribbon: " + w);
@@ -246,6 +261,15 @@ public class ShotFxTest {
     private static Sprite assertSprite(ShotFx fx, String msg) {
         assertInstanceOf(Sprite.class, fx.body(), msg + " should be a Sprite body");
         return (Sprite) fx.body();
+    }
+
+    private static void assertTracerTail(ShotFx fx, WeaponDef weapon,
+                                         float expectedLength, String message) {
+        assertNotNull(fx.tracerTail(), message + " carries a tracer tail");
+        assertEquals(expectedLength, fx.tracerTail().lengthCells(), 0f,
+                message + " tracer length");
+        assertSame(weapon.tracerColor(), fx.tracerTail().color(),
+                message + " tracer color");
     }
 
     private record BoltExpectation(String spritePath, float lengthCells, float widthCells) {}
