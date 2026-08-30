@@ -45,6 +45,18 @@ class MechDoctrineServiceTest {
     }
 
     @Test
+    void lanceOrderDefaultsToFormationAndAppliesAtomically() {
+        BattleSimulation sim = openSimulation(12, 8);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        Squad squad = sim.getSquad(squadId);
+
+        assertEquals(MechLanceOrder.FORM_ON_LEAD, squad.lanceOrder());
+        assertTrue(squad.applyLanceOrder(MechLanceOrder.FREE_REIGN));
+        assertEquals(MechLanceOrder.FREE_REIGN, squad.lanceOrder());
+        assertFalse(squad.applyLanceOrder(MechLanceOrder.FREE_REIGN));
+    }
+
+    @Test
     void commandChangesOnlySelectedFriendlyMechAndInvalidatesSharedPlan() {
         BattleSimulation sim = openSimulation(24, 12);
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
@@ -133,16 +145,93 @@ class MechDoctrineServiceTest {
         service.requestOverride(rescueMech, MechRole.LR_SUPPORT);
         service.requestOverride(infantry, MechRole.ASSAULT);
         service.requestOverride(Long.MAX_VALUE, null);
+        service.requestLanceOrder(enemyMech, MechLanceOrder.FREE_REIGN);
+        service.requestLanceOrder(rescueMech, MechLanceOrder.FREE_REIGN);
+        service.requestLanceOrder(infantry, MechLanceOrder.FREE_REIGN);
+        service.requestLanceOrder(Long.MAX_VALUE, MechLanceOrder.FREE_REIGN);
         new MechDoctrineSystem(service).tick(sim);
 
         assertEquals(MechRole.ASSAULT,
                 sim.world().mechLoadout(enemyMech).effectiveRole());
         assertEquals(MechRole.ARMORED_SUPPORT,
                 sim.world().mechLoadout(rescueMech).effectiveRole());
+        assertEquals(MechLanceOrder.FORM_ON_LEAD,
+                sim.getSquad(enemySquadId).lanceOrder());
+        assertEquals(MechLanceOrder.FORM_ON_LEAD, rescue.lanceOrder());
     }
 
     @Test
-    void productionCommandPhaseAppliesOverrideBeforeSameTickReplan() {
+    void exactMechRequestChangesEntireLanceAndOnlyOnceInvalidatesMovement() {
+        BattleSimulation sim = openSimulation(24, 12);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        long selected = spawnMech(sim, squadId, Faction.MARINE,
+                MechVariant.HOUND, MechRole.ASSAULT, 3, 4);
+        long sibling = spawnMech(sim, squadId, Faction.MARINE,
+                MechVariant.BULWARK, MechRole.ARMORED_SUPPORT, 4, 4);
+        long infantry = sim.spawn(new EntitySpec(
+                "attached-infantry", Faction.MARINE, UnitType.MARINE, 5, 4)
+                .squad(squadId));
+        Squad squad = finishSquad(sim, squadId, selected, 3, 4, 4);
+        ObjectiveAssignment assignment = ObjectiveAssignment.attackMove(
+                squadId, 20, 4);
+        squad.assignedObjective = assignment;
+        squad.morale = 0.61f;
+        squad.currentPlan = new SquadPlan(List.of(
+                new SquadPlan.Step(ExecuteMechDoctrine.INSTANCE)));
+        squad.currentGoal = MechEliminateEnemiesGoal.INSTANCE;
+        long enemy = sim.spawn(new EntitySpec(
+                "order-contact", Faction.DEFENDER, UnitType.MARINE, 18, 4));
+        sim.world().setTargetId(selected, enemy);
+        sim.world().setTargetId(sibling, enemy);
+        MechWeaponMount selectedSrm = sim.world().mechLoadout(selected)
+                .mount(MechMountSlot.LEFT_SHOULDER);
+        selectedSrm.ammo = 3;
+        selectedSrm.cooldown = 0.75f;
+        sim.setPath(selected, new int[]{3, 4, 12, 4});
+        sim.setPath(sibling, new int[]{4, 4, 12, 4});
+        sim.setPath(infantry, new int[]{5, 4, 12, 4});
+
+        sim.getMechDoctrineService().requestLanceOrder(
+                selected, MechLanceOrder.FREE_REIGN);
+        new MechDoctrineSystem(sim.getMechDoctrineService()).tick(sim);
+
+        assertEquals(MechLanceOrder.FREE_REIGN, squad.lanceOrder());
+        assertTrue(Paths.isEmpty(sim.world().path(selected)));
+        assertTrue(Paths.isEmpty(sim.world().path(sibling)));
+        assertFalse(Paths.isEmpty(sim.world().path(infantry)),
+                "the lance command clears only live Mech movement");
+        assertNull(squad.currentPlan);
+        assertNull(squad.currentGoal);
+        assertSame(assignment, squad.assignedObjective);
+        assertEquals(0.61f, squad.morale);
+        assertEquals(enemy, sim.world().targetId(selected));
+        assertEquals(enemy, sim.world().targetId(sibling));
+        assertEquals(3, selectedSrm.ammo);
+        assertEquals(0.75f, selectedSrm.cooldown);
+        assertEquals(MechRole.ASSAULT,
+                sim.world().mechLoadout(selected).effectiveRole());
+        assertEquals(MechRole.ARMORED_SUPPORT,
+                sim.world().mechLoadout(sibling).effectiveRole());
+
+        sim.setPath(selected, new int[]{3, 4, 14, 4});
+        sim.setPath(sibling, new int[]{4, 4, 14, 4});
+        SquadPlan replacement = new SquadPlan(List.of(
+                new SquadPlan.Step(ExecuteMechDoctrine.INSTANCE)));
+        squad.currentPlan = replacement;
+        squad.currentGoal = MechEliminateEnemiesGoal.INSTANCE;
+        sim.getMechDoctrineService().requestLanceOrder(
+                sibling, MechLanceOrder.FREE_REIGN);
+        new MechDoctrineSystem(sim.getMechDoctrineService()).tick(sim);
+
+        assertFalse(Paths.isEmpty(sim.world().path(selected)),
+                "reissuing the effective order must not restart the lance");
+        assertFalse(Paths.isEmpty(sim.world().path(sibling)));
+        assertSame(replacement, squad.currentPlan);
+        assertSame(MechEliminateEnemiesGoal.INSTANCE, squad.currentGoal);
+    }
+
+    @Test
+    void productionCommandPhaseAppliesOrdersBeforeSameTickReplan() {
         BattleSimulation sim = openSimulation(20, 12);
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
         long mech = spawnMech(sim, squadId, Faction.MARINE,
@@ -152,10 +241,13 @@ class MechDoctrineServiceTest {
                 new SquadPlan.Step(BreachAndAssault.INSTANCE)));
 
         sim.getMechDoctrineService().requestOverride(mech, MechRole.BALANCED);
+        sim.getMechDoctrineService().requestLanceOrder(
+                mech, MechLanceOrder.FREE_REIGN);
         sim.advance(BattleSimulation.TICK_DT);
 
         assertEquals(MechRole.BALANCED,
                 sim.world().mechLoadout(mech).effectiveRole());
+        assertEquals(MechLanceOrder.FREE_REIGN, squad.lanceOrder());
         assertSame(MechEliminateEnemiesGoal.INSTANCE, squad.currentGoal);
         assertSame(ExecuteMechDoctrine.INSTANCE,
                 squad.currentPlan.currentStep().action);

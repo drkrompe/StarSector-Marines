@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -17,14 +18,14 @@ import com.fs.starfarer.api.ui.PositionAPI;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Host bridge for the selected-mech doctrine control. */
+/** Host bridge for selected-mech doctrine and lance-order controls. */
 final class BattleMechOverlay {
 
     static final String COMPONENT = "battle-mech-overlay";
     static final String COMPONENT_PATH =
             "data/ui/components/battle/battle-mech-overlay.mlx";
     static final float DOCUMENT_WIDTH = 430f;
-    static final float DOCUMENT_HEIGHT = 194f;
+    static final float DOCUMENT_HEIGHT = 252f;
     private static final float EDGE_INSET = 12f;
 
     private final Reactor reactor = new Reactor();
@@ -44,7 +45,8 @@ final class BattleMechOverlay {
     BattleMechOverlay(Selection selection) {
         this.selection = selection;
         model = new BattleMechOverlayModel(
-                reactor, selection::clear, this::requestDoctrine);
+                reactor, selection::clear, this::requestDoctrine,
+                this::requestLanceOrder);
     }
 
     void attach(PositionAPI nextPosition, BattleSimulation sim) {
@@ -65,6 +67,13 @@ final class BattleMechOverlay {
                     "battle-mech-header", "battle-mech-back", "battle-mech-title",
                     "battle-mech-state", "battle-mech-identity",
                     "battle-mech-deployed", "battle-mech-effective",
+                    "battle-mech-lance-order-heading-row",
+                    "battle-mech-lance-order-heading",
+                    "battle-mech-lance-order-scope",
+                    "battle-mech-lance-order-cards",
+                    "battle-mech-form-on-lead", "battle-mech-free-reign",
+                    "battle-mech-doctrine-heading-row",
+                    "battle-mech-doctrine-heading", "battle-mech-doctrine-scope",
                     "battle-mech-doctrine-cards", "battle-mech-default")) {
                 candidate.requireElement(id);
             }
@@ -153,6 +162,13 @@ final class BattleMechOverlay {
         BattleSimulation sim = simulation;
         if (sim != null) {
             sim.getMechDoctrineService().requestOverride(mechId, role);
+        }
+    }
+
+    private void requestLanceOrder(long mechId, MechLanceOrder order) {
+        BattleSimulation sim = simulation;
+        if (sim != null) {
+            sim.getMechDoctrineService().requestLanceOrder(mechId, order);
         }
     }
 

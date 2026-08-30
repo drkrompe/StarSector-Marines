@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
@@ -509,10 +510,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BufferedImage image = renderBattleBackdrop(width, height);
         Reactor reactor = new Reactor();
         BattleMechOverlayModel model = new BattleMechOverlayModel(
-                reactor, () -> { }, (mechId, role) -> { });
+                reactor, () -> { }, (mechId, role) -> { },
+                (mechId, order) -> { });
         model.updateProjected(new BattleMechOverlayModel.MechState(
                 303L, "Sirocco Three", MechVariant.SIROCCO.displayName,
                 MechRole.LR_SUPPORT, MechRole.BALANCED,
+                MechLanceOrder.FREE_REIGN,
                 BattleMechOverlayModel.selectableRoles()));
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(

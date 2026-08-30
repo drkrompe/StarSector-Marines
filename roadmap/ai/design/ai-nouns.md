@@ -11,8 +11,9 @@ breach, a treeline or a hallway. Also that day — an onset is published for the
 whole squad, and the contact drill that would halt an advance on one is
 recorded as measured and withheld.
 
-Also 2026-08-30 — made battle Mech role overrides a serialized local-plan
-interrupt while preserving mission authority, beliefs, and per-member doctrine.
+Also 2026-08-30 — made battle Mech role overrides and lance-wide coordination
+orders serialized local-plan interrupts while preserving mission authority,
+beliefs, and per-member doctrine.
 
 Earlier: 2026-08-29 — added the attack move and its cooperating group: an
 order whose destination survives contact, and squads under one that split into
@@ -1007,13 +1008,24 @@ threat-facing side, Long-Range Support preserves standoff and a credible
 screen, and Balanced uses a general direct-fire band. A shared lance plan may
 coordinate those members but may not choose one role on behalf of all of them.
 
-A legal player role request is a serialized command-phase interrupt, not a new
-source of authority. Applying it clears role-owned cached positions and asks
-the squad to replan immediately while retaining assignment, contact picture,
-morale, and combat state. The new role therefore acts only on facts the squad
-could already use and remains subordinate to survival, rescue, and mission
-laws. Rejecting an enemy, non-mech, rescue payload, or vanished identity is part
-of that authority boundary.
+The lance owns one coordination order beneath that assignment. Form on Lead
+keeps the moving members in the shared role-slotted formation, applies the
+ordinary Brawler lead bound, and recalls a separated Brawler to its live lance
+lead when combat posture would otherwise let it hold alone. Free Reign removes
+those generic cohesion inputs from every member so their individual doctrines
+may author divergent movement. It does not make a second mission plan: every
+member still consumes the lance's assignment and squad belief, and
+doctrine-specific support or screen geometry continues to apply.
+
+A legal player role or lance-order request is a serialized command-phase
+interrupt, not a new source of authority. Applying it clears only movement and
+cached positions owned by the changed layer and asks the squad to replan
+immediately while retaining assignment, contact picture, morale, and combat
+state. The resulting execution therefore acts only on facts the squad could
+already use and remains subordinate to survival, rescue, and mission laws.
+Rejecting an enemy, non-mech, rescue payload, or vanished identity is part of
+that authority boundary. A role request is exact-member state; a lance-order
+request is shared by the selected member's current battle squad.
 
 ## Mission, space, and feature boundaries
 
