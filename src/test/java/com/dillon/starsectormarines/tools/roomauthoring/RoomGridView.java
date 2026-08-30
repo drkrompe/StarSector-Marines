@@ -37,7 +37,8 @@ public final class RoomGridView extends JComponent {
 
     private static final Color VOID = new Color(0x14, 0x18, 0x1e);
     private static final Color DECK = new Color(0x36, 0x40, 0x4c);
-    private static final Color LANE_WASH = new Color(0x4d, 0x7e, 0xa0, 0x66);
+    private static final Color LANE_WASH = new Color(0x6b, 0xe0, 0xff, 0x30);
+    private static final Color LANE_HATCH = new Color(0x6b, 0xe0, 0xff, 0xcc);
     private static final Color GRID = new Color(0x00, 0x00, 0x00, 60);
     private static final Color FIXTURE_FILL = new Color(0xd8, 0xc2, 0x7a);
     private static final Color PAVING = new Color(0x5a, 0x6a, 0x50);
@@ -61,6 +62,18 @@ public final class RoomGridView extends JComponent {
     private int cellPx = 22;
     private int hoverX = -1;
     private int hoverY = -1;
+    /** The last cell a drag painted, so one stroke does not paint a cell twice. */
+    private int lastPaintedX = -1;
+    private int lastPaintedY = -1;
+
+    /**
+     * Called when a stroke ends.
+     *
+     * <p>Redrawing the room after every cell of a drag would queue a render per
+     * pixel of mouse travel; once per stroke is what a person actually wants to
+     * see.
+     */
+    private Runnable onStroke = () -> { };
 
     /** What a click means, decided by whichever screen is showing. */
     private BiConsumer<Integer, Integer> onClick = (x, y) -> { };
@@ -75,6 +88,29 @@ public final class RoomGridView extends JComponent {
                 if (x < 0 || y < 0 || x >= draft.width() || y >= draft.height()) return;
                 onClick.accept(x, y);
                 repaint();
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                // Dragging paints, because painting a floor one click at a time
+                // over a forty-cell bay is not something anybody would finish.
+                hoverX = e.getX() / cellPx;
+                hoverY = e.getY() / cellPx;
+                if (draft == null) return;
+                if (hoverX < 0 || hoverY < 0
+                        || hoverX >= draft.width() || hoverY >= draft.height()) return;
+                if (hoverX == lastPaintedX && hoverY == lastPaintedY) return;
+                lastPaintedX = hoverX;
+                lastPaintedY = hoverY;
+                onClick.accept(hoverX, hoverY);
+                repaint();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                lastPaintedX = -1;
+                lastPaintedY = -1;
+                onStroke.run();
             }
 
             @Override
@@ -121,6 +157,11 @@ public final class RoomGridView extends JComponent {
         this.onClick = handler == null ? (x, y) -> { } : handler;
     }
 
+    /** What to do once a click or drag finishes — normally, draw the room again. */
+    public void onStroke(Runnable handler) {
+        this.onStroke = handler == null ? () -> { } : handler;
+    }
+
     public void cellSize(int px) {
         this.cellPx = Math.max(8, px);
         revalidate();
@@ -131,6 +172,36 @@ public final class RoomGridView extends JComponent {
     public Dimension getPreferredSize() {
         if (draft == null) return new Dimension(240, 160);
         return new Dimension(draft.width() * cellPx, draft.height() * cellPx);
+    }
+
+    /**
+     * A reserved walkway, drawn as hatching rather than a wash.
+     *
+     * <p>A translucent tint over a busy deck is very nearly invisible, which
+     * defeats the point: the one thing an author needs to see here is which
+     * cells refuse furniture. Diagonal lines read over any art underneath.
+     */
+    private void hatch(Graphics2D g, int px, int py) {
+        g.setColor(LANE_WASH);
+        g.fillRect(px, py, cellPx, cellPx);
+        g.setColor(LANE_HATCH);
+        g.setStroke(new BasicStroke(1f));
+        for (int offset = 0; offset < cellPx * 2; offset += 6) {
+            int x1 = px + offset;
+            int y1 = py;
+            int x2 = px;
+            int y2 = py + offset;
+            if (x1 > px + cellPx) {
+                y1 += x1 - (px + cellPx);
+                x1 = px + cellPx;
+            }
+            if (y2 > py + cellPx) {
+                x2 += y2 - (py + cellPx);
+                y2 = py + cellPx;
+            }
+            if (x2 > px + cellPx || y1 > py + cellPx) continue;
+            g.drawLine(x1, y1, x2, y2);
+        }
     }
 
     @Override
@@ -167,10 +238,7 @@ public final class RoomGridView extends JComponent {
                     g.setColor(DECK);
                     g.fillRect(px, py, cellPx, cellPx);
                 }
-                if (draft.isLane(x, y)) {
-                    g.setColor(LANE_WASH);
-                    g.fillRect(px, py, cellPx, cellPx);
-                }
+                if (draft.isLane(x, y)) hatch(g, px, py);
                 g.setColor(GRID);
                 g.drawRect(px, py, cellPx, cellPx);
             }
