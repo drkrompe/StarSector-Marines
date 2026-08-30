@@ -140,6 +140,33 @@ Do not run builds or leave generated task files there.
   `tileset_measure` tool measures a sheet and drafts its authoring seed, and
   `ProjectTilesetSeedsTest` fails the build for raw art that arrives without
   one.
+  The Rooms page edits one shipboard room: its footprint, its deck, and the
+  fixtures standing on it. It opens on **which room?** — listed from the ship
+  herself, so it offers rooms that exist — and then walks four screens: the
+  footprint, the deck, the fixtures, and a comparison. **No room starts from an
+  empty grid.** Opening one runs the procedural fitting that owns it and records
+  what it did, so the first thing on screen is the room that already ships and
+  the first edit is a change to it.
+  The grid it is edited on is deliberately not a picture of the room. Law 17
+  gives the render to the battle renderer, so the grid draws only what a render
+  cannot: which cells are deck, which are reserved circulation, what ground is
+  painted where, and which step is anchored on which cell. The comparison
+  screen generates **the same hull at the same seed twice**, with the layout
+  suppressed and applied, and renders both — so a room drawn too large to fit
+  shows up as a missing room rather than as a surprise later.
+  **Both ways an authored room fails are silent**, so the page replays every
+  draft before trusting it. A fixture whose cell is taken is refused and the
+  room merely comes out sparser; an arrangement that severs its own circulation
+  has its whole fill thrown away and the room generates as bare deck. A
+  checkerboard of crates across an armoury — fifteen fixtures, each legal alone
+  — produced a compartment with nothing in it, while the count still said
+  fifteen. `RoomLayoutCheck` is what turns both into sentences, the fixture
+  count shown is what actually stands up, and a layout that would seal its room
+  is refused at save.
+  Lanes are cleared by a command rather than by a click: a seeded armoury comes
+  back with six of its eight rows reserved, so an author who cannot un-reserve
+  can place almost nothing — but a stray click that deleted a room's
+  circulation would cost the whole fill.
   The Tilesets page opens on a question rather than on a workspace: **what are
   you doing?** Three ways in, each a walkthrough of numbered screens with Back
   and Next, and each screen holding only the controls its own step needs. The

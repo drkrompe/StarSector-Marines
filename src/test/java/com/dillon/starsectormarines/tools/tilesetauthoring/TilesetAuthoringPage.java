@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.tools.authoring.wizard.LambdaStep;
+import com.dillon.starsectormarines.tools.authoring.wizard.Wizard;
+import com.dillon.starsectormarines.tools.authoring.wizard.WizardStep;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -125,7 +128,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private static final String CHOOSER = "chooser";
     private static final String WIZARD = "wizard";
     private final JPanel screens = new JPanel(new CardLayout());
-    private TilesetWizard wizard;
+    private Wizard wizard;
     private TilesetWorkflow workflow;
     private TilesetMapPanel mapPanel;
 
@@ -170,7 +173,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         this.context = context;
         this.blockPreviews = new BlockPreview(context.projectRoot());
         this.surfaces = new SurfaceBrowserView(blockPreviews, this::openCandidate);
-        this.wizard = new TilesetWizard(this::showChooser, context::reportStatus);
+        this.wizard = new Wizard(this::showChooser, context::reportStatus);
         // Every screen whose Next depends on a selection has to tell the wizard
         // when that selection moves; nothing else can see it. Without these the
         // step is answered and the button stays dead, which reads as a bug in
