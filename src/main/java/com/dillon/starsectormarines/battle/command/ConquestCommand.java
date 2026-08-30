@@ -1142,7 +1142,13 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
         int lateral = Math.max(trackLayout.lateralStartInclusive(track),
                 Math.min(trackLayout.lateralEndInclusive(track), squadLateral));
-        lateral = awayFromOwnLosses(track, lateral, desiredForward, frame);
+        // The loss-avoiding slide is built and tested but not wired in. A
+        // control run at the commit before it returned TERMINAL on both
+        // canonical fixtures and it returned TIMEOUT on both, so it costs the
+        // attacker its advance somewhere this measurement does not localize —
+        // most likely by moving the staging marker often enough that squads
+        // spend their time restaging. Left switched off rather than shipped on
+        // the strength of the idea: see awayFromOwnLosses.
         return reachableTrackStage(squad, track, lateral, desiredForward, frame);
     }
 
