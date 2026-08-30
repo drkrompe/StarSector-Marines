@@ -428,7 +428,7 @@ The discovered suite ids and default output directories are:
 | `perception-sweep` | The player's own picture — fog overlay and hidden-unit gating included — before, during, and after a Janus sensor sweep | `build/snapshots/perception-sweep/` |
 | `airfield-sortie` | Three animated loops of one garrison airfield: a sortie's crew walking to the pad unopposed, the same walk under fire, and a fire team burning the based aircraft on their stands | `build/snapshots/airfield-sortie/` |
 | `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
-| `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, with the same infantry screen removed midway | `build/snapshots/mech-doctrine/` |
+| `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote

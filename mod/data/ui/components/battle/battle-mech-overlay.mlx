@@ -1,4 +1,4 @@
-<template props="mechTitle,mechIdentity,deployedDoctrine,effectiveDoctrine,doctrineState,doctrineStateClasses,doctrineCards,backAction,defaultAction">
+<template props="mechTitle,mechIdentity,deployedDoctrine,effectiveDoctrine,doctrineState,doctrineStateClasses,formOnLeadClasses,freeReignClasses,formOnLeadMeta,freeReignMeta,formOnLeadDisabled,freeReignDisabled,formOnLeadAction,freeReignAction,doctrineCards,backAction,defaultAction">
   <div id="battle-mech-overlay" class="battle-mech-overlay">
     <div id="battle-mech-panel" class="mech-panel">
       <div id="battle-mech-header" class="mech-header">
@@ -15,7 +15,25 @@
         </div>
       </div>
 
-      <div id="battle-mech-doctrine-heading" class="label heading doctrine-heading">FIELD DOCTRINE</div>
+      <div id="battle-mech-lance-order-heading-row" class="section-heading-row">
+        <div id="battle-mech-lance-order-heading" class="label heading section-heading">LANCE ORDER</div>
+        <div id="battle-mech-lance-order-scope" class="label section-scope">WHOLE SQUAD</div>
+      </div>
+      <div id="battle-mech-lance-order-cards" class="lance-order-cards">
+        <button id="battle-mech-form-on-lead" class="{formOnLeadClasses}" disabled="{formOnLeadDisabled}" onclick="{formOnLeadAction}">
+          <div id="battle-mech-form-on-lead-name" class="label heading lance-order-name">FORM ON LEAD</div>
+          <div id="battle-mech-form-on-lead-meta" class="label lance-order-meta">{formOnLeadMeta}</div>
+        </button>
+        <button id="battle-mech-free-reign" class="{freeReignClasses}" disabled="{freeReignDisabled}" onclick="{freeReignAction}">
+          <div id="battle-mech-free-reign-name" class="label heading lance-order-name">FREE REIGN</div>
+          <div id="battle-mech-free-reign-meta" class="label lance-order-meta">{freeReignMeta}</div>
+        </button>
+      </div>
+
+      <div id="battle-mech-doctrine-heading-row" class="section-heading-row">
+        <div id="battle-mech-doctrine-heading" class="label heading section-heading">FIELD DOCTRINE</div>
+        <div id="battle-mech-doctrine-scope" class="label section-scope">SELECTED MECH</div>
+      </div>
       <div id="battle-mech-doctrine-cards" class="doctrine-cards">
         <button each="doctrine in doctrineCards" key="{doctrine.id}" id="{doctrine.id}" class="{doctrine.classes}" disabled="{doctrine.disabled}" onclick="{doctrine.action}">
           <div id="{doctrine.nameId}" class="label heading doctrine-name">{doctrine.name}</div>
@@ -24,8 +42,8 @@
       </div>
 
       <div id="battle-mech-footer" class="mech-footer">
-        <div id="battle-mech-hint" class="label mech-hint">Changes this mech only · battle-local</div>
-        <button id="battle-mech-default" class="mech-default" onclick="{defaultAction}">USE DEFAULT</button>
+        <div id="battle-mech-hint" class="label mech-hint">Order: whole squad · Doctrine: this mech</div>
+        <button id="battle-mech-default" class="mech-default" onclick="{defaultAction}">RESET DOCTRINE</button>
       </div>
     </div>
   </div>
@@ -44,7 +62,7 @@
 
   .mech-panel {
     width: 414px;
-    height: 178px;
+    height: 236px;
     flex-direction: column;
     padding: 7px;
     gap: 6px;
@@ -79,9 +97,9 @@
   }
 
   .doctrine-state {
-    width: 104px;
+    width: 144px;
     height: 16px;
-    padding: 5px 6px;
+    padding: 5px 2px;
     border-width: 1px;
     font-family: heading;
     text-align: center;
@@ -129,11 +147,60 @@
   .doctrine-deployed { color: #8294a8; }
   .doctrine-effective { color: #6ed7ff; }
 
-  .doctrine-heading {
+  .section-heading-row {
     width: 100%;
     height: 13px;
+    flex-direction: row;
+  }
+
+  .section-heading {
+    width: 0px;
+    height: 13px;
+    flex-grow: 1;
     color: #8b9aaf;
   }
+
+  .section-scope {
+    width: 104px;
+    height: 13px;
+    text-align: right;
+    color: #667789;
+  }
+
+  .lance-order-cards {
+    width: 100%;
+    height: 32px;
+    flex-direction: row;
+    gap: 5px;
+    overflow: hidden;
+  }
+
+  .lance-order-card {
+    width: 0px;
+    height: 18px;
+    flex-grow: 1;
+    flex-direction: row;
+    padding: 6px;
+    gap: 5px;
+    border-width: 1px;
+    border-color: #31485f;
+    background-color: #142131e8;
+    color: #aebdce;
+    overflow: hidden;
+  }
+
+  .lance-order-card:hover { background-color: #243d56; border-color: #6ed7ff; }
+  .lance-order-card:active { background-color: #315070; }
+  .lance-order-card-active {
+    border-color: #6ed7ff;
+    background-color: #173548;
+    color: #6ed7ff;
+  }
+
+  .lance-order-name { width: 0px; height: 16px; flex-grow: 1; color: #c8e0ff; }
+  .lance-order-meta { width: 48px; height: 13px; text-align: right; color: #8294a8; }
+  .lance-order-card-active .lance-order-name { color: #6ed7ff; }
+  .lance-order-card-active .lance-order-meta { color: #8ee3ff; }
 
   .doctrine-cards {
     width: 100%;
@@ -161,7 +228,7 @@
   .doctrine-card:hover { background-color: #243d56; border-color: #6ed7ff; }
   .doctrine-card:active { background-color: #315070; }
   .doctrine-card-deployed { border-color: #3f7354; }
-  .doctrine-card-long-range { padding: 5px 1px; }
+  .doctrine-card-long-range { padding: 5px 0px; flex-grow: 1.12; }
   .doctrine-card-active {
     border-color: #ffd464;
     background-color: #3a3018;
@@ -189,9 +256,9 @@
   }
 
   .mech-default {
-    width: 92px;
+    width: 116px;
     height: 14px;
-    padding: 5px 7px;
+    padding: 5px 6px;
     border-width: 1px;
     border-color: #4f6d8e;
     font-family: heading;

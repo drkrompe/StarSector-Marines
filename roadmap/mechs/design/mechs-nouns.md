@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — defined the four battle doctrines and the battle-local
-override that selects among them without replacing mission authority.
+Updated: 2026-08-30 — separated the lance-wide Form on Lead / Free Reign order
+from each mech's battle-local fighting-doctrine override.
 
 ## Purpose
 
@@ -91,6 +91,13 @@ increasing an encounter's total armored threat.
   squad. Formation and separation apply within that moving squad; unrelated
   squads do not become one formation. This does not define campaign ownership
   or lift organization.
+- A **lance order** is the battle-local coordination rule shared by every mech
+  in one battle lance. **Form on Lead** retains the lance's cohesive formation
+  and lets the live lance lead shape how far a Brawler may press or recalls one
+  that separated under Free Reign. **Free Reign** releases generic formation
+  and support tethering so every member may execute its own doctrine
+  independently. Both remain subordinate to the lance's mission assignment
+  and legal contact picture. A lance begins on Form on Lead.
 - A **force budget** is the ordinary-encounter authority that admits defender
   mechs and static defenses only when the attacker-side force can support them.
   Authored set pieces may explicitly decline that protection; Conquest does.
@@ -104,8 +111,9 @@ fallback rather than a replacement close-range saturation weapon. Those are
 hardware identities; any deployed chassis may receive any of these doctrines:
 
 - **Brawler** seeks the close or direct-fire band and may pursue a local threat
-  inside its assignment leash. Allied support may shape that advance but is not
-  permission to act, so losing the screen does not stop a legal attack.
+  inside its assignment leash. Form on Lead shapes that advance around the
+  lance; Free Reign lets it prosecute the perceived enemy position without a
+  generic ally-distance clamp. Allied support is never permission to act.
 - **Frontline Support** attaches to a nearby allied infantry squad or mech
   element and takes the threat-facing side of that group. It absorbs pressure
   without inventing an independent attack; without a legal anchor it holds and
@@ -122,6 +130,14 @@ The role changes how a mech serves an assignment; it never supplies an
 assignment, hidden contact, or permission to leave mission-command bounds.
 Different effective roles in one battle lance execute per member rather than
 competing to turn the lance's shared plan into one role.
+
+The lance order answers a different question from doctrine. Form on Lead keeps
+the moving lance coherent while still arranging Brawler and Frontline Support
+forward, Balanced through the middle, and Long-Range Support rearward. Free
+Reign removes that generic formation authority; it does not remove
+doctrine-specific relationships. A free-reign Frontline Support mech still
+needs something legal to support, and a free-reign Long-Range Support mech
+still values a credible screen.
 
 Long-range doctrine still evaluates whether a prospective screen is physically
 credible. A fragile Sirocco is not made into armor merely because it receives
@@ -176,12 +192,14 @@ deployment values. The delivery power transports those values; landing then
 constructs the live loadout and installs the frozen subsystem.
 
 Selecting an exact friendly mech during battle may request another effective
-role. The battle applies that request at its serialized command boundary,
-invalidates role-owned movement and planning state, and replans immediately.
-The interrupt preserves the mech's assignment, legal contact picture, morale,
-damage, ammunition, cooldowns, and deployed role. It cannot target an enemy,
-non-mech, stale entity, or rescue payload, and it never writes back to campaign
-state. Persistent doctrine authoring remains a Mech Lab responsibility.
+role or another lance order. The role request affects only that mech; the lance
+order request affects its whole battle lance. The battle applies either request
+at its serialized command boundary, invalidates the movement and planning state
+owned by the changed layer, and replans immediately. The interrupt preserves
+the mission assignment, legal contact picture, morale, damage, ammunition,
+cooldowns, and deployed role. It cannot target an enemy, non-mech, stale entity,
+or rescue payload, and it never writes back to campaign state. Persistent
+doctrine authoring remains a Mech Lab responsibility.
 
 Defender setup produces a deterministic sequence of variants, not an
 interchangeable mech count. Risk, target conditions, and attacking force
@@ -208,6 +226,10 @@ support sortie, subject only to practical runtime resources.
 - A battle role override changes only local tactical manner. It does not author
   mission destination, reveal a contact, waive survival law, or mutate the
   deployed or campaign role.
+- A lance order changes only battle-local coordination. Form on Lead is the
+  default. Free Reign removes generic lance formation and the Brawler's generic
+  support tether, but it does not erase the shared assignment, grant hostile
+  knowledge, or suppress ally geometry required by a selected doctrine.
 - Mixed-role lances apply doctrine per live mech. One member's role may not
   starve another member's doctrine through a shared squad plan.
 - Every specialist loses a meaningful capability as well as durability; a

@@ -4,11 +4,8 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — battle presentation now uses a full-bleed cover-fit world,
-opposed mission/command rails, a centered developer cluster, and compact retained
-selected-unit views, including a battle-local doctrine plate for an exact friendly
-Mech. Compact retained exits include their complete CSS box inside the host clip
-and stage confirmation before an irreversible command.
+Updated: 2026-08-30 — the exact-friendly-Mech plate now separates its lance-wide
+Form on Lead / Free Reign order from the selected member's field doctrine.
 
 ## Purpose
 
@@ -244,12 +241,15 @@ fire-team roster; its default cards expose health and equipment shorthand while
 hover reveals the marine's full primary, special equipment, suit system, profile,
 role, armour, and readiness without enlarging the persistent HUD. Selecting an
 exact live player Mech replaces that infantry roster with a compact Mech plate:
-variant, deployed doctrine, effective doctrine, Brawler, Tank, Long Range Support,
-and Balanced choices, plus Use Default. Tank is presentation shorthand for Frontline
-Support. The plate projects the simulation's effective state and sends a battle
-command request; it never mutates the loadout, campaign default, assignment, or
-contact picture directly, and it is absent for enemies, infantry, rescue payloads,
-and stale selections. Selecting a squad opens a bounded, scrollable GOAP diagnostic beneath the right rail;
+variant, deployed doctrine, effective doctrine, the lance-wide Form on Lead or
+Free Reign order, Brawler, Tank, Long Range Support, and Balanced choices, plus
+Reset Doctrine. Tank is presentation shorthand for Frontline Support. Scope is
+visible beside the controls: the lance order affects the whole selected battle
+lance while doctrine affects only the exact selected mech. The plate projects
+the simulation's effective state and sends serialized battle-command requests;
+it never mutates the squad, loadout, campaign default, assignment, or contact
+picture directly, and it is absent for enemies, infantry, rescue payloads, and
+stale selections. Selecting a squad opens a bounded, scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
 

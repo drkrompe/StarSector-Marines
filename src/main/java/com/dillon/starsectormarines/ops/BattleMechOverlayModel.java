@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -17,13 +18,16 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-/** Render-free projection for the retained selected-mech doctrine control. */
+/** Render-free projection for selected-mech doctrine and lance-order control. */
 final class BattleMechOverlayModel {
 
     private static final String DEFAULT_STATE =
             "doctrine-state doctrine-state-default";
     private static final String OVERRIDDEN_STATE =
             "doctrine-state doctrine-state-overridden";
+    private static final String LANCE_ORDER_CARD = "lance-order-card";
+    private static final String LANCE_ORDER_CARD_ACTIVE =
+            "lance-order-card lance-order-card-active";
 
     private final MutableSignal<String> mechTitle;
     private final MutableSignal<String> mechIdentity;
@@ -31,23 +35,38 @@ final class BattleMechOverlayModel {
     private final MutableSignal<String> effectiveDoctrine;
     private final MutableSignal<String> doctrineState;
     private final MutableSignal<String> doctrineStateClasses;
+    private final MutableSignal<String> formOnLeadClasses;
+    private final MutableSignal<String> freeReignClasses;
+    private final MutableSignal<String> formOnLeadMeta;
+    private final MutableSignal<String> freeReignMeta;
+    private final MutableSignal<Boolean> formOnLeadDisabled;
+    private final MutableSignal<Boolean> freeReignDisabled;
     private final MutableSignal<List<DoctrineCard>> doctrineCards;
     private final Runnable backAction;
     private final BiConsumer<Long, MechRole> doctrineRequest;
+    private final BiConsumer<Long, MechLanceOrder> lanceOrderRequest;
     private final Map<MechRole, Runnable> roleActions = new EnumMap<>(MechRole.class);
 
     private long selectedMechId;
 
     BattleMechOverlayModel(Reactor reactor, Runnable backAction,
-                           BiConsumer<Long, MechRole> doctrineRequest) {
+                           BiConsumer<Long, MechRole> doctrineRequest,
+                           BiConsumer<Long, MechLanceOrder> lanceOrderRequest) {
         this.backAction = backAction;
         this.doctrineRequest = doctrineRequest;
+        this.lanceOrderRequest = lanceOrderRequest;
         mechTitle = reactor.signal("MECH");
         mechIdentity = reactor.signal("SELECTED MECH");
         deployedDoctrine = reactor.signal("DEPLOYED · --");
         effectiveDoctrine = reactor.signal("EFFECTIVE · --");
-        doctrineState = reactor.signal("DEPLOYED DEFAULT");
+        doctrineState = reactor.signal("DOCTRINE DEFAULT");
         doctrineStateClasses = reactor.signal(DEFAULT_STATE);
+        formOnLeadClasses = reactor.signal(LANCE_ORDER_CARD_ACTIVE);
+        freeReignClasses = reactor.signal(LANCE_ORDER_CARD);
+        formOnLeadMeta = reactor.signal("ACTIVE");
+        freeReignMeta = reactor.signal("SELECT");
+        formOnLeadDisabled = reactor.signal(true);
+        freeReignDisabled = reactor.signal(false);
         doctrineCards = reactor.signal(List.of());
     }
 
@@ -59,6 +78,16 @@ final class BattleMechOverlayModel {
         props.put("effectiveDoctrine", effectiveDoctrine);
         props.put("doctrineState", doctrineState);
         props.put("doctrineStateClasses", doctrineStateClasses);
+        props.put("formOnLeadClasses", formOnLeadClasses);
+        props.put("freeReignClasses", freeReignClasses);
+        props.put("formOnLeadMeta", formOnLeadMeta);
+        props.put("freeReignMeta", freeReignMeta);
+        props.put("formOnLeadDisabled", formOnLeadDisabled);
+        props.put("freeReignDisabled", freeReignDisabled);
+        props.put("formOnLeadAction", (Runnable) () -> requestLanceOrder(
+                MechLanceOrder.FORM_ON_LEAD));
+        props.put("freeReignAction", (Runnable) () -> requestLanceOrder(
+                MechLanceOrder.FREE_REIGN));
         props.put("doctrineCards", doctrineCards);
         props.put("backAction", backAction);
         props.put("defaultAction", (Runnable) () -> request(null));
@@ -91,13 +120,14 @@ final class BattleMechOverlayModel {
         }
         return updateProjected(new MechState(selectedUnitEntityId,
                 sim.identity().name(selectedUnitEntityId), loadout.variant.displayName,
-                loadout.deployedRole(), loadout.effectiveRole(),
+                loadout.deployedRole(), loadout.effectiveRole(), squad.lanceOrder(),
                 selectableRoles()));
     }
 
     Presentation updateProjected(MechState mech) {
         if (mech == null || mech.entityId() == 0L || mech.deployedRole() == null
-                || mech.effectiveRole() == null || mech.availableRoles().isEmpty()) {
+                || mech.effectiveRole() == null || mech.lanceOrder() == null
+                || mech.availableRoles().isEmpty()) {
             return hide();
         }
         selectedMechId = mech.entityId();
@@ -109,8 +139,16 @@ final class BattleMechOverlayModel {
         effectiveDoctrine.set("EFFECTIVE · " + displayName(mech.effectiveRole()));
 
         boolean overridden = mech.effectiveRole() != mech.deployedRole();
-        doctrineState.set(overridden ? "PLAYER OVERRIDE" : "DEPLOYED DEFAULT");
+        doctrineState.set(overridden ? "DOCTRINE OVERRIDE" : "DOCTRINE DEFAULT");
         doctrineStateClasses.set(overridden ? OVERRIDDEN_STATE : DEFAULT_STATE);
+
+        boolean forming = mech.lanceOrder() == MechLanceOrder.FORM_ON_LEAD;
+        formOnLeadClasses.set(forming ? LANCE_ORDER_CARD_ACTIVE : LANCE_ORDER_CARD);
+        freeReignClasses.set(forming ? LANCE_ORDER_CARD : LANCE_ORDER_CARD_ACTIVE);
+        formOnLeadMeta.set(forming ? "ACTIVE" : "SELECT");
+        freeReignMeta.set(forming ? "SELECT" : "ACTIVE");
+        formOnLeadDisabled.set(forming);
+        freeReignDisabled.set(!forming);
 
         List<DoctrineCard> cards = new ArrayList<>(mech.availableRoles().size());
         for (MechRole role : mech.availableRoles()) {
@@ -136,6 +174,10 @@ final class BattleMechOverlayModel {
 
     private void request(MechRole role) {
         if (selectedMechId != 0L) doctrineRequest.accept(selectedMechId, role);
+    }
+
+    private void requestLanceOrder(MechLanceOrder order) {
+        if (selectedMechId != 0L) lanceOrderRequest.accept(selectedMechId, order);
     }
 
     private Presentation hide() {
@@ -178,6 +220,7 @@ final class BattleMechOverlayModel {
 
     record MechState(long entityId, String unitName, String variantName,
                      MechRole deployedRole, MechRole effectiveRole,
+                     MechLanceOrder lanceOrder,
                      List<MechRole> availableRoles) {
         MechState {
             availableRoles = availableRoles == null
