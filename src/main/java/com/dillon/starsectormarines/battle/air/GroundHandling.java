@@ -1,22 +1,25 @@
 package com.dillon.starsectormarines.battle.air;
 
 /**
- * A craft's handling while it is still on its wheels: the same aircraft, held
- * to taxi speed and turning like something being steered rather than flown.
+ * A craft's handling while it is still on its wheels — what
+ * {@link GroundDriveSystem} drives it with.
  *
- * <p>A decorator rather than a second set of authored numbers. Which hull this
- * is remains the authority for how it moves — a bus taxis like a bus — and the
- * ground merely puts a ceiling on it. Authoring a separate taxi profile per
- * hull would be a second place for the same fact to live, and
+ * <p>Deliberately <em>not</em> an {@link AirHandling}. It used to be one: a
+ * decorator that capped the flight profile's speed and multiplied its turn rate
+ * so the flying steering could be pointed at a taxiway. That produced an
+ * aircraft that drifted sideways across the apron and settled onto its
+ * waypoints, because the thing being decorated was still a model of something
+ * flying. Ground locomotion has quantities flight has no word for — how tight
+ * an arc the gear can be steered round, how much sideways load the wheels will
+ * take — and no use for the ones flight cares about, so it is its own profile.
+ *
+ * <p>What it still borrows is the hull. Which aircraft this is remains the
+ * authority for how much power it has and how hard it stops — a bus taxis like
+ * a bus — and the ground puts a ceiling on the rest. Authoring a separate taxi
+ * profile per hull would be a second place for the same fact to live, and
  * {@code air-nouns.md} keeps hull-derived handling as the one source.
- *
- * <p>Turning is <em>faster</em> on the ground, not slower, which looks wrong
- * written down and is right: an aircraft on its wheels pivots about its gear at
- * walking pace, while the same craft in the air is fighting its own momentum
- * through the turn. Without it a taxiing craft swings wide of a taxiway it is
- * supposed to be following.
  */
-public final class GroundHandling implements AirHandling {
+public final class GroundHandling {
 
     /**
      * Taxi speed, in cells per second.
@@ -28,46 +31,132 @@ public final class GroundHandling implements AirHandling {
      */
     public static final float TAXI_SPEED = 2.4f;
 
-    /** How much quicker a craft turns on its wheels than in the air. */
-    private static final float GROUND_TURN_MULTIPLIER = 3f;
+    /**
+     * Taxi power and braking, cells/sec².
+     *
+     * <p>Capped rather than taken from the hull: a fighter's flight
+     * acceleration would put it at taxi speed inside a tenth of a second, which
+     * reads as a jump rather than as something rolling away from its stand.
+     * Roughly a second to walking pace, and rather harder onto the brakes,
+     * because an aircraft stops with wheelbrakes and starts with engines.
+     */
+    private static final float TAXI_ACCEL = 2.5f;
+    private static final float TAXI_BRAKING = 3.5f;
 
-    private final AirHandling flight;
+    /**
+     * Tightest arc the undercarriage will be steered round, cells.
+     *
+     * <p>Gear geometry rather than agility, which is why it is one number and
+     * not scaled off the hull's flight turn rate: a nimble interceptor and a
+     * sluggish bomber taxi round much the same corner, and the flight rate is
+     * an angular rate rather than a radius — carried across it makes every
+     * aircraft pivot on the spot, which is the reading that started this. Sized
+     * against the maps: a couple of cells turns an aircraft between hangars
+     * without letting it corner like something on rails.
+     */
+    private static final float MIN_TURN_RADIUS_CELLS = 2.0f;
+
+    /**
+     * Sideways load the wheels will take through a turn, cells/sec².
+     *
+     * <p>The single constant that makes a turn tighten as the craft slows. At
+     * the minimum radius it holds an aircraft to about two cells a second, so a
+     * sharp corner costs a little speed; at rolling speed it permits almost no
+     * curvature at all, which is what keeps a takeoff roll straight without
+     * anybody pinning the heading to the strip.
+     */
+    private static final float LATERAL_ACCEL = 2.0f;
+
+    /** How fast the nosewheel swings, in fractions of full lock per second. */
+    private static final float STEER_SLEW_PER_SEC = 2.5f;
+
+    /** Below this speed, in cells/sec, a large heading error is turned out on the spot instead of driven round. */
+    private static final float PIVOT_SPEED_CELLS = 0.35f;
+
+    /**
+     * How fast an aircraft swings its nose round standing still, deg/sec.
+     *
+     * <p>Brakes and nosewheel, not a hull turn rate. Slow enough to read as a
+     * ground manoeuvre — a half turn takes a couple of seconds, every one of
+     * them spent stationary in the open — and quick enough that lining up on a
+     * strip is not most of the sortie.
+     */
+    private static final float PIVOT_RATE_DEG_PER_SEC = 70f;
+
+    /**
+     * How far off a taxiing craft will start rolling, degrees.
+     *
+     * <p>Generous, because a taxi route corners constantly and a craft that
+     * stopped to square up at each one would crawl. What it prevents is the
+     * standing start pointed the wrong way.
+     */
+    private static final float TAXI_PIVOT_ERROR_DEG = 40f;
+
+    /**
+     * How straight a craft has to be before it rolls, degrees.
+     *
+     * <p>Tight, because this one is lining up. Reaching a threshold and
+     * reaching it pointed down the strip are different things, and the
+     * difference is the whole of the complaint: a craft that opened the
+     * throttle and steered onto the centreline at the same time arrived at
+     * rotation speed somewhere off the side of it.
+     */
+    private static final float ROLL_PIVOT_ERROR_DEG = 5f;
+
     private final float maxSpeed;
+    private final float accel;
+    private final float brakingAccel;
+    private final float pivotErrorDeg;
 
-    private GroundHandling(AirHandling flight, float maxSpeed) {
-        this.flight = flight;
+    private GroundHandling(float maxSpeed, float accel, float brakingAccel, float pivotErrorDeg) {
         this.maxSpeed = maxSpeed;
+        this.accel = accel;
+        this.brakingAccel = brakingAccel;
+        this.pivotErrorDeg = pivotErrorDeg;
     }
 
-    /** This craft taxiing. */
+    /** This craft taxiing: walking pace, and squaring up only for the turns worth stopping for. */
     public static GroundHandling taxiing(AirHandling flight) {
-        return new GroundHandling(flight, TAXI_SPEED);
+        return new GroundHandling(TAXI_SPEED,
+                Math.min(TAXI_ACCEL, flight.accel()),
+                Math.min(TAXI_BRAKING, flight.brakingAccel()),
+                TAXI_PIVOT_ERROR_DEG);
     }
 
     /**
-     * This craft on its takeoff roll: its own full speed, but still steering
-     * like something on the ground, so it tracks the centreline instead of
-     * drifting off the side of the strip.
+     * This craft on the strip: its own full power, and lined up before any of
+     * it is used. Both rolls take it — a takeoff builds speed along the
+     * centreline and a landing bleeds it off along the same line.
      */
     public static GroundHandling rolling(AirHandling flight) {
-        return new GroundHandling(flight, flight.maxSpeed());
+        return new GroundHandling(flight.maxSpeed(), flight.accel(), flight.brakingAccel(),
+                ROLL_PIVOT_ERROR_DEG);
     }
 
-    @Override public float maxSpeed() { return maxSpeed; }
-    @Override public float accel() { return flight.accel(); }
-    @Override public float brakingAccel() { return flight.brakingAccel(); }
+    /** Hard cap on rolling speed, cells/sec. */
+    public float maxSpeed() { return maxSpeed; }
 
-    @Override
-    public float maxTurnRateDegPerSec() {
-        return flight.maxTurnRateDegPerSec() * GROUND_TURN_MULTIPLIER;
-    }
+    /** Power available to build speed, cells/sec². */
+    public float accel() { return accel; }
 
-    /**
-     * No sideways drift at all. A wheeled aircraft goes where it is pointed;
-     * the lateral slip an airframe carries through a turn is exactly the thing
-     * that would take it off the taxiway.
-     */
-    @Override public float lateralDriftDamping() { return 1f; }
+    /** Braking, cells/sec². */
+    public float brakingAccel() { return brakingAccel; }
 
-    @Override public float stationDamping() { return flight.stationDamping(); }
+    /** Tightest arc the gear will be steered round, cells. */
+    public float minTurnRadiusCells() { return MIN_TURN_RADIUS_CELLS; }
+
+    /** Sideways load the wheels will take, cells/sec² — what makes a tight turn a slow one. */
+    public float lateralAccel() { return LATERAL_ACCEL; }
+
+    /** Nosewheel slew, fractions of full lock per second. */
+    public float steerSlewPerSec() { return STEER_SLEW_PER_SEC; }
+
+    /** Speed below which a large heading error is turned out on the spot, cells/sec. */
+    public float pivotSpeedCells() { return PIVOT_SPEED_CELLS; }
+
+    /** How fast the nose comes round standing still, deg/sec. */
+    public float pivotRateDegPerSec() { return PIVOT_RATE_DEG_PER_SEC; }
+
+    /** How far off where it is going this craft will move without squaring up first, degrees. */
+    public float pivotErrorDeg() { return pivotErrorDeg; }
 }

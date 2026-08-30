@@ -73,6 +73,10 @@ public final class Runway {
      * {@code (towardX, towardY)} — the far one, so the roll runs toward where
      * it is headed and it leaves the strip already pointing the right way.
      *
+     * <p>Where the aircraft is coming from is not consulted, so this is the
+     * rule for an arrival rather than a departure: see
+     * {@link #departureThreshold(float, float, float, float)}.
+     *
      * @return {@code {x, y}} of the chosen threshold
      */
     public float[] departureThreshold(float towardX, float towardY) {
@@ -81,6 +85,89 @@ public final class Runway {
         return fromStart >= fromEnd
                 ? new float[]{startX, startY}
                 : new float[]{endX, endY};
+    }
+
+    /**
+     * The threshold to start a roll from for an aircraft standing at
+     * {@code (fromX, fromY)} and going to {@code (towardX, towardY)} — the end
+     * that costs the least turning.
+     *
+     * <p>Picking purely on where the sortie is going, the way
+     * {@link #departureThreshold(float, float)} does, is right about the
+     * departure and blind to everything before it. It sends an aircraft parked
+     * beside one threshold down the length of its own field to the other one
+     * and then asks it to turn most of the way round on arrival, which is a
+     * half-circle of taxiing, a half-circle of turning, and a departure that
+     * gains nothing the near end would not have given.
+     *
+     * <p>So both ends are scored on the turning the whole procedure costs: the
+     * turn at the threshold, from the direction the aircraft arrives on to the
+     * direction it will roll, plus the turn after it is airborne, from the roll
+     * direction onto its course. The taxi carries a small per-cell charge as
+     * well, so an end that is right there is not passed over for one across the
+     * base on the strength of a few degrees.
+     *
+     * <p>The aircraft's parked heading is deliberately not part of this. It
+     * turns out of its shelter toward whichever end it picks, so that turn is
+     * paid either way; what causes the half-circles is the turn at the far end
+     * of the taxi, and that is what the arrival direction measures.
+     *
+     * <p>Deliberately a turn count rather than a curvature-constrained path
+     * length, though
+     * {@link com.dillon.starsectormarines.battle.vehicle.ReedsShepp} would
+     * answer "shortest drive from this pose to that one" outright. Neither of
+     * its assumptions holds here: an aircraft on its brakes swings its nose
+     * round standing still, so it is not confined to arcs of a minimum radius,
+     * and the taxi is a routed path round the base's buildings rather than a
+     * free-space curve — a planner's length would be measuring a journey the
+     * craft is not going to make. What the two ends genuinely differ by is how
+     * much turning each of them costs, so that is what is counted. Kept in one
+     * scoring method so a later chain that does solve the whole ground path
+     * analytically replaces it in one place.
+     *
+     * @return {@code {x, y}} of the chosen threshold
+     */
+    public float[] departureThreshold(float fromX, float fromY,
+                                      float towardX, float towardY) {
+        float[] atStart = {startX, startY};
+        float[] atEnd = {endX, endY};
+        return departureCost(atStart, fromX, fromY, towardX, towardY)
+                <= departureCost(atEnd, fromX, fromY, towardX, towardY)
+                ? atStart : atEnd;
+    }
+
+    /**
+     * Degrees of turning charged for each cell an aircraft has to taxi to reach
+     * a threshold.
+     *
+     * <p>The exchange rate between the two things being traded. At this rate
+     * the whole length of a thirty-cell strip is worth about ninety degrees, so
+     * a near end wins any ordinary argument and a far end still wins when the
+     * near one would mean rolling out backwards.
+     */
+    private static final float TURN_DEG_PER_TAXI_CELL = 3f;
+
+    /** Turning the whole departure costs from {@code threshold}, in degrees. */
+    private float departureCost(float[] threshold, float fromX, float fromY,
+                                float towardX, float towardY) {
+        float[] far = opposite(threshold);
+        float taxi = (float) Math.hypot(threshold[0] - fromX, threshold[1] - fromY);
+        float arriveOn = bearing(threshold[0] - fromX, threshold[1] - fromY);
+        float rollOn = bearing(far[0] - threshold[0], far[1] - threshold[1]);
+        float courseOn = bearing(towardX - far[0], towardY - far[1]);
+        return turn(arriveOn, rollOn) + turn(rollOn, courseOn)
+                + taxi * TURN_DEG_PER_TAXI_CELL;
+    }
+
+    /** Compass bearing of a direction, degrees; zero for a zero-length one. */
+    private static float bearing(float dx, float dy) {
+        if (Math.abs(dx) < 1e-6f && Math.abs(dy) < 1e-6f) return 0f;
+        return (float) Math.toDegrees(Math.atan2(dy, dx));
+    }
+
+    /** Shortest turn between two bearings, degrees, always positive. */
+    private static float turn(float fromDeg, float toDeg) {
+        return Math.abs(((toDeg - fromDeg + 540f) % 360f) - 180f);
     }
 
     /**
