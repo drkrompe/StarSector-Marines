@@ -158,7 +158,7 @@ strip went from 41x4 to 55x4 and its sheds from two to three.
 | 4 | Shelter berths registered at setup, on a field with a strip. **Shipped.** |
 | 4b | A berth holds an `Airframe`, and a station's sheds hold the defender's own fighters. **Shipped.** |
 | 4c | The strike sortie: `AirStrikeSystem` decides, an armed fighter rolls, works its target without landing on it, and comes home. **Shipped.** |
-| 5 | Evidence: a runway loop in the airfield scene, and an interrupted one. |
+| 5 | Evidence: `RunwaySortieScene` and the `runway-sortie` suite — the whole cycle unopposed, and the same cycle with a fire team astride the taxiway. **Shipped.** |
 
 ### What a strike cannot be shown to do headlessly
 

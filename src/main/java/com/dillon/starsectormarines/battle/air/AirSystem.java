@@ -78,15 +78,15 @@ public class AirSystem {
     /**
      * HP/sec each enemy shooter in range drains from a taxiing aircraft.
      *
-     * <p>Heavier per shooter than a defence post is against a flying craft,
-     * because a machine rolling at walking pace across open concrete is the
-     * easiest target on the field. Tuned against a Broadsword's 45: a fire team
-     * of six that gets alongside the taxiway writes one off in about a second
-     * and a half, so a strip really is the vulnerability the design claims —
-     * but they have to be in reach of it, and a taxi that is not interfered
-     * with is not slowed down at all.
+     * <p>Tuned by watching it. At five a second a fire team of six wrote a
+     * Broadsword off in a second and a half, which is not a crossing under fire
+     * — the aircraft never got anywhere and the recording was of a machine
+     * dying beside its own shed. At two, the same team needs the better part of
+     * four seconds, so an aircraft that keeps rolling can get past them and one
+     * that is caught in the middle of the apron does not. The pressure is the
+     * point; the instant kill was just a number.
      */
-    private static final float GROUND_FIRE_DPS_EACH = 5f;
+    private static final float GROUND_FIRE_DPS_EACH = 2f;
 
     /** Distance threshold (cells) at which an INCOMING shuttle snaps to the LZ and transitions to LANDED. Tight enough that the snap is invisible; loose enough that the asymptotic brake-to-station taper doesn't stall short. */
     private static final float SHUTTLE_LZ_ARRIVAL_DIST = 0.2f;

@@ -128,7 +128,7 @@ Do not run builds or leave generated task files there.
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
   a suite degrades to not drawing those sprites if it is missing. Select
-  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,point-defence,ship-decks,turrets,ui`
+  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,point-defence,runway-sortie,ship-decks,turrets,ui`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
@@ -427,6 +427,7 @@ The discovered suite ids and default output directories are:
 | `integral-system-fx` | A running integral system's halo: a narrow authored screen beside a wide one draining their soak pools, one breaking under concentrated fire, and one pattern's screen at four facings | `build/snapshots/integral-system-fx/` |
 | `perception-sweep` | The player's own picture — fog overlay and hidden-unit gating included — before, during, and after a Janus sensor sweep | `build/snapshots/perception-sweep/` |
 | `airfield-sortie` | Three animated loops of one garrison airfield: a sortie's crew walking to the pad unopposed, the same walk under fire, and a fire team burning the based aircraft on their stands | `build/snapshots/airfield-sortie/` |
+| `runway-sortie` | Two animated loops of one station flying a fighter off its strip: the whole cycle unopposed — taxi, roll, gun runs, approach, rollout, taxi in — and the same cycle with a fire team astride the taxiway | `build/snapshots/runway-sortie/` |
 | `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
 | `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
 
@@ -488,6 +489,28 @@ recording says what you think it says.
 Prefer a scene over a mission harness whenever the question is about one
 behavior rather than about a whole battle's balance, and add another scene
 rather than widening this one past what its name claims.
+
+`RunwaySortieScene` is the fourth: a station with a strip, one fighter flying
+the whole cycle off it — out of the shed, round the hangars, down to the
+threshold, along the strip, out to the target, gun runs, home, down, and back
+in — recorded unopposed and again with a fire team astride the taxiway. It
+exists because the unit tests each pin one link (the phase hands to the next,
+the route avoids the wall, the landing captures on the centreline) and none of
+them can show the thing a strip is for: that the crossing is a stretch of time
+somebody can be standing beside.
+
+Building it found the fault that mattered most in the whole feature. Air could
+be engaged only by defence posts and only while airborne, so the minute of open
+ground the runway buys was a minute of complete safety and the trade was a
+fiction. Evidence is worth building for what it turns up on the way.
+
+**A scene's opposition can be too good.** Six marines beside the taxiway killed
+the fighter in under four seconds beside its own shed, which is not a crossing
+under fire — it is a recording of a machine dying at home. Three take about half
+its hull over the run. Equally, a platoon left in the open advances: the target
+walked to the airfield and shot two parked fighters before the field's first
+sortie was due, so it is dug in *and* most of the map away, because a gun run
+breaches the pit it is attacking and the survivors walk out.
 
 `KillingGroundScene` is the third: two mirror-image lanes to one objective, a
 squad destroyed in one of them, and the next squad sent up to choose again. It

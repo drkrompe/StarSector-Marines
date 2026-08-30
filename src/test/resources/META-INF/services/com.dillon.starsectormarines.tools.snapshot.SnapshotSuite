@@ -11,3 +11,4 @@ com.dillon.starsectormarines.battle.vision.PerceptionSweepSceneSnapshotSuite
 com.dillon.starsectormarines.battle.air.AirfieldSortieSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.KillingGroundSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechDoctrineSnapshotSuite
+com.dillon.starsectormarines.battle.air.RunwaySortieSnapshotSuite
