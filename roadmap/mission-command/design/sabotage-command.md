@@ -4,6 +4,9 @@ Status: SHIPPED — paired named-site attacker and defender command, diagnostics
 
 Written: 2026-08-27
 
+Updated: 2026-08-29 — named sites now use compact world beacons with progress
+emphasis only during an uninterrupted plant.
+
 Read `mission-command-nouns.md` for the shared architecture. Sabotage objective
 systems retain charge location, planting, progress, completion, and victory
 authority.
@@ -53,3 +56,9 @@ recorded by the neutral referee, but never becomes defender knowledge.
 Headless evidence measures coverage, planter/recovery transitions, response,
 directive churn, progress, casualties, duration, and terminal or timeout
 outcome. The shipped implementation stories are recorded in `shipped.md`.
+
+The player-facing world marker derives its compact `S1`/`S2`/`S3` label from
+the stable site identity rather than objective list order. An idle site is a
+subdued amber beacon, an uninterrupted plant adds the bright progress arc and
+percentage, and a completed site settles into a quiet armed state. Presentation
+does not expose planter identity or grant the defender exact progress knowledge.

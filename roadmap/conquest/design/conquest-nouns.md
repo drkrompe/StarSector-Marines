@@ -7,6 +7,9 @@ Written: 2026-08-23
 Updated: 2026-08-29 — a mission now states the map features it requires and a
 map that falls short is re-rolled rather than played.
 
+Updated: 2026-08-29 — compact numbered world beacons now reserve progress and
+animation for actively contested compounds.
+
 Updated: 2026-08-28 — made the footprint-resolved capture room authoritative
 across capture, command, execution, presentation, and evidence, and scoped
 occupancy to the footprint as well so an open compound is capturable.
@@ -146,6 +149,12 @@ convergence, action markers, capture progress, and trace evidence all consume
 that same resolution. The raw tactical-node anchor remains map-authored
 identity and may be blocked or furnished; it is never a substitute capture
 zone.
+
+World presentation gives each compound a compact kind-and-ordinal identity
+matching the battle objective rail. Defender- and marine-held beacons stay
+subdued; only a contested compound gains the amber progress arc, percentage,
+and restrained pulse. The marker remains centered on the authored compound for
+legibility and does not replace the resolved capture cell as tactical authority.
 
 Having a capture room is not sufficient; marines have to be able to walk into
 it. Every compound is therefore reachable from the marine spawn, and generation

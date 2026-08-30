@@ -33,6 +33,10 @@ The retained tray owns card hierarchy and selection input; a separate
 world-layer targeting panel owns the cursor reticle, target validity, RMB
 cancellation, and the next map click. That separation keeps targeting a
 view-layer state and preserves the simulation-owned activation boundary.
+The world preview draws the power's declared footprint as a translucent field,
+brackets the exact snapped cell, and labels the placement `VALID` or `BLOCKED`.
+An invalid click remains armed and never spends resources; the visual result is
+still downstream of the power's own target predicate and radius contract.
 
 The current catalog demonstrates five distinct expressions of the same contract: recon, mech support, emergency resupply, orbital barrage, and marine insertion. A capability may become a direct battlefield power or scale one; ship-only survival flavor does neither and is not a command-power source.
 
