@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.EnumSet;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -249,6 +251,62 @@ class RunwayProcedureTest {
 
             assertEquals(AirfieldService.BerthState.REFITTING, shed.state,
                     "a fighter came home and its shed does not have it back");
+        }
+    }
+
+    /**
+     * A strike sortie works over its objective and never lands on it.
+     *
+     * <p>The distinction the phase exists for. A transport's business at the
+     * far end is its ramp, so it touches down; an aircraft sent to attack a
+     * position has no reason to put its wheels on it and every reason not to.
+     * Before this, reaching the fire-support loiter went by way of a landing,
+     * so a fighter sent against an objective sat on it at zero altitude for a
+     * tick first.
+     */
+    @Test
+    void aStrikeSortieWorksOverItsObjectiveAndNeverLandsOnIt() {
+        try (BattleSimulation sim = openSimulation()) {
+            AirfieldService airfield = sim.getAirfieldService();
+            AirfieldService.Berth shed = airfield.addShelterBerth(
+                    new Gantry((int) SHELTER_X, (int) SHELTER_Y, 2, 2, Gantry.Facing.SOUTH),
+                    FighterProfile.BROADSWORD);
+            long fighter = sim.spawnSortie(FighterProfile.BROADSWORD, Faction.DEFENDER,
+                    50.5f, 30.5f, SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f);
+            ShuttleMission mission = sim.world().mission(fighter);
+            mission.homeBerth = shed;
+            mission.strikeSortie = true;
+            mission.fireSupportSec = 6f;
+            mission.hp = airfield.launch(shed);
+            mission.departFromRunway(STRIP, SHELTER_X, SHELTER_Y, 50.5f, 30.5f);
+            sim.world().kinematics(fighter).teleport(SHELTER_X, SHELTER_Y, 0f);
+
+            // Fly the whole thing, recording every phase and the lowest the
+            // aircraft ever gets while it is out over the objective.
+            EnumSet<ShuttleState> seen = EnumSet.noneOf(ShuttleState.class);
+            float lowestOverTarget = 1f;
+            for (int i = 0; i < 6000 && mission.state != ShuttleState.GONE; i++) {
+                sim.advance(BattleSimulation.TICK_DT);
+                seen.add(mission.state);
+                if (mission.state == ShuttleState.HOVER_STATION) {
+                    lowestOverTarget = Math.min(lowestOverTarget, sim.world().altitudeT(fighter));
+                }
+            }
+
+            assertTrue(seen.contains(ShuttleState.HOVER_STATION),
+                    "never went on station over the objective: " + seen);
+            assertFalse(seen.contains(ShuttleState.LANDED),
+                    "a strike aircraft touched down on its own target");
+            assertTrue(lowestOverTarget > 0.5f,
+                    "dropped to " + lowestOverTarget + " altitude over the objective");
+
+            // And it is still a based aircraft: home down the strip and into
+            // the shed it came out of.
+            assertTrue(seen.contains(ShuttleState.RETURNING), "never turned for home: " + seen);
+            assertTrue(seen.contains(ShuttleState.LANDING_ROLL), "never got down: " + seen);
+            assertTrue(seen.contains(ShuttleState.TAXI_IN), "never left the strip: " + seen);
+            assertEquals(AirfieldService.BerthState.REFITTING, shed.state,
+                    "flew a strike and the shed does not have it back");
         }
     }
 

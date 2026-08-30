@@ -29,6 +29,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 
+import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
@@ -538,30 +539,7 @@ public final class BattleSetup {
      * the first hover-station tick doesn't snap turrets through a 90° swing.
      */
     private static void equipDefaultTurrets(BattleSimulation sim, long shuttleId) {
-        World world = sim.world();
-        // Hardpoints and a role kit are a transport's; an aircraft whose guns
-        // are the reason it was launched brings its own and does not come
-        // through here.
-        if (!(world.airframe(shuttleId) instanceof ShuttleType type)) return;
-        if (type.hardpoints <= 0) return;
-        ShuttleMission mission = world.mission(shuttleId);
-        if (mission.assignedRole == null) mission.assignedRole = TurretRole.A2G;
-        // Loadout (what) from the role/hardpoint kit; positions (where) from the
-        // hull's real weapon slots, converted at the one global pixel density.
-        // Zip kind[i] with slot[i]; clamp to whichever runs out first.
-        String[] kit = ShuttleType.kitFor(mission.assignedRole, type.hardpoints);
-        float[][] slots = TurretSlotResolver.resolve(type.renderHullId());
-        int n = Math.min(kit.length, slots.length);
-        if (n <= 0) return;
-        float noseFacing = world.kinematics(shuttleId).facingDegrees;
-        MountedTurret[] turrets = new MountedTurret[n];
-        for (int i = 0; i < n; i++) {
-            turrets[i] = new MountedTurret(new TurretMount(kit[i], slots[i][0], slots[i][1]));
-            turrets[i].facingDegrees = noseFacing;
-        }
-        // Attach as a presence component — requires the entity id, so the caller
-        // must have run sim.spawnShuttle (which mints it) first.
-        sim.attachAirTurrets(shuttleId, turrets);
+        AirArmament.equip(sim, shuttleId, TurretRole.A2G);
     }
 
     /** Back-compat overload — assumes generic ASSAULT mission type. */

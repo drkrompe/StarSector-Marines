@@ -99,6 +99,16 @@ public class AirSystem {
 
     /** Distance threshold (cells) at which a DEPARTING shuttle transitions to GONE / next cycle. Larger than the LZ threshold because exit points sit well off-map and we don't need pinpoint accuracy. */
     private static final float SHUTTLE_EXIT_ARRIVAL_DIST = 1.0f;
+
+    /**
+     * How near its objective a strike aircraft has to get before it is on
+     * station.
+     *
+     * <p>Wider than a touchdown, because it is not one. A transport has to be
+     * on the exact cell it is setting people down on; an aircraft attacking a
+     * position has arrived when it is over it.
+     */
+    private static final float STRIKE_ARRIVAL_DIST = 2.0f;
     /** Cell radius around a flying turret's origin where walls are treated as transparent — models the shuttle being "above" its containing building. Tuned to typical building wall thickness; past this, real LOS rules apply. */
     private static final float SHUTTLE_AIR_LOS_RADIUS = 3.5f;
 
@@ -591,6 +601,24 @@ public class AirSystem {
                 case INCOMING:
                     AirSteeringSystem.steer(body, mission.lzX, mission.lzY, SteeringMode.BRAKE_TO_STATION, flight, dt);
                     updateShuttleAltitude(id, mission, body, mission.lzX, mission.lzY, /*incoming=*/true, dt);
+                    if (mission.strikeSortie
+                            && body.distanceTo(mission.lzX, mission.lzY) < STRIKE_ARRIVAL_DIST) {
+                        // On station, not on the ground. A wider arrival than a
+                        // touchdown because that is what arriving means here —
+                        // the craft is over the objective rather than stopped
+                        // on a point on it.
+                        mission.hoverPointX = mission.lzX;
+                        mission.hoverPointY = mission.lzY;
+                        mission.hoverTimerSec = mission.fireSupportSec;
+                        // Already at height, so no climb to play: a takeoff
+                        // ramp here would drop the aircraft to the deck and
+                        // fly it back up over its own target.
+                        mission.takeoffTimer = 0f;
+                        world.setAltitudeT(id, 1f);
+                        mission.departingFromHover = false;
+                        mission.state = ShuttleState.HOVER_STATION;
+                        break;
+                    }
                     if (body.distanceTo(mission.lzX, mission.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
                         body.teleport(mission.lzX, mission.lzY, body.facingDegrees);
                         world.setAltitudeT(id, 0f);
