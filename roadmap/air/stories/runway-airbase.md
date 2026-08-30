@@ -157,5 +157,17 @@ strip went from 41x4 to 55x4 and its sheds from two to three.
 | 3b | A host that reserves ground for a station, so the variant is reachable. **Shipped.** |
 | 4 | Shelter berths registered at setup, on a field with a strip. **Shipped.** |
 | 4b | A berth holds an `Airframe`, and a station's sheds hold the defender's own fighters. **Shipped.** |
-| 4c | The strike sortie: trigger, passes, recovery — the wiring that puts a craft into `TAXI_OUT` and brings one home onto the strip. |
+| 4c | The strike sortie: `AirStrikeSystem` decides, an armed fighter rolls, works its target without landing on it, and comes home. **Shipped.** |
 | 5 | Evidence: a runway loop in the airfield scene, and an interrupted one. |
+
+### What a strike cannot be shown to do headlessly
+
+A craft's guns are placed from its hull's real `weaponSlots`, which need the
+game loaded to read, so a headless strike flies unarmed and its station time
+collapses to a few ticks. Measured over two conquest battles a station launches
+four or five strikes and every one of them completes the full cycle — taxi,
+hold short, roll, transit, station, return, rollout, taxi in — with `armed=0`
+throughout. That the arming works is an inference from transports using the
+same resolver on the same path, not something a test here has shown. A sortie
+that comes up unarmed says so once in the log rather than flying silently
+harmless forever.

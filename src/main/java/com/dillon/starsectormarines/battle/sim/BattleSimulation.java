@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
+import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirframeCookOffSystem;
 import com.dillon.starsectormarines.battle.air.AirProvider;
@@ -330,6 +331,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final AirfieldService airfieldService = new AirfieldService();
     /** Stateless tick consumer that stands airframes on their pads, writes off one destroyed where it sat, and counts down a turnaround. */
     private final AirfieldSystem airfieldSystem = new AirfieldSystem(Faction.DEFENDER);
+    /** Decides when the field puts an armed aircraft over the battle. Self-gating: a field with no strip or no sheds flies nothing. */
+    private final AirStrikeSystem airStrikeSystem =
+            new AirStrikeSystem(Faction.DEFENDER, Faction.MARINE);
     /** Marine-side garrison shuttle spawner — drops friendly troops at captured compounds. Conquest-only; null on other mission types. Set via {@link #setGarrisonSystem}. */
     private CompoundGarrisonSystem garrisonSystem;
 
@@ -1800,6 +1804,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // so both see the freshest capture state this tick.
         compoundCapture.tick(TICK_DT, this, compoundService);
         airfieldSystem.tick(TICK_DT, this, airfieldService);
+        // After the berths, so a shed that just took an aircraft back is
+        // airworthy in the same tick a strike might want it.
+        airStrikeSystem.tick(TICK_DT, this);
         if (garrisonSystem != null) garrisonSystem.tick(TICK_DT, this, compoundService);
         // Resource production — alive compounds generate tickets (reinforcement,
         // airstrike) into per-faction pools. Ticked after capture so a
