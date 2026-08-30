@@ -55,7 +55,7 @@ public enum ShuttleType implements AirHandling, Airframe {
     AEROSHUTTLE(
             "graphics/ships/aeroshuttle/aeroshuttle_base.png",
             1, 6, 10f, 0.6f,
-            Profiles.NIMBLE, 1, 25f, 60f),
+            Profiles.NIMBLE, 1, 60f),
 
     KITE(
             // Kite's hull spec points at aeroshuttle_base.png in vanilla —
@@ -63,61 +63,61 @@ public enum ShuttleType implements AirHandling, Airframe {
             // briefing so the player sees what's actually in their fleet.
             "graphics/ships/aeroshuttle/aeroshuttle_base.png",
             1, 9f, 0.6f,
-            Profiles.NIMBLE, 1, 25f, 60f,
+            Profiles.NIMBLE, 1, 60f,
             "kite", "kite_original"),
 
     HERMES(
             "graphics/ships/hermes/hermes_base.png",
             1, 11f, 0.5f,
-            Profiles.NIMBLE, 1, 25f, 55f,
+            Profiles.NIMBLE, 1, 55f,
             "hermes"),
 
     MUDSKIPPER(
             "graphics/ships/mudskipper/mudskipper.png",
             1, 12f, 0.55f,
-            Profiles.NIMBLE, 1, 25f, 60f,
+            Profiles.NIMBLE, 1, 60f,
             "mudskipper", "mudskipper_mk2"),
 
     SHEPHERD(
             "graphics/ships/drone_tender.png",
             1, 7f, 0.7f,
-            Profiles.MEDIUM, 0, 0f, 80f,
+            Profiles.MEDIUM, 0, 80f,
             "shepherd"),
 
     WAYFARER(
             "graphics/ships/wayfarer/wayfarer.png",
             1, 8f, 0.65f,
-            Profiles.MEDIUM, 0, 0f, 80f,
+            Profiles.MEDIUM, 0, 80f,
             "wayfarer"),
 
     BUFFALO(
             "graphics/ships/buffalo/buffalo_base.png",
             2, 6f, 0.9f,
-            Profiles.BUS, 0, 0f, 100f,
+            Profiles.BUS, 0, 100f,
             "buffalo"),
 
     TARSUS(
             "graphics/ships/tarsus/tarsus_base.png",
             2, 6f, 0.85f,
-            Profiles.BUS, 0, 0f, 90f,
+            Profiles.BUS, 0, 90f,
             "tarsus"),
 
     MULE(
             "graphics/ships/mule/mule_base.png",
             2, 7f, 0.75f,
-            Profiles.BUS, 0, 0f, 100f,
+            Profiles.BUS, 0, 100f,
             "mule"),
 
     NEBULA(
             "graphics/ships/nebula/nebula.png",
             2, 5f, 0.85f,
-            Profiles.BUS, 0, 0f, 120f,
+            Profiles.BUS, 0, 120f,
             "nebula"),
 
     VALKYRIE(
             "graphics/ships/valkyrie/valkyrie_ap.png",
             3, 7f, 0.8f,
-            Profiles.BUS, 4, 60f, 150f,
+            Profiles.BUS, 4, 150f,
             "valkyrie");
 
     public final String spritePath;
@@ -129,11 +129,9 @@ public enum ShuttleType implements AirHandling, Airframe {
     public final float maxSpeed;
     public final float deboardInterval;
     public final HandlingProfile handling;
-    /** Number of turret hardpoints. 0 means this type is a pure transport — no fire support, no hover loiter. */
+    /** Number of turret hardpoints. 0 means this type is a pure transport — nothing to shoot back with on the way in or out. */
     public final int hardpoints;
-    /** Sim-seconds the shuttle will loiter in HOVER_STATION before turning for home. Capped by ammo-dry / HP-threshold exits. 0 when {@link #hardpoints} is 0. */
-    public final float fireSupportSec;
-    /** Maximum HP for the shuttle as a whole. Drives the pressure-to-leave exit during hover; no damage source exists yet, so the field is wired forward for future anti-air work. */
+    /** Maximum HP for the shuttle as a whole. What anti-air fire has to get through over the run in and the run out. */
     public final float maxHp;
     /** Vanilla hull IDs that map to this type when scanning the player's fleet. */
     public final List<String> matchingHullIds;
@@ -141,17 +139,17 @@ public enum ShuttleType implements AirHandling, Airframe {
     ShuttleType(String spritePath, int teams,
                 float maxSpeed, float deboardInterval,
                 HandlingProfile handling,
-                int hardpoints, float fireSupportSec, float maxHp,
+                int hardpoints, float maxHp,
                 String... matchingHullIds) {
         this(spritePath, teams, teams * Squad.FIRE_TEAM_SIZE,
                 maxSpeed, deboardInterval, handling,
-                hardpoints, fireSupportSec, maxHp, matchingHullIds);
+                hardpoints, maxHp, matchingHullIds);
     }
 
     ShuttleType(String spritePath, int teams, int capacity,
                 float maxSpeed, float deboardInterval,
                 HandlingProfile handling,
-                int hardpoints, float fireSupportSec, float maxHp,
+                int hardpoints, float maxHp,
                 String... matchingHullIds) {
         this.spritePath = spritePath;
         this.teams = teams;
@@ -160,7 +158,6 @@ public enum ShuttleType implements AirHandling, Airframe {
         this.deboardInterval = deboardInterval;
         this.handling = handling;
         this.hardpoints = hardpoints;
-        this.fireSupportSec = fireSupportSec;
         this.maxHp = maxHp;
         this.matchingHullIds = Collections.unmodifiableList(Arrays.asList(matchingHullIds));
     }
@@ -210,7 +207,7 @@ public enum ShuttleType implements AirHandling, Airframe {
      * Expands a {@link TurretRole} into the turret <b>loadout</b> (which
      * structure ids for a hull of {@code hardpoints} mount points.
      * {@code null} role or zero hardpoints returns an empty array — these
-     * shuttles skip HOVER_STATION entirely and depart as pure transports.
+     * shuttles fly the sortie unarmed.
      *
      * <p>This picks <em>what</em> the hull carries; <em>where</em> each turret
      * sits comes from the hull's real {@code weaponSlots}
