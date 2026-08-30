@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.influence;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -10,6 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -61,5 +64,35 @@ public class CasualtyMemoryPublicationTest {
                         .lossesAtWorld(20, 20), 1e-6f,
                 "and the defender learns nothing from it — this is a side's "
                         + "memory of its own dead, not a report on the enemy's");
+    }
+
+    /**
+     * The same wire seen from the other end. The commander's snapshot is built
+     * lazily by whoever asks for it, and the movers' costing is not: it has to
+     * be aged and republished from the tick loop, or a battle with no
+     * diagnostic reader would leave the pathfinder nothing to consult.
+     */
+    @Test
+    public void aMarineLossMakesThatGroundDearerForTheMarinesToCross() {
+        BattleSimulation sim = openSim();
+        sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 60, 60));
+        long lost = sim.spawn(new EntitySpec("m", Faction.MARINE,
+                UnitType.MARINE, 20, 20));
+        sim.spawn(new EntitySpec("m2", Faction.MARINE, UnitType.MARINE, 40, 40));
+
+        assertNull(sim.getRouteCostField(Faction.MARINE),
+                "nothing lost, so nothing to route around");
+
+        sim.applyDamage(lost, 100_000f, 100_000f);
+        for (int i = 0; i < CommanderInfluenceService.UPDATE_INTERVAL_TICKS + 2; i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+
+        RouteCostField cost = sim.getRouteCostField(Faction.MARINE);
+        assertNotNull(cost, "published without anybody asking for a snapshot");
+        assertTrue(cost.cells()[20 * W + 20] > 1f,
+                "and the ground the marine died on costs the marines more");
+        assertNull(sim.getRouteCostField(Faction.DEFENDER),
+                "while the defenders, who have lost nobody, route as before");
     }
 }

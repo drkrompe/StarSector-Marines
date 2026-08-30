@@ -107,6 +107,21 @@ tasks.withType(Test).configureEach {
     // every scene, the policy tests would be asserting nothing, and evidence
     // runs would report a battle nobody can play.
     systemProperty 'marines.debug.screenTrigger', 'off'
+    forwardBattleSwitches(delegate)
+}
+
+// A `-Dbattle.*` switch on the command line reaches the Gradle daemon and stops
+// there; the fork that runs the measurement never sees it. Forwarding them is
+// what makes a control run — the same evidence with one routing or pathfinding
+// layer switched off — a single command rather than a checkout of an older
+// commit, which would measure every other difference between the two trees at
+// the same time.
+void forwardBattleSwitches(task) {
+    System.properties.each { key, value ->
+        if (key.toString().startsWith('battle.')) {
+            task.systemProperty key.toString(), value
+        }
+    }
 }
 
 test {
@@ -290,6 +305,7 @@ tasks.register('createSnapshots', JavaExec) {
     mainClass = 'com.dillon.starsectormarines.ops.CreateSnapshotsCli'
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    forwardBattleSwitches(delegate)
     outputs.upToDateWhen { false }
     doFirst {
         File output = providers.gradleProperty('snapshotDir').isPresent()

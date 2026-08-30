@@ -18,10 +18,20 @@ import java.util.Locale;
  * behind it — and the <b>clear</b> loop is the control that shows which lane
  * the pathfinder picks when nothing has happened in either.
  *
- * <p>The caption names each wave's lane, because that is the entire finding.
- * Read the two loops together: if the follow-up in the ambushed loop takes the
- * same lane as the control, routing has no memory of casualties. That is the
- * present state, and this is the recording a casualty-cost layer has to change.
+ * <p>The caption names each wave's lane; the printed line adds the finer
+ * reading, which is how close the follow-up ever came to a fallen marine and
+ * how long it spent among them. Read the two loops together. The lane is coarse
+ * — these lanes are thirty cells wide, and a squad can sidestep the exact
+ * ground its predecessor died on without leaving the lane at all — so a layer
+ * that remembers casualties may show up in the distance rather than in the
+ * lane, and either counts.
+ *
+ * <p>What it records today: the control takes the west lane, and so does the
+ * follow-up with {@code -Dbattle.pathfinding.casualtyRouteCost=false} - within
+ * half a cell of a fallen marine, for seven hundred member-ticks among them.
+ * With the costing live the follow-up goes east instead and never comes within
+ * fourteen cells of the dead. Run it both ways; the switch is the control, and
+ * it is a great deal more honest than an older commit.
  *
  * <p><b>The ground is blank on purpose and the frames are a position record
  * rather than a terrain view.</b> Ground art comes from the generator, and this
@@ -81,7 +91,15 @@ public final class KillingGroundSceneSnapshotSuite implements SnapshotSuite {
                 first.destroyedTick < 0 ? "no" : "t" + first.destroyedTick,
                 following == null ? "never sent"
                         : "lane=" + lane(following) + " sent=t" + following.spawnedTick
-                        + " alive=" + KillingGroundScene.alive(scene.sim(), following.squadId));
+                        + " alive=" + KillingGroundScene.alive(scene.sim(), following.squadId)
+                        + " closestToFallen=" + distance(following.closestToFallen)
+                        + " memberTicksAmongFallen=" + following.memberTicksAmongFallen
+                        + " track=" + track(following));
+        if (first.spawnedTick >= 0) {
+            System.out.printf(Locale.ROOT,
+                    "    [killing-ground] %-9s wave1 track=%s%n",
+                    label, track(first));
+        }
         return SnapshotArtifact.animation(
                 "killing-ground-" + label + ".gif", frames, FRAME_DELAY_MILLIS);
     }
@@ -95,6 +113,18 @@ public final class KillingGroundSceneSnapshotSuite implements SnapshotSuite {
                 KillingGroundScene.alive(scene.sim(), first.squadId),
                 following == null ? "not sent" : lane(following) + " ("
                         + KillingGroundScene.alive(scene.sim(), following.squadId) + " up)");
+    }
+
+    /** Where a wave's traffic actually ran between the dividers. */
+    private static String track(Wave wave) {
+        return wave.trackMinX > wave.trackMaxX ? "—"
+                : "x" + wave.trackMinX + ".." + wave.trackMaxX;
+    }
+
+    /** Never-measured reads as a dash rather than as a very large number. */
+    private static String distance(float value) {
+        return value == Float.MAX_VALUE ? "—"
+                : String.format(Locale.ROOT, "%.1f", value);
     }
 
     private static String lane(Wave wave) {

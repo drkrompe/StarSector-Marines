@@ -31,8 +31,8 @@ import java.util.Random;
  * width, equal cover, both open at both ends, and the start and objective sit
  * on the centre line. Nothing about the geometry prefers either, so lane choice
  * is decided by the pathfinder's tie-break alone — which makes it a clean
- * instrument. A layer that remembers where casualties happened should flip the
- * second wave to the other lane, and nothing else in the scene can.
+ * instrument. Whatever the follow-up does differently from the control it does
+ * because of the dead, and nothing else in the scene can account for it.
  *
  * <p><b>The killers are removed once they have done their work.</b> That is the
  * whole trick, and the scene did not work without it: a squad already routes
@@ -43,9 +43,14 @@ import java.util.Random;
  * dead, the two lanes are once again identical in every respect a router can
  * observe, except that one of them is full of dead marines.
  *
- * <p>Today it records the honest baseline: routing has no memory of losses, so
- * the second wave takes the same lane the control does. That is the recording
- * to compare against, not a bug the scene is failing to avoid.
+ * <p><b>Which lane is the coarse reading, and the fine one is how close the
+ * follow-up passes to the dead.</b> The lanes here are thirty cells wide, so a
+ * squad can sidestep the exact ground its predecessor was killed on and still
+ * be recorded as taking the same lane - and sidestepping it is a perfectly good
+ * answer to the question. So each wave also carries how near it ever came to a
+ * fallen marine, and how long it spent within a few cells of one. Those are
+ * read off positions rather than off any layer's own field, so the scene keeps
+ * measuring the same thing whatever is or is not wired up behind it.
  */
 final class KillingGroundScene {
 
@@ -62,9 +67,17 @@ final class KillingGroundScene {
     private static final int DIVIDER_BOTTOM_Y = HEIGHT - 16;
     private static final int DIVIDER_HALF_WIDTH = 6;
 
-    /** Lane centres, mirrored about {@link #CENTRE_X}. */
-    static final int WEST_LANE_X = CENTRE_X - 16;
-    static final int EAST_LANE_X = CENTRE_X + 16;
+    /**
+     * Where a lane's traffic actually runs, mirrored about {@link #CENTRE_X}.
+     * Hard against the divider rather than down the middle of the open ground:
+     * the shortest way past an obstacle hugs it, and a squad walking from the
+     * start line to the objective is never anywhere near the lane's centre. The
+     * scene put its killing ground at that centre for a while, eight cells off
+     * every route through the lane, and consequently recorded a follow-up
+     * behaving identically whatever it did or did not remember.
+     */
+    static final int WEST_LANE_X = CENTRE_X - DIVIDER_HALF_WIDTH - 2;
+    static final int EAST_LANE_X = CENTRE_X + DIVIDER_HALF_WIDTH + 2;
 
     /** The ambush covers the west lane only. */
     private static final int AMBUSH_Y = HEIGHT / 2;
@@ -76,12 +89,45 @@ final class KillingGroundScene {
     /** Which lane a squad is using, read off its centroid rather than its orders. */
     enum Lane { WEST, EAST, NEITHER }
 
+    /** Distance at which a marine counts as being among the previous wave's dead. */
+    static final float NEAR_FALLEN_CELLS = 5f;
+
+    /**
+     * Latitude past the killing ground. A loop runs until the squad it is about
+     * has crossed this or been destroyed, rather than until it has merely
+     * picked a lane: the whole question is what it does on the stretch where
+     * the last squad died, and stopping at the lane choice cuts the recording
+     * off before it gets there.
+     */
+    private static final int PAST_THE_GROUND_Y = AMBUSH_Y - 10;
+
     /** One wave's story: the squad, the lane it committed to, and what became of it. */
     static final class Wave {
         final int squadId;
+        /**
+         * Every marine spawned into this wave, alive or not. Held because the
+         * scene needs where each one <em>fell</em>, and a released unit is
+         * gone from the squad's live membership by the time anyone notices.
+         */
+        final long[] members;
+        final int[] lastX;
+        final int[] lastY;
+        final boolean[] fallen;
         Lane lane = Lane.NEITHER;
         int spawnedTick = -1;
         int destroyedTick = -1;
+        /** Nearest this wave ever came to a marine of an earlier one. */
+        float closestToFallen = Float.MAX_VALUE;
+        /** Member-ticks spent within {@link #NEAR_FALLEN_CELLS} of one. */
+        int memberTicksAmongFallen;
+        /**
+         * Leftmost and rightmost a member was seen while between the dividers.
+         * Recorded because a lane's traffic is not down its middle - squads
+         * hug the divider, and an instrument that puts the interesting event
+         * at the lane's centre puts it several cells off the route.
+         */
+        int trackMinX = Integer.MAX_VALUE;
+        int trackMaxX = Integer.MIN_VALUE;
         /**
          * Whether this wave has ever been seen alive. A squad is only destroyed
          * if it was previously standing — without this an empty reading on the
@@ -90,7 +136,13 @@ final class KillingGroundScene {
          */
         boolean stood;
 
-        Wave(int squadId) { this.squadId = squadId; }
+        Wave(int squadId, long[] members) {
+            this.squadId = squadId;
+            this.members = members;
+            this.lastX = new int[members.length];
+            this.lastY = new int[members.length];
+            this.fallen = new boolean[members.length];
+        }
     }
 
     record Scene(BattleSimulation sim, List<Wave> waves, int[] objective,
@@ -178,13 +230,14 @@ final class KillingGroundScene {
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         MarineLoadout[] kit = InfantryLoadoutRolls.playerSquad(
                 SQUAD_SIZE, new Random(KIT_SEED + index));
+        long[] members = new long[SQUAD_SIZE];
         for (int i = 0; i < SQUAD_SIZE; i++) {
             EntitySpec spec = new EntitySpec("w" + index + "-" + i, Faction.MARINE,
                     UnitType.MARINE,
                     atX - 2 + i % 4, atY + i / 4);
             kit[i].seedInto(spec);
             spec.squad(squadId);
-            sim.spawn(spec);
+            members[i] = sim.spawn(spec);
         }
         Squad squad = sim.getSquad(squadId);
         if (squad != null) {
@@ -197,7 +250,12 @@ final class KillingGroundScene {
             squad.assignedObjective = ObjectiveAssignment.attackMove(
                     squadId, CENTRE_X, OBJECTIVE_Y);
         }
-        return new Wave(squadId);
+        Wave wave = new Wave(squadId, members);
+        for (int i = 0; i < SQUAD_SIZE; i++) {
+            wave.lastX[i] = (int) sim.world().x(members[i]);
+            wave.lastY[i] = (int) sim.world().y(members[i]);
+        }
+        return wave;
     }
 
     /**
@@ -213,6 +271,8 @@ final class KillingGroundScene {
         BattleSimulation sim = scene.sim();
         for (Wave wave : scene.waves()) {
             if (wave.spawnedTick < 0) continue;
+            trackPositions(sim, wave);
+            measureAgainstTheDead(sim, scene, wave);
             Lane lane = laneOf(sim, wave.squadId);
             if (lane != Lane.NEITHER && wave.lane == Lane.NEITHER) wave.lane = lane;
             int alive = alive(sim, wave.squadId);
@@ -241,16 +301,77 @@ final class KillingGroundScene {
     }
 
     /**
+     * Keeps each member's last known cell current, so that when one stops
+     * resolving the scene still knows where it went down. A released unit
+     * answers nothing about its own position, and where it fell is the whole
+     * of what this scene has to remember about it.
+     */
+    private static void trackPositions(BattleSimulation sim, Wave wave) {
+        for (int i = 0; i < wave.members.length; i++) {
+            if (wave.fallen[i]) continue;
+            if (sim.resolveUnit(wave.members[i]) == 0L) {
+                wave.fallen[i] = true;
+                continue;
+            }
+            wave.lastX[i] = (int) sim.world().x(wave.members[i]);
+            wave.lastY[i] = (int) sim.world().y(wave.members[i]);
+        }
+    }
+
+    /**
+     * How near this wave's living members are to marines of an earlier one.
+     * Measured off positions rather than off any routing layer's own field, so
+     * the reading means the same thing whether or not such a layer exists.
+     */
+    private static void measureAgainstTheDead(BattleSimulation sim, Scene scene,
+                                              Wave wave) {
+        for (int i = 0; i < wave.members.length; i++) {
+            if (sim.resolveUnit(wave.members[i]) == 0L) continue;
+            float x = sim.world().x(wave.members[i]);
+            float y = sim.world().y(wave.members[i]);
+            float nearest = Float.MAX_VALUE;
+            for (Wave earlier : scene.waves()) {
+                if (earlier == wave) continue;
+                for (int j = 0; j < earlier.members.length; j++) {
+                    if (!earlier.fallen[j]) continue;
+                    float dx = earlier.lastX[j] - x;
+                    float dy = earlier.lastY[j] - y;
+                    nearest = Math.min(nearest, (float) Math.sqrt(dx * dx + dy * dy));
+                }
+            }
+            if (y >= DIVIDER_TOP_Y && y <= DIVIDER_BOTTOM_Y) {
+                wave.trackMinX = Math.min(wave.trackMinX, (int) x);
+                wave.trackMaxX = Math.max(wave.trackMaxX, (int) x);
+            }
+            if (nearest == Float.MAX_VALUE) continue;
+            wave.closestToFallen = Math.min(wave.closestToFallen, nearest);
+            if (nearest <= NEAR_FALLEN_CELLS) wave.memberTicksAmongFallen++;
+        }
+    }
+
+    /**
      * True once the squad whose choice this loop is about has made it. In the
      * control that is the only squad on the map; in the ambushed loop it is the
      * follow-up, and the first wave committing to the lane it was spawned in
      * says nothing.
      */
     static boolean finished(Scene scene) {
-        if (scene.ambush().isEmpty()) return scene.first().lane != Lane.NEITHER;
-        Wave following = scene.following();
-        return following != null
-                && (following.lane != Lane.NEITHER || following.destroyedTick >= 0);
+        Wave watched = scene.ambush().isEmpty()
+                ? scene.first() : scene.following();
+        if (watched == null) return false;
+        if (watched.destroyedTick >= 0) return true;
+        return pastTheGround(scene.sim(), watched);
+    }
+
+    /** True once every living member of {@code wave} is north of the ground. */
+    private static boolean pastTheGround(BattleSimulation sim, Wave wave) {
+        boolean anyLiving = false;
+        for (long member : wave.members) {
+            if (sim.resolveUnit(member) == 0L) continue;
+            anyLiving = true;
+            if (sim.world().y(member) > PAST_THE_GROUND_Y) return false;
+        }
+        return anyLiving;
     }
 
     /**

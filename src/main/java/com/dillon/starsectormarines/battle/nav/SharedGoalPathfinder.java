@@ -12,6 +12,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * and before any concurrent requests. Fields are immutable for the remainder
  * of that snapshot and may retain that frozen occupancy view across a small,
  * fixed number of later snapshots before rebuilding.
+ *
+ * <p>A {@link RouteCostField} is part of a tree's identity rather than an
+ * argument to reading one, because the tree encodes the costs it was grown
+ * under. Two callers routing to the same cell under different costings - the
+ * two sides' separate memories of their own losses, say - get two trees, and a
+ * republished costing retires the trees grown under the old one by never
+ * matching their key again. That is why the cache is keyed on the field's
+ * revision rather than on the goal alone.
  */
 final class SharedGoalPathfinder {
 
@@ -25,7 +33,7 @@ final class SharedGoalPathfinder {
     private final byte[] occupancy;
     private final HierarchicalPathfinder ordinaryPathfinder;
     private final int maxBuildAgeSnapshots;
-    private final ConcurrentHashMap<Long, ReverseField> fields =
+    private final ConcurrentHashMap<FieldKey, ReverseField> fields =
             new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<ReverseField> recycled =
             new ConcurrentLinkedQueue<>();
@@ -96,15 +104,44 @@ final class SharedGoalPathfinder {
         return fields.size();
     }
 
+    /**
+     * Identity of one retained tree: where it leads, which step families it
+     * was grown with, and which costing it was grown under. Ordered so the
+     * over-capacity trim has a total tie-break and evicts the same tree on
+     * every replay of a battle.
+     */
+    private record FieldKey(int goalIdx, boolean cardinalOnly,
+                            long costRevision) implements Comparable<FieldKey> {
+        @Override
+        public int compareTo(FieldKey other) {
+            int byGoal = Integer.compare(goalIdx, other.goalIdx);
+            if (byGoal != 0) return byGoal;
+            int byFamily = Boolean.compare(cardinalOnly, other.cardinalOnly);
+            if (byFamily != 0) return byFamily;
+            return Long.compare(costRevision, other.costRevision);
+        }
+    }
+
     int[] findPath(int startX, int startY, int goalX, int goalY,
                    boolean cardinalOnly) {
+        return findPath(startX, startY, goalX, goalY, cardinalOnly, null);
+    }
+
+    int[] findPath(int startX, int startY, int goalX, int goalY,
+                   boolean cardinalOnly, RouteCostField cost) {
+        float[] costCells = cost == null ? null : cost.cells();
         if (!snapshotReady) {
-            if (ordinaryPathfinder != null) {
+            // The coarse pathfinder scans the whole cost field for an
+            // admissible lower bound on every call - affordable for the
+            // terrain fields it was written for, not for one consulted on
+            // ordinary infantry repaths. Off-snapshot requests are the rare
+            // path anyway, so a costed one goes flat rather than hierarchical.
+            if (ordinaryPathfinder != null && costCells == null) {
                 return ordinaryPathfinder.findPath(startX, startY,
                         goalX, goalY, cardinalOnly, occupancy);
             }
             return GridPathfinder.findPath(grid, startX, startY,
-                    goalX, goalY, cardinalOnly, occupancy);
+                    goalX, goalY, cardinalOnly, occupancy, costCells, null);
         }
         long requestStart = System.nanoTime();
         try {
@@ -116,10 +153,11 @@ final class SharedGoalPathfinder {
                 return new int[]{startX, startY};
             }
             int goalIdx = grid.index(goalX, goalY);
-            long key = ((long) goalIdx << 1) | (cardinalOnly ? 1L : 0L);
+            FieldKey key = new FieldKey(goalIdx, cardinalOnly,
+                    cost == null ? 0L : cost.revision());
             ReverseField field = fields.computeIfAbsent(key,
-                    ignored -> buildField(
-                            goalIdx, cardinalOnly, snapshotIndex));
+                    ignored -> buildField(goalIdx, cardinalOnly, costCells,
+                            snapshotIndex));
             long extractStart = System.nanoTime();
             int[] path = field.extract(startX, startY);
             TickInnerProfile profile = TickInnerProfile.current();
@@ -142,13 +180,13 @@ final class SharedGoalPathfinder {
     }
 
     private ReverseField buildField(int goalIdx, boolean cardinalOnly,
-                                    long builtSnapshot) {
+                                    float[] costCells, long builtSnapshot) {
         ReverseField field = recycled.poll();
         if (field == null) {
             field = new ReverseField(grid.getWidth(), grid.getHeight());
         }
         long buildStart = System.nanoTime();
-        field.rebuild(grid, occupancy, goalIdx, cardinalOnly);
+        field.rebuild(grid, occupancy, costCells, goalIdx, cardinalOnly);
         field.builtSnapshot = builtSnapshot;
         TickInnerProfile profile = TickInnerProfile.current();
         if (profile != null) {
@@ -172,14 +210,14 @@ final class SharedGoalPathfinder {
     /** Keeps the live cache bounded after every serial worker boundary. */
     private void trimRetainedFields() {
         while (fields.size() > MAX_RETAINED_FIELDS) {
-            Long victimKey = null;
+            FieldKey victimKey = null;
             ReverseField victim = null;
             for (var entry : fields.entrySet()) {
                 ReverseField candidate = entry.getValue();
                 if (victim == null
                         || candidate.builtSnapshot < victim.builtSnapshot
                         || (candidate.builtSnapshot == victim.builtSnapshot
-                        && entry.getKey() < victimKey)) {
+                        && entry.getKey().compareTo(victimKey) < 0)) {
                     victimKey = entry.getKey();
                     victim = candidate;
                 }
@@ -223,7 +261,7 @@ final class SharedGoalPathfinder {
             this.heap = new int[totalCells];
         }
 
-        void rebuild(NavigationGrid grid, byte[] occupancy,
+        void rebuild(NavigationGrid grid, byte[] occupancy, float[] costCells,
                      int newGoalIdx, boolean cardinalOnly) {
             Arrays.fill(distance, INF);
             Arrays.fill(nextIdx, UNSEEN);
@@ -251,20 +289,21 @@ final class SharedGoalPathfinder {
 
                 int currentX = currentIdx % width;
                 int currentY = currentIdx / width;
-                // Every predecessor enters the same current cell. Occupancy is
-                // destination-based, while base cost differs only between the
-                // cardinal and diagonal direction families, so compute these
-                // two bit-identical candidates once per expansion rather than
-                // repeating the occupancy work for all 4/8 predecessors.
+                // Every predecessor enters the same current cell. Occupancy
+                // and route cost are both destination-keyed, while base cost
+                // differs only between the cardinal and diagonal direction
+                // families, so compute these two bit-identical candidates once
+                // per expansion rather than repeating that work for all 4/8
+                // predecessors.
                 float currentDistance = distance[currentIdx];
                 float cardinalCandidate = currentDistance
                         + GridPathfinder.stepCost(
                         GridPathfinder.FIRST_CARDINAL_DIRECTION, currentIdx,
-                        occupancy, null);
+                        occupancy, costCells);
                 float diagonalCandidate = cardinalOnly ? 0f
                         : currentDistance + GridPathfinder.stepCost(
                         GridPathfinder.FIRST_DIAGONAL_DIRECTION, currentIdx,
-                        occupancy, null);
+                        occupancy, costCells);
                 for (int direction = 0;
                      direction < directionCount; direction++) {
                     int predecessorX = currentX

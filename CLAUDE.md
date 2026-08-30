@@ -362,6 +362,21 @@ root while retaining the per-suite subdirectories. Command-line generation
 replaces matching files without prompting and does not remove stale ones, so a
 suite that renames an artifact leaves the old name behind until it is deleted.
 
+A `-Dbattle.*` switch on the command line reaches the Gradle daemon and stops
+there. `createSnapshots` and every `Test` task forward them into the fork, so a
+**control run** — the same evidence with one routing or pathfinding layer
+switched off — is one command away:
+
+```powershell
+.\gradlew.bat createSnapshots '-Psnapshot=killing-ground' '-Dbattle.pathfinding.casualtyRouteCost=false'
+```
+
+Reach for that rather than checking out an older commit. A commit-to-commit
+comparison measures every other difference between the two trees at the same
+time, which is how a seven-thousand-tick swing in the Conquest matrix was once
+credited to a squad behaviour and turned out to be another session's
+reinforcement work arriving on a merge.
+
 A suite artifact is a PNG or, for a suite whose evidence is a played battle
 rather than a composition, an animated GIF built from a frame sequence. The
 runner writes both; a suite never writes files itself. Animated review frames

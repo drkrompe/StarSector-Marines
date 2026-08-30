@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -124,6 +125,22 @@ public interface BattleView {
      * battle is dense enough to reuse it.
      */
     int[] findSharedPathToGoal(int startX, int startY, int goalX, int goalY);
+
+    /**
+     * As above, biased by what {@code cost} makes each cell worth crossing.
+     * Pass {@link #getRouteCostField} for the mover's own side to route around
+     * ground it has recently been killed on.
+     */
+    int[] findSharedPathToGoal(int startX, int startY, int goalX, int goalY,
+                               RouteCostField cost);
+
+    /**
+     * What this faction's own recent losses make ground cost to cross, or
+     * {@code null} while it has lost nobody worth routing around. Published on
+     * a fixed cadence, so it is a frozen snapshot that may be held for the
+     * duration of a tick.
+     */
+    RouteCostField getRouteCostField(Faction faction);
 
     /** The entity id that {@code u} is currently targeting, or {@code 0L} if none. */
     long targetOf(long u);

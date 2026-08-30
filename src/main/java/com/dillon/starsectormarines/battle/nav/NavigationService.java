@@ -334,8 +334,19 @@ public final class NavigationService {
      */
     public int[] findSharedPathToGoal(int startX, int startY,
                                       int goalX, int goalY) {
+        return findSharedPathToGoal(startX, startY, goalX, goalY, null);
+    }
+
+    /**
+     * As above, with a per-cell traversal cost folded into the shared field.
+     * The costing is part of the field's identity, so two costings serve two
+     * trees and a republished one retires its predecessor.
+     */
+    public int[] findSharedPathToGoal(int startX, int startY,
+                                      int goalX, int goalY,
+                                      RouteCostField cost) {
         return sharedGoalPathfinder.findPath(startX, startY, goalX, goalY,
-                GridPathfinder.USE_CARDINAL_NAVIGATION);
+                GridPathfinder.USE_CARDINAL_NAVIGATION, cost);
     }
 
     public void beginSharedGoalPathSnapshot() {
