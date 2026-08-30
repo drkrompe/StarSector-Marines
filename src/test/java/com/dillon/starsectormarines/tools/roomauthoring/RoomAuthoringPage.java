@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPage;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
 import com.dillon.starsectormarines.tools.authoring.wizard.LambdaStep;
@@ -117,10 +118,17 @@ public final class RoomAuthoringPage implements AuthoringPage {
     private DeckWorkshop workshop;
     private RoomDraft draft;
     private boolean dirty;
+    /** Set while the ship is being generated, so a second request does not stack. */
+    private boolean loading;
 
-    public RoomAuthoringPage(AuthoringPageContext context) {
+    public RoomAuthoringPage(AuthoringPageContext context) throws Exception {
         this.context = context;
         this.wizard = new Wizard(this::backToChooser, context::reportStatus);
+
+        // The catalogs the game installs at application load. Nothing installs
+        // them in the workbench, and without them a fixture resolves to nothing
+        // — so this page would open on a list of rooms it could not furnish.
+        DiskRegistries.install(context.projectRoot());
 
         affordance.addItem(null);
         for (Affordance value : Affordance.values()) affordance.addItem(value);
@@ -201,6 +209,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
         JPanel levelRow = new JPanel();
         levelRow.add(new JLabel("Fitted at:"));
         levelRow.add(level);
+        level.addActionListener(e -> loadRooms());
         foot.add(levelRow, BorderLayout.WEST);
 
         JButton open = new JButton("Open this room");
@@ -210,17 +219,45 @@ public final class RoomAuthoringPage implements AuthoringPage {
         return panel;
     }
 
-    /** Fill the room list from the ship herself, so it lists rooms that exist. */
+    /**
+     * Fill the room list from the ship herself, so it lists rooms that exist.
+     *
+     * <p>Off the event thread, because filling it means generating a whole deck.
+     * Doing that inline froze the window on the way in, before the page had
+     * drawn anything to explain itself.
+     */
     private void loadRooms() {
+        if (loading) return;
+        loading = true;
         rooms.clear();
-        try {
-            workshop = new DeckWorkshop(context.projectRoot(), context.starsectorCoreRoot(),
-                    (RoomFit) level.getSelectedItem());
-            for (RoomPurpose purpose : workshop.purposesAboard()) rooms.addElement(purpose);
-            context.reportStatus("The ship carries " + rooms.size() + " kinds of room.");
-        } catch (Exception failure) {
-            context.reportStatus("Could not generate the ship: " + failure.getMessage());
-        }
+        context.reportStatus("Generating the ship to see what rooms she has\u2026");
+        RoomFit fit = (RoomFit) level.getSelectedItem();
+        new Thread(() -> {
+            DeckWorkshop built = null;
+            List<RoomPurpose> aboard = List.of();
+            String failed = null;
+            try {
+                built = new DeckWorkshop(context.projectRoot(), context.starsectorCoreRoot(), fit);
+                aboard = built.purposesAboard();
+            } catch (Exception failure) {
+                failed = failure.getMessage() == null
+                        ? failure.toString() : failure.getMessage();
+            }
+            DeckWorkshop ready = built;
+            List<RoomPurpose> found = aboard;
+            String why = failed;
+            SwingUtilities.invokeLater(() -> {
+                loading = false;
+                if (why != null) {
+                    context.reportStatus("Could not generate the ship: " + why);
+                    return;
+                }
+                if (workshop != null) workshop.close();
+                workshop = ready;
+                for (RoomPurpose purpose : found) rooms.addElement(purpose);
+                context.reportStatus("The ship carries " + rooms.size() + " kinds of room.");
+            });
+        }, "room-list").start();
     }
 
     private void openSelectedRoom() {
@@ -229,7 +266,15 @@ public final class RoomAuthoringPage implements AuthoringPage {
             context.reportStatus("Pick a room to open.");
             return;
         }
+        if (workshop == null) {
+            context.reportStatus("The ship is still being generated.");
+            return;
+        }
         RoomShape shape = shapeOf(purpose);
+        if (shape == null) {
+            context.reportStatus("The ship has no " + purpose + " to copy.");
+            return;
+        }
         RoomLayout seed = RoomLayoutSeed.from(purpose, shape, (RoomFit) level.getSelectedItem());
         if (seed == null) {
             context.reportStatus(purpose + " has no fitting to copy, so there is nothing to seed.");
@@ -246,10 +291,16 @@ public final class RoomAuthoringPage implements AuthoringPage {
         ((CardLayout) screens.getLayout()).show(screens, WIZARD);
     }
 
-    /** The footprint this room is generated at today. */
+    /**
+     * The footprint this room is generated at today, or null when the ship has
+     * no such room.
+     *
+     * <p>Null rather than a stand-in size. A layout is bound to its footprint,
+     * so seeding one against a made-up ten by eight would produce a document
+     * that silently matches no room on any deck.
+     */
     private RoomShape shapeOf(RoomPurpose purpose) {
-        RoomShape shape = workshop == null ? null : workshop.footprintOf(purpose);
-        return shape != null ? shape : RoomShape.rectangle(10, 8);
+        return workshop == null ? null : workshop.footprintOf(purpose);
     }
 
     private void showChooser() {
