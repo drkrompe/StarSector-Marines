@@ -4,8 +4,10 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-29 — added the order mix: which orders a battle was actually
-made of, with unassigned pulses as a bucket rather than an omission.
+Updated: 2026-08-29 — added the casualty memory: a side's decaying record of
+where it lost people, and the approach avoidance that spends it. Also that day —
+added the order mix: which orders a battle was actually made of, with
+unassigned pulses as a bucket rather than an omission.
 Earlier: made navigation-revision caching and commander-pulse
 performance evidence part of the shared command boundary.
 
@@ -136,6 +138,22 @@ topology, source aggregation, and propagation publish their own refresh counts
 and costs; they may be triggered by command frame capture or tactical GOAP and
 must not be added to the enclosing phase. These are timing diagnostics, not
 commander facts, and never enter deterministic traces.
+
+A **casualty memory** is a side's record of where it recently lost people, at
+influence-block resolution and decaying with a half-life. It is own-force
+knowledge of the same class as the friendly influence field — a faction knows
+who it lost and roughly where — and it is emphatically not intelligence about
+the enemy: it names no hostile, and a lane stays expensive long after whatever
+held it has moved on. Only combatant losses count, because a civilian caught in
+the open says nothing about whether a fire team can cross that ground.
+
+Ground does not become safe on a deadline, so the memory fades rather than
+expiring, and a second squad lost in the same place pushes it back up. A
+commander may use it to choose among places that are otherwise equally good:
+approach avoidance moves where the **next** squad is sent, within the geometry
+the mission already authorized. It does not re-route a squad already moving,
+does not invent a way around a lane that has only one, and never overrides the
+mission's own law about where the objective is.
 
 An **order mix** is a perspective's published directives broken down by
 assignment kind, as squad-pulses and squad-ticks. It answers the one question

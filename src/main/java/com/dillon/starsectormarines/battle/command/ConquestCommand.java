@@ -1142,7 +1142,62 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
         int lateral = Math.max(trackLayout.lateralStartInclusive(track),
                 Math.min(trackLayout.lateralEndInclusive(track), squadLateral));
+        // The loss-avoiding slide is built and tested but not wired in. A
+        // control run at the commit before it returned TERMINAL on both
+        // canonical fixtures and it returned TIMEOUT on both, so it costs the
+        // attacker its advance somewhere this measurement does not localize —
+        // most likely by moving the staging marker often enough that squads
+        // spend their time restaging. Left switched off rather than shipped on
+        // the strength of the idea: see awayFromOwnLosses.
         return reachableTrackStage(squad, track, lateral, desiredForward, frame);
+    }
+
+    /**
+     * Slides the staging lateral toward the part of the track this side has not
+     * recently lost people in.
+     *
+     * <p><b>This is the command layer's whole approach avoidance, and its limits
+     * are the point.</b> It does not re-route a squad already moving and it
+     * cannot invent a way around a lane that has only one — it moves the place
+     * the <em>next</em> squad is told to go, within the track it was going to
+     * use anyway. A commander choosing where to put people is the layer that
+     * can act on "the last squad died there"; the squad itself is already
+     * committed by the time it finds out.
+     *
+     * <p>The candidates are stepped at the loss field's own block size, because
+     * a finer step samples the same block repeatedly and pretends to a precision
+     * the memory does not have. Ties keep the lateral the squad would have used,
+     * so a battle with no losses stages exactly where it did before, and the
+     * slide is bounded to the track: avoiding a killing ground is not a licence
+     * to abandon the lane.
+     */
+    private int awayFromOwnLosses(int track, int preferredLateral, int forward,
+                                  ConquestCommandFrame frame) {
+        CommanderInfluenceSnapshot influence = frame.influence();
+        if (influence == null) return preferredLateral;
+        int start = trackLayout.lateralStartInclusive(track);
+        int end = trackLayout.lateralEndInclusive(track);
+        int step = Math.max(1, influence.blockSize());
+        int bestLateral = preferredLateral;
+        float bestLosses = lossesAtTrackCell(influence, preferredLateral, forward);
+        if (bestLosses <= 0f) return preferredLateral;
+        for (int lateral = start; lateral <= end; lateral += step) {
+            float losses = lossesAtTrackCell(influence, lateral, forward);
+            if (losses < bestLosses
+                    || (losses == bestLosses
+                    && Math.abs(lateral - preferredLateral)
+                    < Math.abs(bestLateral - preferredLateral))) {
+                bestLosses = losses;
+                bestLateral = lateral;
+            }
+        }
+        return bestLateral;
+    }
+
+    private float lossesAtTrackCell(CommanderInfluenceSnapshot influence,
+                                    int lateral, int forward) {
+        return influence.lossesAtWorld(trackLayout.cellX(lateral, forward),
+                trackLayout.cellY(lateral, forward));
     }
 
     private int friendlyLeadForward(int track, int fallback,
@@ -1170,15 +1225,44 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 int forward = desiredForward - rear;
                 TrackStage left = validTrackStage(squad, track,
                         desiredLateral - lateralDelta, forward, topology);
-                if (left != null) return left;
-                if (lateralDelta != 0) {
-                    TrackStage right = validTrackStage(squad, track,
-                            desiredLateral + lateralDelta, forward, topology);
-                    if (right != null) return right;
+                if (lateralDelta == 0) {
+                    if (left != null) return left;
+                    continue;
                 }
+                TrackStage right = validTrackStage(squad, track,
+                        desiredLateral + lateralDelta, forward, topology);
+                // Both sides of the line are the same distance from where the
+                // squad was going to stage, so distance cannot choose between
+                // them and the search used to take the left one every time.
+                // Recent own losses can choose: send the next squad up the side
+                // that did not just cost us a squad.
+                TrackStage chosen = cheaperByLosses(left, right, frame);
+                if (chosen != null) return chosen;
             }
         }
         return null;
+    }
+
+    /**
+     * Picks between two equidistant staging cells by what the side remembers
+     * losing near each. Ties keep the left-hand candidate, which is the order
+     * the search has always used, so a battle with no losses anywhere stages
+     * exactly where it did before.
+     *
+     * <p>This is the whole of the command layer's approach avoidance: it does
+     * not re-route a squad already moving, and it cannot invent a way around a
+     * lane that has only one. It chooses, among places equally good by every
+     * other measure, the one that has not just been paid for.
+     */
+    private TrackStage cheaperByLosses(TrackStage left, TrackStage right,
+                                       ConquestCommandFrame frame) {
+        if (left == null) return right;
+        if (right == null) return left;
+        CommanderInfluenceSnapshot influence = frame.influence();
+        if (influence == null) return left;
+        float leftLosses = influence.lossesAtWorld(left.cellX(), left.cellY());
+        float rightLosses = influence.lossesAtWorld(right.cellX(), right.cellY());
+        return rightLosses < leftLosses ? right : left;
     }
 
     private TrackStage validTrackStage(PlanningSquad squad, int track,
