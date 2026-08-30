@@ -539,6 +539,33 @@ public final class Squad {
     /** Sim tick at which the cached score was computed. Prevents N members from repeating one squad-level tally in the same tick. */
     public volatile int advanceThreatTick = -1;
 
+    // ---- The contact onset one member is in, published for the whole squad ----
+
+    /**
+     * The hostile a member of this squad has just come face to face with, or
+     * that has just taken one of them as its target; {@code 0L} when neither.
+     * Written once per tick by {@code SquadContactOnsetSystem}.
+     *
+     * <p>Distinct from {@link #advanceThreatId}, which is the highest
+     * contributor to a route score aggregated over believed contacts. This is
+     * one marine's own eyes having changed the situation this instant, before
+     * any aggregate has had a chance to move.
+     */
+    public volatile long onsetContactId = 0L;
+    /** The member whose situation this is. Diagnostic; nothing keys behaviour on which one. */
+    public volatile long onsetSeenBy = 0L;
+    /** True for a close-quarters opening, false for a singling-out at range. */
+    public volatile boolean onsetAtCloseQuarters = false;
+    /**
+     * Cells between the member and the contact. Published rather than reduced
+     * to a flag because consumers want different distances out of the same
+     * situation: the range at which a screen is worth raising is not the range
+     * at which an advance has to stop.
+     */
+    public volatile float onsetDistance = Float.MAX_VALUE;
+    /** Sim tick the onset was published at, or {@code -1} when there is none. */
+    public volatile int onsetTick = -1;
+
     // ---- Story 20: bounding overwatch during a committed advance ----
 
     /** True while EnterZone is executing a two-team bound against the committed route threat. */
