@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.VanillaHullSilhouettes;
 import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
@@ -49,6 +50,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Arc2D;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
@@ -127,7 +129,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/mech-lab/mech-lab.mlx");
     private static final List<String> BATTLE_HUD_COMPONENTS =
             List.of(BattleHudOverlay.COMPONENT_PATH,
-                    BattlePowerOverlay.COMPONENT_PATH);
+                    BattlePowerOverlay.COMPONENT_PATH,
+                    BattleRetreatOverlay.COMPONENT_PATH);
 
     @Override
     public String id() {
@@ -243,9 +246,165 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("battle-hud-command-overlay-wide.png",
                         renderBattleHudCommandOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-world-capture-targeting-wide.png",
+                        renderBattleWorldInteraction(
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, true)),
+                new SnapshotArtifact("battle-world-sabotage-blocked-wide.png",
+                        renderBattleWorldInteraction(
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false)),
                 new SnapshotArtifact("battle-hud-powers-targeting-wide.png",
                         renderBattleHudPowerOverlay(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)));
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-retreat-wide.png",
+                        renderBattleRetreatOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                new SnapshotArtifact("battle-hud-retreat-confirm-wide.png",
+                        renderBattleRetreatOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)));
+    }
+
+    /**
+     * Full battlefield evidence for the production world-marker presentation.
+     * Geometry is intentionally painted without a Starsector process, while
+     * labels, tones, opacity, state emphasis, and footprint sizing come from
+     * {@link BattlefieldMarkerPresentation}, the same model live GL consumes.
+     */
+    private static BufferedImage renderBattleWorldInteraction(
+            int width, int height, boolean sabotage, boolean validTarget) {
+        BufferedImage image = new BufferedImage(width, height,
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        paintBattleContrastField(graphics, width, height);
+
+        if (sabotage) {
+            paintWorldObjective(graphics, 420f, 330f,
+                    BattlefieldMarkerPresentation.sabotage(
+                            "SAB-01", false, false, 0f));
+            paintWorldObjective(graphics, 735f, 695f,
+                    BattlefieldMarkerPresentation.sabotage(
+                            "SAB-02", false, true, 0.62f));
+            paintWorldObjective(graphics, 1500f, 315f,
+                    BattlefieldMarkerPresentation.sabotage(
+                            "SAB-03", true, false, 1f));
+        } else {
+            paintWorldObjective(graphics, 420f, 330f,
+                    BattlefieldMarkerPresentation.capture(
+                            TacticalNode.Kind.ARMORY, 1,
+                            CompoundService.CompoundState.DEFENDER_HELD, 0f));
+            paintWorldObjective(graphics, 735f, 695f,
+                    BattlefieldMarkerPresentation.capture(
+                            TacticalNode.Kind.BARRACKS, 1,
+                            CompoundService.CompoundState.CONTESTED, 0.62f));
+            paintWorldObjective(graphics, 1500f, 315f,
+                    BattlefieldMarkerPresentation.capture(
+                            TacticalNode.Kind.COMMAND_POST, 1,
+                            CompoundService.CompoundState.MARINE_HELD, 0f));
+        }
+
+        BattlefieldMarkerPresentation.TargetMarker target =
+                BattlefieldMarkerPresentation.target(
+                        validTarget ? "Orbital Barrage" : "Marine Drop",
+                        validTarget, validTarget ? 4f : 1.5f);
+        paintWorldTarget(graphics, 1180f, 655f, 24f, target);
+        graphics.dispose();
+        return image;
+    }
+
+    private static void paintWorldObjective(
+            Graphics2D graphics, float centerX, float centerY,
+            BattlefieldMarkerPresentation.ObjectiveMarker marker) {
+        float radius = BattlefieldMarkerPresentation.objectiveRadius(24f);
+        Color tone = withAlpha(marker.tone(), marker.opacity());
+        graphics.setColor(new Color(8, 16, 22, 190));
+        graphics.fill(new Ellipse2D.Float(centerX - radius + 2f,
+                centerY - radius + 2f, radius * 2f - 4f, radius * 2f - 4f));
+        graphics.setStroke(new BasicStroke(2f));
+        graphics.setColor(tone);
+        graphics.draw(new Ellipse2D.Float(centerX - radius, centerY - radius,
+                radius * 2f, radius * 2f));
+        float inner = radius + 2f;
+        float outer = inner + 4f;
+        graphics.drawLine(Math.round(centerX - outer), Math.round(centerY),
+                Math.round(centerX - inner), Math.round(centerY));
+        graphics.drawLine(Math.round(centerX + inner), Math.round(centerY),
+                Math.round(centerX + outer), Math.round(centerY));
+        graphics.drawLine(Math.round(centerX), Math.round(centerY - outer),
+                Math.round(centerX), Math.round(centerY - inner));
+        graphics.drawLine(Math.round(centerX), Math.round(centerY + inner),
+                Math.round(centerX), Math.round(centerY + outer));
+        if (marker.emphasized() && marker.progress() > 0f) {
+            graphics.setStroke(new BasicStroke(3f));
+            graphics.setColor(BattlefieldMarkerPresentation.PROGRESS);
+            float arcRadius = radius - 5.5f;
+            graphics.draw(new Arc2D.Float(centerX - arcRadius,
+                    centerY - arcRadius, arcRadius * 2f, arcRadius * 2f,
+                    90f, -360f * marker.progress(), Arc2D.OPEN));
+        }
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
+        graphics.setColor(BattlefieldMarkerPresentation.LABEL);
+        int codeWidth = graphics.getFontMetrics().stringWidth(marker.code());
+        graphics.drawString(marker.code(), centerX - codeWidth * 0.5f,
+                centerY + 4f);
+        if (marker.emphasized()) {
+            graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 10));
+            graphics.setColor(marker.tone());
+            int statusWidth = graphics.getFontMetrics().stringWidth(marker.status());
+            graphics.drawString(marker.status(), centerX - statusWidth * 0.5f,
+                    centerY + radius + 15f);
+        }
+    }
+
+    private static void paintWorldTarget(
+            Graphics2D graphics, float centerX, float centerY, float cellPx,
+            BattlefieldMarkerPresentation.TargetMarker marker) {
+        float radius = BattlefieldMarkerPresentation.targetRadius(
+                cellPx, marker.radiusCells());
+        graphics.setColor(withAlpha(marker.tone(), 0.10f));
+        graphics.fill(new Ellipse2D.Float(centerX - radius, centerY - radius,
+                radius * 2f, radius * 2f));
+        graphics.setStroke(new BasicStroke(marker.valid() ? 2f : 2.5f));
+        graphics.setColor(withAlpha(marker.tone(), 0.92f));
+        graphics.draw(new Ellipse2D.Float(centerX - radius, centerY - radius,
+                radius * 2f, radius * 2f));
+        float half = cellPx * 0.5f;
+        float corner = 6f;
+        graphics.drawLine(Math.round(centerX - half), Math.round(centerY - half),
+                Math.round(centerX - half + corner), Math.round(centerY - half));
+        graphics.drawLine(Math.round(centerX - half), Math.round(centerY - half),
+                Math.round(centerX - half), Math.round(centerY - half + corner));
+        graphics.drawLine(Math.round(centerX + half), Math.round(centerY - half),
+                Math.round(centerX + half - corner), Math.round(centerY - half));
+        graphics.drawLine(Math.round(centerX + half), Math.round(centerY - half),
+                Math.round(centerX + half), Math.round(centerY - half + corner));
+        graphics.drawLine(Math.round(centerX - half), Math.round(centerY + half),
+                Math.round(centerX - half + corner), Math.round(centerY + half));
+        graphics.drawLine(Math.round(centerX - half), Math.round(centerY + half),
+                Math.round(centerX - half), Math.round(centerY + half - corner));
+        graphics.drawLine(Math.round(centerX + half), Math.round(centerY + half),
+                Math.round(centerX + half - corner), Math.round(centerY + half));
+        graphics.drawLine(Math.round(centerX + half), Math.round(centerY + half),
+                Math.round(centerX + half), Math.round(centerY + half - corner));
+
+        String label = marker.label() + "  //  " + marker.status();
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
+        int textWidth = graphics.getFontMetrics().stringWidth(label);
+        int plateX = Math.round(centerX - (textWidth + 18f) * 0.5f);
+        int plateY = Math.round(centerY - radius - 36f);
+        graphics.setColor(BattlefieldMarkerPresentation.PLATE);
+        graphics.fillRect(plateX, plateY, textWidth + 18, 22);
+        graphics.setColor(marker.tone());
+        graphics.fillRect(plateX, plateY, 3, 22);
+        graphics.setColor(BattlefieldMarkerPresentation.LABEL);
+        graphics.drawString(label, plateX + 10f, plateY + 15f);
+    }
+
+    private static Color withAlpha(Color color, float opacity) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(),
+                Math.round(255f * Math.max(0f, Math.min(1f, opacity))));
     }
 
     /** Full-screen evidence for the production MLX command rail over battle contrast. */
@@ -338,6 +497,39 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             float cooldown, int charges) {
         return new BattlePowerOverlayModel.PowerState(
                 id, name, cp, supplies, cooldown, charges);
+    }
+
+    /** Full-screen evidence for the compact exit and its deliberate confirmation state. */
+    private static BufferedImage renderBattleRetreatOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean confirming) throws Exception {
+        BufferedImage image = renderBattleHudPowerOverlay(
+                context, renderer, width, height);
+        Reactor reactor = new Reactor();
+        BattleRetreatOverlayModel model = new BattleRetreatOverlayModel(
+                reactor, () -> { }, () -> { }, "Retreat", "Continue",
+                "Abandon operation?", "Cancel", "Retreat");
+        Map<String, Object> props = model.props();
+        if (confirming) ((Runnable) props.get("action")).run();
+
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattleRetreatOverlay.COMPONENT, props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            BattleRetreatOverlayModel.Presentation presentation = model.presentation();
+            BufferedImage overlay = renderer.render(document,
+                    Math.round(presentation.documentWidth()),
+                    Math.round(presentation.documentHeight()));
+            Graphics2D graphics = image.createGraphics();
+            graphics.drawImage(overlay, 12,
+                    height - 12 - overlay.getHeight(), null);
+            graphics.dispose();
+            return image;
+        }
     }
 
     /**

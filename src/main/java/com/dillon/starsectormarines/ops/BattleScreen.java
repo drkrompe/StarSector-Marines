@@ -60,10 +60,7 @@ import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
 import com.dillon.starsectormarines.ops.loot.LootGenerator;
-import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
-import com.dillon.starsectormarines.ui.LabelWidget;
-import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
@@ -103,15 +100,14 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * in 1/30s ticks. {@link #render(float)} draws floor + walls + units + HP bars,
  * plus a centered Victory/Defeat banner when the sim completes.
  *
- * <p>Back returns to {@link ScreenId#MISSION_SELECT}. A dedicated RESULTS screen
- * (casualties, XP, payout) comes after MVP — for now the player just sees the
- * banner and backs out.
+ * <p>Retreat abandons an active battle without producing an outcome and returns
+ * to {@link ScreenId#MISSION_SELECT}. Once the battle completes, Continue resolves
+ * the outcome and advances to the debrief.
  */
 public class BattleScreen implements Screen, BattleUiContext {
 
     private static final Logger LOG = Global.getLogger(BattleScreen.class);
 
-    private static final Color HEADER_COLOR   = new Color(0xC8, 0xE0, 0xFF);
     private static final Color BANNER_BG      = new Color(0x10, 0x14, 0x1E);
     private static final Color VICTORY_COLOR  = new Color(0x80, 0xE0, 0x80);
     private static final Color DEFEAT_COLOR   = new Color(0xE0, 0x60, 0x60);
@@ -183,13 +179,14 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final float DISTANT_BOOM_PITCH_JITTER = 0.15f;
     /** Probability that a distant-boom event uses the dedicated muffled clip; otherwise pull from the pool and pitch-down. */
     private static final float DISTANT_BOOM_MUFFLED_CHANCE = 0.6f;
-    private final WidgetRoot widgets = new WidgetRoot();
     /** Battle HUD — squad overview/detail panels today; mini-map + objectives later. Lazy-built once {@link #layout} and {@link #camera} are ready, then reused across rebuilds. */
     private BattleHud hud;
     /** MLX-authored player-facing command chrome: time controls and capture state. */
     private BattleHudOverlay retainedOverlay;
     /** MLX-authored compact command-power deck at bottom-center. */
     private BattlePowerOverlay retainedPowerOverlay;
+    /** MLX-authored, confirmation-gated battle exit at bottom-left. */
+    private BattleRetreatOverlay retainedRetreatOverlay;
     /** World click/reticle half of the power flow; card selection lives in MLX. */
     private CommandPowerTargetingPanel commandPowerTargeting;
     /** Shared selection state read by HUD panels (and, later, a world-picker). Survives across attach()/rebuild() cycles; self-heals when the selected squad disappears. */
@@ -208,8 +205,6 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private final CameraControls cameraControls = new CameraControls(true);
     private float speedMultiplier = 1f;
-    /** Tracks the last-seen sim completion flag so we can rebuild widgets when it flips. */
-    private boolean lastSimComplete;
     /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
     private final BattleSprites sprites = new BattleSprites();
     /** World-layer render pipeline — owns tile batches, FX systems, and all render/draw methods. */
@@ -325,40 +320,25 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     private void rebuild() {
-        widgets.clear();
         if (position == null || ctx == null) return;
 
         BattleSimulation sim = ctx.getBattleSimulation();
         int gridW = sim != null ? sim.getGrid().getWidth()  : BattleSetup.GRID_W;
         int gridH = sim != null ? sim.getGrid().getHeight() : BattleSetup.GRID_H;
         layout = new BattleLayout(position, gridW, gridH);
-        // Camera survives rebuilds (so the player's pan/zoom isn't lost when the
-        // sim transitions to complete and we rebuild widgets). Only construct
-        // it the first time, then refresh the viewport rect on subsequent rebuilds.
+        // Camera survives rebuilds so the player's pan/zoom is not lost. Only
+        // construct it the first time, then refresh the viewport rect later.
         if (camera == null || camera.worldCellsW() != gridW || camera.worldCellsH() != gridH) {
             camera = new BattleCamera(gridW, gridH);
         }
         camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH, layout.cellSize);
         ensureHud();
         ensureRetainedOverlay(sim);
-        lastSimComplete = sim != null && sim.isComplete();
-
-        // Bottom-left action button — Back when in-progress, Continue when done.
-        String actionLabelKey = lastSimComplete ? "battleContinue" : "actionBack";
-        ButtonWidget actionBtn = new ButtonWidget(layout.backX, layout.backY,
-                BattleLayout.BACK_W, BattleLayout.BACK_H,
-                () -> onBackOrContinue());
-        widgets.add(actionBtn);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                Strings.get(actionLabelKey),
-                layout.backX + 12f, layout.backY + BattleLayout.BACK_H - 6f, HEADER_COLOR));
-
     }
 
     @Override
     public void advance(float dt) {
         lastAdvanceDt = dt;
-        widgets.advance(dt);
         // HUD ticks on real dt (not sim-scaled) so panel snapshots and hover
         // state still update when the sim is paused. Panels' update() just
         // refreshes their cached views over the sim — cheap even at every frame.
@@ -370,6 +350,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (retainedPowerOverlay != null) {
             retainedPowerOverlay.update(dt,
                     ctx != null ? ctx.getBattleSimulation() : null);
+        }
+        if (retainedRetreatOverlay != null) {
+            BattleSimulation current = ctx != null ? ctx.getBattleSimulation() : null;
+            retainedRetreatOverlay.update(dt, current != null && current.isComplete());
         }
         // Park the OpenAL listener at the camera focus every frame so positional SFX (gunfire,
         // explosions, ambient loops, death VO) pan + attenuate around what the player is looking
@@ -503,12 +487,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         driveShuttleEngineLoops(sim);
         playCombatEventSounds(sim);
         if (speedMultiplier > 0f) playRadioChatter(sim, dt);
-        // Rebuild widgets when the sim transitions to complete so the bottom
-        // action button swaps from Back to Continue.
-        if (sim.isComplete() != lastSimComplete) {
-            lastSimComplete = sim.isComplete();
-            rebuild();
-        }
     }
 
     @Override
@@ -522,6 +500,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getGroundLights().clear();
         if (retainedOverlay != null) retainedOverlay.detach();
         if (retainedPowerOverlay != null) retainedPowerOverlay.detach();
+        if (retainedRetreatOverlay != null) retainedRetreatOverlay.detach();
 
         if (!audioActive) return;
         audioActive = false;
@@ -640,6 +619,11 @@ public class BattleScreen implements Screen, BattleUiContext {
                     commandPowerTargeting::targetingPowerId);
         }
         retainedPowerOverlay.attach(position, sim);
+        if (retainedRetreatOverlay == null) {
+            retainedRetreatOverlay = new BattleRetreatOverlay(
+                    this::retreatFromBattle, this::continueFromBattle);
+        }
+        retainedRetreatOverlay.attach(position, sim != null && sim.isComplete());
     }
 
     private void toggleConquestPicture(Faction perspective) {
@@ -986,7 +970,17 @@ public class BattleScreen implements Screen, BattleUiContext {
                 new Vector2f(0f, 0f));
     }
 
-    private void onBackOrContinue() {
+    private void retreatFromBattle() {
+        if (ctx == null) return;
+        BattleSimulation sim = ctx.getBattleSimulation();
+        if (sim == null || sim.isComplete()) return;
+        // Retreat is an abandonment, not a defeat: release the live simulation
+        // and return without resolving rewards, casualties, or campaign effects.
+        ctx.setBattleSimulation(null);
+        ctx.goTo(ScreenId.MISSION_SELECT);
+    }
+
+    private void continueFromBattle() {
         if (ctx == null) return;
         BattleSimulation sim = ctx.getBattleSimulation();
         if (sim != null && sim.isComplete()) {
@@ -1002,21 +996,18 @@ public class BattleScreen implements Screen, BattleUiContext {
             ctx.setLastOutcome(outcome);
             ctx.setLootManifest(LootGenerator.generate(outcome));
             ctx.goTo(ScreenId.RESULTS);
-        } else {
-            // Abandon mid-battle — no resolution, no penalty.
-            ctx.goTo(ScreenId.MISSION_SELECT);
         }
     }
 
     @Override
     public void processInput(List<InputEventAPI> events) {
         // Retained command surfaces claim only their compact corner/tray
-        // rectangles. Everywhere else input continues to the legacy Back
-        // button, debug HUD, and battlefield picker.
+        // rectangles. Everywhere else input continues to the debug HUD and
+        // battlefield picker.
         if (retainedOverlay != null) retainedOverlay.processInput(events);
         if (retainedPowerOverlay != null) retainedPowerOverlay.processInput(events);
-        widgets.processInput(events);
-        // HUD gets first crack after widgets so a click on a squad row doesn't
+        if (retainedRetreatOverlay != null) retainedRetreatOverlay.processInput(events);
+        // HUD gets first crack after retained chrome so a click on a squad row doesn't
         // also pan the camera or hit a future world-picker on the cells the
         // panel overlays. Panels self-consume claimed events.
         if (hud != null) hud.processInput(events);
@@ -1150,12 +1141,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         // transparent, so only the compact command surfaces touch the canvas.
         if (retainedOverlay != null) retainedOverlay.render(alphaMult);
         if (retainedPowerOverlay != null) retainedPowerOverlay.render(alphaMult);
+        if (retainedRetreatOverlay != null) retainedRetreatOverlay.render(alphaMult);
 
         if (sim != null && sim.isComplete()) {
             renderBanner(sim.getWinner(), alphaMult);
         }
 
-        widgets.render(alphaMult);
     }
 
     // ---- rendering (world-layer methods moved to BattleRenderer) -----------

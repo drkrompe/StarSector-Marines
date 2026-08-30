@@ -37,6 +37,8 @@ import com.dillon.starsectormarines.render2d.PolyTess;
 import com.dillon.starsectormarines.render2d.QuadBatch;
 import com.dillon.starsectormarines.render2d.RibbonBatch;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
+import com.dillon.starsectormarines.ui.BitmapFont;
+import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -86,21 +88,19 @@ public class BattleRenderer {
     static final float HP_BAR_GAP     = 2f;
 
     /** Icon tints + sizes. Sizes are fractions of {@code layout.cellSize}. */
-    private static final Color  CHARGE_TINT_ACTIVE   = new Color(0xFF, 0x9A, 0x40);
-    private static final Color  CHARGE_TINT_COMPLETE = new Color(0xE0, 0x40, 0x40);
-    private static final Color  CHARGE_TINT_ARC      = new Color(0xFF, 0xC8, 0x70);
+    private static final Color  OBJECTIVE_CORE        = new Color(0x08, 0x10, 0x16);
     private static final Color  KIT_DROP_TINT        = new Color(0x80, 0xE8, 0xFF);
     private static final Color  RESUPPLY_TINT         = new Color(0x70, 0xD8, 0x78);
     private static final Color  RESUPPLY_CONTESTED    = new Color(0xF0, 0x70, 0x50);
     private static final Color  ORBITAL_WARNING        = new Color(0xFF, 0x48, 0x38);
-    private static final float  CHARGE_ICON_SIZE     = 1.5f;
     private static final float  KIT_DROP_SIZE        = 1.0f;
     private static final float  RESUPPLY_SIZE         = 1.25f;
-    private static final float  CHARGE_PULSE_AMP     = 0.10f;
-    private static final float  CHARGE_PULSE_HZ      = 1.5f;
     private static final float  KIT_DROP_PULSE_AMP   = 0.10f;
     private static final float  KIT_DROP_PULSE_HZ    = 0.6f;
     private static final int    PROGRESS_ARC_SEGMENTS = 32;
+    private static final int    OBJECTIVE_RING_SEGMENTS = 40;
+    private static final float  OBJECTIVE_RING_THICKNESS_PX = 2f;
+    private static final float  OBJECTIVE_ARC_THICKNESS_PX = 3f;
 
     /**
      * Sim-seconds the barrel sprite eases forward to its at-rest position after a shot.
@@ -201,6 +201,7 @@ public class BattleRenderer {
 
     /** Reused per-frame fan for the charge-site progress arcs (one POLY for all sites). */
     private final PolyMesh objectiveArcMesh = new PolyMesh(64);
+    private final BitmapFont objectiveMarkerFont = Fonts.ORBITRON_12_BOLD;
 
     /** Cell-highlight overlay renderer (selected-squad cue + debug sources). */
     private final HighlightRenderer highlightRenderer = new HighlightRenderer();
@@ -655,38 +656,46 @@ public class BattleRenderer {
     }
 
     /**
-     * Charge-site + equipment-drop markers as commands: pulsing icons emit
-     * {@code SPRITE}, the charge-plant progress arc emits one {@code POLY} for all
-     * sites (tessellated into the reused {@link #objectiveArcMesh}). GL-free —
-     * icons are ensured at attach. Emit order: all icons first, then the arc fan,
-     * so progress arcs paint over their (larger) icons as the inline pass did.
+     * World objectives as commands. Charge sites use the same compact beacon
+     * grammar as capture points; equipment and pending-fire markers retain
+     * their distinct simulation-owned symbology.
      */
     private void collectObjectiveMarkers(BattleSimulation sim, DrawList out, float alphaMult) {
         float now = (float) (System.currentTimeMillis() / 1000.0);
         float cellPx = rc.camera.cellPxSize();
         objectiveArcMesh.reset();
+        boolean hasChargeSites = false;
 
         for (Objective o : sim.getObjectives()) {
             if (!(o instanceof ChargeSiteObjective)) continue;
+            hasChargeSites = true;
             ChargeSiteObjective site = (ChargeSiteObjective) o;
             float cx = rc.camera.cellToScreenX(site.cellX() + 0.5f);
             float cy = rc.camera.cellToScreenY(site.cellY() + 0.5f);
-            if (site.isComplete()) {
-                emitIcon(out, sprites.iconDanger(), cx, cy,
-                        cellPx * CHARGE_ICON_SIZE, CHARGE_TINT_COMPLETE, alphaMult);
-            } else {
-                float pulse = site.planterOnSite()
-                        ? 1f + CHARGE_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * CHARGE_PULSE_HZ)
-                        : 1f;
-                emitIcon(out, sprites.iconAlarm(), cx, cy,
-                        cellPx * CHARGE_ICON_SIZE * pulse, CHARGE_TINT_ACTIVE, alphaMult);
-                float progress = site.progress() / Math.max(0.001f, site.plantDuration());
-                float innerR = cellPx * 0.55f;
-                float outerR = innerR + Math.max(3f, cellPx * 0.12f);
-                PolyTess.appendArc(objectiveArcMesh, cx, cy, innerR, outerR, progress, PROGRESS_ARC_SEGMENTS,
-                        CHARGE_TINT_ARC.getRed() / 255f, CHARGE_TINT_ARC.getGreen() / 255f,
-                        CHARGE_TINT_ARC.getBlue() / 255f, alphaMult);
+            float progress = site.progress() / Math.max(0.001f, site.plantDuration());
+            BattlefieldMarkerPresentation.ObjectiveMarker marker =
+                    BattlefieldMarkerPresentation.sabotage(site.siteId(),
+                            site.isComplete(), site.planterOnSite(), progress);
+            float radius = BattlefieldMarkerPresentation.objectiveRadius(cellPx)
+                    * BattlefieldMarkerPresentation.pulse(now, marker.emphasized());
+            float ringInner = radius - OBJECTIVE_RING_THICKNESS_PX;
+            appendObjectiveAnnulus(cx, cy, 0f, ringInner - 1f,
+                    OBJECTIVE_CORE, 0.72f * alphaMult);
+            appendObjectiveAnnulus(cx, cy, ringInner, radius,
+                    marker.tone(), marker.opacity() * alphaMult);
+            if (marker.emphasized() && marker.progress() > 0f) {
+                float arcOuter = ringInner - 2.5f;
+                PolyTess.appendArc(objectiveArcMesh, cx, cy,
+                        arcOuter - OBJECTIVE_ARC_THICKNESS_PX, arcOuter,
+                        marker.progress(), PROGRESS_ARC_SEGMENTS,
+                        BattlefieldMarkerPresentation.PROGRESS.getRed() / 255f,
+                        BattlefieldMarkerPresentation.PROGRESS.getGreen() / 255f,
+                        BattlefieldMarkerPresentation.PROGRESS.getBlue() / 255f,
+                        alphaMult);
             }
+            emitObjectiveTicks(out, cx, cy,
+                    BattlefieldMarkerPresentation.objectiveRadius(cellPx),
+                    marker.tone(), marker.opacity() * alphaMult);
         }
 
         for (EquipmentDrop drop : sim.getEquipmentDrops()) {
@@ -736,6 +745,64 @@ public class BattleRenderer {
         }
 
         if (!objectiveArcMesh.isEmpty()) out.addPoly(RenderLayer.OBJECTIVES, objectiveArcMesh);
+        if (hasChargeSites) {
+            out.addCustom(RenderLayer.OBJECTIVES,
+                    () -> drawChargeSiteLabels(sim, alphaMult));
+        }
+    }
+
+    private void appendObjectiveAnnulus(float cx, float cy, float inner,
+                                        float outer, Color color, float alpha) {
+        PolyTess.appendAnnulus(objectiveArcMesh, cx, cy, inner, outer,
+                OBJECTIVE_RING_SEGMENTS,
+                color.getRed() / 255f, color.getGreen() / 255f,
+                color.getBlue() / 255f, alpha);
+    }
+
+    private static void emitObjectiveTicks(DrawList out, float cx, float cy,
+                                           float radius, Color color, float alpha) {
+        float inner = radius + 2f;
+        float outer = inner + 4f;
+        float r = color.getRed() / 255f;
+        float g = color.getGreen() / 255f;
+        float b = color.getBlue() / 255f;
+        out.addLine(RenderLayer.OBJECTIVES, cx - outer, cy, cx - inner, cy,
+                1.5f, r, g, b, alpha);
+        out.addLine(RenderLayer.OBJECTIVES, cx + inner, cy, cx + outer, cy,
+                1.5f, r, g, b, alpha);
+        out.addLine(RenderLayer.OBJECTIVES, cx, cy - outer, cx, cy - inner,
+                1.5f, r, g, b, alpha);
+        out.addLine(RenderLayer.OBJECTIVES, cx, cy + inner, cx, cy + outer,
+                1.5f, r, g, b, alpha);
+    }
+
+    private void drawChargeSiteLabels(BattleSimulation sim, float alphaMult) {
+        objectiveMarkerFont.ensureLoaded();
+        float cellPx = rc.camera.cellPxSize();
+        for (Objective objective : sim.getObjectives()) {
+            if (!(objective instanceof ChargeSiteObjective site)) continue;
+            float progress = site.progress() / Math.max(0.001f, site.plantDuration());
+            BattlefieldMarkerPresentation.ObjectiveMarker marker =
+                    BattlefieldMarkerPresentation.sabotage(site.siteId(),
+                            site.isComplete(), site.planterOnSite(), progress);
+            float cx = rc.camera.cellToScreenX(site.cellX() + 0.5f);
+            float cy = rc.camera.cellToScreenY(site.cellY() + 0.5f);
+            drawObjectiveText(marker.code(), cx,
+                    cy + objectiveMarkerFont.getLineHeight() * 0.42f,
+                    BattlefieldMarkerPresentation.LABEL, 1f, alphaMult);
+            if (marker.emphasized()) {
+                drawObjectiveText(marker.status(), cx,
+                        cy - BattlefieldMarkerPresentation.objectiveRadius(cellPx) - 3f,
+                        marker.tone(), 0.76f, alphaMult);
+            }
+        }
+    }
+
+    private void drawObjectiveText(String text, float centerX, float y,
+                                   Color color, float scale, float alphaMult) {
+        float width = objectiveMarkerFont.measureWidth(text) * scale;
+        objectiveMarkerFont.drawStringScaled(text, centerX - width * 0.5f, y,
+                scale, scale, color, alphaMult);
     }
 
     /** A tinted marker icon → {@code SPRITE}, or a {@code SOLID_RECT} fill if the icon texture is missing. */

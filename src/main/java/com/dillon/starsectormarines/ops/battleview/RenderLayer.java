@@ -47,9 +47,9 @@ public enum RenderLayer {
     ROOFS,
     /** Drones — above roofs (they hover at roof altitude, so they overlay the roof tile). */
     DRONES,
-    /** Charge sites + equipment drops. Above units so the player always sees objectives. */
+    /** Sabotage beacons + equipment drops. Above units so the player always sees objectives. */
     OBJECTIVES,
-    /** Compound capture-state markers — faction ring + capture-progress arc + kind glyph. */
+    /** Compound capture beacons — compact identity + state/progress treatment. */
     COMPOUND,
     /** Convoy trucks + turrets (+ docking/selected-vehicle debug overlays). Just under shuttles. */
     CONVOY,
