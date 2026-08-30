@@ -51,6 +51,8 @@ class BattleHudOverlayModelTest {
                 reactor, BattleHudOverlay.COMPONENT, model.props())) {
             UiDocument document = document(instance);
 
+            assertEquals(0, instance.requireElement("battle-hud-overlay")
+                    .background().getAlpha());
             UiElement selectedDouble = instance.requireElement("battle-time-double");
             assertTrue(selectedDouble.hasClass("time-selected"));
             assertEquals(new Color(0xFF, 0xD4, 0x64), selectedDouble.borderColor());

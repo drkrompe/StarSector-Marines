@@ -1,5 +1,5 @@
 <template props="timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,commandPanelClasses,commandPhase,commandForce,conquestLanes">
-  <div id="battle-hud-overlay" class="battle-hud-overlay">
+  <div id="battle-hud-overlay" class="battle-hud-overlay" style="background-color: transparent">
     <div id="battle-conquest-command" class="{commandPanelClasses}">
       <div id="battle-conquest-command-header" class="conquest-command-header">
         <div id="battle-conquest-command-title" class="label heading conquest-command-title">COMMANDER</div>
@@ -54,7 +54,6 @@
     width: 100%;
     height: 100%;
     flex-direction: row;
-    background-color: transparent;
     overflow: hidden;
   }
 
