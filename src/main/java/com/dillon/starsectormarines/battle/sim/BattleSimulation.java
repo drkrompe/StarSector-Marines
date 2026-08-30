@@ -550,6 +550,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
                 navigation, effects, entityWorld, battleComponents);
         deathDispatcher.subscribe(droneCrashes::onDeath);
+        // A side remembers where it lost people. Subscribed rather than polled:
+        // the dispatcher sees every death exactly once, and a commander that
+        // scanned for corpses would count the same loss on every pulse. Ahead
+        // of the corpse transmute, so the identity it reads is still the
+        // combatant that died rather than whatever the body becomes.
+        deathDispatcher.subscribe(commanderInfluence.casualties()::onDeath);
         this.deadBodySystem = new DeadBodySystem(entityWorld, battleComponents);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
