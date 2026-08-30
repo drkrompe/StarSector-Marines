@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — an aircraft that has to roll taxis out, holds short, and runs the strip.
+Updated: 2026-08-30 — a berth holds an airframe, so a shed can keep a factional fighter.
 
 ## Purpose
 
@@ -110,6 +110,27 @@ never come back, and the state an attacker is trying to create — this pad had 
 aircraft and now does not — has nowhere to live if the aircraft is the record.
 A berth is parked, away, refitting, or destroyed, and the unit standing on it
 is a consequence of that state rather than a thing anybody places directly.
+
+An **airframe** is what a berth holds: a kind of aircraft, narrowed to what
+standing on the ground actually requires — a sprite, a hull that sizes it, and
+structure to shoot at. Deliberately not everything an aircraft is. A
+transport's capacity, a fighter's guns and the handling either flies with are
+asked of the concrete type by whoever needs them, because nothing that puts a
+hull on a hardstand cares.
+
+That narrowness is what lets the two lists stay separate. A transport is a
+`ShuttleType` and a fighter is a `FighterProfile`, and the game's fighters are
+**factional** — five hulls, and `FighterProfile.poolForFaction` already knows
+that a Hegemony or Luddic or pirate field flies Talons and Broadswords while a
+Tri-Tachyon or Remnant one flies Wasps and Thunders. Copying those hulls into
+`ShuttleType` so a berth could name one would have put the same five aircraft
+in two enums; making the berth hold the smaller thing they have in common costs
+three methods. Ground durability is authored per fighter rather than scraped,
+the way a transport's is: a hull's campaign HP is balanced against ship weapons
+and says nothing about what a rifle section does to one parked on concrete. It
+follows drawn size, because on the ground the only thing that matters about an
+aircraft is how much of it there is, and the whole fighter ladder sits below
+the lightest transport.
 
 Every berth is on the apron, in the open. The base's hangars are where aircraft
 are worked on rather than where they wait, so an attacker who reaches the field

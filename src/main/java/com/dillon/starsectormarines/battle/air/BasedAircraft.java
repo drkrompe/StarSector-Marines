@@ -48,13 +48,13 @@ public final class BasedAircraft {
      * Builds the airframe standing on a hardstand at {@code (cellX, cellY)},
      * with {@code hullHp} of structure left on it.
      *
-     * <p>Hull HP is passed in rather than taken from the type because an
+     * <p>Hull HP is passed in rather than taken from the airframe because an
      * aircraft that comes home shot up parks shot up. The caller still owns
      * handing the result to {@code sim.spawn}.
      */
-    public static EntitySpec create(String id, Faction faction, ShuttleType type,
+    public static EntitySpec create(String id, Faction faction, Airframe airframe,
                                     int cellX, int cellY, float hullHp) {
-        float capacity = Math.max(1f, type.maxHp);
+        float capacity = Math.max(1f, airframe.maxHp());
         return new EntitySpec(id, faction, UnitType.BASED_AIRCRAFT, cellX, cellY)
                 .health(capacity)
                 .hp(Math.max(1f, Math.min(capacity, hullHp)))

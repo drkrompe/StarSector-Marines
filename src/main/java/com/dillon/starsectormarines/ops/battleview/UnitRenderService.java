@@ -263,7 +263,7 @@ public final class UnitRenderService implements RenderSystem {
      */
     private void emitWreck(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
                            float cellPx, float alphaMult) {
-        ShuttleSpriteCache cache = sprites.shuttleSprites().get(berth.type);
+        ShuttleSpriteCache cache = sprites.airframeSprites().get(berth.airframe);
         if (cache == null || cache.sprite == null) return;
         float padCellX = berth.centerX + 0.5f;
         float padCellY = berth.centerY + 0.5f;
@@ -273,7 +273,7 @@ public final class UnitRenderService implements RenderSystem {
             return;
         }
 
-        String hullId = berth.type.renderHullId();
+        String hullId = berth.airframe.renderHullId();
         float alongPx = HullFootprintResolver.visualLengthCells(hullId) * cellPx;
         float acrossPx = alongPx * cache.aspect;
         float[] pivot = HullPivotResolver.pivotOffset(hullId);
@@ -386,8 +386,13 @@ public final class UnitRenderService implements RenderSystem {
     private HullBreakup wreckFor(AirfieldService.Berth berth) {
         HullBreakup cached = wrecks.get(berth);
         if (cached != null) return cached;
+        // Keyed on the hull's own name rather than an enum position, so
+        // reordering a list of aircraft does not silently re-tear every wreck
+        // on every map. String.hashCode is specified, so a replay tears the
+        // same way.
         HullBreakup torn = HullBreakup.of(
-                ((long) berth.centerX << 20) ^ berth.centerY ^ berth.type.ordinal());
+                ((long) berth.centerX << 20) ^ berth.centerY
+                        ^ berth.airframe.renderHullId().hashCode());
         wrecks.put(berth, torn);
         return torn;
     }
@@ -417,11 +422,11 @@ public final class UnitRenderService implements RenderSystem {
     private void emitHull(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
                           float centerCellX, float centerCellY, float cellPx,
                           float r, float g, float b, float alphaMult) {
-        ShuttleSpriteCache cache = sprites.shuttleSprites().get(berth.type);
+        ShuttleSpriteCache cache = sprites.airframeSprites().get(berth.airframe);
         if (cache == null || cache.sprite == null) return;
         float hullLenCells = HullFootprintResolver.visualLengthCells(
-                berth.type.renderHullId());
-        float[] pivot = HullPivotResolver.pivotOffset(berth.type.renderHullId());
+                berth.airframe.renderHullId());
+        float[] pivot = HullPivotResolver.pivotOffset(berth.airframe.renderHullId());
         float rad = (float) Math.toRadians(berth.facingDegrees);
         float c = (float) Math.cos(rad);
         float sn = (float) Math.sin(rad);
@@ -957,7 +962,7 @@ public final class UnitRenderService implements RenderSystem {
             } else if (type.isBasedAircraft()) {
                 AirfieldService.Berth berth = ctx.sim.getAirfieldService().berthOf(u);
                 bodyPx = (berth != null
-                        ? HullFootprintResolver.visualLengthCells(berth.type.renderHullId())
+                        ? HullFootprintResolver.visualLengthCells(berth.airframe.renderHullId())
                         : 1f) * cellPx;
             } else {
                 bodyPx = unitSize * appearance.renderScale;

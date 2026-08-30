@@ -196,7 +196,7 @@ public final class AirfieldSystem {
     private void place(BattleControl sim, AirfieldService service,
                        AirfieldService.Berth berth) {
         berth.airframeId = sim.spawn(BasedAircraft.create(
-                "af" + (nextAirframeId++), faction, berth.type,
+                "af" + (nextAirframeId++), faction, berth.airframe,
                 berth.centerX, berth.centerY, berth.hullHp));
     }
 }

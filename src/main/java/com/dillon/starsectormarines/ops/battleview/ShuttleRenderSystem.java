@@ -55,7 +55,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
             ShuttleMission mission = world.mission(id);
             if (mission == null || !mission.isVisible()) continue;
             ShuttleType type = world.airType(id);
-            ShuttleSpriteCache cache = sprites.shuttleSprites().get(type);
+            ShuttleSpriteCache cache = sprites.airframeSprites().get(type);
             if (cache == null) continue;
             AirBody body = world.kinematics(id);
 
