@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import org.apache.log4j.Logger;
 
 /**
@@ -36,6 +37,10 @@ public final class FinalizeStage implements GenStage {
         seedWallHp(grid, topology);
         bakeCoverFromWalls(grid);
         topology.tagDefaultWalls(grid);
+        // A wall nobody stamped draws the block's transparent centre, which is
+        // to say nothing at all. Buildings stamp their own; ship decks never
+        // did, so every bulkhead on every deck was invisible.
+        WallMasks.stampUnclaimed(topology);
 
         Buildings buildings = BuildingFloodFill.populate(topology, ctx.seed);
         ctx.put(BspKeys.BUILDINGS, buildings);

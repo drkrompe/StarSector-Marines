@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — a parked airframe destroyed on its stand goes up, and the fire is worth standing back from.
+Updated: 2026-08-30 — the hull left on a stand comes apart, blocks movement, and does not seal anybody under it.
 
 ## Purpose
 
@@ -117,7 +117,7 @@ can burn what is standing on it without going indoors — the exposure is the
 point, and it is what makes a raid on the field a real alternative to taking the
 compound. `mapgen-nouns.md` owns the lot's geometry.
 
-Three rules give the field its stakes:
+Four rules give the field its stakes:
 
 - **The hull is continuous.** An aircraft that comes home shot up parks shot up,
   and is written off on the ground by that much less fire. A sortie flies the
@@ -144,6 +144,50 @@ around it and stops short of the next hardstand, which an authored field puts
 eight cells away. A blast that took its neighbours with it would make one
 satchel worth an entire airfield and delete the only decision a raid contains,
 which is how much of the field to spend the visit on.
+
+**The wreck stays on the concrete.** What the fire leaves is the aircraft's own
+hull, charred and in three pieces, lying at the place and bearing it was
+standing, for the rest of the battle. The smoke that marks a fresh kill burns
+out in half a minute, and with nothing permanent behind it a burned field looks
+exactly like a field whose aircraft happen to be away, which is precisely the
+question a raider walked over there to settle. It is drawn off the berth rather
+than off the airframe, because the airframe is dead, released and gone by the
+time anybody looks at the pad again, and the berth is the thing that outlives
+what stands on it. An aircraft lost over the objective leaves an empty stand:
+the same terminal state, and deliberately not the same picture.
+
+**A hull comes apart along a V.** The nose section separates as a wedge and
+what is left splits down the spine, both tears walked so the edges are ragged
+and ragged differently for every hull on the field. The pieces shift and turn a
+little where they lie — far enough that the tears open and the wreck reads as
+three things, near enough that it still reads as one aircraft, and never far
+enough to be debris thrown across the apron. This is drawn out of the
+aircraft's own sprite rather than from wreck art, because these are the game's
+hulls and nothing may edit them; the tear follows a lattice for the same
+reason, since a lattice boundary is addressable as ordinary source rectangles
+and a curve would need per-pixel masking that is not available. See
+`HullBreakup`.
+
+The wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
+everybody sees and shoots straight across it. A non-walkable cell is opaque
+here unless it says otherwise, so the wreck says otherwise — a burnt-out
+airframe is a frame with holes in it, and an apron strewn with them is still an
+apron you can cover by fire. That is deliberately not how the intact scenery
+hulls dressing civilian berths behave: a whole aircraft is a solid object.
+
+**A wreck never settles on top of somebody.** Whoever is standing where the
+hull comes down — the ground crew who walked out to fly it, the raider who
+walked out to burn it — steps clear to the nearest cell that will take them,
+and a cell nobody could be stepped out of is left open instead. A unit sealed
+into a cell it can never leave stops answering its orders for the rest of the
+battle, which is a far worse outcome than a hull with a gap in it.
+
+A sortie's passengers are never at risk from this. An aircraft is taken off its
+berth at the moment the request is dispatched, before the crew starts walking,
+so the airframe standing on a pad and the crew walking toward it are never on
+the field at the same time; the craft they board is an air entity that ground
+fire cannot reach. Should a loading craft ever be made shootable, it owes its
+passengers a disposition, because they have already been taken off the roster.
 
 Every way a sortie can end draws one distinction: a craft that reached its own
 pad is an aircraft home from a job, and one that ended any other way is an

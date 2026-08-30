@@ -4,9 +4,9 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — parked road vehicles draw as ordinary doodads, shared-
-edge windows draw as readable bands from live GROUND identity, and durability
-bars cover every shootable layer.
+Updated: 2026-08-30 — headless evidence reads the game's own assets in the
+game's own order, and a pixel-sized correction is bounded by the piece it
+corrects.
 
 ## Vocabulary
 
@@ -93,7 +93,14 @@ perimeters whose aperture genuinely occupies a thick structural cell.
    and tile in one hosted scene derives from the same cell projection.
 10. Headless evidence may substitute a graphics drain, never a scene model. A
     snapshot of an embedded battle scene must collect the same simulation,
-    camera, selected render systems, command order, and authored assets as live.
+    camera, selected render systems, command order, and authored assets as live
+    — and **assets resolve the way the game resolves them**, the mod first and
+    the installed game second, because a drain that can see fewer roots than the
+    running game is showing a different scene. The install is already where the
+    compile-only game jars come from, so this asks for nothing a build does not
+    already have; where it is genuinely absent, what came from it is simply not
+    drawn. A scene renderer and the canvas it draws into must agree on those
+    roots, or a command is collected and then cannot be painted.
 11. Ownership coding is redundant by construction. An allegiance is carried on hue *and* at least one non-color channel, so a busy field, a colorblind reader, and a pulled-back camera all still resolve whose unit it is. Decoration measured in screen pixels stays legible at any zoom; decoration measured in cells does not.
 12. Each capacity reports on its own row against its own maximum. A reader asking "is the hull hurt?" must not have to subtract the armor capacity to find out, and a capacity's row stays comparable with the same capacity on every other unit on the field.
 13. A quantised scale degrades by dropping a tier, never by smearing one, and it drops for the whole bar at once. A divider tier too fine to resolve at the current bar length is omitted entirely, so the bar falls back to coarser notches and then to none instead of turning into noise — and one row never ends up visibly finer than the row above it over a rounding error.
@@ -103,7 +110,15 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     terrain, walls, apertures, doors, and props must come from the production
     render systems. Raw atlas and topology diagrams remain diagnostics and must
     not present themselves as battle-scene evidence.
-16. A bar belongs to whatever can be shot, not to one layer's cast. Anything carrying armor and structure wears the same gauge with the same ownership coding wherever it is drawn — infantry and emplacements in `UNITS`, drones in `DRONES`, convoy vehicles in `CONVOY` — so the player reads one instrument rather than a per-layer dialect. Each layer emits its bars as a sweep after its bodies, so no body paints over a neighbour's gauge.
+16. A correction measured in screen pixels is bounded by the piece it corrects.
+    A seam is about a pixel wide at any zoom, so closing one is a pixel-sized
+    job — but applied to geometry that shrinks with the camera, a fixed pixel
+    eventually dwarfs the sliver it was meant to touch up. Whichever bound bites
+    is the right one: the pixel while the detail is visible, a fraction of the
+    piece once it is not. Unbounded, the overlap that closes a wreck's seams at
+    a readable zoom tripled every piece of it on a whole-map frame and fused the
+    tears shut.
+17. A bar belongs to whatever can be shot, not to one layer's cast. Anything carrying armor and structure wears the same gauge with the same ownership coding wherever it is drawn — infantry and emplacements in `UNITS`, drones in `DRONES`, convoy vehicles in `CONVOY` — so the player reads one instrument rather than a per-layer dialect. Each layer emits its bars as a sweep after its bodies, so no body paints over a neighbour's gauge.
 
 ## Boundaries and extension paths
 

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
@@ -86,6 +87,132 @@ class AirfieldSystemTest {
         }
         assertEquals(AirfieldService.BerthState.DESTROYED, berth.state);
         assertEquals(0L, berth.airframeId, "nothing replaces it");
+    }
+
+    /**
+     * The hull stays on the concrete.
+     *
+     * <p>What a raider gets for walking onto an apron is a burnt aircraft that
+     * is visibly still there. The renderer draws that off the berth, because
+     * the unit is dead and released long before anybody looks at the pad again.
+     */
+    @Test
+    void anAircraftBurnedOnItsPadLeavesItsHullThere() {
+        BattleSimulation sim = openSim();
+        AirfieldService.Berth berth = berth(sim, 10, 10);
+        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
+        assertFalse(berth.wreckOnPad, "an aircraft standing on its pad is not a wreck");
+
+        sim.applyDamage(berth.airframeId, 100_000f, 100_000f);
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
+
+        assertTrue(berth.wreckOnPad, "the hull is still on the hardstand");
+    }
+
+    /**
+     * The hull is an obstacle, and only an obstacle.
+     *
+     * <p>Walk around it; see and shoot straight through it. A non-walkable cell
+     * is opaque here unless it says otherwise, and a burnt-out airframe is a
+     * frame with holes in it.
+     */
+    @Test
+    void theWreckBlocksTheApronWithoutBlindingIt() {
+        BattleSimulation sim = openSim();
+        AirfieldService.Berth berth = berth(sim, 10, 10);
+        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
+        assertTrue(sim.getGrid().isWalkable(10, 10), "an occupied pad is walkable concrete");
+
+        sim.applyDamage(berth.airframeId, 100_000f, 100_000f);
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
+
+        for (int y = 9; y <= 11; y++) {
+            for (int x = 9; x <= 11; x++) {
+                assertFalse(sim.getGrid().isWalkable(x, y),
+                        "nobody walks through the wreck at (" + x + "," + y + ")");
+                assertFalse(sim.getGrid().blocksLineOfSight(x, y),
+                        "sight and fire cross it at (" + x + "," + y + ")");
+            }
+        }
+        assertTrue(sim.getGrid().isWalkable(12, 10), "the apron beside it is untouched");
+    }
+
+    /**
+     * Anybody standing where the hull comes down steps out from under it.
+     *
+     * <p>The ground crew walk onto the pad to fly the thing; a raider walks
+     * onto it to burn the thing. Either can be standing on the concrete at the
+     * moment it stops being concrete.
+     */
+    @Test
+    void somebodyUnderTheWreckIsSteppedClear() {
+        BattleSimulation sim = openSim();
+        AirfieldService.Berth berth = berth(sim, 10, 10);
+        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
+        long crew = sim.spawn(new EntitySpec("crew", Faction.DEFENDER, UnitType.MARINE, 10, 10));
+
+        sim.applyDamage(berth.airframeId, 100_000f, 100_000f);
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
+
+        int x = sim.world().cellX(crew);
+        int y = sim.world().cellY(crew);
+        assertTrue(Math.abs(x - 10) > 1 || Math.abs(y - 10) > 1,
+                "still under the hull at (" + x + "," + y + ")");
+        assertTrue(sim.getGrid().isWalkable(x, y), "and standing somewhere they can stand");
+    }
+
+    /**
+     * With nowhere to step, the wreck leaves that cell open rather than sealing
+     * somebody into it.
+     *
+     * <p>A unit that cannot move stops answering its orders for the rest of the
+     * battle, which is a far worse outcome than a hull with a gap in it.
+     */
+    @Test
+    void theWreckWillNotSealSomebodyIn() {
+        BattleSimulation sim = openSim();
+        AirfieldService.Berth berth = berth(sim, 10, 10);
+        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
+        long crew = sim.spawn(new EntitySpec("crew", Faction.DEFENDER, UnitType.MARINE, 10, 10));
+        // Nothing outside the hull's own footprint will take a step.
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                if (Math.abs(x - 10) > 1 || Math.abs(y - 10) > 1) {
+                    sim.getGrid().setWalkable(x, y, false);
+                }
+            }
+        }
+
+        sim.applyDamage(berth.airframeId, 100_000f, 100_000f);
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
+
+        assertEquals(10, sim.world().cellX(crew), "there was nowhere to put them");
+        assertEquals(10, sim.world().cellY(crew));
+        assertTrue(sim.getGrid().isWalkable(10, 10), "so the wreck left that cell alone");
+        assertFalse(sim.getGrid().isWalkable(9, 9), "and closed the rest of itself");
+    }
+
+    /**
+     * An aircraft lost over the objective leaves an empty stand.
+     *
+     * <p>The same terminal state as burning on the pad, and deliberately not
+     * the same picture: nothing came down here.
+     */
+    @Test
+    void anAircraftLostOverTheObjectiveLeavesTheStandEmpty() {
+        BattleSimulation sim = openSim();
+        AirfieldService.Berth berth = berth(sim, 10, 10);
+        AirfieldService airfield = sim.getAirfieldService();
+        airfield.launch(berth);
+
+        airfield.destroyed(berth);
+
+        assertEquals(AirfieldService.BerthState.DESTROYED, berth.state);
+        assertFalse(berth.wreckOnPad, "it did not come down on its own hardstand");
     }
 
     /** The aircraft is a target, never a shooter. */

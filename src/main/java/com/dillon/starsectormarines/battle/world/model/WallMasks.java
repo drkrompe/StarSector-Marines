@@ -35,6 +35,51 @@ public final class WallMasks {
      * topology is queried in math-space, so a cell at {@code y == bb}
      * sees north-of-it as out-of-building.
      */
+    /**
+     * Give a face to every wall cell nobody claimed.
+     *
+     * <p>A wall whose mask is still zero resolves to the block's centre cell,
+     * which is transparent — so it draws nothing at all. That is right for a
+     * building, where an interior wall cell sits under the roof and is never
+     * seen. It is wrong for a ship, whose bulkheads are one cell thick between
+     * two open spaces and are looked straight down at: <b>every wall on a
+     * generated deck rendered as empty air</b> until this ran.
+     *
+     * <p>The rule is that a face is exterior where the neighbour is not a wall,
+     * which for a bulkhead means both of its long sides are. A horizontal run
+     * therefore takes the block's north-edge tile and its corners take corner
+     * tiles, which is what a wall seen from above should look like.
+     *
+     * <p><b>Only cells at zero are touched.</b> A building stamper has already
+     * said which faces of its walls are exterior, and that answer is about the
+     * building rather than about what happens to abut it — re-deriving it here
+     * would overwrite a considered mask with a guess. Nothing that renders today
+     * changes; only what renders as nothing.
+     */
+    public static void stampUnclaimed(CellTopology topology) {
+        for (int y = 0; y < topology.getHeight(); y++) {
+            for (int x = 0; x < topology.getWidth(); x++) {
+                if (!topology.isWall(x, y) || topology.getWallDirMask(x, y) != 0) continue;
+                int mask = 0;
+                if (!isWallOrOutside(topology, x, y + 1)) mask |= CellTopology.WALL_DIR_N;
+                if (!isWallOrOutside(topology, x, y - 1)) mask |= CellTopology.WALL_DIR_S;
+                if (!isWallOrOutside(topology, x + 1, y)) mask |= CellTopology.WALL_DIR_E;
+                if (!isWallOrOutside(topology, x - 1, y)) mask |= CellTopology.WALL_DIR_W;
+                topology.orWallDirMask(x, y, mask);
+            }
+        }
+    }
+
+    /**
+     * Whether this side has nothing to show a face to.
+     *
+     * <p>Off the map counts as wall rather than as open, so a bulkhead running
+     * along the edge of the grid does not grow a cap pointing at nothing.
+     */
+    private static boolean isWallOrOutside(CellTopology topology, int x, int y) {
+        return !topology.inBounds(x, y) || topology.isWall(x, y);
+    }
+
     public static void stampPerimeter(CellTopology topology, int bl, int bt, int br, int bb) {
         for (int x = bl; x <= br; x++) {
             // Bottom row (y == bt) → south face is exterior.

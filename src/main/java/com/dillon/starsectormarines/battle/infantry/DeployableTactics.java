@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.deployable.DeployedEmplacement;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -91,9 +92,18 @@ public final class DeployableTactics {
     public static boolean tryCommitCoverPlacement(long unit, SpecialEquipmentDef special,
                                                   BattleControl sim) {
         World world = sim.world();
-        if (!sim.movement().settled(unit)) return false;
         long threat = threatToCoverAgainst(unit, sim);
         if (threat == 0L) return false;
+        // A marine already fighting from a position plants when they have
+        // stopped, because a screen raised mid-stride is a screen left behind.
+        // The two onset moments are the exception and the reason they exist:
+        // somebody who has just walked into a room, or who has just been taken
+        // by a shooter at the far end of a lane, is in trouble precisely
+        // because they are moving, and telling them to finish the walk first
+        // is telling them to finish crossing the ground that is the problem.
+        if (!sim.movement().settled(unit) && !isOnsetThreat(unit, threat, sim)) {
+            return false;
+        }
         int cellX = world.cellX(unit);
         int cellY = world.cellY(unit);
         int facing = NavigationGrid.facingFor(world.cellX(threat) - cellX,
@@ -107,17 +117,45 @@ public final class DeployableTactics {
     }
 
     /**
-     * The hostile whose fire the carrier is answering: the one it is shooting
-     * at, or failing that the one that last shot it. Both are contacts the
-     * marine already has — this never opens a search for a reason to build
-     * something.
+     * The hostile whose fire the carrier is answering, in the order a marine
+     * would rank them: the one it is shooting at, the one that last shot it,
+     * the one that has just appeared at close quarters, and the one that has
+     * taken it as a target.
+     *
+     * <p>The first two are contacts the marine already has, and on their own
+     * they describe only a fight already under way — which is why a screen used
+     * to be something that went up after the shooting started rather than at
+     * the moment it would have done the most good. The last two are the onset
+     * moments: they are how a marine who has just come through a doorway, or
+     * who is being ranged on from the end of a hallway, gets to put something
+     * between themselves and it.
+     *
+     * <p>Still never a search for a reason to build something. Each of the four
+     * is a bearing that already exists in the world; none of them goes looking
+     * for one.
      */
     private static long threatToCoverAgainst(long unit, BattleControl sim) {
         long engaged = sim.resolveUnit(sim.combat().fireTargetId(unit));
         if (engaged != 0L && sim.world().isAlive(engaged)) return engaged;
         long reflex = sim.resolveUnit(sim.combat().reflexTargetId(unit));
         if (reflex != 0L && sim.world().isAlive(reflex)) return reflex;
-        return 0L;
+        long opening = sim.getTacticalScoring().closeContactOpening(
+                unit, TacticalScoring.CLOSE_QUARTERS_CELLS);
+        if (opening != 0L) return opening;
+        return sim.getTacticalScoring().takenAsATarget(unit);
+    }
+
+    /**
+     * Whether this threat is one of the two onset moments rather than a fight
+     * already joined. Asked only to decide whether a moving marine may stop and
+     * plant, so it re-derives rather than being threaded through: the answer is
+     * wanted at exactly one place and the queries are bounded.
+     */
+    private static boolean isOnsetThreat(long unit, long threat, BattleControl sim) {
+        long engaged = sim.resolveUnit(sim.combat().fireTargetId(unit));
+        if (threat == engaged) return false;
+        long reflex = sim.resolveUnit(sim.combat().reflexTargetId(unit));
+        return threat != reflex;
     }
 
     /**

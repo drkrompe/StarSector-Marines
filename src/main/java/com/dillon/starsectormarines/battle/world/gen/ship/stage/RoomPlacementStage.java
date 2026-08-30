@@ -11,6 +11,10 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckZone;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullContact;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayouts;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
 import java.util.ArrayList;
@@ -59,8 +63,35 @@ public final class RoomPlacementStage implements GenStage {
     private static final CirculationLoops.Policy DECK_LOOPS =
             new CirculationLoops.Policy(64, 2, 12);
 
+    private final RoomFit fit;
+
+    /** A deck packed at the level its rooms will be furnished at. */
+    public RoomPlacementStage(RoomFit fit) {
+        this.fit = fit == null ? RoomFit.STANDARD : fit;
+    }
+
+    /**
+     * The footprint to pack this room at: whatever an authored layout draws for
+     * it, and otherwise the recipe's own.
+     *
+     * <p>A bigger authored room is not guaranteed a berth. The deck was sized
+     * from the program's recipes, so a room drawn larger than the one it
+     * replaces may simply fail to fit and land among the rooms the deck could
+     * not take — which is the honest outcome and already a case the graph
+     * carries.
+     */
+    private static RoomShape footprint(RoomRecipe recipe, RoomFit fit) {
+        RoomShape authored = RoomLayouts.installed().footprintFor(recipe.purpose(), fit);
+        return authored != null ? authored : recipe.shape();
+    }
+
     @Override
     public void run(GenContext ctx) {
+        // Published before anything is packed, because a room's authored doors
+        // are a constraint on where it may go and an authored layout is what
+        // carries them. Placing first and asking afterwards is exactly the
+        // ordering law 14 exists to forbid.
+        ctx.put(RoomFittings.ROOM_FIT, fit);
         DeckProfile profile = ctx.get(ShipKeys.DECK_PROFILE);
         List<RoomRecipe> program = ctx.get(ShipKeys.ROOM_PROGRAM);
         if (profile == null || program == null) {
@@ -78,7 +109,7 @@ public final class RoomPlacementStage implements GenStage {
         List<DeckGraph.Compartment> placed = new ArrayList<>();
         List<RoomRecipe> unplaced = new ArrayList<>();
         for (RoomRecipe recipe : ordered) {
-            RoomPacker.Placed room = packer.place(request(profile, recipe), true);
+            RoomPacker.Placed room = packer.place(request(profile, recipe, fit), true);
             if (room == null) {
                 unplaced.add(recipe);
             } else {
@@ -109,7 +140,7 @@ public final class RoomPlacementStage implements GenStage {
         while (progressed) {
             progressed = false;
             for (RoomRecipe recipe : utility) {
-                RoomPacker.Placed room = packer.place(request(profile, recipe), false);
+                RoomPacker.Placed room = packer.place(request(profile, recipe, fit), false);
                 if (room == null) continue;
                 placed.add(describe(profile, room, placed.size()));
                 progressed = true;
@@ -122,11 +153,12 @@ public final class RoomPlacementStage implements GenStage {
      * A recipe as the packer reads it: the zone becomes an opinion about
      * position, and the hull contact becomes an edge the room has to reach.
      */
-    private static RoomPacker.Request request(DeckProfile profile, RoomRecipe recipe) {
+    private static RoomPacker.Request request(DeckProfile profile, RoomRecipe recipe,
+                                              RoomFit fit) {
         RoomPacker.Affinity affinity = recipe.zone() == null
                 ? RoomPacker.Affinity.ANYWHERE
                 : (centreX, centreY) -> profile.zone(clampFrame(profile, centreX)) == recipe.zone();
-        return new RoomPacker.Request(recipe.purpose(), recipe.shape(), affinity,
+        return new RoomPacker.Request(recipe.purpose(), footprint(recipe, fit), affinity,
                 edgeContact(recipe.contact()));
     }
 

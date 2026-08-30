@@ -324,6 +324,28 @@ public class BattleRenderer {
         registerSpriteSheetBatches(sprites.unitDeadSprites().values());
         registerSpriteSheetBatches(sprites.unitSprites().values());
         registerSpriteSheetBatches(sprites.specialEquipmentAimSheets().values());
+
+        // Hull sheets for the UNITS layer, so a burnt airframe can be drawn as
+        // source strips of its own sprite (UnitRenderService's wreck pass).
+        // Loaded by ensureShuttleSprites() before this runs, in both hosts.
+        registerHullBatches(sprites.shuttleSprites().values());
+    }
+
+    /**
+     * Builds + registers one {@link QuadBatch} per distinct hull sprite
+     * (idempotent — several shuttle types share one image).
+     *
+     * <p>A hull is a single-frame sprite rather than a sheet, so it is only
+     * here because something addresses part of it; a cache that never recorded
+     * its pixel size cannot be addressed that way and is skipped.
+     */
+    private void registerHullBatches(java.util.Collection<ShuttleSpriteCache> caches) {
+        for (ShuttleSpriteCache cache : caches) {
+            if (cache == null || cache.sprite == null) continue;
+            if (cache.pxW <= 0 || cache.pxH <= 0) continue;
+            if (batchBySheet.containsKey(cache.sprite)) continue;
+            registerBatch(cache.sprite, new QuadBatch(cache.sprite, cache.pxW, cache.pxH, 128));
+        }
     }
 
     /** Builds + registers one {@link QuadBatch} per distinct sheet in {@code caches} (idempotent). */

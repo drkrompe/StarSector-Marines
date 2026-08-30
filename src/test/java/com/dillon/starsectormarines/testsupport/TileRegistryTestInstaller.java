@@ -42,22 +42,10 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
-        if (TileRegistry.installed() == null) {
-            TileRegistry reg = new TileRegistry();
-            for (String path : TileRegistry.BUILTIN_TILESETS) {
-                reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod", path))));
-            }
-            reg.validateReferences();
-            TileRegistry.install(reg);
-        }
-        if (GenMappingRegistry.installed() == null) {
-            GenMappingRegistry mapping = new GenMappingRegistry();
-            for (String path : GenMappingRegistry.BUILTIN_MAPPINGS) {
-                mapping.ingest(new JSONObject(Files.readString(Paths.get("mod", path.split("/")))));
-            }
-            mapping.validateReferences();
-            GenMappingRegistry.install(mapping);
-        }
+        // Shared with the authoring workbench, which needs the same two and had
+        // nothing to install them: a page that opened on rooms it could not
+        // furnish was how that came to light.
+        DiskRegistries.install();
         if (WeaponRegistry.installed() == null) {
             WeaponRegistry weapons = new WeaponRegistry();
             for (String path : WeaponRegistry.BUILTIN_CATALOGS) {

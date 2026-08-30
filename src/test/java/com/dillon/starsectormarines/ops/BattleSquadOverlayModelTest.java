@@ -59,6 +59,11 @@ class BattleSquadOverlayModelTest {
             }
             assertTrue(instance.requireElement("battle-squad-member-2-3")
                     .hasClass("member-empty"));
+            var edgeCard = instance.requireElement("battle-squad-member-2-2");
+            var edgeSpecial = instance.requireElement(
+                    "battle-squad-member-2-2-special");
+            assertTrue(edgeCard.box().contentBox().right()
+                    - edgeSpecial.box().contentBox().right() >= 2f);
             assertTrue(instance.requireElement("battle-squad-tooltip")
                     .hasClass("squad-tooltip-hidden"));
 
