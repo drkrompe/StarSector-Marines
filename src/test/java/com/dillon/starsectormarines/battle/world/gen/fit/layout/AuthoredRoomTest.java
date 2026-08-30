@@ -24,6 +24,7 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -119,6 +120,49 @@ class AuthoredRoomTest {
     }
 
     /**
+     * A painted floor changes what the deck is drawn from and nothing else.
+     *
+     * <p>The whole reason flooring is separate from {@code Ground}: a vent run
+     * and a striped run are the same floor to pathing, cover and sight, which is
+     * exactly what makes them safe to use for flavour. If this ever starts
+     * moving a ground kind, a room's decoration has become a tactical fact.
+     */
+    @Test
+    void aPaintedFloorChangesThePictureAndNotTheDeck() {
+        Furnished furnished = furnishAll(layout(
+                new LayoutOp.Flooring(1, 1, 2, 2, "road.striped")), RoomPose.CANONICAL);
+
+        CellTopology topology = furnished.topology();
+        assertEquals("road.striped", topology.getSurfaceId(ORIGIN + 1, ORIGIN + 1),
+                "the cell was not told what to draw from");
+        assertEquals("road.striped", topology.getSurfaceId(ORIGIN + 2, ORIGIN + 2));
+        assertNull(topology.getSurfaceId(ORIGIN + 4, ORIGIN + 1),
+                "the paint ran past the cells it was given");
+
+        assertEquals(topology.getGroundKind(ORIGIN + 4, ORIGIN + 1),
+                topology.getGroundKind(ORIGIN + 1, ORIGIN + 1),
+                "painting the floor moved the ground kind, which consumers read");
+    }
+
+    /**
+     * A bulkhead is one wall, so a second choice replaces rather than adds.
+     */
+    @Test
+    void aRoomsBulkheadIsStampedRoundItsWholeRing() {
+        Furnished furnished = furnishAll(layout(
+                new LayoutOp.Bulkhead("road.embankment")), RoomPose.CANONICAL);
+
+        CellTopology topology = furnished.topology();
+        assertEquals("road.embankment", topology.getSurfaceId(ORIGIN - 1, ORIGIN),
+                "the ring's west side was not stamped");
+        assertEquals("road.embankment",
+                topology.getSurfaceId(ORIGIN + SHAPE.width(), ORIGIN),
+                "the ring's east side was not stamped");
+        assertNull(topology.getSurfaceId(ORIGIN + 1, ORIGIN + 1),
+                "the bulkhead was stamped onto the room's own floor");
+    }
+
+    /**
      * All three parts of the key have to agree before a layout is used.
      *
      * <p>The footprint is the part that matters most: {@code RoomFittings} is
@@ -173,7 +217,7 @@ class AuthoredRoomTest {
 
     private static final int ORIGIN = 4;
 
-    private record Furnished(List<Doodad> doodads, int tasks) { }
+    private record Furnished(List<Doodad> doodads, int tasks, CellTopology topology) { }
 
     private static List<Doodad> furnish(RoomLayout document, RoomPose pose) {
         return furnishAll(document, pose).doodads();
@@ -194,6 +238,6 @@ class AuthoredRoomTest {
                 List.of(new Doorway(ORIGIN, ORIGIN)));
 
         new AuthoredFitting(document).fit(new RoomFloor(ctx, room, document.fit()));
-        return new Furnished(new ArrayList<>(ctx.doodads), ctx.fixtureTasks.size());
+        return new Furnished(new ArrayList<>(ctx.doodads), ctx.fixtureTasks.size(), topology);
     }
 }
