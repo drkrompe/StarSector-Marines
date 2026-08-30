@@ -121,17 +121,16 @@ public final class AttackMove extends AbstractZoneAction {
 
         int[] aim = maneuverAim(squad, assault, sim);
 
-        // Bounding is the same advance behaviour a room crossing runs, and an
-        // attack move is the order it was always most obviously for: one fire
-        // team moves while its siblings hold the threat, alternating up the
-        // route. It engages only once the squad has committed to a route
-        // threat — bounding into empty ground is a slow walk with extra steps.
-        if (!squad.advanceEngageCommitted
-                || sim.resolveUnit(squad.advanceThreatId) == 0L) {
-            clearBounding(squad);
-        } else if (executeBounding(member, squad, sim, aim[0], aim[1])) {
-            return ActionStatus.RUNNING;
-        }
+        // Deliberately no bound, though the shared machinery is right here and
+        // this order is the obvious candidate for it. Measured over the
+        // canonical matrix, bounding attack moves cost reinforced-south 7300
+        // ticks and 46 defender kills and returned nothing on full-strength-west.
+        // Gating it to the threat's beaten zone changed neither fixture by a
+        // single tick, which says the price is the tactic itself and not
+        // bounding at nothing: moving half a squad at a time up a long route
+        // is simply slower than the ground is dangerous. A room crossing is
+        // short enough to afford it; an attack move across a map is not.
+        clearBounding(squad);
 
         // Deliberately no quiet echelon. That hold exists so a squad crossing
         // to an assigned room arrives with a readable team footprint, and it
