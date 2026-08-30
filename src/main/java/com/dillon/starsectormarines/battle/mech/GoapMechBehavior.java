@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.command.DefendAssignedTrackGoal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedSiteGoal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedAreaGoal;
 import com.dillon.starsectormarines.battle.command.AdvanceAssignedTrackGoal;
+import com.dillon.starsectormarines.battle.command.AttackMoveGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.ServiceAssignedObjectiveGoal;
 import com.dillon.starsectormarines.battle.command.WithdrawAssignedGoal;
@@ -38,19 +39,22 @@ import java.util.Objects;
  * {@link #update} call consumes the squad's plan during the serial
  * unit-update pass.
  *
- * <p>Stage 1 ships one goal ({@link MechEliminateEnemiesGoal}) and one
- * action ({@link EngageAtCurrentBand}). The role-anchored goals
- * ({@code OverwatchKillZone} for LR Support, {@code BackstopAssignedSquad}
- * for Armored Support) layer on top in subsequent slices.
+ * <p>Every doctrine-aware goal installs the same squad step,
+ * {@link ExecuteMechDoctrine}. That action dispatches each member through its
+ * own effective role, so mixed lances are not collapsed into the doctrine of
+ * whichever member caused the squad-level goal to win.
  */
 public final class GoapMechBehavior implements UnitBehavior {
 
     public static final GoapMechBehavior INSTANCE = new GoapMechBehavior();
 
-    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. MISSION-priority role goals come first; SURVIVAL-tier {@link MechSurviveContact} wins whenever {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#MORALE_BROKEN} trips (the MISSION goals carve themselves out on that predicate too, so SURVIVAL wins outright); the ENGAGEMENT-priority ambient {@link MechEliminateEnemiesGoal} is the floor. Assault precedes the Stage 1 role goals so a mixed group with a Hound runs one shared step in which each member delegates to its own doctrine. */
+    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. Doctrine mission goals yield to withdrawal, rescue, and broken-morale survival; the ambient engagement goal remains the floor. Every doctrine goal delegates through {@link ExecuteMechDoctrine} for mixed-lance execution. */
     public static final List<Goal> MECH_GOALS = List.of(
             PatrolRescueFormationGoal.INSTANCE,
             WithdrawAssignedGoal.INSTANCE,
+            AttackMoveGoal.INSTANCE,
+            MechAssignedObjectiveGoal.INSTANCE,
+            BalancedContactGoal.INSTANCE,
             ServiceAssignedObjectiveGoal.INSTANCE,
             SweepAssignedSectorGoal.INSTANCE,
             AdvanceAssignedTrackGoal.INSTANCE,
@@ -67,6 +71,7 @@ public final class GoapMechBehavior implements UnitBehavior {
     /** Actions the planner may use. The role-anchored goals ship custom-plans that bypass the planner; the list is the registry for any future goal that wants backward-chaining search. */
     public static final List<Action> MECH_ACTIONS = List.of(
             PatrolRescueFormation.INSTANCE,
+            ExecuteMechDoctrine.INSTANCE,
             BreachAndAssault.INSTANCE,
             EngageAtCurrentBand.INSTANCE,
             OverwatchKillZone.INSTANCE,
@@ -75,7 +80,7 @@ public final class GoapMechBehavior implements UnitBehavior {
     );
 
 
-    /** Hard cap on planner-search node expansions. Stage 1 custom-plans so the planner doesn't run; the cap is set anyway for when role-anchored goals start using {@link Planner#plan}. */
+    /** Hard cap on planner-search node expansions for goals without a custom plan. */
     public static final int PLAN_NODE_LIMIT = 256;
 
     private GoapMechBehavior() {}

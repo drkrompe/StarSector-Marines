@@ -23,14 +23,9 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  * {@link MechLoadoutComponent#overwatchCellX}; it refreshes when the threat or
  * screen changes and periodically while unscreened.
  *
- * <p>Per-member execution branches on role. An LR_SUPPORT member runs the
- * overwatch body; any other member in the squad (e.g. an ARMORED_SUPPORT
- * mech in a mixed-role squad — possible with round-robin spawn assignment)
- * falls through to the parity {@link EngageAtCurrentBand} body so it still
- * fights instead of idling. Per-member goal assignment (Story F) is the
- * Stage 2 path that gives each member its own goal cleanly; for Stage 1
- * the squad-goal-wins-once model with action-side branching handles mixed
- * squads acceptably.
+ * <p>The shared doctrine dispatcher normally invokes this action only for an
+ * LR_SUPPORT member. A direct call for another role still falls through to
+ * {@link EngageAtCurrentBand} as a defensive compatibility guard.
  *
  * <p>The "withhold SRM" piece is doctrine-as-positioning: the mech holds
  * in the medium/long band. A Sirocco can take a heavy-cannon opportunity near
@@ -67,6 +62,10 @@ public final class OverwatchKillZone implements Action {
     private static final float SCREEN_ENDPOINT_CLEARANCE = 3f;
     /** Two-second discovery cadence for an unscreened cached perch. */
     private static final int UNSCREENED_RECHECK_TICKS = 60;
+    /** A contact inside this radius has penetrated the long-range posture. */
+    static final float RUSHED_DISTANCE = 12f;
+    /** One emergency move attempts to buy this many cells of separation. */
+    private static final float RUSH_ESCAPE_DISTANCE = 8f;
 
     private static final WorldState PRE = WorldState.EMPTY;
     private static final WorldState EFF = WorldState.EMPTY
@@ -87,8 +86,21 @@ public final class OverwatchKillZone implements Action {
         // engagement so mixed-role squads have every member doing something
         // sensible. Loadout reached by id (zero-alloc direct lookup).
         MechLoadoutComponent m = sim.world().mechLoadout(member);
-        if (m == null || m.role != MechRole.LR_SUPPORT) {
+        if (m == null || m.effectiveRole() != MechRole.LR_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
+        }
+
+        long immediateTarget = MechTargeting.refreshTarget(member, sim);
+        sim.world().setTargetId(member, immediateTarget);
+        if (immediateTarget != 0L && sim.resolveUnit(immediateTarget) != 0L) {
+            float immediateDistance = TacticalScoring.cellDistance(
+                    sim.world().x(member), sim.world().y(member),
+                    sim.world().x(immediateTarget), sim.world().y(immediateTarget));
+            if (immediateDistance < RUSHED_DISTANCE) {
+                openDistance(member, squad, m, immediateTarget,
+                        immediateDistance, sim);
+                return ActionStatus.RUNNING;
+            }
         }
 
         // No known contact → no kill corridor anchor. Drop back to parity
@@ -112,7 +124,9 @@ public final class OverwatchKillZone implements Action {
                 || m.overwatchAxisY != squad.lastSeenEnemyY
                 || m.overwatchLongRangeBand != band.longRange()
                 || !insideBand(m.overwatchCellX, m.overwatchCellY,
-                squad.lastSeenEnemyX, squad.lastSeenEnemyY, band);
+                squad.lastSeenEnemyX, squad.lastSeenEnemyY, band)
+                || !MechAssignmentBoundary.permitsCell(member, squad,
+                m.overwatchCellX, m.overwatchCellY, sim);
         if (!needsRepick && m.overwatchScreenId != 0L) {
             needsRepick = !isValidScreen(m.overwatchScreenId,
                     m.overwatchCellX, m.overwatchCellY,
@@ -190,6 +204,64 @@ public final class OverwatchKillZone implements Action {
         return ActionStatus.RUNNING;
     }
 
+    private static void openDistance(long member, Squad squad,
+                                     MechLoadoutComponent loadout,
+                                     long target, float distance,
+                                     BattleControl sim) {
+        boolean visible = sim.getTacticalScoring().hasClearShot(member, target);
+        if (distance <= sim.world().attackRange(member)) {
+            // A rushed support mech uses every installed defensive weapon while
+            // it creates room; normal overwatch resumes SRM withholding.
+            MechCombatantBehavior.tryFireMechWeapons(
+                    member, loadout, target, distance, sim, visible);
+        }
+
+        if (sim.movement().mayRepath(member)) {
+            int[] escapePath = openingPath(member, squad, target, sim);
+            if (escapePath != null) sim.setPath(member, escapePath);
+            else if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+        }
+        if (sim.world().pathIdx(member) < Paths.cellCount(sim.world().path(member))) {
+            sim.advanceMovement(member);
+        }
+    }
+
+    private static int[] openingPath(long member, Squad squad, long target,
+                                     BattleControl sim) {
+        float memberX = sim.world().x(member);
+        float memberY = sim.world().y(member);
+        float dx = memberX - sim.world().x(target);
+        float dy = memberY - sim.world().y(target);
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+        if (length < 1e-3f) return null;
+        int idealX = (int) Math.floor(memberX + dx / length * RUSH_ESCAPE_DISTANCE);
+        int idealY = (int) Math.floor(memberY + dy / length * RUSH_ESCAPE_DISTANCE);
+        float currentDistanceSq = dx * dx + dy * dy;
+        NavigationGrid grid = sim.getGrid();
+        for (int radius = 0; radius <= 4; radius++) {
+            for (int oy = -radius; oy <= radius; oy++) {
+                for (int ox = -radius; ox <= radius; ox++) {
+                    if (Math.max(Math.abs(ox), Math.abs(oy)) != radius) continue;
+                    int x = idealX + ox;
+                    int y = idealY + oy;
+                    if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) continue;
+                    if (!MechAssignmentBoundary.permitsCell(
+                            member, squad, x, y, sim)) continue;
+                    float targetDx = x + 0.5f - sim.world().x(target);
+                    float targetDy = y + 0.5f - sim.world().y(target);
+                    if (targetDx * targetDx + targetDy * targetDy <= currentDistanceSq) continue;
+                    if (!grid.hasLineOfFire(x + 0.5f, y + 0.5f,
+                            sim.world().x(target), sim.world().y(target))) continue;
+                    int[] path = GridPathfinder.findPath(grid,
+                            sim.world().cellX(member), sim.world().cellY(member),
+                            x, y, sim.getOccupancyMap());
+                    if (!Paths.isEmpty(path)) return path;
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * Picks the best firing cell around {@code squad.lastSeenEnemy}. A supplied
      * LR loadout uses the normal medium/long band; one with spent racks uses
@@ -212,6 +284,12 @@ public final class OverwatchKillZone implements Action {
         int tx = squad.lastSeenEnemyX;
         int ty = squad.lastSeenEnemyY;
         int radius = (int) Math.ceil(band.maxDistance());
+        int[] connected = GridPathfinder.labelConnectedComponents(grid);
+        int memberX = sim.world().cellX(member);
+        int memberY = sim.world().cellY(member);
+        int memberComponent = grid.inBounds(memberX, memberY)
+                ? connected[grid.index(memberX, memberY)] : -1;
+        if (memberComponent < 0) return null;
         ScreeningAllies allies = gatherScreeningAllies(member, squad, tx, ty, sim);
 
         OverwatchPosition best = null;
@@ -221,6 +299,9 @@ public final class OverwatchKillZone implements Action {
                 int cx = tx + dx;
                 int cy = ty + dy;
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
+                if (!MechAssignmentBoundary.permitsCell(
+                        member, squad, cx, cy, sim)) continue;
+                if (connected[grid.index(cx, cy)] != memberComponent) continue;
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget < band.minDistance()
                         || distFromTarget > band.maxDistance()) continue;

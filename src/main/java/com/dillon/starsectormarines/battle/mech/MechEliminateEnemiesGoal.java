@@ -13,15 +13,14 @@ import java.util.List;
  * Ambient mech goal — always relevant, satisfied by inflicting damage.
  * Sibling of {@link EliminateEnemiesGoal} for mech squads; the relevance
  * scoring is identical (high with a target, 0.1 floor without). What
- * differs is the plan: this goal custom-plans a single-step
- * {@link EngageAtCurrentBand} action rather than going through the
- * backward-chaining planner, because Stage 1 mech behavior is a single
- * "do parity engagement" tick and the planner search produces nothing more
- * useful than that.
+ * differs is the plan: this goal custom-plans the single-step
+ * {@link ExecuteMechDoctrine} dispatcher rather than going through the
+ * backward-chaining planner. Every member of a mixed lance therefore uses its
+ * own effective doctrine even when this ambient goal owns the squad plan.
  *
- * <p>Role-anchored goals (LR Support's {@code OverwatchKillZone}, Armored
- * Support's {@code BackstopAssignedSquad}) land in subsequent slices at
- * {@link Goal.Priority#MISSION} so they outrank this ambient
+ * <p>Role-anchored goals (LR Support's {@code OverwatchKillZone}, Tank's
+ * {@code BackstopAssignedSquad}) use {@link Goal.Priority#MISSION} so they
+ * outrank this ambient
  * {@link Goal.Priority#ENGAGEMENT} default whenever their preconditions
  * hold.
  */
@@ -48,6 +47,6 @@ public final class MechEliminateEnemiesGoal implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
-        return new SquadPlan(List.of(new SquadPlan.Step(EngageAtCurrentBand.INSTANCE)));
+        return new SquadPlan(List.of(new SquadPlan.Step(ExecuteMechDoctrine.INSTANCE)));
     }
 }

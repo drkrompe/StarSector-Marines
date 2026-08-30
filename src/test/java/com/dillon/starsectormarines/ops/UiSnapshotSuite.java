@@ -135,6 +135,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> BATTLE_HUD_COMPONENTS =
             List.of(BattleHudOverlay.COMPONENT_PATH,
                     BattleSquadOverlay.COMPONENT_PATH,
+                    BattleMechOverlay.COMPONENT_PATH,
                     BattlePowerOverlay.COMPONENT_PATH,
                     BattleRetreatOverlay.COMPONENT_PATH);
 
@@ -255,6 +256,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("battle-hud-selected-squad-hover-wide.png",
                         renderBattleSquadOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                new SnapshotArtifact("battle-hud-selected-mech-wide.png",
+                        renderBattleMechOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("battle-hud-command-overlay-wide.png",
                         renderBattleHudCommandOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -496,6 +500,41 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             }
         }
         return members;
+    }
+
+    /** Full-screen evidence for one selected mech's battle-local doctrine override. */
+    private static BufferedImage renderBattleMechOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        BufferedImage image = renderBattleBackdrop(width, height);
+        Reactor reactor = new Reactor();
+        BattleMechOverlayModel model = new BattleMechOverlayModel(
+                reactor, () -> { }, (mechId, role) -> { });
+        model.updateProjected(new BattleMechOverlayModel.MechState(
+                303L, "Sirocco Three", MechVariant.SIROCCO.displayName,
+                MechRole.LR_SUPPORT, MechRole.BALANCED,
+                BattleMechOverlayModel.selectableRoles()));
+
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattleMechOverlay.COMPONENT, model.props())) {
+            BattleMechOverlay.wireLayout(instance);
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            BufferedImage overlay = renderer.render(document,
+                    Math.round(BattleMechOverlay.DOCUMENT_WIDTH),
+                    Math.round(BattleMechOverlay.DOCUMENT_HEIGHT));
+            Graphics2D graphics = image.createGraphics();
+            int bottom = Math.round(BattleLayout.PAD + BattleLayout.BACK_H
+                    + BattleLayout.CONTROLS_GAP);
+            graphics.drawImage(overlay, 12,
+                    height - bottom - overlay.getHeight(), null);
+            graphics.dispose();
+            return image;
+        }
     }
 
     /** Full-screen evidence for the production MLX command rail over battle contrast. */

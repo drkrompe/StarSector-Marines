@@ -1,12 +1,14 @@
 package com.dillon.starsectormarines.battle.mech.components;
 
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
-import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 /**
@@ -62,15 +64,17 @@ public final class MechLoadoutComponent {
         return torsoOnTarget && torsoAimTargetId == target;
     }
 
+    /** Immutable doctrine frozen into this battle deployment. */
+    public final MechRole deployedRole;
     /**
-     * Doctrine slot for this chassis. Set at spawn time by
-     * {@link BattleSetup}'s defender cluster mint; read by
-     * {@code GoapMechBehavior} goal-relevance scoring to pick which mech
-     * goal (overwatch / backstop / etc.) the planner pursues. Mutable so
-     * the commander tier (future) can re-assign without re-allocating the
-     * loadout state.
+     * Compatibility alias for pre-override readers. This is the deployed
+     * baseline, not the current battlefield doctrine; decisions must use
+     * {@link #effectiveRole()}.
      */
-    public MechRole role;
+    @Deprecated
+    public final MechRole role;
+    /** Nullable battle-only player override. Null restores {@link #deployedRole}. */
+    private MechRole battleOverride;
 
     /** Latched true once the sim has emitted a smoking-wreck for this mech's death. Prevents re-spawn across ticks if the death-scan pass runs again with the mech still in the units list. */
     public boolean wreckSpawned = false;
@@ -99,15 +103,27 @@ public final class MechLoadoutComponent {
 
     // ---- Armored Support backstop assignment ----
     //
-    // Stage 1's BackstopAssignedSquad action paces a designated friendly
-    // infantry squad. Picked lazily at the first execute tick that finds a
-    // candidate (nearest same-side infantry squad); cached here so the pick
-    // is stable across replans. Cleared back to -1 when the backed squad is
-    // wiped, so the next replan re-picks. The commander tier (future) will
-    // overwrite this with explicit assignments.
+    // BackstopAssignedSquad paces eligible friendly infantry or a non-cyclic
+    // mech element. The nearest mission-honest candidate is picked lazily and
+    // cached here so the relationship stays stable across replans.
 
     /** Squad id this Armored Support mech is currently backing. -1 = no assignment yet (re-pick on next execute). */
     public int assignedSquadId = -1;
+    /** Threat cell used to pick the cached Tank front anchor. */
+    public int frontlineThreatX = -1;
+    public int frontlineThreatY = -1;
+
+    /** Per-member latch allowing local doctrine movement only after servicing an exact command cell. */
+    public AssignmentKind assignmentBoundaryKind;
+    public int assignmentBoundaryCellX = Integer.MIN_VALUE;
+    public int assignmentBoundaryCellY = Integer.MIN_VALUE;
+    public boolean assignmentBoundaryReached;
+    /** Closest distance yet achieved to an ATTACK_MOVE destination. */
+    public float assignmentBoundaryBestDistance = Float.POSITIVE_INFINITY;
+    /** Command-ledger generation that owns the current boundary latch. */
+    public int assignmentBoundaryIssuedTick = Integer.MIN_VALUE;
+    public String assignmentBoundaryIssuer;
+    public CommandAuthority assignmentBoundaryAuthority;
 
     // ---- Per-mech morale (Stage 2) ----
     //
@@ -146,7 +162,8 @@ public final class MechLoadoutComponent {
                                 MechWeaponComponent rightShoulder, MechRole role) {
         if (variant == null) throw new IllegalArgumentException("Mech variant is required");
         this.variant = variant;
-        this.role = role;
+        this.deployedRole = role != null ? role : variant.defaultRole;
+        this.role = deployedRole;
         install(MechMountSlot.ARMS, arms);
         install(MechMountSlot.LEFT_SHOULDER, leftShoulder);
         install(MechMountSlot.RIGHT_SHOULDER, rightShoulder);
@@ -158,6 +175,58 @@ public final class MechLoadoutComponent {
 
     public MechWeaponMount mount(MechMountSlot slot) {
         return mounts[slot.ordinal()];
+    }
+
+    /** Doctrine committed at deployment; never changes during the battle. */
+    public MechRole deployedRole() {
+        return deployedRole;
+    }
+
+    /** Nullable player override for this battle. */
+    public MechRole battleOverride() {
+        return battleOverride;
+    }
+
+    /** Doctrine every planner, action, formation, and diagnostic must consult. */
+    public MechRole effectiveRole() {
+        return battleOverride != null ? battleOverride : deployedRole;
+    }
+
+    /**
+     * Applies battle-only override provenance and clears doctrine-owned caches
+     * only when the effective doctrine actually changes. External path and
+     * shared-plan cleanup remains the doctrine command system's responsibility;
+     * the current legal combat target is intentionally preserved for the new
+     * doctrine action to revalidate normally.
+     *
+     * @return true when {@link #effectiveRole()} changed
+     */
+    public boolean applyBattleOverride(MechRole override) {
+        MechRole previous = effectiveRole();
+        battleOverride = override == deployedRole ? null : override;
+        if (previous == effectiveRole()) return false;
+        clearDoctrineCaches();
+        return true;
+    }
+
+    /** Drops only transient navigation/anchor state owned by a doctrine. */
+    private void clearDoctrineCaches() {
+        overwatchCellX = -1;
+        overwatchCellY = -1;
+        overwatchAxisX = -1;
+        overwatchAxisY = -1;
+        overwatchScreenId = 0L;
+        overwatchLongRangeBand = false;
+        assignedSquadId = -1;
+        frontlineThreatX = -1;
+        frontlineThreatY = -1;
+        collisionStallSeconds = 0f;
+        collisionBestRemainingDistance = Float.POSITIVE_INFINITY;
+        collisionProgressDestX = Integer.MIN_VALUE;
+        collisionProgressDestY = Integer.MIN_VALUE;
+        collisionEscapeActive = false;
+        torsoAimTargetId = 0L;
+        torsoOnTarget = false;
     }
 
     public int appearanceSelector(MechMountSlot slot) {
@@ -203,6 +272,22 @@ public final class MechLoadoutComponent {
             }
         }
         return missileRange > 0f ? missileRange : range;
+    }
+
+    /**
+     * Medium direct-fire posture used by Balanced doctrine: eighty percent of
+     * the longest currently usable non-LRM mount, with enough room to avoid
+     * turning an SRM rack into the chassis' movement doctrine.
+     */
+    public float mediumDirectRange() {
+        float longest = 0f;
+        for (MechWeaponMount mount : mounts) {
+            if (mount != null && (mount.hasAmmo() || mount.burstRemaining > 0)
+                    && !WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())) {
+                longest = Math.max(longest, mount.weaponDef().range);
+            }
+        }
+        return longest > 0f ? Math.max(10f, longest * 0.8f) : 0f;
     }
 
     public boolean needsSupply() {

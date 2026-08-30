@@ -1,0 +1,203 @@
+<template props="mechTitle,mechIdentity,deployedDoctrine,effectiveDoctrine,doctrineState,doctrineStateClasses,doctrineCards,backAction,defaultAction">
+  <div id="battle-mech-overlay" class="battle-mech-overlay">
+    <div id="battle-mech-panel" class="mech-panel">
+      <div id="battle-mech-header" class="mech-header">
+        <button id="battle-mech-back" class="mech-back" onclick="{backAction}">&lt; BACK</button>
+        <div id="battle-mech-title" class="label heading mech-title">{mechTitle}</div>
+        <div id="battle-mech-state" class="{doctrineStateClasses}">{doctrineState}</div>
+      </div>
+
+      <div id="battle-mech-summary" class="mech-summary">
+        <div id="battle-mech-identity" class="label mech-identity">{mechIdentity}</div>
+        <div id="battle-mech-doctrine-summary" class="mech-doctrine-summary">
+          <div id="battle-mech-deployed" class="label doctrine-summary-line doctrine-deployed">{deployedDoctrine}</div>
+          <div id="battle-mech-effective" class="label heading doctrine-summary-line doctrine-effective">{effectiveDoctrine}</div>
+        </div>
+      </div>
+
+      <div id="battle-mech-doctrine-heading" class="label heading doctrine-heading">FIELD DOCTRINE</div>
+      <div id="battle-mech-doctrine-cards" class="doctrine-cards">
+        <button each="doctrine in doctrineCards" key="{doctrine.id}" id="{doctrine.id}" class="{doctrine.classes}" disabled="{doctrine.disabled}" onclick="{doctrine.action}">
+          <div id="{doctrine.nameId}" class="label heading doctrine-name">{doctrine.name}</div>
+          <div id="{doctrine.metaId}" class="label doctrine-meta">{doctrine.meta}</div>
+        </button>
+      </div>
+
+      <div id="battle-mech-footer" class="mech-footer">
+        <div id="battle-mech-hint" class="label mech-hint">Changes this mech only · battle-local</div>
+        <button id="battle-mech-default" class="mech-default" onclick="{defaultAction}">USE DEFAULT</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .battle-mech-overlay {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    overflow: hidden;
+  }
+
+  .label { overflow: hidden; white-space: nowrap; }
+  .heading { font-family: heading; }
+
+  .mech-panel {
+    width: 414px;
+    height: 178px;
+    flex-direction: column;
+    padding: 7px;
+    gap: 6px;
+    border-width: 1px;
+    border-color: #4f6d8e;
+    background-color: #0b111be8;
+    overflow: hidden;
+  }
+
+  .mech-header {
+    width: 100%;
+    height: 30px;
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .mech-back {
+    width: 58px;
+    height: 18px;
+    padding: 5px;
+    border-width: 1px;
+    font-family: heading;
+    text-align: center;
+  }
+
+  .mech-title {
+    width: 0px;
+    height: 18px;
+    flex-grow: 1;
+    padding: 6px 0px;
+    color: #c8e0ff;
+  }
+
+  .doctrine-state {
+    width: 104px;
+    height: 16px;
+    padding: 5px 6px;
+    border-width: 1px;
+    font-family: heading;
+    text-align: center;
+  }
+
+  .doctrine-state-default {
+    color: #78d494;
+    border-color: #3f7354;
+    background-color: #10251a;
+  }
+
+  .doctrine-state-overridden {
+    color: #ffd464;
+    border-color: #806b35;
+    background-color: #2b2412;
+  }
+
+  .mech-summary {
+    width: 100%;
+    height: 31px;
+    flex-direction: row;
+    padding: 4px 5px;
+    gap: 8px;
+    border-width: 1px;
+    border-color: #31485f;
+    background-color: #101925df;
+  }
+
+  .mech-identity {
+    width: 0px;
+    height: 15px;
+    flex-grow: 1;
+    padding: 8px 0px;
+    color: #8b9aaf;
+  }
+
+  .mech-doctrine-summary {
+    width: 250px;
+    height: 31px;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .doctrine-summary-line { width: 100%; height: 14px; text-align: right; }
+  .doctrine-deployed { color: #8294a8; }
+  .doctrine-effective { color: #6ed7ff; }
+
+  .doctrine-heading {
+    width: 100%;
+    height: 13px;
+    color: #8b9aaf;
+  }
+
+  .doctrine-cards {
+    width: 100%;
+    height: 46px;
+    flex-direction: row;
+    gap: 5px;
+    overflow: hidden;
+  }
+
+  .doctrine-card {
+    width: 0px;
+    height: 32px;
+    flex-grow: 1;
+    flex-direction: column;
+    padding: 5px;
+    gap: 3px;
+    border-width: 1px;
+    border-color: #31485f;
+    background-color: #142131e8;
+    color: #aebdce;
+    text-align: left;
+    overflow: hidden;
+  }
+
+  .doctrine-card:hover { background-color: #243d56; border-color: #6ed7ff; }
+  .doctrine-card:active { background-color: #315070; }
+  .doctrine-card-deployed { border-color: #3f7354; }
+  .doctrine-card-long-range { padding: 5px 1px; }
+  .doctrine-card-active {
+    border-color: #ffd464;
+    background-color: #3a3018;
+    color: #ffd464;
+  }
+
+  .doctrine-name { width: 100%; height: 16px; color: #c8e0ff; }
+  .doctrine-meta { width: 100%; height: 13px; color: #8294a8; }
+  .doctrine-card-active .doctrine-name { color: #ffd464; }
+  .doctrine-card-active .doctrine-meta { color: #bcae82; }
+
+  .mech-footer {
+    width: 100%;
+    height: 24px;
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .mech-hint {
+    width: 0px;
+    height: 14px;
+    flex-grow: 1;
+    padding: 5px 0px;
+    color: #667789;
+  }
+
+  .mech-default {
+    width: 92px;
+    height: 14px;
+    padding: 5px 7px;
+    border-width: 1px;
+    border-color: #4f6d8e;
+    font-family: heading;
+    text-align: center;
+    color: #aebdce;
+  }
+
+  .mech-default:hover { border-color: #6ed7ff; color: #c8e0ff; }
+</style>
