@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown.
+Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown, and is still the air entity while it is.
 
 ## Purpose
 
@@ -254,8 +254,12 @@ scored on the turn at the threshold — from the direction the aircraft arrives 
 to the direction it will roll — plus the turn onto course after it is airborne,
 with a small charge per cell of taxi so a near end is not passed over for a few
 degrees. `mapgen-nouns.md`
-owns where a strip is laid; Air owns what happens along it. See
-`runway-airbase.md` for the ground procedure being built on it.
+owns where a strip is laid; Air owns what happens along it.
+
+**A base with a strip does not stop being an airfield.** Vertical-lift
+transports keep using the apron hardstands on the same base, so a field with a
+runway has both kinds of aircraft on it. That is what makes the strip a
+distinct thing rather than a replacement for the pads beside it.
 
 **The aircraft is the weapon.** A strike carries no turret. A turret traverses
 and picks its own target, which makes where the aircraft points irrelevant to
@@ -409,6 +413,14 @@ nearest sends aircraft after whichever scout wandered closest to the fence,
 largest picks the same push every time, and density is both what an aircraft is
 good against and what a player can see the reason for afterwards.
 
+**A strike cannot be shown to shoot headlessly.** Its guns are placed from the
+hull's real weapon slots, which need the game loaded to read, so a headless
+sortie flies unarmed and its time on station collapses to a few ticks. Every
+other part of the cycle is observable and observed; that the arming works is an
+inference from transports using the same resolver on the same path. A sortie
+that comes up unarmed therefore says so once in the log, rather than flying
+silently harmless forever.
+
 **On its wheels it is on the ground, and the ground is in the way.** A taxiing
 aircraft follows walkable ground round the buildings rather than steering
 straight at the threshold through whatever stands between — a body built for
@@ -420,6 +432,13 @@ cuts a corner slides along the wall; a craft that is *already* inside
 something — which every aircraft is, standing in its own shed — is let out,
 because refusing on the destination alone pinned it in the hangar for the rest
 of the battle.
+
+**A taxiing aircraft is still the air entity.** It is at zero altitude with its
+engines running, which is the shape the loading phase already established, and
+it is deliberately not turned into a grid unit for the taxi. The only handoff
+between the two representations is at a standstill, on a berth; making the taxi
+a grid walk and the roll a flight would put a second handoff in the middle of
+one continuous movement, which is exactly the seam this model keeps still.
 
 **Rolling is not flying slowly.** Ground movement is its own locomotion model
 rather than the flight steering held down to walking pace. What flight does to
