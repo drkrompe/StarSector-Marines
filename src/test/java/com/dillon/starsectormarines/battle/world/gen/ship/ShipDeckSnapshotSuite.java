@@ -419,7 +419,8 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         // is to leave no separate drawing code that can drift from it.
         HeadlessBattleSceneRenderer scenes =
                 new HeadlessBattleSceneRenderer(context.modRoot());
-        HeadlessUiRenderer drain = new HeadlessUiRenderer(scenes, context.modRoot());
+        HeadlessUiRenderer drain = new HeadlessUiRenderer(
+                    HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()), scenes);
 
         int index = 0;
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(map, SEED)) {
@@ -494,7 +495,8 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
 
             HeadlessBattleSceneRenderer scenes =
                     new HeadlessBattleSceneRenderer(context.modRoot());
-            HeadlessUiRenderer drain = new HeadlessUiRenderer(scenes, context.modRoot());
+            HeadlessUiRenderer drain = new HeadlessUiRenderer(
+                    HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()), scenes);
 
             int wideAcross = bay.width() + 2;
             int wideDown = bay.depth() + 2;
