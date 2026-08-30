@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.tools.tilesetauthoring;
+package com.dillon.starsectormarines.tools.authoring.wizard;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -30,7 +30,7 @@ import java.util.function.Consumer;
  * every step owning its own copy. Swing moves a component when it is added
  * somewhere else, which is exactly the behaviour that makes this work.
  */
-public final class TilesetWizard extends JPanel {
+public final class Wizard extends JPanel {
 
     private final JLabel counter = new JLabel();
     private final JLabel heading = new JLabel();
@@ -50,7 +50,7 @@ public final class TilesetWizard extends JPanel {
      *                out of a walkthrough is back past its start
      * @param status  where a step's own progress messages go
      */
-    public TilesetWizard(Runnable onLeave, Consumer<String> status) {
+    public Wizard(Runnable onLeave, Consumer<String> status) {
         super(new BorderLayout(0, 8));
         this.onLeave = onLeave;
         this.status = status;

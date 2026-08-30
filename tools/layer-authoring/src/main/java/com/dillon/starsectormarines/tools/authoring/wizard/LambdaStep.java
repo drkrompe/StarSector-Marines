@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.tools.tilesetauthoring;
+package com.dillon.starsectormarines.tools.authoring.wizard;
 
 import javax.swing.JComponent;
 import java.util.function.Supplier;

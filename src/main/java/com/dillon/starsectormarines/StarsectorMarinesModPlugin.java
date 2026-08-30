@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener
 import com.dillon.starsectormarines.diagnostics.ProcessExitWatchdog;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutCatalog;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
@@ -69,6 +70,11 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // resolves against the complete additive catalog before installation.
         TileRegistry.loadContributions(marineCatalogs.tilesets());
         GenMappingRegistry.loadContributions(marineCatalogs.tileMappings());
+        // Authored room layouts, after the tiles they name so a fixture id can
+        // be checked against a catalog that is actually installed. Defensive:
+        // an unreadable room generates the way it did before anybody authored
+        // it, which is a worse room and not a broken ship.
+        RoomLayoutCatalog.loadBuiltins();
         // Weapon catalog → id-addressed registry (moddable-weapons W1). Unlike the
         // tile registries this is NOT self-defensive: a weapon whose stats failed to
         // load would read zero range and zero damage, so a bad catalog must stop

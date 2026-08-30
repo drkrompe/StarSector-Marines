@@ -1070,6 +1070,120 @@ public final class TacticalScoring {
             ThreadLocal.withInitial(LongBucket::new);
     /** Smaller hysteresis for a shot of opportunity that does not change pursuit. */
     public static final float OPPORTUNITY_RETARGET_DISTANCE_MARGIN = 2f;
+    /** Per-worker output for the close-quarters onset scan. */
+    private static final ThreadLocal<LongBucket> CLOSE_CONTACT_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
+
+    /**
+     * Range inside which a contact is a room rather than a field: close enough
+     * that whatever is going to be done about it has to be done now, and that
+     * the bearing it arrived on is known well enough to put something between
+     * the marine and it.
+     */
+    public static final float CLOSE_QUARTERS_CELLS = 10f;
+
+    /**
+     * The nearest hostile this marine can presently see inside close-quarters
+     * range, or {@code 0L}.
+     *
+     * <p><b>The moment a room opens.</b> Something is suddenly near, on a known
+     * bearing, and the ordinary engagement loop has not necessarily caught up
+     * with it — a squad under an attack move suppresses shots of opportunity so
+     * the moving half of a bound is not diverted, which means the marine who
+     * has just come face to face with somebody may hold no fire target at all.
+     * Anything that wants to answer that moment has nothing to read until this
+     * exists.
+     *
+     * <p>Named for the situation and not for a doorway. The reason to key on
+     * the contact rather than on the aperture it came through is that the
+     * aperture is not durable: a compound's frontage is derived from its
+     * envelope, and a breach merges inside with outside, so a place being
+     * assaulted stops having doorways at roughly the moment it starts
+     * mattering. A hostile ten cells away is the same fact in a room, in a
+     * breach, in a treeline and in a trench.
+     *
+     * <p>Deliberately re-answerable every tick rather than reporting only
+     * newly-arrived contacts. Keeping a per-marine memory of who was visible
+     * last tick would buy the word "new" at the cost of real state, and every
+     * responder to this moment is already self-limiting — ammunition, a
+     * cooldown, or a check that the thing it would build is not built yet.
+     */
+    public long closeContactOpening(long unit, float rangeCells) {
+        World world = roster.world();
+        if (!roster.isAliveById(unit)) return 0L;
+        Faction faction = roster.identity().faction(unit);
+        if (faction == null) return 0L;
+        float selfX = world.x(unit);
+        float selfY = world.y(unit);
+        LongBucket candidates = CLOSE_CONTACT_CANDIDATES.get();
+        unitIndex.gatherOtherFactionCombatants(selfX, selfY, rangeCells,
+                faction, candidates);
+        long best = 0L;
+        float bestDist = Float.MAX_VALUE;
+        for (int i = 0, n = candidates.size; i < n; i++) {
+            long other = candidates.ids[i];
+            if (!roster.isAliveById(other)) continue;
+            float dist = cellDistance(selfX, selfY, world.x(other), world.y(other));
+            if (dist > rangeCells) continue;
+            // Sight, not the spatial query, is the authority: the index knows
+            // where everyone is and the marine does not.
+            if (!hasClearShot(unit, other)) continue;
+            // Ties break on id so two workers scanning the same crowd on
+            // different ticks reach the same contact, and a replay stays exact.
+            if (dist < bestDist || (dist == bestDist && (best == 0L || other < best))) {
+                bestDist = dist;
+                best = other;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Whoever has currently taken this marine as their target, or {@code 0L}.
+     *
+     * <p><b>The moment of being singled out.</b> Distinct from taking fire, and
+     * earlier: a shooter picks somebody before the first round arrives, and the
+     * marine at the far end of a long open lane is in trouble from that instant
+     * rather than from the first casualty. Nothing else here can see that — a
+     * screen goes up against the contact a marine is already fighting or one
+     * that has already shot them, and a sniper who has neither been engaged nor
+     * connected yet is neither.
+     *
+     * <p><b>This reads the enemy's own state, and does so on purpose.</b> The
+     * standing law is that a marine acts on what a marine can know, which is
+     * why the dead-ground policy tests the wearer's own sight rather than the
+     * player's reveal bitmap. A bearing on somebody nobody has seen is exactly
+     * the kind of thing that law refuses. It is legal here because of what
+     * answers it: the moment belongs to equipment, and a receiver that tells
+     * its wearer they have been painted is ordinary hardware rather than
+     * clairvoyance. Read it from a plain infantry behaviour and the law is
+     * being broken; read it from something a marine is wearing and it is the
+     * hardware doing its job.
+     *
+     * <p>Ties break on the nearest attacker, then on id, so the bearing chosen
+     * is the most pressing one and the choice is replay-stable.
+     */
+    public long takenAsATarget(long unit) {
+        if (!roster.isAliveById(unit)) return 0L;
+        LongArrayList attackers = attackerIndex.getAttackersOf(unit);
+        if (attackers == null || attackers.isEmpty()) return 0L;
+        World world = roster.world();
+        float selfX = world.x(unit);
+        float selfY = world.y(unit);
+        long best = 0L;
+        float bestDist = Float.MAX_VALUE;
+        for (int i = 0, n = attackers.size(); i < n; i++) {
+            long shooter = attackers.getLong(i);
+            if (!roster.isAliveById(shooter)) continue;
+            float dist = cellDistance(selfX, selfY,
+                    world.x(shooter), world.y(shooter));
+            if (dist < bestDist || (dist == bestDist && (best == 0L || shooter < best))) {
+                bestDist = dist;
+                best = shooter;
+            }
+        }
+        return best;
+    }
 
     /**
      * Pursuit gate: returns true when {@code currentTarget} is still a sensible

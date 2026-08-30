@@ -268,12 +268,40 @@ public final class GroundRenderSystem implements RenderSystem {
         GridBlockDef wallBlock = (tileReg == null) ? null
                 : tileReg.block(surfaceBlockId(SurfaceRole.WALL));
         Color wallFill = (wallBlock != null && wallBlock.fillRgb != null) ? new Color(wallBlock.fillRgb) : WALL_COLOR;
+
+        // A room may draw its bulkhead from a block of its own. Resolved once
+        // per pass into an array indexed by the topology's own surface index,
+        // for the same reason the default is: a lookup per wall cell would put
+        // a map probe in the inner loop of the densest pass on the deck.
+        int surfaces = topology.wallSurfaceCount();
+        GridBlockDef[] byIndex = surfaces == 0 ? null : new GridBlockDef[surfaces + 1];
+        Color[] fillByIndex = surfaces == 0 ? null : new Color[surfaces + 1];
+        for (int i = 1; i <= surfaces; i++) {
+            GridBlockDef block = tileReg == null ? null : tileReg.block(topology.wallSurfaceId(i));
+            // An id the catalog does not have falls back to the deck's own wall
+            // rather than to nothing, so a stale document is a room that looks
+            // ordinary instead of a hole in the ship.
+            byIndex[i] = block != null ? block : wallBlock;
+            fillByIndex[i] = (byIndex[i] != null && byIndex[i].fillRgb != null)
+                    ? new Color(byIndex[i].fillRgb) : wallFill;
+        }
+
         for (int y = view.minY(); y <= view.maxY(); y++) {
             for (int x = view.minX(); x <= view.maxX(); x++) {
                 if (!topology.isWall(x, y)) continue;
-                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(topology.getWallDirMask(x, y), wallBlock);
-                if (tile == null) fillCell(x, y, wallFill);
-                else urbanTile(tile, x, y, 0);
+                GridBlockDef block = wallBlock;
+                Color fill = wallFill;
+                if (byIndex != null) {
+                    int surface = topology.getWallSurface(x, y);
+                    if (surface > 0 && surface < byIndex.length) {
+                        block = byIndex[surface];
+                        fill = fillByIndex[surface];
+                    }
+                }
+                TileManifest.TileFrame tile =
+                        WallMasks.pickTileFromMask(topology.getWallDirMask(x, y), block);
+                if (tile == null) fillCell(x, y, fill);
+                else wallTile(block, tile, x, y);
                 if (topology.isWindow(x, y)) windowPane(topology, x, y);
             }
         }
@@ -408,6 +436,35 @@ public final class GroundRenderSystem implements RenderSystem {
     }
 
     // ---- tile emitters (port of BattleRenderer's draw* helpers) --------------
+
+    /**
+     * One cell of bulkhead, drawn from its own block's sheet.
+     *
+     * <p>Not {@link #urbanTile}, which is fixed to the urban sheet at the urban
+     * cell size. That was invisible for as long as every wall on every map came
+     * from one block on that sheet — and the moment a room asked for a wall from
+     * another sheet, it drew the urban sheet at the other block's coordinates,
+     * which is either the wrong picture or, if the two blocks happen to share an
+     * origin, exactly the same picture and no way to tell anything went wrong.
+     *
+     * <p>The frame still comes from the cell's own {@code wallDirMask} rather
+     * than from what its neighbours are made of: the mask says which sides face
+     * exterior, and deriving that from neighbour type is a different and wrong
+     * question.
+     */
+    private void wallTile(GridBlockDef block, TileManifest.TileFrame f, int gridX, int gridY) {
+        if (f == null) return;
+        SpriteAPI sheet = block == null ? urban : sheetFor(block.sheetPath);
+        int cellPx = block == null ? TileManifest.TILE_SIZE : block.cellPx;
+        if (sheet == null) {
+            // A block whose sheet this system does not hold: the urban sheet is
+            // the only honest fallback, and it is what the pass drew before.
+            sheet = urban;
+            cellPx = TileManifest.TILE_SIZE;
+        }
+        if (sheet == null) return;
+        emitCellPx(sheet, cellPx, f.col, f.row, 0, gridX, gridY);
+    }
 
     private void urbanTile(TileManifest.TileFrame f, int gridX, int gridY, int inset) {
         if (urban == null || f == null) return;

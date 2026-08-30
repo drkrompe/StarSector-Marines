@@ -26,6 +26,9 @@ public final class Fonts {
     /** Compact all-caps face for retained section headings. */
     public static final BitmapFont ORBITRON_12_BOLD = new BitmapFont("graphics/fonts/orbitron12bold.fnt");
 
+    /** Extra-dense face for bounded retained HUD cards. */
+    public static final BitmapFont ORBITRON_10 = new BitmapFont("graphics/fonts/orbitron10.fnt");
+
     /** Restrained display face reserved for retained screen titles. */
     public static final BitmapFont ORBITRON_16 = new BitmapFont("graphics/fonts/orbitron16.fnt");
 }
