@@ -39,12 +39,26 @@ public final class OrdnanceTraceFxService {
     static final class Live {
         final OrdnanceRelease release;
         final OrdnanceFx fx;
+        /**
+         * How long this round is actually in the air. The simulation's own
+         * number when it has one, the composition's otherwise — a bomb's fall
+         * is timed by the physics that drops it, not by a constant in a
+         * picture, or the body lands a second before it explodes.
+         */
+        final float flightSeconds;
         float age;
         boolean arrived;
 
         Live(OrdnanceRelease release, OrdnanceFx fx) {
             this.release = release;
             this.fx = fx;
+            this.flightSeconds = release.flightTimeSec() > 0f
+                    ? release.flightTimeSec() : fx.trace().flightSeconds();
+        }
+
+        /** Seconds this round occupies the screen, fade included. */
+        float lifetimeSeconds() {
+            return flightSeconds + fx.trace().fadeSeconds();
         }
     }
 
@@ -77,11 +91,11 @@ public final class OrdnanceTraceFxService {
         for (int i = live.size() - 1; i >= 0; i--) {
             Live t = live.get(i);
             t.age += step;
-            if (!t.arrived && t.age >= t.fx.trace().flightSeconds()) {
+            if (!t.arrived && t.age >= t.flightSeconds) {
                 t.arrived = true;
                 arrivals.add(t.release);
             }
-            if (t.age >= t.fx.lifetimeSeconds()) live.remove(i);
+            if (t.age >= t.lifetimeSeconds()) live.remove(i);
         }
     }
 
@@ -123,7 +137,7 @@ public final class OrdnanceTraceFxService {
 
     private void collectStreak(Live t, OrdnanceFx.Streak streak, BattleCamera camera,
                                DrawList out, float alphaMult) {
-        float progress = progress(t, streak.flightSeconds());
+        float progress = progress(t, t.flightSeconds);
         float headX = lerp(t.release.fromX(), t.release.toX(), progress);
         float headY = lerp(t.release.fromY(), t.release.toY(), progress);
         float travelled = distance(t.release.fromX(), t.release.fromY(), headX, headY);
@@ -148,7 +162,7 @@ public final class OrdnanceTraceFxService {
     private void collectFalling(Live t, OrdnanceFx.Falling falling, BattleCamera camera,
                                 DrawList out, float alphaMult, float cellPx) {
         if (t.arrived) return;
-        float progress = progress(t, falling.flightSeconds());
+        float progress = progress(t, t.flightSeconds);
         float x = lerp(t.release.fromX(), t.release.toX(), progress);
         float y = lerp(t.release.fromY(), t.release.toY(), progress);
         ShuttleSpriteCache body = sprites == null ? null
@@ -190,7 +204,7 @@ public final class OrdnanceTraceFxService {
 
     /** Full brightness while travelling, then a linear fade over the tail. */
     static float fade(Live t) {
-        float flight = t.fx.trace().flightSeconds();
+        float flight = t.flightSeconds;
         float tail = t.fx.trace().fadeSeconds();
         if (t.age <= flight || tail <= 0f) return 1f;
         return Math.max(0f, 1f - (t.age - flight) / tail);
