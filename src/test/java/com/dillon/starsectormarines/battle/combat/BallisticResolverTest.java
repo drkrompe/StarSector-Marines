@@ -40,7 +40,10 @@ class BallisticResolverTest {
     private static final float MAX_TARGETING_RANGE = 14f;
 
     private static BattleSimulation openArena() {
-        NavigationGrid grid = new NavigationGrid(W, H);
+        return openArena(new NavigationGrid(W, H));
+    }
+
+    private static BattleSimulation openArena(NavigationGrid grid) {
         for (int y = 0; y < H; y++) {
             for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
         }
@@ -103,6 +106,20 @@ class BallisticResolverTest {
         BattleComponents c = sim.getBattleComponents();
         sim.getEntityWorld().setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, vx);
         sim.getEntityWorld().setFloat(id, c.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y, vy);
+    }
+
+    private static final class TrackingNavigationGrid extends NavigationGrid {
+        private float lastTraceDistance;
+
+        private TrackingNavigationGrid(int width, int height) {
+            super(width, height);
+        }
+
+        @Override
+        public long firstWallOnLine(float x0, float y0, float x1, float y1) {
+            lastTraceDistance = (float) Math.hypot(x1 - x0, y1 - y0);
+            return super.firstWallOnLine(x0, y0, x1, y1);
+        }
     }
 
     /** Stub {@link Random} that hands back a pre-programmed sequence of {@code nextFloat()} results, in call order. */
@@ -842,6 +859,30 @@ class BallisticResolverTest {
         assertEquals(cellCenter(10) - UnitType.MARINE.radius, res.endX(), EPS);
         assertEquals(rowCenter(), res.endY(), EPS);
         assertEquals((cellCenter(10) - UnitType.MARINE.radius - cellCenter(2)) / VEL, res.flightTime(), EPS);
+    }
+
+    @Test
+    void accurateShotTracesOnlyThroughThePredictedTargetContact() {
+        TrackingNavigationGrid grid = new TrackingNavigationGrid(W, H);
+        BattleSimulation sim = openArena(grid);
+        DoodadService doodads = new DoodadService(grid);
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long target = spawn(sim, Faction.DEFENDER, 10);
+        BallisticResolver resolver = new BallisticResolver(
+                grid, doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution result = resolver.resolve(
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
+                new QueueRandom(0f, 0.5f, 0.5f, 0.99f));
+
+        float expectedContactDistance = cellCenter(10) - UnitType.MARINE.radius
+                - cellCenter(2);
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, result.kind());
+        assertEquals(expectedContactDistance, grid.lastTraceDistance, EPS,
+                "an accurate shot should not walk the unused 1.5x range behind its target");
+        assertTrue(grid.lastTraceDistance
+                        < MAX_TARGETING_RANGE * BallisticResolver.FLIGHT_RANGE_MULTIPLIER,
+                "the focused contact walk must be shorter than the miss free-flight limit");
     }
 
     // ---- perpendicular mover: lead connects where the raw aim point would miss ----
