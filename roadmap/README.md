@@ -124,8 +124,11 @@ commands as the live views and substitute only the final Java2D drain; HQ and Ar
 evidence also render as deterministic PNGs without launching the game.
 In battle, one fixed task-force plate replaces the scale-bound squad roster;
 squad detail and GOAP diagnostics exist only for the squad selected in the world.
-An MLX-authored command rail holds time selection and a compact, map-conditional
-capture ledger while world markers remain the primary objective read. A second
+An MLX-authored top-right rail holds time selection and a compact, map-conditional
+capture ledger while Conquest commander intent sits opposite at top-left and world
+markers remain the primary objective read. The battle world paints full-bleed beneath
+these overlays; developer tools cluster at top-center and selected-squad GOAP detail
+is bounded below the right rail. A second
 bounded MLX tray compresses the five-slot command-power deck and its resource
 states at bottom-center; only the world reticle and targeting click remain in
 the battle HUD layer.

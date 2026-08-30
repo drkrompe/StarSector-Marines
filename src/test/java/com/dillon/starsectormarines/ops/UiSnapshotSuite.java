@@ -448,11 +448,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             BufferedImage overlay = renderer.render(document,
-                    Math.round(BattleHudOverlay.DOCUMENT_WIDTH),
+                    width - 24,
                     Math.round(BattleHudOverlay.documentHeight(presentation)));
             Graphics2D graphics = image.createGraphics();
-            graphics.drawImage(overlay,
-                    width - 12 - overlay.getWidth(), 12, null);
+            graphics.drawImage(overlay, 12, 12, null);
             graphics.dispose();
             return image;
         }
@@ -602,7 +601,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         TaskForceStatusPanel.Snapshot snapshot =
                 TaskForceStatusPanel.Snapshot.capture(battleHudSquads());
         TaskForceStatusPanel.paint(new HeadlessTaskForcePaintTarget(graphics, height),
-                snapshot, 12f, 56f, 1f);
+                snapshot,
+                12f,
+                12f + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP,
+                1f);
         graphics.dispose();
         return image;
     }
@@ -632,20 +634,20 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         graphics.setColor(new Color(8, 13, 18));
         graphics.fillRect(0, 0, width, height);
         graphics.setColor(new Color(28, 35, 40));
-        graphics.fillRect(78, 48, width - 156, height - 96);
+        graphics.fillRect(0, 0, width, height);
         graphics.setColor(new Color(38, 45, 48));
-        graphics.fillRect(width / 2 - 130, 48, 260, height - 96);
+        graphics.fillRect(width / 2 - 130, 0, 260, height);
         graphics.setColor(new Color(18, 24, 29));
         graphics.fillRect(210, 170, 460, 310);
         graphics.fillRect(width - 690, 180, 480, 360);
         graphics.fillRect(680, 650, 520, 250);
         graphics.setColor(new Color(53, 63, 68));
         graphics.setStroke(new BasicStroke(1f));
-        for (int x = 78; x < width - 78; x += 32) {
-            graphics.drawLine(x, 48, x, height - 48);
+        for (int x = 0; x < width; x += 32) {
+            graphics.drawLine(x, 0, x, height);
         }
-        for (int y = 48; y < height - 48; y += 32) {
-            graphics.drawLine(78, y, width - 78, y);
+        for (int y = 0; y < height; y += 32) {
+            graphics.drawLine(0, y, width, y);
         }
     }
 

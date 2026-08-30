@@ -4,18 +4,21 @@ import com.fs.starfarer.api.ui.PositionAPI;
 
 /**
  * Pure-data layout for the battle screen. Fits the {@code gridCellsW × gridCellsH}
- * cell grid into the dialog rect, centered, with a top control strip (the
- * retained battle command rail) and a bottom battle-action strip. {@link #cellSize} is the pixel size
- * of one cell — same for X and Y so cells stay square regardless of dialog
- * aspect ratio.
+ * cell grid behind a full-window tactical camera, with inset anchors for the
+ * retained HUD. {@link #cellSize} is the pixel size of one cell — same for X
+ * and Y so cells stay square regardless of dialog aspect ratio. At zoom 1 the
+ * map covers the complete viewport; the camera may crop and pan the excess on
+ * the narrower axis instead of letterboxing the battlefield.
  */
 public final class BattleLayout {
 
     public static final float PAD          = 12f;
-    public static final float CONTROLS_H   = 36f;
+    public static final float CONTROLS_H   = 54f;
     public static final float CONTROLS_GAP = 12f;
+    /** Tallest top-right time/objective rail, including content-box chrome. */
+    public static final float COMMAND_RAIL_H = 192f;
     public static final float BACK_W       = 120f;
-    public static final float BACK_H       = 32f;
+    public static final float BACK_H       = 52f;
 
     /** Grid drawing area, in pixel coords (Y-up, bottom-left at gridX/Y). */
     public final float gridX;
@@ -46,21 +49,18 @@ public final class BattleLayout {
         this.controlsW = contentW;
         this.controlsH = CONTROLS_H;
 
-        // Reserve the bottom strip for the Retreat/Continue surface.
-        float backStripH = BACK_H + CONTROLS_GAP;
         this.backX = contentX;
         this.backY = contentY;
 
-        // Grid area sits between the two strips.
-        float gridAreaY = contentY + backStripH;
-        float gridAreaH = contentH - CONTROLS_H - CONTROLS_GAP - backStripH;
-        float cellW = contentW   / gridCellsW;
-        float cellH = gridAreaH  / gridCellsH;
-        this.cellSize = Math.min(cellW, cellH);
-
-        this.gridW = cellSize * gridCellsW;
-        this.gridH = cellSize * gridCellsH;
-        this.gridX = contentX  + (contentW  - gridW) / 2f;
-        this.gridY = gridAreaY + (gridAreaH - gridH) / 2f;
+        // The world is full-bleed. HUD strips are overlays, not holes cut out
+        // of the camera. Cover-fit keeps square cells and removes the black
+        // bars produced by fitting the complete map inside a different aspect.
+        this.gridX = position.getX();
+        this.gridY = position.getY();
+        this.gridW = position.getWidth();
+        this.gridH = position.getHeight();
+        float cellW = gridW / gridCellsW;
+        float cellH = gridH / gridCellsH;
+        this.cellSize = Math.max(cellW, cellH);
     }
 }
