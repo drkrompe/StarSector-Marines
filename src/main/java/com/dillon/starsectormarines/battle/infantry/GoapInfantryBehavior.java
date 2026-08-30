@@ -114,7 +114,9 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      * equipment path — satchel, frag, deployable, close-contact — because each
      * spends a squad resource or freezes the carrier mid-bound. It still
      * reaches {@link InfantryUnitPrep#tryHardenedOpportunity}, so an advancing
-     * squad answers an emplacement with the one weapon that hurts it.
+     * squad answers an emplacement with the one weapon that hurts it, and
+     * {@link InfantryUnitPrep#tryOnsetScreen}, so a marine who has just walked
+     * into somebody can still raise a screen on the bearing they arrived on.
      */
     public static boolean prepareForAction(long unit, BattleControl sim,
                                            boolean permitsOpportunityFire) {
@@ -124,11 +126,14 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         if (FragGrenadeTactics.evadeKnownGrenade(unit, sim)) return false;
         if (permitsOpportunityFire) {
             if (InfantryUnitPrep.tryOpportunitySpecial(unit, sim)) return false;
-        } else if (InfantryUnitPrep.tryHardenedOpportunity(unit, sim)) {
-            // A move-only coordinated role still answers an emplacement. The
+        } else if (InfantryUnitPrep.tryHardenedOpportunity(unit, sim)
+                || InfantryUnitPrep.tryOnsetScreen(unit, sim)) {
+            // A move-only coordinated role still answers an emplacement, and
+            // still screens against a threat that has only just arrived. The
             // suppression above exists so a passing shot cannot divert the
-            // moving half of a bound; a turret or hub in rocket range is the
-            // reason the advance is in trouble, not a distraction from it.
+            // moving half of a bound; a turret in rocket range, and somebody
+            // who has just appeared at ten cells, are both the reason the
+            // advance is in trouble rather than a distraction from it.
             return false;
         }
         return true;
