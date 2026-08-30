@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTransform;
+import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 
 /**
  * Emits a mech as hull-width-relative, independently animated hardpoints.
@@ -199,15 +200,23 @@ final class LayeredMechComposer {
 
         if ((flags & LayeredMechAppearance.FLAG_CHAINGUN_FLASH) != 0) {
             emitArmsFlash(out, assets, arms, upperX, upperY, hullWidth,
-                    upperFacingDeg, cgKick, alpha);
+                    upperFacingDeg, cgKick,
+                    (flags & LayeredMechAppearance.FLAG_SECONDARY_ARMS_MUZZLE) != 0,
+                    alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_SRM_FLASH) != 0) {
             emitShoulderFlashes(out, assets, chassis, leftShoulder, rightShoulder, true,
-                    upperX, upperY, hullWidth, upperFacingDeg, alpha);
+                    upperX, upperY, hullWidth, upperFacingDeg,
+                    (flags & LayeredMechAppearance.FLAG_LEFT_SHOULDER_FLASH) != 0,
+                    (flags & LayeredMechAppearance.FLAG_RIGHT_SHOULDER_FLASH) != 0,
+                    alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_LRM_FLASH) != 0) {
             emitShoulderFlashes(out, assets, chassis, leftShoulder, rightShoulder, false,
-                    upperX, upperY, hullWidth, upperFacingDeg, alpha);
+                    upperX, upperY, hullWidth, upperFacingDeg,
+                    (flags & LayeredMechAppearance.FLAG_LEFT_SHOULDER_FLASH) != 0,
+                    (flags & LayeredMechAppearance.FLAG_RIGHT_SHOULDER_FLASH) != 0,
+                    alpha);
         }
     }
 
@@ -274,42 +283,38 @@ final class LayeredMechComposer {
 
     private static void emitArmsFlash(Sink out, LayeredMechAssets assets, int arms,
                                       float actorX, float actorY, float hullWidth,
-                                      float facingDeg, float kick, float alpha) {
-        if (arms == LayeredMechAppearance.ARMS_NOSE_CHAINGUN) {
-            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
-                    0f, 0.52f - kick, 0f, alpha);
-        } else if (arms == LayeredMechAppearance.ARMS_HEAVY_CANNON) {
-            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
-                    0f, 0.57f, 0f, alpha);
-        } else {
-            float localY = arms == LayeredMechAppearance.ARMS_LINEAR_CANNON ? 0.51f : 0.39f;
-            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
-                    -0.37f, localY - kick, 0f, alpha);
-            emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
-                    0.37f, localY - kick, 0f, alpha);
-        }
+                                      float facingDeg, float kick,
+                                      boolean secondaryMuzzle, float alpha) {
+        int releaseIndex = secondaryMuzzle ? 1 : 0;
+        MechHardpointGeometry.LocalPoint muzzle =
+                MechHardpointGeometry.armsMuzzle(arms, releaseIndex);
+        float recoil = arms == LayeredMechAppearance.ARMS_CHAINGUN
+                || arms == LayeredMechAppearance.ARMS_NOSE_CHAINGUN ? kick : 0f;
+        emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
+                muzzle.xHullWidths(), muzzle.yHullWidths() - recoil, 0f, alpha);
     }
 
     private static void emitShoulderFlashes(Sink out, LayeredMechAssets assets,
                                             int chassis, int leftShoulder, int rightShoulder,
                                             boolean srm,
                                             float actorX, float actorY, float hullWidth,
-                                            float facingDeg, float alpha) {
-        emitPodFlash(out, assets, leftShoulder, srm, actorX, actorY, hullWidth, facingDeg,
-                podLocalX(chassis, leftShoulder, rightShoulder, true), alpha);
-        emitPodFlash(out, assets, rightShoulder, srm, actorX, actorY, hullWidth, facingDeg,
-                podLocalX(chassis, leftShoulder, rightShoulder, false), alpha);
+                                            float facingDeg, boolean leftFlash,
+                                            boolean rightFlash, float alpha) {
+        if (leftFlash) {
+            emitPodFlash(out, assets, leftShoulder, srm, actorX, actorY, hullWidth,
+                    facingDeg, podLocalX(chassis, leftShoulder, rightShoulder, true), alpha);
+        }
+        if (rightFlash) {
+            emitPodFlash(out, assets, rightShoulder, srm, actorX, actorY, hullWidth,
+                    facingDeg, podLocalX(chassis, leftShoulder, rightShoulder, false), alpha);
+        }
     }
 
     private static float podLocalX(int chassis, int leftShoulder, int rightShoulder,
                                    boolean leftSlot) {
-        if (chassis == LayeredMechAppearance.CHASSIS_HOUND) {
-            boolean leftInstalled = leftShoulder != LayeredMechAppearance.POD_NONE;
-            boolean rightInstalled = rightShoulder != LayeredMechAppearance.POD_NONE;
-            if (leftInstalled != rightInstalled) return 0f;
-            return leftSlot ? -0.24f : 0.24f;
-        }
-        return leftSlot ? -0.40f : 0.40f;
+        int pod = leftSlot ? leftShoulder : rightShoulder;
+        return MechHardpointGeometry.podMuzzle(
+                chassis, leftShoulder, rightShoulder, leftSlot, pod).xHullWidths();
     }
 
     private static LayeredSpriteCache selectChassis(LayeredMechAssets assets, int chassis) {
@@ -324,7 +329,7 @@ final class LayeredMechComposer {
                                      float actorX, float actorY, float hullWidth,
                                      float facingDeg, float localX, float alpha) {
         if (srm ? isSrmPod(installedPod) : isLrmPod(installedPod)) {
-            float localY = isSmallPod(installedPod) ? 0.12f : 0.16f;
+            float localY = MechHardpointGeometry.podForward(installedPod);
             emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
                     localX, localY, 0f, alpha);
         }

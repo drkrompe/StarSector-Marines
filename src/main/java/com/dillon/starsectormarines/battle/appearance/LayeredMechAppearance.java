@@ -11,6 +11,10 @@ public final class LayeredMechAppearance {
     public static final int FLAG_LRM_ACTIVE = 1 << 5;
     public static final int FLAG_LRM_FLASH = 1 << 6;
     public static final int FLAG_TURNING = 1 << 7;
+    /** The latest paired-arms release used the second/right muzzle. */
+    public static final int FLAG_SECONDARY_ARMS_MUZZLE = 1 << 8;
+    public static final int FLAG_LEFT_SHOULDER_FLASH = 1 << 9;
+    public static final int FLAG_RIGHT_SHOULDER_FLASH = 1 << 10;
 
     public static final float FLASH_SECONDS = 0.075f;
     /**

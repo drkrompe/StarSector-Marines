@@ -151,7 +151,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
         if (indirect && dist <= minimumIndirectRange) return;
 
         float accuracyMult = indirect && !hasLos ? weapon.noLosAccuracyMult : 1f;
-        sim.fireMechWeapon(u, target, weapon, accuracyMult);
+        sim.fireMechWeapon(u, target, mount, accuracyMult);
         mount.consumeTrigger();
         mount.cooldown = weapon.cooldown;
         if (mount.component.projectilesPerTrigger > 1) {

@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.mech.MechGaitState;
+import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
@@ -96,24 +98,39 @@ public class HeavyWeapons {
      * passes the installed definition's no-LOS accuracy multiplier.
      */
     public void fireMechWeapon(long shooter, long target, WeaponDef weapon, float accuracyMult) {
+        World world = roster.world();
+        fireMechWeaponAt(shooter, target, weapon, accuracyMult,
+                world.renderX(shooter), world.renderY(shooter));
+    }
+
+    /** Fires from the installed mount's posed hardpoint rather than the chassis center. */
+    public void fireMechWeapon(long shooter, long target, MechWeaponMount mount,
+                               float accuracyMult) {
+        int releaseIndex = MechHardpointGeometry.nextReleaseIndex(mount);
+        mount.lastReleaseIndex = releaseIndex;
+        MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, releaseIndex);
+        fireMechWeaponAt(shooter, target, mount.weaponDef(), accuracyMult,
+                muzzle.x(), muzzle.y());
+    }
+
+    private void fireMechWeaponAt(long shooter, long target, WeaponDef weapon,
+                                  float accuracyMult, float fromX, float fromY) {
         roster.telemetry().recordRoundFired(shooter);
         if (weapon.arcHeight <= 0f) {
-            fireDirectRound(shooter, target, weapon, accuracyMult);
+            fireDirectRound(shooter, target, weapon, accuracyMult, fromX, fromY);
             return;
         }
 
-        fireIndirectRound(shooter, target, weapon, accuracyMult);
+        fireIndirectRound(shooter, target, weapon, accuracyMult, fromX, fromY);
     }
 
     /** Modeled ground-level round for chaingun, cannon, and SRM tracks. */
     private void fireDirectRound(long shooter, long target, WeaponDef weapon,
-                                 float accuracyMult) {
+                                 float accuracyMult, float fromX, float fromY) {
         World world = roster.world();
         float effectiveAccuracy = weapon.accuracy * accuracyMult;
         Faction shooterFaction = roster.identity().faction(shooter);
         float moraleImpact = roster.moraleImpact(shooter);
-        float fromX = world.renderX(shooter);
-        float fromY = world.renderY(shooter);
         float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
                 world.x(target), world.y(target));
         float effectiveSpread = RangeFalloff.spread(
@@ -166,12 +183,10 @@ public class HeavyWeapons {
 
     /** Legacy indirect scatter/projectile procedure retained for LRM artillery. */
     private void fireIndirectRound(long shooter, long target, WeaponDef weapon,
-                                   float accuracyMult) {
+                                   float accuracyMult, float fromX, float fromY) {
         World world = roster.world();
         Faction shooterFaction = roster.identity().faction(shooter);
         float moraleImpact = roster.moraleImpact(shooter);
-        float fromX = world.renderX(shooter);
-        float fromY = world.renderY(shooter);
         float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
                 world.x(target), world.y(target));
         float effectiveSpread = RangeFalloff.spread(
@@ -260,11 +275,34 @@ public class HeavyWeapons {
                             world.x(target), world.y(target));
                     accuracyMult = hasLos ? 1f : weapon.noLosAccuracyMult;
                 }
-                fireMechWeapon(u, target, weapon, accuracyMult);
+                fireMechWeapon(u, target, mount, accuracyMult);
                 mount.burstRemaining--;
                 mount.burstTimer = weapon.burstSpacing;
                 if (mount.burstRemaining == 0) mount.burstTargetId = 0L;
             }
         }
+    }
+
+    private MechHardpointGeometry.Point muzzle(long shooter, MechWeaponMount mount,
+                                               int releaseIndex) {
+        World world = roster.world();
+        MechLoadoutComponent loadout = world.mechLoadout(shooter);
+        float waistOffsetX = 0f;
+        float waistOffsetY = 0f;
+        EntityWorld entityWorld = roster.entityWorld();
+        BattleComponents components = roster.components();
+        if (entityWorld.has(shooter, components.MECH_GAIT_STATE)) {
+            MechGaitState gait = (MechGaitState) entityWorld.getObject(
+                    shooter, components.MECH_GAIT_STATE,
+                    BattleComponents.MECH_GAIT_STATE_STATE);
+            if (gait != null) {
+                waistOffsetX = gait.waistOffsetX();
+                waistOffsetY = gait.waistOffsetY();
+            }
+        }
+        return MechHardpointGeometry.muzzle(
+                world.renderX(shooter), world.renderY(shooter),
+                waistOffsetX, waistOffsetY, loadout.torsoFacingDegrees,
+                loadout, mount, releaseIndex);
     }
 }

@@ -84,6 +84,7 @@ import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -2174,6 +2175,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 structure, target, aerialShooter, hasLos);
     }
 
+    /** Ground-entity turret overload with the posed barrel and burst release. */
+    public void fireShotFrom(long shooterId, float fromX, float fromY,
+                             Faction shooterFaction, StructureDef structure, long target,
+                             boolean aerialShooter, boolean hasLos,
+                             float mountFacingDegrees, int releaseIndex) {
+        turretFire.fire(shooterId, fromX, fromY, shooterFaction,
+                structure, target, aerialShooter, hasLos,
+                mountFacingDegrees, releaseIndex);
+    }
+
     /**
      * Delegates to {@link HeavyWeapons#fireMechWeapon}. Kept on the sim's
      * surface because AI behaviors call {@code sim.fireMechWeapon(...)}
@@ -2189,6 +2200,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public void fireMechWeapon(long shooter, long target, WeaponDef weapon, float accuracyMult) {
         heavy.fireMechWeapon(shooter, target, weapon, accuracyMult);
+    }
+
+    @Override
+    public void fireMechWeapon(long shooter, long target, MechWeaponMount mount,
+                               float accuracyMult) {
+        heavy.fireMechWeapon(shooter, target, mount, accuracyMult);
     }
 
     // advanceMechWeapons moved to HeavyWeapons.tick; the dead-mech wreck moved

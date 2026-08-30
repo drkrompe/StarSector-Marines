@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.turret.preview;
 
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.weapon.ContrailProfile;
 import com.dillon.starsectormarines.battle.weapon.fx.FxBlend;
@@ -144,8 +145,13 @@ public final class TurretCatalogPreviewDocument {
     }
 
     static float previewBearingDegrees(TurretMountDef mount, float rawProgress) {
-        FlightPoint before = flightPoint(mount, rawProgress - 0.01f);
-        FlightPoint after = flightPoint(mount, rawProgress + 0.01f);
+        return previewBearingDegrees(mount, rawProgress, 0);
+    }
+
+    private static float previewBearingDegrees(TurretMountDef mount, float rawProgress,
+                                               int releaseIndex) {
+        FlightPoint before = flightPoint(mount, rawProgress - 0.01f, releaseIndex);
+        FlightPoint after = flightPoint(mount, rawProgress + 0.01f, releaseIndex);
         return bearingDegrees(before.x(), before.y(), after.x(), after.y());
     }
 
@@ -231,8 +237,10 @@ public final class TurretCatalogPreviewDocument {
             Sprite base = requiredSprite(assets, mount.spritePath);
             Sprite recoil = optionalSprite(assets, mount.recoilSpritePath);
             Sprite projectile = optionalSprite(assets, mount.weapon.projectileSpritePath);
-            float muzzleX = TURRET_X + directionX() * mount.muzzleOffsetCells;
-            float muzzleY = TURRET_Y + directionY() * mount.muzzleOffsetCells;
+            TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(
+                    TURRET_X, TURRET_Y, FACING_DEGREES, mount, 0);
+            float muzzleX = muzzle.x();
+            float muzzleY = muzzle.y();
             float midpointX = (muzzleX + IMPACT_X) * 0.5f;
             float midpointY = (muzzleY + IMPACT_Y) * 0.5f;
             float seedTime = stableSeedTimeSeconds(mount.id);
@@ -321,15 +329,20 @@ public final class TurretCatalogPreviewDocument {
             int visibleRounds = visibleRoundCount(scene.mount);
             float spacing = previewBurstProgressSpacing(scene.mount);
             for (int round = visibleRounds - 1; round >= 0; round--) {
-                drawProjectile(context, 0.58f - round * spacing);
+                drawProjectile(context, 0.58f - round * spacing, round);
             }
         }
 
         private void drawProjectile(CanvasContext context, float rawProgress) {
+            drawProjectile(context, rawProgress, 0);
+        }
+
+        private void drawProjectile(CanvasContext context, float rawProgress,
+                                    int releaseIndex) {
             if (scene.projectile == null || scene.mount.weapon.projectileVisualCells <= 0f) return;
-            FlightPoint point = flightPoint(scene.mount, rawProgress);
+            FlightPoint point = flightPoint(scene.mount, rawProgress, releaseIndex);
             if (scene.mount.weapon.contrailProfile == ContrailProfile.MISSILE_SMOKE) {
-                drawMissileContrail(context, rawProgress);
+                drawMissileContrail(context, rawProgress, releaseIndex);
             }
             float trailX = point.x() - directionX()
                     * scene.mount.weapon.projectileVisualCells * 0.35f;
@@ -340,16 +353,17 @@ public final class TurretCatalogPreviewDocument {
             drawSprite(context, scene.projectile, worldToX(point.x()),
                     worldToY(point.y()),
                     scene.mount.weapon.projectileVisualCells * CELL_PX,
-                    previewBearingDegrees(scene.mount, rawProgress), WHITE,
+                    previewBearingDegrees(scene.mount, rawProgress, releaseIndex), WHITE,
                     CanvasSpriteRegion.FULL, CanvasBlend.NORMAL);
         }
 
-        private void drawMissileContrail(CanvasContext context, float rawProgress) {
+        private void drawMissileContrail(CanvasContext context, float rawProgress,
+                                         int releaseIndex) {
             ContrailStyle style = ContrailStyle.MISSILE_SMOKE;
-            FlightPoint previous = flightPoint(scene.mount, rawProgress);
+            FlightPoint previous = flightPoint(scene.mount, rawProgress, releaseIndex);
             for (int sample = 1; sample <= 8; sample++) {
                 float sampleProgress = Math.max(0f, rawProgress - sample * 0.025f);
-                FlightPoint next = flightPoint(scene.mount, sampleProgress);
+                FlightPoint next = flightPoint(scene.mount, sampleProgress, releaseIndex);
                 float age = sample / 8f;
                 Color smoke = new Color(
                         lerp(style.startR, style.endR, age),
@@ -518,12 +532,15 @@ public final class TurretCatalogPreviewDocument {
         return (float) Math.cos(Math.toRadians(FACING_DEGREES));
     }
 
-    private static FlightPoint flightPoint(TurretMountDef mount, float rawProgress) {
+    private static FlightPoint flightPoint(TurretMountDef mount, float rawProgress,
+                                           int releaseIndex) {
         float clamped = Math.max(0f, Math.min(1f, rawProgress));
         float progress = mount.weapon.boostRamp
                 ? Projectile.applyBoostCurve(clamped) : clamped;
-        float muzzleX = TURRET_X + directionX() * mount.muzzleOffsetCells;
-        float muzzleY = TURRET_Y + directionY() * mount.muzzleOffsetCells;
+        TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(
+                TURRET_X, TURRET_Y, FACING_DEGREES, mount, releaseIndex);
+        float muzzleX = muzzle.x();
+        float muzzleY = muzzle.y();
         float x = muzzleX + (IMPACT_X - muzzleX) * progress;
         float y = muzzleY + (IMPACT_Y - muzzleY) * progress;
         float previewArc = Math.min(1.25f, mount.weapon.arcHeight * 0.35f);
