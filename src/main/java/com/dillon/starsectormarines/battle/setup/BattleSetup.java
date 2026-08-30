@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacemen
 import com.dillon.starsectormarines.battle.evacuation.RescueShelterGarrison;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.colony.SilentColonyThreatProfile;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
@@ -1543,7 +1544,7 @@ public final class BattleSetup {
         if (missionType != MissionType.ASSAULT) {
             rs.addTrigger(new ObjectiveLostTrigger());
         }
-        basedAircraft(sim, map);
+        basedAircraft(sim, map, groundRoster == null ? null : groundRoster.primaryFactionId());
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
                 deliveryPolicy));
         rs.addMeans(new ShuttleMeans(axis, groundRoster, risk,
@@ -1600,8 +1601,12 @@ public final class BattleSetup {
      * <p>Distinct from {@link #stampParkedAircraft}, which dresses surplus
      * <em>civilian</em> port berths with scenery hulls. Those are props: no
      * unit, no HP, and nothing flies them.
+     *
+     * @param factionId the defending campaign faction, which decides what the
+     *                  sheds have in them; null falls back to the full fighter
+     *                  pool rather than to no aircraft
      */
-    private static void basedAircraft(BattleSimulation sim, MapResult map) {
+    private static void basedAircraft(BattleSimulation sim, MapResult map, String factionId) {
         for (LandingPad pad : map.landingPads) {
             if (pad.purpose != LandingPad.Purpose.GARRISON_AIRFIELD) continue;
             sim.getAirfieldService().addBerth(pad, ShuttleMeans.SORTIE_TYPE,
@@ -1616,9 +1621,43 @@ public final class BattleSetup {
         // them to roll. A shelter berth on a strip-less lot is an aircraft
         // sealed in a shed for the battle: it cannot lift off where it stands
         // and there is nothing to taxi to.
-        for (Gantry shelter : map.shelters) {
-            sim.getAirfieldService().addShelterBerth(shelter, ShuttleMeans.SORTIE_TYPE);
+        List<FighterProfile> based = shedAircraft(
+                FighterProfile.poolForFaction(factionId), map.shelters);
+        for (int i = 0; i < map.shelters.size(); i++) {
+            sim.getAirfieldService().addShelterBerth(map.shelters.get(i), based.get(i));
         }
+    }
+
+    /**
+     * Which of the faction's fighters is kept in each shed, in shed order.
+     *
+     * <p>The pool is walked from a start decided by where the sheds are, so
+     * consecutive sheds get consecutive aircraft: a field with three of them
+     * has three different hulls in it, which is what a real dispersal looks
+     * like and is also how a player learns what this faction flies. Nothing
+     * is rolled, so a replay of a battle finds the same aircraft in the same
+     * shed.
+     *
+     * <p>The offset is taken once rather than per shed, and that is the whole
+     * of the design. Mixing each shed's own position into the walk was tried
+     * and measured: it put the same aircraft in every shed on all
+     * twenty-four fields sampled, because a station's sheds sit sixteen cells
+     * apart along one axis and that step moved the pool index by exactly minus
+     * one per shed — cancelling the walk precisely. A stride only strides if
+     * nothing else is moving underneath it, so nothing else does.
+     */
+    static List<FighterProfile> shedAircraft(List<FighterProfile> pool,
+                                             List<Gantry> shelters) {
+        List<FighterProfile> based = new ArrayList<>(shelters.size());
+        if (shelters.isEmpty()) return based;
+        Gantry anyShelter = shelters.get(0);
+        int start = Math.floorMod(
+                anyShelter.centerX * 0x9E3779B9 + anyShelter.centerY * 0x85EBCA6B,
+                pool.size());
+        for (int i = 0; i < shelters.size(); i++) {
+            based.add(pool.get((start + i) % pool.size()));
+        }
+        return based;
     }
 
     /**

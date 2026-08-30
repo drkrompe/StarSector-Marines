@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-30
 
+Updated: 2026-08-30 — a berth holds an airframe; a station's sheds are factional.
+
 Read `air-nouns.md` before changing this story. A based aircraft is two
 representations of one thing — an air entity in flight, an ordinary grid unit on
 the ground — and everything here happens at the handoff between them.
@@ -60,6 +62,16 @@ gets them into the air and back.
   the duplicate this story promised not to build. A station therefore bases the
   transport substrate as a stand-in until the fold lands, and the fold is what
   makes its aircraft factional.
+- **The berth holds the smaller thing, not a copy of the bigger one.** Making
+  a berth able to keep a fighter did not need `battle.flyby` folded into the
+  air world first. What a berth actually asks of an aircraft is a sprite, a
+  hull that sizes it, and structure to shoot at — three methods, which both
+  `ShuttleType` and `FighterProfile` can already answer. `Airframe` is that,
+  and it is deliberately narrow: capacity, guns and flight handling are asked
+  of the concrete type by whoever needs them. The `fighter-air-entities.md`
+  fold is still worth doing and is still about moving the overlay's roster,
+  lifecycle, firing and rendering into the air world — it simply is not a
+  prerequisite for a field that bases fighters.
 - **Based strike aircraft first, flyby fighters folded onto the seam after.**
   Fighters today are the `battle.flyby` shell's private roster, and
   `fighter-air-entities.md` is the story that moves them into the air model.
@@ -108,6 +120,17 @@ gets them into the air and back.
 
 ## Plan
 
+### The runway path is reached on every conquest map
+
+Worth writing down because it was nearly measured wrong. A sweep of 24 seeds at
+240x168 found **no runway at all** and one or two sheds per map, which reads as
+the whole feature being unreachable. The maps were the wrong size: conquest
+generates at `MapScale.LARGE`, 280x168, and the fortress ward is cut from the
+band's width. At the real size every one of those 24 seeds lays exactly one
+strip and three or four shelters — the station's three plus whatever a
+city-landmark pad contributes. Measure a generation question at the size the
+game generates at, or the answer is about a different map.
+
 ### Where a station actually fits
 
 Two things had to change, and the second was found by measurement rather than
@@ -133,6 +156,6 @@ strip went from 41x4 to 55x4 and its sheds from two to three.
 | 3 | Taxi and roll: the sortie phases, the runway as a held resource. **Shipped.** |
 | 3b | A host that reserves ground for a station, so the variant is reachable. **Shipped.** |
 | 4 | Shelter berths registered at setup, on a field with a strip. **Shipped.** |
-| 4b | Fold `battle.flyby` onto the air-entity seam so a berth can hold a `FighterProfile`, and a station's aircraft become factional. This is now the blocking work, not a follow-on: everything else about a station is in place and the only thing standing between it and a fighter is which type a berth can hold. |
+| 4b | A berth holds an `Airframe`, and a station's sheds hold the defender's own fighters. **Shipped.** |
 | 4c | The strike sortie: trigger, passes, recovery — the wiring that puts a craft into `TAXI_OUT` and brings one home onto the strip. |
 | 5 | Evidence: a runway loop in the airfield scene, and an interrupted one. |
