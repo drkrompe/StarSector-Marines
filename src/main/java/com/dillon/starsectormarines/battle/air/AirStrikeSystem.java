@@ -44,7 +44,6 @@ public final class AirStrikeSystem {
     private static final float RETRY_SEC = 5f;
 
     /** Sim-seconds an aircraft works its target before turning for home. */
-    private static final float LOITER_SEC = 25f;
 
     private final Faction side;
     private final Faction enemy;
@@ -104,8 +103,6 @@ public final class AirStrikeSystem {
         mission.hp = field.launch(shed);
         mission.homeBerth = shed;
         mission.strikeSortie = true;
-        mission.fireSupportSec = LOITER_SEC;
-        mission.postDeliveryDisposition = PostDeliveryDisposition.LOITER_IF_ARMED;
         sim.world().kinematics(craft).teleport(shelterX, shelterY, shed.facingDegrees);
         // No turrets. The aircraft is the weapon: it carries its ordnance on
         // its nose and aims it by flying, so what it needs is a load and not a
