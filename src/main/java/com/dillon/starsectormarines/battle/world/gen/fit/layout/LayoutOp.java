@@ -172,4 +172,22 @@ public sealed interface LayoutOp {
             floor.berthFixtureTask(stand[0], stand[1], index, fixture[0], fixture[1]);
         }
     }
+
+    /**
+     * What this room's bulkhead is made of.
+     *
+     * <p>The one step with no cell: a room has one wall all the way round, and
+     * authoring it per cell would be a way to draw a compartment whose corners
+     * disagree with its sides. Naming the block once is also what lets a deck of
+     * twelve identical berths spend a single surface index on them.
+     *
+     * <p>Carries no coordinates and so needs no pose mapping — a ring is a ring
+     * whichever way the room is turned.
+     */
+    record Bulkhead(String blockId) implements LayoutOp {
+        @Override
+        public void apply(RoomFloor floor, Replay replay) {
+            floor.markBulkhead(blockId);
+        }
+    }
 }

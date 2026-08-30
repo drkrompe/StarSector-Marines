@@ -167,6 +167,15 @@ Do not run builds or leave generated task files there.
   fifteen. `RoomLayoutCheck` is what turns both into sentences, the fixture
   count shown is what actually stands up, and a layout that would seal its room
   is refused at save.
+  A room may also name its own **bulkhead**, offered from the blocks that can
+  actually be a wall — shape rather than spelling, since `road.embankment` is
+  one. It changes the picture only; topology, cover and sight are untouched, and
+  where two rooms back onto each other the shared ring is one wall that the
+  later room wins. This uncovered a defect worth knowing about: a wall with no
+  exterior face draws its block's transparent centre, and no ship stage ever
+  stamped a face, so **every bulkhead on every generated deck was rendering as
+  nothing**. A wall nobody stamped now takes a face on each open side; a mask
+  somebody already set is never re-derived, so cities are untouched.
   Lanes are cleared by a command rather than by a click: a seeded armoury comes
   back with six of its eight rows reserved, so an author who cannot un-reserve
   can place almost nothing — but a stray click that deleted a room's
