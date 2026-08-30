@@ -4,10 +4,11 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — the airbase lot turns four ways, comes in three sizes, and
-reaches the city as either a block-sized site or a multi-block compound claim
-placed on the ground that claim actually owns, whose made surface the terrain
-passes no longer repaint and no doorway opens into.
+Updated: 2026-08-30 — the airbase lot turns four ways, comes in three sizes that
+grow along the frontage rather than into the depth, and reaches the city as
+either a block-sized site or a multi-block compound claim placed on the ground
+that claim actually owns, whose made surface the terrain passes no longer
+repaint and no doorway opens into.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -329,15 +330,33 @@ also how a ship's deck marks a machine bay — a striped edge round a clear midd
 because the middle is where the thing stands and a filled rectangle would be
 drawn over by it.
 
-The lot comes in **sizes**, and they are the same laws at two scales rather than
-two designs. Berths on the apron and never inside a shed, a marked bay in each
+The lot comes in **sizes**, and they are the same laws at every scale rather
+than one design per scale. Berths on the apron and never inside a shed, a marked bay in each
 shed with the work arranged round it, a gate on every side, clear ground
 reserved outside the fence, markings laid as floor — those are properties of an
 airbase, not of a big one, and every one of them is asserted at every size on
 both traversal axes. What changes is how much of it there is. The full field is
 an installation: a runway, three berths, two sheds, a tower and a vehicle park.
 The compact site is two berths, one shed, and no strip at all, in about two
-fifths of the ground.
+fifths of the ground. The station is the full field grown: a longer strip, a
+third shed, and a wider taxiway. Every size publishes the bay inside each shed
+as well as its apron berths — the bay is on the map either way, and whether an
+aircraft is based in one is the host's call rather than the lot's.
+
+**A bigger size grows along the frontage, never backwards.** Depth is the
+scarce axis and the only one a larger lot can realistically be refused for: a
+fortress ward comes out roughly eight times wider than it is deep, so a variant
+three rows deeper than the full field was declined on every map while two
+hundred cells of width sat unused beside it. Length is what a strip wanted in
+the first place. The cost to the rest of the map is within noise — measured
+over six seeds, walkable ground moved by nine cells in forty-one thousand and
+the landing-pad count did not move at all.
+
+**Measure a generation question at the size the game generates at.** A sweep
+for that variant across twenty-four seeds at 240x168 found no runway on any of
+them, which reads as the whole feature being unreachable. Conquest generates at
+`MapScale.LARGE`, and at the real size every one of those seeds lays exactly one
+strip. An answer measured at the wrong scale is an answer about a different map.
 
 The lot also **turns**. Its pieces are all placed in its own frame — along the
 frontage and into the depth, never in map x and y — so facing it any of four
