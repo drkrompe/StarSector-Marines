@@ -65,6 +65,15 @@ class BattleHudOverlayModelTest {
             assertEquals("BARRACKS 1  ·  CONTESTED 46%",
                     instance.requireElement("battle-objective-focus-label").text());
 
+            UiElement root = instance.requireElement("battle-hud-overlay");
+            float middleX = root.box().borderBox().width() * 0.5f;
+            assertFalse(BattleHudOverlay.insideInteractiveSurface(
+                    instance, middleX, 10f));
+            assertFalse(BattleHudOverlay.insideInteractiveSurface(
+                    instance, 10f, 10f));
+            assertTrue(BattleHudOverlay.insideInteractiveSurface(
+                    instance, root.box().borderBox().right() - 10f, 10f));
+
             UiElement track = instance.requireElement("battle-objective-progress");
             UiElement fill = instance.requireElement("battle-objective-progress-fill");
             assertTrue(fill.box().borderBox().width() > 0f);
@@ -126,6 +135,13 @@ class BattleHudOverlayModelTest {
                     instance.requireElement("battle-conquest-lane-1-intent").text());
             assertEquals("OBJECTIVE",
                     instance.requireElement("battle-conquest-lane-2-status").text());
+            UiElement root = instance.requireElement("battle-hud-overlay");
+            assertTrue(BattleHudOverlay.insideInteractiveSurface(
+                    instance, 10f, 10f));
+            assertFalse(BattleHudOverlay.insideInteractiveSurface(
+                    instance, root.box().borderBox().width() * 0.5f, 10f));
+            assertTrue(BattleHudOverlay.insideInteractiveSurface(
+                    instance, root.box().borderBox().right() - 10f, 10f));
         }
     }
 
