@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -503,6 +504,38 @@ public class SeparationSystemTest {
         assertTrue(distance(sim, hound, lowBulwark) >= 5.75f);
         assertTrue(distance(sim, sirocco, highBulwark) >= 5.75f);
         assertTrue(distance(sim, sirocco, lowBulwark) >= 5.75f);
+    }
+
+    @Test
+    public void freeReignDisablesFormationSteeringButNotPhysicalSeparation() {
+        BattleSimulation sim = openArena(32, 20);
+        SeparationSystem separation = separationFor(sim);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        long brawler = spawnMech(sim, MechVariant.HOUND, MechRole.ASSAULT,
+                Faction.MARINE, squadId, 14, 10);
+        long support = spawnMech(sim, MechVariant.SIROCCO, MechRole.LR_SUPPORT,
+                Faction.MARINE, squadId, 18, 10);
+        Squad squad = sim.getSquad(squadId);
+        squad.applyLanceOrder(MechLanceOrder.FREE_REIGN);
+        sim.setPath(brawler, new int[]{14, 10, 28, 10});
+        sim.setPath(support, new int[]{18, 10, 28, 10});
+        sim.getUnitIndex().rebuild(sim.getRoster());
+        float brawlerX = sim.world().x(brawler);
+        float supportX = sim.world().x(support);
+
+        separation.tick(BattleSimulation.TICK_DT);
+
+        assertEquals(brawlerX, sim.world().x(brawler), 0f);
+        assertEquals(supportX, sim.world().x(support), 0f,
+                "free-reign members receive no role-slot formation correction");
+
+        sim.world().setPos(brawler, 14.5f, 10.5f);
+        sim.world().setPos(support, 15.4f, 10.5f);
+        sim.getUnitIndex().rebuild(sim.getRoster());
+        separation.tick(BattleSimulation.TICK_DT);
+
+        assertTrue(distance(sim, brawler, support) > 0.9f,
+                "free reign must retain ordinary mech collision separation");
     }
 
     @Test

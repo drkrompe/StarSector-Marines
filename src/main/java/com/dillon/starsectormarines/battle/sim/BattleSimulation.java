@@ -1598,9 +1598,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // regen the pool, and age cooldowns + transient reveals down. Folds
         // into the COMMANDER region's lap; cost is trivial.
         commandPowerSystem.tick(TICK_DT);
-        // Apply exact-mech doctrine changes after strategic command has written
-        // assignments and before GOAP replans. A changed member therefore
-        // executes its new battlefield doctrine on this same fixed tick.
+        // Apply exact-mech doctrine changes and lance-wide cohesion orders
+        // after strategic command has written assignments and before GOAP
+        // replans. A changed member or lance therefore executes its new
+        // battlefield manner on this same fixed tick.
         mechDoctrineSystem.tick(this);
         tickProfile.lap(TickProfile.Phase.COMMANDER);
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
