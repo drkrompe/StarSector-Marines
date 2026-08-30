@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — the hull an airframe leaves on its stand stays there, charred.
+Updated: 2026-08-30 — the hull left on a stand is an obstacle, and it does not seal anybody under it.
 
 ## Purpose
 
@@ -155,6 +155,27 @@ than off the airframe, because the airframe is dead, released and gone by the
 time anybody looks at the pad again, and the berth is the thing that outlives
 what stands on it. An aircraft lost over the objective leaves an empty stand:
 the same terminal state, and deliberately not the same picture.
+
+The wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
+everybody sees and shoots straight across it. A non-walkable cell is opaque
+here unless it says otherwise, so the wreck says otherwise — a burnt-out
+airframe is a frame with holes in it, and an apron strewn with them is still an
+apron you can cover by fire. That is deliberately not how the intact scenery
+hulls dressing civilian berths behave: a whole aircraft is a solid object.
+
+**A wreck never settles on top of somebody.** Whoever is standing where the
+hull comes down — the ground crew who walked out to fly it, the raider who
+walked out to burn it — steps clear to the nearest cell that will take them,
+and a cell nobody could be stepped out of is left open instead. A unit sealed
+into a cell it can never leave stops answering its orders for the rest of the
+battle, which is a far worse outcome than a hull with a gap in it.
+
+A sortie's passengers are never at risk from this. An aircraft is taken off its
+berth at the moment the request is dispatched, before the crew starts walking,
+so the airframe standing on a pad and the crew walking toward it are never on
+the field at the same time; the craft they board is an air entity that ground
+fire cannot reach. Should a loading craft ever be made shootable, it owes its
+passengers a disposition, because they have already been taken off the roster.
 
 Every way a sortie can end draws one distinction: a craft that reached its own
 pad is an aircraft home from a job, and one that ended any other way is an
