@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.junit.jupiter.api.Test;
 
@@ -75,6 +76,52 @@ class ShotRenderServiceTest {
     }
 
     @Test
+    void projectileTracerTailFollowsTheShellAndClampsAtItsAuthoredLength() {
+        WeaponDef rifle = WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID);
+        ShotEvent shot = boltShot(0f, 0f, 10f, 0f, 1f, rifle);
+        ShotFx fx = ShotFx.of(shot);
+
+        ShotRenderService.TracerTailPose start = ShotRenderService.tracerTailPose(
+                shot, fx, fx.tracerTail());
+        assertTracerPose(start, 0f, 0f, 0f, 0f, 0f, 0f);
+
+        shot.lifetime = 0.5f;
+        ShotRenderService.TracerTailPose middle = ShotRenderService.tracerTailPose(
+                shot, fx, fx.tracerTail());
+        assertTracerPose(middle, 5f, 0f, 4.35f, 0f, 0.65f, 1f);
+    }
+
+    @Test
+    void collectPaintsTheShortTracerUnderTheRifleProjectile() {
+        SpriteAPI fakeSprite = (SpriteAPI) Proxy.newProxyInstance(
+                SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},
+                (proxy, method, args) -> null);
+        BattleSprites sprites = new BattleSprites() {
+            @Override
+            public ShuttleSpriteCache projectileSprite(String path) {
+                return new ShuttleSpriteCache(fakeSprite, 1f);
+            }
+        };
+        BattleSimulation sim = openArena(20, 20);
+        ShotEvent shot = boltShot(5f, 5f, 15f, 5f, 1f,
+                WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID));
+        shot.lifetime = 0.5f;
+        sim.postShot(shot);
+        DrawList out = new DrawList();
+
+        new ShotRenderService(sprites, new ImpactFx()).collect(context(sim), out);
+
+        assertEquals(2, out.count(RenderLayer.SHOTS), "tail plus projectile sprite");
+        DrawCommand tail = out.buffer(RenderLayer.SHOTS)[0];
+        assertEquals(DrawCommand.Kind.LINE, tail.kind(),
+                "tail paints beneath the shell");
+        assertEquals(0.65f * 32f, Math.abs(tail.width() - tail.centerX()), 1e-4f,
+                "authored world length survives camera projection");
+        assertEquals(2f, tail.angleDegrees(), EPS, "tracer remains readable in screen pixels");
+        assertEquals(DrawCommand.Kind.SPRITE, out.buffer(RenderLayer.SHOTS)[1].kind());
+    }
+
+    @Test
     void collectResolvesEveryBoltFamilyTextureWithoutGlContext() {
         SpriteAPI fakeSprite = (SpriteAPI) Proxy.newProxyInstance(
                 SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},
@@ -128,6 +175,18 @@ class ShotRenderServiceTest {
         assertEquals(tailX, pose.tailX(), EPS);
         assertEquals(tailY, pose.tailY(), EPS);
         assertEquals(tailZ, pose.tailZ(), EPS);
+        assertEquals(visibleLength, pose.visibleLength(), EPS);
+        assertEquals(fadeIn, pose.fadeIn(), EPS);
+    }
+
+    private static void assertTracerPose(ShotRenderService.TracerTailPose pose,
+                                         float headX, float headY,
+                                         float tailX, float tailY,
+                                         float visibleLength, float fadeIn) {
+        assertEquals(headX, pose.headX(), EPS);
+        assertEquals(headY, pose.headY(), EPS);
+        assertEquals(tailX, pose.tailX(), EPS);
+        assertEquals(tailY, pose.tailY(), EPS);
         assertEquals(visibleLength, pose.visibleLength(), EPS);
         assertEquals(fadeIn, pose.fadeIn(), EPS);
     }
