@@ -1173,17 +1173,11 @@ public class AirSystem {
             mission.taxiPath = navigation.findGeometricPath(
                     (int) Math.floor(body.x), (int) Math.floor(body.y),
                     (int) Math.floor(goalX), (int) Math.floor(goalY));
-            // The first cell of a route is the one the craft is standing on, so
-            // the cursor starts on the second. The carrot picker's own
-            // already-crossed test cannot advance off index zero — it measures
-            // the first waypoint against the body's approach to it, and the
-            // body's approach to a waypoint always points at it — so a cursor
-            // left there sticks, the look-ahead is eaten by the distance back
-            // to a cell already behind the craft, and the carrot converges onto
-            // the craft's own nose. An aircraft did precisely that beside its
-            // runway and spun there for the rest of the battle. The ground
-            // vehicles start theirs at one for the same reason.
-            mission.taxiLeg = 1;
+            // The first cell of a route is the one the craft is standing on,
+            // so the cursor starts on it and the picker consumes it on the
+            // first tick — or keeps it, if the craft has drifted back off the
+            // cell centre and the first waypoint really is still ahead.
+            mission.taxiLeg = 0;
         }
         GroundHandling handling = GroundHandling.taxiing(flight);
         float carrotX = goalX;
@@ -1191,7 +1185,7 @@ public class AirSystem {
         int[] route = mission.taxiPath;
         if (route != null && Paths.cellCount(route) > 1) {
             PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, route,
-                    Math.max(1, mission.taxiLeg),
+                    mission.taxiLeg,
                     handling.minTurnRadiusCells() * TAXI_LOOKAHEAD_RADII);
             mission.taxiLeg = carrot.nextIdx;
             // Off the end of the route, the goal itself: a path is a run of
