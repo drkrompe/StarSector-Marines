@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -256,12 +257,23 @@ abstract class AbstractZoneAction implements Action {
             // route above stays on A* — that destination is picked per member.
             int memberX = sim.world().cellX(member);
             int memberY = sim.world().cellY(member);
+            // This long route is also the only one that consults the squad's
+            // memory of its own dead. A follow-up walking the ground the last
+            // squad was destroyed on is the objective route choosing badly, and
+            // is worth a detour; a firing position five cells away is not, and
+            // biasing that would move somebody off cover for a reason having
+            // nothing to do with the shot in front of them.
+            RouteCostField losses = sim.getRouteCostField(squad.faction);
             sim.setPath(member,
                     SharedGoalPolicy.usesSharedGoalFields(sim.liveUnitCount())
-                            ? sim.findSharedPathToGoal(memberX, memberY, destX, destY)
+                            ? sim.findSharedPathToGoal(memberX, memberY,
+                                    destX, destY, losses)
                             : GridPathfinder.findPath(sim.getGrid(),
                                     memberX, memberY, destX, destY,
-                                    sim.getOccupancyMap()));
+                                    GridPathfinder.USE_CARDINAL_NAVIGATION,
+                                    sim.getOccupancyMap(),
+                                    losses == null ? null : losses.cells(),
+                                    null));
         }
         sim.advanceMovement(member);
     }

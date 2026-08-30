@@ -45,13 +45,27 @@ public final class CommanderInfluenceService {
                 topologyRevision, "topologyRevision");
         int width = (grid.getWidth() + BLOCK_SIZE - 1) / BLOCK_SIZE;
         int height = (grid.getHeight() + BLOCK_SIZE - 1) / BLOCK_SIZE;
-        this.casualties = new CasualtyMemory(roster, BLOCK_SIZE, width, height);
+        this.casualties = new CasualtyMemory(roster, BLOCK_SIZE,
+                grid.getWidth(), grid.getHeight());
         marineSnapshot = emptySnapshot(Faction.MARINE, width, height);
         defenderSnapshot = emptySnapshot(Faction.DEFENDER, width, height);
     }
 
     /** The loss memory this service publishes; subscribe it to the death dispatcher. */
     public CasualtyMemory casualties() { return casualties; }
+
+    /**
+     * Serial per-tick advance of the loss memory alone. Kept off
+     * {@link #tick(int)} because that one is called lazily by whoever wants a
+     * snapshot, and the loss memory is read by every mover's repath rather
+     * than by a diagnostic - it has to age on the clock whether or not anybody
+     * asks for the influence field. Cheap by construction: a decay over the
+     * block grid and one expansion per side that has lost anybody, with none
+     * of the topology propagation a snapshot costs.
+     */
+    public void advanceCasualties(int simTick) {
+        casualties.advance(simTick);
+    }
 
     public void tick(int simTick) {
         if (lastUpdateTick != Integer.MIN_VALUE
@@ -68,11 +82,6 @@ public final class CommanderInfluenceService {
             profile.record(TickInnerProfile.Bucket.INFLUENCE_TOPOLOGY_LOOKUP,
                     System.nanoTime() - start);
         }
-        // Decayed once per refresh, from the interval actually elapsed, so the
-        // half-life is a property of simulated time rather than of how often
-        // this happens to be called.
-        casualties.decay(lastUpdateTick == Integer.MIN_VALUE ? 0
-                : simTick - lastUpdateTick);
         CommanderInfluenceSnapshot marine = buildSnapshot(Faction.MARINE, simTick, topology);
         CommanderInfluenceSnapshot defender = buildSnapshot(Faction.DEFENDER, simTick, topology);
         marineSnapshot = marine;

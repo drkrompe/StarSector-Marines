@@ -90,6 +90,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.LosCache;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
@@ -1541,6 +1542,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.SQUAD_ALERT);
         tacticalScoring.updateContactPictures(simTickIndex);
         tickProfile.lap(TickProfile.Phase.CONTACT_PICTURE);
+        // Age each side's memory of its own dead and republish what it makes
+        // ground cost to cross, before the replan and the per-unit dispatch
+        // that read it. Driven here rather than from a snapshot reader: every
+        // repath consults this, and a battle nobody is watching still has to
+        // forget.
+        commanderInfluence.advanceCasualties(simTickIndex);
         // Divide a shared contact between the squads attacking it, after every
         // contact picture exists and before any of them plans against it — so
         // cooperating squads read one answer rather than each deciding it is
@@ -1900,6 +1907,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public int[] findSharedPathToGoal(int startX, int startY,
                                       int goalX, int goalY) {
         return navigation.findSharedPathToGoal(startX, startY, goalX, goalY);
+    }
+
+    @Override
+    public int[] findSharedPathToGoal(int startX, int startY,
+                                      int goalX, int goalY,
+                                      RouteCostField cost) {
+        return navigation.findSharedPathToGoal(startX, startY, goalX, goalY,
+                cost);
+    }
+
+    @Override
+    public RouteCostField getRouteCostField(Faction faction) {
+        return commanderInfluence.casualties().routeCost(faction);
     }
 
     /** Applies occupancy + destIndex deltas queued by {@link #setPath} during the per-unit dispatch. Delegates to {@link DamageService#flushPendingOccupancyDeltas()}. */

@@ -28,7 +28,7 @@ public class CasualtyMemoryTest {
     }
 
     private static CasualtyMemory memory(BattleSimulation sim) {
-        return new CasualtyMemory(sim.getRoster(), BLOCK, W / BLOCK, H / BLOCK);
+        return new CasualtyMemory(sim.getRoster(), BLOCK, W, H);
     }
 
     private static long spawn(BattleSimulation sim, Faction faction,

@@ -4,10 +4,12 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-29 — added the casualty memory: a side's decaying record of
-where it lost people, and the approach avoidance that spends it. Also that day —
-added the order mix: which orders a battle was actually made of, with
-unassigned pulses as a bucket rather than an omission.
+Updated: 2026-08-30 — the casualty memory now also publishes a route costing,
+so the movers route around a side's own dead rather than only the commander
+choosing among places to send them.
+Earlier: added the casualty memory itself, and the order mix — which orders a
+battle was actually made of, with unassigned pulses as a bucket rather than an
+omission.
 Earlier: made navigation-revision caching and commander-pulse
 performance evidence part of the shared command boundary.
 
@@ -154,6 +156,28 @@ approach avoidance moves where the **next** squad is sent, within the geometry
 the mission already authorized. It does not re-route a squad already moving,
 does not invent a way around a lane that has only one, and never overrides the
 mission's own law about where the objective is.
+
+A **route costing** is that same memory expanded into what it makes each cell
+cost to cross, and handed to the pathfinder. It is the memory's other consumer
+and the one that changes behaviour without any commander deciding anything: a
+squad ordered somewhere still goes there, and simply prefers not to walk over
+its own dead on the way. Only the long route to a commanded destination reads
+it. A firing position a few cells away does not, because moving somebody off
+cover for something that happened elsewhere is not a tactical decision about
+the shot in front of them.
+
+Three laws hold it in shape. **The ground stays crossable**: the penalty
+saturates, so a place bought with a squad is discouraging and never forbidden,
+or an objective defended well enough would stop being approached at all.
+**The block is the resolution**: the costing steps at block boundaries rather
+than being smoothed across them, because the block is what the side actually
+knows and a gradient would draw a confidence the knowledge does not have.
+**A costing is a publication, not a variable**: it is rebuilt on a fixed
+cadence, frozen, and identified by a revision, because the pathfinder retains
+reverse trees grown under it and a tree that outlives its costing would keep
+serving routes computed against costs that no longer exist. That revision is
+what tells two sides' costings apart, and what retires the trees grown under a
+superseded one.
 
 An **order mix** is a perspective's published directives broken down by
 assignment kind, as squad-pulses and squad-ticks. It answers the one question
