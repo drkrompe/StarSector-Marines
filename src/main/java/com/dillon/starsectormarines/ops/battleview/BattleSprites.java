@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
@@ -117,11 +119,18 @@ public class BattleSprites {
     private final SheetTexture doodadTex     = SheetTexture.grid(TileManifest.DOODAD_SHEET);
     private final SheetTexture parkedVehicleTex = SheetTexture.grid(TileManifest.PARKED_VEHICLE_SHEET);
 
-    // ---- shuttle sprites ----------------------------------------------------
+    // ---- airframe sprites ---------------------------------------------------
 
-    private final java.util.EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites =
-            new java.util.EnumMap<>(ShuttleType.class);
-    private boolean shuttleSpritesLoadAttempted;
+    /**
+     * One entry per {@link Airframe} the battle can draw — every transport and
+     * every fighter. A plain map rather than an {@code EnumMap} because the
+     * airframes are spread across two enums on purpose: transports and
+     * fighters are different kinds of aircraft and neither list wants the
+     * other's fields.
+     */
+    private final java.util.Map<Airframe, ShuttleSpriteCache> airframeSprites =
+            new java.util.LinkedHashMap<>();
+    private boolean airframeSpritesLoadAttempted;
 
     // ---- convoy sprites -----------------------------------------------------
 
@@ -205,7 +214,7 @@ public class BattleSprites {
     public SpriteAPI doodadSheet()                  { return doodadTex.sprite(); }
     public int doodadSheetPxW()                     { return doodadTex.pxW(); }
     public int doodadSheetPxH()                     { return doodadTex.pxH(); }
-    public java.util.EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites() { return shuttleSprites; }
+    public java.util.Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframeSprites; }
     public java.util.EnumMap<com.dillon.starsectormarines.battle.vehicle.VehicleType, UnitSpriteCache> convoySprites() { return convoySprites; }
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
     public SpriteAPI engineGlowSprite()            { return engineGlowSprite; }
@@ -284,7 +293,7 @@ public class BattleSprites {
 
     /**
      * Lazy-loads the vanilla engine flame + glow textures. Same one-shot
-     * pattern as {@link #ensureShuttleSprites()}: try to load each path
+     * pattern as {@link #ensureAirframeSprites()}: try to load each path
      * once, log + degrade gracefully if either fails. A missing engine
      * sprite just means the engine pass renders nothing — no crash.
      */
@@ -309,27 +318,42 @@ public class BattleSprites {
         }
     }
 
-    public void ensureShuttleSprites() {
-        if (shuttleSpritesLoadAttempted) return;
-        shuttleSpritesLoadAttempted = true;
-        for (ShuttleType type : ShuttleType.values()) {
-            try {
-                Global.getSettings().loadTexture(type.spritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(type.spritePath);
-                if (sprite == null) {
-                    LOG.warn("BattleSprites: getSprite returned null for " + type.spritePath);
-                    continue;
-                }
-                float w = sprite.getWidth();
-                float h = sprite.getHeight();
-                float aspect = (h > 0f) ? w / h : 1f;
-                shuttleSprites.put(type, new ShuttleSpriteCache(sprite, aspect,
-                        (int) w, (int) h));
-                LOG.info("BattleSprites: loaded shuttle " + type.spritePath
-                        + " (" + w + "x" + h + ", aspect=" + aspect + ")");
-            } catch (Exception e) {
-                LOG.error("BattleSprites: failed to load shuttle sprite " + type.spritePath, e);
+    /**
+     * Loads the sprite for every airframe a berth or a flight can put on the
+     * map — transports and fighters both.
+     *
+     * <p>One pass over two enums rather than two caches, because the thing
+     * doing the drawing has an {@link Airframe} and does not know or care
+     * which list it came from. Two airframes that name the same image share
+     * one entry; the map is keyed by the airframe so a later per-type tint or
+     * frame choice has somewhere to live.
+     */
+    public void ensureAirframeSprites() {
+        if (airframeSpritesLoadAttempted) return;
+        airframeSpritesLoadAttempted = true;
+        for (ShuttleType type : ShuttleType.values()) loadAirframe(type);
+        for (FighterProfile fighter : FighterProfile.values()) loadAirframe(fighter);
+    }
+
+    /** Best effort for one airframe: a hull whose sprite will not read is left out. */
+    private void loadAirframe(Airframe airframe) {
+        String path = airframe.spritePath();
+        try {
+            Global.getSettings().loadTexture(path);
+            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            if (sprite == null) {
+                LOG.warn("BattleSprites: getSprite returned null for " + path);
+                return;
             }
+            float w = sprite.getWidth();
+            float h = sprite.getHeight();
+            float aspect = (h > 0f) ? w / h : 1f;
+            airframeSprites.put(airframe, new ShuttleSpriteCache(sprite, aspect,
+                    (int) w, (int) h));
+            LOG.info("BattleSprites: loaded airframe " + path
+                    + " (" + w + "x" + h + ", aspect=" + aspect + ")");
+        } catch (Exception e) {
+            LOG.error("BattleSprites: failed to load airframe sprite " + path, e);
         }
     }
 

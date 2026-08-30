@@ -72,7 +72,12 @@ public final class AirfieldService {
         public final int centerX;
         public final int centerY;
         public final Kind kind;
-        public final ShuttleType type;
+        /**
+         * Which aircraft is kept here. A transport on an apron stand, a
+         * fighter in a shed — the berth does not care which, only that it has
+         * a sprite, a size and a hull to shoot at.
+         */
+        public final Airframe airframe;
         /** Which way the parked hull points — its pad's approach bearing, or out of its shed. */
         public final float facingDegrees;
 
@@ -103,19 +108,19 @@ public final class AirfieldService {
          */
         public boolean wreckOnPad;
 
-        Berth(LandingPad pad, ShuttleType type, float facingDegrees) {
-            this(pad, pad.centerX, pad.centerY, Kind.HARDSTAND, type, facingDegrees);
+        Berth(LandingPad pad, Airframe airframe, float facingDegrees) {
+            this(pad, pad.centerX, pad.centerY, Kind.HARDSTAND, airframe, facingDegrees);
         }
 
         Berth(LandingPad pad, int centerX, int centerY, Kind kind,
-              ShuttleType type, float facingDegrees) {
+              Airframe airframe, float facingDegrees) {
             this.pad = pad;
             this.centerX = centerX;
             this.centerY = centerY;
             this.kind = kind;
-            this.type = type;
+            this.airframe = airframe;
             this.facingDegrees = facingDegrees;
-            this.hullHp = type.maxHp;
+            this.hullHp = airframe.maxHp();
         }
 
         /** Whether this berth can put an aircraft in the air right now. */
@@ -201,8 +206,8 @@ public final class AirfieldService {
     }
 
     /** Registers one hardstand and the aircraft based on it. Called once at setup. */
-    public Berth addBerth(LandingPad pad, ShuttleType type, float facingDegrees) {
-        Berth berth = new Berth(pad, type, facingDegrees);
+    public Berth addBerth(LandingPad pad, Airframe airframe, float facingDegrees) {
+        Berth berth = new Berth(pad, airframe, facingDegrees);
         berths.add(berth);
         return berth;
     }
@@ -214,9 +219,9 @@ public final class AirfieldService {
      * reaches the air by taxiing out and rolling, so basing one where there is
      * nothing to roll down strands it in the shed for the battle.
      */
-    public Berth addShelterBerth(Gantry shelter, ShuttleType type) {
+    public Berth addShelterBerth(Gantry shelter, Airframe airframe) {
         Berth berth = new Berth(null, shelter.centerX, shelter.centerY,
-                Kind.SHELTER, type, shelter.facing.degrees());
+                Kind.SHELTER, airframe, shelter.facing.degrees());
         berths.add(berth);
         return berth;
     }
@@ -293,7 +298,7 @@ public final class AirfieldService {
      */
     public void recover(Berth berth, float hullHp) {
         if (berth.state == BerthState.DESTROYED) return;
-        berth.hullHp = Math.max(1f, Math.min(berth.type.maxHp, hullHp));
+        berth.hullHp = Math.max(1f, Math.min(berth.airframe.maxHp(), hullHp));
         berth.state = BerthState.REFITTING;
         berth.refitRemaining = REFIT_SECONDS;
         berth.airframeId = 0L;
@@ -301,8 +306,8 @@ public final class AirfieldService {
 
     /** How much hull a completed turnaround hands back. */
     float repaired(Berth berth) {
-        float repair = berth.type.maxHp * REFIT_REPAIR_FRACTION;
-        return Math.min(berth.type.maxHp, berth.hullHp + repair);
+        float repair = berth.airframe.maxHp() * REFIT_REPAIR_FRACTION;
+        return Math.min(berth.airframe.maxHp(), berth.hullHp + repair);
     }
 
     /**

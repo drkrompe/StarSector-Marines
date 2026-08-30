@@ -327,8 +327,8 @@ public class BattleRenderer {
 
         // Hull sheets for the UNITS layer, so a burnt airframe can be drawn as
         // source strips of its own sprite (UnitRenderService's wreck pass).
-        // Loaded by ensureShuttleSprites() before this runs, in both hosts.
-        registerHullBatches(sprites.shuttleSprites().values());
+        // Loaded by ensureAirframeSprites() before this runs, in both hosts.
+        registerHullBatches(sprites.airframeSprites().values());
     }
 
     /**

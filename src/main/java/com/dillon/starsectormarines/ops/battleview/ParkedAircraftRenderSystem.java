@@ -40,7 +40,7 @@ public final class ParkedAircraftRenderSystem implements RenderSystem {
         float alphaMult = ctx.alphaMult;
 
         for (ParkedAircraft parked : aircraft) {
-            ShuttleSpriteCache cache = sprites.shuttleSprites().get(parked.type);
+            ShuttleSpriteCache cache = sprites.airframeSprites().get(parked.type);
             if (cache == null || cache.sprite == null) continue;
 
             float hullLenCells = HullFootprintResolver.visualLengthCells(

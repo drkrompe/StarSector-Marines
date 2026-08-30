@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
@@ -33,6 +35,7 @@ import java.nio.file.Path;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -259,8 +262,8 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         private final IdentityHashMap<SpriteAPI, Asset> assets = new IdentityHashMap<>();
         private final EnumMap<LayeredArmorFamily, LayeredUnitAssets> infantry =
                 new EnumMap<>(LayeredArmorFamily.class);
-        private final EnumMap<ShuttleType, ShuttleSpriteCache> shuttles =
-                new EnumMap<>(ShuttleType.class);
+        private final Map<Airframe, ShuttleSpriteCache> airframes =
+                new LinkedHashMap<>();
         private final UnitLayerLayouts layouts;
 
         private final SpriteAPI tile;
@@ -310,17 +313,20 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
          * worth far less than the frame it appears in.
          */
         private void loadHulls() {
-            for (ShuttleType type : ShuttleType.values()) {
-                if (shuttles.containsKey(type)) continue;
-                try {
-                    SpriteAPI token = sprite(type.spritePath);
-                    Asset asset = asset(token);
-                    shuttles.put(type, new ShuttleSpriteCache(token,
-                            asset.height() == 0 ? 1f : asset.width() / (float) asset.height(),
-                            asset.width(), asset.height()));
-                } catch (IOException | RuntimeException missing) {
-                    // Left out; see the method note.
-                }
+            for (ShuttleType type : ShuttleType.values()) loadHull(type);
+            for (FighterProfile fighter : FighterProfile.values()) loadHull(fighter);
+        }
+
+        private void loadHull(Airframe airframe) {
+            if (airframes.containsKey(airframe)) return;
+            try {
+                SpriteAPI token = sprite(airframe.spritePath());
+                Asset asset = asset(token);
+                airframes.put(airframe, new ShuttleSpriteCache(token,
+                        asset.height() == 0 ? 1f : asset.width() / (float) asset.height(),
+                        asset.width(), asset.height()));
+            } catch (IOException | RuntimeException missing) {
+                // Left out; see the method note.
             }
         }
 
@@ -354,7 +360,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             return infantry;
         }
         @Override public LayeredMechAssets layeredMechSprites() { return mech; }
-        @Override public EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites() { return shuttles; }
+        @Override public Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframes; }
         @Override public UnitLayerLayouts unitLayerLayouts() { return layouts; }
 
         private Asset asset(SpriteAPI sprite) {
