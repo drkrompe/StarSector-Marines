@@ -4,6 +4,8 @@ Status: IN PROGRESS
 
 Written: 2026-08-30
 
+Updated: 2026-08-30 — the model, the seeding and the page have landed. A room is an authored document, seeded by recording what its fitting does, edited on the workbench's Rooms page, and compared against what ships by generating the same hull twice. Two silent failure modes turned out to need naming and now do: a refused fixture and a fill discarded for sealing its room. **What remains is walls** — a per-room bulkhead surface has nowhere to live, since walls come from the single global `SurfaceRole.WALL`; floors were already expressible through `GroundKind` and are.
+
 Give the workbench a page that edits a shipboard room directly — its footprint,
 its floors and walls, and the fixtures standing on it — and let the result be
 what the game generates, compared against what it generates today before it is
