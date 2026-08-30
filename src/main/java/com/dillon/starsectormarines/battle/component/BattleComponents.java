@@ -820,8 +820,8 @@ public final class BattleComponents {
      * an int grid cell): a shuttle has {@code KINEMATICS} and no grid
      * {@code POSITION}; a drone has <em>both</em> (its cell synced from the body
      * each tick). An OBJECT column (not decomposed floats) because {@code AirBody}
-     * is a small, shared POJO (drones, the non-entity {@code FlybyOverlay}, and
-     * {@code CrashingComponent} all hold one) and air is a tiny population — the
+     * is a small, shared POJO (drones and {@code CrashingComponent} hold one
+     * too) and air is a tiny population — the
      * CRASHING/MECH_LOADOUT precedent; see {@code air-nouns.md}.
      */
     public final ComponentType KINEMATICS;

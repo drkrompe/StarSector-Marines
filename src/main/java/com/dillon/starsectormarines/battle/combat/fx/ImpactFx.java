@@ -23,20 +23,18 @@ import java.util.Random;
  * {@link com.dillon.starsectormarines.ops.BattleScreen} holds one instance per
  * screen lifetime.
  *
- * <p>Parallel to the particle subsystem inside
- * {@code com.dillon.starsectormarines.battle.flyby.FlybyOverlay} — same sheets,
- * same flipbook UV math, separate state. Splitting keeps the working flyby FX
- * untouched while we iterate on ground impacts; if the two grow into one
- * shared engine later, the rendering math here is the obvious extraction
- * point.
+ * <p>The only particle backend the battle has. It ran for a while beside a
+ * second one inside the deleted flyby overlay — same sheets, same flipbook UV
+ * math, separate state — which is why the recipes here are written against
+ * ground impacts specifically rather than against bursts in general.
  */
 public final class ImpactFx {
 
     private static final Logger LOG = Global.getLogger(ImpactFx.class);
 
-    /** Mod-shipped 4×4 sheet of 16px frames: top 2 rows = fire (8 frames), bottom 2 rows = smoke (8 frames). Same asset FlybyOverlay uses. */
+    /** Mod-shipped 4×4 sheet of 16px frames: top 2 rows = fire (8 frames), bottom 2 rows = smoke (8 frames). */
     private static final String SPRITE_PARTICLE_SHEET = "graphics/particle/smokeAndFire.png";
-    /** Soft radial alpha — sparks + glow flashes. Same alpha-only texture FlybyOverlay uses for muzzle/impact flashes. */
+    /** Soft radial alpha — sparks + glow flashes, and muzzle/impact flashes. */
     private static final String SPRITE_GLOW           = "graphics/fx/particlealpha64linear.png";
     /** Vanilla expanding blast ring, reused for gun-launched heavy HE. */
     private static final String SPRITE_EXPLOSION_RING = "graphics/fx/explosion_ring0.png";
@@ -260,7 +258,7 @@ public final class ImpactFx {
         spawnDust(x, y, false, core, 0.6f);
     }
 
-    /** Smoke puff from the flipbook sheet. Light upward drift, random rotation, normal-alpha. Tuned smaller than the FlybyOverlay variant since ground impacts are point events, not aerial bursts. */
+    /** Smoke puff from the flipbook sheet. Light upward drift, random rotation, normal-alpha. Deliberately small: a ground impact is a point event, not an aerial burst. */
     private void spawnSmokePuff(float x, float y, float radiusCells, float lifetime) {
         if (particleSheetSprite == null) return;
         Particle p = new Particle();
