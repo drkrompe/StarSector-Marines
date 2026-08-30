@@ -18,7 +18,7 @@ public final class RoomAuthoringPageProvider implements AuthoringPageProvider {
     }
 
     @Override
-    public AuthoringPage create(AuthoringPageContext context) {
+    public AuthoringPage create(AuthoringPageContext context) throws Exception {
         return new RoomAuthoringPage(context);
     }
 }
