@@ -1488,6 +1488,55 @@ public class ConquestCommandTest {
                         + "not a reading of this pulse");
     }
 
+    @Test
+    public void aContestedObjectiveNobodyIsOnGetsSentSquads() {
+        // From a live battle: thirteen compounds taken, one contested sitting
+        // at zero percent, fifty-nine squads and no reserve. A contested
+        // compound was excluded from distant allocation outright, so the only
+        // way to be sent at one was to already be standing beside it.
+        BattleSimulation sim = compoundAt(15);
+        TacticalNode node = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 15, 5, 14, 4, 16, 6,
+                Faction.DEFENDER, 80, 4));
+        addDefender(sim, 15, 5);
+        // A reporter at the doorway makes the compound read contested through
+        // honest belief. The squad under test is far away and beside nothing —
+        // it is the squad that would never have been sent.
+        Squad reporter = addMarineSquad(sim, 15f, 2f);
+        establishDirectMarineContact(sim, reporter);
+        Squad distant = addMarineSquad(sim, 2f, 1f);
+        ConquestCommand command = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+
+        tick(command, sim);
+
+        assertTrue(isSecureCompound(distant) || isSecureCompound(reporter),
+                "a contested objective with nobody on it is not being assaulted "
+                        + "carefully, it is being ignored");
+        Squad assigned = isSecureCompound(distant) ? distant : reporter;
+        assertEquals(node.anchorX, assigned.assignedObjective.targetNode().anchorX);
+    }
+
+    @Test
+    public void aContestedObjectiveAlreadyBeingTakenIsNotPiledOnto() {
+        BattleSimulation sim = compoundAt(15);
+        registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                15, 5, 14, 4, 16, 6, Faction.DEFENDER, 80, 4));
+        addDefender(sim, 15, 5);
+        Squad reporter = addMarineSquad(sim, 15f, 2f);
+        establishDirectMarineContact(sim, reporter);
+        Squad distant = addMarineSquad(sim, 2f, 1f);
+        ConquestCommand command = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        tick(command, sim);
+
+        // The exclusion still does its original job: once somebody is on a
+        // defended place, the rest are not fed in behind them one at a time.
+        tick(command, sim);
+        int onCompound = (isSecureCompound(distant) ? 1 : 0)
+                + (isSecureCompound(reporter) ? 1 : 0);
+        assertEquals(1, onCompound,
+                "one squad takes a small compound; the other keeps its own work");
+    }
+
     private static void tick(ConquestCommand command, BattleSimulation sim) {
         CommanderService.runSingle(command, ConquestCommandDisclosure.INSTANCE,
                 sim);
