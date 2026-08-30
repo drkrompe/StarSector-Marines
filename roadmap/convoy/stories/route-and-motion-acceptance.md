@@ -4,6 +4,9 @@ Status: READY — implementation is shipped; an eyes-on convoy run remains.
 
 Written: 2026-08-23
 
+Updated: 2026-08-30 — the armed post-unload overwatch is gone; the carrier
+departs straight off the drop point.
+
 Read `convoy-nouns.md` before running this story.
 
 ## Goal
@@ -23,15 +26,15 @@ layers read as one coherent heavy-vehicle journey in live play.
   corner, then recovers through committed reverse and, when necessary, a
   cumulative avoiding reroute. Genuinely no-route cases are recorded against
   `slice-3-recovery-ladder.md`, not accepted as terminally solved.
-- The APC reaches the drop-off, unloads its four-person payload, holds armed
-  overwatch, departs, and reaches the terminal gone state.
+- The APC reaches the drop-off, unloads its four-person payload, departs, and
+  reaches the terminal gone state.
 
 ## Manual acceptance
 
 1. Dispatch a normal defender convoy on a city route with at least one sharp
    corner, an available road-biased path, and a plausible open-ground shortcut.
 2. Watch the complete off-map entry, inbound drive, final docking, unload,
-   overwatch, outbound drive, and off-map departure.
+   outbound drive, and off-map departure.
 3. Confirm turns are continuous and footprint-safe, the vehicle neither cuts
    through walls nor snaps between headings, and road preference does not act as
    a hard rail.
