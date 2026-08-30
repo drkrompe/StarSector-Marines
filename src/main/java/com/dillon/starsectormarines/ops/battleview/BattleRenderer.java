@@ -77,6 +77,8 @@ public class BattleRenderer {
 
     /** Sim-seconds shots live for — must match {@code BattleSimulation.SHOT_LIFETIME}. Used to fade tracer alpha. */
     private static final float SHOT_LIFETIME_REF = 0.15f;
+    private static final float UNREVEALED_FOG_ALPHA = 0.85f;
+    private static final float SMOKE_FOG_ALPHA = UNREVEALED_FOG_ALPHA * 0.5f;
 
     /** Base unit-sprite size as a fraction of the cell (sprite fills the cell).
      *  Package-visible: the base size is shared across UNITS strata — the
@@ -442,18 +444,16 @@ public class BattleRenderer {
             int rowBase = cy * gw;
             for (int cx = view.minX(); cx <= view.maxX(); cx++) {
                 int idx = rowBase + cx;
-                float fogAlpha;
-                if (!revealed[idx]) {
-                    fogAlpha = 0.85f;
-                } else {
-                    int darkNeighbors = 0;
+                int darkNeighbors = 0;
+                if (revealed[idx]) {
                     if (cy > 0    && !revealed[idx - gw]) darkNeighbors++;
                     if (cy < gh-1 && !revealed[idx + gw]) darkNeighbors++;
                     if (cx > 0    && !revealed[idx - 1])  darkNeighbors++;
                     if (cx < gw-1 && !revealed[idx + 1])  darkNeighbors++;
-                    if (darkNeighbors == 0) continue;
-                    fogAlpha = 0.15f * darkNeighbors;
                 }
+                float fogAlpha = fogAlphaForCell(revealed[idx], darkNeighbors,
+                        sim.getGrid().hasTransientOpacityAt(idx));
+                if (fogAlpha <= 0f) continue;
 
                 float sx = rc.camera.cellToScreenX(cx);
                 float sy = rc.camera.cellToScreenY(cy);
@@ -461,6 +461,17 @@ public class BattleRenderer {
                         0f, 0f, 0f, fogAlpha * alphaMult);
             }
         }
+    }
+
+    /**
+     * An unrevealed smoke cell remains unrevealed, but uses half the ordinary
+     * fog shadow so the terrain silhouette and the cloud explain the blocked
+     * sight together. Revealed-edge feathering remains unchanged.
+     */
+    static float fogAlphaForCell(boolean revealed, int darkNeighbors,
+                                 boolean transientlyOpaque) {
+        if (!revealed) return transientlyOpaque ? SMOKE_FOG_ALPHA : UNREVEALED_FOG_ALPHA;
+        return 0.15f * Math.max(0, darkNeighbors);
     }
 
     private void collectRoofs(BattleSimulation sim, DrawList out, float alphaMult) {

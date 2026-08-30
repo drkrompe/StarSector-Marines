@@ -5,8 +5,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 Written: 2026-08-23
 
 Updated: 2026-08-30 — headless evidence reads assets in game order, pixel-sized
-corrections stay bounded by their pieces, and fogged smoke remains legible
-without revealing the world beneath it.
+corrections stay bounded by their pieces, and unrevealed smoke cells use a
+half-strength fog shadow while remaining hidden observation state.
 
 ## Vocabulary
 
@@ -60,7 +60,7 @@ special-equipment poses may remain dry drills. Route ownership, interruption, an
 whether an action has physical consequences remain simulation concerns; the render
 pipeline never manufactures a shot.
 
-The current world order is `GROUND → DECALS → VEHICLES → DOODADS → HIGHLIGHTS → FOG → UNITS → HAZARDS → SMOKE → ROOFS → DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX → FLYBY`. The enum is the authority for this order; the sequence here makes the standing occlusion contract legible without replacing it. Smoke paints above fog and receives a bounded opacity boost over unrevealed cells, so the cloud explains the obstruction without revealing terrain or actors beneath it.
+The current world order is `GROUND → DECALS → VEHICLES → DOODADS → HIGHLIGHTS → FOG → UNITS → HAZARDS → SMOKE → ROOFS → DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX → FLYBY`. The enum is the authority for this order; the sequence here makes the standing occlusion contract legible without replacing it. An unrevealed smoke cell receives half the ordinary fog shadow, then the smoke paints above it with a bounded opacity boost. This exposes a muted terrain silhouette as context while leaving the cell unrevealed and its actors hidden.
 
 Ground is a dense, cell-backed surface. Current camera culling range-loops the visible cell rectangle for dense passes and AABB-rejects eligible sparse scenery. This preserves cell truth while avoiding off-camera collection. If terrain or decal work becomes the measured ceiling again, future dense render tiles may cache a view-resident projection of cell blocks. A tile is a derived, view-admitted presentation block, never a new simulation grid or coordinate system. Ground and decals may keep separate backing while sharing tile addressing, invalidation, and eviction policy. Evicted ground rebuilds from cells and evicted decals replay retained sources; unavailable tile backing falls back locally to the present cell path without changing paint order.
 
