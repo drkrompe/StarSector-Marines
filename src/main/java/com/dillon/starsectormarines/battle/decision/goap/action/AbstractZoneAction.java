@@ -382,6 +382,18 @@ abstract class AbstractZoneAction implements Action {
         String memberTeam = step.slotOf(member);
         if (memberTeam == null || !memberTeam.startsWith(FIRE_TEAM)) return false;
 
+        // Bound only inside the threat's beaten zone. Commitment reaches much
+        // further than fire does — the advance-threat score looks tens of cells
+        // down the route — so a squad can be committed to a contact that cannot
+        // touch it, and bounding that stretch buys nothing for the price of
+        // moving half the squad at a time. Enabling the bound on attack moves
+        // without this cost reinforced-south 7300 ticks and 46 defender kills.
+        if (!sim.getTacticalScoring().threatReaches(squad.advanceThreatId,
+                squad.centroidX, squad.centroidY, BOUNDING_STRIDE)) {
+            clearBounding(squad);
+            return false;
+        }
+
         if (SmokeTactics.holdForAdvanceSmoke(squad, squad.advanceThreatId,
                 destX, destY, sim)) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
