@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — the airbase lot turns four ways, comes in three sizes that
+Updated: 2026-08-30 — an airbase lot now owns everything recorded about the
+ground it repaves, and a fortress ward refuses a lot over its keep; the lot also
+turns four ways, comes in three sizes that
 grow along the frontage rather than into the depth, and reaches the city as
 either a block-sized site or a multi-block compound claim placed on the ground
 that claim actually owns, whose made surface the terrain passes no longer
@@ -302,6 +304,30 @@ the front of its own paving, where its mouth opened onto the far side of the
 fence and the crew had to leave the base to reach an aircraft parked in the
 middle of it. Reachability from outside the lot is asserted on both traversal
 axes, because a mirrored layout is where that hides.
+
+**A lot owns everything on the ground it repaves, and a host may not hand it a
+place the mission depends on.** Those are one rule seen from both ends. Paving
+is replacing, so the general obligation on a replacing stage applies to a
+facility exactly as it does to a ward: the cells, and also the building ids,
+kind hints, wall masks, doorways, authored edges, decorative placements, points
+of interest and tactical nodes recorded about them. A building id left under
+fresh tarmac is not merely stale — a roof is drawn wherever a cell carries one,
+and a kind hint left behind is flooded back into one at finalize, so a lot laid
+over a shell produced a slab of roof standing on the apron with no walls under
+it and the demolished building's capture marker on top. The stage that drew it
+had cleared the ward correctly and the lot had paved correctly; the ground in
+between belonged to neither.
+
+The other end is where the fix belongs. Clearing alone would have the facility
+quietly delete the mission's own command post, which is the harm the
+yields-to-a-place rule exists to prevent, so the host declines the site
+instead — the fortress ward refuses a lot over its keep the same way it refuses
+one across its kept road, and falls down its size ladder or goes without.
+Measured over forty-eight generated Conquest maps, eleven laid a lot over the
+keep and three of them have no ward airbase once that is refused. The two
+halves are complementary rather than redundant: with the ground properly owned,
+a host that makes this mistake anyway fails generation loudly at the
+one-central-keep check rather than shipping a marker floating on an apron.
 
 A lot **reserves the ground outside its own fence**, not just the ground under
 it. A fence on the boundary of its reservation is one a building can be packed

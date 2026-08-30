@@ -1,12 +1,20 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
 import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
+import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
+import com.dillon.starsectormarines.battle.world.gen.BlockKind;
+import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import org.junit.jupiter.api.Test;
 
+import java.util.IdentityHashMap;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -76,5 +84,69 @@ class WardAirbasePlacementTest {
             for (int y = base.rect()[1]; y <= base.rect()[3]; y++)
                 assertTrue(!roads[x][y],
                         "the airbase was placed across the road it may not sever");
+    }
+
+    /**
+     * The lot never lands on the keep.
+     *
+     * <p>The keep is the one thing in the ward the stage does not demolish, so
+     * a lot laid across it repaves ground whose building, capture objective and
+     * garrison node all survive the clearing — which is a bare roof and a
+     * capture marker standing on the apron with nothing under them. Measured
+     * over forty-eight generated Conquest maps this happened on eleven of them.
+     *
+     * <p>Asked of the ward's own decision, because that is where the mistake
+     * is. The lot itself is blameless: handed a rectangle, it lays a base in it.
+     *
+     * <p>The keep here reaches into both end positions. A narrow one in the
+     * middle proves nothing — the lot is already pinned to an end and clears it
+     * by accident — and a fixture that passes with the rule taken out is a test
+     * of the fixture rather than of the rule.
+     */
+    @Test
+    void theLotIsNeverLaidOverTheKeep() {
+        int[] ward = wardWithRoomForAField();
+        int spanX = AirbaseLot.reservedSpanX(AirbaseLot.Size.FIELD,
+                AirbaseLot.Facing.of(AXIS));
+        // Reaching half a lot's width into each end, so a full-size base is
+        // over the keep whichever end it is pinned to. The ladder still has the
+        // smaller sizes to come down to.
+        Compound keep = keepAt(ward[0] + spanX / 2, ward[1],
+                ward[2] - spanX / 2, ward[3]);
+
+        FortressWardStage.WardAirbase base =
+                FortressWardStage.airbaseLot(ward, AXIS, keep, null);
+
+        assertNotNull(base, "a ward with a keep across the middle of it lost the airbase entirely");
+        int[] lot = base.rect();
+        assertTrue(lot[2] < keep.left || lot[0] > keep.right
+                        || lot[3] < keep.top || lot[1] > keep.bottom,
+                "the airbase reservation was laid over the keep: lot "
+                        + lot[0] + "," + lot[1] + ".." + lot[2] + "," + lot[3]
+                        + " keep " + keep.left + "," + keep.top
+                        + ".." + keep.right + "," + keep.bottom);
+    }
+
+    /**
+     * A keep that leaves nowhere clear costs the base, not the keep.
+     *
+     * <p>The bargain the ward already makes for its road: a facility that would
+     * take ground the mission depends on is not sited at all. Three of those
+     * forty-eight maps lose their air arm this way, which is the price of the
+     * other eleven being honest.
+     */
+    @Test
+    void aKeepAcrossTheWholeWardCostsTheAirbase() {
+        int[] ward = wardWithRoomForAField();
+        Compound keep = keepAt(ward[0], ward[1], ward[2], ward[3]);
+
+        assertNull(FortressWardStage.airbaseLot(ward, AXIS, keep, null),
+                "the ward built an airbase on top of a keep filling the whole ward");
+    }
+
+    private static Compound keepAt(int left, int top, int right, int bottom) {
+        BlockLeaf leaf = new BlockLeaf(left, top, right, bottom, false);
+        return new Compound(BlockKind.MILITARY_BASE, leaf, List.of(leaf),
+                new IdentityHashMap<>(), BiomeKind.FORTRESS_DISTRICT);
     }
 }
