@@ -22,6 +22,11 @@ public final class TurretMountDef {
     public final float visualCells;
     /** Distance from mount center to the muzzle along the current bearing, in cells. */
     public final float muzzleOffsetCells;
+    /**
+     * Half-separation of an alternating paired barrel, perpendicular to the
+     * current bearing. Zero means the mount has one launch line.
+     */
+    public final float muzzleLateralOffsetCells;
     /** Optional whole-texture mount body. Null lets a carrier own sheet-frame art. */
     public final String spritePath;
     /** Optional recoil/barrel layer paired with {@link #spritePath}. */
@@ -30,6 +35,7 @@ public final class TurretMountDef {
     private TurretMountDef(String id, String weaponId, WeaponDef weapon,
                            int ammoCapacity, float turnRateDegPerSec,
                            float visualCells, float muzzleOffsetCells,
+                           float muzzleLateralOffsetCells,
                            String spritePath, String recoilSpritePath) {
         this.id = id;
         this.weaponId = weaponId;
@@ -38,6 +44,7 @@ public final class TurretMountDef {
         this.turnRateDegPerSec = turnRateDegPerSec;
         this.visualCells = visualCells;
         this.muzzleOffsetCells = muzzleOffsetCells;
+        this.muzzleLateralOffsetCells = muzzleLateralOffsetCells;
         this.spritePath = spritePath;
         this.recoilSpritePath = recoilSpritePath;
     }
@@ -61,6 +68,8 @@ public final class TurretMountDef {
                 ? (float) render.optDouble("visualCells", 0.0) : 0f;
         float muzzleOffsetCells = render != null
                 ? (float) render.optDouble("muzzleOffsetCells", 0.0) : 0f;
+        float muzzleLateralOffsetCells = render != null
+                ? (float) render.optDouble("muzzleLateralOffsetCells", 0.0) : 0f;
         if (ammoCapacity < 0) {
             throw new JSONException("Turret mount '" + id + "' ammoCapacity cannot be negative");
         }
@@ -72,6 +81,10 @@ public final class TurretMountDef {
         if (!Float.isFinite(muzzleOffsetCells) || muzzleOffsetCells < 0f) {
             throw new JSONException("Turret definition '" + id
                     + "' field 'muzzleOffsetCells' must be finite and non-negative");
+        }
+        if (!Float.isFinite(muzzleLateralOffsetCells) || muzzleLateralOffsetCells < 0f) {
+            throw new JSONException("Turret definition '" + id
+                    + "' field 'muzzleLateralOffsetCells' must be finite and non-negative");
         }
         String sprite = render != null ? optionalText(render, "sprite") : null;
         String recoilSprite = render != null ? optionalText(render, "recoilSprite") : null;
@@ -85,7 +98,7 @@ public final class TurretMountDef {
         }
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
-                sprite, recoilSprite);
+                muzzleLateralOffsetCells, sprite, recoilSprite);
     }
 
     static String requireText(JSONObject json, String key) throws JSONException {

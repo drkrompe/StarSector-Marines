@@ -79,6 +79,29 @@ public class TurretBehaviorTest {
     }
 
     @Test
+    public void vulcanBurstAlternatesAcrossItsPosedBarrels() {
+        BattleSimulation sim = openArena(40, 40, 12345L);
+        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 10));
+        sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 10, 20));
+
+        TurretBehavior.INSTANCE.update(turret, sim);
+        ShotEvent first = sim.getActiveShots().get(0);
+        sim.turretState().setBurstTimer(turret, 0f);
+        TurretBehavior.INSTANCE.update(turret, sim);
+        ShotEvent second = sim.getActiveShots().get(1);
+
+        TurretMountDef mount = sim.turretState().structure(turret).mount;
+        assertEquals(sim.world().x(turret) - mount.muzzleLateralOffsetCells,
+                first.fromX, 1e-4f);
+        assertEquals(sim.world().x(turret) + mount.muzzleLateralOffsetCells,
+                second.fromX, 1e-4f);
+        assertEquals(sim.world().y(turret) + mount.muzzleOffsetCells,
+                first.fromY, 1e-4f);
+        assertEquals(first.fromY, second.fromY, 1e-4f);
+    }
+
+    @Test
     public void hephaestusIsAuthoredAsTheSlowDirectHitAntiArmorCannon() {
         var cannon = TurretCatalogRegistry.requireStructure(
                 TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID).mount.weapon;

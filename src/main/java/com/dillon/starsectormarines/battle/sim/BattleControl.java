@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
@@ -87,6 +88,12 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     /** Mech fire with explicit accuracy multiplier (LRM indirect-fire path). */
     void fireMechWeapon(long shooter, long target, WeaponDef weapon, float accuracyMult);
+
+    /** Fires one installed mount from its carrier-owned posed hardpoint. */
+    default void fireMechWeapon(long shooter, long target, MechWeaponMount mount,
+                                float accuracyMult) {
+        fireMechWeapon(shooter, target, mount.weaponDef(), accuracyMult);
+    }
 
     /** Mint a new squad for {@code faction} led by an existing unit {@code leaderId} ({@code 0L} for a leaderless squad); returns the new squad id. */
     int mintSquad(Faction faction, long leaderId);
