@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -12,25 +13,26 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+
+import java.util.Objects;
 
 /**
- * Armored Support doctrine: pace a designated friendly infantry squad,
- * holding a cell behind their centroid (relative to the threat axis) at
- * follow distance. Fires all three weapons freely — no withhold gates,
- * the role's job is to backstop the friendlies with sustained heavy fire.
+ * Armored Support / Tank doctrine: pace a designated friendly infantry or
+ * non-Tank mech squad and hold a threat-facing cell in front of its centroid.
+ * Fires all three weapons freely — no withhold gates — but does not chase when
+ * no valid anchor exists.
  *
  * <p>"Designated squad" is picked lazily at the first execute tick: the
- * nearest alive same-side infantry squad (any non-mech squad on the
- * mech's faction). Cached on {@link MechLoadoutComponent#assignedSquadId};
- * cleared back to -1 when the backed squad gets wiped, so the next tick
- * re-picks. The commander tier (future) will overwrite this with
- * explicit assignments via {@code ObjectiveAssignment}; until then this
- * heuristic is enough to give the mech a stable friendly to pace.
+ * nearest eligible same-side squad. A pure Tank squad is not eligible to
+ * anchor another Tank, preventing two support elements from selecting each
+ * other cyclically. Cached on {@link MechLoadoutComponent#assignedSquadId};
+ * cleared back to -1 when the backed squad gets wiped, leaves the local
+ * mission, or moves outside the acquisition cap, so the next tick re-picks.
+ * Explicit squad assignments constrain which anchor relationships are legal.
  *
- * <p>"Behind" direction = away from the squad's {@code lastSeenEnemy}
- * (the known threat axis). Without a known threat, "behind" is undefined
- * and the mech just holds within follow distance of the centroid — the
- * "march together" early posture before contact.
+ * <p>"Front" direction = toward the best known threat axis. Without a known
+ * threat, the mech closes to the anchor centroid and waits for contact.
  *
  * <p>Per-member role branching matches {@link OverwatchKillZone}:
  * ARMORED_SUPPORT members run this body; everyone else falls through to
@@ -46,7 +48,9 @@ public final class BackstopAssignedSquad implements Action {
      * cells beyond the marines' 24-cell rifle envelope — the mech adds
      * "outranging support fire" without crowding the squad's own LoS.
      */
-    private static final float FOLLOW_DISTANCE = 4f;
+    static final float FRONT_DISTANCE = 4f;
+    /** Nearby unassigned allies may be adopted without inventing an across-map task. */
+    static final float MAX_ANCHOR_ACQUIRE_DISTANCE = 18f;
     /**
      * How far the backed squad's centroid can drift from the cached
      * backstop anchor before we re-pick. Keeps the action from re-pathing
@@ -71,23 +75,25 @@ public final class BackstopAssignedSquad implements Action {
         // Non-ARMORED_SUPPORT members fall through to parity (mixed squads).
         // Loadout reached by id (zero-alloc direct lookup).
         MechLoadoutComponent m = sim.world().mechLoadout(member);
-        if (m == null || m.role != MechRole.ARMORED_SUPPORT) {
+        if (m == null || m.effectiveRole() != MechRole.ARMORED_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }
 
         // Pick or refresh the backed squad. Lazy pick on first call;
         // re-pick when the cached assignment is wiped or gone.
         Squad backed = m.assignedSquadId >= 0 ? sim.getSquad(m.assignedSquadId) : null;
-        if (backed == null || backed.aliveMembers == 0) {
+        if (!isEligibleAnchor(backed, squad, sim)
+                || !isMissionLegalAnchor(backed, squad, sim)
+                || !isWithinAnchorCap(member, backed, sim)) {
             backed = pickBackedSquad(member, squad, sim);
             m.assignedSquadId = backed != null ? backed.id : -1;
         }
         if (backed == null) {
-            // No friendly infantry squad to back — drop to parity engagement.
-            return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
+            holdAndDefend(member, m, sim);
+            return ActionStatus.RUNNING;
         }
 
-        // Pick or refresh the backstop cell behind the backed squad's
+        // Pick or refresh the frontline cell ahead of the backed squad's
         // centroid. Refresh when the centroid has drifted past the
         // re-pick threshold or we have no cached cell yet.
         boolean needsRepick = m.overwatchCellX < 0;
@@ -97,20 +103,36 @@ public final class BackstopAssignedSquad implements Action {
                     backed.centroidX, backed.centroidY);
             needsRepick = drift > REPICK_DRIFT_CELLS;
         }
+        int threatX = knownThreatX(squad);
+        int threatY = knownThreatY(squad);
+        needsRepick |= m.frontlineThreatX != threatX || m.frontlineThreatY != threatY;
         if (needsRepick) {
             int[] anchor = pickBackstopCell(member, squad, backed, sim);
+            anchor = MechAssignmentBoundary.constrain(
+                    member, squad, anchor, sim);
             if (anchor == null) {
-                return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
+                holdAndDefend(member, m, sim);
+                return ActionStatus.RUNNING;
             }
             m.overwatchCellX = anchor[0];
             m.overwatchCellY = anchor[1];
             m.overwatchAxisX = Math.round(backed.centroidX);
             m.overwatchAxisY = Math.round(backed.centroidY);
+            m.frontlineThreatX = threatX;
+            m.frontlineThreatY = threatY;
         }
 
         // Path to the backstop cell. Same idempotent pattern as overwatch.
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
+        boolean stalePath = !Paths.isEmpty(path)
+                && (Paths.destX(path) != m.overwatchCellX
+                || Paths.destY(path) != m.overwatchCellY);
+        if (stalePath) {
+            sim.clearPath(member);
+            path = sim.world().path(member);
+            pathIdx = sim.world().pathIdx(member);
+        }
         if (!sim.movement().atCell(member, m.overwatchCellX, m.overwatchCellY)
                 && sim.movement().mayRepath(member)
                 && pathIdx >= Paths.cellCount(path)) {
@@ -125,8 +147,18 @@ public final class BackstopAssignedSquad implements Action {
             sim.advanceMovement(member);
         }
 
-        // Fire pass — all three weapons free. Backstop doctrine is "throw
-        // everything you have at whatever the marines are shooting at."
+        fireAtCurrentThreat(member, m, sim);
+        return ActionStatus.RUNNING;
+    }
+
+    private static void holdAndDefend(long member, MechLoadoutComponent loadout,
+                                      BattleControl sim) {
+        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+        fireAtCurrentThreat(member, loadout, sim);
+    }
+
+    private static void fireAtCurrentThreat(long member, MechLoadoutComponent loadout,
+                                            BattleControl sim) {
         long target = MechTargeting.refreshTarget(member, sim);
         sim.world().setTargetId(member, target);
         if (target != 0L) {
@@ -135,43 +167,108 @@ public final class BackstopAssignedSquad implements Action {
             boolean inRange = dist <= sim.world().attackRange(member);
             boolean visible = sim.getTacticalScoring().hasClearShot(member, target);
             if (inRange) {
-                MechCombatantBehavior.tryFireMechWeapons(member, m, target, dist, sim, visible);
+                MechCombatantBehavior.tryFireMechWeapons(
+                        member, loadout, target, dist, sim, visible);
             }
         }
-        return ActionStatus.RUNNING;
     }
 
     /**
-     * Picks the nearest alive same-side infantry squad as the mech's backstop
-     * target. Returns {@code null} when no friendly infantry squad exists
-     * (mech-only side, or all infantry wiped) — caller falls back to parity.
+     * Picks the nearest eligible same-side infantry or non-cyclic mech squad.
      */
-    private static Squad pickBackedSquad(long member, Squad selfSquad, BattleView sim) {
+    static Squad pickBackedSquad(long member, Squad selfSquad, BattleView sim) {
         Squad best = null;
         float bestDist = Float.MAX_VALUE;
+        boolean bestSharesMission = false;
         for (Squad other : sim.getSquads()) {
-            if (other.id == selfSquad.id) continue;
-            if (other.faction != selfSquad.faction) continue;
-            if (other.aliveMembers == 0) continue;
-            if (other.isMechSquad()) continue;
+            if (!isEligibleAnchor(other, selfSquad, sim)) continue;
+            if (!isMissionLegalAnchor(other, selfSquad, sim)) continue;
             float dist = TacticalScoring.cellDistance(
                     sim.world().x(member), sim.world().y(member),
                     other.centroidX, other.centroidY);
-            if (dist < bestDist) {
+            if (dist > MAX_ANCHOR_ACQUIRE_DISTANCE) continue;
+            boolean sharesMission = other.id == selfSquad.id
+                    || sharesMissionTarget(selfSquad, other);
+            if (best == null || (sharesMission && !bestSharesMission)
+                    || (sharesMission == bestSharesMission
+                    && (dist < bestDist
+                    || (dist == bestDist && other.id < best.id)))) {
                 bestDist = dist;
                 best = other;
+                bestSharesMission = sharesMission;
             }
         }
         return best;
     }
 
+    private static boolean isMissionLegalAnchor(Squad candidate,
+                                                Squad selfSquad,
+                                                BattleView sim) {
+        if (!MechAssignmentBoundary.hasSupportedAssignment(selfSquad, sim)) {
+            return true;
+        }
+        return candidate.id == selfSquad.id
+                || sharesMissionTarget(selfSquad, candidate);
+    }
+
+    private static boolean isWithinAnchorCap(long member, Squad candidate,
+                                             BattleView sim) {
+        return candidate != null && TacticalScoring.cellDistance(
+                sim.world().x(member), sim.world().y(member),
+                candidate.centroidX, candidate.centroidY)
+                <= MAX_ANCHOR_ACQUIRE_DISTANCE;
+    }
+
+    static boolean isEligibleAnchor(Squad candidate, Squad selfSquad, BattleView sim) {
+        if (candidate == null || candidate.faction != selfSquad.faction
+                || candidate.aliveMembers == 0 || candidate.isDroneSquad()) {
+            return false;
+        }
+        if (candidate.rescuePickupMech) return false;
+        if (!candidate.isMechSquad()) {
+            for (int i = 0, n = sim.squadMemberCount(candidate.id); i < n; i++) {
+                UnitType type = sim.identity().type(sim.squadMemberAt(candidate.id, i));
+                if (type == UnitType.MARINE || type == UnitType.MARINE_BLUE
+                        || type == UnitType.MARINE_RED || type == UnitType.MILITIA) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        for (int i = 0, n = sim.squadMemberCount(candidate.id); i < n; i++) {
+            MechLoadoutComponent loadout =
+                    sim.world().mechLoadout(sim.squadMemberAt(candidate.id, i));
+            if (loadout != null
+                    && loadout.effectiveRole() != MechRole.ARMORED_SUPPORT) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean sharesMissionTarget(Squad first, Squad second) {
+        ObjectiveAssignment a = first.assignmentForExecution();
+        ObjectiveAssignment b = second.assignmentForExecution();
+        if (a == null || b == null || a.kind() != b.kind()) return false;
+        if (a.objectiveId() >= 0 || b.objectiveId() >= 0) {
+            return a.objectiveId() >= 0 && a.objectiveId() == b.objectiveId();
+        }
+        if (a.targetNode() != null || b.targetNode() != null) {
+            return a.targetNode() != null && Objects.equals(
+                    a.targetNode(), b.targetNode());
+        }
+        if (a.targetZoneId() >= 0 || b.targetZoneId() >= 0) {
+            return a.targetZoneId() >= 0 && a.targetZoneId() == b.targetZoneId();
+        }
+        return a.targetCellX() >= 0 && a.targetCellY() >= 0
+                && a.targetCellX() == b.targetCellX()
+                && a.targetCellY() == b.targetCellY();
+    }
+
     /**
-     * Picks a walkable cell {@link #FOLLOW_DISTANCE} cells behind
-     * {@code backed.centroid} (relative to the known threat axis). Without
-     * a known threat ({@code lastSeenEnemy} unset on the mech's squad),
-     * "behind" is undefined and the picker falls back to the centroid
-     * itself (the mech holds within walking range until contact gives a
-     * direction to anchor against).
+     * Picks a walkable cell {@link #FRONT_DISTANCE} cells toward the known
+     * threat from {@code backed.centroid}. Without a known threat, the anchor
+     * is the centroid itself.
      *
      * <p>Spirals out from the desired anchor cell to find a walkable
      * neighbor when the exact cell is blocked — same shape as
@@ -184,13 +281,10 @@ public final class BackstopAssignedSquad implements Action {
         float cx = backed.centroidX;
         float cy = backed.centroidY;
 
-        // Compute the "behind" unit vector. Defaults to the direction from
-        // the mech's current cell to the centroid (so it just trails the
-        // squad) when no contact is known.
-        float threatDx = selfSquad.lastSeenEnemyX >= 0 ? (selfSquad.lastSeenEnemyX + 0.5f) - cx
-                : cx - sim.world().x(member);
-        float threatDy = selfSquad.lastSeenEnemyY >= 0 ? (selfSquad.lastSeenEnemyY + 0.5f) - cy
-                : cy - sim.world().y(member);
+        int threatX = knownThreatX(selfSquad);
+        int threatY = knownThreatY(selfSquad);
+        float threatDx = threatX >= 0 ? (threatX + 0.5f) - cx : 0f;
+        float threatDy = threatY >= 0 ? (threatY + 0.5f) - cy : 0f;
         float len = (float) Math.sqrt(threatDx * threatDx + threatDy * threatDy);
         if (len < 1e-3f) {
             // Degenerate — mech is on top of the centroid with no threat
@@ -203,12 +297,8 @@ public final class BackstopAssignedSquad implements Action {
                     : null;
         }
         float invLen = 1f / len;
-        // "Behind" = away from threat → negate the threat vector.
-        float backDx = -threatDx * invLen;
-        float backDy = -threatDy * invLen;
-
-        int anchorX = (int) Math.floor(cx + backDx * FOLLOW_DISTANCE);
-        int anchorY = (int) Math.floor(cy + backDy * FOLLOW_DISTANCE);
+        int anchorX = (int) Math.floor(cx + threatDx * invLen * FRONT_DISTANCE);
+        int anchorY = (int) Math.floor(cy + threatDy * invLen * FRONT_DISTANCE);
 
         // Spiral out from the anchor to find a walkable cell.
         for (int r = 0; r <= 4; r++) {
@@ -224,5 +314,15 @@ public final class BackstopAssignedSquad implements Action {
             }
         }
         return null;
+    }
+
+    private static int knownThreatX(Squad selfSquad) {
+        return selfSquad.lastSeenEnemyX >= 0 && selfSquad.lastSeenEnemyY >= 0
+                ? selfSquad.lastSeenEnemyX : -1;
+    }
+
+    private static int knownThreatY(Squad selfSquad) {
+        return selfSquad.lastSeenEnemyX >= 0 && selfSquad.lastSeenEnemyY >= 0
+                ? selfSquad.lastSeenEnemyY : -1;
     }
 }

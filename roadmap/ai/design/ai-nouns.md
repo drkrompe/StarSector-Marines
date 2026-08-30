@@ -8,7 +8,11 @@ Updated: 2026-08-30 — added the two onset moments: somebody opening at close
 quarters, and somebody taking this marine as their target. Both are situations
 rather than places, which is what lets a screen answer them in a room, a
 breach, a treeline or a hallway.
-Earlier: added the attack move and its cooperating group: an
+
+Also 2026-08-30 — made battle Mech role overrides a serialized local-plan
+interrupt while preserving mission authority, beliefs, and per-member doctrine.
+
+Earlier: 2026-08-29 — added the attack move and its cooperating group: an
 order whose destination survives contact, and squads under one that split into
 a squad fixing and a squad maneuvering rather than each forming its own line.
 Also that day — an emplacement is never a shot of opportunity: a
@@ -954,6 +958,21 @@ domain, not a replacement for chassis or loadout identity; a battle lance may
 form while moving without merging unrelated squads. `company-view-nouns.md`
 owns fireteam membership and company organization, while AI consumes that
 organization for maneuver.
+
+Mission command still chooses the assignment and its legal destination. Each
+live mech applies its own effective role as the manner of serving that
+assignment: Brawler closes, Frontline Support attaches and leads from the
+threat-facing side, Long-Range Support preserves standoff and a credible
+screen, and Balanced uses a general direct-fire band. A shared lance plan may
+coordinate those members but may not choose one role on behalf of all of them.
+
+A legal player role request is a serialized command-phase interrupt, not a new
+source of authority. Applying it clears role-owned cached positions and asks
+the squad to replan immediately while retaining assignment, contact picture,
+morale, and combat state. The new role therefore acts only on facts the squad
+could already use and remains subordinate to survival, rescue, and mission
+laws. Rejecting an enemy, non-mech, rescue payload, or vanished identity is part
+of that authority boundary.
 
 ## Mission, space, and feature boundaries
 

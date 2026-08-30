@@ -1181,7 +1181,13 @@ public final class SquadStateDumper {
             MechVariant mechVariant = sim.identity().mechVariant(u);
             MechLoadoutComponent mechLoadout = sim.world().mechLoadout(u);
             o.put("mechVariant", mechVariant != null ? mechVariant.id : null);
-            o.put("mechRole", mechLoadout != null ? mechLoadout.role.name() : null);
+            o.put("mechRole", mechLoadout != null
+                    ? mechLoadout.effectiveRole().name() : null);
+            o.put("mechDeployedRole", mechLoadout != null
+                    ? mechLoadout.deployedRole().name() : null);
+            o.put("mechBattleOverride", mechLoadout != null
+                    && mechLoadout.battleOverride() != null
+                    ? mechLoadout.battleOverride().name() : null);
             o.put("overwatchCellX", mechLoadout != null ? mechLoadout.overwatchCellX : null);
             o.put("overwatchCellY", mechLoadout != null ? mechLoadout.overwatchCellY : null);
             o.put("overwatchLongRangeBand",

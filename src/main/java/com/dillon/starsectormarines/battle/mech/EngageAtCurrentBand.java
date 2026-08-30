@@ -10,21 +10,18 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
- * Mech parity action — the GOAP-side equivalent of the legacy
- * {@code MechCombatantBehavior.update} loop. Picks
- * a target, fires all installed weapon tracks at whichever bands their targets
- * sit in, and advances toward a firing position when not already in close
- * engagement. No role gating — every mech runs this regardless of doctrine.
+ * Balanced doctrine's direct-fire action. It picks a target, fires every
+ * installed weapon that is currently in band, and closes only far enough to
+ * establish a medium direct-fire lane. A close visible threat is handled in
+ * place instead of pulling the mech away from its current mission posture.
  *
- * <p>This is the floor: the {@code MechEliminateEnemies} ambient goal plans
- * a single-step plan of this action, and {@code GoapMechBehavior} executes
- * it for every member each tick. Role-anchored actions (overwatch /
- * backstop) layer on top in subsequent slices and override this for
- * mechs whose {@link com.dillon.starsectormarines.battle.mech.MechRole}-keyed
- * goal has higher relevance.
+ * <p>{@link ExecuteMechDoctrine} routes Balanced members here from the shared
+ * squad plan. Specialized doctrine actions may also use it as a defensive
+ * fallback when their own geometry cannot be established.
  *
  * <p>Always returns {@link ActionStatus#RUNNING} — there's no terminal
  * "engagement complete" state. The plan re-runs every tick; replan
@@ -38,6 +35,7 @@ public final class EngageAtCurrentBand implements Action {
     private static final WorldState PRE = WorldState.EMPTY;
     private static final WorldState EFF = WorldState.EMPTY
             .with(Predicate.ENEMY_DAMAGED, true);
+    private static final float MEDIUM_BAND_DEPTH = 6f;
 
     private EngageAtCurrentBand() {}
 
@@ -51,7 +49,10 @@ public final class EngageAtCurrentBand implements Action {
     public ActionStatus execute(long u, Squad squad, BattleControl sim) {
         long target = MechTargeting.refreshTarget(u, sim);
         sim.world().setTargetId(u, target);
-        if (target == 0L) return ActionStatus.RUNNING;
+        if (target == 0L) {
+            MechAssignmentBoundary.advanceToMission(u, squad, sim);
+            return ActionStatus.RUNNING;
+        }
 
         // Loadout component reached by id (zero-alloc direct lookup).
         MechLoadoutComponent m = sim.world().mechLoadout(u);
@@ -72,24 +73,77 @@ public final class EngageAtCurrentBand implements Action {
         // mech advances toward a firing position so it can re-acquire LOS for
         // its short-range weapons (LRMs already fire from here via the
         // indirect path above).
-        float preferredDirectRange = m.preferredDirectRange();
-        boolean closeEngagement = inRange && visible && dist <= preferredDirectRange;
-        if (!closeEngagement && sim.movement().mayRepath(u)) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
+        float preferredDirectRange = m.mediumDirectRange();
+        boolean targetInsideCommand = MechAssignmentBoundary.permitsCell(
+                u, squad, sim.world().cellX(target), sim.world().cellY(target), sim);
+        boolean closeEngagement = inRange && visible
+                && dist <= preferredDirectRange && targetInsideCommand;
+        if (closeEngagement && !Paths.isEmpty(sim.world().path(u))) {
+            sim.clearPath(u);
+        } else if (!closeEngagement && sim.movement().mayRepath(u)) {
+            int[] dest = findMediumDirectPosition(
+                    u, target, preferredDirectRange, sim);
+            dest = MechAssignmentBoundary.constrain(u, squad, dest, sim);
             if (dest == null) {
                 // No reachable firing or vantage cell for the current target.
                 // Drop and let the mech's per-tick target acquisition re-pick.
                 // LRM indirect fire above already ran for this tick — chaingun /
                 // SRM stay quiet until a reachable target is acquired.
                 sim.world().setTargetId(u, 0L);
+                if (!Paths.isEmpty(sim.world().path(u))) sim.clearPath(u);
             } else {
-                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(u), sim.world().cellY(u), dest[0], dest[1], sim.getOccupancyMap()));
+                MechAssignmentBoundary.moveToward(
+                        u, dest[0], dest[1], sim);
+                return ActionStatus.RUNNING;
             }
         }
         if (sim.world().pathIdx(u) < Paths.cellCount(sim.world().path(u))) {
             sim.advanceMovement(u);
         }
         return ActionStatus.RUNNING;
+    }
+
+    static int[] findMediumDirectPosition(long member, long target,
+                                          float preferredRange,
+                                          BattleView sim) {
+        if (preferredRange <= 0f) return null;
+        NavigationGrid grid = sim.getGrid();
+        int memberX = sim.world().cellX(member);
+        int memberY = sim.world().cellY(member);
+        int[] connected = GridPathfinder.labelConnectedComponents(grid);
+        int memberComponent = grid.inBounds(memberX, memberY)
+                ? connected[grid.index(memberX, memberY)] : -1;
+        if (memberComponent < 0) return null;
+
+        float targetX = sim.world().x(target);
+        float targetY = sim.world().y(target);
+        int centerX = sim.world().cellX(target);
+        int centerY = sim.world().cellY(target);
+        int radius = (int) Math.ceil(preferredRange);
+        float minimumRange = Math.max(4f, preferredRange - MEDIUM_BAND_DEPTH);
+        int[] best = null;
+        float bestScore = Float.MAX_VALUE;
+        for (int oy = -radius; oy <= radius; oy++) {
+            for (int ox = -radius; ox <= radius; ox++) {
+                int x = centerX + ox;
+                int y = centerY + oy;
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)
+                        || connected[grid.index(x, y)] != memberComponent) continue;
+                float targetDx = x + 0.5f - targetX;
+                float targetDy = y + 0.5f - targetY;
+                float targetDistance =
+                        (float) Math.sqrt(targetDx * targetDx + targetDy * targetDy);
+                if (targetDistance < minimumRange || targetDistance > preferredRange) continue;
+                if (!grid.hasLineOfFire(x + 0.5f, y + 0.5f, targetX, targetY)) continue;
+                float walk = TacticalScoring.cellDistance(
+                        sim.world().x(member), sim.world().y(member), x + 0.5f, y + 0.5f);
+                float score = walk + (preferredRange - targetDistance) * 0.25f;
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = new int[]{x, y};
+                }
+            }
+        }
+        return best;
     }
 }

@@ -11,8 +11,10 @@ import java.util.List;
  * from the main loop (not the {@code @DebugOnly} squad-plan panel): reads the
  * shared {@link Selection} and, when a squad is picked, fills
  * {@link HighlightOverlay#SRC_SELECTED_SQUAD} with that squad's live members in
- * green. This is the real selection-feedback cue — it works in a prod build
- * where the debug panel is stripped.
+ * green. When the selection also pins one exact member, a separate gold source
+ * paints that member last so mixed-role mech lances retain an unambiguous
+ * player-facing primary selection. This is the real selection-feedback cue —
+ * it works in a prod build where the debug panel is stripped.
  *
  * <p>Self-healing: an empty member list (squad wiped out, or a stale id after
  * the squad disappeared) drops the source via {@link HighlightOverlay#put}; no
@@ -30,14 +32,25 @@ public final class SelectionHighlightPublisher {
         int squadId = selection.getSelectedSquadId();
         if (squadId == Selection.NONE) {
             overlay.clear(HighlightOverlay.SRC_SELECTED_SQUAD);
+            overlay.clear(HighlightOverlay.SRC_SELECTED_UNIT);
             return;
         }
         List<CellHighlight> members = new ArrayList<>();
+        List<CellHighlight> selected = new ArrayList<>(1);
+        long selectedUnit = selection.getSelectedUnitEntityId();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squadId) continue;
-            members.add(new CellHighlight(sim.world().cellX(u), sim.world().cellY(u), HighlightOverlay.COLOR_SELECTED_UNIT));
+            int cellX = sim.world().cellX(u);
+            int cellY = sim.world().cellY(u);
+            members.add(new CellHighlight(
+                    cellX, cellY, HighlightOverlay.COLOR_SELECTED_UNIT));
+            if (u == selectedUnit) {
+                selected.add(new CellHighlight(
+                        cellX, cellY, HighlightOverlay.COLOR_SELECTED_PRIMARY));
+            }
         }
         overlay.put(HighlightOverlay.SRC_SELECTED_SQUAD, members);
+        overlay.put(HighlightOverlay.SRC_SELECTED_UNIT, selected);
     }
 }

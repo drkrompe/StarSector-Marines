@@ -34,11 +34,11 @@ class MechScreenAdvanceTest {
         for (Faction faction : List.of(Faction.MARINE, Faction.DEFENDER)) {
             Fixture f = fixture(faction);
             Faction enemyFaction = opposite(faction);
-            spawnMech(f.sim, enemyFaction, MechRole.ASSAULT, 12, 15, false, true);
-            spawnMech(f.sim, faction, MechRole.ARMORED_SUPPORT, 13, 15, false, true);
-            spawnMech(f.sim, faction, MechRole.ASSAULT, 14, 15, true, true);
-            spawnMech(f.sim, faction, MechRole.ASSAULT, 15, 15, false, false);
-            spawnMech(f.sim, faction, MechRole.ASSAULT, 2, 15, false, true);
+            spawnMech(f.sim, enemyFaction, MechRole.ARMORED_SUPPORT, 12, 15, false, true);
+            spawnMech(f.sim, faction, MechRole.ASSAULT, 13, 15, false, true);
+            spawnMech(f.sim, faction, MechRole.ARMORED_SUPPORT, 14, 15, true, true);
+            spawnMech(f.sim, faction, MechRole.ARMORED_SUPPORT, 15, 15, false, false);
+            spawnMech(f.sim, faction, MechRole.ARMORED_SUPPORT, 2, 15, false, true);
 
             assertEquals(f.mech, MechScreenAdvance.selectScreeningMech(
                     f.squad, TARGET_ZONE, DEST_X, DEST_Y, f.sim), faction.name());
@@ -46,12 +46,13 @@ class MechScreenAdvanceTest {
     }
 
     @Test
-    void selectorReturnsNoScreenForEnemyNonAssaultOrRescueMechs() {
+    void selectorReturnsNoScreenForEnemyNonTankOrRescueMechs() {
         Fixture f = fixture(Faction.MARINE);
-        f.sim.world().mechLoadout(f.mech).role = MechRole.ARMORED_SUPPORT;
-        spawnMech(f.sim, Faction.DEFENDER, MechRole.ASSAULT, 12, 15, false, true);
-        spawnMech(f.sim, Faction.MARINE, MechRole.ARMORED_SUPPORT, 13, 15, false, true);
-        spawnMech(f.sim, Faction.MARINE, MechRole.ASSAULT, 14, 15, true, true);
+        f.sim.world().mechLoadout(f.mech)
+                .applyBattleOverride(MechRole.ASSAULT);
+        spawnMech(f.sim, Faction.DEFENDER, MechRole.ARMORED_SUPPORT, 12, 15, false, true);
+        spawnMech(f.sim, Faction.MARINE, MechRole.ASSAULT, 13, 15, false, true);
+        spawnMech(f.sim, Faction.MARINE, MechRole.ARMORED_SUPPORT, 14, 15, true, true);
 
         assertEquals(0L, MechScreenAdvance.selectScreeningMech(
                 f.squad, TARGET_ZONE, DEST_X, DEST_Y, f.sim));
@@ -60,14 +61,15 @@ class MechScreenAdvanceTest {
     @Test
     void unassignedFallbackMustAlreadyBeNearAndOnTheObjectiveAxis() {
         Fixture f = fixture(Faction.MARINE);
-        f.sim.world().mechLoadout(f.mech).role = MechRole.ARMORED_SUPPORT;
-        spawnMech(f.sim, Faction.MARINE, MechRole.ASSAULT, 15, 25, false, false);
+        f.sim.world().mechLoadout(f.mech)
+                .applyBattleOverride(MechRole.ASSAULT);
+        spawnMech(f.sim, Faction.MARINE, MechRole.ARMORED_SUPPORT, 15, 25, false, false);
 
         assertEquals(0L, MechScreenAdvance.selectScreeningMech(
                 f.squad, TARGET_ZONE, DEST_X, DEST_Y, f.sim));
 
         long axial = spawnMech(f.sim, Faction.MARINE,
-                MechRole.ASSAULT, 15, 18, false, false);
+                MechRole.ARMORED_SUPPORT, 15, 18, false, false);
         assertEquals(axial, MechScreenAdvance.selectScreeningMech(
                 f.squad, TARGET_ZONE, DEST_X, DEST_Y, f.sim));
     }
@@ -137,12 +139,13 @@ class MechScreenAdvanceTest {
     }
 
     @Test
-    void losingTheAssaultRoleImmediatelyFallsBackToOrdinaryEnterZoneMovement() {
+    void losingTheTankRoleImmediatelyFallsBackToOrdinaryEnterZoneMovement() {
         Fixture f = fixture(Faction.MARINE);
         f.action.execute(f.members.get(0), f.squad, f.sim);
         assertEquals(f.mech, f.squad.screeningMechId);
 
-        f.sim.world().mechLoadout(f.mech).role = MechRole.ARMORED_SUPPORT;
+        f.sim.world().mechLoadout(f.mech)
+                .applyBattleOverride(MechRole.ASSAULT);
         f.squad.mechScreenTick = -1;
         long member = f.members.get(0);
         f.action.execute(member, f.squad, f.sim);
@@ -169,7 +172,7 @@ class MechScreenAdvanceTest {
         squad.centroidY = 15.5f;
         squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, TARGET_ZONE);
 
-        long mech = spawnMech(sim, faction, MechRole.ASSAULT, 20, 15, false, true);
+        long mech = spawnMech(sim, faction, MechRole.ARMORED_SUPPORT, 20, 15, false, true);
         long enemy = sim.spawn(new EntitySpec("enemy", opposite(faction),
                 UnitType.MARINE, 42, 15));
 

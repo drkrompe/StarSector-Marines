@@ -32,7 +32,7 @@ class AssaultAssignedObjectiveTest {
 
         GoapMechBehavior.replanIfNeeded(squad, sim);
 
-        assertSame(AssaultAssignedObjectiveGoal.INSTANCE, squad.currentGoal);
+        assertSame(MechAssignedObjectiveGoal.INSTANCE, squad.currentGoal);
         GoapMechBehavior.INSTANCE.update(mech, sim);
         int[] path = sim.movement().path(mech);
         assertTrue(Paths.cellCount(path) > 0, "assigned assault should author a route");
@@ -59,7 +59,7 @@ class AssaultAssignedObjectiveTest {
     }
 
     @Test
-    void unsupportedAssaultMechHoldsInsteadOfSoloCharging() {
+    void unsupportedBrawlerAdvancesOnItsOwn() {
         BattleSimulation sim = openSimulation(24, 12);
         Squad squad = assaultSquad(sim, Faction.MARINE, 3, 5);
         long mech = squad.leaderId;
@@ -71,8 +71,9 @@ class AssaultAssignedObjectiveTest {
         sim.setPath(mech, GridPathfinder.findPath(sim.getGrid(), 3, 5, 15, 5));
         GoapMechBehavior.INSTANCE.update(mech, sim);
 
-        assertTrue(Paths.isEmpty(sim.movement().path(mech)),
-                "a Hound without nearby infantry or another mech must not charge");
+        assertTrue(Paths.cellCount(sim.movement().path(mech)) > 0,
+                "Brawler doctrine may prosecute a known contact without support");
+        assertTrue(Paths.destX(sim.movement().path(mech)) > 3);
     }
 
     @Test
@@ -117,7 +118,7 @@ class AssaultAssignedObjectiveTest {
     }
 
     @Test
-    void anotherHoundCannotReleaseAnUnsupportedAssaultAdvance() {
+    void anotherHoundIsNotRequiredToReleaseTheBrawlerAdvance() {
         BattleSimulation sim = openSimulation(32, 12);
         Squad squad = assaultSquad(sim, Faction.MARINE, 3, 5);
         long mech = squad.leaderId;
@@ -129,16 +130,16 @@ class AssaultAssignedObjectiveTest {
         GoapMechBehavior.replanIfNeeded(squad, sim);
         GoapMechBehavior.INSTANCE.update(mech, sim);
 
-        assertTrue(Paths.isEmpty(sim.movement().path(mech)),
-                "Hounds must not treat one another as the supporting formation");
+        assertTrue(Paths.cellCount(sim.movement().path(mech)) > 0,
+                "same-chassis support remains ineligible but no longer gates Brawler initiative");
     }
 
     @Test
-    void enemyAndDistantFriendliesDoNotCountAsSupport() {
+    void enemyAndDistantFriendliesDoNotGateIndependentAdvance() {
         BattleSimulation sim = openSimulation(40, 12);
         Squad squad = assaultSquad(sim, Faction.MARINE, 3, 5);
         long mech = squad.leaderId;
-        spawnInfantrySupport(sim, Faction.DEFENDER, 4, 5);
+        spawnInfantrySupport(sim, Faction.DEFENDER, 30, 5);
         spawnInfantrySupport(sim, Faction.MARINE, 20, 5);
         squad.lastSeenEnemyX = 30;
         squad.lastSeenEnemyY = 5;
@@ -146,7 +147,7 @@ class AssaultAssignedObjectiveTest {
         GoapMechBehavior.replanIfNeeded(squad, sim);
         GoapMechBehavior.INSTANCE.update(mech, sim);
 
-        assertTrue(Paths.isEmpty(sim.movement().path(mech)));
+        assertTrue(Paths.cellCount(sim.movement().path(mech)) > 0);
     }
 
     @Test

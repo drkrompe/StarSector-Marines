@@ -13,28 +13,31 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
  * The room as a grid of cells, drawn to be edited rather than to be admired.
  *
- * <p>Deliberately <b>not</b> a picture of the finished room. Law 17 says a deck
- * is seen through the battle renderer, and this view would lose that argument
- * instantly — so it does not try to have it. What it draws is what the renderer
- * cannot: which cells are deck at all, which are reserved circulation, what
- * ground has been painted where, and which step is anchored on which cell. Those
- * are authoring facts, invisible in a render by design, and this is the
- * annotated second view law 17 explicitly allows.
+ * <p>The room itself is drawn by the battle renderer and handed here as a
+ * backdrop — law 17 keeps the picture where it belongs, and choosing between a
+ * vent plate and hazard striping is a decision that can only be made by looking
+ * at them. What this view adds on top is what a render cannot say: which cells
+ * are deck at all, which are reserved circulation, and which step is anchored
+ * where. Those are authoring facts, invisible in a render by design, and this is
+ * the annotation law 17 explicitly allows.
  *
- * <p>The render is beside it. An author reads the two together: this one to see
- * what they are editing, that one to see what they will get.
+ * <p>The marks are drawn light over the art rather than instead of it. An
+ * earlier version painted flat colours for everything and was perfectly clear
+ * about reservations while being useless for the one question the deck screen
+ * exists to answer.
  */
 public final class RoomGridView extends JComponent {
 
     private static final Color VOID = new Color(0x14, 0x18, 0x1e);
     private static final Color DECK = new Color(0x36, 0x40, 0x4c);
-    private static final Color LANE = new Color(0x4d, 0x7e, 0xa0);
+    private static final Color LANE_WASH = new Color(0x4d, 0x7e, 0xa0, 0x66);
     private static final Color GRID = new Color(0x00, 0x00, 0x00, 60);
     private static final Color FIXTURE_FILL = new Color(0xd8, 0xc2, 0x7a);
     private static final Color PAVING = new Color(0x5a, 0x6a, 0x50);
@@ -53,6 +56,8 @@ public final class RoomGridView extends JComponent {
     }
 
     private RoomDraft draft;
+    /** The room as the renderer draws it, one image pixel-aligned to the grid. */
+    private BufferedImage backdrop;
     private int cellPx = 22;
     private int hoverX = -1;
     private int hoverY = -1;
@@ -96,6 +101,22 @@ public final class RoomGridView extends JComponent {
         repaint();
     }
 
+    /**
+     * The picture to draw the marks over, or null while none has been made.
+     *
+     * <p>Kept until a newer one arrives rather than cleared while one is drawn,
+     * so an edit does not blank the room for as long as a render takes.
+     */
+    public void backdrop(BufferedImage picture) {
+        this.backdrop = picture;
+        repaint();
+    }
+
+    /** What one cell is drawn at, which a backdrop has to match to line up. */
+    public int cellPx() {
+        return cellPx;
+    }
+
     public void onClick(BiConsumer<Integer, Integer> handler) {
         this.onClick = handler == null ? (x, y) -> { } : handler;
     }
@@ -123,18 +144,31 @@ public final class RoomGridView extends JComponent {
             return;
         }
 
+        // The room as it will look, under everything. Drawn at its own size
+        // when it matches and scaled when it does not, because an edit that
+        // resizes the room arrives before the new picture does.
+        if (backdrop != null) {
+            g.drawImage(backdrop, 0, 0,
+                    draft.width() * cellPx, draft.height() * cellPx, null);
+        }
+
         for (int x = 0; x < draft.width(); x++) {
             for (int y = 0; y < draft.height(); y++) {
                 int px = x * cellPx;
                 int py = y * cellPx;
-                if (!draft.isFloor(x, y)) continue;
-
-                g.setColor(draft.isLane(x, y) ? LANE : DECK);
-                g.fillRect(px, py, cellPx, cellPx);
-
-                GroundKind ground = draft.groundAt(x, y);
-                if (ground != null) {
-                    g.setColor(washFor(ground));
+                if (!draft.isFloor(x, y)) {
+                    // Not deck at all: cover whatever the backdrop had there, so
+                    // a hole in the footprint reads as a hole.
+                    g.setColor(VOID);
+                    g.fillRect(px, py, cellPx, cellPx);
+                    continue;
+                }
+                if (backdrop == null) {
+                    g.setColor(DECK);
+                    g.fillRect(px, py, cellPx, cellPx);
+                }
+                if (draft.isLane(x, y)) {
+                    g.setColor(LANE_WASH);
                     g.fillRect(px, py, cellPx, cellPx);
                 }
                 g.setColor(GRID);
@@ -156,15 +190,16 @@ public final class RoomGridView extends JComponent {
                 for (LayoutOp op : here) {
                     if (op instanceof LayoutOp.Paving) {
                         g.setColor(PAVING);
-                        g.fillRect(px + 1, py + 1, cellPx - 2, cellPx - 2);
+                        g.drawRect(px + 1, py + 1, cellPx - 3, cellPx - 3);
                     }
                 }
                 for (LayoutOp op : here) {
                     if (op instanceof LayoutOp.Fixture fixture) {
+                        // Outlined rather than filled: the fixture's own art is
+                        // already under this, and covering it would hide the
+                        // thing the author is placing.
                         g.setColor(FIXTURE_FILL);
-                        g.fillRect(px + inset, py + inset,
-                                cellPx - inset * 2, cellPx - inset * 2);
-                        g.setColor(OUTLINE);
+                        g.setStroke(new BasicStroke(2f));
                         g.drawRect(px + inset, py + inset,
                                 cellPx - inset * 2, cellPx - inset * 2);
                         if (fixture.affordance() != null && cellPx >= 16) {
