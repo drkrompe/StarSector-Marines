@@ -99,7 +99,7 @@ public final class DebugTogglesPanel implements HudPanel {
         boolean isAction() { return checkboxState == null && !isDial(); }
     }
 
-    private static final float PANEL_W   = 280f;
+    static final float PANEL_W           = 280f;
     private static final float HEADER_H  = 24f;
     private static final float ROW_H     = 22f;
     private static final float CHECK_W   = 14f;
@@ -415,10 +415,12 @@ public final class DebugTogglesPanel implements HudPanel {
         return HEADER_H + (expanded ? rows.size() * ROW_H : 0f);
     }
 
-    /** Top-center under the controls strip — mirror of TickProfileDebugPanel's top-left anchor, just horizontally centered on the grid. */
+    /** Right half of the centered profiler + DEBUG developer-tool cluster. */
     private float panelX() {
         BattleLayout l = ctx.getLayout();
-        return l.gridX + (l.gridW - PANEL_W) / 2f;
+        return TickProfileDebugPanel.groupX(l)
+                + TickProfileDebugPanel.PANEL_W
+                + TickProfileDebugPanel.DEBUG_TOOLS_GAP;
     }
 
     /** Y of the panel's BOTTOM edge — render() builds upward from this. */

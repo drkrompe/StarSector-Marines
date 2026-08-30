@@ -33,41 +33,53 @@ class BattleRetreatOverlayModelTest {
         loader.reload();
         try (MarkupInstance instance = loader.build(
                 reactor, BattleRetreatOverlay.COMPONENT, model.props())) {
-            UiDocument document = document(instance);
+            UiDocument document = document(instance, model.presentation());
 
             assertEquals(BattleRetreatOverlayModel.Presentation.RETREAT,
                     model.presentation());
             assertEquals("Retreat", instance.requireElement("battle-exit-action").text());
+            assertEquals(model.presentation().documentWidth(),
+                    instance.requireElement("battle-exit-action")
+                            .box().borderBox().width());
+            assertEquals(model.presentation().documentHeight(),
+                    instance.requireElement("battle-exit-action")
+                            .box().borderBox().height());
             assertTrue(instance.requireElement("battle-retreat-confirm")
                     .hasClass("battle-retreat-confirm-hidden"));
 
             click(document, instance.requireElement("battle-exit-action"));
-            flush(instance, document);
+            flush(instance, document, model.presentation());
             assertEquals(BattleRetreatOverlayModel.Presentation.CONFIRM,
                     model.presentation());
             assertEquals(0, retreats.get());
             assertFalse(instance.requireElement("battle-retreat-confirm")
                     .hasClass("battle-retreat-confirm-hidden"));
+            assertEquals(model.presentation().documentWidth(),
+                    instance.requireElement("battle-retreat-confirm")
+                            .box().borderBox().width());
+            assertEquals(model.presentation().documentHeight(),
+                    instance.requireElement("battle-retreat-confirm")
+                            .box().borderBox().height());
 
             click(document, instance.requireElement("battle-retreat-cancel"));
-            flush(instance, document);
+            flush(instance, document, model.presentation());
             assertEquals(BattleRetreatOverlayModel.Presentation.RETREAT,
                     model.presentation());
             assertEquals(0, retreats.get());
 
             click(document, instance.requireElement("battle-exit-action"));
-            flush(instance, document);
+            flush(instance, document, model.presentation());
             click(document, instance.requireElement("battle-retreat-confirm-action"));
-            flush(instance, document);
+            flush(instance, document, model.presentation());
             assertEquals(1, retreats.get());
             assertEquals(BattleRetreatOverlayModel.Presentation.RETREAT,
                     model.presentation());
 
             model.update(false);
             click(document, instance.requireElement("battle-exit-action"));
-            flush(instance, document);
+            flush(instance, document, model.presentation());
             model.update(true);
-            flush(instance, document);
+            flush(instance, document, model.presentation());
             assertEquals(BattleRetreatOverlayModel.Presentation.CONTINUE,
                     model.presentation());
             assertTrue(instance.requireElement("battle-retreat-confirm")
@@ -80,20 +92,20 @@ class BattleRetreatOverlayModelTest {
         }
     }
 
-    private static UiDocument document(MarkupInstance instance) {
+    private static UiDocument document(
+            MarkupInstance instance, BattleRetreatOverlayModel.Presentation presentation) {
         UiDocument document = new UiDocument(instance.root());
         for (var style : instance.styles()) document.addStyleSheet(style);
         document.theme(MarineOpsThemes.standard());
-        document.layout(BattleRetreatOverlayModel.Presentation.CONFIRM.documentWidth(),
-                BattleRetreatOverlayModel.Presentation.CONFIRM.documentHeight());
+        document.layout(presentation.documentWidth(), presentation.documentHeight());
         return document;
     }
 
-    private static void flush(MarkupInstance instance, UiDocument document) {
+    private static void flush(MarkupInstance instance, UiDocument document,
+                              BattleRetreatOverlayModel.Presentation presentation) {
         instance.flush();
         document.advance(0f);
-        document.layout(BattleRetreatOverlayModel.Presentation.CONFIRM.documentWidth(),
-                BattleRetreatOverlayModel.Presentation.CONFIRM.documentHeight());
+        document.layout(presentation.documentWidth(), presentation.documentHeight());
     }
 
     private static void click(UiDocument document, UiElement element) {

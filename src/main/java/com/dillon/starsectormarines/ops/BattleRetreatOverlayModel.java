@@ -17,9 +17,12 @@ final class BattleRetreatOverlayModel {
             "battle-retreat-confirm battle-retreat-confirm-hidden";
 
     enum Presentation {
-        RETREAT(126f, 34f),
-        CONFIRM(366f, 42f),
-        CONTINUE(126f, 34f);
+        // MLX width/height are content-box dimensions. These viewport values
+        // include the authored padding and border so the control is not
+        // clipped against its own document edge.
+        RETREAT(148f, 52f),
+        CONFIRM(378f, 54f),
+        CONTINUE(148f, 52f);
 
         private final float documentWidth;
         private final float documentHeight;
