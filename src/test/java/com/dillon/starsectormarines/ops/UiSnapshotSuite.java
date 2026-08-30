@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
@@ -133,6 +134,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/mech-lab/mech-lab.mlx");
     private static final List<String> BATTLE_HUD_COMPONENTS =
             List.of(BattleHudOverlay.COMPONENT_PATH,
+                    BattleSquadOverlay.COMPONENT_PATH,
                     BattlePowerOverlay.COMPONENT_PATH,
                     BattleRetreatOverlay.COMPONENT_PATH);
 
@@ -247,6 +249,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("battle-hud-task-force-wide.png",
                         renderBattleHudTaskForce(
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-selected-squad-wide.png",
+                        renderBattleSquadOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                new SnapshotArtifact("battle-hud-selected-squad-hover-wide.png",
+                        renderBattleSquadOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("battle-hud-command-overlay-wide.png",
                         renderBattleHudCommandOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -412,6 +420,82 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static Color withAlpha(Color color, float opacity) {
         return new Color(color.getRed(), color.getGreen(), color.getBlue(),
                 Math.round(255f * Math.max(0f, Math.min(1f, opacity))));
+    }
+
+    /** Full-screen evidence for the compact selected-squad roster and hover loadout. */
+    private static BufferedImage renderBattleSquadOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean hovered) throws Exception {
+        BufferedImage image = renderBattleBackdrop(width, height);
+        Reactor reactor = new Reactor();
+        BattleSquadOverlayModel model = new BattleSquadOverlayModel(reactor, () -> { });
+        model.updateProjected(new BattleSquadOverlayModel.SquadState(
+                "Squad 20", 12, 12, 0.72f, previewSquadMembers()));
+        if (hovered) model.hover("battle-squad-member-0-0");
+
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattleSquadOverlay.COMPONENT, model.props())) {
+            BattleSquadOverlay.wireLayout(instance);
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            BufferedImage overlay = renderer.render(document,
+                    Math.round(BattleSquadOverlay.DOCUMENT_WIDTH),
+                    Math.round(BattleSquadOverlay.DOCUMENT_HEIGHT));
+            Graphics2D graphics = image.createGraphics();
+            int bottom = Math.round(BattleLayout.PAD + BattleLayout.BACK_H
+                    + BattleLayout.CONTROLS_GAP);
+            graphics.drawImage(overlay, 12, height - bottom - overlay.getHeight(), null);
+            graphics.dispose();
+            return image;
+        }
+    }
+
+    private static List<BattleSquadOverlayModel.MemberState> previewSquadMembers() {
+        String[] names = {
+                "Arden Vale", "Mira Chen", "Pavel Ilyin", "Nia Okafor",
+                "Jon Bell", "Sana Ruiz", "Ivo Marku", "Tess Ward",
+                "Leah Moss", "Dax Holt", "Rei Sato", "Omar Venn" };
+        String[] primary = { "RIF-III", "FLD-II", "SAW-II", "DMR-II" };
+        List<BattleSquadOverlayModel.MemberState> members = new ArrayList<>();
+        for (int team = 0; team < 3; team++) {
+            for (int slot = 0; slot < 4; slot++) {
+                int index = team * 4 + slot;
+                boolean leader = index == 0;
+                boolean specialist = slot == 2;
+                String specialName = specialist ? switch (team) {
+                    case 0 -> "Smoke Grenade";
+                    case 1 -> "Rocket Launcher";
+                    default -> "Point Defence Emplacement";
+                } : null;
+                String specialAbbrev = specialist ? switch (team) {
+                    case 0 -> "SMK";
+                    case 1 -> "RKT";
+                    default -> "PDE";
+                } : null;
+                members.add(new BattleSquadOverlayModel.MemberState(
+                        index + 1L, team, leader, names[index],
+                        index == 7 ? 38f : 72f + index * 2f, 100f,
+                        Math.max(8f, 32f - index), 40f, 12f,
+                        switch (slot) {
+                            case 1 -> "FLD-2 Line Rifle";
+                            case 2 -> "SAW-2 Support Weapon";
+                            case 3 -> "DMR-2 Marksman Rifle";
+                            default -> "PLS-3 Lancer";
+                        },
+                        primary[slot], new Color(0x78, 0xD4, 0x94),
+                        specialName, specialAbbrev, specialist ? "2 LEFT" : "",
+                        leader ? "Kestrel Sweep" : null,
+                        leader ? "READY" : "",
+                        index < 4 ? "Veteran" : "Regular",
+                        index % 3 == 0 ? "Gifted" : "Steady",
+                        UnitRole.COMBATANT));
+            }
+        }
+        return members;
     }
 
     /** Full-screen evidence for the production MLX command rail over battle contrast. */
@@ -589,14 +673,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      * same method the live OpenGL panel invokes.
      */
     private static BufferedImage renderBattleHudTaskForce(int width, int height) {
-        BufferedImage image = new BufferedImage(width, height,
-                BufferedImage.TYPE_INT_ARGB);
+        BufferedImage image = renderBattleBackdrop(width, height);
         Graphics2D graphics = image.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
         graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        paintBattleContrastField(graphics, width, height);
 
         TaskForceStatusPanel.Snapshot snapshot =
                 TaskForceStatusPanel.Snapshot.capture(battleHudSquads());
@@ -605,6 +687,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 12f,
                 12f + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP,
                 1f);
+        graphics.dispose();
+        return image;
+    }
+
+    private static BufferedImage renderBattleBackdrop(int width, int height) {
+        BufferedImage image = new BufferedImage(width, height,
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        paintBattleContrastField(graphics, width, height);
         graphics.dispose();
         return image;
     }
