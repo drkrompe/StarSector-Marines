@@ -158,12 +158,20 @@ public final class ShuttleMeans implements ReinforcementMeans {
                 TacticalNode.Kind.AIRBASE, Faction.DEFENDER)) {
             return false;
         }
-        // And an aircraft to fly. Holding the ground and having something to
-        // put in the air are different things, and both have to be true: a
-        // field whose aircraft have been burned on their pads supplies nothing
-        // however firmly its perimeter is still held.
+        // And an aircraft to fly, on a stand this sortie can lift off. Holding
+        // the ground and having something to put in the air are different
+        // things, and both have to be true: a field whose aircraft have been
+        // burned on their pads supplies nothing however firmly its perimeter is
+        // still held.
+        //
+        // Asked about hardstands specifically, because that is the only kind
+        // this means can use. Asking whether anything at all was airworthy said
+        // yes on the strength of a fighter parked in a shed, which a transport
+        // can neither reach nor lift out of — and the dispatch below then found
+        // no stand and conjured an aircraft onto the nearest bare pad instead.
         if (!sim.getAirfieldService().berths().isEmpty()
-                && !sim.getAirfieldService().hasAirworthyAirframe()) {
+                && !sim.getAirfieldService().hasAirworthyAirframe(
+                        AirfieldService.Kind.HARDSTAND)) {
             return false;
         }
         int[] centre = deliveryCentre(req);
@@ -247,9 +255,18 @@ public final class ShuttleMeans implements ReinforcementMeans {
         // empty until it comes back.
         AirfieldService.Berth berth = sim.getAirfieldService()
                 .nearestAirworthy(lzX, lzY);
+        if (berth == null && !sim.getAirfieldService().berths().isEmpty()) {
+            // A field with nothing to send does not send anything. The
+            // feasibility gate should have caught this already; refusing here
+            // too is what stops a disagreement between the two from quietly
+            // becoming a shuttle nobody owns.
+            LOG.warn("ShuttleMeans: no airworthy hardstand at dispatch though the"
+                    + " field reported one — declining rather than conjuring a hull");
+            return ReinforcementDispatchResult.REJECTED;
+        }
         float[] entry = berth != null
                 ? sortieFromBerth(berth)
-                : sortieFrom(req, lzX, lzY, grid);
+                : entryForSide(req.side, axis, lzX, lzY, grid.getWidth(), grid.getHeight());
 
         long shuttleId = sim.spawnShuttle(
                 DEFAULT_TYPE, req.side,
@@ -454,40 +471,6 @@ public final class ShuttleMeans implements ReinforcementMeans {
         if (deploymentPolicy == null) return DeliveryDeployment.legacy(req);
         DeliveryDeployment deployment = deploymentPolicy.deploymentFor(req);
         return deployment != null ? deployment : DeliveryDeployment.legacy(req);
-    }
-
-    /**
-     * Entry and exit for this sortie: the garrison's own airfield when it has
-     * one, and the map edge when it does not.
-     *
-     * <p>A shuttle that materialises past the edge of the world is the placeholder
-     * an authored field replaces. Flying the sortie off a hardstand costs nothing
-     * in the lifecycle — a mission already carries its entry and its exit, and
-     * neither has to be off-map — and it puts the air arm somewhere: the craft
-     * lift from the field, deliver, and come home to it.
-     *
-     * <p>The nearest pad to the landing zone, because the only thing to choose
-     * between four hardstands is the length of the flight.
-     */
-    private float[] sortieFrom(ReinforcementRequest req, float lzX, float lzY,
-                               NavigationGrid grid) {
-        LandingPad home = null;
-        int best = Integer.MAX_VALUE;
-        for (LandingPad pad : airfield) {
-            int dx = Math.round(lzX) - pad.centerX;
-            int dy = Math.round(lzY) - pad.centerY;
-            int distance = dx * dx + dy * dy;
-            if (distance < best) {
-                best = distance;
-                home = pad;
-            }
-        }
-        if (home == null) {
-            return entryForSide(req.side, axis, lzX, lzY, grid.getWidth(), grid.getHeight());
-        }
-        float padX = home.centerX + 0.5f;
-        float padY = home.centerY + 0.5f;
-        return new float[]{ padX, padY, padX, padY };
     }
 
     /**

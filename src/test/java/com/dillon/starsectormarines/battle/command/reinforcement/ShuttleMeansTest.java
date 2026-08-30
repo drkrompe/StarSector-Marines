@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
@@ -54,6 +55,21 @@ public class ShuttleMeansTest {
     private static TacticalNode commandPost(int x, int y) {
         return new TacticalNode(TacticalNode.Kind.COMMAND_POST, x, y,
                 x - 1, y - 1, x + 1, y + 1, Faction.DEFENDER, 50, 4);
+    }
+
+
+    /**
+     * Base an aircraft on {@code pad}, the way {@code BattleSetup} does for
+     * every garrison hardstand.
+     *
+     * <p>A pad on its own is a painted square. The sortie takes a specific
+     * airframe off a specific berth, so a test that hands the means a pad and
+     * no berth is describing a field with no aircraft on it — which now
+     * correctly declines to fly.
+     */
+    private static void baseAnAircraftOn(BattleSimulation sim, LandingPad pad) {
+        sim.getAirfieldService().addBerth(pad, ShuttleType.AEROSHUTTLE,
+                AirBody.facingToward(pad.approach.dx, pad.approach.dy));
     }
 
     @Test
@@ -125,6 +141,7 @@ public class ShuttleMeansTest {
         BattleSimulation sim = openSim();
         sim.getCompoundService().register(commandPost(2, 2));
         LandingPad pad = LandingPad.garrison(3, 9, LandingPad.Approach.SOUTH);
+        baseAnAircraftOn(sim, pad);
         ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
                 null, RiskLevel.LOW, null, List.of(pad));
         ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
@@ -204,6 +221,7 @@ public class ShuttleMeansTest {
         BattleSimulation sim = openSim();
         sim.setTacticalMap(new TacticalMap(List.of(commandPost(2, 2), airbase(3, 9))));
         LandingPad pad = LandingPad.garrison(3, 9, LandingPad.Approach.SOUTH);
+        baseAnAircraftOn(sim, pad);
         ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
                 null, RiskLevel.LOW, null, List.of(pad));
         ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
@@ -235,6 +253,7 @@ public class ShuttleMeansTest {
         sim.setTacticalMap(new TacticalMap(List.of(
                 commandPost(2, 2), airbase(6, H - 2))));
         LandingPad pad = LandingPad.garrison(6, H - 2, LandingPad.Approach.SOUTH);
+        baseAnAircraftOn(sim, pad);
         ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
                 null, RiskLevel.LOW, null, List.of(pad));
         ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
@@ -263,6 +282,7 @@ public class ShuttleMeansTest {
         BattleSimulation sim = openSim();
         sim.setTacticalMap(new TacticalMap(List.of(commandPost(2, 2))));
         LandingPad pad = LandingPad.garrison(3, 9, LandingPad.Approach.SOUTH);
+        baseAnAircraftOn(sim, pad);
         ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
                 null, RiskLevel.LOW, null, List.of(pad));
         ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
@@ -314,6 +334,7 @@ public class ShuttleMeansTest {
         sim.setTacticalMap(new TacticalMap(List.of(
                 commandPost(2, 2), wideAirbase(6, 2))));
         LandingPad pad = LandingPad.garrison(1, 2, LandingPad.Approach.SOUTH);
+        baseAnAircraftOn(sim, pad);
         ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
                 null, RiskLevel.LOW, null, List.of(pad));
         ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
@@ -348,6 +369,7 @@ public class ShuttleMeansTest {
         sim.setTacticalMap(new TacticalMap(List.of(
                 commandPost(2, 2), wideAirbase(6, 2))));
         LandingPad pad = LandingPad.garrison(1, 2, LandingPad.Approach.SOUTH);
+        baseAnAircraftOn(sim, pad);
         ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
                 null, RiskLevel.LOW, commanderOwning("defender-command"),
                 List.of(pad));
@@ -385,6 +407,7 @@ public class ShuttleMeansTest {
         sim.setTacticalMap(new TacticalMap(List.of(
                 commandPost(2, 2), wideAirbase(6, 2))));
         LandingPad pad = LandingPad.garrison(1, 2, LandingPad.Approach.SOUTH);
+        baseAnAircraftOn(sim, pad);
         ShuttleMeans means = new ShuttleMeans(TraversalAxis.SOUTH_TO_NORTH,
                 null, RiskLevel.LOW, null, List.of(pad));
         ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
