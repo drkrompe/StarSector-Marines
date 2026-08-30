@@ -93,6 +93,28 @@ public final class Runway {
         return opposite(departureThreshold(fromX, fromY));
     }
 
+    /**
+     * A point {@code leadCells} out beyond {@code threshold}, on the strip's
+     * own axis — where an aircraft joins final.
+     *
+     * <p>The whole of a railroaded landing. An aircraft that flies straight at
+     * a threshold arrives on whatever heading it happened to be on and then has
+     * to sort itself out while standing on the runway. One that flies to a
+     * point out on the extended centreline first, and only then to the
+     * threshold, is lined up by the time it gets there because the last leg
+     * <em>is</em> the runway axis.
+     */
+    public float[] approachPoint(float[] threshold, float leadCells) {
+        float[] far = opposite(threshold);
+        float dx = threshold[0] - far[0];
+        float dy = threshold[1] - far[1];
+        float length = (float) Math.hypot(dx, dy);
+        if (length < 1e-6f) return new float[]{threshold[0], threshold[1]};
+        return new float[]{
+                threshold[0] + dx / length * leadCells,
+                threshold[1] + dy / length * leadCells };
+    }
+
     /** The opposite end from {@code threshold} — where a roll that started there ends up. */
     public float[] opposite(float[] threshold) {
         boolean atStart = threshold[0] == startX && threshold[1] == startY;

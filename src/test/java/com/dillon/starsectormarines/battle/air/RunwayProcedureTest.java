@@ -311,6 +311,68 @@ class RunwayProcedureTest {
     }
 
     /**
+     * A landing aircraft is lined up with the strip before it touches down,
+     * whichever direction it came home from.
+     *
+     * <p>The approach is two legs: out to the extended centreline, then down
+     * it. That second leg is the runway axis, so the aircraft is straight by
+     * the time it reaches the threshold without anybody testing its heading —
+     * and the touchdown itself is a takeover rather than a manoeuvre, because
+     * asking the steering to brake a flying body onto a point left it arriving
+     * crabbed and sorting itself out on the runway.
+     */
+    @Test
+    void aLandingAircraftIsLinedUpWithTheStripBeforeItTouchesDown() {
+        // Coming home from three very different directions, including one that
+        // has to fly right past the field to get onto its centreline.
+        float[][] fromWhere = { {55.5f, 30.5f}, {3.5f, 33.5f}, {25.5f, 35.5f} };
+        for (float[] from : fromWhere) {
+            try (BattleSimulation sim = openSimulation()) {
+                AirfieldService airfield = sim.getAirfieldService();
+                AirfieldService.Berth shed = airfield.addShelterBerth(
+                        new Gantry((int) SHELTER_X, (int) SHELTER_Y, 2, 2, Gantry.Facing.SOUTH),
+                        ShuttleType.AEROSHUTTLE);
+                long craft = sim.spawnShuttle(ShuttleType.AEROSHUTTLE, Faction.DEFENDER,
+                        from[0], from[1], SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f, 1);
+                ShuttleMission mission = sim.world().mission(craft);
+                mission.homeBerth = shed;
+                mission.usesRunway = true;
+                mission.shelterX = SHELTER_X;
+                mission.shelterY = SHELTER_Y;
+                mission.hp = airfield.launch(shed);
+                sim.world().kinematics(craft).teleport(from[0], from[1], 0f);
+                mission.state = ShuttleState.LANDED;
+                mission.marinesRemaining = 0;
+
+                assertEquals(ShuttleState.RETURNING, leaving(sim, mission, ShuttleState.LANDED),
+                        "never turned for home from " + from[0] + "," + from[1]);
+                assertEquals(ShuttleState.LANDING_ROLL,
+                        leaving(sim, mission, ShuttleState.RETURNING),
+                        "never got down from " + from[0] + "," + from[1]);
+
+                // Down on the strip and pointing along it, whichever way it
+                // came home. Asserted by rolling it rather than by reading its
+                // heading: what "lined up" means is that the aircraft runs
+                // down the runway instead of across it, and an angle in
+                // isolation only restates whichever convention the code used.
+                AirBody body = sim.world().kinematics(craft);
+                assertEquals(6.5f, body.y, 0.6f, "touched down off the centreline");
+                float startedFromHold = body.distanceTo(mission.holdX, mission.holdY);
+                float worstDrift = 0f;
+                for (int i = 0; i < 60; i++) {
+                    sim.advance(BattleSimulation.TICK_DT);
+                    worstDrift = Math.max(worstDrift, Math.abs(body.y - 6.5f));
+                }
+                assertTrue(body.distanceTo(mission.holdX, mission.holdY) < startedFromHold - 1f,
+                        "from " + from[0] + "," + from[1] + " it did not roll out down the strip");
+                assertTrue(worstDrift < 1.5f,
+                        "from " + from[0] + "," + from[1] + " it wandered "
+                                + worstDrift + " cells off the centreline");
+            }
+        }
+    }
+
+    /**
      * An aircraft on approach does not land on a strip somebody else is using.
      */
     @Test
