@@ -9,9 +9,14 @@ package com.dillon.starsectormarines.battle.air;
  * <p>Lifecycle: PENDING (waiting on stagger / re-arm, off-map + engine-silent) →
  * optional LOADING (down on its own hardstand while its squad walks out to it) →
  * INCOMING (steering from the entry point to the LZ) → LANDED (deboarding marines)
- * → optional HOVER_STATION (armed fire-support loiter) → DEPARTING (steering to
- * exit) → GONE (terminal). With {@code totalCycles > 1} a shuttle re-enters
- * PENDING after DEPARTING and flies another sortie.
+ * → DEPARTING (steering to exit) → GONE (terminal). With
+ * {@code totalCycles > 1} a shuttle re-enters PENDING after DEPARTING and flies
+ * another sortie.
+ *
+ * <p>There is no phase between setting the payload down and leaving. A
+ * transport that has unloaded turns for the exit, because the delivery is what
+ * it was flown for and holding station over the drop point is a second job
+ * nothing asked it to do — see `air-nouns.md`.
  *
  * <p>A craft based on a field with a strip has a ground procedure around that:
  * TAXI_OUT → HOLDING_SHORT → TAKEOFF_ROLL before INCOMING, and RETURNING →
@@ -55,7 +60,7 @@ public enum ShuttleState {
      * was nowhere on the map for it to load.
      */
     LOADING,
-    INCOMING, LANDED, HOVER_STATION,
+    INCOMING, LANDED,
     /**
      * Flying a straight line through the target with the guns going.
      *

@@ -29,6 +29,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.ui.ScrollState;
+import com.dillon.starsectormarines.battle.ui.debug.SquadOrderRecorder;
 import com.dillon.starsectormarines.battle.ui.debug.SquadStateDumper;
 import com.dillon.starsectormarines.battle.ui.highlight.CellHighlight;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
@@ -54,6 +55,13 @@ import java.util.List;
  * making the panel too tall to read alongside mission UI. The predicate grid
  * still answers "why isn't this squad doing anything?" from the selected
  * squad's own state. The body remains scrollable through {@link ScrollState}.
+ *
+ * <p>The header DUMP button records before it writes. Every row on the panel
+ * is this frame's value, so a squad swapping orders back and forth several
+ * times a second looks the same here as a squad that settled on one; the
+ * button therefore starts a {@link SquadOrderRecorder} window and writes the
+ * dump — with the order tallies in it — once the window fills. Clicking again
+ * mid-window cancels.
  *
  * <p>Detail mode uses {@link Fonts#INSIGNIA_15_AA} rather than Orbitron 20 —
  * predicate names + slot listings are long, and the Orbitron 20 floor for
@@ -104,6 +112,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private static final Color DUMP_BTN_BG           = new Color(0x32, 0x22, 0x46, 0xC8);
     private static final Color DUMP_BTN_FG           = new Color(0xC0, 0xA0, 0xE0);
     private static final Color DUMP_BTN_BORDER       = new Color(0x80, 0x60, 0xA0);
+    private static final Color REC_BTN_BG            = new Color(0x46, 0x1C, 0x1C, 0xC8);
+    private static final Color REC_BTN_FG            = new Color(0xFF, 0x90, 0x90);
+    private static final Color REC_BTN_BORDER        = new Color(0xC0, 0x50, 0x50);
     /** Sim-seconds the post-dump status banner persists before reverting to the regular hint string. */
     private static final float DUMP_STATUS_DURATION  = 3.0f;
     /** World cells shown forward from the selected squad's published tactical axis. */
@@ -126,6 +137,20 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private String dumpStatusMessage;
     /** Sim-seconds remaining on the post-dump status banner. Counted down each {@link #update} call; when it hits zero {@link #dumpStatusMessage} clears. */
     private float dumpStatusRemaining;
+    /**
+     * Order capture in flight, or {@code null} when idle. Started by the DUMP
+     * button and driven from {@link #update} against the squad it was started
+     * on rather than against the current selection, so panning away or picking
+     * another squad mid-window doesn't truncate the capture. The dump is
+     * written when the window fills.
+     */
+    private SquadOrderRecorder orderRecorder;
+    /**
+     * Unit selected when the capture started. Held so the written dump tags the
+     * member the user was actually looking at, not whoever is selected six
+     * seconds later.
+     */
+    private long orderCaptureSelectedUnitId;
 
     /** Small retained click target for a debug action. */
     private static final class Hotspot {
@@ -168,7 +193,11 @@ public final class SquadPlanDebugPanel implements HudPanel {
         ctx.getHighlights().clear(HighlightOverlay.SRC_BELIEVED_CONTACTS);
         ctx.getHighlights().clear(HighlightOverlay.SRC_HEARD_NOISE);
         ctx.getHighlights().clear(HighlightOverlay.SRC_CONTACT_DOCTRINE);
-        if (sim == null) return;
+        if (sim == null) {
+            orderRecorder = null;
+            return;
+        }
+        advanceOrderCapture(sim);
 
         Selection sel = ctx.getSelection();
         if (sel.hasSquadSelection()) {
@@ -605,12 +634,19 @@ public final class SquadPlanDebugPanel implements HudPanel {
     }
 
     /**
-     * Draws the header DUMP button and records its hotspot.
+     * Draws the header DUMP button and records its hotspot. It reads REC in
+     * red while an order capture is filling, since the click that starts one
+     * produces no file for several seconds and a button that looked unchanged
+     * would read as a dead button.
      */
     private void renderDumpButton(BitmapFont font, float x, float y, float alphaMult) {
-        HudDraw.filledRect(x, y, DUMP_BTN_W, DUMP_BTN_H, DUMP_BTN_BG, alphaMult);
-        HudDraw.borderRect(x, y, DUMP_BTN_W, DUMP_BTN_H, DUMP_BTN_BORDER, alphaMult);
-        font.drawString("DUMP", x + 6f, y + DUMP_BTN_H - 3f, DUMP_BTN_FG, alphaMult);
+        boolean recording = orderRecorder != null;
+        HudDraw.filledRect(x, y, DUMP_BTN_W, DUMP_BTN_H,
+                recording ? REC_BTN_BG : DUMP_BTN_BG, alphaMult);
+        HudDraw.borderRect(x, y, DUMP_BTN_W, DUMP_BTN_H,
+                recording ? REC_BTN_BORDER : DUMP_BTN_BORDER, alphaMult);
+        font.drawString(recording ? "REC" : "DUMP", x + 6f, y + DUMP_BTN_H - 3f,
+                recording ? REC_BTN_FG : DUMP_BTN_FG, alphaMult);
         dumpHotspot = new Hotspot(x, y, DUMP_BTN_W, DUMP_BTN_H);
     }
 
@@ -1046,22 +1082,72 @@ public final class SquadPlanDebugPanel implements HudPanel {
     }
 
     /**
-     * Writes the current detail squad's state to {@code saves/common/} and
-     * shows a short-lived status banner in place of the scroll hint. Errors
-     * are swallowed (logged in {@link SquadStateDumper}) — a failed write
-     * surfaces in the game log, not as a crash mid-battle.
+     * Starts an order capture on the current detail squad, or cancels one
+     * already running. The dump is written when the window fills — a
+     * single-frame snapshot cannot distinguish a squad settled on one order
+     * from a squad flapping between two of them, and the flapping case is
+     * what the button gets pressed for.
      */
     private void triggerDump() {
+        if (orderRecorder != null) {
+            orderRecorder = null;
+            dumpStatusMessage = "(order capture cancelled)";
+            dumpStatusRemaining = DUMP_STATUS_DURATION;
+            return;
+        }
         Squad s = detailSquad;
         if (s == null) return;
-        BattleSimulation sim = ctx.getSim();
-        if (sim == null) return;
-        long selectedUnitEntityId = ctx.getSelection().getSelectedUnitEntityId();
-        String path = SquadStateDumper.dump(s, sim, detailState, selectedUnitEntityId);
-        dumpStatusMessage = path != null
-                ? "(dumped to common/" + path + ")"
-                : "(dump failed — see log)";
+        if (ctx.getSim() == null) return;
+        orderCaptureSelectedUnitId = ctx.getSelection().getSelectedUnitEntityId();
+        orderRecorder = new SquadOrderRecorder(s.id, SquadOrderRecorder.DEFAULT_FRAMES);
+        dumpStatusMessage = orderRecorder.progressLabel();
         dumpStatusRemaining = DUMP_STATUS_DURATION;
+    }
+
+    /**
+     * Feeds one frame to a running capture and writes the dump once the window
+     * fills. Driven by squad id rather than by {@link #detailSquad} so the
+     * capture survives the user deselecting, picking another squad, or the
+     * panel closing entirely; the banner only reappears when the panel does.
+     */
+    private void advanceOrderCapture(BattleSimulation sim) {
+        SquadOrderRecorder recorder = orderRecorder;
+        if (recorder == null) return;
+        Squad squad = findSquad(sim, recorder.squadId());
+        if (squad == null) {
+            recorder.noteSquadLost();
+        } else {
+            recorder.sample(squad, sim);
+        }
+        if (!recorder.isComplete()) {
+            // Re-arm the banner every frame so the progress line stays up for
+            // the whole window instead of expiring partway through it.
+            dumpStatusMessage = recorder.progressLabel();
+            dumpStatusRemaining = DUMP_STATUS_DURATION;
+            return;
+        }
+        orderRecorder = null;
+        dumpStatusRemaining = DUMP_STATUS_DURATION;
+        if (squad == null) {
+            dumpStatusMessage = "(capture ended — SQ-" + recorder.squadId() + " gone)";
+            return;
+        }
+        // Errors are swallowed (logged in SquadStateDumper) — a failed write
+        // surfaces in the game log, not as a crash mid-battle.
+        String path = SquadStateDumper.dump(squad, sim,
+                WorldStateBuilder.build(squad, sim),
+                orderCaptureSelectedUnitId, recorder);
+        dumpStatusMessage = path != null
+                ? "(dumped " + recorder.frames() + "f to common/" + path + ")"
+                : "(dump failed — see log)";
+    }
+
+    /** Live squad with this id, or {@code null} once it has been wiped out. */
+    private static Squad findSquad(BattleSimulation sim, int squadId) {
+        for (Squad s : sim.getSquads()) {
+            if (s.id == squadId && s.aliveMembers > 0) return s;
+        }
+        return null;
     }
 
     /**
