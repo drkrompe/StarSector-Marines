@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown, and is still the air entity while it is; a fighter flies a wide banking circuit, and a flying arrival tolerance is derived from what the craft is doing; a field commits a share of its sheds rather than one aircraft, paced by what its strip can push through.
+Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown, and is still the air entity while it is; a fighter flies a wide banking circuit, and a flying arrival tolerance is derived from what the craft is doing; a field commits a share of its sheds rather than one aircraft, paced by what its strip can push through. A transport that has unloaded departs; the armed post-delivery loiter is gone.
 
 ## Purpose
 
@@ -688,11 +688,22 @@ the mission commander. Handing them over rather than merely releasing them is
 the load-bearing part: a commander's pool is what it owns, so an unclaimed
 squad is every bit as stranded as an over-claimed one. Without the handoff the
 ground crew that did not fly stands on the pad for the rest of the battle while
-each new sortie marches another four out to join them. `LOITER_IF_ARMED` preserves bounded fire support;
-`DEPART` takes off immediately even when the hull has weapons. It is an air
-entity throughout that lifecycle, not a temporary handle or a parallel id
-space. Transport survival, payload delivery, and optional mounted fire support
-are role capabilities; they do not make the craft a normal grid combat unit.
+each new sortie marches another four out to join them. It is an air entity
+throughout that lifecycle, not a temporary handle or a parallel id space.
+Transport survival, payload delivery, and mounted guns are role capabilities;
+they do not make the craft a normal grid combat unit.
+
+**A transport that has unloaded leaves.** There is no phase between setting the
+payload down and turning for the exit, whatever the hull is carrying on its
+hardpoints. An armed craft that stayed to work the drop zone was a free
+gunship: it hung over the objective on the squad's centroid with nothing but a
+fuel timer to make it go, so the delivery quietly bought fire support the
+mission never paid for and the marines it dropped were not the ones deciding
+the fight. Guns on a transport are what it defends *itself* with on the way in
+and the way out — a run through an anti-air bubble is the risk the sortie takes
+— not a reason to hold station. A craft that wants to work a target is flying a
+strike, which is its own sortie with its own attack runs and its own cost.
+Conquest already delivered this way; every other mission now does too.
 
 `ShuttleType.capacity` is the hull maximum. `ShuttleAssignment.seatsPerSortie`
 is the actual manifest and is restored on every cycle. Arrangement, shared
