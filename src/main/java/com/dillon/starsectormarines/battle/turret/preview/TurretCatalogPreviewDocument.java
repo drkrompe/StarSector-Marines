@@ -449,8 +449,8 @@ public final class TurretCatalogPreviewDocument {
          * smoke occupies its first eight frames, orange fire the last eight.
          *
          * <p>Those indices are the opposite way round from the ones
-         * {@code ImpactFx} and {@code FlybyOverlay} name for the same sheet,
-         * and both are right: {@link CanvasSpriteRegion#frame} counts rows
+         * {@code ImpactFx} names for the same sheet, and both are right:
+         * {@link CanvasSpriteRegion#frame} counts rows
          * down from the top of the image, while Starsector's
          * {@code SpriteAPI.setTexY} counts them up from the bottom of the
          * texture. A preview document is drawn through the image-space

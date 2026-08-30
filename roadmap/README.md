@@ -85,9 +85,11 @@ and extension stories. Start with `ai-nouns.md`, `fog-of-war-nouns.md`,
 `ballistics-nouns.md`, `combat-durability-nouns.md`,
 `battle-render-nouns.md`, and `ecs-nouns.md`.
 
-Air uses one hull-derived atmospheric motion model. Shuttles are composed world
-entities; fighters still need their active flyby-to-world ownership migration,
-and overhead ships remain an extension. See `air-nouns.md`. The inverse
+Air uses one hull-derived atmospheric motion model. Shuttles and fighters are
+both composed world entities flying the same sortie from two origins — a berth
+on the map or a corridor off it — and a field with a strip runs the whole ground
+procedure either side of the flight. What is left of the fighter fold is the
+package rename; overhead ships remain an extension. See `air-nouns.md`. The inverse
 vanilla-combat integration and its production-launch boundary live in
 `vanilla-combat-bridge-nouns.md`.
 
