@@ -262,6 +262,20 @@ public final class ShuttleMission {
      */
     public float shelterX, shelterY;
     /**
+     * Whether this sortie's business at the objective is its guns rather than
+     * its ramp.
+     *
+     * <p>A transport arrives, touches down, sets people on the ground and
+     * leaves. A strike aircraft never lands on what it was sent to attack: it
+     * arrives on station, works, and turns for home. Without this the fire
+     * support was reached by way of a touchdown, so a fighter sent against an
+     * objective put its wheels down on it for a tick first — which reads
+     * exactly as absurdly as it sounds and also handed the objective a
+     * stationary target at zero altitude.
+     */
+    public boolean strikeSortie;
+
+    /**
      * Whether this sortie rolls.
      *
      * <p>The discriminator for the whole ground procedure. False for every
