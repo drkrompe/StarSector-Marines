@@ -4,9 +4,10 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — the host-pass viewport is answerable before the pass runs,
-and the rule that a host-drawn world owns the coordinate space is stated for
-backdrops and for the camera a player flies, not only for overlays.
+Updated: 2026-08-29 — compact retained exits now stage confirmation before an
+irreversible or session-ending command; battle Retreat is the first production
+surface to apply that rule. Earlier: made the host-pass viewport answerable
+before the pass runs and stated that a host-drawn world owns the coordinate space.
 
 ## Purpose
 
@@ -186,6 +187,10 @@ the retained model.
     room, and keeps the right edge for location context. Drill-down breadcrumbs remain
     page-specific beneath it; the bottom edge belongs to page content rather than global
     navigation. Future room names do not appear as dead controls before their surfaces exist.
+15. **Session-ending actions are staged.** A compact exit may remain visually quiet,
+    but abandoning live work requires a nearby confirmation state that names the
+    consequence and offers cancellation. Confirmation invokes the feature command;
+    the retained surface does not synthesize an outcome or become lifecycle authority.
 
 ## Intrinsic text and typography
 

@@ -1,0 +1,115 @@
+<template props="actionClasses,actionLabel,action,confirmClasses,confirmPrompt,cancelLabel,cancelAction,confirmLabel,confirmAction">
+  <div id="battle-retreat-overlay" class="battle-retreat-overlay">
+    <button id="battle-exit-action" class="{actionClasses}" onclick="{action}">{actionLabel}</button>
+    <div id="battle-retreat-confirm" class="{confirmClasses}">
+      <div id="battle-retreat-confirm-label" class="label heading retreat-prompt">{confirmPrompt}</div>
+      <button id="battle-retreat-cancel" class="retreat-cancel" onclick="{cancelAction}">{cancelLabel}</button>
+      <button id="battle-retreat-confirm-action" class="retreat-confirm-action" onclick="{confirmAction}">{confirmLabel}</button>
+    </div>
+  </div>
+</template>
+
+<style>
+  .battle-retreat-overlay {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    overflow: hidden;
+  }
+
+  .label { overflow: hidden; white-space: nowrap; }
+  .heading { font-family: heading; }
+
+  .battle-exit-action {
+    width: 126px;
+    height: 34px;
+    padding: 8px 10px;
+    border-width: 1px;
+    border-color: #4f6d8e;
+    background-color: #0b111bd9;
+    font-family: heading;
+    text-align: center;
+    color: #aebdce;
+  }
+
+  .battle-exit-action:hover {
+    background-color: #243d56;
+    border-color: #6ed7ff;
+    color: #d7f3ff;
+  }
+
+  .battle-exit-action:active { background-color: #315070; }
+
+  .battle-exit-action-hidden {
+    width: 0px;
+    height: 0px;
+    padding: 0px;
+    border-width: 0px;
+    opacity: 0;
+    overflow: hidden;
+  }
+
+  .battle-retreat-confirm {
+    width: 366px;
+    height: 42px;
+    flex-direction: row;
+    padding: 5px;
+    gap: 5px;
+    border-width: 1px;
+    border-color: #9d4d4d;
+    background-color: #160e12e8;
+  }
+
+  .battle-retreat-confirm-hidden {
+    width: 0px;
+    height: 0px;
+    padding: 0px;
+    gap: 0px;
+    border-width: 0px;
+    opacity: 0;
+    overflow: hidden;
+  }
+
+  .retreat-prompt {
+    width: 154px;
+    height: 30px;
+    padding: 8px 6px;
+    color: #e7b5b5;
+  }
+
+  .retreat-cancel, .retreat-confirm-action {
+    height: 30px;
+    padding: 7px 5px;
+    border-width: 1px;
+    font-family: heading;
+    text-align: center;
+  }
+
+  .retreat-cancel {
+    width: 66px;
+    border-color: #45596f;
+    background-color: #142131;
+    color: #aebdce;
+  }
+
+  .retreat-confirm-action {
+    width: 86px;
+    border-color: #b45e5e;
+    background-color: #3b1b20;
+    color: #f0a1a1;
+  }
+
+  .retreat-cancel:hover {
+    border-color: #6ed7ff;
+    background-color: #243d56;
+  }
+
+  .retreat-confirm-action:hover {
+    border-color: #ef8f8f;
+    background-color: #5b252c;
+    color: #ffd0d0;
+  }
+
+  .retreat-cancel:active { background-color: #315070; }
+  .retreat-confirm-action:active { background-color: #762e38; }
+</style>

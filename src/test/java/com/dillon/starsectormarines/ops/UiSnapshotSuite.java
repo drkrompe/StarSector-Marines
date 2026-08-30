@@ -129,7 +129,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/mech-lab/mech-lab.mlx");
     private static final List<String> BATTLE_HUD_COMPONENTS =
             List.of(BattleHudOverlay.COMPONENT_PATH,
-                    BattlePowerOverlay.COMPONENT_PATH);
+                    BattlePowerOverlay.COMPONENT_PATH,
+                    BattleRetreatOverlay.COMPONENT_PATH);
 
     @Override
     public String id() {
@@ -253,7 +254,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false)),
                 new SnapshotArtifact("battle-hud-powers-targeting-wide.png",
                         renderBattleHudPowerOverlay(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)));
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-retreat-wide.png",
+                        renderBattleRetreatOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                new SnapshotArtifact("battle-hud-retreat-confirm-wide.png",
+                        renderBattleRetreatOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)));
     }
 
     /**
@@ -490,6 +497,39 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             float cooldown, int charges) {
         return new BattlePowerOverlayModel.PowerState(
                 id, name, cp, supplies, cooldown, charges);
+    }
+
+    /** Full-screen evidence for the compact exit and its deliberate confirmation state. */
+    private static BufferedImage renderBattleRetreatOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean confirming) throws Exception {
+        BufferedImage image = renderBattleHudPowerOverlay(
+                context, renderer, width, height);
+        Reactor reactor = new Reactor();
+        BattleRetreatOverlayModel model = new BattleRetreatOverlayModel(
+                reactor, () -> { }, () -> { }, "Retreat", "Continue",
+                "Abandon operation?", "Cancel", "Retreat");
+        Map<String, Object> props = model.props();
+        if (confirming) ((Runnable) props.get("action")).run();
+
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattleRetreatOverlay.COMPONENT, props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            BattleRetreatOverlayModel.Presentation presentation = model.presentation();
+            BufferedImage overlay = renderer.render(document,
+                    Math.round(presentation.documentWidth()),
+                    Math.round(presentation.documentHeight()));
+            Graphics2D graphics = image.createGraphics();
+            graphics.drawImage(overlay, 12,
+                    height - 12 - overlay.getHeight(), null);
+            graphics.dispose();
+            return image;
+        }
     }
 
     /**
