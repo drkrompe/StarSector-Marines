@@ -80,6 +80,12 @@ public final class MapResult {
      */
     public final List<Runway> runways;
     /**
+     * Aircraft shelters — the hangar bay an aircraft is kept and worked on in,
+     * and taxis out of under its own power. Never null; empty on a map with no
+     * airbase. Kept apart from {@link #gantries}, which are vehicle-bay berths.
+     */
+    public final List<Gantry> shelters;
+    /**
      * Authored tactical hint graph the battle AI uses for squad allocation and
      * fallback routing. Never null — generators with no tactical layer return
      * an empty {@link TacticalMap}. See {@link TacticalMap} for the queries
@@ -263,6 +269,28 @@ public final class MapResult {
                      List<Gantry> gantries,
                      List<FixtureTask> fixtureTasks,
                      List<Runway> runways) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, roadGraph,
+                landingPads, landingAreas, biomeMap, gantries, fixtureTasks, runways,
+                Collections.emptyList());
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap,
+                     Buildings buildings,
+                     List<DefensePost> defensePosts,
+                     RoadGraph roadGraph,
+                     List<LandingPad> landingPads,
+                     List<LandingArea> landingAreas,
+                     BiomeMap biomeMap,
+                     List<Gantry> gantries,
+                     List<FixtureTask> fixtureTasks,
+                     List<Runway> runways,
+                     List<Gantry> shelters) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -283,5 +311,6 @@ public final class MapResult {
         this.fixtureTasks = fixtureTasks == null
                 ? Collections.emptyList() : List.copyOf(fixtureTasks);
         this.runways = runways == null ? Collections.emptyList() : List.copyOf(runways);
+        this.shelters = shelters == null ? Collections.emptyList() : List.copyOf(shelters);
     }
 }
