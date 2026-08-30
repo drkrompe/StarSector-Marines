@@ -378,7 +378,8 @@ public final class ShuttleMission {
      */
     public boolean isOverTheBattle() {
         return state == ShuttleState.INCOMING || state == ShuttleState.LANDED
-                || state == ShuttleState.HOVER_STATION || state == ShuttleState.DEPARTING;
+                || state == ShuttleState.HOVER_STATION || state == ShuttleState.DEPARTING
+                || state == ShuttleState.RETURNING;
     }
 
     /**
