@@ -79,6 +79,51 @@ abstract class AbstractZoneAction implements Action {
     static final float ADVANCE_RELEASE_THRESHOLD = 0.30f;
     /** Minimum useful off-axis firing-position radius once the squad commits. */
     static final float ADVANCE_LEASH_MIN = 4f;
+    /**
+     * Range at which a contact one member is looking at stops the whole
+     * advance, whatever the route score made of it.
+     *
+     * <p>Much tighter than the range at which that contact is worth a screen,
+     * and the two must not be confused. Ten cells is a room: near enough that
+     * the bearing is known and something should go between the squad and it,
+     * and still far enough that pressing on with moving fire is a legitimate
+     * choice — a squad that outnumbers one weak contact four to one is
+     * <em>meant</em> to press, and the route score says so deliberately.
+     * Overriding that turns every passing straggler into a halt.
+     *
+     * <p>At knife range it stops being a judgement. Walking on past somebody
+     * this close is walking a file through their fire, and no odds computation
+     * makes that right.
+     */
+    static final float ONSET_COMMIT_CELLS = 4f;
+
+    /**
+     * Whether a knife-range onset stops the advance. <b>Off, because it was
+     * measured and it costs ground.</b>
+     *
+     * <p>Against a control on the same tree, the reinforced-south fixture gave
+     * up a capture and a held compound and killed eighteen fewer defenders,
+     * and full-strength-west ran fourteen percent longer. The mechanism is not
+     * mysterious: squads that stop for whatever is closest arrive later, and in
+     * a fixture that ends on a clock, later means fewer objectives taken.
+     *
+     * <p>Kept rather than deleted because the reasoning that produced it still
+     * looks right and the measurement is about Conquest's particular shape — a
+     * timed advance across open ground, where the cost of stopping is paid
+     * immediately and the benefit is diffuse. It wants a different trigger than
+     * range alone (what the contact <em>is</em>, whether it can be walked past
+     * safely, whether anybody is already answering it) before it earns being on
+     * by default. {@code -Dbattle.squad.contactDrill=true} turns it on for the
+     * next attempt to find that trigger, and everything it needs is built.
+     *
+     * <p>The publication it reads is unaffected and stays on: a squad still
+     * knows what one of its members is looking at, screens still answer it, and
+     * cooperating squads still group on it. Only the halt is withheld.
+     */
+    public static final String CONTACT_DRILL_PROPERTY = "battle.squad.contactDrill";
+
+    private static final boolean CONTACT_DRILL_ENABLED = Boolean.parseBoolean(
+            System.getProperty(CONTACT_DRILL_PROPERTY, "false"));
     /** Maximum off-axis firing-position radius at full threat weight. */
     static final float ADVANCE_LEASH_MAX = 12f;
 
@@ -304,8 +349,63 @@ abstract class AbstractZoneAction implements Action {
             squad.advanceThreatAnchorX = threat.axisAnchorX();
             squad.advanceThreatAnchorY = threat.axisAnchorY();
             squad.advanceThreatRetreating = threat.primaryRetreating();
+            applyContactOnset(squad, sim, tick);
             squad.advanceThreatTick = tick;
         }
+    }
+
+    /**
+     * Folds a member's contact onset into the squad's advance decision.
+     *
+     * <p><b>An advance does not walk past somebody one of its people is looking
+     * at.</b> The route score is an aggregate over believed contacts and is
+     * deliberately unhurried, which is right for deciding whether a defended
+     * line is worth committing to and wrong for the marine who has just come
+     * round a corner into a rifle. A single hostile inside ten cells may never
+     * move that score at all, and the squad walks through it in file — which is
+     * exactly the behaviour the attack move was built to stop, arriving one
+     * scale further down than it was fixed.
+     *
+     * <p>So an onset inside {@link #ONSET_COMMIT_CELLS} commits the squad
+     * outright rather than adding weight to be weighed, and supplies the anchor
+     * with it, because a contact that close is the thing to take firing
+     * positions against whatever the aggregate liked better.
+     *
+     * <p><b>The range is the release, and it has to be.</b> Forcing the commit
+     * flag every tick while a contact stands there defeats the hysteresis
+     * underneath it — the squad can never let go, so an enemy who breaks off
+     * and withdraws still pins it, which is a latch with no exit rather than a
+     * contact drill. Because the force applies only within knife range, an
+     * enemy who dies, breaks line of sight, or simply backs away stops being an
+     * onset and the ordinary release resumes from the score.
+     *
+     * <p>A singling-out at range is deliberately <em>not</em> enough to commit.
+     * Stopping an advance because somebody far off has taken an interest is how
+     * a squad is pinned by one rifle, and the answer to it is a screen and to
+     * keep moving — which the equipment layer already gives.
+     */
+    private static void applyContactOnset(Squad squad, BattleControl sim, int tick) {
+        if (!CONTACT_DRILL_ENABLED || !onsetForcesCommit(squad)) return;
+        long contact = sim.resolveUnit(squad.onsetContactId);
+        if (contact == 0L) return;
+        squad.advanceEngageCommitted = true;
+        squad.advanceEngageLeash = Math.max(squad.advanceEngageLeash,
+                ADVANCE_LEASH_MIN);
+        squad.advanceThreatId = contact;
+        squad.advanceThreatAnchorX = sim.world().cellX(contact);
+        squad.advanceThreatAnchorY = sim.world().cellY(contact);
+    }
+
+    /**
+     * Whether this squad's published onset is the kind that stops an advance,
+     * independent of whether the drill is switched on. Separated so the range
+     * distinction stays testable while the behaviour it gates is off: what
+     * could silently drift is the boundary, not the switch.
+     */
+    static boolean onsetForcesCommit(Squad squad) {
+        return squad.onsetAtCloseQuarters
+                && squad.onsetTick >= 0
+                && squad.onsetDistance <= ONSET_COMMIT_CELLS;
     }
 
     static boolean shouldCommitAdvance(boolean wasCommitted, float weight) {

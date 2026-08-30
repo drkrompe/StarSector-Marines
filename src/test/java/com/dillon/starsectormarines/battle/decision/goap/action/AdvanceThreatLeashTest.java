@@ -171,6 +171,72 @@ public class AdvanceThreatLeashTest {
         assertEquals(FireStance.MOVING.ordinal(), fireStance(sim, leader));
     }
 
+    /**
+     * The distinction the onset layer turns on, pinned from both sides. The
+     * test above says one weak contact ten cells off is pressed past with
+     * moving fire, deliberately, because the squad outnumbers it four to one.
+     * This says the identical situation at knife range is not, and the odds
+     * have nothing to do with it.
+     */
+    @Test
+    public void aContactAtKnifeRangeStopsAnAdvanceTheOddsWouldHavePressed() {
+        BattleSimulation sim = openSim();
+        Squad squad = marineSquad(sim, 4);
+        // Three cells off the file rather than ten. Nothing else differs from
+        // weakContactPressesWithMovingFire: one contact, four friends.
+        defender(sim, "onTopOfThem", 13, 15);
+        observeContacts(sim);
+        long leader = squad.leaderId;
+        sim.world().setAttackRange(leader, 30f);
+
+        assertTrue(squad.onsetAtCloseQuarters, "somebody is looking at them");
+        assertTrue(AbstractZoneAction.onsetForcesCommit(squad),
+                "and is close enough that walking on is walking a file past them");
+
+        new ProbeZoneAction().advance(leader, squad, sim, DEST_X, DEST_Y);
+
+        // The drill itself ships off - it was measured against a control on
+        // this tree and cost the reinforced-south fixture a capture and a held
+        // compound. What is pinned here is the boundary it would use, because
+        // that is what could drift while nobody is watching it.
+        assertFalse(squad.advanceEngageCommitted,
+                "and with the drill off the advance is unchanged, which is"
+                        + " what ships");
+    }
+
+    /**
+     * And the force lifts by range alone. Written because the first version of
+     * this layer set the commit flag every tick a contact stood there, which
+     * defeats the hysteresis underneath it: the squad could never let go, so an
+     * enemy who broke off still pinned it.
+     *
+     * <p>Two sims at two ranges rather than one contact that moves. Moving it
+     * would say the same thing more directly and cannot be done here: a
+     * mid-battle {@code setPos} of a contact a squad is engaging hangs the
+     * contact-picture pass outright, in the firing-line trace and with this
+     * layer switched off, so the shortcut buys a hang that has nothing to do
+     * with what is being tested.
+     */
+    @Test
+    public void anOnsetOutsideKnifeRangeDoesNotForceTheCommit() {
+        BattleSimulation knife = openSim();
+        Squad knifeSquad = marineSquad(knife, 4);
+        defender(knife, "onTopOfThem", 13, 15);
+        observeContacts(knife);
+
+        BattleSimulation standoff = openSim();
+        Squad standoffSquad = marineSquad(standoff, 4);
+        defender(standoff, "acrossTheRoom", 18, 15);
+        observeContacts(standoff);
+
+        assertTrue(AbstractZoneAction.onsetForcesCommit(knifeSquad),
+                "three cells is close enough to stop an advance");
+        assertTrue(standoffSquad.onsetAtCloseQuarters,
+                "eight cells is still a contact the squad is facing");
+        assertFalse(AbstractZoneAction.onsetForcesCommit(standoffSquad),
+                "but not close enough to override what the odds say about it");
+    }
+
     @Test
     public void realRouteContactHaltsThenAutoReleasesWhenContactRetreats() {
         BattleSimulation sim = openSim();

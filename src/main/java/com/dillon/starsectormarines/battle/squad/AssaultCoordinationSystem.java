@@ -29,6 +29,15 @@ import java.util.Map;
  * squad that has never seen the enemy contributes nothing to a group formed
  * around it.
  *
+ * <p>A squad whose contact picture has not caught up yet is grouped on its
+ * published contact onset instead. That is the same honesty rule rather than an
+ * exception to it: an onset is a member of that squad looking at that hostile
+ * right now, which is a stronger claim to have seen it than the aggregate the
+ * picture is still assembling. Without this a squad that has just walked into
+ * the enemy is absent from the group forming around them for as long as its
+ * picture takes to agree, and the sibling maneuvering past it is maneuvering
+ * around a fixing squad that nobody has told to fix.
+ *
  * <p><b>Role selection is deterministic.</b> The squad with the best firing
  * line fixes, everyone else maneuvers, and every tie breaks on squad id.
  * Deterministic replay is a hard requirement of the commander evidence
@@ -66,6 +75,7 @@ public final class AssaultCoordinationSystem {
                 continue;
             }
             long contact = squad.contactPicture.primaryContactId();
+            if (contact == 0L) contact = squad.onsetContactId;
             if (contact == 0L || !roster.isAliveById(contact)) {
                 squad.assaultPicture = SquadAssaultPicture.NONE;
                 continue;
