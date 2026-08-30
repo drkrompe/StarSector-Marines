@@ -208,18 +208,18 @@ public class InfantryWeapons {
         // lateral spread.
         float dist = RangeFalloff.dist(world.x(shooter), world.y(shooter),
                 world.x(target), world.y(target));
+        float maximumTargetingRange = world.attackRange(shooter);
         float effectiveSpread = 0f;
         if (weapon != null) {
-            float effectiveRange = world.attackRange(shooter);
             accuracy = RangeFalloff.accuracy(world.accuracy(shooter),
-                    weapon.accuracyFalloff, dist, effectiveRange);
+                    weapon.accuracyFalloff, dist, maximumTargetingRange);
             damage   = world.attackDamage(shooter);
             penetration = weapon.penetration;
             effectiveSpread = RangeFalloff.spread(
                     InfantryCombatStats.spread(weapon,
                             roster.combat().equipmentGrade(shooter),
                             roster.combat().soldierProfile(shooter)),
-                    dist, effectiveRange);
+                    dist, maximumTargetingRange);
         }
         accuracy *= stance.accuracyMult;
         // A planted suit's whole contribution, read through at the moment the
@@ -245,7 +245,8 @@ public class InfantryWeapons {
         boolean friendlyThreat = false;
         for (int i = 0; i < projectileCount; i++) {
             BallisticResolver.Resolution resolution = resolver.resolve(shooter, target,
-                    accuracy, effectiveSpread, roundVelocity, rng);
+                    accuracy, effectiveSpread, roundVelocity,
+                    maximumTargetingRange, rng);
             resolutions[i] = resolution;
             friendlyThreat |= resolution.friendlyHit();
         }
@@ -342,7 +343,7 @@ public class InfantryWeapons {
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
-                secondaryAccuracy, 0f, sec.roundVelocity(), rng);
+                secondaryAccuracy, 0f, sec.roundVelocity(), sec.range(), rng);
         roster.telemetry().recordRoundFired(shooter);
         if (sec.activation() == SpecialActivation.DIRECT_PRECISION) {
             if (res.victimId() != 0L) {
