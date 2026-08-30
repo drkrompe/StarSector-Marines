@@ -65,6 +65,15 @@ public class AirSystem {
 
     /** Distance threshold (cells) at which an INCOMING shuttle snaps to the LZ and transitions to LANDED. Tight enough that the snap is invisible; loose enough that the asymptotic brake-to-station taper doesn't stall short. */
     private static final float SHUTTLE_LZ_ARRIVAL_DIST = 0.2f;
+
+    /**
+     * How near a ground waypoint counts as reached.
+     *
+     * <p>Wider than the LZ's, because a ground leg is walked at a speed the
+     * craft chose rather than braked into a hover: a roll crosses a third of a
+     * cell per tick and would step straight over a hair-fine radius.
+     */
+    private static final float THRESHOLD_ARRIVAL_DIST = 1.2f;
     /**
      * Cells from the pad centre at which a walking marine is aboard.
      *
@@ -464,6 +473,69 @@ public class AirSystem {
                     }
                     break;
 
+                case TAXI_OUT:
+                    // On the wheels the whole way: the aircraft is a target for
+                    // every second of this, which is what the crossing is for.
+                    world.setAltitudeT(id, 0f);
+                    AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
+                            SteeringMode.BRAKE_TO_STATION, GroundHandling.taxiing(type), dt);
+                    if (body.distanceTo(mission.holdX, mission.holdY) < THRESHOLD_ARRIVAL_DIST) {
+                        mission.state = ShuttleState.HOLDING_SHORT;
+                    }
+                    break;
+
+                case HOLDING_SHORT:
+                    // Stopped at the threshold. Asking every tick rather than
+                    // queueing: the strip is granted to whoever asks while it
+                    // is free, and a queue would have to survive a craft in it
+                    // being destroyed on the taxiway.
+                    world.setAltitudeT(id, 0f);
+                    AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
+                            SteeringMode.STATION, GroundHandling.taxiing(type), dt);
+                    if (airfield != null && airfield.claimRunway(id)) {
+                        beginShuttleLeg(mission, body, mission.rollX, mission.rollY);
+                        mission.state = ShuttleState.TAKEOFF_ROLL;
+                    }
+                    break;
+
+                case TAKEOFF_ROLL:
+                    AirSteeringSystem.steer(body, mission.rollX, mission.rollY,
+                            SteeringMode.CRUISE, GroundHandling.rolling(type), dt);
+                    // Altitude tracks how much of the strip is behind it, so the
+                    // craft is on the ground at the threshold and flying at the
+                    // far end. Rotating early would put it in the air over its
+                    // own runway with the roll unfinished.
+                    updateShuttleAltitude(id, mission, body, mission.rollX, mission.rollY,
+                            /*incoming*/ false, dt);
+                    if (reachedOrPassed(body, mission.holdX, mission.holdY,
+                            mission.rollX, mission.rollY)) {
+                        if (airfield != null) airfield.releaseRunway(id);
+                        beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
+                        mission.state = ShuttleState.INCOMING;
+                    }
+                    break;
+
+                case LANDING_ROLL:
+                    world.setAltitudeT(id, 0f);
+                    AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
+                            SteeringMode.BRAKE_TO_STATION, GroundHandling.rolling(type), dt);
+                    if (body.distanceTo(mission.holdX, mission.holdY) < THRESHOLD_ARRIVAL_DIST) {
+                        // Off the strip before anything else may have it.
+                        if (airfield != null) airfield.releaseRunway(id);
+                        mission.state = ShuttleState.TAXI_IN;
+                    }
+                    break;
+
+                case TAXI_IN:
+                    world.setAltitudeT(id, 0f);
+                    AirSteeringSystem.steer(body, mission.shelterX, mission.shelterY,
+                            SteeringMode.BRAKE_TO_STATION, GroundHandling.taxiing(type), dt);
+                    if (body.distanceTo(mission.shelterX, mission.shelterY) < THRESHOLD_ARRIVAL_DIST) {
+                        handBackToField(mission, /*recovered*/ true);
+                        mission.state = ShuttleState.GONE;
+                    }
+                    break;
+
                 case INCOMING:
                     AirSteeringSystem.steer(body, mission.lzX, mission.lzY, SteeringMode.BRAKE_TO_STATION, type, dt);
                     updateShuttleAltitude(id, mission, body, mission.lzX, mission.lzY, /*incoming=*/true, dt);
@@ -751,6 +823,27 @@ public class AirSystem {
      * position is left untouched — it's already at the previous waypoint (the
      * entry point, or the LZ).
      */
+    /**
+     * Whether a craft rolling from {@code (fromX, fromY)} toward
+     * {@code (toX, toY)} is done with that leg.
+     *
+     * <p>Near it, or past it. A takeoff roll is the one leg run at full power
+     * with nothing braking it, so a craft that crosses the far threshold
+     * between two ticks would otherwise keep accelerating down a strip it has
+     * already left — and a strip is finite. Asked as a projection onto the roll
+     * axis rather than a distance, because past is past however wide.
+     */
+    private static boolean reachedOrPassed(AirBody body, float fromX, float fromY,
+                                           float toX, float toY) {
+        if (body.distanceTo(toX, toY) < THRESHOLD_ARRIVAL_DIST) return true;
+        float axisX = toX - fromX;
+        float axisY = toY - fromY;
+        float lengthSq = axisX * axisX + axisY * axisY;
+        if (lengthSq < 1e-6f) return true;
+        float travelled = ((body.x - fromX) * axisX + (body.y - fromY) * axisY) / lengthSq;
+        return travelled >= 1f;
+    }
+
     private void beginShuttleLeg(ShuttleMission mission, AirBody body, float toX, float toY) {
         mission.legStartDist = Math.max(0.001f, body.distanceTo(toX, toY));
     }

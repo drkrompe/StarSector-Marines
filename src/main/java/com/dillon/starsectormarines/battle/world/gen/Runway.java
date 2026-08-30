@@ -83,6 +83,16 @@ public final class Runway {
                 : new float[]{endX, endY};
     }
 
+    /**
+     * The threshold to touch down on for a craft arriving from
+     * {@code (fromX, fromY)} — the near one, so it lands into the end it
+     * reaches first and rolls out along the strip rather than flying the length
+     * of its own runway to land the wrong way down it.
+     */
+    public float[] touchdownThreshold(float fromX, float fromY) {
+        return opposite(departureThreshold(fromX, fromY));
+    }
+
     /** The opposite end from {@code threshold} — where a roll that started there ends up. */
     public float[] opposite(float[] threshold) {
         boolean atStart = threshold[0] == startX && threshold[1] == startY;

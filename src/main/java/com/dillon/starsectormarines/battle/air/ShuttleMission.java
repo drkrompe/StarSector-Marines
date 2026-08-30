@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.world.gen.Runway;
+
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -227,6 +229,80 @@ public final class ShuttleMission {
      * its aircraft failed to come back.
      */
     public AirfieldService.Berth homeBerth;
+
+    /**
+     * Where the taxi out ends and the roll begins — the runway threshold this
+     * sortie departs from.
+     *
+     * <p>Chosen once at dispatch rather than each tick, because the threshold a
+     * craft is taxiing to must not change while it is halfway there.
+     */
+    public float holdX, holdY;
+    /** The far threshold: where the takeoff roll ends and the aircraft is flying. */
+    public float rollX, rollY;
+    /**
+     * The shelter this aircraft came out of and taxis back into.
+     *
+     * <p>Its own, not the nearest. A base where every returning aircraft picked
+     * the closest free shed would shuffle its complement around over a battle
+     * and lose the one thing a shelter is for: knowing which aircraft is where.
+     */
+    public float shelterX, shelterY;
+    /**
+     * Whether this sortie rolls.
+     *
+     * <p>The discriminator for the whole ground procedure. False for every
+     * vertical-lift craft — which is most of them — and the reason the added
+     * phases cost a shuttle nothing.
+     */
+    public boolean usesRunway;
+
+    /**
+     * Sends this sortie out of its shelter and down the strip toward
+     * {@code (towardX, towardY)}.
+     *
+     * <p>The threshold is chosen once, here, from where the sortie is going:
+     * the far one, so the roll runs toward the destination and the aircraft
+     * leaves the strip already pointing at it. Deciding it per tick would let
+     * it change while the craft was halfway down its own taxiway.
+     */
+    public void departFromRunway(Runway strip, float shelterX, float shelterY,
+                                 float towardX, float towardY) {
+        float[] threshold = strip.departureThreshold(towardX, towardY);
+        float[] far = strip.opposite(threshold);
+        this.holdX = threshold[0];
+        this.holdY = threshold[1];
+        this.rollX = far[0];
+        this.rollY = far[1];
+        this.shelterX = shelterX;
+        this.shelterY = shelterY;
+        this.usesRunway = true;
+        this.state = ShuttleState.TAXI_OUT;
+    }
+
+    /**
+     * Brings this sortie home onto the strip from {@code (fromX, fromY)}.
+     *
+     * <p>An aircraft lands into the end it arrives at rather than flying the
+     * length of its own runway first, so the rollout runs toward the far
+     * threshold — the opposite choice to a departure, for the same reason. That
+     * rollout target becomes the hold point, because it is where the craft
+     * leaves the strip and where the taxi in begins.
+     *
+     * <p>Only the ground half. Where the approach is aimed is an LZ, and an LZ
+     * is decided when the sortie is dispatched and never moved afterwards; a
+     * caller flying a craft home points it at
+     * {@link Runway#touchdownThreshold} and lands there.
+     */
+    public void landOnRunway(Runway strip, float fromX, float fromY,
+                             float shelterX, float shelterY) {
+        float[] rollout = strip.departureThreshold(fromX, fromY);
+        this.holdX = rollout[0];
+        this.holdY = rollout[1];
+        this.shelterX = shelterX;
+        this.shelterY = shelterY;
+        this.usesRunway = true;
+    }
 
     /**
      * Zone fallback for an objective that is not backed by a tactical node.

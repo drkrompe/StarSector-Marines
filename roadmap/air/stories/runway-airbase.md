@@ -116,7 +116,7 @@ that call, the station's home is a map that asks for one directly — the way
 | --- | --- |
 | 1 | `Runway` published from `AirbaseLot` through `GenContext`/`MapResult`. No behaviour. **Shipped.** |
 | 2 | `Size.STATION`, and every shed publishing the shelter its aircraft lives in. **Shipped.** |
-| 3 | Taxi and roll: the sortie phases, the runway as a held resource. |
+| 3 | Taxi and roll: the sortie phases, the runway as a held resource. **Shipped.** |
 | 3b | A host that reserves ground for a station, so the variant is reachable. |
-| 4 | The strike sortie: armed based aircraft, trigger, passes, recovery. |
+| 4 | The strike sortie: armed based aircraft, trigger, passes, recovery — and the wiring that puts a craft into `TAXI_OUT` and brings one home onto the strip. |
 | 5 | Evidence: a runway loop in the airfield scene, and an interrupted one. |
