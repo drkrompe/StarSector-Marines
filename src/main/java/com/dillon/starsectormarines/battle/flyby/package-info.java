@@ -5,19 +5,18 @@
  * <br>Charter:  which fighters exist, which factions fly them, and which of
  *           them a battle has committed — {@code FighterProfile},
  *           {@code FighterWing}, {@code FlybyRoster}, {@code PlayerFleetWings},
- *           {@code DebugAirRoster}, {@code WeaponClass}. A profile is an
- *           {@code air.Airframe}: it says what the aircraft looks like, how it
- *           flies, and what it drops.
- * <br>Boundary: data only. Nothing here flies anything. Its own flight model,
- *           fire resolution, lifecycle and GL renderer were deleted on
- *           2026-08-30 as duplicates of {@code air/}, which owns all four —
- *           {@code air.AirCoverSystem} flies these wings in from off the map
- *           and {@code air.AirStrikeSystem} flies them off a berth, and both
- *           are the same sortie from a different origin.
- * <br>Residue: {@code FlybyOverlay} is six sound ids that {@code FighterProfile}
- *           names, and the package name is the last thing left calling a
- *           fighter a "flyby". Both fold once {@code FighterProfile} can be
- *           edited; see {@code fighter-air-entities.md}.
+ *           {@code DebugAirRoster}. A profile is an {@code air.Airframe}: it
+ *           says what the aircraft looks like, which hull sizes and flies it,
+ *           what it drops, and how much of it there is to shoot.
+ * <br>Boundary: data only. Nothing here flies anything, fires anything, or
+ *           draws anything. {@code air.AirCoverSystem} flies these wings in
+ *           from off the map and {@code air.AirStrikeSystem} flies them off a
+ *           berth; both are the same sortie from a different origin, and
+ *           {@code air.AirOrdnance} is what a profile delivers with.
+ * <br>Residue: the package name is the last thing in the codebase calling a
+ *           fighter a "flyby". The roster wants to live under {@code air/}
+ *           named for what it is; that is a mechanical rename across roughly
+ *           thirty files, tracked by {@code fighter-air-entities.md}.
  *
  * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */

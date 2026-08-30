@@ -17,7 +17,7 @@ package com.dillon.starsectormarines.battle.air;
  * TAXI_OUT → HOLDING_SHORT → TAKEOFF_ROLL before INCOMING, and RETURNING →
  * LANDING_ROLL → TAXI_IN after it comes home. Those phases are on the ground — the aircraft is
  * a target for all of them — which is what a runway buys over a vertical lift
- * off a hardstand. See `runway-airbase.md`.
+ * off a hardstand. See `air-nouns.md`.
  *
  * <p>A top-level enum (formerly {@code Shuttle.State}) so it outlives the
  * dissolved {@code Shuttle} handle; see {@code air-nouns.md}.

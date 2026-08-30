@@ -9,12 +9,6 @@ import java.awt.Color;
  * lifetime + position + radius, and renders. Spawn helpers on the engine fill
  * in the recipe (smoke rises and billows, sparks parked and brief, fire bursts
  * grow and fade additive).
- *
- * <p>Mirrors the per-particle data structure inside
- * {@code com.dillon.starsectormarines.battle.flyby.FlybyOverlay.Particle} —
- * the two systems share assets and rendering math but live in separate
- * particle lists so flyby FX and ground-combat impact FX can evolve
- * independently without one regressing the other.
  */
 public final class Particle {
 

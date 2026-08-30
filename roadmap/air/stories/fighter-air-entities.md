@@ -4,19 +4,28 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — the overlay is deleted and wings fly as air entities; what
-remains is the `FighterProfile` clean-up the fold could not reach.
+Updated: 2026-08-30 — the overlay class and the profile's dead tuning are gone;
+only the package rename remains.
 
 Read `air-nouns.md` before changing this story, in particular **Air cover, and
 where a sortie is from**.
 
 ## What shipped
 
-`FlybyOverlay` was 1,583 lines and is now six sound-id constants. Its flight
+`FlybyOverlay` was 1,583 lines and is gone. Its flight
 integration, map-edge entry, cycling re-entry, cluster scan, bank-back/run state
 machine, tracer and missile fire, dogfight aggro, fighter vision push, GL
 renderer and particle pool were all deleted as duplicates of `battle.air`, which
 owns every one of them properly.
+
+`FighterProfile` is a roster again: a hull, a size, structure to shoot at, a
+mount count and an identity colour. The tracer, burst and projectile tuning
+blocks were the overlay's own fire resolution and went with it; `AirOrdnance`
+presets carry the equivalent facts. The six weapon-sound constants and their
+`sounds.json` entries went too — the gun-run cues are keyed on the delivery
+(`OrdnanceFx`), so nothing had played one since the overlay was cut. `WeaponClass`
+went with them: `ordnance()` names a preset per hull, so the tag selected
+nothing.
 
 Committed fighter wings now fly as real air entities. `AirCorridor` is the
 explicit off-map origin — a named source and two points that are outside the map
@@ -34,34 +43,19 @@ The wall-collapse dust drain the overlay happened to own moved to
 
 ## What remains
 
-**The `FighterProfile` clean-up.** It could not be touched during the fold
-(another session owned it). Three things are waiting on it:
+**Rename the package.** `battle.flyby` holds `FighterProfile`, `FighterWing`,
+`FlybyRoster`, `PlayerFleetWings` and `DebugAirRoster` — the fighter roster, and
+nothing that flies. It is the last thing in the codebase calling a fighter a
+"flyby". `FlybyRoster` and `FighterWing` want to move under `air/` and be named
+for what they are; that touches roughly thirty files (fixtures, ops, detachment,
+briefing UI) and is a mechanical rename best done when no sibling session is
+mid-flight in the air package.
 
-1. Move `SFX_GUN_HEAVY`, `SFX_GUN_LIGHT`, `SFX_GUN_ENERGY`, `SFX_IMPACT`,
-   `SFX_MISSILE_LAUNCH`, `SFX_MISSILE_IMPACT` onto `FighterProfile` (or a small
-   `FighterAudio`), then **delete `FlybyOverlay`**. Those six constants are the
-   only reason the class still exists.
-2. Delete the dead tuning blocks. `tracerPxLen`, `tracerPxThick`,
-   `tracerLifetime`, `burstSize`, `burstInterval`, `burstSpreadDeg`,
-   `perTracerDamage`, `wallDamage`, `runFireInterval`, `projectileSpeed`,
-   `projectileTurnRateDegPerSec`, `projectileFuseSec`, `projectileAoeRadiusCells`,
-   `projectileAoeDamage` and `projectileSpritePath` were read only by the
-   overlay's own fire resolution. `AirOrdnance` presets carry all of it now, and
-   `WeaponClass` is what picks the preset. `tracerColor` is still worth keeping
-   as the profile's identity colour if the gun-run FX wants one.
-3. Rename the package. `battle.flyby` holds `FighterProfile`, `FighterWing`,
-   `FlybyRoster`, `PlayerFleetWings`, `DebugAirRoster` and `WeaponClass` — the
-   fighter roster, and nothing that flies. It is the last thing in the codebase
-   calling a fighter a "flyby". `FlybyRoster` and `FighterWing` want to move
-   under `air/` and be named for what they are; that touches roughly thirty
-   files (fixtures, ops, detachment, briefing UI) and is a mechanical rename
-   best done when no sibling session is mid-flight in the air package.
-
-**Presentation the fold traded away.** The overlay drew tracers, muzzle flashes
-and a missile body for its fighter fire. Air-model gun runs deliver through
-`releaseOrdnance`, so those visuals belong to the gun-run FX work on that seam
-rather than to a second renderer. Until that lands, a fighter pass is a sprite
-crossing the map with detonations under it.
+**A profile's identity colour is not wired to anything.** `tracerColor` is kept
+as the one authored per-fighter visual fact worth having, but the gun-run
+presentation keys on the delivery rather than on the carrier, so no effect reads
+it. Either give a run some per-hull tint that does not undo that keying, or drop
+the field.
 
 ## Out of scope
 

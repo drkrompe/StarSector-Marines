@@ -84,8 +84,8 @@ public class EngineSlotPreviewTest {
             totalSlots += renderOne(coreDir, type.name(), hullId, type.spritePath,
                     renderedHulls, skippedHulls);
         }
-        // Fighter profiles use the same scrape — verifies the FlybyOverlay
-        // path produces sensible engine layouts before they hit the screen.
+        // Fighter profiles use the same scrape — verifies a fighter hull
+        // produces a sensible engine layout before it hits the screen.
         for (FighterProfile profile : FighterProfile.values()) {
             if (profile.hullId == null) continue;
             totalSlots += renderOne(coreDir, profile.name(), profile.hullId, profile.spritePath,

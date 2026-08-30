@@ -7,12 +7,25 @@ package com.dillon.starsectormarines.battle.vehicle;
  * carrot is picked from the waypoint polyline.
  *
  * <p>Algorithm: starting from {@code startIdx}, advance the cursor past any
- * waypoint the body has already crossed (segment direction onto
- * body-relative-to-waypoint has positive dot). Then walk forward from the
- * body along the polyline, accumulating segment lengths until
+ * waypoint the body has already crossed (direction of travel through the
+ * waypoint onto body-relative-to-waypoint has positive dot). Then walk forward
+ * from the body along the polyline, accumulating segment lengths until
  * {@code lookAhead} cells have been covered — the point at that distance is
  * the carrot. If the path runs out first, the carrot is pinned to the final
  * vertex.
+ *
+ * <p><b>{@code startIdx 0} is legal, and means the first waypoint has not been
+ * consumed yet.</b> The direction of travel through an interior waypoint is the
+ * segment leading into it; the first waypoint has none, so it uses the segment
+ * leading out of it instead. Measuring waypoint 0 against the <em>body's</em>
+ * approach to it — which this once did — is a vector dotted with its own
+ * negation and therefore negative for any body not standing exactly on the
+ * waypoint, so a cursor left at zero could never advance: the carrot walk kept
+ * re-entering the path at a point already behind the body, spent the look-ahead
+ * getting back there, and converged onto the body's own nose. Callers worked
+ * around it by starting at 1, which is still the right value when waypoint 0 is
+ * known to be the cell the body is standing on — but it is now a statement
+ * about the path rather than a workaround.
  *
  * <p>Why pure pursuit fixes the orbit-around-waypoint bug: the carrot is
  * always on the <em>path</em>, not at a fixed point. As the body approaches,
@@ -57,15 +70,13 @@ public final class PurePursuit {
 
         // Advance startIdx past any waypoint the body has crossed (body is
         // past the perpendicular through that waypoint, measured against the
-        // segment leading into it).
+        // direction of travel through it).
         int idx = Math.max(0, Math.min(startIdx, n - 1));
         while (idx < n - 1) {
-            float ax = (idx == 0) ? bodyX : xs[idx - 1];
-            float ay = (idx == 0) ? bodyY : ys[idx - 1];
             float bx = xs[idx];
             float by = ys[idx];
-            float segDx = bx - ax;
-            float segDy = by - ay;
+            float segDx = (idx == 0) ? xs[1] - bx : bx - xs[idx - 1];
+            float segDy = (idx == 0) ? ys[1] - by : by - ys[idx - 1];
             float toBodyDx = bodyX - bx;
             float toBodyDy = bodyY - by;
             if (segDx * toBodyDx + segDy * toBodyDy >= 0f) {
@@ -114,12 +125,10 @@ public final class PurePursuit {
 
         int idx = Math.max(0, Math.min(startIdx, n - 1));
         while (idx < n - 1) {
-            float ax = (idx == 0) ? bodyX : flatCells[(idx - 1) * 2] + 0.5f;
-            float ay = (idx == 0) ? bodyY : flatCells[(idx - 1) * 2 + 1] + 0.5f;
             float bx = flatCells[idx * 2] + 0.5f;
             float by = flatCells[idx * 2 + 1] + 0.5f;
-            float segDx = bx - ax;
-            float segDy = by - ay;
+            float segDx = (idx == 0) ? flatCells[2] + 0.5f - bx : bx - (flatCells[(idx - 1) * 2] + 0.5f);
+            float segDy = (idx == 0) ? flatCells[3] + 0.5f - by : by - (flatCells[(idx - 1) * 2 + 1] + 0.5f);
             float toBodyDx = bodyX - bx;
             float toBodyDy = bodyY - by;
             if (segDx * toBodyDx + segDy * toBodyDy >= 0f) {
