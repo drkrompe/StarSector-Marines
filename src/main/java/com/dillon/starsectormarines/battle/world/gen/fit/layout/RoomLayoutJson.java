@@ -90,6 +90,9 @@ public final class RoomLayoutJson {
                 return new LayoutOp.Task(x, y,
                         enumValue(Affordance.class, op.optString("affordance", null), "affordance"),
                         op.optInt("fixtureX"), op.optInt("fixtureY"));
+            case "berthTask":
+                return new LayoutOp.BerthTask(x, y, op.optInt("berth"),
+                        op.optInt("fixtureX"), op.optInt("fixtureY"));
             case "berth":
                 return new LayoutOp.Berth(x, y, span(op, "spanX"), span(op, "spanY"),
                         enumValue(Gantry.Facing.class, op.optString("facing", null), "berth facing"));
@@ -230,6 +233,10 @@ public final class RoomLayoutJson {
         } else if (op instanceof LayoutOp.Task task) {
             json.put("op", "task").put("x", task.x()).put("y", task.y())
                     .put("affordance", task.affordance().name())
+                    .put("fixtureX", task.fixtureX()).put("fixtureY", task.fixtureY());
+        } else if (op instanceof LayoutOp.BerthTask task) {
+            json.put("op", "berthTask").put("x", task.x()).put("y", task.y())
+                    .put("berth", task.berth())
                     .put("fixtureX", task.fixtureX()).put("fixtureY", task.fixtureY());
         } else if (op instanceof LayoutOp.Berth berth) {
             json.put("op", "berth").put("x", berth.x()).put("y", berth.y())
