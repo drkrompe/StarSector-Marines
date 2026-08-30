@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
@@ -48,11 +50,13 @@ public final class RoomLayoutCheck {
      * @param unknownIds ids the catalog does not have, which place nothing
      */
     public record Report(int declared, int placed, int work, int workDropped,
-                         boolean circulationSurvives, List<String> unknownIds) {
+                         boolean circulationSurvives, List<String> unknownIds,
+                         String badBulkhead) {
 
         /** Whether this layout does what it says. */
         public boolean clean() {
-            return circulationSurvives && placed == declared && unknownIds.isEmpty();
+            return circulationSurvives && placed == declared
+                    && unknownIds.isEmpty() && badBulkhead == null;
         }
 
         /** What is wrong, in the order it matters, or an empty list. */
@@ -62,6 +66,9 @@ public final class RoomLayoutCheck {
                 said.add("This arrangement severs the room's own circulation, so the ship "
                         + "would throw the whole fill away and the room would generate as "
                         + "bare deck. A line of fixtures across a room is a wall.");
+            }
+            if (badBulkhead != null) {
+                said.add(badBulkhead);
             }
             if (!unknownIds.isEmpty()) {
                 said.add("The catalog has no " + String.join(", ", unknownIds)
@@ -115,7 +122,31 @@ public final class RoomLayoutCheck {
             }
         }
         return new Report(declared, floor.placedFixtures(), ctx.fixtureTasks.size(),
-                dropped, floor.circulationSurvives(), unknown);
+                dropped, floor.circulationSurvives(), unknown, bulkheadComplaint(layout));
+    }
+
+    /**
+     * Why this room's bulkhead will not draw, or null.
+     *
+     * <p>Two ways it can be wrong and both end in an ordinary-looking wall: an
+     * id the catalog does not have, and an id that names something which is not
+     * a wall. A variant pool cannot resolve a corner, so a room pointed at one
+     * would fall back to the deck's own wall on every cell and look exactly like
+     * a room that never asked.
+     */
+    private static String bulkheadComplaint(RoomLayout layout) {
+        String id = layout.bulkhead();
+        if (id == null) return null;
+        GridBlockDef block = TileRegistry.installed().block(id);
+        if (block == null) {
+            return "The catalog has no block '" + id + "', so this room would draw the "
+                    + "deck's own bulkhead instead.";
+        }
+        if (block.layout != GridLayout.WALL_3X3) {
+            return "'" + id + "' is not a wall — it cannot resolve a corner, so this room "
+                    + "would draw the deck's own bulkhead instead.";
+        }
+        return null;
     }
 
     private static List<Doorway> doors(RoomLayout layout, int margin) {

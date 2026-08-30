@@ -90,6 +90,8 @@ public final class RoomLayoutJson {
                 return new LayoutOp.Task(x, y,
                         enumValue(Affordance.class, op.optString("affordance", null), "affordance"),
                         op.optInt("fixtureX"), op.optInt("fixtureY"));
+            case "bulkhead":
+                return new LayoutOp.Bulkhead(requireId(op, index));
             case "berthTask":
                 return new LayoutOp.BerthTask(x, y, op.optInt("berth"),
                         op.optInt("fixtureX"), op.optInt("fixtureY"));
@@ -234,6 +236,8 @@ public final class RoomLayoutJson {
             json.put("op", "task").put("x", task.x()).put("y", task.y())
                     .put("affordance", task.affordance().name())
                     .put("fixtureX", task.fixtureX()).put("fixtureY", task.fixtureY());
+        } else if (op instanceof LayoutOp.Bulkhead bulkhead) {
+            json.put("op", "bulkhead").put("id", bulkhead.blockId());
         } else if (op instanceof LayoutOp.BerthTask task) {
             json.put("op", "berthTask").put("x", task.x()).put("y", task.y())
                     .put("berth", task.berth())

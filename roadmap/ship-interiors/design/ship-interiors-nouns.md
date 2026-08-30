@@ -914,6 +914,26 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     frame in the game does. Where evidence cannot check a wiring, close the trap
     in the shape of the code instead: one door, one constructor, nothing for a
     caller to remember.
+19. **A room may carry its own bulkhead, and a shared bulkhead is one wall.**
+    What a compartment's wall is made of is part of what the room is, so an
+    authored room may name a block of its own for the ring it already reserves.
+    It changes only the picture: nothing about topology, cover, or line of sight
+    moves with it. Rooms are packed against one another, so where two rings run
+    together the cells belong to both and the later room wins them — there is
+    one wall there and it can only look like one thing.
+
+    A bulkhead is one cell thick with open deck on both sides, which is not
+    what the wall autotile was built for. A building's interior wall sits under
+    a roof and is never seen, so a wall with no exterior face resolves to the
+    block's transparent centre and draws nothing. Decks inherited that and
+    **every bulkhead on every generated deck rendered as empty air** — a defect
+    that hid for as long as it did precisely because there was nothing to see.
+    A wall nobody stamped now takes a face on each side that is not itself
+    wall, which is what makes a run read as a wall and its ends as corners. A
+    mask somebody already set is never re-derived: which faces of a building's
+    walls are exterior is a fact about the building, not about what happens to
+    abut it.
+
 18. **A deck's form is what the ship can do when whole; damage is state laid
     over that form.** Refits change the form in both directions — a hull fitted
     with more berthing has more berths, and one whose bays were converted to
