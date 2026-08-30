@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a strip is published geometry rather than paint, and a base can have one.
+Updated: 2026-08-30 — an aircraft that has to roll taxis out, holds short, and runs the strip.
 
 ## Purpose
 
@@ -209,6 +209,32 @@ a roll starts from is a decision for the sortie, and the far one is normally
 right because it leaves the aircraft pointing where it is going. `mapgen-nouns.md`
 owns where a strip is laid; Air owns what happens along it. See
 `runway-airbase.md` for the ground procedure being built on it.
+
+A craft that has to roll has a **ground procedure** either side of its flight,
+and it is on its wheels and shootable for all of it: out of the shed, down to
+the threshold, a wait if the strip is busy, and then the roll itself, which is
+the only part where the aircraft is accelerating and not yet flying. Coming
+home it is the same in reverse — touch down at the end it reaches first, roll
+out to the far one, turn off, taxi back to its own shed. That is what a runway
+buys over a vertical lift: a minute of ground movement in the open, every
+second of which somebody can be standing on.
+
+The strip itself is a **resource with one occupant**. Two aircraft rolling down
+one runway is not a race the simulation is entitled to lose, and the queue that
+falls out of it is the point — a field with three aircraft and one strip
+launches them in sequence, so anything sitting between a shed and the threshold
+delays every one of them. A craft holds the strip from the moment it starts its
+roll until it is airborne, and through a landing rollout, because it is standing
+on it; releasing is tolerant of a craft that never held it, since a strip left
+claimed by an aircraft that no longer exists closes the field for the rest of
+the battle.
+
+Handling on the ground is the **same hull with a ceiling on it** — a bus taxis
+like a bus — rather than a second authored profile per aircraft, which would be
+a second place for one fact to live. Turning is faster on the wheels than in the
+air, which reads wrong and is right: an aircraft pivots about its gear at
+walking pace while the same craft in flight is fighting its own momentum
+through the turn.
 
 A strip is not a requirement for an air arm. Most airbases have none — an
 aircraft that lands vertically needs somewhere to stand and somewhere to be

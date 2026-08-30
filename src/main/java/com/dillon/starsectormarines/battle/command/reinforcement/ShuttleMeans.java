@@ -191,8 +191,8 @@ public final class ShuttleMeans implements ReinforcementMeans {
         int[] centre = deliveryCentre(req);
         AirfieldService.Berth berth = sim.getAirfieldService()
                 .nearestAirworthy(centre[0] + 0.5f, centre[1] + 0.5f);
-        float fromX = berth != null ? berth.pad.centerX : centre[0];
-        float fromY = berth != null ? berth.pad.centerY : centre[1];
+        float fromX = berth != null ? berth.centerX : centre[0];
+        float fromY = berth != null ? berth.centerY : centre[1];
         float flight = distance(fromX, fromY, centre[0], centre[1])
                 / Math.max(0.1f, DEFAULT_TYPE.maxSpeed);
         return crewWalkSeconds(sim, req, berth) + flight;
@@ -211,7 +211,7 @@ public final class ShuttleMeans implements ReinforcementMeans {
         if (berth == null || airfield.isEmpty()) return 0f;
         int[] from = WalkInMeans.pickPrimaryCell(sim, req, axis);
         if (from == null) return 0f;
-        float walk = distance(from[0], from[1], berth.pad.centerX, berth.pad.centerY)
+        float walk = distance(from[0], from[1], berth.centerX, berth.centerY)
                 * FOOT_DETOUR;
         return walk / Math.max(0.1f, UnitType.MARINE.moveSpeed);
     }
@@ -412,8 +412,8 @@ public final class ShuttleMeans implements ReinforcementMeans {
      * home to the same place.
      */
     private static float[] sortieFromBerth(AirfieldService.Berth berth) {
-        float padX = berth.pad.centerX + 0.5f;
-        float padY = berth.pad.centerY + 0.5f;
+        float padX = berth.centerX + 0.5f;
+        float padY = berth.centerY + 0.5f;
         return new float[]{ padX, padY, padX, padY };
     }
 
