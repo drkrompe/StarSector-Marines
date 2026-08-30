@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutSeed;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPage;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
@@ -99,6 +101,16 @@ public final class RoomAuthoringPage implements AuthoringPage {
      */
     private final JComboBox<GroundKind> groundKind = new JComboBox<>(new GroundKind[]{
             GroundKind.INDOOR, GroundKind.STRIPED, GroundKind.TILE, GroundKind.BRICK });
+    /**
+     * What this room's bulkhead is made of.
+     *
+     * <p>Offers only blocks that can actually be a wall. A variant pool cannot
+     * resolve a corner, so a room pointed at one draws the deck's own wall on
+     * every cell and looks exactly like a room that never asked — a failure with
+     * nothing anywhere to say it happened.
+     */
+    private final JComboBox<String> bulkhead = new JComboBox<>();
+
     private final JSpinner footprintWidth = new JSpinner(new SpinnerNumberModel(8, 1, 64, 1));
     private final JSpinner footprintHeight = new JSpinner(new SpinnerNumberModel(6, 1, 64, 1));
 
@@ -113,6 +125,14 @@ public final class RoomAuthoringPage implements AuthoringPage {
         affordance.addItem(null);
         for (Affordance value : Affordance.values()) affordance.addItem(value);
         for (String id : placeableIds()) fixtureId.addItem(id);
+        bulkhead.addItem(DECK_BULKHEAD);
+        for (String id : wallBlockIds()) bulkhead.addItem(id);
+        bulkhead.addActionListener(e -> {
+            if (draft == null) return;
+            Object picked = bulkhead.getSelectedItem();
+            draft.bulkhead(DECK_BULKHEAD.equals(picked) ? null : (String) picked);
+            touched();
+        });
 
         roomList.addListSelectionListener(e -> wizard.refresh());
         roomList.setVisibleRowCount(16);
@@ -135,6 +155,25 @@ public final class RoomAuthoringPage implements AuthoringPage {
     private static List<String> placeableIds() {
         List<String> ids = new ArrayList<>();
         for (DoodadDef def : TileRegistry.installed().doodads()) ids.add(def.id);
+        ids.sort(String::compareTo);
+        return ids;
+    }
+
+    /** The entry that means "whatever the rest of the ship uses". */
+    private static final String DECK_BULKHEAD = "(the deck's own)";
+
+    /**
+     * Every block in the catalog that can be a wall.
+     *
+     * <p>Shape rather than name: a wall is a block whose layout resolves a
+     * corner, which is what {@code WALL_3X3} means. Listing by id would have to
+     * guess from spelling, and {@code road.embankment} is a wall.
+     */
+    private static List<String> wallBlockIds() {
+        List<String> ids = new ArrayList<>();
+        for (GridBlockDef block : TileRegistry.installed().blocks()) {
+            if (block.layout == GridLayout.WALL_3X3) ids.add(block.id);
+        }
         ids.sort(String::compareTo);
         return ids;
     }
@@ -198,6 +237,8 @@ public final class RoomAuthoringPage implements AuthoringPage {
         }
         draft = new RoomDraft(seed);
         dirty = false;
+        String wall = draft.bulkhead();
+        bulkhead.setSelectedItem(wall == null ? DECK_BULKHEAD : wall);
         footprintWidth.setValue(draft.width());
         footprintHeight.setValue(draft.height());
         grid.show(draft);
@@ -307,6 +348,13 @@ public final class RoomAuthoringPage implements AuthoringPage {
                     + "Nothing can be placed on a lane, so this is how you make room.");
         });
         side.add(clear);
+        side.add(Box.createVerticalStrut(12));
+
+        side.add(new JLabel("Bulkhead"));
+        side.add(bulkhead);
+        side.add(new JLabel("<html><i>The wall all the way round this room. A shared "
+                + "bulkhead is one wall, so where this room backs onto another the "
+                + "later one wins the cells between them.</i></html>"));
         side.add(Box.createVerticalStrut(8));
         side.add(new JLabel("<html><i>Circulation is two abreast on both axes — "
                 + "a hall widened only across its direction of travel pinches back "
@@ -476,6 +524,10 @@ public final class RoomAuthoringPage implements AuthoringPage {
                 }
             }
             RoomLayoutCheck.Report report = RoomLayoutCheck.replay(layout);
+            if (report.badBulkhead() != null) {
+                context.reportStatus("Refused: " + report.badBulkhead());
+                return;
+            }
             if (!report.circulationSurvives()) {
                 JOptionPane.showMessageDialog(root,
                         "This arrangement severs the room's own circulation, so the ship "
