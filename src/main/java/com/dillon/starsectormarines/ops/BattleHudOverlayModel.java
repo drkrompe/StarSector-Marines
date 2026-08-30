@@ -1,7 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -34,6 +38,9 @@ final class BattleHudOverlayModel {
     private static final String OBJECTIVE_FOCUS = "objective-focus";
     private static final String OBJECTIVE_FOCUS_HIDDEN =
             "objective-focus objective-focus-hidden";
+    private static final String COMMAND_PANEL = "conquest-command-panel";
+    private static final String COMMAND_PANEL_HIDDEN =
+            "conquest-command-panel conquest-command-panel-hidden";
 
     private final MutableSignal<String> pauseClasses;
     private final MutableSignal<String> normalClasses;
@@ -50,6 +57,10 @@ final class BattleHudOverlayModel {
     private final MutableSignal<String> objectiveFocusClasses;
     private final MutableSignal<String> objectiveFocus;
     private final MutableSignal<String> objectiveProgressStyle;
+    private final MutableSignal<String> commandPanelClasses;
+    private final MutableSignal<String> commandPhase;
+    private final MutableSignal<String> commandForce;
+    private final MutableSignal<List<ConquestLane>> conquestLanes;
 
     private final Consumer<Float> speedSetter;
     private final String[] speedLabels;
@@ -74,6 +85,10 @@ final class BattleHudOverlayModel {
         objectiveFocusClasses = reactor.signal(OBJECTIVE_FOCUS_HIDDEN);
         objectiveFocus = reactor.signal("");
         objectiveProgressStyle = reactor.signal("width: 0%;");
+        commandPanelClasses = reactor.signal(COMMAND_PANEL_HIDDEN);
+        commandPhase = reactor.signal("");
+        commandForce = reactor.signal("");
+        conquestLanes = reactor.signal(List.of());
     }
 
     Map<String, Object> props() {
@@ -102,11 +117,16 @@ final class BattleHudOverlayModel {
         props.put("objectiveFocusClasses", objectiveFocusClasses);
         props.put("objectiveFocus", objectiveFocus);
         props.put("objectiveProgressStyle", objectiveProgressStyle);
+        props.put("commandPanelClasses", commandPanelClasses);
+        props.put("commandPhase", commandPhase);
+        props.put("commandForce", commandForce);
+        props.put("conquestLanes", conquestLanes);
         return props;
     }
 
-    boolean update(float speedMultiplier,
-                   Collection<CompoundService.Record> records) {
+    Presentation update(float speedMultiplier,
+                        Collection<CompoundService.Record> records,
+                        CommanderSnapshot<?> commander) {
         List<CaptureObjective> objectives = new ArrayList<>();
         if (records != null) {
             for (CompoundService.Record record : records) {
@@ -114,11 +134,17 @@ final class BattleHudOverlayModel {
                         record.state, record.captureProgress));
             }
         }
-        return updateProjected(speedMultiplier, objectives);
+        return updateProjected(speedMultiplier, objectives, commander);
     }
 
     boolean updateProjected(float speedMultiplier,
                             List<CaptureObjective> objectives) {
+        return updateProjected(speedMultiplier, objectives, null).objectivesVisible();
+    }
+
+    Presentation updateProjected(float speedMultiplier,
+                                 List<CaptureObjective> objectives,
+                                 CommanderSnapshot<?> commander) {
         setSelectedSpeed(speedMultiplier);
         List<CaptureObjective> stable = objectives == null ? List.of() : List.copyOf(objectives);
         boolean visible = !stable.isEmpty();
@@ -130,65 +156,165 @@ final class BattleHudOverlayModel {
             objectiveFocusClasses.set(OBJECTIVE_FOCUS_HIDDEN);
             objectiveFocus.set("");
             objectiveProgressStyle.set("width: 0%;");
+        } else {
+            int secured = 0;
+            int contested = 0;
+            int hostile = 0;
+            CaptureObjective focus = null;
+            int focusIndex = -1;
+            float focusProgress = -1f;
+            EnumMap<TacticalNode.Kind, Integer> ordinalByKind =
+                    new EnumMap<>(TacticalNode.Kind.class);
+            List<ObjectiveChip> chips = new ArrayList<>(stable.size());
+            for (int index = 0; index < stable.size(); index++) {
+                CaptureObjective objective = stable.get(index);
+                int ordinal = ordinalByKind.merge(objective.kind(), 1, Integer::sum);
+                String label = abbreviation(objective.kind()) + ordinal;
+                String stateClass;
+                switch (objective.state()) {
+                    case MARINE_HELD -> {
+                        secured++;
+                        stateClass = "objective-secured";
+                    }
+                    case CONTESTED -> {
+                        contested++;
+                        stateClass = "objective-contested";
+                        float progress = clamp01(objective.progress());
+                        if (focus == null || progress > focusProgress) {
+                            focus = objective;
+                            focusIndex = ordinal;
+                            focusProgress = progress;
+                        }
+                    }
+                    case DEFENDER_HELD -> {
+                        hostile++;
+                        stateClass = "objective-hostile";
+                    }
+                    default -> throw new IllegalStateException("Unhandled compound state "
+                            + objective.state());
+                }
+                chips.add(new ObjectiveChip("battle-objective-chip-" + index,
+                        label, "objective-chip " + stateClass));
+            }
+            objectiveScore.set(secured + " / " + stable.size());
+            objectiveTally.set(secured + " SECURE  ·  " + contested
+                    + " CONTESTED  ·  " + hostile + " HOSTILE");
+            objectiveChips.set(List.copyOf(chips));
+            if (focus == null) {
+                objectiveFocusClasses.set(OBJECTIVE_FOCUS_HIDDEN);
+                objectiveFocus.set("");
+                objectiveProgressStyle.set("width: 0%;");
+            } else {
+                int percent = Math.round(focusProgress * 100f);
+                objectiveFocusClasses.set(OBJECTIVE_FOCUS);
+                objectiveFocus.set(kindName(focus.kind()) + " " + focusIndex
+                        + "  ·  CONTESTED " + percent + "%");
+                objectiveProgressStyle.set("width: " + percent + "%;");
+            }
+        }
+        return new Presentation(visible, updateConquestCommand(commander));
+    }
+
+    private boolean updateConquestCommand(CommanderSnapshot<?> commander) {
+        if (commander == null || commander.perspective() != Faction.MARINE
+                || !(commander.detail() instanceof ConquestFrontSnapshot front)
+                || front.perspective() != Faction.MARINE) {
+            commandPanelClasses.set(COMMAND_PANEL_HIDDEN);
+            commandPhase.set("");
+            commandForce.set("");
+            conquestLanes.set(List.of());
             return false;
         }
 
-        int secured = 0;
-        int contested = 0;
-        int hostile = 0;
-        CaptureObjective focus = null;
-        int focusIndex = -1;
-        float focusProgress = -1f;
-        EnumMap<TacticalNode.Kind, Integer> ordinalByKind =
-                new EnumMap<>(TacticalNode.Kind.class);
-        List<ObjectiveChip> chips = new ArrayList<>(stable.size());
-        for (int index = 0; index < stable.size(); index++) {
-            CaptureObjective objective = stable.get(index);
-            int ordinal = ordinalByKind.merge(objective.kind(), 1, Integer::sum);
-            String label = abbreviation(objective.kind()) + ordinal;
-            String stateClass;
-            switch (objective.state()) {
-                case MARINE_HELD -> {
-                    secured++;
-                    stateClass = "objective-secured";
-                }
-                case CONTESTED -> {
-                    contested++;
-                    stateClass = "objective-contested";
-                    float progress = clamp01(objective.progress());
-                    if (focus == null || progress > focusProgress) {
-                        focus = objective;
-                        focusIndex = ordinal;
-                        focusProgress = progress;
-                    }
-                }
-                case DEFENDER_HELD -> {
-                    hostile++;
-                    stateClass = "objective-hostile";
-                }
-                default -> throw new IllegalStateException("Unhandled compound state "
-                        + objective.state());
+        commandPanelClasses.set(COMMAND_PANEL);
+        commandPhase.set(phaseLabel(front.phase()));
+        commandForce.set(commander.commandPoolSize() + " SQUADS  ·  "
+                + commander.reserveCount() + " RESERVE");
+        List<ConquestLane> lanes = new ArrayList<>(front.tracks().size());
+        front.tracks().stream()
+                .sorted((left, right) -> Integer.compare(left.index(), right.index()))
+                .forEach(track -> lanes.add(projectLane(front, track)));
+        conquestLanes.set(List.copyOf(lanes));
+        return true;
+    }
+
+    private static ConquestLane projectLane(
+            ConquestFrontSnapshot front, ConquestFrontSnapshot.TrackState track) {
+        EnumMap<AssignmentKind, Integer> assignments = new EnumMap<>(AssignmentKind.class);
+        for (ConquestFrontSnapshot.SquadDirective directive : front.directives()) {
+            if (directive.effectiveTrack() == track.index()
+                    && directive.assignmentKind() != null) {
+                assignments.merge(directive.assignmentKind(), 1, Integer::sum);
             }
-            chips.add(new ObjectiveChip("battle-objective-chip-" + index,
-                    label, "objective-chip " + stateClass));
         }
 
-        objectiveScore.set(secured + " / " + stable.size());
-        objectiveTally.set(secured + " SECURE  ·  " + contested
-                + " CONTESTED  ·  " + hostile + " HOSTILE");
-        objectiveChips.set(List.copyOf(chips));
-        if (focus == null) {
-            objectiveFocusClasses.set(OBJECTIVE_FOCUS_HIDDEN);
-            objectiveFocus.set("");
-            objectiveProgressStyle.set("width: 0%;");
+        String intent = switch (front.phase()) {
+            case KEEP_CONVERGENCE -> "KEEP ASSAULT";
+            case FINAL_COMPOUND_CONVERGENCE -> "FINAL ASSAULT";
+            default -> dominantIntent(assignments, track.effectiveSquads());
+        };
+        String status;
+        String classes = "conquest-lane";
+        if (track.effectiveSquads() == 0) {
+            status = "NO FORCE";
+            classes += " conquest-lane-empty";
+        } else if (track.knownHostileContacts() > 0) {
+            status = track.knownHostileContacts() + (track.knownHostileContacts() == 1
+                    ? " CONTACT" : " CONTACTS");
+            classes += " conquest-lane-contact";
+        } else if (track.targetZoneId() >= 0) {
+            status = "OBJECTIVE";
+            classes += " conquest-lane-objective";
         } else {
-            int percent = Math.round(focusProgress * 100f);
-            objectiveFocusClasses.set(OBJECTIVE_FOCUS);
-            objectiveFocus.set(kindName(focus.kind()) + " " + focusIndex
-                    + "  ·  CONTESTED " + percent + "%");
-            objectiveProgressStyle.set("width: " + percent + "%;");
+            status = "ON LINE";
         }
-        return true;
+        String laneName = switch (track.index()) {
+            case 0 -> "ALPHA";
+            case 1 -> "BRAVO";
+            case 2 -> "CHARLIE";
+            default -> "LANE " + (track.index() + 1);
+        };
+        String id = "battle-conquest-lane-" + track.index();
+        return new ConquestLane(id, id + "-name", id + "-force", id + "-intent",
+                id + "-status", laneName,
+                track.effectiveSquads() + " SQ · " + track.effectiveLiveMembers(),
+                intent, status, classes);
+    }
+
+    private static String dominantIntent(EnumMap<AssignmentKind, Integer> assignments,
+                                         int effectiveSquads) {
+        AssignmentKind best = null;
+        int bestCount = 0;
+        for (AssignmentKind kind : List.of(
+                AssignmentKind.SECURE_COMPOUND, AssignmentKind.ATTACK_MOVE,
+                AssignmentKind.ADVANCE_TRACK, AssignmentKind.CLEAR_ZONE,
+                AssignmentKind.SUPPORT, AssignmentKind.HOLD_NODE)) {
+            int count = assignments.getOrDefault(kind, 0);
+            if (count > bestCount) {
+                best = kind;
+                bestCount = count;
+            }
+        }
+        if (best == null) return effectiveSquads > 0 ? "HOLDING" : "UNASSIGNED";
+        String label = switch (best) {
+            case SECURE_COMPOUND -> "SECURE";
+            case ATTACK_MOVE -> "PUSH";
+            case ADVANCE_TRACK -> "ADVANCE";
+            case CLEAR_ZONE -> "CLEAR";
+            case SUPPORT -> "SUPPORT";
+            case HOLD_NODE -> "HOLD";
+            default -> best.name().replace('_', ' ');
+        };
+        return bestCount > 1 ? label + " x" + bestCount : label;
+    }
+
+    private static String phaseLabel(ConquestFrontSnapshot.Phase phase) {
+        return switch (phase) {
+            case LANE_ADVANCE -> "ADVANCING THE FRONT";
+            case FRONT_ADJUST -> "SHIFTING SUPPORT";
+            case KEEP_CONVERGENCE -> "CONVERGING ON KEEP";
+            case FINAL_COMPOUND_CONVERGENCE -> "SECURING LAST COMPOUND";
+        };
     }
 
     private void setSelectedSpeed(float speedMultiplier) {
@@ -227,6 +353,32 @@ final class BattleHudOverlayModel {
     record CaptureObjective(TacticalNode.Kind kind,
                             CompoundService.CompoundState state,
                             float progress) {
+    }
+
+    record Presentation(boolean objectivesVisible, boolean commandVisible) {
+    }
+
+    record ConquestLane(String id, String nameId, String forceId, String intentId,
+                        String statusId, String label, String force,
+                        String intent, String status, String classes)
+            implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String name) {
+            return switch (name) {
+                case "id" -> id;
+                case "nameId" -> nameId;
+                case "forceId" -> forceId;
+                case "intentId" -> intentId;
+                case "statusId" -> statusId;
+                case "label" -> label;
+                case "force" -> force;
+                case "intent" -> intent;
+                case "status" -> status;
+                case "classes" -> classes;
+                default -> throw new IllegalArgumentException(
+                        "Unknown Conquest lane property: " + name);
+            };
+        }
     }
 
     record ObjectiveChip(String id, String label, String classes)
