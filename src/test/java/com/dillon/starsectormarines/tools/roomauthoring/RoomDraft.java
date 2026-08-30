@@ -151,6 +151,29 @@ public final class RoomDraft {
         ops.removeIf(op -> op instanceof LayoutOp.Lane);
     }
 
+    /**
+     * Draw this room's bulkhead from a named block, or from the deck's own when
+     * handed null.
+     *
+     * <p>Replaces rather than appends. A room has one wall, so a second choice
+     * is a correction and not a second wall — and leaving both in the script
+     * would make the document's meaning depend on which one was last, for no
+     * reason an author would ever intend.
+     */
+    public void bulkhead(String blockId) {
+        ops.removeIf(op -> op instanceof LayoutOp.Bulkhead);
+        if (blockId != null && !blockId.isEmpty()) ops.add(new LayoutOp.Bulkhead(blockId));
+    }
+
+    /** The block this room's bulkhead draws from, or null for the deck's own. */
+    public String bulkhead() {
+        String named = null;
+        for (LayoutOp op : ops) {
+            if (op instanceof LayoutOp.Bulkhead bulkhead) named = bulkhead.blockId();
+        }
+        return named;
+    }
+
     /** Stand one fixture here, optionally with the work somebody does at it. */
     public void addFixture(int x, int y, String doodadId, Affordance affordance) {
         if (!isFloor(x, y)) return;

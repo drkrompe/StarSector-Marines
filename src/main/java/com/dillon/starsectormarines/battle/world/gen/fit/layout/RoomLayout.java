@@ -136,7 +136,33 @@ public record RoomLayout(RoomPurpose purpose, RoomFit fit, RoomShape shape,
      * <p>Worth its own method because the failure it guards is silent: a missing
      * id makes {@code RoomFloor.place} return false and the room comes out bare
      * with nothing to say it went wrong.
+     *
+     * <p>A bulkhead names a <em>block</em> rather than a doodad and is reported
+     * by {@link #blockIds()} instead. Checking one against the other's catalog
+     * would refuse every valid wall in the project.
      */
+    public List<String> blockIds() {
+        List<String> ids = new ArrayList<>();
+        for (LayoutOp op : ops) {
+            if (op instanceof LayoutOp.Bulkhead bulkhead) ids.add(bulkhead.blockId());
+        }
+        return ids;
+    }
+
+    /**
+     * The bulkhead this room asks for, or null to draw the deck's own.
+     *
+     * <p>Last one wins, because the list is a script and a later step is a later
+     * decision — the same rule paving over a fixture follows.
+     */
+    public String bulkhead() {
+        String named = null;
+        for (LayoutOp op : ops) {
+            if (op instanceof LayoutOp.Bulkhead bulkhead) named = bulkhead.blockId();
+        }
+        return named;
+    }
+
     public List<String> doodadIds() {
         List<String> ids = new ArrayList<>();
         for (LayoutOp op : ops) {

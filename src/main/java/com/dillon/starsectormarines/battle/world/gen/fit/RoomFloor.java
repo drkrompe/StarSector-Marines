@@ -345,6 +345,29 @@ public final class RoomFloor {
     }
 
     /**
+     * Draw this room's bulkhead from another block.
+     *
+     * <p>Stamps the room's whole eight-neighbour ring, which is the wall the
+     * shape already reserves — so this changes how the compartment looks and
+     * never what it is. Nothing about topology, cover or line of sight moves.
+     *
+     * <p>The ring is taken from the posed shape, so no mapping is wanted: a ring
+     * is a ring whichever way round the room ended up.
+     *
+     * <p><b>A shared bulkhead is one wall.</b> Where this room's ring runs along
+     * a neighbour's, the cells are the same cells and the later room wins them.
+     * There is one wall there and it can only look like one thing.
+     */
+    public void markBulkhead(String doodadOrBlockId) {
+        if (doodadOrBlockId == null || doodadOrBlockId.isEmpty()) return;
+        report(new LayoutOp.Bulkhead(doodadOrBlockId));
+        int surface = ctx.topology.wallSurfaceIndex(doodadOrBlockId);
+        for (int[] cell : room.shape().wall()) {
+            ctx.topology.setWallSurface(left + cell[0], top + cell[1], surface);
+        }
+    }
+
+    /**
      * Lay one tile of floor covering, without claiming the cell.
      *
      * <p>Paving is not furniture. A marked-out bay floor still has to take the
