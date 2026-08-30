@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a station flies armed strikes off its own strip.
+Updated: 2026-08-30 — a taxiing aircraft goes round the hangar, not through it.
 
 ## Purpose
 
@@ -263,6 +263,26 @@ the **densest** enemy concentration rather than the nearest or the largest:
 nearest sends aircraft after whichever scout wandered closest to the fence,
 largest picks the same push every time, and density is both what an aircraft is
 good against and what a player can see the reason for afterwards.
+
+**On its wheels it is on the ground, and the ground is in the way.** A taxiing
+aircraft follows walkable ground round the buildings rather than steering
+straight at the threshold through whatever stands between — a body built for
+flight has nothing in it that stops, so the straight line went through the shed
+it had just come out of. The route is geometry only: an aircraft is not
+queueing behind the infantry crossing the apron, it is going round the hangars.
+A move that would end inside something is refused per axis, so a craft that
+cuts a corner slides along the wall; a craft that is *already* inside
+something — which every aircraft is, standing in its own shed — is let out,
+because refusing on the destination alone pinned it in the hangar for the rest
+of the battle.
+
+**A plume is not a hum.** The engine note keeps an idle floor, because a
+machine on a hardstand hums; the visible thrusters do not, because an aircraft
+rolling at walking pace on its wheels drawing full afterburner reads as one
+hovering an inch off the ground. The takeoff roll is the exception, and the
+reason the phase is asked for rather than the altitude: it is the one ground
+phase where the engines are doing everything they can, and at the start of it
+the aircraft is still at zero altitude.
 
 A craft that has to roll has a **ground procedure** either side of its flight,
 and it is on its wheels and shootable for all of it: out of the shed, down to

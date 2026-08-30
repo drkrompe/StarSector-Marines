@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
@@ -521,9 +522,9 @@ public class AirSystem {
                     // On the wheels the whole way: the aircraft is a target for
                     // every second of this, which is what the crossing is for.
                     world.setAltitudeT(id, 0f);
-                    AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
-                            SteeringMode.BRAKE_TO_STATION, GroundHandling.taxiing(flight), dt);
+                    taxiToward(id, mission, body, flight, mission.holdX, mission.holdY, dt);
                     if (body.distanceTo(mission.holdX, mission.holdY) < THRESHOLD_ARRIVAL_DIST) {
+                        mission.clearTaxiRoute();
                         mission.state = ShuttleState.HOLDING_SHORT;
                     }
                     break;
@@ -589,9 +590,10 @@ public class AirSystem {
 
                 case TAXI_IN:
                     world.setAltitudeT(id, 0f);
-                    AirSteeringSystem.steer(body, mission.shelterX, mission.shelterY,
-                            SteeringMode.BRAKE_TO_STATION, GroundHandling.taxiing(flight), dt);
+                    taxiToward(id, mission, body, flight,
+                            mission.shelterX, mission.shelterY, dt);
                     if (body.distanceTo(mission.shelterX, mission.shelterY) < THRESHOLD_ARRIVAL_DIST) {
+                        mission.clearTaxiRoute();
                         handBackToField(mission, /*recovered*/ true);
                         mission.state = ShuttleState.GONE;
                     }
@@ -957,6 +959,96 @@ public class AirSystem {
         mission.departingFromHover = fromHover;
         beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
         mission.state = ShuttleState.DEPARTING;
+    }
+
+    /** How near a taxi waypoint counts as reached, so the route steps on. */
+    private static final float TAXI_WAYPOINT_DIST = 1.0f;
+
+    /**
+     * Rolls the aircraft toward {@code (goalX, goalY)} along walkable ground.
+     *
+     * <p>Routed rather than steered straight at it. A shed opens onto an apron
+     * and the threshold is round the far side of it, so the straight line
+     * between them goes through the hangar — and a body built for flight has
+     * nothing in it that stops. The route is geometric rather than
+     * occupancy-aware on purpose: an aircraft is not queueing behind the
+     * infantry crossing the apron, it is going round the buildings.
+     *
+     * <p>The route is a guide and not a rail. It is followed waypoint to
+     * waypoint at taxi speed with the ordinary steering, so the craft still
+     * turns like an aircraft and still cuts its corners — which is why the
+     * move is also refused outright if it would end inside something.
+     */
+    private void taxiToward(long id, ShuttleMission mission, AirBody body,
+                            AirHandling flight, float goalX, float goalY, float dt) {
+        NavigationGrid grid = navigation.getGrid();
+        if (mission.taxiPath == null) {
+            mission.taxiPath = navigation.findGeometricPath(
+                    (int) Math.floor(body.x), (int) Math.floor(body.y),
+                    (int) Math.floor(goalX), (int) Math.floor(goalY));
+            mission.taxiLeg = 0;
+        }
+        float waypointX = goalX;
+        float waypointY = goalY;
+        int[] route = mission.taxiPath;
+        if (route != null) {
+            // Step past every waypoint already reached, so a craft that cut a
+            // corner does not turn back for the one it skipped.
+            while (mission.taxiLeg < Paths.cellCount(route)
+                    && body.distanceTo(Paths.cellX(route, mission.taxiLeg) + 0.5f,
+                            Paths.cellY(route, mission.taxiLeg) + 0.5f) < TAXI_WAYPOINT_DIST) {
+                mission.taxiLeg++;
+            }
+            if (mission.taxiLeg < Paths.cellCount(route)) {
+                waypointX = Paths.cellX(route, mission.taxiLeg) + 0.5f;
+                waypointY = Paths.cellY(route, mission.taxiLeg) + 0.5f;
+            }
+        }
+        float wasX = body.x;
+        float wasY = body.y;
+        AirSteeringSystem.steer(body, waypointX, waypointY,
+                SteeringMode.BRAKE_TO_STATION, GroundHandling.taxiing(flight), dt);
+        keepOnTheGround(grid, body, wasX, wasY);
+    }
+
+    /**
+     * Refuses a taxi step that would put the aircraft inside something.
+     *
+     * <p>Per axis, so a craft that clips a corner slides along the wall
+     * instead of stopping dead against it — which is what a route-following
+     * body mostly does, and stopping dead would strand it there. Both axes
+     * blocked puts it back where it was; the route is still pulling it
+     * somewhere legal, so it works itself free on the following ticks.
+     */
+    private static void keepOnTheGround(NavigationGrid grid, AirBody body,
+                                        float wasX, float wasY) {
+        if (walkableAt(grid, body.x, body.y)) return;
+        // Already standing in something, so this move is an escape rather than
+        // an intrusion and must not be refused. An aircraft starts its taxi
+        // inside its own shed, whose cells a hangar wall makes non-walkable —
+        // refusing on the destination alone pinned it there for the rest of
+        // the battle, which is a far worse fault than the one being fixed.
+        if (!walkableAt(grid, wasX, wasY)) return;
+        if (walkableAt(grid, body.x, wasY)) {
+            body.y = wasY;
+            body.vy = 0f;
+            return;
+        }
+        if (walkableAt(grid, wasX, body.y)) {
+            body.x = wasX;
+            body.vx = 0f;
+            return;
+        }
+        body.x = wasX;
+        body.y = wasY;
+        body.vx = 0f;
+        body.vy = 0f;
+    }
+
+    private static boolean walkableAt(NavigationGrid grid, float x, float y) {
+        int cx = (int) Math.floor(x);
+        int cy = (int) Math.floor(y);
+        return grid.inBounds(cx, cy) && grid.isWalkable(cx, cy);
     }
 
     private void beginShuttleLeg(ShuttleMission mission, AirBody body, float toX, float toY) {

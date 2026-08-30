@@ -54,4 +54,37 @@ public final class AirAppearance {
         if (!onMap) return 0f;
         return IDLE_INTENSITY + (1f - IDLE_INTENSITY) * altitudeT;
     }
+
+    /**
+     * Visible thruster plume for a craft in {@code state}.
+     *
+     * <p>Separate from {@link #engineIntensity}, which is the audible engine
+     * and is right to keep an idle floor: a machine sitting on a hardstand
+     * hums. A plume is not a hum. An aircraft taxiing is rolling on its wheels
+     * at walking pace, and drawing full afterburner while it does that reads as
+     * a craft hovering an inch off the ground rather than one being towed round
+     * a corner.
+     *
+     * <p>The takeoff roll is the exception and the reason the state is asked
+     * for rather than the altitude: it is the one ground phase where the
+     * engines are doing everything they can, and at the start of it the
+     * aircraft is still at zero altitude.
+     */
+    public static float thrusterPlume(ShuttleState state, float altitudeT) {
+        switch (state) {
+            case TAKEOFF_ROLL:
+                return 1f;
+            case LOADING:
+            case TAXI_OUT:
+            case HOLDING_SHORT:
+            case LANDING_ROLL:
+            case TAXI_IN:
+                return 0f;
+            case PENDING:
+            case GONE:
+                return 0f;
+            default:
+                return altitudeT;
+        }
+    }
 }
