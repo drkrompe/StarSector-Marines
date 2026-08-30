@@ -767,6 +767,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public MountedTurret[] getAirTurretMounts(long airEntityId) { return airSystem.mountsFor(airEntityId); }
     /** The live convoy-vehicle entity ids — walk these and read each vehicle by id via {@link #convoy()} / {@link #convoyMission(long)}. Mirrors {@link #getAirEntityIds()}; distinct from the parked road vehicles, which are ordinary doodads. */
     public long[] getConvoyVehicleIds() { return groundSystem.vehicleEntityIds(); }
+    @Override
+    public float physicalRadius(long id) {
+        return rosterService.convoy().isVehicle(id)
+                ? rosterService.convoy().targetRadius(id)
+                : rosterService.radius(id);
+    }
     /** The convoy-vehicle data owner — by-id reads of the {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} / {@code VEHICLE_MISSION} columns for the render / picking / debug passes. Service-direct, not via {@link #world()} ({@code World} is deprecated for migrated state). */
     public ConvoyService convoy() { return rosterService.convoy(); }
     /** The {@link VehicleMission} for a convoy-vehicle id (has-gated, {@code null} if not live) — the by-id read path {@link BattleView} consumers use. */

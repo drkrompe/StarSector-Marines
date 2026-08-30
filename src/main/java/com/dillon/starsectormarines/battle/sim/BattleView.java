@@ -277,6 +277,12 @@ public interface BattleView {
     /** The live convoy-vehicle entity ids — walk these and read each vehicle by id via {@link #convoyMission(long)}. Mirrors {@link #getAirEntityIds()}. */
     long[] getConvoyVehicleIds();
 
+    /**
+     * Profile-aware physical radius shared by selection, separation, and
+     * ballistics for a live roster actor or targetable convoy vehicle.
+     */
+    float physicalRadius(long id);
+
     /** The {@link VehicleMission} for a convoy-vehicle id (has-gated, {@code null} if not live). */
     VehicleMission convoyMission(long id);
 

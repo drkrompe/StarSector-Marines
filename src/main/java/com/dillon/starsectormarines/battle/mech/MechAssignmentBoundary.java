@@ -26,6 +26,8 @@ final class MechAssignmentBoundary {
     static final float EXACT_CELL_ARRIVAL = 2f;
     /** ATTACK_MOVE may fight locally, but never surrender more than this much progress. */
     static final float ATTACK_MOVE_PROGRESS_LEASH = 10f;
+    /** Maximum standoff beyond mission-owned zone ground while engaging an in-zone contact. */
+    static final float ZONE_COMBAT_STANDOFF_LEASH = 10f;
 
     private MechAssignmentBoundary() {}
 
@@ -135,6 +137,39 @@ final class MechAssignmentBoundary {
                 || sim.getZoneGraph().zoneIdAt(x, y) == assignment.targetZoneId();
     }
 
+    /**
+     * LR Support may use a bounded perimeter around a combat-zone assignment
+     * while its perceived threat remains inside that exact mission zone. This
+     * changes only the firing posture: the enemy and zone are still the
+     * command-owned objective, and exact-cell/withdrawal orders stay strict.
+     */
+    static boolean permitsOverwatchCell(long member, Squad squad,
+                                        int x, int y,
+                                        int threatX, int threatY,
+                                        BattleView sim) {
+        if (permitsCell(member, squad, x, y, sim)) return true;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
+        if (assignment == null || assignment.targetZoneId() < 0
+                || !supportsZoneCombatStandoff(assignment.kind())
+                || sim.getZoneGraph().zoneIdAt(threatX, threatY)
+                != assignment.targetZoneId()) {
+            return false;
+        }
+        int radius = (int) Math.ceil(ZONE_COMBAT_STANDOFF_LEASH);
+        float maxDistanceSq = ZONE_COMBAT_STANDOFF_LEASH
+                * ZONE_COMBAT_STANDOFF_LEASH;
+        for (int oy = -radius; oy <= radius; oy++) {
+            for (int ox = -radius; ox <= radius; ox++) {
+                if (ox * ox + oy * oy > maxDistanceSq) continue;
+                if (sim.getZoneGraph().zoneIdAt(x + ox, y + oy)
+                        == assignment.targetZoneId()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** Clamps a tactical destination back onto command-owned ground. */
     static int[] constrain(long member, Squad squad, int[] desired,
                            BattleView sim) {
@@ -194,6 +229,11 @@ final class MechAssignmentBoundary {
             }
         }
         return null;
+    }
+
+    private static boolean supportsZoneCombatStandoff(AssignmentKind kind) {
+        return kind == AssignmentKind.CLEAR_ZONE
+                || kind == AssignmentKind.SECURE_COMPOUND;
     }
 
     private static int[] exactDestination(ObjectiveAssignment assignment,

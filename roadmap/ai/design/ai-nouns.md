@@ -4,16 +4,14 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — added the two onset moments: somebody opening at close
-quarters, and somebody taking this marine as their target. Both are situations
-rather than places, which is what lets a screen answer them in a room, a
-breach, a treeline or a hallway. Also that day — an onset is published for the
-whole squad, and the contact drill that would halt an advance on one is
-recorded as measured and withheld.
+Updated: 2026-08-30 — made Long-Range Support's screened position categorical,
+broad, and clear of every friendly body; aligned its movement axis with its
+current engageable target and gave combat-zone assignments a bounded standoff
+envelope while that target remains inside the commanded zone.
 
-Also 2026-08-30 — made battle Mech role overrides and lance-wide coordination
-orders serialized local-plan interrupts while preserving mission authority,
-beliefs, and per-member doctrine.
+Earlier 2026-08-30 — added the two onset moments and made battle Mech role
+overrides and lance-wide coordination orders serialized local-plan interrupts
+while preserving mission authority, beliefs, and per-member doctrine.
 
 Earlier: 2026-08-29 — added the attack move and its cooperating group: an
 order whose destination survives contact, and squads under one that split into
@@ -1007,6 +1005,17 @@ assignment: Brawler closes, Frontline Support attaches and leads from the
 threat-facing side, Long-Range Support preserves standoff and a credible
 screen, and Balanced uses a general direct-fire band. A shared lance plan may
 coordinate those members but may not choose one role on behalf of all of them.
+
+For Long-Range Support, a credible screen is a broad allied front materially
+between the firing cell and the currently engageable perceived enemy. Every
+friendly body stays clear of the projectile ray so the firing cell is
+rear-oblique rather than a friendly-fire lane; the named screen is only the
+representative anchor. If any mission-legal screened cell exists it outranks
+every unscreened cell; cover and travel cost rank cells inside each class.
+`CLEAR_ZONE` and `SECURE_COMPOUND` include a bounded tactical perimeter only
+while that perceived enemy remains inside the assigned zone. The perimeter
+serves the same commanded fight and is not authority to pursue a different
+contact, drift across the map, or relax exact-cell and withdrawal orders.
 
 The lance owns one coordination order beneath that assignment. Form on Lead
 keeps the moving members in the shared role-slotted formation, applies the
