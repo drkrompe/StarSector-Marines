@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.ArmorRole;
+import com.dillon.starsectormarines.marine.EquipmentIssueResources;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -81,11 +83,14 @@ class FleetArmoryViewModelTest {
         assertTrue(firstMarine.armorDescription().length() > 80);
         assertTrue(viewModel.feedbackText().get().startsWith(
                 "Hover equipment names for field notes."));
-        FleetArmoryViewModel.DoctrineTile firstLoadout =
-                viewModel.weaponDoctrineTiles().get().get(0);
-        assertEquals("Common", firstLoadout.rarity());
-        assertTrue(firstLoadout.metadata().contains("TIER I"));
-        assertTrue(firstLoadout.description().length() > 120);
+        FleetArmoryViewModel.DoctrineTile assignedLoadout =
+                viewModel.weaponDoctrineTiles().get().stream()
+                        .filter(tile -> tile.id().endsWith(
+                                viewModel.selectedWeaponDoctrineId()))
+                        .findFirst().orElseThrow();
+        assertEquals("Common", assignedLoadout.rarity());
+        assertTrue(assignedLoadout.metadata().contains("TIER I"));
+        assertTrue(assignedLoadout.description().length() > 120);
         assertTrue(viewModel.weaponDoctrineTiles().get().size()
                 < roster.armory().weaponDoctrines().size());
         // Every armour plan is always issuable: it names roles and the armoury
@@ -263,12 +268,14 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
-    void armorComparisonListsEveryCatalogPatternSortedByTierThenName() {
+    void armorComparisonListsEveryHeldPatternSortedByTierThenName() {
         MarineRoster roster = fullSquad();
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
 
-        List<MarineArmorCatalogDef> expectedOrder = new ArrayList<>(
-                MarineArmorCatalogRegistry.installed().all());
+        List<MarineArmorCatalogDef> expectedOrder = new ArrayList<>();
+        for (MarineArmorCatalogDef pattern : MarineArmorCatalogRegistry.installed().all()) {
+            if (roster.armory().ownsArmorTemplate(pattern.id())) expectedOrder.add(pattern);
+        }
         expectedOrder.sort(Comparator.comparingInt(MarineArmorCatalogDef::tier)
                 .thenComparing(MarineArmorCatalogDef::displayName));
 
@@ -280,7 +287,7 @@ class FleetArmoryViewModelTest {
             assertEquals(expectedOrder.get(index).description(), cards.get(index).description());
         }
         assertTrue(viewModel.armorComparisonSummary().get()
-                .startsWith(expectedOrder.size() + " armor patterns"));
+                .startsWith(expectedOrder.size() + " of "));
     }
 
     /**
@@ -334,9 +341,11 @@ class FleetArmoryViewModelTest {
 
         MarineArmorCatalogDef withSystem = MarineArmorCatalogRegistry.installed().all().stream()
                 .filter(MarineArmorCatalogDef::hasIntegralSystem)
+                .filter(armor -> roster.armory().ownsArmorTemplate(armor.id()))
                 .findFirst().orElseThrow();
         MarineArmorCatalogDef withoutSystem = MarineArmorCatalogRegistry.installed().all().stream()
                 .filter(armor -> !armor.hasIntegralSystem())
+                .filter(armor -> roster.armory().ownsArmorTemplate(armor.id()))
                 .findFirst().orElseThrow();
 
         Map<String, FleetArmoryViewModel.ArmorComparisonCard> byName = new LinkedHashMap<>();
@@ -363,7 +372,7 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
-    void armorComparisonMarkupBindsEveryCatalogPatternWithoutMissingElements()
+    void armorComparisonMarkupBindsEveryHeldPatternWithoutMissingElements()
             throws Exception {
         MarineRoster roster = fullSquad();
         Reactor reactor = new Reactor();
@@ -386,8 +395,8 @@ class FleetArmoryViewModelTest {
             document.theme(MarineOpsThemes.standard());
             document.layout(1744f, 938f);
 
-            assertEquals(MarineArmorCatalogRegistry.installed().size(),
-                    viewModel.armorComparisonCards().get().size());
+            assertFalse(viewModel.armorComparisonCards().get().isEmpty(),
+                    "a fresh company holds something to compare");
             for (FleetArmoryViewModel.ArmorComparisonCard card
                     : viewModel.armorComparisonCards().get()) {
                 assertEquals(card.name(), instance.requireElement(card.nameId()).text());
@@ -522,6 +531,7 @@ class FleetArmoryViewModelTest {
         props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
+        props.put("issuableFilter", viewModel.issuableFilter());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
         props.put("showArmorComparison", (Runnable) () -> { });
         props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
@@ -546,4 +556,109 @@ class FleetArmoryViewModelTest {
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { });
     }
+
+    /**
+     * <b>Best first.</b> The picker exists to answer "which of the things I can
+     * field is the strongest", and authored declaration order cannot: the
+     * built-in definitions are listed in the order somebody wrote them, which
+     * put the starter kit above everything the company has bought since.
+     */
+    @Test
+    void loadoutsAreListedStrongestFirst() {
+        MarineRoster roster = fullSquad();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
+
+        assertRankedByRating(viewModel.weaponDoctrineTiles().get(), "weapon");
+        assertRankedByRating(viewModel.armorDoctrineTiles().get(), "tactic sheet");
+    }
+
+    private static void assertRankedByRating(
+            List<FleetArmoryViewModel.DoctrineTile> tiles, String what) {
+        assertTrue(tiles.size() > 1, "nothing to rank among the " + what + " tiles");
+        for (int index = 1; index < tiles.size(); index++) {
+            assertTrue(tiles.get(index - 1).rating() >= tiles.get(index).rating(),
+                    what + " tiles are out of order at " + index + ": "
+                            + tiles.stream().map(FleetArmoryViewModel.DoctrineTile::rating)
+                            .toList());
+        }
+        for (FleetArmoryViewModel.DoctrineTile tile : tiles) {
+            assertEquals("RATING " + tile.rating(), tile.ratingLabel(),
+                    "the chip has to show the number the order is built on");
+        }
+    }
+
+    /**
+     * <b>The supplies switch asks only the supplies question.</b> With an empty
+     * hold, a loadout that would cost cargo to issue is hidden and one that
+     * changes nothing is not — and turning the switch off brings the whole list
+     * back, because the fleet being broke is not a reason to forget what exists.
+     */
+    @Test
+    void theSuppliesSwitchHidesWhatTheFleetCannotPayFor() {
+        MarineRoster roster = fullSquad();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
+                new Reactor(), roster, () -> { }, () -> 0d, emptyHold());
+
+        List<String> everything = tileIds(viewModel.armorDoctrineTiles().get());
+        viewModel.toggleIssuableOnlyAction().run();
+        List<String> affordable = tileIds(viewModel.armorDoctrineTiles().get());
+
+        assertTrue(affordable.size() < everything.size(),
+                "an empty hold cannot pay to re-kit twelve marines into every sheet");
+        assertTrue(everything.containsAll(affordable), "the switch narrows, never adds");
+        for (String id : affordable) {
+            SquadEquipmentPreview preview = roster.previewSquadEquipment(
+                    viewModel.selectedSquadId(), viewModel.selectedWeaponDoctrineId(),
+                    id.substring("armor-doctrine:".length()), emptyHold());
+            assertTrue(preview.issueCost().isZero(),
+                    id + " survived a filter it should not have: " + preview.issueCost());
+        }
+
+        viewModel.toggleIssuableOnlyAction().run();
+        assertEquals(everything, tileIds(viewModel.armorDoctrineTiles().get()));
+    }
+
+    /**
+     * <b>Compare Patterns is a stock list, not a catalog.</b> The twenty-seventh
+     * pattern is not an option a company can weigh, it is a rumour, and putting
+     * it in the table makes the screen answer a different question badly. The
+     * summary still names the catalog's size so the rumour survives.
+     */
+    @Test
+    void comparingPatternsShowsOnlyWhatTheCompanyHolds() {
+        MarineRoster roster = fullSquad();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
+
+        List<FleetArmoryViewModel.ArmorComparisonCard> cards =
+                viewModel.armorComparisonCards().get();
+        int catalogued = MarineArmorCatalogRegistry.installed().all().size();
+        assertTrue(cards.size() < catalogued,
+                "fixture assumption: a fresh company does not hold the whole catalog");
+        for (FleetArmoryViewModel.ArmorComparisonCard card : cards) {
+            String armorId = card.id().substring("armor-comparison:".length());
+            assertTrue(roster.armory().ownsArmorTemplate(armorId),
+                    armorId + " is on the comparison screen and has never been held");
+        }
+        assertTrue(viewModel.armorComparisonSummary().get()
+                        .contains(cards.size() + " of " + catalogued),
+                "the summary names both numbers: " + viewModel.armorComparisonSummary().get());
+    }
+
+    private static List<String> tileIds(List<FleetArmoryViewModel.DoctrineTile> tiles) {
+        return tiles.stream().map(FleetArmoryViewModel.DoctrineTile::id).toList();
+    }
+
+    /** A fleet carrying nothing at all, so every priced change is refused. */
+    private static EquipmentIssueResources emptyHold() {
+        return new EquipmentIssueResources() {
+            @Override public EquipmentTemplateCost available() {
+                return EquipmentTemplateCost.ZERO;
+            }
+
+            @Override public boolean spend(EquipmentTemplateCost cost) {
+                return cost != null && cost.isZero();
+            }
+        };
+    }
+
 }

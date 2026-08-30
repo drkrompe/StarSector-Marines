@@ -310,11 +310,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-012",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -839,10 +839,10 @@
       },
       {
         "armorCapacity": 20,
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "full-strength-marine-036",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -1366,11 +1366,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-060",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -1894,11 +1894,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-084",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -2070,11 +2070,11 @@
         "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-092",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -2422,11 +2422,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-108",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -2686,11 +2686,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-120",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -2862,11 +2862,11 @@
         "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-128",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -3214,11 +3214,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-144",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -3478,11 +3478,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-156",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -3742,11 +3742,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-168",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -4006,11 +4006,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-180",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -4270,11 +4270,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-192",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -5590,11 +5590,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-252",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -5854,11 +5854,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-264",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -6118,11 +6118,11 @@
         "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-276",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -6382,11 +6382,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-288",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -6646,11 +6646,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-300",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -7086,11 +7086,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-320",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -7438,11 +7438,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-336",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -7702,11 +7702,11 @@
         "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-348",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -7966,11 +7966,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-360",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -8142,11 +8142,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-368",
         "campaignSquad": {
           "fireTeamIndex": 1,
@@ -8494,11 +8494,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 17,
+        "armorCapacity": 15,
         "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
         "campaignSoldierId": "full-strength-marine-384",
         "campaignSquad": {
           "fireTeamIndex": 2,
@@ -8759,10 +8759,10 @@
       },
       {
         "armorCapacity": 20,
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "full-strength-marine-396",
         "campaignSquad": {
           "fireTeamIndex": 2,

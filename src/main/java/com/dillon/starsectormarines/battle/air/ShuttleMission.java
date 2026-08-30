@@ -56,6 +56,19 @@ public final class ShuttleMission {
     /** Marines still aboard for the current sortie. */
     public int marinesRemaining;
     /**
+     * Seconds between deboards on this sortie, and seconds of fire-support
+     * fuel an armed one starts a loiter with.
+     *
+     * <p>On the sortie rather than read off the airframe each tick, for the
+     * same reason {@link #seatsPerSortie} is: the hull says what it can do and
+     * the sortie says what it is doing. It also keeps two transport-shaped
+     * numbers off {@link Airframe}, which a fighter would have to answer
+     * meaninglessly.
+     */
+    public float deboardInterval = 0.6f;
+    public float fireSupportSec;
+
+    /**
      * Marines embarked on each infantry sortie. This may be lower than the
      * carrier's physical capacity and is restored unchanged after re-arm.
      */
