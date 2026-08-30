@@ -1,4 +1,4 @@
-<template props="timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle">
+<template props="timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,commandPanelClasses,commandPhase,commandForce,conquestLanes">
   <div id="battle-hud-overlay" class="battle-hud-overlay">
     <div id="battle-time-control" class="battle-time-control">
       <div id="battle-time-label" class="label heading time-label">{timeLabel}</div>
@@ -23,6 +23,22 @@
         <div id="battle-objective-focus-label" class="label heading objective-focus-label">{objectiveFocus}</div>
         <div id="battle-objective-progress" class="objective-progress-track">
           <div id="battle-objective-progress-fill" class="objective-progress-fill" style="{objectiveProgressStyle}" />
+        </div>
+      </div>
+    </div>
+
+    <div id="battle-conquest-command" class="{commandPanelClasses}">
+      <div id="battle-conquest-command-header" class="conquest-command-header">
+        <div id="battle-conquest-command-title" class="label heading conquest-command-title">COMMANDER</div>
+        <div id="battle-conquest-command-phase" class="label heading conquest-command-phase">{commandPhase}</div>
+      </div>
+      <div id="battle-conquest-command-force" class="label conquest-command-force">{commandForce}</div>
+      <div id="battle-conquest-lanes" class="conquest-lanes">
+        <div each="lane in conquestLanes" key="{lane.id}" id="{lane.id}" class="{lane.classes}">
+          <div id="{lane.nameId}" class="label heading conquest-lane-name">{lane.label}</div>
+          <div id="{lane.forceId}" class="label conquest-lane-force">{lane.force}</div>
+          <div id="{lane.intentId}" class="label heading conquest-lane-intent">{lane.intent}</div>
+          <div id="{lane.statusId}" class="label conquest-lane-status">{lane.status}</div>
         </div>
       </div>
     </div>
@@ -139,4 +155,102 @@
   .objective-focus-label { width: 100%; height: 15px; color: #ffd464; }
   .objective-progress-track { width: 100%; height: 4px; background-color: #172231; }
   .objective-progress-fill { height: 100%; background-color: #ffd464; }
+
+  .conquest-command-panel {
+    width: 100%;
+    height: 150px;
+    flex-direction: column;
+    padding: 7px;
+    gap: 4px;
+    border-width: 1px;
+    border-color: #4f6d8e;
+    background-color: #0b111bd9;
+    overflow: hidden;
+  }
+
+  .conquest-command-panel-hidden {
+    height: 0px;
+    padding: 0px;
+    gap: 0px;
+    border-width: 0px;
+    opacity: 0;
+  }
+
+  .conquest-command-header {
+    width: 100%;
+    height: 17px;
+    flex-direction: row;
+  }
+
+  .conquest-command-title {
+    width: 96px;
+    color: #8b9aaf;
+  }
+
+  .conquest-command-phase {
+    flex-grow: 1;
+    text-align: right;
+    color: #6ed7ff;
+  }
+
+  .conquest-command-force {
+    width: 100%;
+    height: 15px;
+    color: #a8b6c6;
+  }
+
+  .conquest-lanes {
+    width: 100%;
+    height: 96px;
+    flex-direction: column;
+    gap: 3px;
+    overflow: hidden;
+  }
+
+  .conquest-lane {
+    width: 100%;
+    height: 22px;
+    flex-direction: row;
+    gap: 4px;
+    padding: 3px 4px;
+    border-width: 1px;
+    border-color: #31485f;
+    background-color: #111b28;
+    color: #aebdce;
+  }
+
+  .conquest-lane-name {
+    width: 84px;
+    height: 14px;
+    color: #6ed7ff;
+  }
+
+  .conquest-lane-force {
+    width: 62px;
+    height: 14px;
+    color: #c5d1df;
+  }
+
+  .conquest-lane-intent {
+    width: 0px;
+    height: 14px;
+    flex-grow: 1;
+    color: #ffd464;
+  }
+
+  .conquest-lane-status {
+    width: 78px;
+    height: 14px;
+    text-align: right;
+    color: #8b9aaf;
+  }
+
+  .conquest-lane-contact {
+    border-color: #a85b54;
+    background-color: #26171c;
+  }
+  .conquest-lane-contact .conquest-lane-status { color: #e98b83; }
+  .conquest-lane-objective { border-color: #806b35; }
+  .conquest-lane-objective .conquest-lane-status { color: #ffd464; }
+  .conquest-lane-empty { opacity: 0.66; }
 </style>

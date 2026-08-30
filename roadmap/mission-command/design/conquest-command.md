@@ -4,8 +4,9 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — the lane-stage standoff reads the squad's own corridor,
-and a front believed off that line no longer withholds the order.
+Updated: 2026-08-29 — the Marine command picture now has a compact player-facing
+three-lane projection in the battle HUD. Earlier: made lane-stage standoff read
+the squad's own corridor so a front believed off that line does not withhold orders.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `conquest-nouns.md` for territory, compounds, supply, keep, and victory law.
@@ -67,6 +68,15 @@ It includes frozen own-squad position, leader zone, local contact, execution
 suspension, active-path count, and the count of own members in the squad's
 assigned target zone. Exact whole-zone occupancy, capture progress, and
 ownership transitions remain neutral referee facts.
+
+The player-facing **lane brief** is the compact Marine-perspective projection of
+that picture. It appears only for Conquest and names the command phase, command
+pool and reserve, then keeps Alpha, Bravo, and Charlie visible as three stable
+rows. Each row reports the effective squad and live-member commitment, the
+dominant assignment kind, and either known contact, an active compound objective,
+or simple on-line status. It is an explanation of published orders, not another
+sensor: no-contact means no commander report, and the brief never consults
+neutral occupancy, capture progress, or the defender snapshot.
 
 Conquest evidence measures assignment churn, response latency, reserve time,
 track concentration, target closure, target-zone arrival, capture-zone
