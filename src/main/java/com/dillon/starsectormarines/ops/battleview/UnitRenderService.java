@@ -212,6 +212,14 @@ public final class UnitRenderService implements RenderSystem {
      * <p>Hull length and pivot come from the same resolvers the scenery pass
      * and the flying pass use, so one aircraft looks like itself parked, based,
      * and in the air.
+     *
+     * <p>A berth whose aircraft burned where it stood keeps drawing that hull,
+     * charred. It is the same sprite deliberately: what is left on the
+     * concrete is the aircraft, and a reader recognises which one it was and
+     * that it is not going anywhere. The unit is gone by then — dead, released,
+     * and never coming back — so the wreck is drawn off the berth, which is
+     * the thing on this field that has identity and outlives what stands on
+     * it.
      */
     private void sweepBasedAircraft(RenderContext ctx, DrawList out) {
         AirfieldService airfield = ctx.sim.getAirfieldService();
@@ -225,20 +233,59 @@ public final class UnitRenderService implements RenderSystem {
             if (!ctx.sim.identity().type(u).isBasedAircraft()) continue;
             AirfieldService.Berth berth = airfield.berthOf(u);
             if (berth == null) continue;
-            ShuttleSpriteCache cache = sprites.shuttleSprites().get(berth.type);
-            if (cache == null || cache.sprite == null) continue;
-
-            float hullLenCells = HullFootprintResolver.visualLengthCells(
-                    berth.type.renderHullId());
-            float[] pivot = HullPivotResolver.pivotOffset(berth.type.renderHullId());
-            float rad = (float) Math.toRadians(berth.facingDegrees);
-            float c = (float) Math.cos(rad);
-            float sn = (float) Math.sin(rad);
-            float cx = cam.cellToScreenX(world.renderX(u) + pivot[0] * c - pivot[1] * sn);
-            float cy = cam.cellToScreenY(world.renderY(u) + pivot[0] * sn + pivot[1] * c);
-            emitWholeSprite(out, cache, berth.facingDegrees,
-                    hullLenCells * cellPx, cx, cy, alphaMult);
+            emitHull(out, cam, berth, world.renderX(u), world.renderY(u),
+                    cellPx, 1f, 1f, 1f, alphaMult);
         }
+        for (AirfieldService.Berth berth : airfield.berths()) {
+            if (!berth.wreckOnPad) continue;
+            emitHull(out, cam, berth, berth.pad.centerX + 0.5f, berth.pad.centerY + 0.5f,
+                    cellPx, BURNT_HULL_R, BURNT_HULL_G, BURNT_HULL_B, alphaMult);
+        }
+    }
+
+    /**
+     * Charred-hull tint, multiplied over the aircraft's own sprite.
+     *
+     * <p>Skewed warm rather than evenly dark. A flat grey multiply reads as the
+     * aircraft standing in shadow, which is the wrong thing entirely; leaving
+     * more of the red channel than the blue reads as scorched metal. Dark
+     * enough to be unmistakable beside a live airframe, light enough that the
+     * panel lines survive — taken to about a fifth the hull turns into a
+     * silhouette, and a hole in the apron is not a wreck.
+     */
+    private static final float BURNT_HULL_R = 0.32f;
+    private static final float BURNT_HULL_G = 0.25f;
+    private static final float BURNT_HULL_B = 0.20f;
+
+    /**
+     * Draws one berth's hull centred on {@code (centerCellX, centerCellY)} at
+     * the berth's facing, tinted by {@code (r, g, b)}.
+     *
+     * <p>Shared by the live airframe and the wreck so the two can never drift
+     * apart in size, pivot or bearing: a hulk that sat a foot off where the
+     * aircraft had been standing would read as a second object.
+     */
+    private void emitHull(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
+                          float centerCellX, float centerCellY, float cellPx,
+                          float r, float g, float b, float alphaMult) {
+        ShuttleSpriteCache cache = sprites.shuttleSprites().get(berth.type);
+        if (cache == null || cache.sprite == null) return;
+        float hullLenCells = HullFootprintResolver.visualLengthCells(
+                berth.type.renderHullId());
+        float[] pivot = HullPivotResolver.pivotOffset(berth.type.renderHullId());
+        float rad = (float) Math.toRadians(berth.facingDegrees);
+        float c = (float) Math.cos(rad);
+        float sn = (float) Math.sin(rad);
+        float cx = cam.cellToScreenX(centerCellX + pivot[0] * c - pivot[1] * sn);
+        float cy = cam.cellToScreenY(centerCellY + pivot[0] * sn + pivot[1] * c);
+        emitWholeSprite(out, cache, berth.facingDegrees, hullLenCells * cellPx,
+                cx, cy, r, g, b, alphaMult);
+    }
+
+    /** Untinted {@link #emitWholeSprite} — a body drawn in its own colours. */
+    private static void emitWholeSprite(DrawList out, ShuttleSpriteCache cache, float facingDegrees,
+                                        float spriteHeightPx, float cx, float cy, float alphaMult) {
+        emitWholeSprite(out, cache, facingDegrees, spriteHeightPx, cx, cy, 1f, 1f, 1f, alphaMult);
     }
 
     /**
@@ -248,10 +295,11 @@ public final class UnitRenderService implements RenderSystem {
      * size/angle/alpha/blend/color and resets angle afterward.
      */
     private static void emitWholeSprite(DrawList out, ShuttleSpriteCache cache, float facingDegrees,
-                                        float spriteHeightPx, float cx, float cy, float alphaMult) {
+                                        float spriteHeightPx, float cx, float cy,
+                                        float r, float g, float b, float alphaMult) {
         float pxW = spriteHeightPx * cache.aspect;
         out.addSprite(RenderLayer.UNITS, cache.sprite, cx, cy, pxW, spriteHeightPx, facingDegrees,
-                1f, 1f, 1f, alphaMult);
+                r, g, b, alphaMult);
     }
 
     /**

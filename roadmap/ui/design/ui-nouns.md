@@ -4,10 +4,10 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — battle presentation now uses a full-bleed cover-fit world,
-opposed mission/command rails, a centered developer cluster, and a bounded
-selected-squad diagnostic. Compact retained exits include their complete CSS box
-inside the host clip and stage confirmation before an irreversible command.
+Updated: 2026-08-30 — battle presentation now uses a full-bleed cover-fit world,
+opposed mission/command rails, a centered developer cluster, and compact retained
+selected-squad views. Compact retained exits include their complete CSS box inside
+the host clip and stage confirmation before an irreversible command.
 
 ## Purpose
 
@@ -238,7 +238,11 @@ from the world. Its square-cell camera cover-fits the granted host viewport and 
 the cropped map axis instead of shrinking to a centred map rectangle with dead bars.
 Player-facing Conquest command intent occupies the top-left opposite the top-right
 time/objective rail. Tick Profile and DEBUG share one centred developer cluster.
-Selecting a squad opens a bounded, scrollable GOAP diagnostic beneath the right rail;
+The selected player squad replaces the force plate with a 3-column by 4-slot
+fire-team roster; its default cards expose health and equipment shorthand while
+hover reveals the marine's full primary, special equipment, suit system, profile,
+role, armour, and readiness without enlarging the persistent HUD. Selecting a squad
+opens a bounded, scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
 

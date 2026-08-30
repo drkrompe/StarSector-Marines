@@ -20,8 +20,8 @@ import java.util.List;
  * <p>The battle may contain dozens of squads, so the default HUD deliberately
  * has no squad roster. It answers the force-level questions that remain useful
  * at any scale, then leaves squad selection to the world. Selecting a squad
- * swaps this plate for {@link SquadDetailPanel}; no scrolling list competes
- * with the battlefield for screen area.
+ * swaps this plate for the retained 3x4 selected-squad roster; no scrolling
+ * list competes with the battlefield for screen area.
  *
  * <p>All displayed values are copied during {@link #update(float)}. Rendering
  * therefore never retains or dereferences live squad state after the
