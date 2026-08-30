@@ -11,20 +11,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * inside.
  *
  * <p>An arrival gate is a distance a craft has to be sampled within on some
- * tick. A craft crossing it at speed is inside it only between two samples, so
- * a gate narrower than one tick's travel is one the craft steps clean over —
- * and a craft that steps over its arrival gate does not arrive, it flies a
- * circuit round its own destination for the rest of the battle. That is the
- * whole reason the authored numbers are floors rather than gates, and it is the
- * fault that has to stay closed however fast air craft are later dialled to
- * fly.
+ * tick, and there are two ways a craft never is. It steps clean over a gate
+ * narrower than one tick's travel; and it settles into an orbit around a point
+ * it cannot turn tightly enough to reach, holding station about a turn radius
+ * out for the rest of the battle. Neither of those is a craft that is nearly
+ * there — both are craft that will never be there — so the authored numbers are
+ * floors and the gate has to admit both. That has to stay closed however fast
+ * air craft are later dialled to fly.
  */
 class FlyingArrivalGateTest {
 
     /** Every authored floor in the flying set, so none of them can be widened alone. */
     private static final float[] FLOORS = { 0.2f, 1.0f, 1.2f, 2.0f };
 
-    /** A body making {@code speed} cells/sec down +X, which is all the gate reads. */
+    /** A handling profile that is nothing but a turn rate, which is all the gate reads of one. */
+    private record Flying(float maxTurnRateDegPerSec) implements AirHandling {
+        @Override public float maxSpeed() { return 12f; }
+        @Override public float accel() { return 1f; }
+        @Override public float brakingAccel() { return 1f; }
+        @Override public float lateralDriftDamping() { return 1f; }
+        @Override public float stationDamping() { return 1f; }
+    }
+
+    /** A transport's turn rate: it can pivot, so its circle is never the binding term. */
+    private static final AirHandling NIMBLE = new Flying(130f);
+    /** A fighter's, after the atmosphere turn mult: the circle is most of the gate. */
+    private static final AirHandling WINGED = new Flying(49.5f);
+
+    /** A body making {@code speed} cells/sec down +X, which is all the gate reads of one. */
     private static AirBody movingAt(float speed) {
         AirBody body = new AirBody();
         body.vx = speed;
@@ -46,10 +60,36 @@ class FlyingArrivalGateTest {
             AirBody body = movingAt(speed);
             float step = speed * dt;
             for (float floor : FLOORS) {
-                float gate = AirSystem.flyingArrivalDist(floor, body, dt);
+                float gate = AirSystem.flyingArrivalDist(floor, body, NIMBLE, dt);
                 assertTrue(gate > step,
                         "a craft at " + speed + " cells/sec crosses " + step
                                 + " cells a tick and would step over a " + gate
+                                + "-cell gate derived from a floor of " + floor);
+            }
+        }
+    }
+
+    /**
+     * The gate admits the circle the craft is flying, not only the step.
+     *
+     * <p>The second and worse way an arrival never happens, and the one a
+     * tick-step gate alone does not close: a body steered at a point inside its
+     * own turn circle orbits it instead, about a radius out and about ninety
+     * degrees off the bearing to it, indefinitely. Watched at the wide turn
+     * radius, a Broadsword sent to a landing zone circled it three and a half
+     * cells out at four cells a second and never got closer.
+     */
+    @Test
+    void aCraftIsNeverAskedToReachInsideItsOwnTurningCircle() {
+        float dt = BattleSimulation.TICK_DT;
+        float turnRateRad = (float) Math.toRadians(WINGED.maxTurnRateDegPerSec());
+        for (float speed = 3f; speed <= 45f; speed += 1.5f) {
+            float orbit = speed / turnRateRad;
+            for (float floor : FLOORS) {
+                float gate = AirSystem.flyingArrivalDist(floor, movingAt(speed), WINGED, dt);
+                assertTrue(gate >= orbit,
+                        "a craft at " + speed + " cells/sec orbits " + orbit
+                                + " cells out and would never be sampled inside a " + gate
                                 + "-cell gate derived from a floor of " + floor);
             }
         }
@@ -62,18 +102,21 @@ class FlyingArrivalGateTest {
      * <p>Half of these arrivals are flown braked. A gate widened by the speed
      * the craft flew <em>in</em> at would land a transport most of a cell short
      * of the pad it was carefully braked onto, and the snap that follows would
-     * be a visible jump rather than a correction. Reading what the body is
-     * actually making is what keeps the derivation inert everywhere it is not
-     * needed — a landing approach, a hold, a craft stopped altogether.
+     * be a visible jump rather than a correction. Both terms read what the body
+     * is actually making, so both close as it slows — which is what keeps the
+     * derivation inert everywhere it is not needed.
      */
     @Test
     void aBrakedArrivalIsLeftExactlyAsAuthored() {
         float dt = BattleSimulation.TICK_DT;
         // Down to a crawl on short final: a tenth of a cell a second.
         AirBody onShortFinal = movingAt(0.1f);
-        for (float floor : FLOORS) {
-            assertEquals(floor, AirSystem.flyingArrivalDist(floor, onShortFinal, dt), 1e-5f,
-                    "deriving moved a braked craft's " + floor + "-cell gate");
+        for (AirHandling flight : new AirHandling[]{ NIMBLE, WINGED }) {
+            for (float floor : FLOORS) {
+                assertEquals(floor,
+                        AirSystem.flyingArrivalDist(floor, onShortFinal, flight, dt), 1e-5f,
+                        "deriving moved a braked craft's " + floor + "-cell gate");
+            }
         }
     }
 
@@ -83,7 +126,7 @@ class FlyingArrivalGateTest {
         float dt = BattleSimulation.TICK_DT;
         for (float speed = 0f; speed <= 90f; speed += 3f) {
             for (float floor : FLOORS) {
-                assertTrue(AirSystem.flyingArrivalDist(floor, movingAt(speed), dt) >= floor,
+                assertTrue(AirSystem.flyingArrivalDist(floor, movingAt(speed), WINGED, dt) >= floor,
                         "the gate came out under its " + floor + "-cell floor at " + speed);
             }
         }

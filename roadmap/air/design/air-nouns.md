@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown; a flying arrival tolerance is derived from the step the craft is taking.
+Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown; a fighter flies a wide banking circuit and a flying arrival tolerance is derived from what the craft is doing.
 
 ## Purpose
 
@@ -78,6 +78,20 @@ flight. Hull maneuver data preserves role contrast, while damping and limited
 presentation adjustments make that motion legible near the ground. A later
 turn-ramp refinement is justified only if play establishes that rate-limited
 turning fails to express a role.
+
+**What the atmosphere calibration is actually setting is the circle.** Speed and
+turn rate are two dials with one product — a craft's tightest circle is its
+speed over its turn rate — and neither of them alone says how the aircraft
+reads. A hull's authored turn rate is a *space* fighter's, and space fighters
+pivot: passed through raw beside the old speed multiplier it put every fighter
+in the game on a turn radius of about seven cells, which is a machine that can
+turn round inside the beaten zone of its own gun run. That is the bee the model
+is not supposed to be. Faster and slower to turn compound, so the pair together
+puts the ladder at eighteen to twenty-three cells — a wide banking circuit a
+player can watch develop and get out from under, and long strafes between the
+turns. `AirHandling.minTurnRadiusCells` is that number, asked for directly
+rather than re-derived at each of the places that need it: a look-ahead, a gate
+wide enough not to be orbited, a review of how a re-dial reads.
 
 ## Roles and lifecycle
 
@@ -271,6 +285,29 @@ different bearing, carrying its speed through the turn, because a fighter
 cannot pivot on the spot at the end of a run — the turn is most of the time an
 attack takes and none of its damage, which is the window a target has to get
 out of the open.
+
+**A run starts when the aircraft is pointed at the position from outside its own
+reach — not when it has arrived somewhere.** Reaching a point and reaching it
+pointed the right way are different things, the same distinction the takeoff
+roll draws, and out here the difference is the whole pass. The start of a line
+laid out one leg early sits on the far side of the objective, so a craft steered
+onto it arrives *pointing away*: at a wide turn radius it then wheels through
+most of a half-circle to get its nose round, wanders eight cells off its own
+line doing it, and takes the pass past the position rather than over it —
+measured at five and a half cells, which for a weapon that lands its rounds
+within two is a sortie flown at an empty field. Both halves of the condition are
+load-bearing. Without the standoff the craft rolls in from inside its own firing
+range and the burst is over before it is aimed; without the alignment it rolls
+in sideways and flies the pass as one long turn. A craft satisfying neither
+carries on round its circuit, which is what a repositioning aircraft is doing
+anyway — its heading sweeps the whole compass every circuit, so the condition is
+reached rather than waited for.
+
+**The line is then laid from where the craft actually is.** That is the same
+moment of commitment, not a re-aim during the pass; what it removes is a lateral
+error the aircraft has no way to correct, because a run flown by steering at the
+far end of a line is a chord when it starts off the line, and the pass misses by
+about a third of however far off the start was.
 
 Rounds are **rolled onto the ground** ahead of the nose rather than resolved
 against a victim. Each one lands where it lands and detonates there, so a burst
@@ -699,19 +736,23 @@ shrink that changes a hull's physical scale.
 - A craft's body is the authority for motion. Rendering, weapons, effects, and
   any grid-derived representation must read or synchronize from it rather than
   keep competing positions.
-- **A flying craft's arrival tolerance is derived from the step it is taking,
+- **A flying craft's arrival tolerance is derived from what the craft is doing,
   never authored as a distance.** An arrival gate is a distance a craft has to
-  be sampled inside on some tick, so a gate narrower than one tick's travel is
-  one the craft steps clean over — and a craft that steps over its arrival gate
-  does not arrive, it flies a circuit round its own destination for the rest of
-  the battle. Authored numbers are floors; the gate is whichever of the floor
-  and the step is wider. Derived from the body's *current* speed rather than the
-  hull's maximum, because half these arrivals are flown braked and a max-speed
-  bound would land a carefully braked transport most of a cell short of its pad.
-  This is what makes the atmosphere calibration re-dialable at all: the floors
-  are a transport's, and a fighter several times faster steps over every one of
-  them. Ground tolerances stay separate and stay authored — a wheeled aircraft
-  can be asked to hold short of a point and does.
+  be sampled inside on some tick, and there are two ways a craft never is. It
+  steps clean over a gate narrower than one tick's travel. And it settles into
+  an *orbit* around a point inside its own turning circle — about a radius out,
+  about ninety degrees off the bearing to it, indefinitely; a Broadsword sent to
+  a landing zone at the widened turn radius circled it three and a half cells
+  out at four cells a second and never got closer. Neither is a craft that is
+  nearly there. Authored numbers are floors; the gate admits the widest of the
+  floor, the step, and the circle. Both derived terms read the body's *current*
+  speed rather than the hull's maximum, because half these arrivals are flown
+  braked and a max-speed bound would land a carefully braked transport most of a
+  cell short of its pad — so both close as the craft slows and neither moves a
+  braked arrival. This is what makes the atmosphere calibration re-dialable at
+  all: the floors are a transport's, and a fighter several times faster steps
+  over every one of them. Ground tolerances stay separate and stay authored — a
+  wheeled aircraft can be asked to hold short of a point and does.
 - Runtime hull specifications are the shared, mod-aware source for hull facts.
   Hand-authored exceptions require a concrete non-standard craft, not routine
   per-hull tuning.
