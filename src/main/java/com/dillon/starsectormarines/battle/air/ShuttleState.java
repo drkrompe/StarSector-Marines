@@ -13,11 +13,41 @@ package com.dillon.starsectormarines.battle.air;
  * exit) → GONE (terminal). With {@code totalCycles > 1} a shuttle re-enters
  * PENDING after DEPARTING and flies another sortie.
  *
+ * <p>A craft based on a field with a strip has a ground procedure around that:
+ * TAXI_OUT → HOLDING_SHORT → TAKEOFF_ROLL before INCOMING, and LANDING_ROLL →
+ * TAXI_IN after it comes home. Those phases are on the ground — the aircraft is
+ * a target for all of them — which is what a runway buys over a vertical lift
+ * off a hardstand. See `runway-airbase.md`.
+ *
  * <p>A top-level enum (formerly {@code Shuttle.State}) so it outlives the
  * dissolved {@code Shuttle} handle; see {@code air-nouns.md}.
  */
 public enum ShuttleState {
     PENDING,
+    /**
+     * Rolling from its shelter to the runway threshold, on the ground and at
+     * taxi speed.
+     *
+     * <p>Only a craft that has to roll has this phase. A shuttle lifts off the
+     * stand it was loaded on and never touches a strip; an aircraft based in a
+     * shed has to be got out to one, and that crossing is a stretch of open
+     * ground somebody can be standing on.
+     */
+    TAXI_OUT,
+    /**
+     * Stopped at the threshold with the strip in use by somebody else.
+     *
+     * <p>The queue a single runway creates. A field with three aircraft
+     * launches them one at a time, so this is where the second and third wait
+     * — in the open, at the one point on the base every departure has to pass
+     * through.
+     */
+    HOLDING_SHORT,
+    /**
+     * Accelerating down the centreline. Still on the ground and still
+     * shootable as one until it rotates at the far end.
+     */
+    TAKEOFF_ROLL,
     /**
      * Down on its hardstand with its ramp open, taking aboard the squad walking
      * out to it. Only a sortie that flies from an authored airfield has this
@@ -25,5 +55,15 @@ public enum ShuttleState {
      * was nowhere on the map for it to load.
      */
     LOADING,
-    INCOMING, LANDED, HOVER_STATION, DEPARTING, GONE
+    INCOMING, LANDED, HOVER_STATION, DEPARTING,
+    /**
+     * Down on the strip and slowing to taxi speed after a landing.
+     *
+     * <p>The craft holds the runway through this, because it is on it. A
+     * landing aircraft and a departing one cannot both have the strip.
+     */
+    LANDING_ROLL,
+    /** Rolling from where it left the strip back to its own shelter. */
+    TAXI_IN,
+    GONE
 }

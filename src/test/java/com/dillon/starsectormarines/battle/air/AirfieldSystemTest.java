@@ -6,12 +6,14 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -108,6 +110,45 @@ class AirfieldSystemTest {
         system.tick(1f / 30f, sim, sim.getAirfieldService());
 
         assertTrue(berth.wreckOnPad, "the hull is still on the hardstand");
+    }
+
+    /**
+     * One aircraft on the strip at a time.
+     *
+     * <p>The whole reason a strip is worth attacking: a field with three
+     * aircraft and one runway launches them one after another, and anything
+     * standing between a shed and the threshold delays every one of them. Two
+     * craft rolling down the same strip would be a race the simulation is not
+     * entitled to lose.
+     */
+    @Test
+    void theStripTakesOneAircraftAtATime() {
+        AirfieldService airfield = new AirfieldService();
+        airfield.installRunway(new Runway(4.5f, 10.5f, 30.5f, 10.5f, 4f));
+
+        assertFalse(airfield.runwayBusy(), "an empty field has a free strip");
+        assertTrue(airfield.claimRunway(11L), "the first craft takes it");
+        assertTrue(airfield.runwayBusy());
+        assertEquals(11L, airfield.runwayOccupant());
+
+        assertFalse(airfield.claimRunway(22L), "the second holds short");
+        assertTrue(airfield.claimRunway(11L), "the holder may re-assert every tick");
+
+        // Somebody who never had it cannot give it away.
+        airfield.releaseRunway(22L);
+        assertEquals(11L, airfield.runwayOccupant(), "released by the wrong craft");
+
+        airfield.releaseRunway(11L);
+        assertFalse(airfield.runwayBusy(), "and now the next one can go");
+        assertTrue(airfield.claimRunway(22L));
+    }
+
+    /** A field with no strip says so rather than pretending to have one. */
+    @Test
+    void aFieldWithoutAStripHasNone() {
+        AirfieldService airfield = new AirfieldService();
+        assertNull(airfield.runway());
+        assertFalse(airfield.runwayBusy());
     }
 
     /**

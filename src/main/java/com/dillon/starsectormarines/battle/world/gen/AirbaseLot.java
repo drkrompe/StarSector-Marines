@@ -45,12 +45,18 @@ public final class AirbaseLot {
      * changes is how much of it there is.
      *
      * <p>{@link #STATION} is a base that flies its own aircraft rather than
-     * hosting other people's: a longer strip, a third shed, and a wider taxiway
-     * to move a machine down. What separates it from {@link #FIELD} is not the
-     * extra ground but what the sheds are for — a station keeps aircraft in
-     * them and taxis them out, so its shed count is its aircraft count and the
-     * apron berths beside them are still a visitor's parking. It is the largest
-     * thing this lot builds and needs a fortress ward's reservation to fit.
+     * hosting other people's: a longer strip and a third shed. What separates
+     * it from {@link #FIELD} is not the extra ground but what the sheds are for
+     * — a station keeps aircraft in them and taxis them out, so its shed count
+     * is its aircraft count and the apron berths beside them are still a
+     * visitor's parking.
+     *
+     * <p>It grows along the frontage and <b>not</b> backwards, which is a
+     * measurement rather than a preference: a fortress ward comes out about
+     * 250 cells wide and 29 deep, so depth is the scarce axis and the only one
+     * a bigger base can actually be refused for. A station a few rows deeper
+     * than a field never fits anywhere; one fourteen cells wider fits with room
+     * to spare — and length is what a strip wanted in the first place.
      *
      * <p>{@link #FIELD} is an installation: a runway, three berths, two sheds,
      * a control tower and a vehicle park. It is what a fortress ward builds
@@ -74,7 +80,7 @@ public final class AirbaseLot {
      * something has to roll.
      */
     public enum Size {
-        STATION(58, 28, 5, true, 3, 3, 11, 8, 5, 5, 3, 2, 2),
+        STATION(58, 24, 4, true, 3, 3, 11, 8, 5, 4, 3, 2, 2),
         FIELD(44, 24, 4, true, 3, 2, 11, 8, 5, 4, 3, 2, 2),
         PAD(22, 19, 0, false, 2, 1, 11, 8, 5, 3, 2, 1, 2),
         STRIP(14, 16, 0, false, 1, 1, 9, 7, 5, 2, 1, 1, 0);
