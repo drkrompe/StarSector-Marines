@@ -121,17 +121,19 @@ public final class AttackMove extends AbstractZoneAction {
 
         int[] aim = maneuverAim(squad, assault, sim);
 
-        // Bounding is the same advance behaviour a room crossing runs, and an
-        // attack move is the order it was always most obviously for: one fire
-        // team moves while its siblings hold the threat, alternating up the
-        // route. It engages only once the squad has committed to a route
-        // threat — bounding into empty ground is a slow walk with extra steps.
-        if (!squad.advanceEngageCommitted
-                || sim.resolveUnit(squad.advanceThreatId) == 0L) {
-            clearBounding(squad);
-        } else if (executeBounding(member, squad, sim, aim[0], aim[1])) {
-            return ActionStatus.RUNNING;
-        }
+        // Deliberately no bound, though the shared machinery is right here and
+        // this order is the obvious candidate for it.
+        //
+        // Held off by decision rather than by measurement: over the canonical
+        // matrix, bounding attack moves moved neither fixture by a single tick
+        // in either direction. A control run at the commit before the bound was
+        // added returned the same numbers as every run after it, so the earlier
+        // reading of a large cost was a concurrent change to the reinforcement
+        // system arriving on a merge, not this. The bound has no measured price
+        // here and no measured benefit either, which is its own result: these
+        // two fixtures cannot see it, and a claim about it needs a scene built
+        // to ask the question rather than a whole-battle harness.
+        clearBounding(squad);
 
         // Deliberately no quiet echelon. That hold exists so a squad crossing
         // to an assigned room arrives with a readable team footprint, and it

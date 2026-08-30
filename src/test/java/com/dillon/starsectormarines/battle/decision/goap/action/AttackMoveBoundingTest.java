@@ -20,10 +20,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * An attack move bounds. The behaviour is the room-crossing advance's, shared
- * through {@link AbstractZoneAction} rather than reimplemented — these pin that
- * the order actually reaches it, and that it stays off when there is nothing to
- * bound against.
+ * An attack move advances as a body and does not bound, and the beaten zone
+ * that gates bounding elsewhere distinguishes an enemy that is relevant from
+ * one that is dangerous.
+ *
+ * <p>Not bounding is a decision, not a measured win: over the canonical matrix
+ * bounding attack moves moved neither fixture by a tick either way. The shared
+ * machinery is still right there on {@link AbstractZoneAction}, and re-enabling
+ * it is one line — but a claim about whether it helps needs a scene built to
+ * ask that question, since these two whole-battle fixtures cannot see it.
  */
 public class AttackMoveBoundingTest {
 
@@ -43,7 +48,8 @@ public class AttackMoveBoundingTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Fixture fixture(boolean withThreats) {
+    /** Squad at x=10; {@code threatX} places a pair of contacts astride the route. */
+    private static Fixture fixture(int threatX) {
         BattleSimulation sim = openSim();
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
@@ -67,15 +73,16 @@ public class AttackMoveBoundingTest {
         squad.assignedObjective = ObjectiveAssignment.attackMove(
                 squad.id, DEST_X, DEST_Y);
 
-        if (withThreats) {
-            // Two contacts astride the route saturate the threat score, which
-            // is what commits the advance and licenses a bound.
-            sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 35, 15));
-            sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 37, 16));
+        if (threatX > 0) {
+            sim.spawn(new EntitySpec("d0", Faction.DEFENDER,
+                    UnitType.MARINE, threatX, 15));
+            sim.spawn(new EntitySpec("d1", Faction.DEFENDER,
+                    UnitType.MARINE, threatX + 2, 16));
         } else {
-            // A scene needs both sides present or the simulation returns
-            // without advancing a tick; keep one defender far out of the fight.
-            sim.spawn(new EntitySpec("far", Faction.DEFENDER, UnitType.MARINE, 62, 30));
+            // A scene needs both sides on the map or the simulation returns
+            // without advancing a tick; keep one defender out of the fight.
+            sim.spawn(new EntitySpec("far", Faction.DEFENDER,
+                    UnitType.MARINE, 62, 30));
         }
         sim.advance(BattleSimulation.TICK_DT);
 
@@ -90,95 +97,51 @@ public class AttackMoveBoundingTest {
     }
 
     @Test
-    public void aCommittedAttackMoveBoundsByFireTeam() {
-        Fixture f = fixture(true);
+    public void anAttackMoveInContactAdvancesAsABodyRatherThanBounding() {
+        Fixture f = fixture(35);
         for (long member : f.members) {
             f.action.execute(member, f.squad, f.sim);
         }
 
-        assertTrue(f.squad.boundingActive,
-                "route contact on an attack move opens a bound");
-        assertTrue(f.squad.boundingMemberIds.length > 0
-                        && f.squad.boundingMemberIds.length < f.members.size(),
-                "one team moves while its siblings hold, never the whole squad");
-    }
-
-    @Test
-    public void theOverwatchingTeamHoldsWhileItsSiblingMoves() {
-        Fixture f = fixture(true);
-        for (long member : f.members) {
-            f.action.execute(member, f.squad, f.sim);
-        }
-        assertTrue(f.squad.boundingActive);
-
-        for (long member : f.members) {
-            boolean bounding = false;
-            for (long id : f.squad.boundingMemberIds) if (id == member) bounding = true;
-            if (bounding) continue;
-            assertTrue(Paths.isEmpty(f.sim.world().path(member)),
-                    "a member on overwatch is not also walking");
-        }
-    }
-
-    @Test
-    public void aCommittedThreatTooFarToShootDoesNotEarnABound() {
-        // Commitment reaches much further than fire does: the advance-threat
-        // score looks tens of cells down the route, so a squad can be committed
-        // to a contact that cannot touch it. Bounding that stretch moves half
-        // the squad at a time and buys nothing.
-        BattleSimulation sim = openSim();
-        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
-        Squad squad = sim.getSquad(squadId);
-        List<Long> members = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            long member = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
-                    UnitType.MARINE, 10, 14 + i).squad(squadId));
-            sim.world().setAttackRange(member, 30f);
-            members.add(member);
-        }
-        squad.leaderId = members.get(0);
-        squad.aliveMembers = 4;
-        squad.originalSize = 4;
-        squad.centroidX = 10.5f;
-        squad.centroidY = 16f;
-        squad.assignedObjective = ObjectiveAssignment.attackMove(
-                squad.id, DEST_X, DEST_Y);
-
-        long far = sim.spawn(new EntitySpec("d0", Faction.DEFENDER,
-                UnitType.MARINE, 44, 15));
-        sim.spawn(new EntitySpec("d1", Faction.DEFENDER,
-                UnitType.MARINE, 45, 16));
-        sim.advance(BattleSimulation.TICK_DT);
-
-        AttackMove action = new AttackMove(DEST_X, DEST_Y);
-        SquadPlan.Step step = new SquadPlan.Step(action);
-        step.assignments.put(AbstractZoneAction.TEAM_A,
-                new ArrayList<>(members.subList(0, 2)));
-        step.assignments.put(AbstractZoneAction.TEAM_B,
-                new ArrayList<>(members.subList(2, 4)));
-        squad.currentPlan = new SquadPlan(List.of(step));
-
-        for (long member : members) action.execute(member, squad, sim);
-
-        assertTrue(squad.advanceEngageCommitted,
-                "the distant pair still commits the advance");
-        assertFalse(sim.getTacticalScoring().threatReaches(far,
-                squad.centroidX, squad.centroidY, AbstractZoneAction.BOUNDING_STRIDE),
-                "and is nonetheless outside its own beaten zone");
-        assertFalse(squad.boundingActive,
-                "so the squad walks rather than bounding at nothing");
-    }
-
-    @Test
-    public void anUncontestedAttackMoveDoesNotBound() {
-        Fixture f = fixture(false);
-        for (long member : f.members) {
-            f.action.execute(member, f.squad, f.sim);
-        }
-
+        assertTrue(f.squad.advanceEngageCommitted,
+                "contact astride the route still commits the advance");
         assertFalse(f.squad.boundingActive,
-                "bounding into empty ground is a slow walk with extra steps");
+                "moving half a squad at a time up a long route is slower than "
+                        + "the ground is dangerous");
+    }
+
+    @Test
+    public void anUncontestedAttackMoveKeepsWalkingItsObjective() {
+        Fixture f = fixture(0);
+        for (long member : f.members) {
+            f.action.execute(member, f.squad, f.sim);
+        }
+
+        assertFalse(f.squad.boundingActive);
         assertFalse(Paths.isEmpty(f.sim.world().path(f.squad.leaderId)),
-                "the squad still moves on its objective");
+                "the squad moves on its objective");
+    }
+
+    @Test
+    public void theBeatenZoneSeparatesARelevantEnemyFromADangerousOne() {
+        // The advance-threat score looks tens of cells down the route, so a
+        // squad can be committed to a contact that cannot touch it. Bounding,
+        // screening smoke and placing cover all exist because crossing ground
+        // under fire is lethal, and are worth their cost only where that holds.
+        Fixture near = fixture(35);
+        Fixture far = fixture(44);
+        long nearThreat = near.squad.advanceThreatId;
+        long farThreat = far.squad.advanceThreatId;
+
+        assertTrue(far.squad.advanceEngageCommitted,
+                "the distant pair still commits the advance");
+        assertTrue(near.sim.getTacticalScoring().threatReaches(nearThreat,
+                        near.squad.centroidX, near.squad.centroidY,
+                        AbstractZoneAction.BOUNDING_STRIDE),
+                "a contact inside its own reach is dangerous");
+        assertFalse(far.sim.getTacticalScoring().threatReaches(farThreat,
+                        far.squad.centroidX, far.squad.centroidY,
+                        AbstractZoneAction.BOUNDING_STRIDE),
+                "one that commits the advance from beyond its reach is only relevant");
     }
 }

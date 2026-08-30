@@ -386,8 +386,10 @@ abstract class AbstractZoneAction implements Action {
         // further than fire does — the advance-threat score looks tens of cells
         // down the route — so a squad can be committed to a contact that cannot
         // touch it, and bounding that stretch buys nothing for the price of
-        // moving half the squad at a time. Enabling the bound on attack moves
-        // without this cost reinforced-south 7300 ticks and 46 defender kills.
+        // moving half the squad at a time. The gate is a correctness argument
+        // rather than a measured win: it changed neither canonical fixture by a
+        // tick, which says the bounds these battles actually run are already
+        // inside the beaten zone.
         if (!sim.getTacticalScoring().threatReaches(squad.advanceThreatId,
                 squad.centroidX, squad.centroidY, BOUNDING_STRIDE)) {
             clearBounding(squad);
