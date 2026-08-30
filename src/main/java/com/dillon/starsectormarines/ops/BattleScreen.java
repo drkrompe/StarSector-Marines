@@ -30,7 +30,6 @@ import com.dillon.starsectormarines.battle.ui.panel.BattleCommsPanel;
 import com.dillon.starsectormarines.battle.ui.panel.CommandPowerTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
-import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
@@ -183,6 +182,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleHud hud;
     /** MLX-authored player-facing command chrome: time controls and capture state. */
     private BattleHudOverlay retainedOverlay;
+    /** MLX-authored 3x4 selected-squad roster with hover loadout detail. */
+    private BattleSquadOverlay retainedSquadOverlay;
     /** MLX-authored compact command-power deck at bottom-center. */
     private BattlePowerOverlay retainedPowerOverlay;
     /** MLX-authored, confirmation-gated battle exit at bottom-left. */
@@ -347,6 +348,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             retainedOverlay.update(dt, ctx != null ? ctx.getBattleSimulation() : null,
                     speedMultiplier);
         }
+        if (retainedSquadOverlay != null) {
+            retainedSquadOverlay.update(dt,
+                    ctx != null ? ctx.getBattleSimulation() : null);
+        }
         if (retainedPowerOverlay != null) {
             retainedPowerOverlay.update(dt,
                     ctx != null ? ctx.getBattleSimulation() : null);
@@ -499,6 +504,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getGroundParallax().dispose();
         renderer.getGroundLights().clear();
         if (retainedOverlay != null) retainedOverlay.detach();
+        if (retainedSquadOverlay != null) retainedSquadOverlay.detach();
         if (retainedPowerOverlay != null) retainedPowerOverlay.detach();
         if (retainedRetreatOverlay != null) retainedRetreatOverlay.detach();
 
@@ -527,7 +533,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         commandPowerTargeting = new CommandPowerTargetingPanel(this);
         hud.addPanel(commandPowerTargeting);
         hud.addPanel(new TaskForceStatusPanel(this));
-        hud.addPanel(new SquadDetailPanel(this));
         // Per-squad GOAP plan readout. It has no all-squad overview: the
         // diagnostic opens only while WorldPicker has a squad in Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
@@ -615,6 +620,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             retainedOverlay = new BattleHudOverlay(value -> speedMultiplier = value);
         }
         retainedOverlay.attach(position, sim, speedMultiplier);
+        if (retainedSquadOverlay == null) {
+            retainedSquadOverlay = new BattleSquadOverlay(selection);
+        }
+        retainedSquadOverlay.attach(position, sim);
         if (retainedPowerOverlay == null) {
             retainedPowerOverlay = new BattlePowerOverlay(
                     commandPowerTargeting::toggle,
@@ -1007,6 +1016,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // rectangles. Everywhere else input continues to the debug HUD and
         // battlefield picker.
         if (retainedOverlay != null) retainedOverlay.processInput(events);
+        if (retainedSquadOverlay != null) retainedSquadOverlay.processInput(events);
         if (retainedPowerOverlay != null) retainedPowerOverlay.processInput(events);
         if (retainedRetreatOverlay != null) retainedRetreatOverlay.processInput(events);
         // HUD gets first crack after retained chrome so a click on a squad row doesn't
@@ -1142,6 +1152,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Player-facing MLX chrome paints above the debug HUD. Its root is
         // transparent, so only the compact command surfaces touch the canvas.
         if (retainedOverlay != null) retainedOverlay.render(alphaMult);
+        if (retainedSquadOverlay != null) retainedSquadOverlay.render(alphaMult);
         if (retainedPowerOverlay != null) retainedPowerOverlay.render(alphaMult);
         if (retainedRetreatOverlay != null) retainedRetreatOverlay.render(alphaMult);
 

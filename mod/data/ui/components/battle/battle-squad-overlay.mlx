@@ -1,0 +1,198 @@
+<template props="squadTitle,squadStrength,moraleLabel,moraleStyle,fireTeams,tooltipClasses,tooltipTitle,tooltipTeam,tooltipPrimary,tooltipSpecial,tooltipSystem,tooltipProfile,backAction">
+  <div id="battle-squad-overlay" class="battle-squad-overlay" style="background-color: transparent">
+    <div id="battle-squad-panel" class="squad-panel">
+      <div id="battle-squad-header" class="squad-header">
+        <button id="battle-squad-back" class="squad-back" onclick="{backAction}">&lt; BACK</button>
+        <div id="battle-squad-title" class="label heading squad-title">{squadTitle}</div>
+        <div id="battle-squad-strength" class="label heading squad-strength">{squadStrength}</div>
+        <div id="battle-squad-morale" class="squad-morale">
+          <div id="battle-squad-morale-label" class="label morale-label">{moraleLabel}</div>
+          <div id="battle-squad-morale-track" class="morale-track">
+            <div id="battle-squad-morale-fill" class="morale-fill" style="{moraleStyle}" />
+          </div>
+        </div>
+      </div>
+
+      <div id="battle-squad-fireteams" class="fireteam-grid">
+        <div each="team in fireTeams" key="{team.id}" id="{team.id}" class="fireteam-column">
+          <div id="{team.headerId}" class="fireteam-header">
+            <div id="{team.labelId}" class="label heading fireteam-name">{team.label}</div>
+            <div id="{team.strengthId}" class="label fireteam-strength">{team.strength}</div>
+          </div>
+          <div id="{team.membersId}" class="fireteam-members">
+            <div each="member in team.members" key="{member.id}" id="{member.id}" class="{member.classes}">
+              <div id="{member.lineId}" class="member-line">
+                <div id="{member.nameId}" class="label heading member-name">{member.name}</div>
+                <div id="{member.primaryId}" class="label heading member-primary">{member.primary}</div>
+                <div id="{member.specialId}" class="label heading member-special">{member.special}</div>
+              </div>
+              <div id="{member.hpTrackId}" class="member-hp-track">
+                <div id="{member.hpId}" class="member-hp-fill" style="{member.hpStyle}" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="battle-squad-tooltip" class="{tooltipClasses}">
+      <div id="battle-squad-tooltip-title" class="label heading tooltip-title">{tooltipTitle}</div>
+      <div id="battle-squad-tooltip-team" class="label tooltip-team">{tooltipTeam}</div>
+      <div id="battle-squad-tooltip-primary" class="label tooltip-line tooltip-primary">{tooltipPrimary}</div>
+      <div id="battle-squad-tooltip-special" class="label tooltip-line tooltip-special">{tooltipSpecial}</div>
+      <div id="battle-squad-tooltip-system" class="label tooltip-line tooltip-system">{tooltipSystem}</div>
+      <div id="battle-squad-tooltip-profile" class="label tooltip-line tooltip-profile">{tooltipProfile}</div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .battle-squad-overlay {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .label { overflow: hidden; white-space: nowrap; }
+  .heading { font-family: heading; }
+
+  .squad-panel {
+    width: 414px;
+    height: 178px;
+    flex-direction: column;
+    padding: 7px;
+    gap: 6px;
+    border-width: 1px;
+    border-color: #4f6d8e;
+    background-color: #0b111be8;
+    overflow: hidden;
+  }
+
+  .squad-header {
+    width: 100%;
+    height: 30px;
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .squad-back {
+    width: 58px;
+    height: 18px;
+    padding: 5px;
+    border-width: 1px;
+    font-family: heading;
+    text-align: center;
+  }
+
+  .squad-title {
+    width: 104px;
+    height: 18px;
+    padding: 6px 0px;
+    color: #c8e0ff;
+  }
+
+  .squad-strength {
+    width: 40px;
+    height: 18px;
+    padding: 6px 0px;
+    color: #c8e0ff;
+  }
+
+  .squad-morale {
+    width: 0px;
+    height: 25px;
+    flex-grow: 1;
+    flex-direction: column;
+    gap: 3px;
+    padding: 2px 0px;
+  }
+
+  .morale-label { width: 100%; height: 13px; text-align: right; color: #8b9aaf; }
+  .morale-track { width: 100%; height: 3px; background-color: #172231; }
+  .morale-fill { height: 100%; background-color: #78d494; }
+
+  .fireteam-grid {
+    width: 100%;
+    height: 142px;
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .fireteam-column {
+    width: 0px;
+    height: 130px;
+    flex-grow: 1;
+    flex-direction: column;
+    padding: 5px;
+    gap: 4px;
+    border-width: 1px;
+    border-color: #31485f;
+    background-color: #101925df;
+    overflow: hidden;
+  }
+
+  .fireteam-header { width: 100%; height: 14px; flex-direction: row; }
+  .fireteam-name { width: 0px; height: 14px; flex-grow: 1; color: #6ed7ff; }
+  .fireteam-strength { width: 26px; height: 14px; text-align: right; color: #8b9aaf; }
+
+  .fireteam-members {
+    width: 100%;
+    height: 112px;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .member-card {
+    width: 100%;
+    height: 18px;
+    flex-direction: column;
+    padding: 2px 3px;
+    gap: 3px;
+    border-width: 1px;
+    border-color: #31485f;
+    background-color: #142131e8;
+    overflow: hidden;
+  }
+
+  .member-card:hover { background-color: #243d56; border-color: #6ed7ff; }
+  .member-leader { border-color: #806b35; }
+  .member-leader .member-name { color: #ffd464; }
+  .member-critical { border-color: #8e4d49; }
+  .member-empty { opacity: 0.28; background-color: #0c121a; }
+
+  .member-line { width: 100%; height: 12px; flex-direction: row; gap: 3px; }
+  .member-name { width: 0px; height: 12px; flex-grow: 1; color: #c8e0ff; }
+  .member-primary { width: 38px; height: 12px; text-align: right; color: #78d494; }
+  .member-special { width: 24px; height: 12px; text-align: right; color: #ffd464; }
+  .member-hp-track { width: 100%; height: 3px; background-color: #172231; }
+  .member-hp-fill { height: 100%; background-color: #78d494; }
+
+  .squad-tooltip {
+    width: 250px;
+    height: 110px;
+    flex-direction: column;
+    padding: 7px;
+    gap: 5px;
+    border-width: 1px;
+    border-color: #6ed7ff;
+    background-color: #091019f5;
+    overflow: hidden;
+  }
+
+  .squad-tooltip-hidden {
+    width: 0px;
+    height: 0px;
+    padding: 0px;
+    gap: 0px;
+    border-width: 0px;
+    opacity: 0;
+  }
+
+  .tooltip-title { width: 100%; height: 16px; color: #c8e0ff; }
+  .tooltip-team { width: 100%; height: 14px; color: #8b9aaf; }
+  .tooltip-line { width: 100%; height: 14px; color: #aebdce; }
+  .tooltip-primary { color: #78d494; }
+  .tooltip-special { color: #ffd464; }
+  .tooltip-system { color: #6ed7ff; }
+  .tooltip-profile { color: #aebdce; }
+</style>
