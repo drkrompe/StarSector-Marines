@@ -10,53 +10,39 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Per-fighter visual + audio loadout for the flyby overlay. All sprite paths
- * resolve against the vanilla install — Starsector's resource loader walks core
- * + enabled mods, so {@code "graphics/ships/wasp_ftr.png"} from a mod jar pulls
- * the core file. No redistribution required.
+ * The fighters that exist: which hull each one is, how much of it there is, and
+ * what it carries. An {@link Airframe}, so a berth can hold one and a sortie can
+ * fly one.
  *
- * <p>Tracer / burst params encode the "feel" of each fighter's primary armament
- * — broadswords spray a long chaingun burst of yellow shells, thunders snap off
- * a couple of cyan energy bolts. The numbers don't have to match vanilla DPS;
- * they just have to read distinctly per fighter type.
+ * <p>All sprite paths resolve against the vanilla install — Starsector's resource
+ * loader walks core + enabled mods, so {@code "graphics/ships/wasp_ftr.png"} from
+ * a mod jar pulls the core file. No redistribution required.
  *
- * <p>{@link #weaponClass} picks the fire-resolution path. TRACER profiles use
- * the tracer / burst block. PROJECTILE profiles use the projectile block
- * (homing speed, AoE radius, fuse) — the tracer fields are unused for them.
+ * <p>This is a roster and nothing more. How a fighter flies comes from its hull's
+ * own maneuver spec, and how it delivers comes from its {@link AirOrdnance}
+ * preset; neither is authored here. The tracer, burst and projectile tuning this
+ * enum used to carry were the deleted flyby overlay's private fire resolution,
+ * which resolved damage without cover, armour, roofs or wall damage — the
+ * ordnance presets carry the equivalent facts and go through the detonation
+ * pipeline instead.
  */
 public enum FighterProfile implements Airframe {
 
     /** Talon — light autocannon, fast and twitchy. */
     TALON("graphics/ships/talon/talon.png", "talon", 1.5f, 30f, 1,
-            WeaponClass.TRACER,
-            new Color(0xFF, 0xE0, 0x70), 22f, 2.5f, 0.06f,
-            7, 0.06f, 0.8f, 1.0f, 30, 0.09f,
-            0f, 0f, 0f, 0f, 0f,
-            FlybyOverlay.SFX_GUN_LIGHT, 0.9f, 1.0f, null),
+            new Color(0xFF, 0xE0, 0x70)),
 
     /** Wasp — small drone with a pulse laser. */
     WASP("graphics/ships/wasp_ftr.png", "wasp", 1.3f, 25f, 1,
-            WeaponClass.TRACER,
-            new Color(0x88, 0xFF, 0xFF), 18f, 3.0f, 0.10f,
-            4, 0.10f, 1.2f, 1.5f, 35, 0.09f,
-            0f, 0f, 0f, 0f, 0f,
-            FlybyOverlay.SFX_GUN_ENERGY, 1.1f, 0.9f, null),
+            new Color(0x88, 0xFF, 0xFF)),
 
     /** Broadsword — heavy fighter, dual chaingun. The strafe of choice. */
     BROADSWORD("graphics/ships/broadsword.png", "broadsword", 2.0f, 45f, 2,
-            WeaponClass.TRACER,
-            new Color(0xFF, 0xE0, 0x70), 30f, 3.5f, 0.08f,
-            10, 0.05f, 0.6f, 1.5f, 45, 0.09f,
-            0f, 0f, 0f, 0f, 0f,
-            FlybyOverlay.SFX_GUN_HEAVY, 1.0f, 1.1f, null),
+            new Color(0xFF, 0xE0, 0x70)),
 
     /** Thunder — interceptor with twin ion bolts. */
     THUNDER("graphics/ships/thunder.png", "thunder", 1.7f, 35f, 2,
-            WeaponClass.TRACER,
-            new Color(0x70, 0xC8, 0xFF), 24f, 3.0f, 0.10f,
-            6, 0.08f, 0.9f, 1.4f, 90, 0.09f,
-            0f, 0f, 0f, 0f, 0f,
-            FlybyOverlay.SFX_GUN_ENERGY, 1.0f, 1.0f, null),
+            new Color(0x70, 0xC8, 0xFF)),
 
     /**
      * Longbow — high-tech missile support fighter. The third delivery class:
@@ -64,21 +50,13 @@ public enum FighterProfile implements Airframe {
      * behind, but a pod of powered rounds released from well outside gun range.
      */
     LONGBOW("graphics/ships/longbow_intg.png", "longbow", 1.8f, 38f, 1,
-            WeaponClass.PROJECTILE,
-            new Color(0xC0, 0xE8, 0xFF), 0f, 0f, 0f,
-            2, 0.25f, 0f, 0f, 70, 0.25f,
-            22f, 120f, 5.0f, 2.2f, 46f,
-            FlybyOverlay.SFX_MISSILE_LAUNCH, 1.2f, 0.9f, "graphics/missiles/missile_harpoon.png"),
+            new Color(0xC0, 0xE8, 0xFF)),
 
-    /** Dagger — Tri-Tachyon torpedo bomber; one Reaper per shot. AoE detonation flattens walls and chews into clusters. */
+    /** Dagger — Tri-Tachyon torpedo bomber; a stick of bombs that flattens walls and chews into clusters. */
     DAGGER("graphics/ships/dagger_trp.png", "dagger", 1.9f, 40f, 1,
-            WeaponClass.PROJECTILE,
-            new Color(0xFF, 0xB0, 0x60), 0f, 0f, 0f,
-            1, 0f, 0f, 0f, 150, 0.7f,
-            14f, 90f, 4.0f, 3.0f, 5.0f,
-            FlybyOverlay.SFX_MISSILE_LAUNCH, 1.0f, 1.1f, "graphics/missiles/missile_harpoon.png");
+            new Color(0xFF, 0xB0, 0x60));
 
-    /** Vanilla sprite path. Lazy-loaded once per overlay. */
+    /** Vanilla sprite path. Lazy-loaded once by the render tier. */
     public final String spritePath;
     /**
      * Vanilla hull id — keys
@@ -114,90 +92,24 @@ public enum FighterProfile implements Airframe {
      */
     public final int mounts;
 
-    /** Delivery model — picks which fire-resolution path the overlay takes when this profile fires. */
-    public final WeaponClass weaponClass;
-
-    // ---- Tracer / burst tuning (TRACER class) ----------------------------------
-    /** Tracer color (and tinted muzzle flash). RGB; alpha is applied per-particle. PROJECTILE profiles still use this for the engine-trail / detonation tint. */
+    /**
+     * This fighter's identity colour — the tint anything drawn for it may key
+     * on. The gun-run presentation is keyed on the <em>delivery</em> rather
+     * than on the carrier ({@code OrdnanceFx}), so nothing reads this yet;
+     * it is the one piece of the deleted overlay's visual block worth keeping,
+     * because a per-hull tint is a fact about the fighter and not about the
+     * renderer that was removed.
+     */
     public final Color tracerColor;
-    /** Tracer length in pixels at default cellSize. Scaled with cellSize at draw time. */
-    public final float tracerPxLen;
-    /** Tracer thickness in pixels. */
-    public final float tracerPxThick;
-    /** Tracer lifetime in seconds. Short = whippy; long = beam-like. */
-    public final float tracerLifetime;
-
-    /** Number of shots per burst (tracers for TRACER, missiles for PROJECTILE). PROJECTILE usually fires 1 per commit. */
-    public final int burstSize;
-    /** Sim-seconds between successive shots within a single burst. Ignored when {@link #burstSize} is 1. */
-    public final float burstInterval;
-    /** Burst spread half-angle in degrees — random scatter per tracer. */
-    public final float burstSpreadDeg;
-    /** Damage applied per tracer that connects with its target. Tiny values; strafes shouldn't insta-kill. */
-    public final float perTracerDamage;
-    /** Wall HP a single tracer chips off when its endpoint lands on a wall. Wall HP = 100 (UrbanMapGenerator.WALL_HP_DEFAULT); higher values = fewer hits to flatten. Ballistic light = chips, heavy = ~3 hits, hi-tech energy/missile = one- or two-shot. PROJECTILE wall damage is applied per cell inside the AoE on detonation. */
-    public final int wallDamage;
-    /** Sim-seconds between RUN-phase shots. 0.09 for chainguns / autocannons; 0.6+ for missile bombers — missiles aren't sprayed. */
-    public final float runFireInterval;
-
-    // ---- Projectile tuning (PROJECTILE class) ----------------------------------
-    /** Launch speed in cells/sec. 0 for TRACER profiles. */
-    public final float projectileSpeed;
-    /** Homing turn rate in degrees/sec — how tight the missile can lock onto a moving target. Lower = easier for a fast unit to dodge. */
-    public final float projectileTurnRateDegPerSec;
-    /** Fuse in sim-seconds — auto-detonate at current position if the missile hasn't impacted within this. */
-    public final float projectileFuseSec;
-    /** AoE radius in cells for detonation damage. */
-    public final float projectileAoeRadiusCells;
-    /** Damage applied to each opposing unit inside the AoE on detonation. */
-    public final float projectileAoeDamage;
-
-    // ---- Audio -----------------------------------------------------------------
-    /** Sound id (declared in mod/data/config/sounds.json) for one shot in the burst. */
-    public final String fireSoundId;
-    /** Pitch + volume for the fire sound. Pitch jittered ±5% at play time. */
-    public final float fireSoundPitch;
-    public final float fireSoundVolume;
-
-    // ---- Projectile sprite (PROJECTILE class only; null for TRACER) ------------
-    /** Sprite path for the in-flight missile body. null for TRACER profiles. */
-    public final String projectileSpritePath;
 
     FighterProfile(String spritePath, String hullId, float visualLengthCells, float parkedHp,
-                   int mounts,
-                   WeaponClass weaponClass,
-                   Color tracerColor, float tracerPxLen, float tracerPxThick, float tracerLifetime,
-                   int burstSize, float burstInterval, float burstSpreadDeg, float perTracerDamage, int wallDamage,
-                   float runFireInterval,
-                   float projectileSpeed, float projectileTurnRateDegPerSec, float projectileFuseSec,
-                   float projectileAoeRadiusCells, float projectileAoeDamage,
-                   String fireSoundId, float fireSoundPitch, float fireSoundVolume,
-                   String projectileSpritePath) {
+                   int mounts, Color tracerColor) {
         this.spritePath = spritePath;
         this.hullId = hullId;
         this.visualLengthCells = visualLengthCells;
         this.parkedHp = parkedHp;
         this.mounts = mounts;
-        this.weaponClass = weaponClass;
         this.tracerColor = tracerColor;
-        this.tracerPxLen = tracerPxLen;
-        this.tracerPxThick = tracerPxThick;
-        this.tracerLifetime = tracerLifetime;
-        this.burstSize = burstSize;
-        this.burstInterval = burstInterval;
-        this.burstSpreadDeg = burstSpreadDeg;
-        this.perTracerDamage = perTracerDamage;
-        this.wallDamage = wallDamage;
-        this.runFireInterval = runFireInterval;
-        this.projectileSpeed = projectileSpeed;
-        this.projectileTurnRateDegPerSec = projectileTurnRateDegPerSec;
-        this.projectileFuseSec = projectileFuseSec;
-        this.projectileAoeRadiusCells = projectileAoeRadiusCells;
-        this.projectileAoeDamage = projectileAoeDamage;
-        this.fireSoundId = fireSoundId;
-        this.fireSoundPitch = fireSoundPitch;
-        this.fireSoundVolume = fireSoundVolume;
-        this.projectileSpritePath = projectileSpritePath;
     }
 
     // ---- Airframe: what standing on a berth needs -----------------------------
