@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — the hull left on a stand comes apart, blocks movement, and does not seal anybody under it.
+Updated: 2026-08-30 — a strip is published geometry rather than paint, and a base can have one.
 
 ## Purpose
 
@@ -197,6 +197,22 @@ This is a second and independent way to end an enemy's air. Holding the
 `AIRBASE` compound is the other, and the two ask genuinely different questions —
 a field held with every aircraft burning supplies nothing, and a field lost with
 the aircraft intact takes them with it.
+
+A **runway** is the second kind of place an aircraft can leave from, and the
+first that is not a square of ground. It is the centreline a craft rolls along
+and its two thresholds, published by the lot that laid it rather than recovered
+by scanning for runway-coloured ground: the lot knows exactly where it put the
+strip, and which ground kind stands in for runway is an art decision that has
+already changed once without touching a line of generation. Geometry a system
+depends on cannot live in the art. Neither threshold is privileged — which end
+a roll starts from is a decision for the sortie, and the far one is normally
+right because it leaves the aircraft pointing where it is going. `mapgen-nouns.md`
+owns where a strip is laid; Air owns what happens along it. See
+`runway-airbase.md` for the ground procedure being built on it.
+
+A strip is not a requirement for an air arm. Most airbases have none — an
+aircraft that lands vertically needs somewhere to stand and somewhere to be
+worked on, and a strip is what a base adds when something has to roll.
 
 Distinct from the **scenery hulls** that dress surplus civilian port berths.
 Those are props: no unit, no HP, and nothing flies them. They look identical on

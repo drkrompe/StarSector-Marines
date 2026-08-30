@@ -63,6 +63,8 @@ public final class GenContext {
     public final List<LandingPad> landingPads = new ArrayList<>();
     /** Pair-capable mission arrival areas emitted by map-family stages. */
     public final List<LandingArea> landingAreas = new ArrayList<>();
+    /** Authored airstrips, ordered deterministically by the lots that laid them. Empty on a map with no strip. */
+    public final List<Runway> runways = new ArrayList<>();
 
     /** Authored machine berths inside vehicle bays, in the order fittings emit them. */
     public final List<Gantry> gantries = new ArrayList<>();
