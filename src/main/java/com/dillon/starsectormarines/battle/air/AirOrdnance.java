@@ -107,9 +107,20 @@ public final class AirOrdnance {
      * nose was pointed at the ground. That the reach is most of a dozen cells
      * is the sight geometry of a machine at height rather than a chosen offset:
      * fire that lands under the aircraft is fire from something hovering.
+     *
+     * <p><b>The cadence is set against the speed the aircraft flies at.</b> A
+     * gun fires for as long as it holds its target under the nose, so what a
+     * pass puts on the ground is rounds per <em>cell</em> and not rounds per
+     * second — the beaten zone is the same stretch of ground whatever the
+     * airspeed, and a machine crossing it half again as fast at the same rate
+     * of fire simply works it half as hard. Measured across the atmosphere
+     * re-dial that widened the turn: at the old rate a strike over a bunched
+     * platoon went from killing ten of twelve to killing four, on an identical
+     * footprint. Raising the rate rather than the damage is what keeps the
+     * picture the same — bigger craters would be a different weapon.
      */
     public static final AirOrdnance AUTOCANNON =
-            new AirOrdnance(14f, 0,
+            new AirOrdnance(24f, 0,
                     OrdnanceFlight.powered(12f, 42f, 700f, 1.0f),
                     2.2f, 26f, 1.3f, 24f, 8f, 22);
 
@@ -123,7 +134,7 @@ public final class AirOrdnance {
      * and the only thing that separates them is what they do once they arrive.
      */
     public static final AirOrdnance BEAM =
-            new AirOrdnance(24f, 0,
+            new AirOrdnance(41f, 0,
                     OrdnanceFlight.powered(12f, 42f, 2000f, 1.0f),
                     0.7f, 26f, 1.0f, 13f, 13f, 14);
 
@@ -150,7 +161,7 @@ public final class AirOrdnance {
      * short of the target and its whole stick fell in front of the position.
      */
     public static final AirOrdnance MISSILES =
-            new AirOrdnance(3f, 6,
+            new AirOrdnance(5f, 6,
                     OrdnanceFlight.powered(12f, 34f, 65f, 0.35f),
                     1.4f, 34f, 2.2f, 46f, 14f, 70);
 
@@ -161,10 +172,21 @@ public final class AirOrdnance {
      * removes it.
      *
      * <p>Nothing pushes a bomb. It keeps most of the aircraft's speed and
-     * spends a second and a half falling, and because it keeps <em>most</em>
-     * rather than all of it the aircraft is past the impact by the time it
-     * happens — which is what a bomb run looks like, and is not something the
-     * model was told to do.
+     * spends about a second falling, and because it keeps <em>most</em> rather
+     * than all of it the aircraft is past the impact by the time it happens —
+     * which is what a bomb run looks like, and is not something the model was
+     * told to do.
+     *
+     * <p><b>A faster bomber has to come in lower.</b> A bomb's whole forward
+     * reach is borrowed from the aircraft, so it is the one delivery whose
+     * reach moves when the airframe is re-dialled — and reach and firing range
+     * are one decision. Flown at the widened atmosphere calibration from the
+     * old release height, the stick landed further ahead of the aircraft than a
+     * missile pod reaches, which would have made the close-in weapon the
+     * standoff one. Height is the dial that answers it, because it is the only
+     * one that shortens the fall: a lower run keeps a bomber's business close
+     * in, where a longer release range would have turned it into something
+     * else.
      *
      * <p>The cadence is what makes it a stick rather than a trickle. A bomber
      * is only over its target for about a second, so a slow release simply
@@ -172,7 +194,7 @@ public final class AirOrdnance {
      * it dropped three of five and kept the rest.
      */
     public static final AirOrdnance BOMBS =
-            new AirOrdnance(6f, 5,
-                    OrdnanceFlight.dropped(10f, 0.72f),
-                    2.6f, 20f, 3.6f, 80f, 16f, 160);
+            new AirOrdnance(5f, 5,
+                    OrdnanceFlight.dropped(6f, 0.72f),
+                    2.6f, 28f, 3.6f, 80f, 16f, 160);
 }
