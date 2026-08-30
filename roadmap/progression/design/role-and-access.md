@@ -6,9 +6,9 @@ data, doctrine as a role mix resolved against access, and the Armory surface
 that makes the split visible.
 
 Written: 2026-08-29
-Updated: 2026-08-29 — role, tradition, the filled matrix and `SquadArmorPlan`
-all landed, and the Armory now sells a plan as a **tactic sheet**: the section
-it organises above what this company's stock puts in those billets.
+Updated: 2026-08-30 — a role's billets now spread across the patterns at the
+top of its band instead of all taking the single best one, and the Armory rates
+and ranks what it lists.
 
 Read `progression-nouns.md` for the standing rules equipment must obey,
 `integral-system-slate.md` for which traditions build a suit capability and
@@ -98,6 +98,32 @@ doctrine's business and the kit quality is the company's, so:
   unlocked cards, and a test's hand-picked set all go through one rule.
 - **Tradition chooses among what access allows**, and it is now data
   (`ArmorTradition`) rather than a sentence in a description.
+
+**A role with several billets does not put all of them in one suit.** For each
+role the resolver takes the best tier it can reach and deals *every* pattern
+available at that tier across that role's billets. A section with two weapons
+carriers, offered a missile pod and a corpsman's satchel, fields one of each.
+
+Only the top band spreads. A tier is a price band, so patterns inside one are
+comparable by construction and choosing between them is a matter of what the
+squad needs rather than of what it can afford; reaching below the band would
+hand a rifleman frontier kit because there happened to be some in the hold.
+
+Issuing a role's single best pattern to all of its billets is a rule that reads
+as obviously right and hides two real defects:
+
+- **A shipped suit can be unwearable.** Two patterns in the same role, tradition
+  and tier are separated only by the tie-break, which was the alphabet. The
+  Hegemony's corpsman rig and its Arbalest support battlesuit share that cell, so
+  no company owning both ever fielded a corpsman, and the field-aid capability
+  quietly did not exist at the top of its ladder.
+- **A contributed pattern can be unreachable.** The submod contract is add-only
+  by design, so an author cannot replace a core id — and if their pattern occupies
+  a cell a core one already holds, it can never be issued either. There was no
+  way in from outside. See `submod-catalog-contract.md`.
+
+Both are the same bug and neither is fixable by tuning the tie-break: the cell
+holds two things that are worth having and the section has room for both.
 
 **Tradition outranks tier, deliberately.** A Hegemony plan issues its own
 tier-III Pathfinder to a recon billet rather than the League's tier-IV Outrider,
@@ -263,6 +289,48 @@ and no reason for it. Naming the gap where the choice is made turns an
 unfillable sheet into the thing it should be: a reason to go and buy a scout
 suit.
 
+**Every loadout is rated, and the list is ordered by it.** A tier is a price
+band and a rarity is provenance; neither answers the question a player actually
+has at this screen, which is *which of the things I can field right now is the
+strongest*. `LoadoutEffectiveness` answers it in the units the battle settles
+in — armour removed per second for a weapon definition, damage absorbed for a
+tactic sheet — computed from the same numbers `InfantryCombatStats` and
+`DurabilityModel` read, and quoted as a share of the best the catalog could do.
+
+Three things about it are load-bearing:
+
+- **Penetration is in the weapon number.** It is the term most easily left out
+  and the one that changes the answer most: the submachine gun has the highest
+  raw output in the catalog and strips a battlesuit at a sixth of a marksman
+  rifle's rate. A rating that ranked by damage per second would recommend the
+  wrong weapon in exactly the fights a player loses.
+- **Evasion is in the armour number.** A shot that misses costs nothing, so a
+  suit that is harder to hit is literally more armour rather than a separate
+  virtue sitting beside it.
+- **The ceiling is the catalog's, not the company's.** A rating that rose
+  because the player got poorer would be useless for the one job it has.
+
+What it deliberately does not fold in is everything that is not plate and
+ballistics: special equipment, integral systems, reach, cover, morale and the
+order the squad is given. Two of those already have their own line on the tile,
+which is the point — a single scalar that priced a field-aid satchel against a
+millimetre of ceramic would be an invention rather than a measurement, and
+CARRIES says what the RATING cannot.
+
+**The list can also be narrowed to what the fleet can pay for today.** Rarity is
+a radio and supplies are a switch, so they are separate controls: the supplies
+filter hides any loadout whose issue to the selected squad would cost more cargo
+than the fleet is carrying. It asks only the supplies question — a stationed or
+under-strength squad cannot be issued anything at all, and hiding every tile
+behind that would empty the list with no explanation the apply row does not
+already give.
+
+**Compare Patterns shows what the company holds, not what exists.** The screen
+answers "what is my kit and which of it should the section be in", and a table
+mostly made of suits nobody has ever held answers a different question badly. Its
+summary still names the catalog's size, so the fact that there is more out there
+survives without pretending it is choosable.
+
 **The third line is what the section would carry.** SECTION says which jobs the
 sheet organises and ISSUED says which patterns fill them; neither tells a player
 that one sheet fields nine braces and another fields four breachers unless they
@@ -304,6 +372,10 @@ nothing says so rather than rendering blank.
   or pirate-made.
 - `integral-system-slate.md` gains the tier ladder for each capability it
   already lists; its role rule is unchanged.
+- The Lashplate salvage harness and the Corpsman field rig were both unwearable
+  before a role's billets spread — each shares its role, tradition and tier with
+  a pattern that sorted ahead of it by id. Neither was a content mistake and
+  neither needed a catalog edit; the resolver was refusing to issue them.
 
 ## Why this was not visible earlier
 

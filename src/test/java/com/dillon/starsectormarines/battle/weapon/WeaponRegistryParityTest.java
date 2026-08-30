@@ -70,6 +70,8 @@ class WeaponRegistryParityTest {
                 0.6f, 3, 0f, false, false, 1f,
                 new Color(0xFF, 0xE8, 0xC0), ImpactKind.KINETIC,
                 "graphics/missiles/shell_small_yellow.png", 0.18f, "chaingun_fire");
+        assertEquals(0.55f,
+                WeaponRegistry.require(WeaponRegistry.MECH_CHAINGUN_ID).tracerTailCells(), EPS);
         assertMech(WeaponRegistry.require(WeaponRegistry.MECH_LINEAR_CANNON_ID),
                 32f, 27f, 0.68f, 2.8f, 8f,
                 2, 0.12f, 0.35f, 160f, 0.20f, 0f,
@@ -180,6 +182,8 @@ class WeaponRegistryParityTest {
                 new Color(0xFF, 0xD6, 0xA0), ImpactKind.RIFLE,
                 "graphics/missiles/shell_small_yellow.png", 0.16f,
                 "light_machinegun_fire");
+        assertEquals(0.50f,
+                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).tracerTailCells(), EPS);
         assertEquals("Squad Automatic", WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).displayName());
         assertEquals("Stalwart", WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).modelName());
     }

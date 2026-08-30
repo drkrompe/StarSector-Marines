@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -9,6 +10,9 @@ import com.dillon.starsectormarines.battle.squad.SquadBeliefTestAccess;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.junit.jupiter.api.Test;
@@ -37,6 +41,283 @@ class SiroccoScreenedOverwatchTest {
         assertInOverwatchBand(position);
         assertTrue(position.x() < f.sim.world().cellX(infantry));
         assertTrue(f.sim.world().cellX(infantry) < THREAT_X);
+    }
+
+    @Test
+    void screenedFrontOutranksCoveredCurrentCellAndLeavesAFriendlyFireLane() {
+        Fixture f = fixture(46, 30);
+        long infantry = spawnInfantry(f.sim, Faction.DEFENDER, 39, 30);
+        f.sim.getGrid().setCoverAtFacing(46, 30,
+                NavigationGrid.FACING_E, NavigationGrid.MAX_COVER);
+        f.sim.getUnitIndex().rebuild(f.sim.getRoster());
+
+        OverwatchKillZone.OverwatchPosition position =
+                OverwatchKillZone.pickOverwatchCell(f.sirocco, f.squad, f.sim);
+
+        assertNotNull(position);
+        assertEquals(infantry, position.screenId(),
+                "a credible infantry front is a doctrine requirement, not a soft score bonus");
+        assertTrue(position.x() < f.sim.world().cellX(infantry),
+                "support should move behind the infantry instead of keeping its covered forward cell");
+        assertTrue(screenLateralDistance(position, infantry, f.sim)
+                        >= OverwatchKillZone.SCREEN_FIRE_LANE_CLEARANCE,
+                "the representative screen must sit clear of the direct projectile ray");
+    }
+
+    @Test
+    void firingLaneClearsEveryFriendlyRatherThanOnlyTheNamedScreen() {
+        Fixture f = fixture(46, 30);
+        long centerMarine = spawnInfantry(f.sim, Faction.DEFENDER, 39, 30);
+        long flankMarine = spawnInfantry(f.sim, Faction.DEFENDER, 39, 35);
+        f.sim.getGrid().setCoverAtFacing(46, 30,
+                NavigationGrid.FACING_E, NavigationGrid.MAX_COVER);
+        f.sim.getUnitIndex().rebuild(f.sim.getRoster());
+
+        OverwatchKillZone.OverwatchPosition position =
+                OverwatchKillZone.pickOverwatchCell(f.sirocco, f.squad, f.sim);
+
+        assertNotNull(position);
+        assertTrue(position.screenId() == centerMarine
+                || position.screenId() == flankMarine);
+        assertTrue(screenLateralDistance(position, centerMarine, f.sim)
+                        >= OverwatchKillZone.SCREEN_FIRE_LANE_CLEARANCE,
+                "an unnamed Marine may not remain in the direct firing lane");
+        assertTrue(screenLateralDistance(position, flankMarine, f.sim)
+                        >= OverwatchKillZone.SCREEN_FIRE_LANE_CLEARANCE,
+                "the named screen is not the only friendly body that matters");
+    }
+
+    @Test
+    void nonCombatantEnteringACachedFiringLaneForcesAnImmediateRepick() {
+        Fixture f = fixture(46, 30);
+        long screen = spawnInfantry(f.sim, Faction.DEFENDER, 39, 35);
+        long movingEngineer = f.sim.spawn(new EntitySpec(
+                "moving-engineer", Faction.DEFENDER, UnitType.ENGINEER,
+                10, 10));
+        f.sim.getUnitIndex().rebuild(f.sim.getRoster());
+
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        int originalX = f.loadout.overwatchCellX;
+        int originalY = f.loadout.overwatchCellY;
+        assertEquals(screen, f.loadout.overwatchScreenId);
+
+        int rayMidpointX = Math.round((originalX + THREAT_X) / 2f);
+        int rayMidpointY = Math.round((originalY + THREAT_Y) / 2f);
+        f.sim.world().setCellPos(
+                movingEngineer, rayMidpointX, rayMidpointY);
+        f.sim.getUnitIndex().rebuild(f.sim.getRoster());
+
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+
+        assertTrue(f.loadout.overwatchCellX != originalX
+                        || f.loadout.overwatchCellY != originalY,
+                "a newly obstructed cached perch must be rejected immediately");
+        OverwatchKillZone.OverwatchPosition replacement =
+                new OverwatchKillZone.OverwatchPosition(
+                        f.loadout.overwatchCellX,
+                        f.loadout.overwatchCellY,
+                        f.loadout.overwatchScreenId);
+        assertTrue(screenLateralDistance(replacement, movingEngineer, f.sim)
+                        >= OverwatchKillZone.SCREEN_FIRE_LANE_CLEARANCE,
+                "the replacement perch must clear the moving engineer");
+    }
+
+    @Test
+    void alliedVehicleEnteringACachedFiringLaneForcesAnImmediateRepick() {
+        Fixture f = fixture(46, 30);
+        long screen = spawnInfantry(f.sim, Faction.DEFENDER, 39, 35);
+        f.sim.getUnitIndex().rebuild(f.sim.getRoster());
+
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        int originalX = f.loadout.overwatchCellX;
+        int originalY = f.loadout.overwatchCellY;
+        assertEquals(screen, f.loadout.overwatchScreenId);
+
+        float rayMidpointX = (originalX + THREAT_X) / 2f + 0.5f;
+        float rayMidpointY = (originalY + THREAT_Y) / 2f + 0.5f;
+        VehicleMission mission = new VehicleMission(
+                new float[]{rayMidpointX, rayMidpointX + 1f},
+                new float[]{rayMidpointY, rayMidpointY},
+                new float[]{rayMidpointX + 1f, rayMidpointX},
+                new float[]{rayMidpointY, rayMidpointY},
+                0f, VehicleType.HEAVY_APC.capacity);
+        mission.state = VehicleState.LANDED;
+        long apc = f.sim.convoy().spawn(
+                VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
+
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+
+        assertTrue(f.loadout.overwatchCellX != originalX
+                        || f.loadout.overwatchCellY != originalY,
+                "an allied vehicle must invalidate an obstructed cached perch");
+        OverwatchKillZone.OverwatchPosition replacement =
+                new OverwatchKillZone.OverwatchPosition(
+                        f.loadout.overwatchCellX,
+                        f.loadout.overwatchCellY,
+                        f.loadout.overwatchScreenId);
+        assertTrue(screenLateralDistance(replacement, apc, f.sim)
+                        >= f.sim.physicalRadius(apc),
+                "the replacement perch must clear the allied vehicle body");
+    }
+
+    @Test
+    void broadFourCellFrontCountsWithoutPuttingTheMarineNearTheShotRay() {
+        int width = 96;
+        int height = 64;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int x = 0; x < width; x++) grid.setWalkableFloor(x, THREAT_Y);
+        grid.setWalkableFloor(39, 34);
+        BattleSimulation sim = new BattleSimulation(
+                grid, new CellTopology(width, height));
+        long sirocco = spawnMech(sim, Faction.DEFENDER,
+                MechVariant.SIROCCO, 46, THREAT_Y);
+        Squad squad = sim.squadOf(sirocco);
+        long infantry = spawnInfantry(sim, Faction.DEFENDER, 39, 34);
+        long enemy = sim.spawn(new EntitySpec(
+                "corridor-enemy", Faction.MARINE, UnitType.MARINE,
+                THREAT_X, THREAT_Y));
+        SquadBeliefTestAccess.observeDirect(squad, enemy,
+                THREAT_X, THREAT_Y, sim.getSimTickIndex());
+        squad.lastSeenEnemyX = THREAT_X;
+        squad.lastSeenEnemyY = THREAT_Y;
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        OverwatchKillZone.OverwatchPosition position =
+                OverwatchKillZone.pickOverwatchCell(sirocco, squad, sim);
+
+        assertNotNull(position);
+        assertEquals(infantry, position.screenId());
+        assertEquals(THREAT_Y, position.y());
+        assertTrue(screenLateralDistance(position, infantry, sim) > 3f,
+                "the screen is a broad front, not the former three-cell ray corridor");
+        assertTrue(screenLateralDistance(position, infantry, sim)
+                <= OverwatchKillZone.SCREEN_AXIS_HALF_WIDTH);
+    }
+
+    @Test
+    void tankToLongRangeSupportUsesPartlySpentLrmsAndMovesBehindMarines() {
+        BattleSimulation sim = openSimulation();
+        long bulwark = spawnMech(sim, Faction.MARINE,
+                MechVariant.BULWARK, 46, 30);
+        Squad squad = sim.squadOf(bulwark);
+        long infantry = spawnInfantry(sim, Faction.MARINE, 39, 30);
+        long enemy = sim.spawn(new EntitySpec(
+                "enemy", Faction.DEFENDER, UnitType.MARINE,
+                THREAT_X, THREAT_Y));
+        SquadBeliefTestAccess.observeDirect(squad, enemy,
+                THREAT_X, THREAT_Y, sim.getSimTickIndex());
+        squad.lastSeenEnemyX = THREAT_X;
+        squad.lastSeenEnemyY = THREAT_Y;
+        sim.world().setTargetId(bulwark, enemy);
+        sim.getUnitIndex().rebuild(sim.getRoster());
+        MechLoadoutComponent loadout = sim.world().mechLoadout(bulwark);
+        MechWeaponMount lrm = loadout.mount(MechMountSlot.RIGHT_SHOULDER);
+        lrm.ammo = Math.max(1, lrm.ammo - 1);
+
+        sim.getMechDoctrineService().requestOverride(
+                bulwark, MechRole.LR_SUPPORT);
+        new MechDoctrineSystem(sim.getMechDoctrineService()).tick(sim);
+        ExecuteMechDoctrine.INSTANCE.execute(bulwark, squad, sim);
+
+        assertEquals(MechRole.LR_SUPPORT, loadout.effectiveRole());
+        assertTrue(loadout.overwatchLongRangeBand,
+                "a fresh LR order should use every available LRM instead of inheriting rearm fallback");
+        assertEquals(infantry, loadout.overwatchScreenId);
+        assertTrue(loadout.overwatchCellX < sim.world().cellX(infantry));
+        assertFalse(Paths.isEmpty(sim.world().path(bulwark)),
+                "the serialized doctrine command should author visible repositioning");
+    }
+
+    @Test
+    void clearZoneAllowsBoundedStandoffAgainstAContactInsideTheMissionZone() {
+        BattleSimulation sim = twoRoomSimulation();
+        long bulwark = spawnMech(sim, Faction.MARINE,
+                MechVariant.BULWARK, 44, 30);
+        MechLoadoutComponent loadout = sim.world().mechLoadout(bulwark);
+        loadout.applyBattleOverride(MechRole.LR_SUPPORT);
+        Squad squad = sim.squadOf(bulwark);
+        int targetZone = sim.getZoneGraph().zoneIdAt(66, 30);
+        squad.assignedObjective = ObjectiveAssignment.clearZone(
+                squad.id, targetZone);
+        long infantry = spawnInfantry(sim, Faction.MARINE, 42, 34);
+        long enemy = sim.spawn(new EntitySpec(
+                "zone-contact", Faction.DEFENDER, UnitType.MARINE,
+                66, 30));
+        SquadBeliefTestAccess.observeDirect(squad, enemy,
+                66, 30, sim.getSimTickIndex());
+        squad.lastSeenEnemyX = 66;
+        squad.lastSeenEnemyY = 30;
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        OverwatchKillZone.OverwatchPosition position =
+                OverwatchKillZone.pickOverwatchCell(bulwark, squad, sim);
+
+        assertNotNull(position);
+        assertEquals(infantry, position.screenId());
+        assertTrue(sim.getZoneGraph().zoneIdAt(position.x(), position.y())
+                        != targetZone,
+                "LR support may use the bounded doorway-side perimeter while clearing a contact in-zone");
+        assertTrue(position.x() < sim.world().cellX(infantry));
+        assertFalse(MechAssignmentBoundary.permitsOverwatchCell(
+                        bulwark, squad, 20, 30, 66, 30, sim),
+                "the doctrine must not turn bounded standoff into permission to abandon the zone");
+        assertFalse(MechAssignmentBoundary.permitsOverwatchCell(
+                        bulwark, squad, 39, 30, 20, 30, sim),
+                "the perimeter exists only while prosecuting a contact inside the assigned zone");
+    }
+
+    @Test
+    void rushedSupportMayOpenDistanceIntoTheBoundedZonePerimeter() {
+        BattleSimulation sim = twoRoomSimulation();
+        long bulwark = spawnMech(sim, Faction.MARINE,
+                MechVariant.BULWARK, 43, 30);
+        Squad squad = sim.squadOf(bulwark);
+        int targetZone = sim.getZoneGraph().zoneIdAt(46, 30);
+        squad.assignedObjective = ObjectiveAssignment.clearZone(
+                squad.id, targetZone);
+        long enemy = sim.spawn(new EntitySpec(
+                "rushing-zone-contact", Faction.DEFENDER, UnitType.MARINE,
+                46, 30));
+        SquadBeliefTestAccess.observeDirect(squad, enemy,
+                46, 30, sim.getSimTickIndex());
+        squad.lastSeenEnemyX = 46;
+        squad.lastSeenEnemyY = 30;
+        sim.world().setTargetId(bulwark, enemy);
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        sim.getMechDoctrineService().requestOverride(
+                bulwark, MechRole.LR_SUPPORT);
+        new MechDoctrineSystem(sim.getMechDoctrineService()).tick(sim);
+        ExecuteMechDoctrine.INSTANCE.execute(bulwark, squad, sim);
+
+        int[] path = sim.world().path(bulwark);
+        assertEquals(MechRole.LR_SUPPORT,
+                sim.world().mechLoadout(bulwark).effectiveRole());
+        assertFalse(Paths.isEmpty(path));
+        assertTrue(Paths.destX(path) < sim.world().cellX(bulwark));
+        assertTrue(sim.getZoneGraph().zoneIdAt(
+                        Paths.destX(path), Paths.destY(path)) != targetZone,
+                "a close in-zone threat may be answered from the same bounded perimeter");
+    }
+
+    @Test
+    void overwatchGeometryUsesTheCurrentEngageableTargetAsItsThreatAxis() {
+        Fixture f = fixture(42, 30);
+        long currentTarget = f.sim.spawn(new EntitySpec(
+                "current-target", Faction.MARINE, UnitType.MARINE,
+                70, 40));
+        SquadBeliefTestAccess.observeDirect(f.squad, currentTarget,
+                70, 40, f.sim.getSimTickIndex());
+        f.squad.lastSeenEnemyX = THREAT_X;
+        f.squad.lastSeenEnemyY = THREAT_Y;
+        f.sim.world().setTargetId(f.sirocco, currentTarget);
+
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+
+        assertEquals(currentTarget, f.sim.world().targetId(f.sirocco));
+        assertEquals(70, f.loadout.overwatchAxisX);
+        assertEquals(40, f.loadout.overwatchAxisY,
+                "movement and firing should reason about the same perceived enemy");
     }
 
     @Test
@@ -180,6 +461,7 @@ class SiroccoScreenedOverwatchTest {
         f.loadout.overwatchAxisX = THREAT_X;
         f.loadout.overwatchAxisY = THREAT_Y;
         f.loadout.overwatchLongRangeBand = false;
+        f.loadout.overwatchRearming = true;
         f.loadout.mount(MechMountSlot.LEFT_SHOULDER).ammo = 1;
 
         OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
@@ -193,6 +475,26 @@ class SiroccoScreenedOverwatchTest {
     }
 
     @Test
+    void exhaustedRearmCycleSurvivesADoctrineRoundTrip() {
+        Fixture f = fixture(45, 30);
+        emptyLrmRacks(f.loadout);
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+        assertTrue(f.loadout.overwatchRearming);
+
+        f.loadout.applyBattleOverride(MechRole.BALANCED);
+        f.loadout.mount(MechMountSlot.LEFT_SHOULDER).ammo = 1;
+        f.loadout.applyBattleOverride(MechRole.LR_SUPPORT);
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+
+        assertTrue(f.loadout.overwatchRearming,
+                "role toggles must not erase an unfinished all-racks rearm cycle");
+        assertFalse(f.loadout.overwatchLongRangeBand);
+        assertEquals(1, f.loadout.mount(MechMountSlot.LEFT_SHOULDER).ammo);
+        assertInHeavyCannonFallbackBand(f.loadout.overwatchCellX,
+                f.loadout.overwatchCellY);
+    }
+
+    @Test
     void fullLrmRacksRestoreLongRangePosture() {
         Fixture f = fixture(45, 30);
         f.loadout.overwatchCellX = 45;
@@ -200,6 +502,7 @@ class SiroccoScreenedOverwatchTest {
         f.loadout.overwatchAxisX = THREAT_X;
         f.loadout.overwatchAxisY = THREAT_Y;
         f.loadout.overwatchLongRangeBand = false;
+        f.loadout.overwatchRearming = true;
         fillLrmRacks(f.loadout);
 
         OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
@@ -291,6 +594,33 @@ class SiroccoScreenedOverwatchTest {
             for (int x = 0; x < width; x++) grid.setWalkableFloor(x, y);
         }
         return new BattleSimulation(grid, new CellTopology(width, height));
+    }
+
+    private static BattleSimulation twoRoomSimulation() {
+        int width = 96;
+        int height = 64;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (x != 40) grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setWalkableFloor(40, 30);
+        grid.setDoorway(40, 30, true);
+        return new BattleSimulation(grid, new CellTopology(width, height));
+    }
+
+    private static float screenLateralDistance(
+            OverwatchKillZone.OverwatchPosition position,
+            long ally, BattleSimulation sim) {
+        float startX = position.x() + 0.5f;
+        float startY = position.y() + 0.5f;
+        float dx = THREAT_X + 0.5f - startX;
+        float dy = THREAT_Y + 0.5f - startY;
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+        float relX = sim.world().x(ally) - startX;
+        float relY = sim.world().y(ally) - startY;
+        return Math.abs(relX * -dy + relY * dx) / length;
     }
 
     private static void emptyLrmRacks(MechLoadoutComponent loadout) {

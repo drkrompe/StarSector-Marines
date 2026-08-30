@@ -327,12 +327,12 @@ class SubmodEquipmentContributionTest {
         if (armor == null) throw new IllegalStateException("Missing core armor.line fixture");
         armor.put("id", "example.armor-ceramic");
         armor.getJSONObject("catalog").put("displayName", "Example ceramic armor");
-        // Tri-Tachyon has no LINE pattern of its own, so a contributed one is
-        // the only candidate for that role in a corporate tactic sheet. Cloning
-        // a Hegemony line suit instead left the contribution permanently
-        // shadowed by the core pattern it copied, which proves nothing about
-        // whether a submod can add armour ({@code role-and-access.md}).
-        armor.getJSONObject("catalog").put("tradition", "tritachyon");
+        // Deliberately left in the cell it was cloned from: same role, same
+        // tradition, same tier as the core pattern it copies. That is the case
+        // a submod author actually writes and the one that used to be
+        // unreachable, because the resolver issued a role's single best pattern
+        // to every billet of that role and the alphabet broke the tie
+        // ({@code role-and-access.md}, {@code submod-catalog-contract.md}).
         return new JSONObject().put("armor", new JSONArray().put(armor));
     }
 

@@ -5,8 +5,9 @@ are complete; the live battle interaction pass remains.
 
 Written: 2026-08-30
 
-Updated: 2026-08-30 — separated lance cohesion from individual doctrine so a
-Free Reign Brawler can prosecute a perceived enemy position independently.
+Updated: 2026-08-30 — made Long-Range Support visibly prefer a broad allied
+front with a clear rear-oblique firing lane, including bounded standoff around
+combat-zone assignments and mid-fight switches with partly spent LRMs.
 
 Read `mechs-nouns.md`, `ai-nouns.md`, and `ui-nouns.md` before changing this
 story.
@@ -50,8 +51,12 @@ at deployment.
   its threat-facing side, and does not roam after contacts when no anchor
   exists. It may still hold, turn, and fire in self-defense.
 - Long-Range Support seeks useful medium-to-long range, line of sight, and a
-  credible allied screen. A close threat causes it to open distance and fight,
-  not cling to a stale cached firing cell.
+  credible allied screen. A legal screened position wins categorically over an
+  unscreened one; cover and walking distance choose within those categories.
+  The screen is a broad threat-facing front rather than an ally standing in the
+  projectile ray, and every friendly body must remain clear of that ray. A
+  close threat causes it to open distance and fight, not cling to a stale
+  cached firing cell.
 - Balanced approaches the middle or outer part of its installed direct-fire
   band, accepts a close threat already upon it, and returns to its assignment
   when that interruption ends. It does not require special allied geometry.
@@ -67,6 +72,12 @@ at deployment.
 - Focused tests cover deployed/effective/reset state, request validation,
   same-tick plan invalidation, sibling isolation, lance-wide order changes, and
   mixed-role execution.
+- Field-shaped regressions switch a partly spent Bulwark from Tank to
+  Long-Range Support ahead of an ordinary Marine screen, require a clear
+  rear-oblique firing lane, make screening outrank a covered forward cell, and
+  prove that a combat-zone order permits only a bounded standoff while the
+  perceived enemy remains inside its assigned zone. A role round trip cannot
+  erase an unfinished all-racks rearm cycle.
 - Paired Brawler evidence holds hardware, contact, assignment, and seed fixed:
   Form on Lead stays within the lance lead bound while Free Reign separates and
   enters its close band. Formation tests prove Free Reign removes role-slot
