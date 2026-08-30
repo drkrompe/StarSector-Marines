@@ -88,6 +88,7 @@ import com.dillon.starsectormarines.battle.command.reinforcement.WalkInMeans;
 import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
@@ -1609,8 +1610,14 @@ public final class BattleSetup {
         // The strip, if the map laid one. A field takes the first: a battle has
         // one garrison airfield, and a second strip would belong to a second
         // field this service does not yet model.
-        if (!map.runways.isEmpty()) {
-            sim.getAirfieldService().installRunway(map.runways.get(0));
+        if (map.runways.isEmpty()) return;
+        sim.getAirfieldService().installRunway(map.runways.get(0));
+        // Aircraft in the sheds, but only on a field that has somewhere for
+        // them to roll. A shelter berth on a strip-less lot is an aircraft
+        // sealed in a shed for the battle: it cannot lift off where it stands
+        // and there is nothing to taxi to.
+        for (Gantry shelter : map.shelters) {
+            sim.getAirfieldService().addShelterBerth(shelter, ShuttleMeans.SORTIE_TYPE);
         }
     }
 
