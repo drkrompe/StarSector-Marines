@@ -5,7 +5,7 @@ import com.fs.starfarer.api.ui.PositionAPI;
 /**
  * Pure-data layout for the battle screen. Fits the {@code gridCellsW × gridCellsH}
  * cell grid into the dialog rect, centered, with a top control strip (the
- * retained battle command rail) and a bottom-left Back button. {@link #cellSize} is the pixel size
+ * retained battle command rail) and a bottom battle-action strip. {@link #cellSize} is the pixel size
  * of one cell — same for X and Y so cells stay square regardless of dialog
  * aspect ratio.
  */
@@ -30,7 +30,7 @@ public final class BattleLayout {
     public final float controlsW;
     public final float controlsH;
 
-    /** Bottom-left Back button rect. */
+    /** Bottom-left battle-action origin retained for compatible layout consumers. */
     public final float backX;
     public final float backY;
 
@@ -46,7 +46,7 @@ public final class BattleLayout {
         this.controlsW = contentW;
         this.controlsH = CONTROLS_H;
 
-        // Reserve the bottom strip for the back button.
+        // Reserve the bottom strip for the Retreat/Continue surface.
         float backStripH = BACK_H + CONTROLS_GAP;
         this.backX = contentX;
         this.backY = contentY;
