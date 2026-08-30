@@ -26,8 +26,9 @@ public record AuthoredFitting(RoomLayout layout) implements RoomFitting {
 
     @Override
     public void fit(RoomFloor floor) {
+        LayoutOp.Replay replay = new LayoutOp.Replay();
         for (LayoutOp op : layout.ops()) {
-            op.apply(floor);
+            op.apply(floor, replay);
         }
     }
 
