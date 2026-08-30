@@ -18,10 +18,11 @@ import java.util.List;
  * effects, never on who fired it: a future arc-and-trail marine grenade
  * launcher flows through here with no new branch.
  *
- * <p>Three sweeps in submission order: <strong>tracers</strong>,
- * <strong>bolts</strong>, then <strong>sprites</strong>. The contrail ribbon is
+ * <p>Four sweeps in submission order: <strong>projectile tracer tails</strong>,
+ * <strong>hitscan tracers</strong>, <strong>bolts</strong>, then
+ * <strong>sprites</strong>. The contrail ribbon is
  * emitted before this service by {@link BattleRenderer}, so paint order stays
- * contrails → tracers → bolts → sprites.
+ * contrails → tracer tails → hitscan tracers → bolts → sprites.
  *
  * <p>Holds only immutable refs: {@link BattleSprites} (projectile sprites resolved
  * by path — carrier-agnostic) and {@link ImpactFx} (the authored trail spawn
@@ -38,6 +39,10 @@ public final class ShotRenderService implements RenderSystem {
     record BoltPose(float headX, float headY, float headZ,
                     float tailX, float tailY, float tailZ,
                     float visibleLength, float fadeIn) {}
+
+    /** Pure cell-space result for a short line attached to a traveling projectile. */
+    record TracerTailPose(float headX, float headY, float tailX, float tailY,
+                          float visibleLength, float fadeIn) {}
 
     private final BattleSprites sprites;
     private final ImpactFx impactFx;
@@ -59,7 +64,24 @@ public final class ShotRenderService implements RenderSystem {
         BattleCamera cam = ctx.camera;
         float alphaMult = ctx.alphaMult;
 
-        // Tracer sweep: shots whose body is a hitscan line.
+        // Projectile-bound tail sweep: short, world-sized streaks beneath the
+        // shell sprite, grown out of the muzzle on the real flight clock.
+        for (ShotEvent s : shots) {
+            ShotFx fx = ShotFx.of(s);
+            ShotFx.TracerTail tracer = fx.tracerTail();
+            if (tracer == null) continue;
+            TracerTailPose pose = tracerTailPose(s, fx, tracer);
+            if (pose.visibleLength() <= 1e-6f || pose.fadeIn() <= 0f) continue;
+            Color c = tracer.color() != null ? tracer.color() : Color.WHITE;
+            out.addLine(RenderLayer.SHOTS,
+                    cam.cellToScreenX(pose.tailX()), cam.cellToScreenY(pose.tailY()),
+                    cam.cellToScreenX(pose.headX()), cam.cellToScreenY(pose.headY()),
+                    TRACER_WIDTH,
+                    c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f,
+                    pose.fadeIn() * alphaMult);
+        }
+
+        // Hitscan tracer sweep: shots whose body is a full path line.
         for (ShotEvent s : shots) {
             if (!(ShotFx.of(s).body() instanceof ShotFx.Tracer tracer)) continue;
             float lifeT = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
@@ -154,6 +176,46 @@ public final class ShotRenderService implements RenderSystem {
         float tailZ = shot.fromZ + (shot.toZ - shot.fromZ) * tailProgress;
         float fadeIn = Math.min(1f, progress / BOLT_FADE_IN_FRACTION);
         return new BoltPose(headX, headY, headZ, tailX, tailY, tailZ, visibleLength, fadeIn);
+    }
+
+    static TracerTailPose tracerTailPose(ShotEvent shot, ShotFx fx,
+                                         ShotFx.TracerTail tracer) {
+        float linearProgress = flightProgress(shot);
+        float headProgress = fx.boostRamp()
+                ? Projectile.applyBoostCurve(linearProgress) : linearProgress;
+        float dx = shot.toX - shot.fromX;
+        float dy = shot.toY - shot.fromY;
+        float shotLength = (float) Math.sqrt(dx * dx + dy * dy);
+        float visibleLength = Math.min(Math.max(0f, tracer.lengthCells()),
+                headProgress * shotLength);
+        float invLength = shotLength > 1e-6f ? 1f / shotLength : 0f;
+        float tailProgress = Math.max(0f, headProgress - visibleLength * invLength);
+        float headX = projectileX(shot, headProgress);
+        float headY = projectedProjectileY(shot, fx, headProgress);
+        float tailX = projectileX(shot, tailProgress);
+        float tailY = projectedProjectileY(shot, fx, tailProgress);
+        float fadeIn = Math.min(1f, linearProgress / BOLT_FADE_IN_FRACTION);
+        return new TracerTailPose(headX, headY, tailX, tailY,
+                dist(headX, headY, tailX, tailY), fadeIn);
+    }
+
+    private static float flightProgress(ShotEvent shot) {
+        return 1f - Math.max(0f, Math.min(1f,
+                shot.lifetime / Math.max(0.001f, shot.lifetimeMax)));
+    }
+
+    private static float projectileX(ShotEvent shot, float progress) {
+        return shot.fromX + (shot.toX - shot.fromX) * progress;
+    }
+
+    /** Projected cell-space ordinate on the same straight/arc flight used by sprite bodies. */
+    private static float projectedProjectileY(ShotEvent shot, ShotFx fx, float progress) {
+        float z = shot.fromZ + (shot.toZ - shot.fromZ) * progress;
+        float y = shot.fromY + (shot.toY - shot.fromY) * progress + z;
+        if (fx.arcHeight() > 0f) {
+            y += fx.arcHeight() * 4f * progress * (1f - progress);
+        }
+        return y;
     }
 
     /** Width grows with the emerging streak so a bolt never spawns as a sideways muzzle blob. */
