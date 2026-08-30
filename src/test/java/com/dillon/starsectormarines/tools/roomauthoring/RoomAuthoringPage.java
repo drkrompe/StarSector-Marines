@@ -116,6 +116,16 @@ public final class RoomAuthoringPage implements AuthoringPage {
     private final JSpinner footprintHeight = new JSpinner(new SpinnerNumberModel(6, 1, 64, 1));
 
     private DeckWorkshop workshop;
+    /** Draws the room on its own, for the backdrop the editing grid marks up. */
+    private final RoomPreview preview;
+    /**
+     * Bumped on every edit; a finished render whose stamp is stale is dropped.
+     *
+     * <p>Clicks arrive far faster than a room draws, so without this the grid
+     * would flicker between the picture for the click before last and the one
+     * before that.
+     */
+    private int editStamp;
     private RoomDraft draft;
     private boolean dirty;
     /** Set while the ship is being generated, so a second request does not stack. */
@@ -129,6 +139,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
         // them in the workbench, and without them a fixture resolves to nothing
         // — so this page would open on a list of rooms it could not furnish.
         DiskRegistries.install(context.projectRoot());
+        this.preview = new RoomPreview(context.projectRoot());
         // What has already been authored, so a room opens on the arrangement
         // that was last kept rather than on the one its fitting produces.
         RoomLayouts.install(AuthoredRooms.read(context.projectRoot()));
@@ -334,6 +345,8 @@ public final class RoomAuthoringPage implements AuthoringPage {
         footprintWidth.setValue(draft.width());
         footprintHeight.setValue(draft.height());
         grid.show(draft);
+        grid.backdrop(null);
+        redrawBackdrop();
         wizard.start(walkthrough());
         ((CardLayout) screens.getLayout()).show(screens, WIZARD);
     }
@@ -605,6 +618,32 @@ public final class RoomAuthoringPage implements AuthoringPage {
         dirty = true;
         context.stateChanged();
         grid.repaint();
+        redrawBackdrop();
+    }
+
+    /**
+     * Draw the room again behind the marks.
+     *
+     * <p>Off the event thread, and dropped if another edit landed while it was
+     * drawing — the grid keeps the last good picture rather than blanking, so
+     * editing stays continuous while the art catches up.
+     */
+    private void redrawBackdrop() {
+        if (draft == null) return;
+        int stamp = ++editStamp;
+        RoomLayout snapshot = draft.layout();
+        int cellPx = grid.cellPx();
+        new Thread(() -> {
+            BufferedImage picture;
+            try {
+                picture = preview.render(snapshot, cellPx);
+            } catch (Exception failure) {
+                return;
+            }
+            SwingUtilities.invokeLater(() -> {
+                if (stamp == editStamp) grid.backdrop(picture);
+            });
+        }, "room-backdrop").start();
     }
 
     // ---- the comparison, and keeping it --------------------------------------
@@ -738,6 +777,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
     @Override
     public void close() {
         if (workshop != null) workshop.close();
+        preview.close();
     }
 
     /** For the test that walks the screens without a window. */
