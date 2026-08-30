@@ -831,6 +831,37 @@ public final class TacticalScoring {
      * act-here gate and the firing-position picker so a rocketeer doesn't have
      * to close to rifle range before firing.
      */
+    /**
+     * Whether a hostile's fire reaches a point — its <b>beaten zone</b>, the
+     * ground it can actually cover rather than the ground it merely lies near.
+     *
+     * <p>This is the distinction between an enemy that is <em>relevant</em> and
+     * one that is <em>dangerous</em>. The advance-threat score already answers
+     * the first: it looks a long way down the route, so a hostile thirty-odd
+     * cells out can commit a squad to contact while being unable to touch it.
+     * Behaviour that exists because crossing ground under fire is lethal —
+     * bounding by fire team, screening smoke, placing cover — is worth its cost
+     * only inside the beaten zone, and outside it is an expensive way to walk.
+     *
+     * <p>Deliberately measured against the <em>threat's</em> reach rather than
+     * ours: the question is what it can do to us, not what we could do to it.
+     * The margin exists because a stride made now lands inside a zone measured
+     * now, so a squad about to enter one is already in it for planning purposes.
+     *
+     * <p>Range is the threat's own attack range — an emplacement's long reach
+     * is already carried there. Line of fire is deliberately <em>not</em>
+     * checked: a squad does not stop bounding because it happens to be behind
+     * a wall for this one tick of a crossing that ends in the open.
+     */
+    public boolean threatReaches(long threat, float x, float y, float margin) {
+        if (threat == 0L || !roster.isAliveById(threat)) return false;
+        if (!roster.identity().has(threat)
+                || !roster.identity().type(threat).combatant) return false;
+        World world = roster.world();
+        return cellDistance(x, y, world.x(threat), world.y(threat))
+                <= world.attackRange(threat) + margin;
+    }
+
     public float effectiveAttackRange(long shooter, long target, float shooterAttackRange) {
         if (canSpecialTarget(shooter, target)) {
             World world = roster.world();

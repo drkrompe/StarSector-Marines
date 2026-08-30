@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAssaultPicture;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +50,6 @@ import java.util.Map;
  */
 public final class AttackMove extends AbstractZoneAction {
 
-    static final String FIRE_TEAM = "fireteam:";
     /** Cells from the destination within which the attack move is done. */
     static final float ARRIVAL_RADIUS = 2f;
     /** Off-axis firing radius a fixing squad may use while holding the contact. */
@@ -120,6 +120,26 @@ public final class AttackMove extends AbstractZoneAction {
         }
 
         int[] aim = maneuverAim(squad, assault, sim);
+
+        // Bounding is the same advance behaviour a room crossing runs, and an
+        // attack move is the order it was always most obviously for: one fire
+        // team moves while its siblings hold the threat, alternating up the
+        // route. It engages only once the squad has committed to a route
+        // threat — bounding into empty ground is a slow walk with extra steps.
+        if (!squad.advanceEngageCommitted
+                || sim.resolveUnit(squad.advanceThreatId) == 0L) {
+            clearBounding(squad);
+        } else if (executeBounding(member, squad, sim, aim[0], aim[1])) {
+            return ActionStatus.RUNNING;
+        }
+
+        // Deliberately no quiet echelon. That hold exists so a squad crossing
+        // to an assigned room arrives with a readable team footprint, and it
+        // fires only when the squad has no contacts at all — on an attack move
+        // that is formation decoration charged against the one order whose job
+        // is to get somewhere and fight. Enabling it here multiplied quiet
+        // non-closing time ninefold and cost both canonical fixtures their
+        // terminal result.
         advanceIntoZone(member, squad, sim, aim[0], aim[1], true);
         return ActionStatus.RUNNING;
     }
@@ -195,6 +215,16 @@ public final class AttackMove extends AbstractZoneAction {
 
     @Override
     public List<int[]> highlightCells(Squad squad, BattleView sim) {
+        // While bounding, the useful picture is where the moving team is
+        // headed rather than the far objective.
+        if (squad.boundingActive) {
+            int[] xs = squad.boundingTargetXs;
+            int[] ys = squad.boundingTargetYs;
+            int count = Math.min(xs.length, ys.length);
+            List<int[]> cells = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) cells.add(new int[]{xs[i], ys[i]});
+            return cells;
+        }
         return List.of(new int[]{destX, destY});
     }
 }
