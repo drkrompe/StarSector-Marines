@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -148,6 +149,9 @@ public interface BattleView {
     Squad getSquad(int id);
 
     Collection<Squad> getSquads();
+
+    /** Current command-ledger generation for one squad, or {@code null}. */
+    CommandDirective getSquadCommandDirective(int squadId);
 
     /** Tactical scoring service — firing-position / vantage queries. Read-only in the replan window. */
     TacticalScoring getTacticalScoring();

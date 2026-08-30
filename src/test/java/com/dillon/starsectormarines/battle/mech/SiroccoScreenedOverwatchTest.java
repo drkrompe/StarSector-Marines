@@ -2,8 +2,10 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadBeliefTestAccess;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SiroccoScreenedOverwatchTest {
@@ -41,7 +44,8 @@ class SiroccoScreenedOverwatchTest {
         Fixture f = fixture(10, 30);
         long otherSirocco = spawnMech(
                 f.sim, Faction.DEFENDER, MechVariant.SIROCCO, 44, 30);
-        f.sim.world().mechLoadout(otherSirocco).role = MechRole.ARMORED_SUPPORT;
+        f.sim.world().mechLoadout(otherSirocco)
+                .applyBattleOverride(MechRole.ARMORED_SUPPORT);
 
         OverwatchKillZone.OverwatchPosition position =
                 OverwatchKillZone.pickOverwatchCell(f.sirocco, f.squad, f.sim);
@@ -49,6 +53,59 @@ class SiroccoScreenedOverwatchTest {
         assertNotNull(position, "screening is preferred, not required");
         assertEquals(0L, position.screenId());
         assertInOverwatchBand(position);
+    }
+
+    @Test
+    void unreachableOuterBandCellsAreNotCachedAsOverwatch() {
+        int width = 96;
+        int height = 64;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (x != 20) grid.setWalkableFloor(x, y);
+            }
+        }
+        BattleSimulation sim = new BattleSimulation(
+                grid, new CellTopology(width, height));
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
+        long sirocco = sim.spawn(MechVariant.SIROCCO.applyTo(new EntitySpec(
+                "isolated-sirocco", Faction.DEFENDER, UnitType.HEAVY_MECH,
+                10, THREAT_Y).squad(squadId)));
+        sim.world().attachMechLoadout(sirocco,
+                MechVariant.SIROCCO.createLoadout(MechRole.LR_SUPPORT));
+        Squad squad = sim.getSquad(squadId);
+        squad.leaderId = sirocco;
+        squad.aliveMembers = 1;
+        squad.originalSize = 1;
+        squad.centroidX = 10.5f;
+        squad.centroidY = THREAT_Y + 0.5f;
+        squad.lastSeenEnemyX = THREAT_X;
+        squad.lastSeenEnemyY = THREAT_Y;
+
+        assertNull(OverwatchKillZone.pickOverwatchCell(sirocco, squad, sim),
+                "geometrically legal cells beyond a sealed wall are not usable perches");
+    }
+
+    @Test
+    void rushedSupportOpensDistanceInsteadOfHoldingItsPerch() {
+        Fixture f = fixture(30, 30);
+        f.sim.world().setCellPos(f.enemy, 35, 30);
+        f.squad.lastSeenEnemyX = 35;
+        f.squad.lastSeenEnemyY = 30;
+
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+
+        int[] path = f.sim.world().path(f.sirocco);
+        assertFalse(Paths.isEmpty(path));
+        float initialDistance = 5f;
+        float destinationDx = Paths.destX(path) + 0.5f
+                - f.sim.world().x(f.enemy);
+        float destinationDy = Paths.destY(path) + 0.5f
+                - f.sim.world().y(f.enemy);
+        assertTrue(destinationDx * destinationDx + destinationDy * destinationDy
+                        > initialDistance * initialDistance,
+                "a contact inside the support posture forces an outward move");
+        assertEquals(f.enemy, f.sim.world().targetId(f.sirocco));
     }
 
     @Test
@@ -191,6 +248,8 @@ class SiroccoScreenedOverwatchTest {
         squad.lastSeenEnemyY = THREAT_Y;
         long enemy = sim.spawn(new EntitySpec(
                 "enemy", Faction.MARINE, UnitType.MARINE, THREAT_X, THREAT_Y));
+        SquadBeliefTestAccess.observeDirect(squad, enemy,
+                THREAT_X, THREAT_Y, sim.getSimTickIndex());
         return new Fixture(sim, squad, sirocco, loadout, enemy);
     }
 

@@ -6,8 +6,9 @@ Written: 2026-08-23
 
 Updated: 2026-08-30 — battle presentation now uses a full-bleed cover-fit world,
 opposed mission/command rails, a centered developer cluster, and compact retained
-selected-squad views. Compact retained exits include their complete CSS box inside
-the host clip and stage confirmation before an irreversible command.
+selected-unit views, including a battle-local doctrine plate for an exact friendly
+Mech. Compact retained exits include their complete CSS box inside the host clip
+and stage confirmation before an irreversible command.
 
 ## Purpose
 
@@ -241,8 +242,14 @@ time/objective rail. Tick Profile and DEBUG share one centred developer cluster.
 The selected player squad replaces the force plate with a 3-column by 4-slot
 fire-team roster; its default cards expose health and equipment shorthand while
 hover reveals the marine's full primary, special equipment, suit system, profile,
-role, armour, and readiness without enlarging the persistent HUD. Selecting a squad
-opens a bounded, scrollable GOAP diagnostic beneath the right rail;
+role, armour, and readiness without enlarging the persistent HUD. Selecting an
+exact live player Mech replaces that infantry roster with a compact Mech plate:
+variant, deployed doctrine, effective doctrine, Brawler, Tank, Long Range Support,
+and Balanced choices, plus Use Default. Tank is presentation shorthand for Frontline
+Support. The plate projects the simulation's effective state and sends a battle
+command request; it never mutates the loadout, campaign default, assignment, or
+contact picture directly, and it is absent for enemies, infantry, rescue payloads,
+and stale selections. Selecting a squad opens a bounded, scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
 

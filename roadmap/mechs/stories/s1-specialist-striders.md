@@ -21,11 +21,12 @@ part of the noun model.
   movement, mounted hardware, and firing character before reading a label.
 - Confirm the Hound reaches and pressures close objectives faster than the
   Bulwark, but cannot answer disciplined standoff fire and dies meaningfully
-  sooner. It must hold rather than solo-charge after losing nearby combat
-  infantry or a different live chassis; another Hound cannot release it.
-- Confirm the Sirocco seeks a non-Sirocco friendly screen, uses long-range
-  missiles as its primary pressure, and keeps its heavy cannon readable as a
-  ballistic anti-armor fallback rather than a second close-range primary.
+  sooner. Under Brawler doctrine it may keep a legal attack moving after losing
+  nearby support, but it must remain inside its assignment leash.
+- Confirm the Sirocco under Long-Range Support seeks a non-Sirocco friendly
+  screen, uses long-range missiles as its primary pressure, and keeps its heavy
+  cannon readable as a ballistic anti-armor fallback rather than a second
+  close-range primary.
 - Confirm a moving mixed lance adopts role-aware spacing in open terrain,
   compresses through real constraints, and expands afterward without moving
   planted firing posts or merging separate squads into one formation.
@@ -46,8 +47,9 @@ part of the noun model.
   band. Do not tune either into a cheaper generalist.
 - Keep visible scale, selection, collision, separation, ballistic contact,
   blast contact, and morale footprint consistent for every chassis.
-- Preserve Hound's support gate, Sirocco's screened-support doctrine, planted
-  hip traverse, and role-aware formation ordering while tuning thresholds.
+- Preserve Brawler's assignment leash, Long-Range Support's screened posture,
+  planted hip traverse, and role-aware formation ordering while tuning
+  thresholds.
 - Lighter variants replace encounter allocation; they do not add threat above
   the admitted defender budget.
 - DEBUG delivery remains iteration scaffolding. Do not infer ownership,

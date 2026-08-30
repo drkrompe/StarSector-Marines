@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.squad.BelievedContact;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /** Traverse-aware target retention shared by every mech combat posture. */
@@ -28,6 +30,7 @@ public final class MechTargeting {
     public static long refreshTarget(long mech, BattleView sim) {
         float hipFacing = sim.world().mechHipFacingDegrees(mech);
         long current = sim.targetOf(mech);
+        Squad squad = sim.squadOf(mech);
 
         if (isDirectlyEngageable(mech, current, hipFacing,
                 CLOSE_THREAT_AGGRO_RANGE, sim)) {
@@ -39,20 +42,15 @@ public final class MechTargeting {
         if (closeThreat != 0L) return closeThreat;
 
         float attackRange = sim.world().attackRange(mech);
-        if (isDirectlyEngageable(mech, current, hipFacing, attackRange, sim)) {
+        if (isBeliefLegal(mech, current, squad, sim)
+                && isDirectlyEngageable(mech, current, hipFacing,
+                attackRange, sim)) {
             return current;
         }
 
-        long preferred = sim.getTacticalScoring()
-                .refreshTargetIfNotShootable(mech);
-        if (isDirectlyEngageable(mech, preferred, hipFacing,
-                attackRange, sim)) {
-            return preferred;
-        }
-
-        long traversable = closestEngageableInArc(mech, hipFacing,
-                attackRange, sim);
-        return traversable != 0L ? traversable : preferred;
+        long traversable = closestBelievedEngageableInArc(
+                mech, hipFacing, attackRange, squad, sim);
+        return traversable;
     }
 
     private static long closestEngageableInArc(long mech, float hipFacing,
@@ -91,6 +89,36 @@ public final class MechTargeting {
             }
         }
         return best;
+    }
+
+    private static long closestBelievedEngageableInArc(
+            long mech, float hipFacing, float range, Squad squad,
+            BattleView sim) {
+        if (squad == null) return 0L;
+        long best = 0L;
+        float bestDistance = Float.MAX_VALUE;
+        for (BelievedContact belief : squad.believedContacts()) {
+            long candidate = belief.unitId();
+            if (!isBeliefLegal(mech, candidate, squad, sim)) continue;
+            float distance = TacticalScoring.cellDistance(
+                    sim.world().x(mech), sim.world().y(mech),
+                    sim.world().x(candidate), sim.world().y(candidate));
+            if (distance < bestDistance
+                    && isDirectlyEngageable(mech, candidate, hipFacing,
+                    range, sim)) {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    private static boolean isBeliefLegal(long mech, long target, Squad squad,
+                                         BattleView sim) {
+        return squad != null && squad.believedContact(target) != null
+                && target != 0L && sim.resolveUnit(target) != 0L
+                && sim.identity().faction(target) != sim.identity().faction(mech)
+                && sim.isCombatTarget(target);
     }
 
     private static boolean isDirectlyEngageable(long mech, long target,
