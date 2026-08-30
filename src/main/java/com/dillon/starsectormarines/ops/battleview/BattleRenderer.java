@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
-import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -195,9 +194,6 @@ public class BattleRenderer {
     /** Ground-combat impact FX engine. */
     private final ImpactFx impactFx = new ImpactFx();
 
-    /** Atmosphere layer — vanilla fighters flying overhead. */
-    private final FlybyOverlay flybyOverlay = new FlybyOverlay();
-
     /** World-layer renderer for the compound capture-state markers. */
     private final CompoundMarkerRenderer compoundMarkers = new CompoundMarkerRenderer();
 
@@ -266,9 +262,7 @@ public class BattleRenderer {
                         contrailFx.collect(out, ctx.alphaMult)),
                 new ShotRenderService(sprites, impactFx),
                 RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) ->
-                        out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))),
-                RenderSystem.of(RenderLayer.FLYBY, (ctx, out) ->
-                        out.addCustom(RenderLayer.FLYBY, () -> flybyOverlay.render(ctx.camera, ctx.alphaMult))));
+                        out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))));
     }
 
     // ---- lifecycle -----------------------------------------------------------
@@ -381,9 +375,6 @@ public class BattleRenderer {
     }
 
     // ---- accessors for BattleScreen.advance() --------------------------------
-
-    /** Accessor for {@code BattleScreen.advance()} — push fighter vision each frame. */
-    public FlybyOverlay getFlybyOverlay() { return flybyOverlay; }
 
     /** Accessor for {@code BattleScreen.advance()} — spawn and advance impact FX particles. */
     public ImpactFx getImpactFx() { return impactFx; }

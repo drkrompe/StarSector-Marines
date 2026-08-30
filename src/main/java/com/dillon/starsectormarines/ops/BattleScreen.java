@@ -137,7 +137,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Pitch lerp endpoints for the shuttle engine loop: idle on the ground → full at cruise. */
     private static final float ENGINE_PITCH_IDLE   = 0.7f;
     private static final float ENGINE_PITCH_CRUISE = 1.0f;
-    /** Cells → OpenAL world units, for positional SFX. Must match {@code FlybyOverlay.AUDIO_WORLD_UNITS_PER_CELL}. */
+    /** Cells → OpenAL world units, for positional SFX. */
     private static final float AUDIO_WORLD_UNITS_PER_CELL = BattleShotAudio.WORLD_UNITS_PER_CELL;
     /** Radius, in cells, of the burst drawn where a point-defence emplacement stopped a warhead. Presentation only; nothing is damaged. */
     private static final float INTERCEPT_BURST_CELLS = 0.9f;
@@ -369,8 +369,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Park the OpenAL listener at the camera focus every frame so positional SFX (gunfire,
         // explosions, ambient loops, death VO) pan + attenuate around what the player is looking
         // at. setListenerPosOverrideOneFrame is a one-frame override, so it has to be re-armed
-        // each tick — same pattern as playUILoop. We set it here (not just in FlybyOverlay.advance)
-        // so the listener is still correct during sim-pause when FlybyOverlay bails on dt=0.
+        // each tick — same pattern as playUILoop. Set here rather than inside any
+        // one FX pass, so the listener is still correct while the sim is paused.
         if (camera != null) {
             Global.getSoundPlayer().setListenerPosOverrideOneFrame(new Vector2f(
                     camera.panCellX() * AUDIO_WORLD_UNITS_PER_CELL,
@@ -392,13 +392,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         if (sim == null) return;
-        // Rebuild ephemeral vision sources (shuttles + strafing fighters)
+        // Rebuild ephemeral vision sources (every air craft over the battle)
         // each frame so the fog bitmap always reflects the latest positions.
         // Cleared + re-pushed every frame; VisionService only processes them
         // on vision-tick frames (every 3rd sim tick).
         FogOfWarService vis = sim.getFogOfWar();
         vis.clearEphemeralSources();
-        renderer.getFlybyOverlay().pushFighterVision(vis, sim.getVisionState());
         World airWorld = sim.world();
         for (long id : sim.getAirEntityIds()) {
             ShuttleMission mission = airWorld.mission(id);
@@ -418,9 +417,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Always tick — dt=0 makes the sim a no-op but still clears the per-frame event lists,
         // so a paused caller doesn't keep replaying the previous frame's shot/death sounds.
         sim.advance(dt * speedMultiplier);
-        // Flyby fighters run on the same scaled clock as the sim so pause / 1x / 2x / 4x
-        // applies uniformly — spawning, strafing, and dogfighting all freeze on pause.
-        renderer.getFlybyOverlay().advance(dt * speedMultiplier, sim, camera);
+        // Wall-collapse dust. Queued by whatever brought the wall down and
+        // drained once here, so a collapse looks the same however it happened.
+        for (float[] dust : sim.getWallDustsThisFrame()) {
+            renderer.getImpactFx().spawnWallCollapse(dust[0], dust[1]);
+        }
         // Impact FX: spawn at the moment the shot's visual reaches its endpoint
         // (instant for marine line tracers, on lifetime expiry for projectile
         // sprites), then advance particles on the same scaled clock.

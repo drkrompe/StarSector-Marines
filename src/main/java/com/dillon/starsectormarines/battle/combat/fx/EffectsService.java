@@ -121,7 +121,7 @@ public final class EffectsService {
 
     // ---- Dust ----
 
-    /** Queues a wall-collapse dust-burst event at world cell-center {@code (cellX, cellY)}. Drained by the renderer (today: {@code FlybyOverlay}) each frame. */
+    /** Queues a wall-collapse dust-burst event at world cell-center {@code (cellX, cellY)}. Drained by the renderer into {@code ImpactFx.spawnWallCollapse} each frame. */
     public void spawnDustBurst(float cellX, float cellY) {
         wallDustsThisFrame.add(new float[]{cellX, cellY});
     }
