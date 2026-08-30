@@ -195,13 +195,22 @@ class OrdnancePatternTest {
         assertTrue(widthAcrossTheRun(footprint) > 1.5f,
                 "the fire landed in a " + widthAcrossTheRun(footprint) + "-cell-wide line, not a swathe");
         // And it went over the target rather than somewhere else entirely.
+        //
+        // The strict half of this test. A pass that misses by five cells still
+        // hits plenty of markers and still sweeps from short of the target to
+        // past it — the two measures above cannot tell it from one that goes
+        // over the position, and a gun run that goes past is a sortie flown at
+        // an empty field. Held tight to the lattice's own spacing, because that
+        // is the resolution the question has.
         float nearest = Float.MAX_VALUE;
         for (Mark mark : footprint) {
             if (!mark.hit()) continue;
             nearest = Math.min(nearest,
                     (float) Math.hypot(mark.x() - TARGET_X, mark.y() - TARGET_Y));
         }
-        assertTrue(nearest < 8f, "the nearest hit was " + nearest + " cells from the target");
+        System.out.println("[cannon] nearest hit " + nearest + " cells from the target");
+        assertTrue(nearest <= STEP, "the nearest hit was " + nearest + " cells from the target,"
+                + " so the run went past the position rather than over it");
     }
 
     /**

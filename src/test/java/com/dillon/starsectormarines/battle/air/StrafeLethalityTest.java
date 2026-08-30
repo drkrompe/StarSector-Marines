@@ -87,7 +87,12 @@ class StrafeLethalityTest {
         System.out.println("[strafe] of 12 marines, survivors — massed: " + massedLeft
                 + ", dispersed: " + spreadLeft);
 
-        assertTrue(massedLeft <= 8,
+        // Held near what a strike actually does rather than at a number almost
+        // anything clears. At eight, a pass that had quietly lost most of its
+        // rounds — an aircraft re-dialled faster over the same beaten zone at
+        // the same rate of fire — still passed, which is a test that reports a
+        // decisive weapon while watching a weak one.
+        assertTrue(massedLeft <= 5,
                 "a strike over a bunched platoon left " + massedLeft + " of 12 standing");
         assertTrue(spreadLeft > massedLeft,
                 "dispersing did not help: massed " + massedLeft + ", spread " + spreadLeft);

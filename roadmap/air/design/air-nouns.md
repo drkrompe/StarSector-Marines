@@ -316,10 +316,21 @@ of how much of you is standing in it. Every round is an ordinary detonation, so
 splash, wall damage, line of sight and roof interception all come from the
 pipeline that already owns them, and a squad under an intact roof is not
 strafed. Measured on a platoon of twelve in the open: **massed shoulder to
-shoulder, two survive one strike; dispersed five cells apart, ten do.** Both
-halves of that are the design — a run that killed everyone regardless would
+shoulder, one or two survive one strike; dispersed five cells apart, ten do.**
+Both halves of that are the design — a run that killed everyone regardless would
 make dispersal pointless, and one that killed nobody would make the airfield
 pointless.
+
+**A gun's cadence is set against the speed the aircraft flies at.** What a pass
+puts on the ground is rounds per *cell* and not rounds per second: the beaten
+zone is the same stretch of ground whatever the airspeed, so a machine crossing
+it half again as fast at the same rate of fire simply works it half as hard.
+Measured across the turn re-dial, the same strike over the same bunched platoon
+went from killing ten of twelve to killing four, on an identical footprint.
+Raising the rate rather than the damage is what keeps the picture the same —
+bigger craters would be a different weapon. A rate of fire is not a volume,
+because fire cues are thinned to their own minimum gap, so the two can be set
+apart.
 
 The **ordnance** is about delivery rather than about guns, which is what lets a
 second kind of aircraft exist without a second kind of code. A rotary cannon, a
@@ -346,10 +357,16 @@ moves. Three delivery classes fall out of the same arithmetic:
   missile boat work a position from standoff and turn away without ever coming
   over it.
 - A **bomb** is only **let go**. It keeps most of the aircraft's speed and none
-  of its thrust, and spends a second and a half falling — and because it keeps
+  of its thrust, and spends about a second falling — and because it keeps
   *most* rather than all of that speed, the aircraft is past the impact by the
   time it happens. Bombs land behind the machine that dropped them, and nothing
-  told them to.
+  told them to. It is also the one delivery whose reach moves when the airframe
+  is re-dialled, since all of its forward throw is borrowed: **a faster bomber
+  has to come in lower.** Flown at the widened calibration from the old release
+  height the stick landed further ahead of the aircraft than a missile pod
+  reaches, which would have made the close-in weapon the standoff one. Height is
+  what answers that, because it is the only dial that shortens the fall; a
+  longer release range would have turned a bomber into something else.
 
 A round with a real flight time is genuinely **in the air**: it goes on the same
 in-flight queue every other slow-flight munition uses, so the ground under it
@@ -390,12 +407,15 @@ boat releases what it loaded and is done — which is why one can make three
 passes and the other cannot.
 
 Measured on a lattice of markers under one pass, the kinds come out visibly
-apart: a beam lands **about three quarters as wide across the run** as a cannon
-does (1.8 cells against 2.4), which is the difference between painting a line
-and throwing craters. Along the run the classes separate further — a cannon
-pass works the ground from **eleven cells short of the target to nine past**,
-and a missile pass from **sixteen short to ten past**, opening from further out
-and finishing in the same place.
+apart: a beam lands **noticeably narrower across the run** than a cannon does
+(1.5 cells against 1.8), which is the difference between painting a line and
+throwing craters. Along the run the classes separate further — a cannon pass
+works the ground from **eleven cells short of the target to twelve past**, and a
+missile pass from **fourteen short to twelve past**, opening from further out
+and finishing in the same place. **The nearest impact is on the target**, which
+is the measure the other two cannot make: a pass that misses by five cells still
+touches plenty of markers and still sweeps from short of the position to past
+it.
 
 **And they are told apart at a glance and with your eyes shut.** A delivery is
 a thing to watch: the round leaves the nose, crosses open ground, and arrives.
@@ -419,8 +439,8 @@ alone, and no rendering decision is readable from the simulation.
 instant it is released, but a bomb is drawn falling for a third of a second, so
 the blast waits for the bomb rather than preceding it.
 
-**A cadence is not a volume.** A rotary cannon releases fourteen rounds a
-second and a beam twenty-four; a clip per round is not a louder gun, it is a
+**A cadence is not a volume.** A rotary cannon releases two dozen rounds a
+second and a beam nearly twice that; a clip per round is not a louder gun, it is a
 wall of overlapping voices in which nothing else in the battle can be heard.
 Fire cues are thinned to a cadence that reads as a burst, and the beam — which
 is one continuous sound rather than a series of events — is a held loop left to

@@ -18,11 +18,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class OrdnanceDeliveryTest {
 
     /**
-     * A representative attack-run speed, cells/sec. Close to what the fallback
-     * hull profile flies at headless; nothing here depends on the exact figure,
-     * only on the same figure being used for every class.
+     * A representative attack-run speed, cells/sec: what a Broadsword flies at
+     * under the current atmosphere calibration.
+     *
+     * <p>Has to track that calibration rather than sit at a number nothing
+     * flies at any more. Two of the three delivery classes do not care what it
+     * is — a shell and a missile get their reach from their own motor — but a
+     * bomb takes all of its forward reach from the aircraft, so measuring the
+     * bomb against a stale speed is measuring an aircraft that does not exist.
      */
-    private static final float CRAFT_SPEED = 11.7f;
+    private static final float CRAFT_SPEED = 19.8f;
 
     private static String describe(String name, AirOrdnance load) {
         OrdnanceFlight flight = load.flight;
@@ -49,11 +54,16 @@ class OrdnanceDeliveryTest {
             float flight = load.flight.flightTimeSec();
             assertTrue(flight < 0.05f,
                     "a gun round spent " + flight + "s in the air, which is not instant");
-            // The aircraft moves less than a third of a cell while it is out
-            // there, so the impact is sight geometry and nothing else.
-            assertTrue(CRAFT_SPEED * flight < 0.5f,
-                    "the aircraft moved " + (CRAFT_SPEED * flight)
-                            + " cells during the round's flight");
+            // What the aircraft covers while the round is out there is a few
+            // per cent of where the round ends up, so the impact is sight
+            // geometry and nothing else. Held against the reach rather than in
+            // cells, because both sides of it move with the airspeed and only
+            // the ratio is the claim.
+            float carried = CRAFT_SPEED * flight;
+            assertTrue(carried < 0.1f * load.flight.leadCells(CRAFT_SPEED),
+                    "the aircraft moved " + carried + " cells during a round's flight,"
+                            + " against a reach of " + load.flight.leadCells(CRAFT_SPEED)
+                            + " — the impact is the aircraft's motion, not its sight line");
             assertTrue(load.flight.leadCells(CRAFT_SPEED) > 10f,
                     "the strafe lands only " + load.flight.leadCells(CRAFT_SPEED)
                             + " cells ahead, which is under the aircraft rather than out in front");
