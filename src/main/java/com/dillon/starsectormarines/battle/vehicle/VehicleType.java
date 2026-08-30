@@ -19,9 +19,9 @@ public enum VehicleType {
 
     /**
      * Armored personnel carrier — four marines, roof-mounted heavy MG.
-     * Slower and heavier than the militia truck; stays parked after deboard
-     * and provides sustained fire support from the turret until the battle
-     * ends or the vehicle is destroyed.
+     * Slower and heavier than the militia truck. The gun is what it defends
+     * itself with on the drive in and the drive out; it does not buy the
+     * squad a parked fire-support platform on the drop point.
      */
     HEAVY_APC(
             "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 2,
@@ -32,7 +32,6 @@ public enum VehicleType {
             /*turretFrame*/ 1, /*turretMountX*/ -0.15866698f, /*turretMountY*/ 0.26800027f,
             /*turretPivotX*/ 0.108333334f, /*turretPivotY*/ 0.024999995f, /*turretVisualCells*/ 0.7f, /*turretSpriteFacingOffsetDeg*/ -90f,
             /*turretStructureId*/ TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
-            /*departsAfterDeboard*/ false, /*overwatchDurationSec*/ 20f,
             /*maxStructure*/ 220f, /*maxArmor*/ 160f, /*armorRating*/ 18f,
             /*incomingAccuracyMult*/ 1.25f, /*hitHalfHeight*/ 0.75f) {
         @Override
@@ -93,10 +92,6 @@ public enum VehicleType {
     public final float turretSpriteFacingOffsetDeg;
     /** Stable structure id for the vehicle-mounted turret, or {@code null} if unarmed. */
     public final String turretStructureId;
-    /** If true, the vehicle departs immediately after all marines deboard (truck behavior). If false, it enters OVERWATCH first. */
-    public final boolean departsAfterDeboard;
-    /** Sim-seconds the vehicle holds overwatch before departing. Only meaningful when {@link #departsAfterDeboard} is false. */
-    public final float overwatchDurationSec;
     /** Component-native durability profile seeded into HEALTH/ARMOR at spawn. */
     public final float maxStructure;
     public final float maxArmor;
@@ -121,8 +116,7 @@ public enum VehicleType {
                 int turretFrame, float turretMountX, float turretMountY,
                 float turretPivotX, float turretPivotY, float turretVisualCells,
                 float turretSpriteFacingOffsetDeg,
-                String turretStructureId, boolean departsAfterDeboard,
-                float overwatchDurationSec,
+                String turretStructureId,
                 float maxStructure, float maxArmor, float armorRating,
                 float incomingAccuracyMult, float hitHalfHeight) {
         this.spritePath = spritePath;
@@ -145,8 +139,6 @@ public enum VehicleType {
         this.turretVisualCells = turretVisualCells;
         this.turretSpriteFacingOffsetDeg = turretSpriteFacingOffsetDeg;
         this.turretStructureId = turretStructureId;
-        this.departsAfterDeboard = departsAfterDeboard;
-        this.overwatchDurationSec = overwatchDurationSec;
         this.maxStructure = maxStructure;
         this.maxArmor = maxArmor;
         this.armorRating = armorRating;
