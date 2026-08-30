@@ -1,32 +1,5 @@
 <template props="timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,commandPanelClasses,commandPhase,commandForce,conquestLanes">
   <div id="battle-hud-overlay" class="battle-hud-overlay">
-    <div id="battle-time-control" class="battle-time-control">
-      <div id="battle-time-label" class="label heading time-label">{timeLabel}</div>
-      <div id="battle-time-options" class="time-options">
-        <button id="battle-time-pause" class="{pauseClasses}" style="{pauseStyle}" onclick="{pauseAction}">{pauseLabel}</button>
-        <button id="battle-time-normal" class="{normalClasses}" style="{normalStyle}" onclick="{normalAction}">{normalLabel}</button>
-        <button id="battle-time-double" class="{doubleClasses}" style="{doubleStyle}" onclick="{doubleAction}">{doubleLabel}</button>
-        <button id="battle-time-quad" class="{quadClasses}" style="{quadStyle}" onclick="{quadAction}">{quadLabel}</button>
-      </div>
-    </div>
-
-    <div id="battle-objectives" class="{objectivePanelClasses}">
-      <div id="battle-objective-header" class="objective-header">
-        <div id="battle-objective-title" class="label heading objective-title">CAPTURE</div>
-        <div id="battle-objective-score" class="label heading objective-score">{objectiveScore}</div>
-      </div>
-      <div id="battle-objective-chips" class="objective-chips">
-        <div each="chip in objectiveChips" key="{chip.id}" id="{chip.id}" class="{chip.classes}">{chip.label}</div>
-      </div>
-      <div id="battle-objective-tally" class="label objective-tally">{objectiveTally}</div>
-      <div id="battle-objective-focus" class="{objectiveFocusClasses}">
-        <div id="battle-objective-focus-label" class="label heading objective-focus-label">{objectiveFocus}</div>
-        <div id="battle-objective-progress" class="objective-progress-track">
-          <div id="battle-objective-progress-fill" class="objective-progress-fill" style="{objectiveProgressStyle}" />
-        </div>
-      </div>
-    </div>
-
     <div id="battle-conquest-command" class="{commandPanelClasses}">
       <div id="battle-conquest-command-header" class="conquest-command-header">
         <div id="battle-conquest-command-title" class="label heading conquest-command-title">COMMANDER</div>
@@ -42,6 +15,37 @@
         </div>
       </div>
     </div>
+
+    <div id="battle-hud-spacer" class="battle-hud-spacer" />
+
+    <div id="battle-command-rail" class="battle-command-rail">
+      <div id="battle-time-control" class="battle-time-control">
+        <div id="battle-time-label" class="label heading time-label">{timeLabel}</div>
+        <div id="battle-time-options" class="time-options">
+          <button id="battle-time-pause" class="{pauseClasses}" style="{pauseStyle}" onclick="{pauseAction}">{pauseLabel}</button>
+          <button id="battle-time-normal" class="{normalClasses}" style="{normalStyle}" onclick="{normalAction}">{normalLabel}</button>
+          <button id="battle-time-double" class="{doubleClasses}" style="{doubleStyle}" onclick="{doubleAction}">{doubleLabel}</button>
+          <button id="battle-time-quad" class="{quadClasses}" style="{quadStyle}" onclick="{quadAction}">{quadLabel}</button>
+        </div>
+      </div>
+
+      <div id="battle-objectives" class="{objectivePanelClasses}">
+        <div id="battle-objective-header" class="objective-header">
+          <div id="battle-objective-title" class="label heading objective-title">CAPTURE</div>
+          <div id="battle-objective-score" class="label heading objective-score">{objectiveScore}</div>
+        </div>
+        <div id="battle-objective-chips" class="objective-chips">
+          <div each="chip in objectiveChips" key="{chip.id}" id="{chip.id}" class="{chip.classes}">{chip.label}</div>
+        </div>
+        <div id="battle-objective-tally" class="label objective-tally">{objectiveTally}</div>
+        <div id="battle-objective-focus" class="{objectiveFocusClasses}">
+          <div id="battle-objective-focus-label" class="label heading objective-focus-label">{objectiveFocus}</div>
+          <div id="battle-objective-progress" class="objective-progress-track">
+            <div id="battle-objective-progress-fill" class="objective-progress-fill" style="{objectiveProgressStyle}" />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -49,14 +53,23 @@
   .battle-hud-overlay {
     width: 100%;
     height: 100%;
-    flex-direction: column;
-    gap: 6px;
+    flex-direction: row;
     background-color: transparent;
     overflow: hidden;
   }
 
   .label { overflow: hidden; white-space: nowrap; }
   .heading { font-family: heading; }
+
+  .battle-hud-spacer { flex-grow: 1; height: 1px; }
+
+  .battle-command-rail {
+    width: 360px;
+    height: 100%;
+    flex-direction: column;
+    gap: 6px;
+    background-color: transparent;
+  }
 
   .battle-time-control {
     width: 100%;
@@ -157,7 +170,7 @@
   .objective-progress-fill { height: 100%; background-color: #ffd464; }
 
   .conquest-command-panel {
-    width: 100%;
+    width: 360px;
     height: 150px;
     flex-direction: column;
     padding: 7px;
@@ -169,6 +182,7 @@
   }
 
   .conquest-command-panel-hidden {
+    width: 0px;
     height: 0px;
     padding: 0px;
     gap: 0px;

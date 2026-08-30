@@ -42,7 +42,8 @@ import java.util.List;
 @DebugOnly
 public final class TickProfileDebugPanel implements HudPanel {
 
-    private static final float PANEL_W       = 320f;
+    static final float PANEL_W               = 320f;
+    static final float DEBUG_TOOLS_GAP       = 8f;
     private static final float HEADER_H      = 28f;
     private static final float PAD_INNER     = 8f;
     private static final float LINE_H        = 14f;
@@ -304,14 +305,17 @@ public final class TickProfileDebugPanel implements HudPanel {
     }
 
     // -----------------------------------------------------------------------
-    // Layout — top-left, anchored under the controls strip. Leaves the
-    // bottom-left (squad overview) and bottom-right (GOAP debug) clear, plus
-    // the centered battlefield itself.
+    // Layout — the profiler and DEBUG menu form one centered developer-tool
+    // cluster. Production commander state owns the top-left corner.
     // -----------------------------------------------------------------------
 
     private float panelX() {
-        BattleLayout l = ctx.getLayout();
-        return l.controlsX;
+        return groupX(ctx.getLayout());
+    }
+
+    static float groupX(BattleLayout layout) {
+        float groupWidth = PANEL_W + DEBUG_TOOLS_GAP + DebugTogglesPanel.PANEL_W;
+        return layout.gridX + (layout.gridW - groupWidth) * 0.5f;
     }
 
     /** Y of the panel's TOP edge — render() builds the bottom-left from here. */

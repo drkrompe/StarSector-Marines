@@ -4,10 +4,10 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — compact retained exits now stage confirmation before an
-irreversible or session-ending command; battle Retreat is the first production
-surface to apply that rule. Earlier: made the host-pass viewport answerable
-before the pass runs and stated that a host-drawn world owns the coordinate space.
+Updated: 2026-08-29 — battle presentation now uses a full-bleed cover-fit world,
+opposed mission/command rails, a centered developer cluster, and a bounded
+selected-squad diagnostic. Compact retained exits include their complete CSS box
+inside the host clip and stage confirmation before an irreversible command.
 
 ## Purpose
 
@@ -232,6 +232,15 @@ clickable. Only the live paint target converts that document rectangle into phys
 framebuffer pixels; the conversion observes Starsector UI scale and flips the
 top-left document Y axis exactly once. A headless target applies the same clip in
 document pixels.
+
+The standalone battle treats HUD chrome as an overlay rather than as space removed
+from the world. Its square-cell camera cover-fits the granted host viewport and pans
+the cropped map axis instead of shrinking to a centred map rectangle with dead bars.
+Player-facing Conquest command intent occupies the top-left opposite the top-right
+time/objective rail. Tick Profile and DEBUG share one centred developer cluster.
+Selecting a squad opens a bounded, scrollable GOAP diagnostic beneath the right rail;
+it reports the decision sequence and predicates without reintroducing path-cell
+highlight controls or per-slot assignment inventories.
 
 ## Vertical scrolling
 

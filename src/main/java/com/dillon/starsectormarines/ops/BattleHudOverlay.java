@@ -23,11 +23,11 @@ final class BattleHudOverlay {
     static final String COMPONENT = "battle-hud-overlay";
     static final String COMPONENT_PATH =
             "data/ui/components/battle/battle-hud-overlay.mlx";
-    static final float DOCUMENT_WIDTH = 360f;
-    static final float TIME_ONLY_HEIGHT = 42f;
-    static final float OBJECTIVE_HEIGHT = 164f;
-    static final float COMMAND_ONLY_HEIGHT = 232f;
-    static final float CONQUEST_COMMAND_HEIGHT = 354f;
+    static final float RAIL_WIDTH = 360f;
+    static final float TIME_ONLY_HEIGHT = 54f;
+    static final float OBJECTIVE_HEIGHT = BattleLayout.COMMAND_RAIL_H;
+    static final float COMMAND_ONLY_HEIGHT = 166f;
+    static final float CONQUEST_COMMAND_HEIGHT = BattleLayout.COMMAND_RAIL_H;
     private static final float EDGE_INSET = 12f;
 
     private final Reactor reactor = new Reactor();
@@ -84,6 +84,7 @@ final class BattleHudOverlay {
         for (String id : List.of(
                 "battle-hud-overlay", "battle-time-control", "battle-time-pause",
                 "battle-time-normal", "battle-time-double", "battle-time-quad",
+                "battle-command-rail", "battle-hud-spacer",
                 "battle-objectives", "battle-objective-chips",
                 "battle-objective-score", "battle-objective-tally",
                 "battle-objective-focus", "battle-objective-progress-fill",
@@ -128,10 +129,10 @@ final class BattleHudOverlay {
         UiViewport host = MarineOpsUiViewport.from(position);
         float scale = host.documentScale();
         float documentHeight = documentHeight(presentation);
-        float physicalWidth = DOCUMENT_WIDTH * scale;
+        float physicalWidth = Math.max(0f, position.getWidth() - 2f * EDGE_INSET);
         float physicalHeight = documentHeight * scale;
         return new UiViewport(
-                position.getX() + position.getWidth() - EDGE_INSET - physicalWidth,
+                position.getX() + EDGE_INSET,
                 position.getY() + position.getHeight() - EDGE_INSET - physicalHeight,
                 physicalWidth, physicalHeight, scale);
     }
