@@ -145,6 +145,7 @@ public record RoomLayout(RoomPurpose purpose, RoomFit fit, RoomShape shape,
         List<String> ids = new ArrayList<>();
         for (LayoutOp op : ops) {
             if (op instanceof LayoutOp.Bulkhead bulkhead) ids.add(bulkhead.blockId());
+            if (op instanceof LayoutOp.Flooring flooring) ids.add(flooring.blockId());
         }
         return ids;
     }

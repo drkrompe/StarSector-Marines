@@ -361,9 +361,37 @@ public final class RoomFloor {
     public void markBulkhead(String doodadOrBlockId) {
         if (doodadOrBlockId == null || doodadOrBlockId.isEmpty()) return;
         report(new LayoutOp.Bulkhead(doodadOrBlockId));
-        int surface = ctx.topology.wallSurfaceIndex(doodadOrBlockId);
+        int surface = ctx.topology.surfaceIndex(doodadOrBlockId);
         for (int[] cell : room.shape().wall()) {
-            ctx.topology.setWallSurface(left + cell[0], top + cell[1], surface);
+            ctx.topology.setSurface(left + cell[0], top + cell[1], surface);
+        }
+    }
+
+    /**
+     * Draw a run of this room's deck from a named block.
+     *
+     * <p>The floor counterpart of {@link #markBulkhead}, and a different thing
+     * from {@link #markGround}: a ground kind is a fact about the deck that
+     * consumers read, while this is only what it looks like. A vent run and a
+     * striped run are the same floor to everything that is not the renderer.
+     *
+     * <p>Does not claim the cell. Paving a bay does not stop a gantry standing
+     * on it, which is the whole difference between a floor and a fixture.
+     */
+    public void markFloorSurface(int x, int y, int spanX, int spanY, String blockId) {
+        if (blockId == null || blockId.isEmpty()) return;
+        int[] canonical = toCanonicalRect(x, y, spanX, spanY);
+        report(new LayoutOp.Flooring(canonical[0], canonical[1], canonical[2], canonical[3],
+                blockId));
+        int surface = ctx.topology.surfaceIndex(blockId);
+        for (int dx = 0; dx < spanX; dx++) {
+            for (int dy = 0; dy < spanY; dy++) {
+                int lx = x + dx;
+                int ly = y + dy;
+                if (lx < 0 || ly < 0 || lx >= width || ly >= height) continue;
+                if (!room.shape().contains(lx, ly)) continue;
+                ctx.topology.setSurface(left + lx, top + ly, surface);
+            }
         }
     }
 

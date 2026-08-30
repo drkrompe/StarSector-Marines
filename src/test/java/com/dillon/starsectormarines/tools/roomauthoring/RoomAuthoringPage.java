@@ -103,6 +103,15 @@ public final class RoomAuthoringPage implements AuthoringPage {
      */
     private final JComboBox<String> bulkhead = new JComboBox<>();
 
+    /**
+     * What a run of this room's deck is drawn from.
+     *
+     * <p>Offers every block that is not a wall, which is the honest test: a
+     * vent plate, hazard striping and a variant pool of floor tiles are all
+     * things a deck can be, and only a corner-resolving wall is not.
+     */
+    private final JComboBox<String> floorBlock = new JComboBox<>();
+
     private final JSpinner footprintWidth = new JSpinner(new SpinnerNumberModel(8, 1, 64, 1));
     private final JSpinner footprintHeight = new JSpinner(new SpinnerNumberModel(6, 1, 64, 1));
 
@@ -129,6 +138,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
         for (String id : placeableIds()) fixtureId.addItem(id);
         bulkhead.addItem(DECK_BULKHEAD);
         for (String id : wallBlockIds()) bulkhead.addItem(id);
+        for (String id : floorBlockIds()) floorBlock.addItem(id);
         bulkhead.addActionListener(e -> {
             if (draft == null) return;
             Object picked = bulkhead.getSelectedItem();
@@ -174,6 +184,23 @@ public final class RoomAuthoringPage implements AuthoringPage {
         List<String> ids = new ArrayList<>();
         for (GridBlockDef block : TileRegistry.installed().blocks()) {
             if (block.layout == GridLayout.WALL_3X3) ids.add(block.id);
+        }
+        ids.sort(String::compareTo);
+        return ids;
+    }
+
+    /**
+     * Every block a deck can be drawn from: everything that is not a wall.
+     *
+     * <p>Stated as the complement rather than as a list of floor layouts,
+     * because the ways of being a floor keep growing — a variant pool, a
+     * hollow perimeter, a striped run, a single tile — and a picker that
+     * enumerated them would quietly omit the next one somebody authored.
+     */
+    private static List<String> floorBlockIds() {
+        List<String> ids = new ArrayList<>();
+        for (GridBlockDef block : TileRegistry.installed().blocks()) {
+            if (block.layout != GridLayout.WALL_3X3) ids.add(block.id);
         }
         ids.sort(String::compareTo);
         return ids;
@@ -398,9 +425,31 @@ public final class RoomAuthoringPage implements AuthoringPage {
 
     private JComponent deckBody() {
         JPanel side = column();
-        side.add(new JLabel("Paint this cell as"));
+        side.add(new JLabel("Paint this cell with"));
+        side.add(floorBlock);
+        side.add(new JLabel("<html><i>What the deck is drawn from. Flavour only — "
+                + "a vent run and a striped run are the same floor to everything "
+                + "that is not the renderer.</i></html>"));
+        side.add(Box.createVerticalStrut(10));
+
+        side.add(new JLabel("…and mark its kind as"));
         side.add(groundKind);
-        side.add(Box.createVerticalStrut(8));
+        side.add(new JLabel("<html><i>This one is real topology, which consumers "
+                + "read. Leave it alone unless the deck genuinely changed.</i></html>"));
+        side.add(Box.createVerticalStrut(10));
+
+        JButton kind = new JButton("Set the kind here");
+        kind.addActionListener(e -> {
+            grid.onClick((x, y) -> {
+                draft.paintGround(x, y, 1, 1, (GroundKind) groundKind.getSelectedItem());
+                touched();
+            });
+            context.reportStatus("Clicks now set the ground kind. Pick the floor block "
+                    + "above to go back to painting.");
+        });
+        floorBlock.addActionListener(e -> grid.onClick(this::paintCell));
+        side.add(kind);
+        side.add(Box.createVerticalStrut(10));
 
         JButton lane = new JButton("Reserve a lane across");
         lane.addActionListener(e -> {
@@ -496,8 +545,15 @@ public final class RoomAuthoringPage implements AuthoringPage {
         touched();
     }
 
+    /**
+     * Painting a cell draws it from the chosen block.
+     *
+     * <p>The block and not the kind, because that is what a person painting a
+     * floor means. Changing the kind is a separate, deliberate act — it moves
+     * something the game reads rather than something it shows.
+     */
     private void paintCell(int x, int y) {
-        draft.paintGround(x, y, 1, 1, (GroundKind) groundKind.getSelectedItem());
+        draft.floor(x, y, 1, 1, (String) floorBlock.getSelectedItem());
         touched();
     }
 

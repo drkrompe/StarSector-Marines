@@ -184,25 +184,29 @@ public class CellTopology {
      */
     private final byte[] roomPurpose;
     /**
-     * Per-cell bulkhead surface, as an index into {@link #wallSurfaces}. Zero —
-     * the implicit default — means the cell draws as {@link SurfaceRole#WALL},
-     * which is what every wall on every map did before rooms could ask for
-     * their own.
+     * Per-cell surface override, as an index into {@link #surfaces}. Zero — the
+     * implicit default — means the cell draws the way its kind says: a wall as
+     * {@link SurfaceRole#WALL}, a floor as its {@code GroundKind}'s block.
+     *
+     * <p>One array for walls and floors both, because a cell is one or the
+     * other and never both. Which pass reads it decides what it means, so a
+     * room asking for a vent floor and a room asking for a heavier bulkhead
+     * spend the same byte.
      *
      * <p>A byte because this is one array over the whole grid and there are
      * never more than a handful of distinct bulkheads on a deck. Indices are
      * interned rather than assigned per room, so twelve berths asking for the
      * same wall share one.
      */
-    private final byte[] wallSurface;
+    private final byte[] surface;
     /**
-     * Block ids the {@link #wallSurface} indices name, index zero unused.
+     * Block ids the {@link #surface} indices name, index zero unused.
      *
      * <p>Held here rather than passed to the renderer separately because it is
      * a fact about these cells: a map carries its own bulkheads, and a renderer
      * handed the grid should not need a second argument to draw it.
      */
-    private final List<String> wallSurfaces = new ArrayList<>();
+    private final List<String> surfaces = new ArrayList<>();
 
     public CellTopology(int width, int height) {
         this.width = width;
@@ -214,9 +218,10 @@ public class CellTopology {
         this.buildingKindHint = new byte[width * height];
         this.natureOverlay = new short[width * height];
         this.roomPurpose = new byte[width * height];
-        this.wallSurface = new byte[width * height];
-        // ground[i] == 0 == GroundKind.INDOOR.ordinal() — implicit default.
-        // wallSurface[i] == 0 — draws as SurfaceRole.WALL, the shared default.
+        this.surface = new byte[width * height];
+        // ground[i] == 0 == GroundKind.VOID.ordinal() — implicit default, so a
+        // topology nobody has carved reads as outside the map rather than inside.
+        // surface[i] == 0 — draws as SurfaceRole.WALL, the shared default.
     }
 
     public int getWidth()  { return width;  }
@@ -428,7 +433,7 @@ public class CellTopology {
         }
     }
 
-    // ----- bulkhead surface -----
+    // ----- surface override -----
 
     /**
      * The index for this bulkhead block, minting one if it is new.
@@ -437,38 +442,38 @@ public class CellTopology {
      * spends one index on it. Returns zero for null, which is the shared
      * default and costs nothing.
      *
-     * @throws IllegalStateException past 255 distinct bulkheads, which is far
+     * @throws IllegalStateException past 255 distinct overrides, which is far
      *     more than a deck can have and therefore a runaway rather than a limit
      */
-    public int wallSurfaceIndex(String blockId) {
+    public int surfaceIndex(String blockId) {
         if (blockId == null || blockId.isEmpty()) return 0;
-        int existing = wallSurfaces.indexOf(blockId);
+        int existing = surfaces.indexOf(blockId);
         if (existing >= 0) return existing + 1;
-        if (wallSurfaces.size() >= 255) {
-            throw new IllegalStateException("more than 255 distinct bulkheads on one map");
+        if (surfaces.size() >= 255) {
+            throw new IllegalStateException("more than 255 distinct surfaces on one map");
         }
-        wallSurfaces.add(blockId);
-        return wallSurfaces.size();
+        surfaces.add(blockId);
+        return surfaces.size();
     }
 
-    /** The block this cell's bulkhead draws from, or null for the shared default. */
-    public String getWallSurfaceId(int x, int y) {
+    /** The block this cell draws from, or null when its kind decides. */
+    public String getSurfaceId(int x, int y) {
         if (!inBounds(x, y)) return null;
-        return wallSurfaceId(wallSurface[index(x, y)] & 0xFF);
+        return surfaceId(surface[index(x, y)] & 0xFF);
     }
 
     /** The block an index names, or null for zero and for an index nobody minted. */
-    public String wallSurfaceId(int index) {
-        return index <= 0 || index > wallSurfaces.size() ? null : wallSurfaces.get(index - 1);
+    public String surfaceId(int index) {
+        return index <= 0 || index > surfaces.size() ? null : surfaces.get(index - 1);
     }
 
-    /** How many distinct bulkheads this map carries, beyond the default. */
-    public int wallSurfaceCount() {
-        return wallSurfaces.size();
+    /** How many distinct overrides this map carries, beyond the default. */
+    public int surfaceCount() {
+        return surfaces.size();
     }
 
-    public int getWallSurface(int x, int y) {
-        return inBounds(x, y) ? wallSurface[index(x, y)] & 0xFF : 0;
+    public int getSurface(int x, int y) {
+        return inBounds(x, y) ? surface[index(x, y)] & 0xFF : 0;
     }
 
     /**
@@ -480,8 +485,8 @@ public class CellTopology {
      * is one wall there and it can only look like one thing — and it is why
      * this is a plain write rather than a merge.
      */
-    public void setWallSurface(int x, int y, int index) {
+    public void setSurface(int x, int y, int index) {
         if (!inBounds(x, y)) return;
-        wallSurface[index(x, y)] = (byte) index;
+        surface[index(x, y)] = (byte) index;
     }
 }
