@@ -590,12 +590,12 @@ public class AirSystem {
                     world.setAltitudeT(id, 1f);
                     world.setFlightPhase(id, world.flightPhase(id)
                             + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
-                    strafe(id, mission, body, dt);
+                    releaseOrdnance(id, mission, body, dt);
                     if (reachedOrPassed(body, mission.runFromX, mission.runFromY,
                             mission.runToX, mission.runToY)) {
                         mission.passesLeft--;
                         if (mission.passesLeft > 0) {
-                            beginReposition(mission, body);
+                            beginReposition(id, mission, body);
                         } else {
                             beginEgress(id, mission, body, /*fromHover*/ false);
                         }
@@ -697,7 +697,7 @@ public class AirSystem {
                         world.setAltitudeT(id, 1f);
                         mission.departingFromHover = false;
                         if (mission.passesLeft <= 0) mission.passesLeft = STRIKE_PASSES;
-                        beginAttackRun(mission, body);
+                        beginAttackRun(id, mission, body);
                         break;
                     }
                     if (body.distanceTo(mission.lzX, mission.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
@@ -1177,7 +1177,7 @@ public class AirSystem {
      * the enemy was when it rolled in, and whether that is still where they are
      * is the target's business.
      */
-    private void beginAttackRun(ShuttleMission mission, AirBody body) {
+    private void beginAttackRun(long id, ShuttleMission mission, AirBody body) {
         float bearing = mission.state == ShuttleState.PENDING
                 ? 0f : mission.lastRunBearingDeg;
         if (mission.state != ShuttleState.REPOSITION && mission.state != ShuttleState.ATTACK_RUN) {
@@ -1194,11 +1194,34 @@ public class AirSystem {
         mission.runFromY = mission.lzY - dirY * RUN_LEAD_CELLS;
         mission.runToX = mission.lzX + dirX * RUN_OVERSHOOT_CELLS;
         mission.runToY = mission.lzY + dirY * RUN_OVERSHOOT_CELLS;
+        loadForThePass(mission, ordnanceOf(id, mission));
         mission.state = ShuttleState.ATTACK_RUN;
     }
 
+    /** What this pass has to give: a bomber's stick, or nothing to count for a gun. */
+    private static void loadForThePass(ShuttleMission mission, AirOrdnance load) {
+        mission.roundsLeftThisPass = load == null || load.firesContinuously()
+                ? 0 : load.roundsPerPass;
+    }
+
+    /**
+     * What this sortie is carrying, taken off the airframe the first time it is
+     * asked for and kept on the sortie thereafter.
+     *
+     * <p>Resolved lazily rather than demanded at dispatch so that a sortie
+     * assembled by hand still flies armed, and cached so that a load which is
+     * later spent or changed belongs to this trip rather than to the type.
+     */
+    private AirOrdnance ordnanceOf(long id, ShuttleMission mission) {
+        if (mission.ordnance == null) {
+            Airframe airframe = world.airframe(id);
+            if (airframe != null) mission.ordnance = airframe.ordnance();
+        }
+        return mission.ordnance;
+    }
+
     /** Sends the craft round for another pass from a different bearing. */
-    private void beginReposition(ShuttleMission mission, AirBody body) {
+    private void beginReposition(long id, ShuttleMission mission, AirBody body) {
         mission.lastRunBearingDeg += RUN_BEARING_SHIFT_DEG;
         double rad = Math.toRadians(mission.lastRunBearingDeg);
         float dirX = (float) Math.cos(rad);
@@ -1207,6 +1230,7 @@ public class AirSystem {
         mission.runFromY = mission.lzY - dirY * RUN_LEAD_CELLS;
         mission.runToX = mission.lzX + dirX * RUN_OVERSHOOT_CELLS;
         mission.runToY = mission.lzY + dirY * RUN_OVERSHOOT_CELLS;
+        loadForThePass(mission, ordnanceOf(id, mission));
         mission.state = ShuttleState.REPOSITION;
     }
 
@@ -1222,27 +1246,28 @@ public class AirSystem {
      * roof-interception rule all come from the pipeline that already owns
      * them — a squad under an intact roof is not strafed.
      */
-    private void strafe(long id, ShuttleMission mission, AirBody body, float dt) {
-        Airframe airframe = world.airframe(id);
-        StrafeProfile guns = airframe == null ? null : airframe.strafe();
-        if (guns == null || detonations == null) return;
-        if (body.distanceTo(mission.lzX, mission.lzY) > FIRING_WINDOW_CELLS) return;
+    private void releaseOrdnance(long id, ShuttleMission mission, AirBody body, float dt) {
+        AirOrdnance load = ordnanceOf(id, mission);
+        if (load == null || detonations == null) return;
+        if (!load.firesContinuously() && mission.roundsLeftThisPass <= 0) return;
+        if (body.distanceTo(mission.lzX, mission.lzY) > load.firingRangeCells) return;
         mission.fireCooldown -= dt;
         if (mission.fireCooldown > 0f) return;
-        mission.fireCooldown = guns.fireInterval();
+        mission.fireCooldown = load.fireInterval();
+        if (!load.firesContinuously()) mission.roundsLeftThisPass--;
 
         // Ahead of the nose, then scattered. The heading is the aim.
         double nose = Math.toRadians(body.facingDegrees + 90f);
-        float aimX = body.x + (float) Math.cos(nose) * guns.leadCells;
-        float aimY = body.y + (float) Math.sin(nose) * guns.leadCells;
-        float impactX = aimX + (float) rng.nextGaussian() * guns.scatterCells;
-        float impactY = aimY + (float) rng.nextGaussian() * guns.scatterCells;
+        float aimX = body.x + (float) Math.cos(nose) * load.leadCells;
+        float aimY = body.y + (float) Math.sin(nose) * load.leadCells;
+        float impactX = aimX + (float) rng.nextGaussian() * load.scatterCells;
+        float impactY = aimY + (float) rng.nextGaussian() * load.scatterCells;
 
         detonations.detonateNow(new PendingDetonation(
                 id, impactX, impactY, /*remainingTime*/ 0f,
-                guns.aoeRadiusCells, guns.damage, guns.penetration,
-                guns.wallDamage, world.airFaction(id), /*aerialDelivery*/ true,
-                /*wallDamageRadius*/ guns.aoeRadiusCells, /*spawnDustOnWallBreak*/ true,
+                load.aoeRadiusCells, load.damage, load.penetration,
+                load.wallDamage, world.airFaction(id), /*aerialDelivery*/ true,
+                /*wallDamageRadius*/ load.aoeRadiusCells, /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false));
     }
 

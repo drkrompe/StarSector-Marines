@@ -180,8 +180,8 @@ public enum ShuttleType implements AirHandling, Airframe {
 
     @Override public String spritePath()              { return spritePath; }
     @Override public int hardpoints()                 { return hardpoints; }
-    /** Transports shoot from mounts if at all; none of them makes gun runs. */
-    @Override public StrafeProfile strafe()           { return null; }
+    /** Transports shoot from mounts if at all; none of them makes attack runs. */
+    @Override public AirOrdnance ordnance()           { return null; }
     @Override public AirHandling flight()             { return this; }
     @Override public float maxHp()                    { return maxHp; }
 
