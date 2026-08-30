@@ -52,14 +52,14 @@ public final class AssaultAssignedObjectiveGoal implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
-        return new SquadPlan(List.of(new SquadPlan.Step(BreachAndAssault.INSTANCE)));
+        return new SquadPlan(List.of(new SquadPlan.Step(ExecuteMechDoctrine.INSTANCE)));
     }
 
     private static boolean hasAssaultMember(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long member = sim.squadMemberAt(squad.id, i);
             MechLoadoutComponent loadout = sim.world().mechLoadout(member);
-            if (loadout != null && loadout.role == MechRole.ASSAULT) return true;
+            if (loadout != null && loadout.effectiveRole() == MechRole.ASSAULT) return true;
         }
         return false;
     }

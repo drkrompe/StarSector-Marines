@@ -20,7 +20,7 @@ import java.util.List;
  * <ol>
  *   <li>At least one alive squad member has {@link MechRole#LR_SUPPORT}.
  *       In a mixed-role squad this is "some member can do overwatch"; the
- *       action's per-member role branching handles the rest.</li>
+ *       shared doctrine dispatcher handles the rest.</li>
  *   <li>The squad has a known contact ({@code lastSeenEnemyX/Y} set by
  *       the alert-update pass) — a "kill corridor" needs an anchor.</li>
  * </ol>
@@ -30,9 +30,8 @@ import java.util.List;
  * which itself handles target acquisition. The two goals are designed to
  * trade off cleanly as contact state changes.
  *
- * <p>Custom-plans a single-step {@link OverwatchKillZone} action. The
- * planner's backward-chaining search would produce the same one-step
- * plan; bypassing it via {@code customPlan} keeps the dispatch cheap.
+ * <p>Custom-plans the single-step {@link ExecuteMechDoctrine} dispatcher.
+ * Bypassing backward-chaining via {@code customPlan} keeps the dispatch cheap.
  */
 public final class OverwatchKillZoneGoal implements Goal {
 
@@ -63,7 +62,7 @@ public final class OverwatchKillZoneGoal implements Goal {
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long u = sim.squadMemberAt(squad.id, i);
             MechLoadoutComponent m = sim.world().mechLoadout(u);
-            if (m != null && m.role == MechRole.LR_SUPPORT) return 1f;
+            if (m != null && m.effectiveRole() == MechRole.LR_SUPPORT) return 1f;
         }
         return 0f;
     }
@@ -75,6 +74,6 @@ public final class OverwatchKillZoneGoal implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
-        return new SquadPlan(List.of(new SquadPlan.Step(OverwatchKillZone.INSTANCE)));
+        return new SquadPlan(List.of(new SquadPlan.Step(ExecuteMechDoctrine.INSTANCE)));
     }
 }

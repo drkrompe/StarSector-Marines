@@ -21,7 +21,7 @@ import java.util.Set;
 
 /**
  * Unit-anchored movement doctrine used by {@link EnterZone}. Infantry follow
- * behind a compatible friendly assault mech, then spread into a short,
+ * behind a compatible friendly Tank mech, then spread into a short,
  * two-sided firing fan when that mech has a visible contact.
  */
 final class MechScreenAdvance {
@@ -95,7 +95,8 @@ final class MechScreenAdvance {
             long candidate = sim.liveUnitAt(i);
             if (sim.identity().faction(candidate) != squad.faction) continue;
             MechLoadoutComponent loadout = sim.world().mechLoadout(candidate);
-            if (loadout == null || loadout.role != MechRole.ASSAULT) continue;
+            if (loadout == null
+                    || loadout.effectiveRole() != MechRole.ARMORED_SUPPORT) continue;
             Squad mechSquad = sim.squadOf(candidate);
             if (mechSquad == null || !mechSquad.isMechSquad()
                     || mechSquad.rescuePickupMech) continue;

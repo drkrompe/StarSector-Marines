@@ -19,10 +19,10 @@ import java.util.List;
  * which deliberately lists overwatch first).
  *
  * <p>Relevance gate: at least one alive squad member has
- * {@link MechRole#ARMORED_SUPPORT} AND a friendly infantry squad exists
- * to back. The friendly-squad check defers to the action's
- * {@code pickBackedSquad} when it actually runs — we only test for
- * <em>existence</em> here, not viability of any particular candidate.
+ * {@link MechRole#ARMORED_SUPPORT}. A legal nearby anchor enriches its front
+ * geometry, but is deliberately not required: with no anchor the doctrine
+ * action holds and self-defends instead of allowing a generic assignment to
+ * move a Tank independently.
  *
  * <p>No reading of contact state: an Armored Support mech "marches with
  * the marines" from spawn forward, before contact lands. The action's
@@ -30,7 +30,8 @@ import java.util.List;
  * of centroid without a specific "behind" direction until lastSeenEnemy
  * is set).
  *
- * <p>Custom-plans a single-step {@link BackstopAssignedSquad} action.
+ * <p>Custom-plans the shared {@link ExecuteMechDoctrine} step so every member
+ * of a mixed lance executes its own effective doctrine.
  */
 public final class BackstopAssignedSquadGoal implements Goal {
 
@@ -55,23 +56,12 @@ public final class BackstopAssignedSquadGoal implements Goal {
         // pulls back regardless of orders and re-attaches to its infantry
         // squad on the next replan after morale recovers.
         if (state.get(Predicate.MORALE_BROKEN)) return 0f;
-        boolean hasArmored = false;
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long u = sim.squadMemberAt(squad.id, i);
             MechLoadoutComponent m = sim.world().mechLoadout(u);
-            if (m != null && m.role == MechRole.ARMORED_SUPPORT) {
-                hasArmored = true;
-                break;
+            if (m != null && m.effectiveRole() == MechRole.ARMORED_SUPPORT) {
+                return 1f;
             }
-        }
-        if (!hasArmored) return 0f;
-        // At least one friendly non-mech squad on the same side must exist.
-        for (Squad other : sim.getSquads()) {
-            if (other.id == squad.id) continue;
-            if (other.faction != squad.faction) continue;
-            if (other.aliveMembers == 0) continue;
-            if (other.isMechSquad()) continue;
-            return 1f;
         }
         return 0f;
     }
@@ -83,6 +73,6 @@ public final class BackstopAssignedSquadGoal implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
-        return new SquadPlan(List.of(new SquadPlan.Step(BackstopAssignedSquad.INSTANCE)));
+        return new SquadPlan(List.of(new SquadPlan.Step(ExecuteMechDoctrine.INSTANCE)));
     }
 }

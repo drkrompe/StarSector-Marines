@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.squad.Squad;
 
 /**
  * Doctrine slot for a mech chassis. Roles remain independent of the physical
@@ -9,9 +8,9 @@ import com.dillon.starsectormarines.battle.squad.Squad;
  * the planner positions the mech and which installed weapons it is willing to
  * fire from a given posture.
  *
- * <p>Stage 1 shipped {@link #LR_SUPPORT} and {@link #ARMORED_SUPPORT}.
- * Stage 2 adds {@link #ASSAULT}; {@code RECON} remains parked (see
- * {@code ai-nouns.md}).
+ * <p>The serialized enum identifiers are compatibility-sensitive. Battlefield
+ * doctrine exposes player-facing names through {@link #displayName()} while
+ * preserving the original LR, armored-support, and assault constants.
  *
  * <p>Assigned with the mech loadout at spawn or deployment by
  * {@link BattleSetup}. A mission commander may supply objective context
@@ -25,18 +24,34 @@ public enum MechRole {
      * LRMs farther out, and withholds SRMs. Another Sirocco does not count as
      * the friendly screen.
      */
-    LR_SUPPORT,
+    LR_SUPPORT("Long Range Support"),
     /**
-     * Squad backstop. Paces a designated friendly infantry squad at a
-     * follow distance large enough that chaingun fire outranges marine
-     * rifles, fires whichever weapon has an in-band target with LoS, no
-     * withholding. Movement anchors to the squad's centroid.
+     * Frontline support. Paces eligible infantry or non-cyclic mech allies,
+     * takes the threat-facing side of their formation, and fires every
+     * installed in-band weapon. Without a legal anchor it holds and defends.
      */
-    ARMORED_SUPPORT,
+    ARMORED_SUPPORT("Tank"),
     /**
      * Point doctrine. Advances into an assigned objective zone or closes on
      * a live contact while firing on the move. Used by either faction; the
      * squad's faction determines friend and foe at runtime.
      */
-    ASSAULT
+    ASSAULT("Brawler"),
+    /**
+     * Mission-first direct-fire generalist. Fights at medium range when it
+     * has room, but stands and answers a close threat rather than requiring
+     * special ally geometry.
+     */
+    BALANCED("Balanced");
+
+    private final String displayName;
+
+    MechRole(String displayName) {
+        this.displayName = displayName;
+    }
+
+    /** Player-facing doctrine label; enum names remain stable save/fixture ids. */
+    public String displayName() {
+        return displayName;
+    }
 }
