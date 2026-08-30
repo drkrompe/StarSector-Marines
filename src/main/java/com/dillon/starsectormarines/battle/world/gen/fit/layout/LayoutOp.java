@@ -190,4 +190,22 @@ public sealed interface LayoutOp {
             floor.markBulkhead(blockId);
         }
     }
+
+    /**
+     * A run of deck drawn from a named block — vent plate, striped hazard
+     * marking, whatever the room wants underfoot.
+     *
+     * <p>Distinct from {@link Ground}, which sets the cell's <em>kind</em>: that
+     * is a fact about the deck that pathing and cover read, while this is only
+     * what it looks like. Two rooms with the same floor and different plating
+     * play identically, which is exactly what makes this safe to use for
+     * flavour.
+     */
+    record Flooring(int x, int y, int spanX, int spanY, String blockId) implements LayoutOp {
+        @Override
+        public void apply(RoomFloor floor, Replay replay) {
+            int[] rect = floor.toLocalRect(x, y, spanX, spanY);
+            floor.markFloorSurface(rect[0], rect[1], rect[2], rect[3], blockId);
+        }
+    }
 }

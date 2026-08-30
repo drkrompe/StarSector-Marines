@@ -172,6 +172,8 @@ public final class GroundRenderSystem implements RenderSystem {
             if (b.fillRgb != null) kindFill[k.ordinal()] = new Color(b.fillRgb);
         }
 
+        int surfaces = topology.surfaceCount();
+
         // STREET's road-sheet fallback (urban3 not loaded) paints road.road's open fill.
         Color roadFill = blockFill("road.road", ROAD_FILL);
         String streetTileId = (genMapping == null) ? "urban3.street-square"
@@ -185,6 +187,19 @@ public final class GroundRenderSystem implements RenderSystem {
                 boolean sWall = GroundTileSelector.isInBoundsWall(topology, x, y - 1);
                 boolean eWall = GroundTileSelector.isInBoundsWall(topology, x + 1, y);
                 boolean wWall = GroundTileSelector.isInBoundsWall(topology, x - 1, y);
+
+                // A room may draw its deck from a block of its own — vent
+                // plate, hazard striping — which is a fact about the picture and
+                // not about the floor. Checked before the kind, because that is
+                // what "instead of" means.
+                GridBlockDef floorBlock = surfaces == 0 ? null : blockFor(topology, x, y);
+                if (floorBlock != null) {
+                    drawGroundBlock(floorBlock, sheetFor(floorBlock.sheetPath),
+                            floorBlock.fillRgb == null ? null : new Color(floorBlock.fillRgb),
+                            nWall, sWall, eWall, wWall, x, y);
+                    natureAndDoor(grid, topology, x, y, doorOpenId);
+                    continue;
+                }
 
                 CellTopology.GroundKind kind = topology.getGroundKind(x, y);
                 int ord = kind.ordinal();
@@ -239,14 +254,34 @@ public final class GroundRenderSystem implements RenderSystem {
                         break;
                 }
 
-                int oi = topology.getNatureOverlayIndex(x, y);
-                if (oi >= 0 && tileReg != null) natureTile(tileReg.byIndex(oi), x, y);
-
-                if (grid.isDoorway(x, y) && !topology.isRubble(x, y) && tileReg != null) {
-                    urbanTile(blockFrame(doorOpenId, false, false, false, false), x, y, 0);
-                }
+                natureAndDoor(grid, topology, x, y, doorOpenId);
             }
         }
+    }
+
+    /**
+     * What is laid over a floor cell once its ground is drawn: scatter, and the
+     * decal that says an opening is a door.
+     *
+     * <p>Its own method because a cell drawing an authored floor block skips the
+     * ground dispatch entirely, and would otherwise skip these with it — a room
+     * with a vent deck whose doorways stopped reading as doorways.
+     */
+    private void natureAndDoor(NavigationGrid grid, CellTopology topology,
+                               int x, int y, String doorOpenId) {
+        int oi = topology.getNatureOverlayIndex(x, y);
+        if (oi >= 0 && tileReg != null) natureTile(tileReg.byIndex(oi), x, y);
+
+        if (grid.isDoorway(x, y) && !topology.isRubble(x, y) && tileReg != null) {
+            urbanTile(blockFrame(doorOpenId, false, false, false, false), x, y, 0);
+        }
+    }
+
+    /** The block a cell has been told to draw from, or null when its kind decides. */
+    private GridBlockDef blockFor(CellTopology topology, int x, int y) {
+        if (tileReg == null) return null;
+        String id = topology.getSurfaceId(x, y);
+        return id == null ? null : tileReg.block(id);
     }
 
     /**
@@ -273,11 +308,11 @@ public final class GroundRenderSystem implements RenderSystem {
         // per pass into an array indexed by the topology's own surface index,
         // for the same reason the default is: a lookup per wall cell would put
         // a map probe in the inner loop of the densest pass on the deck.
-        int surfaces = topology.wallSurfaceCount();
+        int surfaces = topology.surfaceCount();
         GridBlockDef[] byIndex = surfaces == 0 ? null : new GridBlockDef[surfaces + 1];
         Color[] fillByIndex = surfaces == 0 ? null : new Color[surfaces + 1];
         for (int i = 1; i <= surfaces; i++) {
-            GridBlockDef block = tileReg == null ? null : tileReg.block(topology.wallSurfaceId(i));
+            GridBlockDef block = tileReg == null ? null : tileReg.block(topology.surfaceId(i));
             // An id the catalog does not have falls back to the deck's own wall
             // rather than to nothing, so a stale document is a room that looks
             // ordinary instead of a hole in the ship.
@@ -292,7 +327,7 @@ public final class GroundRenderSystem implements RenderSystem {
                 GridBlockDef block = wallBlock;
                 Color fill = wallFill;
                 if (byIndex != null) {
-                    int surface = topology.getWallSurface(x, y);
+                    int surface = topology.getSurface(x, y);
                     if (surface > 0 && surface < byIndex.length) {
                         block = byIndex[surface];
                         fill = fillByIndex[surface];

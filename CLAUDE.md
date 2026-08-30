@@ -170,6 +170,13 @@ Do not run builds or leave generated task files there.
   fifteen. `RoomLayoutCheck` is what turns both into sentences, the fixture
   count shown is what actually stands up, and a layout that would seal its room
   is refused at save.
+  A room draws its **deck** from blocks too: paint a run with `road.vent`,
+  `road.striped`, a `floors.*` variant pool, anything that is not a wall. That
+  is flavour and nothing else — a vent run and a striped run are the same floor
+  to pathing, cover and sight — which is why it is kept separate from setting a
+  cell's `GroundKind`, the thing consumers actually read. The picker offers
+  every non-wall block rather than a list of floor layouts, because the ways of
+  being a floor keep growing and an enumerated picker would omit the next one.
   A room may also name its own **bulkhead**, offered from the blocks that can
   actually be a wall — shape rather than spelling, since `road.embankment` is
   one. It changes the picture only; topology, cover and sight are untouched, and
