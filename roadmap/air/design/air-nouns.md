@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — an aircraft on the ground at its own field is on the map, and drawn.
+Updated: 2026-08-30 — a sortie flown off a strip comes home to it.
 
 ## Purpose
 
@@ -236,7 +236,17 @@ and it is on its wheels and shootable for all of it: out of the shed, down to
 the threshold, a wait if the strip is busy, and then the roll itself, which is
 the only part where the aircraft is accelerating and not yet flying. Coming
 home it is the same in reverse — touch down at the end it reaches first, roll
-out to the far one, turn off, taxi back to its own shed. That is what a runway
+out to the far one, turn off, taxi back to its own shed.
+
+**Coming home is not leaving.** A craft that rolled off a strip owes itself back
+to it, and the leg that takes it there is an approach: it steers to a runway
+threshold rather than an off-map exit, it descends rather than climbing away,
+and it ends by taking the strip rather than by ceasing to exist. Everything a
+phase decides is the other way round, which is why it is a phase of its own
+rather than a departure with a different destination — and why the landing
+procedure sat unreachable for a while behind an egress that always flew off the
+map. Which end it lands on is decided when the leg starts rather than at
+dispatch, because it depends on where the sortie actually finished up. That is what a runway
 buys over a vertical lift: a minute of ground movement in the open, every
 second of which somebody can be standing on.
 

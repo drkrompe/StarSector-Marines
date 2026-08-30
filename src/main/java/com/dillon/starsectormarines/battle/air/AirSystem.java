@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.air.engine.EngineSlotData;
 import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
@@ -515,6 +516,23 @@ public class AirSystem {
                     }
                     break;
 
+                case RETURNING:
+                    // An approach, so it is flown like one: braking onto the
+                    // threshold and losing height the whole way rather than
+                    // climbing out. A craft that arrives to find the strip in
+                    // use simply stays here, stopped off the threshold, until
+                    // whoever is rolling has finished with it.
+                    AirSteeringSystem.steer(body, mission.exitX, mission.exitY,
+                            SteeringMode.BRAKE_TO_STATION, type, dt);
+                    updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY,
+                            /*incoming*/ true, dt);
+                    if (body.distanceTo(mission.exitX, mission.exitY) < THRESHOLD_ARRIVAL_DIST
+                            && airfield != null && airfield.claimRunway(id)) {
+                        world.setAltitudeT(id, 0f);
+                        mission.state = ShuttleState.LANDING_ROLL;
+                    }
+                    break;
+
                 case LANDING_ROLL:
                     world.setAltitudeT(id, 0f);
                     AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
@@ -591,8 +609,7 @@ public class AirSystem {
                             mission.departingFromHover = false;
                             mission.state = ShuttleState.HOVER_STATION;
                         } else {
-                            beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
-                            mission.state = ShuttleState.DEPARTING;
+                            beginEgress(id, mission, body, /*fromHover*/ false);
                         }
                     }
                     break;
@@ -626,9 +643,7 @@ public class AirSystem {
                     boolean ammoOut = allTurretsDry(id);
                     boolean hpPressured = mission.hp <= type.maxHp * ShuttleMission.HOVER_HP_THRESHOLD;
                     if (fuelOut || ammoOut || hpPressured) {
-                        beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
-                        mission.departingFromHover = true;
-                        mission.state = ShuttleState.DEPARTING;
+                        beginEgress(id, mission, body, /*fromHover*/ true);
                     }
                     break;
 
@@ -842,6 +857,38 @@ public class AirSystem {
         if (lengthSq < 1e-6f) return true;
         float travelled = ((body.x - fromX) * axisX + (body.y - fromY) * axisY) / lengthSq;
         return travelled >= 1f;
+    }
+
+    /**
+     * Points a sortie that is done at wherever it goes next, and says which
+     * kind of leg that is.
+     *
+     * <p>The one decision here is whether this craft has a strip to come home
+     * to. A sortie that rolled off one owes itself back to it and flies an
+     * approach; everything else leaves the way it always did. Which threshold
+     * it lands on is decided now rather than at dispatch, because it depends on
+     * where the craft actually finished up — an aircraft should touch down at
+     * the end of the runway it reaches first rather than fly the length of its
+     * own field to land the wrong way down it.
+     */
+    private void beginEgress(long id, ShuttleMission mission, AirBody body, boolean fromHover) {
+        Runway strip = airfield == null ? null : airfield.runway();
+        if (mission.usesRunway && strip != null) {
+            float[] touchdown = strip.touchdownThreshold(body.x, body.y);
+            mission.landOnRunway(strip, body.x, body.y, mission.shelterX, mission.shelterY);
+            mission.exitX = touchdown[0];
+            mission.exitY = touchdown[1];
+            // Not held at cruise the way a departure out of a hover is: this
+            // leg is a descent, and the altitude lerp has to be free to run it
+            // down to the threshold.
+            mission.departingFromHover = false;
+            beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
+            mission.state = ShuttleState.RETURNING;
+            return;
+        }
+        mission.departingFromHover = fromHover;
+        beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
+        mission.state = ShuttleState.DEPARTING;
     }
 
     private void beginShuttleLeg(ShuttleMission mission, AirBody body, float toX, float toY) {
