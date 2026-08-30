@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirframeCookOffSystem;
 import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
@@ -1118,9 +1119,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * resolve to null") holds in test fixtures the same way it does in
      * production.
      */
-    @Override
     public void releaseFromRegistry(long entityId) {
         rosterService.releaseFromRegistry(entityId);
+    }
+
+    /**
+     * Takes a living unit off the battlefield entirely — see
+     * {@link UnitRosterService#takeOffTheField}. Distinct from
+     * {@link #releaseFromRegistry} above, which is the death path's half and
+     * deliberately leaves the row for the corpse transmute.
+     */
+    @Override
+    public void takeOffTheField(long entityId) {
+        rosterService.takeOffTheField(entityId);
     }
 
     public long spawnShuttle(ShuttleType type, Faction faction,
@@ -1137,6 +1148,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         requireInternalAir("spawnShuttle");
         return airSystem.spawn(type, faction, lzX, lzY, entryX, entryY,
                 exitX, exitY, pendingDelay, seatsPerSortie);
+    }
+
+    /** Puts an aircraft with nothing in its hold into the air; see {@code AirSystem.spawnSortie}. */
+    public long spawnSortie(Airframe frame, Faction faction,
+                            float lzX, float lzY, float entryX, float entryY,
+                            float exitX, float exitY, float pendingDelay) {
+        requireInternalAir("spawnSortie");
+        return airSystem.spawnSortie(frame, faction, lzX, lzY, entryX, entryY,
+                exitX, exitY, pendingDelay);
     }
 
     public void addConvoyVehicle(VehicleType type, Faction faction, VehicleMission mission) {

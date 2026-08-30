@@ -67,12 +67,13 @@ public final class AirfieldSystem {
                 }
                 case AWAY -> {
                     // The aircraft is in the air now, so the unit that was
-                    // standing in for it comes off the map. Released rather
-                    // than killed: it has stopped being a unit, not stopped
-                    // existing, and a death here would owe a wreck and a
-                    // casualty nobody took.
+                    // standing in for it comes off the map entirely. Not
+                    // killed — a death here would owe a wreck and a casualty
+                    // nobody took — and not merely released, which leaves the
+                    // hull's row in the world for the render pass to keep
+                    // drawing on an empty pad.
                     if (berth.airframeId != 0L) {
-                        sim.releaseFromRegistry(berth.airframeId);
+                        sim.takeOffTheField(berth.airframeId);
                         berth.airframeId = 0L;
                     }
                 }

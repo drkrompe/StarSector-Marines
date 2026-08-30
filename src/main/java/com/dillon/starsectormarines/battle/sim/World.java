@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirTurrets;
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
@@ -344,9 +345,9 @@ public final class World {
     // has-gated null-returning like the rest of the air surface (kinematics/mission/…)
     // so a held id read after the craft's GONE-destroy answers null instead of
     // throwing — a live craft always has AIR_IDENTITY, so this never hides a real bug.
-    public ShuttleType airType(long id) {
+    public Airframe airframe(long id) {
         return entityWorld.has(id, components.AIR_IDENTITY)
-                ? (ShuttleType) entityWorld.getObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_TYPE)
+                ? (Airframe) entityWorld.getObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_TYPE)
                 : null;
     }
     public Faction airFaction(long id) {
@@ -355,7 +356,7 @@ public final class World {
                 : null;
     }
     /** Seed AIR_IDENTITY (present from the air spawn archetype). */
-    public void setAirIdentity(long id, ShuttleType type, Faction faction) {
+    public void setAirIdentity(long id, Airframe type, Faction faction) {
         entityWorld.setObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_TYPE, type);
         entityWorld.setObject(id, components.AIR_IDENTITY, BattleComponents.AIR_IDENTITY_FACTION, faction);
     }

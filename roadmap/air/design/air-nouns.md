@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a berth holds an airframe, so a shed can keep a factional fighter.
+Updated: 2026-08-30 — a sortie flown off a strip comes home to it.
 
 ## Purpose
 
@@ -236,9 +236,31 @@ and it is on its wheels and shootable for all of it: out of the shed, down to
 the threshold, a wait if the strip is busy, and then the roll itself, which is
 the only part where the aircraft is accelerating and not yet flying. Coming
 home it is the same in reverse — touch down at the end it reaches first, roll
-out to the far one, turn off, taxi back to its own shed. That is what a runway
+out to the far one, turn off, taxi back to its own shed.
+
+**Coming home is not leaving.** A craft that rolled off a strip owes itself back
+to it, and the leg that takes it there is an approach: it steers to a runway
+threshold rather than an off-map exit, it descends rather than climbing away,
+and it ends by taking the strip rather than by ceasing to exist. Everything a
+phase decides is the other way round, which is why it is a phase of its own
+rather than a departure with a different destination — and why the landing
+procedure sat unreachable for a while behind an egress that always flew off the
+map. Which end it lands on is decided when the leg starts rather than at
+dispatch, because it depends on where the sortie actually finished up. That is what a runway
 buys over a vertical lift: a minute of ground movement in the open, every
 second of which somebody can be standing on.
+
+An aircraft is **on the map from the moment it leaves a berth until it is
+finished with one**, and that is what decides whether it is drawn. Being over
+the battle is a narrower thing, and it is what decides whether the craft's guns
+and sensors are working: a machine taxiing to the strip is nose to tail with
+its own ground crew inside its own perimeter, which is neither somewhere to
+hunt for targets nor somewhere to sweep fifty cells from. The two questions
+were one predicate for a while, written as a list of the phases that qualified,
+and every phase added afterwards was left out of it — so a craft loading on its
+pad, taxiing, holding short, rolling, or taxiing back in was not drawn at all.
+A minute of exposed ground movement nobody can see is a vertical lift with
+extra steps.
 
 The strip itself is a **resource with one occupant**. Two aircraft rolling down
 one runway is not a race the simulation is entitled to lose, and the queue that

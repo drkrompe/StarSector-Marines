@@ -142,6 +142,17 @@ public class ShotFxTest {
                 assertEquals(expected.lengthCells(), bolt.lengthCells(), 0f, "bolt length for " + w);
                 assertEquals(expected.widthCells(), bolt.widthCells(), 0f, "bolt width for " + w);
             }
+            if (WeaponRegistry.STARTER_PRIMARY_ID.equals(w.id)) {
+                assertNotNull(fx.tracerTail(), "field rifle carries a short tracer tail");
+                assertEquals(0.65f, fx.tracerTail().lengthCells(), 0f);
+                assertSame(w.tracerColor(), fx.tracerTail().color());
+            } else if (WeaponRegistry.SMG_ID.equals(w.id)) {
+                assertNotNull(fx.tracerTail(), "SMG flechettes carry compact tracer tails");
+                assertEquals(0.40f, fx.tracerTail().lengthCells(), 0f);
+                assertSame(w.tracerColor(), fx.tracerTail().color());
+            } else {
+                assertNull(fx.tracerTail(), "primary has no authored tracer tail: " + w);
+            }
             assertTrue(fx.travels(), "every primary now has a traveling body: " + w);
             assertNoTrailsArcOrContrail(fx);
         }

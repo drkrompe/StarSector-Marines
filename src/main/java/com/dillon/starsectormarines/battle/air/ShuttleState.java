@@ -14,8 +14,8 @@ package com.dillon.starsectormarines.battle.air;
  * PENDING after DEPARTING and flies another sortie.
  *
  * <p>A craft based on a field with a strip has a ground procedure around that:
- * TAXI_OUT → HOLDING_SHORT → TAKEOFF_ROLL before INCOMING, and LANDING_ROLL →
- * TAXI_IN after it comes home. Those phases are on the ground — the aircraft is
+ * TAXI_OUT → HOLDING_SHORT → TAKEOFF_ROLL before INCOMING, and RETURNING →
+ * LANDING_ROLL → TAXI_IN after it comes home. Those phases are on the ground — the aircraft is
  * a target for all of them — which is what a runway buys over a vertical lift
  * off a hardstand. See `runway-airbase.md`.
  *
@@ -56,6 +56,17 @@ public enum ShuttleState {
      */
     LOADING,
     INCOMING, LANDED, HOVER_STATION, DEPARTING,
+    /**
+     * Flying home to its own field, and lined up on the strip.
+     *
+     * <p>Not {@link #DEPARTING} with a different destination. Everything a
+     * phase decides is the other way round here: it steers to a runway
+     * threshold rather than to an off-map exit, it descends rather than
+     * climbing away, and it ends by taking the strip rather than by ceasing to
+     * exist. A craft leaving the battle and a craft coming home are opposite
+     * things that happen to both involve flying away from an objective.
+     */
+    RETURNING,
     /**
      * Down on the strip and slowing to taxi speed after a landing.
      *

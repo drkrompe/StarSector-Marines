@@ -40,7 +40,8 @@ public enum RenderLayer {
      *  demolition packs and their known blast footprints, and a point-defence
      *  emplacement's bubble and engagements. */
     HAZARDS,
-    /** Simulation-owned smoke clouds. Above units so opacity reads honestly. */
+    /** Simulation-owned smoke clouds. Above fog and units so both visible and
+     *  unrevealed obscuration reads honestly without exposing what is beneath it. */
     SMOKE,
     /** Opaque roof tiles over interiors the player can't see — above units (hides
      *  them), but below objectives / drones / shuttles / shots / flyby, which pierce the roof. */

@@ -24,6 +24,17 @@ class MarineWeaponDefValidationTest {
         assertThrows(JSONException.class, () -> WeaponDef.parse(json));
     }
 
+    @Test
+    void tracerTailRequiresANonNegativeLengthAndProjectileSprite() throws Exception {
+        JSONObject negative = primaryWeapon();
+        negative.getJSONObject("render").put("tracerTailCells", -0.1);
+        assertThrows(JSONException.class, () -> WeaponDef.parse(negative));
+
+        JSONObject noSprite = primaryWeapon();
+        noSprite.getJSONObject("render").put("tracerTailCells", 0.5);
+        assertThrows(JSONException.class, () -> WeaponDef.parse(noSprite));
+    }
+
     private static JSONObject primaryWeapon() throws Exception {
         return new JSONObject("""
                 {
