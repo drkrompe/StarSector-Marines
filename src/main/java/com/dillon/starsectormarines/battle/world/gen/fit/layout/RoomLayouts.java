@@ -71,6 +71,28 @@ public final class RoomLayouts {
     }
 
     /**
+     * The footprint an authored layout wants for this purpose, or null to keep
+     * the one the recipe declares.
+     *
+     * <p>This is what makes a room's <em>size</em> editable rather than only its
+     * contents. A recipe's shape is a Java constant, so without it the tool
+     * could rearrange a berth and never widen one — and a layout drawn at a
+     * different footprint would simply stop matching its own room and be
+     * ignored, which is worse than refusing the edit.
+     *
+     * <p>Asked by the stage that packs a ship's room program, and by nothing
+     * else. A fortress interior packs its own shapes and must keep them: the
+     * footprint is the guard that keeps a ship's armoury layout out of a bunker,
+     * and a footprint that could rewrite itself there would dissolve that guard.
+     */
+    public RoomShape footprintFor(RoomPurpose purpose, RoomFit fit) {
+        for (RoomLayout layout : layouts) {
+            if (layout.purpose() == purpose && layout.fit() == fit) return layout.shape();
+        }
+        return null;
+    }
+
+    /**
      * Every id the installed layouts name, for one check against the tile
      * catalog. A layout naming a doodad the registry lacks furnishes nothing and
      * says nothing, so it is worth failing loudly at load instead.

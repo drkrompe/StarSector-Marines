@@ -323,7 +323,8 @@ public class BattleSprites {
                 float w = sprite.getWidth();
                 float h = sprite.getHeight();
                 float aspect = (h > 0f) ? w / h : 1f;
-                shuttleSprites.put(type, new ShuttleSpriteCache(sprite, aspect));
+                shuttleSprites.put(type, new ShuttleSpriteCache(sprite, aspect,
+                        (int) w, (int) h));
                 LOG.info("BattleSprites: loaded shuttle " + type.spritePath
                         + " (" + w + "x" + h + ", aspect=" + aspect + ")");
             } catch (Exception e) {

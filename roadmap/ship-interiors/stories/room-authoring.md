@@ -4,6 +4,8 @@ Status: IN PROGRESS
 
 Written: 2026-08-30
 
+Updated: 2026-08-30 — the model, the seeding and the page have landed. A room is an authored document, seeded by recording what its fitting does, edited on the workbench's Rooms page, and compared against what ships by generating the same hull twice. Two silent failure modes turned out to need naming and now do: a refused fixture and a fill discarded for sealing its room. Walls are now editable too, which turned out to rest on a defect: every bulkhead on every deck was rendering as nothing, because a wall with no exterior face draws its block's transparent centre and no ship stage ever stamped a face. Fixed, and a wall now draws from its own block's sheet rather than always from the urban one.
+
 Give the workbench a page that edits a shipboard room directly — its footprint,
 its floors and walls, and the fixtures standing on it — and let the result be
 what the game generates, compared against what it generates today before it is

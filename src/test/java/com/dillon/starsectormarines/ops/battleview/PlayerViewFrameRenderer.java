@@ -63,7 +63,8 @@ public final class PlayerViewFrameRenderer {
     public PlayerViewFrameRenderer(Path modRoot, int width, int height) {
         Path root = modRoot.toAbsolutePath().normalize();
         this.renderer = new HeadlessUiRenderer(
-                new HeadlessBattleSceneRenderer(root, true), root);
+                HeadlessBattleSceneRenderer.resourceRoots(root),
+                new HeadlessBattleSceneRenderer(root, true));
         this.width = width;
         this.height = height;
     }

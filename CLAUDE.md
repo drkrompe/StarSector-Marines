@@ -123,7 +123,11 @@ Do not run builds or leave generated task files there.
   exercising columns carrying the crew's off-watch time instead; see
   `CrewLivelinessEvidence` for why the dead count as idle.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
-  `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
+  `build/snapshots/` without launching Starsector or creating an OpenGL context.
+  It reads art from `mod/` first and the installed game second — the game's own
+  order — so vanilla-sourced sprites such as aircraft hulls appear in headless
+  frames. The install is already required to build at all (`starsectorDir`), and
+  a suite degrades to not drawing those sprites if it is missing. Select
   suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,perception-sweep,point-defence,ship-decks,turrets,ui`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
@@ -140,6 +144,67 @@ Do not run builds or leave generated task files there.
   `tileset_measure` tool measures a sheet and drafts its authoring seed, and
   `ProjectTilesetSeedsTest` fails the build for raw art that arrives without
   one.
+  The Rooms page edits one shipboard room: its footprint, its deck, and the
+  fixtures standing on it. It opens on **which room?** — a grid of every room
+  the ship has, each one drawn as it generates today through the battle
+  renderer, so choosing is looking rather than reading twenty enum names. The
+  whole set costs one deck generation and the tiles fill in as they are drawn.
+  From there it walks four screens: the
+  footprint, the deck, the fixtures, and a comparison. **No room starts from an
+  empty grid.** Opening one runs the procedural fitting that owns it and records
+  what it did, so the first thing on screen is the room that already ships and
+  the first edit is a change to it.
+  The room is edited **on its own picture**: the battle renderer draws it as a
+  small map of its own and the grid marks that up, rather than replacing it with
+  coloured rectangles. Choosing between a vent plate and hazard striping is a
+  decision that can only be made by looking, and the flat-colour version was
+  perfectly clear about reservations while being useless for the one question
+  the deck screen exists to answer. Rendered at one cell per cell with no
+  surround, so the marks line up without arithmetic, and redrawn off the event
+  thread after every edit — a render that finishes after a newer edit is dropped,
+  so the grid keeps the last good picture instead of blanking. The marks are what
+  a render cannot say: which cells are deck, which are reserved circulation, and
+  which step is anchored where. The comparison
+  screen generates **the same hull at the same seed twice**, with the layout
+  suppressed and applied, and renders both — so a room drawn too large to fit
+  shows up as a missing room rather than as a surprise later.
+  **Both ways an authored room fails are silent**, so the page replays every
+  draft before trusting it. A fixture whose cell is taken is refused and the
+  room merely comes out sparser; an arrangement that severs its own circulation
+  has its whole fill thrown away and the room generates as bare deck. A
+  checkerboard of crates across an armoury — fifteen fixtures, each legal alone
+  — produced a compartment with nothing in it, while the count still said
+  fifteen. `RoomLayoutCheck` is what turns both into sentences, the fixture
+  count shown is what actually stands up, and a layout that would seal its room
+  is refused at save.
+  A room draws its **deck** from blocks too: paint a run with `road.vent`,
+  `road.striped`, a `floors.*` variant pool, anything that is not a wall. That
+  is flavour and nothing else — a vent run and a striped run are the same floor
+  to pathing, cover and sight — which is why it is kept separate from setting a
+  cell's `GroundKind`, the thing consumers actually read. The picker offers
+  every non-wall block rather than a list of floor layouts, because the ways of
+  being a floor keep growing and an enumerated picker would omit the next one.
+  A room may also name its own **bulkhead**, offered from the blocks that can
+  actually be a wall — shape rather than spelling, since `road.embankment` is
+  one. It changes the picture only; topology, cover and sight are untouched, and
+  where two rooms back onto each other the shared ring is one wall that the
+  later room wins. This uncovered a defect worth knowing about: a wall with no
+  exterior face draws its block's transparent centre, and no ship stage ever
+  stamped a face, so **every bulkhead on every generated deck was rendering as
+  nothing**. A wall nobody stamped now takes a face on each open side; a mask
+  somebody already set is never re-derived, so cities are untouched.
+  A kept room is **written and loaded**: `mod/data/world/rooms/` holds one
+  document per purpose and refit level, and `rooms.json` indexes them because
+  mod code reads through `SettingsAPI` and cannot list a folder. The tool
+  rebuilds that index from what is on disk rather than appending to it, since an
+  index that drifted from the folder is a room that silently stopped loading.
+  `RoomLayoutCatalog.loadBuiltins` installs them at application load, defensively
+  — an unreadable room generates the way it did before anybody authored it,
+  which is a worse room rather than a broken ship.
+  Lanes are cleared by a command rather than by a click: a seeded armoury comes
+  back with six of its eight rows reserved, so an author who cannot un-reserve
+  can place almost nothing — but a stray click that deleted a room's
+  circulation would cost the whole fill.
   The Tilesets page opens on a question rather than on a workspace: **what are
   you doing?** Three ways in, each a walkthrough of numbered screens with Back
   and Next, and each screen holding only the controls its own step needs. The

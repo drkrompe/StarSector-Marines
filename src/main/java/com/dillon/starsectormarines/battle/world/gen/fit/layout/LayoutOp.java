@@ -22,7 +22,32 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 public sealed interface LayoutOp {
 
     /** Apply this step to a room that has been laid down at some pose. */
-    void apply(RoomFloor floor);
+    void apply(RoomFloor floor, Replay replay);
+
+    /**
+     * What a replay has to remember between steps.
+     *
+     * <p>Only berths need it, and they need it for a real reason: work done on a
+     * berthed machine names the berth it serves, and a berth's identity is an
+     * index the floor hands back rather than anything the document can know. A
+     * layout therefore numbers its own berths from zero and the replay maps
+     * those onto whatever indices this particular deck assigns — the alternative
+     * is a document whose task points are only valid on a deck with no other
+     * machine bays on it.
+     */
+    final class Replay {
+
+        private final java.util.List<Integer> berths = new java.util.ArrayList<>();
+
+        void berthed(int index) {
+            berths.add(index);
+        }
+
+        /** The index this deck gave the layout's {@code ordinal}-th berth, or -1. */
+        int berth(int ordinal) {
+            return ordinal >= 0 && ordinal < berths.size() ? berths.get(ordinal) : -1;
+        }
+    }
 
     /**
      * Circulation, reserved against furniture. Authored first in practice,
@@ -30,7 +55,7 @@ public sealed interface LayoutOp {
      */
     record Lane(int x, int y, int spanX, int spanY) implements LayoutOp {
         @Override
-        public void apply(RoomFloor floor) {
+        public void apply(RoomFloor floor, Replay replay) {
             int[] rect = floor.toLocalRect(x, y, spanX, spanY);
             floor.reserveLane(rect[0], rect[1], rect[2], rect[3]);
         }
@@ -42,7 +67,7 @@ public sealed interface LayoutOp {
      */
     record Closed(int x, int y, int spanX, int spanY) implements LayoutOp {
         @Override
-        public void apply(RoomFloor floor) {
+        public void apply(RoomFloor floor, Replay replay) {
             int[] rect = floor.toLocalRect(x, y, spanX, spanY);
             floor.closeOff(rect[0], rect[1], rect[2], rect[3]);
         }
@@ -51,7 +76,7 @@ public sealed interface LayoutOp {
     /** A run of floor marked as a different kind of ground. Real topology, not decoration. */
     record Ground(int x, int y, int spanX, int spanY, GroundKind kind) implements LayoutOp {
         @Override
-        public void apply(RoomFloor floor) {
+        public void apply(RoomFloor floor, Replay replay) {
             int[] rect = floor.toLocalRect(x, y, spanX, spanY);
             floor.markGround(rect[0], rect[1], rect[2], rect[3], kind);
         }
@@ -60,7 +85,7 @@ public sealed interface LayoutOp {
     /** Floor covering, which does not claim its cell — something may still stand on it. */
     record Paving(int x, int y, String doodadId) implements LayoutOp {
         @Override
-        public void apply(RoomFloor floor) {
+        public void apply(RoomFloor floor, Replay replay) {
             int[] cell = floor.toLocal(x, y);
             floor.pave(cell[0], cell[1], doodadId);
         }
@@ -78,7 +103,7 @@ public sealed interface LayoutOp {
      */
     record Fixture(int x, int y, String doodadId, Affordance affordance) implements LayoutOp {
         @Override
-        public void apply(RoomFloor floor) {
+        public void apply(RoomFloor floor, Replay replay) {
             int[] cell = floor.toLocal(x, y);
             if (affordance == null) {
                 floor.place(doodadId, cell[0], cell[1]);
@@ -98,7 +123,7 @@ public sealed interface LayoutOp {
     record Task(int x, int y, Affordance affordance, int fixtureX, int fixtureY)
             implements LayoutOp {
         @Override
-        public void apply(RoomFloor floor) {
+        public void apply(RoomFloor floor, Replay replay) {
             int[] stand = floor.toLocal(x, y);
             int[] fixture = floor.toLocal(fixtureX, fixtureY);
             floor.fixtureTask(stand[0], stand[1], affordance, fixture[0], fixture[1]);
@@ -115,9 +140,9 @@ public sealed interface LayoutOp {
      */
     record Berth(int x, int y, int spanX, int spanY, Gantry.Facing facing) implements LayoutOp {
         @Override
-        public void apply(RoomFloor floor) {
+        public void apply(RoomFloor floor, Replay replay) {
             int[] rect = floor.toLocalRect(x, y, spanX, spanY);
-            floor.berth(rect[0], rect[1], rect[2], rect[3], turned(floor));
+            replay.berthed(floor.berth(rect[0], rect[1], rect[2], rect[3], turned(floor)));
         }
 
         private Gantry.Facing turned(RoomFloor floor) {
@@ -126,6 +151,61 @@ public sealed interface LayoutOp {
                 if (candidate.dx == heading[0] && candidate.dy == heading[1]) return candidate;
             }
             return facing;
+        }
+    }
+
+    /**
+     * Work done on whatever the host parks in one of this layout's berths.
+     *
+     * <p>Distinct from {@link Task} because the thing being worked on is not a
+     * fixture the map owns: a technician services the machine standing in the
+     * bay, and the bay may be empty. {@code berth} numbers this layout's own
+     * berths from zero, in the order they are declared.
+     */
+    record BerthTask(int x, int y, int berth, int fixtureX, int fixtureY) implements LayoutOp {
+        @Override
+        public void apply(RoomFloor floor, Replay replay) {
+            int index = replay.berth(berth);
+            if (index < 0) return;
+            int[] stand = floor.toLocal(x, y);
+            int[] fixture = floor.toLocal(fixtureX, fixtureY);
+            floor.berthFixtureTask(stand[0], stand[1], index, fixture[0], fixture[1]);
+        }
+    }
+
+    /**
+     * What this room's bulkhead is made of.
+     *
+     * <p>The one step with no cell: a room has one wall all the way round, and
+     * authoring it per cell would be a way to draw a compartment whose corners
+     * disagree with its sides. Naming the block once is also what lets a deck of
+     * twelve identical berths spend a single surface index on them.
+     *
+     * <p>Carries no coordinates and so needs no pose mapping — a ring is a ring
+     * whichever way the room is turned.
+     */
+    record Bulkhead(String blockId) implements LayoutOp {
+        @Override
+        public void apply(RoomFloor floor, Replay replay) {
+            floor.markBulkhead(blockId);
+        }
+    }
+
+    /**
+     * A run of deck drawn from a named block — vent plate, striped hazard
+     * marking, whatever the room wants underfoot.
+     *
+     * <p>Distinct from {@link Ground}, which sets the cell's <em>kind</em>: that
+     * is a fact about the deck that pathing and cover read, while this is only
+     * what it looks like. Two rooms with the same floor and different plating
+     * play identically, which is exactly what makes this safe to use for
+     * flavour.
+     */
+    record Flooring(int x, int y, int spanX, int spanY, String blockId) implements LayoutOp {
+        @Override
+        public void apply(RoomFloor floor, Replay replay) {
+            int[] rect = floor.toLocalRect(x, y, spanX, spanY);
+            floor.markFloorSurface(rect[0], rect[1], rect[2], rect[3], blockId);
         }
     }
 }

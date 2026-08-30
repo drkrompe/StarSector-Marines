@@ -71,6 +71,15 @@ public final class MapResult {
      */
     public final List<FixtureTask> fixtureTasks;
     /**
+     * Authored airstrips. Empty for a map with nothing that rolls — most of
+     * them — and never null.
+     *
+     * <p>Published by the lot that laid the strip rather than recovered from
+     * the painted ground, so the centreline a sortie rolls along is the middle
+     * of the surface that was made. See {@link Runway}.
+     */
+    public final List<Runway> runways;
+    /**
      * Authored tactical hint graph the battle AI uses for squad allocation and
      * fallback routing. Never null — generators with no tactical layer return
      * an empty {@link TacticalMap}. See {@link TacticalMap} for the queries
@@ -233,6 +242,27 @@ public final class MapResult {
                      BiomeMap biomeMap,
                      List<Gantry> gantries,
                      List<FixtureTask> fixtureTasks) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, roadGraph,
+                landingPads, landingAreas, biomeMap, gantries, fixtureTasks,
+                Collections.emptyList());
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap,
+                     Buildings buildings,
+                     List<DefensePost> defensePosts,
+                     RoadGraph roadGraph,
+                     List<LandingPad> landingPads,
+                     List<LandingArea> landingAreas,
+                     BiomeMap biomeMap,
+                     List<Gantry> gantries,
+                     List<FixtureTask> fixtureTasks,
+                     List<Runway> runways) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -252,5 +282,6 @@ public final class MapResult {
         this.gantries = gantries == null ? Collections.emptyList() : List.copyOf(gantries);
         this.fixtureTasks = fixtureTasks == null
                 ? Collections.emptyList() : List.copyOf(fixtureTasks);
+        this.runways = runways == null ? Collections.emptyList() : List.copyOf(runways);
     }
 }
