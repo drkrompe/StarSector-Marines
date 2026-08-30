@@ -58,6 +58,18 @@ public enum FighterProfile implements Airframe {
             0f, 0f, 0f, 0f, 0f,
             FlybyOverlay.SFX_GUN_ENERGY, 1.0f, 1.0f, null),
 
+    /**
+     * Longbow — high-tech missile support fighter. The third delivery class:
+     * neither a gun that hits where the nose points nor a bomb that falls
+     * behind, but a pod of powered rounds released from well outside gun range.
+     */
+    LONGBOW("graphics/ships/longbow_intg.png", "longbow", 1.8f, 38f, 1,
+            WeaponClass.PROJECTILE,
+            new Color(0xC0, 0xE8, 0xFF), 0f, 0f, 0f,
+            2, 0.25f, 0f, 0f, 70, 0.25f,
+            22f, 120f, 5.0f, 2.2f, 46f,
+            FlybyOverlay.SFX_MISSILE_LAUNCH, 1.2f, 0.9f, "graphics/missiles/missile_harpoon.png"),
+
     /** Dagger — Tri-Tachyon torpedo bomber; one Reaper per shot. AoE detonation flattens walls and chews into clusters. */
     DAGGER("graphics/ships/dagger_trp.png", "dagger", 1.9f, 40f, 1,
             WeaponClass.PROJECTILE,
@@ -213,17 +225,21 @@ public enum FighterProfile implements Airframe {
     @Override public int hardpoints() { return mounts; }
 
     /**
-     * The guns this fighter runs in with. Keyed off its delivery model rather
-     * than listed per hull: a torpedo bomber and a gun fighter differ by what
-     * kind of weapon they carry, and the interceptors' energy armament paints a
-     * line where the ballistic ones throw up craters.
+     * The armament this fighter runs in with, which is to say how it delivers:
+     * a laser-pointer gun, the same delivery painted as a line, a pod of
+     * powered rounds thrown from standoff, or a stick of bombs that falls.
+     *
+     * <p>Named per hull and exhaustively, so a fighter added to this list
+     * cannot quietly inherit somebody else's weapon: what an airframe carries
+     * is a decision about that airframe.
      */
     @Override
     public AirOrdnance ordnance() {
-        if (weaponClass == WeaponClass.PROJECTILE) return AirOrdnance.BOMBS;
         return switch (this) {
+            case DAGGER -> AirOrdnance.BOMBS;
+            case LONGBOW -> AirOrdnance.MISSILES;
             case WASP, THUNDER -> AirOrdnance.BEAM;
-            default -> AirOrdnance.AUTOCANNON;
+            case TALON, BROADSWORD -> AirOrdnance.AUTOCANNON;
         };
     }
 
@@ -233,7 +249,7 @@ public enum FighterProfile implements Airframe {
 
     private static final List<FighterProfile> LOWTECH  = Arrays.asList(BROADSWORD, TALON, DAGGER);
     private static final List<FighterProfile> HIGHTECH = Arrays.asList(WASP, THUNDER, DAGGER);
-    private static final List<FighterProfile> MIDLINE  = Arrays.asList(TALON, BROADSWORD, THUNDER, DAGGER);
+    private static final List<FighterProfile> MIDLINE  = Arrays.asList(TALON, BROADSWORD, THUNDER, LONGBOW, DAGGER);
     private static final List<FighterProfile> MIXED    = Arrays.asList(values()); // all profiles
 
     /**
@@ -244,7 +260,10 @@ public enum FighterProfile implements Airframe {
      * Unknown faction ids fall back to the full pool so modded factions still
      * get some support. Dagger (torpedo bomber) shows up in every pool — every
      * faction fields some flavor of missile boat, and the AoE keeps it from
-     * being lost in a swarm of chaingun fighters.
+     * being lost in a swarm of chaingun fighters. Longbow is mid-line only: a
+     * standoff missile pod is the one delivery class that never has to come
+     * over the position it is attacking, and keeping it off both ends of the
+     * tech ladder is what stops every field on the map fielding one.
      */
     public static List<FighterProfile> poolForFaction(String factionId) {
         if (factionId == null) return MIXED;

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
+import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.turret.TurretImpactAudio;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
@@ -13,10 +14,14 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
+import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
+import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
+import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
 import com.fs.starfarer.api.Global;
 import org.lwjgl.util.vector.Vector2f;
 
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -63,6 +68,8 @@ public final class GroundSimPresentation {
     private final BattleRadioChatter radioChatter = new BattleRadioChatter();
     private final Vector2f scratch = new Vector2f();
     private final Vector2f zeroVel = new Vector2f(0f, 0f);
+    /** Weapon and impact cues for rounds delivered onto the ground. Host parity with BattleScreen. */
+    private final OrdnanceAudio ordnanceAudio = new OrdnanceAudio();
 
     public GroundSimPresentation(GroundBattleConfig cfg) {
         this.cfg = cfg;
@@ -97,8 +104,34 @@ public final class GroundSimPresentation {
         playRadioChatter(sim, dt);
         spawnAmbientFx(fx, sim);
 
+        driveOrdnanceFx(renderer, sim, dt);
         fx.advance(dt);
         renderer.getContrailFx().tick(sim.getActiveShots(), dt);
+    }
+
+    /**
+     * Rounds delivered onto the ground this frame — the flash and the weapon
+     * where they left, the round drawn on its way down, and the crater when it
+     * gets there. Same drive as {@code BattleScreen}: a delivery that is
+     * silent and invisible in one host and not the other is the host-parity
+     * gap this class already exists to close.
+     */
+    private void driveOrdnanceFx(BattleRenderer renderer, BattleSimulation sim, float dt) {
+        OrdnanceTraceFxService traces = renderer.getOrdnanceTraceFx();
+        List<OrdnanceRelease> releases = sim.getOrdnanceReleasesThisFrame();
+        for (int i = 0, n = releases.size(); i < n; i++) {
+            OrdnanceRelease release = releases.get(i);
+            traces.spawn(release);
+            OrdnanceFxRuntime.spawnRelease(
+                    renderer.getImpactFx(), renderer.getGroundLights(), release);
+        }
+        traces.advance(dt);
+        List<OrdnanceRelease> arrivals = traces.arrivalsThisFrame();
+        for (int i = 0, n = arrivals.size(); i < n; i++) {
+            OrdnanceFxRuntime.spawnArrival(
+                    renderer.getImpactFx(), renderer.getGroundLights(), arrivals.get(i));
+        }
+        ordnanceAudio.update(releases, arrivals, dt);
     }
 
     /** Line-tracer impacts land instantly (the beam covers its whole travel at fire), plus per-shot

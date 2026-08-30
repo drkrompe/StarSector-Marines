@@ -227,6 +227,23 @@ public final class ImpactFx {
         spawnFireBurst(x, y, radiusCells, 0.5f + radiusCells * 0.4f);
     }
 
+    /**
+     * A wall coming down: a fat rubble puff and a little smoke off it.
+     *
+     * <p>Louder than the chip dust a round that merely scratched the wall
+     * leaves, so collapse and chip read apart at a glance. Drained from the
+     * simulation's per-frame wall-collapse list, which is where every source of
+     * wall damage — a detonation, a rocket, a gun run — funnels into one
+     * visual; the flyby overlay owned this drain until it stopped owning
+     * anything.
+     */
+    public void spawnWallCollapse(float x, float y) {
+        spawnDust(x, y, true, 1.2f, 0.45f);
+        spawnSmokePuff(x + (rng.nextFloat() * 2f - 1f) * 0.2f,
+                       y + (rng.nextFloat() * 2f - 1f) * 0.2f,
+                       0.5f, 1.0f);
+    }
+
     /** Large external-impact recipe for orbital fire and future heavy support weapons. */
     public void spawnHeavyImpact(float x, float y, float radiusCells) {
         float core = Math.max(1.2f, Math.min(2.4f, radiusCells * 0.55f));

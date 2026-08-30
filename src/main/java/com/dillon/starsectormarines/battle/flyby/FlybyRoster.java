@@ -7,9 +7,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The complete set of fighter wings committed to a single battle. The
- * {@link FlybyOverlay} reads one of these on battle start and drives spawns
- * from the per-wing schedules; no random pool sampling involved.
+ * The complete set of fighter wings committed to a single battle.
+ * {@code air.AirCoverSystem} reads one of these off the simulation and flies
+ * the per-wing schedules; no random pool sampling involved.
  *
  * <p>Sources combine here: a mission-generated employer roster, an
  * enemy-side roster, and (Phase 2) a player-owned roster all merge into a

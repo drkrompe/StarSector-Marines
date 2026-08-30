@@ -6,11 +6,9 @@ import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import java.util.Random;
 
 /**
- * Static spawn helpers for persistent impact decals — bullet holes, craters,
- * rubble, shell casings. Lives in the fx package so both
- * {@link com.dillon.starsectormarines.ops.BattleScreen} (ground combat
- * impacts) and {@code com.dillon.starsectormarines.battle.flyby.FlybyOverlay}
- * (aerial strafe + missile impacts) can call the same recipes.
+ * Static spawn helpers for persistent impact decals: bullet holes, craters,
+ * rubble, shell casings. Lives in the fx package so every caller that puts a
+ * mark on the ground reaches the same recipes.
  *
  * <p>The decals themselves are stored on {@link BattleSimulation} so they
  * persist with the battle and reset cleanly on new missions.

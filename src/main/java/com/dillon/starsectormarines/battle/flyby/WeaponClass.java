@@ -1,9 +1,13 @@
 package com.dillon.starsectormarines.battle.flyby;
 
 /**
- * Per-weapon delivery model. Picks which fire-resolution path a profile takes
- * in the flyby overlay. Pure tag — no behavior on the enum itself; the
- * dispatch lives in {@link FlybyOverlay}'s fire methods.
+ * Per-weapon delivery model. Pure tag: no behavior on the enum itself.
+ *
+ * <p>What it selects today is the {@code air.AirOrdnance} a profile runs in
+ * with, a projectile fighter carrying bombs and a tracer one carrying guns.
+ * The tracer and projectile tuning blocks on {@link FighterProfile} are the
+ * last remnants of the deleted overlay's own fire resolution and are read by
+ * nothing; they fold into ordnance presets with the rest of that file.
  */
 public enum WeaponClass {
     /**

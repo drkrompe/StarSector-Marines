@@ -492,6 +492,13 @@ public class BattleSprites {
             ShuttleSpriteCache cache = loadTurretSprite(path);
             if (cache != null) projectileSpriteByPath.put(path, cache);
         }
+        // Bodies for delivered ordnance (today: the bomb an aircraft drops).
+        // Same effect-derived path set, same shared path-keyed cache — nothing
+        // here knows what carried the round.
+        for (String path : OrdnanceFx.spritePaths()) {
+            ShuttleSpriteCache cache = loadTurretSprite(path);
+            if (cache != null) projectileSpriteByPath.put(path, cache);
+        }
         // Mech chassis projectile sprites — every entry has one (chaingun
         // shell / SRM / LRM). Same load + aspect-capture pattern as the marine
         // primaries above.

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — an aircraft on its wheels is driven rather than flown.
+Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown.
 
 ## Purpose
 
@@ -120,7 +120,7 @@ hull on a hardstand cares.
 
 That narrowness is what lets the two lists stay separate. A transport is a
 `ShuttleType` and a fighter is a `FighterProfile`, and the game's fighters are
-**factional** — five hulls, and `FighterProfile.poolForFaction` already knows
+**factional** — six hulls, and `FighterProfile.poolForFaction` already knows
 that a Hegemony or Luddic or pirate field flies Talons and Broadswords while a
 Tri-Tachyon or Remnant one flies Wasps and Thunders. Copying those hulls into
 `ShuttleType` so a berth could name one would have put the same five aircraft
@@ -279,25 +279,119 @@ of how much of you is standing in it. Every round is an ordinary detonation, so
 splash, wall damage, line of sight and roof interception all come from the
 pipeline that already owns them, and a squad under an intact roof is not
 strafed. Measured on a platoon of twelve in the open: **massed shoulder to
-shoulder, three survive one strike; dispersed five cells apart, nine do.** Both
+shoulder, two survive one strike; dispersed five cells apart, ten do.** Both
 halves of that are the design — a run that killed everyone regardless would
 make dispersal pointless, and one that killed nobody would make the airfield
 pointless.
 
 The **ordnance** is about delivery rather than about guns, which is what lets a
 second kind of aircraft exist without a second kind of code. A rotary cannon, a
-beam and a stick of bombs differ in how fast rounds leave, how many there are,
-how tightly they land and how big a hole each makes. The one structural
-difference is whether the load is finite: a gun fires for as long as it holds
-its target under the nose, a bomber releases what it loaded and is done — which
-is why one can make three passes and the other cannot, and why a bomber's
-cadence has to be high enough to get the stick away in the second it is over
-the target rather than going home with bombs still aboard.
+beam, a missile pod and a stick of bombs differ in how fast rounds leave, how
+many there are, how tightly they land, how big a hole each makes — and, above
+all, in how a round physically gets from the aircraft to the ground.
+
+**Where a round lands is a consequence, never a dial.** An aircraft is at a
+height, and every round leaves it with some velocity of its own plus whatever it
+keeps of the machine's. The ground is where that sum arrives. There is no lead
+offset to tune, because a lead offset is an answer with its reasoning thrown
+away — and one set by hand goes stale the moment anything else about the weapon
+moves. Three delivery classes fall out of the same arithmetic:
+
+- A **gun** — a cannon or a beam — is a **laser pointer**. Its round is on the
+  ground inside a few hundredths of a second, so the aircraft does not move
+  while it is out there and the impact is simply where the nose was pointed at
+  the ground. The reach is sight geometry: a height and a depression, nothing
+  else. That is why it is more than a dozen cells and not four. Fire that lands
+  under the aircraft is fire from something hovering.
+- A **missile** has **its own motor**, so it neither depends on the aircraft's
+  momentum nor is limited to a gun's sight line. It is out there for a real
+  third of a second and it reaches half again as far, which is what lets a
+  missile boat work a position from standoff and turn away without ever coming
+  over it.
+- A **bomb** is only **let go**. It keeps most of the aircraft's speed and none
+  of its thrust, and spends a second and a half falling — and because it keeps
+  *most* rather than all of that speed, the aircraft is past the impact by the
+  time it happens. Bombs land behind the machine that dropped them, and nothing
+  told them to.
+
+A round with a real flight time is genuinely **in the air**: it goes on the same
+in-flight queue every other slow-flight munition uses, so the ground under it
+can change while it is there. Only a shell is fast enough to be resolved where
+it left.
+
+**Reach and firing range are one decision.** Rounds land from *range minus
+reach* short of the target to about *reach* past it as the craft closes, so a
+weapon that opens fire at twenty-six cells and puts its rounds four cells in
+front of the nose drops every single one of them short — which is what a strafe
+looked like from the ground, and the fault this model exists to remove. Every
+class leads about half its own firing range.
+
+A **finite load** makes the cadence part of the aim as well. A gun stops when
+the target passes off the nose, so its reach alone decides where the burst ends;
+a pod or a bomb bay stops when it is empty, and a load that empties early puts
+every round short however good the reach is. The release has to last long enough
+to carry the aircraft across the gap between its standoff and its reach.
+
+**Range is not aim.** A gun bolted to the nose can only put fire where the
+aircraft is pointed, so release is gated on the target lying within a cone of
+the nose and not merely on being near. Without that the run keeps firing on
+range alone and sprays the ground behind itself for the whole second half of the
+pass — invisible while the reach was four cells and glaring once it was not.
+The cone is also what ends a run: as the craft arrives over the position the
+bearing to it swings out through a right angle in a fraction of a second, and
+fire stops there.
+
+That gate exposed a second thing. A strike arrives **on station**, which is over
+the objective, so on its first pass the craft was already well inside its own
+run-in with nowhere left to attack from — the whole first pass consisted of
+flying away from the target while shooting. A craft that is not upstream of the
+line it is about to fly goes out to the start of it first, like any later pass.
+
+The one structural difference between kinds is whether the load is finite: a gun
+fires for as long as it holds its target under the nose, a bomber or a missile
+boat releases what it loaded and is done — which is why one can make three
+passes and the other cannot.
 
 Measured on a lattice of markers under one pass, the kinds come out visibly
-apart: a beam lands **about half as wide across the run** as a cannon does
-(1.0 cells against 1.9), which is the difference between painting a line and
-throwing craters.
+apart: a beam lands **about three quarters as wide across the run** as a cannon
+does (1.8 cells against 2.4), which is the difference between painting a line
+and throwing craters. Along the run the classes separate further — a cannon
+pass works the ground from **eleven cells short of the target to nine past**,
+and a missile pass from **sixteen short to ten past**, opening from further out
+and finishing in the same place.
+
+**And they are told apart at a glance and with your eyes shut.** A delivery is
+a thing to watch: the round leaves the nose, crosses open ground, and arrives.
+The three kinds get three pictures and three sounds rather than one effect
+scaled by calibre, because that difference is the only way a player reads which
+aircraft is over them. A cannon throws a fast stream of hot streaks that arrive
+short of where they were aimed and kick up dirt, under a thinned burst of gun
+fire. A beam is a narrow line that is simply *there* the instant it is
+released, dragged along under one held tone. A stick of bombs falls visibly —
+long enough to watch it come down — and lands as the same blast an airframe
+cooking off on its stand makes.
+
+The presentation keys on the **delivery**, not on the carrier. A shell, a beam
+and a bomb are what the effects are chosen by; nothing in the treatment knows
+an aircraft exists, so a later carrier that puts rounds on the ground the same
+way inherits all of it. The simulation resolves the delivery and publishes what
+happened; what it looks and sounds like is the presentation tier's business
+alone, and no rendering decision is readable from the simulation.
+
+**A round arrives when the picture says it does.** The delivery resolves the
+instant it is released, but a bomb is drawn falling for a third of a second, so
+the blast waits for the bomb rather than preceding it.
+
+**A cadence is not a volume.** A rotary cannon releases fourteen rounds a
+second and a beam twenty-four; a clip per round is not a louder gun, it is a
+wall of overlapping voices in which nothing else in the battle can be heard.
+Fire cues are thinned to a cadence that reads as a burst, and the beam — which
+is one continuous sound rather than a series of events — is a held loop left to
+lapse when the firing stops.
+
+Every clip is one of the base game's own mono weapon files, registered under our
+own id against the read-only install rather than copied, the same way the
+vehicle engine loops resolve. Nothing is redistributed.
 
 A **strike sortie** is the reason a station has sheds. An armed aircraft
 leaves on the field's own decision rather than on a request for passengers,
@@ -513,19 +607,74 @@ deterministic fixture replay.
 
 ### Fighters and drones
 
-Fighters are recurrent atmospheric passes. Their hull-derived handling already
-drives real bodies, preserving interceptor-versus-bomber contrast instead of a
-scripted constant-speed glide. They are not yet fully composed air entities:
-the legacy flyby presentation still owns their roster, lifecycle, firing, and
-rendering. The active fighter story moves those responsibilities into the air
-model while preserving the established loadout, faction-pool, and strafing
-semantics.
+Fighters fly the same sortie as anything else the air model puts up. A
+`FighterProfile` is an airframe: it says what the aircraft looks like, which
+hull sizes and flies it, what it drops, and how much of it there is to shoot.
+Everything else about a fighter is its sortie.
 
-A wing is a gameplay commitment, not merely a visual density setting. Formation,
-count, role, and carrier relationship are future wing-level semantics to add
-when the entity transition gives them a durable home. Fighter survival and
-air-to-air/anti-air interactions are separate future capabilities, not assumed
-by the current cycling-pass behavior.
+A fighter used to be none of that. It lived in a cosmetic overlay with its own
+heading integration, its own map-edge entry and cycling re-entry, its own
+cluster scan and bank-back state machine, its own tracer and missile fire
+resolving straight into the damage service, and its own particle system for all
+of it — every one a second, worse implementation of something the air model
+owns. Worse in a specific and consistent way: those rounds could not be stopped
+by a roof, that aircraft could not be shot down, that damage bypassed cover and
+armour, and nothing in the simulation that looks at air could see it. The
+overlay is gone; what remains under `battle.flyby` is the roster.
+
+Wing composition, air-to-air, and formation are still future capabilities. What
+a wing is today is a commitment: a profile, a side, and how many sorties arrive
+when.
+
+### Air cover, and where a sortie is from
+
+**Origin is a property of a sortie, not a kind of aircraft.** The same airframe
+flies the same runs whether it rolled out of a shed on the map or crossed the
+boundary from a carrier overhead. What differs is where it came from, what it
+owes itself back to, and therefore how it ends — and nothing between arriving on
+station and turning for home differs at all.
+
+There are two origins.
+
+A **berth** is an origin the map owns. The aircraft is borrowed from a
+hardstand, and the sortie carries that berth so a completed one parks and a lost
+one writes the stand off. `AirStrikeSystem` is the dispatcher.
+
+A **corridor** is an origin off the map: a named source, a point outside the map
+the craft enters by, and a point outside the map it leaves by. This is how a
+player's committed carrier bays reach the ground battle — friendly air cover,
+which flies in, works, and goes home without ever touching the map's own
+aviation. `AirCoverSystem` is the dispatcher and the wing's own schedule is the
+cadence.
+
+**A corridor is stated, never discovered.** Both its ends are off the map by
+construction, so there is nowhere on the map for an off-map sortie to appear or
+vanish. That rule is the whole reason the corridor is a thing rather than a pair
+of numbers picked where a craft is spawned: the transport dispatch that fell
+back to *the nearest suitable place on the map* put most of its sorties on
+hardstands nobody had assigned them, several of them on the same one, and
+deleted each craft on arrival. A dispatcher that cannot state a corridor
+declines the sortie, exactly as a field with nothing airworthy declines.
+
+The edge is the one nearest the sortie's own side, because that is the direction
+its carrier is overhead in and the direction a player reads as *ours*. Along it
+the sortie enters abeam what it was sent for, so the run-in is roughly straight
+at the objective, and leaves abeam its own force, so it goes home over its own
+people rather than across the enemy's.
+
+**Air cover makes passes and leaves; it does not hold station.** It is a strike
+sortie, which arrives on station rather than on a cell, flies its runs, and
+turns for home when the passes are spent — the same rule and the same code as a
+based strike, for the same reason the noun *attack run* exists at all. What ends
+it is the passes, or being shot down; there is no recall, because the player's
+control over air cover is at commitment time. That is also what makes the origin
+legible: the aircraft over the battle came from a named ship in the player's own
+fleet, which the player chose to commit before the drop.
+
+A corridor sortie interacts with the runway model not at all. It claims no
+strip, takes no berth, and never lands — it has no hardstand on this map to come
+home to. A field's strip is one origin's ground procedure, not a requirement of
+flying.
 
 ### Overhead ships
 
@@ -576,7 +725,6 @@ ground simulation interact. It may host external air, but does not create a
 second internal air model. `battle-render` owns the eventual camera-Z and
 view-projection work that gives altitude its shared presentation space.
 
-The next concrete work is `fighter-air-entities.md`. Ship collision, wing
-composition, anti-air, modeled fighter fire, modules, and air persistence stay
+Ship collision, wing composition, air-to-air, modules, and air persistence stay
 as extension paths until each has a bounded story and an identified gameplay
-need.
+need. `fighter-air-entities.md` carries what is left of the fold.

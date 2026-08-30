@@ -43,9 +43,9 @@ import java.util.Random;
 public final class BallisticResolver {
 
     /**
-     * A free-flying round remains physically live for this multiple of its
-     * weapon's maximum targeting range. The target only chooses direction;
-     * it does not impose an arbitrary short tail on a missed trajectory.
+     * A missed round remains physically live for this multiple of its
+     * weapon's maximum targeting range. An accurate round needs collision
+     * work only through its predicted contact with the intended body.
      */
     public static final float FLIGHT_RANGE_MULTIPLIER = 1.5f;
     /** A physical ray crossing another hostile always transfers the missed shot into that body. */
@@ -199,9 +199,9 @@ public final class BallisticResolver {
      * lateral/elevation miss clearance in the target plane; {@code
      * roundVelocity} is cells/sec, already resolved by the caller (see
      * {@link #DEFAULT_ROUND_VELOCITY}); {@code maximumTargetingRange} is the
-     * firing weapon's effective acquisition range and bounds a free flight at
-     * {@link #FLIGHT_RANGE_MULTIPLIER} times that distance. Reads only — safe
-     * to call from a parallel dispatch.
+     * firing weapon's effective acquisition range and bounds a missed free
+     * flight at {@link #FLIGHT_RANGE_MULTIPLIER} times that distance. Reads
+     * only — safe to call from a parallel dispatch.
      */
     public Resolution resolve(long shooter, long target,
                                float finalAccuracy, float effectiveSpread,
@@ -296,7 +296,25 @@ public final class BallisticResolver {
             dirX = 1f;
             dirY = 0f;
         }
-        float rawLen = maximumTargetingRange * FLIGHT_RANGE_MULTIPLIER;
+        float maximumFlightDistance = maximumTargetingRange * FLIGHT_RANGE_MULTIPLIER;
+        float rawLen = maximumFlightDistance;
+        if (aim.onTarget()) {
+            float targetContactTime = firstCircleContactTime(
+                    fromX, fromY, dirX, dirY, roundVelocity,
+                    targetX, targetY, wTargetX, wTargetY, targetRadius(target));
+            // Search only through the intended body's predicted entry point:
+            // walls, cover, and interposers before it still win, while
+            // irrelevant space behind a successful shot is never gathered or
+            // sorted. Math.nextUp keeps the independently repeated candidate
+            // solve inside the closed trace despite float roundoff. A
+            // pathological lead with no ground-circle intersection falls
+            // back to the sampled target plane rather than becoming a miss
+            // with a full free-flight tail.
+            float accurateFlightDistance = targetContactTime >= 0f
+                    ? Math.nextUp(roundVelocity * targetContactTime)
+                    : aimDist;
+            rawLen = Math.min(maximumFlightDistance, accurateFlightDistance);
+        }
         float rawEndX = fromX + dirX * rawLen;
         float rawEndY = fromY + dirY * rawLen;
 
@@ -319,7 +337,13 @@ public final class BallisticResolver {
                 ? Math.nextAfter(wallBoundaryX, rawEndX) : rawEndX;
         float rayEndY = wallFound
                 ? Math.nextAfter(wallBoundaryY, rawEndY) : rawEndY;
-        float rayLen = dist(fromX, fromY, rayEndX, rayEndY);
+        // rawLen is the authoritative distance for an unobstructed ray. Do
+        // not reconstruct it from rounded endpoint coordinates: an accurate
+        // trace ends one representable float beyond the intended contact,
+        // and a second sqrt can round that protection back below the contact.
+        float rayLen = wallFound
+                ? dist(fromX, fromY, rayEndX, rayEndY)
+                : rawLen;
         int shooterCellX = (int) Math.floor(fromX);
         int shooterCellY = (int) Math.floor(fromY);
         int rayEndCellX = (int) Math.floor(rayEndX);
@@ -389,32 +413,10 @@ public final class BallisticResolver {
             // contact when |R(s)| <= r. Quadratic a*s^2 + b*s + c = 0 in s.
             // w = 0 collapses this to S1's distance-domain ray-circle solve
             // exactly (proven by the stationary-regression test).
-            float relVelX = wx - roundVelocity * dirX;
-            float relVelY = wy - roundVelocity * dirY;
-            float r0x = ux - fromX;
-            float r0y = uy - fromY;
-            float a = relVelX * relVelX + relVelY * relVelY;
-            float b = 2f * (r0x * relVelX + r0y * relVelY);
-            float c = r0x * r0x + r0y * r0y - r * r;
-
-            float sEntry;
-            if (a < 1e-6f) {
-                // The candidate paces the round's relative closing velocity
-                // exactly (rare degenerate) — R is constant over the flight,
-                // so either it's already overlapping at fire time (contact
-                // at s=0) or it never will be. Never falls through to the
-                // sqrt below, so no NaN.
-                if (c > 0f) continue;
-                sEntry = 0f;
-            } else {
-                float disc = b * b - 4f * a * c;
-                if (disc < 0f) continue; // margin match but no real intersection with the exact radius
-                float sqrtDisc = (float) Math.sqrt(disc);
-                float sExit = (-b + sqrtDisc) / (2f * a);
-                if (sExit < 0f) continue; // circle entirely behind the shooter along this ray's timeline
-                sEntry = (-b - sqrtDisc) / (2f * a);
-                if (sEntry < 0f) sEntry = 0f; // shooter inside the collision radius, or the circle straddles s=0
-            }
+            float sEntry = firstCircleContactTime(
+                    fromX, fromY, dirX, dirY, roundVelocity,
+                    ux, uy, wx, wy, r);
+            if (sEntry < 0f) continue;
 
             // Wall cap and friendly proximity stay DISTANCE tests — the wall
             // is static, and distance-along-ray is also the round's actual
@@ -506,6 +508,37 @@ public final class BallisticResolver {
 
     private float targetHitHalfHeight(long id) {
         return convoy.isVehicle(id) ? convoy.hitHalfHeight(id) : roster.hitHalfHeight(id);
+    }
+
+    /**
+     * First non-negative contact time between the round ray and one moving
+     * body circle, or {@code -1} when their timelines never intersect.
+     */
+    private static float firstCircleContactTime(float fromX, float fromY,
+                                                float dirX, float dirY,
+                                                float roundVelocity,
+                                                float bodyX, float bodyY,
+                                                float bodyVelocityX, float bodyVelocityY,
+                                                float radius) {
+        float relVelX = bodyVelocityX - roundVelocity * dirX;
+        float relVelY = bodyVelocityY - roundVelocity * dirY;
+        float r0x = bodyX - fromX;
+        float r0y = bodyY - fromY;
+        float a = relVelX * relVelX + relVelY * relVelY;
+        float b = 2f * (r0x * relVelX + r0y * relVelY);
+        float c = r0x * r0x + r0y * r0y - radius * radius;
+
+        if (a < 1e-6f) {
+            // The body paces the round exactly. It contacts only when already
+            // overlapping at fire time; avoiding sqrt also prevents NaN.
+            return c <= 0f ? 0f : -1f;
+        }
+        float disc = b * b - 4f * a * c;
+        if (disc < 0f) return -1f;
+        float sqrtDisc = (float) Math.sqrt(disc);
+        float sExit = (-b + sqrtDisc) / (2f * a);
+        if (sExit < 0f) return -1f;
+        return Math.max(0f, (-b - sqrtDisc) / (2f * a));
     }
 
     /** Entry fraction of segment {@code a -> b} into one closed unit cell. */

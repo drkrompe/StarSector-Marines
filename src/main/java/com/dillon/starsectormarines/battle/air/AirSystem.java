@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.combat.Detonations;
@@ -757,7 +758,16 @@ public class AirSystem {
 
                 case INCOMING:
                     AirSteeringSystem.steer(body, mission.lzX, mission.lzY, SteeringMode.BRAKE_TO_STATION, flight, dt);
-                    updateShuttleAltitude(id, mission, body, mission.lzX, mission.lzY, /*incoming=*/true, dt);
+                    if (mission.strikeSortie) {
+                        // A strike is not descending to anything. The approach
+                        // ramp exists for a transport losing height onto its LZ;
+                        // running it for an attack sank the aircraft toward the
+                        // deck the whole way in and popped it back to cruise two
+                        // cells short of the target.
+                        world.setAltitudeT(id, 1f);
+                    } else {
+                        updateShuttleAltitude(id, mission, body, mission.lzX, mission.lzY, /*incoming=*/true, dt);
+                    }
                     if (mission.strikeSortie
                             && body.distanceTo(mission.lzX, mission.lzY) < STRIKE_ARRIVAL_DIST) {
                         // On station, not on the ground. A wider arrival than a
@@ -1306,9 +1316,16 @@ public class AirSystem {
     /** Passes a strike flies before it turns for home. */
     private static final int STRIKE_PASSES = 3;
 
-    /** Cells the run starts short of the target, and overshoots past it. */
-    private static final float RUN_LEAD_CELLS = 26f;
-    private static final float RUN_OVERSHOOT_CELLS = 18f;
+    /**
+     * Cells the run starts short of the target, and overshoots past it.
+     *
+     * <p>The run-in has to be longer than the longest weapon's firing range or
+     * the aircraft is already shooting the moment the line is laid out, which
+     * is not a run — it is a machine that happened to be pointed the right way.
+     * A missile pod releases from 34 cells, so the line starts outside that.
+     */
+    private static final float RUN_LEAD_CELLS = 44f;
+    private static final float RUN_OVERSHOOT_CELLS = 20f;
 
     /** How near its start point a repositioning craft has to get before it runs in. */
     private static final float RUN_ENTRY_DIST = 4f;
@@ -1323,8 +1340,22 @@ public class AirSystem {
      */
     private static final float RUN_BEARING_SHIFT_DEG = 115f;
 
-    /** Cells either side of the run line within which the guns are firing. */
-    private static final float FIRING_WINDOW_CELLS = 22f;
+    /**
+     * How far off the nose the target may lie and still be shot at.
+     *
+     * <p>Range on its own is not aim. A gun bolted to the nose can only put
+     * fire where the aircraft is pointed, so a craft that has flown past its
+     * target and is climbing away is not attacking it however near it still is
+     * — and without this gate that was exactly what happened, for the whole
+     * second half of every pass. The cone is what ends a run: as the craft
+     * arrives over the position the bearing to it swings out through a right
+     * angle in a fraction of a second, and fire stops there rather than
+     * continuing to spray the ground behind.
+     *
+     * <p>Generous rather than tight, because the run line is flown by a body
+     * with momentum and a craft crabbing a little is still attacking.
+     */
+    private static final float RELEASE_CONE_DEG = 30f;
 
     /**
      * Lays out the next pass: a straight line in through the target and out
@@ -1354,7 +1385,26 @@ public class AirSystem {
         mission.runToX = mission.lzX + dirX * RUN_OVERSHOOT_CELLS;
         mission.runToY = mission.lzY + dirY * RUN_OVERSHOOT_CELLS;
         loadForThePass(mission, ordnanceOf(id, mission));
-        mission.state = ShuttleState.ATTACK_RUN;
+        // A strike arrives on station, which is over the objective — so on the
+        // first pass the craft is already well inside its own run-in and has
+        // nowhere left to attack from. Send it out to the start of the line and
+        // let it roll in like any later pass, rather than opening the attack
+        // with a run that consists entirely of flying away.
+        mission.state = atRunStart(body, mission) ? ShuttleState.ATTACK_RUN : ShuttleState.REPOSITION;
+    }
+
+    /**
+     * Whether the craft is still upstream of the line it is about to fly, and
+     * can therefore simply start flying it.
+     */
+    private static boolean atRunStart(AirBody body, ShuttleMission mission) {
+        float axisX = mission.runToX - mission.runFromX;
+        float axisY = mission.runToY - mission.runFromY;
+        float lengthSq = axisX * axisX + axisY * axisY;
+        if (lengthSq < 1e-6f) return true;
+        float travelled = ((body.x - mission.runFromX) * axisX
+                + (body.y - mission.runFromY) * axisY) / lengthSq;
+        return travelled <= 0f;
     }
 
     /** What this pass has to give: a bomber's stick, or nothing to count for a gun. */
@@ -1404,30 +1454,70 @@ public class AirSystem {
      * ordinary detonation, so splash, wall damage, line of sight and the
      * roof-interception rule all come from the pipeline that already owns
      * them — a squad under an intact roof is not strafed.
+     *
+     * <p>Where a round lands is not chosen here. It falls out of
+     * {@link OrdnanceFlight}: a height, a launch and whatever the round keeps
+     * of the aircraft's own motion. A shell is on the ground a dozen cells in
+     * front before the aircraft has moved a hand's breadth; a bomb spends a
+     * second and a half falling and lands behind the machine that dropped it.
+     * The only thing added on top is scatter.
+     *
+     * <p>A round with a real flight time is <em>queued</em> rather than fired,
+     * so it is genuinely in the air: the ground under it can change while it is
+     * there, which is the difference between a bomb and a decision.
      */
     private void releaseOrdnance(long id, ShuttleMission mission, AirBody body, float dt) {
         AirOrdnance load = ordnanceOf(id, mission);
         if (load == null || detonations == null) return;
         if (!load.firesContinuously() && mission.roundsLeftThisPass <= 0) return;
         if (body.distanceTo(mission.lzX, mission.lzY) > load.firingRangeCells) return;
+        if (!pointedAt(body, mission.lzX, mission.lzY)) return;
         mission.fireCooldown -= dt;
         if (mission.fireCooldown > 0f) return;
         mission.fireCooldown = load.fireInterval();
         if (!load.firesContinuously()) mission.roundsLeftThisPass--;
 
-        // Ahead of the nose, then scattered. The heading is the aim.
-        double nose = Math.toRadians(body.facingDegrees + 90f);
-        float aimX = body.x + (float) Math.cos(nose) * load.leadCells;
-        float aimY = body.y + (float) Math.sin(nose) * load.leadCells;
-        float impactX = aimX + (float) rng.nextGaussian() * load.scatterCells;
-        float impactY = aimY + (float) rng.nextGaussian() * load.scatterCells;
+        OrdnanceFlight.Impact arrival = load.flight.deliver(
+                body.x, body.y, body.facingDegrees, body.vx, body.vy);
+        float impactX = arrival.x() + (float) rng.nextGaussian() * load.scatterCells;
+        float impactY = arrival.y() + (float) rng.nextGaussian() * load.scatterCells;
 
-        detonations.detonateNow(new PendingDetonation(
-                id, impactX, impactY, /*remainingTime*/ 0f,
+        effects.spawnOrdnanceRelease(AirOrdnanceDelivery.release(
+                id, load, body, Math.toRadians(body.facingDegrees + 90f),
+                impactX, impactY, world.airFaction(id), arrival.flightTimeSec()));
+
+        PendingDetonation round = new PendingDetonation(
+                id, impactX, impactY, arrival.flightTimeSec(),
                 load.aoeRadiusCells, load.damage, load.penetration,
                 load.wallDamage, world.airFaction(id), /*aerialDelivery*/ true,
                 /*wallDamageRadius*/ load.aoeRadiusCells, /*spawnDustOnWallBreak*/ true,
-                /*friendlyFireImmune*/ false));
+                /*friendlyFireImmune*/ false);
+        if (arrival.flightTimeSec() < BattleSimulation.TICK_DT) {
+            // A shell is already there. Queuing it would postpone the impact by
+            // a whole tick for a flight that lasts a fortieth of one.
+            detonations.detonateNow(round);
+        } else {
+            detonations.queue(round);
+        }
+    }
+
+    /**
+     * Whether the target lies close enough to the nose for the aircraft to be
+     * attacking it at all.
+     *
+     * <p>The aircraft is the weapon, so being in range of something behind you
+     * is not being able to shoot it. See {@link #RELEASE_CONE_DEG}.
+     */
+    private static boolean pointedAt(AirBody body, float targetX, float targetY) {
+        double nose = Math.toRadians(body.facingDegrees + 90f);
+        float noseX = (float) Math.cos(nose);
+        float noseY = (float) Math.sin(nose);
+        float dx = targetX - body.x;
+        float dy = targetY - body.y;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        if (dist < 1e-4f) return true;
+        float alignment = (dx * noseX + dy * noseY) / dist;
+        return alignment >= (float) Math.cos(Math.toRadians(RELEASE_CONE_DEG));
     }
 
     private void beginShuttleLeg(ShuttleMission mission, AirBody body, float toX, float toY) {
