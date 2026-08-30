@@ -116,8 +116,7 @@ public final class BattleFixtureTestSupport {
                     .append(mission.seatsPerSortie).append(':')
                     .append(mission.manifestOrdinal).append(':')
                     .append(mission.landingAreaId).append(':')
-                    .append(mission.arrivalGroupId).append(':')
-                    .append(mission.postDeliveryDisposition).append(';');
+                    .append(mission.arrivalGroupId).append(';');
         }
         for (FighterWing wing : sim.getFlybyRoster().wings) {
             fingerprint.append('f').append(wing.profile).append(':')

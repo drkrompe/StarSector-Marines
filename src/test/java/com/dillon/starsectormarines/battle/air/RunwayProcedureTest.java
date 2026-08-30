@@ -277,7 +277,6 @@ class RunwayProcedureTest {
             ShuttleMission mission = sim.world().mission(fighter);
             mission.homeBerth = shed;
             mission.strikeSortie = true;
-            mission.fireSupportSec = 6f;
             mission.hp = airfield.launch(shed);
             mission.departFromRunway(STRIP, SHELTER_X, SHELTER_Y, 50.5f, 30.5f);
             sim.world().kinematics(fighter).teleport(SHELTER_X, SHELTER_Y, 0f);
