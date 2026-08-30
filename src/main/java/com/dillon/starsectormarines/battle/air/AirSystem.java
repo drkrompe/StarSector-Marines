@@ -68,6 +68,26 @@ public class AirSystem {
      */
     private static final float AA_DPS_PER_POST = 6f;
 
+    /**
+     * Cell radius within which ground troops can engage an aircraft that is on
+     * its wheels. Rifle reach rather than the AA bubble: this is people
+     * shooting at a machine trundling past them.
+     */
+    private static final float GROUND_FIRE_RADIUS_CELLS = 10f;
+
+    /**
+     * HP/sec each enemy shooter in range drains from a taxiing aircraft.
+     *
+     * <p>Heavier per shooter than a defence post is against a flying craft,
+     * because a machine rolling at walking pace across open concrete is the
+     * easiest target on the field. Tuned against a Broadsword's 45: a fire team
+     * of six that gets alongside the taxiway writes one off in about a second
+     * and a half, so a strip really is the vulnerability the design claims —
+     * but they have to be in reach of it, and a taxi that is not interfered
+     * with is not slowed down at all.
+     */
+    private static final float GROUND_FIRE_DPS_EACH = 5f;
+
     /** Distance threshold (cells) at which an INCOMING shuttle snaps to the LZ and transitions to LANDED. Tight enough that the snap is invisible; loose enough that the asymptotic brake-to-station taper doesn't stall short. */
     private static final float SHUTTLE_LZ_ARRIVAL_DIST = 0.2f;
 
@@ -403,23 +423,37 @@ public class AirSystem {
         LongBucket scratch = new LongBucket();
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
-            if (!isAirborneHittable(mission.state)) continue;
+            boolean flying = isAirborneHittable(mission.state);
+            boolean rolling = isOnItsWheelsAndExposed(mission.state);
+            if (!flying && !rolling) continue;
             AirBody body = world.kinematics(id);
             Faction faction = world.airFaction(id);
             scratch.clear();
             navigation.getUnitIndex().gather(body.x, body.y,
-                    AA_THREAT_RADIUS_CELLS, scratch);
-            int posts = 0;
+                    flying ? AA_THREAT_RADIUS_CELLS : GROUND_FIRE_RADIUS_CELLS, scratch);
+            int shooters = 0;
             for (int i = 0, n = scratch.size; i < n; i++) {
                 long e = scratch.ids[i];
                 if (roster.identity().faction(e) == faction) continue;
-                if (!roster.identity().type(e).isTurret()) continue;     // defense posts only — not infantry / mechs
                 if (!world.isAlive(e)) continue;
-                posts++;
+                if (flying) {
+                    // Only a defense post can reach up. Infantry and mechs
+                    // cannot engage something overhead.
+                    if (!roster.identity().type(e).isTurret()) continue;
+                } else {
+                    // On the ground it is a large slow object in the open, and
+                    // anything that shoots can shoot it. A structure cannot —
+                    // that would make a parked aircraft threaten a taxiing one.
+                    if (roster.identity().type(e).isStatic()
+                            && !roster.identity().type(e).isTurret()) {
+                        continue;
+                    }
+                }
+                shooters++;
             }
-            if (posts == 0) continue;
-            mission.hp -= posts * AA_DPS_PER_POST * dt;
-            if (mission.hp <= 0f) shootDown(id, body, mission, posts);
+            if (shooters == 0) continue;
+            mission.hp -= shooters * (flying ? AA_DPS_PER_POST : GROUND_FIRE_DPS_EACH) * dt;
+            if (mission.hp <= 0f) shootDown(id, body, mission, shooters);
         }
     }
 
@@ -429,7 +463,30 @@ public class AirSystem {
      */
     private static boolean isAirborneHittable(ShuttleState st) {
         return st == ShuttleState.INCOMING || st == ShuttleState.HOVER_STATION
-                || st == ShuttleState.DEPARTING;
+                || st == ShuttleState.DEPARTING || st == ShuttleState.RETURNING
+                || st == ShuttleState.ATTACK_RUN || st == ShuttleState.REPOSITION;
+    }
+
+    /**
+     * Ground phases where the aircraft is out in the open under its own power,
+     * and anything with a weapon can shoot it.
+     *
+     * <p>This is what a runway is <em>for</em>. A strip buys a minute of
+     * movement across open ground in exchange for not lifting vertically off a
+     * stand, and that trade is worth nothing if the minute is invulnerable —
+     * which it was: air could only ever be engaged by defence posts, and only
+     * while airborne, so a fighter taxiing past a fire team was in no danger
+     * whatsoever.
+     *
+     * <p>A loading craft is deliberately not here. It is down with its ramp
+     * open and its passengers have already been taken off the roster, so making
+     * it shootable would owe them a disposition that nothing currently gives
+     * them; see {@code air-nouns.md}.
+     */
+    private static boolean isOnItsWheelsAndExposed(ShuttleState st) {
+        return st == ShuttleState.TAXI_OUT || st == ShuttleState.HOLDING_SHORT
+                || st == ShuttleState.TAKEOFF_ROLL
+                || st == ShuttleState.LANDING_ROLL || st == ShuttleState.TAXI_IN;
     }
 
     /**
