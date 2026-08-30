@@ -704,7 +704,8 @@ public class AirSystem {
                     world.setAltitudeT(id, 1f);
                     world.setFlightPhase(id, world.flightPhase(id)
                             + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
-                    if (body.distanceTo(mission.runFromX, mission.runFromY) < RUN_ENTRY_DIST) {
+                    if (linedUpToRunIn(id, mission, body)) {
+                        commitToTheLine(mission, body);
                         mission.state = ShuttleState.ATTACK_RUN;
                     }
                     break;
@@ -719,7 +720,7 @@ public class AirSystem {
                             /*incoming*/ true, dt);
                     if (body.distanceTo(mission.exitX, mission.exitY)
                             >= (mission.onFinalApproach
-                                    ? flyingArrivalDist(THRESHOLD_ARRIVAL_DIST, body, dt)
+                                    ? flyingArrivalDist(THRESHOLD_ARRIVAL_DIST, body, flight, dt)
                                     : joinFinalReachedDist(flight))) {
                         break;
                     }
@@ -794,7 +795,7 @@ public class AirSystem {
                     }
                     if (mission.strikeSortie
                             && body.distanceTo(mission.lzX, mission.lzY)
-                                    < flyingArrivalDist(STRIKE_ARRIVAL_FLOOR, body, dt)) {
+                                    < flyingArrivalDist(STRIKE_ARRIVAL_FLOOR, body, flight, dt)) {
                         // On station, not on the ground. A wider arrival than a
                         // touchdown because that is what arriving means here —
                         // the craft is over the objective rather than stopped
@@ -810,7 +811,7 @@ public class AirSystem {
                         break;
                     }
                     if (body.distanceTo(mission.lzX, mission.lzY)
-                            < flyingArrivalDist(SHUTTLE_LZ_ARRIVAL_FLOOR, body, dt)) {
+                            < flyingArrivalDist(SHUTTLE_LZ_ARRIVAL_FLOOR, body, flight, dt)) {
                         body.teleport(mission.lzX, mission.lzY, body.facingDegrees);
                         world.setAltitudeT(id, 0f);
                         mission.state = ShuttleState.LANDED;
@@ -909,7 +910,7 @@ public class AirSystem {
                     AirSteeringSystem.steer(body, mission.exitX, mission.exitY, SteeringMode.CRUISE, flight, dt);
                     updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY, /*incoming=*/false, dt);
                     if (body.distanceTo(mission.exitX, mission.exitY)
-                            < flyingArrivalDist(SHUTTLE_EXIT_ARRIVAL_FLOOR, body, dt)) {
+                            < flyingArrivalDist(SHUTTLE_EXIT_ARRIVAL_FLOOR, body, flight, dt)) {
                         if (mission.currentCycle + 1 < mission.totalCycles) {
                             // Recycle for another sortie. The shuttle drops out of
                             // view (PENDING is invisible + engine-silent) for
@@ -1257,9 +1258,8 @@ public class AirSystem {
      * threshold and is taken over there.
      */
     private static float joinFinalReachedDist(AirHandling flight) {
-        float turnRateRad = (float) Math.toRadians(flight.maxTurnRateDegPerSec());
-        if (turnRateRad < 1e-3f) return APPROACH_LEAD_CELLS;
-        return Math.max(THRESHOLD_ARRIVAL_DIST, flight.maxSpeed() / turnRateRad);
+        if (flight.maxTurnRateDegPerSec() < 1e-3f) return APPROACH_LEAD_CELLS;
+        return Math.max(THRESHOLD_ARRIVAL_DIST, flight.minTurnRadiusCells());
     }
 
     /**
@@ -1296,12 +1296,29 @@ public class AirSystem {
      * how fast it is rolling would let it call a threshold reached from a cell
      * and a half away with the strip still ahead of it.
      *
+     * <p><b>Two ways a craft cannot be sampled inside a gate, and it has to
+     * admit both.</b> The step is one. The other is the circle: a body steered
+     * at a point it cannot turn tightly enough to reach settles into an orbit
+     * around it — always about a turn radius out, always about ninety degrees
+     * off the bearing to it, indefinitely. Watched at the wide turn radius, a
+     * Broadsword sent to a landing zone circled it three and a half cells out
+     * at four cells a second for the rest of the battle, which is not a craft
+     * that is nearly there: it is a craft that will never be there. Both terms
+     * read the body's current speed, so both close as the craft slows and
+     * neither moves a braked arrival.
+     *
      * @param floorCells the authored tolerance, in cells
      * @param body       the craft, read for the speed it is actually making
+     * @param flight     the craft's handling, read for the circle it can fly
      * @param dt         the tick this gate is being tested on
      */
-    static float flyingArrivalDist(float floorCells, AirBody body, float dt) {
-        return Math.max(floorCells, ARRIVAL_TICK_MARGIN * body.speed() * dt);
+    static float flyingArrivalDist(float floorCells, AirBody body, AirHandling flight, float dt) {
+        float speed = body.speed();
+        float turnRateRad = (float) Math.toRadians(flight.maxTurnRateDegPerSec());
+        // A craft that cannot turn at all does not orbit — it flies straight
+        // past — so there is no circle to admit, only the step.
+        float orbit = turnRateRad < 1e-3f ? 0f : speed / turnRateRad;
+        return Math.max(floorCells, Math.max(ARRIVAL_TICK_MARGIN * speed * dt, orbit));
     }
 
     /**
@@ -1396,8 +1413,64 @@ public class AirSystem {
     private static final float RUN_LEAD_CELLS = 44f;
     private static final float RUN_OVERSHOOT_CELLS = 20f;
 
-    /** How near its start point a repositioning craft has to get before it runs in. */
-    private static final float RUN_ENTRY_DIST = 4f;
+    /**
+     * How far off the nose the objective may lie for a repositioning craft to
+     * roll in on it.
+     *
+     * <p>A run starts when the aircraft is pointed at the position from far
+     * enough out, and not when it has arrived at a place. Reaching a point and
+     * reaching it pointed the right way are different things — the same
+     * distinction a takeoff roll draws — and out here the difference is the
+     * whole pass. The start of a run laid out one leg early sits on the far
+     * side of the objective, so a craft steered onto it arrives <em>pointing
+     * away</em>: at a wide turn radius it then wheels through most of a
+     * half-circle to get its nose back round, wanders eight cells off its own
+     * line doing it, and takes the pass past the position instead of over it.
+     * Measured that way, the closest a gun run came to its objective was five
+     * and a half cells, which for a weapon that lands its rounds within two is
+     * a sortie flown at an empty field.
+     *
+     * <p>Tight rather than generous, because whatever is left when the run
+     * commits is a turn the aircraft still has to fly while it is shooting.
+     */
+    private static final float RUN_IN_CONE_DEG = 35f;
+
+    /**
+     * How far outside its own firing range a craft rolls in from.
+     *
+     * <p>A run-in has to start outside the weapon's reach or the aircraft is
+     * already shooting when the line is laid, which is not a run. Read off the
+     * load rather than fixed, because a missile boat opens from half again as
+     * far out as a gun fighter does and a single number would either crowd the
+     * one or send the other out to no purpose.
+     */
+    private static final float RUN_IN_MARGIN_CELLS = 2f;
+
+    /**
+     * Whether a repositioning craft is out far enough and pointed close enough
+     * at its objective to roll in on it.
+     *
+     * <p>Both halves are load-bearing. Without the standoff the craft rolls in
+     * from inside its own firing range and the burst is over before it is
+     * aimed; without the cone it rolls in sideways and flies the pass as one
+     * long turn. A craft that satisfies neither carries on round its circuit,
+     * which is what a repositioning aircraft is doing anyway — the heading
+     * sweeps the whole compass on every circuit, so the condition is reached
+     * rather than waited for.
+     */
+    private boolean linedUpToRunIn(long id, ShuttleMission mission, AirBody body) {
+        float dx = mission.lzX - body.x;
+        float dy = mission.lzY - body.y;
+        float dist = (float) Math.hypot(dx, dy);
+        AirOrdnance load = ordnanceOf(id, mission);
+        float standoff = load == null
+                ? RUN_LEAD_CELLS : load.firingRangeCells + RUN_IN_MARGIN_CELLS;
+        if (dist < standoff) return false;
+        float toTarget = (float) Math.toDegrees(Math.atan2(dy, dx));
+        float nose = body.facingDegrees + 90f;
+        float offNose = Math.abs(((toTarget - nose + 540f) % 360f) - 180f);
+        return offNose <= RUN_IN_CONE_DEG;
+    }
 
     /**
      * How far round the next run comes in from.
@@ -1459,21 +1532,52 @@ public class AirSystem {
         // nowhere left to attack from. Send it out to the start of the line and
         // let it roll in like any later pass, rather than opening the attack
         // with a run that consists entirely of flying away.
-        mission.state = atRunStart(body, mission) ? ShuttleState.ATTACK_RUN : ShuttleState.REPOSITION;
+        // A strike arrives on station, which is over the objective — so on the
+        // first pass the craft is usually already inside its own run-in with
+        // nowhere left to attack from, and the whole pass would consist of
+        // flying away from the target while shooting. Whether it can simply run
+        // in is the same question a later pass asks: is it out far enough, and
+        // is it pointed the right way.
+        if (linedUpToRunIn(id, mission, body)) {
+            commitToTheLine(mission, body);
+            mission.state = ShuttleState.ATTACK_RUN;
+        } else {
+            mission.state = ShuttleState.REPOSITION;
+        }
     }
 
     /**
-     * Whether the craft is still upstream of the line it is about to fly, and
-     * can therefore simply start flying it.
+     * Re-lays the run through the target from wherever the craft has actually
+     * ended up, at the moment it commits to the pass.
+     *
+     * <p>The line is still fixed for the whole run and still aimed at where the
+     * enemy was when the aircraft rolled in — this is that moment, and not a
+     * re-aim during the pass. What it removes is a lateral error the aircraft
+     * had no way to correct. A run laid out one leg early is a line through the
+     * target from a point the craft then has to <em>fly to</em>, and a machine
+     * that needs twenty cells to come round arrives beside that point rather
+     * than on it. From there it steers at the far end of the line, which from
+     * an offset start is a chord: the pass goes past the position instead of
+     * over it, by about a third of however far off the start was. Measured at
+     * the wide turn radius, the closest a gun run came to its own objective was
+     * five and a half cells, which for a weapon that lands its rounds within
+     * two is a sortie that attacked an empty field.
+     *
+     * <p>Laid through the target from the craft, so the aircraft is on the line
+     * by construction and the far end is straight ahead of it.
      */
-    private static boolean atRunStart(AirBody body, ShuttleMission mission) {
-        float axisX = mission.runToX - mission.runFromX;
-        float axisY = mission.runToY - mission.runFromY;
-        float lengthSq = axisX * axisX + axisY * axisY;
-        if (lengthSq < 1e-6f) return true;
-        float travelled = ((body.x - mission.runFromX) * axisX
-                + (body.y - mission.runFromY) * axisY) / lengthSq;
-        return travelled <= 0f;
+    private static void commitToTheLine(ShuttleMission mission, AirBody body) {
+        float dx = mission.lzX - body.x;
+        float dy = mission.lzY - body.y;
+        float length = (float) Math.hypot(dx, dy);
+        if (length < 1e-3f) return;   // On top of it; the laid line is as good as any.
+        float dirX = dx / length;
+        float dirY = dy / length;
+        mission.lastRunBearingDeg = (float) Math.toDegrees(Math.atan2(dirY, dirX));
+        mission.runFromX = body.x;
+        mission.runFromY = body.y;
+        mission.runToX = mission.lzX + dirX * RUN_OVERSHOOT_CELLS;
+        mission.runToY = mission.lzY + dirY * RUN_OVERSHOOT_CELLS;
     }
 
     /** What this pass has to give: a bomber's stick, or nothing to count for a gun. */

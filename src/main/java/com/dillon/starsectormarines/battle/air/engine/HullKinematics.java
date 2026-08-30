@@ -33,10 +33,29 @@ import com.dillon.starsectormarines.battle.air.AirScale;
  */
 public final class HullKinematics {
 
-    /** Atmosphere speed multiplier on top of the geometry density — the dial for "how fast air craft read." Calibration surface. */
-    static final float SPEED_ATMO_MULT = 1.3f;
-    /** Atmosphere turn multiplier; 1.0 = the hull's raw deg/sec. */
-    static final float TURN_ATMO_MULT = 1.0f;
+    /**
+     * Atmosphere speed multiplier on top of the geometry density — the dial for
+     * "how fast air craft read." Calibration surface.
+     *
+     * <p>Read with {@link #TURN_ATMO_MULT}, never alone. The two are one dial
+     * with two halves: what a fighter actually reads as is the circle it flies,
+     * and that is {@code speed / turn rate}, so raising the first and lowering
+     * the second compound.
+     */
+    static final float SPEED_ATMO_MULT = 2.2f;
+
+    /**
+     * Atmosphere turn multiplier; 1.0 would be the hull's raw deg/sec.
+     *
+     * <p>Below one because a hull's vanilla turn rate is a <em>space</em>
+     * fighter's, and space fighters pivot. Passed straight through, the game's
+     * numbers put every fighter on a turn radius of about seven cells — an
+     * aircraft that stops, spins and comes back, which is a bee rather than a
+     * machine with wings. Together with the speed above, the radius comes out
+     * around three times that, which is a wide banking circuit a player can
+     * watch develop and get out from under.
+     */
+    static final float TURN_ATMO_MULT = 0.55f;
     /** Atmospheric lateral drift damping (1/sec) — not in the ship spec; the boat-feel knob. */
     static final float LATERAL_DRIFT_DAMPING = 2.5f;
     /** Atmospheric station-keeping damping (1/sec); higher so a hovering craft settles. */

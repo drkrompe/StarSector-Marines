@@ -42,4 +42,24 @@ public interface AirHandling {
      * ambient drift instead of orbiting its station point.
      */
     float stationDamping();
+
+    /**
+     * The tightest circle this craft can fly at full speed, in cells.
+     *
+     * <p>The number that says whether a craft reads as an aircraft or as a
+     * bee, and the one the atmosphere calibration is actually dialling. Speed
+     * and turn rate are two dials with one product: raising the first and
+     * lowering the second both widen the arc, and neither of them separately
+     * says how wide. So the arc is asked for directly rather than inferred at
+     * each of the several places that care — a look-ahead, a gate wide enough
+     * not to be orbited, a review of how a re-dial reads.
+     *
+     * <p>Enormous for a craft that cannot turn at all, which is the honest
+     * answer rather than a divide by zero; callers that need a bound impose
+     * their own.
+     */
+    default float minTurnRadiusCells() {
+        float turnRateRad = (float) Math.toRadians(maxTurnRateDegPerSec());
+        return turnRateRad < 1e-3f ? Float.MAX_VALUE : maxSpeed() / turnRateRad;
+    }
 }
