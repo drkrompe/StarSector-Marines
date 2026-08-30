@@ -336,16 +336,13 @@ public final class FacingSystem {
         if (chaingunActive) authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_ACTIVE;
         if (srmActive) authoredFlags |= LayeredMechAppearance.FLAG_SRM_ACTIVE;
         if (lrmActive) authoredFlags |= LayeredMechAppearance.FLAG_LRM_ACTIVE;
-        if (trackFlash(arms)) {
-            authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_FLASH;
-            if ((arms.lastReleaseIndex & 1) != 0) {
-                authoredFlags |= LayeredMechAppearance.FLAG_SECONDARY_ARMS_MUZZLE;
-            }
+        if (trackFlash(arms)) authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_FLASH;
+        if (anyTrackFlash(loadout, WeaponRegistry.MECH_SRM_POD_ID)) {
+            authoredFlags |= LayeredMechAppearance.FLAG_SRM_FLASH;
         }
-        authoredFlags = shoulderFlashFlags(authoredFlags,
-                loadout.mount(MechMountSlot.LEFT_SHOULDER), true);
-        authoredFlags = shoulderFlashFlags(authoredFlags,
-                loadout.mount(MechMountSlot.RIGHT_SHOULDER), false);
+        if (anyTrackFlash(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID)) {
+            authoredFlags |= LayeredMechAppearance.FLAG_LRM_FLASH;
+        }
         flags[row] = authoredFlags;
     }
 
@@ -382,19 +379,13 @@ public final class FacingSystem {
                 mount.burstTimer, mount.weaponDef().burstSpacing);
     }
 
-    private static int shoulderFlashFlags(int flags, MechWeaponMount mount,
-                                          boolean leftSlot) {
-        if (!trackFlash(mount)) return flags;
-        if (WeaponRegistry.MECH_SRM_POD_ID.equals(mount.weaponId())) {
-            flags |= LayeredMechAppearance.FLAG_SRM_FLASH;
-        } else if (WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())) {
-            flags |= LayeredMechAppearance.FLAG_LRM_FLASH;
-        } else {
-            return flags;
+    private static boolean anyTrackFlash(MechLoadoutComponent loadout, String weaponId) {
+        for (MechWeaponMount mount : loadout.mounts()) {
+            if (mount != null && mount.weaponId().equals(weaponId) && trackFlash(mount)) {
+                return true;
+            }
         }
-        return flags | (leftSlot
-                ? LayeredMechAppearance.FLAG_LEFT_SHOULDER_FLASH
-                : LayeredMechAppearance.FLAG_RIGHT_SHOULDER_FLASH);
+        return false;
     }
 
     private static void authorLayeredRow(
