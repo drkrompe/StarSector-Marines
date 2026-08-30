@@ -14,6 +14,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -40,6 +41,8 @@ final class BattleHudOverlay {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
+    private boolean primaryPointerActive;
+    private boolean secondaryPointerActive;
     private BattleHudOverlayModel.Presentation presentation =
             new BattleHudOverlayModel.Presentation(false, false);
 
@@ -116,12 +119,58 @@ final class BattleHudOverlay {
     }
 
     void processInput(List<InputEventAPI> events) {
-        if (input != null) input.process(events);
+        if (input == null || events == null || viewport == null
+                || markupInstance == null) return;
+        List<InputEventAPI> retained = new ArrayList<>(events.size());
+        for (InputEventAPI event : events) {
+            if (event.isConsumed()) {
+                clearReleasedPointer(event);
+                continue;
+            }
+            boolean pointerEvent = event.isLMBDownEvent() || event.isLMBUpEvent()
+                    || event.isRMBDownEvent() || event.isRMBUpEvent()
+                    || event.isMouseScrollEvent();
+            boolean pointerMovement = event.isMouseMoveEvent();
+            boolean inside = (pointerEvent || pointerMovement)
+                    && insideInteractiveSurface(
+                    viewport.documentX(event.getX()),
+                    viewport.documentY(event.getY()));
+            boolean activeRelease = (event.isLMBUpEvent() && primaryPointerActive)
+                    || (event.isRMBUpEvent() && secondaryPointerActive);
+            if (pointerMovement || !pointerEvent || inside || activeRelease) {
+                retained.add(event);
+            }
+            if (event.isLMBDownEvent() && inside) primaryPointerActive = true;
+            if (event.isRMBDownEvent() && inside) secondaryPointerActive = true;
+            clearReleasedPointer(event);
+        }
+        input.process(retained);
+    }
+
+    private void clearReleasedPointer(InputEventAPI event) {
+        if (event.isLMBUpEvent()) primaryPointerActive = false;
+        if (event.isRMBUpEvent()) secondaryPointerActive = false;
+    }
+
+    private boolean insideInteractiveSurface(float documentX, float documentY) {
+        return insideInteractiveSurface(markupInstance, documentX, documentY);
+    }
+
+    /** The wide retained document uses a transparent spacer between its two rails. */
+    static boolean insideInteractiveSurface(MarkupInstance instance,
+                                            float documentX, float documentY) {
+        if (instance == null) return false;
+        return instance.requireElement("battle-conquest-command")
+                .box().borderBox().contains(documentX, documentY)
+                || instance.requireElement("battle-command-rail")
+                .box().borderBox().contains(documentX, documentY);
     }
 
     void detach() {
         if (document != null) document.deactivateInput();
         input = null;
+        primaryPointerActive = false;
+        secondaryPointerActive = false;
     }
 
     static UiViewport viewport(PositionAPI position,
