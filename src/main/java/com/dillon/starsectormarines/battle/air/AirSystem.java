@@ -203,6 +203,33 @@ public class AirSystem {
                 exitX, exitY, pendingDelay, type.capacity);
     }
 
+    /**
+     * Puts an aircraft with nothing in its hold into the air.
+     *
+     * <p>The counterpart to the transport spawn above, which takes a
+     * {@link ShuttleType} and a manifest because both only mean anything for a
+     * craft with a hold. This takes any {@link Airframe} and no manifest, which
+     * is what a fighter is: it flies out, does whatever it is for, and comes
+     * back. The seat validation is skipped rather than passed a zero, because
+     * an aircraft with no seats is not a transport carrying none.
+     */
+    public long spawnSortie(Airframe frame, Faction faction,
+                            float lzX, float lzY, float entryX, float entryY,
+                            float exitX, float exitY, float pendingDelay) {
+        AirBody body = new AirBody();
+        body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
+        ShuttleMission mission = new ShuttleMission(lzX, lzY, entryX, entryY, exitX, exitY,
+                pendingDelay, 0, frame.maxHp());
+        long id = roster.allocateAir(shuttleArchetype);
+        world.setAirIdentity(id, frame, faction);
+        world.setKinematics(id, body);
+        world.setMission(id, mission);
+        world.setAltitudeT(id, 1f);
+        world.setFlightPhase(id, 0f);
+        air.add(id);
+        return id;
+    }
+
     /** Spawns an infantry shuttle carrying a validated subset of its physical seats. */
     public long spawn(ShuttleType type, Faction faction,
                       float lzX, float lzY, float entryX, float entryY,
@@ -216,6 +243,10 @@ public class AirSystem {
         body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
         ShuttleMission mission = new ShuttleMission(lzX, lzY, entryX, entryY, exitX, exitY,
                 pendingDelay, seatsPerSortie, type.maxHp);
+        // Taken off the hull once, here, rather than read off it every tick:
+        // the hull says what it can do and the sortie says what it is doing.
+        mission.deboardInterval = type.deboardInterval;
+        mission.fireSupportSec = type.fireSupportSec;
         long id = roster.allocateAir(shuttleArchetype);
         world.setAirIdentity(id, type, faction);
         world.setKinematics(id, body);
@@ -389,7 +420,7 @@ public class AirSystem {
 
         handBackToField(mission, /*recovered*/ false);
         mission.state = ShuttleState.GONE;
-        LOG.info("air: shuttle " + world.airType(id) + " shot down by " + posts + " AA post(s) with "
+        LOG.info("air: shuttle " + world.airframe(id) + " shot down by " + posts + " AA post(s) with "
                 + mission.marinesRemaining + " marine(s) still aboard.");
     }
 
@@ -409,9 +440,10 @@ public class AirSystem {
             // PENDING (off-map re-arm) intentionally keeps advancing: the cycle
             // teleport zeroes the body, so demand decays to 0 over the rearm
             // window and the next INCOMING sortie spools the plumes up from cold.
-            ShuttleType type = world.airType(id);
-            EngineSlotData[] slots = EngineSlotResolver.resolve(type);
-            ThrusterFxSystem.advance(id, slots, world.kinematics(id), type, entityWorld, components, dt);
+            Airframe frame = world.airframe(id);
+            EngineSlotData[] slots = EngineSlotResolver.resolve(frame);
+            ThrusterFxSystem.advance(id, slots, world.kinematics(id), frame.flight(),
+                    entityWorld, components, dt);
         }
     }
 
@@ -431,7 +463,8 @@ public class AirSystem {
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
             AirBody body = world.kinematics(id);
-            ShuttleType type = world.airType(id);
+            Airframe frame = world.airframe(id);
+            AirHandling flight = frame.flight();
             switch (mission.state) {
                 case PENDING:
                     mission.pendingDelay -= dt;
@@ -479,7 +512,7 @@ public class AirSystem {
                     // every second of this, which is what the crossing is for.
                     world.setAltitudeT(id, 0f);
                     AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
-                            SteeringMode.BRAKE_TO_STATION, GroundHandling.taxiing(type), dt);
+                            SteeringMode.BRAKE_TO_STATION, GroundHandling.taxiing(flight), dt);
                     if (body.distanceTo(mission.holdX, mission.holdY) < THRESHOLD_ARRIVAL_DIST) {
                         mission.state = ShuttleState.HOLDING_SHORT;
                     }
@@ -492,7 +525,7 @@ public class AirSystem {
                     // being destroyed on the taxiway.
                     world.setAltitudeT(id, 0f);
                     AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
-                            SteeringMode.STATION, GroundHandling.taxiing(type), dt);
+                            SteeringMode.STATION, GroundHandling.taxiing(flight), dt);
                     if (airfield != null && airfield.claimRunway(id)) {
                         beginShuttleLeg(mission, body, mission.rollX, mission.rollY);
                         mission.state = ShuttleState.TAKEOFF_ROLL;
@@ -501,7 +534,7 @@ public class AirSystem {
 
                 case TAKEOFF_ROLL:
                     AirSteeringSystem.steer(body, mission.rollX, mission.rollY,
-                            SteeringMode.CRUISE, GroundHandling.rolling(type), dt);
+                            SteeringMode.CRUISE, GroundHandling.rolling(flight), dt);
                     // Altitude tracks how much of the strip is behind it, so the
                     // craft is on the ground at the threshold and flying at the
                     // far end. Rotating early would put it in the air over its
@@ -523,7 +556,7 @@ public class AirSystem {
                     // use simply stays here, stopped off the threshold, until
                     // whoever is rolling has finished with it.
                     AirSteeringSystem.steer(body, mission.exitX, mission.exitY,
-                            SteeringMode.BRAKE_TO_STATION, type, dt);
+                            SteeringMode.BRAKE_TO_STATION, flight, dt);
                     updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY,
                             /*incoming*/ true, dt);
                     if (body.distanceTo(mission.exitX, mission.exitY) < THRESHOLD_ARRIVAL_DIST
@@ -536,7 +569,7 @@ public class AirSystem {
                 case LANDING_ROLL:
                     world.setAltitudeT(id, 0f);
                     AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
-                            SteeringMode.BRAKE_TO_STATION, GroundHandling.rolling(type), dt);
+                            SteeringMode.BRAKE_TO_STATION, GroundHandling.rolling(flight), dt);
                     if (body.distanceTo(mission.holdX, mission.holdY) < THRESHOLD_ARRIVAL_DIST) {
                         // Off the strip before anything else may have it.
                         if (airfield != null) airfield.releaseRunway(id);
@@ -547,7 +580,7 @@ public class AirSystem {
                 case TAXI_IN:
                     world.setAltitudeT(id, 0f);
                     AirSteeringSystem.steer(body, mission.shelterX, mission.shelterY,
-                            SteeringMode.BRAKE_TO_STATION, GroundHandling.taxiing(type), dt);
+                            SteeringMode.BRAKE_TO_STATION, GroundHandling.taxiing(flight), dt);
                     if (body.distanceTo(mission.shelterX, mission.shelterY) < THRESHOLD_ARRIVAL_DIST) {
                         handBackToField(mission, /*recovered*/ true);
                         mission.state = ShuttleState.GONE;
@@ -555,29 +588,34 @@ public class AirSystem {
                     break;
 
                 case INCOMING:
-                    AirSteeringSystem.steer(body, mission.lzX, mission.lzY, SteeringMode.BRAKE_TO_STATION, type, dt);
+                    AirSteeringSystem.steer(body, mission.lzX, mission.lzY, SteeringMode.BRAKE_TO_STATION, flight, dt);
                     updateShuttleAltitude(id, mission, body, mission.lzX, mission.lzY, /*incoming=*/true, dt);
                     if (body.distanceTo(mission.lzX, mission.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
                         body.teleport(mission.lzX, mission.lzY, body.facingDegrees);
                         world.setAltitudeT(id, 0f);
                         mission.state = ShuttleState.LANDED;
-                        mission.deboardCountdown = type.deboardInterval;
+                        mission.deboardCountdown = mission.deboardInterval;
                     }
                     break;
 
                 case LANDED:
                     mission.deboardCountdown -= dt;
                     if (mission.marinesRemaining > 0) mission.unloadStalledFor += dt;
-                    if (mission.deboardCountdown <= 0f && mission.marinesRemaining > 0) {
+                    // Only a transport has anything to set down, and the
+                    // payload machinery is written against one — so the carrier
+                    // is asked for here rather than carried through the whole
+                    // state machine as if every aircraft had a hold.
+                    if (mission.deboardCountdown <= 0f && mission.marinesRemaining > 0
+                            && frame instanceof ShuttleType carrier) {
                         AirDeliveryPayload payload = mission.payload != null
                                 ? mission.payload : InfantryPayload.INSTANCE;
-                        if (payload.tryDeploy(new AirDeliveryContext(mission, type, world.airFaction(id),
+                        if (payload.tryDeploy(new AirDeliveryContext(mission, carrier, world.airFaction(id),
                                 navigation, roster, addUnitSink, resupply, commandControl))) {
                             mission.marinesRemaining--;
                             mission.deboardedThisSortie++;
                             mission.unloadStalledFor = 0f;
                         }
-                        mission.deboardCountdown = type.deboardInterval;
+                        mission.deboardCountdown = mission.deboardInterval;
                     }
                     // Nowhere to put anybody, for long enough that there is not
                     // going to be. The craft leaves with whoever is still
@@ -586,7 +624,7 @@ public class AirSystem {
                     // and a parked aircraft that never departs is a silent one.
                     if (mission.marinesRemaining > 0
                             && mission.unloadStalledFor >= UNLOAD_PATIENCE_SEC) {
-                        LOG.warn("air: " + world.airType(id) + " could not unload "
+                        LOG.warn("air: " + world.airframe(id) + " could not unload "
                                 + mission.marinesRemaining + " of its passengers at ("
                                 + mission.lzX + "," + mission.lzY
                                 + ") — no standable cell within " + UNLOAD_PATIENCE_SEC
@@ -603,7 +641,7 @@ public class AirSystem {
                             // squad centroid (leashed to LZ radius).
                             mission.hoverPointX = mission.lzX;
                             mission.hoverPointY = mission.lzY;
-                            mission.hoverTimerSec = type.fireSupportSec;
+                            mission.hoverTimerSec = mission.fireSupportSec;
                             mission.takeoffTimer = ShuttleMission.T_TAKEOFF_SEC;
                             world.setAltitudeT(id, 0f);   // smoothstep ramps from here
                             mission.departingFromHover = false;
@@ -620,7 +658,7 @@ public class AirSystem {
                     // wiped squad or a runaway scout doesn't drag the shuttle
                     // across the whole map.
                     updateHoverFollow(mission);
-                    AirSteeringSystem.steer(body, mission.hoverPointX, mission.hoverPointY, SteeringMode.STATION, type, dt);
+                    AirSteeringSystem.steer(body, mission.hoverPointX, mission.hoverPointY, SteeringMode.STATION, flight, dt);
                     mission.hoverTimerSec -= dt;
                     // Takeoff phase — smoothstep altitudeT 0 → 1 over
                     // T_TAKEOFF_SEC for a visible acceleration / deceleration
@@ -641,14 +679,14 @@ public class AirSystem {
                     // today there's no damage source so it never trips.
                     boolean fuelOut = mission.hoverTimerSec <= 0f;
                     boolean ammoOut = allTurretsDry(id);
-                    boolean hpPressured = mission.hp <= type.maxHp * ShuttleMission.HOVER_HP_THRESHOLD;
+                    boolean hpPressured = mission.hp <= frame.maxHp() * ShuttleMission.HOVER_HP_THRESHOLD;
                     if (fuelOut || ammoOut || hpPressured) {
                         beginEgress(id, mission, body, /*fromHover*/ true);
                     }
                     break;
 
                 case DEPARTING:
-                    AirSteeringSystem.steer(body, mission.exitX, mission.exitY, SteeringMode.CRUISE, type, dt);
+                    AirSteeringSystem.steer(body, mission.exitX, mission.exitY, SteeringMode.CRUISE, flight, dt);
                     updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY, /*incoming=*/false, dt);
                     if (body.distanceTo(mission.exitX, mission.exitY) < SHUTTLE_EXIT_ARRIVAL_DIST) {
                         if (mission.currentCycle + 1 < mission.totalCycles) {
@@ -663,16 +701,18 @@ public class AirSystem {
                             }
                             AirDeliveryPayload payload = mission.payload != null
                                     ? mission.payload : InfantryPayload.INSTANCE;
-                            mission.marinesRemaining = payload == InfantryPayload.INSTANCE
-                                    ? mission.seatsPerSortie
-                                    : payload.unitsPerSortie(type);
+                            mission.marinesRemaining =
+                                    payload != InfantryPayload.INSTANCE
+                                            && frame instanceof ShuttleType carrier
+                                    ? payload.unitsPerSortie(carrier)
+                                    : mission.seatsPerSortie;
                             mission.deboardedThisSortie = 0;   // fresh sortie → loadout index restarts at 0
                             mission.pendingDelay = mission.rearmDelay;
                             // The re-arm is a full refit at the carrier, so repair the hull too —
                             // without this, AA damage (D3) carries across sorties and a cycling
                             // shuttle dies early on a later run despite "re-arming". Symmetric with
                             // the magazine refill below.
-                            mission.hp = type.maxHp;
+                            mission.hp = frame.maxHp();
                             // Clear the sortie-local squad cache. Untagged
                             // personnel mint a fresh squad next cycle; tagged
                             // campaign personnel resolve their existing
@@ -952,7 +992,7 @@ public class AirSystem {
             gathered[found++] = u;
         }
         for (int i = 0; i < found && mission.marinesRemaining < mission.seatsPerSortie; i++) {
-            roster.release(gathered[i]);
+            roster.takeOffTheField(gathered[i]);
             mission.marinesRemaining++;
         }
     }

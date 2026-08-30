@@ -34,6 +34,17 @@ public interface Airframe {
     String renderHullId();
 
     /**
+     * How this aircraft flies.
+     *
+     * <p>Asked rather than implemented, because the two kinds of airframe know
+     * it differently. A transport carries a hand-authored tier — a bus flies
+     * like a bus by decision. A fighter's comes off its own hull spec through
+     * {@code HullKinematicsResolver}, which is what makes an interceptor and a
+     * bomber feel different without anybody tuning either.
+     */
+    AirHandling flight();
+
+    /**
      * Structure on an undamaged hull.
      *
      * <p>What a berth starts with, what a turnaround repairs toward, and what
