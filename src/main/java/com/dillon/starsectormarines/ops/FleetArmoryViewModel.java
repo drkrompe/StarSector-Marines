@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.ArmorRole;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.LoadoutEffectiveness;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -88,6 +89,7 @@ public final class FleetArmoryViewModel {
     private final MutableSignal<String> selectedArmorDoctrineId;
     private final MutableSignal<EquipmentPickerKind> equipmentPickerKind;
     private final MutableSignal<LoadoutFilter> loadoutFilter;
+    private final MutableSignal<Boolean> issuableOnly;
     private final MutableSignal<Integer> domainRevision;
     private final MutableSignal<Feedback> feedback;
     private final ComputedSignal<String> companySummary;
@@ -117,6 +119,7 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<String> weaponPickerPanelClasses;
     private final ComputedSignal<String> armorPickerPanelClasses;
     private final ComputedSignal<List<LoadoutFilterOption>> loadoutFilters;
+    private final ComputedSignal<LoadoutFilterOption> issuableFilter;
     private final ComputedSignal<String> loadoutBrowserSummary;
     private final ComputedSignal<List<ArmorComparisonCard>> armorComparisonCards;
     private final ComputedSignal<String> armorComparisonSummary;
@@ -167,6 +170,7 @@ public final class FleetArmoryViewModel {
                 : SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
         equipmentPickerKind = reactor.signal(EquipmentPickerKind.WEAPON);
         loadoutFilter = reactor.signal(LoadoutFilter.ALL);
+        issuableOnly = reactor.signal(Boolean.FALSE);
         domainRevision = reactor.signal(0);
         feedback = reactor.signal(Feedback.neutral(
                 "Hover equipment names for field notes. Assign a weapon loadout and a tactic sheet, then issue to the squad."));
@@ -209,6 +213,7 @@ public final class FleetArmoryViewModel {
                 == EquipmentPickerKind.ARMOR
                 ? "doctrine-slot" : "doctrine-slot picker-hidden");
         loadoutFilters = reactor.computed(this::buildLoadoutFilters);
+        issuableFilter = reactor.computed(this::buildIssuableFilter);
         loadoutBrowserSummary = reactor.computed(this::buildLoadoutBrowserSummary);
         armorComparisonCards = reactor.computed(this::buildArmorComparisonCards);
         armorComparisonSummary = reactor.computed(this::buildArmorComparisonSummary);
@@ -241,6 +246,7 @@ public final class FleetArmoryViewModel {
     public Signal<String> weaponPickerPanelClasses() { return weaponPickerPanelClasses; }
     public Signal<String> armorPickerPanelClasses() { return armorPickerPanelClasses; }
     public Signal<List<LoadoutFilterOption>> loadoutFilters() { return loadoutFilters; }
+    public Signal<LoadoutFilterOption> issuableFilter() { return issuableFilter; }
     public Signal<String> loadoutBrowserSummary() { return loadoutBrowserSummary; }
     public Signal<List<ArmorComparisonCard>> armorComparisonCards() { return armorComparisonCards; }
     public Signal<String> armorComparisonSummary() { return armorComparisonSummary; }
@@ -250,6 +256,7 @@ public final class FleetArmoryViewModel {
     public String selectedArmorDoctrineId() { return selectedArmorDoctrineId.peek(); }
     public EquipmentPickerKind equipmentPickerKind() { return equipmentPickerKind.peek(); }
     public LoadoutFilter loadoutFilter() { return loadoutFilter.peek(); }
+    public boolean issuableOnly() { return issuableOnly.peek(); }
     public String selectedSquadName() {
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         return squad != null ? squad.name() : "Squad";
@@ -273,6 +280,11 @@ public final class FleetArmoryViewModel {
     public Runnable showLoadoutFilterAction(LoadoutFilter filter) {
         if (filter == null) throw new IllegalArgumentException("filter is required");
         return () -> loadoutFilter.set(filter);
+    }
+
+    /** Hides every loadout whose issue would cost more cargo than the fleet has. */
+    public Runnable toggleIssuableOnlyAction() {
+        return () -> issuableOnly.update(on -> !Boolean.TRUE.equals(on));
     }
 
 
@@ -438,13 +450,16 @@ public final class FleetArmoryViewModel {
                     doctrine.id(), SquadLoadoutPresentationDef.Kind.WEAPON,
                     maximumWeaponTier(doctrine), doctrine.description());
             if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
+            if (issuableOnly.get() && !affordable(
+                    doctrine.id(), selectedArmorDoctrineId.get())) continue;
             String id = "weapon-doctrine:" + doctrine.id();
             tiles.add(doctrineTile(id, doctrine.id().equals(selected),
-                    doctrine.displayName(), presentation, doctrineMetadata(presentation),
+                    doctrine.displayName(), LoadoutEffectiveness.weaponRating(doctrine),
+                    presentation, doctrineMetadata(presentation),
                     "", weaponDistribution(doctrine), "",
                     () -> selectWeaponDoctrine(doctrine.id())));
         }
-        return List.copyOf(tiles);
+        return rankedByRating(tiles);
     }
 
     private List<DoctrineTile> buildArmorDoctrineTiles() {
@@ -457,6 +472,8 @@ public final class FleetArmoryViewModel {
                     plan.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
                     maximumArmorTier(issued), plan.description());
             if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
+            if (issuableOnly.get() && !affordable(
+                    selectedWeaponDoctrineId.get(), plan.id())) continue;
             String id = "armor-doctrine:" + plan.id();
             // The authored tier is what the sheet IS; the issued band is what
             // this company would actually put in the field today. Showing both
@@ -465,27 +482,72 @@ public final class FleetArmoryViewModel {
             String metadata = titleCase(plan.tradition().key.replace('_', ' '))
                     + "  ·  FIELDS TIER " + tierMark(maximumArmorTier(issued));
             tiles.add(doctrineTile(id, plan.id().equals(selected),
-                    plan.displayName(), presentation, metadata,
+                    plan.displayName(), LoadoutEffectiveness.armorRating(issued),
+                    presentation, metadata,
                     roleComposition(plan), armorDistribution(issued),
                     armorCapabilities(issued),
                     () -> selectArmorDoctrine(plan.id())));
         }
-        return List.copyOf(tiles);
+        return rankedByRating(tiles);
+    }
+
+    /**
+     * Best first. The question this picker exists to answer is "which of the
+     * things I can field is the strongest", and authored declaration order
+     * cannot answer it — the built-in definitions are listed in the order
+     * somebody wrote them, which put the starter kit above everything the
+     * company has bought since. Ties break by name so the order is stable.
+     */
+    private static List<DoctrineTile> rankedByRating(List<DoctrineTile> tiles) {
+        List<DoctrineTile> ranked = new ArrayList<>(tiles);
+        ranked.sort(Comparator.comparingInt(DoctrineTile::rating).reversed()
+                .thenComparing(DoctrineTile::name));
+        return List.copyOf(ranked);
+    }
+
+    /**
+     * Whether issuing this pairing to the selected squad costs no more cargo
+     * than the fleet is carrying.
+     *
+     * <p>Deliberately narrower than {@link SquadEquipmentPreview#canApply()}. A
+     * stationed or under-strength squad cannot be issued anything at all, and
+     * hiding every tile behind that would turn the picker into an empty list
+     * with no explanation — the apply row already says why. This asks only the
+     * supplies question, and a preview that stopped before pricing reports no
+     * cost, so those squads keep a full list to browse.
+     */
+    private boolean affordable(String weaponDoctrineId, String armorDoctrineId) {
+        SquadEquipmentPreview preview = roster.previewSquadEquipment(
+                selectedSquadId.get(), weaponDoctrineId, armorDoctrineId,
+                equipmentIssueResources);
+        return preview.availableCargo().covers(preview.issueCost());
     }
 
     private static DoctrineTile doctrineTile(
-            String id, boolean selected, String name,
+            String id, boolean selected, String name, int rating,
             SquadLoadoutPresentationDef presentation, String metadata,
             String composition, String distribution, String carries, Runnable select) {
         String rarityClass = presentation.rarity().cssClass();
         String classes = "doctrine-tile " + rarityClass
                 + (selected ? " selected" : "");
         return new DoctrineTile(id, id + ":header", id + ":name", id + ":rarity",
-                id + ":metadata-row", id + ":metadata", id + ":description",
+                id + ":rating", id + ":metadata-row", id + ":metadata", id + ":description",
                 id + ":composition", id + ":distribution", id + ":carries", classes,
-                "doctrine-rarity label " + rarityClass,
-                name, presentation.rarity().displayName(), metadata,
+                "doctrine-rarity label " + rarityClass, ratingClasses(rating),
+                name, presentation.rarity().displayName(), rating,
+                "RATING " + rating, metadata,
                 presentation.lore(), composition, distribution, carries, select);
+    }
+
+    /**
+     * Three bands rather than a gradient, because the chip is read at a glance
+     * beside nineteen others and a continuous colour ramp is not a thing anyone
+     * can rank by eye. The thresholds are presentation only; nothing in the
+     * armoury or the battle reads them.
+     */
+    private static String ratingClasses(int rating) {
+        String band = rating >= 60 ? "rating-high" : rating >= 30 ? "rating-mid" : "rating-low";
+        return "doctrine-rating label " + band;
     }
 
     private static String doctrineMetadata(SquadLoadoutPresentationDef presentation) {
@@ -502,6 +564,22 @@ public final class FleetArmoryViewModel {
                     showLoadoutFilterAction(filter)));
         }
         return List.copyOf(filters);
+    }
+
+    /**
+     * The supplies filter, kept out of the rarity row above it because the two
+     * are different kinds of control. Rarity is a radio — exactly one band at a
+     * time — and this is a switch that narrows whichever band is showing. Put
+     * side by side they read as six alternatives, and a player who pressed
+     * "Common" then "Ready" would reasonably expect the first to have been
+     * turned off.
+     */
+    private LoadoutFilterOption buildIssuableFilter() {
+        boolean on = Boolean.TRUE.equals(issuableOnly.get());
+        return new LoadoutFilterOption("loadout-supply-filter",
+                on ? "Supplies on hand" : "Any supply cost",
+                on ? "supply-filter selected" : "supply-filter",
+                toggleIssuableOnlyAction());
     }
 
     private String buildLoadoutBrowserSummary() {
@@ -533,15 +611,26 @@ public final class FleetArmoryViewModel {
     }
 
     /**
-     * Every catalogued armor pattern, side by side, sorted by tier then name so
-     * the frontier baseline reads before the battlesuits regardless of catalog
-     * declaration order. This is a read surface: comparing patterns does not
-     * select one, because a squad's armor is issued as a doctrine bundling
-     * twelve billets, not as one pattern chosen in isolation.
+     * Every armor pattern <b>this company owns a template card for</b>, side by
+     * side, sorted by tier then name so the frontier baseline reads before the
+     * battlesuits regardless of catalog declaration order. This is a read
+     * surface: comparing patterns does not select one, because a squad's armor
+     * is issued as a doctrine bundling twelve billets, not as one pattern chosen
+     * in isolation.
+     *
+     * <p>Owned rather than catalogued. The screen exists to answer "what is my
+     * kit and which of it should the section be in", and a table where most rows
+     * are suits the company has never held answers a different question badly —
+     * the twenty-seventh pattern is not an option, it is a rumour. The summary
+     * beneath still names the whole catalog's size, so the fact that there is
+     * more out there survives without pretending it is choosable.
      */
     private List<ArmorComparisonCard> buildArmorComparisonCards() {
-        List<MarineArmorCatalogDef> patterns = new ArrayList<>(
-                MarineArmorCatalogRegistry.installed().all());
+        domainRevision.get();
+        List<MarineArmorCatalogDef> patterns = new ArrayList<>();
+        for (MarineArmorCatalogDef pattern : MarineArmorCatalogRegistry.installed().all()) {
+            if (roster.armory().ownsArmorTemplate(pattern.id())) patterns.add(pattern);
+        }
         patterns.sort(Comparator.comparingInt(MarineArmorCatalogDef::tier)
                 .thenComparing(MarineArmorCatalogDef::displayName));
         List<ArmorComparisonCard> cards = new ArrayList<>();
@@ -565,8 +654,10 @@ public final class FleetArmoryViewModel {
     }
 
     private String buildArmorComparisonSummary() {
-        return armorComparisonCards.get().size()
-                + " armor patterns catalogued  ·  sorted by tier, then name";
+        int owned = armorComparisonCards.get().size();
+        int catalogued = MarineArmorCatalogRegistry.installed().all().size();
+        return owned + " of " + catalogued
+                + " armor patterns held  ·  sorted by tier, then name";
     }
 
     private static List<StatMeter> armorComparisonStats(String cardId, MarineArmorCatalogDef armor) {
@@ -1328,10 +1419,10 @@ public final class FleetArmoryViewModel {
      */
     public record DoctrineTile(
             String id, String headerId, String nameId, String rarityId,
-            String metadataRowId, String metadataId, String descriptionId,
+            String ratingId, String metadataRowId, String metadataId, String descriptionId,
             String compositionId, String distributionId, String carriesId,
-            String classes, String rarityClasses,
-            String name, String rarity, String metadata,
+            String classes, String rarityClasses, String ratingClasses,
+            String name, String rarity, int rating, String ratingLabel, String metadata,
             String description, String composition, String distribution,
             String carries,
             Runnable select) implements MarkupPropertySource {
@@ -1342,6 +1433,7 @@ public final class FleetArmoryViewModel {
                 case "headerId" -> headerId;
                 case "nameId" -> nameId;
                 case "rarityId" -> rarityId;
+                case "ratingId" -> ratingId;
                 case "metadataRowId" -> metadataRowId;
                 case "metadataId" -> metadataId;
                 case "descriptionId" -> descriptionId;
@@ -1350,8 +1442,11 @@ public final class FleetArmoryViewModel {
                 case "carriesId" -> carriesId;
                 case "classes" -> classes;
                 case "rarityClasses" -> rarityClasses;
+                case "ratingClasses" -> ratingClasses;
                 case "name" -> name;
                 case "rarity" -> rarity;
+                case "rating" -> rating;
+                case "ratingLabel" -> ratingLabel;
                 case "metadata" -> metadata;
                 case "description" -> description;
                 case "composition" -> composition;
