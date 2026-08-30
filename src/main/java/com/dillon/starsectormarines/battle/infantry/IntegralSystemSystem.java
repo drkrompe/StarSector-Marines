@@ -477,7 +477,8 @@ public final class IntegralSystemSystem {
         int missiles = Math.max(1, weapon.projectilesPerShot());
         for (int i = 0; i < missiles; i++) {
             BallisticResolver.Resolution res = resolver.resolve(shooter, target,
-                    weapon.accuracy(), weapon.hitSpread(), weapon.roundVelocity(), rng);
+                    weapon.accuracy(), weapon.hitSpread(), weapon.roundVelocity(),
+                    weapon.range(), rng);
             rosterService.telemetry().recordRoundFired(shooter);
             PendingDetonation onArrival = res.impacts()
                     ? new PendingDetonation(shooter, res.endX(), res.endY(), res.flightTime(),

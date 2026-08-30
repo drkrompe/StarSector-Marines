@@ -36,6 +36,8 @@ class BallisticResolverTest {
     private static final int ROW = 5;
     /** Round speed used by every test — chosen so flightTime = distance / 10 reads cleanly. */
     private static final float VEL = 10f;
+    /** Keeps free-flight endpoints inside the 24-cell arena: 14 × 1.5 = 21 cells. */
+    private static final float MAX_TARGETING_RANGE = 14f;
 
     private static BattleSimulation openArena() {
         NavigationGrid grid = new NavigationGrid(W, H);
@@ -69,7 +71,7 @@ class BallisticResolverTest {
 
         QueueRandom rng = new QueueRandom(0.75f, 0f, 0f);
         BallisticResolver.Resolution result = resolver.resolve(
-                shooter, target, 1f, 0f, VEL, rng);
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.OVERSHOOT, result.kind(),
                 "a 75% roll misses when target armor halves an otherwise certain hit");
@@ -87,7 +89,7 @@ class BallisticResolverTest {
                 sourceBody, cellCenter(2), rowCenter(), 0f, Faction.DEFENDER);
 
         BallisticResolver.Resolution result = resolver.resolve(
-                source, target, 1f, 0f, VEL,
+                source, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f));
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, result.kind());
@@ -135,7 +137,7 @@ class BallisticResolverTest {
         // so it fires exactly once, at cell 5 — see the DoodadService class
         // doc for why the facing-bled neighbor cover is a separate concern.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, res.kind());
         assertEquals(0L, res.victimId(), "a doodad stop never records a victim");
@@ -158,7 +160,7 @@ class BallisticResolverTest {
         BallisticResolver resolver = new BallisticResolver(grid, doodads, sim.getUnitIndex(), sim.getRoster());
 
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.WALL, res.kind());
         assertEquals(0L, res.victimId());
@@ -167,7 +169,7 @@ class BallisticResolverTest {
         assertEquals((6f - cellCenter(2)) / VEL, res.flightTime(), EPS);
 
         BallisticResolver.Resolution elevated = resolver.resolve(
-                shooter, target, 0f, 0f, VEL,
+                shooter, target, 0f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0.5f, 0.25f, 0f));
         assertEquals(BallisticResolver.StopKind.WALL, elevated.kind(),
                 "structural walls remain full-height hard stops");
@@ -186,7 +188,7 @@ class BallisticResolverTest {
                 grid, doodads, sim.getUnitIndex(), sim.getRoster());
 
         BallisticResolver.Resolution res = resolver.resolve(
-                shooter, target, 1f, 0f, VEL,
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f));
 
         assertEquals(BallisticResolver.StopKind.WALL, res.kind());
@@ -211,7 +213,7 @@ class BallisticResolverTest {
                 grid, doodads, sim.getUnitIndex(), sim.getRoster());
 
         BallisticResolver.Resolution cleared = resolver.resolve(
-                shooter, target, 0f, 0f, VEL,
+                shooter, target, 0f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0.5f, 0.25f, 0f));
         assertEquals(BallisticResolver.StopKind.WALL, cleared.kind(),
                 "the three-value queue proves the cleared doodad consumed no block roll");
@@ -220,7 +222,7 @@ class BallisticResolverTest {
         doodads.addDoodad(new Doodad(5, ROW, frame, false,
                 Doodad.COVER_MED, 0.30f));
         BallisticResolver.Resolution caught = resolver.resolve(
-                shooter, target, 0f, 0f, VEL,
+                shooter, target, 0f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0.5f, 0.25f, 0f, 0f));
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, caught.kind());
         assertTrue(caught.endZ() > 0.20f);
@@ -243,7 +245,7 @@ class BallisticResolverTest {
         assertTrue(grid.hasLineOfSight(5, 5, 7, 6),
                 "projected-cell Bresenham takes the diagonal neighbor");
         BallisticResolver.Resolution res = resolver.resolve(
-                shooter, target, 1f, 0f, VEL,
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f));
 
         assertEquals(BallisticResolver.StopKind.WALL, res.kind());
@@ -266,7 +268,7 @@ class BallisticResolverTest {
                 grid, doodads, sim.getUnitIndex(), sim.getRoster());
 
         BallisticResolver.Resolution cleared = resolver.resolve(
-                shooter, target, 1f, 1f, VEL,
+                shooter, target, 1f, 1f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.9166667f));
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, cleared.kind(),
                 "an elevated on-target round clears low edge cover without consuming a roll");
@@ -275,7 +277,7 @@ class BallisticResolverTest {
         grid.setCoverAtFacing(10, ROW, NavigationGrid.FACING_W,
                 3, 0.65f);
         BallisticResolver.Resolution caught = resolver.resolve(
-                shooter, target, 1f, 1f, VEL,
+                shooter, target, 1f, 1f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.9166667f, 0f));
         assertEquals(BallisticResolver.StopKind.COVER_CLIP, caught.kind());
         assertTrue(caught.endZ() < 0.65f);
@@ -293,7 +295,7 @@ class BallisticResolverTest {
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, /*cover*/ 0.99f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
         assertEquals(farTarget, res.victimId(), "the skipped friendly never produced a contact event");
@@ -311,7 +313,7 @@ class BallisticResolverTest {
 
         // No cover roll at level 0; the hostile incidental contact is guaranteed.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
         assertEquals(closeEnemy, res.victimId(), "an enemy at the same range as the exempted friendly must still be considered");
@@ -331,7 +333,7 @@ class BallisticResolverTest {
                 sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         BallisticResolver.Resolution result = resolver.resolve(
-                shooter, target, 1f, 0f, VEL,
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f));
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, result.kind());
@@ -352,7 +354,7 @@ class BallisticResolverTest {
                 sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         BallisticResolver.Resolution result = resolver.resolve(
-                shooter, civilian, 1f, 0f, VEL,
+                shooter, civilian, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f));
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, result.kind());
@@ -374,7 +376,7 @@ class BallisticResolverTest {
                 friendlySim.getUnitIndex(), friendlySim.getRoster());
 
         BallisticResolver.Resolution friendlyResult = friendlyResolver.resolve(
-                friendlyShooter, friendlyTarget, 1f, 0f, VEL,
+                friendlyShooter, friendlyTarget, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
 
         assertEquals(friendlyTarget, friendlyResult.victimId(),
@@ -391,7 +393,7 @@ class BallisticResolverTest {
                 enemySim.getUnitIndex(), enemySim.getRoster());
 
         BallisticResolver.Resolution enemyResult = enemyResolver.resolve(
-                enemyShooter, enemyTarget, 1f, 0f, VEL,
+                enemyShooter, enemyTarget, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
 
         assertEquals(closeEnemy, enemyResult.victimId(),
@@ -411,7 +413,7 @@ class BallisticResolverTest {
                 sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         BallisticResolver.Resolution result = resolver.resolve(
-                shooter, target, 1f, 0f, VEL,
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f, 0.34f));
 
         assertEquals(distantFriendly, result.victimId());
@@ -439,7 +441,7 @@ class BallisticResolverTest {
         // skipped before any event is created, so a queue sized for only the
         // real target's contact must not exhaust.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
         assertEquals(target, res.victimId(),
@@ -462,7 +464,7 @@ class BallisticResolverTest {
         // three-value queue proves the target never consumes a hidden second
         // hit roll after aim has already committed the miss.
         QueueRandom rng = new QueueRandom(0.5f, 0f, 0f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 0f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 0f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.OVERSHOOT, res.kind());
         assertEquals(0L, res.victimId());
@@ -483,12 +485,41 @@ class BallisticResolverTest {
                 sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         BallisticResolver.Resolution result = resolver.resolve(
-                shooter, locked, 0f, 0f, VEL,
+                shooter, locked, 0f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0.5f, 0f, 0f, 0.99f));
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, result.kind());
         assertEquals(secondary, result.victimId());
         assertFalse(result.hitIntended());
+    }
+
+    @Test
+    void rangeBoundMissCanHitAHostileBeyondTheOldThreeCellTail() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long locked = spawn(sim, Faction.DEFENDER, 6);
+        long secondary = sim.spawn(new EntitySpec(
+                "secondary", Faction.DEFENDER, UnitType.MARINE, 11, ROW));
+        float missOffsetAtTarget = UnitType.MARINE.radius
+                + TargetPlaneAim.MISS_CLEARANCE_MIN;
+        float secondaryOffset = missOffsetAtTarget
+                * (cellCenter(11) - cellCenter(2))
+                / (cellCenter(6) - cellCenter(2));
+        sim.world().setPos(secondary, cellCenter(11), rowCenter() + secondaryOffset);
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution result = resolver.resolve(
+                shooter, locked, 0f, 0f, VEL, MAX_TARGETING_RANGE,
+                new QueueRandom(0.5f, 0f, 0f, 0f));
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, result.kind());
+        assertEquals(secondary, result.victimId(),
+                "the physical miss stays live beyond three cells past its near target");
+        assertFalse(result.hitIntended());
+        assertTrue(result.flightTime() * VEL >
+                cellCenter(6) - cellCenter(2) + 3f);
     }
 
     @Test
@@ -504,7 +535,7 @@ class BallisticResolverTest {
                 screenedSim.getUnitIndex(), screenedSim.getRoster());
 
         BallisticResolver.Resolution screened = screenedResolver.resolve(
-                shooter, infantry, 1f, 0f, VEL,
+                shooter, infantry, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f, 0.99f));
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, screened.kind());
@@ -523,7 +554,7 @@ class BallisticResolverTest {
                 exposedSim.getUnitIndex(), exposedSim.getRoster());
 
         BallisticResolver.Resolution exposed = exposedResolver.resolve(
-                exposedShooter, exposedInfantry, 1f, 0f, VEL,
+                exposedShooter, exposedInfantry, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f));
 
         assertEquals(exposedInfantry, exposed.victimId(),
@@ -565,7 +596,7 @@ class BallisticResolverTest {
         // cover of 0 (0.10 < 0f is false).
         // Intended accuracy was already guaranteed by the commit roll.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f, 0.10f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind(),
                 "cover-clip must ignore the neighboring doodad's cover — a COVER_CLIP result here means it double-counted");
@@ -594,7 +625,7 @@ class BallisticResolverTest {
         // wrongly emitted one, this queue would either exhaust early or feed
         // the wrong float into the wrong check.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
         assertEquals(target, res.victimId());
@@ -614,14 +645,14 @@ class BallisticResolverTest {
         // queued — a second crossing roll (the old neighbor-bleed
         // double-count) would exhaust the queue.
         QueueRandom blockRng = new QueueRandom(0f, 0.5f, 0.5f, 0.2999f);
-        BallisticResolver.Resolution blocked = resolver.resolve(shooter, target, 1f, 0f, VEL, blockRng);
+        BallisticResolver.Resolution blocked = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, blockRng);
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, blocked.kind());
         assertEquals(cellCenter(10), blocked.endX(), EPS);
 
         // A roll landing exactly at the anchor must NOT block — pins 0.30 as
         // the exact boundary. Round then reaches the target normally.
         QueueRandom missRng = new QueueRandom(0f, 0.5f, 0.5f, 0.30f, 0.99f);
-        BallisticResolver.Resolution missed = resolver.resolve(shooter, target, 1f, 0f, VEL, missRng);
+        BallisticResolver.Resolution missed = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, missRng);
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, missed.kind());
         assertEquals(target, missed.victimId());
     }
@@ -637,11 +668,12 @@ class BallisticResolverTest {
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         QueueRandom rng = new QueueRandom(0.5f, 0.25f, 0f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 0f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 0f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.OVERSHOOT, res.kind());
         assertEquals(0L, res.victimId());
-        float expectedDist = (cellCenter(8) - cellCenter(2)) + BallisticResolver.OVERSHOOT_CELLS;
+        float expectedDist = MAX_TARGETING_RANGE
+                * BallisticResolver.FLIGHT_RANGE_MULTIPLIER;
         assertEquals(cellCenter(2) + expectedDist, res.endX(), EPS);
         assertEquals(rowCenter(), res.endY(), EPS);
         assertTrue(res.endZ() > UnitType.MARINE.hitHalfHeight,
@@ -649,7 +681,7 @@ class BallisticResolverTest {
         assertEquals(expectedDist / VEL, res.flightTime(), EPS);
 
         BallisticResolver.Resolution low = resolver.resolve(
-                shooter, target, 0f, 0f, VEL,
+                shooter, target, 0f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0.5f, 0.75f, 0f));
         assertEquals(BallisticResolver.StopKind.OVERSHOOT, low.kind());
         assertTrue(low.endZ() < -UnitType.MARINE.hitHalfHeight,
@@ -673,7 +705,7 @@ class BallisticResolverTest {
         // the same ray is still inside the mech's 0.8 half-height.
         QueueRandom rng = new QueueRandom(0.5f, 0.25f, 0f, 0f);
         BallisticResolver.Resolution res = resolver.resolve(
-                shooter, shortTarget, 0f, 0f, VEL, rng);
+                shooter, shortTarget, 0f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
         assertEquals(tallBehind, res.victimId());
@@ -713,7 +745,7 @@ class BallisticResolverTest {
                 nearSim.getUnitIndex(), nearSim.getRoster());
 
         BallisticResolver.Resolution nearResult = nearResolver.resolve(
-                nearShooter, nearTarget, 1f, 0f, VEL,
+                nearShooter, nearTarget, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f));
 
         assertEquals(nearTarget, nearResult.victimId(),
@@ -730,7 +762,7 @@ class BallisticResolverTest {
                 farSim.getUnitIndex(), farSim.getRoster());
 
         BallisticResolver.Resolution farResult = farResolver.resolve(
-                farShooter, farTarget, 1f, 0f, VEL,
+                farShooter, farTarget, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f, 0.29f));
 
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, farResult.kind(),
@@ -749,10 +781,10 @@ class BallisticResolverTest {
                 sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         BallisticResolver.Resolution blocked = resolver.resolve(
-                shooter, target, 1f, 0f, VEL,
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
         BallisticResolver.Resolution cleared = resolver.resolve(
-                shooter, target, 1f, 0f, VEL,
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f, 0.03f));
 
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, blocked.kind());
@@ -772,10 +804,10 @@ class BallisticResolverTest {
                 grid, doodads, sim.getUnitIndex(), sim.getRoster());
 
         BallisticResolver.Resolution blocked = resolver.resolve(
-                shooter, target, 1f, 0f, VEL,
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f, 0.01f));
         BallisticResolver.Resolution cleared = resolver.resolve(
-                shooter, target, 1f, 0f, VEL,
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
                 new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
 
         assertEquals(BallisticResolver.StopKind.COVER_CLIP, blocked.kind());
@@ -800,7 +832,7 @@ class BallisticResolverTest {
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
         assertEquals(target, res.victimId());
@@ -832,7 +864,7 @@ class BallisticResolverTest {
 
         // On-target commit + centered axes, then cover roll (no cover).
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, mover, 1f, 0f, roundVelocity, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, mover, 1f, 0f, roundVelocity, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind(),
                 "the led ray must contact the mover — a raw (unled) aim at the same geometry does not, per the companion check below");
@@ -893,7 +925,7 @@ class BallisticResolverTest {
         // is well before the far target's (~3.5s), so the round never
         // reaches the far target's event — no rolls queued for it.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, roundVelocity, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, roundVelocity, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
         assertEquals(candidate, res.victimId(), "the corridor-entering candidate must be gathered and contacted before the round ever reaches the far target");
@@ -926,7 +958,7 @@ class BallisticResolverTest {
         // must NOT block under the correct extrapolated-cell reading (cover
         // 0 there, so any roll fails to trigger it).
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.1f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, mover, 1f, 0f, roundVelocity, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, mover, 1f, 0f, roundVelocity, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind(),
                 "a COVER_CLIP result here means the edge-clip lookup wrongly used the mover's fire-tick cell instead of its extrapolated cell");
@@ -956,7 +988,7 @@ class BallisticResolverTest {
         // roll is queued — a queue sized for the pacer too would exhaust
         // wrong if it wrongly produced an event.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, roundVelocity, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, roundVelocity, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
         assertEquals(farTarget, res.victimId(), "the pacing unit must never register a contact");
@@ -987,7 +1019,7 @@ class BallisticResolverTest {
         // No roll is consumed for behindEnemy — it's skipped before
         // any event is created.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
         assertEquals(target, res.victimId(), "the moving enemy behind the shooter must never produce a contact — its exit root is still negative");
@@ -1015,7 +1047,7 @@ class BallisticResolverTest {
         // On-target commit + centered axes — friendly is skipped before any
         // contact roll; farTarget's cover roll does not block.
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f, 0.99f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, farTarget, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
         assertEquals(farTarget, res.victimId(), "the closing friendly must still be muzzle-clearance-skipped at its contact-time distance");
@@ -1038,7 +1070,7 @@ class BallisticResolverTest {
         BallisticResolver resolver = new BallisticResolver(grid, doodads, sim.getUnitIndex(), sim.getRoster());
 
         QueueRandom rng = new QueueRandom(0f, 0.5f, 0.5f);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, rng);
+        BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, rng);
 
         assertEquals(BallisticResolver.StopKind.WALL, res.kind());
         assertEquals(0L, res.victimId());

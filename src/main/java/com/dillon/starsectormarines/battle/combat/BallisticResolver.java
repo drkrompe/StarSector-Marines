@@ -42,8 +42,12 @@ import java.util.Random;
  */
 public final class BallisticResolver {
 
-    /** Missed rounds fly this far past the (spread-jittered) aim point before the ray's raw length is computed. */
-    public static final float OVERSHOOT_CELLS = 3f;
+    /**
+     * A free-flying round remains physically live for this multiple of its
+     * weapon's maximum targeting range. The target only chooses direction;
+     * it does not impose an arbitrary short tail on a missed trajectory.
+     */
+    public static final float FLIGHT_RANGE_MULTIPLIER = 1.5f;
     /** A physical ray crossing another hostile always transfers the missed shot into that body. */
     public static final float HOSTILE_INCIDENTAL_HIT_CHANCE = 1f;
     /** Friendly bodies retain a probabilistic graze so formation fire is not guaranteed self-harm. */
@@ -193,17 +197,21 @@ public final class BallisticResolver {
      * stack with cover already removed (cover is re-expressed here as
      * physical interception); {@code effectiveSpread} broadens the sampled
      * lateral/elevation miss clearance in the target plane; {@code
-     * roundVelocity} is cells/sec, already resolved by the
-     * caller (see {@link #DEFAULT_ROUND_VELOCITY}). Reads only — safe to
-     * call from a parallel dispatch.
+     * roundVelocity} is cells/sec, already resolved by the caller (see
+     * {@link #DEFAULT_ROUND_VELOCITY}); {@code maximumTargetingRange} is the
+     * firing weapon's effective acquisition range and bounds a free flight at
+     * {@link #FLIGHT_RANGE_MULTIPLIER} times that distance. Reads only — safe
+     * to call from a parallel dispatch.
      */
     public Resolution resolve(long shooter, long target,
                                float finalAccuracy, float effectiveSpread,
-                               float roundVelocity, Random rng) {
+                               float roundVelocity, float maximumTargetingRange,
+                               Random rng) {
         World world = roster.world();
         return resolve(new Source(shooter, world.renderX(shooter), world.renderY(shooter),
                         0f, roster.identity().faction(shooter)),
-                target, finalAccuracy, effectiveSpread, roundVelocity, rng);
+                target, finalAccuracy, effectiveSpread, roundVelocity,
+                maximumTargetingRange, rng);
     }
 
     /**
@@ -213,9 +221,13 @@ public final class BallisticResolver {
      */
     public Resolution resolve(Source source, long target,
                                float finalAccuracy, float effectiveSpread,
-                               float roundVelocity, Random rng) {
+                               float roundVelocity, float maximumTargetingRange,
+                               Random rng) {
         if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
             throw new IllegalArgumentException("roundVelocity must be finite and positive");
+        }
+        if (!(maximumTargetingRange > 0f) || !Float.isFinite(maximumTargetingRange)) {
+            throw new IllegalArgumentException("maximumTargetingRange must be finite and positive");
         }
         World world = roster.world();
         MovementService movement = roster.movement();
@@ -284,7 +296,7 @@ public final class BallisticResolver {
             dirX = 1f;
             dirY = 0f;
         }
-        float rawLen = aimDist + OVERSHOOT_CELLS;
+        float rawLen = maximumTargetingRange * FLIGHT_RANGE_MULTIPLIER;
         float rawEndX = fromX + dirX * rawLen;
         float rawEndY = fromY + dirY * rawLen;
 
