@@ -317,9 +317,12 @@ public final class CivilianEvacuationSystem {
             pickup.evacueesAboard++;
         }
         sim.clearPath(id);
-        // Boarding removes the civilian from live iteration and rendering. It
-        // is not a death and therefore creates no corpse or loss event.
-        sim.releaseFromRegistry(id);
+        // Boarding takes the civilian off the field entirely — out of live
+        // iteration and out of the entity world. It is not a death and
+        // therefore creates no corpse or loss event, but it does have to
+        // remove the row the render pass walks, or a rescued civilian goes on
+        // standing at the ramp for the rest of the battle.
+        sim.takeOffTheField(id);
     }
 
     private boolean pickupReady(BattleSimulation sim) {

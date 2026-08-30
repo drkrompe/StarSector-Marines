@@ -4,7 +4,9 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
-Updated: 2026-08-26 — documented required card access tiers and shared channel gates.
+Updated: 2026-08-30 — documented optional projectile-bound tracer tails; armour
+reaches the field through a tactic sheet rather than a picker, and a contributed
+pattern is no longer shadowed by the core one sharing its cell.
 
 ## Provider entry point
 
@@ -113,6 +115,13 @@ layer order is visible behavior and does not depend on provider order. Retired
 `render.impact`, `render.smokeTrail`, and `render.engineTrail` fields are errors;
 author the corresponding effect slot instead. Effect layers are presentation
 only and cannot change damage, penetration, hearing, or projectile simulation.
+
+A weapon with a projectile sprite may also declare a positive
+`render.tracerTailCells`. It draws a short line of that world-space length
+behind the traveling sprite, tinted by `render.tracerColor`; omission or zero
+disables the tail. A tail without `render.projectileSprite` is rejected. This
+is presentation over the resolved flight and does not change round velocity,
+contact, or arrival time.
 
 ## Tilesets and mappings
 
@@ -247,11 +256,29 @@ otherwise application loading names the stranded card and stops.
 ## Runtime consumption
 
 Contributed marine-primary weapons, armor, and special equipment are valid
-faction-roster and player issue. Once their cards are learned, they join the
-doctrine editor's choices in manifest order. Saved doctrines, squad billets,
-and marines retain the catalog equipment id; issuing changed kit charges the
-contributed card's authored cargo cost, and deployment resolves the same
-definitions without enum constants. A special's closed activation and AI
+faction-roster and player issue. Once a weapon or special card is learned it
+joins the equipment designer's choices in manifest order.
+
+**Armour is not authored a billet at a time and has no picker.** A contributed
+pattern reaches the field by winning a billet in a tactic sheet: the sheet names
+a role and a tradition, and `ArmorIssueResolver` fills each billet from the best
+owned pattern for that job (`role-and-access.md`). A contribution is therefore
+reachable when it declares a role and tradition somebody's sheet asks for, and
+its authored `catalog.role`, `catalog.tradition` and `catalog.tier` are the only
+things that decide whether it is ever worn.
+
+Because the contract is add-only, a contributed pattern cannot replace a core id
+— and a role whose billets all took that role's single best pattern meant a
+contribution sharing a cell with a core one could never be issued either. There
+was no way in from outside. A role's billets now spread across every pattern at
+the top of its band, so a contributed suit in an occupied cell is worn alongside
+the core one rather than instead of it. Contributing a *strictly better* suit in
+an occupied cell is still not a way to retire the core pattern; that remains what
+add-only means.
+
+Saved doctrines, squad billets, and marines retain the catalog equipment id;
+issuing changed kit charges the contributed card's authored cargo cost, and
+deployment resolves the same definitions without enum constants. A special's closed activation and AI
 policy select the built-in typed executor while its referenced weapon and
 presentation data supply ballistics, audio, sprites, and carrier layers.
 

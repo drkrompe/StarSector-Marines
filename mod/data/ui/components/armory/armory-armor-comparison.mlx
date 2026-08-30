@@ -13,7 +13,7 @@
     <div id="comparison-intro" class="panel">
       <div id="comparison-heading" class="label heading tone-edge">ARMOR PATTERN COMPARISON</div>
       <div id="comparison-summary" class="label surface-dark tone-muted">{armorComparisonSummary}</div>
-      <div id="comparison-copy" class="label tone-muted">Every catalogued pattern, side by side: protection, mobility, class, tier, integral system, and provenance.</div>
+      <div id="comparison-copy" class="label tone-muted">Every pattern the company holds, side by side: protection, mobility, class, tier, integral system, and provenance.</div>
     </div>
 
     <div id="comparison-list" class="comparison-list">

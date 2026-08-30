@@ -173,6 +173,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
+        props.put("issuableFilter", viewModel.issuableFilter());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
         props.put("showArmorComparison", (Runnable) this::showArmorComparison);
         props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
@@ -239,7 +240,6 @@ public final class FleetArmoryScreen implements Screen {
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-armory", "page-nav-mech-lab",
                 "designer-breadcrumb", "back-to-fireteams", "designer-mode-row",
-                "show-weapon-definitions", "show-armor-definitions",
                 "designer-definition-library", "designer-definition-list",
                 "designer-editor", "designer-name-input", "designer-team-tabs",
                 "designer-billet-grid", "designer-feedback",

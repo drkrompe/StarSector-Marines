@@ -539,7 +539,10 @@ public final class BattleSetup {
      */
     private static void equipDefaultTurrets(BattleSimulation sim, long shuttleId) {
         World world = sim.world();
-        ShuttleType type = world.airType(shuttleId);
+        // Hardpoints and a role kit are a transport's; an aircraft whose guns
+        // are the reason it was launched brings its own and does not come
+        // through here.
+        if (!(world.airframe(shuttleId) instanceof ShuttleType type)) return;
         if (type.hardpoints <= 0) return;
         ShuttleMission mission = world.mission(shuttleId);
         if (mission.assignedRole == null) mission.assignedRole = TurretRole.A2G;

@@ -1390,6 +1390,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
+        props.put("issuableFilter", viewModel.issuableFilter());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
         props.put("showArmorComparison", (Runnable) () -> { });
         props.put("armorComparisonSummary", viewModel.armorComparisonSummary());

@@ -40,7 +40,7 @@ class ConquestArrivalPlanTest {
             assertEquals(6, missions.size());
             for (long aircraft : sim.getAirEntityIds()) {
                 assertEquals(ShuttleType.AEROSHUTTLE,
-                        sim.world().airType(aircraft));
+                        sim.world().airframe(aircraft));
             }
             assertEquals(List.of(7, 7, 7, 7, 6, 6), missions.stream()
                     .map(mission -> mission.totalCycles).toList());

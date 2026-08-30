@@ -112,11 +112,12 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
      * to null and reads as not alive.
      *
      * <p>This is not a kill and must not be used as one. It exists for a unit
-     * that has stopped being a unit rather than stopped existing — an airframe
-     * leaving its hardstand to become an air entity is the case it was added
-     * for. Anything that should read as a death goes through {@code applyDamage}.
+     * that has genuinely left the battlefield alive — an airframe leaving its
+     * hardstand to become an air entity is the case it was added for.
+     * Anything that should read as a death goes through {@code applyDamage},
+     * which leaves a body behind on purpose.
      */
-    void releaseFromRegistry(long entityId);
+    void takeOffTheField(long entityId);
 
     /**
      * Spawn a shuttle into the air system (shuttle reinforcement / garrison drop) and

@@ -4,8 +4,8 @@ Status: SHIPPED — weapon identity, behavior, and presentation are data-owned
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — the close-contact executor shipped: a weapon-like item
-whose payload lands from adjacency rather than from a traveling body.
+Updated: 2026-08-30 — projectile-bound tracer tails became an optional authored
+presentation for small traveling rounds.
 
 ## Purpose
 
@@ -191,6 +191,10 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
   every weapon family and the catalog preview use the same seeded composition path;
   decals, lights, and audio derive supporting treatment from the authored
   primitives without restoring a named visual profile.
+- A projectile sprite may carry a short authored tracer tail in world cells.
+  The line follows the committed visual flight, grows out of the muzzle, and
+  remains presentation only; it neither lengthens the physical round nor turns
+  a bullet into a hitscan shot.
 - Launch layers may author forward/lateral offsets and velocities in the
   firing bearing's local frame. Persistent projectile ribbons and impact audio
   are weapon presentation fields consumed consistently by runtime and preview;
