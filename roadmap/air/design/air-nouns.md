@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a strike makes gun runs; the aircraft is the weapon.
+Updated: 2026-08-30 — an aircraft on its wheels can actually be shot at.
 
 ## Purpose
 
@@ -325,6 +325,20 @@ hovering an inch off the ground. The takeoff roll is the exception, and the
 reason the phase is asked for rather than the altitude: it is the one ground
 phase where the engines are doing everything they can, and at the start of it
 the aircraft is still at zero altitude.
+
+**And it really is shootable.** Air used to be reachable only by defence posts
+and only while airborne, which meant the minute of open ground a strip buys was
+a minute of complete safety — a fighter taxiing past a fire team was in no
+danger whatsoever, and the trade the runway exists to make was a fiction. An
+aircraft on its wheels is a large slow object in the open and anything with a
+weapon can engage it, at rifle reach rather than through an anti-air bubble,
+and harder per shooter than a post manages against something flying. A loading
+craft stays exempt: its passengers have already left the roster and making it
+shootable would owe them a disposition nothing gives them.
+
+The same list is what an anti-air post reads, so a phase left off it is a phase
+nothing can touch. Replacing the armed loiter with attack runs did exactly that
+and made every strike invulnerable while it attacked.
 
 A craft that has to roll has a **ground procedure** either side of its flight,
 and it is on its wheels and shootable for all of it: out of the shed, down to
