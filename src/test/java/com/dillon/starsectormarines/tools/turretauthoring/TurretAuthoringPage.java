@@ -137,6 +137,8 @@ public final class TurretAuthoringPage implements AuthoringPage {
                         (selection, value) -> mountRender(selection).put("visualCells", value)),
                 number("Muzzle offset", 0, 20, 0.01, selection -> mountRender(selection).optDouble("muzzleOffsetCells", 0),
                         (selection, value) -> mountRender(selection).put("muzzleOffsetCells", value)),
+                number("Muzzle lateral", 0, 20, 0.01, selection -> mountRender(selection).optDouble("muzzleLateralOffsetCells", 0),
+                        (selection, value) -> mountRender(selection).put("muzzleLateralOffsetCells", value)),
                 text("Body sprite", selection -> mountRender(selection).optString("sprite", ""),
                         (selection, value) -> mountRender(selection).put("sprite", value)),
                 text("Recoil sprite", selection -> mountRender(selection).optString("recoilSprite", ""),

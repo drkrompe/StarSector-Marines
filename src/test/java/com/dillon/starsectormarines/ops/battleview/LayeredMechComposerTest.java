@@ -117,6 +117,59 @@ class LayeredMechComposerTest {
                 "swing lift has a subtle top-down scale cue");
     }
 
+    @Test
+    void dualChaingunFlashUsesOnlyTheSelectedPosedArm() {
+        LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
+        MechVariant variant = MechVariant.BULWARK;
+        List<Layer> first = emitFlashingBulwark(assets, variant,
+                LayeredMechAppearance.FLAG_CHAINGUN_FLASH);
+        List<Layer> second = emitFlashingBulwark(assets, variant,
+                LayeredMechAppearance.FLAG_CHAINGUN_FLASH
+                        | LayeredMechAppearance.FLAG_SECONDARY_ARMS_MUZZLE);
+
+        Layer firstFlash = first.stream()
+                .filter(layer -> fileName(layer.path()).equals("marine-muzzle-flash.png"))
+                .findFirst().orElseThrow();
+        Layer secondFlash = second.stream()
+                .filter(layer -> fileName(layer.path()).equals("marine-muzzle-flash.png"))
+                .findFirst().orElseThrow();
+        assertEquals(1, first.stream()
+                .filter(layer -> fileName(layer.path()).equals("marine-muzzle-flash.png"))
+                .count());
+        assertEquals(400f - 0.37f * 208f, firstFlash.x(), 0.001f);
+        assertEquals(400f + 0.37f * 208f, secondFlash.x(), 0.001f);
+        assertEquals(300f + 0.39f * 208f, firstFlash.y(), 0.001f);
+    }
+
+    @Test
+    void missileFlashUsesOnlyTheFiringShoulderPod() {
+        LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
+        MechVariant variant = MechVariant.BULWARK;
+        List<Layer> layers = emitFlashingBulwark(assets, variant,
+                LayeredMechAppearance.FLAG_SRM_FLASH
+                        | LayeredMechAppearance.FLAG_LEFT_SHOULDER_FLASH);
+
+        List<Layer> flashes = layers.stream()
+                .filter(layer -> fileName(layer.path()).equals("marine-muzzle-flash.png"))
+                .toList();
+        assertEquals(1, flashes.size());
+        assertEquals(400f - 0.40f * 208f, flashes.get(0).x(), 0.001f);
+        assertEquals(300f + 0.16f * 208f, flashes.get(0).y(), 0.001f);
+    }
+
+    private static List<Layer> emitFlashingBulwark(LayeredMechAssets assets,
+                                                    MechVariant variant, int flags) {
+        List<Layer> layers = new ArrayList<>();
+        LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
+                        layers.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
+                assets, 400f, 300f, 208f,
+                0f, 0f, 0f, 0f, 0f, 0f, flags,
+                variant.chassisAppearance, variant.arms.appearanceSelector,
+                variant.leftShoulder.appearanceSelector,
+                variant.rightShoulder.appearanceSelector, 1f);
+        return layers;
+    }
+
     private static String fileName(String path) {
         return path.substring(path.lastIndexOf('/') + 1);
     }

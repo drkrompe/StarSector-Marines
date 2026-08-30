@@ -6,7 +6,15 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 public interface TurretFireSink {
 
     void fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
-              StructureDef structure, long target, boolean aerialShooter, boolean hasLos);
+              StructureDef structure, long target, boolean aerialShooter, boolean hasLos,
+              float mountFacingDegrees, int releaseIndex);
+
+    default void fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
+                      StructureDef structure, long target, boolean aerialShooter,
+                      boolean hasLos) {
+        fire(shooterId, fromX, fromY, shooterFaction, structure, target,
+                aerialShooter, hasLos, Float.NaN, 0);
+    }
 
     default void fire(float fromX, float fromY, Faction shooterFaction,
                       StructureDef structure, long target, boolean aerialShooter) {

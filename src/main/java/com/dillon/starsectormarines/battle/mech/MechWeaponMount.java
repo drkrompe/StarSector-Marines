@@ -12,6 +12,8 @@ public final class MechWeaponMount {
     public int burstRemaining;
     public float burstTimer;
     public long burstTargetId;
+    /** Zero-based physical release most recently emitted by this mount. */
+    public int lastReleaseIndex;
     /** Accumulated onboard replenishment work toward the next trigger pack. */
     public float replenishmentProgressSeconds;
 

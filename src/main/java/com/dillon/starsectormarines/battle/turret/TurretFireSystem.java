@@ -73,11 +73,19 @@ public final class TurretFireSystem implements TurretFireSink {
 
     @Override
     public void fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
-                     StructureDef structure, long target, boolean aerialShooter, boolean hasLos) {
+                     StructureDef structure, long target, boolean aerialShooter, boolean hasLos,
+                     float mountFacingDegrees, int releaseIndex) {
         WeaponDef weapon = structure.mount.weapon;
         telemetry.recordRoundFired(shooterId);
         int tcx = world.cellX(target);
         int tcy = world.cellY(target);
+        float facing = Float.isFinite(mountFacingDegrees)
+                ? mountFacingDegrees
+                : TurretAim.bearingTo(fromX, fromY, world.x(target), world.y(target));
+        TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(
+                fromX, fromY, facing, structure.mount, releaseIndex);
+        fromX = muzzle.x();
+        fromY = muzzle.y();
         float distToTarget = (float) Math.sqrt(
                 (tcx + 0.5f - fromX) * (tcx + 0.5f - fromX) +
                 (tcy + 0.5f - fromY) * (tcy + 0.5f - fromY));

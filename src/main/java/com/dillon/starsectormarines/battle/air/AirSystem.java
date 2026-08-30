@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
+import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -875,7 +876,12 @@ public class AirSystem {
                 if (mt.burstRemaining > 0) {
                     mt.burstTimer -= dt;
                     if (mt.burstTimer <= 0f) {
-                        fireSink.fire(worldX, shotOriginY, faction, mt.mount.structure(), currentBurstTarget, /*aerialShooter*/ true);
+                        int releaseIndex = TurretMountGeometry.releaseIndex(
+                                mt.mount.weaponDef().burstCount, mt.burstRemaining);
+                        fireSink.fire(0L, worldX, shotOriginY, faction,
+                                mt.mount.structure(), currentBurstTarget,
+                                /*aerialShooter*/ true, /*hasLos*/ true,
+                                mt.facingDegrees, releaseIndex);
                         mt.recoilTimer = 0f;
                         mt.ammo--;
                         mt.burstRemaining--;
@@ -886,7 +892,10 @@ public class AirSystem {
                 }
 
                 if (aim.fireThisTick) {
-                    fireSink.fire(worldX, shotOriginY, faction, mt.mount.structure(), aim.target, /*aerialShooter*/ true);
+                    fireSink.fire(0L, worldX, shotOriginY, faction,
+                            mt.mount.structure(), aim.target,
+                            /*aerialShooter*/ true, /*hasLos*/ true,
+                            mt.facingDegrees, 0);
                     mt.recoilTimer = 0f;
                     mt.ammo--;
                     // Burst weapons latch the remaining rounds; single-shot

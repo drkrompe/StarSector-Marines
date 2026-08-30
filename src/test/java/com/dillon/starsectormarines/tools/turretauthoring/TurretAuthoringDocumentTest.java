@@ -46,7 +46,8 @@ class TurretAuthoringDocumentTest {
         hephaestus.weapon().getJSONObject("sim").getJSONObject("contact")
                 .put("damage", 124.0).put("penetration", 28.0);
         hephaestus.mount().getJSONObject("render")
-                .put("visualCells", 2.35).put("muzzleOffsetCells", 0.66);
+                .put("visualCells", 2.35).put("muzzleOffsetCells", 0.66)
+                .put("muzzleLateralOffsetCells", 0.08);
         hephaestus.structure().getJSONObject("durability")
                 .put("structure", 98.0).put("armorCapacity", 155.0)
                 .put("armorRating", 16.0);
@@ -67,6 +68,7 @@ class TurretAuthoringDocumentTest {
         assertEquals(124f, preview.weapon.contactDamage, 0f);
         assertEquals(2.35f, preview.visualCells, 0f);
         assertEquals(0.66f, preview.muzzleOffsetCells, 0f);
+        assertEquals(0.08f, preview.muzzleLateralOffsetCells, 0f);
         assertTrue(document.validate().isEmpty());
         assertTrue(document.dirty());
 
@@ -78,6 +80,7 @@ class TurretAuthoringDocumentTest {
         TurretAuthoringDocument reloaded = TurretAuthoringDocument.load(temporary);
         TurretMountDef saved = reloaded.previewMount(hephaestus.structureId());
         assertEquals(52f, saved.weapon.damage, 0f);
+        assertEquals(0.08f, saved.muzzleLateralOffsetCells, 0f);
         assertEquals(155f, reloaded.validateCatalogs().turrets()
                 .getStructure(hephaestus.structureId()).armorCapacity, 0f);
         TurretMountDef savedLocust = reloaded.previewMount(locust.structureId());

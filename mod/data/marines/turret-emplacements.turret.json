@@ -3,7 +3,7 @@
     {
       "id": "mount.turret-vulcan", "weapon": "weapon.turret-vulcan",
       "sim": { "ammoCapacity": 120, "turnRateDegPerSec": 120.0 },
-      "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
+      "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "muzzleLateralOffsetCells": 0.13, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
     },
     {
       "id": "mount.turret-arbalest", "weapon": "weapon.turret-arbalest",
@@ -38,7 +38,7 @@
     {
       "id": "mount.turret-heavy-mg", "weapon": "weapon.turret-heavy-mg",
       "sim": { "ammoCapacity": 200, "turnRateDegPerSec": 110.0 },
-      "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
+      "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "muzzleLateralOffsetCells": 0.13, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
     },
     { "id": "mount.pd-interceptor", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 8, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } }
   ],
