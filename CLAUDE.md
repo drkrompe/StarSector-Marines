@@ -154,10 +154,17 @@ Do not run builds or leave generated task files there.
   empty grid.** Opening one runs the procedural fitting that owns it and records
   what it did, so the first thing on screen is the room that already ships and
   the first edit is a change to it.
-  The grid it is edited on is deliberately not a picture of the room. Law 17
-  gives the render to the battle renderer, so the grid draws only what a render
-  cannot: which cells are deck, which are reserved circulation, what ground is
-  painted where, and which step is anchored on which cell. The comparison
+  The room is edited **on its own picture**: the battle renderer draws it as a
+  small map of its own and the grid marks that up, rather than replacing it with
+  coloured rectangles. Choosing between a vent plate and hazard striping is a
+  decision that can only be made by looking, and the flat-colour version was
+  perfectly clear about reservations while being useless for the one question
+  the deck screen exists to answer. Rendered at one cell per cell with no
+  surround, so the marks line up without arithmetic, and redrawn off the event
+  thread after every edit — a render that finishes after a newer edit is dropped,
+  so the grid keeps the last good picture instead of blanking. The marks are what
+  a render cannot say: which cells are deck, which are reserved circulation, and
+  which step is anchored where. The comparison
   screen generates **the same hull at the same seed twice**, with the layout
   suppressed and applied, and renders both — so a room drawn too large to fit
   shows up as a missing room rather than as a surprise later.
