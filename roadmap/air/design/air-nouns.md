@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown, and is still the air entity while it is; a fighter flies a wide banking circuit, and a flying arrival tolerance is derived from what the craft is doing. A transport that has unloaded departs; the armed post-delivery loiter is gone.
+Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown, and is still the air entity while it is; a fighter flies a wide banking circuit, and a flying arrival tolerance is derived from what the craft is doing; a field commits a share of its sheds rather than one aircraft, paced by what its strip can push through. A transport that has unloaded departs; the armed post-delivery loiter is gone.
 
 ## Purpose
 
@@ -461,14 +461,39 @@ the objective is its guns rather than its ramp, so unlike a transport it never
 touches down on what it was sent to attack — it arrives on station, which is a
 wider thing than arriving on a cell.
 
-The field flies **one at a time**, on an interval. A garrison that scrambled
-its whole air arm at first contact would spend itself in the opening minute and
-have nothing left for the assault the field exists to answer, and the single
-sortie is what makes air a recurring threat instead of one event. The target is
-the **densest** enemy concentration rather than the nearest or the largest:
-nearest sends aircraft after whichever scout wandered closest to the fence,
-largest picks the same push every time, and density is both what an aircraft is
-good against and what a player can see the reason for afterwards.
+The field **commits half its sheds and keeps half back**, rounded up so a
+one-shed strip still flies. A garrison that scrambled its whole air arm at first
+contact would spend itself in the opening minute and have nothing left for the
+assault the field exists to answer; a garrison that flew one aircraft while four
+sat in their hangars is not exercising restraint, it is a station whose air arm
+does not exist. The limit is a share of the field's own surviving
+establishment, so a strip with one shed and a station with six are different
+propositions, and an attacker who burns hangars narrows what the field can put
+up *now* as well as what it can put up ever. It is asked of the **berths** —
+how many sheds are committed — rather than of the aircraft, because a berth is
+what a sortie actually spends.
+
+**The stagger between launches is not the gap between sorties.** It used to be
+the latter, and that alone made the limit meaningless: at the current
+atmosphere calibration a sortie is about forty seconds from shed to shed, so a
+forty-five second wait after each one guaranteed the field was empty before the
+next aircraft moved, whatever any cap said — and what a playtester saw was a
+station with five airframes putting exactly one over the battle. What paces a
+launch is how fast the base can push one departure through its own taxiway and
+strip, which is a handful of seconds; what limits the field is the share above.
+The pacing is physical and the limit is doctrine, and confusing the two is what
+produced a doctrine nobody had chosen.
+
+The target is the **densest** enemy concentration rather than the nearest or
+the largest: nearest sends aircraft after whichever scout wandered closest to
+the fence, largest picks the same push every time, and density is both what an
+aircraft is good against and what a player can see the reason for afterwards.
+With more than one aircraft up the field asks for the densest concentration
+**nobody is already working** — two cluster radii clear of it, so the second
+sortie is attacking somebody the first is not. Two aircraft on one platoon
+stays available and is the answer when the map holds only one concentration
+worth attacking; what it must not be is the only sentence the dispatcher can
+say.
 
 **A strike cannot be shown to shoot headlessly.** Its guns are placed from the
 hull's real weapon slots, which need the game loaded to read, so a headless
@@ -600,7 +625,9 @@ The strip itself is a **resource with one occupant**. Two aircraft rolling down
 one runway is not a race the simulation is entitled to lose, and the queue that
 falls out of it is the point — a field with three aircraft and one strip
 launches them in sequence, so anything sitting between a shed and the threshold
-delays every one of them. A craft holds the strip from the moment it starts its
+delays every one of them. That queue was theory while a field flew one sortie
+at a time; with several up it is load-bearing, and holding short is an ordinary
+part of a departure rather than an edge case. A craft holds the strip from the moment it starts its
 roll until it is airborne, and through a landing rollout, because it is standing
 on it; releasing is tolerant of a craft that never held it, since a strip left
 claimed by an aircraft that no longer exists closes the field for the rest of
