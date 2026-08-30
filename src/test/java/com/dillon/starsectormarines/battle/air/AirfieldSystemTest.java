@@ -88,6 +88,46 @@ class AirfieldSystemTest {
         assertEquals(0L, berth.airframeId, "nothing replaces it");
     }
 
+    /**
+     * The hull stays on the concrete.
+     *
+     * <p>What a raider gets for walking onto an apron is a burnt aircraft that
+     * is visibly still there. The renderer draws that off the berth, because
+     * the unit is dead and released long before anybody looks at the pad again.
+     */
+    @Test
+    void anAircraftBurnedOnItsPadLeavesItsHullThere() {
+        BattleSimulation sim = openSim();
+        AirfieldService.Berth berth = berth(sim, 10, 10);
+        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
+        assertFalse(berth.wreckOnPad, "an aircraft standing on its pad is not a wreck");
+
+        sim.applyDamage(berth.airframeId, 100_000f, 100_000f);
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
+
+        assertTrue(berth.wreckOnPad, "the hull is still on the hardstand");
+    }
+
+    /**
+     * An aircraft lost over the objective leaves an empty stand.
+     *
+     * <p>The same terminal state as burning on the pad, and deliberately not
+     * the same picture: nothing came down here.
+     */
+    @Test
+    void anAircraftLostOverTheObjectiveLeavesTheStandEmpty() {
+        BattleSimulation sim = openSim();
+        AirfieldService.Berth berth = berth(sim, 10, 10);
+        AirfieldService airfield = sim.getAirfieldService();
+        airfield.launch(berth);
+
+        airfield.destroyed(berth);
+
+        assertEquals(AirfieldService.BerthState.DESTROYED, berth.state);
+        assertFalse(berth.wreckOnPad, "it did not come down on its own hardstand");
+    }
+
     /** The aircraft is a target, never a shooter. */
     @Test
     void aBasedAircraftNeverFires() {

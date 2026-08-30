@@ -70,6 +70,16 @@ public final class AirfieldService {
         public float hullHp;
         /** Sim-seconds of turnaround left before an airframe home from a sortie is airworthy again. */
         public float refitRemaining;
+        /**
+         * Whether the burnt-out airframe is still standing on this hardstand.
+         *
+         * <p>Its own fact rather than something read off {@link #state}. An
+         * aircraft burned on its pad and one shot down over the objective are
+         * the same terminal {@code DESTROYED} to everything that asks about
+         * supply, and they are nothing alike to look at: one leaves a hulk on
+         * the concrete and the other leaves an empty stand.
+         */
+        public boolean wreckOnPad;
 
         Berth(LandingPad pad, ShuttleType type, float facingDegrees) {
             this.pad = pad;
@@ -193,6 +203,20 @@ public final class AirfieldService {
         berth.state = BerthState.DESTROYED;
         berth.airframeId = 0L;
         berth.hullHp = 0f;
+    }
+
+    /**
+     * Writes this berth off with its aircraft burning where it was parked.
+     *
+     * <p>The same terminal state as {@link #destroyed}, plus the hulk left on
+     * the concrete. That the wreck is visible is the point: a raider who walks
+     * onto an apron to burn the based aircraft can see the result of it
+     * standing there for the rest of the battle, rather than having to infer
+     * it from sorties that stop arriving.
+     */
+    public void burnedOnPad(Berth berth) {
+        destroyed(berth);
+        berth.wreckOnPad = true;
     }
 
     /** The berth holding a given live parked airframe, or null. */
