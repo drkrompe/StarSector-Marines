@@ -57,7 +57,7 @@ public final class ShipDeckGenerator {
                 new InitSolidStage(),                    // solid hull
                 new HullProfileStage(SPINE_WIDTH, silhouette),  // beam per frame + zones
                 new SpineStage(),                        // carve the fore-aft corridor
-                new RoomPlacementStage(),                // pack the room program; passages fall out
+                new RoomPlacementStage(fit),             // pack the room program; passages fall out
                 new CompartmentFillStage(fit),           // furnish each room at the deck refit
                 new DeckEndSpawnStage(),                 // bow / stern anchors
                 new TacticalLinkStage(),                 // (no nodes yet -> empty map)
