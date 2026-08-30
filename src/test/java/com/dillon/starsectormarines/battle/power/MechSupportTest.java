@@ -212,7 +212,8 @@ public class MechSupportTest {
         }
 
         assertTrue(mech != 0L);
-        assertEquals(MechRole.ASSAULT, sim.world().mechLoadout(mech).role);
+        assertEquals(MechRole.ASSAULT,
+                sim.world().mechLoadout(mech).deployedRole());
         assertEquals(MissileReplenisherComponent.ACCELERATED_FEED,
                 sim.world().mechLoadout(mech).missileReplenisher());
     }

@@ -641,8 +641,8 @@ public final class SeparationSystem {
 
     private int mechFormationRoleRank(long member) {
         if (!world.hasMechLoadout(member)) return 1;
-        MechRole role = world.mechLoadout(member).role;
-        if (role == MechRole.ASSAULT) return 0;
+        MechRole role = world.mechLoadout(member).effectiveRole();
+        if (role == MechRole.ASSAULT || role == MechRole.ARMORED_SUPPORT) return 0;
         if (role == MechRole.LR_SUPPORT) return 2;
         return 1;
     }

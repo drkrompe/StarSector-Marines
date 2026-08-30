@@ -88,9 +88,7 @@ final class BattleSquadOverlayModel {
     Presentation update(BattleSimulation sim, int selectedSquadId) {
         if (sim == null || selectedSquadId < 0) return hide();
         Squad squad = sim.getSquad(selectedSquadId);
-        if (squad == null || squad.aliveMembers <= 0 || squad.faction != Faction.MARINE) {
-            return hide();
-        }
+        if (!isPlayerInfantrySquad(squad)) return hide();
 
         List<Long> live = new ArrayList<>();
         for (int index = 0; index < sim.liveUnitCount(); index++) {
@@ -110,6 +108,11 @@ final class BattleSquadOverlayModel {
                 ? squad.campaignLabel : "SQUAD " + squad.id;
         return updateProjected(new SquadState(label, squad.aliveMembers,
                 Math.max(squad.aliveMembers, squad.originalSize), squad.morale, members));
+    }
+
+    static boolean isPlayerInfantrySquad(Squad squad) {
+        return squad != null && squad.aliveMembers > 0
+                && squad.faction == Faction.MARINE && !squad.isMechSquad();
     }
 
     Presentation updateProjected(SquadState squad) {

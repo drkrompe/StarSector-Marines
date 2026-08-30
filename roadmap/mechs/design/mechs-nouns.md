@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — replaced phase-relative mech shuffling with persistent
-foot plants, predicted steps, and support-driven upper-body weight transfer.
+Updated: 2026-08-30 — defined the four battle doctrines and the battle-local
+override that selects among them without replacing mission authority.
 
 ## Purpose
 
@@ -24,6 +24,11 @@ increasing an encounter's total armored threat.
 - A **role** is tactical doctrine. It owns where a mech attempts to operate,
   what it supports, and when it advances, holds, or withdraws. A recommended
   role is not a chassis lock; the same hardware may receive another doctrine.
+- A **deployed role** is the campaign mech's authored role frozen into one
+  battle payload. A live mech may carry a nullable **battle role override**;
+  its **effective role** is that override when present and otherwise its
+  deployed role. Clearing the override returns to the deployed role, not the
+  variant's recommendation. The override ends with the battle.
 - A **loadout** is the live mount configuration. It owns installed hardpoint
   components and their independent ammunition, cooldown, salvo, lock, and
   resupply state.
@@ -93,19 +98,39 @@ increasing an encounter's total armored threat.
 ## Family and doctrine
 
 The Bulwark is the durable all-band anchor and compatibility control case. The
-Hound is a quick close-assault strider: it lacks long-range pressure and may
-advance only with nearby combat infantry or a different live mech chassis, so
-other Hounds cannot bootstrap a solo rush. The Sirocco is a fragile screened
-support strider: long-range fire is primary, while its cannon is an
-anti-hardened fallback rather than a replacement close-range saturation
-weapon. Its overwatch seeks a friendly, non-Sirocco screen and re-evaluates
-that screen as the battle changes. Once its long-range racks can no longer
-apply pressure, it abandons a cached distant perch and closes only to the outer
-edge of its installed arms range. It remains there while its onboard subsystem
-replenishes the racks, then returns to long-range posture only when every rack
-is full; individual restored triggers cannot make it oscillate between bands.
-Exhausted ammunition may change doctrine positioning, but never grants access
-to an absent mount or another role's withheld weapon.
+Hound is a quick close-assault strider that lacks long-range pressure. The
+Sirocco is a fragile long-range specialist whose cannon is an anti-hardened
+fallback rather than a replacement close-range saturation weapon. Those are
+hardware identities; any deployed chassis may receive any of these doctrines:
+
+- **Brawler** seeks the close or direct-fire band and may pursue a local threat
+  inside its assignment leash. Allied support may shape that advance but is not
+  permission to act, so losing the screen does not stop a legal attack.
+- **Frontline Support** attaches to a nearby allied infantry squad or mech
+  element and takes the threat-facing side of that group. It absorbs pressure
+  without inventing an independent attack; without a legal anchor it holds and
+  defends itself. The battle UI may call this doctrine **Tank**.
+- **Long-Range Support** prefers the outer useful weapon band, retained line of
+  sight, and a friendly screen between itself and perceived danger. If a threat
+  closes, it fights while opening distance rather than treating the old perch
+  as sacred.
+- **Balanced** serves its assignment from the middle or outer portion of its
+  installed direct-fire band. It accepts a close threat already upon it, then
+  resumes the assignment, and has no special ally-geometry dependency.
+
+The role changes how a mech serves an assignment; it never supplies an
+assignment, hidden contact, or permission to leave mission-command bounds.
+Different effective roles in one battle lance execute per member rather than
+competing to turn the lance's shared plan into one role.
+
+Long-range doctrine still evaluates whether a prospective screen is physically
+credible. A fragile Sirocco is not made into armor merely because it receives
+another doctrine. Once long-range racks can no longer apply pressure, their
+carrier may close to the outer edge of its installed arms range while the
+onboard subsystem replenishes them, returning to long-range posture only when
+every rack is full; individual restored triggers cannot make it oscillate
+between bands. Exhausted ammunition may change doctrine positioning, but never
+grants access to an absent mount or another role's withheld weapon.
 
 All variants share movement-aware targeting and a planted-hip torso envelope:
 near visible danger can interrupt a distant engagement, but the rear blind
@@ -150,6 +175,14 @@ variant, role, and installed subsystem from the active mech squad into plain
 deployment values. The delivery power transports those values; landing then
 constructs the live loadout and installs the frozen subsystem.
 
+Selecting an exact friendly mech during battle may request another effective
+role. The battle applies that request at its serialized command boundary,
+invalidates role-owned movement and planning state, and replans immediately.
+The interrupt preserves the mech's assignment, legal contact picture, morale,
+damage, ammunition, cooldowns, and deployed role. It cannot target an enemy,
+non-mech, stale entity, or rescue payload, and it never writes back to campaign
+state. Persistent doctrine authoring remains a Mech Lab responsibility.
+
 Defender setup produces a deterministic sequence of variants, not an
 interchangeable mech count. Risk, target conditions, and attacking force
 decide which candidates are affordable; the selected sequence then reaches
@@ -172,6 +205,11 @@ support sortie, subject only to practical runtime resources.
   morale behavior.
 - Hardware and doctrine are independent. Do not encode a planner behavior in
   a variant name or infer a chassis solely from its assigned role.
+- A battle role override changes only local tactical manner. It does not author
+  mission destination, reveal a contact, waive survival law, or mutate the
+  deployed or campaign role.
+- Mixed-role lances apply doctrine per live mech. One member's role may not
+  starve another member's doctrine through a shared squad plan.
 - Every specialist loses a meaningful capability as well as durability; a
   lighter chassis cannot be a discounted all-range Bulwark.
 - Chassis structure, armor capacity, and armor rating are separate values. Bulwark

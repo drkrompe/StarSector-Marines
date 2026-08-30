@@ -21,10 +21,9 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * zone, then closes to a short standoff from its contact while keeping every
  * installed weapon live. With no assignment it advances on the squad's known
  * contact, which gives the same behavior to attacker and defender squads.
- * The point advance is formation-leashed to nearby combat infantry or a live
- * mech of another chassis: an unsupported assault mech holds and fires instead
- * of making a solo close-range charge. Same-chassis assault mechs cannot
- * bootstrap one another into an unsupported push.
+ * Nearby combat infantry or a live mech of another chassis shapes the point
+ * advance into a bounded lead, but support is not a permission gate: an
+ * unsupported Brawler still prosecutes its assignment or known contact.
  *
  * <p>Mixed-role mech squads keep their existing doctrine inside the shared
  * step: LR Support delegates to overwatch and Armored Support delegates to
@@ -52,13 +51,13 @@ public final class BreachAndAssault implements Action {
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         MechLoadoutComponent loadout = sim.world().mechLoadout(member);
         if (loadout == null) return ActionStatus.FAILURE;
-        if (loadout.role == MechRole.LR_SUPPORT) {
+        if (loadout.effectiveRole() == MechRole.LR_SUPPORT) {
             return OverwatchKillZone.INSTANCE.execute(member, squad, sim);
         }
-        if (loadout.role == MechRole.ARMORED_SUPPORT) {
+        if (loadout.effectiveRole() == MechRole.ARMORED_SUPPORT) {
             return BackstopAssignedSquad.INSTANCE.execute(member, squad, sim);
         }
-        if (loadout.role != MechRole.ASSAULT) {
+        if (loadout.effectiveRole() != MechRole.ASSAULT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }
 
@@ -66,23 +65,27 @@ public final class BreachAndAssault implements Action {
         sim.world().setTargetId(member, target);
         fireWhileAdvancing(member, loadout, target, sim);
 
-        long support = nearestSupport(member, squad, sim);
-        if (support == 0L) {
-            hold(member, sim);
-            return ActionStatus.RUNNING;
-        }
         int[] destination = destination(member, squad, target, sim);
+        destination = MechAssignmentBoundary.constrain(
+                member, squad, destination, sim);
         if (destination == null) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        int[] cohesiveDestination = clampToSupport(destination[0], destination[1],
-                support, sim);
-        if (cohesiveDestination == null) {
+        long support = nearestSupport(member, squad, sim);
+        int[] advanceDestination = destination;
+        if (support != 0L) {
+            int[] cohesiveDestination = clampToSupport(destination[0], destination[1],
+                    support, sim);
+            if (cohesiveDestination != null) advanceDestination = cohesiveDestination;
+        }
+        advanceDestination = MechAssignmentBoundary.constrain(
+                member, squad, advanceDestination, sim);
+        if (advanceDestination == null) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        moveToward(member, cohesiveDestination[0], cohesiveDestination[1], sim);
+        moveToward(member, advanceDestination[0], advanceDestination[1], sim);
         return ActionStatus.RUNNING;
     }
 

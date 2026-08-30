@@ -83,6 +83,8 @@ import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
+import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
+import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -305,6 +307,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             new com.dillon.starsectormarines.battle.power.CommandPowerService();
     /** Stateless consumer that drains queued activations (commit cost + cooldown + resolve), regens command points, and ages cooldowns + transient pings each tick. */
     private final com.dillon.starsectormarines.battle.power.CommandPowerSystem commandPowerSystem;
+    /** Player-requested per-mech doctrine overrides, drained in the command phase. */
+    private final MechDoctrineService mechDoctrines = new MechDoctrineService();
+    private final MechDoctrineSystem mechDoctrineSystem =
+            new MechDoctrineSystem(mechDoctrines);
 
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. Declared before {@link #reinforcement} so it can be constructor-injected into it. */
     private final BattleResources battleResources = new BattleResources();
@@ -834,6 +840,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public FogOfWarService getFogOfWar() { return fogOfWar; }
     /** Player command-power layer. The battle UI reads the pool / cooldowns and calls {@link com.dillon.starsectormarines.battle.power.CommandPowerService#requestActivation}; {@code BattleScreen.advance} projects its active recon pings into the fog as ephemeral vision sources. */
     public com.dillon.starsectormarines.battle.power.CommandPowerService getCommandPowerService() { return commandPowers; }
+    /** Player battle-only mech doctrine command mailbox. */
+    public MechDoctrineService getMechDoctrineService() { return mechDoctrines; }
     public void setCommandPowerResources(com.dillon.starsectormarines.battle.power.CommandPowerResources resources) {
         commandPowers.setResources(resources);
     }
@@ -1322,6 +1330,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * a commander snapshot, this is also available for externally owned
      * squads in missions without an autonomous commander.
      */
+    @Override
     public CommandDirective getSquadCommandDirective(int squadId) {
         return commanders.activeDirective(squadId);
     }
@@ -1589,6 +1598,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // regen the pool, and age cooldowns + transient reveals down. Folds
         // into the COMMANDER region's lap; cost is trivial.
         commandPowerSystem.tick(TICK_DT);
+        // Apply exact-mech doctrine changes after strategic command has written
+        // assignments and before GOAP replans. A changed member therefore
+        // executes its new battlefield doctrine on this same fixed tick.
+        mechDoctrineSystem.tick(this);
         tickProfile.lap(TickProfile.Phase.COMMANDER);
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
         // ordering + parallelism notes.

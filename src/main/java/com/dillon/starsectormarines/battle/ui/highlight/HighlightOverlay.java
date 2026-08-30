@@ -36,6 +36,7 @@ public final class HighlightOverlay {
     /** Source ids the in-tree panels publish under. New consumers should add their own constants here. */
     public static final String SRC_ACTION_CELLS    = "action-cells";
     public static final String SRC_SELECTED_SQUAD  = "selected-squad";
+    public static final String SRC_SELECTED_UNIT   = "selected-unit";
     public static final String SRC_CAPTAIN         = "captain";
     public static final String SRC_BELIEVED_CONTACTS = "believed-contacts";
     public static final String SRC_HEARD_NOISE      = "heard-noise";
@@ -73,6 +74,7 @@ public final class HighlightOverlay {
     /** Suggested palette so unrelated sources don't visually collide. */
     public static final Color COLOR_ACTION_CELLS   = new Color(0x40, 0xE0, 0xFF, 0xFF);  // cyan
     public static final Color COLOR_SELECTED_UNIT  = new Color(0x80, 0xFF, 0x80, 0xFF);  // green
+    public static final Color COLOR_SELECTED_PRIMARY = new Color(0xFF, 0xD4, 0x64, 0xFF); // gold
     public static final Color COLOR_CAPTAIN        = new Color(0xFF, 0xD0, 0x40, 0xFF);  // gold
     public static final Color COLOR_BELIEVED_CONTACT = new Color(0xFF, 0x50, 0xA0, 0xFF); // magenta
     public static final Color COLOR_AUDIO_CONTACT  = new Color(0xFF, 0xA0, 0x38, 0xFF); // amber
