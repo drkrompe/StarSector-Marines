@@ -531,11 +531,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Per-squad GOAP plan readout. It has no all-squad overview: the
         // diagnostic opens only while WorldPicker has a squad in Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
-        // Per-phase tick wall-time profile (top-left). DevConfig-gated; informs
+        // Per-phase tick wall-time profile (top-center, beside DEBUG).
+        // DevConfig-gated; informs
         // the upcoming DoD / ECS refactor by showing which tick phases are
         // actually expensive at peak unit counts.
         hud.addPanel(new TickProfileDebugPanel(this));
-        // Debug toggles + actions (top-center, collapsed by default). Replaces
+        // Debug toggles + actions (top-center beside Tick Profile, collapsed
+        // by default). Replaces
         // the prior DebugTogglesWidget which was attached to the screen's
         // widget root rather than the hud — moved into the hud so input +
         // render ordering match the rest of the debug panels.

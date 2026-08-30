@@ -40,10 +40,7 @@ import com.fs.starfarer.api.input.InputEventAPI;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Bottom-right selected-squad GOAP diagnostic. It remains closed while no
@@ -51,10 +48,12 @@ import java.util.Set;
  * problem of the squad roster and covered the battlefield with developer
  * state. Picking a squad through
  * {@link com.dillon.starsectormarines.battle.ui.picking.WorldPicker} opens its
- * full plan dump: goal + priority bucket, every step's action + slot→member
- * assignments, and the current world-state predicate grid. The predicate grid
- * answers "why isn't this squad doing anything?" from the selected squad's
- * own state. The body remains scrollable through {@link ScrollState}.
+ * focused plan dump: goal + priority bucket, the squad's commander assignment,
+ * one row per GOAP step, and the current world-state predicate grid. The old
+ * per-slot/path-highlight controls duplicated world path diagnostics while
+ * making the panel too tall to read alongside mission UI. The predicate grid
+ * still answers "why isn't this squad doing anything?" from the selected
+ * squad's own state. The body remains scrollable through {@link ScrollState}.
  *
  * <p>Detail mode uses {@link Fonts#INSIGNIA_15_AA} rather than Orbitron 20 —
  * predicate names + slot listings are long, and the Orbitron 20 floor for
@@ -67,6 +66,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private static final float PANEL_W       = 360f;
     private static final float HEADER_H      = 28f;
     private static final float PAD_INNER     = 8f;
+    private static final float MAX_PANEL_H   = 480f;
 
     private static final Color BG            = new Color(0x10, 0x18, 0x22, 0xD8);
     private static final Color BORDER        = new Color(0x60, 0x80, 0xA0);
@@ -97,15 +97,6 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private static final Color SCROLL_TRACK         = new Color(0x20, 0x2C, 0x3A, 0xC0);
     private static final Color SCROLL_THUMB         = new Color(0x80, 0xA0, 0xC8, 0xE0);
 
-    // --- Per-step highlight buttons ---
-    private static final float HL_BTN_W              = 18f;
-    private static final float HL_BTN_INSET          = 4f;
-    private static final Color HL_BTN_BG_IDLE        = new Color(0x22, 0x32, 0x46, 0xC8);
-    private static final Color HL_BTN_BG_ON          = new Color(0x10, 0x60, 0x80, 0xF0);
-    private static final Color HL_BTN_FG_IDLE        = new Color(0x80, 0xA0, 0xC0);
-    private static final Color HL_BTN_FG_ON          = new Color(0xE8, 0xF8, 0xFF);
-    private static final Color HL_BTN_BORDER         = new Color(0x60, 0x80, 0xA0);
-
     // --- Header DUMP button ---
     private static final float DUMP_BTN_W            = 48f;
     private static final float DUMP_BTN_H            = 18f;
@@ -129,25 +120,17 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private int lastDetailSquadId = Selection.NONE;
     /** Scroll bookkeeping for the detail body. Reused frame-to-frame so the offset survives panel re-renders. */
     private final ScrollState detailScroll = new ScrollState();
-    /** Plan-step indices the user has toggled on for highlight. Cleared whenever the plan reference changes (replan) or the selection switches squads. */
-    private final Set<Integer> highlightedStepIndices = new HashSet<>();
-    /** Plan reference last known to {@link #highlightedStepIndices}; identity-checked so a replan wipes stale toggle state. */
-    private SquadPlan lastPlanForHighlights;
-    /** Per-frame button hotspots, populated by {@link #renderDetail} and consumed by {@link #handleInput}. */
-    private final List<StepHotspot> stepHotspots = new ArrayList<>();
     /** Header DUMP button hotspot, refreshed per frame. {@code null} when no detail squad is selected (button isn't drawn either). */
-    private StepHotspot dumpHotspot;
+    private Hotspot dumpHotspot;
     /** Post-dump status text shown in place of the scroll hint. {@code null} when no status to show. Cleared once the banner expires. */
     private String dumpStatusMessage;
     /** Sim-seconds remaining on the post-dump status banner. Counted down each {@link #update} call; when it hits zero {@link #dumpStatusMessage} clears. */
     private float dumpStatusRemaining;
 
-    /** Click target for one plan step's highlight toggle. Built per-frame in render. */
-    private static final class StepHotspot {
-        final int stepIdx;
+    /** Small retained click target for a debug action. */
+    private static final class Hotspot {
         final float x, y, w, h;
-        StepHotspot(int stepIdx, float x, float y, float w, float h) {
-            this.stepIdx = stepIdx;
+        Hotspot(float x, float y, float w, float h) {
             this.x = x;
             this.y = y;
             this.w = w;
@@ -181,6 +164,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         }
 
         BattleSimulation sim = ctx.getSim();
+        ctx.getHighlights().clear(HighlightOverlay.SRC_ACTION_CELLS);
         ctx.getHighlights().clear(HighlightOverlay.SRC_BELIEVED_CONTACTS);
         ctx.getHighlights().clear(HighlightOverlay.SRC_HEARD_NOISE);
         ctx.getHighlights().clear(HighlightOverlay.SRC_CONTACT_DOCTRINE);
@@ -197,20 +181,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 if (lastDetailSquadId != wantId) {
                     // Fresh squad — scroll back to top so the user sees the
                     // header info on a new pick rather than wherever the
-                    // previous squad's scroll happened to land. Highlights
-                    // also reset so the new squad starts with a clean slate.
+                    // previous squad's scroll happened to land.
                     detailScroll.reset();
-                    highlightedStepIndices.clear();
                     lastDetailSquadId = wantId;
-                }
-                // Plan-reference change ⇒ replan ⇒ step indices are stale.
-                if (s.currentPlan != lastPlanForHighlights) {
-                    highlightedStepIndices.clear();
-                    lastPlanForHighlights = s.currentPlan;
                 }
                 detailContentH = computeDetailContentHeight(s);
                 detailScroll.setMetrics(detailContentH, detailViewportHeight());
-                publishStepHighlights(s, sim);
                 publishCaptainHighlight(s);
                 publishBeliefHighlights(s);
                 publishDoctrineHighlight(s);
@@ -221,8 +197,6 @@ public final class SquadPlanDebugPanel implements HudPanel {
             sel.clear();
         }
         lastDetailSquadId = Selection.NONE;
-        lastPlanForHighlights = null;
-        highlightedStepIndices.clear();
         HighlightOverlay overlay = ctx.getHighlights();
         overlay.clear(HighlightOverlay.SRC_ACTION_CELLS);
         overlay.clear(HighlightOverlay.SRC_CAPTAIN);
@@ -240,19 +214,27 @@ public final class SquadPlanDebugPanel implements HudPanel {
         return l.controlsX + l.controlsW - PANEL_W;
     }
 
-    private float panelY() {
+    /** Top edge, below the retained time/objective rail. */
+    private float panelTopY() {
         BattleLayout l = ctx.getLayout();
-        return l.backY + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP;
+        return l.controlsY + l.controlsH
+                - BattleLayout.COMMAND_RAIL_H - BattleLayout.CONTROLS_GAP;
+    }
+
+    private float panelY() {
+        return panelTopY() - detailPanelHeight();
     }
 
     /**
-     * Largest height either panel mode may grow to. Sits below the top control
-     * strip with a small gap — past that the panel would overpaint the speed
-     * buttons. Detail content scrolls inside this cap.
+     * Largest height the selected-squad panel may grow to. It is top-anchored
+     * beneath the retained rail and bounded so selection does not turn the
+     * entire right edge into a developer console.
      */
     private float maxPanelHeight() {
         BattleLayout l = ctx.getLayout();
-        return l.controlsY - panelY() - BattleLayout.CONTROLS_GAP;
+        float floor = l.backY + BattleLayout.BACK_H + BattleLayout.CONTROLS_GAP;
+        return Math.max(HEADER_H,
+                Math.min(MAX_PANEL_H, panelTopY() - floor));
     }
 
     /**
@@ -286,12 +268,10 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (commander != null && sabotageSnapshot(commander) != null) lines += 2;
         if (commander != null && sabotageDefenseSnapshot(commander) != null) lines += 2;
         dividers += 1;
-        // Section 4: "Plan: …" line + per-step (action line + slot lines).
+        // Section 4: "Plan: …" line + one concise action row per step.
         lines += 1;
         if (s.currentPlan != null) {
-            for (SquadPlan.Step step : s.currentPlan.steps()) {
-                lines += 1 + step.assignments.size();
-            }
+            lines += s.currentPlan.stepCount();
         }
         dividers += 1;
         // Section 5: "Predicates:" header + one row per declared predicate.
@@ -327,10 +307,6 @@ public final class SquadPlanDebugPanel implements HudPanel {
         Squad s = detailSquad;
         WorldState ws = detailState;
         if (s == null || ws == null) return;
-
-        // Hotspot list is rebuilt every frame so a scrolled-off button isn't
-        // clickable through stale geometry.
-        stepHotspots.clear();
 
         BitmapFont font = Fonts.INSIGNIA_15_AA;
         float x0 = panelX();
@@ -566,7 +542,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
         }
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
 
-        // Section 4: plan steps with per-slot assignments.
+        // Section 4: the GOAP sequence. Per-slot assignments and path-cell
+        // highlight buttons were removed; the selected-squad panel reports
+        // decisions while world path diagnostics remain in the DEBUG menu.
         SquadPlan plan = s.currentPlan;
         String planHeader = plan == null ? "Plan: (none)"
                 : "Plan: step " + (plan.currentIndex() + 1) + "/" + plan.stepCount();
@@ -578,21 +556,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 boolean current = (i == plan.currentIndex() && !plan.isComplete());
                 Color color = current ? DETAIL_CURRENT_STEP : DETAIL_VALUE_FG;
                 String prefix = current ? "> " : "  ";
-                // Draw the step line + an inline [H] highlight toggle button on
-                // the right edge. Both are visibility-gated together — when the
-                // line scrolls off, the hotspot doesn't register either.
                 boolean stepVisible = detailScroll.lineVisible(lineY, DETAIL_LINE_H, vpBottomY, vpTopY);
                 if (stepVisible) {
                     font.drawString(prefix + (i + 1) + ". " + step.action.name(),
                             lineX, lineY, color, alphaMult);
-                    renderHighlightButton(font, i, x0 + bodyW, lineY, alphaMult);
                 }
                 lineY -= DETAIL_LINE_H;
-                for (Map.Entry<String, List<Long>> e : step.assignments.entrySet()) {
-                    lineY = drawLineIfVisible(font,
-                            "    " + e.getKey() + " → " + memberIds(e.getValue(), ctx.getSim()),
-                            lineX, lineY, DETAIL_LABEL_FG, alphaMult, vpBottomY, vpTopY);
-                }
             }
         }
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
@@ -636,36 +605,13 @@ public final class SquadPlanDebugPanel implements HudPanel {
     }
 
     /**
-     * Draws a small "[H]" toggle button to the right of a plan step line and
-     * records its hotspot for click handling. Color flips based on whether the
-     * step is in {@link #highlightedStepIndices}, so the user can see at a
-     * glance which steps are currently lighting up cells in the world.
-     */
-    /**
-     * Draws the header DUMP button and records its hotspot. Sentinel
-     * {@code stepIdx = -1} marks it apart from the per-step [H] hotspots
-     * in the shared {@code stepHotspots}-style list; we keep it in its own
-     * field instead so the per-step list stays semantically clean.
+     * Draws the header DUMP button and records its hotspot.
      */
     private void renderDumpButton(BitmapFont font, float x, float y, float alphaMult) {
         HudDraw.filledRect(x, y, DUMP_BTN_W, DUMP_BTN_H, DUMP_BTN_BG, alphaMult);
         HudDraw.borderRect(x, y, DUMP_BTN_W, DUMP_BTN_H, DUMP_BTN_BORDER, alphaMult);
         font.drawString("DUMP", x + 6f, y + DUMP_BTN_H - 3f, DUMP_BTN_FG, alphaMult);
-        dumpHotspot = new StepHotspot(-1, x, y, DUMP_BTN_W, DUMP_BTN_H);
-    }
-
-    private void renderHighlightButton(BitmapFont font, int stepIdx,
-                                        float rightEdgeX, float lineY, float alphaMult) {
-        boolean on = highlightedStepIndices.contains(stepIdx);
-        float bx = rightEdgeX - HL_BTN_W - HL_BTN_INSET;
-        float by = lineY + 2f;
-        float bw = HL_BTN_W;
-        float bh = DETAIL_LINE_H - 4f;
-        HudDraw.filledRect(bx, by, bw, bh, on ? HL_BTN_BG_ON : HL_BTN_BG_IDLE, alphaMult);
-        HudDraw.borderRect(bx, by, bw, bh, HL_BTN_BORDER, alphaMult);
-        // Centered-ish "H". Insignia 15 is small enough that 4px from edges reads cleanly.
-        font.drawString("H", bx + 5f, by + bh - 3f, on ? HL_BTN_FG_ON : HL_BTN_FG_IDLE, alphaMult);
-        stepHotspots.add(new StepHotspot(stepIdx, bx, by, bw, bh));
+        dumpHotspot = new Hotspot(x, y, DUMP_BTN_W, DUMP_BTN_H);
     }
 
     /** Draws a horizontal rule when its band overlaps the viewport, then advances the cursor past the gap. */
@@ -1078,46 +1024,18 @@ public final class SquadPlanDebugPanel implements HudPanel {
         };
     }
 
-    /** Comma-joined unit names, capped so a large slot list doesn't blow the panel. Falls back to the numeric entityId when no sim is available. */
-    private static String memberIds(List<Long> members, BattleSimulation sim) {
-        if (members == null || members.isEmpty()) return "(none)";
-        StringBuilder sb = new StringBuilder();
-        int max = Math.min(members.size(), 4);
-        for (int i = 0; i < max; i++) {
-            if (i > 0) sb.append(", ");
-            long m = members.get(i);
-            sb.append(sim != null ? sim.identity().name(m) : Long.toString(m));
-        }
-        if (members.size() > max) sb.append(", +").append(members.size() - max);
-        return sb.toString();
-    }
-
     @Override
     public void handleInput(List<InputEventAPI> events) {
         if (events == null || detailSquad == null) return;
-        // LMB on a step's [H] button toggles that step's highlight. Walk
-        // events before the scroll handler so an unconsumed click on a button
-        // doesn't get eaten by anything else. Buttons live inside the panel
-        // rect, so this can't shadow world clicks.
+        // The only retained action in the consolidated diagnostic is DUMP.
         for (InputEventAPI e : events) {
             if (e.isConsumed()) continue;
             if (!e.isLMBDownEvent()) continue;
             float px = e.getX();
             float py = e.getY();
-            // DUMP button checked first so it doesn't shadow a [H] toggle
-            // that happens to land on the same pixel after a future layout
-            // change. Cheap O(1) check.
             if (dumpHotspot != null && dumpHotspot.contains(px, py)) {
                 triggerDump();
                 e.consume();
-                continue;
-            }
-            for (StepHotspot hs : stepHotspots) {
-                if (hs.contains(px, py)) {
-                    toggleStepHighlight(hs.stepIdx);
-                    e.consume();
-                    break;
-                }
             }
         }
         // Wheel-over-detail-panel scrolls the body. The no-selection case is
@@ -1125,17 +1043,6 @@ public final class SquadPlanDebugPanel implements HudPanel {
         detailScroll.handleWheel(events,
                 panelX(), panelY(), PANEL_W, detailPanelHeight(),
                 SCROLL_PX_PER_NOTCH);
-    }
-
-    /**
-     * Flips the highlight toggle for one plan step. The overlay republishes
-     * on the next update(), so we don't have to push here — keeps the publish
-     * path single-sited.
-     */
-    private void toggleStepHighlight(int stepIdx) {
-        if (!highlightedStepIndices.add(stepIdx)) {
-            highlightedStepIndices.remove(stepIdx);
-        }
     }
 
     /**
@@ -1231,28 +1138,4 @@ public final class SquadPlanDebugPanel implements HudPanel {
         return List.copyOf(cells);
     }
 
-    /**
-     * Builds the overlay's {@code SRC_ACTION_CELLS} source from the currently
-     * toggled steps. Called from update() so every frame's overlay reflects
-     * fresh action-cell positions (replans / movement / new portals all
-     * propagate without the user re-clicking).
-     */
-    private void publishStepHighlights(Squad squad, BattleSimulation sim) {
-        HighlightOverlay overlay = ctx.getHighlights();
-        SquadPlan plan = squad.currentPlan;
-        if (plan == null || highlightedStepIndices.isEmpty()) {
-            overlay.clear(HighlightOverlay.SRC_ACTION_CELLS);
-            return;
-        }
-        List<SquadPlan.Step> steps = plan.steps();
-        List<CellHighlight> cells = new ArrayList<>();
-        for (Integer idx : highlightedStepIndices) {
-            if (idx < 0 || idx >= steps.size()) continue;
-            List<int[]> stepCells = steps.get(idx).action.highlightCells(squad, sim);
-            for (int[] xy : stepCells) {
-                cells.add(new CellHighlight(xy[0], xy[1], HighlightOverlay.COLOR_ACTION_CELLS));
-            }
-        }
-        overlay.put(HighlightOverlay.SRC_ACTION_CELLS, cells);
-    }
 }

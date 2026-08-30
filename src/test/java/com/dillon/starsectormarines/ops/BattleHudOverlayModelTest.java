@@ -136,7 +136,7 @@ class BattleHudOverlayModelTest {
         UiDocument document = new UiDocument(instance.root());
         for (var style : instance.styles()) document.addStyleSheet(style);
         document.theme(MarineOpsThemes.standard());
-        document.layout(BattleHudOverlay.DOCUMENT_WIDTH, height);
+        document.layout(BattleHudOverlay.RAIL_WIDTH * 2f + 240f, height);
         return document;
     }
 

@@ -6,12 +6,10 @@ package com.dillon.starsectormarines.render2d;
  * viewport rect provided by {@code BattleLayout}).
  *
  * <p>Pan is stored as the world-cell coordinate sitting at the <em>center</em>
- * of the viewport. Zoom multiplies the layout's fitted cell size — zoom 1.0
- * is "the whole map fits inside the viewport" (the value picked by
- * {@code BattleLayout}), and zooming in past 1.0 grows each cell on screen
- * while shrinking the visible slice of world. Min zoom of 1.0 means the user
- * can never see "less than the whole map" — past that point you'd just be
- * letterboxing the world rect, which has no value.
+ * of the viewport. Zoom multiplies the layout's cover-fitted cell size — zoom
+ * 1.0 fills the complete battle canvas while preserving square cells, and the
+ * narrower world axis may be panned to reveal its cropped edge. Zooming in
+ * past 1.0 grows each cell on screen while shrinking the visible slice.
  *
  * <p>{@link #zoomAt} re-anchors the pan so the world point under the cursor
  * stays under the cursor across the zoom step (zoom-to-cursor, which feels
@@ -47,9 +45,9 @@ public final class BattleCamera {
 
     /**
      * Sets the screen-space viewport rect (in pixels) and the base cell size
-     * — {@code baseCellSize} is the pixel size of one cell at zoom 1.0, taken
-     * from {@code BattleLayout.cellSize}. Re-clamps pan in case the viewport
-     * shrank under the camera.
+     * — {@code baseCellSize} is the cover-fitted pixel size of one cell at
+     * zoom 1.0, taken from {@code BattleLayout.cellSize}. Re-clamps pan in case
+     * the viewport shrank under the camera.
      */
     public void setViewport(float x, float y, float w, float h, float baseCellSize) {
         this.vpX = x;
