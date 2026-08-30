@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.setup;
 
-import com.dillon.starsectormarines.battle.air.PostDeliveryDisposition;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -67,8 +66,6 @@ class ConquestArrivalPlanTest {
                 assertEquals(6, mission.seatsPerSortie);
                 assertEquals(6, mission.cycleLoadouts[0].length);
                 assertEquals(12, mission.expectedArrivalStrength);
-                assertEquals(PostDeliveryDisposition.DEPART,
-                        mission.postDeliveryDisposition);
                 assertTrue(mission.pendingDelay >= 0f);
                 assertTrue(mission.rearmDelay
                         >= ShuttleMission.DEFAULT_REARM_DELAY_SEC);

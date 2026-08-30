@@ -24,8 +24,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  *
  * <p>Lifecycle: PENDING (waiting on stagger) → INCOMING (steering from off-map
  * entry to LZ) → LANDED (deboarding marines or awaiting rescue passengers) →
- * optional HOVER_STATION (armed fire-support loiter) → DEPARTING (steering to
- * exit) → GONE. With
+ * DEPARTING (steering to exit) → GONE. With
  * {@link #totalCycles} &gt; 1 the shuttle re-enters PENDING after DEPARTING and
  * flies another sortie.
  */
@@ -37,15 +36,6 @@ public final class ShuttleMission {
     /** Ownership claimed when this mission first mints its transported squad. */
     public SquadCommandClaim commandClaim;
 
-    /** HP fraction below which the shuttle aborts HOVER_STATION and departs. Default 0.4 = 40%. */
-    public static final float HOVER_HP_THRESHOLD = 0.4f;
-
-    /** Sim-seconds the LANDED → HOVER_STATION takeoff takes. */
-    public static final float T_TAKEOFF_SEC = 2.0f;
-
-    /** Standoff (cells) the hover point is pulled back from the squad centroid along the LZ→centroid bearing. */
-    public static final float HOVER_STANDOFF_CELLS = 5f;
-
     /** Current state-machine phase. Driven by {@link AirSystem}. */
     public ShuttleState state = ShuttleState.PENDING;
 
@@ -56,17 +46,15 @@ public final class ShuttleMission {
     /** Marines still aboard for the current sortie. */
     public int marinesRemaining;
     /**
-     * Seconds between deboards on this sortie, and seconds of fire-support
-     * fuel an armed one starts a loiter with.
+     * Seconds between deboards on this sortie.
      *
      * <p>On the sortie rather than read off the airframe each tick, for the
      * same reason {@link #seatsPerSortie} is: the hull says what it can do and
-     * the sortie says what it is doing. It also keeps two transport-shaped
-     * numbers off {@link Airframe}, which a fighter would have to answer
+     * the sortie says what it is doing. It also keeps a transport-shaped
+     * number off {@link Airframe}, which a fighter would have to answer
      * meaninglessly.
      */
     public float deboardInterval = 0.6f;
-    public float fireSupportSec;
 
     /**
      * Marines embarked on each infantry sortie. This may be lower than the
@@ -175,23 +163,18 @@ public final class ShuttleMission {
     public int squadId = Squad.NO_SQUAD;
 
     /**
-     * Current HP. Seeded from {@link ShuttleType#maxHp}. Drives the
-     * pressure-to-leave HOVER_STATION exit via {@link #HOVER_HP_THRESHOLD};
-     * no damage source exists yet (anti-air is a follow-up) so it's effectively
-     * constant today, wired forward.
+     * Current HP. Seeded from {@link ShuttleType#maxHp} and drained by
+     * anti-air fire on the way in and out; at zero the craft is shot down with
+     * whoever is still aboard.
      */
     public float hp;
 
     /**
      * Fire-support role, or {@code null} on a pure transport. Drives turret kit
-     * selection at setup and the HOVER_STATION-vs-immediate-DEPARTING choice —
-     * a null role departs immediately after deboard.
+     * selection at setup — what an armed craft carries on its way in and out,
+     * not a reason to stay.
      */
     public TurretRole assignedRole;
-
-    /** Post-unload behavior, independent of whether the craft is armed. */
-    public PostDeliveryDisposition postDeliveryDisposition =
-            PostDeliveryDisposition.LOITER_IF_ARMED;
 
     /**
      * Optional override of the {@link UnitType} stamped on each deboarded marine.
@@ -448,26 +431,6 @@ public final class ShuttleMission {
      */
     public boolean commandOwnsObjective;
 
-    /** Sim-seconds of fire-support fuel left; seeded on HOVER_STATION entry, counted down each tick, hits zero → DEPARTING. */
-    public float hoverTimerSec;
-
-    /**
-     * Hover station-keeping point (cells), recomputed each HOVER_STATION tick
-     * from the squad's alive centroid pulled back along the LZ→centroid bearing.
-     * Holds its last value if the squad is wiped.
-     */
-    public float hoverPointX, hoverPointY;
-
-    /** Counts down from {@link #T_TAKEOFF_SEC} on HOVER_STATION entry; drives the smoothstep altitude climb. */
-    public float takeoffTimer;
-
-    /**
-     * True at HOVER_STATION → DEPARTING so the departing altitude lerp holds at
-     * cruise (a hovering shuttle flies away high, not descending then re-climbing).
-     * Cleared on cycle reset.
-     */
-    public boolean departingFromHover;
-
     /**
      * On the map, and therefore drawn: anywhere between leaving a berth and
      * being finished with one.
@@ -497,7 +460,7 @@ public final class ShuttleMission {
      */
     public boolean isOverTheBattle() {
         return state == ShuttleState.INCOMING || state == ShuttleState.LANDED
-                || state == ShuttleState.HOVER_STATION || state == ShuttleState.DEPARTING
+                || state == ShuttleState.DEPARTING
                 || state == ShuttleState.RETURNING;
     }
 
