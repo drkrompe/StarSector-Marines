@@ -31,6 +31,8 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.Layer
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 /**
  * Emits the {@link RenderLayer#UNITS} layer as a stateless consumer that sweeps
@@ -88,6 +90,8 @@ public final class UnitRenderService implements RenderSystem {
 
     private final BattleSprites sprites;
     private final SystemHaloComposer halo = new SystemHaloComposer();
+    /** How each destroyed hardstand's hull came apart, worked out on first draw and kept for the battle. */
+    private final Map<AirfieldService.Berth, HullBreakup> wrecks = new IdentityHashMap<>();
 
     public UnitRenderService(BattleSprites sprites) {
         this.sprites = sprites;
@@ -214,12 +218,12 @@ public final class UnitRenderService implements RenderSystem {
      * and in the air.
      *
      * <p>A berth whose aircraft burned where it stood keeps drawing that hull,
-     * charred. It is the same sprite deliberately: what is left on the
-     * concrete is the aircraft, and a reader recognises which one it was and
-     * that it is not going anywhere. The unit is gone by then — dead, released,
-     * and never coming back — so the wreck is drawn off the berth, which is
-     * the thing on this field that has identity and outlives what stands on
-     * it.
+     * charred and in pieces. It is the same sprite deliberately: what is left
+     * on the concrete is the aircraft, and a reader recognises which one it was
+     * and that it is not going anywhere. The unit is gone by then — dead,
+     * released, and never coming back — so the wreck is drawn off the berth,
+     * which is the thing on this field that has identity and outlives what
+     * stands on it.
      */
     private void sweepBasedAircraft(RenderContext ctx, DrawList out) {
         AirfieldService airfield = ctx.sim.getAirfieldService();
@@ -238,9 +242,137 @@ public final class UnitRenderService implements RenderSystem {
         }
         for (AirfieldService.Berth berth : airfield.berths()) {
             if (!berth.wreckOnPad) continue;
-            emitHull(out, cam, berth, berth.pad.centerX + 0.5f, berth.pad.centerY + 0.5f,
-                    cellPx, BURNT_HULL_R, BURNT_HULL_G, BURNT_HULL_B, alphaMult);
+            emitWreck(out, cam, berth, cellPx, alphaMult);
         }
+    }
+
+    /**
+     * Draws one berth's wreck: the hull torn into three pieces that have
+     * shifted where they lie, every one of them charred.
+     *
+     * <p>The tear is {@link HullBreakup}'s and the pieces are drawn as source
+     * sub-rectangles of the aircraft's own sprite, so this needs no wreck art
+     * and no runtime image editing — neither of which is available against a
+     * texture the game owns. A cache that never recorded the sprite's pixel
+     * size cannot be addressed that way, so it falls back to the whole charred
+     * hull rather than drawing nothing.
+     *
+     * <p>Seeded off the hardstand, which does not move: the wreck on a given
+     * pad is torn the same way on every frame of the battle and again in a
+     * replay of it, and two wrecks on one field are torn differently.
+     */
+    private void emitWreck(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
+                           float cellPx, float alphaMult) {
+        ShuttleSpriteCache cache = sprites.shuttleSprites().get(berth.type);
+        if (cache == null || cache.sprite == null) return;
+        float padCellX = berth.pad.centerX + 0.5f;
+        float padCellY = berth.pad.centerY + 0.5f;
+        if (cache.pxW <= 0 || cache.pxH <= 0) {
+            emitHull(out, cam, berth, padCellX, padCellY, cellPx,
+                    BURNT_HULL_R, BURNT_HULL_G, BURNT_HULL_B, alphaMult);
+            return;
+        }
+
+        String hullId = berth.type.renderHullId();
+        float alongPx = HullFootprintResolver.visualLengthCells(hullId) * cellPx;
+        float acrossPx = alongPx * cache.aspect;
+        float[] pivot = HullPivotResolver.pivotOffset(hullId);
+        float facing = berth.facingDegrees;
+        float rad = (float) Math.toRadians(facing);
+        float faceCos = (float) Math.cos(rad);
+        float faceSin = (float) Math.sin(rad);
+        float baseX = cam.cellToScreenX(padCellX + pivot[0] * faceCos - pivot[1] * faceSin);
+        float baseY = cam.cellToScreenY(padCellY + pivot[0] * faceSin + pivot[1] * faceCos);
+
+        HullBreakup breakup = wreckFor(berth);
+        for (HullBreakup.Piece piece : breakup.pieces()) {
+            float spinRad = (float) Math.toRadians(piece.spinDegrees());
+            float spinCos = (float) Math.cos(spinRad);
+            float spinSin = (float) Math.sin(spinRad);
+            // The piece turns about its own centre, then slides; the whole
+            // wreck is swung to the pad's bearing afterwards, so a hull parked
+            // facing any direction comes apart the same way relative to itself.
+            float centreX = (piece.centreAcross() - 0.5f) * acrossPx;
+            float centreY = (0.5f - piece.centreAlong()) * alongPx;
+            float slideX = piece.slideAcross() * alongPx;
+            float slideY = -piece.slideAlong() * alongPx;
+            for (HullBreakup.Run run : piece.runs()) {
+                emitWreckRun(out, cache, run, piece.spinDegrees(), acrossPx, alongPx,
+                        centreX, centreY, slideX, slideY, spinCos, spinSin,
+                        baseX, baseY, faceCos, faceSin, facing, alphaMult);
+            }
+        }
+    }
+
+    /** One run of the tear's lattice: a source strip of the hull sprite, placed where its piece now lies. */
+    private static void emitWreckRun(DrawList out, ShuttleSpriteCache cache,
+                                     HullBreakup.Run run, float spinDegrees,
+                                     float acrossPx, float alongPx,
+                                     float centreX, float centreY, float slideX, float slideY,
+                                     float spinCos, float spinSin,
+                                     float baseX, float baseY, float faceCos, float faceSin,
+                                     float facing, float alphaMult) {
+        int srcX = Math.round(run.firstCol() * cache.pxW / (float) HullBreakup.GRID);
+        int srcRight = Math.round((run.firstCol() + run.colCount()) * cache.pxW / (float) HullBreakup.GRID);
+        int srcY = Math.round(run.row() * cache.pxH / (float) HullBreakup.GRID);
+        int srcBottom = Math.round((run.row() + 1) * cache.pxH / (float) HullBreakup.GRID);
+        if (srcRight <= srcX || srcBottom <= srcY) return;
+
+        // Destination extents come from the rounded source rect, not from the
+        // ideal lattice, so a sprite whose pixels do not divide evenly by the
+        // grid is still drawn at its own scale rather than stretched to fit.
+        float u0 = srcX / (float) cache.pxW;
+        float u1 = srcRight / (float) cache.pxW;
+        float v0 = srcY / (float) cache.pxH;
+        float v1 = srcBottom / (float) cache.pxH;
+        float localX = ((u0 + u1) * 0.5f - 0.5f) * acrossPx;
+        float localY = (0.5f - (v0 + v1) * 0.5f) * alongPx;
+
+        // Turn about the piece's own centre, shift the piece, then swing the
+        // whole wreck round to the pad's bearing.
+        float aboutX = localX - centreX;
+        float aboutY = localY - centreY;
+        float spunX = aboutX * spinCos - aboutY * spinSin + centreX + slideX;
+        float spunY = aboutX * spinSin + aboutY * spinCos + centreY + slideY;
+        float screenX = baseX + spunX * faceCos - spunY * faceSin;
+        float screenY = baseY + spunX * faceSin + spunY * faceCos;
+
+        out.addSheetQuad(RenderLayer.UNITS, cache.sprite, srcX, srcY, srcRight - srcX, srcBottom - srcY,
+                screenX, screenY,
+                (u1 - u0) * acrossPx + WRECK_SEAM_BLEED_PX * 2f,
+                (v1 - v0) * alongPx + WRECK_SEAM_BLEED_PX * 2f,
+                facing + spinDegrees,
+                BURNT_HULL_R, BURNT_HULL_G, BURNT_HULL_B, alphaMult);
+    }
+
+    /**
+     * How far past its own cell each drawn strip reaches, in screen pixels.
+     *
+     * <p>Adjacent strips of one piece are meant to be continuous metal, but
+     * their corners are computed independently and land a hair apart, which
+     * under rotation shows as a hairline of background through the middle of a
+     * panel. Stated in pixels rather than as a fraction because that is what
+     * the fault is: a seam is about a pixel wide whether the wreck is drawn at
+     * twenty pixels or two hundred, so a percentage closes it at one zoom and
+     * not the other. The tear boundaries this must not spoil come from the
+     * piece assignment and are unaffected — a piece only ever bleeds into the
+     * gap it opened.
+     */
+    private static final float WRECK_SEAM_BLEED_PX = 0.75f;
+
+    /**
+     * The tear for one hardstand, worked out once and kept.
+     *
+     * <p>Small enough a map to walk rather than index: a field has a handful of
+     * berths and only the destroyed ones ever land in here.
+     */
+    private HullBreakup wreckFor(AirfieldService.Berth berth) {
+        HullBreakup cached = wrecks.get(berth);
+        if (cached != null) return cached;
+        HullBreakup torn = HullBreakup.of(
+                ((long) berth.pad.centerX << 20) ^ berth.pad.centerY ^ berth.type.ordinal());
+        wrecks.put(berth, torn);
+        return torn;
     }
 
     /**
