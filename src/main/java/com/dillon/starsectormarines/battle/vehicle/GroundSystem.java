@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.fs.starfarer.api.Global;
@@ -392,8 +393,11 @@ public class GroundSystem {
             if (gt.burstRemaining > 0) {
                 gt.burstTimer -= dt;
                 if (gt.burstTimer <= 0f && currentBurstTarget != 0L && world.isAlive(gt.burstTargetId)) {
+                    int releaseIndex = TurretMountGeometry.releaseIndex(
+                            weapon.burstCount, gt.burstRemaining);
                     fireSink.fire(id, mountWorldX, mountWorldY, faction, structure,
-                            currentBurstTarget, /*aerialShooter*/ false, /*hasLos*/ true);
+                            currentBurstTarget, /*aerialShooter*/ false, /*hasLos*/ true,
+                            gt.facingDeg, releaseIndex);
                     gt.ammo--;
                     gt.burstRemaining--;
                     gt.burstTimer = weapon.burstSpacing;
@@ -428,7 +432,8 @@ public class GroundSystem {
 
             if (aim.fireThisTick && aim.target != 0L) {
                 fireSink.fire(id, mountWorldX, mountWorldY, faction, structure, aim.target,
-                        /*aerialShooter*/ false, aim.lastFireHadLos);
+                        /*aerialShooter*/ false, aim.lastFireHadLos,
+                        gt.facingDeg, 0);
                 gt.ammo--;
                 if (weapon.burstCount > 1 && world.isAlive(aim.target)) {
                     gt.burstRemaining = weapon.burstCount - 1;
