@@ -24,11 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * that gates bounding elsewhere distinguishes an enemy that is relevant from
  * one that is dangerous.
  *
- * <p>The no-bound result is measured rather than assumed: bounding attack moves
- * cost reinforced-south 7300 ticks and 46 defender kills over the canonical
- * matrix and returned nothing on full-strength-west. The shared machinery is
- * still right there on {@link AbstractZoneAction} for the orders short enough
- * to afford it.
+ * <p>Not bounding is a decision, not a measured win: over the canonical matrix
+ * bounding attack moves moved neither fixture by a tick either way. The shared
+ * machinery is still right there on {@link AbstractZoneAction}, and re-enabling
+ * it is one line — but a claim about whether it helps needs a scene built to
+ * ask that question, since these two whole-battle fixtures cannot see it.
  */
 public class AttackMoveBoundingTest {
 
