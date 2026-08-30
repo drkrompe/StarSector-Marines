@@ -124,7 +124,7 @@ Do not run builds or leave generated task files there.
   `CrewLivelinessEvidence` for why the dead count as idle.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
-  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,layers,perception-sweep,point-defence,ship-decks,turrets,ui`
+  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,perception-sweep,point-defence,ship-decks,turrets,ui`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
@@ -352,6 +352,7 @@ The discovered suite ids and default output directories are:
 | `integral-system-fx` | A running integral system's halo: a narrow authored screen beside a wide one draining their soak pools, one breaking under concentrated fire, and one pattern's screen at four facings | `build/snapshots/integral-system-fx/` |
 | `perception-sweep` | The player's own picture — fog overlay and hidden-unit gating included — before, during, and after a Janus sensor sweep | `build/snapshots/perception-sweep/` |
 | `airfield-sortie` | Three animated loops of one garrison airfield: a sortie's crew walking to the pad unopposed, the same walk under fire, and a fire team burning the based aircraft on their stands | `build/snapshots/airfield-sortie/` |
+| `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote
@@ -396,6 +397,25 @@ recording says what you think it says.
 Prefer a scene over a mission harness whenever the question is about one
 behavior rather than about a whole battle's balance, and add another scene
 rather than widening this one past what its name claims.
+
+`KillingGroundScene` is the third: two mirror-image lanes to one objective, a
+squad destroyed in one of them, and the next squad sent up to choose again. It
+exists because the Conquest matrix cannot answer a question about one behaviour
+— a seven-thousand-tick swing there was credited to a squad behaviour and turned
+out to be another session's reinforcement work arriving on a merge.
+
+**A control loop is part of the instrument, not a luxury.** The scene records
+the same map with nothing having happened in either lane, because "the squad
+went west" means nothing until you know which way it goes when west is
+unremarkable.
+
+**Remove whatever would answer the question for the wrong reason.** A squad
+already routes away from enemies it can see, so an ambush left standing sends
+the next squad down the other lane for a reason that has nothing to do with
+memory — the first version of this scene recorded exactly that and would have
+credited a casualty layer with an avoidance the game already had. The killers
+are despawned once they have done their work, leaving two lanes identical in
+everything a router can observe except that one is full of dead marines.
 
 **A scene needs both sides on the map even when only one of them acts.** The
 simulation returns immediately once a side is absent, so a scene with a lone
