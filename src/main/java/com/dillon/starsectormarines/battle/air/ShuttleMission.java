@@ -350,13 +350,33 @@ public final class ShuttleMission {
     public boolean departingFromHover;
 
     /**
-     * On-map / drawable: the craft is somewhere over the grid (descending,
-     * landed, loitering, or egressing) rather than off-map waiting to launch
-     * (PENDING) or finished (GONE). The render + audio + vision passes gate on
-     * this, and it is the complement of the off-map states the engine-intensity
-     * derivation zeroes.
+     * On the map, and therefore drawn: anywhere between leaving a berth and
+     * being finished with one.
+     *
+     * <p>Stated as what it is <em>not</em> — off-map waiting to launch, or
+     * done — rather than as a list of the phases that qualify. It was a list
+     * once, and every phase added since was left out of it: a craft loading on
+     * its pad, taxiing, holding short, rolling, or taxiing back in was not
+     * drawn at all. That is a costly thing to get wrong here, because the whole
+     * of what a strip buys over a vertical lift is a minute of ground movement
+     * somebody can see and shoot at.
      */
-    public boolean isVisible() {
+    public boolean isOnMap() {
+        return state != ShuttleState.PENDING && state != ShuttleState.GONE;
+    }
+
+    /**
+     * Out over the battlefield on its delivery legs, rather than off-map or
+     * moving about its own field. What the craft's guns and its sensors both
+     * key off.
+     *
+     * <p>Deliberately not {@link #isOnMap()}. An aircraft taxiing to the strip
+     * is on the map and is drawn, and it is also nose-to-tail with its own
+     * ground crew inside its own perimeter — the last place a hull-mounted
+     * autocannon should be hunting for targets, and not somewhere a
+     * fifty-cell air search should be sweeping from either.
+     */
+    public boolean isOverTheBattle() {
         return state == ShuttleState.INCOMING || state == ShuttleState.LANDED
                 || state == ShuttleState.HOVER_STATION || state == ShuttleState.DEPARTING;
     }

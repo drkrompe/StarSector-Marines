@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a berth holds an airframe, so a shed can keep a factional fighter.
+Updated: 2026-08-30 — an aircraft on the ground at its own field is on the map, and drawn.
 
 ## Purpose
 
@@ -239,6 +239,18 @@ home it is the same in reverse — touch down at the end it reaches first, roll
 out to the far one, turn off, taxi back to its own shed. That is what a runway
 buys over a vertical lift: a minute of ground movement in the open, every
 second of which somebody can be standing on.
+
+An aircraft is **on the map from the moment it leaves a berth until it is
+finished with one**, and that is what decides whether it is drawn. Being over
+the battle is a narrower thing, and it is what decides whether the craft's guns
+and sensors are working: a machine taxiing to the strip is nose to tail with
+its own ground crew inside its own perimeter, which is neither somewhere to
+hunt for targets nor somewhere to sweep fifty cells from. The two questions
+were one predicate for a while, written as a list of the phases that qualified,
+and every phase added afterwards was left out of it — so a craft loading on its
+pad, taxiing, holding short, rolling, or taxiing back in was not drawn at all.
+A minute of exposed ground movement nobody can see is a vertical lift with
+extra steps.
 
 The strip itself is a **resource with one occupant**. Two aircraft rolling down
 one runway is not a race the simulation is entitled to lose, and the queue that

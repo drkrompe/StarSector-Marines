@@ -701,7 +701,7 @@ public class AirSystem {
     private void tickShuttleTurrets(float dt) {
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
-            if (!mission.isVisible()) continue;
+            if (!mission.isOverTheBattle()) continue;
             // Presence: only armed craft carry an AirTurrets component.
             AirTurrets t = world.airTurrets(id);
             if (t == null) continue;

@@ -53,7 +53,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
 
         for (long id : airIds) {
             ShuttleMission mission = world.mission(id);
-            if (mission == null || !mission.isVisible()) continue;
+            if (mission == null || !mission.isOnMap()) continue;
             ShuttleType type = world.airType(id);
             ShuttleSpriteCache cache = sprites.airframeSprites().get(type);
             if (cache == null) continue;
