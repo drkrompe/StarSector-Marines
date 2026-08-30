@@ -121,6 +121,55 @@ public class AttackMoveBoundingTest {
     }
 
     @Test
+    public void aCommittedThreatTooFarToShootDoesNotEarnABound() {
+        // Commitment reaches much further than fire does: the advance-threat
+        // score looks tens of cells down the route, so a squad can be committed
+        // to a contact that cannot touch it. Bounding that stretch moves half
+        // the squad at a time and buys nothing.
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        List<Long> members = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            long member = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
+                    UnitType.MARINE, 10, 14 + i).squad(squadId));
+            sim.world().setAttackRange(member, 30f);
+            members.add(member);
+        }
+        squad.leaderId = members.get(0);
+        squad.aliveMembers = 4;
+        squad.originalSize = 4;
+        squad.centroidX = 10.5f;
+        squad.centroidY = 16f;
+        squad.assignedObjective = ObjectiveAssignment.attackMove(
+                squad.id, DEST_X, DEST_Y);
+
+        long far = sim.spawn(new EntitySpec("d0", Faction.DEFENDER,
+                UnitType.MARINE, 44, 15));
+        sim.spawn(new EntitySpec("d1", Faction.DEFENDER,
+                UnitType.MARINE, 45, 16));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        AttackMove action = new AttackMove(DEST_X, DEST_Y);
+        SquadPlan.Step step = new SquadPlan.Step(action);
+        step.assignments.put(AbstractZoneAction.TEAM_A,
+                new ArrayList<>(members.subList(0, 2)));
+        step.assignments.put(AbstractZoneAction.TEAM_B,
+                new ArrayList<>(members.subList(2, 4)));
+        squad.currentPlan = new SquadPlan(List.of(step));
+
+        for (long member : members) action.execute(member, squad, sim);
+
+        assertTrue(squad.advanceEngageCommitted,
+                "the distant pair still commits the advance");
+        assertFalse(sim.getTacticalScoring().threatReaches(far,
+                squad.centroidX, squad.centroidY, AbstractZoneAction.BOUNDING_STRIDE),
+                "and is nonetheless outside its own beaten zone");
+        assertFalse(squad.boundingActive,
+                "so the squad walks rather than bounding at nothing");
+    }
+
+    @Test
     public void anUncontestedAttackMoveDoesNotBound() {
         Fixture f = fixture(false);
         for (long member : f.members) {
