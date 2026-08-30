@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — added the attack move and its cooperating group: an
+Updated: 2026-08-30 — added the two onset moments: somebody opening at close
+quarters, and somebody taking this marine as their target. Both are situations
+rather than places, which is what lets a screen answer them in a room, a
+breach, a treeline or a hallway.
+Earlier: added the attack move and its cooperating group: an
 order whose destination survives contact, and squads under one that split into
 a squad fixing and a squad maneuvering rather than each forming its own line.
 Also that day — an emplacement is never a shot of opportunity: a
@@ -683,10 +687,45 @@ element that was told to move. Anti-hardened direct fire is exempt from that
 rule in both directions: a turret, drone hub, or heavy chassis in range is the
 reason the advance is in trouble rather than a distraction from it, and the
 carrier of the only weapon that meaningfully hurts it is precisely the marine
-the suppression used to silence. The exemption is narrow and is about the
-equipment rather than the moment: tools that spend a squad resource or freeze
-their carrier to place something — satchel, frag, deployables, close-contact —
-stay behind the gate.
+the suppression used to silence. A screen at one of the two **onset moments**
+below is exempt on the same grounds. Everything else stays behind the gate:
+satchel, frag, mines and close-contact tools all spend a squad resource or
+freeze their carrier for something that is a diversion at that instant.
+
+### The onset moments
+
+Most of what a marine does about an enemy happens inside an engagement that has
+already begun — there is a target, rounds have been exchanged, and the question
+is how to fight it. Two situations sit before that, and until they were named
+nothing could answer them.
+
+A **close-quarters opening** is a hostile the marine can presently see, near
+enough that the bearing it arrived on is known and whatever is going to be done
+has to be done now. A **singling-out** is somebody having taken this marine as
+their target, which is knowable before the first round lands and is the whole
+of what a marine at the far end of a long open lane has to go on.
+
+They are deliberately *situations rather than places*. The tempting formulation
+is the doorway — hold at the threshold, screen the corner, go through together —
+and it cannot be built on, because a place under assault stops having doorways
+at roughly the moment it starts mattering: frontage is derived from an envelope,
+and a breach merges inside with outside, so the aperture set does not degrade
+but vanishes. A hostile ten cells away is the same fact in a room, in a breach,
+in a treeline and in a trench.
+
+Both belong to the equipment vocabulary's standing law — *name the moment, let
+the carried capability answer it*. Neither says what to spend, so a screen
+answers them today and anything authored later answers them for free, on either
+side of the battle.
+
+**A singling-out reads the enemy's own state, and that is legal only because of
+what answers it.** The standing rule is that a marine acts on what a marine can
+know, which is why the dead-ground policy tests the wearer's own sight rather
+than the player's reveal bitmap. A bearing on somebody nobody has seen is the
+kind of thing that rule exists to refuse. It is admissible here because the
+responder is worn: a receiver that tells its wearer they have been painted is
+ordinary hardware. Read from a plain infantry behaviour it would be
+clairvoyance, and the distinction is not decorative.
 
 ### The attack move and its cooperating group
 

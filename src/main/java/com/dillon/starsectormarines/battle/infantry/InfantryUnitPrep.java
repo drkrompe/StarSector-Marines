@@ -169,6 +169,35 @@ public final class InfantryUnitPrep {
     }
 
     /**
+     * The screen half of {@link #tryOpportunitySpecial}, reachable on its own so
+     * a marine crossing ground can still get something between themselves and a
+     * threat that has only just arrived.
+     *
+     * <p>The move-only path withholds deployables because planting one freezes
+     * the carrier, and a squad's moving half must not be diverted mid-bound.
+     * That reasoning holds for building a revetment at a position somebody has
+     * chosen to fight from. It inverts for the two onset moments: a marine who
+     * has just come face to face with somebody, or who has just been taken as a
+     * target from down a lane, is in trouble <em>because</em> they are in the
+     * open and moving, and the freeze is the response rather than the cost of
+     * it. Same argument as the rocket at an emplacement above — the thing that
+     * would divert the advance is the thing the advance is in trouble over.
+     *
+     * <p>Only the cover screen. A satchel, a frag, a mine and a close-contact
+     * tool are all still diversions at these moments, and none of them puts
+     * anything between a marine and a bearing.
+     */
+    public static boolean tryOnsetScreen(long unit, BattleControl sim) {
+        if (!sim.world().hasSecondaryWeapon(unit)) return false;
+        if (sim.world().secondaryCooldownTimer(unit) > 0f) return false;
+        if (sim.world().secondaryActionTimer(unit) > 0f) return false;
+        SpecialEquipmentDef sec = sim.world().specialEquipment(unit);
+        if (sec.aiPolicy() != SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) return false;
+        if (!sec.hasAvailableUse(sim.world().secondaryAmmo(unit))) return false;
+        return DeployableTactics.tryCommitCoverPlacement(unit, sec, sim);
+    }
+
+    /**
      * The hardened-target half of {@link #tryOpportunitySpecial}, reachable on
      * its own so a move-only coordinated role can still answer a turret.
      *
