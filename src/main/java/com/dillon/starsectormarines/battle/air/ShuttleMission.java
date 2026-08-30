@@ -276,6 +276,25 @@ public final class ShuttleMission {
     public boolean strikeSortie;
 
     /**
+     * The route this aircraft is taxiing, and how far along it is.
+     *
+     * <p>An aircraft on its wheels goes round the hangar it came out of rather
+     * than through it. Steering straight at the threshold crossed whatever was
+     * in between — the shed's own back wall included — because a body built for
+     * flight has nothing that stops it. The taxi follows walkable ground like
+     * anything else on the ground does; the roll afterwards is a straight line
+     * down a strip that is clear by construction.
+     */
+    public int[] taxiPath;
+    public int taxiLeg;
+
+    /** Forgets the current taxi route. */
+    public void clearTaxiRoute() {
+        taxiPath = null;
+        taxiLeg = 0;
+    }
+
+    /**
      * Whether this sortie rolls.
      *
      * <p>The discriminator for the whole ground procedure. False for every

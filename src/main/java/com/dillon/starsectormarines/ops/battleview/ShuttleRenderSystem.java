@@ -64,7 +64,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
             float altitudeT = world.altitudeT(id);
             float scaleMult = AirAppearance.scaleMult(altitudeT, world.flightPhase(id));
             float altOffset = AirAppearance.visualAltitudeOffsetCells(altitudeT);
-            float engineFxIntensity = AirAppearance.engineIntensity(true, altitudeT);
+            float engineFxIntensity = AirAppearance.thrusterPlume(mission.state, altitudeT);
             float[] thrusterGlow = ctx.sim.getThrusterGlow(id);
 
             // Engine FX (own GL) under the hull. The per-slot demand (smoothed
