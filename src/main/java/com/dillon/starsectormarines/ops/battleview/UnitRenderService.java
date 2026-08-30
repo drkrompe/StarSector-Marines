@@ -265,8 +265,8 @@ public final class UnitRenderService implements RenderSystem {
                            float cellPx, float alphaMult) {
         ShuttleSpriteCache cache = sprites.shuttleSprites().get(berth.type);
         if (cache == null || cache.sprite == null) return;
-        float padCellX = berth.pad.centerX + 0.5f;
-        float padCellY = berth.pad.centerY + 0.5f;
+        float padCellX = berth.centerX + 0.5f;
+        float padCellY = berth.centerY + 0.5f;
         if (cache.pxW <= 0 || cache.pxH <= 0) {
             emitHull(out, cam, berth, padCellX, padCellY, cellPx,
                     BURNT_HULL_R, BURNT_HULL_G, BURNT_HULL_B, alphaMult);
@@ -387,7 +387,7 @@ public final class UnitRenderService implements RenderSystem {
         HullBreakup cached = wrecks.get(berth);
         if (cached != null) return cached;
         HullBreakup torn = HullBreakup.of(
-                ((long) berth.pad.centerX << 20) ^ berth.pad.centerY ^ berth.type.ordinal());
+                ((long) berth.centerX << 20) ^ berth.centerY ^ berth.type.ordinal());
         wrecks.put(berth, torn);
         return torn;
     }
