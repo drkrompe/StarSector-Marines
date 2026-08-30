@@ -469,7 +469,8 @@ public final class BspCityGenerator implements MapGenerator {
                 ctx.pois, ctx.doodads, this.lastTacticalMap, buildings,
                 ctx.defensePosts, this.lastRoadGraph, ctx.landingPads,
                 ctx.landingAreas,
-                ctx.get(BspKeys.BIOME_MAP), ctx.gantries, ctx.fixtureTasks);
+                ctx.get(BspKeys.BIOME_MAP), ctx.gantries, ctx.fixtureTasks,
+                ctx.runways);
     }
 
     /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Null in conquest (biome) mode. */
