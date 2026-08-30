@@ -11,6 +11,9 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
@@ -22,6 +25,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.VanillaHullSilhouettes;
 import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
@@ -246,6 +250,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("battle-hud-command-overlay-wide.png",
                         renderBattleHudCommandOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-command-overlay-low-resolution.png",
+                        renderBattleHudCommandOverlay(context, renderer,
+                                1163, 625)),
                 new SnapshotArtifact("battle-world-capture-targeting-wide.png",
                         renderBattleWorldInteraction(
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, true)),
@@ -415,7 +422,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
                 ignored -> { }, "Pause", "1x", "2x", "4x");
-        model.updateProjected(2f, List.of(
+        BattleHudOverlayModel.Presentation presentation = model.updateProjected(2f, List.of(
                 capture(TacticalNode.Kind.COMMAND_POST,
                         CompoundService.CompoundState.MARINE_HELD, 0f),
                 capture(TacticalNode.Kind.BARRACKS,
@@ -429,7 +436,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 capture(TacticalNode.Kind.BARRACKS,
                         CompoundService.CompoundState.DEFENDER_HELD, 0f),
                 capture(TacticalNode.Kind.ARMORY,
-                        CompoundService.CompoundState.MARINE_HELD, 0f)));
+                        CompoundService.CompoundState.MARINE_HELD, 0f)),
+                previewConquestCommander());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
         loader.reload();
@@ -441,7 +449,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             BufferedImage overlay = renderer.render(document,
                     Math.round(BattleHudOverlay.DOCUMENT_WIDTH),
-                    Math.round(BattleHudOverlay.OBJECTIVE_HEIGHT));
+                    Math.round(BattleHudOverlay.documentHeight(presentation)));
             Graphics2D graphics = image.createGraphics();
             graphics.drawImage(overlay,
                     width - 12 - overlay.getWidth(), 12, null);
@@ -454,6 +462,49 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             TacticalNode.Kind kind, CompoundService.CompoundState state,
             float progress) {
         return new BattleHudOverlayModel.CaptureObjective(kind, state, progress);
+    }
+
+    private static CommanderSnapshot<ConquestFrontSnapshot> previewConquestCommander() {
+        List<ConquestFrontSnapshot.TrackState> tracks = List.of(
+                conquestTrack(0, 4, 43, 2, 101),
+                conquestTrack(1, 3, 32, 0, 102),
+                conquestTrack(2, 4, 41, 1, 103));
+        List<ConquestFrontSnapshot.SquadDirective> directives = List.of(
+                conquestDirective(1, 0, AssignmentKind.SECURE_COMPOUND, 101),
+                conquestDirective(2, 0, AssignmentKind.SECURE_COMPOUND, 101),
+                conquestDirective(3, 0, AssignmentKind.ATTACK_MOVE, -1),
+                conquestDirective(4, 0, AssignmentKind.ATTACK_MOVE, -1),
+                conquestDirective(5, 1, AssignmentKind.ADVANCE_TRACK, -1),
+                conquestDirective(6, 1, AssignmentKind.ADVANCE_TRACK, -1),
+                conquestDirective(7, 1, AssignmentKind.SECURE_COMPOUND, 102),
+                conquestDirective(8, 2, AssignmentKind.SUPPORT, 103),
+                conquestDirective(9, 2, AssignmentKind.SUPPORT, 103),
+                conquestDirective(10, 2, AssignmentKind.ATTACK_MOVE, -1),
+                conquestDirective(11, 2, AssignmentKind.ATTACK_MOVE, -1));
+        ConquestFrontSnapshot front = new ConquestFrontSnapshot(
+                420, 390, Faction.MARINE, TraversalAxis.SOUTH_TO_NORTH,
+                ConquestFrontSnapshot.Phase.FRONT_ADJUST, 4, 140,
+                CompoundService.CompoundState.DEFENDER_HELD,
+                tracks, List.of(), directives);
+        return new CommanderSnapshot<>(Faction.MARINE, "conquest-command",
+                "FRONT_ADJUST", 420, 390, 11, 0,
+                List.of("remaining compounds=4"), List.of(), front);
+    }
+
+    private static ConquestFrontSnapshot.TrackState conquestTrack(
+            int index, int squads, int members, int contacts, int targetZone) {
+        return new ConquestFrontSnapshot.TrackState(index, index * 80,
+                index * 80 + 79, squads, squads, members,
+                0.43f + index * 0.05f, 0.55f + index * 0.04f,
+                contacts > 0 ? 0.65f + index * 0.03f : -1f,
+                contacts, 18f + index * 3f, contacts * 8f, targetZone);
+    }
+
+    private static ConquestFrontSnapshot.SquadDirective conquestDirective(
+            int squadId, int track, AssignmentKind kind, int targetZone) {
+        return new ConquestFrontSnapshot.SquadDirective(squadId, track, track,
+                ConquestFrontSnapshot.AssignmentReason.TRACK_ADVANCE,
+                kind, targetZone);
     }
 
     /** Full-screen evidence for the compact power deck in its armed state. */

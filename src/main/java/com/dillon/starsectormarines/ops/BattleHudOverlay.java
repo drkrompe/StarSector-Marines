@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -16,15 +17,17 @@ import com.fs.starfarer.api.ui.PositionAPI;
 import java.util.List;
 import java.util.function.Consumer;
 
-/** Host bridge for the MLX-authored battle time and capture overlay. */
+/** Host bridge for the MLX-authored battle time, objective, and command overlay. */
 final class BattleHudOverlay {
 
     static final String COMPONENT = "battle-hud-overlay";
     static final String COMPONENT_PATH =
             "data/ui/components/battle/battle-hud-overlay.mlx";
-    static final float DOCUMENT_WIDTH = 316f;
+    static final float DOCUMENT_WIDTH = 360f;
     static final float TIME_ONLY_HEIGHT = 42f;
     static final float OBJECTIVE_HEIGHT = 164f;
+    static final float COMMAND_ONLY_HEIGHT = 232f;
+    static final float CONQUEST_COMMAND_HEIGHT = 354f;
     private static final float EDGE_INSET = 12f;
 
     private final Reactor reactor = new Reactor();
@@ -37,7 +40,8 @@ final class BattleHudOverlay {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
-    private boolean objectivesVisible;
+    private BattleHudOverlayModel.Presentation presentation =
+            new BattleHudOverlayModel.Presentation(false, false);
 
     BattleHudOverlay(Consumer<Float> speedSetter) {
         model = new BattleHudOverlayModel(reactor, speedSetter,
@@ -47,12 +51,14 @@ final class BattleHudOverlay {
 
     void attach(PositionAPI nextPosition, BattleSimulation sim, float speedMultiplier) {
         position = nextPosition;
-        objectivesVisible = hasObjectives(sim);
-        viewport = viewport(nextPosition, objectivesVisible);
+        presentation = updateModel(sim, speedMultiplier);
+        viewport = viewport(nextPosition, presentation);
         if (document == null) installDocument();
-        else document.layout(viewport.documentWidth(), viewport.documentHeight());
+        else {
+            markupInstance.flush();
+            document.layout(viewport.documentWidth(), viewport.documentHeight());
+        }
         input = new StarsectorUiInputAdapter(document, viewport);
-        update(0f, sim, speedMultiplier);
     }
 
     private void installDocument() {
@@ -80,7 +86,8 @@ final class BattleHudOverlay {
                 "battle-time-normal", "battle-time-double", "battle-time-quad",
                 "battle-objectives", "battle-objective-chips",
                 "battle-objective-score", "battle-objective-tally",
-                "battle-objective-focus", "battle-objective-progress-fill")) {
+                "battle-objective-focus", "battle-objective-progress-fill",
+                "battle-conquest-command", "battle-conquest-lanes")) {
             instance.requireElement(id);
         }
     }
@@ -92,15 +99,14 @@ final class BattleHudOverlay {
     }
 
     void update(float realDt, BattleSimulation sim, float speedMultiplier) {
-        boolean nextVisible = model.update(speedMultiplier,
-                sim == null ? List.of() : sim.getCompoundService().getRecords());
-        if (nextVisible != objectivesVisible && position != null) {
-            objectivesVisible = nextVisible;
-            viewport = viewport(position, objectivesVisible);
+        BattleHudOverlayModel.Presentation next = updateModel(sim, speedMultiplier);
+        if (markupInstance != null) markupInstance.flush();
+        if (!next.equals(presentation) && position != null) {
+            presentation = next;
+            viewport = viewport(position, presentation);
             document.layout(viewport.documentWidth(), viewport.documentHeight());
             input = new StarsectorUiInputAdapter(document, viewport);
         }
-        if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(realDt);
     }
 
@@ -117,10 +123,11 @@ final class BattleHudOverlay {
         input = null;
     }
 
-    static UiViewport viewport(PositionAPI position, boolean objectivesVisible) {
+    static UiViewport viewport(PositionAPI position,
+                               BattleHudOverlayModel.Presentation presentation) {
         UiViewport host = MarineOpsUiViewport.from(position);
         float scale = host.documentScale();
-        float documentHeight = objectivesVisible ? OBJECTIVE_HEIGHT : TIME_ONLY_HEIGHT;
+        float documentHeight = documentHeight(presentation);
         float physicalWidth = DOCUMENT_WIDTH * scale;
         float physicalHeight = documentHeight * scale;
         return new UiViewport(
@@ -129,7 +136,19 @@ final class BattleHudOverlay {
                 physicalWidth, physicalHeight, scale);
     }
 
-    private static boolean hasObjectives(BattleSimulation sim) {
-        return sim != null && !sim.getCompoundService().getRecords().isEmpty();
+    static float documentHeight(BattleHudOverlayModel.Presentation presentation) {
+        if (presentation.objectivesVisible() && presentation.commandVisible()) {
+            return CONQUEST_COMMAND_HEIGHT;
+        }
+        if (presentation.objectivesVisible()) return OBJECTIVE_HEIGHT;
+        if (presentation.commandVisible()) return COMMAND_ONLY_HEIGHT;
+        return TIME_ONLY_HEIGHT;
+    }
+
+    private BattleHudOverlayModel.Presentation updateModel(
+            BattleSimulation sim, float speedMultiplier) {
+        return model.update(speedMultiplier,
+                sim == null ? List.of() : sim.getCompoundService().getRecords(),
+                sim == null ? null : sim.getCommanderSnapshot(Faction.MARINE));
     }
 }
