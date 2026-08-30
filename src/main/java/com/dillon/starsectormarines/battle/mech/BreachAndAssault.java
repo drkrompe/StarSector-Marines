@@ -68,11 +68,20 @@ public final class BreachAndAssault implements Action {
         int[] destination = destination(member, squad, target, sim);
         destination = MechAssignmentBoundary.constrain(
                 member, squad, destination, sim);
+        long support = 0L;
+        if (squad.lanceOrder() == MechLanceOrder.FORM_ON_LEAD) {
+            support = lanceCohesionAnchor(member, squad, sim);
+            if (support == 0L) support = nearestSupport(member, squad, sim);
+            if (destination == null && support != 0L) {
+                destination = recallToSupport(member, support, sim);
+                destination = MechAssignmentBoundary.constrain(
+                        member, squad, destination, sim);
+            }
+        }
         if (destination == null) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        long support = nearestSupport(member, squad, sim);
         int[] advanceDestination = destination;
         if (support != 0L) {
             int[] cohesiveDestination = clampToSupport(destination[0], destination[1],
@@ -117,6 +126,51 @@ public final class BreachAndAssault implements Action {
             }
         }
         return best;
+    }
+
+    /**
+     * Formation recall prefers the actual lance leader, then the nearest live
+     * same-lance mech when the caller is itself the leader or leadership is
+     * temporarily unavailable. Unlike {@link #nearestSupport}, this anchor is
+     * allowed beyond the local acquisition radius: it is existing lance
+     * cohesion, not a new relationship with an unrelated force.
+     */
+    static long lanceCohesionAnchor(long member, Squad squad, BattleView sim) {
+        long leader = sim.resolveUnit(squad.leaderId);
+        if (leader != 0L && leader != member
+                && sim.world().hasMechLoadout(leader)
+                && sim.squadOf(leader) == squad) {
+            return leader;
+        }
+
+        long best = 0L;
+        float bestDistanceSq = Float.MAX_VALUE;
+        float memberX = sim.world().x(member);
+        float memberY = sim.world().y(member);
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long candidate = sim.squadMemberAt(squad.id, i);
+            if (candidate == member || !sim.world().isAlive(candidate)
+                    || !sim.world().hasMechLoadout(candidate)) continue;
+            float dx = sim.world().x(candidate) - memberX;
+            float dy = sim.world().y(candidate) - memberY;
+            float distanceSq = dx * dx + dy * dy;
+            if (distanceSq < bestDistanceSq
+                    || distanceSq == bestDistanceSq && candidate < best) {
+                best = candidate;
+                bestDistanceSq = distanceSq;
+            }
+        }
+        return best;
+    }
+
+    /** Returns the closest legal-side point inside the ordinary lead bound. */
+    private static int[] recallToSupport(long member, long support,
+                                         BattleView sim) {
+        float dx = sim.world().x(member) - sim.world().x(support);
+        float dy = sim.world().y(member) - sim.world().y(support);
+        if (dx * dx + dy * dy <= MAX_SUPPORT_LEAD * MAX_SUPPORT_LEAD) return null;
+        return clampToSupport(sim.world().cellX(member),
+                sim.world().cellY(member), support, sim);
     }
 
     private static boolean sameMechVariant(long first, long second,

@@ -56,11 +56,12 @@ class MechMissionLawTest {
     }
 
     @Test
-    void rushMustReachExactCellBeforeUsingItsLocalTacticalLeash() {
+    void freeReignRushMustReachExactCellBeforeUsingItsLocalTacticalLeash() {
         BattleSimulation sim = openSimulation(64, 14);
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
         long brawler = spawn(sim, squadId, MechRole.ASSAULT, 10, 7);
         Squad squad = finishSquad(sim, squadId, brawler, 1, 10, 7);
+        squad.applyLanceOrder(MechLanceOrder.FREE_REIGN);
         squad.assignedObjective = ObjectiveAssignment.rushObjective(
                 squadId, 3, ObjectiveAssignment.UNSCOPED, 50, 7);
         long contact = sim.spawn(new EntitySpec(

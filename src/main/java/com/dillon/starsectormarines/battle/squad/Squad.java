@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -119,6 +120,32 @@ public final class Squad {
      * id ({@code memberId == leaderId}).
      */
     public long leaderId;
+
+    /**
+     * Battle-local cohesion order for a mech lance. Volatile readers run in
+     * the parallel unit-execution pass; mutations cross the serialized player
+     * command phase through {@link #applyLanceOrder(MechLanceOrder)}.
+     */
+    private volatile MechLanceOrder lanceOrder = MechLanceOrder.FORM_ON_LEAD;
+
+    /** Current battle-local lance order. */
+    public MechLanceOrder lanceOrder() {
+        return lanceOrder;
+    }
+
+    /**
+     * Applies a serialized lance-order request atomically.
+     *
+     * @return true only when the effective order changed
+     */
+    public boolean applyLanceOrder(MechLanceOrder order) {
+        if (order == null) throw new IllegalArgumentException("Mech lance order is required");
+        synchronized (lock) {
+            if (lanceOrder == order) return false;
+            lanceOrder = order;
+            return true;
+        }
+    }
 
     /** Current awareness state. Bumped by {@code SquadAlertSystem}; behaviors only read. */
     public SquadAlertLevel alertLevel = SquadAlertLevel.UNAWARE;

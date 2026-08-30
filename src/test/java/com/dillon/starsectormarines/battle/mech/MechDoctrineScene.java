@@ -32,6 +32,12 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
  * one shared midpoint. The second half therefore shows how each doctrine
  * responds when exactly the same support geometry disappears.
  *
+ * <p>The paired lance-order builder leaves those four loops unchanged and
+ * instead adds a zero-locomotion Sirocco as the selected Bulwark's real squad
+ * leader. Its offset firing pose stays stable without test-time position
+ * writes while remaining inside the production Brawler support-acquisition
+ * radius.
+ *
  * <p>The defender is deliberately immobile, harmless, and extremely durable.
  * It is a real hostile contact, so target acquisition and firing remain live,
  * but it cannot turn a position comparison into four different casualty
@@ -49,6 +55,11 @@ final class MechDoctrineScene {
     static final int SUPPORT_X = 36;
     static final int THREAT_X = 68;
     static final int ASSIGNMENT_X = 72;
+    /** Command cell used by the paired lance-order evidence. */
+    static final int LANCE_ASSIGNMENT_X = 55;
+    static final int LANCE_MECH_X = 39;
+    static final int LANCE_LEADER_X = 49;
+    static final int LANCE_LEADER_Y = 10;
 
     private static final int SUPPORT_SIZE = 3;
     private static final float REMOVAL_DAMAGE = 1_000_000f;
@@ -56,15 +67,36 @@ final class MechDoctrineScene {
     /** State retained by the recorder for captions and midpoint removal. */
     record Scene(BattleSimulation sim, long mechId, long threatId,
                  long[] supportIds, int mechSquadId, MechRole requestedRole,
+                 MechLanceOrder lanceOrder, long lanceLeaderId, int assignmentX,
                  int supportRemovalTick) {}
 
     /** One point-in-time reading used both on-frame and in the printed report. */
-    record Sample(float threatDistance, float supportAxisPosition,
+    record Sample(float threatDistance, float anchorAxisPosition,
+                  float missionOvershoot, float lanceLeaderDrift,
                   boolean supportAlive, String goal) {}
 
     private MechDoctrineScene() {}
 
     static Scene build(MechRole requestedRole, int supportRemovalTick) {
+        return build(requestedRole, MechLanceOrder.FORM_ON_LEAD,
+                ASSIGNMENT_X, supportRemovalTick, false);
+    }
+
+    /**
+     * Builds one half of the paired Brawler lance-order comparison. Both mech
+     * chassis/loadouts, squad membership, contact, assignment, geometry, and
+     * seed are held fixed; the queued lance order is the only varied input.
+     */
+    static Scene buildBrawlerLanceOrder(MechLanceOrder lanceOrder) {
+        return build(MechRole.ASSAULT, lanceOrder,
+                LANCE_ASSIGNMENT_X, Integer.MAX_VALUE, true);
+    }
+
+    private static Scene build(MechRole requestedRole,
+                               MechLanceOrder lanceOrder,
+                               int assignmentX,
+                               int supportRemovalTick,
+                               boolean sameLanceLeader) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology topology = new CellTopology(WIDTH, HEIGHT);
         for (int x = 0; x < WIDTH; x++) {
@@ -80,36 +112,59 @@ final class MechDoctrineScene {
         sim.setMissionCompletionEnabled(false);
 
         int mechSquadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        int mechStartX = sameLanceLeader ? LANCE_MECH_X : MECH_X;
         EntitySpec mechSpec = MechVariant.BULWARK.applyTo(new EntitySpec(
                 "doctrine-bulwark", Faction.MARINE, UnitType.HEAVY_MECH,
-                MECH_X, LANE_Y).squad(mechSquadId));
+                mechStartX, LANE_Y).squad(mechSquadId));
         long mech = sim.spawn(mechSpec);
-        // Deployment provenance stays identical in every loop. Only the queued
-        // battle override below varies.
+        // The selected Bulwark is always deployed Balanced. The queued inputs
+        // below create the compared battle-local effective state.
         sim.world().attachMechLoadout(
                 mech, MechVariant.BULWARK.createLoadout(MechRole.BALANCED));
-        initializeSquad(sim.getSquad(mechSquadId), mech, 1,
-                MECH_X + 0.5f, LANE_Y + 0.5f);
-
-        int supportSquadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE_BLUE);
-        long[] support = new long[SUPPORT_SIZE];
-        for (int index = 0; index < SUPPORT_SIZE; index++) {
-            int y = LANE_Y - 1 + index;
-            support[index] = sim.spawn(new EntitySpec(
-                    "screen-" + index, Faction.MARINE, UnitType.MARINE_BLUE,
-                    SUPPORT_X, y)
-                    .squad(supportSquadId)
-                    .role(UnitRole.GARRISON)
-                    .home(SUPPORT_X, y)
-                    .moveSpeed(0f)
-                    .attackDamage(0f)
-                    .attackRange(0f)
-                    .accuracy(0f)
-                    .visionRange(0f));
+        Squad mechSquad = sim.getSquad(mechSquadId);
+        long lanceLeader = 0L;
+        long[] support;
+        Squad supportSquad;
+        if (sameLanceLeader) {
+            EntitySpec leaderSpec = MechVariant.SIROCCO.applyTo(new EntitySpec(
+                    "lance-lead-sirocco", Faction.MARINE, UnitType.HEAVY_MECH,
+                    LANCE_LEADER_X, LANCE_LEADER_Y).squad(mechSquadId));
+            // The leader is a real same-squad mech and a different chassis, so
+            // Brawler cohesion can acquire it. Zero locomotion keeps the
+            // controlled comparison anchored without replacing production AI.
+            leaderSpec.moveSpeed(0f);
+            lanceLeader = sim.spawn(leaderSpec);
+            sim.world().attachMechLoadout(lanceLeader,
+                    MechVariant.SIROCCO.createLoadout(MechRole.BALANCED));
+            support = new long[]{lanceLeader};
+            supportSquad = mechSquad;
+            initializeSquad(mechSquad, lanceLeader, 2,
+                    (LANCE_MECH_X + LANCE_LEADER_X + 1f) * 0.5f,
+                    (LANE_Y + LANCE_LEADER_Y + 1f) * 0.5f);
+        } else {
+            initializeSquad(mechSquad, mech, 1,
+                    MECH_X + 0.5f, LANE_Y + 0.5f);
+            int supportSquadId = sim.mintSquad(
+                    Faction.MARINE, UnitType.MARINE_BLUE);
+            support = new long[SUPPORT_SIZE];
+            for (int index = 0; index < SUPPORT_SIZE; index++) {
+                int y = LANE_Y - 1 + index;
+                support[index] = sim.spawn(new EntitySpec(
+                        "screen-" + index, Faction.MARINE,
+                        UnitType.MARINE_BLUE, SUPPORT_X, y)
+                        .squad(supportSquadId)
+                        .role(UnitRole.GARRISON)
+                        .home(SUPPORT_X, y)
+                        .moveSpeed(0f)
+                        .attackDamage(0f)
+                        .attackRange(0f)
+                        .accuracy(0f)
+                        .visionRange(0f));
+            }
+            supportSquad = sim.getSquad(supportSquadId);
+            initializeSquad(supportSquad, support[1], SUPPORT_SIZE,
+                    SUPPORT_X + 0.5f, LANE_Y + 0.5f);
         }
-        Squad supportSquad = sim.getSquad(supportSquadId);
-        initializeSquad(supportSquad, support[1], SUPPORT_SIZE,
-                SUPPORT_X + 0.5f, LANE_Y + 0.5f);
 
         long threat = sim.spawn(new EntitySpec(
                 "fixed-contact", Faction.DEFENDER, UnitType.MARINE_RED,
@@ -121,18 +176,20 @@ final class MechDoctrineScene {
                 .accuracy(0f)
                 .visionRange(0f));
 
-        Squad mechSquad = sim.getSquad(mechSquadId);
         mechSquad.assignedObjective = ObjectiveAssignment.attackMove(
-                mechSquadId, ASSIGNMENT_X, LANE_Y);
+                mechSquadId, assignmentX, LANE_Y);
         // The stationary screen shares the authored mission. This makes it a
         // legal Tank anchor while keeping the physical fixture identical for
         // all four loops; removing it then exercises the Tank's hold-alone law.
-        supportSquad.assignedObjective = ObjectiveAssignment.attackMove(
-                supportSquadId, ASSIGNMENT_X, LANE_Y);
+        if (supportSquad != mechSquad) {
+            supportSquad.assignedObjective = ObjectiveAssignment.attackMove(
+                    supportSquad.id, assignmentX, LANE_Y);
+        }
         SquadBeliefTestAccess.observeDirect(mechSquad, threat,
                 THREAT_X, LANE_Y, sim.getSimTickIndex());
 
         sim.getMechDoctrineService().requestOverride(mech, requestedRole);
+        sim.getMechDoctrineService().requestLanceOrder(mech, lanceOrder);
         // The production command phase drains the request before the same
         // tick's replan. Recording starts only after that boundary has run.
         sim.advance(BattleSimulation.TICK_DT);
@@ -142,9 +199,25 @@ final class MechDoctrineScene {
             throw new IllegalStateException(
                     "queued doctrine was not effective before recording");
         }
+        if (mechSquad.lanceOrder() != lanceOrder) {
+            sim.close();
+            throw new IllegalStateException(
+                    "queued lance order was not effective before recording");
+        }
+        if (sameLanceLeader && (lanceLeader == 0L
+                || mechSquad.leaderId != lanceLeader
+                || sim.squadOf(lanceLeader) != mechSquad
+                || sim.squadOf(mech) != mechSquad
+                || BreachAndAssault.nearestSupport(
+                        mech, mechSquad, sim) != lanceLeader)) {
+            sim.close();
+            throw new IllegalStateException(
+                    "paired evidence did not build one shared two-mech lance");
+        }
 
         return new Scene(sim, mech, threat, support, mechSquadId,
-                requestedRole, supportRemovalTick);
+                requestedRole, lanceOrder, lanceLeader, assignmentX,
+                supportRemovalTick);
     }
 
     /** Removes the shared screen at the same boundary in every recording. */
@@ -166,25 +239,53 @@ final class MechDoctrineScene {
         float mechY = sim.world().y(scene.mechId());
         float threatX = sim.world().x(scene.threatId());
         float threatY = sim.world().y(scene.threatId());
-        float supportX = SUPPORT_X + 0.5f;
-        float supportY = LANE_Y + 0.5f;
+        Squad squad = sim.getSquad(scene.mechSquadId());
+        float supportX = scene.lanceLeaderId() != 0L
+                ? LANCE_LEADER_X + 0.5f : SUPPORT_X + 0.5f;
+        float supportY = scene.lanceLeaderId() != 0L
+                ? LANCE_LEADER_Y + 0.5f : LANE_Y + 0.5f;
+        long liveSupport = scene.lanceLeaderId() != 0L
+                ? scene.lanceLeaderId()
+                : squad != null
+                ? BreachAndAssault.nearestSupport(scene.mechId(), squad, sim)
+                : 0L;
+        if (liveSupport != 0L) {
+            supportX = sim.world().x(liveSupport);
+            supportY = sim.world().y(liveSupport);
+        }
 
         float toThreatX = threatX - supportX;
         float toThreatY = threatY - supportY;
         float axisLength = (float) Math.sqrt(
                 toThreatX * toThreatX + toThreatY * toThreatY);
-        float supportAxisPosition = axisLength > 0f
+        float anchorAxisPosition = axisLength > 0f
                 ? ((mechX - supportX) * toThreatX
                 + (mechY - supportY) * toThreatY) / axisLength
                 : 0f;
         float dx = threatX - mechX;
         float dy = threatY - mechY;
 
-        Squad squad = sim.getSquad(scene.mechSquadId());
+        float assignmentX = scene.assignmentX() + 0.5f;
+        float assignmentY = LANE_Y + 0.5f;
+        float missionAxisX = threatX - assignmentX;
+        float missionAxisY = threatY - assignmentY;
+        float missionAxisLength = (float) Math.sqrt(
+                missionAxisX * missionAxisX + missionAxisY * missionAxisY);
+        float missionOvershoot = missionAxisLength > 0f
+                ? Math.max(0f, ((mechX - assignmentX) * missionAxisX
+                + (mechY - assignmentY) * missionAxisY) / missionAxisLength)
+                : 0f;
+
         String goal = squad != null && squad.currentGoal != null
                 ? squad.currentGoal.name() : "none";
+        float leaderDriftX = supportX - (LANCE_LEADER_X + 0.5f);
+        float leaderDriftY = supportY - (LANCE_LEADER_Y + 0.5f);
+        float lanceLeaderDrift = scene.lanceLeaderId() != 0L
+                ? (float) Math.sqrt(leaderDriftX * leaderDriftX
+                + leaderDriftY * leaderDriftY) : 0f;
         return new Sample((float) Math.sqrt(dx * dx + dy * dy),
-                supportAxisPosition, supportAlive(scene), goal);
+                anchorAxisPosition, missionOvershoot, lanceLeaderDrift,
+                supportAlive(scene), goal);
     }
 
     static MechLoadoutComponent loadout(Scene scene) {

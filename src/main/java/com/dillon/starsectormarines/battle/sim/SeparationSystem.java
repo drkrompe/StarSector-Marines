@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -451,6 +452,7 @@ public final class SeparationSystem {
             List<Long> members = membersBySquad.get(squad.id);
             if (members == null) continue;
             if (profile == FormationProfile.MECH) {
+                if (squad.lanceOrder() != MechLanceOrder.FORM_ON_LEAD) continue;
                 int count = gatherMovingFormationMembers(members);
                 accumulateFormation(count, profile, dt,
                         Float.NaN, Float.NaN, Float.NaN, Float.NaN);

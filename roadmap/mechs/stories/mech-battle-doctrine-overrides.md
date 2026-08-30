@@ -1,36 +1,51 @@
 # Mech battle doctrine overrides
 
-Status: IN PROGRESS — implementation and deterministic evidence are complete;
-the live battle interaction pass remains.
+Status: IN PROGRESS — the layered implementation and deterministic evidence
+are complete; the live battle interaction pass remains.
 
 Written: 2026-08-30
+
+Updated: 2026-08-30 — separated lance cohesion from individual doctrine so a
+Free Reign Brawler can prosecute a perceived enemy position independently.
 
 Read `mechs-nouns.md`, `ai-nouns.md`, and `ui-nouns.md` before changing this
 story.
 
 ## Goal
 
-Let the player select an exact deployed friendly mech and change how it serves
-its current assignment with one click. The choice is battle-local and may be
-cleared back to the role frozen at deployment.
+Let the player select an exact deployed friendly mech, choose how its whole
+lance coordinates, and change how that member serves the current assignment.
+Both choices are battle-local; doctrine may be cleared back to the role frozen
+at deployment.
 
 ## Player contract
 
 - The selected-Mech plate shows variant identity, deployed doctrine, and the
   currently effective doctrine.
+- The plate visibly separates **Lance Order** from **Field Doctrine**. Form on
+  Lead and Free Reign affect every member of the selected mech's battle lance;
+  doctrine choices affect only the exact selected mech.
+- Form on Lead is the default and preserves the existing cohesive,
+  role-slotted lance maneuver. Free Reign releases generic formation steering
+  and Brawler ally-distance tethering so every member follows its own doctrine.
 - Brawler, Tank, Long Range Support, and Balanced are available in one click.
   Tank is the concise player label for the canonical Frontline Support doctrine.
-- Use Default clears the battle override and restores the deployed doctrine.
+- Reset Doctrine clears the battle override and restores the deployed doctrine.
 - The control appears only for an exact live player mech. Enemy units,
   infantry, stale selections, and rescue-pickup mechs have no doctrine control.
 - A click takes effect at the next serialized command phase and produces an
   immediate local replan. It does not rewrite the current assignment, reveal
-  enemies, refill weapons, repair damage, reset morale, or change siblings.
+  enemies, refill weapons, repair damage, or reset morale. A doctrine click
+  does not change siblings; a lance-order click deliberately changes the whole
+  battle lance.
 
 ## Doctrine acceptance
 
-- Brawler closes to direct pressure and continues a legal advance without an
-  ally, while remaining leashed to the current assignment.
+- A Form-on-Lead Brawler walks point inside the existing cohesive lead bound. A
+  Free-Reign Brawler closes on the perceived enemy position without waiting on
+  that generic ally bound, while remaining leashed to the current assignment.
+  Returning to Form recalls a separated Brawler toward its live lance lead;
+  mission authority may still constrain that recall.
 - Frontline Support chooses a legal allied infantry or mech anchor, occupies
   its threat-facing side, and does not roam after contacts when no anchor
   exists. It may still hold, turn, and fire in self-defense.
@@ -42,12 +57,20 @@ cleared back to the role frozen at deployment.
   when that interruption ends. It does not require special allied geometry.
 - Four different roles in one lance execute per member. No shared squad goal
   turns every member into the role with the highest goal priority.
+- Free Reign removes generic lance formation only. Frontline Support still
+  requires a legal ally anchor and Long-Range Support still values a credible
+  screen because those relationships belong to their doctrines.
 - Survival, rescue, and mission-command laws continue to outrank role manner.
 
 ## Deterministic evidence
 
 - Focused tests cover deployed/effective/reset state, request validation,
-  same-tick plan invalidation, sibling isolation, and mixed-role execution.
+  same-tick plan invalidation, sibling isolation, lance-wide order changes, and
+  mixed-role execution.
+- Paired Brawler evidence holds hardware, contact, assignment, and seed fixed:
+  Form on Lead stays within the lance lead bound while Free Reign separates and
+  enters its close band. Formation tests prove Free Reign removes role-slot
+  steering without removing physical collision separation.
 - A bounded doctrine evidence scene uses identical hardware, assignment,
   contact, and seed for the four doctrines. It records threat distance,
   signed position relative to an allied screen, and the effect of removing that
@@ -59,6 +82,7 @@ cleared back to the role frozen at deployment.
 
 - Persisting a new default from battle or adding the Mech Lab authoring flow.
 - Player-authored destinations, targets, waypoints, or knowledge.
+- Per-member lance orders; coordination mode belongs to the battle lance.
 - New chassis, weapons, damage rules, morale tuning, or campaign inventory.
 - Treating the UI label Tank as a new hardware family.
 
