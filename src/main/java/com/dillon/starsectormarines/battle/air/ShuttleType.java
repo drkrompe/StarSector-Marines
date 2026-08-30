@@ -179,6 +179,7 @@ public enum ShuttleType implements AirHandling, Airframe {
     }
 
     @Override public String spritePath()              { return spritePath; }
+    @Override public int hardpoints()                 { return hardpoints; }
     @Override public AirHandling flight()             { return this; }
     @Override public float maxHp()                    { return maxHp; }
 

@@ -34,6 +34,17 @@ public interface Airframe {
     String renderHullId();
 
     /**
+     * Turret mounts this aircraft carries. Zero means it cannot shoot at all.
+     *
+     * <p>How many, not where: where each one sits comes from the hull's real
+     * {@code weaponSlots} through
+     * {@link com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver},
+     * so an armed craft's guns are drawn and fired from the places the hull
+     * actually has them.
+     */
+    int hardpoints();
+
+    /**
      * How this aircraft flies.
      *
      * <p>Asked rather than implemented, because the two kinds of airframe know

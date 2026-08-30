@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a sortie flies a real airframe off a real berth, or it does not fly.
+Updated: 2026-08-30 — a station flies armed strikes off its own strip.
 
 ## Purpose
 
@@ -247,6 +247,22 @@ a roll starts from is a decision for the sortie, and the far one is normally
 right because it leaves the aircraft pointing where it is going. `mapgen-nouns.md`
 owns where a strip is laid; Air owns what happens along it. See
 `runway-airbase.md` for the ground procedure being built on it.
+
+A **strike sortie** is the reason a station has sheds. An armed aircraft
+leaves on the field's own decision rather than on a request for passengers,
+works its target, and comes home to the shed it came out of. Its business at
+the objective is its guns rather than its ramp, so unlike a transport it never
+touches down on what it was sent to attack — it arrives on station, which is a
+wider thing than arriving on a cell.
+
+The field flies **one at a time**, on an interval. A garrison that scrambled
+its whole air arm at first contact would spend itself in the opening minute and
+have nothing left for the assault the field exists to answer, and the single
+sortie is what makes air a recurring threat instead of one event. The target is
+the **densest** enemy concentration rather than the nearest or the largest:
+nearest sends aircraft after whichever scout wandered closest to the fence,
+largest picks the same push every time, and density is both what an aircraft is
+good against and what a player can see the reason for afterwards.
 
 A craft that has to roll has a **ground procedure** either side of its flight,
 and it is on its wheels and shootable for all of it: out of the shed, down to

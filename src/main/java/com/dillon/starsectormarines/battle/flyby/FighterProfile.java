@@ -26,7 +26,7 @@ import java.util.List;
 public enum FighterProfile implements Airframe {
 
     /** Talon — light autocannon, fast and twitchy. */
-    TALON("graphics/ships/talon/talon.png", "talon", 1.5f, 30f,
+    TALON("graphics/ships/talon/talon.png", "talon", 1.5f, 30f, 1,
             WeaponClass.TRACER,
             new Color(0xFF, 0xE0, 0x70), 22f, 2.5f, 0.06f,
             7, 0.06f, 0.8f, 1.0f, 30, 0.09f,
@@ -34,7 +34,7 @@ public enum FighterProfile implements Airframe {
             FlybyOverlay.SFX_GUN_LIGHT, 0.9f, 1.0f, null),
 
     /** Wasp — small drone with a pulse laser. */
-    WASP("graphics/ships/wasp_ftr.png", "wasp", 1.3f, 25f,
+    WASP("graphics/ships/wasp_ftr.png", "wasp", 1.3f, 25f, 1,
             WeaponClass.TRACER,
             new Color(0x88, 0xFF, 0xFF), 18f, 3.0f, 0.10f,
             4, 0.10f, 1.2f, 1.5f, 35, 0.09f,
@@ -42,7 +42,7 @@ public enum FighterProfile implements Airframe {
             FlybyOverlay.SFX_GUN_ENERGY, 1.1f, 0.9f, null),
 
     /** Broadsword — heavy fighter, dual chaingun. The strafe of choice. */
-    BROADSWORD("graphics/ships/broadsword.png", "broadsword", 2.0f, 45f,
+    BROADSWORD("graphics/ships/broadsword.png", "broadsword", 2.0f, 45f, 2,
             WeaponClass.TRACER,
             new Color(0xFF, 0xE0, 0x70), 30f, 3.5f, 0.08f,
             10, 0.05f, 0.6f, 1.5f, 45, 0.09f,
@@ -50,7 +50,7 @@ public enum FighterProfile implements Airframe {
             FlybyOverlay.SFX_GUN_HEAVY, 1.0f, 1.1f, null),
 
     /** Thunder — interceptor with twin ion bolts. */
-    THUNDER("graphics/ships/thunder.png", "thunder", 1.7f, 35f,
+    THUNDER("graphics/ships/thunder.png", "thunder", 1.7f, 35f, 2,
             WeaponClass.TRACER,
             new Color(0x70, 0xC8, 0xFF), 24f, 3.0f, 0.10f,
             6, 0.08f, 0.9f, 1.4f, 90, 0.09f,
@@ -58,7 +58,7 @@ public enum FighterProfile implements Airframe {
             FlybyOverlay.SFX_GUN_ENERGY, 1.0f, 1.0f, null),
 
     /** Dagger — Tri-Tachyon torpedo bomber; one Reaper per shot. AoE detonation flattens walls and chews into clusters. */
-    DAGGER("graphics/ships/dagger_trp.png", "dagger", 1.9f, 40f,
+    DAGGER("graphics/ships/dagger_trp.png", "dagger", 1.9f, 40f, 1,
             WeaponClass.PROJECTILE,
             new Color(0xFF, 0xB0, 0x60), 0f, 0f, 0f,
             1, 0f, 0f, 0f, 150, 0.7f,
@@ -91,6 +91,15 @@ public enum FighterProfile implements Airframe {
      * an apron of them can burn several.
      */
     public final float parkedHp;
+    /**
+     * Turret mounts this fighter carries in the air.
+     *
+     * <p>Authored to the hull's vanilla armament rather than counted off its
+     * weapon slots, because the slot list is only readable with the game
+     * loaded and a fighter that silently comes up unarmed headless is a strike
+     * that quietly does nothing.
+     */
+    public final int mounts;
 
     /** Delivery model — picks which fire-resolution path the overlay takes when this profile fires. */
     public final WeaponClass weaponClass;
@@ -142,6 +151,7 @@ public enum FighterProfile implements Airframe {
     public final String projectileSpritePath;
 
     FighterProfile(String spritePath, String hullId, float visualLengthCells, float parkedHp,
+                   int mounts,
                    WeaponClass weaponClass,
                    Color tracerColor, float tracerPxLen, float tracerPxThick, float tracerLifetime,
                    int burstSize, float burstInterval, float burstSpreadDeg, float perTracerDamage, int wallDamage,
@@ -154,6 +164,7 @@ public enum FighterProfile implements Airframe {
         this.hullId = hullId;
         this.visualLengthCells = visualLengthCells;
         this.parkedHp = parkedHp;
+        this.mounts = mounts;
         this.weaponClass = weaponClass;
         this.tracerColor = tracerColor;
         this.tracerPxLen = tracerPxLen;
@@ -192,6 +203,13 @@ public enum FighterProfile implements Airframe {
      * profile when there is no game to read a spec out of.
      */
     @Override public AirHandling flight() { return HullKinematicsResolver.resolve(hullId); }
+
+    /**
+     * Guns this fighter mounts, following its vanilla armament: one on the
+     * light interceptors and the torpedo bomber, two on the heavier gun
+     * fighters. Where they sit is the hull's own business.
+     */
+    @Override public int hardpoints() { return mounts; }
 
     @Override public float maxHp() { return parkedHp; }
 
