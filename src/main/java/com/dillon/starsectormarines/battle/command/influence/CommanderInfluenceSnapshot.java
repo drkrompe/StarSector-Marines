@@ -16,13 +16,15 @@ public final class CommanderInfluenceSnapshot {
     private final int worldHeight;
     private final float[] friendly;
     private final float[] hostile;
+    /** Where this faction has recently lost people; see {@link CasualtyMemory}. */
+    private final float[] losses;
     private final List<CommanderContact> contacts;
     private final float maxFriendly;
     private final float maxHostile;
 
     CommanderInfluenceSnapshot(Faction faction, int updatedTick, int blockSize,
                                int width, int height, int worldWidth, int worldHeight,
-                               float[] friendly, float[] hostile,
+                               float[] friendly, float[] hostile, float[] losses,
                                List<CommanderContact> contacts) {
         this.faction = faction;
         this.updatedTick = updatedTick;
@@ -33,6 +35,7 @@ public final class CommanderInfluenceSnapshot {
         this.worldHeight = worldHeight;
         this.friendly = friendly;
         this.hostile = hostile;
+        this.losses = losses;
         this.contacts = List.copyOf(contacts);
         this.maxFriendly = max(friendly);
         this.maxHostile = max(hostile);
@@ -51,6 +54,15 @@ public final class CommanderInfluenceSnapshot {
 
     public float friendlyAt(int blockX, int blockY) {
         return inBounds(blockX, blockY) ? friendly[index(blockX, blockY)] : 0f;
+    }
+
+    public float lossesAt(int blockX, int blockY) {
+        return inBounds(blockX, blockY) ? losses[index(blockX, blockY)] : 0f;
+    }
+
+    public float lossesAtWorld(int cellX, int cellY) {
+        if (!worldInBounds(cellX, cellY)) return 0f;
+        return lossesAt(cellX / blockSize, cellY / blockSize);
     }
 
     public float hostileAt(int blockX, int blockY) {

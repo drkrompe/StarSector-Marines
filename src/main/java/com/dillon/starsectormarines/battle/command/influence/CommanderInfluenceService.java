@@ -26,6 +26,7 @@ public final class CommanderInfluenceService {
     private final NavigationGrid grid;
     private final UnitRosterService roster;
     private final LongSupplier topologyRevision;
+    private final CasualtyMemory casualties;
     private InfluenceTopology cachedTopology;
     private long cachedTopologyRevision = Long.MIN_VALUE;
     private volatile CommanderInfluenceSnapshot marineSnapshot;
@@ -44,9 +45,13 @@ public final class CommanderInfluenceService {
                 topologyRevision, "topologyRevision");
         int width = (grid.getWidth() + BLOCK_SIZE - 1) / BLOCK_SIZE;
         int height = (grid.getHeight() + BLOCK_SIZE - 1) / BLOCK_SIZE;
+        this.casualties = new CasualtyMemory(roster, BLOCK_SIZE, width, height);
         marineSnapshot = emptySnapshot(Faction.MARINE, width, height);
         defenderSnapshot = emptySnapshot(Faction.DEFENDER, width, height);
     }
+
+    /** The loss memory this service publishes; subscribe it to the death dispatcher. */
+    public CasualtyMemory casualties() { return casualties; }
 
     public void tick(int simTick) {
         if (lastUpdateTick != Integer.MIN_VALUE
@@ -63,6 +68,11 @@ public final class CommanderInfluenceService {
             profile.record(TickInnerProfile.Bucket.INFLUENCE_TOPOLOGY_LOOKUP,
                     System.nanoTime() - start);
         }
+        // Decayed once per refresh, from the interval actually elapsed, so the
+        // half-life is a property of simulated time rather than of how often
+        // this happens to be called.
+        casualties.decay(lastUpdateTick == Integer.MIN_VALUE ? 0
+                : simTick - lastUpdateTick);
         CommanderInfluenceSnapshot marine = buildSnapshot(Faction.MARINE, simTick, topology);
         CommanderInfluenceSnapshot defender = buildSnapshot(Faction.DEFENDER, simTick, topology);
         marineSnapshot = marine;
@@ -93,7 +103,8 @@ public final class CommanderInfluenceService {
     private CommanderInfluenceSnapshot emptySnapshot(Faction faction, int width, int height) {
         return new CommanderInfluenceSnapshot(faction, -1, BLOCK_SIZE,
                 width, height, grid.getWidth(), grid.getHeight(),
-                new float[width * height], new float[width * height], List.of());
+                new float[width * height], new float[width * height],
+                new float[width * height], List.of());
     }
 
     private CommanderInfluenceSnapshot buildSnapshot(Faction faction, int simTick,
@@ -121,7 +132,7 @@ public final class CommanderInfluenceService {
         return new CommanderInfluenceSnapshot(faction, simTick, BLOCK_SIZE,
                 topology.blockWidth(), topology.blockHeight(),
                 grid.getWidth(), grid.getHeight(),
-                friendly, hostile, contacts);
+                friendly, hostile, casualties.copyFor(faction), contacts);
     }
 
     private List<InfluenceSource> friendlySources(Faction faction) {
