@@ -166,7 +166,7 @@ public final class TurretFireSystem implements TurretFireSink {
                 shooterId, fromX, fromY, 0f, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolve(
                 source, target, effectiveAccuracy, effectiveSpread,
-                weapon.directRoundVelocity(), rng);
+                weapon.directRoundVelocity(), weapon.range, rng);
 
         if (weapon.aoeRadius > 0f && res.impacts()) {
             queueGroundDetonation(shooterId, shooterFaction, structure, res);
