@@ -97,6 +97,7 @@ public final class BattleForceScore {
             case TALON -> 6f;
             case THUNDER -> 7f;
             case BROADSWORD -> 8f;
+            case LONGBOW -> 11f;
             case DAGGER -> 14f;
         };
     }
