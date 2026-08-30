@@ -76,8 +76,13 @@ class BasedAircraftHullRenderTest {
     }
 
     private static List<DrawCommand> hullDraws(BattleSimulation sim, DrawCommand.Kind kind) {
+        return hullDraws(sim, kind, 20f);
+    }
+
+    private static List<DrawCommand> hullDraws(BattleSimulation sim, DrawCommand.Kind kind,
+                                               float cellPx) {
         BattleCamera camera = new BattleCamera(W, H);
-        camera.setViewport(0f, 0f, 800f, 600f, 20f);
+        camera.setViewport(0f, 0f, 800f, 600f, cellPx);
         RenderContext ctx = new RenderContext(sim, camera, null, 1f, 0f, false,
                 new HighlightOverlay(), new Selection());
         DrawList out = new DrawList();
@@ -161,6 +166,35 @@ class BasedAircraftHullRenderTest {
                     "burnt, not merely shaded: " + strip.red() + "," + strip.green()
                             + "," + strip.blue());
             assertTrue(strip.red() > 0.05f, "scorched panel, not a hole in the apron");
+        }
+    }
+
+    /**
+     * However far away the camera is, the wreck is the size of the aircraft.
+     *
+     * <p>Drawn small enough, the whole tear fits inside a couple of pixels, and
+     * there the fixed pixel of overlap each strip carries to close its seams is
+     * not a hairline fix but several times the strip itself. Unbounded it
+     * tripled every piece and fused the tears shut: a review frame of a burnt
+     * airfield showed three dark blobs where three broken aircraft should have
+     * been, which is the one thing a picture of a raid has to get right.
+     */
+    @Test
+    void theWreckIsTheSizeOfTheAircraftAtEveryZoom() {
+        for (float cellPx : new float[]{2f, 6f, 20f, 64f}) {
+            BattleSimulation parked = openSim();
+            berth(parked);
+            new AirfieldSystem(Faction.DEFENDER).tick(1f / 30f, parked, parked.getAirfieldService());
+            DrawCommand aircraft = hullDraws(parked, DrawCommand.Kind.SPRITE, cellPx).get(0);
+
+            // Every strip is one lattice row tall, so the row height of the
+            // aircraft's own drawn hull is what each of them should measure.
+            float row = aircraft.height() / HullBreakup.GRID;
+            for (DrawCommand strip : hullDraws(withBurnedAircraft(), DrawCommand.Kind.SHEET_QUAD, cellPx)) {
+                assertTrue(strip.height() <= row * 1.6f,
+                        "at " + cellPx + "px per cell a strip is " + strip.height()
+                                + "px tall where a row of the hull is " + row + "px");
+            }
         }
     }
 
