@@ -22,9 +22,9 @@
           <div id="{team.membersId}" class="fireteam-members">
             <div each="member in team.members" key="{member.id}" id="{member.id}" class="{member.classes}">
               <div id="{member.lineId}" class="member-line">
-                <div id="{member.nameId}" class="label heading member-name">{member.name}</div>
-                <div id="{member.primaryId}" class="label heading member-primary">{member.primary}</div>
-                <div id="{member.specialId}" class="label heading member-special">{member.special}</div>
+                <div id="{member.nameId}" class="label member-name">{member.name}</div>
+                <div id="{member.primaryId}" class="label member-primary">{member.primary}</div>
+                <div id="{member.specialId}" class="label member-special">{member.special}</div>
               </div>
               <div id="{member.hpTrackId}" class="member-hp-track">
                 <div id="{member.hpId}" class="member-hp-fill" style="{member.hpStyle}" />
@@ -147,7 +147,7 @@
     height: 18px;
     flex-direction: column;
     padding: 2px 3px;
-    gap: 3px;
+    gap: 2px;
     border-width: 1px;
     border-color: #31485f;
     background-color: #142131e8;
@@ -160,10 +160,16 @@
   .member-critical { border-color: #8e4d49; }
   .member-empty { opacity: 0.28; background-color: #0c121a; }
 
-  .member-line { width: 100%; height: 12px; flex-direction: row; gap: 3px; }
-  .member-name { width: 0px; height: 12px; flex-grow: 1; color: #c8e0ff; }
-  .member-primary { width: 38px; height: 12px; text-align: right; color: #78d494; }
-  .member-special { width: 24px; height: 12px; text-align: right; color: #ffd464; }
+  .member-line {
+    width: 100%;
+    height: 13px;
+    flex-direction: row;
+    gap: 3px;
+    font-family: compact;
+  }
+  .member-name { width: 0px; height: 13px; flex-grow: 1; color: #c8e0ff; }
+  .member-primary { width: 38px; height: 13px; text-align: right; color: #78d494; }
+  .member-special { width: 24px; height: 13px; text-align: right; color: #ffd464; }
   .member-hp-track { width: 100%; height: 3px; background-color: #172231; }
   .member-hp-fill { height: 100%; background-color: #78d494; }
 
