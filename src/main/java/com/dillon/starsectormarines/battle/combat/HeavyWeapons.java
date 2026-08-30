@@ -136,7 +136,7 @@ public class HeavyWeapons {
                 weapon.hitSpread, distToTarget, weapon.range);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
                 effectiveAccuracy, effectiveSpread, weapon.roundVelocity,
-                rng);
+                weapon.range, rng);
 
         if (weapon.aoeRadius <= 0f && res.victimId() != 0L) {
             float appliedDamage = res.friendlyHit()

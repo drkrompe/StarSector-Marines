@@ -52,7 +52,7 @@ class VehicleDurabilityIntegrationTest {
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(),
                 new DoodadService(sim.getGrid()), sim.getUnitIndex(), sim.getRoster());
         BallisticResolver.Resolution hit = resolver.resolve(shooter, apc,
-                1f, 0f, 48f, new MidRollRandom());
+                1f, 0f, 48f, 12f, new MidRollRandom());
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, hit.kind());
         assertEquals(apc, hit.victimId());
         assertTrue(hit.hitIntended());
@@ -142,7 +142,7 @@ class VehicleDurabilityIntegrationTest {
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(),
                 new DoodadService(sim.getGrid()), sim.getUnitIndex(), sim.getRoster());
         BallisticResolver.Resolution shot = resolver.resolve(shooter, shooter,
-                1f, 0f, 48f, new MidRollRandom());
+                1f, 0f, 48f, 12f, new MidRollRandom());
         assertTrue(shot.victimId() != apc, "a wreck is not a ballistic contact");
     }
 

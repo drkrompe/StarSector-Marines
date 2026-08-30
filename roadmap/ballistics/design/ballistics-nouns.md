@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — smoke became graded obscuration instead of a line-of-fire gate.
+Updated: 2026-08-30 — free-flight distance now follows weapon reach instead of target proximity.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -38,6 +38,13 @@ Accuracy commits once before the contact walk. A successful aim samples inside
 the intended body's horizontal and vertical silhouette; a miss samples outside
 it. The intended target therefore cannot be visibly crossed and then rejected
 by another invisible accuracy roll.
+
+The target chooses a direct round's trajectory, not its lifetime. Unless a
+physical contact stops it first, the round remains live out to one and a half
+times the firing weapon's maximum targeting range. A near target therefore
+does not give its misses an arbitrary short tail; the same weapon carries a
+stray round the same maximum distance regardless of which legal target supplied
+the aim direction.
 
 Weapon velocity is part of play. The aim leads a moving intended target and
 body contacts are evaluated along the same flight timeline, so a slower round
