@@ -293,6 +293,7 @@ public class BattleRenderer {
      */
     public void onAttach() {
         sprites.ensureSmokeSprites();
+        registerSmokeFieldBatch();
         sprites.ensureSatchelSprite();
         impactFx.ensureSprites();
     }
@@ -345,6 +346,21 @@ public class BattleRenderer {
         // source strips of its own sprite (UnitRenderService's wreck pass).
         // Loaded by ensureAirframeSprites() before this runs, in both hosts.
         registerHullBatches(sprites.airframeSprites().values());
+
+        // Some embedded hosts hand us an already-loaded sprite registry and do
+        // not call onAttach(). The standalone battle screen does the reverse:
+        // it builds its terrain batches first, then onAttach() loads smoke.
+        // Register from both lifecycle seams so whichever one sees the sheet
+        // first makes deployed smoke drawable by the live GL drain.
+        registerSmokeFieldBatch();
+    }
+
+    private void registerSmokeFieldBatch() {
+        SpriteAPI sheet = sprites.smokeFieldSheet();
+        if (sheet == null || batchBySheet.containsKey(sheet)) return;
+        int width = Math.max(1, Math.round(sheet.getWidth()));
+        int height = Math.max(1, Math.round(sheet.getHeight()));
+        registerBatch(sheet, new QuadBatch(sheet, width, height, 128));
     }
 
     /**

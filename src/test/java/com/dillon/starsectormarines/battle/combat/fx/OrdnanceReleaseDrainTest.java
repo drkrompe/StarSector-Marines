@@ -15,7 +15,8 @@ final class OrdnanceReleaseDrainTest {
     void releasesArePublishedAndClearedAtTheTopOfEachFrame() {
         EffectsService effects = new EffectsService(new Random(1L));
         effects.spawnOrdnanceRelease(new OrdnanceRelease(
-                7L, OrdnanceDelivery.SHELL, 1f, 2f, 3f, 4f, 1.3f, Faction.DEFENDER));
+                7L, OrdnanceDelivery.SHELL, 1f, 2f, 3f, 4f, 1.3f,
+                Faction.DEFENDER, /*flightTimeSec*/ 0f));
 
         assertEquals(1, effects.getOrdnanceReleasesThisFrame().size());
 

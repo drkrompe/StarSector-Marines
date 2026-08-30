@@ -154,6 +154,32 @@ class OrdnancePatternTest {
     }
 
     /**
+     * Signed distance of a hit <em>along</em> the run, in cells: negative on
+     * the approach side of the target, positive past it.
+     *
+     * <p>What the width measure deliberately throws away, and the axis the
+     * delivery physics actually acts on. A strafe that lands under the aircraft
+     * puts every hit on the negative side; one whose reach matches its firing
+     * range sweeps from one side to the other.
+     */
+    private static float[] reachAlongTheRun(List<Mark> footprint) {
+        float axisX = TARGET_X - 6f;
+        float axisY = TARGET_Y - 6f;
+        float length = (float) Math.hypot(axisX, axisY);
+        axisX /= length;
+        axisY /= length;
+        float nearest = Float.MAX_VALUE;
+        float furthest = -Float.MAX_VALUE;
+        for (Mark mark : footprint) {
+            if (!mark.hit()) continue;
+            float along = (mark.x() - TARGET_X) * axisX + (mark.y() - TARGET_Y) * axisY;
+            nearest = Math.min(nearest, along);
+            furthest = Math.max(furthest, along);
+        }
+        return new float[]{ nearest, furthest };
+    }
+
+    /**
      * A cannon run puts fire across a swathe of ground, over the target, and
      * not in one spot.
      */
@@ -225,21 +251,96 @@ class OrdnancePatternTest {
         mission.state = ShuttleState.INCOMING;
 
         int loadedWith = 0;
+        int mostInTheAir = 0;
         boolean ranDry = false;
         for (int t = 0; t < 3000 && mission.state != ShuttleState.DEPARTING
                 && mission.state != ShuttleState.GONE
                 && mission.state != ShuttleState.RETURNING; t++) {
             sim.advance(BattleSimulation.TICK_DT);
+            mostInTheAir = Math.max(mostInTheAir, sim.getInflightDetonations().size());
             if (mission.state != ShuttleState.ATTACK_RUN) continue;
             loadedWith = Math.max(loadedWith, mission.roundsLeftThisPass);
             if (mission.roundsLeftThisPass == 0) ranDry = true;
         }
 
+        System.out.println("[bomber] carried " + loadedWith + ", most bombs falling at once "
+                + mostInTheAir);
         assertTrue(loadedWith > 0, "the bomber rolled in carrying nothing countable");
+        // A bomb is a second and a half of falling, not a decision. Released
+        // ordnance with a real flight time goes on the in-flight queue and
+        // arrives later, so the ground underneath it can change while it is
+        // there; only a shell is fast enough to be resolved where it left.
+        assertTrue(mostInTheAir > 0,
+                "no bomb was ever in the air, so the stick detonated at the moment of release");
         assertTrue(loadedWith <= AirOrdnance.BOMBS.roundsPerPass,
                 "the bomber loaded " + loadedWith + " for a bay that holds "
                         + AirOrdnance.BOMBS.roundsPerPass);
         assertTrue(ranDry, "the bomber never ran out, so its bay is not finite");
+    }
+
+    /**
+     * The fire sweeps <em>through</em> the target rather than piling up short
+     * of it.
+     *
+     * <p>This is the fault the delivery physics exists to fix, and the one
+     * thing a hit count cannot see. Reach and firing range are one decision: a
+     * weapon that opens fire at 26 cells and puts its rounds 4 cells in front
+     * of the nose drops every last one of them short, which reads from the
+     * ground as an aircraft shooting at nothing on its way to the target. With
+     * the reach the sight geometry actually gives, the burst starts short,
+     * walks over the position and ends past it.
+     */
+    @Test
+    void aStrafeSweepsThroughTheTargetRatherThanFallingShortOfIt() {
+        List<Mark> footprint = footprintOfOneRun(FighterProfile.BROADSWORD);
+        float[] reach = reachAlongTheRun(footprint);
+        System.out.println("[cannon] fire along the run, from " + reach[0]
+                + " cells short of the target to " + reach[1] + " past it");
+
+        assertTrue(reach[0] < -3f,
+                "the burst never opened short of the target; nearest hit was " + reach[0]);
+        assertTrue(reach[1] > 3f,
+                "the burst stopped " + (-reach[1]) + " cells short of the target rather than"
+                        + " walking through it");
+        // And it ends there. A gun is bolted to the nose, so a craft that has
+        // flown past its target and is climbing away is not attacking it
+        // however near it still is. Without an alignment gate the run keeps
+        // firing on range alone and sprays the ground behind itself for the
+        // whole second half of the pass.
+        assertTrue(reach[1] < 18f,
+                "fire carried on " + reach[1] + " cells past the target, which is the far"
+                        + " side of the aircraft rather than in front of it");
+    }
+
+    /**
+     * A missile pod puts its fire down from further out than a gun does.
+     *
+     * <p>The third delivery class earns its place by reaching: it has a motor,
+     * so it is not limited to the sight line a gun is, and a missile boat works
+     * the position from standoff instead of coming over it. On the ground that
+     * shows up as fire that opens further back along the run.
+     */
+    @Test
+    void aMissilePassOpensFurtherOutThanAGunPass() {
+        List<Mark> missiles = footprintOfOneRun(FighterProfile.LONGBOW);
+        List<Mark> cannon = footprintOfOneRun(FighterProfile.BROADSWORD);
+        draw("missile", missiles);
+        float[] missileReach = reachAlongTheRun(missiles);
+        float[] cannonReach = reachAlongTheRun(cannon);
+        System.out.println("[missile] " + hits(missiles) + " markers hit, fire from "
+                + missileReach[0] + " to " + missileReach[1] + "; cannon from "
+                + cannonReach[0] + " to " + cannonReach[1]);
+
+        assertTrue(hits(missiles) >= 3,
+                "a missile pass touched only " + hits(missiles) + " markers");
+        assertTrue(missileReach[0] < cannonReach[0],
+                "the missiles opened at " + missileReach[0] + ", no further out than the"
+                        + " cannon's " + cannonReach[0]);
+        // A finite load released too fast empties before the aircraft closes,
+        // and the whole stick falls in front of the position.
+        assertTrue(missileReach[1] > 0f,
+                "every missile landed short; the last one was " + (-missileReach[1])
+                        + " cells in front of the target");
     }
 
     /** A gun is the other case: nothing to count down, it fires while it can. */

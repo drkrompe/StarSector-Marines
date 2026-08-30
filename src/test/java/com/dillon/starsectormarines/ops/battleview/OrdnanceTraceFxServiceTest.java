@@ -112,7 +112,8 @@ final class OrdnanceTraceFxServiceTest {
 
     private static OrdnanceRelease release(OrdnanceDelivery delivery,
                                            float fromX, float fromY, float toX, float toY) {
-        return new OrdnanceRelease(1L, delivery, fromX, fromY, toX, toY, 1.2f, Faction.DEFENDER);
+        return new OrdnanceRelease(1L, delivery, fromX, fromY, toX, toY, 1.2f,
+                Faction.DEFENDER, /*flightTimeSec*/ 0f);
     }
 
     private static BattleCamera camera() {
@@ -124,5 +125,43 @@ final class OrdnanceTraceFxServiceTest {
     private static float screenToCells(BattleCamera camera, float screenX) {
         return camera.panCellX() + (screenX - (camera.vpX() + camera.vpW() * 0.5f))
                 / camera.cellPxSize();
+    }
+
+    /**
+     * A bomb's picture stays in the air exactly as long as the bomb does.
+     *
+     * <p>The two halves of a gun run were built separately: one gave ordnance a
+     * real flight time — a bomb falls for about a second and a half — and the
+     * other drew a falling body for a fixed 0.35s. Composed, the drawn bomb
+     * landed a second before the explosion it was supposed to cause. The
+     * simulation's own number wins whenever it has one.
+     */
+    @Test
+    void aFallingBodyIsDrawnForAsLongAsTheRoundIsActuallyInTheAir() {
+        OrdnanceTraceFxService fx = new OrdnanceTraceFxService(null);
+        float realFall = 1.429f;
+        fx.spawn(new OrdnanceRelease(1L, OrdnanceDelivery.BOMB, 0f, 0f, 10f, 0f,
+                1.2f, Faction.DEFENDER, realFall));
+
+        // The composition's own fall is far shorter, so a service reading the
+        // preset would have called this arrived long ago.
+        fx.advance(0.5f);
+        assertTrue(fx.arrivalsThisFrame().isEmpty(),
+                "the bomb arrived while it was still falling");
+
+        fx.advance(realFall);
+        assertEquals(1, fx.arrivalsThisFrame().size(),
+                "the bomb never arrived at the time the simulation said it would");
+    }
+
+    /** With no stated flight time the composition still decides, as before. */
+    @Test
+    void aRoundWithNoStatedFlightTimeFallsBackToItsComposition() {
+        OrdnanceTraceFxService fx = new OrdnanceTraceFxService(null);
+        fx.spawn(new OrdnanceRelease(1L, OrdnanceDelivery.BOMB, 0f, 0f, 10f, 0f,
+                1.2f, Faction.DEFENDER, /*flightTimeSec*/ 0f));
+        fx.advance(OrdnanceFx.of(OrdnanceDelivery.BOMB).trace().flightSeconds() + 0.01f);
+        assertEquals(1, fx.arrivalsThisFrame().size(),
+                "a round with no stated flight time never arrived");
     }
 }

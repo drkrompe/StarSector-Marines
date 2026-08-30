@@ -19,13 +19,19 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * the perception and morale systems a second, parallel source of gunfire that
  * nothing fired.
  *
- * @param sourceId    the entity that released it — the key a held loop voice
- *                    hangs on, so two carriers firing at once stay distinct
- * @param radiusCells the delivered blast radius, which sizes the arrival
+ * @param sourceId      the entity that released it — the key a held loop voice
+ *                      hangs on, so two carriers firing at once stay distinct
+ * @param radiusCells   the delivered blast radius, which sizes the arrival
+ * @param flightTimeSec how long the simulation says this round is in the air,
+ *                      or {@code 0} to let the composition decide. A bomb falls
+ *                      for a second and a half and its picture has to be in the
+ *                      air for exactly that long: a drawn body that lands before
+ *                      its own detonation is worse than no picture at all.
  */
 public record OrdnanceRelease(long sourceId, OrdnanceDelivery delivery,
                               float fromX, float fromY, float toX, float toY,
-                              float radiusCells, Faction faction) {
+                              float radiusCells, Faction faction,
+                              float flightTimeSec) {
 
     public OrdnanceRelease {
         if (delivery == null) throw new IllegalArgumentException("delivery is required");

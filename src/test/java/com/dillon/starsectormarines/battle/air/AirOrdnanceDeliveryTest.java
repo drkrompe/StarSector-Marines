@@ -25,8 +25,10 @@ final class AirOrdnanceDeliveryTest {
         // A gun fires for as long as it holds the target; a rack releases what
         // it loaded. That structural split is the only thing a load nobody
         // named can be classified by, and it is the one the model draws.
-        AirOrdnance gun = new AirOrdnance(9f, 0, 4f, 1.5f, 20f, 1.2f, 20f, 8f, 20);
-        AirOrdnance rack = new AirOrdnance(4f, 3, 5f, 2f, 14f, 3f, 70f, 14f, 140);
+        AirOrdnance gun = new AirOrdnance(9f, 0,
+                OrdnanceFlight.powered(6f, 25f, 520f, 0f), 1.5f, 20f, 1.2f, 20f, 8f, 20);
+        AirOrdnance rack = new AirOrdnance(4f, 3,
+                OrdnanceFlight.dropped(10f, 1f), 2f, 14f, 3f, 70f, 14f, 140);
         assertEquals(OrdnanceDelivery.SHELL, AirOrdnanceDelivery.of(gun));
         assertEquals(OrdnanceDelivery.BOMB, AirOrdnanceDelivery.of(rack));
     }
@@ -39,7 +41,8 @@ final class AirOrdnanceDeliveryTest {
         double nose = 0d;
 
         OrdnanceRelease release = AirOrdnanceDelivery.release(
-                77L, AirOrdnance.AUTOCANNON, body, nose, 18f, 21f, Faction.DEFENDER);
+                77L, AirOrdnance.AUTOCANNON, body, nose, 18f, 21f, Faction.DEFENDER,
+                AirOrdnance.AUTOCANNON.flight.flightTimeSec());
 
         assertEquals(77L, release.sourceId());
         assertEquals(OrdnanceDelivery.SHELL, release.delivery());

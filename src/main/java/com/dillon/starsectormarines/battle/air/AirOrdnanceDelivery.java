@@ -48,14 +48,14 @@ public final class AirOrdnanceDelivery {
     /**
      * The presentation record for one round of {@code load} leaving
      * {@code body} on the heading {@code noseRadians} and arriving at
-     * {@code (impactX, impactY)}.
+     * {@code (impactX, impactY)} after {@code flightTimeSec} in the air.
      */
     public static OrdnanceRelease release(long sourceId, AirOrdnance load, AirBody body,
                                           double noseRadians, float impactX, float impactY,
-                                          Faction faction) {
+                                          Faction faction, float flightTimeSec) {
         return new OrdnanceRelease(sourceId, of(load),
                 body.x + (float) Math.cos(noseRadians) * MUZZLE_OFFSET_CELLS,
                 body.y + (float) Math.sin(noseRadians) * MUZZLE_OFFSET_CELLS,
-                impactX, impactY, load.aoeRadiusCells, faction);
+                impactX, impactY, load.aoeRadiusCells, faction, flightTimeSec);
     }
 }
