@@ -31,12 +31,12 @@ package com.dillon.starsectormarines.battle.air;
  *       ({@link com.dillon.starsectormarines.battle.vehicle.PurePursuit}) and
  *       for the same reason: a controller that aims at a fixed waypoint orbits
  *       it, and a carrot that keeps sliding forward along the route cannot.</li>
- *   <li><b>The turn gets tighter as it slows.</b> Speed through an arc is
- *       capped at {@code sqrt(lateralAccel / curvature)}, so a craft that wants
- *       a tight corner slows for it instead of widening it, and a craft at
- *       rolling speed can only make the gentlest of corrections. That one cap
- *       is what keeps a takeoff roll on the centreline without anybody pinning
- *       the heading.</li>
+ *   <li><b>It slows for its corners.</b> Desired speed falls away the further
+ *       off the nose the carrot is, so a craft that wants a tight corner gives
+ *       up speed for it rather than taking it wide, and one running straight
+ *       goes at whatever the caller allowed. Held against the bounded arc, that
+ *       is what a taxiway looks like: quick down the straights, slow round the
+ *       hangars.</li>
  * </ul>
  *
  * <p>Below {@link GroundHandling#pivotSpeedCells()} a craft that is pointed far
@@ -130,14 +130,11 @@ public final class GroundDriveSystem {
         boolean squaringUp = Math.abs(alphaDeg) > handling.pivotErrorDeg();
 
         // How fast it may go: the caller's cap, tapered by how far off the nose
-        // it is being asked to go, and capped by what the arc will bear.
+        // it is being asked to go. An aircraft gives up speed for a corner
+        // rather than taking the corner wide.
         float desired = squaringUp ? 0f
                 : Math.max(0f, targetSpeed)
                         * Math.max(0f, 1f - Math.abs(alphaDeg) / TURN_AWAY_DEG);
-        float turning = Math.abs(curvature);
-        if (turning > 1e-4f) {
-            desired = Math.min(desired, (float) Math.sqrt(handling.lateralAccel() / turning));
-        }
 
         float speed = body.speed();
         float dv = desired - speed;
