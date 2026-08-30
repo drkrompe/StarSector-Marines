@@ -120,6 +120,49 @@ class AirbaseLotTest {
                 "the paint is a solid rectangle");
     }
 
+    /**
+     * Every shed publishes a shelter, and every shelter is a berth an aircraft
+     * could actually be got out of.
+     *
+     * <p>Clear ground to stand on, facing the mouth, and an unobstructed line
+     * from the berth to open apron. A bay an aircraft cannot leave is a
+     * decorated dead end, and the failure would only surface as a sortie that
+     * never launches.
+     */
+    @ParameterizedTest
+    @MethodSource("shapes")
+    void everyShedHoldsAnAircraftItCanGetOut(AirbaseLot.Size size,
+                                             AirbaseLot.Facing facing) {
+        Lot lot = author(size, facing);
+        List<Gantry> shelters = lot.ctx().shelters;
+        assertEquals(size.hangars(), shelters.size(), size + " sheds, " + size + " shelters");
+
+        for (Gantry shelter : shelters) {
+            for (int x = shelter.centerX - shelter.halfWidth; x <= shelter.centerX + shelter.halfWidth; x++) {
+                for (int y = shelter.centerY - shelter.halfHeight; y <= shelter.centerY + shelter.halfHeight; y++) {
+                    assertTrue(lot.grid().isWalkable(x, y),
+                            "shelter cell (" + x + "," + y + ") is not standable");
+                }
+            }
+            // Walk out the way the berth faces until we are past the shed. The
+            // mouth is the only opening, so anything in the way is a wall the
+            // aircraft would have to go through.
+            int steps = 0;
+            int x = shelter.centerX;
+            int y = shelter.centerY;
+            while (steps < size.depth) {
+                x += shelter.facing.dx;
+                y += shelter.facing.dy;
+                steps++;
+                assertTrue(lot.grid().isWalkable(x, y),
+                        size + "/" + facing + ": shelter at (" + shelter.centerX + ","
+                                + shelter.centerY + ") is walled in " + steps + " out");
+                if (lot.topology().getRoomPurpose(x, y) != RoomPurpose.HANGAR) break;
+                if (lot.topology().getGroundKind(x, y) == GroundKind.STREET) break;
+            }
+        }
+    }
+
     /** A roll runs toward wherever the sortie is going, so it leaves the strip pointing there. */
     @ParameterizedTest
     @MethodSource("shapes")

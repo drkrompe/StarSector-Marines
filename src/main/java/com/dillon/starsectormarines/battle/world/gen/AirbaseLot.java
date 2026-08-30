@@ -44,6 +44,14 @@ public final class AirbaseLot {
      * because those are properties of an airbase and not of a big one. What
      * changes is how much of it there is.
      *
+     * <p>{@link #STATION} is a base that flies its own aircraft rather than
+     * hosting other people's: a longer strip, a third shed, and a wider taxiway
+     * to move a machine down. What separates it from {@link #FIELD} is not the
+     * extra ground but what the sheds are for — a station keeps aircraft in
+     * them and taxis them out, so its shed count is its aircraft count and the
+     * apron berths beside them are still a visitor's parking. It is the largest
+     * thing this lot builds and needs a fortress ward's reservation to fit.
+     *
      * <p>{@link #FIELD} is an installation: a runway, three berths, two sheds,
      * a control tower and a vehicle park. It is what a fortress ward builds
      * when it has the ground for it.
@@ -66,6 +74,7 @@ public final class AirbaseLot {
      * something has to roll.
      */
     public enum Size {
+        STATION(58, 28, 5, true, 3, 3, 11, 8, 5, 5, 3, 2, 2),
         FIELD(44, 24, 4, true, 3, 2, 11, 8, 5, 4, 3, 2, 2),
         PAD(22, 19, 0, false, 2, 1, 11, 8, 5, 3, 2, 1, 2),
         STRIP(14, 16, 0, false, 1, 1, 9, 7, 5, 2, 1, 1, 0);
@@ -125,6 +134,9 @@ public final class AirbaseLot {
 
         /** Berths this size carries. */
         public int pads() { return pads; }
+
+        /** Sheds this size carries, which is also the number of aircraft it shelters. */
+        public int hangars() { return hangars; }
     }
 
     /**
@@ -582,6 +594,29 @@ public final class AirbaseLot {
             "doodad.parked-cargo-truck",
     };
 
+    /**
+     * The bay just paved, published as the berth an aircraft is kept in.
+     *
+     * <p>A {@link Gantry} rather than a {@link LandingPad}, because nothing
+     * lands here: an aircraft in a shed arrived under its own power and leaves
+     * the same way. The berth faces out of the shed, which is both the way the
+     * machine is parked and the first leg of the taxi.
+     *
+     * <p>Published from every size that has a shed, including the ones whose
+     * aircraft are transports on the apron. The bay is on the map either way,
+     * and a fact about the map does not become true only when something is
+     * ready to use it.
+     */
+    private Gantry shelter(int bayLeft, int bayBottom, int bayRight, int bayTop) {
+        // Out of the shed is against the lot's own depth direction: the sheds
+        // are at the back and their mouths face the apron.
+        int outX = alongY ? 0 : -depthSign();
+        int outY = alongY ? -depthSign() : 0;
+        return new Gantry((bayLeft + bayRight) / 2, (bayBottom + bayTop) / 2,
+                (bayRight - bayLeft) / 2, (bayTop - bayBottom) / 2,
+                Gantry.Facing.of(outX, outY));
+    }
+
     /** One berth, published for whatever this lot is for. */
     private LandingPad berth(int cx, int cy) {
         return purpose == LandingPad.Purpose.GARRISON_AIRFIELD
@@ -715,6 +750,7 @@ public final class AirbaseLot {
             if (headAtHigh) bayLeft = bayRight - PAD + 1; else bayRight = bayLeft + PAD - 1;
         }
         paveBay(ctx, registry, bayLeft, bayBottom, bayRight, bayTop);
+        ctx.shelters.add(shelter(bayLeft, bayBottom, bayRight, bayTop));
 
         // The station at the head of the bay, against the back wall: a tool to
         // make a part at and the terminal its condition is read off.

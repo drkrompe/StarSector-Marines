@@ -34,11 +34,12 @@ gets them into the air and back.
    paints — centreline, thresholds, width — the way it already publishes berths.
    Derived from the lot's own geometry rather than recovered by scanning ground
    kinds, because the lot knows exactly where it put it.
-2. **A larger lot variant** beside `FIELD`/`PAD`/`STRIP`: a longer strip, more
-   hangar, and berths **inside the sheds** rather than out on the apron. A
-   fighter lives in a shelter and is worked on there; the apron hardstand is a
-   transport's parking space. Reachable through its own `MapFeature` so a
-   mission can ask for one.
+2. **A larger lot variant** beside `FIELD`/`PAD`/`STRIP`: a longer strip, a
+   third shed, and a wider taxiway. Its aircraft live **in the sheds**, which is
+   what separates it from a field — a fighter is kept in a shelter and worked on
+   there, and the apron hardstands beside it stay what they always were, a
+   visitor's parking. Every shed on every size publishes the bay its aircraft
+   stands in, because the bay is on the map either way.
 3. **Taxi, roll, rotate — and the same in reverse.** New sortie phases between
    a berth and flight: out of the bay, along the taxiway, hold at the threshold,
    accelerate down the centreline, rotate. Inbound: align to the strip, touch
@@ -96,10 +97,26 @@ gets them into the air and back.
 
 ## Plan
 
+### Where a station actually fits
+
+Measured on six generated Conquest maps: the ward's strip comes out 41x4 on
+every one of them, which is `FIELD`. A `STATION` never fits, and not by
+accident — `FortressProgram` sizes the ward from `AirbaseLot.area(FIELD)`, so
+the reservation is cut to the size of the base it expects and a larger one can
+never be offered ground it would take.
+
+The ladder still prefers a station, because a ward that has the room should take
+one and that is what a ladder is for. Making the room is a separate decision
+with map-wide consequences: every fortress ward would grow by the difference,
+and everything else on a Conquest map would shrink by it. Until somebody makes
+that call, the station's home is a map that asks for one directly — the way
+`AirfieldSortieScene` builds a lot of a stated size today.
+
 | Slice | Work |
 | --- | --- |
-| 1 | `Runway` published from `AirbaseLot` through `GenContext`/`MapResult`. No behaviour. |
-| 2 | The new lot variant: hangar berths, longer strip, `MapFeature`. |
+| 1 | `Runway` published from `AirbaseLot` through `GenContext`/`MapResult`. No behaviour. **Shipped.** |
+| 2 | `Size.STATION`, and every shed publishing the shelter its aircraft lives in. **Shipped.** |
 | 3 | Taxi and roll: the sortie phases, the runway as a held resource. |
+| 3b | A host that reserves ground for a station, so the variant is reachable. |
 | 4 | The strike sortie: armed based aircraft, trigger, passes, recovery. |
 | 5 | Evidence: a runway loop in the airfield scene, and an interrupted one. |

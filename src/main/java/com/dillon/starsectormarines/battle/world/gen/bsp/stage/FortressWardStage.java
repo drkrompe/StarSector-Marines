@@ -100,7 +100,8 @@ public final class FortressWardStage implements GenStage {
      * that flies and still a thing that can be taken to stop it.
      */
     private static final AirbaseLot.Size[] WARD_AIRBASES = {
-            AirbaseLot.Size.FIELD, AirbaseLot.Size.PAD, AirbaseLot.Size.STRIP };
+            AirbaseLot.Size.STATION, AirbaseLot.Size.FIELD,
+            AirbaseLot.Size.PAD, AirbaseLot.Size.STRIP };
 
     /** An airbase reservation and the size that fitted it. */
     record WardAirbase(int[] rect, AirbaseLot.Size size) { }

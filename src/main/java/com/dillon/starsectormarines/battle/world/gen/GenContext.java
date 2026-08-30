@@ -65,6 +65,16 @@ public final class GenContext {
     public final List<LandingArea> landingAreas = new ArrayList<>();
     /** Authored airstrips, ordered deterministically by the lots that laid them. Empty on a map with no strip. */
     public final List<Runway> runways = new ArrayList<>();
+    /**
+     * Aircraft shelters — the bay inside a hangar where an aircraft is kept and
+     * worked on.
+     *
+     * <p>A machine berth in the {@link Gantry} sense, kept apart from
+     * {@link #gantries} because the thing standing in one taxis out under its
+     * own power rather than being driven off by a crew. Empty on a map with no
+     * airbase.
+     */
+    public final List<Gantry> shelters = new ArrayList<>();
 
     /** Authored machine berths inside vehicle bays, in the order fittings emit them. */
     public final List<Gantry> gantries = new ArrayList<>();
