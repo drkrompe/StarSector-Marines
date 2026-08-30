@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.flyby;
 
 import com.dillon.starsectormarines.battle.air.AirHandling;
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.air.StrafeProfile;
 import com.dillon.starsectormarines.battle.air.engine.HullKinematicsResolver;
 
 import java.awt.Color;
@@ -210,6 +211,21 @@ public enum FighterProfile implements Airframe {
      * fighters. Where they sit is the hull's own business.
      */
     @Override public int hardpoints() { return mounts; }
+
+    /**
+     * The guns this fighter runs in with. Keyed off its delivery model rather
+     * than listed per hull: a torpedo bomber and a gun fighter differ by what
+     * kind of weapon they carry, and the interceptors' energy armament paints a
+     * line where the ballistic ones throw up craters.
+     */
+    @Override
+    public StrafeProfile strafe() {
+        if (weaponClass == WeaponClass.PROJECTILE) return StrafeProfile.TORPEDO;
+        return switch (this) {
+            case WASP, THUNDER -> StrafeProfile.LASER;
+            default -> StrafeProfile.CANNON;
+        };
+    }
 
     @Override public float maxHp() { return parkedHp; }
 

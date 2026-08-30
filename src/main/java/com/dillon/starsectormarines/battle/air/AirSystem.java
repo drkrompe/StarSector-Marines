@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
+import com.dillon.starsectormarines.battle.combat.Detonations;
+import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -320,6 +322,14 @@ public class AirSystem {
      * gather-then-apply, no structural change during a live walk. A multi-sortie
      * re-arm loops back to PENDING, never reaching GONE, so it is never reaped.
      */
+    /** The AoE pipeline a strafe puts its rounds through. Null until wired; a strike then flies without firing. */
+    private Detonations detonations;
+
+    /** Gives this system the detonation pipeline its gun runs deliver through. */
+    public void setDetonations(Detonations detonations) {
+        this.detonations = detonations;
+    }
+
     /** Tells this system which field its based sorties belong to. */
     public void setAirfield(AirfieldService airfield) {
         this.airfield = airfield;
@@ -570,6 +580,42 @@ public class AirSystem {
                     }
                     break;
 
+                case ATTACK_RUN:
+                    // Straight through, at speed. Nothing steers toward the
+                    // target itself: the run was laid out when it began and the
+                    // aircraft flies the line, which is what aiming is for a
+                    // machine whose gun is bolted to its nose.
+                    AirSteeringSystem.steer(body, mission.runToX, mission.runToY,
+                            SteeringMode.CRUISE, flight, dt);
+                    world.setAltitudeT(id, 1f);
+                    world.setFlightPhase(id, world.flightPhase(id)
+                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                    strafe(id, mission, body, dt);
+                    if (reachedOrPassed(body, mission.runFromX, mission.runFromY,
+                            mission.runToX, mission.runToY)) {
+                        mission.passesLeft--;
+                        if (mission.passesLeft > 0) {
+                            beginReposition(mission, body);
+                        } else {
+                            beginEgress(id, mission, body, /*fromHover*/ false);
+                        }
+                    }
+                    break;
+
+                case REPOSITION:
+                    // Carrying its speed round, so CRUISE rather than a brake:
+                    // the turn is wide because the aircraft is fast and its
+                    // hull turns at the rate its hull turns at.
+                    AirSteeringSystem.steer(body, mission.runFromX, mission.runFromY,
+                            SteeringMode.CRUISE, flight, dt);
+                    world.setAltitudeT(id, 1f);
+                    world.setFlightPhase(id, world.flightPhase(id)
+                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                    if (body.distanceTo(mission.runFromX, mission.runFromY) < RUN_ENTRY_DIST) {
+                        mission.state = ShuttleState.ATTACK_RUN;
+                    }
+                    break;
+
                 case RETURNING:
                     // An approach, so it is flown like one: losing height the
                     // whole way rather than climbing out.
@@ -644,16 +690,14 @@ public class AirSystem {
                         // touchdown because that is what arriving means here —
                         // the craft is over the objective rather than stopped
                         // on a point on it.
-                        mission.hoverPointX = mission.lzX;
-                        mission.hoverPointY = mission.lzY;
-                        mission.hoverTimerSec = mission.fireSupportSec;
                         // Already at height, so no climb to play: a takeoff
                         // ramp here would drop the aircraft to the deck and
                         // fly it back up over its own target.
                         mission.takeoffTimer = 0f;
                         world.setAltitudeT(id, 1f);
                         mission.departingFromHover = false;
-                        mission.state = ShuttleState.HOVER_STATION;
+                        if (mission.passesLeft <= 0) mission.passesLeft = STRIKE_PASSES;
+                        beginAttackRun(mission, body);
                         break;
                     }
                     if (body.distanceTo(mission.lzX, mission.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
@@ -1098,6 +1142,108 @@ public class AirSystem {
         int cx = (int) Math.floor(x);
         int cy = (int) Math.floor(y);
         return grid.inBounds(cx, cy) && grid.isWalkable(cx, cy);
+    }
+
+    /** Passes a strike flies before it turns for home. */
+    private static final int STRIKE_PASSES = 3;
+
+    /** Cells the run starts short of the target, and overshoots past it. */
+    private static final float RUN_LEAD_CELLS = 26f;
+    private static final float RUN_OVERSHOOT_CELLS = 18f;
+
+    /** How near its start point a repositioning craft has to get before it runs in. */
+    private static final float RUN_ENTRY_DIST = 4f;
+
+    /**
+     * How far round the next run comes in from.
+     *
+     * <p>Not a fixed angle: a machine that re-attacked from the same bearing
+     * every time would be flying a racetrack, and one that picked at random
+     * would sometimes turn barely at all. Something a little over a right angle
+     * is a wide circuit that visibly changes the direction of attack.
+     */
+    private static final float RUN_BEARING_SHIFT_DEG = 115f;
+
+    /** Cells either side of the run line within which the guns are firing. */
+    private static final float FIRING_WINDOW_CELLS = 22f;
+
+    /**
+     * Lays out the next pass: a straight line in through the target and out
+     * the far side.
+     *
+     * <p>The line is fixed for the whole run. A run that keeps re-aiming at a
+     * moving target is a hover that happens to be travelling, and the whole
+     * point of a gun run is that the aircraft commits: it is pointed at where
+     * the enemy was when it rolled in, and whether that is still where they are
+     * is the target's business.
+     */
+    private void beginAttackRun(ShuttleMission mission, AirBody body) {
+        float bearing = mission.state == ShuttleState.PENDING
+                ? 0f : mission.lastRunBearingDeg;
+        if (mission.state != ShuttleState.REPOSITION && mission.state != ShuttleState.ATTACK_RUN) {
+            // First pass runs in along whatever bearing the craft arrived on,
+            // so the aircraft does not fly past its target to attack it.
+            bearing = (float) Math.toDegrees(Math.atan2(
+                    mission.lzY - body.y, mission.lzX - body.x));
+        }
+        mission.lastRunBearingDeg = bearing;
+        double rad = Math.toRadians(bearing);
+        float dirX = (float) Math.cos(rad);
+        float dirY = (float) Math.sin(rad);
+        mission.runFromX = mission.lzX - dirX * RUN_LEAD_CELLS;
+        mission.runFromY = mission.lzY - dirY * RUN_LEAD_CELLS;
+        mission.runToX = mission.lzX + dirX * RUN_OVERSHOOT_CELLS;
+        mission.runToY = mission.lzY + dirY * RUN_OVERSHOOT_CELLS;
+        mission.state = ShuttleState.ATTACK_RUN;
+    }
+
+    /** Sends the craft round for another pass from a different bearing. */
+    private void beginReposition(ShuttleMission mission, AirBody body) {
+        mission.lastRunBearingDeg += RUN_BEARING_SHIFT_DEG;
+        double rad = Math.toRadians(mission.lastRunBearingDeg);
+        float dirX = (float) Math.cos(rad);
+        float dirY = (float) Math.sin(rad);
+        mission.runFromX = mission.lzX - dirX * RUN_LEAD_CELLS;
+        mission.runFromY = mission.lzY - dirY * RUN_LEAD_CELLS;
+        mission.runToX = mission.lzX + dirX * RUN_OVERSHOOT_CELLS;
+        mission.runToY = mission.lzY + dirY * RUN_OVERSHOOT_CELLS;
+        mission.state = ShuttleState.REPOSITION;
+    }
+
+    /**
+     * Puts rounds on the ground ahead of the nose while the target is in the
+     * window.
+     *
+     * <p>Where each one lands is rolled, and that is the mechanism rather than
+     * a concession to it: the aircraft is not shooting <em>at</em> anybody, it
+     * is putting fire across a piece of ground, and whether that is decisive
+     * depends on how much of the enemy is standing in it. Every round is an
+     * ordinary detonation, so splash, wall damage, line of sight and the
+     * roof-interception rule all come from the pipeline that already owns
+     * them — a squad under an intact roof is not strafed.
+     */
+    private void strafe(long id, ShuttleMission mission, AirBody body, float dt) {
+        Airframe airframe = world.airframe(id);
+        StrafeProfile guns = airframe == null ? null : airframe.strafe();
+        if (guns == null || detonations == null) return;
+        if (body.distanceTo(mission.lzX, mission.lzY) > FIRING_WINDOW_CELLS) return;
+        mission.fireCooldown -= dt;
+        if (mission.fireCooldown > 0f) return;
+        mission.fireCooldown = guns.fireInterval();
+
+        // Ahead of the nose, then scattered. The heading is the aim.
+        double nose = Math.toRadians(body.facingDegrees + 90f);
+        float aimX = body.x + (float) Math.cos(nose) * guns.leadCells;
+        float aimY = body.y + (float) Math.sin(nose) * guns.leadCells;
+        float impactX = aimX + (float) rng.nextGaussian() * guns.scatterCells;
+        float impactY = aimY + (float) rng.nextGaussian() * guns.scatterCells;
+
+        detonations.detonateNow(new PendingDetonation(
+                id, impactX, impactY, /*remainingTime*/ 0f,
+                guns.aoeRadiusCells, guns.damage, guns.penetration,
+                guns.wallDamage, world.airFaction(id), /*aerialDelivery*/ true,
+                /*wallDamageRadius*/ guns.aoeRadiusCells, /*spawnDustOnWallBreak*/ true,
+                /*friendlyFireImmune*/ false));
     }
 
     private void beginShuttleLeg(ShuttleMission mission, AirBody body, float toX, float toY) {

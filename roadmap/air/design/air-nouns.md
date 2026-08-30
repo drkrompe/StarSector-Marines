@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a landing is captured on the centreline, not flown onto a point.
+Updated: 2026-08-30 — a strike makes gun runs; the aircraft is the weapon.
 
 ## Purpose
 
@@ -247,6 +247,38 @@ a roll starts from is a decision for the sortie, and the far one is normally
 right because it leaves the aircraft pointing where it is going. `mapgen-nouns.md`
 owns where a strip is laid; Air owns what happens along it. See
 `runway-airbase.md` for the ground procedure being built on it.
+
+**The aircraft is the weapon.** A strike carries no turret. A turret traverses
+and picks its own target, which makes where the aircraft points irrelevant to
+where it shoots — and an aircraft whose heading does not matter is a
+helicopter. A fighter's guns are bolted to its nose, so aiming them is flying
+it, and that is what makes a pass worth watching.
+
+So a strike flies **runs** rather than holding station. The line is laid out
+when the run begins and is not re-aimed while it is flown: the machine commits,
+pointed at where the enemy was when it rolled in, and whether they are still
+there is their business. Between passes it goes out wide and comes back on a
+different bearing, carrying its speed through the turn, because a fighter
+cannot pivot on the spot at the end of a run — the turn is most of the time an
+attack takes and none of its damage, which is the window a target has to get
+out of the open.
+
+Rounds are **rolled onto the ground** ahead of the nose rather than resolved
+against a victim. Each one lands where it lands and detonates there, so a burst
+walks a scattered line across a piece of ground and being caught is a question
+of how much of you is standing in it. Every round is an ordinary detonation, so
+splash, wall damage, line of sight and roof interception all come from the
+pipeline that already owns them, and a squad under an intact roof is not
+strafed. Measured on a platoon of twelve in the open: **massed shoulder to
+shoulder, three survive one strike; dispersed five cells apart, nine do.** Both
+halves of that are the design — a run that killed everyone regardless would
+make dispersal pointless, and one that killed nobody would make the airfield
+pointless.
+
+The kind of gun changes the texture rather than the arithmetic: a rotary cannon
+throws up widely scattered craters, an energy mount paints a dense tight line,
+and a torpedo bomber drops a handful of very heavy rounds where a miss is a
+miss.
 
 A **strike sortie** is the reason a station has sheds. An armed aircraft
 leaves on the field's own decision rather than on a request for passengers,
