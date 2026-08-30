@@ -56,17 +56,6 @@ public final class GroundHandling {
      */
     private static final float MIN_TURN_RADIUS_CELLS = 2.0f;
 
-    /**
-     * Sideways load the wheels will take through a turn, cells/sec².
-     *
-     * <p>The single constant that makes a turn tighten as the craft slows. At
-     * the minimum radius it holds an aircraft to about two cells a second, so a
-     * sharp corner costs a little speed; at rolling speed it permits almost no
-     * curvature at all, which is what keeps a takeoff roll straight without
-     * anybody pinning the heading to the strip.
-     */
-    private static final float LATERAL_ACCEL = 2.0f;
-
     /** How fast the nosewheel swings, in fractions of full lock per second. */
     private static final float STEER_SLEW_PER_SEC = 2.5f;
 
@@ -144,9 +133,6 @@ public final class GroundHandling {
 
     /** Tightest arc the gear will be steered round, cells. */
     public float minTurnRadiusCells() { return MIN_TURN_RADIUS_CELLS; }
-
-    /** Sideways load the wheels will take, cells/sec² — what makes a tight turn a slow one. */
-    public float lateralAccel() { return LATERAL_ACCEL; }
 
     /** Nosewheel slew, fractions of full lock per second. */
     public float steerSlewPerSec() { return STEER_SLEW_PER_SEC; }
