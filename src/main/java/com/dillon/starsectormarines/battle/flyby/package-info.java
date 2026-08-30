@@ -1,21 +1,23 @@
 /**
- * Standalone feature domain — the fighter flyby atmosphere layer.
+ * Standalone feature domain — the fighter roster the air arm flies.
  *
- * <p>Category: feature domain (presentation + light sim hybrid).
- * <br>Charter:  scripted vanilla-fighter flyovers — its own GL renderer
- *           ({@code FlybyOverlay}), the roster/profile data model
- *           ({@code FlybyRoster}, {@code PlayerFleetWings},
- *           {@code FighterWing}, {@code FighterProfile},
- *           {@code WeaponClass}), heading-based weave + strafing runs,
- *           and audio.
- * <br>Boundary: standalone — NOT under {@code ui/}, because it carries
- *           data/roster state and a sim coupling
- *           ({@code BattleSimulation#applyExternalDamage}), not just
- *           presentation. Forward-looking: when fighters are rebuilt as
- *           real flying entities on {@code air/AirBody} (spawn on/off map,
- *           land at bases, be shot down), this folds into {@code air/} —
- *           deferred until it shares that code, not before (see
- *           {@code fighter-air-entities.md}).
+ * <p>Category: data.
+ * <br>Charter:  which fighters exist, which factions fly them, and which of
+ *           them a battle has committed — {@code FighterProfile},
+ *           {@code FighterWing}, {@code FlybyRoster}, {@code PlayerFleetWings},
+ *           {@code DebugAirRoster}, {@code WeaponClass}. A profile is an
+ *           {@code air.Airframe}: it says what the aircraft looks like, how it
+ *           flies, and what it drops.
+ * <br>Boundary: data only. Nothing here flies anything. Its own flight model,
+ *           fire resolution, lifecycle and GL renderer were deleted on
+ *           2026-08-30 as duplicates of {@code air/}, which owns all four —
+ *           {@code air.AirCoverSystem} flies these wings in from off the map
+ *           and {@code air.AirStrikeSystem} flies them off a berth, and both
+ *           are the same sortie from a different origin.
+ * <br>Residue: {@code FlybyOverlay} is six sound ids that {@code FighterProfile}
+ *           names, and the package name is the last thing left calling a
+ *           fighter a "flyby". Both fold once {@code FighterProfile} can be
+ *           edited; see {@code fighter-air-entities.md}.
  *
  * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */

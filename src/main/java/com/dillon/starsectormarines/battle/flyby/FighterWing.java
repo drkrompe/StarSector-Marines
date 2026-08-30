@@ -4,16 +4,15 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * One commitment of fighter support to a battle — a single profile flying for
- * one faction, with a schedule of how many sorties arrive and when. The
- * {@link FlybyOverlay} drives spawns from these: tick a sim-time accumulator,
- * and when {@code simTime ≥ firstArrivalSec + spawnsSoFar·spawnIntervalSec},
- * spawn the next sortie until {@link #sortieCount} are exhausted.
+ * one faction, with a schedule of how many sorties arrive and when.
+ * {@code air.AirCoverSystem} drives dispatch from these: tick a sim-time
+ * accumulator, and fly the wing's next sortie whenever one comes due, until
+ * {@link #sortieCount} are exhausted.
  *
- * <p>"Sortie" here means one pass across the battle — the fighter spawns at
- * a map edge, weaves through, optionally commits to a strafing run, and exits
- * off the opposite side. A wing with {@code sortieCount = 3} represents
- * three such passes (modeling rearm + return-to-base between them via the
- * spawn interval).
+ * <p>"Sortie" here means one aircraft over the battle: in across a map edge on
+ * an {@code air.AirCorridor}, gun runs on the densest enemy concentration, then
+ * out across the same edge. A wing with {@code sortieCount = 3} is three such
+ * trips, the interval standing for the rearm between them.
  *
  * <p>Plain immutable data; lives on {@link com.dillon.starsectormarines.ops.Mission}
  * via {@link FlybyRoster} and gets read into the sim at battle-start.

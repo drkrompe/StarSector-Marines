@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
+import com.dillon.starsectormarines.battle.air.AirCoverSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirframeCookOffSystem;
@@ -335,6 +336,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Decides when the field puts an armed aircraft over the battle. Self-gating: a field with no strip or no sheds flies nothing. */
     private final AirStrikeSystem airStrikeSystem =
             new AirStrikeSystem(Faction.DEFENDER, Faction.MARINE);
+    /** Flies the committed fighter wings as off-map sorties. Self-gating: an empty roster dispatches nothing. */
+    private final AirCoverSystem airCoverSystem = new AirCoverSystem();
     /** Marine-side garrison shuttle spawner — drops friendly troops at captured compounds. Conquest-only; null on other mission types. Set via {@link #setGarrisonSystem}. */
     private CompoundGarrisonSystem garrisonSystem;
 
@@ -899,12 +902,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Fire-burst events emitted by smoking wrecks during the last advance (burn phase only). Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
     public List<float[]> getFireBurstsThisFrame() { return effects.getFireBurstsThisFrame(); }
     public List<float[]> getHeavyImpactsThisFrame() { return effects.getHeavyImpactsThisFrame(); }
-    /** Wall-collapse dust-burst events queued this advance. Each entry is {x, y} at the collapsed cell's center. Drained by {@code FlybyOverlay} which owns the dust-particle pool. */
+    /** Wall-collapse dust-burst events queued this advance. Each entry is {x, y} at the collapsed cell's center. Drained once per frame by the host into {@code ImpactFx.spawnWallCollapse}, so a collapse looks the same however it happened. */
     public List<float[]> getWallDustsThisFrame() { return effects.getWallDustsThisFrame(); }
 
     /** Live smoking wrecks. Read-only view (consumed by the demolition/crash tests). */
     public List<SmokingWreck> getSmokingWrecks() { return effects.getSmokingWrecks(); }
-    /** Fighter wings committed to this battle. {@code FlybyOverlay} reads this on first tick and drives spawns from the per-wing schedules. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
+    /** Fighter wings committed to this battle. {@code AirCoverSystem} reads this each tick and flies each wing's schedule as off-map sorties. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
     public FlybyRoster getFlybyRoster()    { return flybyRoster; }
     public void setFlybyRoster(FlybyRoster roster) {
         requireInternalAir("setFlybyRoster");
@@ -1226,7 +1229,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /**
      * Detonates a {@link PendingDetonation} this tick instead of going through
      * the in-flight queue. Used by callers whose visible flight is already
-     * resolved (today: {@code FlybyOverlay} fighter missile, detonating on
+     * resolved (a projectile whose own visual already covers the flight time, detonating on
      * contact with its target's AoE radius). Same damage / wall / roof / dust
      * pipeline as a queued detonation — just without the timer delay.
      */
@@ -1833,7 +1836,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         // Internal air only — under AirProvider.EXTERNAL the host's real ships own the
         // air layer, so the sim runs no internal shuttle/flyby state machine.
-        if (airProvider == AirProvider.INTERNAL) airSystem.tick(TICK_DT);
+        if (airProvider == AirProvider.INTERNAL) {
+            // Before the state machine, so a wing dispatched this tick starts
+            // flying on it rather than a tick late. Internal air only: a
+            // corridor sortie is an internal air entity, and under
+            // AirProvider.EXTERNAL the host's own ships are the air cover.
+            airCoverSystem.tick(TICK_DT, this);
+            airSystem.tick(TICK_DT);
+        }
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
         // deboarded militia join the roster between ticks, not mid-loop.

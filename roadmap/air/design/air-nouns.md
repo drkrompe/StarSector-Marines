@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — an aircraft on its wheels can actually be shot at.
+Updated: 2026-08-30 — a sortie has an origin; air cover flies in off the map.
 
 ## Purpose
 
@@ -467,19 +467,74 @@ deterministic fixture replay.
 
 ### Fighters and drones
 
-Fighters are recurrent atmospheric passes. Their hull-derived handling already
-drives real bodies, preserving interceptor-versus-bomber contrast instead of a
-scripted constant-speed glide. They are not yet fully composed air entities:
-the legacy flyby presentation still owns their roster, lifecycle, firing, and
-rendering. The active fighter story moves those responsibilities into the air
-model while preserving the established loadout, faction-pool, and strafing
-semantics.
+Fighters fly the same sortie as anything else the air model puts up. A
+`FighterProfile` is an airframe: it says what the aircraft looks like, which
+hull sizes and flies it, what it drops, and how much of it there is to shoot.
+Everything else about a fighter is its sortie.
 
-A wing is a gameplay commitment, not merely a visual density setting. Formation,
-count, role, and carrier relationship are future wing-level semantics to add
-when the entity transition gives them a durable home. Fighter survival and
-air-to-air/anti-air interactions are separate future capabilities, not assumed
-by the current cycling-pass behavior.
+A fighter used to be none of that. It lived in a cosmetic overlay with its own
+heading integration, its own map-edge entry and cycling re-entry, its own
+cluster scan and bank-back state machine, its own tracer and missile fire
+resolving straight into the damage service, and its own particle system for all
+of it — every one a second, worse implementation of something the air model
+owns. Worse in a specific and consistent way: those rounds could not be stopped
+by a roof, that aircraft could not be shot down, that damage bypassed cover and
+armour, and nothing in the simulation that looks at air could see it. The
+overlay is gone; what remains under `battle.flyby` is the roster.
+
+Wing composition, air-to-air, and formation are still future capabilities. What
+a wing is today is a commitment: a profile, a side, and how many sorties arrive
+when.
+
+### Air cover, and where a sortie is from
+
+**Origin is a property of a sortie, not a kind of aircraft.** The same airframe
+flies the same runs whether it rolled out of a shed on the map or crossed the
+boundary from a carrier overhead. What differs is where it came from, what it
+owes itself back to, and therefore how it ends — and nothing between arriving on
+station and turning for home differs at all.
+
+There are two origins.
+
+A **berth** is an origin the map owns. The aircraft is borrowed from a
+hardstand, and the sortie carries that berth so a completed one parks and a lost
+one writes the stand off. `AirStrikeSystem` is the dispatcher.
+
+A **corridor** is an origin off the map: a named source, a point outside the map
+the craft enters by, and a point outside the map it leaves by. This is how a
+player's committed carrier bays reach the ground battle — friendly air cover,
+which flies in, works, and goes home without ever touching the map's own
+aviation. `AirCoverSystem` is the dispatcher and the wing's own schedule is the
+cadence.
+
+**A corridor is stated, never discovered.** Both its ends are off the map by
+construction, so there is nowhere on the map for an off-map sortie to appear or
+vanish. That rule is the whole reason the corridor is a thing rather than a pair
+of numbers picked where a craft is spawned: the transport dispatch that fell
+back to *the nearest suitable place on the map* put most of its sorties on
+hardstands nobody had assigned them, several of them on the same one, and
+deleted each craft on arrival. A dispatcher that cannot state a corridor
+declines the sortie, exactly as a field with nothing airworthy declines.
+
+The edge is the one nearest the sortie's own side, because that is the direction
+its carrier is overhead in and the direction a player reads as *ours*. Along it
+the sortie enters abeam what it was sent for, so the run-in is roughly straight
+at the objective, and leaves abeam its own force, so it goes home over its own
+people rather than across the enemy's.
+
+**Air cover makes passes and leaves; it does not hold station.** It is a strike
+sortie, which arrives on station rather than on a cell, flies its runs, and
+turns for home when the passes are spent — the same rule and the same code as a
+based strike, for the same reason the noun *attack run* exists at all. What ends
+it is the passes, or being shot down; there is no recall, because the player's
+control over air cover is at commitment time. That is also what makes the origin
+legible: the aircraft over the battle came from a named ship in the player's own
+fleet, which the player chose to commit before the drop.
+
+A corridor sortie interacts with the runway model not at all. It claims no
+strip, takes no berth, and never lands — it has no hardstand on this map to come
+home to. A field's strip is one origin's ground procedure, not a requirement of
+flying.
 
 ### Overhead ships
 
@@ -530,7 +585,6 @@ ground simulation interact. It may host external air, but does not create a
 second internal air model. `battle-render` owns the eventual camera-Z and
 view-projection work that gives altitude its shared presentation space.
 
-The next concrete work is `fighter-air-entities.md`. Ship collision, wing
-composition, anti-air, modeled fighter fire, modules, and air persistence stay
+Ship collision, wing composition, air-to-air, modules, and air persistence stay
 as extension paths until each has a bounded story and an identified gameplay
-need.
+need. `fighter-air-entities.md` carries what is left of the fold.
