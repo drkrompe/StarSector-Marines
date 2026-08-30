@@ -10,13 +10,15 @@ package com.dillon.starsectormarines.battle.vehicle;
  *
  * <p>Flow: {@link #PENDING} (off-map, waiting on the spawn stagger) → {@link #INCOMING}
  * (consuming the inbound waypoint queue) → {@link #LANDED} (deboarding militia at the LZ)
- * → {@link #OVERWATCH} (armed vehicles hold + fire) → {@link #DEPARTING} (consuming the
- * outbound queue) → {@link #GONE} (terminal; the world entity is destroyed), or
- * any visible live state → {@link #WRECKED} when structure reaches zero. A wreck
- * remains world-resident for rendering and obstruction but is no longer targetable.
- * Unarmed
- * trucks skip OVERWATCH and depart straight after deboard.
+ * → {@link #DEPARTING} (consuming the outbound queue) → {@link #GONE} (terminal;
+ * the world entity is destroyed), or any visible live state → {@link #WRECKED}
+ * when structure reaches zero. A wreck remains world-resident for rendering and
+ * obstruction but is no longer targetable.
+ *
+ * <p>There is no phase between setting the payload down and leaving, armed or
+ * not. A carrier that has unloaded turns for its outbound corridor — see
+ * `convoy-nouns.md`.
  */
 public enum VehicleState {
-    PENDING, INCOMING, LANDED, OVERWATCH, DEPARTING, WRECKED, GONE
+    PENDING, INCOMING, LANDED, DEPARTING, WRECKED, GONE
 }

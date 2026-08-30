@@ -22,8 +22,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  *
  * <p>Lifecycle: PENDING (off-map, waiting on stagger) → INCOMING (consuming the
  * inbound waypoint queue) → LANDED (deboarding militia on {@link VehicleType#deboardInterval}
- * cadence at the LZ) → optional OVERWATCH (armed loiter) → DEPARTING (consuming
- * the outbound queue) → GONE. No hover analog — ground vehicles drop off and leave.
+ * cadence at the LZ) → DEPARTING (consuming the outbound queue) → GONE. A
+ * carrier that has unloaded leaves, whatever is on its roof.
  *
  * <p>Waypoints are cell-center coordinates ({@code cellX + 0.5},
  * {@code cellY + 0.5}) forming the cost-routed advisory corridor, with optional
@@ -58,8 +58,6 @@ public final class VehicleMission {
     public float pendingDelay;
     public float deboardCountdown;
     public int marinesRemaining;
-    /** Sim-seconds remaining in OVERWATCH before transitioning to DEPARTING. Initialized from {@link VehicleType#overwatchDurationSec} on entering OVERWATCH. */
-    public float overwatchCountdown;
 
     /**
      * Per-battle routing inputs, stashed by the spawn layer ({@code ConvoyMeans})
@@ -178,7 +176,7 @@ public final class VehicleMission {
     /** True when the vehicle is on-map and rendered. */
     public boolean isVisible() {
         return state == VehicleState.INCOMING || state == VehicleState.LANDED
-                || state == VehicleState.OVERWATCH || state == VehicleState.DEPARTING
+                || state == VehicleState.DEPARTING
                 || state == VehicleState.WRECKED;
     }
 }
