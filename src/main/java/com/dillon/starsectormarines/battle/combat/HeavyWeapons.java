@@ -107,7 +107,6 @@ public class HeavyWeapons {
     public void fireMechWeapon(long shooter, long target, MechWeaponMount mount,
                                float accuracyMult) {
         int releaseIndex = MechHardpointGeometry.nextReleaseIndex(mount);
-        mount.lastReleaseIndex = releaseIndex;
         MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, releaseIndex);
         fireMechWeaponAt(shooter, target, mount.weaponDef(), accuracyMult,
                 muzzle.x(), muzzle.y());
