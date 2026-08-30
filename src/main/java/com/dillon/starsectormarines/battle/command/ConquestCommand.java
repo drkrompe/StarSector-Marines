@@ -700,9 +700,25 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * <p>The lead is read from the compound's own track and its immediate
      * neighbours, because a squad one track over at the same depth is abreast
      * of the compound rather than somewhere else — the same neighbour-support
-     * law the track partition already runs on. Two tracks away is not: an
-     * untouched flank does not become claimable because the far side of the
-     * map advanced, which is the behaviour this gate exists to remove.
+     * law the track partition already runs on. The intent of stopping there is
+     * that an untouched flank should not become claimable merely because the
+     * far side of the map advanced.
+     *
+     * <p><b>At the shipped three tracks that lateral rule is dormant, and this
+     * is a depth test over the whole force.</b> A window of one track either
+     * side spans every track there is, so the only way to fail the gate is for
+     * no living marine squad anywhere to be within reach of the compound's
+     * depth. Say so rather than describing a discrimination the code cannot
+     * make: the rule would begin to bite at five tracks, and nothing
+     * constructs that today.
+     *
+     * <p>Which leaves exactly one way for an uncaptured compound to starve
+     * here — a front that stalls more than the reach short of it and never
+     * closes. That is not a defect in the lateral reasoning and cannot be
+     * fixed by widening it. It is the missing endgame distinction: a front
+     * that has <em>finished</em> should release this gate, and a front that
+     * has not yet <em>started</em> must not, and nothing here can currently
+     * tell those apart.
      */
     /**
      * Whether nobody has been committed to this compound yet — every slot it
