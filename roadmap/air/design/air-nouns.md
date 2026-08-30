@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — the hull an airframe leaves on its stand stays there, charred.
+Updated: 2026-08-30 — a strip is published geometry rather than paint, and a base can have one.
 
 ## Purpose
 
@@ -146,7 +146,7 @@ satchel worth an entire airfield and delete the only decision a raid contains,
 which is how much of the field to spend the visit on.
 
 **The wreck stays on the concrete.** What the fire leaves is the aircraft's own
-hull, charred — the same sprite drawn dark, at the place and bearing it was
+hull, charred and in three pieces, lying at the place and bearing it was
 standing, for the rest of the battle. The smoke that marks a fresh kill burns
 out in half a minute, and with nothing permanent behind it a burned field looks
 exactly like a field whose aircraft happen to be away, which is precisely the
@@ -156,6 +156,39 @@ time anybody looks at the pad again, and the berth is the thing that outlives
 what stands on it. An aircraft lost over the objective leaves an empty stand:
 the same terminal state, and deliberately not the same picture.
 
+**A hull comes apart along a V.** The nose section separates as a wedge and
+what is left splits down the spine, both tears walked so the edges are ragged
+and ragged differently for every hull on the field. The pieces shift and turn a
+little where they lie — far enough that the tears open and the wreck reads as
+three things, near enough that it still reads as one aircraft, and never far
+enough to be debris thrown across the apron. This is drawn out of the
+aircraft's own sprite rather than from wreck art, because these are the game's
+hulls and nothing may edit them; the tear follows a lattice for the same
+reason, since a lattice boundary is addressable as ordinary source rectangles
+and a curve would need per-pixel masking that is not available. See
+`HullBreakup`.
+
+The wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
+everybody sees and shoots straight across it. A non-walkable cell is opaque
+here unless it says otherwise, so the wreck says otherwise — a burnt-out
+airframe is a frame with holes in it, and an apron strewn with them is still an
+apron you can cover by fire. That is deliberately not how the intact scenery
+hulls dressing civilian berths behave: a whole aircraft is a solid object.
+
+**A wreck never settles on top of somebody.** Whoever is standing where the
+hull comes down — the ground crew who walked out to fly it, the raider who
+walked out to burn it — steps clear to the nearest cell that will take them,
+and a cell nobody could be stepped out of is left open instead. A unit sealed
+into a cell it can never leave stops answering its orders for the rest of the
+battle, which is a far worse outcome than a hull with a gap in it.
+
+A sortie's passengers are never at risk from this. An aircraft is taken off its
+berth at the moment the request is dispatched, before the crew starts walking,
+so the airframe standing on a pad and the crew walking toward it are never on
+the field at the same time; the craft they board is an air entity that ground
+fire cannot reach. Should a loading craft ever be made shootable, it owes its
+passengers a disposition, because they have already been taken off the roster.
+
 Every way a sortie can end draws one distinction: a craft that reached its own
 pad is an aircraft home from a job, and one that ended any other way is an
 aircraft that did not come back.
@@ -164,6 +197,22 @@ This is a second and independent way to end an enemy's air. Holding the
 `AIRBASE` compound is the other, and the two ask genuinely different questions —
 a field held with every aircraft burning supplies nothing, and a field lost with
 the aircraft intact takes them with it.
+
+A **runway** is the second kind of place an aircraft can leave from, and the
+first that is not a square of ground. It is the centreline a craft rolls along
+and its two thresholds, published by the lot that laid it rather than recovered
+by scanning for runway-coloured ground: the lot knows exactly where it put the
+strip, and which ground kind stands in for runway is an art decision that has
+already changed once without touching a line of generation. Geometry a system
+depends on cannot live in the art. Neither threshold is privileged — which end
+a roll starts from is a decision for the sortie, and the far one is normally
+right because it leaves the aircraft pointing where it is going. `mapgen-nouns.md`
+owns where a strip is laid; Air owns what happens along it. See
+`runway-airbase.md` for the ground procedure being built on it.
+
+A strip is not a requirement for an air arm. Most airbases have none — an
+aircraft that lands vertically needs somewhere to stand and somewhere to be
+worked on, and a strip is what a base adds when something has to roll.
 
 Distinct from the **scenery hulls** that dress surplus civilian port berths.
 Those are props: no unit, no HP, and nothing flies them. They look identical on

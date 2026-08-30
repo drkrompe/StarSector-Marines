@@ -61,8 +61,12 @@ public final class BattleReviewFrameRenderer {
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
         Path root = modRoot.toAbsolutePath().normalize();
+        // The canvas reads the same roots the scene does — mod first, then the
+        // installed game — so a hull loaded out of the install can be painted
+        // as well as collected.
         this.renderer = new HeadlessUiRenderer(
-                new HeadlessBattleSceneRenderer(root, true), root);
+                HeadlessBattleSceneRenderer.resourceRoots(root),
+                new HeadlessBattleSceneRenderer(root, true));
         this.width = width;
         this.height = height;
     }

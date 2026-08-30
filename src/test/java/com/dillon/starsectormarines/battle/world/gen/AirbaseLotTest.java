@@ -55,6 +55,89 @@ class AirbaseLotTest {
         return out.stream();
     }
 
+    /**
+     * The published strip is the strip that was painted.
+     *
+     * <p>Asked of the ground rather than of the formula: every cell the lot
+     * painted as runway has to fall inside the runway it published, and the
+     * published strip has to be no bigger than the paint. A centreline derived
+     * a second way from the same numbers would agree with itself while both
+     * drifted from the surface an aircraft actually rolls on.
+     */
+    @ParameterizedTest
+    @MethodSource("shapes")
+    void thePublishedStripIsTheOneThatWasPainted(AirbaseLot.Size size,
+                                                 AirbaseLot.Facing facing) {
+        Lot lot = author(size, facing);
+        List<Runway> published = lot.ctx().runways;
+
+        int painted = 0;
+        int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
+        int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
+        for (int x = 0; x < lot.grid().getWidth(); x++) {
+            for (int y = 0; y < lot.grid().getHeight(); y++) {
+                if (lot.topology().getGroundKind(x, y) != AirbaseLot.RUNWAY) continue;
+                painted++;
+                minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+            }
+        }
+
+        if (painted == 0) {
+            assertTrue(published.isEmpty(),
+                    size + " has no strip but published " + published.size());
+            return;
+        }
+        assertEquals(1, published.size(), size + " laid one strip");
+        Runway strip = published.get(0);
+
+        boolean rollsAlongX = Math.abs(strip.endX - strip.startX)
+                > Math.abs(strip.endY - strip.startY);
+        // Thresholds land on the centres of the end cells, and the centreline
+        // runs down the middle of the width. Exact, not merely inside the
+        // paint: a centreline a cell off is still inside a four-row strip, and
+        // that is precisely the error worth catching.
+        float rollLo = rollsAlongX ? Math.min(strip.startX, strip.endX)
+                : Math.min(strip.startY, strip.endY);
+        float rollHi = rollsAlongX ? Math.max(strip.startX, strip.endX)
+                : Math.max(strip.startY, strip.endY);
+        int paintedLo = rollsAlongX ? minX : minY;
+        int paintedHi = rollsAlongX ? maxX : maxY;
+        assertEquals(paintedLo + 0.5f, rollLo, 1e-3f, "near threshold");
+        assertEquals(paintedHi + 0.5f, rollHi, 1e-3f, "far threshold");
+
+        float crossStart = rollsAlongX ? strip.startY : strip.startX;
+        float crossEnd = rollsAlongX ? strip.endY : strip.endX;
+        int crossLo = rollsAlongX ? minY : minX;
+        int crossHi = rollsAlongX ? maxY : maxX;
+        float crossCentre = (crossLo + crossHi) / 2f + 0.5f;
+        assertEquals(crossCentre, crossStart, 1e-3f, "centreline is not down the middle");
+        assertEquals(crossCentre, crossEnd, 1e-3f, "centreline is not straight");
+
+        assertEquals(paintedHi - paintedLo, Math.round(strip.lengthCells()), "roll distance");
+        assertEquals(crossHi - crossLo + 1, Math.round(strip.widthCells), "made width");
+        assertEquals((paintedHi - paintedLo + 1) * (crossHi - crossLo + 1), painted,
+                "the paint is a solid rectangle");
+    }
+
+    /** A roll runs toward wherever the sortie is going, so it leaves the strip pointing there. */
+    @ParameterizedTest
+    @MethodSource("shapes")
+    void aRollStartsFromTheThresholdFurthestFromWhereItIsGoing(AirbaseLot.Size size,
+                                                               AirbaseLot.Facing facing) {
+        Lot lot = author(size, facing);
+        if (lot.ctx().runways.isEmpty()) return;
+        Runway strip = lot.ctx().runways.get(0);
+
+        float[] fromStartEnd = strip.departureThreshold(strip.endX, strip.endY);
+        assertEquals(strip.startX, fromStartEnd[0], 1e-3f);
+        assertEquals(strip.startY, fromStartEnd[1], 1e-3f);
+
+        float[] other = strip.opposite(fromStartEnd);
+        assertEquals(strip.endX, other[0], 1e-3f);
+        assertEquals(strip.endY, other[1], 1e-3f);
+    }
+
     private static Lot author(AirbaseLot.Size size, AirbaseLot.Facing facing) {
         int spanX = AirbaseLot.spanX(size, facing);
         int spanY = AirbaseLot.spanY(size, facing);

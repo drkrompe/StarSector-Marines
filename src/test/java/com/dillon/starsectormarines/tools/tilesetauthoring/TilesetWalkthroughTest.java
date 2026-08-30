@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.tools.authoring.wizard.LambdaStep;
+import com.dillon.starsectormarines.tools.authoring.wizard.Wizard;
+import com.dillon.starsectormarines.tools.authoring.wizard.WizardStep;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +54,7 @@ public class TilesetWalkthroughTest {
     /** Every screen has a heading, a sentence, and something to work in. */
     @Test
     void everyStepOfEveryWalkthroughSaysWhatItIsFor() {
-        TilesetWizard wizard = new TilesetWizard(() -> {}, message -> {});
+        Wizard wizard = new Wizard(() -> {}, message -> {});
         for (TilesetWorkflow workflow : TilesetWorkflow.values()) {
             assertNotNull(workflow.title());
             assertTrue(workflow.blurb().length() > 20, workflow + " needs a real sentence");
@@ -67,7 +70,7 @@ public class TilesetWalkthroughTest {
     @Test
     void aStepThatIsNotFinishedSaysWhatItWants() {
         AtomicReference<String> status = new AtomicReference<>();
-        TilesetWizard wizard = new TilesetWizard(() -> {}, status::set);
+        Wizard wizard = new Wizard(() -> {}, status::set);
 
         List<String> visited = new ArrayList<>();
         WizardStep gated = new LambdaStep("Pick something", "You have to pick something.",
@@ -101,7 +104,7 @@ public class TilesetWalkthroughTest {
         TilesetAuthoringPage page = new TilesetAuthoringPage(context());
         try {
             enter(page, TilesetWorkflow.SURFACE);
-            TilesetWizard wizard = wizardOf(page);
+            Wizard wizard = wizardOf(page);
             assertFalse(wizard.canAdvance(), "nothing picked yet, so there is nowhere to go");
 
             assertTrue(browserOf(page).select("WALL"), "WALL must be offered");
@@ -119,7 +122,7 @@ public class TilesetWalkthroughTest {
         TilesetAuthoringPage page = new TilesetAuthoringPage(context());
         try {
             enter(page, TilesetWorkflow.SHEET);
-            TilesetWizard wizard = wizardOf(page);
+            Wizard wizard = wizardOf(page);
             assertFalse(wizard.canAdvance(), "no sheet picked yet");
 
             TilesetLibraryView library = libraryOf(page);
@@ -219,10 +222,10 @@ public class TilesetWalkthroughTest {
         return (JComponent) field.get(page);
     }
 
-    private static TilesetWizard wizardOf(TilesetAuthoringPage page) throws Exception {
+    private static Wizard wizardOf(TilesetAuthoringPage page) throws Exception {
         Field field = TilesetAuthoringPage.class.getDeclaredField("wizard");
         field.setAccessible(true);
-        return (TilesetWizard) field.get(page);
+        return (Wizard) field.get(page);
     }
 
     private static SurfaceBrowserView browserOf(TilesetAuthoringPage page) throws Exception {
@@ -284,8 +287,8 @@ public class TilesetWalkthroughTest {
 
         Field wizardField = TilesetAuthoringPage.class.getDeclaredField("wizard");
         wizardField.setAccessible(true);
-        TilesetWizard wizard = (TilesetWizard) wizardField.get(page);
-        Method next = TilesetWizard.class.getDeclaredMethod("goNext");
+        Wizard wizard = (Wizard) wizardField.get(page);
+        Method next = Wizard.class.getDeclaredMethod("goNext");
         next.setAccessible(true);
         next.invoke(wizard);
     }

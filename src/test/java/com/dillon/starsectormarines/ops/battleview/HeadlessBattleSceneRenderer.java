@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
@@ -32,6 +33,7 @@ import java.nio.file.Path;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 
 /** Java2D drain for the ordinary battle renderer's collected embedded-scene frame. */
@@ -79,6 +81,37 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         } catch (Exception failure) {
             throw new IllegalStateException("Could not prepare headless battle assets", failure);
         }
+    }
+
+    /**
+     * Where the installed game keeps its own art, from the
+     * {@code starsectorDir} property every Gradle task that renders anything
+     * already forwards.
+     *
+     * <p>Not a new dependency: the install is where the compile-only game jars
+     * come from, so the build cannot run at all without it. Null when the
+     * property is absent or points nowhere, and everything sourced from it is
+     * then simply not drawn — the behaviour before any of this existed.
+     */
+    public static Path installedGameResources() {
+        String installed = System.getProperty("starsectorDir");
+        if (installed == null || installed.isBlank()) return null;
+        Path core = Path.of(installed).resolve("starsector-core");
+        return Files.isDirectory(core) ? core.toAbsolutePath().normalize() : null;
+    }
+
+    /**
+     * The roots a canvas drawing this scene must be able to read, in the order
+     * the game itself reads them: the mod first, the install second.
+     *
+     * <p>A scene renderer and the canvas it draws into have to agree on where
+     * files come from. They are separate objects with separate lookups, so a
+     * scene that loaded a hull out of the install and a canvas that could only
+     * see the mod folder would collect the command and then fail to paint it.
+     */
+    public static List<Path> resourceRoots(Path modRoot) {
+        Path installed = installedGameResources();
+        return installed == null ? List.of(modRoot) : List.of(modRoot, installed);
     }
 
     private static HeadlessBattleSprites sharedSprites(Path modRoot) throws Exception {
@@ -214,9 +247,20 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                 "graphics/battle/mech-modular-topdown/";
 
         private final Path modRoot;
+        /**
+         * The game's own resource root, or null when this machine has not said
+         * where the install is.
+         *
+         * <p>An asset is looked for under the mod first and here second, which
+         * is the load order the game itself uses and the reason a mod can
+         * override a vanilla file by shipping one at the same path.
+         */
+        private final Path vanillaRoot;
         private final IdentityHashMap<SpriteAPI, Asset> assets = new IdentityHashMap<>();
         private final EnumMap<LayeredArmorFamily, LayeredUnitAssets> infantry =
                 new EnumMap<>(LayeredArmorFamily.class);
+        private final EnumMap<ShuttleType, ShuttleSpriteCache> shuttles =
+                new EnumMap<>(ShuttleType.class);
         private final UnitLayerLayouts layouts;
 
         private final SpriteAPI tile;
@@ -233,6 +277,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
 
         private HeadlessBattleSprites(Path modRoot) throws Exception {
             this.modRoot = modRoot.toAbsolutePath().normalize();
+            this.vanillaRoot = installedGameResources();
             layouts = UnitLayerLayouts.parse(new JSONObject(Files.readString(
                     this.modRoot.resolve(UnitLayerLayouts.CONTENT_PATH))));
             tile = sprite(TileManifest.SHEET);
@@ -246,7 +291,37 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             urban3Frames = slice(TileManifest.STREET3_SHEET);
             natureFrames = slice(TileManifest.NATURE_SHEET);
             loadInfantry();
+            loadHulls();
             mech = loadMech();
+        }
+
+        /**
+         * Loads the aircraft hulls.
+         *
+         * <p>These are vanilla ship sprites, so this is the one sprite family
+         * the mod folder does not hold and the reason the vanilla root exists
+         * at all. Without them a headless frame of an airfield showed bare
+         * concrete where an aircraft was standing, and the wreck of one was
+         * invisible — which made the whole of the air arm unphotographable in
+         * evidence that already renders everything around it.
+         *
+         * <p>Best effort per hull: a type whose sprite cannot be read is left
+         * out rather than failing the render, because a missing aircraft is
+         * worth far less than the frame it appears in.
+         */
+        private void loadHulls() {
+            for (ShuttleType type : ShuttleType.values()) {
+                if (shuttles.containsKey(type)) continue;
+                try {
+                    SpriteAPI token = sprite(type.spritePath);
+                    Asset asset = asset(token);
+                    shuttles.put(type, new ShuttleSpriteCache(token,
+                            asset.height() == 0 ? 1f : asset.width() / (float) asset.height(),
+                            asset.width(), asset.height()));
+                } catch (IOException | RuntimeException missing) {
+                    // Left out; see the method note.
+                }
+            }
         }
 
         @Override public SpriteAPI tileSheet() { return tile; }
@@ -279,6 +354,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             return infantry;
         }
         @Override public LayeredMechAssets layeredMechSprites() { return mech; }
+        @Override public EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites() { return shuttles; }
         @Override public UnitLayerLayouts unitLayerLayouts() { return layouts; }
 
         private Asset asset(SpriteAPI sprite) {
@@ -410,14 +486,31 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
          * bootstrap loads them all, so the name is the whole diagnosis.
          */
         private BufferedImage read(String path) throws IOException {
+            Path file = resolve(path);
             BufferedImage image;
             try {
-                image = ImageIO.read(modRoot.resolve(path).toFile());
+                image = ImageIO.read(file.toFile());
             } catch (IOException failure) {
                 throw new IOException("Could not read " + path, failure);
             }
             if (image == null) throw new IOException("Unsupported image " + path);
             return image;
+        }
+
+        /**
+         * The file behind a resource path: the mod's copy if it ships one, the
+         * installed game's otherwise.
+         *
+         * <p>The game's own order, so a mod file at the same path wins here for
+         * the same reason it wins in the game. Falls back to the mod path when
+         * neither exists, so the failure names the file somebody expected to
+         * ship rather than one in an install they were not thinking about.
+         */
+        private Path resolve(String path) {
+            Path shipped = modRoot.resolve(path);
+            if (Files.isRegularFile(shipped) || vanillaRoot == null) return shipped;
+            Path installed = vanillaRoot.resolve(path);
+            return Files.isRegularFile(installed) ? installed : shipped;
         }
 
         private static Object primitiveDefault(Class<?> type) {

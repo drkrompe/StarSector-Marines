@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.fit;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -57,6 +58,60 @@ public final class RoomFloor {
     private final int width;
     private final int height;
     private int placed;
+
+    /**
+     * Somebody watching a room being furnished, in the room's canonical frame.
+     *
+     * <p>Exists so an arrangement can be <em>captured</em> as it is produced.
+     * The alternative is reconstructing one from the finished deck, which cannot
+     * work: paving and a fixture both end up as a doodad on a cell, a reserved
+     * lane leaves no mark at all, and a seeded document that guessed between
+     * them would furnish the room differently from the program it was copied
+     * from.
+     *
+     * <p>Steps arrive in the canonical frame however the room is posed, because
+     * that is the frame a layout is authored in.
+     */
+    public interface Listener {
+        void step(LayoutOp op);
+    }
+
+    private Listener listener;
+    /** Set while {@link #closeOff} runs, so its inner lane is not reported twice. */
+    private boolean withinCloseOff;
+    /**
+     * Set while the affordance overload of {@code place} finds its standing
+     * cell. That point belongs to the fixture step that carries the affordance,
+     * so reporting it again as a {@code Task} would furnish the replayed room
+     * with the same work twice.
+     */
+    private boolean withinPlace;
+    /**
+     * The index the deck gave this room's first berth, so a recorded task can
+     * name a berth relative to the room rather than to the whole map.
+     */
+    private int firstBerth = -1;
+
+    /**
+     * Watch this room being furnished. For seeding an authored layout from the
+     * program that used to own the room; generation itself sets nothing.
+     */
+    public void record(Listener listener) {
+        this.listener = listener;
+    }
+
+    private void report(LayoutOp op) {
+        if (listener != null) listener.step(op);
+    }
+
+    /** Carry a rectangle back out of this room, as {@code {x, y, spanX, spanY}}. */
+    private int[] toCanonicalRect(int x, int y, int spanX, int spanY) {
+        int[] near = toCanonical(x, y);
+        int[] far = toCanonical(x + spanX - 1, y + spanY - 1);
+        return new int[]{
+                Math.min(near[0], far[0]), Math.min(near[1], far[1]),
+                Math.abs(near[0] - far[0]) + 1, Math.abs(near[1] - far[1]) + 1 };
+    }
 
     public RoomFloor(GenContext ctx, FurnishableRoom room, RoomFit fit) {
         this.ctx = ctx;
@@ -188,6 +243,10 @@ public final class RoomFloor {
      * never furnished, which is the whole of why a fitted room stays walkable.
      */
     public void reserveLane(int x, int y, int spanX, int spanY) {
+        if (!withinCloseOff) {
+            int[] canonical = toCanonicalRect(x, y, spanX, spanY);
+            report(new LayoutOp.Lane(canonical[0], canonical[1], canonical[2], canonical[3]));
+        }
         for (int dx = 0; dx < spanX; dx++) {
             for (int dy = 0; dy < spanY; dy++) {
                 int lx = x + dx;
@@ -221,7 +280,11 @@ public final class RoomFloor {
      * nothing explains.
      */
     public void closeOff(int x, int y, int spanX, int spanY) {
+        int[] canonical = toCanonicalRect(x, y, spanX, spanY);
+        report(new LayoutOp.Closed(canonical[0], canonical[1], canonical[2], canonical[3]));
+        withinCloseOff = true;
         reserveLane(x, y, spanX, spanY);
+        withinCloseOff = false;
         for (int dx = 0; dx < spanX; dx++) {
             for (int dy = 0; dy < spanY; dy++) {
                 int lx = x + dx;
@@ -268,6 +331,8 @@ public final class RoomFloor {
      * is real topology rather than a rendering trick, so consumers see it too.
      */
     public void markGround(int x, int y, int spanX, int spanY, GroundKind kind) {
+        int[] canonical = toCanonicalRect(x, y, spanX, spanY);
+        report(new LayoutOp.Ground(canonical[0], canonical[1], canonical[2], canonical[3], kind));
         for (int dx = 0; dx < spanX; dx++) {
             for (int dy = 0; dy < spanY; dy++) {
                 int lx = x + dx;
@@ -275,6 +340,57 @@ public final class RoomFloor {
                 if (lx < 0 || ly < 0 || lx >= width || ly >= height) continue;
                 if (!room.shape().contains(lx, ly)) continue;
                 ctx.topology.setGroundKind(left + lx, top + ly, kind);
+            }
+        }
+    }
+
+    /**
+     * Draw this room's bulkhead from another block.
+     *
+     * <p>Stamps the room's whole eight-neighbour ring, which is the wall the
+     * shape already reserves — so this changes how the compartment looks and
+     * never what it is. Nothing about topology, cover or line of sight moves.
+     *
+     * <p>The ring is taken from the posed shape, so no mapping is wanted: a ring
+     * is a ring whichever way round the room ended up.
+     *
+     * <p><b>A shared bulkhead is one wall.</b> Where this room's ring runs along
+     * a neighbour's, the cells are the same cells and the later room wins them.
+     * There is one wall there and it can only look like one thing.
+     */
+    public void markBulkhead(String doodadOrBlockId) {
+        if (doodadOrBlockId == null || doodadOrBlockId.isEmpty()) return;
+        report(new LayoutOp.Bulkhead(doodadOrBlockId));
+        int surface = ctx.topology.surfaceIndex(doodadOrBlockId);
+        for (int[] cell : room.shape().wall()) {
+            ctx.topology.setSurface(left + cell[0], top + cell[1], surface);
+        }
+    }
+
+    /**
+     * Draw a run of this room's deck from a named block.
+     *
+     * <p>The floor counterpart of {@link #markBulkhead}, and a different thing
+     * from {@link #markGround}: a ground kind is a fact about the deck that
+     * consumers read, while this is only what it looks like. A vent run and a
+     * striped run are the same floor to everything that is not the renderer.
+     *
+     * <p>Does not claim the cell. Paving a bay does not stop a gantry standing
+     * on it, which is the whole difference between a floor and a fixture.
+     */
+    public void markFloorSurface(int x, int y, int spanX, int spanY, String blockId) {
+        if (blockId == null || blockId.isEmpty()) return;
+        int[] canonical = toCanonicalRect(x, y, spanX, spanY);
+        report(new LayoutOp.Flooring(canonical[0], canonical[1], canonical[2], canonical[3],
+                blockId));
+        int surface = ctx.topology.surfaceIndex(blockId);
+        for (int dx = 0; dx < spanX; dx++) {
+            for (int dy = 0; dy < spanY; dy++) {
+                int lx = x + dx;
+                int ly = y + dy;
+                if (lx < 0 || ly < 0 || lx >= width || ly >= height) continue;
+                if (!room.shape().contains(lx, ly)) continue;
+                ctx.topology.setSurface(left + lx, top + ly, surface);
             }
         }
     }
@@ -295,6 +411,8 @@ public final class RoomFloor {
         if (!room.shape().contains(x, y)) return;
         DoodadDef def = TileRegistry.installed().doodad(doodadId);
         if (def == null) return;
+        int[] canonical = toCanonical(x, y);
+        report(new LayoutOp.Paving(canonical[0], canonical[1], doodadId));
         ctx.doodads.add(new Doodad(left + x, top + y, def));
     }
 
@@ -313,6 +431,10 @@ public final class RoomFloor {
         // the machine through the frame beside it.
         int halfX = (spanX - 1) / 2;
         int halfY = (spanY - 1) / 2;
+        int[] canonical = toCanonicalRect(x, y, spanX, spanY);
+        report(new LayoutOp.Berth(canonical[0], canonical[1], canonical[2], canonical[3],
+                unturned(facing)));
+        if (firstBerth < 0) firstBerth = ctx.gantries.size();
         ctx.gantries.add(new Gantry(left + x + halfX, top + y + halfY,
                 halfX, halfY, facing));
         return ctx.gantries.size() - 1;
@@ -325,9 +447,18 @@ public final class RoomFloor {
      *     somewhere already taken, which is expected at the edges of a shape
      */
     public boolean place(String doodadId, int x, int y) {
+        return place(doodadId, x, y, null, true);
+    }
+
+    private boolean place(String doodadId, int x, int y, Affordance affordance,
+                          boolean report) {
         DoodadDef def = TileRegistry.installed().doodad(doodadId);
         if (def == null) return false;
         if (!isFree(x, y, def.footprintCellsX, def.footprintCellsY)) return false;
+        if (report) {
+            int[] canonical = toCanonical(x, y);
+            report(new LayoutOp.Fixture(canonical[0], canonical[1], doodadId, affordance));
+        }
         for (int dx = 0; dx < def.footprintCellsX; dx++) {
             for (int dy = 0; dy < def.footprintCellsY; dy++) {
                 free[x + dx][y + dy] = false;
@@ -347,10 +478,14 @@ public final class RoomFloor {
      * either way — and simply affords nothing.
      */
     public boolean place(String doodadId, int x, int y, Affordance affordance) {
-        if (!place(doodadId, x, y)) return false;
+        if (!place(doodadId, x, y, affordance, true)) return false;
         DoodadDef def = TileRegistry.installed().doodad(doodadId);
         int[] standing = standingCell(x, y, def.footprintCellsX, def.footprintCellsY);
-        if (standing != null) fixtureTask(standing[0], standing[1], affordance, x, y);
+        if (standing != null) {
+            withinPlace = true;
+            fixtureTask(standing[0], standing[1], affordance, x, y);
+            withinPlace = false;
+        }
         return true;
     }
 
@@ -367,6 +502,11 @@ public final class RoomFloor {
     public boolean fixtureTask(int cellX, int cellY, Affordance affordance,
                              int fixtureX, int fixtureY) {
         if (!standable(cellX, cellY) || claimed[cellX][cellY]) return false;
+        if (!withinPlace) {
+            int[] stand = toCanonical(cellX, cellY);
+            int[] fixture = toCanonical(fixtureX, fixtureY);
+            report(new LayoutOp.Task(stand[0], stand[1], affordance, fixture[0], fixture[1]));
+        }
         claimed[cellX][cellY] = true;
         standing[cellX][cellY] = true;
         ctx.fixtureTasks.add(FixtureTask.at(left + cellX, top + cellY, affordance,
@@ -378,11 +518,30 @@ public final class RoomFloor {
     public boolean berthFixtureTask(int cellX, int cellY, int berth,
                                   int fixtureX, int fixtureY) {
         if (!standable(cellX, cellY) || claimed[cellX][cellY]) return false;
+        int[] stand = toCanonical(cellX, cellY);
+        int[] fixture = toCanonical(fixtureX, fixtureY);
+        // Numbered from this room's own first berth, so the document is valid on
+        // a deck that already has machine bays on it.
+        report(new LayoutOp.BerthTask(stand[0], stand[1],
+                firstBerth < 0 ? berth : berth - firstBerth, fixture[0], fixture[1]));
         claimed[cellX][cellY] = true;
         standing[cellX][cellY] = true;
         ctx.fixtureTasks.add(FixtureTask.servingBerth(left + cellX, top + cellY, berth,
                 left + fixtureX, top + fixtureY));
         return true;
+    }
+
+    /**
+     * A heading carried back out of this pose, so a recorded berth names the way
+     * it was authored to face rather than the way this particular room turned
+     * it.
+     */
+    private Gantry.Facing unturned(Gantry.Facing facing) {
+        for (Gantry.Facing candidate : Gantry.Facing.values()) {
+            int[] turned = pose().mapDirection(candidate.dx, candidate.dy);
+            if (turned[0] == facing.dx && turned[1] == facing.dy) return candidate;
+        }
+        return facing;
     }
 
     /** Whether somebody can stand here: inside the room and not furnished. Lanes count. */

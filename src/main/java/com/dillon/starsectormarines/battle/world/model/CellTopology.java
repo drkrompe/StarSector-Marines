@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Per-cell rendering / categorization state — what kind of cell is this
  * visually, not "can I path through it". Parallel to {@link NavigationGrid},
@@ -180,6 +183,30 @@ public class CellTopology {
      * chamber is this cell in?" without reverse-engineering via the zone graph.
      */
     private final byte[] roomPurpose;
+    /**
+     * Per-cell surface override, as an index into {@link #surfaces}. Zero — the
+     * implicit default — means the cell draws the way its kind says: a wall as
+     * {@link SurfaceRole#WALL}, a floor as its {@code GroundKind}'s block.
+     *
+     * <p>One array for walls and floors both, because a cell is one or the
+     * other and never both. Which pass reads it decides what it means, so a
+     * room asking for a vent floor and a room asking for a heavier bulkhead
+     * spend the same byte.
+     *
+     * <p>A byte because this is one array over the whole grid and there are
+     * never more than a handful of distinct bulkheads on a deck. Indices are
+     * interned rather than assigned per room, so twelve berths asking for the
+     * same wall share one.
+     */
+    private final byte[] surface;
+    /**
+     * Block ids the {@link #surface} indices name, index zero unused.
+     *
+     * <p>Held here rather than passed to the renderer separately because it is
+     * a fact about these cells: a map carries its own bulkheads, and a renderer
+     * handed the grid should not need a second argument to draw it.
+     */
+    private final List<String> surfaces = new ArrayList<>();
 
     public CellTopology(int width, int height) {
         this.width = width;
@@ -191,7 +218,10 @@ public class CellTopology {
         this.buildingKindHint = new byte[width * height];
         this.natureOverlay = new short[width * height];
         this.roomPurpose = new byte[width * height];
-        // ground[i] == 0 == GroundKind.INDOOR.ordinal() — implicit default.
+        this.surface = new byte[width * height];
+        // ground[i] == 0 == GroundKind.VOID.ordinal() — implicit default, so a
+        // topology nobody has carved reads as outside the map rather than inside.
+        // surface[i] == 0 — draws as SurfaceRole.WALL, the shared default.
     }
 
     public int getWidth()  { return width;  }
@@ -401,5 +431,62 @@ public class CellTopology {
                 }
             }
         }
+    }
+
+    // ----- surface override -----
+
+    /**
+     * The index for this bulkhead block, minting one if it is new.
+     *
+     * <p>Interned so that a deck whose twelve berths all ask for the same wall
+     * spends one index on it. Returns zero for null, which is the shared
+     * default and costs nothing.
+     *
+     * @throws IllegalStateException past 255 distinct overrides, which is far
+     *     more than a deck can have and therefore a runaway rather than a limit
+     */
+    public int surfaceIndex(String blockId) {
+        if (blockId == null || blockId.isEmpty()) return 0;
+        int existing = surfaces.indexOf(blockId);
+        if (existing >= 0) return existing + 1;
+        if (surfaces.size() >= 255) {
+            throw new IllegalStateException("more than 255 distinct surfaces on one map");
+        }
+        surfaces.add(blockId);
+        return surfaces.size();
+    }
+
+    /** The block this cell draws from, or null when its kind decides. */
+    public String getSurfaceId(int x, int y) {
+        if (!inBounds(x, y)) return null;
+        return surfaceId(surface[index(x, y)] & 0xFF);
+    }
+
+    /** The block an index names, or null for zero and for an index nobody minted. */
+    public String surfaceId(int index) {
+        return index <= 0 || index > surfaces.size() ? null : surfaces.get(index - 1);
+    }
+
+    /** How many distinct overrides this map carries, beyond the default. */
+    public int surfaceCount() {
+        return surfaces.size();
+    }
+
+    public int getSurface(int x, int y) {
+        return inBounds(x, y) ? surface[index(x, y)] & 0xFF : 0;
+    }
+
+    /**
+     * Draw this cell's bulkhead from another block.
+     *
+     * <p><b>A shared bulkhead is one wall.</b> Rooms are packed against each
+     * other and the ring between two of them belongs to both, so the second
+     * room to ask wins the cells they share. That is the honest outcome — there
+     * is one wall there and it can only look like one thing — and it is why
+     * this is a plain write rather than a merge.
+     */
+    public void setSurface(int x, int y, int index) {
+        if (!inBounds(x, y)) return;
+        surface[index(x, y)] = (byte) index;
     }
 }
