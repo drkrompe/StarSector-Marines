@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — the hull left on a stand is an obstacle, and it does not seal anybody under it.
+Updated: 2026-08-30 — the hull left on a stand comes apart, blocks movement, and does not seal anybody under it.
 
 ## Purpose
 
@@ -146,7 +146,7 @@ satchel worth an entire airfield and delete the only decision a raid contains,
 which is how much of the field to spend the visit on.
 
 **The wreck stays on the concrete.** What the fire leaves is the aircraft's own
-hull, charred — the same sprite drawn dark, at the place and bearing it was
+hull, charred and in three pieces, lying at the place and bearing it was
 standing, for the rest of the battle. The smoke that marks a fresh kill burns
 out in half a minute, and with nothing permanent behind it a burned field looks
 exactly like a field whose aircraft happen to be away, which is precisely the
@@ -155,6 +155,18 @@ than off the airframe, because the airframe is dead, released and gone by the
 time anybody looks at the pad again, and the berth is the thing that outlives
 what stands on it. An aircraft lost over the objective leaves an empty stand:
 the same terminal state, and deliberately not the same picture.
+
+**A hull comes apart along a V.** The nose section separates as a wedge and
+what is left splits down the spine, both tears walked so the edges are ragged
+and ragged differently for every hull on the field. The pieces shift and turn a
+little where they lie — far enough that the tears open and the wreck reads as
+three things, near enough that it still reads as one aircraft, and never far
+enough to be debris thrown across the apron. This is drawn out of the
+aircraft's own sprite rather than from wreck art, because these are the game's
+hulls and nothing may edit them; the tear follows a lattice for the same
+reason, since a lattice boundary is addressable as ordinary source rectangles
+and a curve would need per-pixel masking that is not available. See
+`HullBreakup`.
 
 The wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
 everybody sees and shoots straight across it. A non-walkable cell is opaque
