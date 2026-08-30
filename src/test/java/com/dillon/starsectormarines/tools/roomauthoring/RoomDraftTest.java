@@ -109,6 +109,40 @@ class RoomDraftTest {
         assertTrue(draft.isLane(3, 2), "the lane was deleted by a click on one of its cells");
     }
 
+    /**
+     * Rubbing out one cell of a walkway leaves the rest of it a walkway.
+     *
+     * <p>A lane is stored as a rectangle, and a rectangle with a hole in it is
+     * not one — so removing a cell means replacing the run with the pieces of
+     * itself that survive. Easy to get wrong in a way that silently frees the
+     * whole run for furniture, which is how a room ends up sealed.
+     */
+    @Test
+    void rubbingOutOneCellOfAWalkwayKeepsTheRest() {
+        RoomDraft draft = draft();
+        draft.reserveLane(1, 1, 4, 2);
+
+        draft.clearLaneAt(2, 1);
+
+        assertFalse(draft.isLane(2, 1), "the cell was not given back to open deck");
+        assertTrue(draft.isLane(1, 1), "the run west of the hole stopped being a walkway");
+        assertTrue(draft.isLane(3, 1), "the run east of the hole stopped being a walkway");
+        assertTrue(draft.isLane(2, 2), "the row below the hole stopped being a walkway");
+        assertTrue(draft.isLane(4, 2), "a far corner of the run stopped being a walkway");
+    }
+
+    /** Rubbing out a cell nothing reserved leaves every walkway alone. */
+    @Test
+    void rubbingOutOpenDeckChangesNothing() {
+        RoomDraft draft = draft();
+        draft.reserveLane(0, 0, 2, 2);
+
+        draft.clearLaneAt(5, 3);
+
+        assertTrue(draft.isLane(0, 0));
+        assertTrue(draft.isLane(1, 1));
+    }
+
     @Test
     void paintedDeckIsCarriedIntoTheDocument() {
         RoomDraft draft = draft();

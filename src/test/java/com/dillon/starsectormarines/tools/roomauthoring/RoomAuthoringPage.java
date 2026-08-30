@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.tools.authoring.wizard.Wizard;
 import com.dillon.starsectormarines.tools.authoring.wizard.WizardStep;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -31,6 +32,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
@@ -381,14 +383,20 @@ public final class RoomAuthoringPage implements AuthoringPage {
                                 + "lays into the hull, so changing it changes where the room "
                                 + "can go — and whether it still fits.",
                         this::footprintBody)
-                        .onEnter(() -> grid.onClick(this::toggleCell)),
+                        .onEnter(() -> {
+                            grid.onClick(this::toggleCell);
+                            grid.onStroke(this::redrawBackdrop);
+                        }),
 
                 new LambdaStep("The deck",
                         "Paint the floor, and reserve the lanes people walk down. A lane is "
                                 + "authored before furniture and nothing may be placed on it, "
                                 + "which is what keeps a furnished room walkable from its door.",
                         this::deckBody)
-                        .onEnter(() -> grid.onClick(this::paintCell)),
+                        .onEnter(() -> {
+                            grid.onClick(this::useDeckTool);
+                            grid.onStroke(this::redrawBackdrop);
+                        }),
 
                 new LambdaStep("The fixtures",
                         "Click to stand the chosen fixture on a cell, or right of the grid "
@@ -397,6 +405,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
                         this::fixtureBody)
                         .onEnter(() -> {
                             grid.onClick(this::placeFixture);
+                            grid.onStroke(this::redrawBackdrop);
                             updateTally();
                         }),
 
@@ -436,49 +445,74 @@ public final class RoomAuthoringPage implements AuthoringPage {
         return split(side);
     }
 
+    /**
+     * What a click does on the deck screen.
+     *
+     * <p>Shown as a choice rather than kept as a mode a button silently
+     * switches into. The version before this had a "set the kind" button that
+     * redirected every later click with nothing on screen to say so, so an
+     * author who pressed it once found that painting a floor did nothing for the
+     * rest of the session — which is exactly what it looked like from outside.
+     */
+    private enum DeckTool {
+        FLOOR("Paint the floor"),
+        KIND("Set the ground kind"),
+        WALKWAY("Draw a walkway"),
+        ERASE_WALKWAY("Rub a walkway out");
+
+        private final String label;
+
+        DeckTool(String label) {
+            this.label = label;
+        }
+    }
+
+    private DeckTool deckTool = DeckTool.FLOOR;
+
     private JComponent deckBody() {
         JPanel side = column();
-        side.add(new JLabel("Paint this cell with"));
+
+        side.add(new JLabel("Clicking and dragging will:"));
+        ButtonGroup tools = new ButtonGroup();
+        for (DeckTool tool : DeckTool.values()) {
+            JRadioButton button = new JRadioButton(tool.label, tool == deckTool);
+            button.addActionListener(e -> {
+                deckTool = tool;
+                context.reportStatus(tool.label.toLowerCase() + ".");
+            });
+            tools.add(button);
+            side.add(button);
+        }
+        side.add(Box.createVerticalStrut(10));
+
+        side.add(new JLabel("Floor"));
         side.add(floorBlock);
         side.add(new JLabel("<html><i>What the deck is drawn from. Flavour only — "
                 + "a vent run and a striped run are the same floor to everything "
                 + "that is not the renderer.</i></html>"));
         side.add(Box.createVerticalStrut(10));
 
-        side.add(new JLabel("…and mark its kind as"));
+        side.add(new JLabel("Ground kind"));
         side.add(groundKind);
-        side.add(new JLabel("<html><i>This one is real topology, which consumers "
-                + "read. Leave it alone unless the deck genuinely changed.</i></html>"));
+        side.add(new JLabel("<html><i>Real topology, which the game reads. Leave it "
+                + "alone unless the deck genuinely changed.</i></html>"));
         side.add(Box.createVerticalStrut(10));
 
-        JButton kind = new JButton("Set the kind here");
-        kind.addActionListener(e -> {
-            grid.onClick((x, y) -> {
-                draft.paintGround(x, y, 1, 1, (GroundKind) groundKind.getSelectedItem());
-                touched();
-            });
-            context.reportStatus("Clicks now set the ground kind. Pick the floor block "
-                    + "above to go back to painting.");
-        });
-        floorBlock.addActionListener(e -> grid.onClick(this::paintCell));
-        side.add(kind);
-        side.add(Box.createVerticalStrut(10));
+        side.add(new JLabel("<html><b>A walkway</b> is deck kept clear for people. "
+                + "Nothing may be furnished on one, which is what keeps a room "
+                + "walkable from its door once it is full of furniture — and it is "
+                + "why a room that comes back mostly walkway has to be cleared "
+                + "before there is anywhere to put anything.<br><br>"
+                + "Draw them two cells wide. Circulation is judged as a square, so "
+                + "a hall widened only across its direction of travel pinches back "
+                + "to one cell at every corner.</html>"));
 
-        JButton lane = new JButton("Reserve a lane across");
-        lane.addActionListener(e -> {
-            draft.reserveLane(0, draft.height() / 2, draft.width(), 2);
-            touched();
-            grid.show(draft);
-        });
-        side.add(lane);
-
-        JButton clear = new JButton("Clear reserved lanes");
+        JButton clear = new JButton("Clear every walkway");
         clear.addActionListener(e -> {
             draft.clearLanes();
             touched();
             grid.show(draft);
-            context.reportStatus("The room's reserved circulation is back to open deck. "
-                    + "Nothing can be placed on a lane, so this is how you make room.");
+            context.reportStatus("Every walkway is back to open deck.");
         });
         side.add(clear);
         side.add(Box.createVerticalStrut(12));
@@ -488,11 +522,20 @@ public final class RoomAuthoringPage implements AuthoringPage {
         side.add(new JLabel("<html><i>The wall all the way round this room. A shared "
                 + "bulkhead is one wall, so where this room backs onto another the "
                 + "later one wins the cells between them.</i></html>"));
-        side.add(Box.createVerticalStrut(8));
-        side.add(new JLabel("<html><i>Circulation is two abreast on both axes — "
-                + "a hall widened only across its direction of travel pinches back "
-                + "to one cell at every corner.</i></html>"));
         return split(side);
+    }
+
+    /** One cell, done to by whichever tool is chosen. */
+    private void useDeckTool(int x, int y) {
+        switch (deckTool) {
+            case FLOOR -> draft.floor(x, y, 1, 1, (String) floorBlock.getSelectedItem());
+            case KIND -> draft.paintGround(x, y, 1, 1, (GroundKind) groundKind.getSelectedItem());
+            case WALKWAY -> draft.reserveLane(x, y, 1, 1);
+            case ERASE_WALKWAY -> draft.clearLaneAt(x, y);
+        }
+        dirty = true;
+        context.stateChanged();
+        grid.repaint();
     }
 
     private JComponent fixtureBody() {
@@ -544,29 +587,56 @@ public final class RoomAuthoringPage implements AuthoringPage {
         return side;
     }
 
+    /**
+     * The editing area: the room, and a zoom over it.
+     *
+     * <p>A vehicle bay is forty cells across and a server room is five, so no
+     * one cell size suits both. Fit is the default because the first thing
+     * anybody wants is the whole room on screen.
+     */
     private JComponent split(JComponent side) {
-        JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                new JScrollPane(grid), side);
+        JPanel canvas = new JPanel(new BorderLayout(0, 4));
+        JScrollPane scroll = new JScrollPane(grid);
+        scroll.getVerticalScrollBar().setUnitIncrement(24);
+        scroll.getHorizontalScrollBar().setUnitIncrement(24);
+        canvas.add(scroll, BorderLayout.CENTER);
+
+        JPanel zoom = new JPanel();
+        zoom.add(new JLabel("Zoom"));
+        JButton out = new JButton("−");
+        out.addActionListener(e -> zoomTo(grid.cellPx() - 6));
+        JButton in = new JButton("+");
+        in.addActionListener(e -> zoomTo(grid.cellPx() + 6));
+        JButton fit = new JButton("Fit");
+        fit.addActionListener(e -> fitToView(scroll));
+        zoom.add(out);
+        zoom.add(in);
+        zoom.add(fit);
+        canvas.add(zoom, BorderLayout.SOUTH);
+
+        JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, canvas, side);
         pane.setResizeWeight(1.0);
         return pane;
+    }
+
+    /** Change the cell size, and draw the room again at it. */
+    private void zoomTo(int cellPx) {
+        grid.cellSize(Math.max(8, Math.min(64, cellPx)));
+        redrawBackdrop();
+    }
+
+    /** The largest cell size that puts the whole room on screen. */
+    private void fitToView(JScrollPane scroll) {
+        if (draft == null) return;
+        int width = Math.max(1, scroll.getViewport().getWidth() - 8);
+        int height = Math.max(1, scroll.getViewport().getHeight() - 8);
+        zoomTo(Math.min(width / draft.width(), height / draft.height()));
     }
 
     // ---- what a click means on each screen -----------------------------------
 
     private void toggleCell(int x, int y) {
         draft.toggleCell(x, y);
-        touched();
-    }
-
-    /**
-     * Painting a cell draws it from the chosen block.
-     *
-     * <p>The block and not the kind, because that is what a person painting a
-     * floor means. Changing the kind is a separate, deliberate act — it moves
-     * something the game reads rather than something it shows.
-     */
-    private void paintCell(int x, int y) {
-        draft.floor(x, y, 1, 1, (String) floorBlock.getSelectedItem());
         touched();
     }
 

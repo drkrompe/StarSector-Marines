@@ -201,10 +201,20 @@ Do not run builds or leave generated task files there.
   `RoomLayoutCatalog.loadBuiltins` installs them at application load, defensively
   — an unreadable room generates the way it did before anybody authored it,
   which is a worse room rather than a broken ship.
-  Lanes are cleared by a command rather than by a click: a seeded armoury comes
-  back with six of its eight rows reserved, so an author who cannot un-reserve
-  can place almost nothing — but a stray click that deleted a room's
-  circulation would cost the whole fill.
+  Reserved circulation is called a **walkway** on the page, drawn as hatching
+  rather than a tint — a translucent wash over a busy deck is invisible, and the
+  one thing an author needs to see here is which cells refuse furniture. A
+  seeded armoury comes back with six of its eight rows reserved, so walkways are
+  drawn and rubbed out cell by cell with a tool, plus a clear-everything command
+  for the common case.
+  **The deck screen shows its tool rather than hiding a mode.** An earlier
+  version had a "set the kind" button that silently redirected every later
+  click, so an author who pressed it once found that painting a floor did
+  nothing for the rest of the session — which is exactly what it looked like
+  from outside, and was reported as a bug in the painting. Click and drag paint
+  with the chosen tool; the room is redrawn once per stroke rather than per
+  cell. Zoom is explicit with a Fit default, since a vehicle bay is forty cells
+  across and a server room is five.
   The Tilesets page opens on a question rather than on a workspace: **what are
   you doing?** Three ways in, each a walkthrough of numbered screens with Back
   and Next, and each screen holding only the controls its own step needs. The

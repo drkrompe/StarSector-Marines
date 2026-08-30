@@ -138,6 +138,38 @@ public final class RoomDraft {
     }
 
     /**
+     * Give one cell back to open deck.
+     *
+     * <p>Rubbing out part of a walkway means splitting the run it belongs to,
+     * since a lane is stored as a rectangle and a rectangle with a hole is not
+     * one. The run is replaced by the pieces of itself that survive, which is
+     * why this is more than a remove.
+     */
+    public void clearLaneAt(int x, int y) {
+        List<LayoutOp> replaced = new ArrayList<>();
+        for (LayoutOp op : ops) {
+            if (!(op instanceof LayoutOp.Lane lane)
+                    || x < lane.x() || x >= lane.x() + lane.spanX()
+                    || y < lane.y() || y >= lane.y() + lane.spanY()) {
+                replaced.add(op);
+                continue;
+            }
+            // The four bands around the removed cell, any of which may be empty.
+            addLane(replaced, lane.x(), lane.y(), lane.spanX(), y - lane.y());
+            addLane(replaced, lane.x(), y + 1, lane.spanX(),
+                    lane.y() + lane.spanY() - (y + 1));
+            addLane(replaced, lane.x(), y, x - lane.x(), 1);
+            addLane(replaced, x + 1, y, lane.x() + lane.spanX() - (x + 1), 1);
+        }
+        ops.clear();
+        ops.addAll(replaced);
+    }
+
+    private static void addLane(List<LayoutOp> into, int x, int y, int spanX, int spanY) {
+        if (spanX > 0 && spanY > 0) into.add(new LayoutOp.Lane(x, y, spanX, spanY));
+    }
+
+    /**
      * Give back every cell the room had reserved as circulation.
      *
      * <p>Deliberately a command of its own rather than something a click can do.
