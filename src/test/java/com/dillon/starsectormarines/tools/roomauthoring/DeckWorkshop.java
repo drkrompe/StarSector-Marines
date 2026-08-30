@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.function.BiConsumer;
 import java.util.List;
 
 /**
@@ -89,6 +90,34 @@ public final class DeckWorkshop implements AutoCloseable {
     }
 
     /**
+     * Draw every room the ship has, handing each one over as it is finished.
+     *
+     * <p>One generation for the whole set rather than one per room. Rendering
+     * twenty rooms by asking twenty times would lay out the ship twenty times
+     * over, which is most of a minute to look at a menu.
+     *
+     * <p>Handed over one at a time because the caller is a window: a grid that
+     * waited for the last of twenty would show nothing at all until every one of
+     * them was ready.
+     */
+    public void eachRoom(int cellPx, int surround, BiConsumer<RoomPurpose, BufferedImage> onRoom) {
+        try (Deck deck = generate(null)) {
+            List<RoomPurpose> drawn = new ArrayList<>();
+            for (DeckGraph.Compartment room : deck.graph().compartments()) {
+                if (room.purpose() == null || drawn.contains(room.purpose())) continue;
+                drawn.add(room.purpose());
+                onRoom.accept(room.purpose(), frame(deck, room, cellPx, surround));
+            }
+        }
+    }
+
+    /** The size of a room, as the ship laid it down. */
+    public String sizeOf(RoomPurpose purpose) {
+        RoomShape shape = footprintOf(purpose);
+        return shape == null ? "" : shape.width() + "x" + shape.height();
+    }
+
+    /**
      * The footprint this room is generated at today, read off the ship rather
      * than off the recipe.
      *
@@ -135,14 +164,20 @@ public final class DeckWorkshop implements AutoCloseable {
             }
             if (room == null) return null;
 
-            int across = room.width() + surround * 2;
-            int down = room.depth() + surround * 2;
-            return renderer().renderHostPass(
-                    deck.scene().pass(ShipDeckBattleScene.DeckView.over(
-                            room.left() - surround, room.top() - surround,
-                            across, down, cellPx)),
-                    across * cellPx, down * cellPx);
+            return frame(deck, room, cellPx, surround);
         }
+    }
+
+    /** One compartment, framed with a little of the bulkhead it was cut from. */
+    private BufferedImage frame(Deck deck, DeckGraph.Compartment room,
+                                int cellPx, int surround) {
+        int across = room.width() + surround * 2;
+        int down = room.depth() + surround * 2;
+        return renderer().renderHostPass(
+                deck.scene().pass(ShipDeckBattleScene.DeckView.over(
+                        room.left() - surround, room.top() - surround,
+                        across, down, cellPx)),
+                across * cellPx, down * cellPx);
     }
 
     /**

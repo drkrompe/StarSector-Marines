@@ -6,8 +6,9 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayout;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutCheck;
-import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutJson;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutCatalog;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutSeed;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayouts;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
@@ -24,12 +25,10 @@ import com.dillon.starsectormarines.tools.authoring.wizard.WizardStep;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -43,10 +42,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,9 +66,6 @@ import java.util.List;
  */
 public final class RoomAuthoringPage implements AuthoringPage {
 
-    /** Where an authored room is written, one file per purpose and refit level. */
-    static final String ROOMS = "mod/data/world/rooms";
-
     private static final String CHOOSER = "chooser";
     private static final String WIZARD = "wizard";
 
@@ -82,8 +74,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
     private final JPanel screens = new JPanel(new CardLayout());
     private final Wizard wizard;
 
-    private final DefaultListModel<RoomPurpose> rooms = new DefaultListModel<>();
-    private final JList<RoomPurpose> roomList = new JList<>(rooms);
+    private final RoomChooserGrid rooms = new RoomChooserGrid();
     private final JComboBox<RoomFit> level = new JComboBox<>(RoomFit.values());
 
     private final RoomGridView grid = new RoomGridView();
@@ -129,6 +120,9 @@ public final class RoomAuthoringPage implements AuthoringPage {
         // them in the workbench, and without them a fixture resolves to nothing
         // — so this page would open on a list of rooms it could not furnish.
         DiskRegistries.install(context.projectRoot());
+        // What has already been authored, so a room opens on the arrangement
+        // that was last kept rather than on the one its fitting produces.
+        RoomLayouts.install(AuthoredRooms.read(context.projectRoot()));
 
         affordance.addItem(null);
         for (Affordance value : Affordance.values()) affordance.addItem(value);
@@ -142,8 +136,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
             touched();
         });
 
-        roomList.addListSelectionListener(e -> wizard.refresh());
-        roomList.setVisibleRowCount(16);
+        rooms.onOpen(purpose -> openSelectedRoom());
 
         screens.add(chooserScreen(), CHOOSER);
         screens.add(wizard, WIZARD);
@@ -194,8 +187,9 @@ public final class RoomAuthoringPage implements AuthoringPage {
 
         JLabel heading = new JLabel("What are you editing?");
         heading.setFont(heading.getFont().deriveFont(Font.BOLD, 18f));
-        JLabel blurb = new JLabel("<html>Pick a room aboard the ship. It opens as it generates "
-                + "today — the arrangement its fitting produces — and you change that.</html>");
+        JLabel blurb = new JLabel("<html>Pick a room aboard the ship. Each one is drawn as it "
+                + "generates today — its own fitting, plus whatever has been authored for it — "
+                + "so opening one confirms what you can already see. Double-click to open.</html>");
 
         JPanel head = new JPanel();
         head.setLayout(new BoxLayout(head, BoxLayout.Y_AXIS));
@@ -203,13 +197,19 @@ public final class RoomAuthoringPage implements AuthoringPage {
         head.add(Box.createVerticalStrut(4));
         head.add(blurb);
         panel.add(head, BorderLayout.NORTH);
-        panel.add(new JScrollPane(roomList), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(rooms);
+        scroll.getVerticalScrollBar().setUnitIncrement(24);
+        scroll.setBorder(null);
+        panel.add(scroll, BorderLayout.CENTER);
 
         JPanel foot = new JPanel(new BorderLayout(8, 0));
         JPanel levelRow = new JPanel();
         levelRow.add(new JLabel("Fitted at:"));
         levelRow.add(level);
-        level.addActionListener(e -> loadRooms());
+        level.addActionListener(e -> {
+            rooms.clear();
+            loadRooms();
+        });
         foot.add(levelRow, BorderLayout.WEST);
 
         JButton open = new JButton("Open this room");
@@ -234,34 +234,54 @@ public final class RoomAuthoringPage implements AuthoringPage {
         RoomFit fit = (RoomFit) level.getSelectedItem();
         new Thread(() -> {
             DeckWorkshop built = null;
-            List<RoomPurpose> aboard = List.of();
             String failed = null;
             try {
                 built = new DeckWorkshop(context.projectRoot(), context.starsectorCoreRoot(), fit);
-                aboard = built.purposesAboard();
+                List<RoomPurpose> aboard = built.purposesAboard();
+                DeckWorkshop ready = built;
+                SwingUtilities.invokeLater(() -> {
+                    if (workshop != null) workshop.close();
+                    workshop = ready;
+                    rooms.expect(aboard);
+                    context.reportStatus("The ship carries " + aboard.size()
+                            + " kinds of room. Drawing them\u2026");
+                });
+                // Each picture is handed over as it is finished, so the grid
+                // fills in rather than staying empty until the last one.
+                built.eachRoom(TILE_CELL_PX, 1, (purpose, picture) ->
+                        SwingUtilities.invokeLater(() -> rooms.show(new RoomChooserGrid.Tile(
+                                purpose, picture, sizeOf(purpose), isAuthored(purpose, fit)))));
             } catch (Exception failure) {
                 failed = failure.getMessage() == null
                         ? failure.toString() : failure.getMessage();
             }
-            DeckWorkshop ready = built;
-            List<RoomPurpose> found = aboard;
             String why = failed;
             SwingUtilities.invokeLater(() -> {
                 loading = false;
-                if (why != null) {
-                    context.reportStatus("Could not generate the ship: " + why);
-                    return;
-                }
-                if (workshop != null) workshop.close();
-                workshop = ready;
-                for (RoomPurpose purpose : found) rooms.addElement(purpose);
-                context.reportStatus("The ship carries " + rooms.size() + " kinds of room.");
+                if (why != null) context.reportStatus("Could not generate the ship: " + why);
+                else context.reportStatus("Pick a room, or double-click to open it.");
             });
         }, "room-list").start();
     }
 
+    /** How big a tile's picture is drawn; small enough that twenty fit, large enough to read. */
+    private static final int TILE_CELL_PX = 10;
+
+    /** The size the ship laid this room down at, for the tile's caption. */
+    private String sizeOf(RoomPurpose purpose) {
+        return workshop == null ? "" : workshop.sizeOf(purpose);
+    }
+
+    /** Whether somebody has already authored this room at this level. */
+    private static boolean isAuthored(RoomPurpose purpose, RoomFit fit) {
+        for (RoomLayout layout : RoomLayouts.installed().all()) {
+            if (layout.purpose() == purpose && layout.fit() == fit) return true;
+        }
+        return false;
+    }
+
     private void openSelectedRoom() {
-        RoomPurpose purpose = roomList.getSelectedValue();
+        RoomPurpose purpose = rooms.picked();
         if (purpose == null) {
             context.reportStatus("Pick a room to open.");
             return;
@@ -304,7 +324,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
     }
 
     private void showChooser() {
-        if (rooms.isEmpty()) loadRooms();
+        if (rooms.picked() == null) loadRooms();
         ((CardLayout) screens.getLayout()).show(screens, CHOOSER);
     }
 
@@ -588,19 +608,15 @@ public final class RoomAuthoringPage implements AuthoringPage {
                 return;
             }
 
-            Path dir = context.projectRoot().resolve(ROOMS);
-            Files.createDirectories(dir);
-            String name = layout.purpose().name().toLowerCase() + "."
-                    + layout.fit().name().toLowerCase() + ".room.json";
-            Path target = dir.resolve(name);
-            Path staged = dir.resolve(name + ".tmp");
-            Files.writeString(staged, RoomLayoutJson.write(layout).toString(2),
-                    StandardCharsets.UTF_8);
-            Files.move(staged, target, StandardCopyOption.REPLACE_EXISTING);
+            String name = AuthoredRooms.write(context.projectRoot(), layout);
+            // Installed as well as written, so the grid's picture and the next
+            // comparison reflect what was just kept rather than what it replaced.
+            RoomLayouts.install(AuthoredRooms.read(context.projectRoot()));
 
             dirty = false;
             context.stateChanged();
-            context.reportStatus("Wrote " + name + " — " + layout.provides() + " fixtures.");
+            context.reportStatus("Kept " + name + " — " + layout.provides()
+                    + " fixtures. The ship will generate it from now on.");
         } catch (Exception failure) {
             JOptionPane.showMessageDialog(root, "Could not write the room: " + failure.getMessage(),
                     "Save failed", JOptionPane.ERROR_MESSAGE);
