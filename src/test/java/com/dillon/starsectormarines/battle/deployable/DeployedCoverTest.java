@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.infantry.DeployableTactics;
+import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -425,5 +426,73 @@ class DeployedCoverTest {
                 + "\"occlusion\":\"under-body\"},"
                 + "\"using\":{\"offsetShoulders\":[0.0,0.0],\"angleDegrees\":0.0,"
                 + "\"occlusion\":\"over-body\"}}}}";
+    }
+
+    /** Puts the carrier mid-walk, so {@code settled} reads false. */
+    private static void setWalking(BattleSimulation sim, long carrier) {
+        sim.setPath(carrier, new int[]{CARRIER_X, CARRIER_Y,
+                CARRIER_X + 1, CARRIER_Y, CARRIER_X + 2, CARRIER_Y});
+        assertFalse(sim.movement().settled(carrier),
+                "the carrier has somewhere to be");
+    }
+
+    @Test
+    void aMarineCrossingGroundWithNothingHappeningDoesNotStopToBuild() {
+        BattleSimulation sim = openArena(24, 24);
+        long carrier = marine(sim, CARRIER_X, CARRIER_Y);
+        setWalking(sim, carrier);
+
+        assertFalse(DeployableTactics.tryCommitCoverPlacement(carrier, revetment(), sim),
+                "a screen raised for no reason is a screen left behind");
+    }
+
+    @Test
+    void aMarineWhoWalksIntoSomebodyStopsAndScreensOnThatBearing() {
+        BattleSimulation sim = openArena(24, 24);
+        long carrier = marine(sim, CARRIER_X, CARRIER_Y);
+        // Close enough to be a room, and nothing has been exchanged yet: the
+        // carrier holds no fire target and has not been shot, so the two
+        // contacts a screen used to be able to answer are both absent.
+        shooter(sim, CARRIER_X + 4, CARRIER_Y);
+        setWalking(sim, carrier);
+
+        assertTrue(DeployableTactics.tryCommitCoverPlacement(carrier, revetment(), sim),
+                "somebody at four cells is the reason to stop, not a reason to"
+                        + " finish crossing the ground first");
+        // Committed, not yet built. What the gate owns is the decision to
+        // stop and plant; the channel that finishes the job is driven by the
+        // carrier's own update, and these carriers are deliberately inert so
+        // the measurement is about placement rather than about whatever their
+        // AI chose this second. The screen's arrival is pinned above.
+        assertTrue(sim.world().secondaryActionTimer(carrier) > 0f,
+                "the carrier is planting rather than walking on");
+    }
+
+    @Test
+    void aMarineTakenFromDownALaneScreensBeforeTheFirstRoundArrives() {
+        BattleSimulation sim = openArena(48, 24);
+        long carrier = marine(sim, CARRIER_X, CARRIER_Y);
+        // Far past close quarters, so only the second onset moment can see it.
+        long sniper = shooter(sim, CARRIER_X + 30, CARRIER_Y);
+        sim.world().setTargetId(sniper, carrier);
+        sim.advance(BattleSimulation.TICK_DT);
+        setWalking(sim, carrier);
+
+        assertTrue(DeployableTactics.tryCommitCoverPlacement(carrier, revetment(), sim),
+                "being ranged on from the end of a lane is knowable, and is"
+                        + " exactly when a screen is worth its cooldown");
+    }
+
+    @Test
+    void anOnsetScreenIsTheOnlyDeployableAMovingMarineMayCommit() {
+        BattleSimulation sim = openArena(24, 24);
+        long carrier = marine(sim, CARRIER_X, CARRIER_Y);
+        shooter(sim, CARRIER_X + 4, CARRIER_Y);
+        setWalking(sim, carrier);
+
+        assertTrue(InfantryUnitPrep.tryOnsetScreen(carrier, sim),
+                "the move-only path reaches the screen");
+        assertFalse(InfantryUnitPrep.tryHardenedOpportunity(carrier, sim),
+                "and still refuses the deployables that are diversions");
     }
 }

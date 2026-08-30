@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckZone;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullContact;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
 import java.util.ArrayList;
@@ -59,8 +61,20 @@ public final class RoomPlacementStage implements GenStage {
     private static final CirculationLoops.Policy DECK_LOOPS =
             new CirculationLoops.Policy(64, 2, 12);
 
+    private final RoomFit fit;
+
+    /** A deck packed at the level its rooms will be furnished at. */
+    public RoomPlacementStage(RoomFit fit) {
+        this.fit = fit == null ? RoomFit.STANDARD : fit;
+    }
+
     @Override
     public void run(GenContext ctx) {
+        // Published before anything is packed, because a room's authored doors
+        // are a constraint on where it may go and an authored layout is what
+        // carries them. Placing first and asking afterwards is exactly the
+        // ordering law 14 exists to forbid.
+        ctx.put(RoomFittings.ROOM_FIT, fit);
         DeckProfile profile = ctx.get(ShipKeys.DECK_PROFILE);
         List<RoomRecipe> program = ctx.get(ShipKeys.ROOM_PROGRAM);
         if (profile == null || program == null) {
