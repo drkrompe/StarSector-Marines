@@ -34,15 +34,15 @@ public interface Airframe {
     String renderHullId();
 
     /**
-     * How this aircraft's own forward guns behave on a run, or {@code null}
-     * for one that has none.
+     * What this aircraft delivers on a run, or {@code null} for one that
+     * carries nothing.
      *
      * <p>Distinct from {@link #hardpoints}, which is about turrets — a mount
      * that traverses and picks its own target. A transport with a door gun has
-     * hardpoints and no strafe; a fighter is the other way round, because the
-     * airframe is the mount and aiming it is flying it.
+     * hardpoints and no ordnance; a fighter is the other way round, because
+     * the airframe is the mount and aiming it is flying it.
      */
-    StrafeProfile strafe();
+    AirOrdnance ordnance();
 
     /**
      * Turret mounts this aircraft carries. Zero means it cannot shoot at all.

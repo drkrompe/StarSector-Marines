@@ -275,10 +275,20 @@ halves of that are the design — a run that killed everyone regardless would
 make dispersal pointless, and one that killed nobody would make the airfield
 pointless.
 
-The kind of gun changes the texture rather than the arithmetic: a rotary cannon
-throws up widely scattered craters, an energy mount paints a dense tight line,
-and a torpedo bomber drops a handful of very heavy rounds where a miss is a
-miss.
+The **ordnance** is about delivery rather than about guns, which is what lets a
+second kind of aircraft exist without a second kind of code. A rotary cannon, a
+beam and a stick of bombs differ in how fast rounds leave, how many there are,
+how tightly they land and how big a hole each makes. The one structural
+difference is whether the load is finite: a gun fires for as long as it holds
+its target under the nose, a bomber releases what it loaded and is done — which
+is why one can make three passes and the other cannot, and why a bomber's
+cadence has to be high enough to get the stick away in the second it is over
+the target rather than going home with bombs still aboard.
+
+Measured on a lattice of markers under one pass, the kinds come out visibly
+apart: a beam lands **about half as wide across the run** as a cannon does
+(1.0 cells against 1.9), which is the difference between painting a line and
+throwing craters.
 
 A **strike sortie** is the reason a station has sheds. An armed aircraft
 leaves on the field's own decision rather than on a request for passengers,

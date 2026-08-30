@@ -288,8 +288,27 @@ public final class ShuttleMission {
     /** Passes this sortie has left before it turns for home. */
     public int passesLeft;
 
-    /** Counts down to the next round while the guns are firing. */
+    /** Counts down to the next round while the aircraft is firing. */
     public float fireCooldown;
+
+    /**
+     * Rounds left on this pass for a weapon that carries a finite load, and
+     * ignored by one that fires as long as it has a target.
+     *
+     * <p>Reset when a pass begins rather than when the sortie does, because a
+     * bomber that came back round with an empty bay would be flying a circuit
+     * for nothing.
+     */
+    public int roundsLeftThisPass;
+
+    /**
+     * What this sortie is carrying, cached off the airframe when it launches.
+     *
+     * <p>On the sortie rather than read through the airframe on every shot, so
+     * a load that is spent, swapped or halved belongs to this trip and not to
+     * the type of aircraft.
+     */
+    public AirOrdnance ordnance;
 
     /** Bearing the last run came in on, so the next one comes from somewhere else. */
     public float lastRunBearingDeg;

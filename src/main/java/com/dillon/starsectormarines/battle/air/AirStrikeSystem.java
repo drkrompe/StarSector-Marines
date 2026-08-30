@@ -117,14 +117,14 @@ public final class AirStrikeSystem {
         mission.fireSupportSec = LOITER_SEC;
         mission.postDeliveryDisposition = PostDeliveryDisposition.LOITER_IF_ARMED;
         sim.world().kinematics(craft).teleport(shelterX, shelterY, shed.facingDegrees);
-        // No turrets. The aircraft is the weapon: it carries its guns on its
-        // nose and aims them by flying, so what it needs is a strafe profile
-        // and not a mount. A hull with neither still flies the sortie and says
+        // No turrets. The aircraft is the weapon: it carries its ordnance on
+        // its nose and aims it by flying, so what it needs is a load and not a
+        // mount. A hull with neither still flies the sortie and says
         // so once — it rolls out, crosses the map and can be shot at, which is
         // most of what a sortie is.
-        if (shed.airframe.strafe() == null && !warnedUnarmed) {
+        if (shed.airframe.ordnance() == null && !warnedUnarmed) {
             warnedUnarmed = true;
-            LOG.warn("air: " + shed.airframe + " flew a strike with no guns to run in with");
+            LOG.warn("air: " + shed.airframe + " flew a strike carrying nothing to drop");
         }
         mission.departFromRunway(strip, shelterX, shelterY, targetX, targetY);
     }

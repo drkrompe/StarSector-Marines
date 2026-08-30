@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.flyby;
 
 import com.dillon.starsectormarines.battle.air.AirHandling;
 import com.dillon.starsectormarines.battle.air.Airframe;
-import com.dillon.starsectormarines.battle.air.StrafeProfile;
+import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.engine.HullKinematicsResolver;
 
 import java.awt.Color;
@@ -219,11 +219,11 @@ public enum FighterProfile implements Airframe {
      * line where the ballistic ones throw up craters.
      */
     @Override
-    public StrafeProfile strafe() {
-        if (weaponClass == WeaponClass.PROJECTILE) return StrafeProfile.TORPEDO;
+    public AirOrdnance ordnance() {
+        if (weaponClass == WeaponClass.PROJECTILE) return AirOrdnance.BOMBS;
         return switch (this) {
-            case WASP, THUNDER -> StrafeProfile.LASER;
-            default -> StrafeProfile.CANNON;
+            case WASP, THUNDER -> AirOrdnance.BEAM;
+            default -> AirOrdnance.AUTOCANNON;
         };
     }
 
