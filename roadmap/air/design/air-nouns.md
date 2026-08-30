@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a sortie flown off a strip comes home to it.
+Updated: 2026-08-30 — a sortie flies a real airframe off a real berth, or it does not fly.
 
 ## Purpose
 
@@ -218,6 +218,23 @@ This is a second and independent way to end an enemy's air. Holding the
 `AIRBASE` compound is the other, and the two ask genuinely different questions —
 a field held with every aircraft burning supplies nothing, and a field lost with
 the aircraft intact takes them with it.
+
+**A pad is not an aircraft, and a sortie never conjures one.** The berth is
+what an aircraft is taken from and given back to; a `LandingPad` on its own is
+a painted square. A dispatch that could not find an airworthy stand used to
+fall back to *the nearest pad by distance* — spawning a hull on ground it did
+not own, flying the mission, returning to that same pad, and being destroyed on
+arrival because there was no berth to recover into. Several concurrent sorties
+picked the same nearest pad, so aircraft stacked on one hardstand, materialised
+on it, and vanished into it. A field with nothing airworthy declines the
+request and lets the trucks take it.
+
+**Whoever asks whether the field can supply must ask about the kind of place
+they can actually use.** The unqualified question — is *anything* airworthy —
+answers yes on the strength of a fighter in a shed, which a vertical-lift
+transport can neither reach nor lift out of. That disagreement between the
+supply question and the supply answer is what sent every transport sortie down
+the conjuring path above.
 
 A **runway** is the second kind of place an aircraft can leave from, and the
 first that is not a square of ground. It is the centreline a craft rolls along

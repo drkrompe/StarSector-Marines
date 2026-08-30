@@ -231,10 +231,36 @@ public final class AirfieldService {
         return Collections.unmodifiableList(berths);
     }
 
-    /** Whether this field has an airframe that could fly a sortie now. */
+    /** Whether this field has any airframe at all that could fly a sortie now. */
     public boolean hasAirworthyAirframe() {
         for (Berth berth : berths) {
             if (berth.airworthy()) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether this field has an airframe of {@code kind} that could fly now.
+     *
+     * <p>Kind-aware because the two kinds are not interchangeable, and asking
+     * the unqualified question was a real defect: a caller that could only
+     * launch from a hardstand asked "is anything airworthy?", got yes because a
+     * fighter was sitting in a shed it could never use, and went looking for a
+     * stand that was not there. Whoever is going to call
+     * {@link #nearestAirworthy(float, float, Kind)} must ask about the same
+     * kind, or the supply question and the supply answer disagree.
+     */
+    public boolean hasAirworthyAirframe(Kind kind) {
+        for (Berth berth : berths) {
+            if (berth.airworthy() && berth.kind == kind) return true;
+        }
+        return false;
+    }
+
+    /** Whether this field has any berth of {@code kind}, airworthy or not. */
+    public boolean hasBerthOfKind(Kind kind) {
+        for (Berth berth : berths) {
+            if (berth.kind == kind) return true;
         }
         return false;
     }
