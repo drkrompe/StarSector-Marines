@@ -133,6 +133,10 @@ final class BattleSquadOverlay {
         if (!presentation.visible() || input == null || events == null) return;
         List<InputEventAPI> retained = new ArrayList<>(events.size());
         for (InputEventAPI event : events) {
+            // A retained overlay dispatched earlier (the HUD rail owns pause and
+            // the speed control) may already have claimed this click, and the game
+            // throws from getX/getY once an event is consumed.
+            if (event.isConsumed()) continue;
             if (event.isMouseMoveEvent() || insidePanel(event.getX(), event.getY())
                     || insideVisibleTooltip(event.getX(), event.getY())) {
                 retained.add(event);
