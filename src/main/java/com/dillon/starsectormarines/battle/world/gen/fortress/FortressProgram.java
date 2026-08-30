@@ -160,7 +160,7 @@ public final class FortressProgram {
         // wastes around buildings, and a facility is not waste. The lot is
         // reserved out of the ward before packing, so this is what makes sure
         // the ward is sized to afford it.
-        return buildingGround(program) + AirbaseLot.area(AirbaseLot.Size.FIELD);
+        return buildingGround(program) + AirbaseLot.area(AirbaseLot.Size.STATION);
     }
 
     /**

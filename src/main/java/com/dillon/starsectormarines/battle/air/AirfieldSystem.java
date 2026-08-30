@@ -115,8 +115,8 @@ public final class AirfieldSystem {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
         int half = ParkedAircraft.FOOTPRINT_HALF;
-        int centerX = berth.pad.centerX;
-        int centerY = berth.pad.centerY;
+        int centerX = berth.centerX;
+        int centerY = berth.centerY;
 
         // Gathered before anybody is moved: displacing mid-walk would have the
         // scan reading positions it has already passed judgement on.
@@ -196,7 +196,7 @@ public final class AirfieldSystem {
     private void place(BattleControl sim, AirfieldService service,
                        AirfieldService.Berth berth) {
         berth.airframeId = sim.spawn(BasedAircraft.create(
-                "af" + (nextAirframeId++), faction, berth.type,
-                berth.pad.centerX, berth.pad.centerY, berth.hullHp));
+                "af" + (nextAirframeId++), faction, berth.airframe,
+                berth.centerX, berth.centerY, berth.hullHp));
     }
 }

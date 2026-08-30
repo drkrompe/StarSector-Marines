@@ -49,6 +49,17 @@ gets them into the air and back.
 
 ## Decisions
 
+- **A fighter is a `FighterProfile`, and there will not be a second list of
+  them.** Vanilla fighters are factional, and the project already has that:
+  `FighterProfile` carries the five hulls with their sprites, hull ids and
+  weapon classes, and `FighterProfile.poolForFaction` already sorts them — a
+  Hegemony or Luddic or pirate field flies Talons and Broadswords, a
+  Tri-Tachyon or Remnant one flies Wasps and Thunders. Adding fighter hulls to
+  `ShuttleType` so a station could base one *today* was considered and
+  rejected: it would put the same five aircraft in two enums, which is exactly
+  the duplicate this story promised not to build. A station therefore bases the
+  transport substrate as a stand-in until the fold lands, and the fold is what
+  makes its aircraft factional.
 - **Based strike aircraft first, flyby fighters folded onto the seam after.**
   Fighters today are the `battle.flyby` shell's private roster, and
   `fighter-air-entities.md` is the story that moves them into the air model.
@@ -99,24 +110,29 @@ gets them into the air and back.
 
 ### Where a station actually fits
 
-Measured on six generated Conquest maps: the ward's strip comes out 41x4 on
-every one of them, which is `FIELD`. A `STATION` never fits, and not by
-accident — `FortressProgram` sizes the ward from `AirbaseLot.area(FIELD)`, so
-the reservation is cut to the size of the base it expects and a larger one can
-never be offered ground it would take.
+Two things had to change, and the second was found by measurement rather than
+reasoning. `FortressProgram` sized the ward from `AirbaseLot.area(FIELD)`, so
+the reservation was cut to the base it expected and a larger one could never be
+offered ground it would take; it asks for a station's area now. That alone
+changed nothing, because **the ward comes out about 250 cells wide and 29
+deep** while the band it is cut from is 45 deep. A station three rows deeper
+than a field was refused on depth on every map, with 190 cells of unused width
+beside it.
 
-The ladder still prefers a station, because a ward that has the room should take
-one and that is what a ladder is for. Making the room is a separate decision
-with map-wide consequences: every fortress ward would grow by the difference,
-and everything else on a Conquest map would shrink by it. Until somebody makes
-that call, the station's home is a map that asks for one directly — the way
-`AirfieldSortieScene` builds a lot of a stated size today.
+So a station grows **along the frontage and not backwards**. Depth is the scarce
+axis and the only one a bigger base can realistically be refused for; length is
+what a strip wanted in the first place. The cost to everything else on the map
+is nil within noise — measured over six seeds, walkable ground moved from 41104
+to 41095 cells and the landing-pad count did not move at all, while the ward's
+strip went from 41x4 to 55x4 and its sheds from two to three.
 
 | Slice | Work |
 | --- | --- |
 | 1 | `Runway` published from `AirbaseLot` through `GenContext`/`MapResult`. No behaviour. **Shipped.** |
 | 2 | `Size.STATION`, and every shed publishing the shelter its aircraft lives in. **Shipped.** |
 | 3 | Taxi and roll: the sortie phases, the runway as a held resource. **Shipped.** |
-| 3b | A host that reserves ground for a station, so the variant is reachable. |
-| 4 | The strike sortie: armed based aircraft, trigger, passes, recovery — and the wiring that puts a craft into `TAXI_OUT` and brings one home onto the strip. |
+| 3b | A host that reserves ground for a station, so the variant is reachable. **Shipped.** |
+| 4 | Shelter berths registered at setup, on a field with a strip. **Shipped.** |
+| 4b | Fold `battle.flyby` onto the air-entity seam so a berth can hold a `FighterProfile`, and a station's aircraft become factional. This is now the blocking work, not a follow-on: everything else about a station is in place and the only thing standing between it and a fighter is which type a berth can hold. |
+| 4c | The strike sortie: trigger, passes, recovery — the wiring that puts a craft into `TAXI_OUT` and brings one home onto the strip. |
 | 5 | Evidence: a runway loop in the airfield scene, and an interrupted one. |

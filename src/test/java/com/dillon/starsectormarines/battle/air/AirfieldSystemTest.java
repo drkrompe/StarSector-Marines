@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -141,6 +143,90 @@ class AirfieldSystemTest {
         airfield.releaseRunway(11L);
         assertFalse(airfield.runwayBusy(), "and now the next one can go");
         assertTrue(airfield.claimRunway(22L));
+    }
+
+    /**
+     * A shed is a berth, and it is not a stand.
+     *
+     * <p>The two are asked for by different callers wanting different things: a
+     * vertical-lift transport needs somewhere it can rise off, and handing it a
+     * shed would strand it there. Nothing lands in a shelter, so a shelter
+     * berth carries no landing pad at all.
+     */
+    @Test
+    void aShelterIsABerthButNeverAStand() {
+        BattleSimulation sim = openSim();
+        AirfieldService airfield = sim.getAirfieldService();
+        AirfieldService.Berth stand = berth(sim, 10, 10);
+        AirfieldService.Berth shed = airfield.addShelterBerth(
+                new Gantry(4, 4, 2, 2, Gantry.Facing.SOUTH), ShuttleType.AEROSHUTTLE);
+
+        assertEquals(AirfieldService.Kind.HARDSTAND, stand.kind);
+        assertEquals(AirfieldService.Kind.SHELTER, shed.kind);
+        assertNull(shed.pad, "nothing lands in a shed");
+        assertEquals(4, shed.centerX);
+        assertEquals(4, shed.centerY);
+
+        // A lift-off caller asking for the nearest berth gets the stand even
+        // though the shed is closer.
+        AirfieldService.Berth lift = airfield.nearestAirworthy(4.5f, 4.5f);
+        assertEquals(stand, lift, "a vertical lift was offered a shed");
+        assertEquals(shed, airfield.nearestAirworthy(4.5f, 4.5f,
+                AirfieldService.Kind.SHELTER), "asked for a shed and got something else");
+    }
+
+    /**
+     * A shed can keep a fighter, and the fighter it keeps is the one that gets
+     * shot at.
+     *
+     * <p>The berth used to name a {@link ShuttleType}, which made every
+     * aircraft on every base a transport whatever the base was for. What it
+     * holds now is an {@link Airframe}, so a station's sheds hold the hulls the
+     * game actually flies fighters in — and the difference has to reach the
+     * unit standing on the ground, or a Broadsword is a Kite with a different
+     * picture.
+     */
+    @Test
+    void aShedCanHoldAFighterAndTheFighterIsWhatStandsThere() {
+        BattleSimulation sim = openSim();
+        AirfieldService airfield = sim.getAirfieldService();
+        AirfieldService.Berth shed = airfield.addShelterBerth(
+                new Gantry(4, 4, 2, 2, Gantry.Facing.SOUTH), FighterProfile.BROADSWORD);
+
+        assertEquals(FighterProfile.BROADSWORD, shed.airframe);
+        assertEquals(FighterProfile.BROADSWORD.maxHp(), shed.hullHp, 1e-3f,
+                "a fresh berth starts on its own airframe's hull");
+
+        new AirfieldSystem(Faction.DEFENDER)
+                .tick(1f / 30f, sim, airfield);
+
+        assertNotEquals(0L, shed.airframeId, "nothing was stood in the shed");
+        assertEquals(FighterProfile.BROADSWORD.maxHp(),
+                sim.world().maxHp(shed.airframeId), 1e-3f,
+                "the unit was built from something other than its own airframe");
+        assertTrue(sim.world().maxHp(shed.airframeId) < ShuttleType.AEROSHUTTLE.maxHp(),
+                "a parked fighter is no lighter to write off than a transport");
+    }
+
+    /**
+     * A turnaround puts back the fighter's own hull and not a transport's.
+     *
+     * <p>The repair is a fraction of the ceiling, so a berth that took its
+     * ceiling from the wrong airframe hands back an aircraft with more
+     * structure than the type has.
+     */
+    @Test
+    void aFighterIsRepairedTowardItsOwnCeiling() {
+        BattleSimulation sim = openSim();
+        AirfieldService airfield = sim.getAirfieldService();
+        AirfieldService.Berth shed = airfield.addShelterBerth(
+                new Gantry(4, 4, 2, 2, Gantry.Facing.SOUTH), FighterProfile.WASP);
+        airfield.launch(shed);
+
+        airfield.recover(shed, 10_000f);
+
+        assertEquals(FighterProfile.WASP.maxHp(), shed.hullHp, 1e-3f,
+                "recovered above its own airframe's ceiling");
     }
 
     /** A field with no strip says so rather than pretending to have one. */
