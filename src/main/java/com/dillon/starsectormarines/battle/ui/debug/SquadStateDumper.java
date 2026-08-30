@@ -1192,6 +1192,12 @@ public final class SquadStateDumper {
             o.put("overwatchCellY", mechLoadout != null ? mechLoadout.overwatchCellY : null);
             o.put("overwatchLongRangeBand",
                     mechLoadout != null ? mechLoadout.overwatchLongRangeBand : null);
+            o.put("overwatchRearming",
+                    mechLoadout != null ? mechLoadout.overwatchRearming : null);
+            o.put("overwatchAxisX",
+                    mechLoadout != null ? mechLoadout.overwatchAxisX : null);
+            o.put("overwatchAxisY",
+                    mechLoadout != null ? mechLoadout.overwatchAxisY : null);
             long screen = mechLoadout != null
                     ? sim.resolveUnit(mechLoadout.overwatchScreenId) : 0L;
             o.put("overwatchScreenId", screen != 0L

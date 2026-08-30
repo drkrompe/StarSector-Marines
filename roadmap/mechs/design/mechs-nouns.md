@@ -4,8 +4,9 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — separated the lance-wide Form on Lead / Free Reign order
-from each mech's battle-local fighting-doctrine override.
+Updated: 2026-08-30 — defined Long-Range Support's broad screened front,
+rear-oblique firing lane, combat-zone standoff envelope, partial-rack entry,
+and persistent rearm cycle.
 
 ## Purpose
 
@@ -119,9 +120,13 @@ hardware identities; any deployed chassis may receive any of these doctrines:
   without inventing an independent attack; without a legal anchor it holds and
   defends itself. The battle UI may call this doctrine **Tank**.
 - **Long-Range Support** prefers the outer useful weapon band, retained line of
-  sight, and a friendly screen between itself and perceived danger. If a threat
-  closes, it fights while opening distance rather than treating the old perch
-  as sacred.
+  sight, and a friendly screen between itself and perceived danger. When a
+  legal screened firing position exists it wins over an unscreened one; cover
+  and travel cost rank positions only within the screened or unscreened class.
+  A screen is a broad threat-facing front, not an ally placed in the direct
+  projectile ray, so the selected perch keeps every friendly body clear of its
+  rear-oblique firing lane. If a threat closes, the mech fights while opening
+  distance rather than treating the old perch as sacred.
 - **Balanced** serves its assignment from the middle or outer portion of its
   installed direct-fire band. It accepts a close threat already upon it, then
   resumes the assignment, and has no special ally-geometry dependency.
@@ -141,12 +146,18 @@ still values a credible screen.
 
 Long-range doctrine still evaluates whether a prospective screen is physically
 credible. A fragile Sirocco is not made into armor merely because it receives
-another doctrine. Once long-range racks can no longer apply pressure, their
-carrier may close to the outer edge of its installed arms range while the
-onboard subsystem replenishes them, returning to long-range posture only when
-every rack is full; individual restored triggers cannot make it oscillate
-between bands. Exhausted ammunition may change doctrine positioning, but never
-grants access to an absent mount or another role's withheld weapon.
+another doctrine. A `CLEAR_ZONE` or `SECURE_COMPOUND` contact inside the named
+zone lets Long-Range Support use a bounded perimeter around that zone for its
+firing posture; losing that in-zone contact removes the perimeter, and exact
+cell, withdrawal, survival, and rescue authority remain unchanged. Once
+long-range racks can no longer apply pressure, their carrier may close to the
+outer edge of its installed arms range while the onboard subsystem replenishes
+them, returning to long-range posture only when every rack is full; individual
+restored triggers and role-toggle round trips cannot make it oscillate between
+bands. A chassis entering Long-Range Support before it has exhausted its racks
+immediately uses any partly spent rack that can still apply pressure. Exhausted
+ammunition may change doctrine positioning, but never grants access to an
+absent mount or another role's withheld weapon.
 
 All variants share movement-aware targeting and a planted-hip torso envelope:
 near visible danger can interrupt a distant engagement, but the rear blind

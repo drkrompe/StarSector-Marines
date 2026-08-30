@@ -89,9 +89,9 @@ public final class MechLoadoutComponent {
     public int overwatchCellX = -1;
     /** Picked overwatch cell Y. -1 = no pick yet. */
     public int overwatchCellY = -1;
-    /** Squad's lastSeenEnemyX at the moment the overwatch cell was picked. Drives re-pick when the threat axis shifts. */
+    /** Active threat cell X at the moment the overwatch cell was picked. */
     public int overwatchAxisX = -1;
-    /** Squad's lastSeenEnemyY at the moment the overwatch cell was picked. */
+    /** Active threat cell Y at the moment the overwatch cell was picked. */
     public int overwatchAxisY = -1;
     /** Same-faction non-Sirocco combatant screening this overwatch lane. 0 = the cached lane is unscreened. */
     public long overwatchScreenId;
@@ -100,6 +100,14 @@ public final class MechLoadoutComponent {
      * false when it was picked as a direct-fire fallback.
      */
     public boolean overwatchLongRangeBand;
+    /**
+     * True after LR Support has exhausted every LRM rack and entered its
+     * direct-fire rearm cycle. A newly constructed loadout starts false so a
+     * partly spent but never-exhausted rack immediately supports long-range
+     * play. Once set, the cycle survives role changes until every LRM rack is
+     * full.
+     */
+    public boolean overwatchRearming;
 
     // ---- Armored Support backstop assignment ----
     //
