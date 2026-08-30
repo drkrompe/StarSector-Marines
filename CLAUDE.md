@@ -145,8 +145,11 @@ Do not run builds or leave generated task files there.
   `ProjectTilesetSeedsTest` fails the build for raw art that arrives without
   one.
   The Rooms page edits one shipboard room: its footprint, its deck, and the
-  fixtures standing on it. It opens on **which room?** — listed from the ship
-  herself, so it offers rooms that exist — and then walks four screens: the
+  fixtures standing on it. It opens on **which room?** — a grid of every room
+  the ship has, each one drawn as it generates today through the battle
+  renderer, so choosing is looking rather than reading twenty enum names. The
+  whole set costs one deck generation and the tiles fill in as they are drawn.
+  From there it walks four screens: the
   footprint, the deck, the fixtures, and a comparison. **No room starts from an
   empty grid.** Opening one runs the procedural fitting that owns it and records
   what it did, so the first thing on screen is the room that already ships and
@@ -176,6 +179,14 @@ Do not run builds or leave generated task files there.
   stamped a face, so **every bulkhead on every generated deck was rendering as
   nothing**. A wall nobody stamped now takes a face on each open side; a mask
   somebody already set is never re-derived, so cities are untouched.
+  A kept room is **written and loaded**: `mod/data/world/rooms/` holds one
+  document per purpose and refit level, and `rooms.json` indexes them because
+  mod code reads through `SettingsAPI` and cannot list a folder. The tool
+  rebuilds that index from what is on disk rather than appending to it, since an
+  index that drifted from the folder is a room that silently stopped loading.
+  `RoomLayoutCatalog.loadBuiltins` installs them at application load, defensively
+  — an unreadable room generates the way it did before anybody authored it,
+  which is a worse room rather than a broken ship.
   Lanes are cleared by a command rather than by a click: a seeded armoury comes
   back with six of its eight rows reserved, so an author who cannot un-reserve
   can place almost nothing — but a stray click that deleted a room's
