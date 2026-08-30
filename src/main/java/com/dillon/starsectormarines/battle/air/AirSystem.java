@@ -90,8 +90,15 @@ public class AirSystem {
      */
     private static final float GROUND_FIRE_DPS_EACH = 2f;
 
-    /** Distance threshold (cells) at which an INCOMING shuttle snaps to the LZ and transitions to LANDED. Tight enough that the snap is invisible; loose enough that the asymptotic brake-to-station taper doesn't stall short. */
-    private static final float SHUTTLE_LZ_ARRIVAL_DIST = 0.2f;
+    /**
+     * Floor under the distance at which an INCOMING craft snaps to the LZ and
+     * transitions to LANDED. Tight enough that the snap is invisible; loose
+     * enough that the asymptotic brake-to-station taper doesn't stall short.
+     *
+     * <p>A floor rather than the gate itself — see
+     * {@link #flyingArrivalDist}.
+     */
+    private static final float SHUTTLE_LZ_ARRIVAL_FLOOR = 0.2f;
 
     /**
      * How near a ground waypoint counts as reached.
@@ -99,6 +106,12 @@ public class AirSystem {
      * <p>Wider than the LZ's, because a ground leg is walked at a speed the
      * craft chose rather than braked into a hover: a roll crosses a third of a
      * cell per tick and would step straight over a hair-fine radius.
+     *
+     * <p><b>A ground tolerance.</b> A wheeled aircraft can be asked to hold
+     * short of a point and does, so this is the whole gate on the ground and
+     * deliberately not widened by how fast the craft could fly. Where a
+     * <em>flying</em> craft is asked how near a waypoint it has come, this is
+     * only the floor — see {@link #flyingArrivalDist}.
      */
     private static final float THRESHOLD_ARRIVAL_DIST = 1.2f;
     /**
@@ -122,18 +135,28 @@ public class AirSystem {
      */
     private static final float UNLOAD_PATIENCE_SEC = 20f;
 
-    /** Distance threshold (cells) at which a DEPARTING shuttle transitions to GONE / next cycle. Larger than the LZ threshold because exit points sit well off-map and we don't need pinpoint accuracy. */
-    private static final float SHUTTLE_EXIT_ARRIVAL_DIST = 1.0f;
+    /** Floor under the distance at which a DEPARTING craft transitions to GONE / next cycle. Larger than the LZ floor because exit points sit well off-map and we don't need pinpoint accuracy. */
+    private static final float SHUTTLE_EXIT_ARRIVAL_FLOOR = 1.0f;
 
     /**
-     * How near its objective a strike aircraft has to get before it is on
-     * station.
+     * Floor under how near its objective a strike aircraft has to get before it
+     * is on station.
      *
      * <p>Wider than a touchdown, because it is not one. A transport has to be
      * on the exact cell it is setting people down on; an aircraft attacking a
      * position has arrived when it is over it.
      */
-    private static final float STRIKE_ARRIVAL_DIST = 2.0f;
+    private static final float STRIKE_ARRIVAL_FLOOR = 2.0f;
+
+    /**
+     * How many ticks' worth of travel a flying arrival gate is guaranteed to be
+     * wider than.
+     *
+     * <p>One would be the bare condition for the gate being crossable at all;
+     * two leaves margin for a body that is not flying straight at the point and
+     * for the tick the crossing straddles.
+     */
+    private static final float ARRIVAL_TICK_MARGIN = 2f;
 
     /**
      * How far out on the extended centreline a homebound aircraft joins final.
@@ -695,7 +718,8 @@ public class AirSystem {
                     updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY,
                             /*incoming*/ true, dt);
                     if (body.distanceTo(mission.exitX, mission.exitY)
-                            >= (mission.onFinalApproach ? THRESHOLD_ARRIVAL_DIST
+                            >= (mission.onFinalApproach
+                                    ? flyingArrivalDist(THRESHOLD_ARRIVAL_DIST, body, dt)
                                     : joinFinalReachedDist(flight))) {
                         break;
                     }
@@ -769,7 +793,8 @@ public class AirSystem {
                         updateShuttleAltitude(id, mission, body, mission.lzX, mission.lzY, /*incoming=*/true, dt);
                     }
                     if (mission.strikeSortie
-                            && body.distanceTo(mission.lzX, mission.lzY) < STRIKE_ARRIVAL_DIST) {
+                            && body.distanceTo(mission.lzX, mission.lzY)
+                                    < flyingArrivalDist(STRIKE_ARRIVAL_FLOOR, body, dt)) {
                         // On station, not on the ground. A wider arrival than a
                         // touchdown because that is what arriving means here —
                         // the craft is over the objective rather than stopped
@@ -784,7 +809,8 @@ public class AirSystem {
                         beginAttackRun(id, mission, body);
                         break;
                     }
-                    if (body.distanceTo(mission.lzX, mission.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
+                    if (body.distanceTo(mission.lzX, mission.lzY)
+                            < flyingArrivalDist(SHUTTLE_LZ_ARRIVAL_FLOOR, body, dt)) {
                         body.teleport(mission.lzX, mission.lzY, body.facingDegrees);
                         world.setAltitudeT(id, 0f);
                         mission.state = ShuttleState.LANDED;
@@ -882,7 +908,8 @@ public class AirSystem {
                 case DEPARTING:
                     AirSteeringSystem.steer(body, mission.exitX, mission.exitY, SteeringMode.CRUISE, flight, dt);
                     updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY, /*incoming=*/false, dt);
-                    if (body.distanceTo(mission.exitX, mission.exitY) < SHUTTLE_EXIT_ARRIVAL_DIST) {
+                    if (body.distanceTo(mission.exitX, mission.exitY)
+                            < flyingArrivalDist(SHUTTLE_EXIT_ARRIVAL_FLOOR, body, dt)) {
                         if (mission.currentCycle + 1 < mission.totalCycles) {
                             // Recycle for another sortie. The shuttle drops out of
                             // view (PENDING is invisible + engine-silent) for
@@ -1233,6 +1260,48 @@ public class AirSystem {
         float turnRateRad = (float) Math.toRadians(flight.maxTurnRateDegPerSec());
         if (turnRateRad < 1e-3f) return APPROACH_LEAD_CELLS;
         return Math.max(THRESHOLD_ARRIVAL_DIST, flight.maxSpeed() / turnRateRad);
+    }
+
+    /**
+     * How near a point a <em>flying</em> craft has to come before it counts as
+     * having reached it.
+     *
+     * <p>An arrival gate is a distance a craft has to be sampled inside on some
+     * tick, and a craft crossing it at speed is inside it only between two
+     * samples. So a gate narrower than the step the craft takes in a tick is a
+     * gate that can be jumped clean over — and a craft that jumps its arrival
+     * gate does not arrive, it flies a circuit round its own destination for
+     * the rest of the battle. The authored number is therefore a floor rather
+     * than the gate: what the gate actually is, is whichever of the two is
+     * wider.
+     *
+     * <p><b>The step the craft is actually taking, not the fastest it could
+     * go.</b> Half these arrivals are flown braked and half at cruise, and a
+     * max-speed bound is wrong for the braked half: an approach that has taken
+     * a transport down to a crawl would have its landing gate widened by the
+     * speed it flew in at and touch down most of a cell early. Reading the body
+     * makes the gate track the fault's own shape — it opens exactly as far as
+     * the craft is moving and closes again as the craft slows, so a braked
+     * arrival keeps the tolerance it was authored with and only a craft
+     * genuinely covering ground gets a wider one.
+     *
+     * <p>Derived rather than authored because one constant cannot serve every
+     * craft. These floors are a transport's, tuned against a hull that covers a
+     * fifth of a cell in a tick; a fighter three times as fast steps over them.
+     * Nothing reconciles the two by picking a better single number.
+     *
+     * <p>A <em>flying</em> tolerance, deliberately separate from
+     * {@link #THRESHOLD_ARRIVAL_DIST} used on the ground. A wheeled aircraft
+     * can be asked to stop short of a point and does; widening its gates by
+     * how fast it is rolling would let it call a threshold reached from a cell
+     * and a half away with the strip still ahead of it.
+     *
+     * @param floorCells the authored tolerance, in cells
+     * @param body       the craft, read for the speed it is actually making
+     * @param dt         the tick this gate is being tested on
+     */
+    static float flyingArrivalDist(float floorCells, AirBody body, float dt) {
+        return Math.max(floorCells, ARRIVAL_TICK_MARGIN * body.speed() * dt);
     }
 
     /**

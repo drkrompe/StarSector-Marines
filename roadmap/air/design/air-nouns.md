@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown.
+Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown; a flying arrival tolerance is derived from the step the craft is taking.
 
 ## Purpose
 
@@ -699,6 +699,19 @@ shrink that changes a hull's physical scale.
 - A craft's body is the authority for motion. Rendering, weapons, effects, and
   any grid-derived representation must read or synchronize from it rather than
   keep competing positions.
+- **A flying craft's arrival tolerance is derived from the step it is taking,
+  never authored as a distance.** An arrival gate is a distance a craft has to
+  be sampled inside on some tick, so a gate narrower than one tick's travel is
+  one the craft steps clean over — and a craft that steps over its arrival gate
+  does not arrive, it flies a circuit round its own destination for the rest of
+  the battle. Authored numbers are floors; the gate is whichever of the floor
+  and the step is wider. Derived from the body's *current* speed rather than the
+  hull's maximum, because half these arrivals are flown braked and a max-speed
+  bound would land a carefully braked transport most of a cell short of its pad.
+  This is what makes the atmosphere calibration re-dialable at all: the floors
+  are a transport's, and a fighter several times faster steps over every one of
+  them. Ground tolerances stay separate and stay authored — a wheeled aircraft
+  can be asked to hold short of a point and does.
 - Runtime hull specifications are the shared, mod-aware source for hull facts.
   Hand-authored exceptions require a concrete non-standard craft, not routine
   per-hull tuning.
