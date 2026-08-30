@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — an aircraft on its wheels can actually be shot at.
+Updated: 2026-08-30 — an aircraft on its wheels is driven rather than flown.
 
 ## Purpose
 
@@ -243,8 +243,17 @@ by scanning for runway-coloured ground: the lot knows exactly where it put the
 strip, and which ground kind stands in for runway is an art decision that has
 already changed once without touching a line of generation. Geometry a system
 depends on cannot live in the art. Neither threshold is privileged — which end
-a roll starts from is a decision for the sortie, and the far one is normally
-right because it leaves the aircraft pointing where it is going. `mapgen-nouns.md`
+a roll starts from is a decision for the sortie, and it is decided on the
+turning the whole procedure costs rather than on the destination alone. Picking
+the end farthest from the target leaves the aircraft pointing the right way
+after takeoff and is blind to everything before it: a craft parked beside one
+threshold was sent the length of its own field to the other one and then had to
+turn most of the way round on arrival, which buys a departure heading at the
+price of a half-circle of taxiing and a half-circle of turning. Both ends are
+scored on the turn at the threshold — from the direction the aircraft arrives on
+to the direction it will roll — plus the turn onto course after it is airborne,
+with a small charge per cell of taxi so a near end is not passed over for a few
+degrees. `mapgen-nouns.md`
 owns where a strip is laid; Air owns what happens along it. See
 `runway-airbase.md` for the ground procedure being built on it.
 
@@ -317,6 +326,42 @@ cuts a corner slides along the wall; a craft that is *already* inside
 something — which every aircraft is, standing in its own shed — is let out,
 because refusing on the destination alone pinned it in the hangar for the rest
 of the battle.
+
+**Rolling is not flying slowly.** Ground movement is its own locomotion model
+rather than the flight steering held down to walking pace. What flight does to
+change direction is point the nose and wait for the sideways component of its
+momentum to bleed off; a wheeled aircraft has no sideways component to bleed,
+goes where it is pointed and nowhere else, steers through an arc its
+undercarriage sets rather than at a heading rate, and can stop. Driven the other
+way it crabbed across the apron and settled onto its waypoints like something
+hovering, which is what a decorated flight profile buys.
+
+Three consequences carry the feel. Velocity is composed from the heading and one
+speed, so lateral drift never exists rather than being damped away. The arc is
+bounded, and speed through it is bounded by the sideways load the wheels will
+take — so **a turn tightens as the craft slows**: it gives up speed for a sharp
+corner instead of widening it, and at rolling speed it can only make the
+gentlest correction. And an aircraft too far off where it is going stops and
+**swings its nose round standing still**, on the brakes, at a rate that is a
+ground manoeuvre rather than a hull turn rate — the one thing a rolling model
+cannot do on its own and the one thing every aircraft plainly does.
+
+The route is followed by a carrot sliding along it rather than by aiming at the
+next cell, which is what stops a body with a turn radius orbiting a waypoint it
+cannot reach; it is the same pursuit law the ground vehicles and the infantry
+mover already follow, with a look-ahead derived from the turn radius, because
+the two are the same quantity.
+
+**Lining up finishes before the roll starts.** Reaching a threshold and reaching
+it pointed down the strip are different things. A craft that opened the throttle
+and steered onto the centreline at the same time arrived at rotation speed
+somewhere off the side of it — the turn threw it off the line it was supposed to
+be building speed along. So the roll will not accelerate at all until the
+aircraft is straight: it squares up where it is standing, which is a stretch of
+time in the open like every other part of the procedure, and only then rolls.
+Both rolls are driven on the wheels, which is also why the landing rollout no
+longer needs its heading pinned to the strip every tick to stop it
+weathercocking across the runway — it cannot leave the centreline sideways.
 
 **A plume is not a hum.** The engine note keeps an idle floor, because a
 machine on a hardstand hums; the visible thrusters do not, because an aircraft
@@ -393,10 +438,11 @@ the battle.
 
 Handling on the ground is the **same hull with a ceiling on it** — a bus taxis
 like a bus — rather than a second authored profile per aircraft, which would be
-a second place for one fact to live. Turning is faster on the wheels than in the
-air, which reads wrong and is right: an aircraft pivots about its gear at
-walking pace while the same craft in flight is fighting its own momentum
-through the turn.
+a second place for one fact to live. What is borrowed is power and braking; the
+rest is being on wheels. Turn radius in particular is gear geometry and is not
+carried across from the hull's flight agility: that number is an angular rate
+rather than a radius, and converted at taxi speed it makes every aircraft pivot
+on the spot, which is the reading the ground model exists to replace.
 
 A strip is not a requirement for an air arm. Most airbases have none — an
 aircraft that lands vertically needs somewhere to stand and somewhere to be

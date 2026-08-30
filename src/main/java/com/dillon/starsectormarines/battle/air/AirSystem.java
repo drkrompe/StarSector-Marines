@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
+import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -607,13 +608,17 @@ public class AirSystem {
                     break;
 
                 case HOLDING_SHORT:
-                    // Stopped at the threshold. Asking every tick rather than
-                    // queueing: the strip is granted to whoever asks while it
-                    // is free, and a queue would have to survive a craft in it
-                    // being destroyed on the taxiway.
+                    // Stopped at the threshold, swinging round to face down the
+                    // strip while it waits — the wait is free and the turn is
+                    // not, so lining up here rather than after the strip is
+                    // granted keeps the half-circle off the queue. Asking every
+                    // tick rather than queueing: the strip is granted to whoever
+                    // asks while it is free, and a queue would have to survive a
+                    // craft in it being destroyed on the taxiway.
                     world.setAltitudeT(id, 0f);
-                    AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
-                            SteeringMode.STATION, GroundHandling.taxiing(flight), dt);
+                    mission.groundSteer = GroundDriveSystem.drive(body, mission.groundSteer,
+                            rollCarrotX(mission), rollCarrotY(mission), /*targetSpeed*/ 0f,
+                            GroundHandling.rolling(flight), dt);
                     if (airfield != null && airfield.claimRunway(id)) {
                         beginShuttleLeg(mission, body, mission.rollX, mission.rollY);
                         mission.state = ShuttleState.TAKEOFF_ROLL;
@@ -621,8 +626,15 @@ public class AirSystem {
                     break;
 
                 case TAKEOFF_ROLL:
-                    AirSteeringSystem.steer(body, mission.rollX, mission.rollY,
-                            SteeringMode.CRUISE, GroundHandling.rolling(flight), dt);
+                    // Driven on the wheels, not flown along the ground. The
+                    // driver finishes squaring the craft up before it opens the
+                    // throttle at all, and at rolling speed the wheels will bear
+                    // almost no cornering — so it tracks the centreline instead
+                    // of being thrown off it by the turn it should have made
+                    // standing still.
+                    mission.groundSteer = GroundDriveSystem.drive(body, mission.groundSteer,
+                            rollCarrotX(mission), rollCarrotY(mission), flight.maxSpeed(),
+                            GroundHandling.rolling(flight), dt);
                     // Altitude tracks how much of the strip is behind it, so the
                     // craft is on the ground at the threshold and flying at the
                     // far end. Rotating early would put it in the air over its
@@ -681,7 +693,9 @@ public class AirSystem {
                                     : SteeringMode.BRAKE_TO_STATION, flight, dt);
                     updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY,
                             /*incoming*/ true, dt);
-                    if (body.distanceTo(mission.exitX, mission.exitY) >= THRESHOLD_ARRIVAL_DIST) {
+                    if (body.distanceTo(mission.exitX, mission.exitY)
+                            >= (mission.onFinalApproach ? THRESHOLD_ARRIVAL_DIST
+                                    : joinFinalReachedDist(flight))) {
                         break;
                     }
                     if (!mission.onFinalApproach) {
@@ -706,20 +720,23 @@ public class AirSystem {
                                 AirBody.facingToward(mission.holdX - mission.touchdownX,
                                         mission.holdY - mission.touchdownY));
                         world.setAltitudeT(id, 0f);
+                        mission.groundSteer = 0f;
                         mission.state = ShuttleState.LANDING_ROLL;
                     }
                     break;
 
                 case LANDING_ROLL:
                     world.setAltitudeT(id, 0f);
-                    // Still railroaded: the nose is held on the centreline for
-                    // the whole rollout, so the aircraft slows down the runway
-                    // rather than weathercocking across it.
-                    body.facingDegrees = AirBody.facingToward(
-                            mission.holdX - mission.touchdownX,
-                            mission.holdY - mission.touchdownY);
-                    AirSteeringSystem.steer(body, mission.holdX, mission.holdY,
-                            SteeringMode.BRAKE_TO_STATION, GroundHandling.rolling(flight), dt);
+                    // On the wheels, braking down the strip. The takeover put
+                    // the craft on the centreline pointing along it and a
+                    // wheeled body cannot leave that line sideways, so the nose
+                    // no longer has to be pinned there every tick to stop it
+                    // weathercocking across the runway.
+                    mission.groundSteer = GroundDriveSystem.drive(body, mission.groundSteer,
+                            mission.holdX, mission.holdY,
+                            brakingTaper(body, mission.holdX, mission.holdY,
+                                    flight.brakingAccel(), flight.maxSpeed()),
+                            GroundHandling.rolling(flight), dt);
                     if (body.distanceTo(mission.holdX, mission.holdY) < THRESHOLD_ARRIVAL_DIST) {
                         // Off the strip before anything else may have it.
                         if (airfield != null) airfield.releaseRunway(id);
@@ -1111,8 +1128,18 @@ public class AirSystem {
         mission.state = ShuttleState.DEPARTING;
     }
 
-    /** How near a taxi waypoint counts as reached, so the route steps on. */
-    private static final float TAXI_WAYPOINT_DIST = 1.0f;
+    /**
+     * How far up the route a taxiing aircraft aims, as a multiple of the arc it
+     * can be steered round.
+     *
+     * <p>The look-ahead a nose-steered body is driven at, not an arrival
+     * radius. Derived from the turn radius rather than stated in cells because
+     * the two are the same quantity: a carrot inside the radius asks for a turn
+     * the gear cannot make and the craft weaves, and one far outside it cuts
+     * the corner into the hangar the route was going round. A little over the
+     * radius is the band where neither happens, whatever the radius becomes.
+     */
+    private static final float TAXI_LOOKAHEAD_RADII = 1.25f;
 
     /**
      * Rolls the aircraft toward {@code (goalX, goalY)} along walkable ground.
@@ -1124,10 +1151,10 @@ public class AirSystem {
      * occupancy-aware on purpose: an aircraft is not queueing behind the
      * infantry crossing the apron, it is going round the buildings.
      *
-     * <p>The route is a guide and not a rail. It is followed waypoint to
-     * waypoint at taxi speed with the ordinary steering, so the craft still
-     * turns like an aircraft and still cuts its corners — which is why the
-     * move is also refused outright if it would end inside something.
+     * <p>The route is a guide and not a rail. The craft is driven at a carrot
+     * sliding along it rather than at the next cell, so it takes the corners as
+     * arcs on its own gear — which is why the move is still refused outright if
+     * it would end inside something.
      */
     private void taxiToward(long id, ShuttleMission mission, AirBody body,
                             AirHandling flight, float goalX, float goalY, float dt) {
@@ -1136,29 +1163,104 @@ public class AirSystem {
             mission.taxiPath = navigation.findGeometricPath(
                     (int) Math.floor(body.x), (int) Math.floor(body.y),
                     (int) Math.floor(goalX), (int) Math.floor(goalY));
-            mission.taxiLeg = 0;
+            // The first cell of a route is the one the craft is standing on, so
+            // the cursor starts on the second. The carrot picker's own
+            // already-crossed test cannot advance off index zero — it measures
+            // the first waypoint against the body's approach to it, and the
+            // body's approach to a waypoint always points at it — so a cursor
+            // left there sticks, the look-ahead is eaten by the distance back
+            // to a cell already behind the craft, and the carrot converges onto
+            // the craft's own nose. An aircraft did precisely that beside its
+            // runway and spun there for the rest of the battle. The ground
+            // vehicles start theirs at one for the same reason.
+            mission.taxiLeg = 1;
         }
-        float waypointX = goalX;
-        float waypointY = goalY;
+        GroundHandling handling = GroundHandling.taxiing(flight);
+        float carrotX = goalX;
+        float carrotY = goalY;
         int[] route = mission.taxiPath;
-        if (route != null) {
-            // Step past every waypoint already reached, so a craft that cut a
-            // corner does not turn back for the one it skipped.
-            while (mission.taxiLeg < Paths.cellCount(route)
-                    && body.distanceTo(Paths.cellX(route, mission.taxiLeg) + 0.5f,
-                            Paths.cellY(route, mission.taxiLeg) + 0.5f) < TAXI_WAYPOINT_DIST) {
-                mission.taxiLeg++;
-            }
-            if (mission.taxiLeg < Paths.cellCount(route)) {
-                waypointX = Paths.cellX(route, mission.taxiLeg) + 0.5f;
-                waypointY = Paths.cellY(route, mission.taxiLeg) + 0.5f;
+        if (route != null && Paths.cellCount(route) > 1) {
+            PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, route,
+                    Math.max(1, mission.taxiLeg),
+                    handling.minTurnRadiusCells() * TAXI_LOOKAHEAD_RADII);
+            mission.taxiLeg = carrot.nextIdx;
+            // Off the end of the route, the goal itself: a path is a run of
+            // cell centres and the thing being taxied to is a point.
+            if (!carrot.atEnd) {
+                carrotX = carrot.x;
+                carrotY = carrot.y;
             }
         }
         float wasX = body.x;
         float wasY = body.y;
-        AirSteeringSystem.steer(body, waypointX, waypointY,
-                SteeringMode.BRAKE_TO_STATION, GroundHandling.taxiing(flight), dt);
+        mission.groundSteer = GroundDriveSystem.drive(body, mission.groundSteer,
+                carrotX, carrotY,
+                brakingTaper(body, goalX, goalY, handling.brakingAccel(), handling.maxSpeed()),
+                handling, dt);
         keepOnTheGround(grid, body, wasX, wasY);
+    }
+
+    /**
+     * How near the join-final point counts as reaching it, for a craft that is
+     * still flying.
+     *
+     * <p>A flying tolerance, deliberately not the ground one. A wheeled
+     * aircraft can be asked to stop on a point and does; an aircraft in the air
+     * cannot fly a circle tighter than its own turn radius, so a gate narrower
+     * than that radius is a gate it can orbit forever — and one Broadsword did
+     * exactly that, circling its own join-final point two cells out at four
+     * cells a second for the rest of the battle while the strip stood empty.
+     * The radius is what the gate is derived from rather than a number in
+     * cells, because the same craft's radius is not the same number between one
+     * calibration of atmospheric handling and the next.
+     *
+     * <p>A hull whose radius is wider than the lead out to the join point joins
+     * final the moment the leg starts, which is the honest answer: an aircraft
+     * that cannot fly the hook has not got one to fly, and it still reaches the
+     * threshold and is taken over there.
+     */
+    private static float joinFinalReachedDist(AirHandling flight) {
+        float turnRateRad = (float) Math.toRadians(flight.maxTurnRateDegPerSec());
+        if (turnRateRad < 1e-3f) return APPROACH_LEAD_CELLS;
+        return Math.max(THRESHOLD_ARRIVAL_DIST, flight.maxSpeed() / turnRateRad);
+    }
+
+    /**
+     * Where a takeoff roll is pointed: down the strip and out the far side of
+     * it, one runway length beyond the threshold the roll ends on.
+     *
+     * <p>Beyond rather than at, because the driver is a pursuit controller and
+     * the arc it asks for through a carrot grows without bound as the carrot
+     * gets close. A craft aimed at the far threshold itself flies the strip
+     * straight and then whips round the last cell of it at rotation speed,
+     * which is the same fault as steering onto the centreline while
+     * accelerating along it, arriving from the other end. A carrot that stays
+     * far away keeps the commanded arc gentle for the whole roll. Where the
+     * roll <em>ends</em> is still the threshold; that is
+     * {@link #reachedOrPassed}'s business, not the carrot's.
+     */
+    private static float rollCarrotX(ShuttleMission mission) {
+        return mission.rollX + (mission.rollX - mission.holdX);
+    }
+
+    /** @see #rollCarrotX */
+    private static float rollCarrotY(ShuttleMission mission) {
+        return mission.rollY + (mission.rollY - mission.holdY);
+    }
+
+    /**
+     * Fastest a craft may be going and still stop on ({@code goalX},
+     * {@code goalY}) — {@code sqrt(2·a·d)}, capped at {@code maxSpeed}.
+     *
+     * <p>The ground driver takes a speed cap rather than a stopping mode,
+     * because how fast to go on this leg is the leg's business: a taxi brakes
+     * into its threshold, a takeoff roll does not brake at all, and a landing
+     * rollout is nothing but the brake.
+     */
+    private static float brakingTaper(AirBody body, float goalX, float goalY,
+                                      float brakingAccel, float maxSpeed) {
+        float toGo = body.distanceTo(goalX, goalY);
+        return Math.min(maxSpeed, (float) Math.sqrt(2f * brakingAccel * Math.max(0f, toGo)));
     }
 
     /**

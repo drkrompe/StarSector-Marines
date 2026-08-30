@@ -340,10 +340,22 @@ public final class ShuttleMission {
     public int[] taxiPath;
     public int taxiLeg;
 
+    /**
+     * Nosewheel deflection this craft is carrying, as a fraction of full lock.
+     *
+     * <p>The one piece of state {@link GroundDriveSystem} needs and the only
+     * reason it is not a pure function of the body: an aircraft's wheel is
+     * where the last tick left it, and snapping it to whatever the route asks
+     * for is what makes a turn read as a computed heading rather than as
+     * something being steered.
+     */
+    public float groundSteer;
+
     /** Forgets the current taxi route. */
     public void clearTaxiRoute() {
         taxiPath = null;
         taxiLeg = 0;
+        groundSteer = 0f;
     }
 
     /**
@@ -359,14 +371,15 @@ public final class ShuttleMission {
      * Sends this sortie out of its shelter and down the strip toward
      * {@code (towardX, towardY)}.
      *
-     * <p>The threshold is chosen once, here, from where the sortie is going:
-     * the far one, so the roll runs toward the destination and the aircraft
-     * leaves the strip already pointing at it. Deciding it per tick would let
-     * it change while the craft was halfway down its own taxiway.
+     * <p>The threshold is chosen once, here, from where the sortie is starting
+     * and where it is going — the end that costs the least turning across the
+     * whole procedure, which is normally the far one but is not when the craft
+     * is parked beside the near one. Deciding it per tick would let it change
+     * while the craft was halfway down its own taxiway.
      */
     public void departFromRunway(Runway strip, float shelterX, float shelterY,
                                  float towardX, float towardY) {
-        float[] threshold = strip.departureThreshold(towardX, towardY);
+        float[] threshold = strip.departureThreshold(shelterX, shelterY, towardX, towardY);
         float[] far = strip.opposite(threshold);
         this.holdX = threshold[0];
         this.holdY = threshold[1];
