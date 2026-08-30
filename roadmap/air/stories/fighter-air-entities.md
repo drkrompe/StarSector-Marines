@@ -4,62 +4,68 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-23 — reduced to the remaining overlay-to-world migration
+Updated: 2026-08-30 — the overlay is deleted and wings fly as air entities; what
+remains is the `FighterProfile` clean-up the fold could not reach.
 
-Read `air-nouns.md` before changing this story. A fighter is an air entity
-with shared hull-derived kinematics and fighter-specific mission, loadout, and
-presentation behavior; the air world owns identity and lifecycle while systems
-own behavior.
+Read `air-nouns.md` before changing this story, in particular **Air cover, and
+where a sortie is from**.
 
-## Current substrate
+## What shipped
 
-`FlybyOverlay` already drives each fighter's `AirBody` through
-`AirSteeringSystem`, and `HullKinematicsResolver` supplies mod-aware handling
-from the loaded hull specification. Fighter profiles, wing scheduling,
-weapon/tracer effects, cycling re-entry, and the debug aircraft picker remain
-in the `battle.flyby` shell. The shell still keeps a private fighter record and
-its own draw/fire coupling rather than exposing fighter entities through the
-air-world query.
+`FlybyOverlay` was 1,583 lines and is now six sound-id constants. Its flight
+integration, map-edge entry, cycling re-entry, cluster scan, bank-back/run state
+machine, tracer and missile fire, dogfight aggro, fighter vision push, GL
+renderer and particle pool were all deleted as duplicates of `battle.air`, which
+owns every one of them properly.
 
-## Goal
+Committed fighter wings now fly as real air entities. `AirCorridor` is the
+explicit off-map origin — a named source and two points that are outside the map
+by construction — and `AirCoverSystem` reads the same `FlybyRoster` the overlay
+read and dispatches each wing's schedule as an off-map strike sortie:
+`AirBody` motion, `AirOrdnance` released through the detonation pipeline (so
+splash, cover, armour, wall damage and roof interception all apply), AA
+vulnerability, shoot-down with crash FX, fog contribution, sprite, and engine
+audio — all for free, because those are properties of being an air entity.
+`EnemyConcentration` is the shared target choice; `AirStrikeSystem` and
+`AirCoverSystem` ask it the same question from their two origins.
 
-Move fighters from the cosmetic overlay's private roster into the shared air
-entity lifecycle while preserving their current strafing behavior and making
-the fighter mission, render, and weapon systems consume the composed world
-state.
+The wall-collapse dust drain the overlay happened to own moved to
+`ImpactFx.spawnWallCollapse`.
 
-## Decisions
+## What remains
 
-- Keep `FighterProfile` as loadout and presentation data; hull-derived
-  `AirHandling` remains the kinematics authority.
-- Use world entity ids and the existing air components; do not mint a fighter
-  id space or retain a parallel component store.
-- Preserve the current wing schedule, strafing-run planning, cycling re-entry,
-  tracers, audio, and debug picker while moving their state reads to the world
-  entity and fighter mission.
-- Fighter damage/anti-air and modeled fighter fire remain separate Air-owned
-  follow-ups; this story establishes the composed entity and movement/render
-  seam only.
+**The `FighterProfile` clean-up.** It could not be touched during the fold
+(another session owned it). Three things are waiting on it:
 
-## Acceptance
+1. Move `SFX_GUN_HEAVY`, `SFX_GUN_LIGHT`, `SFX_GUN_ENERGY`, `SFX_IMPACT`,
+   `SFX_MISSILE_LAUNCH`, `SFX_MISSILE_IMPACT` onto `FighterProfile` (or a small
+   `FighterAudio`), then **delete `FlybyOverlay`**. Those six constants are the
+   only reason the class still exists.
+2. Delete the dead tuning blocks. `tracerPxLen`, `tracerPxThick`,
+   `tracerLifetime`, `burstSize`, `burstInterval`, `burstSpreadDeg`,
+   `perTracerDamage`, `wallDamage`, `runFireInterval`, `projectileSpeed`,
+   `projectileTurnRateDegPerSec`, `projectileFuseSec`, `projectileAoeRadiusCells`,
+   `projectileAoeDamage` and `projectileSpritePath` were read only by the
+   overlay's own fire resolution. `AirOrdnance` presets carry all of it now, and
+   `WeaponClass` is what picks the preset. `tracerColor` is still worth keeping
+   as the profile's identity colour if the gun-run FX wants one.
+3. Rename the package. `battle.flyby` holds `FighterProfile`, `FighterWing`,
+   `FlybyRoster`, `PlayerFleetWings`, `DebugAirRoster` and `WeaponClass` — the
+   fighter roster, and nothing that flies. It is the last thing in the codebase
+   calling a fighter a "flyby". `FlybyRoster` and `FighterWing` want to move
+   under `air/` and be named for what they are; that touches roughly thirty
+   files (fixtures, ops, detachment, briefing UI) and is a mechanical rename
+   best done when no sibling session is mid-flight in the air package.
 
-- Fighter spawn creates an air-world entity with its kinematics, identity,
-  appearance, and fighter mission/loadout state; despawn removes it through the
-  shared lifecycle.
-- A dedicated fighter mission system supplies goals to
-  `AirSteeringSystem`; the old private heading/speed integration and duplicate
-  motion state are gone.
-- Rendering, engine FX, weapon fire, tracers, and audio read the entity's live
-  `AirBody`/air components rather than a shadow `FlybyOverlay.Fighter` state.
-- Existing wing timing, strafing waypoints, cycling re-entry, and debug-only
-  aircraft selection remain behaviorally intact.
-- The migration leaves the shared vocabulary in `air-nouns.md` and does not
-  create a second fighter-specific air model.
+**Presentation the fold traded away.** The overlay drew tracers, muzzle flashes
+and a missile body for its fighter fire. Air-model gun runs deliver through
+`releaseOrdnance`, so those visuals belong to the gun-run FX work on that seam
+rather than to a second renderer. Until that lands, a fighter pass is a sprite
+crossing the map with detonations under it.
 
 ## Out of scope
 
-- Anti-air health/death, fighter collision, and air-to-air or modeled fighter
-  fire; those remain future Air-world policy after the shared entity seam is
-  established.
-- Wing composition from `wing_data.csv` beyond the current spawn mapping.
+- Wing composition from `wing_data.csv`, formation, and air-to-air.
+- Recallable air cover, or any live player control over a committed wing.
+  Commitment is the control; see `command-powers-nouns.md`.
 - Dense storage optimization; it follows measured fighter-swarm pressure.

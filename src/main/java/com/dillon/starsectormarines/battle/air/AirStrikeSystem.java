@@ -3,8 +3,6 @@ package com.dillon.starsectormarines.battle.air;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.LongBucket;
-import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -25,11 +23,9 @@ import org.apache.log4j.Logger;
  * The interval and the single-sortie rule together are what make the air arm a
  * recurring threat rather than one event.
  *
- * <p>The target is the <em>densest</em> enemy concentration rather than the
- * nearest or the largest. Nearest sends aircraft after whichever scout wandered
- * closest to the field; largest is the same answer every time on a map with one
- * big push. Density is what an aircraft is actually good against and what a
- * player can see the reason for afterwards.
+ * <p>The target is the densest enemy concentration; {@link EnemyConcentration}
+ * owns that choice and why it is the right one, and the corridor dispatcher
+ * asks it the same question.
  */
 public final class AirStrikeSystem {
 
@@ -49,12 +45,6 @@ public final class AirStrikeSystem {
 
     /** Sim-seconds an aircraft works its target before turning for home. */
     private static final float LOITER_SEC = 25f;
-
-    /** Cells around a candidate within which its friends count toward the concentration. */
-    private static final float CLUSTER_RADIUS = 6f;
-
-    /** Units that have to be inside {@link #CLUSTER_RADIUS} before it is worth a sortie. */
-    private static final int MIN_CLUSTER = 4;
 
     private final Faction side;
     private final Faction enemy;
@@ -83,7 +73,7 @@ public final class AirStrikeSystem {
             nextStrikeIn = RETRY_SEC;
             return;
         }
-        long target = densestConcentration(sim);
+        long target = EnemyConcentration.densest(sim, enemy);
         if (target == 0L) {
             nextStrikeIn = RETRY_SEC;
             return;
@@ -129,40 +119,22 @@ public final class AirStrikeSystem {
         mission.departFromRunway(strip, shelterX, shelterY, targetX, targetY);
     }
 
-    /** Whether this side already has a strike aircraft out. */
+    /**
+     * Whether this field already has one of its own aircraft out.
+     *
+     * <p>Its own: a sortie still holding a berth. Air cover flown in from off
+     * the map is somebody else's aircraft on the same side, and counting it
+     * here would let a carrier overhead keep the garrison's sheds shut for the
+     * whole battle.
+     */
     private boolean strikeAlreadyOut(BattleSimulation sim) {
         for (long id : sim.getAirEntityIds()) {
             ShuttleMission mission = sim.world().mission(id);
             if (mission == null || !mission.strikeSortie) continue;
+            if (mission.homeBerth == null) continue;
             if (sim.world().airFaction(id) == side) return true;
         }
         return false;
     }
 
-    /**
-     * The enemy unit with the most friends around it, or {@code 0} when
-     * nothing on the map is worth the sortie.
-     *
-     * <p>Walked only when the field is otherwise ready to fly, so the cost is
-     * paid a handful of times in a battle rather than every tick.
-     */
-    private long densestConcentration(BattleSimulation sim) {
-        UnitRosterService roster = sim.getRoster();
-        long[] candidates = roster.factionDenseArray(enemy);
-        int count = roster.factionLiveCount(enemy);
-        LongBucket near = new LongBucket();
-        World world = sim.world();
-        long best = 0L;
-        int bestCount = MIN_CLUSTER - 1;
-        for (int i = 0; i < count; i++) {
-            long u = candidates[i];
-            sim.getUnitIndex().gatherFaction(world.x(u), world.y(u),
-                    CLUSTER_RADIUS, enemy, near);
-            if (near.size > bestCount) {
-                bestCount = near.size;
-                best = u;
-            }
-        }
-        return best;
-    }
 }

@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
-import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -181,6 +180,14 @@ public class BattleRenderer {
     private final ContrailFxService contrailFx = new ContrailFxService();
 
     /**
+     * In-flight rounds an aircraft is putting on the ground. Owns their state
+     * the same way {@link #contrailFx} owns trail state; the world pass below
+     * is a pure emit. Constructed with the sprite store because a falling bomb
+     * is drawn from its own texture.
+     */
+    private final OrdnanceTraceFxService ordnanceTraceFx;
+
+    /**
      * Persistent decal-accumulator FBO.
      */
     private final DecalAccumulator decalAccumulator =
@@ -194,9 +201,6 @@ public class BattleRenderer {
 
     /** Ground-combat impact FX engine. */
     private final ImpactFx impactFx = new ImpactFx();
-
-    /** Atmosphere layer — vanilla fighters flying overhead. */
-    private final FlybyOverlay flybyOverlay = new FlybyOverlay();
 
     /** World-layer renderer for the compound capture-state markers. */
     private final CompoundMarkerRenderer compoundMarkers = new CompoundMarkerRenderer();
@@ -212,6 +216,7 @@ public class BattleRenderer {
 
     public BattleRenderer(BattleSprites sprites) {
         this.sprites = sprites;
+        this.ordnanceTraceFx = new OrdnanceTraceFxService(sprites);
         this.groundParallax = new GroundParallaxPipeline(sprites, groundLights);
         // The full world-render pass list, in paint order — every pass now lives
         // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
@@ -264,11 +269,14 @@ public class BattleRenderer {
                 // Listed contrails-first so submission order stays stable.
                 RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
                         contrailFx.collect(out, ctx.alphaMult)),
+                // Delivered ordnance sits with the shot bodies: it is rounds in
+                // flight, and it belongs over the ground and under the impact FX
+                // its own arrival spawns.
+                RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
+                        ordnanceTraceFx.collect(ctx.camera, out, ctx.alphaMult)),
                 new ShotRenderService(sprites, impactFx),
                 RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) ->
-                        out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))),
-                RenderSystem.of(RenderLayer.FLYBY, (ctx, out) ->
-                        out.addCustom(RenderLayer.FLYBY, () -> flybyOverlay.render(ctx.camera, ctx.alphaMult))));
+                        out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))));
     }
 
     // ---- lifecycle -----------------------------------------------------------
@@ -279,6 +287,7 @@ public class BattleRenderer {
      */
     public void onAttach() {
         sprites.ensureSmokeSprites();
+        registerSmokeFieldBatch();
         sprites.ensureSatchelSprite();
         impactFx.ensureSprites();
     }
@@ -331,6 +340,21 @@ public class BattleRenderer {
         // source strips of its own sprite (UnitRenderService's wreck pass).
         // Loaded by ensureAirframeSprites() before this runs, in both hosts.
         registerHullBatches(sprites.airframeSprites().values());
+
+        // Some embedded hosts hand us an already-loaded sprite registry and do
+        // not call onAttach(). The standalone battle screen does the reverse:
+        // it builds its terrain batches first, then onAttach() loads smoke.
+        // Register from both lifecycle seams so whichever one sees the sheet
+        // first makes deployed smoke drawable by the live GL drain.
+        registerSmokeFieldBatch();
+    }
+
+    private void registerSmokeFieldBatch() {
+        SpriteAPI sheet = sprites.smokeFieldSheet();
+        if (sheet == null || batchBySheet.containsKey(sheet)) return;
+        int width = Math.max(1, Math.round(sheet.getWidth()));
+        int height = Math.max(1, Math.round(sheet.getHeight()));
+        registerBatch(sheet, new QuadBatch(sheet, width, height, 128));
     }
 
     /**
@@ -366,14 +390,13 @@ public class BattleRenderer {
 
     // ---- accessors for BattleScreen.advance() --------------------------------
 
-    /** Accessor for {@code BattleScreen.advance()} — push fighter vision each frame. */
-    public FlybyOverlay getFlybyOverlay() { return flybyOverlay; }
-
     /** Accessor for {@code BattleScreen.advance()} — spawn and advance impact FX particles. */
     public ImpactFx getImpactFx() { return impactFx; }
 
     /** Accessor for {@code BattleScreen.advance()} — tick the contrail trail lifecycle on real dt. */
     public ContrailFxService getContrailFx() { return contrailFx; }
+    /** In-flight delivered rounds. Spawned and advanced by the host that drives the battle. */
+    public OrdnanceTraceFxService getOrdnanceTraceFx() { return ordnanceTraceFx; }
 
     /** Accessor for {@code BattleScreen.advance()} — pulse compound markers on wall-clock. */
     public CompoundMarkerRenderer getCompoundMarkers() { return compoundMarkers; }

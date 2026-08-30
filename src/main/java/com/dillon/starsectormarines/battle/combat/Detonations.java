@@ -85,9 +85,8 @@ public class Detonations {
     /**
      * Fires a detonation immediately, bypassing the in-flight queue. Used by
      * callers whose projectile flight time is already accounted for by their
-     * own visuals (today: {@code FlybyOverlay}'s fighter missile, which
-     * detonates on contact with the target's AoE radius rather than on a
-     * countdown timer). Avoids the 1-tick delay that would otherwise appear
+     * own visuals — a gun run's rounds, which land where the aircraft put them
+     * rather than after a countdown. Avoids the 1-tick delay that would otherwise appear
      * between the explosion FX and the damage application.
      */
     public void detonateNow(PendingDetonation det) {

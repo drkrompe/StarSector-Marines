@@ -55,6 +55,10 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.CameraControls;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
+import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
+import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
+import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
+import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
@@ -137,7 +141,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Pitch lerp endpoints for the shuttle engine loop: idle on the ground → full at cruise. */
     private static final float ENGINE_PITCH_IDLE   = 0.7f;
     private static final float ENGINE_PITCH_CRUISE = 1.0f;
-    /** Cells → OpenAL world units, for positional SFX. Must match {@code FlybyOverlay.AUDIO_WORLD_UNITS_PER_CELL}. */
+    /** Cells → OpenAL world units, for positional SFX. */
     private static final float AUDIO_WORLD_UNITS_PER_CELL = BattleShotAudio.WORLD_UNITS_PER_CELL;
     /** Radius, in cells, of the burst drawn where a point-defence emplacement stopped a warhead. Presentation only; nothing is damaged. */
     private static final float INTERCEPT_BURST_CELLS = 0.9f;
@@ -212,6 +216,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final BattleSprites sprites = new BattleSprites();
     /** World-layer render pipeline — owns tile batches, FX systems, and all render/draw methods. */
     private final BattleRenderer renderer = new BattleRenderer(sprites);
+    /** Weapon and impact cues for rounds an aircraft delivers onto the ground. */
+    private final OrdnanceAudio ordnanceAudio = new OrdnanceAudio();
     /**
      * Real-time {@code dt} from the most recent {@link #advance} call. Passed
      * into {@link com.dillon.starsectormarines.ops.battleview.RenderContext} so
@@ -369,8 +375,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Park the OpenAL listener at the camera focus every frame so positional SFX (gunfire,
         // explosions, ambient loops, death VO) pan + attenuate around what the player is looking
         // at. setListenerPosOverrideOneFrame is a one-frame override, so it has to be re-armed
-        // each tick — same pattern as playUILoop. We set it here (not just in FlybyOverlay.advance)
-        // so the listener is still correct during sim-pause when FlybyOverlay bails on dt=0.
+        // each tick — same pattern as playUILoop. Set here rather than inside any
+        // one FX pass, so the listener is still correct while the sim is paused.
         if (camera != null) {
             Global.getSoundPlayer().setListenerPosOverrideOneFrame(new Vector2f(
                     camera.panCellX() * AUDIO_WORLD_UNITS_PER_CELL,
@@ -392,13 +398,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         if (sim == null) return;
-        // Rebuild ephemeral vision sources (shuttles + strafing fighters)
+        // Rebuild ephemeral vision sources (every air craft over the battle)
         // each frame so the fog bitmap always reflects the latest positions.
         // Cleared + re-pushed every frame; VisionService only processes them
         // on vision-tick frames (every 3rd sim tick).
         FogOfWarService vis = sim.getFogOfWar();
         vis.clearEphemeralSources();
-        renderer.getFlybyOverlay().pushFighterVision(vis, sim.getVisionState());
         World airWorld = sim.world();
         for (long id : sim.getAirEntityIds()) {
             ShuttleMission mission = airWorld.mission(id);
@@ -418,9 +423,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Always tick — dt=0 makes the sim a no-op but still clears the per-frame event lists,
         // so a paused caller doesn't keep replaying the previous frame's shot/death sounds.
         sim.advance(dt * speedMultiplier);
-        // Flyby fighters run on the same scaled clock as the sim so pause / 1x / 2x / 4x
-        // applies uniformly — spawning, strafing, and dogfighting all freeze on pause.
-        renderer.getFlybyOverlay().advance(dt * speedMultiplier, sim, camera);
+        // Wall-collapse dust. Queued by whatever brought the wall down and
+        // drained once here, so a collapse looks the same however it happened.
+        for (float[] dust : sim.getWallDustsThisFrame()) {
+            renderer.getImpactFx().spawnWallCollapse(dust[0], dust[1]);
+        }
         // Impact FX: spawn at the moment the shot's visual reaches its endpoint
         // (instant for marine line tracers, on lifetime expiry for projectile
         // sprites), then advance particles on the same scaled clock.
@@ -444,6 +451,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getImpactFx().spawnAmbientFire(burst[0], burst[1], burst[2]);
             renderer.getGroundLights().spawnFire(burst[0], burst[1], burst[2]);
         }
+        driveOrdnanceFx(sim, dt * speedMultiplier);
         renderer.getImpactFx().advance(dt * speedMultiplier);
         renderer.getGroundLights().advance(dt * speedMultiplier);
         renderer.getGroundLights().syncBoltLights(sim.getActiveShots());
@@ -856,6 +864,35 @@ public class BattleScreen implements Screen, BattleUiContext {
      * stay silent — the fire SFX already covers them and a second clip per shot
      * is sonic clutter.
      */
+    /**
+     * Rounds an aircraft put on the ground during the last tick: the flash and
+     * the weapon at the muzzle now, the round drawn on its way down, and the
+     * crater and the crump when it actually gets there.
+     *
+     * <p>Release and arrival are separate moments on purpose. The simulation
+     * resolved the delivery the instant the round left, but a bomb falls for a
+     * third of a second, and an explosion that precedes its own bomb is worse
+     * than no explosion at all. {@link OrdnanceTraceFxService} holds the round
+     * in between and says when it landed.
+     */
+    private void driveOrdnanceFx(BattleSimulation sim, float simDt) {
+        OrdnanceTraceFxService traces = renderer.getOrdnanceTraceFx();
+        List<OrdnanceRelease> releases = sim.getOrdnanceReleasesThisFrame();
+        for (int i = 0, n = releases.size(); i < n; i++) {
+            OrdnanceRelease release = releases.get(i);
+            traces.spawn(release);
+            OrdnanceFxRuntime.spawnRelease(
+                    renderer.getImpactFx(), renderer.getGroundLights(), release);
+        }
+        traces.advance(simDt);
+        List<OrdnanceRelease> arrivals = traces.arrivalsThisFrame();
+        for (int i = 0, n = arrivals.size(); i < n; i++) {
+            OrdnanceFxRuntime.spawnArrival(
+                    renderer.getImpactFx(), renderer.getGroundLights(), arrivals.get(i));
+        }
+        ordnanceAudio.update(releases, arrivals, simDt);
+    }
+
     private void spawnImpactFx(BattleSimulation sim) {
         java.util.Random rng = java.util.concurrent.ThreadLocalRandom.current();
         Vector2f zeroVel = new Vector2f(0f, 0f);

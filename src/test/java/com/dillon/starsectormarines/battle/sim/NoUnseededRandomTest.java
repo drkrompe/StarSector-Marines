@@ -62,7 +62,6 @@ public class NoUnseededRandomTest {
     private static final String[] PRESENTATION_ONLY = {
             "audio/BattleRadioChatter.java",
             "combat/fx/ImpactFx.java",
-            "flyby/FlybyOverlay.java",
     };
 
     @Test

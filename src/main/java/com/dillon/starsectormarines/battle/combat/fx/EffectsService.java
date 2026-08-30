@@ -72,6 +72,13 @@ public final class EffectsService {
     private final List<float[]> fireBurstsThisFrame = new ArrayList<>();
     private final List<float[]> wallDustsThisFrame = new ArrayList<>();
     private final List<float[]> heavyImpactsThisFrame = new ArrayList<>();
+    /**
+     * Rounds released onto the ground this frame. Unlike the {@code float[]}
+     * queues above, a delivery carries a {@link OrdnanceDelivery} as well as a
+     * position, because a shell, a beam and a bomb are three different events
+     * to watch rather than one event at three sizes.
+     */
+    private final List<OrdnanceRelease> ordnanceReleasesThisFrame = new ArrayList<>();
 
     public EffectsService(Random rng) {
         this.rng = rng;
@@ -121,7 +128,7 @@ public final class EffectsService {
 
     // ---- Dust ----
 
-    /** Queues a wall-collapse dust-burst event at world cell-center {@code (cellX, cellY)}. Drained by the renderer (today: {@code FlybyOverlay}) each frame. */
+    /** Queues a wall-collapse dust-burst event at world cell-center {@code (cellX, cellY)}. Drained by the renderer into {@code ImpactFx.spawnWallCollapse} each frame. */
     public void spawnDustBurst(float cellX, float cellY) {
         wallDustsThisFrame.add(new float[]{cellX, cellY});
     }
@@ -129,6 +136,23 @@ public final class EffectsService {
     /** Queues a presentation event for an externally delivered heavy blast. */
     public void spawnHeavyImpact(float x, float y, float radius) {
         heavyImpactsThisFrame.add(new float[]{x, y, radius});
+    }
+
+    // ---- Delivered ordnance ----
+
+    /**
+     * Queues one round leaving its carrier for a point on the ground. The
+     * simulation has already resolved the delivery by the time this is called;
+     * the record exists so a host drawing the battle can show the round going
+     * out and arriving, and hear the weapon.
+     */
+    public void spawnOrdnanceRelease(OrdnanceRelease release) {
+        ordnanceReleasesThisFrame.add(release);
+    }
+
+    /** Rounds released during the last advance. Drained by the renderer per frame. */
+    public List<OrdnanceRelease> getOrdnanceReleasesThisFrame() {
+        return ordnanceReleasesThisFrame;
     }
 
     // ---- Per-frame event drains ----
@@ -149,6 +173,7 @@ public final class EffectsService {
         fireBurstsThisFrame.clear();
         wallDustsThisFrame.clear();
         heavyImpactsThisFrame.clear();
+        ordnanceReleasesThisFrame.clear();
     }
 
     // ---- Tick passes ----
