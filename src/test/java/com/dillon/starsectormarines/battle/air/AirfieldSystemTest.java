@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -141,6 +142,36 @@ class AirfieldSystemTest {
         airfield.releaseRunway(11L);
         assertFalse(airfield.runwayBusy(), "and now the next one can go");
         assertTrue(airfield.claimRunway(22L));
+    }
+
+    /**
+     * A shed is a berth, and it is not a stand.
+     *
+     * <p>The two are asked for by different callers wanting different things: a
+     * vertical-lift transport needs somewhere it can rise off, and handing it a
+     * shed would strand it there. Nothing lands in a shelter, so a shelter
+     * berth carries no landing pad at all.
+     */
+    @Test
+    void aShelterIsABerthButNeverAStand() {
+        BattleSimulation sim = openSim();
+        AirfieldService airfield = sim.getAirfieldService();
+        AirfieldService.Berth stand = berth(sim, 10, 10);
+        AirfieldService.Berth shed = airfield.addShelterBerth(
+                new Gantry(4, 4, 2, 2, Gantry.Facing.SOUTH), ShuttleType.AEROSHUTTLE);
+
+        assertEquals(AirfieldService.Kind.HARDSTAND, stand.kind);
+        assertEquals(AirfieldService.Kind.SHELTER, shed.kind);
+        assertNull(shed.pad, "nothing lands in a shed");
+        assertEquals(4, shed.centerX);
+        assertEquals(4, shed.centerY);
+
+        // A lift-off caller asking for the nearest berth gets the stand even
+        // though the shed is closer.
+        AirfieldService.Berth lift = airfield.nearestAirworthy(4.5f, 4.5f);
+        assertEquals(stand, lift, "a vertical lift was offered a shed");
+        assertEquals(shed, airfield.nearestAirworthy(4.5f, 4.5f,
+                AirfieldService.Kind.SHELTER), "asked for a shed and got something else");
     }
 
     /** A field with no strip says so rather than pretending to have one. */
