@@ -4,9 +4,10 @@
  * <p>Category: actor domain (entity + weapons + behavior/GOAP + lifecycle).
  * <br>Charter:  the mech GOAP composer ({@code GoapMechBehavior}) + its
  *           goals ({@code Mech*Goal}, {@code BackstopAssignedSquad*},
- *           {@code OverwatchKillZone*}), {@code MechCombatantBehavior} +
- *           {@code MechBreakContact}, and mech weapon config
- *           ({@code WeaponDef}, {@code MechRole}). The mech's optional
+ *           {@code OverwatchKillZone*}), per-member doctrine dispatch
+ *           ({@code ExecuteMechDoctrine}), battle-local doctrine commands,
+ *           {@code MechCombatantBehavior}, {@code MechBreakContact}, and mech
+ *           weapon config ({@code WeaponDef}, {@code MechRole}). The mech's optional
  *           loadout capability is a component, {@code MechLoadoutComponent},
  *           in the {@code components/} subpackage (per the ECS-migration
  *           component convention).

@@ -534,11 +534,7 @@ public final class MechLabViewModel {
     }
 
     private static String roleLabel(MechRole role) {
-        return switch (role) {
-            case LR_SUPPORT -> "LONG-RANGE SUPPORT";
-            case ARMORED_SUPPORT -> "ARMORED SUPPORT";
-            case ASSAULT -> "ASSAULT";
-        };
+        return role.displayName().toUpperCase(Locale.ROOT);
     }
 
     private static String number(float value) {

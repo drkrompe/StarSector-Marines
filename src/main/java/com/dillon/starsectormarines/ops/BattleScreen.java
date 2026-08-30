@@ -184,6 +184,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleHudOverlay retainedOverlay;
     /** MLX-authored 3x4 selected-squad roster with hover loadout detail. */
     private BattleSquadOverlay retainedSquadOverlay;
+    /** MLX-authored doctrine control for one exactly selected player mech. */
+    private BattleMechOverlay retainedMechOverlay;
     /** MLX-authored compact command-power deck at bottom-center. */
     private BattlePowerOverlay retainedPowerOverlay;
     /** MLX-authored, confirmation-gated battle exit at bottom-left. */
@@ -352,6 +354,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             retainedSquadOverlay.update(dt,
                     ctx != null ? ctx.getBattleSimulation() : null);
         }
+        if (retainedMechOverlay != null) {
+            retainedMechOverlay.update(dt,
+                    ctx != null ? ctx.getBattleSimulation() : null);
+        }
         if (retainedPowerOverlay != null) {
             retainedPowerOverlay.update(dt,
                     ctx != null ? ctx.getBattleSimulation() : null);
@@ -505,6 +511,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getGroundLights().clear();
         if (retainedOverlay != null) retainedOverlay.detach();
         if (retainedSquadOverlay != null) retainedSquadOverlay.detach();
+        if (retainedMechOverlay != null) retainedMechOverlay.detach();
         if (retainedPowerOverlay != null) retainedPowerOverlay.detach();
         if (retainedRetreatOverlay != null) retainedRetreatOverlay.detach();
 
@@ -624,6 +631,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             retainedSquadOverlay = new BattleSquadOverlay(selection);
         }
         retainedSquadOverlay.attach(position, sim);
+        if (retainedMechOverlay == null) {
+            retainedMechOverlay = new BattleMechOverlay(selection);
+        }
+        retainedMechOverlay.attach(position, sim);
         if (retainedPowerOverlay == null) {
             retainedPowerOverlay = new BattlePowerOverlay(
                     commandPowerTargeting::toggle,
@@ -1017,6 +1028,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // battlefield picker.
         if (retainedOverlay != null) retainedOverlay.processInput(events);
         if (retainedSquadOverlay != null) retainedSquadOverlay.processInput(events);
+        if (retainedMechOverlay != null) retainedMechOverlay.processInput(events);
         if (retainedPowerOverlay != null) retainedPowerOverlay.processInput(events);
         if (retainedRetreatOverlay != null) retainedRetreatOverlay.processInput(events);
         // HUD gets first crack after retained chrome so a click on a squad row doesn't
@@ -1153,6 +1165,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // transparent, so only the compact command surfaces touch the canvas.
         if (retainedOverlay != null) retainedOverlay.render(alphaMult);
         if (retainedSquadOverlay != null) retainedSquadOverlay.render(alphaMult);
+        if (retainedMechOverlay != null) retainedMechOverlay.render(alphaMult);
         if (retainedPowerOverlay != null) retainedPowerOverlay.render(alphaMult);
         if (retainedRetreatOverlay != null) retainedRetreatOverlay.render(alphaMult);
 

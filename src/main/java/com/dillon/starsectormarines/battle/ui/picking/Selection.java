@@ -11,10 +11,12 @@ import com.dillon.starsectormarines.battle.squad.Squad;
  * <p>Carries two related ids: a squad id (drives the whole detail-panel
  * filter) and an optional unit id within that squad. World-clicks set both
  * (you hit a specific member); HUD-row clicks set only the squad and clear
- * the unit (you picked the squad as a whole). The unit id is purely
- * diagnostic — current panels still filter on squad — but the
- * {@code SquadStateDumper} consumes it so a dump captures "which mech the
- * user was inspecting" for offline debugging of individual misbehavior.
+ * the unit (you picked the squad as a whole). Exact-member controls such as
+ * the selected-Mech doctrine plate consume the unit id, and the
+ * {@code SquadStateDumper} records it so an offline dump retains which mech
+ * the player was inspecting.
+ * Convoy-vehicle selection is mutually exclusive with both squad forms so a
+ * new world click cannot leave a stale vehicle command target behind.
  *
  * <p>Squad ids match {@link com.dillon.starsectormarines.battle.squad.Squad#id}.
  * {@link #NONE} (-1) is the sentinel for "nothing selected" — same convention
@@ -44,12 +46,14 @@ public final class Selection {
     public void selectSquad(int squadId) {
         this.selectedSquadId = squadId;
         this.selectedUnitEntityId = 0L;
+        this.selectedVehicleId = 0L;
     }
 
     /** Selects a specific unit and its parent squad. Both ids must be in sync — pass the unit's own squadId, not a guessed one. {@code unitEntityId} is the world entity id ({@code 0L} = none). */
     public void selectUnit(int squadId, long unitEntityId) {
         this.selectedSquadId = squadId;
         this.selectedUnitEntityId = unitEntityId;
+        this.selectedVehicleId = 0L;
     }
 
     public long getSelectedVehicleId() { return selectedVehicleId; }

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
+import com.dillon.starsectormarines.battle.mech.ExecuteMechDoctrine;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -20,8 +21,8 @@ import java.util.List;
  * a line and stop. It is wrong for an attack move, because the engagement goals
  * carry no memory of the destination: the squad fights, wins, and stands there.
  * This goal therefore keeps its MISSION relevance through contact and lets
- * {@link AttackMove} own the fighting, so the objective is still there
- * afterwards.
+ * {@link AttackMove} own infantry fighting, or the shared Mech doctrine
+ * dispatcher own Mech fighting, so the objective is still there afterwards.
  *
  * <p>Morale remains the escape. A squad with every fire team broken releases
  * the order like any other mission goal; a single broken team peels below the
@@ -42,9 +43,10 @@ public final class AttackMoveGoal implements Goal {
         if (assignment == null
                 || assignment.kind() != AssignmentKind.ATTACK_MOVE) return 0f;
         if (assignment.targetCellX() < 0 || assignment.targetCellY() < 0) return 0f;
-        if (state.get(Predicate.MORALE_BROKEN)) return 0f;
+        if (state.get(Predicate.MORALE_BROKEN)
+                || squad.isMechSquad() && squad.rescuePickupMech) return 0f;
         // Deliberately no HAS_TARGET release — see the class note.
-        return 0.85f;
+        return squad.isMechSquad() ? 2f : 0.85f;
     }
 
     @Override public WorldState desiredState(Squad squad, BattleView sim) {
@@ -58,6 +60,10 @@ public final class AttackMoveGoal implements Goal {
                 || assignment.kind() != AssignmentKind.ATTACK_MOVE) return null;
         int x = assignment.targetCellX();
         int y = assignment.targetCellY();
+        if (squad.isMechSquad()) {
+            return new SquadPlan(List.of(
+                    new SquadPlan.Step(ExecuteMechDoctrine.INSTANCE)));
+        }
 
         // Plan stickiness. The squad replans on every contact edge, doctrine
         // flip and casualty; re-synthesizing the same step each time would

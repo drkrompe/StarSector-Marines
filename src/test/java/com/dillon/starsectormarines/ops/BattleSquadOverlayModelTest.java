@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -19,6 +21,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleSquadOverlayModelTest {
+
+    @Test
+    void playerMechSquadUsesItsDedicatedOverlay() {
+        Squad infantry = new Squad(1, Faction.MARINE);
+        infantry.aliveMembers = 4;
+        Squad mechs = new Squad(2, Faction.MARINE);
+        mechs.aliveMembers = 2;
+        mechs.mechSquad = true;
+
+        assertTrue(BattleSquadOverlayModel.isPlayerInfantrySquad(infantry));
+        assertFalse(BattleSquadOverlayModel.isPlayerInfantrySquad(mechs));
+    }
 
     @Test
     void mlxProjectsThreeFireTeamsAndHoveredLoadout() throws Exception {
