@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.Runway;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -112,6 +113,63 @@ public final class AirfieldService {
     private static final float REFIT_REPAIR_FRACTION = 0.5f;
 
     private final List<Berth> berths = new ArrayList<>();
+    private Runway runway;
+    /** The craft currently using the strip, or {@code 0} when it is free. */
+    private long runwayOccupant;
+
+    /**
+     * Gives this field its strip. Called once at setup; a field without one
+     * flies nothing that has to roll.
+     */
+    public void installRunway(Runway runway) {
+        this.runway = runway;
+    }
+
+    /** The field's strip, or null when it has none. */
+    public Runway runway() {
+        return runway;
+    }
+
+    /** Whether anything is on the strip right now. */
+    public boolean runwayBusy() {
+        return runwayOccupant != 0L;
+    }
+
+    /** The craft on the strip, or {@code 0}. */
+    public long runwayOccupant() {
+        return runwayOccupant;
+    }
+
+    /**
+     * Takes the strip for {@code craft}, if it is free or already theirs.
+     *
+     * <p>One occupant, because two aircraft rolling down one strip is not a
+     * race the simulation should be allowed to lose — and because holding short
+     * is the thing that makes a single strip a bottleneck worth attacking. Idempotent
+     * for the holder so a state that re-asserts its claim every tick does not
+     * have to remember whether it already has it.
+     *
+     * @return whether {@code craft} now holds the strip
+     */
+    public boolean claimRunway(long craft) {
+        if (craft == 0L) return false;
+        if (runwayOccupant == craft) return true;
+        if (runwayOccupant != 0L) return false;
+        runwayOccupant = craft;
+        return true;
+    }
+
+    /**
+     * Gives the strip back.
+     *
+     * <p>Ignores a caller that does not hold it, so a craft that is torn down
+     * mid-procedure can release unconditionally without first checking whether
+     * it got that far. A strip left claimed by a craft that no longer exists
+     * would close the field for the rest of the battle.
+     */
+    public void releaseRunway(long craft) {
+        if (runwayOccupant == craft) runwayOccupant = 0L;
+    }
 
     /** Registers one hardstand and the aircraft based on it. Called once at setup. */
     public Berth addBerth(LandingPad pad, ShuttleType type, float facingDegrees) {

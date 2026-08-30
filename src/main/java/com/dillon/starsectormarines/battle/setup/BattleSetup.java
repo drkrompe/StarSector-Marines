@@ -1606,6 +1606,12 @@ public final class BattleSetup {
             sim.getAirfieldService().addBerth(pad, ShuttleMeans.SORTIE_TYPE,
                     AirBody.facingToward(pad.approach.dx, pad.approach.dy));
         }
+        // The strip, if the map laid one. A field takes the first: a battle has
+        // one garrison airfield, and a second strip would belong to a second
+        // field this service does not yet model.
+        if (!map.runways.isEmpty()) {
+            sim.getAirfieldService().installRunway(map.runways.get(0));
+        }
     }
 
     /**
