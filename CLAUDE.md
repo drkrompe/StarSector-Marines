@@ -123,7 +123,11 @@ Do not run builds or leave generated task files there.
   exercising columns carrying the crew's off-watch time instead; see
   `CrewLivelinessEvidence` for why the dead count as idle.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
-  `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
+  `build/snapshots/` without launching Starsector or creating an OpenGL context.
+  It reads art from `mod/` first and the installed game second — the game's own
+  order — so vanilla-sourced sprites such as aircraft hulls appear in headless
+  frames. The install is already required to build at all (`starsectorDir`), and
+  a suite degrades to not drawing those sprites if it is missing. Select
   suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,perception-sweep,point-defence,ship-decks,turrets,ui`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
