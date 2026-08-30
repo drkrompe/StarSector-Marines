@@ -55,6 +55,10 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.CameraControls;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
+import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
+import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
+import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
+import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
@@ -212,6 +216,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final BattleSprites sprites = new BattleSprites();
     /** World-layer render pipeline — owns tile batches, FX systems, and all render/draw methods. */
     private final BattleRenderer renderer = new BattleRenderer(sprites);
+    /** Weapon and impact cues for rounds an aircraft delivers onto the ground. */
+    private final OrdnanceAudio ordnanceAudio = new OrdnanceAudio();
     /**
      * Real-time {@code dt} from the most recent {@link #advance} call. Passed
      * into {@link com.dillon.starsectormarines.ops.battleview.RenderContext} so
@@ -444,6 +450,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getImpactFx().spawnAmbientFire(burst[0], burst[1], burst[2]);
             renderer.getGroundLights().spawnFire(burst[0], burst[1], burst[2]);
         }
+        driveOrdnanceFx(sim, dt * speedMultiplier);
         renderer.getImpactFx().advance(dt * speedMultiplier);
         renderer.getGroundLights().advance(dt * speedMultiplier);
         renderer.getGroundLights().syncBoltLights(sim.getActiveShots());
@@ -856,6 +863,35 @@ public class BattleScreen implements Screen, BattleUiContext {
      * stay silent — the fire SFX already covers them and a second clip per shot
      * is sonic clutter.
      */
+    /**
+     * Rounds an aircraft put on the ground during the last tick: the flash and
+     * the weapon at the muzzle now, the round drawn on its way down, and the
+     * crater and the crump when it actually gets there.
+     *
+     * <p>Release and arrival are separate moments on purpose. The simulation
+     * resolved the delivery the instant the round left, but a bomb falls for a
+     * third of a second, and an explosion that precedes its own bomb is worse
+     * than no explosion at all. {@link OrdnanceTraceFxService} holds the round
+     * in between and says when it landed.
+     */
+    private void driveOrdnanceFx(BattleSimulation sim, float simDt) {
+        OrdnanceTraceFxService traces = renderer.getOrdnanceTraceFx();
+        List<OrdnanceRelease> releases = sim.getOrdnanceReleasesThisFrame();
+        for (int i = 0, n = releases.size(); i < n; i++) {
+            OrdnanceRelease release = releases.get(i);
+            traces.spawn(release);
+            OrdnanceFxRuntime.spawnRelease(
+                    renderer.getImpactFx(), renderer.getGroundLights(), release);
+        }
+        traces.advance(simDt);
+        List<OrdnanceRelease> arrivals = traces.arrivalsThisFrame();
+        for (int i = 0, n = arrivals.size(); i < n; i++) {
+            OrdnanceFxRuntime.spawnArrival(
+                    renderer.getImpactFx(), renderer.getGroundLights(), arrivals.get(i));
+        }
+        ordnanceAudio.update(releases, arrivals, simDt);
+    }
+
     private void spawnImpactFx(BattleSimulation sim) {
         java.util.Random rng = java.util.concurrent.ThreadLocalRandom.current();
         Vector2f zeroVel = new Vector2f(0f, 0f);

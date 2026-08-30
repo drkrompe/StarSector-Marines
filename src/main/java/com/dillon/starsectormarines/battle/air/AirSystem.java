@@ -1320,6 +1320,9 @@ public class AirSystem {
         float impactX = aimX + (float) rng.nextGaussian() * load.scatterCells;
         float impactY = aimY + (float) rng.nextGaussian() * load.scatterCells;
 
+        effects.spawnOrdnanceRelease(AirOrdnanceDelivery.release(
+                id, load, body, nose, impactX, impactY, world.airFaction(id)));
+
         detonations.detonateNow(new PendingDetonation(
                 id, impactX, impactY, /*remainingTime*/ 0f,
                 load.aoeRadiusCells, load.damage, load.penetration,

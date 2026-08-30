@@ -444,6 +444,59 @@
 
 #collapseclose
 
+#collapseopen AIR ORDNANCE SFX
+
+	# What an aircraft on an attack run sounds like. One cue per kind of delivery
+	# (OrdnanceDelivery / OrdnanceFx), never per hull: a rotary cannon, a beam and
+	# a stick of bombs are three different weapons and have to be told apart with
+	# your eyes shut.
+	#
+	# Every clip points straight at the base game's own file rather than shipping a
+	# copy. The mod is a public release and ships only original or permissively
+	# licensed audio; an id registered against the read-only core install
+	# redistributes nothing. Same trick as the vehicle engine loops and the flyby
+	# weapon block above.
+	#
+	# All of these are mono, so playSound / playLoop place them in the world. A
+	# stereo clip here would be silently non-positional.
+	#
+	# OrdnanceCueGate thins the fire cues: the cannon releases 14 rounds a second
+	# and the beam 24, so volumes below are for ONE audible cue in a thinned burst,
+	# not for one round.
+
+	# --- rotary cannon: the gun run itself ---
+	"marines_air_gun_run":[
+		{"file":"sounds/sfx_wpn_guns/chaingun_fire_01.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/sfx_wpn_guns/heavy_machinegun_fire_01.ogg","pitch":1,"volume":1.0},
+	],
+	# Rounds walking across the ground: dirt and secondary crumps, not explosions.
+	"marines_air_gun_impact":[
+		{"file":"sounds/sfx_impacts/explosion_secondary_01.ogg","pitch":1,"volume":0.8},
+		{"file":"sounds/sfx_impacts/explosion_secondary_02.ogg","pitch":1,"volume":0.8},
+		{"file":"sounds/sfx_impacts/explosion_secondary_03.ogg","pitch":1,"volume":0.8},
+	],
+
+	# --- beam: one held tone for as long as it is being dragged ---
+	"marines_air_beam_loop":[
+		{"file":"sounds/sfx_wpn_energy/ion_beam_loop.ogg","pitch":1,"volume":0.9},
+	],
+	"marines_air_beam_impact":[
+		{"file":"sounds/sfx_impacts/beam_hit_01.ogg","pitch":1,"volume":0.6},
+		{"file":"sounds/sfx_impacts/beam_hit_02.ogg","pitch":1,"volume":0.6},
+		{"file":"sounds/sfx_impacts/beam_hit_03.ogg","pitch":1,"volume":0.6},
+	],
+
+	# --- bombs: the rack letting go, and the stick arriving ---
+	"marines_air_bomb_release":[
+		{"file":"sounds/sfx_wpn_guns/bomb_bay_fire_01.ogg","pitch":1,"volume":0.9},
+	],
+	"marines_air_bomb_impact":[
+		{"file":"sounds/sfx_impacts/explosion_01.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/sfx_impacts/explosion_04.ogg","pitch":1,"volume":1.0},
+	],
+
+#collapseclose
+
 #collapseopen INTEGRAL ARMOUR SYSTEM SFX
 
 	# One positional cue per spend of a suit's integral system, played by
