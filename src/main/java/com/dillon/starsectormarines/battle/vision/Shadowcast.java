@@ -30,6 +30,22 @@ public final class Shadowcast {
      */
     public static int castFrom(NavigationGrid grid, int sx, int sy, int range,
                                 float airLosRadius, int[] out, int outOffset) {
+        return castFrom(grid, sx, sy, range, airLosRadius, out, outOffset, false);
+    }
+
+    /**
+     * Counterfactual presentation cast through transient smoke while retaining
+     * every permanent wall and the observer's ordinary air-clearance rule.
+     */
+    public static int castFromIgnoringTransientOpacity(
+            NavigationGrid grid, int sx, int sy, int range,
+            float airLosRadius, int[] out, int outOffset) {
+        return castFrom(grid, sx, sy, range, airLosRadius, out, outOffset, true);
+    }
+
+    private static int castFrom(NavigationGrid grid, int sx, int sy, int range,
+                                float airLosRadius, int[] out, int outOffset,
+                                boolean ignoreTransientOpacity) {
         int w = grid.getWidth();
         int h = grid.getHeight();
         float airR2 = airLosRadius * airLosRadius;
@@ -42,7 +58,7 @@ public final class Shadowcast {
         for (int octant = 0; octant < 8; octant++) {
             count = scanOctant(grid, sx, sy, w, h, range, airR2,
                     octant, 1, 0.0f, 1.0f,
-                    out, outOffset, count);
+                    out, outOffset, count, ignoreTransientOpacity);
         }
         return count;
     }
@@ -51,7 +67,8 @@ public final class Shadowcast {
                                    int w, int h, int range, float airR2,
                                    int octant, int row,
                                    float startSlope, float endSlope,
-                                   int[] out, int outOffset, int count) {
+                                   int[] out, int outOffset, int count,
+                                   boolean ignoreTransientOpacity) {
         if (startSlope >= endSlope) return count;
 
         for (int r = row; r <= range; r++) {
@@ -90,7 +107,8 @@ public final class Shadowcast {
                 float leftSlope  = (col - 0.5f) / r;
                 float rightSlope = (col + 0.5f) / r;
 
-                boolean opaque = isOpaque(grid, cx, cy, sx, sy, airR2);
+                boolean opaque = isOpaque(grid, cx, cy, sx, sy, airR2,
+                        ignoreTransientOpacity);
 
                 if (!opaque) {
                     out[outOffset + count++] = grid.index(cx, cy);
@@ -107,7 +125,7 @@ public final class Shadowcast {
                     blocked = true;
                     count = scanOctant(grid, sx, sy, w, h, range, airR2,
                             octant, r + 1, startSlope, leftSlope,
-                            out, outOffset, count);
+                            out, outOffset, count, ignoreTransientOpacity);
                     newStart = rightSlope;
                 }
             }
@@ -118,9 +136,11 @@ public final class Shadowcast {
     }
 
     private static boolean isOpaque(NavigationGrid grid, int cx, int cy,
-                                     int sx, int sy, float airR2) {
-        if (!grid.blocksLineOfSight(cx, cy)) return false;
-        if (grid.hasTransientOpacity(cx, cy)) return true;
+                                     int sx, int sy, float airR2,
+                                     boolean ignoreTransientOpacity) {
+        int idx = grid.index(cx, cy);
+        if (!ignoreTransientOpacity && grid.hasTransientOpacityAt(idx)) return true;
+        if (!grid.blocksStructuralLineOfSightAt(idx)) return false;
         if (airR2 <= 0f) return true;
         float dx = cx - sx;
         float dy = cy - sy;

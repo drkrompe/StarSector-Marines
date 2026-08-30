@@ -4,7 +4,7 @@ Status: ACTIVE — shared observation composes current player visibility across 
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — recorded the half-strength fog shadow that identifies unrevealed smoke cells without changing observation or unit visibility.
+Updated: 2026-08-30 — bounded the half-strength smoke shadow to cells current player observation would reveal in clear air.
 
 Read `stories.md` for open work.
 
@@ -149,11 +149,16 @@ including stationary contributors, so player reveal reflects the same
 occlusion. It must not maintain a private smoke list or grant the player a
 different view through the cloud than battle AI receives.
 
-The cloud itself remains a visible world effect above the fog overlay. On an
-unrevealed smoke cell, that overlay uses half its ordinary opacity so the muted
-terrain silhouette and brighter cloud identify the obscurant together. The
-cell remains unrevealed and hostile actors remain hidden. Smoke explains why
-sight stops; it is not another observation source.
+The cloud itself remains a visible world effect above the fog overlay. Fog
+maintains a presentation-only clear-air footprint from the same current
+contributors and temporary sources, using the same ranges and structural sight
+rules while ignoring transient smoke opacity. Where clear air would reveal a
+cell but actual observation does not, the overlay uses half its ordinary
+opacity so the muted terrain silhouette and brighter cloud identify the
+obscurant together. Smoke outside that footprint remains under ordinary fog.
+In both cases the actual cell remains unrevealed and hostile actors remain
+hidden: the counterfactual footprint drives no roof, unit, radio, or gameplay
+decision.
 
 That occlusion is a sight rule and stops there. A cloud denies perception, fog
 reveal, and fresh target acquisition, but it does not gate direct fire — see
