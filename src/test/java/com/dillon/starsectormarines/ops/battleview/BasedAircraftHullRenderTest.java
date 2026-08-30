@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.AirfieldSystem;
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -17,7 +18,8 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,12 +66,12 @@ class BasedAircraftHullRenderTest {
                     case "toString" -> "hull";
                     default -> null;
                 });
-        EnumMap<ShuttleType, ShuttleSpriteCache> loaded = new EnumMap<>(ShuttleType.class);
+        Map<Airframe, ShuttleSpriteCache> loaded = new LinkedHashMap<>();
         loaded.put(ShuttleType.AEROSHUTTLE, new ShuttleSpriteCache(
                 token, HULL_PX_W / (float) HULL_PX_H, HULL_PX_W, HULL_PX_H));
         return new BattleSprites() {
             @Override
-            public EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites() {
+            public Map<Airframe, ShuttleSpriteCache> airframeSprites() {
                 return loaded;
             }
         };

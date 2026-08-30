@@ -45,7 +45,7 @@ import java.util.List;
  * Where each turret <em>sits</em> comes from the hull's real {@code weaponSlots}
  * ({@link com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver}).
  */
-public enum ShuttleType implements AirHandling {
+public enum ShuttleType implements AirHandling, Airframe {
 
     // Employer's default — Aeroshuttle isn't normally a player fleet member
     // (it's a drone wing in vanilla), so leaving its match list empty here
@@ -173,9 +173,13 @@ public enum ShuttleType implements AirHandling {
      * hull and there's no {@code aeroshuttle.ship}, but it renders Kite's sprite
      * at Kite's size — so it borrows {@code "kite"}.
      */
+    @Override
     public String renderHullId() {
         return matchingHullIds.isEmpty() ? "kite" : matchingHullIds.get(0);
     }
+
+    @Override public String spritePath()              { return spritePath; }
+    @Override public float maxHp()                    { return maxHp; }
 
     @Override public float maxSpeed()                 { return maxSpeed; }
     @Override public float accel()                    { return handling.accel; }
