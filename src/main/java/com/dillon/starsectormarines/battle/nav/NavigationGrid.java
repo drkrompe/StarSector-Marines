@@ -932,23 +932,32 @@ public class NavigationGrid {
         float tDeltaY = stepY == 0 ? Float.POSITIVE_INFINITY : Math.abs(1f / dy);
         float nextBoundaryX = stepX > 0 ? x + 1f : x;
         float nextBoundaryY = stepY > 0 ? y + 1f : y;
-        float tMaxX = stepX == 0 ? Float.POSITIVE_INFINITY
+        // Axes retire at their end cell for the same reason firstBlockOnLine
+        // retires them: without it a boundary-exact endpoint sends the walk
+        // off-grid forever.
+        float tMaxX = stepX == 0 || x == endX ? Float.POSITIVE_INFINITY
                 : (nextBoundaryX - x0) / dx;
-        float tMaxY = stepY == 0 ? Float.POSITIVE_INFINITY
+        float tMaxY = stepY == 0 || y == endY ? Float.POSITIVE_INFINITY
                 : (nextBoundaryY - y0) / dy;
 
+        int budget = Math.abs(endX - x) + Math.abs(endY - y);
+
         while (x != endX || y != endY) {
+            if (--budget < 0) {
+                throw new IllegalStateException("Smoke walk overran its cell span: "
+                        + x0 + "," + y0 + " -> " + x1 + "," + y1);
+            }
             if (tMaxX < tMaxY) {
                 x += stepX;
-                tMaxX += tDeltaX;
+                tMaxX = x == endX ? Float.POSITIVE_INFINITY : tMaxX + tDeltaX;
             } else if (tMaxY < tMaxX) {
                 y += stepY;
-                tMaxY += tDeltaY;
+                tMaxY = y == endY ? Float.POSITIVE_INFINITY : tMaxY + tDeltaY;
             } else {
                 x += stepX;
                 y += stepY;
-                tMaxX += tDeltaX;
-                tMaxY += tDeltaY;
+                tMaxX = x == endX ? Float.POSITIVE_INFINITY : tMaxX + tDeltaX;
+                tMaxY = y == endY ? Float.POSITIVE_INFINITY : tMaxY + tDeltaY;
             }
             if (hasTransientOpacity(x, y)) depth++;
         }
@@ -1178,19 +1187,40 @@ public class NavigationGrid {
         float tDeltaY = stepY == 0 ? Float.POSITIVE_INFINITY : Math.abs(1f / dy);
         float nextBoundaryX = stepX > 0 ? x + 1f : x;
         float nextBoundaryY = stepY > 0 ? y + 1f : y;
-        float tMaxX = stepX == 0 ? Float.POSITIVE_INFINITY
+        // An axis that has already reached its end cell is retired to
+        // infinity so it can never step again: the segment stops inside
+        // (endX, endY), so a further step on that axis leaves the segment
+        // entirely. Without it the walk is only bounded by the two axes
+        // arriving on the same iteration, which an endpoint sitting exactly
+        // on a cell boundary breaks — that crossing falls at t == 1, the
+        // walk takes it, and since both axes step monotonically the end cell
+        // can never be reached again. The traversal ran away off-grid
+        // forever. See NavigationGridRayWalkTest.
+        float tMaxX = stepX == 0 || x == endX ? Float.POSITIVE_INFINITY
                 : (nextBoundaryX - x0) / dx;
-        float tMaxY = stepY == 0 ? Float.POSITIVE_INFINITY
+        float tMaxY = stepY == 0 || y == endY ? Float.POSITIVE_INFINITY
                 : (nextBoundaryY - y0) / dy;
 
+        // Every iteration closes at least one cell of the walk's manhattan
+        // span, so the span is an exact iteration bound. Exceeding it means a
+        // step left the segment, which is unrecoverable: both axes advance
+        // monotonically, so the end cell can never be reached again and the
+        // walk runs off the grid forever. That froze a whole battle once, so
+        // it is loud now.
+        int budget = Math.abs(endX - x) + Math.abs(endY - y);
+
         while (x != endX || y != endY) {
+            if (--budget < 0) {
+                throw new IllegalStateException("Ray walk overran its cell span: "
+                        + x0 + "," + y0 + " -> " + x1 + "," + y1);
+            }
             if (tMaxX < tMaxY) {
                 x += stepX;
-                tMaxX += tDeltaX;
+                tMaxX = x == endX ? Float.POSITIVE_INFINITY : tMaxX + tDeltaX;
                 if (blocksRayCell(x, y, endX, endY, excludeEnd)) return packCell(x, y);
             } else if (tMaxY < tMaxX) {
                 y += stepY;
-                tMaxY += tDeltaY;
+                tMaxY = y == endY ? Float.POSITIVE_INFINITY : tMaxY + tDeltaY;
                 if (blocksRayCell(x, y, endX, endY, excludeEnd)) return packCell(x, y);
             } else {
                 // At an exact corner the zero-width segment enters only the
@@ -1199,8 +1229,8 @@ public class NavigationGrid {
                 // preserves diagonal fire through a one-cell doorway corner.
                 x += stepX;
                 y += stepY;
-                tMaxX += tDeltaX;
-                tMaxY += tDeltaY;
+                tMaxX = x == endX ? Float.POSITIVE_INFINITY : tMaxX + tDeltaX;
+                tMaxY = y == endY ? Float.POSITIVE_INFINITY : tMaxY + tDeltaY;
                 if (blocksRayCell(x, y, endX, endY, excludeEnd)) return packCell(x, y);
             }
         }
