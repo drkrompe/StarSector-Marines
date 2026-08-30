@@ -1,4 +1,4 @@
-<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply">
+<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,issuableFilter,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply">
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
     <div id="equipment-picker-tabs">
       <div id="equipment-picker-heading" class="label heading tone-edge">LOADOUTS</div>
@@ -8,9 +8,12 @@
 
     <div id="loadout-browser-tools">
       <div id="loadout-browser-summary" class="label tone-edge">{loadoutBrowserSummary}</div>
-      <div id="loadout-filter-list">
-        <button each="filter in loadoutFilters" key="{filter.id}" id="{filter.id}" class="{filter.classes}" onclick="{filter.select}">{filter.label}</button>
-      </div>
+      <div id="loadout-browser-order" class="label tone-muted">Strongest first</div>
+      <button id="{issuableFilter.id}" class="{issuableFilter.classes}" onclick="{issuableFilter.select}">{issuableFilter.label}</button>
+    </div>
+
+    <div id="loadout-filter-list">
+      <button each="filter in loadoutFilters" key="{filter.id}" id="{filter.id}" class="{filter.classes}" onclick="{filter.select}">{filter.label}</button>
     </div>
 
     <div id="weapon-doctrine-slot" class="{weaponPickerPanelClasses}">
@@ -19,6 +22,7 @@
         <button each="tile in weaponDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
           <div id="{tile.headerId}" class="doctrine-header">
             <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
+            <div id="{tile.ratingId}" class="{tile.ratingClasses}">{tile.ratingLabel}</div>
             <div id="{tile.rarityId}" class="{tile.rarityClasses}">{tile.rarity}</div>
           </div>
           <div id="{tile.metadataRowId}" class="doctrine-metadata-row">
@@ -39,6 +43,7 @@
         <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
           <div id="{tile.headerId}" class="doctrine-header">
             <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
+            <div id="{tile.ratingId}" class="{tile.ratingClasses}">{tile.ratingLabel}</div>
             <div id="{tile.rarityId}" class="{tile.rarityClasses}">{tile.rarity}</div>
           </div>
           <div id="{tile.metadataRowId}" class="doctrine-metadata-row">
@@ -68,10 +73,13 @@
   .equipment-picker-tab { width: 190px; padding: 4px 8px; border-width: 1px; font-family: body; text-align: center; }
   .equipment-picker-tab.selected { background-color: #345a7c; border-color: #53c6e8; color: #d5deea; }
 
-  #loadout-browser-tools { flex-direction: row; height: 30px; gap: 5px; }
-  #loadout-browser-summary { width: 76px; padding: 5px 2px; }
-  #loadout-filter-list { flex-direction: row; width: 0px; flex-grow: 1; gap: 3px; }
-  .loadout-filter { width: 0px; height: 28px; flex-grow: 1; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
+  #loadout-browser-tools { flex-direction: row; height: 26px; gap: 5px; }
+  #loadout-browser-summary { width: 84px; padding: 4px 2px; }
+  #loadout-browser-order { width: 0px; flex-grow: 1; padding: 4px 2px; }
+  #loadout-filter-list { flex-direction: row; height: 28px; gap: 3px; }
+  .loadout-filter { width: 0px; height: 26px; flex-grow: 1; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
+  .supply-filter { width: 132px; height: 26px; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
+  .supply-filter.selected { background-color: #345a7c; border-color: #53c6e8; color: #d5deea; }
   .loadout-filter.selected { background-color: #345a7c; border-color: #53c6e8; color: #d5deea; }
 
   .doctrine-slot { flex-direction: column; height: 0px; flex-grow: 1; padding: 4px; gap: 3px; border-width: 1px; overflow: hidden; }
@@ -89,6 +97,10 @@
   .doctrine-tile.selected { background-color: #345a7c; border-color: #f2cf68; }
   .doctrine-header, .doctrine-metadata-row { flex-direction: row; height: 18px; gap: 5px; }
   .doctrine-name, .doctrine-metadata { width: 0px; flex-grow: 1; }
+  .doctrine-rating { width: 78px; padding: 1px 4px; border-width: 1px; text-align: center; }
+  .doctrine-rating.rating-low { color: #b4c0ce; border-color: #607188; }
+  .doctrine-rating.rating-mid { color: #7fb2d8; border-color: #4c7fa6; }
+  .doctrine-rating.rating-high { color: #8fd6a6; border-color: #4f9c6b; }
   .doctrine-rarity { width: 74px; padding: 1px 4px; border-width: 1px; text-align: center; }
   .doctrine-rarity.rarity-common { color: #b4c0ce; border-color: #607188; }
   .doctrine-rarity.rarity-uncommon { color: #70d9f4; border-color: #53c6e8; }
