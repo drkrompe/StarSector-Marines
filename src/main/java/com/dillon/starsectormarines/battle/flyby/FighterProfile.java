@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.flyby;
 
+import com.dillon.starsectormarines.battle.air.AirHandling;
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.air.engine.HullKinematicsResolver;
 
 import java.awt.Color;
 import java.util.Arrays;
@@ -183,6 +185,13 @@ public enum FighterProfile implements Airframe {
      * borrow a match id, every profile here names the hull its sprite is.
      */
     @Override public String renderHullId() { return hullId; }
+
+    /**
+     * Off the hull's own maneuver spec, so an interceptor and a bomber fly
+     * differently without either being tuned. Degrades to a flyable mid-tier
+     * profile when there is no game to read a spec out of.
+     */
+    @Override public AirHandling flight() { return HullKinematicsResolver.resolve(hullId); }
 
     @Override public float maxHp() { return parkedHp; }
 

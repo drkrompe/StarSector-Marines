@@ -1,14 +1,17 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -148,6 +151,137 @@ class RunwayProcedureTest {
             assertEquals(ShuttleState.TAKEOFF_ROLL,
                     leaving(sim, secondMission, ShuttleState.HOLDING_SHORT),
                     "the strip never came free");
+        }
+    }
+
+    /**
+     * The whole round trip, driven by nothing but the clock: out of the shed,
+     * down the strip, out to the objective, home, down, and back in the shed.
+     *
+     * <p>The three tests above each set a phase and watch one handoff. This
+     * one sets none after dispatch, which is the only way to catch the leg
+     * that was missing: a craft that had rolled off a strip still flew its
+     * egress to an off-map exit and was written home from there, so the
+     * landing procedure existed and nothing ever entered it.
+     */
+    @Test
+    void aSortieFlownOffTheStripComesHomeToIt() {
+        try (BattleSimulation sim = openSimulation()) {
+            AirfieldService airfield = sim.getAirfieldService();
+            AirfieldService.Berth shed = airfield.addShelterBerth(
+                    new Gantry((int) SHELTER_X, (int) SHELTER_Y, 2, 2, Gantry.Facing.SOUTH),
+                    ShuttleType.AEROSHUTTLE);
+            long craft = sim.spawnShuttle(ShuttleType.AEROSHUTTLE, Faction.DEFENDER,
+                    50.5f, 30.5f, SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f, 1);
+            ShuttleMission mission = sim.world().mission(craft);
+            mission.homeBerth = shed;
+            mission.hp = airfield.launch(shed);
+            mission.departFromRunway(STRIP, SHELTER_X, SHELTER_Y, 50.5f, 30.5f);
+            sim.world().kinematics(craft).teleport(SHELTER_X, SHELTER_Y, 0f);
+
+            // Every phase in order, each waited for rather than counted out.
+            assertEquals(ShuttleState.HOLDING_SHORT, leaving(sim, mission, ShuttleState.TAXI_OUT));
+            assertEquals(ShuttleState.TAKEOFF_ROLL, leaving(sim, mission, ShuttleState.HOLDING_SHORT));
+            assertEquals(ShuttleState.INCOMING, leaving(sim, mission, ShuttleState.TAKEOFF_ROLL));
+            assertEquals(ShuttleState.LANDED, leaving(sim, mission, ShuttleState.INCOMING));
+
+            // The leg that was missing. One passenger down and nothing to
+            // loiter with, so the craft turns for home as soon as it is empty.
+            assertEquals(ShuttleState.RETURNING, leaving(sim, mission, ShuttleState.LANDED),
+                    "flew off to an off-map exit instead of coming home");
+            assertTrue(sim.world().kinematics(craft).distanceTo(40.5f, 6.5f) > 2f,
+                    "already at the threshold before the approach started");
+
+            assertEquals(ShuttleState.LANDING_ROLL, leaving(sim, mission, ShuttleState.RETURNING),
+                    "never got down on the strip");
+            assertEquals(craft, airfield.runwayOccupant(),
+                    "rolling out without holding the strip");
+            assertEquals(ShuttleState.TAXI_IN, leaving(sim, mission, ShuttleState.LANDING_ROLL));
+            assertEquals(ShuttleState.GONE, leaving(sim, mission, ShuttleState.TAXI_IN));
+
+            assertFalse(airfield.runwayBusy(), "left the strip claimed behind it");
+            assertEquals(AirfieldService.BerthState.REFITTING, shed.state,
+                    "came home and the shed does not have it back");
+        }
+    }
+
+    /**
+     * A fighter is an aircraft the air system can fly.
+     *
+     * <p>Slice 4b made a berth able to <em>keep</em> one — parked, drawn, shot
+     * at, wrecked — while the air entity was still a {@code ShuttleType},
+     * so the same hull could stand in a shed and not take off from it. This
+     * flies a Broadsword through the whole ground procedure to show the two
+     * halves now meet.
+     *
+     * <p>Its handling comes off its own hull spec rather than an authored
+     * tier, which with no game to read a spec out of resolves to the flyable
+     * fallback — that is the point of the fallback, and the procedure has to
+     * run on it.
+     */
+    @Test
+    void aFighterFliesTheSameProcedureAsATransport() {
+        try (BattleSimulation sim = openSimulation()) {
+            AirfieldService airfield = sim.getAirfieldService();
+            AirfieldService.Berth shed = airfield.addShelterBerth(
+                    new Gantry((int) SHELTER_X, (int) SHELTER_Y, 2, 2, Gantry.Facing.SOUTH),
+                    FighterProfile.BROADSWORD);
+            long fighter = sim.spawnSortie(FighterProfile.BROADSWORD, Faction.DEFENDER,
+                    50.5f, 30.5f, SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f);
+            ShuttleMission mission = sim.world().mission(fighter);
+            mission.homeBerth = shed;
+            mission.hp = airfield.launch(shed);
+            mission.departFromRunway(STRIP, SHELTER_X, SHELTER_Y, 50.5f, 30.5f);
+            sim.world().kinematics(fighter).teleport(SHELTER_X, SHELTER_Y, 0f);
+
+            assertSame(FighterProfile.BROADSWORD, sim.world().airframe(fighter),
+                    "the air entity is not the airframe it was launched as");
+
+            assertEquals(ShuttleState.HOLDING_SHORT, leaving(sim, mission, ShuttleState.TAXI_OUT));
+            assertEquals(ShuttleState.TAKEOFF_ROLL, leaving(sim, mission, ShuttleState.HOLDING_SHORT));
+            assertEquals(ShuttleState.INCOMING, leaving(sim, mission, ShuttleState.TAKEOFF_ROLL),
+                    "a fighter never got off the strip");
+            assertEquals(ShuttleState.LANDED, leaving(sim, mission, ShuttleState.INCOMING));
+            assertEquals(ShuttleState.RETURNING, leaving(sim, mission, ShuttleState.LANDED));
+            assertEquals(ShuttleState.LANDING_ROLL, leaving(sim, mission, ShuttleState.RETURNING));
+            assertEquals(ShuttleState.TAXI_IN, leaving(sim, mission, ShuttleState.LANDING_ROLL));
+            assertEquals(ShuttleState.GONE, leaving(sim, mission, ShuttleState.TAXI_IN));
+
+            assertEquals(AirfieldService.BerthState.REFITTING, shed.state,
+                    "a fighter came home and its shed does not have it back");
+        }
+    }
+
+    /**
+     * An aircraft on approach does not land on a strip somebody else is using.
+     */
+    @Test
+    void aReturningAircraftWaitsForTheStrip() {
+        try (BattleSimulation sim = openSimulation()) {
+            AirfieldService airfield = sim.getAirfieldService();
+            long departing = inTheShed(sim, 55.5f, 30.5f);
+            long homebound = inTheShed(sim, 55.5f, 30.5f);
+            ShuttleMission returning = sim.world().mission(homebound);
+            returning.landOnRunway(STRIP, 55.5f, 30.5f, SHELTER_X, SHELTER_Y);
+            float[] touchdown = STRIP.touchdownThreshold(55.5f, 30.5f);
+            returning.exitX = touchdown[0];
+            returning.exitY = touchdown[1];
+            returning.state = ShuttleState.RETURNING;
+            sim.world().kinematics(homebound).teleport(touchdown[0], touchdown[1], 0f);
+            // Somebody else already has it.
+            airfield.claimRunway(departing);
+
+            advance(sim, 60);
+
+            assertEquals(ShuttleState.RETURNING, returning.state,
+                    "landed on an occupied strip");
+            assertEquals(departing, airfield.runwayOccupant());
+
+            // Once the strip is free it goes down.
+            airfield.releaseRunway(departing);
+            assertEquals(ShuttleState.LANDING_ROLL,
+                    leaving(sim, returning, ShuttleState.RETURNING),
+                    "the strip came free and nothing landed on it");
         }
     }
 

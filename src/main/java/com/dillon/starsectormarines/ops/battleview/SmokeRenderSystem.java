@@ -11,6 +11,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 public final class SmokeRenderSystem implements RenderSystem {
 
     private static final int PUFF_COUNT = 9;
+    private static final float FOGGED_ALPHA_MULTIPLIER = 1.75f;
     private final BattleSprites sprites;
     private final SpecialEquipmentDef equipment;
 
@@ -68,6 +69,10 @@ public final class SmokeRenderSystem implements RenderSystem {
                 float rate = recipe.framesPerSecond() * (0.75f + 0.5f * hash01(field.id() + 61, i));
                 float cycle = elapsed * rate + hash01(field.id() + 79, i) * recipe.frameCount();
                 int frame = recipe.firstFrame() + pingPong((int) cycle, recipe.frameCount());
+                boolean revealed = ctx.sim.getFogOfWar().isCellRevealed(
+                        (int) Math.floor(x), (int) Math.floor(y));
+                float puffAlpha = alphaForVisibility(
+                        alpha * (i == 0 ? 0.72f : 0.48f), revealed);
                 out.addSheetQuad(RenderLayer.SMOKE, fieldSheet,
                         (frame % recipe.columns()) * framePxW,
                         (frame / recipe.columns()) * framePxH,
@@ -76,9 +81,19 @@ public final class SmokeRenderSystem implements RenderSystem {
                         diameter, diameter,
                         hash01(field.id() + 47, i) * 360f,
                         recipe.tintRed(), recipe.tintGreen(), recipe.tintBlue(),
-                        alpha * (i == 0 ? 0.72f : 0.48f));
+                        puffAlpha);
             }
         }
+    }
+
+    /**
+     * Fog already paints before smoke, but its near-black field makes the
+     * translucent flipbook difficult to read at its ordinary opacity. A
+     * fogged puff receives presentation-only contrast without revealing the
+     * terrain or actors beneath it, and still obeys the field's fade envelope.
+     */
+    static float alphaForVisibility(float alpha, boolean revealed) {
+        return revealed ? alpha : Math.min(1f, alpha * FOGGED_ALPHA_MULTIPLIER);
     }
 
     /**

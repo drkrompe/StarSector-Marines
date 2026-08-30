@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.air.engine;
 
-import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -75,8 +75,8 @@ public final class EngineSlotResolver {
      * the {@code kite} sprite at {@code kite}'s footprint, so it borrows
      * {@code kite}'s engine slots too. Types with no render hull return empty.
      */
-    public static EngineSlotData[] resolve(ShuttleType type) {
-        String hullId = type.renderHullId();
+    public static EngineSlotData[] resolve(Airframe airframe) {
+        String hullId = airframe.renderHullId();
         if (hullId == null || hullId.isEmpty()) return EMPTY;
         return resolve(hullId, HullFootprintResolver.visualLengthCells(hullId));
     }

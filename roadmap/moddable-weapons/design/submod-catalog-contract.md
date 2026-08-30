@@ -4,9 +4,9 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
-Updated: 2026-08-30 — armour reaches the field through a tactic sheet rather
-than a picker, and a contributed pattern is no longer shadowed by the core one
-sharing its cell.
+Updated: 2026-08-30 — documented optional projectile-bound tracer tails; armour
+reaches the field through a tactic sheet rather than a picker, and a contributed
+pattern is no longer shadowed by the core one sharing its cell.
 
 ## Provider entry point
 
@@ -115,6 +115,13 @@ layer order is visible behavior and does not depend on provider order. Retired
 `render.impact`, `render.smokeTrail`, and `render.engineTrail` fields are errors;
 author the corresponding effect slot instead. Effect layers are presentation
 only and cannot change damage, penetration, hearing, or projectile simulation.
+
+A weapon with a projectile sprite may also declare a positive
+`render.tracerTailCells`. It draws a short line of that world-space length
+behind the traveling sprite, tinted by `render.tracerColor`; omission or zero
+disables the tail. A tail without `render.projectileSprite` is rejected. This
+is presentation over the resolved flight and does not change round velocity,
+contact, or arrival time.
 
 ## Tilesets and mappings
 

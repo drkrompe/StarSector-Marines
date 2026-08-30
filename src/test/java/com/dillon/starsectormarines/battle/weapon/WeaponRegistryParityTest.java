@@ -143,6 +143,7 @@ class WeaponRegistryParityTest {
         assertPresentation(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), new Color(0xFF, 0xD0, 0x88),
                 ImpactKind.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.18f,
                 "light_autocannon_fire");
+        assertEquals(0.65f, WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).tracerTailCells(), EPS);
         assertEquals("Field Rifle", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).displayName());
         assertEquals("Rook", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).modelName());
     }
@@ -165,6 +166,7 @@ class WeaponRegistryParityTest {
         assertPresentation(WeaponRegistry.require(WeaponRegistry.SMG_ID), new Color(0xFF, 0xE8, 0xC0),
                 ImpactKind.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.15f,
                 "light_machinegun_fire");
+        assertEquals(0.40f, WeaponRegistry.require(WeaponRegistry.SMG_ID).tracerTailCells(), EPS);
         assertEquals("Shredder Carbine", WeaponRegistry.require(WeaponRegistry.SMG_ID).displayName());
         assertEquals("Rattler", WeaponRegistry.require(WeaponRegistry.SMG_ID).modelName());
     }

@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
-import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
 import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
@@ -53,9 +53,9 @@ public final class ShuttleRenderSystem implements RenderSystem {
 
         for (long id : airIds) {
             ShuttleMission mission = world.mission(id);
-            if (mission == null || !mission.isVisible()) continue;
-            ShuttleType type = world.airType(id);
-            ShuttleSpriteCache cache = sprites.airframeSprites().get(type);
+            if (mission == null || !mission.isOnMap()) continue;
+            Airframe frame = world.airframe(id);
+            ShuttleSpriteCache cache = sprites.airframeSprites().get(frame);
             if (cache == null) continue;
             AirBody body = world.kinematics(id);
 
@@ -71,7 +71,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // each sim tick by AirSystem's ThrusterFxSystem) blooms the thrusters
             // actually pushing / turning the hull and ramps instead of snapping.
             out.addCustom(RenderLayer.SHUTTLES, () -> EngineFxRenderer.draw(
-                    EngineSlotResolver.resolve(type),
+                    EngineSlotResolver.resolve(frame),
                     body.x, body.y,
                     body.facingDegrees,
                     scaleMult,
@@ -85,7 +85,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // Hull. Length is derived from the hull's sprite pixel extent via
             // the one global pixel-density factor (HullFootprintResolver), not a
             // hand-authored per-type value.
-            float hullLenCells = HullFootprintResolver.visualLengthCells(type.renderHullId());
+            float hullLenCells = HullFootprintResolver.visualLengthCells(frame.renderHullId());
             float pxLen = hullLenCells * cellPx * scaleMult;
             float pxH = pxLen;
             float pxW = pxLen * cache.aspect;
@@ -95,7 +95,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // zoom. This keeps `center` fixed at body so the hull rotates about
             // its CoG — and, since body == CoG, the center-relative turret and
             // engine slots land on their painted hardpoints.
-            float[] pivot = HullPivotResolver.pivotOffset(type.renderHullId());
+            float[] pivot = HullPivotResolver.pivotOffset(frame.renderHullId());
             float rad = (float) Math.toRadians(body.facingDegrees);
             float pc = (float) Math.cos(rad);
             float psn = (float) Math.sin(rad);
