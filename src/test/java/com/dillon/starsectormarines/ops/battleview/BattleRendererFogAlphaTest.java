@@ -9,12 +9,12 @@ final class BattleRendererFogAlphaTest {
     private static final float EPS = 0.0001f;
 
     @Test
-    void smokeHalvesTheShadowWithoutRevealingTheCell() {
-        float ordinary = BattleRenderer.fogAlphaForCell(false, 0, false);
-        float smoke = BattleRenderer.fogAlphaForCell(false, 0, true);
+    void smokeCausedLossHalvesTheShadowWithoutRevealingTheCell() {
+        float naturallyUnseen = BattleRenderer.fogAlphaForCell(false, 0, false);
+        float smokeCausedLoss = BattleRenderer.fogAlphaForCell(false, 0, true);
 
-        assertEquals(0.85f, ordinary, EPS);
-        assertEquals(ordinary * 0.5f, smoke, EPS);
+        assertEquals(0.85f, naturallyUnseen, EPS);
+        assertEquals(naturallyUnseen * 0.5f, smokeCausedLoss, EPS);
     }
 
     @Test

@@ -50,6 +50,8 @@ public final class FogOfWarService {
 
     private short[] revealCount;
     private boolean[] cellRevealed;
+    private boolean[] clearAirRevealed;
+    private boolean clearAirMaskActive;
 
     private byte[] unitVisibility;
     private float[] fadeAlpha;
@@ -108,6 +110,7 @@ public final class FogOfWarService {
 
         this.revealCount = new short[cells];
         this.cellRevealed = new boolean[cells];
+        this.clearAirRevealed = new boolean[cells];
 
         this.unitCapacity = unitCapacity;
         this.unitVisibility = new byte[unitCapacity];
@@ -127,6 +130,18 @@ public final class FogOfWarService {
         if (!initialized) return true;
         if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) return false;
         return cellRevealed[y * gridWidth + x];
+    }
+
+    /**
+     * Presentation-only counterfactual: whether the current observation
+     * sources would reveal this cell if transient smoke opacity were absent.
+     * Structural walls and every ordinary sight limit remain in force.
+     */
+    public boolean wouldBeRevealedWithoutTransientOpacity(int x, int y) {
+        if (!initialized) return true;
+        if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) return false;
+        if (!clearAirMaskActive) return isCellRevealed(x, y);
+        return clearAirRevealed[y * gridWidth + x];
     }
 
     /**
@@ -181,8 +196,10 @@ public final class FogOfWarService {
         entry.lastCellY = world.cellY(u);
 
         int range = Math.min(MAX_VISION_RANGE, (int) vision.visionRange(u));
+        entry.lastRange = range;
+        entry.lastAirLosRadius = vision.airLosRadius(u);
         int count = Shadowcast.castFrom(grid, entry.lastCellX, entry.lastCellY,
-                range, vision.airLosRadius(u), shadowScratch, 0);
+                range, entry.lastAirLosRadius, shadowScratch, 0);
         entry.previousCells = new int[count];
         System.arraycopy(shadowScratch, 0, entry.previousCells, 0, count);
         entry.previousCellCount = count;
@@ -249,6 +266,7 @@ public final class FogOfWarService {
                 tickFogCohort(cohort, roster, false);
             }
             tickEphemeralSources();
+            rebuildClearAirReveal(roster);
             sweepUnitVisibility(roster);
             // Building roofs reveal off the same per-cell fog bitmap (post-cohort/
             // ephemeral, so it reflects this tick's vision) — see BuildingVisibilityPass.
@@ -373,8 +391,9 @@ public final class FogOfWarService {
             decrementFootprint(e);
 
             int range = Math.min(MAX_VISION_RANGE, (int) vision.visionRange(e.unitId));
+            float airLosRadius = vision.airLosRadius(e.unitId);
             int count = Shadowcast.castFrom(grid, cx, cy,
-                    range, vision.airLosRadius(e.unitId), shadowScratch, 0);
+                    range, airLosRadius, shadowScratch, 0);
 
             if (count > e.previousCells.length) {
                 e.previousCells = new int[count];
@@ -383,6 +402,8 @@ public final class FogOfWarService {
             e.previousCellCount = count;
             e.lastCellX = cx;
             e.lastCellY = cy;
+            e.lastRange = range;
+            e.lastAirLosRadius = airLosRadius;
 
             for (int j = 0; j < count; j++) {
                 int idx = e.previousCells[j];
@@ -421,6 +442,46 @@ public final class FogOfWarService {
                 cellRevealed[idx] = false;
             }
         }
+    }
+
+    /**
+     * Rebuilds the counterfactual union only while smoke exists. This is not a
+     * second observation authority: it never drives roofs, units, radio, or
+     * gameplay, and it uses the same cached contributor cadence plus the same
+     * temporary-source sets as the real reveal bitmap.
+     */
+    private void rebuildClearAirReveal(UnitRosterService roster) {
+        if (!grid.hasTransientOpacity()) {
+            if (clearAirMaskActive) Arrays.fill(clearAirRevealed, false);
+            clearAirMaskActive = false;
+            return;
+        }
+
+        Arrays.fill(clearAirRevealed, false);
+        clearAirMaskActive = true;
+        for (FogCohort cohort : cohorts) {
+            for (ContributorEntry entry : cohort.contributors) {
+                if (!roster.isAliveById(entry.unitId)) continue;
+                addClearAirFootprint(entry.lastCellX, entry.lastCellY,
+                        entry.lastRange, entry.lastAirLosRadius);
+            }
+        }
+        addClearAirFootprints(projected);
+        addClearAirFootprints(carried);
+    }
+
+    private void addClearAirFootprints(TemporarySources sources) {
+        for (int i = 0; i < sources.count; i++) {
+            addClearAirFootprint(sources.cellX[i], sources.cellY[i],
+                    sources.range[i], sources.airLosRadius[i]);
+        }
+    }
+
+    private void addClearAirFootprint(int cellX, int cellY,
+                                      int range, float airLosRadius) {
+        int count = Shadowcast.castFromIgnoringTransientOpacity(
+                grid, cellX, cellY, range, airLosRadius, shadowScratch, 0);
+        for (int i = 0; i < count; i++) clearAirRevealed[shadowScratch[i]] = true;
     }
 
     private void sweepUnitVisibility(UnitRosterService roster) {
@@ -491,6 +552,8 @@ public final class FogOfWarService {
         long unitId;
         int lastCellX;
         int lastCellY;
+        int lastRange;
+        float lastAirLosRadius;
         int[] previousCells = new int[0];
         int previousCellCount = 0;
     }

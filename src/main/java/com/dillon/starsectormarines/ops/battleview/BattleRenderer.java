@@ -452,7 +452,7 @@ public class BattleRenderer {
                     if (cx < gw-1 && !revealed[idx + 1])  darkNeighbors++;
                 }
                 float fogAlpha = fogAlphaForCell(revealed[idx], darkNeighbors,
-                        sim.getGrid().hasTransientOpacityAt(idx));
+                        vis.wouldBeRevealedWithoutTransientOpacity(cx, cy));
                 if (fogAlpha <= 0f) continue;
 
                 float sx = rc.camera.cellToScreenX(cx);
@@ -464,13 +464,14 @@ public class BattleRenderer {
     }
 
     /**
-     * An unrevealed smoke cell remains unrevealed, but uses half the ordinary
-     * fog shadow so the terrain silhouette and the cloud explain the blocked
-     * sight together. Revealed-edge feathering remains unchanged.
+     * A cell hidden only by smoke remains unrevealed, but uses half the
+     * ordinary fog shadow so the terrain silhouette and cloud explain the
+     * blocked sight together. Naturally unseen cells and revealed-edge
+     * feathering remain unchanged.
      */
     static float fogAlphaForCell(boolean revealed, int darkNeighbors,
-                                 boolean transientlyOpaque) {
-        if (!revealed) return transientlyOpaque ? SMOKE_FOG_ALPHA : UNREVEALED_FOG_ALPHA;
+                                 boolean clearAirRevealed) {
+        if (!revealed) return clearAirRevealed ? SMOKE_FOG_ALPHA : UNREVEALED_FOG_ALPHA;
         return 0.15f * Math.max(0, darkNeighbors);
     }
 

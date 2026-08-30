@@ -236,6 +236,9 @@ public class NavigationGrid {
 
     public boolean hasTransientOpacityAt(int idx) { return transientOpacity[idx] > 0; }
 
+    /** Whether any live smoke cell currently contributes transient opacity. */
+    public boolean hasTransientOpacity() { return transientOpacityCells > 0; }
+
     public boolean hasTransientOpacity(int x, int y) {
         return inBounds(x, y) && hasTransientOpacityAt(index(x, y));
     }
