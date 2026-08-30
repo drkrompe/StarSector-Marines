@@ -33,11 +33,12 @@ import java.util.Set;
  * shared by ordinary sprites and each {@link Bolt} style texture.
  *
  * @param body       projectile sprite vs. hitscan tracer
+ * @param tracerTail optional short line attached behind a traveling projectile
  * @param arcHeight  visual parabola peak in cells; {@code 0} = flat
  * @param boostRamp  accelerate-from-rest boost-then-cruise flight curve
  * @param contrail   ribbon style, or {@code null} for none
  */
-public record ShotFx(Body body, float arcHeight, boolean boostRamp,
+public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean boostRamp,
                      ContrailStyle contrail) {
 
     /** S3's soft white-base energy bolt, retained for the pulse-rifle family. */
@@ -73,6 +74,9 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
      */
     public record Tracer(Color color) implements Body {}
 
+    /** Short line following a projectile body; length is authored in world cells. */
+    public record TracerTail(Color color, float lengthCells) {}
+
     /** Faction-default hitscan tracer colors — what a null-color {@link Tracer} resolves to. */
     public static final Color MARINE_TRACER   = new Color(0xFF, 0xE0, 0x70);
     public static final Color DEFENDER_TRACER = new Color(0xFF, 0x70, 0x40);
@@ -87,7 +91,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     }
 
     /** No weapon source (detonations / legacy callers) → a faction-default tracer. */
-    private static final ShotFx NO_SOURCE = new ShotFx(new Tracer(null), 0f, false, null);
+    private static final ShotFx NO_SOURCE = new ShotFx(new Tracer(null), null, 0f, false, null);
 
     /** The composition for a shot — never null; dispatches on the single non-null weapon source. */
     public static ShotFx of(ShotEvent s) {
@@ -110,6 +114,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         };
         return new ShotFx(
                 new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells),
+                tracerTail(weapon),
                 weapon.arcHeight,
                 weapon.boostRamp,
                 contrail);
@@ -119,7 +124,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         Body body = weapon.projectileSpritePath != null
                 ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)
                 : bolt(weapon);
-        return new ShotFx(body, 0f, false, null);
+        return new ShotFx(body, tracerTail(weapon), 0f, false, null);
     }
 
     private static Bolt bolt(WeaponDef weapon) {
@@ -150,7 +155,8 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         Body body = w.projectileSpritePath() != null
                 ? new Sprite(w.projectileSpritePath(), w.projectileVisualCells())
                 : new Bolt(RAIL_NEEDLE_SPRITE_PATH, w.tracerColor(), 2.2f, 0.20f);
-        return new ShotFx(body, w.weaponDef().arcHeight, w.weaponDef().boostRamp,
+        return new ShotFx(body, tracerTail(w.weaponDef()),
+                w.weaponDef().arcHeight, w.weaponDef().boostRamp,
                 w.activation() == SpecialActivation.DIRECT_EXPLOSIVE
                         ? ContrailStyle.MISSILE_SMOKE : null);
     }
@@ -162,7 +168,13 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         Body body = weapon.projectileSpritePath != null
                 ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)
                 : new Tracer(null);
-        return new ShotFx(body, weapon.arcHeight, false, null);
+        return new ShotFx(body, tracerTail(weapon), weapon.arcHeight, false, null);
+    }
+
+    private static TracerTail tracerTail(WeaponDef weapon) {
+        return weapon.tracerTailCells > 0f
+                ? new TracerTail(weapon.tracerColor, weapon.tracerTailCells)
+                : null;
     }
 
 }

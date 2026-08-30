@@ -104,8 +104,10 @@ public final class WeaponDef {
     // ---- render ----
     /** Modular actor sprite family used while a marine carries this primary. */
     public final LayeredWeaponFamily heldSpriteFamily;
-    /** Traveling-body tint, so the player can identify fire at a glance. */
+    /** Traveling-body and tracer-tail tint, so the player can identify fire at a glance. */
     public final Color tracerColor;
+    /** Optional short line trailing a projectile sprite, in cells; zero disables it. */
+    public final float tracerTailCells;
     /** Optional projectile sprite; null means the shared tinted bolt. */
     public final String projectileSpritePath;
     /** Projectile visual size in cells (long axis). Ignored when {@link #projectileSpritePath} is null. */
@@ -138,6 +140,7 @@ public final class WeaponDef {
                       float noiseMagnitude,
                       LayeredWeaponFamily heldSpriteFamily,
                       Color tracerColor,
+                      float tracerTailCells,
                       String projectileSpritePath, float projectileVisualCells,
                       ContrailProfile contrailProfile,
                       WeaponFxDef fx,
@@ -178,6 +181,7 @@ public final class WeaponDef {
         this.noiseMagnitude = noiseMagnitude;
         this.heldSpriteFamily = heldSpriteFamily;
         this.tracerColor = tracerColor;
+        this.tracerTailCells = tracerTailCells;
         this.projectileSpritePath = projectileSpritePath;
         this.projectileVisualCells = projectileVisualCells;
         this.contrailProfile = contrailProfile;
@@ -221,6 +225,7 @@ public final class WeaponDef {
     public float hitSpread() { return hitSpread; }
     public float roundVelocity() { return roundVelocity; }
     public Color tracerColor() { return tracerColor; }
+    public float tracerTailCells() { return tracerTailCells; }
     public String projectileSpritePath() { return projectileSpritePath; }
     public float projectileVisualCells() { return projectileVisualCells; }
     public String fireSoundId() { return fireSoundId; }
@@ -295,6 +300,7 @@ public final class WeaponDef {
                 (float) sim.optDouble("noiseMagnitude", 1.0),
                 parseHeldSpriteFamily(render, mount, id),
                 render != null ? parseColor(render.optString("tracerColor", null), id) : Color.WHITE,
+                render != null ? (float) render.optDouble("tracerTailCells", 0.0) : 0f,
                 render != null ? emptyToNull(render.optString("projectileSprite", null)) : null,
                 render != null ? (float) render.optDouble("projectileVisualCells", 0.0) : 0f,
                 ContrailProfile.fromKey(
@@ -384,6 +390,14 @@ public final class WeaponDef {
         if (!(def.noiseMagnitude > 0f) || !Float.isFinite(def.noiseMagnitude)) {
             throw new JSONException("Weapon '" + def.id
                     + "' noiseMagnitude must be finite and positive");
+        }
+        if (!Float.isFinite(def.tracerTailCells) || def.tracerTailCells < 0f) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' tracerTailCells must be finite and non-negative");
+        }
+        if (def.tracerTailCells > 0f && def.projectileSpritePath == null) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' declares tracerTailCells without a projectile sprite");
         }
         requireFxSlot(def, FxSlot.IMPACT);
         if (def.mount == MountClass.TURRET_MOUNT) {
