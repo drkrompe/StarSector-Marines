@@ -284,6 +284,29 @@ public final class UnitRosterService {
         release(entityId);
     }
 
+    /**
+     * Takes a living unit off the battlefield: it stops being a unit
+     * <em>and</em> stops existing.
+     *
+     * <p>{@link #release} alone is the death path's half of this, and only the
+     * death path's. It deliberately leaves every component in place because the
+     * death drain transmutes the row to a corpse a tick later — but nothing
+     * transmutes a unit that did not die. A marine walking up a shuttle's ramp
+     * and an airframe leaving its hardstand are both removals of something
+     * alive, and both left a full {@code IDENTITY + POSITION + SPRITE +
+     * HEALTH} row in the entity world for the rest of the battle.
+     *
+     * <p>That row is exactly what the render pass walks, so the body kept
+     * being drawn where it had been standing — with no health bar over it,
+     * because the bar sweep walks this roster and the body sweep walks the
+     * components. Anything that should read as a death still goes through the
+     * damage resolver; this is for something that has genuinely left.
+     */
+    public void takeOffTheField(long entityId) {
+        release(entityId);
+        entityWorld.destroy(entityId);
+    }
+
     // ---- entity world + access facade ----
 
     /** The battle's archetype-table entity world — the storage every per-entity component lives in. */

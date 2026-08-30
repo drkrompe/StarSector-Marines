@@ -96,7 +96,7 @@ public class AirEntityAllocationTest {
         assertSame(body, w.kinematics(air), "KINEMATICS round-trips the same AirBody instance");
 
         w.setAirIdentity(air, ShuttleType.AEROSHUTTLE, Faction.MARINE);
-        assertSame(ShuttleType.AEROSHUTTLE, w.airType(air));
+        assertSame(ShuttleType.AEROSHUTTLE, w.airframe(air));
         assertSame(Faction.MARINE, w.airFaction(air));
     }
 

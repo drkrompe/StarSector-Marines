@@ -801,7 +801,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             float intensity = AirAppearance.engineIntensity(true, world.altitudeT(id));
             if (intensity <= 0f) continue;
             AirBody body = world.kinematics(id);
-            EngineVoice voice = EngineVoiceResolver.resolve(world.airType(id).renderHullId());
+            EngineVoice voice = EngineVoiceResolver.resolve(world.airframe(id).renderHullId());
             // Deterministic ±jitter from the entity id so the offset doesn't change frame-to-frame.
             float pitchOffset = (((id >> 8) & 0xffL) / 255f * 2f - 1f) * SHUTTLE_ENGINE_PITCH_JITTER;
             float pitch = ENGINE_PITCH_IDLE + (ENGINE_PITCH_CRUISE - ENGINE_PITCH_IDLE) * intensity + pitchOffset;

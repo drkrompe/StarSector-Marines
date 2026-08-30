@@ -64,6 +64,21 @@ is removed. `POSITION` is the single ground-location authority; its cell
 projection is owned by `continuous-positions-nouns.md`. Air and convoy entities
 use their own lifecycle components rather than pretending to be grid units.
 
+**Leaving is not dying, and the two remove different things.** Dropping a unit
+from the dense roster is only half of a death: it is deliberately paired with
+the death drain, which transmutes the row a tick later, so the components stay
+put in between. A unit that leaves the battlefield *alive* — a marine walking
+up a shuttle's ramp, a civilian boarding a rescue craft, an airframe leaving
+its hardstand to become an air entity — has no drain coming, so releasing it
+alone leaves a complete live row in the world forever.
+
+That row is what the render pass walks. The symptom is specific enough to
+recognise on sight: **the body keeps drawing where it was standing, with no
+health bar over it**, because the bar sweep walks the roster and the body sweep
+walks the components. Anything that reads as a death goes through the damage
+resolver and leaves a body on purpose; anything that has genuinely left is
+released *and destroyed*.
+
 Structural mutation is the one iteration hazard. A direct `destroy`,
 `addComponent`, `removeComponent`, or `transmute` swap-pops a row and is safe
 at a serial phase boundary. A system walking the affected query must instead

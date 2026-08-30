@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -200,6 +202,53 @@ class RunwayProcedureTest {
             assertFalse(airfield.runwayBusy(), "left the strip claimed behind it");
             assertEquals(AirfieldService.BerthState.REFITTING, shed.state,
                     "came home and the shed does not have it back");
+        }
+    }
+
+    /**
+     * A fighter is an aircraft the air system can fly.
+     *
+     * <p>Slice 4b made a berth able to <em>keep</em> one — parked, drawn, shot
+     * at, wrecked — while the air entity was still a {@code ShuttleType},
+     * so the same hull could stand in a shed and not take off from it. This
+     * flies a Broadsword through the whole ground procedure to show the two
+     * halves now meet.
+     *
+     * <p>Its handling comes off its own hull spec rather than an authored
+     * tier, which with no game to read a spec out of resolves to the flyable
+     * fallback — that is the point of the fallback, and the procedure has to
+     * run on it.
+     */
+    @Test
+    void aFighterFliesTheSameProcedureAsATransport() {
+        try (BattleSimulation sim = openSimulation()) {
+            AirfieldService airfield = sim.getAirfieldService();
+            AirfieldService.Berth shed = airfield.addShelterBerth(
+                    new Gantry((int) SHELTER_X, (int) SHELTER_Y, 2, 2, Gantry.Facing.SOUTH),
+                    FighterProfile.BROADSWORD);
+            long fighter = sim.spawnSortie(FighterProfile.BROADSWORD, Faction.DEFENDER,
+                    50.5f, 30.5f, SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f);
+            ShuttleMission mission = sim.world().mission(fighter);
+            mission.homeBerth = shed;
+            mission.hp = airfield.launch(shed);
+            mission.departFromRunway(STRIP, SHELTER_X, SHELTER_Y, 50.5f, 30.5f);
+            sim.world().kinematics(fighter).teleport(SHELTER_X, SHELTER_Y, 0f);
+
+            assertSame(FighterProfile.BROADSWORD, sim.world().airframe(fighter),
+                    "the air entity is not the airframe it was launched as");
+
+            assertEquals(ShuttleState.HOLDING_SHORT, leaving(sim, mission, ShuttleState.TAXI_OUT));
+            assertEquals(ShuttleState.TAKEOFF_ROLL, leaving(sim, mission, ShuttleState.HOLDING_SHORT));
+            assertEquals(ShuttleState.INCOMING, leaving(sim, mission, ShuttleState.TAKEOFF_ROLL),
+                    "a fighter never got off the strip");
+            assertEquals(ShuttleState.LANDED, leaving(sim, mission, ShuttleState.INCOMING));
+            assertEquals(ShuttleState.RETURNING, leaving(sim, mission, ShuttleState.LANDED));
+            assertEquals(ShuttleState.LANDING_ROLL, leaving(sim, mission, ShuttleState.RETURNING));
+            assertEquals(ShuttleState.TAXI_IN, leaving(sim, mission, ShuttleState.LANDING_ROLL));
+            assertEquals(ShuttleState.GONE, leaving(sim, mission, ShuttleState.TAXI_IN));
+
+            assertEquals(AirfieldService.BerthState.REFITTING, shed.state,
+                    "a fighter came home and its shed does not have it back");
         }
     }
 
