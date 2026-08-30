@@ -174,6 +174,32 @@ public final class RoomDraft {
         return named;
     }
 
+    /**
+     * Draw a run of this room's deck from a named block — vent plate, hazard
+     * striping, whatever the room wants underfoot.
+     *
+     * <p>Appends rather than replacing, unlike the bulkhead: a room has one wall
+     * all the way round but several kinds of floor is the entire point. A later
+     * run over the same cells wins, which is what painting means.
+     */
+    public void floor(int x, int y, int spanX, int spanY, String blockId) {
+        if (blockId == null || blockId.isEmpty()) return;
+        ops.add(new LayoutOp.Flooring(x, y, Math.max(1, spanX), Math.max(1, spanY), blockId));
+    }
+
+    /** The block painted over a cell, or null where the deck's own kind decides. */
+    public String floorAt(int x, int y) {
+        String painted = null;
+        for (LayoutOp op : ops) {
+            if (!(op instanceof LayoutOp.Flooring flooring)) continue;
+            if (x >= flooring.x() && x < flooring.x() + flooring.spanX()
+                    && y >= flooring.y() && y < flooring.y() + flooring.spanY()) {
+                painted = flooring.blockId();
+            }
+        }
+        return painted;
+    }
+
     /** Stand one fixture here, optionally with the work somebody does at it. */
     public void addFixture(int x, int y, String doodadId, Affordance affordance) {
         if (!isFloor(x, y)) return;

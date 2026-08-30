@@ -289,7 +289,14 @@ public final class AirbaseLot {
      * does not stop saying it out here.
      */
     private static final GroundKind APRON = GroundKind.STREET;
-    private static final GroundKind RUNWAY = GroundKind.COURTYARD;
+    /**
+     * Package-private so {@code AirbaseLotTest} can check that the strip this
+     * lot <em>publishes</em> covers the surface it <em>painted</em>. Which
+     * ground kind stands in for runway is an art decision and has no meaning
+     * outside this class; a test that hard-coded it would drift the moment the
+     * alias moved.
+     */
+    static final GroundKind RUNWAY = GroundKind.COURTYARD;
     private static final GroundKind INSIDE = GroundKind.INDOOR;
     private static final GroundKind VERGE = GroundKind.SIDEWALK;
 
@@ -424,6 +431,7 @@ public final class AirbaseLot {
     private void runway(GenContext ctx) {
         TileRegistry registry = TileRegistry.installed();
         int depth = depthStart();
+        if (size.runwayDepth > 0) ctx.runways.add(strip());
         for (int step = 0; step < size.runwayDepth; step++) {
             for (int along = alongLo() + 1; along <= alongHi() - 1; along++) {
                 int x = alongY ? along : depth + depthSign() * step;
@@ -535,6 +543,30 @@ public final class AirbaseLot {
             return true;
         }
         return false;
+    }
+
+    /**
+     * The strip this lot laid, as the geometry a system can fly along.
+     *
+     * <p>Built from the same four numbers the painting loop uses, so the
+     * published centreline is the middle of the surface that was actually made
+     * rather than a second description of it that can drift.
+     *
+     * <p>Thresholds sit half a cell inside the ends of the painted surface,
+     * because a cell's centre is where a body standing in it is: an endpoint on
+     * the boundary would ask an aircraft to roll to a point half a cell past
+     * the last piece of runway there is.
+     */
+    private Runway strip() {
+        float lo = alongLo() + 1 + 0.5f;
+        float hi = alongHi() - 1 + 0.5f;
+        // Depth runs from the first row into the lot; the centre of the strip
+        // is half its depth further in than the first row's centre.
+        float depthCentre = depthStart() + 0.5f
+                + depthSign() * (size.runwayDepth - 1) * 0.5f;
+        return alongY
+                ? new Runway(lo, depthCentre, hi, depthCentre, size.runwayDepth)
+                : new Runway(depthCentre, lo, depthCentre, hi, size.runwayDepth);
     }
 
     /** Rows of parked vehicles, and files across each row. */
