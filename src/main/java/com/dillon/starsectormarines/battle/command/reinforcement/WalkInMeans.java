@@ -203,17 +203,7 @@ public final class WalkInMeans implements ReinforcementMeans {
      */
     static int[] pickPrimaryCell(BattleView sim, ReinforcementRequest req,
                                  TraversalAxis axis) {
-        NavigationGrid grid = sim.getGrid();
-        LandingZoneScorer scorer = new LandingZoneScorer(grid, sim.getTopology());
-        Edge edge = pickEdge(req, axis);
-        int[] cell = scanEdge(grid, scorer, edge, req.rallyX, req.rallyY);
-        if (cell != null) return cell;
-        for (Edge fallback : Edge.values()) {
-            if (fallback == edge) continue;
-            cell = scanEdge(grid, scorer, fallback, req.rallyX, req.rallyY);
-            if (cell != null) return cell;
-        }
-        return null;
+        return MapEntry.forSide(sim, req.side, axis, req.rallyX, req.rallyY);
     }
 
     /**
@@ -223,68 +213,6 @@ public final class WalkInMeans implements ReinforcementMeans {
      * for marine — arbitrary but stable, the fallback in {@link #pickPrimaryCell}
      * will iterate the other edges if the chosen one has no walkable cell.
      */
-    private static Edge pickEdge(ReinforcementRequest req, TraversalAxis axis) {
-        boolean defender = req.side == Faction.DEFENDER;
-        if (axis == TraversalAxis.SOUTH_TO_NORTH) {
-            return defender ? Edge.NORTH : Edge.SOUTH;
-        }
-        if (axis == TraversalAxis.WEST_TO_EAST) {
-            return defender ? Edge.EAST : Edge.WEST;
-        }
-        return defender ? Edge.NORTH : Edge.SOUTH;
-    }
-
-    /**
-     * Walk one edge of the map and return the walkable cell whose lateral
-     * coordinate is closest to the rally's. {@code null} when the edge has
-     * no walkable cells at all.
-     */
-    private static int[] scanEdge(NavigationGrid grid, LandingZoneScorer scorer, Edge edge, int rallyX, int rallyY) {
-        int gw = grid.getWidth();
-        int gh = grid.getHeight();
-        int best = -1;
-        int bestDist = Integer.MAX_VALUE;
-        switch (edge) {
-            case NORTH -> {
-                int y = gh - 1;
-                for (int x = 0; x < gw; x++) {
-                    if (!scorer.isViable(x, y)) continue;
-                    int d = Math.abs(x - rallyX);
-                    if (d < bestDist) { bestDist = d; best = x; }
-                }
-                return best < 0 ? null : new int[]{best, y};
-            }
-            case SOUTH -> {
-                int y = 0;
-                for (int x = 0; x < gw; x++) {
-                    if (!scorer.isViable(x, y)) continue;
-                    int d = Math.abs(x - rallyX);
-                    if (d < bestDist) { bestDist = d; best = x; }
-                }
-                return best < 0 ? null : new int[]{best, y};
-            }
-            case EAST -> {
-                int x = gw - 1;
-                for (int y = 0; y < gh; y++) {
-                    if (!scorer.isViable(x, y)) continue;
-                    int d = Math.abs(y - rallyY);
-                    if (d < bestDist) { bestDist = d; best = y; }
-                }
-                return best < 0 ? null : new int[]{x, best};
-            }
-            case WEST -> {
-                int x = 0;
-                for (int y = 0; y < gh; y++) {
-                    if (!scorer.isViable(x, y)) continue;
-                    int d = Math.abs(y - rallyY);
-                    if (d < bestDist) { bestDist = d; best = y; }
-                }
-                return best < 0 ? null : new int[]{x, best};
-            }
-        }
-        return null;
-    }
-
     /**
      * BFS outward from {@code (px, py)} collecting up to {@code count}
      * viable cells (walkable, outside buildings — via {@link LandingZoneScorer}),
@@ -338,5 +266,4 @@ public final class WalkInMeans implements ReinforcementMeans {
         return d <= RALLY_NODE_SEARCH_RADIUS ? candidate : null;
     }
 
-    private enum Edge { NORTH, SOUTH, EAST, WEST }
 }

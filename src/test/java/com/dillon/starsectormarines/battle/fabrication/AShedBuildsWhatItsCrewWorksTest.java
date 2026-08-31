@@ -249,7 +249,7 @@ class AShedBuildsWhatItsCrewWorksTest {
 
         List<Long> crew = manned
                 ? StructureWatch.man(sim, Faction.DEFENDER, rooms, authored,
-                        works.berthed(), EnumSet.of(RoomPurpose.VEHICLE_BAY), 2)
+                        works.berthed(), EnumSet.of(RoomPurpose.VEHICLE_BAY), 2, null)
                 : List.of();
         return new Shed(sim, works, crew);
     }
