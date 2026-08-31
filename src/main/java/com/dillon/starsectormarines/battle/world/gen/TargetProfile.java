@@ -39,11 +39,17 @@ import java.util.Set;
  *                      is not a garden and silence should not claim otherwise.
  *                      Cultivated ground -- parks, street verges -- does not
  *                      consult this; see {@link SurfacePalette}.
+ * @param link          how the settlement joins the rest of its world. Never
+ *                      null; a null argument normalizes to
+ *                      {@link SettlementLink#ROAD}, because a battle with no
+ *                      stated lifeline is more likely an ordinary place than an
+ *                      off-grid one.
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
                             Set<EconomicFunction> functions,
-                            SurfacePalette surface) {
+                            SurfacePalette surface,
+                            SettlementLink link) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
@@ -59,11 +65,12 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
      */
     public static final TargetProfile NEUTRAL =
             new TargetProfile(0, 0, 0, 0, "", EnumSet.noneOf(EconomicFunction.class),
-                    SurfacePalette.ROCK);
+                    SurfacePalette.ROCK, SettlementLink.ROAD);
 
     public TargetProfile {
         if (factionId == null) factionId = "";
         if (surface == null) surface = SurfacePalette.ROCK;
+        if (link == null) link = SettlementLink.ROAD;
         functions = (functions == null || functions.isEmpty())
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
@@ -84,6 +91,6 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
     public TargetProfile withFactionId(String overrideFactionId) {
         if (overrideFactionId == null || overrideFactionId.equals(factionId)) return this;
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
-                overrideFactionId, functions, surface);
+                overrideFactionId, functions, surface, link);
     }
 }
