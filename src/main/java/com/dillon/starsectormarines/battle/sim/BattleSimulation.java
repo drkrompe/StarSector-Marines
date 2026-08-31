@@ -65,6 +65,7 @@ import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDamageResolver;
+import com.dillon.starsectormarines.battle.air.AirDamageResolver;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
@@ -416,6 +417,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Stateless body of {@code applyDamage} — cover-curve / HP write / death cascade / leader promotion / morale drain. Wired into {@link #damageService} as the damage applier so inline and queued paths share semantics. */
     private final DamageResolver damageResolver;
     private final VehicleDamageResolver vehicleDamageResolver;
+    /** The same law applied to an aircraft on its wheels; every kill it makes converges on {@code AirSystem}'s own shoot-down. */
+    private final AirDamageResolver airDamageResolver;
     /**
      * The battle's single random stream, seeded at construction.
      *
@@ -549,10 +552,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 // consumers via identity()/world() by-id — IDENTITY survives release).
                 id -> deathsThisFrame.add(id), deathDispatcher, () -> simTickIndex, rng);
         this.vehicleDamageResolver = new VehicleDamageResolver(rosterService);
+        this.airDamageResolver = new AirDamageResolver(rosterService);
         this.damageService = new DamageService(
                 (target, attacker, damage, penetration, moraleImpact) -> {
                     if (rosterService.convoy().isVehicle(target)) {
                         vehicleDamageResolver.resolve(target, attacker, damage,
+                                penetration, moraleImpact);
+                    } else if (rosterService.airTargets().isAircraft(target)) {
+                        airDamageResolver.resolve(target, attacker, damage,
                                 penetration, moraleImpact);
                     } else {
                         damageResolver.resolve(target, attacker, damage,
@@ -675,6 +682,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
                 turretFire, rng, this::spawn, this, effects, transport);
         this.vehicleDamageResolver.setDestructionSink(groundSystem::destroyVehicle);
+        this.airDamageResolver.setDestructionSink(airSystem::destroyAircraft);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;

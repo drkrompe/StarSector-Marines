@@ -4,12 +4,12 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — the pad settle ends on a condition rather than a clock, a
-launch off a hardstand climbs before it flies away, `isOverTheBattle` is an
-exhaustive switch rather than a list a phase can fall out of, the two
-representations draw the same size at their handoff seam, and a machine
-destroyed rolling under its own power goes up and leaves a wreck where it
-stopped the same as one destroyed on its stand.
+Updated: 2026-08-31 — an aircraft on its wheels is a real target rather than a
+damageable one: it is a body in the spatial index on the convoy's terms, its
+hull is an ordinary `HEALTH`/`ARMOR` pair instead of a field on the sortie, and
+it is acquired, aimed at, traced through cover and credited by the pipeline
+that already does all of that. The attrition field it replaces is deleted; a
+craft in the air stays out of reach until anti-air exists.
 
 ## Purpose
 
@@ -139,36 +139,51 @@ An aircraft is **two representations, one thing**. In the air it is an air
 entity. On its hardstand it is an ordinary grid unit, and a launch or a landing
 is a handoff between them.
 
-The split is deliberate and load-bearing. An air entity carries no grid or
-combat components, which is what lets every grid walk in the battle skip air
-for free; a parked aircraft, meanwhile, has to be perceived, gated by fog,
-traced against line of sight, hit, attributed, killed and wrecked — all
-grid/combat concerns. Teaching the combat stack an air-aware branch in each of
-them would buy a handful of shootable aircraft at the cost of that property
-forever. Being a unit on the ground buys the same behaviour for nothing. The
-unit is a target and never a weapon: it is a structure, so it neither aims nor
-fires, and what it does is stand there and be worth shooting.
+**Both of them are bodies, and being a body is what makes an aircraft
+shootable.** The split used to carry that weight as well: a parked aircraft was
+a grid unit precisely so that being perceived, traced against line of sight,
+hit, attributed, killed and wrecked came from the paths that already did those
+things, and an air entity carried no grid or combat components so every grid
+walk skipped it for free. Teaching the combat stack an air-aware branch in each
+of those walks would have bought a handful of shootable aircraft at the cost of
+that property forever.
 
-**That reasoning has an expiry date, and the convoy work moved it closer.** The
-argument above weighs "a handful of shootable aircraft" against an air-aware
-branch in every grid walk — and the branch is what made it a bad trade. The
-unit spatial index is now an index over *bodies* rather than over dense-roster
-rows, and a convoy chassis reaches every scan by carrying `IDENTITY` and
-nothing else: no `POSITION`, so occupancy and separation still skip it; no
-`COMBAT`, `MOVEMENT` or `ROLE`, so the fire system, the mover and the planner
-still skip it. Membership-narrowing does the work the branch used to. An
-airborne craft that gained `IDENTITY` and `HEALTH` on the same terms would be
-seen, targeted and damaged by the paths that already do those things, without
-anything acquiring an air-aware branch.
+The convoy work removed the branch from that trade. The unit spatial index is
+an index over *bodies* rather than over dense-roster rows, and a chassis reaches
+every scan by carrying `IDENTITY`, `HEALTH` and `ARMOR` and nothing else: no
+`POSITION`, so occupancy and separation skip it; no `COMBAT`, `MOVEMENT` or
+`ROLE`, so the fire system, the mover and the planner skip it.
+Membership-narrowing does the work the branch used to. **An air entity now
+carries exactly that trio on exactly those terms**, so a craft on its wheels is
+acquired, aimed at, led, traced through cover and walls, hit, credited and
+killed by the ordinary pipeline, and what puts it in reach of all of it is one
+line in the index rebuild. `AirTargetService` says which craft that is;
+`AirDamageResolver` applies the shared durability law to one.
 
-Nothing is planned here yet, and airborne craft remain undamageable — they
-carry no `HEALTH` at all, which is why nothing can shoot at one. But the
-moment anti-air exists, "not a target while flying" stops being a simplification
-and becomes the thing in the way. The shape to reach for then is the convoy's,
-not a second explicit candidate set: a flying aircraft is a body, and the
-altitude question ("can this shooter reach up?") is a per-weapon capability,
-which is what the existing "only a defence post can reach up" filter is already
-a hardcoded special case of.
+Structure therefore lives where every other body's does — an ordinary `HEALTH`
+component beside an ordinary `ARMOR` one — rather than in the sortie's mission
+bag. There is one hull number, written by the launch that took the aircraft off
+its berth, drained by whatever shoots it, read by the bar over it and handed
+back to the berth when it parks. A sortie carries what the aircraft is doing,
+never how much of it is left.
+
+The skin is one skin. A parked airframe and a rolling one are the same hull and
+take the same armour off the same ladder; what separates them is how often a
+round finds them, because a hull on chocks is a mark you can settle onto and one
+going past at taxi speed is not. That is a single authored multiplier on
+incoming accuracy and deliberately not a second durability profile — two ladders
+for one aircraft would be a fact with two values, consistent exactly as long as
+nobody re-dialled either.
+
+**A craft in the air is still not a target, and that is now the only
+simplification left.** It carries the same components as one on its wheels; what
+keeps it out of reach is that the index admits an aircraft only while the phase
+says it is on the ground. The remaining question is genuinely about altitude —
+whether a given weapon can reach up — and that is a per-weapon capability
+nothing answers yet, which is what the existing "only a defence post can reach
+up" filter is a hardcoded special case of. When anti-air arrives it is that
+filter that grows, not a second candidate set: a flying aircraft is already a
+body, and admitting it costs one condition.
 
 The **berth** is the thing with identity, not the airframe. A hardstand is
 authored into the map and stays put; the aircraft on it comes and goes and may
@@ -296,9 +311,10 @@ battle, which is a far worse outcome than a hull with a gap in it.
 A sortie's passengers are never at risk from this. An aircraft is taken off its
 berth at the moment the request is dispatched, before the crew starts walking,
 so the airframe standing on a pad and the crew walking toward it are never on
-the field at the same time; the craft they board is an air entity that ground
-fire cannot reach. Should a loading craft ever be made shootable, it owes its
-passengers a disposition, because they have already been taken off the roster.
+the field at the same time; the craft they board is loading, which is the one
+grounded phase ground fire is refused. Should a loading craft ever be made
+shootable, it owes its passengers a disposition, because they have already been
+taken off the roster.
 
 Every way a sortie can end draws one distinction: a craft that reached its own
 pad is an aircraft home from a job, and one that ended any other way is an
@@ -653,17 +669,37 @@ reason the phase is asked for rather than the altitude: it is the one ground
 phase where the engines are doing everything they can, and at the start of it
 the aircraft is still at zero altitude.
 
-**And it really is shootable.** Air used to be reachable only by defence posts
+**And it really is shot at.** Air used to be reachable only by defence posts
 and only while airborne, which meant the minute of open ground a strip buys was
 a minute of complete safety — a fighter taxiing past a fire team was in no
-danger whatsoever, and the trade the runway exists to make was a fiction. An
-aircraft on its wheels is a large slow object in the open and anything with a
-weapon can engage it, at rifle reach rather than through an anti-air bubble,
-and harder per shooter than a post manages against something flying. A loading
-craft stays exempt: its passengers have already left the roster and making it
-shootable would owe them a disposition nothing gives them.
+danger whatsoever, and the trade the runway exists to make was a fiction. It
+was then made damageable without being made a target: an attrition field
+counted enemies within ten cells and subtracted hull, so the aircraft lost
+structure while nothing in the battle had aimed at it. Nobody fired a round,
+nothing was drawn or heard, cover and walls and roofs counted for nothing, an
+enemy who could not see it drained it anyway, and no shooter was credited with
+the kill. Damageable and targetable are different properties and the difference
+is the whole feature.
 
-The same list is what an anti-air post reads, so a phase left off it is a phase
+An aircraft on its wheels is a large slow object in the open, so it is acquired
+and engaged like anything else: within rifle reach rather than through an
+anti-air bubble, by whoever has a clear line to it, through the cover and the
+walls that stand between, with tracers and impacts and somebody credited
+afterwards. A loading craft stays exempt: its passengers have already left the
+roster and making it shootable would owe them a disposition nothing gives them.
+
+**Being shot at is a matter of line of sight, and it is not gated on fog.**
+That is the same rule every other body follows and the same rule a convoy
+chassis follows: the crew of an aircraft see nothing — it carries no vision at
+all — and a shooter needs a clear line rather than a revealed cell. The
+player's own picture is a separate question and one the presentation tier
+currently answers differently for air than for anything else, drawing every
+craft on the map whether or not the player's side can see it. That is a real
+inconsistency, it predates any of this, and it belongs to the render tier
+rather than to the exposure model.
+
+The exposure predicate is derived from the locomotion, not listed, and so is
+the one an anti-air post reads: a phase left off a hand-written list is a phase
 nothing can touch. Replacing the armed loiter with attack runs did exactly that
 and made every strike invulnerable while it attacked.
 

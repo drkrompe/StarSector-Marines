@@ -37,17 +37,21 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 public final class BasedAircraft {
 
     /**
-     * Armor on a parked airframe, as a fraction of its hull HP.
+     * Armor on an airframe standing on the ground, as a fraction of its hull HP.
      *
      * <p>An aircraft is skinned to fly rather than to be shot at on the ground,
      * so it soaks far less than an emplacement of the same size. Enough that a
      * single rifle does not casually write one off; not enough to make burning
      * the field a project.
+     *
+     * <p>Read by {@code AirSystem} as well, because a machine taxiing across
+     * the apron is the same skin as the one parked beside it and two ladders
+     * for one aircraft would be a fact with two values.
      */
-    private static final float ARMOR_CAPACITY_FRACTION = 0.5f;
+    static final float ARMOR_CAPACITY_FRACTION = 0.5f;
 
-    /** Armor rating on a parked airframe. Below a turret's — an airframe is a skin, not a casemate. */
-    private static final float ARMOR_RATING = 6f;
+    /** Armor rating on an airframe on the ground, parked or rolling. Below a turret's — an airframe is a skin, not a casemate. */
+    static final float ARMOR_RATING = 6f;
 
     private BasedAircraft() {}
 
