@@ -49,7 +49,7 @@ public class LayeredMechAppearanceTest {
         assertEquals(LayeredMechAppearance.POD_HEAVY_SRM,
                 sim.getEntityWorld().getInt(mech, c.MECH_LAYERED_ANIMATION,
                         BattleComponents.MECH_LAYERED_LEFT_SHOULDER));
-        assertEquals(LayeredMechAppearance.POD_SHOULDER_LASER,
+        assertEquals(LayeredMechAppearance.POD_HEAVY_SRM,
                 sim.getEntityWorld().getInt(mech, c.MECH_LAYERED_ANIMATION,
                         BattleComponents.MECH_LAYERED_RIGHT_SHOULDER));
     }

@@ -34,6 +34,8 @@ public final class SpaceportDistrictPlanStage implements GenStage {
     private static final int PAD_MIN_SIDE = 5;
     private static final int TIER_ONE_MEMBERS = 6; // four pads + terminal + service yard
     private static final int MEGAPORT_MEMBERS = 8; // six pads + terminal + service yard
+    /** Most pads {@code SpaceportDistrictFiller} publishes at tier one. */
+    private static final int TIER_ONE_PADS = 4;
 
     private static final Comparator<BlockLeaf> BY_POSITION = Comparator
             .comparingInt((BlockLeaf leaf) -> leaf.top)
@@ -47,10 +49,14 @@ public final class SpaceportDistrictPlanStage implements GenStage {
         if (profile == null || profile.spaceportTier() <= 0
                 || districtMap == null || partition == null) return;
 
-        // A campaign port gets exactly one authored campus. Remove incidental
-        // HARBOR_PORT pad rolls before reserving the connected campus below.
+        // A campaign port gets exactly one authored campus, so the incidental
+        // HARBOR_PORT pad rolls are displaced by it -- but only once there is
+        // something to displace them with. Demoting first and searching second
+        // meant every failed search left the map with fewer pads than if this
+        // stage had not run at all, which is the one outcome it must not have.
+        List<BlockLeaf> incidental = new ArrayList<>();
         for (BlockLeaf leaf : partition.leaves) {
-            if (leaf.kind == BlockKind.SPACEPORT_PAD) leaf.kind = BlockKind.INDUSTRIAL_YARD;
+            if (leaf.kind == BlockKind.SPACEPORT_PAD) incidental.add(leaf);
         }
 
         TrunkPlan.Plan trunkPlan = ctx.get(BspKeys.TRUNK_PLAN);
@@ -83,7 +89,23 @@ public final class SpaceportDistrictPlanStage implements GenStage {
                 ? MEGAPORT_MEMBERS : TIER_ONE_MEMBERS;
         List<BlockLeaf> members = compactMembers(component, adjacency,
                 Math.min(targetMembers, component.size()));
-        if (members.isEmpty()) return;
+        // Never replace the scatter with something worse than it. The campus
+        // is the better port when it can be built, but the candidate window is
+        // the authored zoning pocket intersected with one trunk quadrant, and
+        // an unlucky roll leaves too few leaves in it. A fixed member floor was
+        // tried and is wrong in the other direction: where the map rolled no
+        // incidental pads at all, abandoning gave zero where a small campus
+        // would have given one. What matters is the comparison, not a constant.
+        int campusPads = Math.min(TIER_ONE_PADS, members.size());
+        int scatterPads = 0;
+        for (BlockLeaf leaf : incidental) {
+            if (leaf.width() >= PAD_MIN_SIDE && leaf.height() >= PAD_MIN_SIDE) scatterPads++;
+        }
+        if (campusPads < scatterPads) return;
+
+        for (BlockLeaf leaf : incidental) {
+            if (!members.contains(leaf)) leaf.kind = BlockKind.INDUSTRIAL_YARD;
+        }
 
         BlockLeaf seed = members.get(0);
         seed.kind = BlockKind.SPACEPORT_PAD;
