@@ -17,8 +17,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.IntConsumer;
 
-/** Render-free projection for selected-mech doctrine and lance-order control. */
+/** Render-free projection for selected-Mech doctrine, coordination, and tactical orders. */
 final class BattleMechOverlayModel {
 
     private static final String DEFAULT_STATE =
@@ -28,6 +29,9 @@ final class BattleMechOverlayModel {
     private static final String LANCE_ORDER_CARD = "lance-order-card";
     private static final String LANCE_ORDER_CARD_ACTIVE =
             "lance-order-card lance-order-card-active";
+    private static final String DEFEND_AREA_CARD = "mech-defend-area";
+    private static final String DEFEND_AREA_CARD_ACTIVE =
+            "mech-defend-area mech-defend-area-active";
 
     private final MutableSignal<String> mechTitle;
     private final MutableSignal<String> mechIdentity;
@@ -41,20 +45,27 @@ final class BattleMechOverlayModel {
     private final MutableSignal<String> freeReignMeta;
     private final MutableSignal<Boolean> formOnLeadDisabled;
     private final MutableSignal<Boolean> freeReignDisabled;
+    private final MutableSignal<String> defendAreaLabel;
+    private final MutableSignal<String> defendAreaMeta;
+    private final MutableSignal<String> defendAreaClasses;
     private final MutableSignal<List<DoctrineCard>> doctrineCards;
     private final Runnable backAction;
     private final BiConsumer<Long, MechRole> doctrineRequest;
     private final BiConsumer<Long, MechLanceOrder> lanceOrderRequest;
+    private final IntConsumer defendAreaRequest;
     private final Map<MechRole, Runnable> roleActions = new EnumMap<>(MechRole.class);
 
     private long selectedMechId;
+    private int selectedSquadId = -1;
 
     BattleMechOverlayModel(Reactor reactor, Runnable backAction,
                            BiConsumer<Long, MechRole> doctrineRequest,
-                           BiConsumer<Long, MechLanceOrder> lanceOrderRequest) {
+                           BiConsumer<Long, MechLanceOrder> lanceOrderRequest,
+                           IntConsumer defendAreaRequest) {
         this.backAction = backAction;
         this.doctrineRequest = doctrineRequest;
         this.lanceOrderRequest = lanceOrderRequest;
+        this.defendAreaRequest = defendAreaRequest;
         mechTitle = reactor.signal("MECH");
         mechIdentity = reactor.signal("SELECTED MECH");
         deployedDoctrine = reactor.signal("DEPLOYED · --");
@@ -67,6 +78,9 @@ final class BattleMechOverlayModel {
         freeReignMeta = reactor.signal("SELECT");
         formOnLeadDisabled = reactor.signal(true);
         freeReignDisabled = reactor.signal(false);
+        defendAreaLabel = reactor.signal("DEFEND AREA");
+        defendAreaMeta = reactor.signal("PLACE 40-CELL ZONE");
+        defendAreaClasses = reactor.signal(DEFEND_AREA_CARD);
         doctrineCards = reactor.signal(List.of());
     }
 
@@ -88,6 +102,10 @@ final class BattleMechOverlayModel {
                 MechLanceOrder.FORM_ON_LEAD));
         props.put("freeReignAction", (Runnable) () -> requestLanceOrder(
                 MechLanceOrder.FREE_REIGN));
+        props.put("defendAreaLabel", defendAreaLabel);
+        props.put("defendAreaMeta", defendAreaMeta);
+        props.put("defendAreaClasses", defendAreaClasses);
+        props.put("defendAreaAction", (Runnable) this::requestDefendArea);
         props.put("doctrineCards", doctrineCards);
         props.put("backAction", backAction);
         props.put("defaultAction", (Runnable) () -> request(null));
@@ -95,7 +113,7 @@ final class BattleMechOverlayModel {
     }
 
     Presentation update(BattleSimulation sim, int selectedSquadId,
-                        long selectedUnitEntityId) {
+                        long selectedUnitEntityId, int targetingSquadId) {
         if (sim == null || selectedSquadId < 0 || selectedUnitEntityId == 0L
                 || !isLiveUnit(sim, selectedUnitEntityId)
                 || !sim.world().isAlive(selectedUnitEntityId)
@@ -118,19 +136,22 @@ final class BattleMechOverlayModel {
                 || loadout.effectiveRole() == null) {
             return hide();
         }
-        return updateProjected(new MechState(selectedUnitEntityId,
+        return updateProjected(new MechState(selectedSquadId, selectedUnitEntityId,
                 sim.identity().name(selectedUnitEntityId), loadout.variant.displayName,
                 loadout.deployedRole(), loadout.effectiveRole(), squad.lanceOrder(),
+                targetingSquadId == selectedSquadId,
                 selectableRoles()));
     }
 
     Presentation updateProjected(MechState mech) {
-        if (mech == null || mech.entityId() == 0L || mech.deployedRole() == null
+        if (mech == null || mech.squadId() < 0 || mech.entityId() == 0L
+                || mech.deployedRole() == null
                 || mech.effectiveRole() == null || mech.lanceOrder() == null
                 || mech.availableRoles().isEmpty()) {
             return hide();
         }
         selectedMechId = mech.entityId();
+        selectedSquadId = mech.squadId();
         String variant = text(mech.variantName(), "MECH").toUpperCase(Locale.ROOT);
         String identity = text(mech.unitName(), variant).toUpperCase(Locale.ROOT);
         mechTitle.set(variant);
@@ -149,6 +170,13 @@ final class BattleMechOverlayModel {
         freeReignMeta.set(forming ? "SELECT" : "ACTIVE");
         formOnLeadDisabled.set(forming);
         freeReignDisabled.set(!forming);
+
+        defendAreaLabel.set(mech.defendAreaTargeting()
+                ? "CANCEL AREA" : "DEFEND AREA");
+        defendAreaMeta.set(mech.defendAreaTargeting()
+                ? "PLACEMENT ARMED" : "PLACE 40-CELL ZONE");
+        defendAreaClasses.set(mech.defendAreaTargeting()
+                ? DEFEND_AREA_CARD_ACTIVE : DEFEND_AREA_CARD);
 
         List<DoctrineCard> cards = new ArrayList<>(mech.availableRoles().size());
         for (MechRole role : mech.availableRoles()) {
@@ -180,8 +208,13 @@ final class BattleMechOverlayModel {
         if (selectedMechId != 0L) lanceOrderRequest.accept(selectedMechId, order);
     }
 
+    private void requestDefendArea() {
+        if (selectedSquadId >= 0) defendAreaRequest.accept(selectedSquadId);
+    }
+
     private Presentation hide() {
         selectedMechId = 0L;
+        selectedSquadId = -1;
         return new Presentation(false);
     }
 
@@ -218,9 +251,10 @@ final class BattleMechOverlayModel {
 
     record Presentation(boolean visible) { }
 
-    record MechState(long entityId, String unitName, String variantName,
+    record MechState(int squadId, long entityId, String unitName, String variantName,
                      MechRole deployedRole, MechRole effectiveRole,
                      MechLanceOrder lanceOrder,
+                     boolean defendAreaTargeting,
                      List<MechRole> availableRoles) {
         MechState {
             availableRoles = availableRoles == null

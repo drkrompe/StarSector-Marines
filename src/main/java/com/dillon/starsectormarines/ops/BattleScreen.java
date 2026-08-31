@@ -577,8 +577,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         // an armed power claims the map click before squad selection sees it.
         commandPowerTargeting = new CommandPowerTargetingPanel(this);
         hud.addPanel(commandPowerTargeting);
-        // Added above the picker and power targeter. Arming either targeting
-        // family cancels the other, so only one world click owner is live.
+        // Added above the picker and power targeter. Infantry squads and Mech
+        // lances share this Defend Area placement owner. Arming either
+        // targeting family cancels the other, so only one world click owner
+        // is live.
         squadDefendTargeting = new SquadDefendTargetingPanel(this);
         orderIntentCursor = new OrderIntentCursorPanel(this);
         hud.addPanel(squadDefendTargeting);
@@ -694,7 +696,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         retainedSquadOverlay.attach(position, sim);
         if (retainedMechOverlay == null) {
-            retainedMechOverlay = new BattleMechOverlay(selection);
+            retainedMechOverlay = new BattleMechOverlay(selection,
+                    this::toggleSquadDefendTargeting,
+                    () -> squadDefendTargeting != null
+                            ? squadDefendTargeting.targetingSquadId()
+                            : Selection.NONE);
         }
         retainedMechOverlay.attach(position, sim);
         if (retainedPowerOverlay == null) {

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -22,8 +23,13 @@ public final class MechAssignedObjectiveGoal implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
+        var assignment = squad.assignmentForExecution();
         if (squad.rescuePickupMech || state.get(Predicate.MORALE_BROKEN)
-                || MechAssignmentBoundary.isAttackMove(squad)) return 0f;
+                || MechAssignmentBoundary.isAttackMove(squad)
+                || assignment != null
+                && assignment.kind() == AssignmentKind.DEFEND_AREA) {
+            return 0f;
+        }
         return MechAssignmentBoundary.hasSupportedAssignment(squad, sim)
                 ? 1.5f : 0f;
     }

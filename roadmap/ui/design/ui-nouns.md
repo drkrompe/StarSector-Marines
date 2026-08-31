@@ -6,7 +6,9 @@ Written: 2026-08-23
 
 Updated: 2026-08-31 — the selected-infantry plate now protects squad identity,
 strength, and morale in a summary row while contextual controls occupy a
-separate tactical-order row.
+separate tactical-order row; the selected-Mech plate gives lance-wide Defend
+Area its own full-width section rather than packing it into coordination or
+doctrine controls.
 
 Earlier 2026-08-31 — primary world selection now distinguishes a click from a
 drag marquee and deterministically selects one player squad or combat Mech
@@ -264,9 +266,13 @@ role, armour, and readiness without enlarging the persistent HUD. Selecting an
 exact live player Mech replaces that infantry roster with a compact Mech plate:
 variant, deployed doctrine, effective doctrine, the lance-wide Form on Lead or
 Free Reign order, Brawler, Tank, Long Range Support, and Balanced choices, plus
-Reset Doctrine. Tank is presentation shorthand for Frontline Support. Scope is
+Reset Doctrine. A separate full-width tactical-order section arms lance-wide
+Defend Area placement; it is vertically separated from coordination and doctrine
+so the additional action cannot compress either control family. Tank is
+presentation shorthand for Frontline Support. Scope is
 visible beside the controls: the lance order affects the whole selected battle
-lance while doctrine affects only the exact selected mech. The plate projects
+lance, Defend Area affects that whole lance's temporary assignment, and doctrine
+affects only the exact selected mech. The plate projects
 the simulation's effective state and sends serialized battle-command requests;
 it never mutates the squad, loadout, campaign default, assignment, or contact
 picture directly, and it is absent for enemies, infantry, rescue payloads, and
@@ -285,11 +291,13 @@ opens a bounded, scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
 
-The same selected-infantry plate exposes **Defend Area** as a deliberate
-two-step command rather than overloading the contextual right-click gesture.
-Its summary row is reserved for squad identity, strength, and morale; contextual
-controls live in a separate tactical-order row so adding or renaming an order
-cannot compress the status readout.
+The selected-infantry plate and selected-Mech plate expose **Defend Area**
+as a deliberate two-step command rather than overloading the contextual
+right-click gesture. Infantry issues it for the selected squad; a Mech issues
+one shared order for its whole battle lance.
+The infantry summary row is reserved for squad identity, strength, and morale;
+its contextual controls live in a separate tactical-order row so adding or
+renaming an order cannot compress the status readout.
 Arming it gives the next primary world click to a circular twenty-cell-radius
 reticle; right-click, Escape, or selection change cancels without issuing an
 order. Placement returns the input seam to ordinary world selection, while the
