@@ -666,7 +666,8 @@ public final class UnitRenderService implements RenderSystem {
 
                 UnitType type = (UnitType) types[r];
                 LayeredMechAssets mechAssets = hasMechLayered
-                        ? sprites.layeredMechSprites() : null;
+                        ? sprites.layeredMechSprites(ctx.sim.identity().faction(entityId))
+                        : null;
                 if (mechAssets != null) {
                     float cx = cam.cellToScreenX(rx[r]);
                     float cy = cam.cellToScreenY(ry[r]);

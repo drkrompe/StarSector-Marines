@@ -261,6 +261,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         this.position = position;
         this.ctx = ctx;
         this.speedMultiplier = 1f;
+        configureMechLiveries();
         sprites.ensureUnitSheets();
         sprites.ensureLayeredUnitSprites();
         sprites.ensureLayeredMechSprites();
@@ -284,6 +285,22 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.onAttach();
         startBattleAudio();
         rebuild();
+    }
+
+    /**
+     * Campaign identity enters the renderer here and nowhere in the battle
+     * simulation. The employer paints marine support; the effective target
+     * faction (including a debug comparison override) paints defenders.
+     */
+    private void configureMechLiveries() {
+        Client employer = ctx != null ? ctx.getSelectedClient() : null;
+        Mission mission = ctx != null ? ctx.getSelectedMission() : null;
+        String marineFactionId = employer != null ? employer.factionId : null;
+        String defenderFactionId = mission == null ? null
+                : mission.defenderFactionOverride != null
+                        ? mission.defenderFactionOverride
+                        : mission.targetFactionId;
+        sprites.configureMechLiveries(marineFactionId, defenderFactionId);
     }
 
     /**
