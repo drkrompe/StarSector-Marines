@@ -23,6 +23,13 @@ Updated: 2026-08-31 — route construction proves the turn from the way a truck
 arrives to the way it must leave, and a departure that finds itself misaligned
 backs and fills onto its corridor instead of holding.
 
+Updated: 2026-08-31 — the control layer takes a route and a leg rather than an
+inbound/outbound flag, so what arrival means is a property of the journey and a
+route need not belong to a delivery.
+
+Updated: 2026-08-31 — a vehicle can be given a move order, and an order that
+cannot be carried out is refused with a reason rather than parked on.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -32,10 +39,14 @@ leaves. Convoy owns vehicle movement and the delivery lifecycle. The
 reinforcement layer owns whether a request exists, which means may fulfill it,
 and the ticket/supply economy; a convoy only fulfills a request it receives.
 
-Convoy is the ground counterpart to shuttle delivery, not a generic ground-unit
-system. It is nevertheless the chassis seam for later vehicle roles: a future
-vehicle may have a different body, payload, or parked behavior without changing
-the delivery lifecycle or treating roads as kinematic rails.
+Delivery is what a convoy is dispatched *for*, and no longer all a vehicle can
+be doing: a chassis may also be given a **move order** — sent to a cell somebody
+picked, under its own kinematics, with the delivery errand standing still until
+it is done. Convoy is still not a generic ground-unit system in the sense of
+owning squads or objectives; it owns a chassis, its motion, and its errands.
+It is the seam for later vehicle roles: a future vehicle may have a different
+body, payload, or parked behavior without changing the delivery lifecycle or
+treating roads as kinematic rails.
 
 The current operational variant is the defender `HEAVY_APC`: four
 faction-rostered infantry passengers and a roof weapon. The old `MILITIA_TRUCK`
@@ -206,6 +217,16 @@ Routing and motion are one convoy model, not separate features. The route layer
 chooses an advisory corridor; the control layer drives a physically plausible
 body toward it.
 
+The control layer is handed **a route and a leg** — what the vehicle is driving
+this route for — rather than a flag naming which half of a delivery it is on.
+The leg is what makes reaching the end of a route mean something: how near
+counts as arrived, whether the body settles exactly on the last waypoint,
+whether the docking maneuver may earn it a departure heading, whether the
+planner's soft terminal region is good enough, and whether the vehicle may back
+and fill to get started. A delivery supplies two legs in sequence; the route is
+not otherwise special, which is what leaves room for a vehicle to be sent
+somewhere that is not a delivery at all — see `vehicle-as-commandable-unit.md`.
+
 Roads are a **cost preference**, not topology a vehicle must follow. A route
 search favors road and hardscape cells, accepts costlier open terrain for a
 genuine shortcut, and avoids ugly terrain where possible. A clearance mask for
@@ -286,6 +307,22 @@ it planned before.
   is what turns it round. Short deliberately — a nearer goal buys a tighter
   swing, and lateral room is the scarce thing. The attempt is bounded, because
   a pose no maneuver can rescue must cost a couple of tries rather than loop.
+- An order that cannot be carried out is refused, out loud. A dispatched route
+  is proven before dispatch commits to it, and a destination somebody picked is
+  not — so a move order is where feasibility is actually decided, and the
+  recovery ladder stops being a safety net and becomes the mechanism. A request
+  with no drivable route for that chassis never becomes an order; an accepted
+  one that stops converging is abandoned with a reason. Holding position
+  silently for the rest of the battle is the terminal state this replaces, and
+  it is unacceptable for a vehicle somebody is watching.
+- What a vehicle is asked for and where it is going are separate facts. A
+  clicked cell is resolved to the nearest ground the chassis can actually
+  occupy — its footprint and its turning circle, not the infantry answer — and
+  both the request and the destination are kept so the interface can say "here,
+  not quite there."
+- A move order owns locomotion and nothing else. The turret, the payload, and
+  the delivery obligation are untouched, and releasing the order hands the
+  vehicle straight back to the errand it was on.
 - Arrival is not failure. Reaching the terminal corridor region must transition
   to landing/departure instead of triggering a false stuck recovery, and aiming
   at an off-map exit is arrival in progress rather than an unsolvable route.

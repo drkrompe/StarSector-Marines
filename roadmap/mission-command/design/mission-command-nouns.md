@@ -4,7 +4,10 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-31 — a selected Marine infantry squad may take a one-shot
+Updated: 2026-08-31 — an uncaptured Conquest compound may be selected as a
+contextual squad action that persists through approach and fighting until the
+territorial objective reports completion.
+Earlier 2026-08-31 — a selected Marine infantry squad may take a one-shot
 tactical destination below its directive; arrival or withdrawal hands execution
 back without replacing mission ownership.
 Earlier: the casualty memory now also publishes a route costing, so the movers
@@ -304,6 +307,15 @@ the squad crosses contact and fires, form-up and cohesion survival may suspend
 it, and hard withdrawal cancels it. Arrival removes the temporary context before
 the ordinary directive replans, so the intervention neither becomes a second
 assignment writer nor leaves an unowned interval.
+
+A contextual squad action applies the same execution-only authority to a legal
+mission interaction. The first production action is Conquest capture: clicking
+an uncaptured compound binds its stable authored identity to the live capture
+room and supplies the existing `SECURE_COMPOUND` context. Arrival is not
+completion; the squad approaches, clears, and holds through the ordinary local
+AI until territorial authority reports `MARINE_HELD`. Completion, hard
+withdrawal, loss, or invalidated reachability removes the temporary context and
+reveals the latest authoritative directive without an unassigned interval.
 
 A frozen **command doctrine profile** may bias legal assignment, reserve,
 recapture, and local-posture choices. It does not add objectives, knowledge,

@@ -95,7 +95,11 @@ class DepartureTurnaroundTest {
 
     private static void driveOutbound(Rig rig, float seconds) {
         int ticks = (int) (seconds * 30f);
-        for (int i = 0; i < ticks; i++) rig.controls().tick(rig.id(), 1f / 30f, false);
+        VehicleMission m = rig.convoy().mission(rig.id());
+        for (int i = 0; i < ticks; i++) {
+            rig.controls().tick(rig.id(), 1f / 30f, m.outboundX, m.outboundY,
+                    VehicleLeg.DEPARTURE_RUN);
+        }
     }
 
     @Test
