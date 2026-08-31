@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
@@ -367,13 +369,15 @@ public final class AirbaseLot {
     /**
      * A lot whose berths are published for {@code purpose}.
      *
-     * <p>Whether a base is <em>operational</em> is the host's call, not the
-     * lot's. The geometry is the same either way — the same paving, sheds,
-     * markings and fence — and what changes is who picks the berths up: a
-     * garrison field supplies an air arm and can be taken to stop it, while a
-     * civil pad is somewhere to put an aircraft down and nothing more. Building
-     * a second, cosmetic airbase to get the second behaviour would be two
-     * things to keep in step for no reason.
+     * <p>Whether a base is <em>operational</em> is what the host chooses here,
+     * and this one argument carries all of it. The geometry is the same either
+     * way — the same paving, sheds, markings and fence — and what changes is
+     * what the lot publishes: a garrison field puts out berths an air arm draws
+     * sorties from <em>and</em> the {@link com.dillon.starsectormarines.battle.decision.TacticalNode.Kind#AIRBASE}
+     * node that makes it a place to be taken, while a civil pad is somewhere to
+     * put an aircraft down and nothing more. Building a second, cosmetic
+     * airbase to get the second behaviour would be two things to keep in step
+     * for no reason.
      */
     public AirbaseLot(int left, int bottom, int right, int top,
                       Facing facing, Size size, LandingPad.Purpose purpose) {
@@ -408,7 +412,8 @@ public final class AirbaseLot {
 
     /**
      * Lay the base into its rectangle: pave it, run the strip, mark the berths,
-     * wall the sheds, work their interiors, and fence the lot.
+     * wall the sheds, work their interiors, fence the lot, and — for a lot that
+     * is a working field — publish it as a place to take.
      */
     public void author(GenContext ctx, Random rng) {
         pave(ctx);
@@ -418,7 +423,43 @@ public final class AirbaseLot {
         vehiclePark(ctx);
         tower(ctx);
         fence(ctx);
+        airbaseNode(ctx);
     }
+
+    /**
+     * The base as one position to take.
+     *
+     * <p>Published by the lot for the same reason the strip is: the lot knows
+     * where it put the base, and a host that says so again is a second
+     * description of one fact. Left to the hosts it was one host's — the
+     * fortress ward emitted a node and the city claim did not — so a compound
+     * came out with every physical part of a field, berths and sheds and
+     * markings, and nothing that told a commander it was one. Its sorties flew
+     * pre-loaded, which is exactly the spawner that loading on the ground
+     * exists to replace.
+     *
+     * <p>The purpose is the switch because it already is one. A garrison field
+     * supplies an air arm and can be taken to stop it; the berths say the first
+     * half and only the node says the second, so a lot cannot publish one
+     * without the other. A civil pad publishes neither and stays scenery.
+     *
+     * <p>The node covers the lot rather than the reservation around it: the
+     * clearance is ground kept clear <em>outside</em> the fence, and holding a
+     * base does not mean standing in the road beside it.
+     */
+    private void airbaseNode(GenContext ctx) {
+        if (purpose != LandingPad.Purpose.GARRISON_AIRFIELD) return;
+        ctx.tactical.add(new TacticalNode(TacticalNode.Kind.AIRBASE,
+                (left + right) / 2, (bottom + top) / 2,
+                left, bottom, right, top,
+                Faction.DEFENDER, NODE_PRIORITY, NODE_GARRISON));
+    }
+
+    /** How hard a field is worth defending, against the keep's 90 and a command post's 70. */
+    private static final int NODE_PRIORITY = 65;
+
+    /** People posted to the field itself. Ground crew and a guard, not a garrison. */
+    private static final int NODE_GARRISON = 3;
 
     /**
      * Everything inside the fence is made surface, and claimed so nothing else

@@ -43,8 +43,13 @@ import java.util.Set;
  * with no error. Falling back through the sizes makes the worst case a smaller
  * base, the same bargain the seed's demotion makes a stage earlier.
  *
- * <p>Scenery like its smaller sibling: civil landing pads and no airbase node,
- * so nothing flies from it and no commander gates on holding it.
+ * <p><b>A working field, unlike its block-sized sibling.</b> The claim is the
+ * ground a base needs, which is what the single block never was, so what stands
+ * on it is a garrison airfield: berths an air arm draws sorties from, aircraft
+ * standing on them that a raider can burn, and the {@code AIRBASE} node that
+ * lets a commander see all of that as a place to take. {@link AirbasePadFiller}
+ * stays a civil landing site for the reason its own doc gives — a capturable
+ * airbase wedged in one city block is a different thing from a pad in one.
  */
 public final class AirbaseCompoundFiller implements CompoundFiller {
 
@@ -158,7 +163,7 @@ public final class AirbaseCompoundFiller implements CompoundFiller {
         int bottom = top + AirbaseLot.spanY(size, facing) - 1;
 
         new AirbaseLot(left, top, right, bottom, facing, size,
-                LandingPad.Purpose.CIVIC_LANDING_ZONE, CLAIM_CLEARANCE).author(ctx, ctx.rng);
+                LandingPad.Purpose.GARRISON_AIRFIELD, CLAIM_CLEARANCE).author(ctx, ctx.rng);
         ctx.pois.add(new PointOfInterest(PointOfInterest.Kind.LANDING_SITE,
                 left, top, right, bottom, (left + right) / 2, (top + bottom) / 2));
     }
