@@ -4,11 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a landing is flown, and the strip it lands on is a resource nothing may hold after it stops existing.
-
-Updated: 2026-08-30 — the two-representations split now has a stated expiry:
-bodies reach the scans generically, so anti-air will not need an air-aware
-branch in every grid walk.
+Updated: 2026-08-31 — the two representations now draw the same size at their handoff seam.
 
 ## Purpose
 
@@ -565,6 +561,17 @@ it is deliberately not turned into a grid unit for the taxi. The only handoff
 between the two representations is at a standstill, on a berth; making the taxi
 a grid walk and the roll a flight would put a second handoff in the middle of
 one continuous movement, which is exactly the seam this model keeps still.
+
+**The two representations draw the same size at that seam, by law.** The berth
+hull (`UnitRenderService`'s `emitHull`, and the wreck it leaves behind) and the
+air entity at `altitudeT == 0` (`ShuttleRenderSystem`) both draw at
+`AirAppearance.GROUND_SCALE`; a parked scenery hull on a civilian berth
+(`ParkedAircraftRenderSystem`) agrees for the same reason — it is the same kind
+of object at rest. A hull that changed size crossing the one handoff this model
+keeps still would read as a launch or a recovery popping, which is exactly the
+seam the taxi/roll design above exists to keep invisible.
+`AircraftGroundAirHandoffScaleTest` pins the berth and the air-entity collector
+landing on the same drawn number so this cannot drift back apart silently.
 
 **Rolling is not flying slowly.** Ground movement is its own locomotion model
 rather than the flight steering held down to walking pace. What flight does to
