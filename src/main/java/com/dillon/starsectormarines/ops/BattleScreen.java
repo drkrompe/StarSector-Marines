@@ -43,6 +43,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.ExtractionCommanderOverl
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.MechMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SquadMoveOrderHighlightPublisher;
+import com.dillon.starsectormarines.battle.ui.highlight.VehicleMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
@@ -261,6 +262,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         this.position = position;
         this.ctx = ctx;
         this.speedMultiplier = 1f;
+        configureMechLiveries();
         sprites.ensureUnitSheets();
         sprites.ensureLayeredUnitSprites();
         sprites.ensureLayeredMechSprites();
@@ -284,6 +286,22 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.onAttach();
         startBattleAudio();
         rebuild();
+    }
+
+    /**
+     * Campaign identity enters the renderer here and nowhere in the battle
+     * simulation. The employer paints marine support; the effective target
+     * faction (including a debug comparison override) paints defenders.
+     */
+    private void configureMechLiveries() {
+        Client employer = ctx != null ? ctx.getSelectedClient() : null;
+        Mission mission = ctx != null ? ctx.getSelectedMission() : null;
+        String marineFactionId = employer != null ? employer.factionId : null;
+        String defenderFactionId = mission == null ? null
+                : mission.defenderFactionOverride != null
+                        ? mission.defenderFactionOverride
+                        : mission.targetFactionId;
+        sprites.configureMechLiveries(marineFactionId, defenderFactionId);
     }
 
     /**
@@ -475,6 +493,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         SelectionHighlightPublisher.publish(selection, sim, highlights);
         MechMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
+        VehicleMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         CommanderInfluenceOverlayPublisher.publish(sim, highlights,
                 debugMarineFriendlyInfluence, debugMarineHostileInfluence,
                 debugDefenderFriendlyInfluence, debugDefenderHostileInfluence);
@@ -1127,6 +1146,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (selectedUnit != 0L && sim.world().hasMechLoadout(selectedUnit)) {
             sim.getMechMoveOrderService().requestMove(
                     selectedUnit, cellX, cellY);
+            return;
+        }
+        long selectedVehicle = selection.getSelectedVehicleId();
+        if (selectedVehicle != 0L && sim.getVehicleMoveOrderService() != null) {
+            sim.getVehicleMoveOrderService().requestMove(
+                    selectedVehicle, cellX, cellY);
             return;
         }
         int selectedSquad = selection.getSelectedSquadId();
