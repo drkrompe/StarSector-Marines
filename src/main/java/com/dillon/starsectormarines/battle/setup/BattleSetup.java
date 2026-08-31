@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
+import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -1527,6 +1528,9 @@ public final class BattleSetup {
             rs.addTrigger(new ObjectiveLostTrigger());
         }
         basedAircraft(sim, map, groundRoster == null ? null : groundRoster.primaryFactionId());
+        // Opened before anything is manned, because a manning pass records its
+        // postings here and a posting outlives the people filling it.
+        sim.setWorksCrews(new WorksCrewService(axis));
         installAirfieldCrew(sim, map);
         installVehicleBays(sim, map);
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
@@ -1625,7 +1629,8 @@ public final class BattleSetup {
         List<RoomSite> rooms = RoomSite.findAll(map.topology,
                 map.grid.getWidth(), map.grid.getHeight());
         StructureWatch.man(sim, Faction.DEFENDER, rooms, apron,
-                AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), APRON_WATCH);
+                AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), APRON_WATCH,
+                sim.getWorksCrews());
     }
 
     /**
@@ -1652,7 +1657,8 @@ public final class BattleSetup {
 
         sim.setFabrication(works);
         StructureWatch.man(sim, Faction.DEFENDER, rooms, map.fixtureTasks,
-                works.berthed(), EnumSet.of(RoomPurpose.VEHICLE_BAY), BAY_WATCH);
+                works.berthed(), EnumSet.of(RoomPurpose.VEHICLE_BAY), BAY_WATCH,
+                sim.getWorksCrews());
     }
 
     /**
