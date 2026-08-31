@@ -150,6 +150,26 @@ abstract class AbstractZoneAction implements Action {
      */
     static final float OBJECTIVE_FIRING_LEASH = 8f;
 
+    /**
+     * How much further than the straight line a member may walk to take a
+     * firing position, as a multiple of that straight line.
+     *
+     * <p>Every leash here bounds the <em>straight-line</em> distance from an
+     * anchor, and the member has to walk a path. A wall makes those two
+     * numbers diverge without limit: measured on a probe, a spot three cells
+     * from its anchor and seven from the member was a thirty-nine cell march
+     * around the building between them. That is not the bounded improvement a
+     * leash is for — it is the objective abandoned for as long as the march
+     * takes — so travel is bounded in its own right rather than assumed from
+     * the leash.
+     */
+    static final float FIRING_DETOUR_RATIO = 2.5f;
+    /**
+     * Cells of travel allowed before the ratio applies, so a firing position
+     * one or two cells away is not refused for stepping around a crate.
+     */
+    static final float FIRING_DETOUR_SLACK = 4f;
+
     /** Role-slot prefix for the fire-team partition a bounding advance moves in. */
     static final String FIRE_TEAM = "fireteam:";
     /** Test/fixture aliases for the first two organizational teams. */
@@ -298,15 +318,11 @@ abstract class AbstractZoneAction implements Action {
         if (committed && target != 0L && threatAnchorX >= 0 && threatAnchorY >= 0) {
             int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
                     member, target, threatAnchorX, threatAnchorY, engageLeash);
-            if (firingPos != null) {
-                if (sim.movement().mayRepath(member)) {
-                    sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                            sim.world().cellX(member), sim.world().cellY(member),
-                            firingPos[0], firingPos[1], sim.getOccupancyMap()));
-                }
-                sim.advanceMovement(member);
-                return;
-            }
+            // A refusal falls through to the objective route rather than
+            // returning. Returning on an unreachable position is what froze a
+            // committed member in place indefinitely; walking on toward the
+            // objective is a worse firing position and a live marine.
+            if (advanceToReachableFiringPosition(member, sim, firingPos)) return;
         }
 
         // A flank/rear or adverse-odds picture can order a contact line even
@@ -353,15 +369,7 @@ abstract class AbstractZoneAction implements Action {
                 && target != 0L && clearShotOnTarget && opportune == 0L) {
             int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
                     member, target, destX, destY, OBJECTIVE_FIRING_LEASH);
-            if (firingPos != null) {
-                if (sim.movement().mayRepath(member)) {
-                    sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                            sim.world().cellX(member), sim.world().cellY(member),
-                            firingPos[0], firingPos[1], sim.getOccupancyMap()));
-                }
-                sim.advanceMovement(member);
-                return;
-            }
+            if (advanceToReachableFiringPosition(member, sim, firingPos)) return;
         }
 
         if (sim.movement().mayRepath(member)) {
@@ -400,6 +408,65 @@ abstract class AbstractZoneAction implements Action {
      * is member-independent, so whichever member arrives first may author the
      * cache without making behavior order-dependent.
      */
+    /**
+     * Move toward {@code firingPos}, refusing a position the member cannot
+     * actually walk to, and report whether a move was authored. A caller that
+     * gets {@code false} must fall through to whatever it would have done with
+     * no firing position at all.
+     *
+     * <p><b>The picker is blind to reachability and always has been.</b>
+     * {@code TacticalScoring.findFiringPositionWithin} scores walkability,
+     * leash distance, range and line of fire; nothing in it asks whether a
+     * path exists. {@code TacticalScoring.findReachableFiringPosition} is the
+     * variant that does, and it says so in its own documentation. So a cell
+     * with a clear shot from the far side of a sealed wall is a perfectly
+     * ordinary answer, and the caller that took it set an empty path, moved
+     * nobody, and returned — every tick, for as long as it stayed committed.
+     *
+     * <p>Worse than standing still: {@code setPath} stamps the repath throttle
+     * only on a non-empty assignment, so an empty one never throttles and the
+     * next tick runs the same search again. An A* toward an unreachable cell
+     * exhausts the whole reachable component before failing, so the freeze
+     * bought a full-component search per member per tick.
+     *
+     * <p>The pathfind here is the one the caller was making anyway, so
+     * refusing costs nothing it was not already paying.
+     */
+    protected static boolean advanceToReachableFiringPosition(long member,
+                                                              BattleControl sim,
+                                                              int[] firingPos) {
+        if (firingPos == null) return false;
+        if (!sim.movement().mayRepath(member)) {
+            // Throttled: the path in hand was checked when it was set, so
+            // walking it on is right. Nothing in hand means nothing to walk.
+            if (Paths.isEmpty(sim.world().path(member))) return false;
+            sim.advanceMovement(member);
+            return true;
+        }
+        int memberX = sim.world().cellX(member);
+        int memberY = sim.world().cellY(member);
+        int[] path = GridPathfinder.findPath(sim.getGrid(), memberX, memberY,
+                firingPos[0], firingPos[1], sim.getOccupancyMap());
+        if (!worthWalkingTo(memberX, memberY, firingPos, path)) return false;
+        sim.setPath(member, path);
+        sim.advanceMovement(member);
+        return true;
+    }
+
+    /**
+     * Whether {@code path} is a walk worth taking to reach {@code firingPos} —
+     * it exists at all, and it is not a detour out of proportion to the
+     * straight line it is standing in for. Package-visible so the boundary
+     * stays testable without standing up an action.
+     */
+    static boolean worthWalkingTo(int fromX, int fromY, int[] firingPos, int[] path) {
+        if (Paths.isEmpty(path)) return false;
+        float straight = TacticalScoring.cellDistance(fromX, fromY,
+                firingPos[0], firingPos[1]);
+        return Paths.cellCount(path)
+                <= FIRING_DETOUR_SLACK + FIRING_DETOUR_RATIO * straight;
+    }
+
     protected static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
         int tick = sim.getSimTickIndex();
         if (squad.advanceThreatTick == tick) return;

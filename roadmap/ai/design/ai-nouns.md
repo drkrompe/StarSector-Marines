@@ -894,6 +894,25 @@ bound is restarted from the new partition even when a sticky mission plan keeps
 the same target zone and destination; geometric plan continuity is not team
 continuity.
 
+**A firing position is somewhere the marine can actually get to.** The
+pickers score walkability, leash distance, weapon range and line of fire, and
+none of them asks whether a path exists — a cell with a clear shot from the
+far side of a sealed wall is an ordinary answer from them. Every leash in the
+advance bounds *straight-line* distance from an anchor while the member has to
+*walk*, and a building makes those two numbers diverge without limit: a
+position three cells from its anchor and seven from the marine can be a
+thirty-nine cell march around the obstacle between them, which is not a
+bounded improvement but the objective abandoned for as long as the march
+takes. So travel is bounded in its own right, and a position that cannot be
+reached at all is refused rather than walked at.
+
+**Refusing must fall through, never return.** A committed member that returned
+on an unreachable position set an empty path, moved nobody, and did the same
+again next tick — and because the repath throttle is stamped only on a
+non-empty assignment, the throttle never engaged and a full-component search
+ran every tick for as long as the commitment held. The escape is to carry on
+toward the objective: a worse firing position and a live marine.
+
 A perceived contact and a usable firing line are distinct. Perception may use
 the cached projected-cell line of sight, while a ground direct-fire decision
 must validate the member's true point against the intended target's true point.
