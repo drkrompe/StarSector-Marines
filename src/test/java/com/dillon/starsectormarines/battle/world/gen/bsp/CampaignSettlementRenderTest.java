@@ -30,7 +30,9 @@ import java.util.Locale;
  * flat-colour diagram cannot answer that.
  *
  * <p>One row per market size, so the ladder from an off-grid outpost to a
- * city is visible in the art, beside a stock map as the control.
+ * city is visible in the art, beside a no-market map as the control — that
+ * control is the stock crossroad, because a battle with nothing behind it has
+ * no density to derive.
  */
 class CampaignSettlementRenderTest {
 
@@ -71,12 +73,9 @@ class CampaignSettlementRenderTest {
                     seed, "stock (no market)");
             for (int i = 0; i < SIZES.length; i++) {
                 TargetProfile profile = market(SIZES[i], palette);
-                // The override, because production is deliberately still on
-                // the stock recipe -- these renders are the evidence for
-                // whether that should change.
+                // No override: this is the production path, which now grows a
+                // settlement from the market the profile describes.
                 MapResult map = new BspCityGenerator()
-                        .useGrownRoads(GrownTrunkPlan.Profile.of(
-                                SettlementZoning.densityFor(profile.marketSize()), profile.link()))
                         .generate(GRID, GRID, seed, null, profile);
                 tiles[i + 1] = tile(map, seed, caption(profile));
             }
