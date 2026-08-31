@@ -4,9 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — replaced scale-bound battle lists with the fixed
-task-force plate and MLX command rail; squad detail plus GOAP diagnostics are
-explicitly selection-scoped.
+Updated: 2026-08-31 — faction-authored Armory loadouts carry the vanilla faction
+flag beside their provenance, while company-authored definitions remain unbadged.
 
 ## Purpose
 
@@ -173,6 +172,10 @@ known entry leads with an authored power tier, campaign rarity, provenance, subs
 setting paragraph, and deterministic twelve-billet distribution. Tier describes
 expected capability while rarity describes acquisition scarcity and presentation.
 Rarity is never a random-roll weight, and selection never rolls equipment from a pool.
+Faction-authored entries pair that provenance with the owning faction's vanilla flag,
+using the same logo art Starsector assigns in its faction definition. Mixed outlaw
+traditions name one representative faction explicitly in authored presentation data;
+company-authored definitions carry no borrowed faction badge.
 
 The separate equipment designer authors **weapons only**, and uses the same visual
 language before a definition is saved: each billet card keeps a compact live

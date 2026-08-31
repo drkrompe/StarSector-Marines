@@ -531,12 +531,20 @@ public final class FleetArmoryViewModel {
         String classes = "doctrine-tile " + rarityClass
                 + (selected ? " selected" : "");
         return new DoctrineTile(id, id + ":header", id + ":name", id + ":rarity",
-                id + ":rating", id + ":metadata-row", id + ":metadata", id + ":description",
-                id + ":composition", id + ":distribution", id + ":carries", classes,
+                id + ":rating", id + ":metadata-row", id + ":faction-logo",
+                id + ":metadata", id + ":description", id + ":composition",
+                id + ":distribution", id + ":carries", classes,
                 "doctrine-rarity label " + rarityClass, ratingClasses(rating),
+                factionLogoClasses(presentation.factionLogo()),
                 name, presentation.rarity().displayName(), rating,
-                "RATING " + rating, metadata,
+                "RATING " + rating, presentation.factionLogo(), metadata,
                 presentation.lore(), composition, distribution, carries, select);
+    }
+
+    private static String factionLogoClasses(String factionLogo) {
+        return factionLogo == null || factionLogo.isBlank()
+                ? "doctrine-faction-logo faction-logo-hidden"
+                : "doctrine-faction-logo";
     }
 
     /**
@@ -710,7 +718,7 @@ public final class FleetArmoryViewModel {
         SquadLoadoutPresentationDef authored = SquadLoadoutPresentationRegistry.get(id);
         return authored != null ? authored : new SquadLoadoutPresentationDef(
                 id, kind, tier, SquadLoadoutRarity.COMMON,
-                "Company-authored", fallbackLore != null ? fallbackLore : "");
+                "Company-authored", null, fallbackLore != null ? fallbackLore : "");
     }
 
     private static int maximumWeaponTier(SquadWeaponDoctrine doctrine) {
@@ -1419,10 +1427,12 @@ public final class FleetArmoryViewModel {
      */
     public record DoctrineTile(
             String id, String headerId, String nameId, String rarityId,
-            String ratingId, String metadataRowId, String metadataId, String descriptionId,
-            String compositionId, String distributionId, String carriesId,
+            String ratingId, String metadataRowId, String factionLogoId,
+            String metadataId, String descriptionId, String compositionId,
+            String distributionId, String carriesId,
             String classes, String rarityClasses, String ratingClasses,
-            String name, String rarity, int rating, String ratingLabel, String metadata,
+            String factionLogoClasses, String name, String rarity, int rating,
+            String ratingLabel, String factionLogo, String metadata,
             String description, String composition, String distribution,
             String carries,
             Runnable select) implements MarkupPropertySource {
@@ -1435,6 +1445,7 @@ public final class FleetArmoryViewModel {
                 case "rarityId" -> rarityId;
                 case "ratingId" -> ratingId;
                 case "metadataRowId" -> metadataRowId;
+                case "factionLogoId" -> factionLogoId;
                 case "metadataId" -> metadataId;
                 case "descriptionId" -> descriptionId;
                 case "compositionId" -> compositionId;
@@ -1443,10 +1454,12 @@ public final class FleetArmoryViewModel {
                 case "classes" -> classes;
                 case "rarityClasses" -> rarityClasses;
                 case "ratingClasses" -> ratingClasses;
+                case "factionLogoClasses" -> factionLogoClasses;
                 case "name" -> name;
                 case "rarity" -> rarity;
                 case "rating" -> rating;
                 case "ratingLabel" -> ratingLabel;
+                case "factionLogo" -> factionLogo;
                 case "metadata" -> metadata;
                 case "description" -> description;
                 case "composition" -> composition;
