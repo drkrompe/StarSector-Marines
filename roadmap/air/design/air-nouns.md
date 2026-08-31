@@ -4,6 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-08-31 — an aircraft is a body on the shared terms every body is
+on: one carrier surface, one admission, one damage route. The per-kind branches
+that read "vehicle, else aircraft, else roster unit" are gone, and the three
+liveness gates that predated air and silently omitted it are fixed.
+
 Updated: 2026-08-31 — an aircraft on its wheels is a real target rather than a
 damageable one: it is a body in the spatial index on the convoy's terms, its
 hull is an ordinary `HEALTH`/`ARMOR` pair instead of a field on the sortie, and
@@ -148,17 +153,15 @@ walk skipped it for free. Teaching the combat stack an air-aware branch in each
 of those walks would have bought a handful of shootable aircraft at the cost of
 that property forever.
 
-The convoy work removed the branch from that trade. The unit spatial index is
-an index over *bodies* rather than over dense-roster rows, and a chassis reaches
-every scan by carrying `IDENTITY`, `HEALTH` and `ARMOR` and nothing else: no
-`POSITION`, so occupancy and separation skip it; no `COMBAT`, `MOVEMENT` or
-`ROLE`, so the fire system, the mover and the planner skip it.
-Membership-narrowing does the work the branch used to. **An air entity now
-carries exactly that trio on exactly those terms**, so a craft on its wheels is
-acquired, aimed at, led, traced through cover and walls, hit, credited and
-killed by the ordinary pipeline, and what puts it in reach of all of it is one
-line in the index rebuild. `AirTargetService` says which craft that is;
-`AirDamageResolver` applies the shared durability law to one.
+The convoy work removed the branch from that trade, and **an aircraft is now a
+body on the shared terms rather than an air-shaped copy of the convoy's**.
+`ecs-nouns.md` owns what a body is and what a carrier owes it;
+`AirTargetService` is Air's implementation of that surface, and the durability
+law, the damage route and the spatial admission are all the shared ones. What
+remains Air's own is the two things genuinely about aircraft: which craft ground
+fire can reach — on its wheels, in the open — and what dying means, which
+converges on `AirSystem`'s shoot-down so a kill lights the cook-off, leaves the
+wreck and gives the runway back.
 
 Structure therefore lives where every other body's does — an ordinary `HEALTH`
 component beside an ordinary `ARMOR` one — rather than in the sortie's mission
@@ -692,11 +695,14 @@ roster and making it shootable would owe them a disposition nothing gives them.
 That is the same rule every other body follows and the same rule a convoy
 chassis follows: the crew of an aircraft see nothing — it carries no vision at
 all — and a shooter needs a clear line rather than a revealed cell. The
-player's own picture is a separate question and one the presentation tier
-currently answers differently for air than for anything else, drawing every
-craft on the map whether or not the player's side can see it. That is a real
-inconsistency, it predates any of this, and it belongs to the render tier
-rather than to the exposure model.
+player's own picture is a separate question, and `ShuttleRenderSystem` answers
+it differently for air on purpose: **every craft is drawn whether or not the
+player's side can see it, and that is a kept debugging affordance rather than a
+missing fog gate.** A sortie is a minute-long procedure across the whole map and
+watching all of it is how the thing gets developed at all. Do not "fix" it into
+a fog check; if the player's picture ever needs tightening, that is a decision
+about what a player should see, taken deliberately, and not a bug report about
+this line.
 
 The exposure predicate is derived from the locomotion, not listed, and so is
 the one an anti-air post reads: a phase left off a hand-written list is a phase
