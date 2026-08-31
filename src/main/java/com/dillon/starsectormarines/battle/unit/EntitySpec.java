@@ -125,7 +125,9 @@ public final class EntitySpec {
     public EntitySpec campaignSoldierId(String id) { this.campaignSoldierId = id; return this; }
     public EntitySpec campaignSquadId(String id) { this.campaignSquadId = id; return this; }
     public EntitySpec mechVariant(MechVariant variant) {
-        if (!type.isMech()) throw new IllegalStateException("Only mech unit types accept a mech variant");
+        if (!type.hasChassis()) {
+            throw new IllegalStateException("Only chassis unit types accept a mech variant");
+        }
         if (variant == null) throw new IllegalArgumentException("Mech variant is required");
         return variant.applyTo(this);
     }
