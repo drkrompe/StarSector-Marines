@@ -48,6 +48,13 @@ public class BattleSprites {
     /** Vanilla, so the headless sprite set resolves these off the install root rather than through the game. */
     static final String ENGINE_FLAME_SPRITE = "graphics/fx/engineflame32.png";
     static final String ENGINE_GLOW_SPRITE  = "graphics/fx/engineglow32.png";
+    /**
+     * The soft disc a body's shadow is drawn with. Ours rather than the
+     * vanilla engine glow the shadow layer used to borrow, which is a
+     * four-lobed flare and not a falloff at all — see
+     * {@code art-source/fx/build_shadow_blob.py}.
+     */
+    static final String SHADOW_BLOB_SPRITE  = "graphics/battle/fx/shadow-blob.png";
     private static final String ICON_ALARM          = "graphics/icons/Alarm 512 px.png";
     private static final String ICON_DANGER         = "graphics/icons/Danger sign 1 512 px.png";
     private static final String ICON_STAR           = "graphics/icons/Star 512 px.png";
@@ -149,6 +156,8 @@ public class BattleSprites {
 
     private SpriteAPI engineFlameSprite;
     private SpriteAPI engineGlowSprite;
+    private SpriteAPI shadowBlobSprite;
+    private boolean shadowBlobLoadAttempted;
     private boolean engineFxSpritesLoadAttempted;
 
     // ---- objective icons ----------------------------------------------------
@@ -242,6 +251,7 @@ public class BattleSprites {
     public java.util.EnumMap<com.dillon.starsectormarines.battle.vehicle.VehicleType, UnitSpriteCache> convoySprites() { return convoySprites; }
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
     public SpriteAPI engineGlowSprite()            { return engineGlowSprite; }
+    public SpriteAPI shadowBlobSprite()            { return shadowBlobSprite; }
     public SpriteAPI iconAlarm()                   { return iconAlarm; }
     public SpriteAPI iconDanger()                  { return iconDanger; }
     public SpriteAPI iconStar()                    { return iconStar; }
@@ -326,6 +336,18 @@ public class BattleSprites {
         engineFxSpritesLoadAttempted = true;
         engineFlameSprite = loadEngineFxSpriteOrNull(ENGINE_FLAME_SPRITE);
         engineGlowSprite  = loadEngineFxSpriteOrNull(ENGINE_GLOW_SPRITE);
+    }
+
+    /**
+     * Lazy-loads the shadow disc. Its own one-shot flag rather than a line in
+     * {@link #ensureEngineFxSprites()}, because the two are unrelated: an
+     * aircraft with no engine plume still casts, and a frame with no aircraft
+     * in it still wants shadows without paying for the engine textures.
+     */
+    public void ensureShadowSprite() {
+        if (shadowBlobLoadAttempted) return;
+        shadowBlobLoadAttempted = true;
+        shadowBlobSprite = loadEngineFxSpriteOrNull(SHADOW_BLOB_SPRITE);
     }
 
     public SpriteAPI loadEngineFxSpriteOrNull(String path) {

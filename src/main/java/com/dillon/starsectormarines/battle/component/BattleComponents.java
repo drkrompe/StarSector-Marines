@@ -35,11 +35,13 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * by-id access on {@code World}.
  *
  * <p><b>Air craft</b> (see {@code air-nouns.md}) are world entities too, with a
- * disjoint archetype: {@code {AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION,
- * APPEARANCE}} (+ optional {@link #THRUSTER_FX} / {@link #AIR_TURRETS}) and
- * <em>no</em> grid/combat components — so every grid system skips them for free
- * (membership-narrowing). They are world-resident but never in the dense ground
- * roster; walk them via {@link #airCraft}.
+ * near-disjoint archetype: {@code {AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION,
+ * APPEARANCE}} (+ optional {@link #THRUSTER_FX} / {@link #AIR_TURRETS}) plus the
+ * convoy chassis's {@code {IDENTITY, HEALTH, ARMOR}} — and, exactly as on a
+ * chassis, <em>no</em> {@link #POSITION}, {@link #COMBAT}, {@link #MOVEMENT} or
+ * {@link #ROLE}, so occupancy, separation, the fire system, the mover and the
+ * planner all skip them for free (membership-narrowing). They are world-resident
+ * but never in the dense ground roster; walk them via {@link #airCraft}.
  *
  * <p>Column access is positional ({@code table.floats(POSITION, POSITION_X)});
  * the {@code int} constants below are the named field indices per component.
@@ -860,10 +862,13 @@ public final class BattleComponents {
     /**
      * The per-sortie shuttle mission state — one OBJECT field holding the
      * {@link com.dillon.starsectormarines.battle.air.ShuttleMission} bag (delivery
-     * state machine, LZ/entry/exit, marines remaining, squad, hp, cycle schedule).
-     * {@code mission.hp} lives HERE, not in a {@link #HEALTH} component — a
-     * transport carries no grid/combat components, and air liveness is
-     * {@code mission.state}. The CRASHING/MECH_LOADOUT OBJECT-payload precedent.
+     * state machine, LZ/entry/exit, marines remaining, squad, cycle schedule).
+     * Structure is deliberately <em>not</em> here: an aircraft's hull lives in
+     * an ordinary {@link #HEALTH} component beside an ordinary {@link #ARMOR}
+     * one, so the damage pipeline resolves a hit on an airframe with the same
+     * law it resolves every other hit. The mission bag carries what the sortie
+     * is doing, not how much of the machine is left. The CRASHING/MECH_LOADOUT
+     * OBJECT-payload precedent.
      */
     public final ComponentType SHUTTLE_MISSION;
     /**
