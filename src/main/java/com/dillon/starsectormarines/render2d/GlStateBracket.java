@@ -23,12 +23,39 @@ import static org.lwjgl.opengl.GL11.glPushAttrib;
  * AutoCloseable wrapper around {@code glPushAttrib}/{@code glPopAttrib}
  * for the GL state textured-2D batching needs.
  *
- * <p>Starsector hands UI hooks a polluted GL state — most notably
- * {@code glColorMask} with alpha disabled, plus scissor and various
- * matrix-stack landmines (see the {@code gl_state_gotchas} memory note).
- * Calling {@link #textured2D()} pushes the relevant attribute bits,
- * forces a clean baseline, and restores the prior state on
- * {@link #close()}.
+ * <p>Starsector hands UI hooks a context in whatever state its own rendering
+ * left it, and a co-loaded mod's draw may have moved it again. {@link #textured2D()}
+ * pushes the relevant attribute bits, forces the baseline below, and restores
+ * what the caller had on {@link #close()} — so the bracket both defends our
+ * draw from what arrives and keeps our own settings out of the game's.
+ *
+ * <h2>Exactly what it normalises</h2>
+ * <ul>
+ *   <li>{@code glColorMask} to all four channels. Some UI paths arrive with
+ *       alpha masked off, and per-vertex alpha then never reaches the
+ *       framebuffer.</li>
+ *   <li>{@code GL_TEXTURE_2D} and {@code GL_BLEND} on, with the ordinary
+ *       {@code SRC_ALPHA / ONE_MINUS_SRC_ALPHA} function — a foreign blend
+ *       func left behind by another draw renders transparent texels opaque.</li>
+ *   <li>{@code GL_DEPTH_TEST} off.</li>
+ * </ul>
+ *
+ * <h2>What it deliberately leaves alone</h2>
+ * <p><b>The scissor test.</b> A batched tile pass draws into the game's own
+ * target, inside the panel rect Starsector has already clipped to, and wants to
+ * stay inside it; turning scissor off here would let terrain paint over the
+ * surrounding UI. The FBO paths do the opposite — {@code GroundParallaxPipeline}
+ * disables scissor inside its own bracket — because there the target is ours
+ * and the UI's clip rect refers to a different surface entirely. Same
+ * reasoning, opposite answer.
+ *
+ * <p><b>The matrix stacks.</b> This bracket pushes no matrices; a caller that
+ * needs its own projection pushes and pops them itself, as the FBO paths do.
+ *
+ * <p>{@code GlStateBracketHostileStateEvidence} holds both halves of that
+ * contract against a real driver, with the incoming state set hostile — a
+ * clean context cannot tell whether any of this normalisation is still here,
+ * because the values above are very nearly the GL defaults.
  *
  * <p>Pairs naturally with {@link QuadBatch#flush()} — one bracket can
  * span multiple flushes on different sheets, e.g.:
