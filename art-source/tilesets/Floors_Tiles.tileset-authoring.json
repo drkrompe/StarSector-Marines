@@ -5488,8 +5488,8 @@
       ],
       "id": "doodad.floors.c6r14",
       "included": true,
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-desert/sand.png",
-      "note": "sand-2",
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-1.png",
+      "note": "sandvar-1",
       "rect": [
         285,
         691,
@@ -5507,8 +5507,8 @@
       ],
       "id": "doodad.floors.c7r14",
       "included": true,
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-desert/sand.png",
-      "note": "sand-3",
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-2.png",
+      "note": "sandvar-2",
       "rect": [
         333,
         691,
@@ -5526,8 +5526,8 @@
       ],
       "id": "doodad.floors.c8r14",
       "included": true,
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-desert/sand.png",
-      "note": "sand-4",
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-3.png",
+      "note": "sandvar-3",
       "rect": [
         380,
         691,
@@ -5543,13 +5543,17 @@
         1
       ],
       "id": "doodad.floors.c9r14",
-      "included": false,
+      "included": true,
       "rect": [
         428,
         691,
         48,
         49
-      ]
+      ],
+      "block": "floors.sand",
+      "slot": "v4",
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-4.png",
+      "note": "sandvar-4"
     },
     {
       "cover": "none",
@@ -5558,13 +5562,17 @@
         1
       ],
       "id": "doodad.floors.c10r14",
-      "included": false,
+      "included": true,
       "rect": [
         476,
         691,
         47,
         49
-      ]
+      ],
+      "block": "floors.sand",
+      "slot": "v5",
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-5.png",
+      "note": "sandvar-5"
     },
     {
       "cover": "none",
@@ -5873,13 +5881,17 @@
         1
       ],
       "id": "doodad.floors.c6r15",
-      "included": false,
+      "included": true,
       "rect": [
         285,
         740,
         48,
         50
-      ]
+      ],
+      "block": "floors.sand",
+      "slot": "v6",
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-6.png",
+      "note": "sandvar-6"
     },
     {
       "cover": "none",
@@ -5888,13 +5900,17 @@
         1
       ],
       "id": "doodad.floors.c7r15",
-      "included": false,
+      "included": true,
       "rect": [
         333,
         740,
         47,
         50
-      ]
+      ],
+      "block": "floors.sand",
+      "slot": "v7",
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-7.png",
+      "note": "sandvar-7"
     },
     {
       "cover": "none",
@@ -5903,13 +5919,17 @@
         1
       ],
       "id": "doodad.floors.c8r15",
-      "included": false,
+      "included": true,
       "rect": [
         380,
         740,
         48,
         50
-      ]
+      ],
+      "block": "floors.sand",
+      "slot": "v8",
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-8.png",
+      "note": "sandvar-8"
     },
     {
       "cover": "none",
@@ -9905,7 +9925,7 @@
   "gridCols": 25,
   "gridRows": 26,
   "idPrefix": "doodad.floors",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom. 1225x1284 at 25x26.\n\nThe game asks this sheet for seventeen of its 650 cells: five variant pools and nothing else. Those seventeen are included and the rest are not, so the atlas holds seventeen tiles rather than the plate's 650. Everything else stays here in the raw art and in these entries; including a cell is all it takes to bring one back.\n\nTwo pools take their picture from a tileable material rather than from the plate. floors.sand's three cells still share one material file, so its hash pick between 'variants' remains a no-op -- all three are the same pixels.\n\nfloors.stone no longer does. It carried the same defect until 2026-08-31: one 52x52 tile pasted into all three cells, so a pool that exists to stop a large field repeating had nothing to pick between. It now has eight cells, each with its own material, generated to match the original stone's palette and grain and to tile seamlessly. The five added cells are plate cells that were never included; their rects only decide the packed size, since a material overrides the picture.\n\nThis matters most to barren surfaces. A rock world's ground is drawn from this one pool, and with a single picture the alternative was mixing STONE with DIRT and RUBBLE per cell, which reads as static rather than as ground.\n\nThe eleven plate cells carry a 7px sprite border. ImageGen drew a dark rim around each isolated cell, and a repeating ground field shows that rim as a lattice at every tile boundary, so the border is mirrored away from the interior.",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom. 1225x1284 at 25x26.\n\nThe game asks this sheet for seventeen of its 650 cells: five variant pools and nothing else. Those seventeen are included and the rest are not, so the atlas holds seventeen tiles rather than the plate's 650. Everything else stays here in the raw art and in these entries; including a cell is all it takes to bring one back.\n\nTwo pools take their picture from a tileable material rather than from the plate. Neither pool shares a material file any more. Each had the same defect -- one tileable tile pasted into all three cells, so the hash pick a variant pool exists for was a no-op -- and each now has eight cells naming eight materials.\n\nThe added cells are plate cells that were never included; their rects only decide the packed size, since a material overrides the picture. Both families were generated to match their original material's palette and grain and to tile seamlessly.\n\nReference the material file when generating more, never a cell of the exported atlas. Re-exporting moves every block, and an arid batch aimed at atlas coordinates once came back matching dirt because the sheet was repacked while it ran.\n\nThis matters most to barren surfaces. A rock world's ground is drawn from this one pool, and with a single picture the alternative was mixing STONE with DIRT and RUBBLE per cell, which reads as static rather than as ground.\n\nThe eleven plate cells carry a 7px sprite border. ImageGen drew a dark rim around each isolated cell, and a repeating ground field shows that rim as a lattice at every tile boundary, so the border is mirrored away from the interior.",
   "sheet": "art-source/tilesets/Floors_Tiles.raw.png",
   "sheetName": "Floors_Tiles"
 }

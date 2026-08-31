@@ -33,7 +33,10 @@ public final class DefendAssignedAreaGoal implements Goal {
         }
         if (assignment.targetRadiusCells() < 1
                 && state.get(Predicate.HAS_TARGET)) return 0f;
-        return 0.86f;
+        // A deliberate player area must beat role-specific Mech mission goals;
+        // commander-authored areas retain their ordinary mission relevance.
+        return squad.hasPlayerTacticalOrder(AssignmentKind.DEFEND_AREA)
+                ? 1.75f : 0.86f;
     }
 
     @Override public WorldState desiredState(Squad squad, BattleView sim) {
