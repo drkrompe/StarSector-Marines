@@ -283,10 +283,20 @@ Four rules give the field its stakes:
 - **Loss is permanent.** An airframe burned on its pad or lost over the
   objective is not replaced, and its berth is written off for the battle. A
   field is a finite thing to lose.
-- **A turnaround is a window.** Servicing used to be free and instant because it
-  happened off-map at a carrier nobody could reach. On a field it happens on
-  ground the attacker can walk onto, so it takes long enough that a field cannot
-  answer two requests back to back.
+- **A turnaround is a window, and it is a window because it is work.** Servicing
+  used to be free and instant because it happened off-map at a carrier nobody
+  could reach. On a field it happens on ground the attacker can walk onto — on
+  the aircraft's own stand, with the aircraft standing on it — and it is paid for
+  in hand-seconds from the technicians actually at that stand. A countdown made
+  the field answer again on schedule whether or not anybody was working, so
+  killing the ground crew denied it nothing and reaching the apron mid-servicing
+  found the aircraft was not even there. Every turnaround owes a base cost before
+  any damage is counted — magazines, tanks, a walk round — because a field whose
+  sorties are never intercepted would otherwise turn them round instantly, and
+  then owes the patching on top, so damage costs a field its next sortie as well
+  as its hull. A properly manned field turns one round in about the time the
+  countdown used to take; a field whose crew is dead never turns one round
+  again.
 - **An airframe destroyed on the ground goes up.** It is a full tank under a
   thin skin, and that is the whole reason burning one is worth a fire team's
   time; a hull that simply stopped existing was a target with a lot of hit

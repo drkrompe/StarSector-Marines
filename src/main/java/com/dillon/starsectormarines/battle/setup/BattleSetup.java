@@ -1617,6 +1617,10 @@ public final class BattleSetup {
 
         List<FixtureTask> apron = AirfieldWork.onTheApron(field, map.grid);
         if (apron.isEmpty()) return;
+        // The field is told where its servicing is done from in the same breath,
+        // so the work somebody is doing can be matched to the aircraft it is
+        // being done to without either side deriving the other's indices.
+        field.installApronWork(apron);
 
         List<RoomSite> rooms = RoomSite.findAll(map.topology,
                 map.grid.getWidth(), map.grid.getHeight());
