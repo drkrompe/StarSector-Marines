@@ -108,6 +108,34 @@ public final class AttackMove extends AbstractZoneAction {
      */
     @Override public boolean permitsOpportunityFire() { return false; }
 
+    /**
+     * A squad the player pointed at a cell goes to that cell. It still fights
+     * what it meets on the way — the route-threat commit, the firing line, the
+     * shots of opportunity are all untouched — but it does not decide on its
+     * own to walk off and prosecute a contact somewhere else instead.
+     *
+     * <p>This is the one branch that discards the destination outright.
+     * Prosecution anchors the firing-position search on the squad's own
+     * centroid at {@link AbstractZoneAction#ADVANCE_LEASH_MAX}, so the ordered
+     * cell is never routed to at all, and the release condition belongs to the
+     * contact picture rather than to the order: doctrine leaves HOLD only at a
+     * risk score of -2 or better, which a squad with the upper hand and a live
+     * contact in front of it never reaches. A player order given in that state
+     * was accepted, replanned on, and then silently ignored for as long as the
+     * contact stayed alive.
+     *
+     * <p><b>Deliberately only prosecution.</b> A hard hold — doctrine HOLD with
+     * {@code RECEIVE} initiative — still plants the squad, because that is a
+     * squad being shot at rather than a squad choosing a fight, and a player
+     * watching marines go to ground under fire can see why they stopped.
+     * Watching them stroll toward an enemy thirty cells off the ordered
+     * bearing, they cannot.
+     */
+    @Override
+    protected boolean prosecutesContactOffRoute(Squad squad) {
+        return !squad.hasPlayerTacticalOrder(AssignmentKind.ATTACK_MOVE);
+    }
+
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
