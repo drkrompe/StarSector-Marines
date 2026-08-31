@@ -66,8 +66,27 @@ public final class MechCombatantBehavior implements UnitBehavior {
                 // LRMs already fired indirectly this tick if range allowed.
                 sim.world().setTargetId(u, 0L);
             } else {
-                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(u), sim.world().cellY(u), dest[0], dest[1], sim.getOccupancyMap()));
+                int[] path = GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(u), sim.world().cellY(u),
+                        dest[0], dest[1], sim.getOccupancyMap());
+                if (Paths.isEmpty(path)) {
+                    // Stage 1 scores LOS and range without verifying
+                    // reachability; the stage 2 vantage probe pathfinds.
+                    // findReachableFiringPosition is the seam onto it, so
+                    // an empty path is a question for the probe rather
+                    // than a verdict on the target.
+                    dest = sim.getTacticalScoring().findReachableFiringPosition(u, target);
+                    path = dest == null ? GridPathfinder.EMPTY_PATH
+                            : GridPathfinder.findPath(sim.getGrid(),
+                                    sim.world().cellX(u), sim.world().cellY(u),
+                                    dest[0], dest[1], sim.getOccupancyMap());
+                }
+                if (Paths.isEmpty(path)) {
+                    // Both stages refuse: no approach exists from here.
+                    sim.world().setTargetId(u, 0L);
+                } else {
+                    sim.setPath(u, path);
+                }
             }
         }
         if (sim.world().pathIdx(u) < Paths.cellCount(sim.world().path(u))) {
