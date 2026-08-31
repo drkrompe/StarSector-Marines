@@ -157,7 +157,7 @@ public final class GroundRenderSystem implements RenderSystem {
         // own resolver (autotile layout / variant pool / single) + sheet + cellPx,
         // so the generic drawGroundBlock path handles every "regular" kind. STREET
         // maps to a sliced urban3 TILE id (not a block), so tileReg.block() is null
-        // and it falls through to its special case; SIDEWALK/SNOW are unmapped.
+        // and it falls through to its special case; only SIDEWALK is unmapped.
         CellTopology.GroundKind[] kinds = CellTopology.GroundKind.values();
         GridBlockDef[] kindBlock = new GridBlockDef[kinds.length];
         SpriteAPI[] kindSheet = new SpriteAPI[kinds.length];
@@ -245,10 +245,8 @@ public final class GroundRenderSystem implements RenderSystem {
                         break;
                     case VOID:
                         break; // outside the hull: there is no deck here to paint
-                    case SNOW:
-                        break; // defined in GroundKind but no generator emits it (dead)
                     default:
-                        // INDOOR/RUBBLE/COURTYARD/TILE/STRIPED/LZ_MARKER/STONE/SAND/WATER/BRICK:
+                        // INDOOR/RUBBLE/COURTYARD/TILE/STRIPED/LZ_MARKER/STONE/SAND/SNOW/WATER/BRICK:
                         // generic resolve+draw from the kind's mapped block.
                         drawGroundBlock(kindBlock[ord], kindSheet[ord], kindFill[ord], nWall, sWall, eWall, wWall, x, y);
                         break;
