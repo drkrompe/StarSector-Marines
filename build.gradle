@@ -594,12 +594,54 @@ tasks.register('undeployMod', Delete) {
     delete new File(starsectorModsDir, modName)
 }
 
+/**
+ * The java invocation the installed `starsector.bat` would run, as an argv list.
+ *
+ * Running the .bat through `cmd /c` cannot report how the game died. Its trailing
+ * block is malformed -- `if errorlevel 1 {` uses a brace where batch needs a paren
+ * -- so cmd runs `{` as a command, reaches a bare `pause`, and returns that block's
+ * status rather than the JVM's. A game that is killed mid-battle therefore leaves
+ * the task green, which is exactly the signal a crash hunt needs. The .bat lives
+ * under the read-only game install, so read its command line and run it directly:
+ * same flags, same working directory, but the exit code and stderr are the JVM's.
+ */
+def starsectorLaunchArgv(File coreDir) {
+    def bat = new File(coreDir, 'starsector.bat')
+    if (!bat.isFile()) {
+        throw new GradleException("No starsector.bat in ${coreDir} -- cannot launch the game")
+    }
+    def line = bat.readLines().find { it.toLowerCase().contains('java.exe') }
+    if (line == null) {
+        throw new GradleException("No java.exe invocation in ${bat} -- cannot launch the game")
+    }
+    def parts = line.trim().split(/\s+/) as List<String>
+    def java = new File(coreDir, parts.head())
+    if (!java.isFile()) {
+        throw new GradleException("${bat} names a launcher that does not exist: ${java}")
+    }
+    [java.canonicalPath] + parts.tail()
+}
+
 tasks.register('runStarsector', Exec) {
     group = 'starsector'
     description = 'Launch Starsector after deploying the mod'
     dependsOn 'deployMod'
-    workingDir new File(starsectorDir, 'starsector-core')
-    commandLine 'cmd', '/c', 'starsector.bat'
+    def coreDir = new File(starsectorDir, 'starsector-core')
+    workingDir coreDir
+    // Report the JVM's own status rather than failing the build on it: a crash
+    // and an ordinary quit both end this task, and only the message differs.
+    ignoreExitValue = true
+    doFirst {
+        commandLine starsectorLaunchArgv(coreDir)
+    }
+    doLast {
+        int code = executionResult.get().exitValue
+        if (code != 0) {
+            logger.error("Starsector exited with code ${code}. A JVM fatal error prints "
+                    + "to this console, not to starsector.log; a hs_err_pid*.log would be "
+                    + "written to ${coreDir}.")
+        }
+    }
 }
 
 def catalogSmokeMode = providers.gradleProperty('catalogSmokeMode').orElse('additive')
