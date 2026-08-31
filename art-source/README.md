@@ -22,7 +22,7 @@ work that cannot be redone mechanically.
 | `fx/` | Scripts that derive shipped battle FX textures. `build_smoke_field.py` lifts the shared particle sheet's wreck-plume frames to a cool white so a deployed screen reads as equipment rather than damage; its source is a shipped asset rather than a master here, because matching the plume exactly is the point. |
 | `doodads/` | The whole prop chain: ImageGen masters, raw renders, the scripts that derive frames from them, the derived `sources/`, and the atlas builder. |
 | `alien-modular-topdown/` | Retained alien layer originals and the script that normalizes them. |
-| `mech-modular-topdown/` | Retained mech layer originals, faction chassis masters, ImageGen weapon material-ID passes and derived paint masks, the alpha/color-transfer builders, and the base/faction contact-sheet renderers. |
+| `mech-modular-topdown/` | Retained mech layer originals, faction chassis masters, ImageGen weapon concepts and material-ID passes, derived paint masks, alpha/color-transfer builders, contact-sheet renderers, and the weapon-authoring/perspective-prompting guide. |
 | `marine-modular-topdown/` | Retained marine body/head/weapon originals, their prompt recipes, and the variant builder. |
 | `colonist-modular-topdown/` | Retained colonist layer originals. The layers they produced are checked in; no builder is currently kept. |
 

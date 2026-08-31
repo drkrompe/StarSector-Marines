@@ -3,6 +3,9 @@
 Follow the repository-root `AGENTS.md` and `CLAUDE.md` first. These additional
 rules apply to the modular mech raster pipeline in this directory.
 
+Read `README.md` for the end-to-end weapon concept, perspective-prompting,
+material-ID, deterministic build, and visual-verification flow.
+
 ## Faction livery workflow
 
 - Treat ImageGen output as a semantic material-ID aid, never as shipping color,
