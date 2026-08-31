@@ -248,6 +248,33 @@ can burn what is standing on it without going indoors — the exposure is the
 point, and it is what makes a raid on the field a real alternative to taking the
 compound. `mapgen-nouns.md` owns the lot's geometry.
 
+**A field is worked by people, and they are on the roster.** An apron publishes
+servicing at both flanks of every stand and a board ahead of each nose, and the
+side's own technicians stand a watch on it — the same trade that works a motor
+pool, because it is the same work: a machine standing in a berth with somebody
+servicing it. They can be shot on the apron like anybody else, which is the
+point of their being units rather than scenery. `ai-nouns.md` owns the shift and
+`mechs-nouns.md` owns the trade.
+
+That work is **published by the host rather than by generation**, which is the
+opposite of how a fitted room does it and is the one place the airfield departs
+from the pattern. Everywhere else a room's jobs are cut with the room and the
+berth a job names is one that fitting laid. An airfield is a paved lot with
+hardstands marked on it: which of them are berths, in what order, and what
+stands on each is settled at setup. A servicing job names its berth by index,
+and an index means nothing except against the list it indexes — published from
+generation those indices would have to agree with a berth list registered later
+in another file, in an order neither of them states. The symptom of getting it
+wrong is technicians servicing the wrong aircraft, which nothing downstream can
+see. Authored beside the berths, the job and the berth it names are made in the
+same pass and there is no order to disagree about.
+
+**Whether a stand is worked is read off the berth, not off the unit on it.** The
+board is published during setup and the field puts its aircraft out on its first
+tick, so asking for the unit finds every stand empty — which offers no servicing
+anywhere and leaves the field unmanned for the whole battle, looking exactly
+like an airfield nobody had got round to staffing.
+
 Four rules give the field its stakes:
 
 - **The hull is continuous.** An aircraft that comes home shot up parks shot up,

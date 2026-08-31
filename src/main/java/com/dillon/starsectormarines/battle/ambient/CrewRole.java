@@ -39,8 +39,15 @@ import java.util.Set;
 public enum CrewRole {
 
     /**
-     * Services the machines a vehicle bay berths. Welding on whatever is parked
-     * is the work; the parts run and the readout are what the work needs.
+     * Services whatever is standing in a berth. Welding on it is the work; the
+     * parts run and the readout are what the work needs.
+     *
+     * <p>The berth rather than the room, which is what lets one trade cover a
+     * walker in a gantry and an airframe on a hardstand. Nothing about this
+     * rotation is shipboard or even indoor: it is somebody who works on parked
+     * machines, and a garrison's motor pool and its apron are both places where
+     * machines are parked. A role tied to the <em>kind</em> of machine would be
+     * a second copy of this one with the same four jobs in it.
      */
     MECH_TECH(RoomPurpose.CREW_QUARTERS, UnitType.ENGINEER,
             onWatchWith(Affordance.SERVICE, Affordance.REPAIR,
