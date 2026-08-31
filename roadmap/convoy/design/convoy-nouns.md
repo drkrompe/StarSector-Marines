@@ -41,6 +41,9 @@ Updated: 2026-08-31 — a vehicle can carry a named squad rather than a count;
 mounting narrows a unit instead of deleting it, and a ride ends the objective
 but not the claim.
 
+Updated: 2026-08-31 — mounting and dismounting are contextual right-click
+orders on the vehicle itself rather than buttons.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -368,6 +371,18 @@ it planned before.
   entity id, so the order system is where that is decided rather than the
   picker; an enemy vehicle is a target, not a unit, and asking it to move is
   refused the same way any other impossible order is.
+- **The vehicle is the target, and what a click means follows from what is in
+  it.** Pointing a squad at a friendly transport with room is an order to get
+  in — it walks over and boards, and the destination follows the vehicle rather
+  than staying where the click landed, because a vehicle is not a cell and can
+  drive off while the squad is still walking. Pointing a loaded transport at
+  itself is an order to unload; pointing an empty one at itself is an ordinary
+  move. None of it needs a button, which is the grammar Red Alert 2 settled and
+  there is no reason to re-litigate.
+- Boarding is all or nothing on the squad, and "all" means the squad rather
+  than the seats. A squad ordered to a vehicle arrives strung out in formation,
+  so admitting whoever got there first boards one marine and leaves the rest
+  standing in the road with the order marked done.
 - A move order owns locomotion and nothing else. The turret, the payload, and
   the delivery obligation are untouched, and releasing the order hands the
   vehicle straight back to the errand it was on.

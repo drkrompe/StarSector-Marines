@@ -50,8 +50,16 @@ import java.util.Set;
  */
 public final class VehicleTransportService {
 
-    /** How far from the hull a unit may be standing and still climb aboard. */
-    public static final int MOUNT_RADIUS_CELLS = 3;
+    /**
+     * How far from the hull a unit may be standing and still climb aboard.
+     *
+     * <p>Sized from where a squad actually stops rather than from what looks
+     * tidy: ordered to a vehicle, a three-marine squad settles around it in
+     * formation at 1.9, 3.3 and 3.6 cells. Three admitted the nearest marine
+     * and left the other two in the road — and because boarding is all or
+     * nothing, that meant nobody boarded at all.
+     */
+    public static final int MOUNT_RADIUS_CELLS = 5;
     /** How far from the hull the service will look for somewhere to put a passenger down. */
     private static final int DISMOUNT_SCAN_RADIUS = 8;
 
@@ -111,6 +119,12 @@ public final class VehicleTransportService {
         if (!convoy.isVehicle(vehicle)) return 0;
         List<Long> boarding = squadMembersNear(vehicle, squadId);
         if (boarding.isEmpty() || boarding.size() > seatsFree(vehicle)) return 0;
+        // Everyone, or nobody. Comparing the arrivals against the seats is not
+        // the same test as comparing them against the squad: a squad walking to
+        // a vehicle arrives strung out, and loading whoever got there first
+        // boards one marine and leaves the other two standing in the road with
+        // the order marked done.
+        if (boarding.size() < liveSquadMembers(squadId)) return 0;
 
         for (long unit : boarding) mount(vehicle, unit);
         // The ride invalidates where the squad was told to be. Keeping the
@@ -201,6 +215,18 @@ public final class VehicleTransportService {
     private void settleFreshMovement(long unit) {
         roster.movement().setPathRef(unit, GridPathfinder.EMPTY_PATH);
         roster.movement().setPathIdx(unit, 0);
+    }
+
+    /** How many of {@code squadId} are alive and not already aboard something. */
+    private int liveSquadMembers(int squadId) {
+        int count = 0;
+        long[] dense = roster.denseArray();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            long unit = dense[i];
+            if (isRiding(unit)) continue;
+            if (roster.squad().hasSquad(unit) && roster.squad().squadId(unit) == squadId) count++;
+        }
+        return count;
     }
 
     private List<Long> squadMembersNear(long vehicle, int squadId) {
