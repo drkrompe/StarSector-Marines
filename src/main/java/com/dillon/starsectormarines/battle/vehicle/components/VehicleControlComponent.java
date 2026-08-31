@@ -52,6 +52,19 @@ public final class VehicleControlComponent {
     public float dockingProgressCells;
     /** Goal facing (deg) snapped to on docking completion. */
     public float dockingGoalFacingDeg;
+    /**
+     * True when the active {@link #dockingPath} is a departure turnaround
+     * rather than an arrival dock. Both are the same Reeds-Shepp maneuver and
+     * the same sampler; they differ only in what completion means — an arrival
+     * lands on the LZ, a turnaround simply hands the pose back to ordinary
+     * corridor tracking.
+     */
+    public boolean dockingIsDeparture;
+    /**
+     * Departure turnarounds already spent on this route. Bounded, so a pose no
+     * maneuver can rescue costs a couple of attempts rather than looping.
+     */
+    public int turnaroundsUsed;
 
     /** Sim-seconds the vehicle has been continuously blocked by walls. Drives the reverse recovery. */
     public float wallStuckTime;

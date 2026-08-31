@@ -5,10 +5,12 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleController;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -367,14 +369,37 @@ public final class ConvoyMeans implements ReinforcementMeans {
                             exitCell[0], exitCell[1],
                             sim.getGrid(), cost, clearance,
                             VehicleType.HEAVY_APC);
-                    if (outbound != null) {
-                        return new RoutePlan(entry, destination, exit,
-                                inbound, outbound, cost, clearance);
-                    }
+                    if (outbound == null) continue;
+                    // The one bend on neither polyline: the turn from the way
+                    // the truck arrives to the way it must leave. An LZ whose
+                    // entry and exit disagree by more than the chassis can turn
+                    // in the room available delivers its marines and then
+                    // strands the vehicle for the rest of the battle.
+                    if (!canLeaveTheWayItArrived(sim, inbound, outbound)) continue;
+                    return new RoutePlan(entry, destination, exit,
+                            inbound, outbound, cost, clearance);
                 }
             }
         }
         return null;
+    }
+
+    /**
+     * Whether a truck arriving down {@code inbound} can point itself along
+     * {@code outbound} at the drop point. Both are {@code [xs][ys]} polylines
+     * meeting at the LZ.
+     */
+    private static boolean canLeaveTheWayItArrived(BattleView sim,
+                                                   float[][] inbound, float[][] outbound) {
+        int in = inbound[0].length;
+        if (in < 2 || outbound[0].length < 2) return true;
+        float lzX = inbound[0][in - 1];
+        float lzY = inbound[1][in - 1];
+        float approach = AirBody.facingToward(lzX - inbound[0][in - 2], lzY - inbound[1][in - 2]);
+        float depart = AirBody.facingToward(outbound[0][1] - outbound[0][0],
+                outbound[1][1] - outbound[1][0]);
+        return VehicleController.canReverseDirectionAt(sim.getGrid(),
+                VehicleType.HEAVY_APC, lzX, lzY, approach, depart);
     }
 
     /** Lazily bakes (and caches) the per-battle terrain cost field from the map's ground kinds. */
