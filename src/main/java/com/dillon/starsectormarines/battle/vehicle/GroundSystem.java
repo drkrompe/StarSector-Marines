@@ -232,6 +232,9 @@ public class GroundSystem {
         GroundBody body = convoy.body(id);
         VehicleType type = convoy.vehicleType(id);
         mission.state = VehicleState.WRECKED;
+        // A wreck stops being a body anything finds by looking around, and it
+        // stops within the tick that killed it rather than at the next rebuild.
+        roster.unindexVehicle(id);
         body.speed = 0f;
         GroundTurret turret = convoy.turret(id);
         if (turret != null) {

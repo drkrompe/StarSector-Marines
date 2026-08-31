@@ -51,6 +51,8 @@ public enum UnitType {
     DRONE      ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.35f, 0.35f),
     /** An aircraft standing on a garrison hardstand — the grid-unit half of a based aircraft (see {@link com.dillon.starsectormarines.battle.air.BasedAircraft}). Combatant so it is targeted and damaged where it stands, but its role is {@link UnitRole#STRUCTURE}: no aim loop, no firing. Sprite path is empty because it draws its own hull, the same convention as {@link #TURRET} / {@link #DRONE_HUB_STRUCTURE}; HP and armor are set on the instance from the hull it represents. */
     BASED_AIRCRAFT ("",                            null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.5f, 0.70f),
+    /** A convoy ground vehicle — the chassis itself, not its payload (see {@link com.dillon.starsectormarines.battle.sim.ConvoyService}). Combatant so it is seen, targeted, and damaged through the paths every other body uses; its role, structure, armor, and body geometry all come from the per-instance {@link com.dillon.starsectormarines.battle.vehicle.VehicleType}, the same convention as {@link #TURRET} / {@link #BASED_AIRCRAFT}. Sprite path is empty because it draws its own chassis. Not {@link #isStatic}: it moves, it simply does its moving through a {@code GroundBody} rather than the grid mover. */
+    GROUND_VEHICLE("",                             null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 1.5f, 0.90f),
     /** Fast biological close-contact attacker for the civilian-rescue swarm payload. Append-only; legacy ALIEN remains the generic ranged-stat archetype. */
     SWARM_RUNNER("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,  20.0f, 5.0f, 3.2f, 1.0f, 0.7f, 1.5f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 0.3f, 0.30f);
 
@@ -205,7 +207,17 @@ public enum UnitType {
      * {@link #BASED_AIRCRAFT}) draw as whole rotated sprites instead, and {@link #DRONE} draws in its
      * own layer — everything else (infantry, mechs, civilians) is sheet-drawn.
      */
-    public boolean drawnAsSheet() { return !isStatic() && this != DRONE; }
+    public boolean drawnAsSheet() {
+        return !isStatic() && this != DRONE && this != GROUND_VEHICLE;
+    }
+
+    /**
+     * Whether this archetype is a convoy ground vehicle. The type tag sits
+     * here beside {@link #isTurret} / {@link #isBasedAircraft} so the grid
+     * walks classify a chassis the same way they classify every other body,
+     * rather than each asking {@code ConvoyService} whether an id is one.
+     */
+    public boolean isGroundVehicle() { return this == GROUND_VEHICLE; }
 
     /**
      * Whether this infantry archetype has the modular body/head asset set (and,

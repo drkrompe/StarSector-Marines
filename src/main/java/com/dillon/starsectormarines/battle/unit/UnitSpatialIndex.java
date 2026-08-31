@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -325,6 +326,41 @@ public final class UnitSpatialIndex {
                 bucket.add(id, x, y, scratchFactionOrdinals[i],
                         scratchCombatants[i] != 0);
             }
+        }
+        addConvoyBodies(roster);
+    }
+
+    /**
+     * Inserts the convoy chassis after the roster, so a body that moves under
+     * its own kinematics is found by the same proximity queries as one that
+     * walks the grid. This is the whole reason the index is no longer "the
+     * roster, bucketed": a vehicle is a unit for the purposes of being seen,
+     * scored and shot at, and every scan that had to remember an extra convoy
+     * sweep forgot at least once.
+     *
+     * <p>Vehicles are appended rather than interleaved so ties among roster
+     * units still resolve on dense-roster order. Their positions come from the
+     * kinematic body — a chassis carries {@code IDENTITY} but deliberately no
+     * {@code POSITION}, which is what keeps occupancy and separation off it —
+     * so they are read by id rather than off the column walk above. The count
+     * is one to a few per battle; a per-vehicle probe is the right trade
+     * against a second archetype walk.
+     */
+    private void addConvoyBodies(UnitRosterService roster) {
+        ConvoyService convoy = roster.convoy();
+        World world = roster.world();
+        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
+            long id = convoy.vehicleAt(i);
+            // A wreck is scenery and a vehicle still off-map is not there at
+            // all; neither is a body anything should find by looking around.
+            if (!convoy.isTargetable(id)) continue;
+            float x = world.x(id);
+            float y = world.y(id);
+            Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
+            if (bucket == null) continue;
+            bucket.add(id, x, y,
+                    (byte) roster.identity().faction(id).ordinal(),
+                    roster.identity().type(id).combatant);
         }
     }
 

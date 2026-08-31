@@ -378,8 +378,22 @@ public final class UnitRosterService {
             StructureDef structure = turretStateService.structure(id);
             if (structure != null) return structure.radius;
         }
+        if (convoyService.isVehicle(id)) return convoyService.targetRadius(id);
         MechVariant variant = identityService.mechVariant(id);
         return variant != null ? variant.radius : identityService.type(id).radius;
+    }
+
+    /**
+     * How far the body at {@code id} can shoot, in cells, for any body — the
+     * threat-side counterpart to {@code World.attackRange}, which is fail-loud
+     * because it reads {@code COMBAT}. A convoy chassis answers with its
+     * turret's reach and an unarmed one with zero, so a scan asking "who can
+     * shoot this cell" does not have to know what kind of body it is holding.
+     */
+    public float threatRange(long id) {
+        if (combatService.has(id)) return world.attackRange(id);
+        if (convoyService.isVehicle(id)) return convoyService.weaponRange(id);
+        return 0f;
     }
 
     /** Profile-aware target-plane half-height for ballistic contact. */
@@ -388,6 +402,7 @@ public final class UnitRosterService {
             StructureDef structure = turretStateService.structure(id);
             if (structure != null) return structure.hitHalfHeight;
         }
+        if (convoyService.isVehicle(id)) return convoyService.hitHalfHeight(id);
         MechVariant variant = identityService.mechVariant(id);
         return variant != null ? variant.hitHalfHeight : identityService.type(id).hitHalfHeight;
     }
@@ -795,6 +810,22 @@ public final class UnitRosterService {
      * GROUND_SYSTEM phase). Part of the convoy-{@code Vehicle}-into-world epic
      * ({@code ecs-nouns.md}).
      */
+    /**
+     * Mirrors a convoy body into the current spatial-index snapshot, the way
+     * {@link #spawn} does for a roster unit. The per-tick rebuild is the
+     * authority; this exists so a body that appears or stops being a target
+     * mid-tick is visible (or gone) to the very next proximity query rather
+     * than to the one after the next rebuild. Serial phases only.
+     */
+    public void indexVehicle(long id) {
+        unitIndex.add(this, id);
+    }
+
+    /** Drops a convoy body from the current snapshot — the wreck and despawn seams. */
+    public void unindexVehicle(long id) {
+        unitIndex.remove(id);
+    }
+
     public long allocateVehicle(ComponentType[] archetype) {
         long id = nextId++;
         entityWorld.createEntity(id, archetype);

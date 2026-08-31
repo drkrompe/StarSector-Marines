@@ -82,7 +82,8 @@ public class FacingSystemTest {
                     && t != UnitType.DRONE_HUB_STRUCTURE
                     && t != UnitType.BASED_AIRCRAFT
                     && t != UnitType.RANGE_TARGET
-                    && t != UnitType.DRONE;
+                    && t != UnitType.DRONE
+                    && t != UnitType.GROUND_VEHICLE;
             assertEquals(expectSheetDrawn, t.drawnAsSheet(), t.name());
         }
     }

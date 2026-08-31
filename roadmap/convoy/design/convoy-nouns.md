@@ -11,8 +11,9 @@ Updated: 2026-08-30 — a wreck writes nothing to the navigation or sight map,
 a live vehicle wears the shared durability gauge, and a carrier that has
 unloaded departs rather than holding armed overwatch on its drop point.
 
-Updated: 2026-08-30 — the convoy candidate set now reaches every enemy scan,
-not only the primary target picker, so a driving vehicle draws opportunity fire.
+Updated: 2026-08-30 — a chassis is an ordinary body: it carries `IDENTITY`,
+lives in the unit spatial index, and is a squad contact like any other enemy.
+The explicit convoy candidate set is gone from targeting.
 
 ## Purpose and boundary
 
@@ -93,30 +94,54 @@ ends off-map. If no complete journey exists, the means rejects atomically and
 the reinforcement dispatcher may try its next provider; no ticket-consuming
 false success or stranded actor is created.
 
-The vehicle is a world-resident combat target but not a normal grid combatant.
-Its ground identity, kinematics, mission, shared `HEALTH`/`ARMOR`, and optional
-turret authority are separate from its passenger payload. Target acquisition,
-direct ballistics, contact-fused explosives, and area detonations include a
-small explicit convoy candidate set; this avoids falsely adding vehicles to the
-dense infantry roster or occupancy index. Its continuous body supplies target
-position, velocity, radius, and height. Moving vehicles still do not occupy the
-infantry grid or participate in ordinary unit-unit collision; that remains the
-vehicle-interaction extension.
+## A vehicle is a unit
 
-**Every** enemy scan owes that candidate set, not just the one a shooter
-reaches when it has nothing else to do. The primary picker carried it alone for
-a while and the result was a column that drove past squads unengaged: the
-opportunity-fire picker, the engagement-discipline alternative, and the
-retarget-margin check are what a marine with an infantry target already in hand
-actually consults, and all three were reading the spatial index alone — which
-is built from the dense roster and therefore cannot contain a vehicle. A new
-scan that gathers from the unit index inherits the same blindness by default;
-give it the convoy sweep at the same time.
+A chassis is a **body**, on the same terms as a soldier, a mech, a turret and a
+parked airframe. It carries `IDENTITY` — faction, the `GROUND_VEHICLE`
+archetype, a greppable name — so the code that sees, scores, targets and damages
+it does not have to know what kind of thing it is holding. Its ground identity,
+kinematics, mission, shared `HEALTH`/`ARMOR`, and optional turret authority stay
+separate from its passenger payload, and its continuous body supplies target
+position, velocity, radius, and height.
 
-Squad awareness is deliberately the exception. A vehicle carries no identity,
-so it is never a believed contact and never enters the contact picture,
-doctrine, or alert level; it is something individuals shoot at, not something a
-squad forms a picture of.
+It reaches the scans through the **unit spatial index**, which is an index over
+bodies rather than a bucketed copy of the dense infantry roster. That
+distinction is the whole design. For a while a vehicle was instead a world
+entity with `HEALTH`/`ARMOR` and no identity, reached by an explicit convoy
+candidate set that each scan had to remember; six sites carried that sweep and
+three of them forgot, so an APC could drive across a squad's front unengaged.
+The rule that replaced it: **a new proximity scan gathers from the index and is
+correct for every body by construction.** Nothing in the targeting layer knows
+what a convoy is — `TacticalScoring` does not import `ConvoyService`.
+
+What is genuinely per-chassis dispatches once, in the roster, beside the same
+arms that answer for a turret's structure and a mech's variant: physical radius,
+target-plane half-height, and threat reach. A vehicle carries no `COMBAT`
+component — its turret runs its own aim loop rather than the infantry fire path
+— so "how far can this body shoot" is asked through `UnitRosterService.threatRange`
+rather than the fail-loud `World.attackRange`. An unarmed hull answers zero,
+which is the right answer rather than a missing one: it is a thing to shoot at,
+not a thing to take cover from.
+
+What a chassis deliberately does **not** carry is `POSITION`. That is what keeps
+the occupancy map and the separation pass off it: those queries are keyed on
+that component, so a moving hull still neither claims infantry cells nor takes
+part in unit-unit collision. Everything else the ECS skips by
+membership-narrowing — no `COMBAT`, no `MOVEMENT`, no `ROLE`, no `AI_STATE`,
+so the fire system, the mover, separation and the planner never see it.
+
+A vehicle **is** an ordinary squad contact. It is believed in, it counts in the
+contact picture, it moves doctrine and it raises the alert level, because an APC
+bearing down is a warning exactly as much as a rifleman stepping into view. The
+one accommodation it needs is that it has no dense-roster slot, so the awareness
+pass records it through the slotless observation overload rather than the
+per-slot dedupe.
+
+One dense-roster walk still carries an explicit convoy sweep: the area-detonation
+splash in `Detonations`. It scans the whole live population rather than querying
+the index, and converting it needs a bound on the largest body radius that would
+silently drop blast victims if it were wrong. It is the last site of the old
+shape, kept deliberately rather than by omission.
 
 A vehicle is seen but never sees. It carries no perception components at all, so
 any code that reads a target's sight stats must treat "target" and "perceiver"

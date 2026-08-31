@@ -37,7 +37,6 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.VisionService;
-import com.dillon.starsectormarines.battle.sim.ConvoyService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +85,6 @@ public final class TacticalScoring {
     private final AttackerIndexService attackerIndex;
     private final ShotService shots;
     private final DoodadService doodads;
-    private final ConvoyService convoy;
 
     public TacticalScoring(NavigationService nav, UnitRosterService roster,
                            AttackerIndexService attackerIndex, ShotService shots,
@@ -101,7 +99,6 @@ public final class TacticalScoring {
         this.attackerIndex = attackerIndex;
         this.shots = shots;
         this.doodads = doodads;
-        this.convoy = roster.convoy();
     }
 
     /** Per-engaging-ally penalty added to target selection — pushes the squad to spread fire instead of dogpiling. */
@@ -517,37 +514,6 @@ public final class TacticalScoring {
         long bestAny = scan.bestAny;
         float bestAnyDist = scan.bestAnyDist;
 
-        // Convoy vehicles are world entities with HEALTH/ARMOR, deliberately
-        // absent from the infantry-dense roster. Score their tiny id slice
-        // explicitly so they become honest hostile combat targets without
-        // acquiring grid-occupant capabilities.
-        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
-            long other = convoy.vehicleAt(i);
-            if (!convoy.isTargetable(other) || convoy.faction(other) == selfFaction) continue;
-            float oxWorld = world.x(other);
-            float oyWorld = world.y(other);
-            int ox = (int) Math.floor(oxWorld);
-            int oy = (int) Math.floor(oyWorld);
-            float d = cellDistance(selfX, selfY, oxWorld, oyWorld);
-            if (d < minRange || d > maxRange) continue;
-            if (d < bestAnyDist) {
-                bestAnyDist = d;
-                bestAny = other;
-            }
-            if (d - MAX_TARGET_SCORE_BONUS > bestScore) continue;
-            boolean visible = canSeePair(grid, selfCellX, selfCellY, ox, oy,
-                    shooterAirRadius, 0f);
-            if (!visible && !allowNoLos) continue;
-            float score = d
-                    + scoreCrowding(selfFaction, selfSquadId, other, excludeFromCrowding)
-                    + scoreWeaponAffinity(excludeFromCrowding, other)
-                    + scoreZoneMismatch(selfCellX, selfCellY, ox, oy);
-            if (!visible) score += TARGET_NO_LOS_COST;
-            if (score < bestScore) {
-                bestScore = score;
-                best = other;
-            }
-        }
         return best != 0L ? best : bestAny;
     }
 
@@ -648,7 +614,7 @@ public final class TacticalScoring {
             int ox = world.cellX(id);
             int oy = world.cellY(id);
             boolean visible = canSeePair(scoring.grid, selfCellX, selfCellY, ox, oy,
-                    shooterAirRadius, vision.airLosRadius(id));
+                    shooterAirRadius, vision.targetAirLosRadius(id));
             if (!visible && !allowNoLos) return;
             float score = scoring.scoreTargetCandidate(id, d, visible, selfFaction,
                     selfSquadId, excludeFromCrowding, selfCellX, selfCellY, ox, oy);
@@ -801,12 +767,16 @@ public final class TacticalScoring {
     public static boolean isHardened(UnitType type) {
         if (type.isTurret()) return true;
         if (type.isDroneHub()) return true;
+        // An armoured chassis is the archetypal rocket target; it reads as
+        // hardened off its type like every other hard thing, rather than
+        // through a "unless it is a vehicle" clause at each call site.
+        if (type.isGroundVehicle()) return true;
         return type == UnitType.HEAVY_MECH;
     }
 
-    /** Hardened classification over both roster actors and convoy vehicles. */
+    /** Hardened classification for any body id. */
     public boolean isHardenedTarget(long target) {
-        return convoy.isVehicle(target) || isHardened(roster.identity().type(target));
+        return isHardened(roster.identity().type(target));
     }
 
     /**
@@ -1067,6 +1037,9 @@ public final class TacticalScoring {
     private static final ThreadLocal<LongBucket> RETARGET_CANDIDATES =
             ThreadLocal.withInitial(LongBucket::new);
     /** Per-worker output for shootable opportunity targets near the actor. */
+    /** Per-worker scratch for the engagement-discipline alternative scan. */
+    private static final ThreadLocal<LongBucket> LOW_DENSITY_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
     private static final ThreadLocal<LongBucket> OPPORTUNITY_CANDIDATES =
             ThreadLocal.withInitial(LongBucket::new);
     /** Smaller hysteresis for a shot of opportunity that does not change pursuit. */
@@ -1276,23 +1249,31 @@ public final class TacticalScoring {
         Faction selfFaction = roster.identity().faction(self);
         int selfSquadId = roster.squad().hasSquad(self)
                 ? roster.squad().squadId(self) : Squad.NO_SQUAD;
-        int sx = world.cellX(self);
-        int sy = world.cellY(self);
+        float selfX = world.x(self);
+        float selfY = world.y(self);
+        int sx = (int) Math.floor(selfX);
+        int sy = (int) Math.floor(selfY);
         float selfAir = vision.airLosRadius(self);
         long best = 0L;
         float bestScore = Float.MAX_VALUE;
 
-        long[] dense = roster.denseArray();
-        int liveCount = roster.liveCount();
-        for (int i = 0; i < liveCount; i++) {
-            long candidate = dense[i];
+        // Bounded by the index rather than walked over the whole dense roster.
+        // Two things follow: convoy bodies are candidates without a second
+        // sweep, and the scan stops at the distance beyond which no weapon in
+        // the game reaches — a "visible alternative" eighty cells away was
+        // never one, it just cost a full-population walk to reject.
+        LongBucket candidates = LOW_DENSITY_CANDIDATES.get();
+        unitIndex.gather(selfX, selfY, MAX_PLAUSIBLE_ATTACK_RANGE, candidates);
+        for (int i = 0, n = candidates.size; i < n; i++) {
+            long candidate = candidates.ids[i];
             if (candidate == excludedTarget || candidate == self) continue;
+            if (!roster.isAliveById(candidate)) continue;
             if (roster.identity().faction(candidate) == selfFaction
                     || !roster.identity().type(candidate).combatant) continue;
             int cx = world.cellX(candidate);
             int cy = world.cellY(candidate);
             if (!canSeePair(grid, sx, sy, cx, cy,
-                    selfAir, vision.airLosRadius(candidate))) continue;
+                    selfAir, vision.targetAirLosRadius(candidate))) continue;
             int density = observer != null
                     ? threatDensityAt(candidate, observer)
                     : threatDensityAt(candidate, world.x(candidate), world.y(candidate), selfFaction);
@@ -1306,31 +1287,6 @@ public final class TacticalScoring {
             if (score < bestScore) {
                 bestScore = score;
                 best = candidate;
-            }
-        }
-        // Same convoy slice the primary picker scores: a vehicle is a legal
-        // alternative when engagement discipline releases a clustered target,
-        // and it is never itself part of a hostile infantry cluster.
-        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
-            long vehicle = convoy.vehicleAt(i);
-            if (vehicle == excludedTarget) continue;
-            if (!convoy.isTargetable(vehicle) || convoy.faction(vehicle) == selfFaction) continue;
-            int cx = world.cellX(vehicle);
-            int cy = world.cellY(vehicle);
-            if (!canSeePair(grid, sx, sy, cx, cy, selfAir, targetAirLosRadius(vehicle))) continue;
-            int density = observer != null
-                    ? threatDensityAt(vehicle, observer)
-                    : threatDensityAt(vehicle, world.x(vehicle), world.y(vehicle), selfFaction);
-            if (density >= HIGH_THREAT_DENSITY_COUNT) continue;
-            float score = cellDistance(world.x(self), world.y(self),
-                    world.x(vehicle), world.y(vehicle))
-                    + scoreCrowding(selfFaction, selfSquadId, vehicle, self)
-                    + density * TARGET_THREAT_DENSITY_COST
-                    + scoreWeaponAffinity(self, vehicle)
-                    + scoreZoneMismatch(sx, sy, cx, cy);
-            if (score < bestScore) {
-                bestScore = score;
-                best = vehicle;
             }
         }
         return best;
@@ -1350,15 +1306,6 @@ public final class TacticalScoring {
             long self, long exclude, Faction selfFaction,
             float selfX, float selfY, int selfCellX, int selfCellY,
             float selfAir, boolean currentVisible, float currentDistance) {
-        // The convoy slice is a handful of ids, so it is tested ahead of
-        // either roster path rather than duplicated into both. An APC closing
-        // on a marine engaged on distant infantry is exactly the fixation the
-        // margin exists to break.
-        if (hasRetargetingVisibleVehicle(exclude, selfFaction, selfX, selfY,
-                selfCellX, selfCellY, selfAir,
-                currentVisible ? currentDistance : Float.POSITIVE_INFINITY)) {
-            return true;
-        }
         if (!currentVisible) {
             return hasVisibleOtherEnemyDense(self, exclude, selfFaction,
                     selfX, selfY, selfCellX, selfCellY, selfAir,
@@ -1391,45 +1338,29 @@ public final class TacticalScoring {
             int ux = world.cellX(u);
             int uy = world.cellY(u);
             if (canSeePair(grid, selfCellX, selfCellY, ux, uy,
-                    selfAir, vision.airLosRadius(u))) return true;
+                    selfAir, vision.targetAirLosRadius(u))) return true;
         }
         return false;
     }
 
     /**
-     * Convoy half of the retarget scan. {@code currentDistance} infinite means
-     * "any visible vehicle wins", matching the unbounded roster case.
+     * Whole-neighbourhood fallback, optionally constrained by the exact margin.
+     * Bounded by {@link #MAX_PLAUSIBLE_ATTACK_RANGE} rather than walking the
+     * dense roster: that is what lets a convoy body answer here, and nothing
+     * outside that radius could have been a retarget anyway.
      */
-    private boolean hasRetargetingVisibleVehicle(
-            long exclude, Faction selfFaction, float selfX, float selfY,
-            int selfCellX, int selfCellY, float selfAir, float currentDistance) {
-        World world = roster.world();
-        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
-            long vehicle = convoy.vehicleAt(i);
-            if (vehicle == exclude) continue;
-            if (!convoy.isTargetable(vehicle) || convoy.faction(vehicle) == selfFaction) continue;
-            if (Float.isFinite(currentDistance)
-                    && !(cellDistance(selfX, selfY, world.x(vehicle), world.y(vehicle))
-                    + RETARGET_DISTANCE_MARGIN < currentDistance)) continue;
-            if (canSeePair(grid, selfCellX, selfCellY,
-                    world.cellX(vehicle), world.cellY(vehicle),
-                    selfAir, targetAirLosRadius(vehicle))) return true;
-        }
-        return false;
-    }
-
-    /** Unbounded legacy fallback, optionally constrained by the exact margin. */
     private boolean hasVisibleOtherEnemyDense(
             long self, long exclude, Faction selfFaction,
             float selfX, float selfY, int selfCellX, int selfCellY,
             float selfAir, float currentDistance) {
         World world = roster.world();
         VisionService vision = roster.vision();
-        long[] dense = roster.denseArray();
-        int liveCount = roster.liveCount();
-        for (int i = 0; i < liveCount; i++) {
-            long u = dense[i];
+        LongBucket candidates = RETARGET_CANDIDATES.get();
+        unitIndex.gather(selfX, selfY, MAX_PLAUSIBLE_ATTACK_RANGE, candidates);
+        for (int i = 0, n = candidates.size; i < n; i++) {
+            long u = candidates.ids[i];
             if (u == exclude || u == self) continue;
+            if (!roster.isAliveById(u)) continue;
             if (roster.identity().faction(u) == selfFaction
                     || !roster.identity().type(u).combatant) continue;
             if (Float.isFinite(currentDistance)
@@ -1438,7 +1369,7 @@ public final class TacticalScoring {
             int ux = world.cellX(u);
             int uy = world.cellY(u);
             if (canSeePair(grid, selfCellX, selfCellY, ux, uy,
-                    selfAir, vision.airLosRadius(u))) return true;
+                    selfAir, vision.targetAirLosRadius(u))) return true;
         }
         return false;
     }
@@ -1495,31 +1426,11 @@ public final class TacticalScoring {
             float d = cellDistance(selfX, selfY, otherX, otherY);
             if (d > range) continue;
             if (!canShootPair(grid, selfX, selfY, otherX, otherY,
-                    selfAir, vision.airLosRadius(other))) continue;
+                    selfAir, vision.targetAirLosRadius(other))) continue;
             if (other == preferred) preferredDist = d;
             if (d < bestDist) {
                 bestDist = d;
                 best = other;
-            }
-        }
-        // Convoy vehicles are world entities the dense roster - and therefore
-        // the spatial index gathered above - deliberately excludes. Without
-        // this slice an APC driving past a marine is not a shot of
-        // opportunity at all: every opportunity fire site routes through here,
-        // so the whole column crossed in front of a squad unengaged.
-        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
-            long vehicle = convoy.vehicleAt(i);
-            if (!convoy.isTargetable(vehicle) || convoy.faction(vehicle) == selfFaction) continue;
-            float otherX = world.x(vehicle);
-            float otherY = world.y(vehicle);
-            float d = cellDistance(selfX, selfY, otherX, otherY);
-            if (d > range) continue;
-            if (!canShootPair(grid, selfX, selfY, otherX, otherY,
-                    selfAir, targetAirLosRadius(vehicle))) continue;
-            if (vehicle == preferred) preferredDist = d;
-            if (d < bestDist) {
-                bestDist = d;
-                best = vehicle;
             }
         }
         return preferredDist < Float.MAX_VALUE
@@ -3163,7 +3074,7 @@ public final class TacticalScoring {
             long t = threats.ids[i];
             outCellX[i] = world.cellX(t);
             outCellY[i] = world.cellY(t);
-            outRange[i] = world.attackRange(t);
+            outRange[i] = roster.threatRange(t);
         }
     }
 

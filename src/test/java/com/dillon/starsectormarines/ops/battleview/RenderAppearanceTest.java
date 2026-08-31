@@ -36,12 +36,15 @@ public class RenderAppearanceTest {
                     "drawsFootprint should track WHOLE_SPRITE for " + t);
             // Everything outside the structural/aerial/simulation-fixture types is sheet-drawn
             // infantry/civilians — guards against a future type misrouted into a
-            // WHOLE_SPRITE/NONE arm.
+            // WHOLE_SPRITE/NONE arm. A convoy chassis joins the exceptions: it
+            // is a unit for seeing, targeting and damage, but it draws through
+            // the convoy pass rather than off a facing-indexed sheet.
             boolean structural = t == UnitType.TURRET
                     || t == UnitType.DRONE_HUB_STRUCTURE
                     || t == UnitType.BASED_AIRCRAFT
                     || t == UnitType.RANGE_TARGET
-                    || t == UnitType.DRONE;
+                    || t == UnitType.DRONE
+                    || t == UnitType.GROUND_VEHICLE;
             if (!structural) {
                 assertEquals(SpriteKind.SHEET, app.spriteKind, "non-structural type should be SHEET: " + t);
                 assertFalse(app.drawsFootprint, "non-structural type draws no footprint: " + t);

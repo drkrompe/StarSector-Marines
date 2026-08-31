@@ -782,9 +782,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public long[] getConvoyVehicleIds() { return groundSystem.vehicleEntityIds(); }
     @Override
     public float physicalRadius(long id) {
-        return rosterService.convoy().isVehicle(id)
-                ? rosterService.convoy().targetRadius(id)
-                : rosterService.radius(id);
+        return rosterService.radius(id);
     }
     /** The convoy-vehicle data owner — by-id reads of the {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} / {@code VEHICLE_MISSION} columns for the render / picking / debug passes. Service-direct, not via {@link #world()} ({@code World} is deprecated for migrated state). */
     public ConvoyService convoy() { return rosterService.convoy(); }
