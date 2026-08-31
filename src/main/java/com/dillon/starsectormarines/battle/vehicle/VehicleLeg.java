@@ -31,9 +31,23 @@ public enum VehicleLeg {
      * is nothing to snap to, and its problem is getting <em>started</em> rather
      * than stopping accurately.
      */
-    DEPARTURE_RUN;
+    DEPARTURE_RUN,
 
-    /** Authored arrival tolerance (cells) for the end of this leg. */
+    /**
+     * Going where somebody told it to go. The endpoint is a cell a player
+     * picked, so there is no authored facing to dock onto and nothing to snap
+     * to — being where you were sent is the whole of the goal, and getting as
+     * close as the ground allows is success rather than a hang. It may begin
+     * pointing anywhere at all, so it may turn round to get started.
+     */
+    MOVE_ORDER;
+
+    /**
+     * Authored arrival tolerance (cells) for the end of this leg. Only a
+     * delivery needs the tight one — it is the only leg that then snaps, and
+     * the snap is invisible precisely because the tolerance is small. A cell a
+     * player picked is not worth resolving finer than a cell.
+     */
     float arrivalFloorCells() {
         return this == DELIVERY_RUN
                 ? VehicleController.LZ_ARRIVAL_DIST
@@ -62,19 +76,22 @@ public enum VehicleLeg {
      * Whether reaching the planner's soft terminal region counts as arriving
      * when no safe forward segment remains. A footprint-constrained pose a
      * little short of the drop point is the best landing available and must not
-     * hold the payload forever; a departure that cannot finish has not left.
+     * hold the payload forever, and a vehicle sent as near a cell as its own
+     * width allows has done what it was asked. A departure that cannot finish
+     * has not left, so it does not get to call that arriving.
      */
     boolean terminalRegionCountsAsArrival() {
-        return this == DELIVERY_RUN;
+        return this == DELIVERY_RUN || this == MOVE_ORDER;
     }
 
     /**
      * Whether the vehicle may back and fill onto the corridor when forward
-     * planning finds nothing. This is the getting-started problem: only a leg
-     * that can begin misaligned needs it, and a delivery approaches on the
-     * heading its own route gave it.
+     * planning finds nothing. This is the getting-started problem, and it
+     * belongs to any leg that can begin pointing the wrong way: a departure
+     * left facing back down its own approach, or a vehicle told to go somewhere
+     * behind it. A delivery approaches on the heading its own route gave it.
      */
     boolean mayTurnAroundOntoRoute() {
-        return this == DEPARTURE_RUN;
+        return this == DEPARTURE_RUN || this == MOVE_ORDER;
     }
 }

@@ -43,6 +43,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.ExtractionCommanderOverl
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.MechMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SquadMoveOrderHighlightPublisher;
+import com.dillon.starsectormarines.battle.ui.highlight.VehicleMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
@@ -475,6 +476,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         SelectionHighlightPublisher.publish(selection, sim, highlights);
         MechMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
+        VehicleMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         CommanderInfluenceOverlayPublisher.publish(sim, highlights,
                 debugMarineFriendlyInfluence, debugMarineHostileInfluence,
                 debugDefenderFriendlyInfluence, debugDefenderHostileInfluence);
@@ -1127,6 +1129,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (selectedUnit != 0L && sim.world().hasMechLoadout(selectedUnit)) {
             sim.getMechMoveOrderService().requestMove(
                     selectedUnit, cellX, cellY);
+            return;
+        }
+        long selectedVehicle = selection.getSelectedVehicleId();
+        if (selectedVehicle != 0L && sim.getVehicleMoveOrderService() != null) {
+            sim.getVehicleMoveOrderService().requestMove(
+                    selectedVehicle, cellX, cellY);
             return;
         }
         int selectedSquad = selection.getSelectedSquadId();
