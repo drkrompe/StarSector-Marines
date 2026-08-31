@@ -91,7 +91,7 @@ class AircraftCarriesItsDurabilityTest {
                 20f, 20f, 2f, 2f, 2f, 2f, 0f);
         ShuttleMission mission = sim.world().mission(craft);
         mission.state = phase;
-        mission.hp = hp;
+        sim.world().setHp(craft, hp);
         sim.world().kinematics(craft).teleport(20f, 15f, 0f);
         return craft;
     }

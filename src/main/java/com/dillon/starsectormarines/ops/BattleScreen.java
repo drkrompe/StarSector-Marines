@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
-import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoice;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoiceResolver;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -888,7 +887,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             float pitch = ENGINE_PITCH_IDLE + (ENGINE_PITCH_CRUISE - ENGINE_PITCH_IDLE) * intensity + pitchOffset;
             Vector2f loc = new Vector2f(body.x * AUDIO_WORLD_UNITS_PER_CELL,
                                         body.y * AUDIO_WORLD_UNITS_PER_CELL);
-            Vector2f vel = shuttleVelocity(mission, body);
+            Vector2f vel = shuttleVelocity(body);
             // The AirBody instance is the stable per-entity loop-voice key (same
             // instance every frame and across sorties), so concurrent craft on the
             // same clip stay on distinct voices.
@@ -897,11 +896,21 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
     }
 
-    /** Per-frame velocity for {@link #driveShuttleEngineLoops} Doppler — reads the AirBody directly. Returns zero on the ground / off-screen so audio stays parked. */
-    private static Vector2f shuttleVelocity(ShuttleMission mission, AirBody body) {
-        if (mission.state != ShuttleState.INCOMING && mission.state != ShuttleState.DEPARTING) {
-            return new Vector2f(0f, 0f);
-        }
+    /**
+     * Per-frame velocity for {@link #driveShuttleEngineLoops} Doppler.
+     *
+     * <p>Read off the body and nothing else. This used to be gated on a
+     * hand-written pair of phases — INCOMING and DEPARTING, the only two that
+     * existed when it was written — so a craft attacking, repositioning,
+     * coming home, settling onto a pad or climbing off one all read as parked
+     * and the Doppler on a machine crossing the camera at speed simply did not
+     * happen. The same fault {@code ShuttleMission.isOverTheBattle} was
+     * converted away from, and here there is nothing to place a new phase on:
+     * the body is the authority for motion, a parked craft's velocity is
+     * already zero because it is not moving, and every locomotion model in the
+     * feature composes {@code vx}/{@code vy} as it goes.
+     */
+    private static Vector2f shuttleVelocity(AirBody body) {
         return new Vector2f(body.vx * AUDIO_WORLD_UNITS_PER_CELL,
                             body.vy * AUDIO_WORLD_UNITS_PER_CELL);
     }

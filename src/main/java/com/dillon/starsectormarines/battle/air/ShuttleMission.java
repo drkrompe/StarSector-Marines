@@ -164,13 +164,6 @@ public final class ShuttleMission {
     public int squadId = Squad.NO_SQUAD;
 
     /**
-     * Current HP. Seeded from {@link ShuttleType#maxHp} and drained by
-     * anti-air fire on the way in and out; at zero the craft is shot down with
-     * whoever is still aboard.
-     */
-    public float hp;
-
-    /**
      * Fire-support role, or {@code null} on a pure transport. Drives turret kit
      * selection at setup — what an armed craft carries on its way in and out,
      * not a reason to stay.
@@ -524,6 +517,29 @@ public final class ShuttleMission {
     }
 
     /**
+     * Whether the aircraft is out in the open on its wheels under its own
+     * power — and therefore something anybody with a weapon can shoot at.
+     *
+     * <p>This is what a runway is <em>for</em>. A strip buys a minute of
+     * movement across open ground in exchange for not lifting vertically off a
+     * stand, and the trade is worth nothing while the minute is invulnerable.
+     *
+     * <p>Asked of the locomotion rather than listed, because "is it on its
+     * wheels" is exactly what {@link AirLocomotion#GROUNDED} means and a list
+     * is a thing the next phase added gets left out of. Two grounded phases
+     * are deliberately excluded, and both are down with the ramp open rather
+     * than moving: a loading craft's passengers have already been taken off
+     * the roster, so making it shootable would owe them a disposition nothing
+     * gives them, and a landed one is the same craft at the other end of the
+     * trip.
+     */
+    public boolean isOnItsWheelsAndExposed() {
+        return AirLocomotion.of(state) == AirLocomotion.GROUNDED
+                && state != ShuttleState.LOADING
+                && state != ShuttleState.LANDED;
+    }
+
+    /**
      * Squad walking out to embark, or {@link com.dillon.starsectormarines.battle.squad.Squad#NO_SQUAD}
      * on a sortie that was loaded before it existed.
      *
@@ -566,7 +582,7 @@ public final class ShuttleMission {
 
     public ShuttleMission(float lzX, float lzY, float entryX, float entryY,
                           float exitX, float exitY, float pendingDelay,
-                          int marinesRemaining, float hp) {
+                          int marinesRemaining) {
         this.lzX = lzX;
         this.lzY = lzY;
         this.entryX = entryX;
@@ -576,6 +592,5 @@ public final class ShuttleMission {
         this.pendingDelay = pendingDelay;
         this.marinesRemaining = marinesRemaining;
         this.seatsPerSortie = marinesRemaining;
-        this.hp = hp;
     }
 }
