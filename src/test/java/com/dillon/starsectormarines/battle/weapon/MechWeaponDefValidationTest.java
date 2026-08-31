@@ -58,6 +58,28 @@ class MechWeaponDefValidationTest {
         assertThrows(JSONException.class, () -> WeaponDef.parse(payloadless));
     }
 
+    @Test
+    void beamStyleRequiresARealGlowAndNoProjectileSprite() throws Exception {
+        JSONObject invalidGlow = directContactWeapon();
+        invalidGlow.getJSONObject("render").remove("projectileSprite");
+        invalidGlow.getJSONObject("render").put("beam", new JSONObject()
+                .put("glowColor", "40A0FF").put("glowWidthPx", 1.0)
+                .put("coreWidthPx", 3.0));
+        assertThrows(JSONException.class, () -> WeaponDef.parse(invalidGlow));
+
+        JSONObject projectileBeam = mechWeapon();
+        projectileBeam.getJSONObject("render").put("beam", new JSONObject()
+                .put("glowColor", "40A0FF").put("glowWidthPx", 8.0));
+        assertThrows(JSONException.class, () -> WeaponDef.parse(projectileBeam));
+
+        JSONObject hitscan = directContactWeapon();
+        hitscan.getJSONObject("render").remove("projectileSprite");
+        hitscan.getJSONObject("render").put("beam", new JSONObject()
+                .put("coreWidthPx", 3.0).put("glowColor", "40A0FF")
+                .put("glowWidthPx", 8.0).put("pulseCycles", 2.0));
+        assertDoesNotThrow(() -> WeaponDef.parse(hitscan));
+    }
+
     private static JSONObject directContactWeapon() throws Exception {
         JSONObject json = mechWeapon();
         JSONObject sim = json.getJSONObject("sim");
