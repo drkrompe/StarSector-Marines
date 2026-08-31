@@ -308,6 +308,17 @@ public final class ShuttleMission {
     public RunwayApproach approach;
 
     /**
+     * How many circuits this craft has already flown for want of the strip.
+     *
+     * <p>A go-around is the right answer to a strip somebody else is on, and an
+     * unbounded one is what turns a recoverable minute into a permanent
+     * condition: an aircraft that loses the race every time it arrives circles
+     * for the rest of the battle. Counted so the approach can stop asking
+     * politely — see {@code AirSystem}'s emergency landing.
+     */
+    public int goAroundsFlown;
+
+    /**
      * Sim-seconds left in a vertical settle onto a pad.
      *
      * <p>What a helicopter does at the end of an approach and what the arrival
@@ -414,6 +425,9 @@ public final class ShuttleMission {
         this.shelterX = shelterX;
         this.shelterY = shelterY;
         this.usesRunway = true;
+        // A fresh landing, so a fresh patience. A craft on its second sortie
+        // must not inherit the circuits its first one flew.
+        this.goAroundsFlown = 0;
     }
 
     /**

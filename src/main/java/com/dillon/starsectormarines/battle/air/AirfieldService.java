@@ -194,12 +194,33 @@ public final class AirfieldService {
     }
 
     /**
+     * Takes the strip whether or not anybody else has it.
+     *
+     * <p>Deliberately not how a departure gets the runway, and deliberately
+     * available to a landing. A craft holding short can wait; a craft on final
+     * that has already flown its circuits cannot, and it is about to be
+     * standing on the strip whatever this method says. Recording the seizure is
+     * what keeps the rollout consistent with the aircraft actually on the
+     * ground — the alternative is a runway attributed to a craft that is not on
+     * it while one that is rolls out unrecorded.
+     */
+    public void takeRunway(long craft) {
+        if (craft == 0L) return;
+        runwayOccupant = craft;
+    }
+
+    /**
      * Gives the strip back.
      *
      * <p>Ignores a caller that does not hold it, so a craft that is torn down
      * mid-procedure can release unconditionally without first checking whether
      * it got that far. A strip left claimed by a craft that no longer exists
-     * would close the field for the rest of the battle.
+     * would close the field for the rest of the battle — and did: a fighter
+     * killed by ground fire during its takeoff roll took the runway with it,
+     * and every sortie that came home afterwards was refused and flew circuits
+     * until the battle ended. Every way a craft ceases to exist runs through
+     * one teardown, and that is where the release belongs, so no future ending
+     * has to remember it.
      */
     public void releaseRunway(long craft) {
         if (runwayOccupant == craft) runwayOccupant = 0L;

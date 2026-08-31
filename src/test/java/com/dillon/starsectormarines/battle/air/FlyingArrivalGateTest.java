@@ -120,6 +120,42 @@ class FlyingArrivalGateTest {
         }
     }
 
+    /**
+     * A craft flown along a path is not given the circle, because it cannot
+     * orbit anything.
+     *
+     * <p>The orbit term is for a body steered <em>at</em> a point. A craft on a
+     * solved approach is chasing a carrot sliding along a polyline that runs on
+     * past its destination, so the failure the circle exists to admit cannot
+     * happen to it — and admitting it anyway costs exactly its width. A fighter
+     * turns inside seventeen cells at approach speed, so a landing gated on the
+     * steered rule fired seventeen cells short of the numbers: measured on the
+     * shipped airfield the aircraft touched its wheels down at x=79 on a strip
+     * that ends at 62.5, and an approach from the other end put them down at
+     * x=-9.6, off the map. Both landed. Neither landed on the runway.
+     */
+    @Test
+    void aPathFollowedArrivalIsGatedOnTheStepAlone() {
+        float dt = BattleSimulation.TICK_DT;
+        float turnRateRad = (float) Math.toRadians(WINGED.maxTurnRateDegPerSec());
+        for (float speed = 3f; speed <= 45f; speed += 1.5f) {
+            AirBody body = movingAt(speed);
+            float step = speed * dt;
+            for (float floor : FLOORS) {
+                float flown = AirSystem.flownArrivalDist(floor, body, dt);
+                assertTrue(flown > step,
+                        "a craft at " + speed + " cells/sec would step over its " + flown
+                                + "-cell gate");
+                assertTrue(flown <= Math.max(floor, 2f * step) + 1e-5f,
+                        "the path-followed gate at " + speed + " cells/sec came out at "
+                                + flown + ", which is wider than the step it is made of");
+                assertTrue(flown < speed / turnRateRad,
+                        "the path-followed gate still admits the whole turning circle at "
+                                + speed + " cells/sec: " + flown);
+            }
+        }
+    }
+
     /** The floor is a floor: the gate never comes out under it. */
     @Test
     void theAuthoredNumberIsNeverUndercut() {
