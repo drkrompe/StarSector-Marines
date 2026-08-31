@@ -11,6 +11,7 @@ public final class LayeredMechAppearance {
     public static final int FLAG_LRM_ACTIVE = 1 << 5;
     public static final int FLAG_LRM_FLASH = 1 << 6;
     public static final int FLAG_TURNING = 1 << 7;
+    public static final int FLAG_LASER_FLASH = 1 << 8;
     public static final float FLASH_SECONDS = 0.075f;
     /**
      * Maximum upper-chassis traverse to either side of the planted hips.
@@ -33,6 +34,7 @@ public final class LayeredMechAppearance {
     public static final int POD_SMALL_LRM = 2;
     public static final int POD_LARGE_SRM = 3;
     public static final int POD_LARGE_LRM = 4;
+    public static final int POD_SHOULDER_LASER = 5;
     /** Compatibility names retained for authored tests and older call sites. */
     public static final int POD_SRM = POD_SMALL_SRM;
     public static final int POD_LRM = POD_LARGE_LRM;

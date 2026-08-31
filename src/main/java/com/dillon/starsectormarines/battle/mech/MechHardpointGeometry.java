@@ -70,6 +70,7 @@ public final class MechHardpointGeometry {
     }
 
     public static float podForward(int podAppearance) {
+        if (podAppearance == LayeredMechAppearance.POD_SHOULDER_LASER) return 0.32f;
         return isSmallPod(podAppearance) ? 0.12f : 0.16f;
     }
 

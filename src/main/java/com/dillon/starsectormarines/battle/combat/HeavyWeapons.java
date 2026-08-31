@@ -136,15 +136,27 @@ public class HeavyWeapons {
                 weapon.hitSpread, distToTarget, weapon.range);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
                 effectiveAccuracy, effectiveSpread, weapon.roundVelocity,
-                weapon.range, rng);
+                weapon.range, weapon.bodyPenetrations, rng);
 
-        if (weapon.aoeRadius <= 0f && res.victimId() != 0L) {
-            float appliedDamage = res.friendlyHit()
-                    ? weapon.damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
-                    : weapon.damage;
-            shots.queueImpact(new ShotService.PendingImpact(
-                    res.victimId(), shooter, res.flightTime(), appliedDamage,
-                    weapon.penetration, moraleImpact, res.friendlyHit()));
+        float contactDamage = weapon.contactDamage > 0f
+                ? weapon.contactDamage
+                : weapon.aoeRadius <= 0f ? weapon.damage : 0f;
+        float contactPenetration = weapon.contactDamage > 0f
+                ? weapon.contactPenetration : weapon.penetration;
+        if (contactDamage > 0f) {
+            for (BallisticResolver.BodyHit bodyHit : res.bodyHits()) {
+                float appliedDamage = bodyHit.friendly()
+                        ? contactDamage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                        : contactDamage;
+                shots.queueImpact(new ShotService.PendingImpact(
+                        bodyHit.victimId(), shooter, bodyHit.flightTime(), appliedDamage,
+                        contactPenetration, moraleImpact, bodyHit.friendly()));
+            }
+        }
+
+        long[] areaExclusions = new long[contactDamage > 0f ? res.bodyHits().size() : 0];
+        for (int i = 0; i < areaExclusions.length; i++) {
+            areaExclusions[i] = res.bodyHits().get(i).victimId();
         }
 
         if (weapon.aoeRadius > 0f) {
@@ -155,7 +167,9 @@ public class HeavyWeapons {
                             weapon.aoeRadius, weapon.damage, weapon.penetration,
                             weapon.wallDamage, shooterFaction, /*aerialDelivery*/ false,
                             weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
-                            /*friendlyFireImmune*/ false)
+                            /*friendlyFireImmune*/ false,
+                            0L, 0f, 0f, /*authoredAftermath*/ false,
+                            areaExclusions)
                     : null;
             // Rocket-class rounds own a Projectile so future point defense can
             // intercept the payload. Gun-launched HE remains a ballistic
