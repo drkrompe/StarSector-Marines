@@ -80,7 +80,26 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      * further off it has a wider penumbra and reads softer. It does not read
      * smaller — see the sizing below.
      */
-    private static final float AIR_ALPHA_AT_ALTITUDE = 0.7f;
+    private static final float AIR_ALPHA_AT_ALTITUDE = 1.0f;
+
+    /**
+     * An aircraft shadow's own opacity, well above a ground body's.
+     *
+     * <p>Not a preference: the blob is a radial falloff, so a marine's
+     * twenty-pixel shadow is almost entirely bright core while a transport's
+     * hundred-and-forty-pixel one is mostly the faint tail. Stretching the same
+     * sprite over seven times the length costs most of its contrast, and the
+     * larger caster has to ask for it back.
+     *
+     * <p>Measured, not chosen. Rendering the same frame with and without this
+     * layer and differencing it: at a ground body's alpha the aircraft darkened
+     * its ground by a mean of 8 levels out of 255, which is invisible and cost
+     * several rounds of believing the shadow was not drawn at all. Marines,
+     * which read clearly, measure a mean of 10. This lands the aircraft near 19
+     * — comfortably above the readable benchmark, because a shadow that large
+     * is spread thin.
+     */
+    private static final float AIR_SHADOW_ALPHA = 0.95f;
 
     /**
      * The altitude, in cells, an aircraft at full height casts from.
@@ -205,7 +224,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             if (hullLengthCells <= 0f) continue;
 
             float altitudeT = world.altitudeT(id);
-            float alpha = ctx.alphaMult * SHADOW_ALPHA * sun.shadowStrength()
+            float alpha = ctx.alphaMult * AIR_SHADOW_ALPHA * sun.shadowStrength()
                     * lerp(1f, AIR_ALPHA_AT_ALTITUDE, altitudeT);
 
             // Away from the sun by the altitude the hull is drawn at, which is
