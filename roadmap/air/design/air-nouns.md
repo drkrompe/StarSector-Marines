@@ -5,8 +5,11 @@ Status: ACTIVE
 Written: 2026-08-23
 
 Updated: 2026-08-31 — the pad settle ends on a condition rather than a clock, a
-launch off a hardstand climbs before it flies away, and `isOverTheBattle` is an
-exhaustive switch rather than a list a phase can fall out of.
+launch off a hardstand climbs before it flies away, `isOverTheBattle` is an
+exhaustive switch rather than a list a phase can fall out of, the two
+representations draw the same size at their handoff seam, and a machine
+destroyed rolling under its own power goes up and leaves a wreck where it
+stopped the same as one destroyed on its stand.
 
 ## Purpose
 
@@ -65,6 +68,13 @@ present, who owns it, and what it can do in the battle.
 altitude. It is not a second physics body. Visual scale, offset, and engine
 intensity are derived from that state and the body, keeping the simulation and
 the rendered craft anchored to the same actor.
+
+A craft's drawn size is `AirAppearance.GROUND_SCALE` on the ground rising to
+`GROUND_SCALE × ALTITUDE_SCALE_GAIN` at altitude — the gain is factored out as
+a ratio precisely so climbing can be re-dialled without touching the ground
+size the two representations agree on. It was brought down from 1.5 to 1.2 on
+2026-08-31: the earlier value read as a near-50%-larger pop rather than the
+subtle "a little bigger up high" the cue is meant to be.
 
 ## Hull-derived facts
 
@@ -206,15 +216,24 @@ Four rules give the field its stakes:
   happened off-map at a carrier nobody could reach. On a field it happens on
   ground the attacker can walk onto, so it takes long enough that a field cannot
   answer two requests back to back.
-- **An airframe destroyed on its stand goes up.** It is a full tank under a thin
-  skin, and that is the whole reason burning one is worth a fire team's time; a
-  hull that simply stopped existing was a target with a lot of hit points and
-  nothing else. It leaves a fireball, a burning wreck, and a blast that catches
-  whoever is beside it — the raiders who walked onto the apron included, since
-  fire does not check anybody's colours, and the ground crew that came out to
-  fly it. Recorded: burning three aircraft from four cells away cost about half
-  a six-man fire team. Riflemen out-range that comfortably, so the price is for
-  standing on the apron rather than for the raid.
+- **An airframe destroyed on the ground goes up.** It is a full tank under a
+  thin skin, and that is the whole reason burning one is worth a fire team's
+  time; a hull that simply stopped existing was a target with a lot of hit
+  points and nothing else. It leaves a fireball, a burning wreck, and a blast
+  that catches whoever is beside it — the raiders who walked onto the apron
+  included, since fire does not check anybody's colours, and the ground crew
+  that came out to fly it. Recorded: burning three aircraft from four cells
+  away cost about half a six-man fire team. Riflemen out-range that
+  comfortably, so the price is for standing on the apron rather than for the
+  raid. **Parked or rolling makes no difference.** A fighter killed taxiing,
+  holding short, or partway down a takeoff roll or a landing rollout is the
+  same tank under the same skin as one killed on its stand, and it goes up the
+  same way. Taxiing aircraft became genuinely shootable once a strip made the
+  ground procedure exposed rather than a formality, and a kill on it that
+  produced neither fire nor wreck would have been a cheaper kill than the
+  identical one a few seconds later on the stand — the crossing has to cost
+  what the apron costs, or the whole reason a runway is dangerous is a lie for
+  half its own length.
 
 The fire **does not chain**. Its reach is sized to the stand and the apron
 around it and stops short of the next hardstand, which an authored field puts
@@ -222,16 +241,31 @@ eight cells away. A blast that took its neighbours with it would make one
 satchel worth an entire airfield and delete the only decision a raid contains,
 which is how much of the field to spend the visit on.
 
-**The wreck stays on the concrete.** What the fire leaves is the aircraft's own
+**The wreck stays on the ground.** What the fire leaves is the aircraft's own
 hull, charred and in three pieces, lying at the place and bearing it was
-standing, for the rest of the battle. The smoke that marks a fresh kill burns
+destroyed, for the rest of the battle. The smoke that marks a fresh kill burns
 out in half a minute, and with nothing permanent behind it a burned field looks
 exactly like a field whose aircraft happen to be away, which is precisely the
-question a raider walked over there to settle. It is drawn off the berth rather
-than off the airframe, because the airframe is dead, released and gone by the
-time anybody looks at the pad again, and the berth is the thing that outlives
-what stands on it. An aircraft lost over the objective leaves an empty stand:
-the same terminal state, and deliberately not the same picture.
+question a raider walked over there to settle.
+
+Where that place is depends on how the aircraft died. On a hardstand the wreck
+is drawn off the berth rather than off the airframe, because the airframe is
+dead, released and gone by the time anybody looks at the pad again, and the
+berth is the thing that outlives what stands on it — a berth's own wreck never
+moves, so its position is a fact the berth already carries. A craft killed
+taxiing, holding short, or partway down a roll has no berth under it: it
+stopped wherever the fire caught it, off the stand it flew from and often well
+short of the one it was headed to. Its wreck is the same hull torn the same
+way, but it has to carry its own position and bearing instead of borrowing a
+berth's, since nothing else on the field remembers where a taxiway kill
+happened. The berth that sortie flew from is still written off — a field
+does not get an airframe back because the wreck is somewhere else — it simply
+has no hulk sitting on its own pad to show for it.
+
+An aircraft lost over the objective leaves an empty stand and no wreck at all:
+the same terminal state as either kind of ground kill, and deliberately not
+the same picture. A craft shot down at altitude falls; it does not leave a
+neat hull at the coordinates it happened to be flying over.
 
 **A hull comes apart along a V.** The nose section separates as a wedge and
 what is left splits down the spine, both tears walked so the edges are ragged
@@ -563,6 +597,17 @@ it is deliberately not turned into a grid unit for the taxi. The only handoff
 between the two representations is at a standstill, on a berth; making the taxi
 a grid walk and the roll a flight would put a second handoff in the middle of
 one continuous movement, which is exactly the seam this model keeps still.
+
+**The two representations draw the same size at that seam, by law.** The berth
+hull (`UnitRenderService`'s `emitHull`, and the wreck it leaves behind) and the
+air entity at `altitudeT == 0` (`ShuttleRenderSystem`) both draw at
+`AirAppearance.GROUND_SCALE`; a parked scenery hull on a civilian berth
+(`ParkedAircraftRenderSystem`) agrees for the same reason — it is the same kind
+of object at rest. A hull that changed size crossing the one handoff this model
+keeps still would read as a launch or a recovery popping, which is exactly the
+seam the taxi/roll design above exists to keep invisible.
+`AircraftGroundAirHandoffScaleTest` pins the berth and the air-entity collector
+landing on the same drawn number so this cannot drift back apart silently.
 
 **Rolling is not flying slowly.** Ground movement is its own locomotion model
 rather than the flight steering held down to walking pace. What flight does to

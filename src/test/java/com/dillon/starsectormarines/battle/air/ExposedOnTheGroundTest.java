@@ -11,7 +11,10 @@ import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -142,5 +145,86 @@ class ExposedOnTheGroundTest {
 
         assertTrue(mission.hp < startedWith,
                 "an aircraft made gun runs over an anti-air post and took nothing");
+    }
+
+    /**
+     * A machine killed rolling under its own power owes what one killed on its
+     * pad owes: the same fireball, and a hull that stays exactly where the
+     * fire caught it.
+     *
+     * <p>It is the same full tank under the same thin skin either way, so
+     * whether it was parked or moving when the fire started is not a reason
+     * for the fire to be different. Before this, a fighter shot off its own
+     * taxiway simply stopped existing — no blast, no wreck, nothing to show
+     * for the raid but an empty stand on the far side of the field.
+     */
+    @Test
+    void aTaxiingAircraftKilledOnTheGroundLeavesAWreck() {
+        BattleSimulation sim = openField();
+        long craft = taxiingFighter(sim);
+        ShuttleMission mission = sim.world().mission(craft);
+        // A heavier team than the earlier "took something" test — this one
+        // has to actually finish the aircraft off.
+        fireTeamBesideTheTaxiway(sim, 12);
+
+        for (int i = 0; i < 300 && mission.state != ShuttleState.GONE; i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+
+        assertEquals(ShuttleState.GONE, mission.state,
+                "the fire team beside the taxiway did not bring it down");
+        List<GroundWreck> wrecks = sim.getAirfieldService().groundWrecks();
+        assertEquals(1, wrecks.size(), "the hull it died with should be sitting on the taxiway");
+        GroundWreck wreck = wrecks.get(0);
+        assertFalse(sim.getGrid().isWalkable(wreck.cellX(), wreck.cellY()),
+                "the wreck blocks the ground it came down on");
+
+        // The berth it flew from is written off, but the wreck is not there —
+        // it is wherever the taxiway kill actually happened.
+        List<AirfieldService.Berth> berths = sim.getAirfieldService().berths();
+        AirfieldService.Berth shed = berths.get(berths.size() - 1);
+        assertEquals(AirfieldService.BerthState.DESTROYED, shed.state,
+                "the field lost the aircraft it sent out");
+        assertFalse(shed.wreckOnPad,
+                "the hull came down on the taxiway, not back on the berth it left");
+    }
+
+    /**
+     * A machine lost at altitude falls; it does not leave a neat hull at the
+     * coordinates it happened to be flying over.
+     *
+     * <p>The distinction {@code air-nouns.md} draws between the two ways a
+     * sortie can end has to survive a taxiway kill acquiring its own wreck —
+     * airborne stays airborne's own picture.
+     */
+    @Test
+    void anAircraftShotDownInTheAirLeavesNoGroundWreck() {
+        BattleSimulation sim = openField();
+        long craft = sim.spawnSortie(FighterProfile.BROADSWORD, Faction.DEFENDER,
+                30.5f, 20.5f, 5f, 5f, 5f, 5f, 0f);
+        ShuttleMission mission = sim.world().mission(craft);
+        mission.strikeSortie = true;
+        mission.passesLeft = 3;
+        sim.world().kinematics(craft).teleport(30.5f, 20.5f, 0f);
+        mission.state = ShuttleState.ATTACK_RUN;
+        mission.runFromX = 20f; mission.runFromY = 20.5f;
+        mission.runToX = 45f;  mission.runToY = 20.5f;
+
+        // A cluster of anti-air posts right under the run — enough to bring
+        // the craft down rather than merely dent it.
+        for (int i = 0; i < 4; i++) {
+            sim.spawn(new EntitySpec("aa" + i, Faction.MARINE, UnitType.TURRET, 30 + i, 20)
+                    .turretStructureId("structure.turret-vulcan")
+                    .health(400f));
+        }
+
+        for (int i = 0; i < 200 && mission.state != ShuttleState.GONE; i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+
+        assertEquals(ShuttleState.GONE, mission.state,
+                "the anti-air cluster did not bring it down");
+        assertTrue(sim.getAirfieldService().groundWrecks().isEmpty(),
+                "a craft lost at altitude falls; it does not leave a hull on the ground");
     }
 }
