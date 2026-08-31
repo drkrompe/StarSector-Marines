@@ -398,8 +398,13 @@ public final class ConvoyMeans implements ReinforcementMeans {
         float approach = AirBody.facingToward(lzX - inbound[0][in - 2], lzY - inbound[1][in - 2]);
         float depart = AirBody.facingToward(outbound[0][1] - outbound[0][0],
                 outbound[1][1] - outbound[1][0]);
-        return VehicleController.canReverseDirectionAt(sim.getGrid(),
-                VehicleType.HEAVY_APC, lzX, lzY, approach, depart);
+        // Ask the question with no run-up in it. Docking may well rescue this
+        // pairing, but it is an attempt rather than a guarantee, and a truck
+        // that arrives without docking is left standing on the drop point
+        // itself — which can be a much tighter piece of road than the one the
+        // docking maneuver would have been evaluated in.
+        return VehicleController.canTurnOntoRouteAt(sim.getGrid(), VehicleType.HEAVY_APC,
+                lzX, lzY, approach, outbound[0], outbound[1]);
     }
 
     /** Lazily bakes (and caches) the per-battle terrain cost field from the map's ground kinds. */

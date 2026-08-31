@@ -30,6 +30,10 @@ route need not belong to a delivery.
 Updated: 2026-08-31 — a vehicle can be given a move order, and an order that
 cannot be carried out is refused with a reason rather than parked on.
 
+Updated: 2026-08-31 — the departure turn is proved from the drop point with no
+run-up, because the maneuver that would have earned the run-up is an attempt
+rather than a guarantee.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -292,7 +296,14 @@ it planned before.
   final kinematic authority, and any changed-grid failure stops and recovers
   instead of degrading to raw polyline pursuit.
 - It also proves the one bend that lies on neither polyline: the turn from the
-  heading a vehicle arrives on to the heading its exit demands. An entry and an
+  heading a vehicle arrives on to the heading its exit demands — asked with no
+  run-up, from the drop point itself. The docking maneuver would often rescue
+  the pairing and is evaluated a trigger distance back up the approach, which
+  can be materially more road than the drop point has; but docking is an
+  attempt rather than a guarantee, and a truck that arrives through the plain
+  distance gate is left standing on the drop point on the heading it drove in
+  on. Dispatch must believe the pessimistic answer, because that is the
+  situation it cannot rule out. An entry and an
   exit can each be perfectly drivable and still be an impossible pairing,
   because reversing a chassis costs lateral room the road may not have — the
   shipped APC turns inside about four cells and needs about three of swing to
