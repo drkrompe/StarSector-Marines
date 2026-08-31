@@ -219,13 +219,31 @@ public final class Squad {
     public ObjectiveAssignment assignedObjective;
 
     /**
-     * The strategic assignment tactical behavior may execute this tick.
-     * Campaign squads still assembling at their landing zone retain their
-     * authoritative directive, but do not act on it until assembly completes
-     * or times out.
+     * Battle-local player locomotion override. It is an executable
+     * attack-move assignment so infantry retain their ordinary fire-team and
+     * contact behavior, but it never replaces the authoritative mission
+     * directive in {@link #assignedObjective}.
+     */
+    private volatile ObjectiveAssignment tacticalMoveOrder;
+
+    /**
+     * The assignment-shaped context tactical behavior may execute this tick.
+     * Form-up masks every order. Once ready, a temporary player squad move
+     * takes precedence without replacing {@link #assignedObjective}; otherwise
+     * the authoritative mission assignment passes through unchanged.
      */
     public ObjectiveAssignment assignmentForExecution() {
-        return SquadFormUpSystem.formingUp(this) ? null : assignedObjective;
+        if (SquadFormUpSystem.formingUp(this)) return null;
+        ObjectiveAssignment tactical = tacticalMoveOrder;
+        return tactical != null ? tactical : assignedObjective;
+    }
+
+    void applyTacticalMoveOrder(int cellX, int cellY) {
+        tacticalMoveOrder = ObjectiveAssignment.attackMove(id, cellX, cellY);
+    }
+
+    void clearTacticalMoveOrder() {
+        tacticalMoveOrder = null;
     }
 
     /** Null when command execution is ready, otherwise a stable diagnostic reason. */

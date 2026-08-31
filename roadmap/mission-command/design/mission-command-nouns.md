@@ -4,9 +4,12 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-30 — the casualty memory now also publishes a route costing,
-so the movers route around a side's own dead rather than only the commander
-choosing among places to send them.
+Updated: 2026-08-31 — a selected Marine infantry squad may take a one-shot
+tactical destination below its directive; arrival or withdrawal hands execution
+back without replacing mission ownership.
+Earlier: the casualty memory now also publishes a route costing, so the movers
+route around a side's own dead rather than only the commander choosing among
+places to send them.
 Earlier: added the casualty memory itself, and the order mix — which orders a
 battle was actually made of, with unassigned pulses as a bucket rather than an
 omission.
@@ -293,6 +296,14 @@ The player is an **intervention authority**, not the baseline commander. A
 future request may lease a legal priority, rally, reserve commitment, focus, or
 fallback. It cannot manufacture knowledge, bypass objective law, or seize an
 externally owned squad. Expiry hands control back without a planless interval.
+
+A tactical squad move is narrower than such a directive lease: it temporarily
+supplies the selected Marine infantry squad's executable destination while its
+authoritative directive and owner remain unchanged. Local AI still decides how
+the squad crosses contact and fires, form-up and cohesion survival may suspend
+it, and hard withdrawal cancels it. Arrival removes the temporary context before
+the ordinary directive replans, so the intervention neither becomes a second
+assignment writer nor leaves an unowned interval.
 
 A frozen **command doctrine profile** may bias legal assignment, reserve,
 recapture, and local-posture choices. It does not add objectives, knowledge,

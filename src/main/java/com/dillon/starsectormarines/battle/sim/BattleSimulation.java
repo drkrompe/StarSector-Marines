@@ -92,6 +92,8 @@ import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -322,6 +324,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechMoveOrderService mechMoveOrders = new MechMoveOrderService();
     private final MechMoveOrderSystem mechMoveOrderSystem =
             new MechMoveOrderSystem(mechMoveOrders);
+    /** Squad-scoped player movement requests below mission assignment. */
+    private final SquadMoveOrderService squadMoveOrders = new SquadMoveOrderService();
+    private final SquadMoveOrderSystem squadMoveOrderSystem =
+            new SquadMoveOrderSystem(squadMoveOrders);
 
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. Declared before {@link #reinforcement} so it can be constructor-injected into it. */
     private final BattleResources battleResources = new BattleResources();
@@ -869,6 +875,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public MechMoveOrderService getMechMoveOrderService() { return mechMoveOrders; }
     /** Exact-mech move executor used by the mech unit-dispatch path. */
     public MechMoveOrderSystem getMechMoveOrderSystem() { return mechMoveOrderSystem; }
+    /** Player battle-only infantry squad move-order mailbox and projection. */
+    public SquadMoveOrderService getSquadMoveOrderService() { return squadMoveOrders; }
+    /** Applies squad tactical moves at the serialized command boundary. */
+    public SquadMoveOrderSystem getSquadMoveOrderSystem() { return squadMoveOrderSystem; }
     public void setCommandPowerResources(com.dillon.starsectormarines.battle.power.CommandPowerResources resources) {
         commandPowers.setResources(resources);
     }
@@ -1652,6 +1662,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // battlefield manner on this same fixed tick.
         mechDoctrineSystem.tick(this);
         mechMoveOrderSystem.tick(this);
+        squadMoveOrderSystem.tick(this);
         tickProfile.lap(TickProfile.Phase.COMMANDER);
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
         // ordering + parallelism notes.
