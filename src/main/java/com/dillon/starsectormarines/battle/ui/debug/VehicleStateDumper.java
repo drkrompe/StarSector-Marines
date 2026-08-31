@@ -76,7 +76,6 @@ public final class VehicleStateDumper {
             root.put("armor", round(convoy.armor(id)));
             root.put("maxArmor", round(convoy.maxArmor(id)));
             root.put("armorRating", round(convoy.armorRating(id)));
-            root.put("overwatchCountdown", round(v.overwatchCountdown));
             root.put("turretAmmo", turret != null ? turret.ammo : 0);
 
             root.put("inbound", waypointsJson(v.inboundX, v.inboundY));

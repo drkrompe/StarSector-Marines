@@ -217,6 +217,15 @@ public final class FortressWardStage implements GenStage {
      * takes width off one side rather than cutting the ward in two. Depth is
      * taken from the back, so the runway ends up along the ward's front where
      * an aircraft has an open run at it.
+     *
+     * <p><b>Preferring an end is not the same as staying off the citadel.</b>
+     * The keep is the one thing in the ward this stage does not demolish, so a
+     * lot laid across it repaves ground whose building, objective and garrison
+     * node all survive — a capture marker and a bare roof standing on the apron
+     * with no walls under them. The lot is therefore refused over the keep the
+     * same way it is refused over the ward's kept road, and for the same
+     * reason: structure yields to a place the mission depends on, and an
+     * airbase has three smaller sizes and a second end to fall back on.
      */
     static WardAirbase airbaseLot(int[] ward, TraversalAxis axis,
                                          Compound citadel, boolean[][] roadCells) {
@@ -267,7 +276,21 @@ public final class FortressWardStage implements GenStage {
         if (lot[0] < ward[0] || lot[1] < ward[1]
                 || lot[2] > ward[2] || lot[3] > ward[3]) return null;
         if (roadCells != null && crossesRoad(lot, roadCells)) return null;
+        if (overlapsCitadel(lot, citadel)) return null;
         return lot;
+    }
+
+    /**
+     * Whether this rectangle touches the keep or the ground kept clear round
+     * it. The keep is the one thing the ward does not clear, so paving it is
+     * how a lot ends up holding somebody else's objective.
+     */
+    private static boolean overlapsCitadel(int[] rect, Compound citadel) {
+        if (citadel == null) return false;
+        return rect[0] <= citadel.right + CITADEL_CLEARANCE
+                && rect[2] >= citadel.left - CITADEL_CLEARANCE
+                && rect[1] <= citadel.bottom + CITADEL_CLEARANCE
+                && rect[3] >= citadel.top - CITADEL_CLEARANCE;
     }
 
     /** Whether a kept road runs through this rectangle. The ward keeps exactly one, and the base does not get to sever it. */

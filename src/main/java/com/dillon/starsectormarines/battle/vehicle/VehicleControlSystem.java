@@ -55,8 +55,8 @@ public final class VehicleControlSystem {
      * Advance vehicle {@code id} one tick. {@code isInbound} selects the inbound
      * vs. outbound corridor; a change of direction since the previous tick rebuilds
      * the corridor and clears the rolling plan / docking state (this replaces the
-     * old manual {@code waypointIndex = 1} resets in {@link GroundSystem}'s
-     * LANDED/OVERWATCH).
+     * old manual {@code waypointIndex = 1} reset in {@link GroundSystem}'s
+     * LANDED).
      */
     public void tick(long id, float dt, boolean isInbound) {
         VehicleMission mission = convoy.mission(id);

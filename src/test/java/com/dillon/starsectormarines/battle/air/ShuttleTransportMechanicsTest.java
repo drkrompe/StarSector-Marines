@@ -100,19 +100,14 @@ class ShuttleTransportMechanicsTest {
     }
 
     @Test
-    void explicitDepartSkipsLegacyArmedLoiter() {
+    void anUnloadedTransportDepartsEvenWhenItIsArmed() {
         try (BattleSimulation sim = openSimulation()) {
-            long departing = landedArmedShuttle(sim, 8.5f);
-            ShuttleMission departingMission = sim.world().mission(departing);
-            departingMission.postDeliveryDisposition = PostDeliveryDisposition.DEPART;
-
-            long loitering = landedArmedShuttle(sim, 12.5f);
-            ShuttleMission loiteringMission = sim.world().mission(loitering);
+            long shuttle = landedArmedShuttle(sim, 8.5f);
+            ShuttleMission mission = sim.world().mission(shuttle);
 
             sim.advance(BattleSimulation.TICK_DT);
 
-            assertEquals(ShuttleState.DEPARTING, departingMission.state);
-            assertEquals(ShuttleState.HOVER_STATION, loiteringMission.state);
+            assertEquals(ShuttleState.DEPARTING, mission.state);
         }
     }
 
@@ -149,7 +144,6 @@ class ShuttleTransportMechanicsTest {
         mission.state = ShuttleState.LANDED;
         mission.arrivalGroupId = arrivalGroupId;
         mission.expectedArrivalStrength = 12;
-        mission.postDeliveryDisposition = PostDeliveryDisposition.DEPART;
         sim.world().kinematics(shuttle).teleport(10.5f, y, 0f);
         return shuttle;
     }

@@ -31,7 +31,7 @@ import java.util.Set;
 /**
  * Convoy-vehicle delivery means. It proves a complete inbound/drop/outbound
  * journey before spawning a {@link VehicleType#HEAVY_APC}, then uses the
- * ordinary vehicle lifecycle to drive, deboard, overwatch, and depart.
+ * ordinary vehicle lifecycle to drive, deboard, and depart.
  * Perimeter entries and viable junctions are ranked deterministically and
  * tried until one has both turn-feasible route legs. An optional mission
  * policy may constrain entry, drop band, and delivered-squad ownership;

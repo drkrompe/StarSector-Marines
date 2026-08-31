@@ -127,7 +127,6 @@ public final class AirCoverSystem {
         // back to, no strip to claim, and the default egress already flies a
         // craft that touched neither one back out to its exit point.
         mission.strikeSortie = true;
-        mission.postDeliveryDisposition = PostDeliveryDisposition.DEPART;
         return true;
     }
 
