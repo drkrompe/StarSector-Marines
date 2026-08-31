@@ -117,18 +117,46 @@ public final class WorldStateBuilder {
         return false;
     }
 
+    /**
+     * Fraction of the squad's live members that must personally be within
+     * their own {@code attackRange} of an actionable contact before
+     * {@link #evalInRangeOfTarget} reads true. A squad is in range when
+     * enough of it is, not when its longest gun is — an any-member reading
+     * let one long-range rifleman carry a ten-marine squad's whole
+     * {@code IN_RANGE_OF_TARGET} fact while the other nine sat 30+ cells out
+     * and never fired a shot in 1500+ ticks.
+     *
+     * <p>Required count is {@code floor(liveMembers * fraction)}, floored to a
+     * minimum of 1 so a solo survivor (where the floor would otherwise round
+     * to 0) still has to be in range itself, and a two-member squad needs
+     * only one of the two — {@code floor(2 * 0.5) == 1} already, so the floor
+     * clamp only bites at one live member.
+     */
+    private static final float IN_RANGE_QUORUM_FRACTION = 0.5f;
+
     private static boolean evalInRangeOfTarget(Squad squad, BattleView sim) {
         List<BelievedContact> contacts = squad.believedContacts();
         if (contacts.isEmpty()) return false;
-        for (int mi = 0, n = sim.squadMemberCount(squad.id); mi < n; mi++) {
+        int liveMembers = sim.squadMemberCount(squad.id);
+        if (liveMembers == 0) return false;
+        int required = Math.max(1, (int) (liveMembers * IN_RANGE_QUORUM_FRACTION));
+        int inRange = 0;
+        for (int mi = 0; mi < liveMembers; mi++) {
             long member = sim.squadMemberAt(squad.id, mi);
             for (BelievedContact contact : contacts) {
                 if (!isActionableContact(squad, contact, sim)) continue;
                 float d = TacticalScoring.cellDistance(sim.world().x(member),
                         sim.world().y(member), contact.lastSeenCellX() + 0.5f,
                         contact.lastSeenCellY() + 0.5f);
-                if (d <= sim.world().attackRange(member)) return true;
+                if (d <= sim.world().attackRange(member)) {
+                    // Count this member once no matter how many actionable
+                    // contacts it happens to be in range of — four contacts
+                    // must not let one marine masquerade as four toward quorum.
+                    inRange++;
+                    break;
+                }
             }
+            if (inRange >= required) return true;
         }
         return false;
     }
