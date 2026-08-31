@@ -64,6 +64,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalRegionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.GrownTrunkSkeletonStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TrunkSkeletonStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.VehicleCorridorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ZoningOverlayStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
@@ -183,6 +184,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new AirbasePadSeedStage(),                  // Step 2a'  city landmark
                 new CompoundClaimStage(),                   // Step 2b
                 new RoadGraphStage(),                       // Step 2c
+                new VehicleCorridorStage(),                 // Step 2c'  conquest-only
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
                 new PedestrianFrameStage(),                 // Step 3a'
                 new BiomeGroundOverrideStage(),             // Step 3b   conquest-only
@@ -500,7 +502,7 @@ public final class BspCityGenerator implements MapGenerator {
                 ctx.defensePosts, this.lastRoadGraph, ctx.landingPads,
                 ctx.landingAreas,
                 ctx.get(BspKeys.BIOME_MAP), ctx.gantries, ctx.fixtureTasks,
-                ctx.runways, ctx.shelters);
+                ctx.runways, ctx.shelters, ctx.get(BspKeys.VEHICLE_CORRIDOR));
     }
 
     /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Null in conquest (biome) mode. */

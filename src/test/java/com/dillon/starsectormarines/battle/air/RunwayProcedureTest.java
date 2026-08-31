@@ -185,7 +185,8 @@ class RunwayProcedureTest {
             assertEquals(ShuttleState.HOLDING_SHORT, leaving(sim, mission, ShuttleState.TAXI_OUT));
             assertEquals(ShuttleState.TAKEOFF_ROLL, leaving(sim, mission, ShuttleState.HOLDING_SHORT));
             assertEquals(ShuttleState.INCOMING, leaving(sim, mission, ShuttleState.TAKEOFF_ROLL));
-            assertEquals(ShuttleState.LANDED, leaving(sim, mission, ShuttleState.INCOMING));
+            assertEquals(ShuttleState.PAD_DESCENT, leaving(sim, mission, ShuttleState.INCOMING));
+            assertEquals(ShuttleState.LANDED, leaving(sim, mission, ShuttleState.PAD_DESCENT));
 
             // The leg that was missing. One passenger down and nothing to
             // loiter with, so the craft turns for home as soon as it is empty.
@@ -243,7 +244,8 @@ class RunwayProcedureTest {
             assertEquals(ShuttleState.TAKEOFF_ROLL, leaving(sim, mission, ShuttleState.HOLDING_SHORT));
             assertEquals(ShuttleState.INCOMING, leaving(sim, mission, ShuttleState.TAKEOFF_ROLL),
                     "a fighter never got off the strip");
-            assertEquals(ShuttleState.LANDED, leaving(sim, mission, ShuttleState.INCOMING));
+            assertEquals(ShuttleState.PAD_DESCENT, leaving(sim, mission, ShuttleState.INCOMING));
+            assertEquals(ShuttleState.LANDED, leaving(sim, mission, ShuttleState.PAD_DESCENT));
             assertEquals(ShuttleState.RETURNING, leaving(sim, mission, ShuttleState.LANDED));
             assertEquals(ShuttleState.LANDING_ROLL, leaving(sim, mission, ShuttleState.RETURNING));
             assertEquals(ShuttleState.TAXI_IN, leaving(sim, mission, ShuttleState.LANDING_ROLL));
@@ -314,15 +316,22 @@ class RunwayProcedureTest {
     }
 
     /**
-     * A landing aircraft is lined up with the strip before it touches down,
-     * whichever direction it came home from.
+     * A landing aircraft flies itself onto the strip, lined up, whichever
+     * direction it came home from — and nothing puts it there.
      *
-     * <p>The approach is two legs: out to the extended centreline, then down
-     * it. That second leg is the runway axis, so the aircraft is straight by
-     * the time it reaches the threshold without anybody testing its heading —
-     * and the touchdown itself is a takeover rather than a manoeuvre, because
-     * asking the steering to brake a flying body onto a point left it arriving
-     * crabbed and sorting itself out on the runway.
+     * <p>The approach is solved from the craft's own pose to the threshold
+     * pointing down the strip, under its own turn radius, and then flown. So
+     * the heading is right on arrival because the path ended that way, which is
+     * what lets the touchdown be a real arrival: the aircraft keeps its
+     * position, its heading and the speed it came in with, and the wheels take
+     * over from there.
+     *
+     * <p>Asserted by rolling it out rather than by reading an angle, because
+     * what "lined up" means is that the aircraft runs down the runway instead
+     * of across it. The one angle worth reading is the crab, and it is read
+     * against a number that means something: a wheeled aircraft more than five
+     * degrees off where it is going stops dead and swings its nose round, which
+     * on a runway is a pirouette.
      */
     @Test
     void aLandingAircraftIsLinedUpWithTheStripBeforeItTouchesDown() {
@@ -354,12 +363,15 @@ class RunwayProcedureTest {
                         "never got down from " + from[0] + "," + from[1]);
 
                 // Down on the strip and pointing along it, whichever way it
-                // came home. Asserted by rolling it rather than by reading its
-                // heading: what "lined up" means is that the aircraft runs
-                // down the runway instead of across it, and an angle in
-                // isolation only restates whichever convention the code used.
+                // came home.
                 AirBody body = sim.world().kinematics(craft);
-                assertEquals(6.5f, body.y, 0.6f, "touched down off the centreline");
+                assertEquals(6.5f, body.y, 1f, "touched down off the centreline");
+                float alongTheStrip = AirBody.facingToward(
+                        mission.holdX - mission.touchdownX, mission.holdY - mission.touchdownY);
+                float crab = Math.abs(((body.facingDegrees - alongTheStrip + 540f) % 360f) - 180f);
+                assertTrue(crab < 5f, "from " + from[0] + "," + from[1]
+                        + " it touched down " + crab + " degrees crooked, which is a craft "
+                        + "that has to stop and swing its nose round on the runway");
                 float startedFromHold = body.distanceTo(mission.holdX, mission.holdY);
                 float worstDrift = 0f;
                 for (int i = 0; i < 60; i++) {

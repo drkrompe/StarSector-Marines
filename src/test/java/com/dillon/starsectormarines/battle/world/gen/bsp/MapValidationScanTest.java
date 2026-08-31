@@ -5,8 +5,11 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -94,6 +97,19 @@ public class MapValidationScanTest {
      */
     private static final int GARRISON_SPAWN_RADIUS = 5;
 
+    /** Cells inward from the border a convoy stages at — mirrors {@code ConvoyMeans.PERIMETER_STAGING_INSET}. */
+    private static final int CONVOY_STAGING_INSET = 2;
+
+    /**
+     * Drivable lines a {@link VehicleCorridor} must keep at its narrowest point.
+     * A {@code HEAVY_APC} erodes to a radius-1 footprint, so the corridor's five
+     * walkable cells leave exactly three cells a hull fits on. Asserting three
+     * rather than one is the whole point of the scan: one is what a merely
+     * <em>connected</em> road gives, and one is what shipped — the fortress kept a
+     * street every connectivity check called preserved and no vehicle could use.
+     */
+    private static final int CORRIDOR_MIN_DRIVABLE_LINES = 3;
+
     @Test
     void scanLegacyBatch() {
         runBatch("LEGACY", LEGACY_SEEDS, GRID_W, GRID_H, null);
@@ -101,7 +117,9 @@ public class MapValidationScanTest {
 
     @Test
     void scanConquestBatch() {
-        runBatch("CONQUEST", CONQUEST_SEEDS, CONQUEST_W, CONQUEST_H, TraversalAxis.SOUTH_TO_NORTH);
+        for (TraversalAxis axis : TraversalAxis.values()) {
+            runBatch("CONQUEST/" + axis, CONQUEST_SEEDS, CONQUEST_W, CONQUEST_H, axis);
+        }
     }
 
     /**
@@ -305,6 +323,27 @@ public class MapValidationScanTest {
             for (String u : reach.unreachable) {
                 failures.add(label + " seed " + seed + ": garrison " + u);
             }
+            CorridorResult corridor = scanVehicleCorridor(map);
+            if (corridor != null) {
+                System.out.println(corridor.report());
+                if (corridor.narrowest < CORRIDOR_MIN_DRIVABLE_LINES) {
+                    failures.add(label + " seed " + seed + ": vehicle corridor pinches to "
+                            + corridor.narrowest + " drivable line(s) at forward "
+                            + corridor.narrowestAt + " (need "
+                            + CORRIDOR_MIN_DRIVABLE_LINES + ")");
+                }
+                if (!corridor.entryDrivable) {
+                    failures.add(label + " seed " + seed
+                            + ": vehicle corridor's rear entry (" + map.vehicleCorridor.entryX
+                            + "," + map.vehicleCorridor.entryY + ") is not drivable - a ground"
+                            + " reinforcement has nowhere to come on at");
+                }
+                if (!corridor.spansMap) {
+                    failures.add(label + " seed " + seed + ": vehicle corridor does not connect"
+                            + " the rear entry to the attacker edge - a convoy can enter and"
+                            + " cannot reach the city");
+                }
+            }
             if (conn.edgeComponents != conn.cellComponents) {
                 failures.add(label + " seed " + seed + ": cell/edge connectivity disagree — "
                         + conn.cellComponents + " cell-components vs " + conn.edgeComponents
@@ -318,6 +357,84 @@ public class MapValidationScanTest {
                     + String.join("\n  ", failures));
         }
         System.out.println("\n" + label + ": all hard invariants held.");
+    }
+
+    // ===================== Vehicle corridor scan =====================
+
+    /**
+     * Does the map's authored vehicle corridor actually carry a vehicle?
+     *
+     * <p>Measured with the same primitives the convoy uses — {@link
+     * VehicleClearance#erode} at the {@code HEAVY_APC}'s own footprint radius —
+     * rather than with cell walkability, because walkable and drivable are the
+     * two things this whole layer exists to stop conflating.
+     */
+    private static final class CorridorResult {
+        int narrowest = Integer.MAX_VALUE;
+        int narrowestAt = -1;
+        boolean entryDrivable;
+        boolean spansMap;
+
+        String report() {
+            return "  vehicle corridor: narrowest " + narrowest + " drivable line(s) at forward "
+                    + narrowestAt + " | rear entry " + (entryDrivable ? "drivable" : "BLOCKED")
+                    + " | " + (spansMap ? "spans to the attacker edge" : "DOES NOT SPAN");
+        }
+    }
+
+    /** Null when this map family has no corridor (legacy, station, or the corridor switched off). */
+    private static CorridorResult scanVehicleCorridor(MapResult map) {
+        VehicleCorridor corridor = map.vehicleCorridor;
+        if (corridor == null) return null;
+        int w = map.grid.getWidth(), h = map.grid.getHeight();
+        boolean alongY = corridor.axis == TraversalAxis.SOUTH_TO_NORTH;
+        VehicleClearance clearance = VehicleClearance.erode(map.grid,
+                VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells));
+
+        CorridorResult result = new CorridorResult();
+        int extent = alongY ? h : w;
+        for (int f = 0; f < extent; f++) {
+            // The border rows are the map's own impassable ring. The corridor
+            // terminates on them by design, so the wall stamper's seal pass sees
+            // it as edge-connected, but no hull ever stands there.
+            if (f < CONVOY_STAGING_INSET || f >= extent - CONVOY_STAGING_INSET) continue;
+            int lines = 0;
+            for (int l = 0; l < (alongY ? w : h); l++) {
+                int x = alongY ? l : f, y = alongY ? f : l;
+                if (corridor.contains(x, y) && clearance.isPassable(x, y)) lines++;
+            }
+            if (lines < result.narrowest) { result.narrowest = lines; result.narrowestAt = f; }
+        }
+        if (result.narrowest == Integer.MAX_VALUE) result.narrowest = 0;
+
+        int ex = alongY ? corridor.entryX : corridor.entryX - CONVOY_STAGING_INSET;
+        int ey = alongY ? corridor.entryY - CONVOY_STAGING_INSET : corridor.entryY;
+        result.entryDrivable = clearance.isPassable(ex, ey);
+        result.spansMap = result.entryDrivable
+                && floodReachesAttackerEdge(clearance, ex, ey, w, h, alongY);
+        return result;
+    }
+
+    /** True if a hull put down at the rear entry can drive to the attacker's edge of the map. */
+    private static boolean floodReachesAttackerEdge(VehicleClearance clearance,
+                                                    int startX, int startY,
+                                                    int w, int h, boolean alongY) {
+        boolean[] seen = new boolean[w * h];
+        Deque<int[]> queue = new ArrayDeque<>();
+        seen[startY * w + startX] = true;
+        queue.add(new int[]{ startX, startY });
+        while (!queue.isEmpty()) {
+            int[] cell = queue.poll();
+            if ((alongY ? cell[1] : cell[0]) <= CONVOY_STAGING_INSET) return true;
+            for (int[] step : new int[][]{ { 0, 1 }, { 0, -1 }, { 1, 0 }, { -1, 0 } }) {
+                int nx = cell[0] + step[0], ny = cell[1] + step[1];
+                if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                if (seen[ny * w + nx] || !clearance.isPassable(nx, ny)) continue;
+                seen[ny * w + nx] = true;
+                queue.add(new int[]{ nx, ny });
+            }
+        }
+        return false;
     }
 
     // ===================== Connectivity scan (cell vs. edge) =====================

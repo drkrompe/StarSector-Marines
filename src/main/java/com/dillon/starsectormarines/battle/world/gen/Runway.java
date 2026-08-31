@@ -182,14 +182,15 @@ public final class Runway {
 
     /**
      * A point {@code leadCells} out beyond {@code threshold}, on the strip's
-     * own axis — where an aircraft joins final.
+     * own axis — the final approach fix.
      *
-     * <p>The whole of a railroaded landing. An aircraft that flies straight at
-     * a threshold arrives on whatever heading it happened to be on and then has
-     * to sort itself out while standing on the runway. One that flies to a
-     * point out on the extended centreline first, and only then to the
-     * threshold, is lined up by the time it gets there because the last leg
-     * <em>is</em> the runway axis.
+     * <p>Where a landing aircraft is solved <em>to</em>, rather than a waypoint
+     * it is railroaded through. An aircraft that flies straight at a threshold
+     * arrives on whatever heading it happened to be on and then has to sort
+     * itself out while standing on the runway; one whose path ends here, on the
+     * runway axis, is already pointing down the strip and only has to hold that
+     * for the last stretch. See {@code RunwayApproach}, which owns how far out
+     * this sits and why.
      */
     public float[] approachPoint(float[] threshold, float leadCells) {
         float[] far = opposite(threshold);

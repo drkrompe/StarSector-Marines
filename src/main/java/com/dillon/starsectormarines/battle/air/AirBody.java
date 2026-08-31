@@ -64,9 +64,17 @@ public class AirBody {
      * Math: angle of the vector minus 90° because Starsector's sprite default
      * is north-facing while atan2's 0° is east. Caller checks for zero-length
      * before calling.
+     *
+     * <p>Normalized to {@code [-180, 180]}. The subtraction on its own answers
+     * in {@code (-270, 90]}, which is the same bearing and a different number —
+     * and a number six hundred degrees away from a heading that has wound round
+     * a circuit is exactly where shortest-arc arithmetic inverts and turns a
+     * craft away from where it is going. Due south stays at {@code -180}, which
+     * is the half-turn this project already writes everywhere else.
      */
     public static float facingToward(float dx, float dy) {
-        float mathDeg = (float) Math.toDegrees(Math.atan2(dy, dx));
-        return mathDeg - 90f;
+        float mathDeg = (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
+        if (mathDeg < -180f) mathDeg += 360f;
+        return mathDeg;
     }
 }
