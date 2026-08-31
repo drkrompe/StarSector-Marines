@@ -22,7 +22,10 @@
  *           chassis and an aircraft are world-resident bodies that reach the
  *           scans through {@code BodyService}. Consumers ask that registry
  *           rather than asking each carrier in turn — a per-kind branch is
- *           exactly what left three sites unable to see an aircraft.
+ *           exactly what left three sites unable to see an aircraft. A carrier
+ *           answers presence and altitude; whether a given shooter may engage a
+ *           body is {@code combat/EngagementService}'s relation, not a
+ *           predicate the body carries.
  *
  * <p>See {@link com.dillon.starsectormarines.battle} and {@code ecs-nouns.md}.
  */

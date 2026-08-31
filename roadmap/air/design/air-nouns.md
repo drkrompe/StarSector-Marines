@@ -4,6 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-08-31 — whether a craft can be engaged is a relation between a
+shooter and it, not a property of it. The altitude rule is a per-weapon
+capability with one implementation, and the absolute predicates it stood in for
+are retired.
+
 Updated: 2026-08-31 — an aircraft is a body on the shared terms every body is
 on: one carrier surface, one admission, one damage route. The per-kind branches
 that read "vehicle, else aircraft, else roster unit" are gone, and the three
@@ -178,15 +183,31 @@ incoming accuracy and deliberately not a second durability profile — two ladde
 for one aircraft would be a fact with two values, consistent exactly as long as
 nobody re-dialled either.
 
-**A craft in the air is still not a target, and that is now the only
-simplification left.** It carries the same components as one on its wheels; what
-keeps it out of reach is that the index admits an aircraft only while the phase
-says it is on the ground. The remaining question is genuinely about altitude —
-whether a given weapon can reach up — and that is a per-weapon capability
-nothing answers yet, which is what the existing "only a defence post can reach
-up" filter is a hardcoded special case of. When anti-air arrives it is that
-filter that grows, not a second candidate set: a flying aircraft is already a
-body, and admitting it costs one condition.
+**A craft in the air is out of a rifleman's reach, and that is a fact about the
+rifleman.** It carries the same components as one on its wheels and is present
+in the battle in exactly the same sense; what separates the two is that
+engagement is a **relation** — can *this shooter* reach *that body* right now —
+rather than a property the body carries around.
+
+The relation has two halves and they are owned in different places. **Presence**
+is the carrier's: on the map, alive, and not down with the ramp open, since a
+loading craft's passengers have already left the roster and a landed one is the
+same craft at the other end of the trip. **Reach** is the shooter's, and the
+only question in it today is altitude. `EngagementService` is where the pair
+meet; `EngagementService.reachesAltitude` is the capability, and it is the one
+implementation of what used to be a hardcoded "only a defence post can reach up"
+filter written inside the anti-air drain — the one place that had ever needed
+it, and therefore the last place a second consumer would have looked.
+
+Splitting them is what lets the parts of the battle that are entitled to the
+absolute question keep asking it: the spatial index and the blast sweep serve a
+fight at ground level, so they admit a body that is present and on the ground,
+and a flying machine stays out of both. Nothing about that is a special case for
+air — it is the same derivation for any body a carrier ever calls airborne.
+
+When anti-air arrives it is the capability that grows, not a second candidate
+set. A weapon gains an authored elevation, `reachesAltitude` reads it, and every
+consumer of the relation inherits the change without being touched.
 
 The **berth** is the thing with identity, not the airframe. A hardstand is
 authored into the map and stays put; the aircraft on it comes and goes and may
@@ -704,10 +725,12 @@ a fog check; if the player's picture ever needs tightening, that is a decision
 about what a player should see, taken deliberately, and not a bug report about
 this line.
 
-The exposure predicate is derived from the locomotion, not listed, and so is
-the one an anti-air post reads: a phase left off a hand-written list is a phase
-nothing can touch. Replacing the armed loiter with attack runs did exactly that
-and made every strike invulnerable while it attacked.
+Both halves are derived from the locomotion, never listed: a phase left off a
+hand-written list is a phase nothing can touch, and replacing the armed loiter
+with attack runs did exactly that and made every strike invulnerable while it
+attacked. `ShuttleMission.isOnItsWheelsAndExposed` survives that change with one
+job left — deciding whether a kill leaves a hull on the apron or a machine
+falling out of the sky — and is no longer a targeting gate.
 
 A craft that has to roll has a **ground procedure** either side of its flight,
 and it is on its wheels and shootable for all of it: out of the shed, down to

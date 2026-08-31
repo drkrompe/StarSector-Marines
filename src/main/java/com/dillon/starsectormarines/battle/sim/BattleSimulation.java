@@ -81,6 +81,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.BodyDamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
+import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
@@ -423,6 +424,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * happens when the body runs out of structure.
      */
     private final BodyDamageResolver bodyDamageResolver;
+    /** Who can engage what, right now — the relation that replaced the absolute {@code isCombatTarget}. */
+    private final EngagementService engagement;
     /**
      * The battle's single random stream, seeded at construction.
      *
@@ -556,6 +559,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 // consumers via identity()/world() by-id — IDENTITY survives release).
                 id -> deathsThisFrame.add(id), deathDispatcher, () -> simTickIndex, rng);
         this.bodyDamageResolver = new BodyDamageResolver(rosterService);
+        this.engagement = new EngagementService(rosterService);
         this.damageService = new DamageService(
                 (target, attacker, damage, penetration, moraleImpact) -> {
                     BodyCarrier carrier = rosterService.bodies().carrierOf(target);
@@ -1090,16 +1094,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     @Override
-    public boolean isCombatTarget(long id) {
-        BodyCarrier carrier = rosterService.bodies().carrierOf(id);
-        if (carrier != null) return carrier.isTargetable(id);
-        return rosterService.isAliveById(id) && rosterService.isLive(id)
-                && identity().type(id).combatant;
+    public boolean canEngage(long shooterId, long candidateId) {
+        return engagement.canEngage(shooterId, candidateId);
     }
 
     @Override
     public boolean isHardenedTarget(long id) {
-        return isCombatTarget(id) && tacticalScoring.isHardenedTarget(id);
+        return rosterService.bodies().isTargetable(id)
+                && tacticalScoring.isHardenedTarget(id);
     }
     /** Bucketed spatial index over alive units keyed on path destination (not current cell). Rebuilt alongside {@link #unitIndex} each tick. */
     public UnitDestinationSpatialIndex getDestIndex() { return destIndex; }

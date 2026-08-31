@@ -46,7 +46,7 @@ class VehicleDurabilityIntegrationTest {
         long apc = spawnVisibleApc(sim);
 
         assertEquals(apc, sim.getTacticalScoring().findBestTarget(shooter));
-        assertTrue(sim.isCombatTarget(apc));
+        assertTrue(sim.canEngage(shooter, apc));
         assertTrue(sim.isHardenedTarget(apc));
 
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(),
@@ -126,7 +126,7 @@ class VehicleDurabilityIntegrationTest {
         sim.applyDamage(apc, 162f, 18f);
         assertEquals(VehicleState.WRECKED, sim.convoy().mission(apc).state);
 
-        assertFalse(sim.isCombatTarget(apc), "a wreck is not a combat target");
+        assertFalse(sim.canEngage(shooter, apc), "a wreck is not a combat target");
         assertEquals(0L, sim.resolveUnit(apc), "a wreck does not resolve as a live actor");
         assertEquals(0L, sim.targetOf(shooter),
                 "a retained target id stops resolving the moment the vehicle wrecks");

@@ -22,10 +22,12 @@ import java.util.function.LongConsumer;
  * traced, hit, attributed and killed by the paths that already do those things
  * rather than by an air-aware branch in each of them.
  *
- * <p><b>Reachable means on its wheels in the open.</b> A craft in the air is a
- * body nothing on the ground can touch — anti-air is its own unbuilt feature
- * with its own altitude question — and one loading or landed is exempt for the
- * reason {@link ShuttleMission#isOnItsWheelsAndExposed} records.
+ * <p><b>It answers presence and altitude, not "can this be shot".</b> Whether a
+ * particular shooter can engage a craft is a relation between the two, and
+ * {@code EngagementService} owns it; what belongs here is whether the aircraft
+ * is in the battle at all and whether it is in the air. Splitting those is what
+ * lets a defence post reach a craft on final while a rifle section cannot,
+ * without either answer being written out at a call site.
  *
  * <p>See {@code air-nouns.md}.
  */
@@ -64,14 +66,36 @@ public final class AirTargetService implements BodyCarrier {
     }
 
     /**
-     * True iff {@code id} is an aircraft that ground fire can currently reach:
-     * on its wheels, in the open, and still structurally alive.
+     * Whether the craft is in the battle: on the map, alive, and not down with
+     * its ramp open.
+     *
+     * <p>Two grounded phases are exempt and neither is about altitude. A
+     * loading craft's passengers have already been taken off the roster, so
+     * making it shootable would owe them a disposition nothing gives them; a
+     * landed one is the same craft at the other end of the trip. Everything
+     * else — taxiing, holding short, rolling, and every phase in the air — is
+     * present, and whether a particular shooter can reach it is
+     * {@link #isAirborne} plus that shooter's own weapon.
      */
     @Override
-    public boolean isTargetable(long id) {
+    public boolean isPresent(long id) {
         ShuttleMission mission = roster.world().mission(id);
-        return mission != null && mission.isOnItsWheelsAndExposed()
+        return mission != null && mission.isOnMap()
+                && mission.state != ShuttleState.LOADING
+                && mission.state != ShuttleState.LANDED
                 && roster.isAliveById(id);
+    }
+
+    /**
+     * Whether the craft is in the air, asked of the locomotion rather than of a
+     * list of phases — a list is a thing the next phase added gets left out of,
+     * which is how replacing an armed loiter with attack runs once made every
+     * strike invulnerable while it attacked.
+     */
+    @Override
+    public boolean isAirborne(long id) {
+        ShuttleMission mission = roster.world().mission(id);
+        return mission != null && AirLocomotion.of(mission.state).airborne();
     }
 
     /** The craft's faction, or {@code null} if {@code id} is not an air craft. */
