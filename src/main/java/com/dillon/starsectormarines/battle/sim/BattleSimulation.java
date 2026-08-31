@@ -35,6 +35,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.BodyCarrier;
+import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
@@ -66,8 +68,6 @@ import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
-import com.dillon.starsectormarines.battle.vehicle.VehicleDamageResolver;
-import com.dillon.starsectormarines.battle.air.AirDamageResolver;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
@@ -81,7 +81,9 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
+import com.dillon.starsectormarines.battle.combat.BodyDamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
+import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
@@ -425,9 +427,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final DamageService damageService;
     /** Stateless body of {@code applyDamage} — cover-curve / HP write / death cascade / leader promotion / morale drain. Wired into {@link #damageService} as the damage applier so inline and queued paths share semantics. */
     private final DamageResolver damageResolver;
-    private final VehicleDamageResolver vehicleDamageResolver;
-    /** The same law applied to an aircraft on its wheels; every kill it makes converges on {@code AirSystem}'s own shoot-down. */
-    private final AirDamageResolver airDamageResolver;
+    /**
+     * The same law applied to a body that is not a roster unit — a chassis, an
+     * aircraft, whatever registers next. One route; the carrier owns what
+     * happens when the body runs out of structure.
+     */
+    private final BodyDamageResolver bodyDamageResolver;
+    /** Who can engage what, right now — the relation that replaced the absolute {@code isCombatTarget}. */
+    private final EngagementService engagement;
     /**
      * The battle's single random stream, seeded at construction.
      *
@@ -560,16 +567,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 // deathsThisFrame list (read post-advance by the death-voice
                 // consumers via identity()/world() by-id — IDENTITY survives release).
                 id -> deathsThisFrame.add(id), deathDispatcher, () -> simTickIndex, rng);
-        this.vehicleDamageResolver = new VehicleDamageResolver(rosterService);
-        this.airDamageResolver = new AirDamageResolver(rosterService);
+        this.bodyDamageResolver = new BodyDamageResolver(rosterService);
+        this.engagement = new EngagementService(rosterService);
         this.damageService = new DamageService(
                 (target, attacker, damage, penetration, moraleImpact) -> {
-                    if (rosterService.convoy().isVehicle(target)) {
-                        vehicleDamageResolver.resolve(target, attacker, damage,
-                                penetration, moraleImpact);
-                    } else if (rosterService.airTargets().isAircraft(target)) {
-                        airDamageResolver.resolve(target, attacker, damage,
-                                penetration, moraleImpact);
+                    BodyCarrier carrier = rosterService.bodies().carrierOf(target);
+                    if (carrier != null) {
+                        bodyDamageResolver.resolve(carrier, target, attacker,
+                                damage, penetration);
                     } else {
                         damageResolver.resolve(target, attacker, damage,
                                 penetration, moraleImpact);
@@ -690,8 +695,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 entityWorld, battleComponents, navigation);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
                 turretFire, rng, this::spawn, this, effects, transport);
-        this.vehicleDamageResolver.setDestructionSink(groundSystem::destroyVehicle);
-        this.airDamageResolver.setDestructionSink(airSystem::destroyAircraft);
+        rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
+        rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
@@ -1063,6 +1068,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public UnitRosterService getRoster() { return rosterService; }
 
+    @Override
+    public BodyService bodies() { return rosterService.bodies(); }
+
     /**
      * Data owner for the {@code TELEMETRY} component: what each combatant did
      * this battle. Service-direct, like {@link #getShots()}. Lifecycle-stable,
@@ -1091,20 +1099,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * via {@code TurretStateService}) where there's no companion holder unit to thread.
      */
     public long resolveUnit(long id) {
-        return rosterService.isLive(id) || rosterService.convoy().isTargetable(id)
-                ? id : 0L;
+        return rosterService.bodies().isTargetable(id) ? id : 0L;
     }
 
     @Override
-    public boolean isCombatTarget(long id) {
-        if (rosterService.convoy().isTargetable(id)) return true;
-        return rosterService.isAliveById(id) && rosterService.isLive(id)
-                && identity().type(id).combatant;
+    public boolean canEngage(long shooterId, long candidateId) {
+        return engagement.canEngage(shooterId, candidateId);
     }
 
     @Override
     public boolean isHardenedTarget(long id) {
-        return isCombatTarget(id) && tacticalScoring.isHardenedTarget(id);
+        return rosterService.bodies().isTargetable(id)
+                && tacticalScoring.isHardenedTarget(id);
     }
     /** Bucketed spatial index over alive units keyed on path destination (not current cell). Rebuilt alongside {@link #unitIndex} each tick. */
     public UnitDestinationSpatialIndex getDestIndex() { return destIndex; }
