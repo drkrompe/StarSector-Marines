@@ -29,6 +29,20 @@ public enum RenderLayer {
     /** Debug cell highlights (plan-step cells, selected squad, captain). Above
      *  ground/doodads, below units so unit sprites stay legible over the tint. */
     HIGHLIGHTS,
+    /**
+     * Shadows the sun casts from bodies rather than from terrain — marines,
+     * mechs, vehicles, aircraft.
+     *
+     * <p>Terrain's own shadows are not here: the ground composite bakes those
+     * into {@link #GROUND} from a height field, which is why a wall shades a
+     * street without anything being drawn for it. A body has no cell to carry a
+     * height, so it draws its shadow instead.
+     *
+     * <p>Above the ground and the things lying on it, and <em>below</em>
+     * {@link #FOG} so a shadow is dimmed by the same fog as the ground it falls
+     * on. Below {@link #UNITS} so a body always sits on top of its own shadow.
+     */
+    UNIT_SHADOWS,
     /** Fog-of-war darkening between terrain and units. */
     FOG,
     /** Turret bodies → hub bodies → dead → live infantry → HP bars (bars last = on top).
