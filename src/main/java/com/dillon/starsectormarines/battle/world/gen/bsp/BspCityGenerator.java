@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenRecipe;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
@@ -56,6 +57,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LabelLeavesStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PedestrianFrameStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadGraphStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoomCarveStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.SettlementLandingLinkStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.SpawnAnchorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.SpaceportDistrictPlanStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationPartitionStage;
@@ -155,8 +157,8 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new SpaceportDistrictFiller());
         registerCompound(new AirbaseCompoundFiller());
 
-        this.conquestRecipe = buildConquestRecipe(new TrunkSkeletonStage(), null);
-        this.legacyRecipe = buildLegacyRecipe(new TrunkSkeletonStage(), null);
+        this.conquestRecipe = buildConquestRecipe(new TrunkSkeletonStage(), null, null);
+        this.legacyRecipe = buildLegacyRecipe(new TrunkSkeletonStage(), null, null);
         this.stationRecipe = buildStationRecipe();
         this.concentricStationRecipe = buildConcentricStationRecipe();
         this.diamondStationRecipe = buildDiamondStationRecipe();
@@ -174,7 +176,8 @@ public final class BspCityGenerator implements MapGenerator {
      *                   by default, or a {@link GrownTrunkSkeletonStage} when
      *                   {@link #useGrownRoads} has installed one.
      */
-    private GenRecipe buildConquestRecipe(GenStage trunkStage, GenStage hinterlandStage) {
+    private GenRecipe buildConquestRecipe(GenStage trunkStage, GenStage hinterlandStage,
+                                          GenStage landingLinkStage) {
         return new GenRecipe("ConquestCity", compose(
                 new InitFloorStage(),                       // Step 0
                 trunkStage,                                 // Step 1a
@@ -183,6 +186,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new LabelLeavesStage(),                     // Step 2
                 new CompoundSeedStage(),                    // Step 2a   conquest-only
                 new AirbasePadSeedStage(),                  // Step 2a'  city landmark
+                landingLinkStage,                           // Step 2a'' landing-linked settlements only
                 new CompoundClaimStage(),                   // Step 2b
                 new RoadGraphStage(),                       // Step 2c
                 new VehicleCorridorStage(),                 // Step 2c'  conquest-only
@@ -222,7 +226,8 @@ public final class BspCityGenerator implements MapGenerator {
      *                   by default, or a {@link GrownTrunkSkeletonStage} when
      *                   {@link #useGrownRoads} has installed one.
      */
-    private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage) {
+    private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage,
+                                        GenStage landingLinkStage) {
         return new GenRecipe("LegacyUrban", compose(
                 new InitFloorStage(),                       // Step 0
                 trunkStage,                                 // Step 1a
@@ -230,6 +235,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new ZoningOverlayStage(),                   // Step 1c   binds DISTRICT_MAP
                 new LabelLeavesStage(),                     // Step 2
                 new SpaceportDistrictPlanStage(),           // Step 2a   campaign civilian spaceport
+                landingLinkStage,                           // Step 2a'' landing-linked settlements only
                 new CompoundClaimStage(),                   // Step 2b
                 new RoadGraphStage(),                       // Step 2c
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
@@ -346,8 +352,13 @@ public final class BspCityGenerator implements MapGenerator {
         // membership is how this pipeline forks, and a stage that is present
         // but does nothing is exactly what that convention exists to avoid.
         GenStage hinterlandStage = grown ? new HinterlandFillStage() : null;
-        this.conquestRecipe = buildConquestRecipe(trunkStage, hinterlandStage);
-        this.legacyRecipe = buildLegacyRecipe(trunkStage, hinterlandStage);
+        // A settlement supplied by ship must hold somewhere to land; one joined
+        // by road, or one abandoned, must not be given a pad it never had.
+        GenStage landingLinkStage = (grown && profile.link == SettlementLink.LANDING)
+                ? new SettlementLandingLinkStage()
+                : null;
+        this.conquestRecipe = buildConquestRecipe(trunkStage, hinterlandStage, landingLinkStage);
+        this.legacyRecipe = buildLegacyRecipe(trunkStage, hinterlandStage, landingLinkStage);
         return this;
     }
 

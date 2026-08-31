@@ -197,6 +197,7 @@ public class BattleRenderer {
     private final GroundLightService groundLights = new GroundLightService();
 
     /** S2/S3 ground FBO + parallax/bump-light composite. {@link DevConfig#SURFACE_RELIEF_PARALLAX}-gated. */
+    private final SunLight sun = new SunLight();
     private final GroundParallaxPipeline groundParallax;
 
     /** Ground-combat impact FX engine. */
@@ -217,7 +218,7 @@ public class BattleRenderer {
     public BattleRenderer(BattleSprites sprites) {
         this.sprites = sprites;
         this.ordnanceTraceFx = new OrdnanceTraceFxService(sprites);
-        this.groundParallax = new GroundParallaxPipeline(sprites, groundLights);
+        this.groundParallax = new GroundParallaxPipeline(sprites, groundLights, sun);
         // The full world-render pass list, in paint order — every pass now lives
         // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
         // pass sequence; RenderLayer ordinal mirrors it. Within a shared layer
@@ -409,6 +410,9 @@ public class BattleRenderer {
 
     /** Accessor for {@code BattleScreen.detach()} — release the S2/S3 ground FBO set. */
     public GroundParallaxPipeline getGroundParallax() { return groundParallax; }
+
+    /** The scene's sun, shared by every caster. */
+    public SunLight getSun() { return sun; }
 
     @DebugOnly
     private void renderZoneOverlayDebug(BattleSimulation sim, float alphaMult) {
