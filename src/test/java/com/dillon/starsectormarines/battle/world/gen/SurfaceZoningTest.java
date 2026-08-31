@@ -63,7 +63,8 @@ class SurfaceZoningTest {
     /** A profile built with no surface at all must not silently become a garden. */
     @Test
     void aNullSurfaceNormalizesToRock() {
-        TargetProfile p = new TargetProfile(5, 5, 1, 1, "hegemony", Set.of(), null);
+        TargetProfile p = new TargetProfile(5, 5, 1, 1, "hegemony", Set.of(), null,
+                SettlementLink.ROAD);
         assertEquals(SurfacePalette.ROCK, p.surface());
         assertEquals(SurfacePalette.ROCK, TargetProfile.NEUTRAL.surface());
     }
