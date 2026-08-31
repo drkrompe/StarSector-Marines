@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
+
 /**
  * A kind of aircraft that can stand on a berth: what it looks like, which hull
  * sizes it, and how much of it there is to shoot.
@@ -74,4 +76,39 @@ public interface Airframe {
      * remaining HP across a sortie; this is only the ceiling.
      */
     float maxHp();
+
+    /**
+     * Fraction of a hull's drawn length that stands in for its body circle.
+     *
+     * <p>A single radius has to speak for a shape that is long and narrow, and
+     * the two obvious answers are both wrong: half the length circumscribes the
+     * hull and claims wingspans of empty air either side of it, while the
+     * roster's authored half-cell describes a machine that is plainly twelve
+     * cells of aircraft on the map. A vanilla hull is drawn roughly twice as
+     * long as it is wide, so half its length approximates its span and half of
+     * that is the radius of the circle inscribed in it.
+     */
+    float RADIUS_PER_DRAWN_LENGTH = 0.25f;
+
+    /**
+     * How much of this aircraft there is to hit, in cells.
+     *
+     * <p>Asked here rather than computed by whoever holds the aircraft, because
+     * an aircraft is two representations of one thing and both of them are
+     * shot at. Rolling, it is an air body and {@code AirTargetService} answers
+     * for it; parked, it is an ordinary roster unit and
+     * {@code UnitRosterService.radius} answers instead. Those are two call
+     * sites for one fact, and while each derived its own the same Valkyrie was
+     * four and a half cells of aircraft taxiing and half a cell on its
+     * hardstand — it changed size the instant it launched or recovered, which
+     * is the drawn-scale pop one seam over.
+     *
+     * <p>Deliberately independent of the 3x3 navigation footprint a parked
+     * aircraft stamps: how much deck an aircraft denies people is a gameplay
+     * fact, not a measurement of the art.
+     */
+    default float targetRadiusCells() {
+        return HullFootprintResolver.visualLengthCells(renderHullId())
+                * AirAppearance.GROUND_SCALE * RADIUS_PER_DRAWN_LENGTH;
+    }
 }

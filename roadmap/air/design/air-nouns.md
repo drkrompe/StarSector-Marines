@@ -4,6 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-08-31 — how much of an aircraft there is to hit is one number,
+asked of the airframe by both representations. A parked hull answered the
+archetype's flat half-cell while the same hull rolling answered its own drawn
+size.
+
 Updated: 2026-08-31 — whether a craft can be engaged is a relation between a
 shooter and it, not a property of it. The altitude rule is a per-weapon
 capability with one implementation, and the absolute predicates it stood in for
@@ -648,6 +653,35 @@ keeps still would read as a launch or a recovery popping, which is exactly the
 seam the taxi/roll design above exists to keep invisible.
 `AircraftGroundAirHandoffScaleTest` pins the berth and the air-entity collector
 landing on the same drawn number so this cannot drift back apart silently.
+
+**And they are the same size to shoot at, for the same reason.** How much of an
+aircraft there is to hit is one number, and while each representation derived
+its own the same Valkyrie was four and a half cells of aircraft taxiing and half
+a cell on its hardstand — the archetype's authored figure, which is the answer
+for a type whose whole family is one size and is nothing to do with an aircraft.
+So the number is the **airframe's**, `Airframe.targetRadiusCells`, asked by the
+air carrier and by the shared roster accessor alike; a berthed hull reaches it
+through the airframe it carries, in a lookup rather than by asking the field
+which hardstand it is standing on, because that read happens per candidate per
+shot. That is the same convention a turret and a convoy chassis already follow:
+a type whose geometry is per-instance answers from the per-instance thing, and
+only a type that is genuinely one size falls through to `UnitType.radius`.
+
+**Being a large thing to hit is deliberately not being a large thing to walk
+round.** The footprint a parked aircraft denies people stays what it was, and is
+not derived from the hull: how much deck an aircraft takes up is a gameplay
+decision, and coupling it to the art would re-tune every apron on every field
+whenever a sprite changed. The same separation the drawn-size fix drew, one seam
+over.
+
+Sizing the parked hull honestly has one consequence worth stating, because it
+runs against the no-chain rule above: a cook-off catches a neighbour at *blast
+radius plus that neighbour's own radius*, so an airframe whose radius exceeds
+the blast's shortfall against the eight-cell hardstand pitch would take the next
+stand with it. Every hull a field bases today is far inside that — the largest
+is about a cell and a half — and only the bus-tier transports approach it. If a
+field is ever based with one, the lever is the pitch or the blast, not a smaller
+aircraft.
 
 **Rolling is not flying slowly.** Ground movement is its own locomotion model
 rather than the flight steering held down to walking pace. What flight does to

@@ -382,30 +382,31 @@ public final class BspCityGenerator implements MapGenerator {
     /**
      * Which recipe this battle gets.
      *
-     * <p>Conquest is pinned to the stock crossroad, and so, for now, is
-     * everything else: grown settlements are reached only through an explicit
-     * {@link #useGrownRoads} override, which is the tooling and comparison path.
+     * <p><b>Conquest is pinned to the stock crossroad.</b> It is the mission the
+     * campaign is built around and its balance was measured against the maps it
+     * has, so the ground under it does not move while that judgement stands.
+     * There is deliberately no grown conquest recipe to reach by accident.
      *
-     * <p><b>The campaign already decides the shape; nothing consumes it yet.</b>
-     * {@link SettlementZoning} derives density and lifeline from the market, and
-     * {@link TargetProfile#link()} carries them, so switching production over is
-     * the one line this method is missing. It is missing on purpose: a grown
-     * partition does not reliably give a port enough parcels. Measured over 60
-     * seeds with a size-5 spaceport market, the stock partition published four
-     * or more berths on 60 of 60 and the grown one on 33; the campus falls
-     * short because the candidate window is a hardcoded quadrant of the map
-     * intersected with one trunk quadrant, and a grown skeleton often leaves
-     * too few connected leaves inside it.
+     * <p>Every other battle grows its settlement from what the campaign says
+     * about the market: {@link SettlementZoning} derives the density and the
+     * lifeline, {@link TargetProfile} carries them, and the road skeleton,
+     * hinterland and off-map link follow.
      *
-     * <p>An earlier note here put the stock rate at one in five and called the
-     * weakness pre-existing. That measurement was taken while this method still
-     * auto-selected the grown recipe from market size, so its stock control was
-     * running grown; the shortfall belongs to the grown partition.
+     * <p><b>A profile with no market behind it takes the stock recipe</b>, and
+     * that is a rule rather than a carve-out for tests: density is derived from
+     * market size, so a battle with nothing behind it has nothing to derive it
+     * from, and the fixed crossroad is the honest answer to an absent question.
+     *
+     * <p>An explicit {@link #useGrownRoads} override still wins over both. That
+     * is the tooling and comparison path — it is how a render ladder asks for a
+     * density the campaign would never choose.
      */
     private GenRecipe recipeFor(TraversalAxis axis, TargetProfile profile) {
         if (axis != null) return conquestRecipe;
         if (grownOverride != null) return grownLegacyRecipe(grownOverride);
-        return legacyRecipe;
+        if (profile == null || profile.marketSize() <= 0) return legacyRecipe;
+        return grownLegacyRecipe(GrownTrunkPlan.Profile.of(
+                SettlementZoning.densityFor(profile.marketSize()), profile.link()));
     }
 
     @Override

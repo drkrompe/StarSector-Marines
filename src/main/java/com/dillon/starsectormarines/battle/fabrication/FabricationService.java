@@ -15,29 +15,32 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * What every vehicle bay on this map is building, and how far along it is.
+ * What every vehicle bay on this map has on the stocks.
  *
- * <p>A {@link Gantry} is a berth generation cut and left clear; this is the work
- * going on among them. The two are deliberately separate, the same way an
- * authored landing pad is separate from the shuttle standing on it: the map says
- * where machines are worked and this says what the working produces, so a bay is
- * still a bay on a map that builds nothing.
+ * <p>A {@link Gantry} is a berth generation cut and left clear; this is the
+ * machine standing in one and the work going on around it. The two are
+ * deliberately separate, the same way an authored landing pad is separate from
+ * the shuttle standing on it: the map says where machines are worked, this says
+ * what is being worked there, so a bay is still a bay on a map that builds
+ * nothing.
  *
- * <p><b>A bay is a working motor pool, so its berths are occupied.</b> That is
- * what makes the room a posting at all: a technician's trade is servicing
- * whatever is parked in a bay, an empty bay publishes no servicing, and a shed
- * with nothing in its berths is a shed the manning pass declines to staff — a
- * garage with nobody in it, which is a worse answer than a garage with work in
- * it. So the garrison's own machines are taken to be standing in them, in and
- * out for maintenance, and the crew has something to weld from the first tick.
+ * <p><b>The machine on the stocks has a body, and its structure is how built it
+ * is.</b> Not a proxy for progress — the progress itself. Welding raises it, a
+ * marine lowers it, and the machine is finished when it is whole. That one
+ * decision is what makes a production line something an attacker can do
+ * anything about: a number going up inside a building can only be stopped by
+ * killing everybody who is adding to it, while a half-built chassis standing in
+ * a gantry can be shot. It also makes the fragility right for free — a keel is
+ * trivially easy to destroy and a nearly-finished machine is nearly a mech, and
+ * nothing had to say so.
  *
  * <p><b>One machine on the stocks per bay, not one per berth.</b> A shed's crew
- * is a handful of people and a rank of berths is six, so work credited to the
- * berth somebody happens to be standing at spreads across all of them and
- * nothing is ever finished — six machines at a sixth each, for the whole battle.
- * What a motor pool actually has is one job in hand and a queue behind it, so
- * the bay's work is the bay's, and where the finished machine comes out is
- * wherever there is room.
+ * is a handful of people and a rank of berths is six, so work spread across all
+ * of them finishes nothing — six machines at a sixth each, for the whole battle.
+ * What a motor pool has is one job in hand and a rank of empty gantries behind
+ * it, so the bay's berths beyond the one being worked stand empty and publish no
+ * servicing. What is offered is servicing for the machine that is actually
+ * there.
  *
  * <p>Follows the {@code *Service} convention: state owner, advanced by
  * {@link FabricationSystem}.
@@ -58,15 +61,30 @@ public final class FabricationService {
     public static final float FIELD_SHED_STRUCTURE_LIMIT = 400f;
 
     /**
-     * Hand-seconds of work one machine takes from keel to roll-out.
+     * Structure one technician puts on a machine in one second at the gantry.
      *
      * <p>Counted in hands rather than in seconds, which is the whole point of
      * the thing: a bay nobody works builds nothing however long the battle
      * lasts, and a bay with four technicians in it builds twice as fast as one
      * with two. A wall-clock figure would make the shed a timer that a marine
      * assault could not slow down.
+     *
+     * <p>Per point of structure rather than per machine, so a lighter chassis is
+     * genuinely quicker to build — which is the only reason a shed would choose
+     * one, and it falls out of the chassis rather than out of a table.
      */
-    public static final float HAND_SECONDS_PER_MACHINE = 240f;
+    public static final float STRUCTURE_PER_HAND_SECOND = 1.5f;
+
+    /**
+     * What a laid keel already amounts to, as a share of the finished machine.
+     *
+     * <p>Not nothing. A frame that spawned at a single point of structure would
+     * die to one stray round on the tick it was laid, and a bay under
+     * intermittent fire would spend the battle laying keels that never survived
+     * long enough to be seen. Small enough that an attacker who reaches the shed
+     * early destroys the work cheaply, which is the point.
+     */
+    public static final float KEEL_FRACTION = 0.08f;
 
     /** One bay, and the machine it has in hand. */
     public static final class Works {
@@ -75,22 +93,25 @@ public final class FabricationService {
         public final int siteId;
         /** The berths under this roof, in map order. */
         public final List<Integer> berths;
+        /** The one worked, where the machine on the stocks stands. */
+        public final int stocks;
         /** What is being made. */
         public MechVariant chassis;
-        /** Hand-seconds worked so far. */
-        public float worked;
+        /** The body standing on the stocks, or 0 while there is none. */
+        public long frameId;
         /** How many machines this bay has put out. */
         public int completed;
 
-        Works(int siteId, List<Integer> berths, MechVariant chassis) {
+        Works(int siteId, List<Integer> berths, int stocks, MechVariant chassis) {
             this.siteId = siteId;
             this.berths = List.copyOf(berths);
+            this.stocks = stocks;
             this.chassis = chassis;
         }
 
-        /** How far along, in [0, 1]. */
-        public float progress() {
-            return Math.min(1f, worked / HAND_SECONDS_PER_MACHINE);
+        /** Whether anything is standing on the stocks right now. */
+        public boolean hasFrame() {
+            return frameId != 0L;
         }
     }
 
@@ -122,12 +143,14 @@ public final class FabricationService {
             berthsBySite.computeIfAbsent(site.id(), key -> new ArrayList<>()).add(berth);
         }
         for (Map.Entry<Integer, List<Integer>> bay : berthsBySite.entrySet()) {
-            bays.put(bay.getKey(), new Works(bay.getKey(), bay.getValue(), first()));
+            List<Integer> under = bay.getValue();
+            bays.put(bay.getKey(),
+                    new Works(bay.getKey(), under, under.get(0), first()));
         }
 
         // A servicing point names the berth it works; what this needs is the
-        // bay, because the work is the bay's. Resolved once here rather than
-        // per tick, since neither the fill nor the rooms move.
+        // bay, because the machine on the stocks is the bay's. Resolved once
+        // here rather than per tick, since neither the fill nor the rooms move.
         Map<Integer, Integer> bayOfBerth = new HashMap<>();
         for (Works works : bays.values()) {
             for (int berth : works.berths) bayOfBerth.put(berth, works.siteId);
@@ -188,16 +211,15 @@ public final class FabricationService {
     /**
      * Which berths hold something, as the job board reads occupancy.
      *
-     * <p>Every berth of a working bay, because a motor pool has the garrison's
-     * machines in it. Built fresh each call rather than held: it is a view of
-     * this state rather than a second copy, and a stale array telling the board
-     * a bay is working after its works have gone is the one way that goes wrong.
+     * <p>Only the one being worked. A bay publishes servicing for the machine
+     * that is standing in it, and offering it for five empty gantries as well
+     * would put four technicians in five places welding nothing — the exact
+     * failure the berth-bound link exists to prevent, arrived at from the
+     * generous end.
      */
     public boolean[] berthed() {
         boolean[] held = new boolean[berths.size()];
-        for (Works works : bays.values()) {
-            for (int berth : works.berths) held[berth] = true;
-        }
+        for (Works works : bays.values()) held[works.stocks] = true;
         return held;
     }
 
@@ -206,14 +228,20 @@ public final class FabricationService {
         return berths.get(berth);
     }
 
-    /** Credit hand-seconds of work to one bay. */
-    public void work(int siteId, float handSeconds) {
+    /** Record the body now standing on a bay's stocks. */
+    public void lay(int siteId, long frameId) {
         Works works = bays.get(siteId);
-        if (works != null) works.worked += handSeconds;
+        if (works != null) works.frameId = frameId;
+    }
+
+    /** Forget a body that is no longer standing there, however it went. */
+    public void clearStocks(int siteId) {
+        Works works = bays.get(siteId);
+        if (works != null) works.frameId = 0L;
     }
 
     /**
-     * Clear a finished bay and lay the next machine down.
+     * Count a finished machine and choose what goes on the stocks next.
      *
      * <p>The next one is a different chassis from the one just finished. A shed
      * that rebuilt what it had just built would turn out a column of one model
@@ -222,7 +250,7 @@ public final class FabricationService {
     public void rollOut(int siteId) {
         Works works = bays.get(siteId);
         if (works == null) return;
-        works.worked = 0f;
+        works.frameId = 0L;
         works.completed++;
         works.chassis = next(works.chassis);
     }
