@@ -203,6 +203,11 @@ public class GroundSystem {
                     }
                     break;
 
+                case DEPLOYED:
+                    // No errand to advance. Move orders pre-empt this loop
+                    // entirely, so a chassis between orders simply holds.
+                    break;
+
                 case GONE:
                 case WRECKED:
                 default:

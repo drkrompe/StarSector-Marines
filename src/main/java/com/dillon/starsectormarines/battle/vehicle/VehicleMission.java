@@ -145,6 +145,23 @@ public final class VehicleMission {
         if (histCount < HISTORY_SIZE) histCount++;
     }
 
+    /**
+     * A chassis put on the field with no errand: it is already where it was
+     * going, and what it does next is whatever it is ordered to do.
+     *
+     * <p>The route arrays are degenerate on purpose. A delivery's polylines
+     * describe a journey somebody else planned; this vehicle has not been sent
+     * anywhere, and giving it a fabricated route would be inventing an errand
+     * for it to resume when an order is released.
+     */
+    public static VehicleMission deployed(float x, float y) {
+        VehicleMission mission = new VehicleMission(
+                new float[]{x, x}, new float[]{y, y},
+                new float[]{x, x}, new float[]{y, y}, 0f, 0);
+        mission.state = VehicleState.DEPLOYED;
+        return mission;
+    }
+
     public VehicleMission(float[] inboundX, float[] inboundY,
                           float[] outboundX, float[] outboundY,
                           float pendingDelay, int marinesRemaining) {
@@ -177,6 +194,7 @@ public final class VehicleMission {
     public boolean isVisible() {
         return state == VehicleState.INCOMING || state == VehicleState.LANDED
                 || state == VehicleState.DEPARTING
+                || state == VehicleState.DEPLOYED
                 || state == VehicleState.WRECKED;
     }
 }

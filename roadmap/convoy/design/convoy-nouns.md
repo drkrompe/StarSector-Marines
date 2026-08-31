@@ -34,6 +34,9 @@ Updated: 2026-08-31 — the departure turn is proved from the drop point with no
 run-up, because the maneuver that would have earned the run-up is an attempt
 rather than a guarantee.
 
+Updated: 2026-08-31 — a chassis can be deployed with no errand and commanded,
+and only its owner may command it.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -331,6 +334,17 @@ it planned before.
   occupy — its footprint and its turning circle, not the infantry answer — and
   both the request and the destination are kept so the interface can say "here,
   not quite there."
+- A chassis need not be on an errand at all. A **deployed** vehicle is one put
+  on the field with no delivery to run: it holds where it was set down until it
+  is told to go somewhere. That is what a vehicle the player owns is doing
+  between orders, and it is what makes delivery one of the things a vehicle can
+  be doing rather than the whole of what a vehicle is. Its route arrays are
+  degenerate on purpose — fabricating a journey it never took would give it an
+  errand to resume the moment an order was released.
+- Only the player's own chassis takes the player's orders. Orders are queued by
+  entity id, so the order system is where that is decided rather than the
+  picker; an enemy vehicle is a target, not a unit, and asking it to move is
+  refused the same way any other impossible order is.
 - A move order owns locomotion and nothing else. The turret, the payload, and
   the delivery obligation are untouched, and releasing the order hands the
   vehicle straight back to the errand it was on.
