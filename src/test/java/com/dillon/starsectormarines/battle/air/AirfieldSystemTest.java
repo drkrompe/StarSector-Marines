@@ -242,7 +242,8 @@ class AirfieldSystemTest {
      *
      * <p>Walk around it; see and shoot straight through it. A non-walkable cell
      * is opaque here unless it says otherwise, and a burnt-out airframe is a
-     * frame with holes in it.
+     * frame with holes in it — where the intact aircraft that stood there was a
+     * solid object on the cell it stood on.
      */
     @Test
     void theWreckBlocksTheApronWithoutBlindingIt() {
@@ -250,7 +251,8 @@ class AirfieldSystemTest {
         AirfieldService.Berth berth = berth(sim, 10, 10);
         AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
         system.tick(1f / 30f, sim, sim.getAirfieldService());
-        assertTrue(sim.getGrid().isWalkable(10, 10), "an occupied pad is walkable concrete");
+        assertTrue(sim.getGrid().blocksLineOfSight(10, 10),
+                "an aircraft standing on its pad is something to see round");
 
         sim.applyDamage(berth.airframeId, 100_000f, 100_000f);
         system.tick(1f / 30f, sim, sim.getAirfieldService());
@@ -303,7 +305,6 @@ class AirfieldSystemTest {
         BattleSimulation sim = openSim();
         AirfieldService.Berth berth = berth(sim, 10, 10);
         AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
-        system.tick(1f / 30f, sim, sim.getAirfieldService());
         long crew = sim.spawn(new EntitySpec("crew", Faction.DEFENDER, UnitType.MARINE, 10, 10));
         // Nothing outside the hull's own footprint will take a step.
         for (int y = 0; y < H; y++) {
@@ -313,6 +314,9 @@ class AirfieldSystemTest {
                 }
             }
         }
+        // The intact aircraft comes down on them first and leaves the cell open
+        // for the same reason the wreck is about to.
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
 
         sim.applyDamage(berth.airframeId, 100_000f, 100_000f);
         system.tick(1f / 30f, sim, sim.getAirfieldService());

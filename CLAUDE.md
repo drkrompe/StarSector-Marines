@@ -81,6 +81,22 @@ Do not run builds or leave generated task files there.
 
 ## Build & deploy
 
+- **Never run `gradlew --stop`, and never make it a retry step.** It stops every
+  daemon on the machine, not just yours. Concurrent sessions are the norm here,
+  so a single `--stop` aborts whatever they are running: their `:test` runs fail
+  with `Gradle build daemon has been stopped: stop command received`, and a
+  `runStarsector` session loses the game itself, because the game is a child of
+  the daemon and goes down with the build. That looks exactly like a silent game
+  crash from the inside — exit status 0, no exception, no `hs_err`, no shutdown
+  hook, no `run-summary.txt` — and one such "crash" cost a long investigation
+  before the daemon log gave it away at the matching second. As a retry step it
+  is self-feeding: the stop fails other sessions, whose retries stop more
+  daemons. A build that seems stuck is nearly always another session holding a
+  lock; wait, or run the one task you need. To confirm a stop after the fact,
+  grep `~/.gradle/daemon/<version>/*.log` for `stop() called on daemon` and
+  compare the timestamp. Routine `other compatible daemons were started ... idle
+  for 0 minutes` entries are ordinary culling of idle daemons and are harmless.
+
 - Shell `JAVA_HOME`: `C:\Program Files\JetBrains\IntelliJ IDEA 2025.3.2\jbr`.
   Set this explicitly before invoking Gradle from PowerShell; do not guess a
   Java install or substitute Starsector's bundled runtime:
@@ -440,9 +456,21 @@ Do not run builds or leave generated task files there.
   only, so the task tees them to `build/starsector-run/console.log` and points
   `-XX:ErrorFile` at `build/starsector-run/hs_err_pid<pid>.log`. Every run also
   writes `build/starsector-run/run-summary.txt` with the decoded exit status.
+  The summary is written by a finalizer, so it appears even when the launch task
+  is aborted — a `doLast` is skipped in exactly the cases worth recording, and a
+  run that produced no summary at all once left its exit status unrecoverable.
   When the game dies without explanation, read those before `starsector.log` —
   log4j buffers, so a hard kill can drop the log's last lines while the console
   capture keeps them.
+  **`-PstockJvm` drops every `-XX:` flag the install carries, plus `-noverify`**,
+  keeping heap sizing, `--enable-preview`, the module opens, the system
+  properties and the classpath (100 launch args become 32). The installed
+  `vmparams` is not stock — it is a community performance file carrying
+  `UseAVX=3`, `AVX3Threshold=0`, `-AlignVector`, `EnableVectorAggressiveReboxing`,
+  `UseVectorStubs`, `ShenandoahGCMode=iu` and `-noverify`, any of which can end a
+  process in ways that skip the JVM's own crash reporting. It is a control for
+  "is it the flags?", not a recommendation; bisect them only once that answers
+  yes. The summary records which mode ran.
   **The exit status is the fact that separates the cases**, which is why it is
   written to a file rather than only logged. `0` means something asked the
   process to stop, so a `0` with no shutdown banner in the log means it was
@@ -486,7 +514,7 @@ The discovered suite ids and default output directories are:
 | `runway-sortie` | Two animated loops of one station flying a fighter off its strip: the whole cycle unopposed — taxi, roll, gun runs, approach, rollout, taxi in — and the same cycle with a fire team astride the taxiway | `build/snapshots/runway-sortie/` |
 | `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
 | `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
-| `yield-freeze` | One squad under one order, recorded twice: the order worth having, and the same order over a zone that turns out to be empty. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
+| `yield-freeze` | One squad under one order, recorded four ways: the order worth having and the same order over a zone that turns out to be empty, as infantry and again as a mech lance. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
 | `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, marines casting beside the same marines with the shadow layer left out, and one craft at three altitudes walking its shadow away from itself — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
@@ -649,6 +677,17 @@ What it records now that the floor exists: both loops sit at 1 plan-less tick of
 0.0 cells. That pairing is the whole acceptance. Plan-less at zero says the
 squad is no longer unable to act; distance still at zero says it did not answer
 that by wandering off to find work it was never given.
+
+**The same question of the other dispatcher gets a different answer.** The scene
+also runs the pair as a mech lance, and a lance under the identical yielded order
+never loses its goal: `MechAssignedObjectiveGoal` does not stand down on a clear
+zone the way its infantry counterpart does, and beneath it the mech engagement
+floor is both always relevant and always plannable, so that ladder cannot reach
+an idle bucket at all. A floor goal added to `MECH_GOALS` today would be code
+that cannot run. That safety is an accident of the action library rather than a
+guarantee — give a doctrine action a precondition and the mech ladder silently
+acquires the defect the infantry one was cured of — so it is pinned by
+`MechLadderHasAFloorTest` rather than left to be rediscovered.
 
 **A control that reproduces the defect measures nothing.** The control's defender
 first stood on the doorway's own sight line, so the squad shot it down the
