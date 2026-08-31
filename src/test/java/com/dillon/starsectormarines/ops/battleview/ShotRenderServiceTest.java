@@ -122,6 +122,40 @@ class ShotRenderServiceTest {
     }
 
     @Test
+    void shoulderLaserLingersForOneSecondWithoutChangingItsShotClock() {
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
+        ShotEvent shot = new ShotEvent(3f, 5f, 17f, 5f, true, Faction.MARINE, 0.10f,
+                null, null, null, laser);
+        BeamFxService beams = new BeamFxService();
+        beams.spawn(shot);
+        DrawList out = new DrawList();
+        BattleCamera camera = context(openArena(20, 20)).camera;
+
+        beams.collect(camera, out, 1f);
+
+        assertEquals(2, out.count(RenderLayer.SHOTS), "blue glow plus white-blue core");
+        DrawCommand glow = out.buffer(RenderLayer.SHOTS)[0];
+        DrawCommand core = out.buffer(RenderLayer.SHOTS)[1];
+        assertEquals(12f, glow.angleDegrees(), EPS);
+        assertEquals(3f, core.angleDegrees(), EPS);
+        assertEquals(laser.beamStyle().glowColor().getBlue() / 255f, glow.blue(), EPS);
+        assertEquals(laser.tracerColor().getBlue() / 255f, core.blue(), EPS);
+        assertEquals(1f, laser.beamStyle().lifetimeSec(), EPS);
+        assertEquals(0.10f, shot.lifetimeMax, EPS,
+                "presentation lifetime must not alter ballistic timing");
+
+        beams.advance(0.75f);
+        DrawList late = new DrawList();
+        beams.collect(camera, late, 1f);
+        assertEquals(2, late.count(RenderLayer.SHOTS), "afterimage remains visible at 750 ms");
+
+        beams.advance(0.26f);
+        DrawList expired = new DrawList();
+        beams.collect(camera, expired, 1f);
+        assertEquals(0, expired.count(RenderLayer.SHOTS));
+    }
+
+    @Test
     void collectResolvesEveryBoltFamilyTextureWithoutGlContext() {
         SpriteAPI fakeSprite = (SpriteAPI) Proxy.newProxyInstance(
                 SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},

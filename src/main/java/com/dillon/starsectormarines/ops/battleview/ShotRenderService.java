@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -84,15 +85,28 @@ public final class ShotRenderService implements RenderSystem {
         // Hitscan tracer sweep: shots whose body is a full path line.
         for (ShotEvent s : shots) {
             if (!(ShotFx.of(s).body() instanceof ShotFx.Tracer tracer)) continue;
+            if (tracer.style().lifetimeSec() > 0f) continue;
             float lifeT = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+            float pulse = tracerPulse(s, tracer);
             Color c = tracer.color() != null
                     ? tracer.color()
                     : ShotFx.defaultTracerColor(s.shooterFaction);
+            WeaponDef.BeamStyle style = tracer.style();
+            if (style.glowColor() != null) {
+                Color glow = style.glowColor();
+                out.addLine(RenderLayer.SHOTS,
+                        cam.cellToScreenX(s.fromX), cam.cellToScreenY(s.visualFromY()),
+                        cam.cellToScreenX(s.toX),   cam.cellToScreenY(s.visualToY()),
+                        style.glowWidthPx(),
+                        glow.getRed() / 255f, glow.getGreen() / 255f, glow.getBlue() / 255f,
+                        lifeT * (0.18f + 0.42f * pulse) * alphaMult);
+            }
             out.addLine(RenderLayer.SHOTS,
                     cam.cellToScreenX(s.fromX), cam.cellToScreenY(s.visualFromY()),
                     cam.cellToScreenX(s.toX),   cam.cellToScreenY(s.visualToY()),
-                    TRACER_WIDTH,
-                    c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, lifeT * alphaMult);
+                    style.coreWidthPx(),
+                    c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f,
+                    lifeT * (0.75f + 0.25f * pulse) * alphaMult);
         }
 
         // Bolt sweep: the configured family silhouette stretched head-to-tail
@@ -223,6 +237,15 @@ public final class ShotRenderService implements RenderSystem {
         if (bolt.lengthCells() <= 1e-6f) return 0f;
         float growth = Math.min(1f, pose.visibleLength() / bolt.lengthCells());
         return Math.max(0f, bolt.widthCells()) * growth;
+    }
+
+    /** Smooth brightness envelope for a beam's authored number of pulses over its visual life. */
+    static float tracerPulse(ShotEvent shot, ShotFx.Tracer tracer) {
+        float cycles = tracer.style().pulseCycles();
+        if (cycles <= 0f) return 1f;
+        float lifeT = Math.max(0f, Math.min(1f,
+                shot.lifetime / Math.max(0.001f, shot.lifetimeMax)));
+        return BeamFxService.pulse(cycles, lifeT);
     }
 
     private static float bearingDeg(float fromX, float fromY, float toX, float toY) {

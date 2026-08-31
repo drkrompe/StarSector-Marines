@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.awt.Color;
+import java.util.Set;
 
 /**
  * One weapon, parsed from a {@code *.weapon.json} entry. Immutable and
@@ -108,6 +109,8 @@ public final class WeaponDef {
     public final LayeredWeaponFamily heldSpriteFamily;
     /** Traveling-body and tracer-tail tint, so the player can identify fire at a glance. */
     public final Color tracerColor;
+    /** Optional layered hitscan-beam treatment; defaults preserve the ordinary two-pixel tracer. */
+    public final BeamStyle beamStyle;
     /** Optional short line trailing a projectile sprite, in cells; zero disables it. */
     public final float tracerTailCells;
     /** Optional projectile sprite; null means the shared tinted bolt. */
@@ -143,6 +146,7 @@ public final class WeaponDef {
                       float noiseMagnitude,
                       LayeredWeaponFamily heldSpriteFamily,
                       Color tracerColor,
+                      BeamStyle beamStyle,
                       float tracerTailCells,
                       String projectileSpritePath, float projectileVisualCells,
                       ContrailProfile contrailProfile,
@@ -185,6 +189,7 @@ public final class WeaponDef {
         this.noiseMagnitude = noiseMagnitude;
         this.heldSpriteFamily = heldSpriteFamily;
         this.tracerColor = tracerColor;
+        this.beamStyle = beamStyle;
         this.tracerTailCells = tracerTailCells;
         this.projectileSpritePath = projectileSpritePath;
         this.projectileVisualCells = projectileVisualCells;
@@ -229,6 +234,7 @@ public final class WeaponDef {
     public float hitSpread() { return hitSpread; }
     public float roundVelocity() { return roundVelocity; }
     public Color tracerColor() { return tracerColor; }
+    public BeamStyle beamStyle() { return beamStyle; }
     public float tracerTailCells() { return tracerTailCells; }
     public String projectileSpritePath() { return projectileSpritePath; }
     public float projectileVisualCells() { return projectileVisualCells; }
@@ -305,6 +311,7 @@ public final class WeaponDef {
                 (float) sim.optDouble("noiseMagnitude", 1.0),
                 parseHeldSpriteFamily(render, mount, id),
                 render != null ? parseColor(render.optString("tracerColor", null), id) : Color.WHITE,
+                parseBeamStyle(render, id),
                 render != null ? (float) render.optDouble("tracerTailCells", 0.0) : 0f,
                 render != null ? emptyToNull(render.optString("projectileSprite", null)) : null,
                 render != null ? (float) render.optDouble("projectileVisualCells", 0.0) : 0f,
@@ -313,8 +320,44 @@ public final class WeaponDef {
                 fx,
                 audio != null ? emptyToNull(audio.optString("fireSound", null)) : null,
                 audio != null ? emptyToNull(audio.optString("impactSound", null)) : null);
+        if (render != null && render.has("beam") && !render.isNull("beam")
+                && def.projectileSpritePath != null) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' declares render.beam for a projectile-sprite weapon");
+        }
         validateMountFields(def);
         return def;
+    }
+
+    private static BeamStyle parseBeamStyle(JSONObject render, String weaponId)
+            throws JSONException {
+        if (render == null || !render.has("beam") || render.isNull("beam")) {
+            return BeamStyle.DEFAULT;
+        }
+        Object value = render.get("beam");
+        if (!(value instanceof JSONObject beam)) {
+            throw new JSONException("Weapon '" + weaponId + "' render.beam must be an object");
+        }
+        float coreWidth = (float) beam.optDouble("coreWidthPx", BeamStyle.DEFAULT.coreWidthPx());
+        Color glowColor = beam.has("glowColor") && !beam.isNull("glowColor")
+                ? parseColor(beam.getString("glowColor"), weaponId + ".render.beam") : null;
+        float glowWidth = (float) beam.optDouble("glowWidthPx", 0.0);
+        float pulseCycles = (float) beam.optDouble("pulseCycles", 0.0);
+        float lifetimeSec = (float) beam.optDouble("lifetimeSec", 0.0);
+        var keys = beam.keys();
+        while (keys.hasNext()) {
+            String key = String.valueOf(keys.next());
+            if (!Set.of("coreWidthPx", "glowColor", "glowWidthPx", "pulseCycles",
+                    "lifetimeSec").contains(key)) {
+                throw new JSONException("Weapon '" + weaponId
+                        + "' render.beam has unknown field '" + key + "'");
+            }
+        }
+        try {
+            return new BeamStyle(coreWidth, glowColor, glowWidth, pulseCycles, lifetimeSec);
+        } catch (IllegalArgumentException e) {
+            throw new JSONException("Invalid beam style for weapon '" + weaponId + "': " + e.getMessage());
+        }
     }
 
     private static LayeredWeaponFamily parseHeldSpriteFamily(
@@ -419,6 +462,33 @@ public final class WeaponDef {
             requireFxSlot(def, FxSlot.MUZZLE);
             if (def.aoeRadius >= 1f) requireFxSlot(def, FxSlot.AFTERMATH);
             if (def.interceptableProjectile) requireFxSlot(def, FxSlot.TRAIL);
+        }
+    }
+
+    /**
+     * Presentation-only style for a full-path hitscan beam. Widths are screen pixels so the beam
+     * remains readable at every camera zoom; pulse cycles are counted over the shot's visual life.
+     */
+    public record BeamStyle(float coreWidthPx, Color glowColor,
+                            float glowWidthPx, float pulseCycles, float lifetimeSec) {
+        public static final BeamStyle DEFAULT = new BeamStyle(2f, null, 0f, 0f, 0f);
+
+        public BeamStyle {
+            if (!(coreWidthPx > 0f) || !Float.isFinite(coreWidthPx)) {
+                throw new IllegalArgumentException("coreWidthPx must be finite and positive");
+            }
+            if (!Float.isFinite(glowWidthPx) || glowWidthPx < 0f
+                    || !Float.isFinite(pulseCycles) || pulseCycles < 0f
+                    || !Float.isFinite(lifetimeSec) || lifetimeSec < 0f) {
+                throw new IllegalArgumentException(
+                        "glowWidthPx, pulseCycles, and lifetimeSec must be finite and non-negative");
+            }
+            if ((glowColor == null) != (glowWidthPx == 0f)) {
+                throw new IllegalArgumentException("glowColor and positive glowWidthPx must be declared together");
+            }
+            if (glowColor != null && glowWidthPx <= coreWidthPx) {
+                throw new IllegalArgumentException("glowWidthPx must exceed coreWidthPx");
+            }
         }
     }
 

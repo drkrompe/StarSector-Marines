@@ -28,7 +28,7 @@ final class BattleSquadOverlay {
     static final String COMPONENT_PATH =
             "data/ui/components/battle/battle-squad-overlay.mlx";
     static final float DOCUMENT_WIDTH = 720f;
-    static final float DOCUMENT_HEIGHT = 194f;
+    static final float DOCUMENT_HEIGHT = 230f;
     static final float PANEL_WIDTH = 430f;
     private static final float TOOLTIP_WIDTH = 266f;
     private static final float TOOLTIP_HEIGHT = 126f;
@@ -90,6 +90,7 @@ final class BattleSquadOverlay {
     private static void requireWiredElements(MarkupInstance instance) {
         for (String id : List.of(
                 "battle-squad-overlay", "battle-squad-panel", "battle-squad-header",
+                "battle-squad-summary", "battle-squad-orders",
                 "battle-squad-back", "battle-squad-title", "battle-squad-strength",
                 "battle-squad-defend-area",
                 "battle-squad-morale", "battle-squad-morale-fill",

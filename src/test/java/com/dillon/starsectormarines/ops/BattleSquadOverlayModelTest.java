@@ -70,6 +70,32 @@ class BattleSquadOverlayModelTest {
             assertTrue(instance.requireElement("battle-squad-tooltip")
                     .hasClass("squad-tooltip-hidden"));
 
+            var summary = instance.requireElement("battle-squad-summary")
+                    .box().borderBox();
+            var orders = instance.requireElement("battle-squad-orders")
+                    .box().borderBox();
+            var fireteams = instance.requireElement("battle-squad-fireteams")
+                    .box().borderBox();
+            assertTrue(summary.bottom() <= orders.y(),
+                    "squad identity and command controls occupy separate rows");
+            assertTrue(orders.bottom() <= fireteams.y(),
+                    "command controls remain clear of the fire-team matrix");
+            assertTrue(instance.requireElement("battle-squad-order-label")
+                            .box().borderBox().width() >= 128f,
+                    "the tactical-order caption keeps its authored width");
+
+            var title = instance.requireElement("battle-squad-title").box().borderBox();
+            var strength = instance.requireElement("battle-squad-strength")
+                    .box().borderBox();
+            var morale = instance.requireElement("battle-squad-morale")
+                    .box().borderBox();
+            assertTrue(title.right() <= strength.x(),
+                    "squad identity remains clear of its strength");
+            assertTrue(strength.right() <= morale.x(),
+                    "strength remains clear of the protected morale block");
+            assertTrue(morale.width() >= 102f,
+                    "morale keeps enough width for its label and bar");
+
             model.hover("battle-squad-member-0-0");
             instance.flush();
             document.advance(0f);
