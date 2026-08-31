@@ -1,6 +1,7 @@
 # Spaceport campus window
 
-Status: PROPOSED — the last thing blocking grown maps in production.
+Status: SHIPPED — the pocket is placed where a campus fits. Grown pads went
+from 33/60 to 58/60 with stock held at 60/60.
 
 Written: 2026-08-31
 
@@ -32,16 +33,32 @@ test on top of it is nearly redundant — `LeafAdjacency` already treats trunks 
 barriers, so a compound could never span one anyway — and its only real effect
 is to pin the search to that corner.
 
-## Shape of the work
+## What changed
 
-Search for the best connected component of candidate leaves wherever the zoning
-allows one, rather than in a fixed corner. The port should still be one campus
-and still sit in port-flavoured zoning; what should go is the assumption that
-port zoning is always in the same place.
+The pocket is placed on the district block that holds the largest *connected*
+group of pad-sized leaves, scored with the same adjacency the campus is later
+built from. Counting leaves alone would happily choose a block whose leaves sit
+either side of a trunk and cannot form one facility.
 
-This changes where ports appear on stock maps, which is why it is its own story
-rather than a rider on the apron fix. Stock is at 60/60 today and must stay
-there.
+`SpaceportDistrictPlanStage` now reads the pocket out of the district map
+instead of re-deriving the constant, so there is one answer to where the port is
+rather than two that agreed by coincidence. Its trunk-quadrant test went with
+the constant: `LeafAdjacency` already treats a trunk as a barrier, so a campus
+could never span one, and the test's only remaining effect was to pin the search
+to a corner.
+
+| partition | pads >= 4 before | after | apron before | after |
+|---|---|---|---|---|
+| stock | 60/60 | 60/60 | 58/60 | 59/60 |
+| grown, density 0.52 | 33/60 | 58/60 | 43/60 | 53/60 |
+
+**A scorer that models a decision must predict the outcome, not the request.**
+`DistrictMap.forceThemeAt` silently declines to overwrite a WATERFRONT district,
+so the first version — which scored every leaf in a block — chose blocks whose
+coast cells never became port zoning, and stock fell from 60/60 to 57/60. The
+score now skips leaves whose district cannot be reserved. That is the same
+two-places-encoding-one-decision fault this story exists to remove, reintroduced
+inside the fix for it.
 
 ## Not the defect
 

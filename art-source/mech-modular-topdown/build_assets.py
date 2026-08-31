@@ -148,6 +148,8 @@ def main() -> None:
     normalize("lrm-pod.png", "lrm-pod.png", (76, 96))
     normalize("weapon-concepts/shoulder-laser-cannon.png",
               "shoulder-laser-cannon.png", (76, 128))
+    normalize("weapon-concepts/pulse-laser-arm.png",
+              "pulse-laser-arm.png", (62, 112))
     build_faction_weapons()
     preview("idle.png", moving=False, firing=False)
     preview("moving-and-firing.png", moving=True, firing=True)
