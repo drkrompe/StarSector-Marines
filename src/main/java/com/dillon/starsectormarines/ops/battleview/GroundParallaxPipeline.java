@@ -136,35 +136,6 @@ public final class GroundParallaxPipeline {
     public static final float MIN_LIGHTING_STRENGTH = 0f;
     public static final float MAX_LIGHTING_STRENGTH = 2f;
     public static final float DEFAULT_LIGHTING_STRENGTH = 1f;
-    /**
-     * How hard the sun's cast shadows read. Zero is not merely a black tint: it
-     * also collapses the height target's shadow margin back to the ordinary
-     * geometry halo, so the whole feature costs nothing when dialled off.
-     */
-    public static final float MIN_SUN_SHADOW_STRENGTH = 0f;
-    public static final float MAX_SUN_SHADOW_STRENGTH = 1f;
-    public static final float DEFAULT_SUN_SHADOW_STRENGTH = 0.75f;
-    /**
-     * Compass bearing the sun sits at, in world-cell space, degrees
-     * anticlockwise from +X. The default puts it over the player's left
-     * shoulder so shadows fall down and to the right — the direction a reader
-     * of a top-down map expects depth to lie in.
-     */
-    public static final float MIN_SUN_AZIMUTH_DEGREES = 0f;
-    public static final float MAX_SUN_AZIMUTH_DEGREES = 360f;
-    public static final float DEFAULT_SUN_AZIMUTH_DEGREES = 135f;
-    /**
-     * Sun height above the horizon, in degrees. This is the only dial that
-     * changes how far a shadow reaches: a {@code h}-metre wall lays down
-     * {@code h / tan(elevation)} metres of shadow, and one metre is one cell.
-     *
-     * <p>Floored well above zero because the reach is a tangent: the last few
-     * degrees run away to hundreds of cells, which is a texture nobody can
-     * afford and a shadow that covers the map.
-     */
-    public static final float MIN_SUN_ELEVATION_DEGREES = 12f;
-    public static final float MAX_SUN_ELEVATION_DEGREES = 85f;
-    public static final float DEFAULT_SUN_ELEVATION_DEGREES = 38f;
     /** Fake-perspective eye height above the screen plane, in the same normalized units as the UV-space screen-center vector. */
     /** Package-visible so the headless pixel-reference test cannot drift from the shader uniform. */
     static final float EYE_HEIGHT = 1.2f;
@@ -206,11 +177,6 @@ public final class GroundParallaxPipeline {
      * thresholds instead of on almost every frame of the drag.
      */
     static final int SHADOW_PAD_QUANTUM_CELLS = 4;
-
-    /** Full-shadow colour multiplier: darker, and cooler, as ground lit only by sky rather than sun. */
-    static final float SHADOW_TINT_R = 0.46f;
-    static final float SHADOW_TINT_G = 0.50f;
-    static final float SHADOW_TINT_B = 0.62f;
 
     private static final String[] LIGHT_POSITION_UNIFORMS =
             indexedUniformNames("lightPosRadius");
@@ -357,9 +323,11 @@ public final class GroundParallaxPipeline {
     private float surfaceStrength = DEFAULT_SURFACE_STRENGTH;
     private float waterWaveAmplitude = DEFAULT_WATER_WAVE_AMPLITUDE;
     private float lightingStrength = DEFAULT_LIGHTING_STRENGTH;
-    private float sunShadowStrength = DEFAULT_SUN_SHADOW_STRENGTH;
-    private float sunAzimuthDegrees = DEFAULT_SUN_AZIMUTH_DEGREES;
-    private float sunElevationDegrees = DEFAULT_SUN_ELEVATION_DEGREES;
+    /**
+     * Where the sun is. Held rather than owned: the ground composite is one
+     * caster among several and must not be the place a bearing lives.
+     */
+    private final SunLight sun;
     private float waveTimeSeconds;
 
     private boolean broken;
@@ -386,23 +354,25 @@ public final class GroundParallaxPipeline {
 
     /** Compatibility constructor; without a sprite registry sliced sheets remain macro-only/fallback. */
     public GroundParallaxPipeline() {
-        this(new GroundMicroHeightSampler(() -> null, () -> null), new GroundLightService());
+        this(new GroundMicroHeightSampler(() -> null, () -> null), new GroundLightService(),
+                new SunLight());
     }
 
-    public GroundParallaxPipeline(BattleSprites sprites) {
-        this(new GroundMicroHeightSampler(sprites), new GroundLightService());
+    public GroundParallaxPipeline(BattleSprites sprites, SunLight sun) {
+        this(new GroundMicroHeightSampler(sprites), new GroundLightService(), sun);
     }
 
-    GroundParallaxPipeline(BattleSprites sprites, GroundLightService lights) {
-        this(new GroundMicroHeightSampler(sprites), lights);
+    GroundParallaxPipeline(BattleSprites sprites, GroundLightService lights, SunLight sun) {
+        this(new GroundMicroHeightSampler(sprites), lights, sun);
     }
 
     private GroundParallaxPipeline(GroundMicroHeightSampler materialSampler,
-                                   GroundLightService lights) {
+                                   GroundLightService lights, SunLight sun) {
         this.materialSampler = materialSampler;
         this.heightPass = new GroundHeightPass(materialSampler);
         this.normalPass = new GroundNormalPass(materialSampler);
         this.lights = lights;
+        this.sun = sun;
     }
 
     public float parallaxStrength() { return structureStrength; }
@@ -413,11 +383,8 @@ public final class GroundParallaxPipeline {
 
     public float lightingStrength() { return lightingStrength; }
 
-    public float sunShadowStrength() { return sunShadowStrength; }
-
-    public float sunAzimuthDegrees() { return sunAzimuthDegrees; }
-
-    public float sunElevationDegrees() { return sunElevationDegrees; }
+    /** The scene's sun, for a caller that needs the same one this composite casts from. */
+    public SunLight sun() { return sun; }
 
     /** Applies immediately to the next rendered frame. */
     public void setParallaxStrength(float strength) {
@@ -444,42 +411,18 @@ public final class GroundParallaxPipeline {
         this.lightingStrength = clamp(strength, MIN_LIGHTING_STRENGTH, MAX_LIGHTING_STRENGTH);
     }
 
-    /** Applies to the next rendered frame; crossing zero also resizes the height target. */
-    public void setSunShadowStrength(float strength) {
-        if (Float.isNaN(strength)) return;
-        this.sunShadowStrength = clamp(strength, MIN_SUN_SHADOW_STRENGTH, MAX_SUN_SHADOW_STRENGTH);
-    }
-
-    /** Applies immediately to the next rendered frame. */
-    public void setSunAzimuthDegrees(float degrees) {
-        if (Float.isNaN(degrees)) return;
-        this.sunAzimuthDegrees = clamp(degrees, MIN_SUN_AZIMUTH_DEGREES, MAX_SUN_AZIMUTH_DEGREES);
-    }
-
-    /** Applies to the next rendered frame; a lower sun reaches further and may resize the height target. */
-    public void setSunElevationDegrees(float degrees) {
-        if (Float.isNaN(degrees)) return;
-        this.sunElevationDegrees =
-                clamp(degrees, MIN_SUN_ELEVATION_DEGREES, MAX_SUN_ELEVATION_DEGREES);
-    }
-
     /**
      * How far the sun's march has to reach, in cells, for the tallest surface
      * the installed mapping can place. Also the size of the height target's
      * margin, since an occluder has to be in the texture to cast out of it.
      */
     float shadowRangeCells() {
-        if (sunShadowStrength <= 0f) return 0f;
+        if (!sun.casts()) return 0f;
         GenMappingRegistry mapping = GenMappingRegistry.installed();
         float tallest = mapping != null ? mapping.tallestMacroHeightMeters()
                 : GenMappingRegistry.DEFAULT_WALL_MACRO_HEIGHT_METERS;
         if (tallest <= 0f) return 0f;
-        return clamp(tallest / sunRisePerCell(), 0f, MAX_SHADOW_RANGE_CELLS);
-    }
-
-    /** Metres the sun ray climbs per cell travelled toward it: {@code tan(elevation)}. */
-    float sunRisePerCell() {
-        return (float) Math.tan(Math.toRadians(sunElevationDegrees));
+        return clamp(sun.reachCells(tallest), 0f, MAX_SHADOW_RANGE_CELLS);
     }
 
     /**
@@ -488,7 +431,7 @@ public final class GroundParallaxPipeline {
      * costs neither fill nor memory.
      */
     int heightPadCells() {
-        if (sunShadowStrength <= 0f) return VisibleCellRect.GEOMETRY_MARGIN_CELLS;
+        if (!sun.casts()) return VisibleCellRect.GEOMETRY_MARGIN_CELLS;
         int wanted = (int) Math.ceil(shadowRangeCells()) + VisibleCellRect.GEOMETRY_MARGIN_CELLS;
         int quantized = ((wanted + SHADOW_PAD_QUANTUM_CELLS - 1) / SHADOW_PAD_QUANTUM_CELLS)
                 * SHADOW_PAD_QUANTUM_CELLS;
@@ -651,13 +594,12 @@ public final class GroundParallaxPipeline {
                     cellPxUi / (vpH + 2f * heightPadUi));
             shader.set1f("macroDatum", GroundHeightPass.MACRO_DATUM);
             shader.set1f("macroMetersSpan", GroundHeightPass.MACRO_METERS_SPAN);
-            double azimuth = Math.toRadians(sunAzimuthDegrees);
-            shader.set2f("sunDir", (float) Math.cos(azimuth), (float) Math.sin(azimuth));
-            shader.set1f("sunRisePerCell", sunRisePerCell());
+            shader.set2f("sunDir", sun.dirX(), sun.dirY());
+            shader.set1f("sunRisePerCell", sun.risePerCell());
             shader.set1f("shadowRangeCells", shadowRangeCells());
-            shader.set1f("shadowStrength", sunShadowStrength);
+            shader.set1f("shadowStrength", sun.shadowStrength());
             shader.set1f("shadowSoftnessMeters", SHADOW_SOFTNESS_METERS);
-            shader.set3f("shadowTint", SHADOW_TINT_R, SHADOW_TINT_G, SHADOW_TINT_B);
+            shader.set3f("shadowTint", SunLight.TINT_R, SunLight.TINT_G, SunLight.TINT_B);
             shader.set1f("aspect", fboPxW / (float) fboPxH);
             shader.set1f("lightingStrength", lightingStrength);
             uploadLights(rc.camera);
