@@ -242,7 +242,8 @@ class AirfieldSystemTest {
      *
      * <p>Walk around it; see and shoot straight through it. A non-walkable cell
      * is opaque here unless it says otherwise, and a burnt-out airframe is a
-     * frame with holes in it.
+     * frame with holes in it — where the intact aircraft that stood there was a
+     * solid object on the cell it stood on.
      */
     @Test
     void theWreckBlocksTheApronWithoutBlindingIt() {
@@ -250,7 +251,8 @@ class AirfieldSystemTest {
         AirfieldService.Berth berth = berth(sim, 10, 10);
         AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
         system.tick(1f / 30f, sim, sim.getAirfieldService());
-        assertTrue(sim.getGrid().isWalkable(10, 10), "an occupied pad is walkable concrete");
+        assertTrue(sim.getGrid().blocksLineOfSight(10, 10),
+                "an aircraft standing on its pad is something to see round");
 
         sim.applyDamage(berth.airframeId, 100_000f, 100_000f);
         system.tick(1f / 30f, sim, sim.getAirfieldService());
@@ -303,7 +305,6 @@ class AirfieldSystemTest {
         BattleSimulation sim = openSim();
         AirfieldService.Berth berth = berth(sim, 10, 10);
         AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
-        system.tick(1f / 30f, sim, sim.getAirfieldService());
         long crew = sim.spawn(new EntitySpec("crew", Faction.DEFENDER, UnitType.MARINE, 10, 10));
         // Nothing outside the hull's own footprint will take a step.
         for (int y = 0; y < H; y++) {
@@ -313,6 +314,9 @@ class AirfieldSystemTest {
                 }
             }
         }
+        // The intact aircraft comes down on them first and leaves the cell open
+        // for the same reason the wreck is about to.
+        system.tick(1f / 30f, sim, sim.getAirfieldService());
 
         sim.applyDamage(berth.airframeId, 100_000f, 100_000f);
         system.tick(1f / 30f, sim, sim.getAirfieldService());
@@ -392,9 +396,20 @@ class AirfieldSystemTest {
         return false;
     }
 
-    /** A returned airframe is not available again until it has been turned round. */
+    /**
+     * A returned airframe stands on its pad and is not available again until it
+     * has been worked back up.
+     *
+     * <p>Two halves, and the second is the whole of what a turnaround now is.
+     * Time alone does nothing: a field whose ground crew are dead never answers
+     * another request, however long it is left, because a countdown that ran
+     * without them made killing them worth nothing. And the aircraft is on the
+     * concrete while it waits, which is what gives an attacker something to
+     * interrupt — servicing that took the aircraft off the map for its duration
+     * was a promise nobody could touch.
+     */
     @Test
-    void aReturnedAircraftIsUnavailableUntilItIsTurnedRound() {
+    void aReturnedAircraftStandsOnItsPadUntilItIsWorkedBackUp() {
         BattleSimulation sim = openSim();
         AirfieldService service = sim.getAirfieldService();
         AirfieldService.Berth berth = berth(sim, 10, 10);
@@ -409,9 +424,20 @@ class AirfieldSystemTest {
         assertFalse(service.hasAirworthyAirframe(),
                 "a field cannot answer two requests back to back");
 
-        for (int i = 0; i < 30 * (int) AirfieldService.REFIT_SECONDS + 2; i++) {
-            system.tick(1f / 30f, sim, service);
-        }
+        for (int i = 0; i < 30 * 120; i++) system.tick(1f / 30f, sim, service);
+
+        assertEquals(AirfieldService.BerthState.REFITTING, berth.state,
+                "two minutes of nobody working turned the aircraft round anyway");
+        assertNotEquals(0L, berth.airframeId,
+                "the aircraft is not on its pad, so there is nothing to work on"
+                        + " and nothing for a raid to catch");
+        assertEquals(damaged, sim.world().hp(berth.airframeId), 0.5f,
+                "it is standing there with the hull it came home with");
+
+        // What the ground crew do, done to it.
+        sim.world().setHp(berth.airframeId, berth.refitTarget);
+        berth.refitWork = 0f;
+        system.tick(1f / 30f, sim, service);
 
         assertEquals(AirfieldService.BerthState.PARKED, berth.state);
         assertTrue(service.hasAirworthyAirframe());
@@ -419,7 +445,6 @@ class AirfieldSystemTest {
                 "a turnaround patches the hull: " + berth.hullHp);
         assertTrue(berth.hullHp < ShuttleType.AEROSHUTTLE.maxHp,
                 "but a field does not rebuild an airframe: " + berth.hullHp);
-        assertNotEquals(0L, berth.airframeId, "and it is standing on the pad again");
     }
 
     /** A sortie flies from the stand nearest what it is going to. */

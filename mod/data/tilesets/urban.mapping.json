@@ -11,6 +11,7 @@
     "DIRT":      "floors.dirt",
     "STONE":     "floors.stone",
     "SAND":      "floors.sand",
+    "SNOW":      "floors.snow",
     "BRICK":     "floors.brick",
     "WATER":     "water.water"
   },
@@ -73,6 +74,26 @@
         ],
         "plantChance": 0.0,
         "rockChance": 0.14,
+        "plantPool": [],
+        "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
+      }
+    },
+    "FROZEN": {
+      "NATURE_GRASSLAND": {
+        "groundPool": [
+          { "kind": "SNOW", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.16,
+        "plantPool": [],
+        "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
+      },
+      "NATURE_BEACH": {
+        "groundPool": [
+          { "kind": "SNOW", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.18,
         "plantPool": [],
         "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
       }

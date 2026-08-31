@@ -60,7 +60,8 @@ class CampaignSettlementRenderTest {
     @Test
     void renderCampaignDrivenSettlements() throws Exception {
         Files.createDirectories(OUT_DIR);
-        for (SurfacePalette palette : new SurfacePalette[]{ SurfacePalette.ROCK, SurfacePalette.ARID }) {
+        for (SurfacePalette palette : new SurfacePalette[]{
+                SurfacePalette.ROCK, SurfacePalette.ARID, SurfacePalette.FROZEN }) {
             renderLadder(palette);
         }
     }

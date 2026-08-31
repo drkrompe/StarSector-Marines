@@ -26,6 +26,23 @@ public record SquadCommandClaim(CommandAuthority authority, String issuer, Strin
                 REINFORCEMENT_ISSUER, reason);
     }
 
+    /** Issuer every works-crew claim carries. */
+    public static final String WORKS_ISSUER = "works";
+
+    /**
+     * A crew posted to a structure, which nobody commands away from it.
+     *
+     * <p>{@link CommandAuthority#SCRIPTED} because a works crew is the map's
+     * rather than the commander's: they were put in a building to work it, and
+     * that is their orders for the battle. Left unclaimed they are an ordinary
+     * unowned squad, which mission command may take and send somewhere — and a
+     * shed is not producing anything once its technicians have been ordered to
+     * hold a road.
+     */
+    public static SquadCommandClaim works(String reason) {
+        return new SquadCommandClaim(CommandAuthority.SCRIPTED, WORKS_ISSUER, reason);
+    }
+
     public static SquadCommandClaim mission(String issuer, String reason) {
         return new SquadCommandClaim(CommandAuthority.MISSION_COMMAND,
                 issuer, reason);
