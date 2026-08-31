@@ -27,7 +27,8 @@ import java.util.Map;
 
 /**
  * Shared base for the squad-push actions
- * ({@link EnterZone}, {@link ClearZone}, {@link HoldZone}, {@link AttackMove}).
+ * ({@link EnterZone}, {@link ClearZone}, {@link HoldZone}, {@link AttackMove},
+ * {@link AmbientAdvance}).
  * They take no part in the backward-chaining planner (empty
  * preconditions/effects, flat cost) and share one body of advance behaviour:
  * the contact-scored commit in {@link #advanceIntoZone}, the fire-team bound
@@ -41,6 +42,12 @@ import java.util.Map;
  * outdoor zone. Bounding lived inside {@code EnterZone} while it was the only
  * action that did it, which meant the order most obviously about fighting your
  * way somewhere was the one that walked there in a single file.
+ *
+ * <p>Two of the family push toward a bare cell rather than a zone, and they
+ * differ in what authorizes the push: {@link AttackMove} is an order and fails
+ * when its {@code ObjectiveAssignment} is withdrawn, while
+ * {@link AmbientAdvance} is what a squad does when it holds no workable order
+ * at all and so validates none.
  *
  * <p>The zone family adds one rule of its own: <b>a member isn't performing a
  * zone action until it is actually inside the target zone.</b>

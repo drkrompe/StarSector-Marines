@@ -103,6 +103,26 @@ public final class WorldStateBuilder {
     }
 
     /**
+     * The freshest belief that still resolves to a live hostile combatant, or
+     * {@code null} when the squad believes in nobody it could act on.
+     *
+     * <p>Shares {@link #isActionableContact} with the planner facts so a cue a
+     * squad may walk toward is the same kind of thing as a target it may plan
+     * against. Freshest rather than nearest: this answers "what is the best
+     * evidence we hold", and distance is the mover's problem.
+     */
+    public static BelievedContact freshestActionableContact(Squad squad, BattleView sim) {
+        BelievedContact best = null;
+        for (BelievedContact contact : squad.believedContacts()) {
+            if (!isActionableContact(squad, contact, sim)) continue;
+            if (best == null || contact.lastSeenTick() > best.lastSeenTick()) {
+                best = contact;
+            }
+        }
+        return best;
+    }
+
+    /**
      * Direct observation is resolved once in the serial alert pass. A contact
      * refreshed on this sim tick therefore means at least one member had LOS;
      * the parallel planner does not rediscover enemies from global live state.
