@@ -605,7 +605,7 @@ tasks.register('undeployMod', Delete) {
  * under the read-only game install, so read its command line and run it directly:
  * same flags, same working directory, but the exit code and stderr are the JVM's.
  */
-def starsectorLaunchArgv(File coreDir) {
+def starsectorLaunchArgv(File coreDir, File diagnosticsDir) {
     def bat = new File(coreDir, 'starsector.bat')
     if (!bat.isFile()) {
         throw new GradleException("No starsector.bat in ${coreDir} -- cannot launch the game")
@@ -619,7 +619,46 @@ def starsectorLaunchArgv(File coreDir) {
     if (!java.isFile()) {
         throw new GradleException("${bat} names a launcher that does not exist: ${java}")
     }
-    [java.canonicalPath] + parts.tail()
+    // A JVM fatal error writes hs_err_pid<pid>.log to the working directory,
+    // which is the install folder -- somewhere nobody thinks to look, and which
+    // a game update may wipe. Name a path under build/ instead so the crash
+    // report lands with the rest of this run's evidence.
+    def errorFile = new File(diagnosticsDir, 'hs_err_pid%p.log')
+    [java.canonicalPath, "-XX:ErrorFile=${errorFile.absolutePath}".toString()] + parts.tail()
+}
+
+/**
+ * Forwards to the console and to a file at once.
+ *
+ * The JVM's own stdout/stderr is the only place a fatal-error block, a native
+ * loader failure or a stack trace printed outside log4j ever appears -- none of
+ * it reaches `starsector.log`. Left on the console it lives in IDE scrollback
+ * and is gone by the time anyone asks what happened, which is exactly how one
+ * silent death was investigated with the evidence already lost. Tee it.
+ */
+class TeeOutputStream extends OutputStream {
+    private final OutputStream console
+    private final OutputStream file
+
+    TeeOutputStream(OutputStream console, OutputStream file) {
+        this.console = console
+        this.file = file
+    }
+
+    @Override void write(int b) { console.write(b); file.write(b) }
+
+    @Override void write(byte[] buf, int off, int len) {
+        console.write(buf, off, len)
+        file.write(buf, off, len)
+    }
+
+    // Flush the file on every flush: a hard kill loses whatever is still
+    // buffered, and the last few lines are the ones worth having.
+    @Override void flush() { console.flush(); file.flush() }
+
+    // Only the file is ours to close -- closing the console would take stdout
+    // down for the rest of the build.
+    @Override void close() { flush() }
 }
 
 tasks.register('runStarsector', Exec) {
@@ -627,19 +666,35 @@ tasks.register('runStarsector', Exec) {
     description = 'Launch Starsector after deploying the mod'
     dependsOn 'deployMod'
     def coreDir = new File(starsectorDir, 'starsector-core')
+    def diagnosticsDir = layout.buildDirectory.dir('starsector-run').get().asFile
+    def consoleLog = new File(diagnosticsDir, 'console.log')
     workingDir coreDir
     // Report the JVM's own status rather than failing the build on it: a crash
     // and an ordinary quit both end this task, and only the message differs.
     ignoreExitValue = true
+
+    def sink = null
     doFirst {
-        commandLine starsectorLaunchArgv(coreDir)
+        diagnosticsDir.mkdirs()
+        // One sink behind both streams, so the file interleaves them the way the
+        // console does and a trace keeps the output that led up to it.
+        sink = new BufferedOutputStream(new FileOutputStream(consoleLog))
+        standardOutput = new TeeOutputStream(System.out, sink)
+        errorOutput = new TeeOutputStream(System.err, sink)
+        commandLine starsectorLaunchArgv(coreDir, diagnosticsDir)
     }
     doLast {
+        sink?.flush()
+        sink?.close()
         int code = executionResult.get().exitValue
+        def crashes = diagnosticsDir.listFiles({ f -> f.name.startsWith('hs_err_pid') } as FileFilter)
         if (code != 0) {
-            logger.error("Starsector exited with code ${code}. A JVM fatal error prints "
-                    + "to this console, not to starsector.log; a hs_err_pid*.log would be "
-                    + "written to ${coreDir}.")
+            logger.error("Starsector exited with code ${code}. Console output (where a JVM "
+                    + "fatal error prints -- it never reaches starsector.log) was captured to "
+                    + "${consoleLog}.")
+        }
+        if (crashes) {
+            logger.error("JVM crash report(s) written: ${crashes*.name.join(', ')} in ${diagnosticsDir}")
         }
     }
 }
