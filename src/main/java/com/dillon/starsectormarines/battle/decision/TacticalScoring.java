@@ -829,8 +829,10 @@ public final class TacticalScoring {
         if (!roster.identity().has(threat)
                 || !roster.identity().type(threat).combatant) return false;
         World world = roster.world();
+        // Same reason as isHiddenFromAllEnemies: the caller hands in any body,
+        // and a chassis is a combatant archetype without a COMBAT component.
         return cellDistance(x, y, world.x(threat), world.y(threat))
-                <= world.attackRange(threat) + margin;
+                <= roster.threatRange(threat) + margin;
     }
 
     public float effectiveAttackRange(long shooter, long target, float shooterAttackRange) {
@@ -2997,8 +2999,13 @@ public final class TacticalScoring {
             long other = scratch.ids[i];
             if (roster.identity().faction(other) == selfFaction) continue;
             if (!roster.identity().type(other).combatant) continue;
+            // threatRange, not world.attackRange: this asks "who can shoot this
+            // cell", and a gathered body need not carry COMBAT. A convoy
+            // chassis reaches every scan through the index on IDENTITY alone
+            // and is a combatant archetype, so the type guard above admits it
+            // and the fail-loud read crashed the battle.
             if (grid.hasLineOfSightWithin(cx, cy, world.cellX(other), world.cellY(other),
-                    world.attackRange(other))) return false;
+                    roster.threatRange(other))) return false;
         }
         return true;
     }
