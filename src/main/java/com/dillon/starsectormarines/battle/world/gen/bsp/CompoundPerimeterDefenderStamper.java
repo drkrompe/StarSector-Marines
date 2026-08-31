@@ -73,13 +73,14 @@ public final class CompoundPerimeterDefenderStamper implements GenStage {
         TraversalAxis axis = ctx.get(BspKeys.AXIS);
         if (axis == null) return;
         NavigationGrid grid = ctx.grid;
+        boolean[][] reserved = ctx.get(BspKeys.ROAD_RESERVATION);
         List<TacticalNode> tactical = ctx.tactical;
         // Snapshot the initial node list — appending while iterating would
         // re-process the GUARDPOSTs we just emitted.
         List<TacticalNode> initial = new ArrayList<>(tactical);
         for (TacticalNode node : initial) {
             if (!isCompoundKind(node.kind)) continue;
-            int[] anchor = pickGuardpostAnchor(node, axis, grid);
+            int[] anchor = pickGuardpostAnchor(node, axis, grid, reserved);
             if (anchor == null) continue;
             tactical.add(new TacticalNode(TacticalNode.Kind.GUARDPOST,
                     anchor[0], anchor[1],
@@ -91,13 +92,21 @@ public final class CompoundPerimeterDefenderStamper implements GenStage {
     }
 
     /**
-     * Walkable cell just outside the compound's bbox on the attacker-facing
-     * side, or {@code null} when no walkable cell exists within
-     * {@link #OUTSIDE_SCAN_DEPTH} (degenerate — compound abuts an unwalkable
-     * map region; skip rather than crash).
+     * Walkable, unreserved cell just outside the compound's bbox on the
+     * attacker-facing side, or {@code null} when none exists within
+     * {@link #OUTSIDE_SCAN_DEPTH} (degenerate — the compound abuts an
+     * unwalkable map region, or everything outside it is spoken for; skip
+     * rather than crash).
+     *
+     * <p>Walkable is not sufficient. A runway is open ground, so a compound
+     * standing beside the ward's airfield planted its lookout on the apron —
+     * measured across the conquest matrix, this stamper alone accounted for
+     * thirty-five guardposts on airfields. The reservation is the one place
+     * that records ground somebody else is relying on staying clear, roads
+     * included, and a garrisoned post closes whatever it stands on.
      */
     private static int[] pickGuardpostAnchor(TacticalNode node, TraversalAxis axis,
-                                             NavigationGrid grid) {
+                                             NavigationGrid grid, boolean[][] reserved) {
         int midX = (node.left + node.right) / 2;
         int midY = (node.top + node.bottom) / 2;
         // Resolve to a [dx, dy] step from the bbox edge cell outward. Defender
@@ -123,7 +132,7 @@ public final class CompoundPerimeterDefenderStamper implements GenStage {
         // shell — we want the cell beyond the perimeter wall on the approach.
         int x = startX, y = startY;
         for (int i = 0; i < OUTSIDE_SCAN_DEPTH; i++) {
-            if (grid.inBounds(x, y) && grid.isWalkable(x, y)) {
+            if (grid.inBounds(x, y) && grid.isWalkable(x, y) && !isReserved(reserved, x, y)) {
                 return new int[]{x, y};
             }
             x += dx;
@@ -136,5 +145,13 @@ public final class CompoundPerimeterDefenderStamper implements GenStage {
         return kind == TacticalNode.Kind.COMMAND_POST
                 || kind == TacticalNode.Kind.BARRACKS
                 || kind == TacticalNode.Kind.ARMORY;
+    }
+
+    /** Whether the reservation claims this cell. A null mask claims nothing. */
+    private static boolean isReserved(boolean[][] reserved, int x, int y) {
+        return reserved != null
+                && x >= 0 && x < reserved.length
+                && y >= 0 && y < reserved[0].length
+                && reserved[x][y];
     }
 }

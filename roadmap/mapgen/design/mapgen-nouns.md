@@ -9,13 +9,10 @@ contract rather than a centerline, reserved before packing where pedestrian
 circulation still is not, and validated by whether a hull fits rather than by
 whether cells connect.
 
-Updated: 2026-08-30 — an airbase lot now owns everything recorded about the
-ground it repaves, and a fortress ward refuses a lot over its keep; the lot also
-turns four ways, comes in three sizes that
-grow along the frontage rather than into the depth, and reaches the city as
-either a block-sized site or a multi-block compound claim placed on the ground
-that claim actually owns, whose made surface the terrain passes no longer
-repaint and no doorway opens into.
+Updated: 2026-08-30 — an airbase lot owns the ground it repaves, and is reserved
+against the stampers that follow it; a fortress ward refuses a lot over its
+keep; the lot turns four ways and comes in three sizes that grow along the
+frontage rather than into the depth.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -244,7 +241,13 @@ stamp may close a cell of it.
 Three road nouns are easy to confuse and mean different things. The **road
 graph** is a centerline skeleton — one cell thick — used to choose among
 places: where a convoy may enter, which junction is a plausible drop. The
-**road reservation** is the cell mask stampers consult before closing ground.
+**road reservation** is the cell mask stampers consult before closing ground
+— and it is no longer only about roads. The vehicle corridor widens it, and so
+does the ward airfield: a runway is no more closable than a street, and a
+stamper deciding whether it may put a gun somewhere should need one answer
+rather than a list of exemptions that grows every time somebody reserves
+something. The name is historical; the meaning is *ground another part of the
+map is relying on staying clear*.
 The **corridor** is a *width contract*: not where the road is, but how much of
 it a hull can occupy. Only the third answers the question a ground
 reinforcement actually asks.
@@ -347,6 +350,24 @@ eight and all but vanishes at ten. That is enough for a marked apron and nowhere
 near enough for a facility, which is why the earlier airfield was one. The lot is
 therefore reserved out of the ward before packing and the buildings pack around
 it.
+
+**A facility has to be reserved against what comes after it, not only against
+what packs around it.** The lot is marked unbuildable while the ward packs
+itself, but that array belongs to the packer and dies with the stage — and four
+stampers run later. Told nothing, each asks only whether a cell is *walkable*,
+and an apron is open ground: measured across the conquest matrix, thirty-three
+of forty-eight maps had a guardpost standing on the airfield, sixty-four in
+all, with the compound-perimeter lookouts accounting for most of them. A
+lookout is placed on the first walkable cell outside its compound's
+attacker-facing edge, so a compound beside the field planted one on the runway
+every time. Publishing the lot into the reservation, and making that scan step
+over reserved ground rather than stop on it, takes it to zero — at a cost of
+about four percent of the map's guardposts, most of which move rather than
+disappear.
+
+Ordering is what makes widening the reservation safe: every *filler* that reads
+it has already run by the time the ward lays its lot, so a late widening cannot
+change how the city was built, only what may be stamped onto it.
 
 That reservation is the thing an earlier attempt got wrong, and the difference is
 *where*. An apron claimed in the middle of a ward reshaped every placement around

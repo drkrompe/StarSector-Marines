@@ -39,7 +39,19 @@ public final class BspKeys {
     /** The painted trunk + BSP-frame road mask; compound fillers read it to find bridged inter-leaf cells. */
     public static final GenKey<boolean[][]> ROAD_CELLS = GenKey.of("roadCells");
 
-    /** Cell mask of every road-graph node/edge cell; stampers must skip these to keep centerlines drivable. */
+    /**
+     * The one answer to "may I close this cell".
+     *
+     * <p>Seeded by the road graph with every node and edge cell, so centerlines
+     * stay drivable — hence the name — but it has become the general
+     * reservation. {@link #VEHICLE_CORRIDOR} widens it, and so does the ward's
+     * airfield: a runway is no more closable than a road, and a stamper should
+     * not have to know which kind of thing it is standing on.
+     *
+     * <p>A stage that widens it must run after every <em>filler</em> that reads
+     * it, or it changes how the city was built rather than only what may be
+     * stamped onto it.
+     */
     public static final GenKey<boolean[][]> ROAD_RESERVATION = GenKey.of("roadReservation");
 
     /** Vehicle-navigation skeleton extracted from the road mask. Flows into {@code MapResult}. */
