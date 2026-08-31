@@ -58,6 +58,7 @@ import com.dillon.starsectormarines.battle.squad.SquadContactOnsetSystem;
 import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.air.AirfieldCrewSystem;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.AirfieldSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
@@ -352,6 +353,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CompoundCaptureSystem compoundCapture = new CompoundCaptureSystem();
     /** Per-hardstand berth state for a garrison airfield — what is parked, away, refitting, or burned. Empty on a battle with no authored field. */
     private final AirfieldService airfieldService = new AirfieldService();
+    private final AirfieldCrewSystem airfieldCrew = new AirfieldCrewSystem();
     /** Stateless tick consumer that stands airframes on their pads, writes off one destroyed where it sat, and counts down a turnaround. */
     private final AirfieldSystem airfieldSystem = new AirfieldSystem(Faction.DEFENDER);
     /** Decides when the field puts an armed aircraft over the battle. Self-gating: a field with no strip or no sheds flies nothing. */
@@ -1884,6 +1886,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // MARINE_HELD state. Runs before resource production and reinforcement
         // so both see the freshest capture state this tick.
         compoundCapture.tick(TICK_DT, this, compoundService);
+        // Before the field's own pass, so an airframe the crew finished this
+        // tick is airworthy on this tick rather than on the next one.
+        airfieldCrew.tick(TICK_DT, this, airfieldService);
         airfieldSystem.tick(TICK_DT, this, airfieldService);
         // After the berths, so a shed that just took an aircraft back is
         // airworthy in the same tick a strike might want it.
