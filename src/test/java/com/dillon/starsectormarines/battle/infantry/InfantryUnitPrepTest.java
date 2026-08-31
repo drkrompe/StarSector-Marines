@@ -21,6 +21,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -345,7 +346,12 @@ public class InfantryUnitPrepTest {
         GoapInfantryBehavior.replanIfNeeded(squad, sim);
 
         assertNull(squad.assignedObjectiveAtLastPlan);
-        assertNull(squad.currentPlan,
+        // Released mission work replans immediately to the ambient floor. That
+        // floor used to be emptiness, and this asserted a null plan; it is now
+        // standing to, so the assertion says which floor rather than that the
+        // squad has nothing — the released Overwatch step being gone is the
+        // part that was ever load-bearing.
+        assertInstanceOf(AwaitOrders.class, squad.currentPlan.currentStep().action,
                 "released mission work replans immediately to the ambient floor");
     }
 
@@ -373,7 +379,8 @@ public class InfantryUnitPrepTest {
                 "form-up must not erase the authoritative directive");
         assertNull(squad.assignedObjectiveAtLastPlan,
                 "planner tracks the masked execution assignment");
-        assertNull(squad.currentPlan);
+        assertInstanceOf(AwaitOrders.class, squad.currentPlan.currentStep().action,
+                "a masked order leaves the squad standing to, not plan-less");
 
         squad.originalSize = 12;
         squad.currentPlan = new SquadPlan(List.of(

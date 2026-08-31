@@ -633,6 +633,12 @@ scene left a door in the far wall and recorded both loops crossing the whole map
 to it — near-identical distances, and nothing whatever about the yield. Seal that
 room: the goal's own reachability gate then rules the defender out.
 
+What it records now that the floor exists: both loops sit at 1 plan-less tick of
+1801 — tick zero, before the first replan — and the yielded loop still covers
+0.0 cells. That pairing is the whole acceptance. Plan-less at zero says the
+squad is no longer unable to act; distance still at zero says it did not answer
+that by wandering off to find work it was never given.
+
 **A control that reproduces the defect measures nothing.** The control's defender
 first stood on the doorway's own sight line, so the squad shot it down the
 corridor without ever crossing, the zone went clear, and the control yielded and
