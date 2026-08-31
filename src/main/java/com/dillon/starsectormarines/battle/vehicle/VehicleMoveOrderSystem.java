@@ -46,14 +46,17 @@ public final class VehicleMoveOrderSystem {
     private final ConvoyService convoy;
     private final NavigationService navigation;
     private final VehicleControlSystem controlSystem;
+    private final VehicleTransportService transport;
 
     public VehicleMoveOrderSystem(VehicleMoveOrderService service, ConvoyService convoy,
                                   NavigationService navigation,
-                                  VehicleControlSystem controlSystem) {
+                                  VehicleControlSystem controlSystem,
+                                  VehicleTransportService transport) {
         this.service = service;
         this.convoy = convoy;
         this.navigation = navigation;
         this.controlSystem = controlSystem;
+        this.transport = transport;
     }
 
     /** Resolves every queued request. Call once per tick, before driving. */
@@ -62,6 +65,17 @@ public final class VehicleMoveOrderSystem {
             if (!commandable(entry.getKey())) service.forget(entry.getKey());
         }
         for (PendingOrder request : service.drainPending()) {
+            // Right-clicking a loaded transport on itself is "everybody out",
+            // the way Red Alert 2 read it: the vehicle is the target, and what
+            // it does depends on whether anybody is in it. Resolved before the
+            // move, because a click on your own hull is not a destination.
+            if (commandable(request.vehicleId)
+                    && transport.pointsAt(request.vehicleId, request.cellX, request.cellY)
+                    && !transport.manifest(request.vehicleId).isEmpty()) {
+                transport.dismountAll(request.vehicleId);
+                service.complete(request.vehicleId);
+                continue;
+            }
             if (!commandable(request.vehicleId)) {
                 service.refuse(request.vehicleId, request.cellX, request.cellY,
                         Refusal.NOT_COMMANDABLE);

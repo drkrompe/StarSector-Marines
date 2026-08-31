@@ -8,7 +8,7 @@ rules apply to runtime modular mech textures in this directory.
   `art-source/mech-modular-topdown/`, then run the deterministic asset build.
 - One faction livery is an all-or-nothing presentation family: all three
   chassis (`chassis.png`, `chassis-hound.png`, `chassis-sirocco.png`) and all
-  five painted weapon modules must exist together. Runtime must fall back to
+  six painted weapon modules must exist together. Runtime must fall back to
   the complete base family, never mix a faction chassis with base or another
   faction's weapon casing because one file is missing.
 - Feet, thigh linkages, socketed authoring chassis, muzzle flash, geometry,
@@ -18,4 +18,3 @@ rules apply to runtime modular mech textures in this directory.
 - Every derived sprite must preserve the base layer's dimensions, registration,
   alpha footprint, silhouette, and protected hardware. Extend
   `LayeredMechAssetTest` whenever the family contract changes.
-

@@ -172,6 +172,11 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
 - Contact privilege comes from physical interception. An explosive direct-fire
   shot does not grant its contact payload to a selected target after a wall stop
   or miss, and it does not stack contact and area payloads on one actor.
+- Body penetration is authored weapon behavior, not an id exception. It is a
+  non-negative count available only to direct resolved mech rounds with a
+  contact payload. Every contacted actor receives that contact payload at its
+  own flight time; all such actors are excluded from the shot's single area
+  payload even when the lane continues through them.
 - An id is stable across authored catalogs and later persistence. A missing
   persisted id must be repaired to a safe starter weapon with a warning, not
   break a roster.

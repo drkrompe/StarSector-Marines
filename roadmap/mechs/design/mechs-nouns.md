@@ -116,7 +116,10 @@ increasing an encounter's total armored threat.
 
 ## Family and doctrine
 
-The Bulwark is the durable all-band anchor and compatibility control case. The
+The Bulwark is the durable all-band anchor and compatibility control case. Its
+left shoulder carries close SRM saturation while its right omni shoulder carries a
+long-cooldown direct laser cannon whose lance can pass through one body; the
+weapon is shared hardware, and faction livery changes only its casing paint. The
 Hound is a quick close-assault strider that lacks long-range pressure. The
 Sirocco is a fragile long-range specialist whose cannon is an anti-hardened
 fallback rather than a replacement close-range saturation weapon. Those are
@@ -219,7 +222,7 @@ campaign faction id selects the marine livery and the target faction id (or an
 explicit defender comparison override) selects the defender livery. Tactical
 `MARINE`/`DEFENDER` identity remains only the lookup side; it does not become a
 campaign faction. The renderer resolves one complete livery family for that
-side—three chassis plus five weapon casings—with unknown human factions using
+side—three chassis plus six weapon casings—with unknown human factions using
 the practical Independent/mercenary treatment and automated or absent identity
 retaining the base art. If any painted layer is unavailable, the entire mech
 uses the complete base family rather than mixing liveries. This bridge is

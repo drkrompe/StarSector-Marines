@@ -38,7 +38,7 @@ public class ResupplySystemTest {
         sim.world().attachMechLoadout(mech, loadout);
 
         ResupplyService service = new ResupplyService();
-        ResupplyCache cache = new ResupplyCache(10, 10, Faction.MARINE, 12);
+        ResupplyCache cache = new ResupplyCache(10, 10, Faction.MARINE, 9);
         service.add(cache);
         ResupplySystem system = new ResupplySystem(service, sim.getRoster());
 

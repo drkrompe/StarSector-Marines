@@ -95,6 +95,8 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
     private static final int AIR_CELL_PX = 12;
     private static final int AIR_VIEW_W = 44;
     private static final int AIR_VIEW_H = 30;
+    /** Half the shadow's reach at full altitude, so hull and shadow sit either side of centre. */
+    private static final float AIR_FRAME_LEAD_CELLS = 5f;
 
     private static final EnumSet<RenderLayer> WITH_AIR_SHADOWS =
             EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS,
@@ -156,10 +158,10 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
 
         return List.of(
                 new SnapshotArtifact("aircraft.png", sheet(aircraftPanels(map, context),
-                        "An aircraft's shadow stays on the ground it is over. The gap is the "
-                                + "altitude, and it is the only cue that a hull shifted up the "
-                                + "screen is high rather than further north. Engine plume omitted "
-                                + "— own-GL, unreplayable here.")),
+                        "One craft, three altitudes. The shadow keeps the craft's ground "
+                                + "footprint and walks away from it as the sun's reach grows, so "
+                                + "the gap is the altitude. Engine plume omitted — own-GL, "
+                                + "unreplayable here.")),
                 new SnapshotArtifact("bodies.png", sheet(bodyPanels(map, renderer),
                         "What a body casts, against the same bodies with the layer left out. "
                                 + (int) azimuth + " deg / "
@@ -295,8 +297,11 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
         // drop while every other panel here stays fail-loud.
         HeadlessBattleMapRenderer renderer =
                 new HeadlessBattleMapRenderer(context.modRoot(), true);
-        float centerX = over[0] + 0.5f;
-        float centerY = over[1] + 0.5f;
+        // Framed between the craft and where its shadow falls, not on the craft:
+        // at altitude the two are ten cells apart and a frame centred on the
+        // hull puts the shadow half off the bottom edge.
+        float centerX = over[0] + 0.5f + AIR_FRAME_LEAD_CELLS;
+        float centerY = over[1] + 0.5f - AIR_FRAME_LEAD_CELLS;
 
         List<Panel> panels = new ArrayList<>();
         for (float altitude : AIR_ALTITUDES) {

@@ -96,6 +96,17 @@ class WeaponRegistryParityTest {
                 2f, 40, 2f, true, true, 0.55f,
                 new Color(0xC8, 0xD8, 0xFF), ImpactKind.HE,
                 "graphics/missiles/missile_LRM.png", 0.65f, "pilum_lrm_fire");
+
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
+        assertMech(laser,
+                36f, 24f, 0.82f, 7f, 10f,
+                1, 0f, 0.08f, 360f, 0.10f, 0f,
+                1f, 12, 0.75f, false, false, 1f,
+                new Color(0x70, 0xE8, 0xFF), ImpactKind.CANNON_HE,
+                null, 0f, "pulse_laser_fire");
+        assertEquals(95f, laser.contactDamage, EPS);
+        assertEquals(30f, laser.contactPenetration, EPS);
+        assertEquals(1, laser.bodyPenetrations);
     }
 
     @Test

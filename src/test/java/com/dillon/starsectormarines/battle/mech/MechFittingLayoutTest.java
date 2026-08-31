@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -42,6 +43,8 @@ class MechFittingLayoutTest {
 
         assertFalse(hound.occupied(SocketId.RIGHT_SHOULDER));
         assertTrue(bulwark.occupied(SocketId.RIGHT_SHOULDER));
+        assertEquals(SocketType.OMNI,
+                bulwark.socket(SocketId.RIGHT_SHOULDER).type());
         assertNotEquals(hound.socket(SocketId.RIGHT_SHOULDER).capacity(),
                 bulwark.socket(SocketId.RIGHT_SHOULDER).capacity());
         assertNotEquals(hound.socket(SocketId.ARMS).footprintWidthHull(),

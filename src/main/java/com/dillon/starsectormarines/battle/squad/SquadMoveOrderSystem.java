@@ -10,6 +10,10 @@ import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
 import com.dillon.starsectormarines.battle.nav.ReachableCellResolver;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveCaptureOrder;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveMountOrder;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveDefendAreaOrder;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveMoveOrder;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveOrder;
@@ -23,6 +27,9 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * {@link Squad#assignedObjective} throughout.
  */
 public final class SquadMoveOrderSystem {
+
+    /** How far off a vehicle's centre a right-click still counts as pointing at it. */
+    private static final float VEHICLE_CLICK_TOLERANCE_CELLS = 1.5f;
 
     private final SquadMoveOrderService service;
 
@@ -51,6 +58,11 @@ public final class SquadMoveOrderSystem {
             if (order instanceof ActiveCaptureOrder capture
                     && !refreshCaptureOrder(squad, capture, sim)) {
                 release(squadId, order, squad, sim);
+                continue;
+            }
+            if (order instanceof ActiveMountOrder mount
+                    && !refreshMountOrder(squadId, squad, mount, sim)) {
+                release(squadId, order, squad, sim);
             }
         }
 
@@ -59,6 +71,19 @@ public final class SquadMoveOrderSystem {
             if (squad == null || withdrawing(squad)) continue;
             int[] origin = origin(squad, sim);
             if (origin == null) continue;
+
+            // A friendly vehicle with room under the click is not a patch of
+            // ground to walk to — it is a ride. Resolved before the compound
+            // and the plain move, because the APC is the more specific answer
+            // to what the player pointed at.
+            if (request.kind != PendingOrder.Kind.DEFEND_AREA) {
+                long ride = sim.transport().mountableVehicleFor(request.cellX, request.cellY,
+                        squad.faction, sim.squadMemberCount(squad.id));
+                if (ride != 0L) {
+                    activateMount(request, squad, ride, sim);
+                    continue;
+                }
+            }
 
             Record capture = uncapturedCompoundAt(
                     request.cellX, request.cellY, sim);
@@ -98,6 +123,56 @@ public final class SquadMoveOrderSystem {
             squad.applyTacticalMoveOrder(destination[0], destination[1]);
             invalidateExecution(squad, sim);
         }
+    }
+
+    /**
+     * A vehicle of the squad's own side, within a click's tolerance of
+     * ({@code cellX}, {@code cellY}), with seats for the whole squad. Zero when
+     * the click was at ordinary ground — or at a vehicle that cannot take them,
+     * which is the same thing as far as the order is concerned.
+     */
+    private void activateMount(PendingOrder request, Squad squad, long vehicleId,
+                               BattleSimulation sim) {
+        GroundBody body = sim.convoy().body(vehicleId);
+        int vx = (int) Math.floor(body.x);
+        int vy = (int) Math.floor(body.y);
+        ActiveMountOrder order = new ActiveMountOrder(
+                request.cellX, request.cellY, vx, vy, vehicleId);
+        service.activate(squad.id, order);
+        squad.applyTacticalMoveOrder(vx, vy);
+        invalidateExecution(squad, sim);
+    }
+
+    /**
+     * Keeps a mount order pointed at its vehicle and takes the squad aboard the
+     * moment it is close enough.
+     *
+     * @return false when the order is finished or can no longer be carried out
+     */
+    private boolean refreshMountOrder(int squadId, Squad squad,
+                                      ActiveMountOrder order, BattleSimulation sim) {
+        long vehicleId = order.vehicleId();
+        VehicleMission mission = sim.convoyMission(vehicleId);
+        if (mission == null || mission.state == VehicleState.WRECKED
+                || mission.state == VehicleState.GONE) {
+            return false;   // the ride left, or died
+        }
+        if (sim.transport().mountSquad(vehicleId, squadId) > 0) {
+            return false;   // aboard; the order is done
+        }
+        // Not in reach yet. A vehicle is not a cell — it can drive while the
+        // squad walks — so the destination follows it rather than staying where
+        // the click landed.
+        GroundBody body = sim.convoy().body(vehicleId);
+        int vx = (int) Math.floor(body.x);
+        int vy = (int) Math.floor(body.y);
+        if (vx != order.destinationX() || vy != order.destinationY()) {
+            service.activate(squadId, new ActiveMountOrder(
+                    order.requestedX(), order.requestedY(), vx, vy, vehicleId));
+            squad.applyTacticalMoveOrder(vx, vy);
+            invalidateExecution(squad, sim);
+        }
+        return true;
     }
 
     private void activateDefendArea(PendingOrder request, Squad squad,
