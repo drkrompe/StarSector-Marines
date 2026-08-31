@@ -667,6 +667,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A gun run delivers through the same AoE pipeline as every other
         // explosion, so the air system needs it too.
         this.airSystem.setDetonations(detonations);
+        // A craft the air system kills on the ground shares the hardstand
+        // kill's own cook-off — one definition of the blast, not two.
+        this.airSystem.setAirframeCookOff(airframeCookOff);
         this.transport = new VehicleTransportService(rosterService, rosterService.convoy(),
                 entityWorld, battleComponents, navigation);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,

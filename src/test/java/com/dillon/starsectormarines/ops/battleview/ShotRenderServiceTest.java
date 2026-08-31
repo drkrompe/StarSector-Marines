@@ -122,6 +122,34 @@ class ShotRenderServiceTest {
     }
 
     @Test
+    void shoulderLaserPaintsPulsingGlowBehindItsBrightCore() {
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
+        ShotEvent shot = new ShotEvent(3f, 5f, 17f, 5f, true, Faction.MARINE, 0.10f,
+                null, null, null, laser);
+        ShotFx.Tracer tracer = (ShotFx.Tracer) ShotFx.of(shot).body();
+        BattleSimulation sim = openArena(20, 20);
+        sim.postShot(shot);
+        DrawList out = new DrawList();
+
+        shot.lifetime = 0.05f;
+        new ShotRenderService(new BattleSprites(), new ImpactFx()).collect(context(sim), out);
+
+        assertEquals(2, out.count(RenderLayer.SHOTS), "blue glow plus white-blue core");
+        DrawCommand glow = out.buffer(RenderLayer.SHOTS)[0];
+        DrawCommand core = out.buffer(RenderLayer.SHOTS)[1];
+        assertEquals(12f, glow.angleDegrees(), EPS);
+        assertEquals(3f, core.angleDegrees(), EPS);
+        assertEquals(laser.beamStyle().glowColor().getBlue() / 255f, glow.blue(), EPS);
+        assertEquals(laser.tracerColor().getBlue() / 255f, core.blue(), EPS);
+        assertEquals(1f, ShotRenderService.tracerPulse(shot, tracer), EPS,
+                "two-cycle beam returns to full brightness at midlife");
+
+        shot.lifetime = 0.075f;
+        assertEquals(0.10f, ShotRenderService.tracerPulse(shot, tracer), EPS,
+                "quarter-life trough remains visible rather than blinking off");
+    }
+
+    @Test
     void collectResolvesEveryBoltFamilyTextureWithoutGlContext() {
         SpriteAPI fakeSprite = (SpriteAPI) Proxy.newProxyInstance(
                 SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},

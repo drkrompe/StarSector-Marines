@@ -50,7 +50,6 @@ import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
-import com.dillon.starsectormarines.battle.turret.TurretImpactAudio;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -68,6 +67,7 @@ import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
 import com.dillon.starsectormarines.ops.battleview.SunLight;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
+import com.dillon.starsectormarines.ops.battleview.ShotImpactAudio;
 import com.dillon.starsectormarines.ops.loot.LootGenerator;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.fs.starfarer.api.Global;
@@ -983,6 +983,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
             ImpactDecals.spawnWeaponImpact(sim, rng, fx, s.toX, s.toY, isWall);
+            playImpactCue(s, rng, zeroVel);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
             if (!ShotFx.of(s).travels()) continue;
@@ -990,36 +991,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             WeaponFxDef fx = WeaponFxRuntime.definition(s);
             WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
-            if (s.turretStructureDef != null) {
-                TurretImpactAudio.Cue cue = TurretImpactAudio.resolve(
-                        s.turretStructureDef, SFX_NEAR_EXPLOSION);
-                if (cue != null) {
-                    float pitch = 0.9f + rng.nextFloat() * 0.2f;
-                    Vector2f loc = new Vector2f(
-                            s.toX * AUDIO_WORLD_UNITS_PER_CELL,
-                            s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                    Global.getSoundPlayer().playSound(
-                            cue.soundId(), pitch, cue.volume(), loc, zeroVel);
-                }
-            } else if (s.specialEquipmentDef != null) {
-                float pitch = 0.9f + rng.nextFloat() * 0.2f;
-                Vector2f loc = new Vector2f(
-                        s.toX * AUDIO_WORLD_UNITS_PER_CELL,
-                        s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                if (s.specialEquipmentDef.impactSoundId() != null) {
-                    Global.getSoundPlayer().playSound(s.specialEquipmentDef.impactSoundId(),
-                            pitch, 0.70f, loc, zeroVel);
-                }
-            } else if (s.mechWeaponDef != null) {
-                if (fx.hasExplosiveImpact()) {
-                    float pitch = 0.9f + rng.nextFloat() * 0.2f;
-                    Vector2f loc = new Vector2f(
-                            s.toX * AUDIO_WORLD_UNITS_PER_CELL,
-                            s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                    float volume = fx.hasHeavyImpact() ? 0.86f : 0.65f;
-                    Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, volume, loc, zeroVel);
-                }
-            }
+            playImpactCue(s, rng, zeroVel);
             ImpactDecals.spawnWeaponImpact(sim, rng, fx, s.toX, s.toY, isWall);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
         }
@@ -1035,6 +1007,16 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getImpactFx().spawnHeavyImpact(point[0], point[1], INTERCEPT_BURST_CELLS);
             renderer.getGroundLights().spawnImpact(null, point[0], point[1]);
         }
+    }
+
+    private void playImpactCue(ShotEvent shot, java.util.Random rng, Vector2f zeroVel) {
+        ShotImpactAudio.Cue cue = ShotImpactAudio.resolve(shot, SFX_NEAR_EXPLOSION);
+        if (cue == null) return;
+        Vector2f loc = new Vector2f(
+                shot.toX * AUDIO_WORLD_UNITS_PER_CELL,
+                shot.toY * AUDIO_WORLD_UNITS_PER_CELL);
+        Global.getSoundPlayer().playSound(
+                cue.soundId(), 0.9f + rng.nextFloat() * 0.2f, cue.volume(), loc, zeroVel);
     }
 
     /** True when the endpoint cell is non-walkable (wall / vehicle / turret mount) and the impact should read as a chip on solid material rather than a kick of floor dust. */
