@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
@@ -63,17 +64,40 @@ public final class LabelLeavesStage implements GenStage {
         Bsp.Partition partition = ctx.get(BspKeys.PARTITION);
         BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
         DistrictMap districtMap = ctx.get(BspKeys.DISTRICT_MAP);
+        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
+        boolean dryWorld = profile != null && !profile.surface().bearsOpenWater();
         for (BlockLeaf leaf : partition.leaves) {
             MapDistrictTheme theme = (biomeMap != null)
                     ? biomeMap.themeAt(leaf.centerX(), leaf.centerY())
                     : districtMap.themeAt(leaf.centerX(), leaf.centerY());
             leaf.kind = theme.pickBlockKind(ctx.rng);
             leaf.kind = constrainKindForSize(leaf.kind, leaf.width(), leaf.height());
+            if (dryWorld) leaf.kind = constrainKindForDryWorld(leaf.kind);
         }
         ensureGatedHousingSeed(partition);
         ensureIndustrialCompoundSeed(partition);
         ensureMedicalCampusSeed(partition);
         ensureCivicHeadquartersSeed(partition);
+    }
+
+    /**
+     * Water-bearing lots on a world with no water become open ground.
+     *
+     * <p>The shoreline stage already declines to stamp a sea on a dry world,
+     * but the theme tables roll waterfront and wetland lots independently of
+     * it, and those fillers place their own ponds. A barren rock kept about
+     * ninety cells of standing water that way after the shore was gone —
+     * fewer than before and no less impossible.
+     *
+     * <p>They become open ground rather than nothing, because structurally a
+     * waterfront is the edge of the built area: the surface palette then
+     * decides what that ground is made of.
+     */
+    static BlockKind constrainKindForDryWorld(BlockKind kind) {
+        return switch (kind) {
+            case WATERFRONT, NATURE_WETLAND, NATURE_BEACH -> BlockKind.NATURE_GRASSLAND;
+            default -> kind;
+        };
     }
 
     /** Promote only an already-residential qualifying lot when no natural seed rolled. */
