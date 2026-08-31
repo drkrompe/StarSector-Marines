@@ -143,14 +143,22 @@ the index, and it stays that way on purpose — the reason is worth writing down
 because "use the index" looks obviously right here and is not.
 
 A broad phase over the index returns the bodies whose **centre** sat within the
-asked radius **at the last rebuild**. Both halves of that need padding, and only
-one of them can be bounded. The radius half now can: `UnitSpatialIndex.maxBodyRadius()`
-measures the largest body it has ever held, so a caller asking "does this circle
-touch that body" widens its query by a number that is measured rather than
-authored. That matters because the inputs are content: a turret's radius comes
-from the turret-emplacement JSON and a chassis's is derived from its art
-dimensions, so a hardcoded margin goes stale on a content edit, in a file nobody
-would connect to blast damage.
+asked radius **at the last rebuild**. Both halves of that are wrong for a
+physical question, and only one of them can be fixed.
+
+The size half is fixed, and the fix was to stop asking the wrong question.
+`gather` means "whose centre is in this circle"; a caller asking about contact
+wants "whose circle touches this circle", and the difference is the body's own
+radius. Making each caller pad for that is the same defect as making each caller
+remember a convoy sweep — it works until someone forgets, and forgetting is
+silent. So the index owns it: `gatherOverlapping` and `gatherAlongSegment` add
+the body-size pad themselves, from a bound measured off the bodies they actually
+hold rather than authored as a constant. Measured matters because the inputs are
+content — a turret's radius comes from the turret-emplacement JSON and a
+chassis's is derived from its art dimensions, so a hardcoded margin goes stale on
+an edit to a file nobody would connect to blast damage. The bound is not public;
+a number every caller must remember to add is not an improvement on a sweep every
+caller must remember to run.
 
 The staleness half cannot be bounded. Index positions are a tick-start snapshot,
 and a body can be **teleported** between rebuilds — deboarding, an equipment drop,
@@ -165,7 +173,9 @@ spares a victim is a worse trade than a full walk over a few hundred live bodies
 
 Splash therefore reads live positions over the live population, and pays the
 explicit convoy sweep as the price. That is a considered exception to "every
-proximity scan goes through the index", not an unconverted leftover.
+proximity scan goes through the index", not an unconverted leftover — and note
+that the overlap query does not rescue it. Query semantics and snapshot
+staleness are different axes; fixing the first does nothing for the second.
 
 A vehicle is seen but never sees. It carries no perception components at all, so
 any code that reads a target's sight stats must treat "target" and "perceiver"
