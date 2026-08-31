@@ -463,7 +463,7 @@
         "hitSpread": 0.08,
         "roundVelocity": 360.0,
         "flightSec": 0.10,
-        "aoeRadius": 1.0,
+        "aoeRadius": 1.5,
         "wallDamage": 12,
         "wallDamageRadius": 0.75,
         "noiseMagnitude": 1.5
@@ -486,12 +486,12 @@
           { "kind": "ring", "radius": 0.42, "lifetime": 0.18, "color": "D8FCFF" }
         ],
         "impact": [
-          { "kind": "glow", "radius": 1.20, "lifetime": 0.20, "color": "58C8FF" },
-          { "kind": "explosion", "radius": 0.82, "lifetime": 0.38, "color": "70D8FF" },
-          { "kind": "ring", "radius": 0.95, "lifetime": 0.34, "color": "B8F4FF" },
-          { "kind": "smoke", "radius": [0.62, 0.95], "lifetime": [1.20, 1.75],
-            "count": [3, 5], "jitter": 0.55, "delay": [0.06, 0.16] },
-          { "kind": "dust", "radius": 0.70, "lifetime": 0.34 }
+          { "kind": "glow", "radius": 1.65, "lifetime": 0.20, "color": "58C8FF" },
+          { "kind": "explosion", "radius": 1.05, "lifetime": 0.38, "color": "70D8FF" },
+          { "kind": "ring", "radius": 1.35, "lifetime": 0.34, "color": "B8F4FF" },
+          { "kind": "smoke", "radius": [0.78, 1.20], "lifetime": [1.20, 1.75],
+            "count": [3, 5], "jitter": 0.70, "delay": [0.06, 0.16] },
+          { "kind": "dust", "radius": 0.95, "lifetime": 0.34 }
         ]
       },
       "audio": {
