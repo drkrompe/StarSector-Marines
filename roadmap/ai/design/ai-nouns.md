@@ -949,7 +949,17 @@ position three cells from its anchor and seven from the marine can be a
 thirty-nine cell march around the obstacle between them, which is not a
 bounded improvement but the objective abandoned for as long as the march
 takes. So travel is bounded in its own right, and a position that cannot be
-reached at all is refused rather than walked at.
+reached at all is refused rather than walked at. This holds wherever a leash
+does — the committed firing line, a hold ring, a patrol leash, an area radius
+— because it is a property of leashes rather than of any one order.
+
+**Whether the detour bound applies is the caller's choice, and the distinction
+is not decoration.** It is meaningful only for a cell picked as an
+improvement: somewhere marginally better to shoot from than where the member
+already stands. A member returning to its post, or walking to a noise it
+heard, is going where it belongs, and the long way round is the right way when
+it is the only way. Binding those two together would turn "there is a building
+in between" into "do not go home".
 
 **The two refusals are different facts and get different answers.** No path at
 all means the commitment cannot be prosecuted by walking, so the member holds
