@@ -65,6 +65,28 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  * the arithmetic never would have — separation is the whole cue, and the
  * lateral offset is what provides it.
  *
+ * <h2>A shadow lies entirely down-sun of what casts it</h2>
+ * <p>The ellipse is offset by half its own length, so its near edge falls on
+ * the caster's centre and every part of it is on the far side from the light.
+ * An earlier version offset by a quarter of the sun's reach, which for a marine
+ * left about a fifth of a cell of shadow lying <em>between</em> the body and the
+ * sun — subtle in a still, and exactly the sort of thing that reads as wrong
+ * without being nameable.
+ *
+ * <p>A body genuinely does shade its own base, so the strictly physical near
+ * edge is one body radius up-sun rather than zero. That is not what is drawn
+ * here, deliberately: at these sizes the honest version is indistinguishable
+ * from the error it permits, and a rule with no exceptions is worth more than a
+ * fifth of a cell of realism.
+ *
+ * <p>The rule has one consequence worth knowing. As the sun approaches
+ * overhead the reach goes to nothing, the ellipse shrinks to the body's own
+ * width — and it is still anchored at the centre, so it sits half a width to
+ * one side instead of underneath. That is unavoidable: a blob centred under an
+ * overhead body necessarily extends up-sun, so "centred at noon" and "never
+ * up-sun" cannot both hold. The low sun is the case that looks wrong when it is
+ * wrong, so it is the one the rule serves.
+ *
  * <h2>Fog</h2>
  * <p>A shadow is gated on exactly the visibility its caster is, because a
  * shadow nobody should see is a unit nobody should see. That gate is load
@@ -84,23 +106,16 @@ public final class UnitShadowRenderSystem implements RenderSystem {
     private static final float BLOB_WIDTH_PER_RADIUS = 2.6f;
 
     /**
-     * How much longer than wide the ellipse is, along the down-sun axis.
+     * How much of the sun's true reach the ellipse takes as length, beyond the
+     * body's own width.
      *
-     * <p>A lean rather than a projection. The sun's true reach at a marine's
-     * height is about three body-lengths, which drawn out is the smear this
-     * replaced; but a perfectly round blob under a body standing beside a wall
-     * that <em>does</em> lie down-sun reads as a second, contradictory light.
-     * This is the smallest elongation that keeps the two agreeing.
+     * <p>A fraction rather than the whole of it. The reach at a marine's height
+     * is about three body-lengths, and a soft blob drawn out that far does not
+     * read as a shadow — it reads as a smear trailing off the model. What the
+     * reach is still good for is <em>relative</em> length: a mech's ellipse
+     * comes out longer than a marine's, and a low sun lengthens both.
      */
-    private static final float ELLIPSE_LENGTH_PER_WIDTH = 1.3f;
-
-    /**
-     * How far down-sun the ellipse sits, as a fraction of the sun's true reach
-     * for the caster's height. Small, for the same reason the elongation is: at
-     * anything near the full reach the ellipse leaves the feet of the thing
-     * casting it and becomes a separate object on the ground.
-     */
-    private static final float ELLIPSE_LEAN_FRACTION = 0.25f;
+    private static final float ELLIPSE_REACH_FRACTION = 0.35f;
 
     /**
      * An aircraft silhouette's opacity, below a ground body's.
@@ -191,16 +206,19 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 float heightCells = 2f * roster.hitHalfHeight(entityId);
                 if (radiusCells <= 0f || heightCells <= 0f) continue;
 
-                // A lean away from the sun rather than a projection along
-                // it. The reach still sets the lean, so a taller body's shadow
-                // sits further out than a shorter one's.
-                float lean = sun.reachCells(heightCells) * ELLIPSE_LEAN_FRACTION;
-                float shadowX = rx[r] - sun.dirX() * lean;
-                float shadowY = ry[r] - sun.dirY() * lean;
+                float widthCells = radiusCells * BLOB_WIDTH_PER_RADIUS;
+                float lengthCells = widthCells
+                        + sun.reachCells(heightCells) * ELLIPSE_REACH_FRACTION;
 
-                float width = radiusCells * BLOB_WIDTH_PER_RADIUS * cellPx;
-                float length = width * ELLIPSE_LENGTH_PER_WIDTH;
-                emit(out, blob, cam, shadowX, shadowY, width, length,
+                // Half its own length down-sun, which puts the ellipse's near
+                // edge on the body's centre: nothing may lie between a body
+                // and the light that is casting it. See the class doc.
+                float anchor = lengthCells * 0.5f;
+                float shadowX = rx[r] - sun.dirX() * anchor;
+                float shadowY = ry[r] - sun.dirY() * anchor;
+
+                emit(out, blob, cam, shadowX, shadowY,
+                        widthCells * cellPx, lengthCells * cellPx,
                         shadowAngleDegrees(), alpha * SHADOW_ALPHA * sun.shadowStrength());
             }
         }
