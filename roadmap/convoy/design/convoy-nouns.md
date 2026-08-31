@@ -44,6 +44,9 @@ but not the claim.
 Updated: 2026-08-31 — mounting and dismounting are contextual right-click
 orders on the vehicle itself rather than buttons.
 
+Updated: 2026-08-31 — the pointer says which contextual order a right-click
+would issue, resolved through the same services the order systems use.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -379,6 +382,17 @@ it planned before.
   itself is an order to unload; pointing an empty one at itself is an ordinary
   move. None of it needs a button, which is the grammar Red Alert 2 settled and
   there is no reason to re-litigate.
+- **A contextual order has to be legible before it is issued.** The click means
+  different things over different ground, and nothing on screen says so until
+  after the fact — which makes a good interaction an undiscoverable one. The
+  pointer therefore carries the verb it would perform, and stays silent for an
+  ordinary move, which is the default and would only be noise.
+- That preview asks the same services the order systems ask, never a second copy
+  of the rule. A cursor that offers a ride the order then refuses is worse than
+  a cursor that says nothing, so "can this squad board that vehicle" and "is
+  this click on that hull" each have exactly one implementation, and the
+  cursor's promise is tested against what the click actually does rather than
+  against itself.
 - Boarding is all or nothing on the squad, and "all" means the squad rather
   than the seats. A squad ordered to a vehicle arrives strung out in formation,
   so admitting whoever got there first boards one marine and leaves the rest

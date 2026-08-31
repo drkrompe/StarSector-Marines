@@ -8,6 +8,7 @@ package com.dillon.starsectormarines.battle.air;
  *
  * <p>Lifecycle: PENDING (waiting on stagger / re-arm, off-map + engine-silent) →
  * optional LOADING (down on its own hardstand while its squad walks out to it) →
+ * optional PAD_ASCENT (climbing off that hardstand) →
  * INCOMING (steering from the entry point to the LZ) → PAD_DESCENT (settling
  * onto it) → LANDED (deboarding marines) → DEPARTING (steering to exit) → GONE
  * (terminal). With {@code totalCycles > 1} a shuttle re-enters PENDING after
@@ -64,6 +65,24 @@ public enum ShuttleState {
      * was nowhere on the map for it to load.
      */
     LOADING,
+    /**
+     * Climbing straight off its own hardstand, engines under full power,
+     * before it turns for the LZ.
+     *
+     * <p>The mirror of {@link #PAD_DESCENT}, and a phase of its own for the
+     * same reason: {@link #LOADING} pins the craft to ground level, and
+     * {@link #INCOMING}'s altitude tracks how far along its flight leg the
+     * craft is — which is already cruise height on the very first sample of a
+     * fresh leg. Without something between them a craft leaving its own pad
+     * popped from the ground to cruising altitude in a single tick, which is
+     * the same discontinuity {@link #PAD_DESCENT} exists to remove, the other
+     * way round.
+     *
+     * <p>Only a sortie that starts down on its own hardstand needs this. A
+     * craft entering from off-map is already at cruise, and one rolling off a
+     * strip reaches it over the length of the {@link #TAKEOFF_ROLL}.
+     */
+    PAD_ASCENT,
     INCOMING,
     /**
      * Over its landing zone, settling onto it.
@@ -78,7 +97,13 @@ public enum ShuttleState {
      *
      * <p>It replaces a snap. The arrival used to put the craft on the pad and
      * zero it in a single tick, which read as the shuttle stopping existing
-     * mid-air and reappearing landed.
+     * mid-air and reappearing landed. It also used to end on a stated
+     * duration rather than on the craft actually being down — a bus-tier hull
+     * brakes too gently to kill its run-in speed inside that duration, so the
+     * clock ran out with the craft still travelling and the same snap
+     * happened a few cells short of the pad. It now ends when the craft is
+     * over the pad and has genuinely stopped, both read off the body rather
+     * than off a clock; see {@code AirSystem#advanceShuttles}.
      */
     PAD_DESCENT,
     LANDED,
