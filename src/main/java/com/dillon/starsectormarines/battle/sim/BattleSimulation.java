@@ -49,6 +49,8 @@ import com.dillon.starsectormarines.battle.air.AirframeCookOffSystem;
 import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.BattleResources;
+import com.dillon.starsectormarines.battle.fabrication.FabricationService;
+import com.dillon.starsectormarines.battle.fabrication.FabricationSystem;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceRecorder;
 import com.dillon.starsectormarines.battle.squad.AssaultCoordinationSystem;
@@ -359,6 +361,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final AirCoverSystem airCoverSystem = new AirCoverSystem();
     /** Marine-side garrison shuttle spawner — drops friendly troops at captured compounds. Conquest-only; null on other mission types. Set via {@link #setGarrisonSystem}. */
     private CompoundGarrisonSystem garrisonSystem;
+    /**
+     * What the map's vehicle bays have on the stocks, or null on a map with
+     * none. Installed by {@code BattleSetup}, which is where the map's berths
+     * and work points are in hand.
+     */
+    private FabricationService fabrication;
+    private final FabricationSystem fabricationSystem = new FabricationSystem();
 
     /**
      * Per-tick recompute driver for the defender's recapture-target registry
@@ -1502,6 +1511,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.garrisonSystem = system;
     }
 
+    /** What every vehicle bay on this map is building, or null where none does. */
+    public FabricationService getFabrication() {
+        return fabrication;
+    }
+
+    /** Installs the map's vehicle-bay stocks. {@code BattleSetup} owns the call. */
+    public void setFabrication(FabricationService works) {
+        this.fabrication = works;
+    }
+
     /**
      * Installs the recapture-target recompute driver. {@code BattleSetup}
      * calls this from {@code installReinforcementLayer} on conquest maps
@@ -1874,6 +1893,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // airstrike) into per-faction pools. Ticked after capture so a
         // just-flipped compound stops producing immediately.
         battleResources.tick(TICK_DT, compoundService);
+        // A vehicle bay is the one structure that makes something rather than
+        // supplying it, and what it makes is counted off the technicians
+        // actually welding rather than off this clock. Next to resource
+        // production because it is the same kind of fact about a held building,
+        // and after capture for the same reason.
+        fabricationSystem.tick(TICK_DT, this, fabrication);
         // Recapture-target recompute must precede the reinforcement trigger
         // poll below so FrontLineReinforcementTrigger dispatches against this
         // tick's fresh contested/open state, not last tick's.

@@ -27,6 +27,8 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.ambient.RoomSite;
+import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 
@@ -90,6 +92,7 @@ import com.dillon.starsectormarines.battle.command.reinforcement.WalkInMeans;
 import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
@@ -1521,6 +1524,7 @@ public final class BattleSetup {
             rs.addTrigger(new ObjectiveLostTrigger());
         }
         basedAircraft(sim, map, groundRoster == null ? null : groundRoster.primaryFactionId());
+        installVehicleBays(sim, map);
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
                 deliveryPolicy));
         rs.addMeans(new ShuttleMeans(axis, groundRoster, risk,
@@ -1561,6 +1565,44 @@ public final class BattleSetup {
         }
         throw new IllegalStateException(MissionMapRequirements.describeFailure(
                 MissionType.CONQUEST, seed, CONQUEST_MAP_ATTEMPTS, missing));
+    }
+
+    /**
+     * How many of one trade stand a watch in one vehicle bay.
+     *
+     * <p>A shed's crew, not the room's capacity. A rank of six berths worked
+     * from five positions each is thirty places to weld, and filling all of them
+     * would put a platoon of unarmed engineers in a building a garrison holds
+     * with three riflemen. What a motor pool has is a handful of people and a
+     * great deal of work waiting on them.
+     */
+    private static final int BAY_WATCH = 3;
+
+    /**
+     * Open the works in every vehicle bay the map has, and stand a crew in it.
+     *
+     * <p>A vehicle bay is the only structure on a battle map that <em>makes</em>
+     * something. Everything else supplies, garrisons or shelters; this one has a
+     * machine on the stocks and people working it up, and what comes out is an
+     * ordinary unit. Both halves are installed together on purpose, because
+     * neither is anything on its own: a shed with no crew builds nothing, and a
+     * crew with nothing in the berths has no trade there and is not posted at
+     * all.
+     *
+     * <p>The crew is the defender's. A garrison's motor pool is worked by the
+     * garrison, so its technicians are on the roster, can be shot, and stop
+     * working when they are.
+     */
+    private static void installVehicleBays(BattleSimulation sim, MapResult map) {
+        if (map.gantries.isEmpty()) return;
+        List<RoomSite> rooms = RoomSite.findAll(map.topology,
+                map.grid.getWidth(), map.grid.getHeight());
+        FabricationService works = new FabricationService(map.gantries, map.fixtureTasks, rooms);
+        if (works.isEmpty()) return;
+
+        sim.setFabrication(works);
+        StructureWatch.man(sim, Faction.DEFENDER, rooms, map.fixtureTasks,
+                works.berthed(), EnumSet.of(RoomPurpose.VEHICLE_BAY), BAY_WATCH);
     }
 
     /**

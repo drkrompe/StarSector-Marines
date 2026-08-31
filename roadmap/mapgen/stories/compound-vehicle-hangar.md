@@ -128,8 +128,12 @@ roster, exactly as it is on the deck.
 ## Out of scope
 
 The compound program itself, which is `compound-programs.md` and its own
-stories. Spawning anything into a berth, sourcing reinforcement from a surviving hangar,
-and any change to Conquest capture or `reinforcement-nouns.md`. Those are the
-battle-tier consumer, deliberately held back so the map work lands on its own.
+stories, and any change to Conquest capture or `reinforcement-nouns.md`.
+
+What occupies a berth is also out of scope here, and has since landed on its own:
+the fortress bay is worked by a garrison crew and builds light chassis out of
+what they do. `mechs-nouns.md` owns that and `ai-nouns.md` owns the crew. It
+changes nothing this story is about — the fill still names no chassis, and the
+berth is still a berth on a map that builds nothing.
 `ARMORY` and `BARRACKS` members keep their current fills; they follow the same
 shape once the hangar proves the seam.

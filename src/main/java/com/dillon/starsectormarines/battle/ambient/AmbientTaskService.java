@@ -283,6 +283,28 @@ public final class AmbientTaskService {
         return livePoses.get(actorId);
     }
 
+    /**
+     * The claim group of the job this actor has in hand, or null if they are
+     * walking to one, stood down, or working nothing.
+     *
+     * <p>What somebody is doing rather than where they are. A facility that
+     * earns something from being worked has to count the hands actually at the
+     * work: an actor on their way across the room is not welding, and one whose
+     * rotation has taken them to the stores is welding nothing either, though
+     * both are in the bay and both belong to it.
+     *
+     * <p>The group rather than the affordance, because a group names the site as
+     * well — two bays on one map are two different pieces of work, and a count
+     * that could not tell them apart would credit each with the other's hands.
+     */
+    public String jobInHand(long actorId) {
+        AmbientTaskRoute route = assignments.get(actorId);
+        Progress state = progress.get(actorId);
+        if (route == null || state == null || !state.working) return null;
+        if (state.stopIndex < 0 || state.stopIndex >= route.stops().size()) return null;
+        return route.stops().get(state.stopIndex).pointGroup();
+    }
+
     /** Actors currently assigned a route, in roster order. */
     public List<Long> assigned() {
         List<Long> working = new ArrayList<>();
