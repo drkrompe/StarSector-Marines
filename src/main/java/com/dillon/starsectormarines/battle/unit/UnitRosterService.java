@@ -375,8 +375,12 @@ public final class UnitRosterService {
     /** Profile-aware physical radius shared by selection, separation, ballistics and AoE. */
     public float radius(long id) {
         if (turretStateService.isTurret(id)) {
-            StructureDef structure = turretStateService.structure(id);
-            if (structure != null) return structure.radius;
+            // Gate on the id, not the resolved def: structure() requires its
+            // id and throws on a turret authored without one, so the old
+            // null-check could never fire. Sampling this for every body at
+            // spawn is what surfaced it.
+            String structureId = turretStateService.structureId(id);
+            if (structureId != null) return turretStateService.structure(id).radius;
         }
         if (convoyService.isVehicle(id)) return convoyService.targetRadius(id);
         MechVariant variant = identityService.mechVariant(id);
@@ -399,8 +403,12 @@ public final class UnitRosterService {
     /** Profile-aware target-plane half-height for ballistic contact. */
     public float hitHalfHeight(long id) {
         if (turretStateService.isTurret(id)) {
-            StructureDef structure = turretStateService.structure(id);
-            if (structure != null) return structure.hitHalfHeight;
+            // Gate on the id, not the resolved def: structure() requires its
+            // id and throws on a turret authored without one, so the old
+            // null-check could never fire. Sampling this for every body at
+            // spawn is what surfaced it.
+            String structureId = turretStateService.structureId(id);
+            if (structureId != null) return turretStateService.structure(id).hitHalfHeight;
         }
         if (convoyService.isVehicle(id)) return convoyService.hitHalfHeight(id);
         MechVariant variant = identityService.mechVariant(id);

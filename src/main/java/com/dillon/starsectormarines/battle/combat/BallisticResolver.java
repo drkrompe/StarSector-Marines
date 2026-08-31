@@ -63,18 +63,27 @@ public final class BallisticResolver {
     /** Block-roll chance by cover level, index = level (capped at 3 = {@link NavigationGrid#MAX_COVER}). Tuning-neutral anchor: today's 0.85/0.70/0.55 accuracy multipliers for levels 1/2/3. */
     public static final float[] BLOCK_CHANCE_BY_LEVEL = {0f, 0.15f, 0.30f, 0.45f};
     /**
-     * Base margin (cells) passed to {@link UnitSpatialIndex#gatherAlongSegment}
-     * — max collision radius plus slack for a stationary candidate. Movers
-     * add {@link #MAX_MOVER_SPEED_CELLS} scaled by flight exposure on top of
-     * this (see the margin computation in {@link #resolve}), since a mover
-     * can walk into the corridor mid-flight even when its fire-tick position
-     * sits outside this base margin.
+     * Slack (cells) added on top of the largest body radius when gathering
+     * candidates along the corridor, for a stationary candidate. Movers add
+     * {@link #MAX_MOVER_SPEED_CELLS} scaled by flight exposure on top of that
+     * (see the margin computation in {@link #resolve}), since a mover can walk
+     * into the corridor mid-flight even when its fire-tick position sits
+     * outside the base margin.
+     *
+     * <p>This used to <em>be</em> the whole base margin, documented as "max
+     * collision radius plus slack" and fixed at 1.0. It stopped being true
+     * when a 1.2-cell APC became an ordinary index body: a point-blank shot
+     * down a lane the hull overhung passed through it, because the speed term
+     * that topped the margin up shrinks to nothing over a two-cell shot. The
+     * radius half now comes from {@link UnitSpatialIndex#maxBodyRadius()},
+     * which is measured rather than authored, and this constant is only the
+     * slack it was always meant to be.
      */
-    public static final float GATHER_MARGIN_CELLS = 1.0f;
+    public static final float GATHER_SLACK_CELLS = 1.0f;
     /**
      * Fastest mover speed (cells/sec) assumed when scaling the gather margin
      * by flight exposure time — a tuning-surface constant per
-     * {@link #GATHER_MARGIN_CELLS}'s precedent, not a per-call roster scan.
+     * {@link #GATHER_SLACK_CELLS}'s precedent, not a per-call roster scan.
      * The fastest live mover today is ALIEN at 2.2 cells/s; 4 leaves
      * headroom for vehicles.
      */
@@ -362,7 +371,8 @@ public final class BallisticResolver {
         // gather margin grows with flight exposure — a slow round's corridor
         // can be entered mid-flight by a candidate whose fire-tick position
         // sits outside the base margin.
-        float margin = GATHER_MARGIN_CELLS + MAX_MOVER_SPEED_CELLS * (rayLen / roundVelocity);
+        float margin = unitIndex.maxBodyRadius() + GATHER_SLACK_CELLS
+                + MAX_MOVER_SPEED_CELLS * (rayLen / roundVelocity);
         LongBucket candidates = new LongBucket();
         unitIndex.gatherAlongSegment(fromX, fromY, rayEndX, rayEndY, margin, candidates);
         for (int i = 0; i < candidates.size; i++) {
