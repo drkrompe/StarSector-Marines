@@ -18,8 +18,18 @@ public final class HeadlessBattleMapRenderer {
 
     private final HeadlessUiRenderer drain;
 
+    /**
+     * Resolve against the mod folder and the installed game.
+     *
+     * <p>Both, because the collect side and the drain are separate lookups:
+     * HeadlessBattleSceneRenderer loads vanilla hulls and effect sprites off the
+     * install, and a canvas that could only see the mod folder collects those
+     * commands and then throws trying to paint them. That is not hypothetical
+     * -- it is what a unit shadow did the first time it had a sprite to draw
+     * with.
+     */
     public HeadlessBattleMapRenderer(Path modRoot) {
-        this(List.of(modRoot));
+        this(HeadlessBattleSceneRenderer.resourceRoots(modRoot), modRoot);
     }
 
     /**
@@ -31,13 +41,28 @@ public final class HeadlessBattleMapRenderer {
      * root, because that is where the catalogs it installs live.
      */
     public HeadlessBattleMapRenderer(List<Path> resourceRoots) {
+        this(resourceRoots, resourceRoots == null || resourceRoots.isEmpty()
+                ? null : resourceRoots.get(resourceRoots.size() - 1));
+    }
+
+    /**
+     * Sprite lookup order and the catalog root, stated separately.
+     *
+     * <p>They coincided while the last root was always the mod folder, and stop
+     * coinciding the moment the installed game joins the lookup: the game's own
+     * order puts the mod folder <em>first</em>, so the last root became the
+     * install and the scene renderer went looking for this mod's catalogs
+     * inside Starsector. Two different questions -- where art may be found, and
+     * where the catalogs live -- so they are two parameters.
+     */
+    private HeadlessBattleMapRenderer(List<Path> resourceRoots, Path catalogRoot) {
         if (resourceRoots == null || resourceRoots.isEmpty()) {
             throw new IllegalArgumentException("at least one resource root is required");
         }
         List<Path> roots = resourceRoots.stream()
                 .map(root -> root.toAbsolutePath().normalize())
                 .toList();
-        Path shipped = roots.get(roots.size() - 1);
+        Path shipped = catalogRoot.toAbsolutePath().normalize();
         drain = new HeadlessUiRenderer(roots, new HeadlessBattleSceneRenderer(shipped));
     }
 

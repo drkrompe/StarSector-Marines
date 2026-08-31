@@ -3,6 +3,10 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -17,6 +21,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -66,6 +71,20 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
     private static final int BREACH_VIEW_H = 28;
     /** Roughly what a detonation takes out, and comfortably inside the rim's reach at the default sun. */
     private static final int BREACH_RADIUS_CELLS = 3;
+
+    /** Tighter again: a marine is about a metre tall, so its shadow is about a cell long. */
+    private static final int BODY_CELL_PX = 28;
+    private static final int BODY_VIEW_W = 24;
+    private static final int BODY_VIEW_H = 16;
+    private static final int BODY_COUNT = 5;
+    /** Cells between bodies. Spread, because a heap of overlapping blobs cannot show where anything stands. */
+    private static final int BODY_SPACING_CELLS = 3;
+
+    private static final EnumSet<RenderLayer> WITHOUT_SHADOWS =
+            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.UNITS);
+    private static final EnumSet<RenderLayer> WITH_SHADOWS =
+            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS,
+                    RenderLayer.UNIT_SHADOWS, RenderLayer.UNITS);
 
     @Override
     public String id() {
@@ -118,6 +137,11 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
         }
 
         return List.of(
+                new SnapshotArtifact("bodies.png", sheet(bodyPanels(map, renderer),
+                        "What a body casts, against the same bodies with the layer left out. "
+                                + (int) azimuth + " deg / "
+                                + (int) SunLight.DEFAULT_ELEVATION_DEGREES
+                                + " deg sun, seed " + SEED + ".")),
                 new SnapshotArtifact("roof-breach.png", sheet(breachPanels(map, renderer),
                         "A roof is what a building casts with. Same map, same "
                                 + (int) azimuth + " deg / "
@@ -222,6 +246,78 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
             breached++;
         }
         return breached;
+    }
+
+    /**
+     * Marines on open ground, with and without the shadows they cast.
+     *
+     * <p>The only panel here that draws <b>bodies</b>. Terrain shading is baked
+     * into the ground composite from a height field, so every other panel would
+     * look identical whether {@code UnitShadowRenderSystem} existed or not —
+     * which is how a render system comes to ship unlooked-at.
+     *
+     * <p>The control is the same map, seed and marines with the shadow layer
+     * left out of the collected set, so the only difference between the panels
+     * is the system under test.
+     */
+    private List<Panel> bodyPanels(MapResult map, HeadlessBattleMapRenderer renderer) {
+        int[] stand = openGroundNear(map);
+        if (stand == null) return List.of();
+        // Frame on the middle of the line rather than its first body.
+        float centerX = stand[0] + (BODY_COUNT - 1) * BODY_SPACING_CELLS * 0.5f;
+        float centerY = stand[1];
+
+        List<Panel> panels = new ArrayList<>();
+        panels.add(new Panel(renderer.renderView(map, SEED, centerX, centerY,
+                BODY_VIEW_W, BODY_VIEW_H, BODY_CELL_PX,
+                sim -> standBodies(sim, stand[0], stand[1]), WITHOUT_SHADOWS),
+                "bodies, shadow layer not collected (control)"));
+        panels.add(new Panel(renderer.renderView(map, SEED, centerX, centerY,
+                BODY_VIEW_W, BODY_VIEW_H, BODY_CELL_PX,
+                sim -> standBodies(sim, stand[0], stand[1]), WITH_SHADOWS),
+                "the same bodies, casting"));
+        return panels;
+    }
+
+    /**
+     * A line of marines, spaced so each one's shadow is its own.
+     *
+     * <p>Player faction, because fog gates the shadow pass exactly as it gates
+     * the sprite pass, and an unseen marine correctly casts nothing — which
+     * would read here as the system not working.
+     */
+    private static void standBodies(BattleSimulation sim, int originX, int originY) {
+        for (int i = 0; i < BODY_COUNT; i++) {
+            int x = originX + i * BODY_SPACING_CELLS;
+            if (!sim.getGrid().isWalkable(x, originY)) continue;
+            sim.spawn(new EntitySpec("shadow-body-" + i,
+                    Faction.MARINE, UnitType.MARINE_BLUE, x, originY));
+        }
+    }
+
+    /**
+     * A run of open ground wide enough to stand the line on.
+     *
+     * <p>Open rather than anywhere: a marine indoors stands under a roof, and
+     * its shadow would be an argument about the roof instead of about the body.
+     */
+    private static int[] openGroundNear(MapResult map) {
+        int span = (BODY_COUNT - 1) * BODY_SPACING_CELLS;
+        for (int y = 40; y < map.grid.getHeight() - 40; y++) {
+            for (int x = 20; x + span < map.grid.getWidth() - 20; x++) {
+                if (openRun(map, x, y, span)) return new int[]{x, y};
+            }
+        }
+        return null;
+    }
+
+    private static boolean openRun(MapResult map, int x, int y, int span) {
+        for (int dx = -2; dx <= span + 2; dx++) {
+            int cx = x + dx;
+            if (!map.grid.isWalkable(cx, y)) return false;
+            if (map.topology.getGroundKind(cx, y) == CellTopology.GroundKind.INDOOR) return false;
+        }
+        return true;
     }
 
     /** What a wall of the tallest authored height lays down, in cells, at this elevation. */
