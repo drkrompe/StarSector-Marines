@@ -7,12 +7,14 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.GlErrors;
 import com.dillon.starsectormarines.render2d.ShaderProgram;
+import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 
 import java.nio.ByteBuffer;
+import java.util.Locale;
 
 import static org.lwjgl.opengl.GL11.GL_ALL_ATTRIB_BITS;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -108,10 +110,20 @@ public final class GroundParallaxPipeline {
 
     // ---- shader tuning (playtest-tunable; see surface-relief-nouns.md) -------
 
-    /** UV-space structural offset per unit of centered macro height and eye direction. */
+    /**
+     * UV-space structural offset per <b>metre</b> of macro height and eye
+     * direction.
+     *
+     * <p>Per metre, not per unit of a 0..1 scale: macro height is now measured
+     * against a real datum, so the dial is a rate against a real quantity. The
+     * default is set so a 3 m wall displaces exactly as far as it did under the
+     * old dimensionless scale — what re-proportions is everything shorter,
+     * which previously sat on invented numbers (a building floor was 30% of a
+     * wall; it is now the 10% a slab's step actually is).
+     */
     public static final float MIN_STRENGTH = 0f;
-    public static final float MAX_STRENGTH = 5.0f;
-    public static final float DEFAULT_STRENGTH = 0.006f;
+    public static final float MAX_STRENGTH = 0.667f;
+    public static final float DEFAULT_STRENGTH = 0.0008f;
     /** Surface relief retains the same broad experiment range but has an independent live control. */
     public static final float MIN_SURFACE_STRENGTH = 0f;
     public static final float MAX_SURFACE_STRENGTH = 5.0f;
@@ -124,14 +136,82 @@ public final class GroundParallaxPipeline {
     public static final float MIN_LIGHTING_STRENGTH = 0f;
     public static final float MAX_LIGHTING_STRENGTH = 2f;
     public static final float DEFAULT_LIGHTING_STRENGTH = 1f;
+    /**
+     * How hard the sun's cast shadows read. Zero is not merely a black tint: it
+     * also collapses the height target's shadow margin back to the ordinary
+     * geometry halo, so the whole feature costs nothing when dialled off.
+     */
+    public static final float MIN_SUN_SHADOW_STRENGTH = 0f;
+    public static final float MAX_SUN_SHADOW_STRENGTH = 1f;
+    public static final float DEFAULT_SUN_SHADOW_STRENGTH = 0.75f;
+    /**
+     * Compass bearing the sun sits at, in world-cell space, degrees
+     * anticlockwise from +X. The default puts it over the player's left
+     * shoulder so shadows fall down and to the right — the direction a reader
+     * of a top-down map expects depth to lie in.
+     */
+    public static final float MIN_SUN_AZIMUTH_DEGREES = 0f;
+    public static final float MAX_SUN_AZIMUTH_DEGREES = 360f;
+    public static final float DEFAULT_SUN_AZIMUTH_DEGREES = 135f;
+    /**
+     * Sun height above the horizon, in degrees. This is the only dial that
+     * changes how far a shadow reaches: a {@code h}-metre wall lays down
+     * {@code h / tan(elevation)} metres of shadow, and one metre is one cell.
+     *
+     * <p>Floored well above zero because the reach is a tangent: the last few
+     * degrees run away to hundreds of cells, which is a texture nobody can
+     * afford and a shadow that covers the map.
+     */
+    public static final float MIN_SUN_ELEVATION_DEGREES = 12f;
+    public static final float MAX_SUN_ELEVATION_DEGREES = 85f;
+    public static final float DEFAULT_SUN_ELEVATION_DEGREES = 38f;
     /** Fake-perspective eye height above the screen plane, in the same normalized units as the UV-space screen-center vector. */
     /** Package-visible so the headless pixel-reference test cannot drift from the shader uniform. */
     static final float EYE_HEIGHT = 1.2f;
-    static final float MACRO_CENTER = 0.5f;
     static final float WATER_MACRO_SCALE = 0.2f;
     static final float WATER_MICRO_SCALE = 0.35f;
     static final float WATER_INTERIOR_WAVE_SCALE = 0.25f;
     static final float WATER_FOAM_AMOUNT = 0.10f;
+    /**
+     * Occlusion samples the sun march takes per fragment.
+     *
+     * <p>Fixed rather than derived so the cost is the same at every sun angle.
+     * Paired with {@link #SHADOW_STEP_MAX_CELLS} it also decides what a very low
+     * sun does: the march covers {@code steps × step} cells and a longer
+     * shadow is <em>truncated</em> rather than sampled coarsely, because a
+     * shadow that stops short reads as a shadow while one sampled past its
+     * Nyquist limit reads as dashes.
+     */
+    static final int SHADOW_STEPS = 20;
+
+    /** Coarsest march step. Half a cell keeps a one-cell wall from being stepped over. */
+    static final float SHADOW_STEP_MAX_CELLS = 0.5f;
+
+    /**
+     * Metres of occluder overshoot that take a fragment from lit to fully
+     * shadowed. A hard test gives a shadow edge that crawls one cell at a time
+     * as the camera pans; this is the penumbra that hides the height field's
+     * own cell quantization.
+     */
+    static final float SHADOW_SOFTNESS_METERS = 0.55f;
+
+    /** Longest march the sun is allowed to ask for, and therefore the widest the height target's margin can grow. */
+    static final float MAX_SHADOW_RANGE_CELLS = 24f;
+
+    /**
+     * Height-target margin is rounded up to a multiple of this many cells.
+     *
+     * <p>The margin follows the sun's elevation, and the elevation is a live
+     * dial. Quantizing means dragging that dial reallocates the target at a few
+     * thresholds instead of on almost every frame of the drag.
+     */
+    static final int SHADOW_PAD_QUANTUM_CELLS = 4;
+
+    /** Full-shadow colour multiplier: darker, and cooler, as ground lit only by sky rather than sun. */
+    static final float SHADOW_TINT_R = 0.46f;
+    static final float SHADOW_TINT_G = 0.50f;
+    static final float SHADOW_TINT_B = 0.62f;
+
     private static final String[] LIGHT_POSITION_UNIFORMS =
             indexedUniformNames("lightPosRadius");
     private static final String[] LIGHT_COLOR_UNIFORMS =
@@ -152,6 +232,15 @@ public final class GroundParallaxPipeline {
             + "uniform sampler2D heightTex;\n"
             + "uniform sampler2D normalTex;\n"
             + "uniform vec2 screenCenter;\n"
+            + "uniform vec2 heightCellUv;\n"
+            + "uniform float macroDatum;\n"
+            + "uniform float macroMetersSpan;\n"
+            + "uniform vec2 sunDir;\n"
+            + "uniform float sunRisePerCell;\n"
+            + "uniform float shadowRangeCells;\n"
+            + "uniform float shadowStrength;\n"
+            + "uniform float shadowSoftnessMeters;\n"
+            + "uniform vec3 shadowTint;\n"
             + "uniform float eyeHeight;\n"
             + "uniform float structureStrength;\n"
             + "uniform float surfaceStrength;\n"
@@ -170,13 +259,28 @@ public final class GroundParallaxPipeline {
             + "uniform vec4 lightPosRadius[" + GroundLightService.MAX_SHADER_LIGHTS + "];\n"
             + "uniform vec4 lightColorIntensity[" + GroundLightService.MAX_SHADER_LIGHTS + "];\n"
             + "varying vec2 vUv;\n"
+            // The height target is WIDER than the view: it carries a margin of
+            // off-screen cells so an occluder just outside the viewport still
+            // casts into it. So height is addressed by world position, not by
+            // the composite's own UV -- the two spaces are no longer the same.
+            + "vec2 worldOf(vec2 uv) {\n"
+            + "    return worldCenter + (uv - vec2(0.5)) * visibleCells;\n"
+            + "}\n"
+            + "vec2 heightUvOf(vec2 world) {\n"
+            + "    return vec2(0.5) + (world - worldCenter) * heightCellUv;\n"
+            + "}\n"
+            + "float macroMetersAt(vec2 world) {\n"
+            + "    return (texture2D(heightTex, heightUvOf(world)).r - macroDatum) * macroMetersSpan;\n"
+            + "}\n"
             + "void main() {\n"
-            + "    vec4 meta = texture2D(heightTex, vUv);\n"
+            + "    vec2 worldCell = worldOf(vUv);\n"
+            + "    vec4 meta = texture2D(heightTex, heightUvOf(worldCell));\n"
+            + "    float macroMeters = (meta.r - macroDatum) * macroMetersSpan;\n"
             + "    float water = meta.b;\n"
             + "    float shore = meta.a;\n"
             + "    float macroMaterial = mix(1.0, waterMacroScale, water);\n"
             + "    float microMaterial = mix(1.0, waterMicroScale, water);\n"
-            + "    float relief = (meta.r - 0.5) * structureStrength * macroMaterial\n"
+            + "    float relief = macroMeters * structureStrength * macroMaterial\n"
             + "            + (meta.g - 0.5) * microScale * surfaceStrength * microMaterial;\n"
             // Eye vector in an isotropic (aspect-corrected) space, so equal
             // screen-pixel distances from center pull equally hard on both axes;
@@ -186,7 +290,6 @@ public final class GroundParallaxPipeline {
             // Offset-limited form (Welsh 2004) -- no divide by eye.z, so shallow
             // eye vectors at screen edges can't explode into shimmer.
             + "    vec2 baseOff = relief * eye.xy * vec2(1.0 / aspect, 1.0);\n"
-            + "    vec2 worldCell = worldCenter + (vUv - vec2(0.5)) * visibleCells;\n"
             + "    vec2 waves = vec2(\n"
             + "            sin(dot(worldCell, vec2(2.15, 0.65)) + waveTime * 1.35),\n"
             + "            cos(dot(worldCell, vec2(-0.45, 2.40)) - waveTime * 1.10));\n"
@@ -197,9 +300,9 @@ public final class GroundParallaxPipeline {
             // Water samples may move within water, but never borrow a land
             // texel. Backtracking makes the shoreline stable rather than
             // allowing tiles to vanish as the camera or wave phase moves.
-            + "    if (water > 0.5 && texture2D(heightTex, offsetUv).b < 0.5) {\n"
+            + "    if (water > 0.5 && texture2D(heightTex, heightUvOf(worldOf(offsetUv))).b < 0.5) {\n"
             + "        vec2 halfUv = clamp(vUv + totalOff * 0.5, 0.0, 1.0);\n"
-            + "        offsetUv = texture2D(heightTex, halfUv).b >= 0.5 ? halfUv : vUv;\n"
+            + "        offsetUv = texture2D(heightTex, heightUvOf(worldOf(halfUv))).b >= 0.5 ? halfUv : vUv;\n"
             + "    }\n"
             + "    vec4 color = texture2D(colorTex, offsetUv);\n"
             + "    float crest = sin(dot(worldCell, vec2(1.70, 0.80)) - waveTime * 2.20) * 0.5 + 0.5;\n"
@@ -210,6 +313,25 @@ public final class GroundParallaxPipeline {
             // Derived maps use image-space +Y down; the composed ground uses
             // world/screen +Y up, so invert the decoded green component.
             + "    normal = normalize(vec3(normal.x, -normal.y, normal.z));\n"
+            // Cast shadow: walk toward the sun over the height field, raising a
+            // ray by tan(elevation) per cell. Anything standing above that ray
+            // is between this ground and the sun. Both sides are metres and one
+            // cell is one metre, so there is no scale factor to get wrong.
+            + "    float shadow = 0.0;\n"
+            + "    if (shadowStrength > 0.0) {\n"
+            + "        float stepCells = min(shadowRangeCells / float(" + SHADOW_STEPS + "), "
+            + glsl(SHADOW_STEP_MAX_CELLS) + ");\n"
+            + "        for (int i = 1; i <= " + SHADOW_STEPS + "; i++) {\n"
+            + "            float t = float(i) * stepCells;\n"
+            + "            float occluder = macroMetersAt(worldCell + sunDir * t);\n"
+            + "            float ray = macroMeters + t * sunRisePerCell;\n"
+            + "            shadow = max(shadow,\n"
+            + "                    clamp((occluder - ray) / shadowSoftnessMeters, 0.0, 1.0));\n"
+            + "        }\n"
+            + "    }\n"
+            // Shadow multiplies the sunlit image; event lights are added AFTER,
+            // so a muzzle flash still lights the ground it is standing on.
+            + "    color.rgb *= mix(vec3(1.0), shadowTint, shadow * shadowStrength);\n"
             + "    vec3 addedLight = vec3(0.0);\n"
             + "    for (int i = 0; i < " + GroundLightService.MAX_SHADER_LIGHTS + "; i++) {\n"
             + "        vec4 pr = lightPosRadius[i];\n"
@@ -235,6 +357,9 @@ public final class GroundParallaxPipeline {
     private float surfaceStrength = DEFAULT_SURFACE_STRENGTH;
     private float waterWaveAmplitude = DEFAULT_WATER_WAVE_AMPLITUDE;
     private float lightingStrength = DEFAULT_LIGHTING_STRENGTH;
+    private float sunShadowStrength = DEFAULT_SUN_SHADOW_STRENGTH;
+    private float sunAzimuthDegrees = DEFAULT_SUN_AZIMUTH_DEGREES;
+    private float sunElevationDegrees = DEFAULT_SUN_ELEVATION_DEGREES;
     private float waveTimeSeconds;
 
     private boolean broken;
@@ -243,9 +368,17 @@ public final class GroundParallaxPipeline {
     private int heightFbo, heightTex;
     private int normalFbo, normalTex;
     private int fboPxW, fboPxH;
+    /** Height target size, which is the viewport plus {@link #heightPadCells} of shadow margin on every side. */
+    private int heightPxW, heightPxH;
+    private int heightPadCells;
+    /** {@link #heightPadCells} in the UI-space units the FBO ortho and the ground passes are drawn in. */
+    private float heightPadUi;
 
     /** UI-space rect the FBOs' ortho + the composite quad are drawn against — cached from the camera each call. */
     private float vpX, vpY, vpW, vpH;
+
+    /** UI-space size of one world cell — cached alongside the viewport rect; the shadow margin is measured in cells. */
+    private float cellPxUi = 1f;
 
     /** Sampled once, like {@code DecalAccumulator.uiFboBinding} — never a per-frame {@code glGet*} (async-renderer stall). */
     private int uiFboBinding = -1;
@@ -280,6 +413,12 @@ public final class GroundParallaxPipeline {
 
     public float lightingStrength() { return lightingStrength; }
 
+    public float sunShadowStrength() { return sunShadowStrength; }
+
+    public float sunAzimuthDegrees() { return sunAzimuthDegrees; }
+
+    public float sunElevationDegrees() { return sunElevationDegrees; }
+
     /** Applies immediately to the next rendered frame. */
     public void setParallaxStrength(float strength) {
         if (Float.isNaN(strength)) return;
@@ -305,6 +444,57 @@ public final class GroundParallaxPipeline {
         this.lightingStrength = clamp(strength, MIN_LIGHTING_STRENGTH, MAX_LIGHTING_STRENGTH);
     }
 
+    /** Applies to the next rendered frame; crossing zero also resizes the height target. */
+    public void setSunShadowStrength(float strength) {
+        if (Float.isNaN(strength)) return;
+        this.sunShadowStrength = clamp(strength, MIN_SUN_SHADOW_STRENGTH, MAX_SUN_SHADOW_STRENGTH);
+    }
+
+    /** Applies immediately to the next rendered frame. */
+    public void setSunAzimuthDegrees(float degrees) {
+        if (Float.isNaN(degrees)) return;
+        this.sunAzimuthDegrees = clamp(degrees, MIN_SUN_AZIMUTH_DEGREES, MAX_SUN_AZIMUTH_DEGREES);
+    }
+
+    /** Applies to the next rendered frame; a lower sun reaches further and may resize the height target. */
+    public void setSunElevationDegrees(float degrees) {
+        if (Float.isNaN(degrees)) return;
+        this.sunElevationDegrees =
+                clamp(degrees, MIN_SUN_ELEVATION_DEGREES, MAX_SUN_ELEVATION_DEGREES);
+    }
+
+    /**
+     * How far the sun's march has to reach, in cells, for the tallest surface
+     * the installed mapping can place. Also the size of the height target's
+     * margin, since an occluder has to be in the texture to cast out of it.
+     */
+    float shadowRangeCells() {
+        if (sunShadowStrength <= 0f) return 0f;
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        float tallest = mapping != null ? mapping.tallestMacroHeightMeters()
+                : GenMappingRegistry.DEFAULT_WALL_MACRO_HEIGHT_METERS;
+        if (tallest <= 0f) return 0f;
+        return clamp(tallest / sunRisePerCell(), 0f, MAX_SHADOW_RANGE_CELLS);
+    }
+
+    /** Metres the sun ray climbs per cell travelled toward it: {@code tan(elevation)}. */
+    float sunRisePerCell() {
+        return (float) Math.tan(Math.toRadians(sunElevationDegrees));
+    }
+
+    /**
+     * Cells of margin the height target carries beyond the viewport. Collapses
+     * to the ordinary geometry halo when shadows are off, so the dial at zero
+     * costs neither fill nor memory.
+     */
+    int heightPadCells() {
+        if (sunShadowStrength <= 0f) return VisibleCellRect.GEOMETRY_MARGIN_CELLS;
+        int wanted = (int) Math.ceil(shadowRangeCells()) + VisibleCellRect.GEOMETRY_MARGIN_CELLS;
+        int quantized = ((wanted + SHADOW_PAD_QUANTUM_CELLS - 1) / SHADOW_PAD_QUANTUM_CELLS)
+                * SHADOW_PAD_QUANTUM_CELLS;
+        return Math.max(VisibleCellRect.GEOMETRY_MARGIN_CELLS, quantized);
+    }
+
     /**
      * Renders {@code RenderLayer#GROUND} through the parallax pipeline:
      * color, metadata-height, and normal FBOs, then the composite blit. {@code drainColor} is the
@@ -323,6 +513,7 @@ public final class GroundParallaxPipeline {
         vpY = rc.camera.vpY();
         vpW = rc.camera.vpW();
         vpH = rc.camera.vpH();
+        cellPxUi = Math.max(0.0001f, rc.camera.cellPxSize());
         if (vpW <= 0f || vpH <= 0f) {
             drainColor.run();
             return;
@@ -370,12 +561,14 @@ public final class GroundParallaxPipeline {
         if (normalTex != 0) { glDeleteTextures(normalTex); normalTex = 0; }
         fboPxW = 0;
         fboPxH = 0;
+        heightPxW = 0;
+        heightPxH = 0;
     }
 
     // ------------------------------------------------------------------
 
     private boolean renderColorFbo(Runnable drainColor) {
-        return withFboBound(colorFbo, () -> {
+        return withFboBound(colorFbo, fboPxW, fboPxH, 0f, () -> {
             glColorMask(true, true, true, true);
             glClearColor(0f, 0f, 0f, 1f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -388,11 +581,22 @@ public final class GroundParallaxPipeline {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
         GenMappingRegistry mapping = GenMappingRegistry.installed();
-        return withFboBound(heightFbo, () -> {
+        // Rebuilt per frame rather than cached: a roof caves in and a wall is
+        // breached mid-battle, and a field held across frames would keep
+        // shadowing a building that is no longer there. It gathers from the
+        // building registry and the barrier list, so the cost is the number of
+        // roofed cells rather than the size of the map.
+        MacroReliefField relief =
+                new MacroReliefField(topology, sim.getBuildings(), mapping);
+        int margin = heightPadCells;
+        // Clears to the ground datum, not to mid-channel: off-grid texels have
+        // to read as flat ground or the margin would ring the map in a 16 m
+        // cliff and shadow every edge.
+        return withFboBound(heightFbo, heightPxW, heightPxH, heightPadUi, () -> {
             glColorMask(true, true, true, true);
-            glClearColor(0.5f, 0.5f, 0f, 0f);
+            glClearColor(GroundHeightPass.MACRO_DATUM, 0.5f, 0f, 0f);
             glClear(GL_COLOR_BUFFER_BIT);
-            heightPass.render(rc.camera, grid, topology, mapping);
+            heightPass.render(rc.camera, grid, topology, mapping, relief, margin);
         });
     }
 
@@ -400,7 +604,7 @@ public final class GroundParallaxPipeline {
         BattleSimulation sim = rc.sim;
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
-        return withFboBound(normalFbo, () -> {
+        return withFboBound(normalFbo, fboPxW, fboPxH, 0f, () -> {
             glColorMask(true, true, true, true);
             glClearColor(0.5f, 0.5f, 1f, 1f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -437,8 +641,23 @@ public final class GroundParallaxPipeline {
             shader.set1f("waterFoamAmount", WATER_FOAM_AMOUNT);
             shader.set1f("waveTime", waveTimeSeconds);
             shader.set2f("worldCenter", rc.camera.panCellX(), rc.camera.panCellY());
-            shader.set2f("visibleCells", vpW / rc.camera.cellPxSize(), vpH / rc.camera.cellPxSize());
-            shader.set2f("cellUv", rc.camera.cellPxSize() / vpW, rc.camera.cellPxSize() / vpH);
+            shader.set2f("visibleCells", vpW / cellPxUi, vpH / cellPxUi);
+            shader.set2f("cellUv", cellPxUi / vpW, cellPxUi / vpH);
+            // Height UV per world cell. Its denominator is the PADDED extent,
+            // which is what makes heightUvOf() land on the right texel now that
+            // the height target is bigger than the view it composites into.
+            shader.set2f("heightCellUv",
+                    cellPxUi / (vpW + 2f * heightPadUi),
+                    cellPxUi / (vpH + 2f * heightPadUi));
+            shader.set1f("macroDatum", GroundHeightPass.MACRO_DATUM);
+            shader.set1f("macroMetersSpan", GroundHeightPass.MACRO_METERS_SPAN);
+            double azimuth = Math.toRadians(sunAzimuthDegrees);
+            shader.set2f("sunDir", (float) Math.cos(azimuth), (float) Math.sin(azimuth));
+            shader.set1f("sunRisePerCell", sunRisePerCell());
+            shader.set1f("shadowRangeCells", shadowRangeCells());
+            shader.set1f("shadowStrength", sunShadowStrength);
+            shader.set1f("shadowSoftnessMeters", SHADOW_SOFTNESS_METERS);
+            shader.set3f("shadowTint", SHADOW_TINT_R, SHADOW_TINT_G, SHADOW_TINT_B);
             shader.set1f("aspect", fboPxW / (float) fboPxH);
             shader.set1f("lightingStrength", lightingStrength);
             uploadLights(rc.camera);
@@ -469,16 +688,18 @@ public final class GroundParallaxPipeline {
     }
 
     /**
-     * Runs {@code body} with {@code fbo} bound, viewport sized to the FBO, and
-     * an ortho spanning the SAME UI-space rect the GROUND/height quads are
-     * already emitted into ({@code (vpX, vpX+vpW, vpY, vpY+vpH)} — see class
-     * doc) — not {@code (0, fboPxW)} like {@code DecalAccumulator}, which owns
+     * Runs {@code body} with {@code fbo} bound, viewport sized to that FBO
+     * ({@code pxW}×{@code pxH}), and an ortho spanning the UI-space rect the
+     * GROUND/height quads are already emitted into, grown by {@code padUi} on
+     * every side ({@code (vpX-padUi, vpX+vpW+padUi, ...)} — see class doc; only
+     * the height target pads, and it pads symmetrically so its centre stays the
+     * camera's) — not {@code (0, fboPxW)} like {@code DecalAccumulator}, which owns
      * its own FBO-local coordinate space instead of replaying existing UI-space
      * draw calls. State-save pattern is otherwise identical to
      * {@code DecalAccumulator.withFboBound}. Returns {@code false} (and flips
      * {@link #broken}) if {@code body} throws.
      */
-    private boolean withFboBound(int fbo, Runnable body) {
+    private boolean withFboBound(int fbo, int pxW, int pxH, float padUi, Runnable body) {
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         glMatrixMode(GL_PROJECTION); glPushMatrix();
         glMatrixMode(GL_MODELVIEW);  glPushMatrix();
@@ -492,7 +713,7 @@ public final class GroundParallaxPipeline {
         boolean ok = true;
         try {
             glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-            glViewport(0, 0, fboPxW, fboPxH);
+            glViewport(0, 0, pxW, pxH);
             glDisable(GL_SCISSOR_TEST);
             glDisable(GL_DEPTH_TEST);
             glColorMask(true, true, true, true);
@@ -501,7 +722,7 @@ public final class GroundParallaxPipeline {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
             glMatrixMode(GL_PROJECTION); glLoadIdentity();
-            glOrtho(vpX, vpX + vpW, vpY, vpY + vpH, -1, 1);
+            glOrtho(vpX - padUi, vpX + vpW + padUi, vpY - padUi, vpY + vpH + padUi, -1, 1);
             glMatrixMode(GL_MODELVIEW);  glLoadIdentity();
 
             body.run();
@@ -537,24 +758,43 @@ public final class GroundParallaxPipeline {
         float sy = Display.getHeight() / Math.max(1f, Global.getSettings().getScreenHeight());
         int wantW = Math.max(1, Math.round(vpW * sx));
         int wantH = Math.max(1, Math.round(vpH * sy));
-        if (wantW > MAX_FBO_DIM || wantH > MAX_FBO_DIM) {
+        // Only the height target pads. Padding colour and normal too would
+        // widen the whole GROUND drain -- every tile, prop and decal drawn over
+        // an area several times the view -- to feed a march that never reads
+        // them. The shader addresses height by world position instead.
+        int padCells = heightPadCells();
+        float padUi = padCells * cellPxUi;
+        int wantHeightW = Math.max(1, wantW + 2 * Math.round(padUi * sx));
+        int wantHeightH = Math.max(1, wantH + 2 * Math.round(padUi * sy));
+        if (wantW > MAX_FBO_DIM || wantH > MAX_FBO_DIM
+                || wantHeightW > MAX_FBO_DIM || wantHeightH > MAX_FBO_DIM) {
             LOG.warn("GroundParallaxPipeline: refusing " + wantW + "x" + wantH
-                    + " FBO (over " + MAX_FBO_DIM + "px) -- camera isn't UI-space; disabling effect for this view");
+                    + " (height " + wantHeightW + "x" + wantHeightH
+                    + ") FBO (over " + MAX_FBO_DIM + "px) -- camera isn't UI-space; disabling effect for this view");
             broken = true;
             return;
         }
-        if (colorFbo != 0 && wantW == fboPxW && wantH == fboPxH) return;
+        if (colorFbo != 0 && wantW == fboPxW && wantH == fboPxH
+                && wantHeightW == heightPxW && wantHeightH == heightPxH) {
+            heightPadUi = padUi;
+            heightPadCells = padCells;
+            return;
+        }
 
         releaseFbos(); // shader program is independent of FBO size -- left alone, no recompile on resize
         fboPxW = wantW;
         fboPxH = wantH;
+        heightPxW = wantHeightW;
+        heightPxH = wantHeightH;
+        heightPadUi = padUi;
+        heightPadCells = padCells;
 
-        int[] color = buildFbo();
+        int[] color = buildFbo(fboPxW, fboPxH);
         if (broken) return;
         colorFbo = color[0];
         colorTex = color[1];
 
-        int[] height = buildFbo();
+        int[] height = buildFbo(heightPxW, heightPxH);
         if (broken) {
             glDeleteFramebuffers(colorFbo);
             glDeleteTextures(colorTex);
@@ -565,7 +805,7 @@ public final class GroundParallaxPipeline {
         heightFbo = height[0];
         heightTex = height[1];
 
-        int[] normal = buildFbo();
+        int[] normal = buildFbo(fboPxW, fboPxH);
         if (broken) {
             releaseFbos();
             return;
@@ -574,16 +814,18 @@ public final class GroundParallaxPipeline {
         normalTex = normal[1];
 
         LOG.debug("GroundParallaxPipeline FBOs (" + colorFbo + "/" + heightFbo + "/"
-                + normalFbo + ") complete at " + fboPxW + "x" + fboPxH);
+                + normalFbo + ") complete at " + fboPxW + "x" + fboPxH
+                + " (height " + heightPxW + "x" + heightPxH
+                + ", " + heightPadCells + "-cell sun margin)");
     }
 
-    /** Builds one RGBA8 FBO + color-attachment texture at the current {@link #fboPxW}/{@link #fboPxH}. {@code {fbo, tex}}. */
-    private int[] buildFbo() {
+    /** Builds one RGBA8 FBO + color-attachment texture at {@code pxW}x{@code pxH}. {@code {fbo, tex}}. */
+    private int[] buildFbo(int pxW, int pxH) {
         int tex = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, tex);
-        ByteBuffer empty = BufferUtils.createByteBuffer(fboPxW * fboPxH * 4);
+        ByteBuffer empty = BufferUtils.createByteBuffer(pxW * pxH * 4);
         GlErrors.clear();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, fboPxW, fboPxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, pxW, pxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
         GlErrors.check("glTexImage2D (ground parallax FBO)");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -600,7 +842,7 @@ public final class GroundParallaxPipeline {
 
         if (status != GL_FRAMEBUFFER_COMPLETE) {
             LOG.error("GroundParallaxPipeline FBO incomplete: 0x" + Integer.toHexString(status)
-                    + " (size " + fboPxW + "x" + fboPxH + ")");
+                    + " (size " + pxW + "x" + pxH + ")");
             glDeleteFramebuffers(fbo);
             glDeleteTextures(tex);
             broken = true;
@@ -636,5 +878,14 @@ public final class GroundParallaxPipeline {
 
     private static float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    /**
+     * A Java float as a GLSL float literal. Locale-pinned because a comma
+     * decimal separator compiles to a syntax error on the machine that has one
+     * and nowhere else.
+     */
+    private static String glsl(float value) {
+        return String.format(Locale.ROOT, "%.6f", value);
     }
 }

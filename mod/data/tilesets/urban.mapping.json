@@ -78,11 +78,11 @@
       }
     }
   },
-  "macroHeight": {
-    "WALL":    0.90,
-    "INDOOR":  0.65,
-    "RUBBLE":  0.30,
-    "WATER":   0.15
+  "macroHeightMeters": {
+    "WALL":     3.00,
+    "INDOOR":   0.30,
+    "RUBBLE":  -0.25,
+    "WATER":   -0.50
   },
   "doodadPools": {
     "MIXED": [

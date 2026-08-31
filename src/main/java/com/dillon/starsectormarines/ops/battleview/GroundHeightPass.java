@@ -22,17 +22,48 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 /**
  * Writes the material/height target consumed by the ground composite.
  *
- * <p>The RGBA channel contract is: macro height, raw derived micro height,
- * water identity, and shoreline proximity. Keeping the authoring signals
- * separate lets the composite tune structural relief, surface relief, and
- * water motion independently instead of baking them into one ambiguous scalar.
- * A missing sheet or shader failure degrades micro height to neutral while
- * retaining the semantic channels.
+ * <p>The RGBA channel contract is: encoded macro height, raw derived micro
+ * height, water identity, and shoreline proximity. Keeping the authoring
+ * signals separate lets the composite tune structural relief, surface relief,
+ * and water motion independently instead of baking them into one ambiguous
+ * scalar. A missing sheet or shader failure degrades micro height to neutral
+ * while retaining the semantic channels.
+ *
+ * <h2>Macro height is metres</h2>
+ * <p>Macro height is authored in metres above a ground datum — one cell is one
+ * metre ({@link com.dillon.starsectormarines.battle.air.AirScale#METERS_PER_CELL}),
+ * so the two axes and the height axis finally share a unit. The target is an
+ * RGBA8 texture, so the red channel carries those metres
+ * {@linkplain #encodeMacroMeters encoded} into {@code 0..1}: the datum sits at
+ * {@link #MACRO_DATUM} and {@link #MACRO_METERS_SPAN} metres map across the
+ * full channel, which leaves room below the datum for water and craters.
+ * Quantization is {@code span/255} — about 12 cm — which is under a tenth of
+ * the shortest thing that casts a shadow.
  */
 final class GroundHeightPass {
 
     static final float MICRO_SCALE = 0.25f;
     static final int SHORE_RADIUS_CELLS = 3;
+
+    /**
+     * Encoded channel value of the ground datum (0 m). Below-datum surfaces get
+     * {@code MACRO_DATUM * MACRO_METERS_SPAN} = 4 m of headroom, which no
+     * authored surface comes close to needing but costs nothing to keep.
+     */
+    static final float MACRO_DATUM = 0.125f;
+
+    /** Metres spanned by the full red channel. Sets both the ceiling (28 m above datum) and the ~12 cm quantization. */
+    static final float MACRO_METERS_SPAN = 32f;
+
+    /** Metres above the ground datum, encoded into the {@code 0..1} red channel. Inverse of {@link #decodeMacroMeters}. */
+    static float encodeMacroMeters(float meters) {
+        return Math.max(0f, Math.min(1f, MACRO_DATUM + meters / MACRO_METERS_SPAN));
+    }
+
+    /** The red channel back to metres above the ground datum. Mirrors the composite shader's decode. */
+    static float decodeMacroMeters(float channel) {
+        return (channel - MACRO_DATUM) * MACRO_METERS_SPAN;
+    }
 
     private static final String VERTEX_SRC = ""
             + "#version 120\n"
@@ -66,20 +97,27 @@ final class GroundHeightPass {
         this.resolver = resolver;
     }
 
+    /**
+     * @param relief      what stands on each cell, in metres — walls, intact
+     *                    roofs, and the sills windows lower them to. See
+     *                    {@link MacroReliefField}; the pass writes the channel
+     *                    but does not decide what goes in it.
+     * @param marginCells cells to emit beyond the viewport on every side. Larger
+     *                    than the other ground passes' halo because this target
+     *                    is also the sun-shadow occluder field: a wall standing
+     *                    just off the sun-ward edge has to be in the texture, or
+     *                    its shadow pops into the view as the camera pans.
+     */
     void render(BattleCamera cam, NavigationGrid grid, CellTopology topology,
-                GenMappingRegistry mapping) {
+                GenMappingRegistry mapping, MacroReliefField relief, int marginCells) {
         boolean textured = shader.ensure();
         float cellPx = cam.cellPxSize();
-        float wallHeight = mapping != null
-                ? mapping.wallMacroHeight() : GenMappingRegistry.DEFAULT_WALL_MACRO_HEIGHT;
         float[] currentShoreFactors = waterShoreFactors(topology);
-        VisibleCellRect view = cam.visibleCells(
-                VisibleCellRect.GEOMETRY_MARGIN_CELLS, grid.getWidth(), grid.getHeight());
+        VisibleCellRect view = cam.visibleCells(marginCells, grid.getWidth(), grid.getHeight());
 
         for (int y = view.minY(); y <= view.maxY(); y++) {
             for (int x = view.minX(); x <= view.maxX(); x++) {
-                float macro = topology.isWall(x, y) ? wallHeight
-                        : (mapping != null ? mapping.macroHeight(topology.getGroundKind(x, y)) : 0.5f);
+                float macro = encodeMacroMeters(relief.metersAt(x, y));
                 float water = isWaterSurface(topology, x, y) ? 1f : 0f;
                 float shore = currentShoreFactors[topology.index(x, y)];
                 float cx = cam.cellToScreenX(x + 0.5f);

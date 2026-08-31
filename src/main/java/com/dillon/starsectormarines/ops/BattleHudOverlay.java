@@ -156,6 +156,11 @@ final class BattleHudOverlay {
         return insideInteractiveSurface(markupInstance, documentX, documentY);
     }
 
+    boolean blocksWorldPointer(float screenX, float screenY) {
+        return viewport != null && insideInteractiveSurface(
+                viewport.documentX(screenX), viewport.documentY(screenY));
+    }
+
     /** The wide retained document uses a transparent spacer between its two rails. */
     static boolean insideInteractiveSurface(MarkupInstance instance,
                                             float documentX, float documentY) {
