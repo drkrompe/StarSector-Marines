@@ -19,6 +19,10 @@ Updated: 2026-08-31 — an arrival gate is derived from the step a body takes in
 one tick, not authored as a bare distance, so a faster variant cannot drive
 through its own LZ without arriving.
 
+Updated: 2026-08-31 — route construction proves the turn from the way a truck
+arrives to the way it must leave, and a departure that finds itself misaligned
+backs and fills onto its corridor instead of holding.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -266,6 +270,22 @@ it planned before.
 - Route construction proves ordinary forward bends. Live motion remains the
   final kinematic authority, and any changed-grid failure stops and recovers
   instead of degrading to raw polyline pursuit.
+- It also proves the one bend that lies on neither polyline: the turn from the
+  heading a vehicle arrives on to the heading its exit demands. An entry and an
+  exit can each be perfectly drivable and still be an impossible pairing,
+  because reversing a chassis costs lateral room the road may not have — the
+  shipped APC turns inside about four cells and needs about three of swing to
+  come round, which a five-cell road does not give it. Such a delivery succeeds
+  and then strands: marines unload, and the vehicle can never point at its way
+  out. Dispatch rejects the pairing and tries another exit rather than leaving
+  it for a recovery ladder that plans forward motion and cannot help.
+- A departure that is misaligned anyway backs and fills onto its corridor. Only
+  the docking maneuver lands a truck on its departure heading, so one that
+  arrived through the plain distance gate keeps whatever heading it came in on;
+  the same Reeds-Shepp maneuver, aimed a short way down the outbound corridor,
+  is what turns it round. Short deliberately — a nearer goal buys a tighter
+  swing, and lateral room is the scarce thing. The attempt is bounded, because
+  a pose no maneuver can rescue must cost a couple of tries rather than loop.
 - Arrival is not failure. Reaching the terminal corridor region must transition
   to landing/departure instead of triggering a false stuck recovery, and aiming
   at an off-map exit is arrival in progress rather than an unsolvable route.
