@@ -85,7 +85,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             BreachToEngage.INSTANCE,
             HoldEngagementLineGoal.INSTANCE,
             EliminateEnemiesGoal.INSTANCE,
-            AmbientEngagementGoal.INSTANCE
+            AmbientEngagementGoal.INSTANCE,
+            AwaitOrdersGoal.INSTANCE
     );
 
     /**

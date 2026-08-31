@@ -486,7 +486,7 @@ The discovered suite ids and default output directories are:
 | `runway-sortie` | Two animated loops of one station flying a fighter off its strip: the whole cycle unopposed — taxi, roll, gun runs, approach, rollout, taxi in — and the same cycle with a fire team astride the taxiway | `build/snapshots/runway-sortie/` |
 | `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
 | `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
-| `yield-freeze` | One squad under one order, recorded twice: the order worth having, and the same order over a zone that turns out to be empty. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
+| `yield-freeze` | One squad under one order, recorded four ways: the order worth having and the same order over a zone that turns out to be empty, as infantry and again as a mech lance. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
 | `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, marines casting beside the same marines with the shadow layer left out, and one craft at three altitudes walking its shadow away from itself — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
@@ -543,6 +543,17 @@ six people standing in a field watching a crew walk past. This scene recorded
 exactly that for a while, and its under-fire loop reported a delivery that was
 never actually contested. Seed a loadout and mint a squad, then check the
 recording says what you think it says.
+
+**A headless aircraft is the size somebody primed it to be.** Hull geometry
+comes from the install's own `.ship` specs through `SettingsAPI`, and outside
+the game there is no `SettingsAPI`, so `HullFootprintResolver` quietly falls
+back to one flat length for every hull alike — a Wasp the size of a Valkyrie,
+and with it a body radius, a drawn hull and a blast catch belonging to an
+aircraft that exists nowhere. `InstalledHullSpecs.install()` is the one way to
+prime it; the JUnit extension and `CreateSnapshotsCli` call it, and a scene
+calls it itself so a scratch harness gets it too. Anything that *measures*
+aircraft size should assert `HullFootprintResolver.isMeasured` rather than
+trust the number, because the fallback is silent by design.
 
 Prefer a scene over a mission harness whenever the question is about one
 behavior rather than about a whole battle's balance, and add another scene
@@ -632,6 +643,23 @@ terminating will be walked to if it can be reached. The first version of this
 scene left a door in the far wall and recorded both loops crossing the whole map
 to it — near-identical distances, and nothing whatever about the yield. Seal that
 room: the goal's own reachability gate then rules the defender out.
+
+What it records now that the floor exists: both loops sit at 1 plan-less tick of
+1801 — tick zero, before the first replan — and the yielded loop still covers
+0.0 cells. That pairing is the whole acceptance. Plan-less at zero says the
+squad is no longer unable to act; distance still at zero says it did not answer
+that by wandering off to find work it was never given.
+
+**The same question of the other dispatcher gets a different answer.** The scene
+also runs the pair as a mech lance, and a lance under the identical yielded order
+never loses its goal: `MechAssignedObjectiveGoal` does not stand down on a clear
+zone the way its infantry counterpart does, and beneath it the mech engagement
+floor is both always relevant and always plannable, so that ladder cannot reach
+an idle bucket at all. A floor goal added to `MECH_GOALS` today would be code
+that cannot run. That safety is an accident of the action library rather than a
+guarantee — give a doctrine action a precondition and the mech ladder silently
+acquires the defect the infantry one was cured of — so it is pinned by
+`MechLadderHasAFloorTest` rather than left to be rediscovered.
 
 **A control that reproduces the defect measures nothing.** The control's defender
 first stood on the doorway's own sight line, so the squad shot it down the
