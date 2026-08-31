@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -68,7 +69,7 @@ class BattleFixtureJsonTest {
                         EnumSet.of(EconomicFunction.HABITATION,
                                 EconomicFunction.HEAVY_INDUSTRY,
                                 EconomicFunction.SPACEPORT),
-                        SurfacePalette.ROCK),
+                        SurfacePalette.ROCK, SettlementLink.ROAD),
                 true);
 
         BattleFixture decoded = BattleFixtureJson.fromJson(
@@ -90,7 +91,7 @@ class BattleFixtureJsonTest {
                 new TargetProfile(7, 4, 6, 3, "hegemony",
                         EnumSet.of(EconomicFunction.HEAVY_INDUSTRY,
                                 EconomicFunction.SPACEPORT),
-                        SurfacePalette.ROCK),
+                        SurfacePalette.ROCK, SettlementLink.ROAD),
                 List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
                         Faction.MARINE, 2, 12f, 30f)),
                 List.of(
@@ -120,7 +121,7 @@ class BattleFixtureJsonTest {
                 new TargetProfile(6, 3, 5, 2, "luddic_path",
                         EnumSet.of(EconomicFunction.MINING,
                                 EconomicFunction.HEAVY_INDUSTRY),
-                        SurfacePalette.ROCK),
+                        SurfacePalette.ROCK, SettlementLink.ROAD),
                 List.of(
                         new FighterWingCommitment(FighterProfile.BROADSWORD,
                                 Faction.MARINE, 2, 5f, 18f),
@@ -153,7 +154,7 @@ class BattleFixtureJsonTest {
                         EnumSet.of(EconomicFunction.HABITATION,
                                 EconomicFunction.SPACEPORT,
                                 EconomicFunction.MILITARY),
-                        SurfacePalette.ROCK),
+                        SurfacePalette.ROCK, SettlementLink.ROAD),
                 List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
                         Faction.MARINE, 2, 5f, 18f)),
                 List.of(new FighterWingCommitment(FighterProfile.TALON,
@@ -176,7 +177,7 @@ class BattleFixtureJsonTest {
                 new TargetProfile(6, 5, 4, 2, "independent",
                         EnumSet.of(EconomicFunction.SPACEPORT,
                                 EconomicFunction.HEAVY_INDUSTRY),
-                        SurfacePalette.ROCK),
+                        SurfacePalette.ROCK, SettlementLink.ROAD),
                 List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
                         Faction.MARINE, 1, 6f, 20f)),
                 List.of(new FighterWingCommitment(FighterProfile.TALON,
@@ -352,7 +353,7 @@ class BattleFixtureJsonTest {
                 new TargetProfile(5, 7, 2, 1, "independent",
                         EnumSet.of(EconomicFunction.HABITATION,
                                 EconomicFunction.SPACEPORT),
-                        SurfacePalette.ROCK),
+                        SurfacePalette.ROCK, SettlementLink.ROAD),
                 false);
     }
 

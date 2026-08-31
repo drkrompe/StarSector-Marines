@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -8,6 +10,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.impl.campaign.ids.Conditions;
 import com.fs.starfarer.api.impl.campaign.ids.Industries;
 
 import java.util.EnumSet;
@@ -54,7 +57,17 @@ public final class TargetProfileResolver {
                 spaceportTier(market),
                 market.getFactionId() != null ? market.getFactionId() : "",
                 functions(market),
-                surface(market));
+                surface(market),
+                link(market));
+    }
+
+    /**
+     * Distill how the settlement is joined to the rest of its world.
+     * {@link SettlementZoning} owns what a size means; this reads only the two
+     * campaign facts it needs, so the policy stays testable without a sector.
+     */
+    private static SettlementLink link(MarketAPI m) {
+        return SettlementZoning.linkFor(m.getSize(), m.hasCondition(Conditions.DECIVILIZED));
     }
 
     /**

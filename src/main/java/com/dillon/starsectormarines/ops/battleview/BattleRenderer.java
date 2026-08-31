@@ -237,6 +237,9 @@ public class BattleRenderer {
                         out.addCustom(RenderLayer.DECALS, () -> renderDecals(ctx.sim, ctx.alphaMult))),
                 new ParkedAircraftRenderSystem(sprites),
                 new DoodadRenderSystem(sprites),
+                // Bodies cast here rather than through the ground composite:
+                // terrain carries a height per cell and a marine does not.
+                new UnitShadowRenderSystem(sprites, sun),
                 RenderSystem.of(RenderLayer.HIGHLIGHTS, (ctx, out) ->
                         highlightRenderer.collect(ctx.highlights, ctx.camera, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.FOG, (ctx, out) ->
