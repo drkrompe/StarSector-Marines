@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
@@ -64,7 +65,8 @@ class SpaceportVehiclePlacementTest {
     @Test
     void generatedTierOnePortHasCivilianOccupancyAfterDefaultDeploymentReservation() {
         TargetProfile profile = new TargetProfile(5, 6, 1, 1, "independent",
-                EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.SPACEPORT));
+                EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.SPACEPORT),
+                SurfacePalette.ROCK);
         MapResult map = new BspCityGenerator().generate(80, 80, 42L, null, profile);
         List<LandingPad> deployment = LandingPadSelector.select(map, 3, 8);
 

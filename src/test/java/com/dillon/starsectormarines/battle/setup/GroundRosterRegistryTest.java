@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -129,7 +130,8 @@ public class GroundRosterRegistryTest {
 
     @Test
     public void battleFreezesTargetFactionAndSeedsInitialDefendersFromIt() {
-        TargetProfile target = new TargetProfile(4, 5, 1, 1, "pirates", Set.of());
+        TargetProfile target = new TargetProfile(4, 5, 1, 1, "pirates", Set.of(),
+                SurfacePalette.ROCK);
         BattleSimulation sim = BattleSetup.createPlaceholder(
                 4_242L, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1)),
                 false, RiskLevel.LOW, MissionType.ASSAULT, target);

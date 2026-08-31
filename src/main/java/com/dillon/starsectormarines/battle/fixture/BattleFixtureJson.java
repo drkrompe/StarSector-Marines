@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
@@ -554,6 +555,7 @@ public final class BattleFixtureJson {
             if (profile.functions().contains(function)) functions.put(function.name());
         }
         encoded.put("functions", functions);
+        encoded.put("surface", profile.surface().name());
         return encoded;
     }
 
@@ -565,13 +567,18 @@ public final class BattleFixtureJson {
             functions.add(enumValue(EconomicFunction.class,
                     encodedFunctions.getString(i), "economic function"));
         }
+        SurfacePalette surface = encoded.has("surface")
+                ? enumValueIgnoreCase(SurfacePalette.class,
+                        encoded.getString("surface"), "surface palette")
+                : SurfacePalette.ROCK;
         return new TargetProfile(
                 encoded.getInt("marketSize"),
                 encoded.getInt("stability"),
                 encoded.getInt("defenseLevel"),
                 encoded.getInt("spaceportTier"),
                 encoded.getString("factionId"),
-                functions);
+                functions,
+                surface);
     }
 
     private static <E extends Enum<E>> E enumValue(
@@ -581,5 +588,13 @@ public final class BattleFixtureJson {
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException("Unknown " + field + ": " + value, ex);
         }
+    }
+
+    private static <E extends Enum<E>> E enumValueIgnoreCase(
+            Class<E> enumType, String value, String field) {
+        for (E constant : enumType.getEnumConstants()) {
+            if (constant.name().equalsIgnoreCase(value)) return constant;
+        }
+        throw new IllegalArgumentException("Unknown " + field + ": " + value);
     }
 }

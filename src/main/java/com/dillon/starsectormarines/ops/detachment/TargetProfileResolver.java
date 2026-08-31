@@ -1,8 +1,12 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.PlanetAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Industries;
 
@@ -49,7 +53,23 @@ public final class TargetProfileResolver {
                 defenseLevel(market),
                 spaceportTier(market),
                 market.getFactionId() != null ? market.getFactionId() : "",
-                functions(market));
+                functions(market),
+                surface(market));
+    }
+
+    /**
+     * Distill the target world's terrain to the campaign-decoupled
+     * {@link SurfacePalette}. This is the only place a vanilla planet type id is
+     * read on the way to the generator; {@link SurfaceZoning} owns what each id
+     * means, and takes a plain string so it stays testable without a sector.
+     *
+     * <p>A market whose primary entity is not a planet — a station — has no
+     * surface of its own, and resolves the same way an unknown type does.
+     */
+    private static SurfacePalette surface(MarketAPI m) {
+        SectorEntityToken entity = m.getPrimaryEntity();
+        if (!(entity instanceof PlanetAPI planet)) return SurfaceZoning.forPlanetType(null);
+        return SurfaceZoning.forPlanetType(planet.getTypeId());
     }
 
     /**

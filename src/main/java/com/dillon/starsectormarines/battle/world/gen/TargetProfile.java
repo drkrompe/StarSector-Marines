@@ -33,24 +33,37 @@ import java.util.Set;
  *                      driving economy-reflective district selection. Empty when
  *                      no market backs the battle. Never null; stored as an
  *                      unmodifiable {@link EnumSet} copy.
+ * @param surface       what the world's own wild ground is made of. Never null;
+ *                      a null argument normalizes to {@link SurfacePalette#ROCK}
+ *                      rather than to a living world, because most of the Sector
+ *                      is not a garden and silence should not claim otherwise.
+ *                      Cultivated ground -- parks, street verges -- does not
+ *                      consult this; see {@link SurfacePalette}.
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
-                            Set<EconomicFunction> functions) {
+                            Set<EconomicFunction> functions,
+                            SurfacePalette surface) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
      * tests, legacy/preview generation, story ops with no target planet). Every
      * field reads as "no signal" — including an empty {@link #functions} set, so
-     * the selection layer falls back to its pre-bridge theme rolls. A stage
-     * handed this produces the same output it did before the bridge existed —
-     * the invariant that keeps the pre-bridge generation byte-identical.
+     * the selection layer falls back to its pre-bridge theme rolls.
+     *
+     * <p>{@link #surface} is the one field that cannot read as "no signal",
+     * because ground has to be made of something. It is
+     * {@link SurfacePalette#ROCK} here, so a battle with no world behind it
+     * comes out bare rather than green — which does change wild ground on maps
+     * that previously defaulted to grassland, deliberately.
      */
     public static final TargetProfile NEUTRAL =
-            new TargetProfile(0, 0, 0, 0, "", EnumSet.noneOf(EconomicFunction.class));
+            new TargetProfile(0, 0, 0, 0, "", EnumSet.noneOf(EconomicFunction.class),
+                    SurfacePalette.ROCK);
 
     public TargetProfile {
         if (factionId == null) factionId = "";
+        if (surface == null) surface = SurfacePalette.ROCK;
         functions = (functions == null || functions.isEmpty())
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
@@ -71,6 +84,6 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
     public TargetProfile withFactionId(String overrideFactionId) {
         if (overrideFactionId == null || overrideFactionId.equals(factionId)) return this;
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
-                overrideFactionId, functions);
+                overrideFactionId, functions, surface);
     }
 }

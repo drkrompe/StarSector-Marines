@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -82,7 +83,8 @@ class FortressWardTest {
                 W, H, 1L, TraversalAxis.SOUTH_TO_NORTH,
                 new TargetProfile(5, 7, 2, 1, "independent",
                         Set.of(EconomicFunction.HABITATION,
-                                EconomicFunction.SPACEPORT)));
+                                EconomicFunction.SPACEPORT),
+                        SurfacePalette.ROCK));
         ZoneGraph zones = new ZoneGraph(map.grid);
         zones.rebuild();
 
