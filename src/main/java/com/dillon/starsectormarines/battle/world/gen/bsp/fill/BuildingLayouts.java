@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -61,6 +62,9 @@ final class BuildingLayouts {
 
     /** Cell spacing between props on a wall-line. 1 = stamp every cell; 2 = every other cell; etc. */
     private static final int WALL_LINE_SPACING = 1;
+
+    /** Cell spacing along the industrial production line — one machine, then a {@link #TACTICAL_AISLE_WIDTH} cross gap. */
+    private static final int MACHINERY_SPACING = TACTICAL_AISLE_WIDTH + 1;
 
     private BuildingLayouts() {}
 
@@ -380,6 +384,7 @@ final class BuildingLayouts {
         if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return;
         if (grid.isDoorway(x, y) || isNearDoorway(grid, x, y)) return;
         if (isOccupied(x, y, doodads)) return;
+        if (PlacementGuards.wouldStrandGround(grid, x, y)) return;
         grid.setWalkable(x, y, false);
         grid.setSeeThrough(x, y, true);
         topology.setWall(x, y, false);
@@ -516,23 +521,45 @@ final class BuildingLayouts {
         }
         if (maxX < minX || maxY < minY) return;
 
-        int placed = 0;
         if (partition.orient == PartitionLayout.Orient.VERTICAL) {
-            int x = maxX < partition.preferredPerimeterDoorAlong ? minX : maxX;
-            for (int y = minY; y <= maxY && placed < 5; y += 3) {
-                int before = doodads.size();
-                stampFixture(grid, topology, x, y,
-                        machinery[placed % machinery.length], doodads, false);
-                if (doodads.size() > before) placed++;
-            }
+            stampMachineryRun(grid, topology, machinery, doodads, true,
+                    maxX < partition.preferredPerimeterDoorAlong ? minX : maxX, minY, maxY);
         } else {
-            int y = maxY < partition.preferredPerimeterDoorAlong ? minY : maxY;
-            for (int x = minX; x <= maxX && placed < 5; x += 3) {
-                int before = doodads.size();
-                stampFixture(grid, topology, x, y,
-                        machinery[placed % machinery.length], doodads, false);
-                if (doodads.size() > before) placed++;
+            stampMachineryRun(grid, topology, machinery, doodads, false,
+                    maxY < partition.preferredPerimeterDoorAlong ? minY : maxY, minX, maxX);
+        }
+    }
+
+    /**
+     * Lays the machinery along one edge of the production floor at
+     * {@link #MACHINERY_SPACING}, which is what leaves the lane its two-cell
+     * cross gaps. A slot the no-island guard refuses steps one cell along and
+     * the spacing resumes from where the machine actually landed, so a firing
+     * aperture in that wall costs the run a cell of position rather than a
+     * whole machine.
+     */
+    private static void stampMachineryRun(NavigationGrid grid, CellTopology topology,
+                                          DoodadDef[] machinery, List<Doodad> doodads,
+                                          boolean runsVertically, int fixed,
+                                          int from, int to) {
+        int placed = 0;
+        int along = from;
+        while (along <= to && placed < 5) {
+            DoodadDef prop = machinery[placed % machinery.length];
+            int slot = along;
+            while (slot <= to && refusedOnlyByNoIslandGuard(grid,
+                    runsVertically ? fixed : slot, runsVertically ? slot : fixed,
+                    prop, doodads)) {
+                slot++;
             }
+            if (slot > to) return;
+            int before = doodads.size();
+            stampFixture(grid, topology,
+                    runsVertically ? fixed : slot, runsVertically ? slot : fixed,
+                    prop, doodads, false);
+            boolean landed = doodads.size() > before;
+            if (landed) placed++;
+            along = (landed ? slot : along) + MACHINERY_SPACING;
         }
     }
 
@@ -1554,11 +1581,44 @@ final class BuildingLayouts {
         int start = (side == WallSide.N || side == WallSide.S) ? bl + 1 : bt + 1;
         int end = (side == WallSide.N || side == WallSide.S) ? br - 1 : bb - 1;
         for (int along = start; along <= end; along += spacing) {
-            int x = side == WallSide.W ? bl + 1 : side == WallSide.E ? br - 1 : along;
-            int y = side == WallSide.S ? bt + 1 : side == WallSide.N ? bb - 1 : along;
             DoodadDef prop = props.length == 1 ? props[0] : props[rng.nextInt(props.length)];
-            stampFixture(grid, topology, x, y, prop, doodads);
+            // A cell the no-island guard refuses takes the prop one further
+            // along the wall instead of losing it. The run's own cadence is
+            // untouched, so shifting one prop cannot eat the tail of the row.
+            int slot = along;
+            while (slot <= end && refusedOnlyByNoIslandGuard(grid,
+                    alongX(side, bl, br, slot), alongY(side, bt, bb, slot), prop, doodads)) {
+                slot++;
+            }
+            if (slot > end) continue;
+            stampFixture(grid, topology,
+                    alongX(side, bl, br, slot), alongY(side, bt, bb, slot), prop, doodads);
         }
+    }
+
+    private static int alongX(WallSide side, int bl, int br, int along) {
+        return side == WallSide.W ? bl + 1 : side == WallSide.E ? br - 1 : along;
+    }
+
+    private static int alongY(WallSide side, int bt, int bb, int along) {
+        return side == WallSide.S ? bt + 1 : side == WallSide.N ? bb - 1 : along;
+    }
+
+    /**
+     * True when the only thing wrong with the cell is that blocking it would
+     * strand walkable ground. The case that actually arises is the cell in
+     * front of a firing aperture: {@link BuildingShellCore} turns that
+     * perimeter cell into a walkable recess reachable only from inside, so a
+     * prop on the inside cell seals it. A run of props that hits one should
+     * step along its wall rather than lose the prop — the row's density is what
+     * it is for — while a cell refused for any other reason (a doorway, an
+     * earlier doodad) is left alone as it always was.
+     */
+    private static boolean refusedOnlyByNoIslandGuard(NavigationGrid grid, int x, int y,
+                                                      DoodadDef prop, List<Doodad> doodads) {
+        return canPlaceDoodad(grid, x, y, prop, doodads)
+                && PlacementGuards.wouldStrandGround(grid, x, y,
+                        prop.footprintCellsX, prop.footprintCellsY);
     }
 
     /** Fixture props block bodies, default to transparent to fire, and never masquerade as structure. */
@@ -1571,6 +1631,8 @@ final class BuildingLayouts {
                                      int x, int y, DoodadDef prop, List<Doodad> doodads,
                                      boolean seeThrough) {
         if (!canPlaceDoodad(grid, x, y, prop, doodads)) return;
+        if (PlacementGuards.wouldStrandGround(grid, x, y,
+                prop.footprintCellsX, prop.footprintCellsY)) return;
         for (int dy = 0; dy < prop.footprintCellsY; dy++) {
             for (int dx = 0; dx < prop.footprintCellsX; dx++) {
                 int cellX = x + dx;
@@ -1588,6 +1650,8 @@ final class BuildingLayouts {
                                      FixtureCandidate candidate, List<Doodad> doodads,
                                      boolean seeThrough) {
         if (!canPlaceDoodad(grid, candidate, doodads)) return;
+        if (PlacementGuards.wouldStrandGround(grid, candidate.x, candidate.y,
+                candidate.width, candidate.height)) return;
         for (int dy = 0; dy < candidate.height; dy++) {
             for (int dx = 0; dx < candidate.width; dx++) {
                 int cellX = candidate.x + dx;
