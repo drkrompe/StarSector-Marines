@@ -640,6 +640,29 @@ building can be entered from two sides, flanked, or given up at one end and held
 at the other. A hull keeps one hatch per compartment; how a deck is cut belongs
 to the ship family.
 
+**On open ground that rule has to be asked twice, because the yard does not
+exist yet when the buildings are placed.** A ward is packed into solid earth and
+its yard is opened afterwards out of whatever the buildings did not take, so at
+the moment each building goes down there is nothing on any of its other sides
+for a further door to face. The search therefore found none, for every building
+in every ward, and the law delivered exactly one face everywhere it was supposed
+to apply — the vehicle shed included, which is the building the reasoning above
+is written about. So the family that opens ground asks again once it has opened
+it, before it stamps its walls and before it furnishes: same law, same
+faces-not-count rule, later moment.
+
+**A further door goes only where the room says a door may go.** A fitting states
+that in two parts and they are different questions. Its **hookups** are how the
+room is *entered* — read before placement, because they decide where the room
+may go, and scored by the placer. Its **further doors** are where a door may
+later be *added*, read by nobody until the ground around the room is open.
+Folding the second into the first would put positions nobody was going to cut
+into every placement score, moving rooms on every deck to serve them. A fitting
+that states neither keeps the way in the packing found it: it furnished its
+floor without knowing where a hatch might land, so a door cut elsewhere opens
+onto whatever happens to be standing there — and nothing downstream notices,
+because the room is still walkable through the door it already had.
+
 **A wall is left over on a hull and authored on a map.** A packer carves a
 room's floor and leaves the ring around it alone, which is the whole of a
 bulkhead inside a vessel: a void in a hull is structure, and nothing has to say

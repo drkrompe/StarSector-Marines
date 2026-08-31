@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — added the player-placed infantry defense area: a persistent
+Updated: 2026-08-31 — made an active player infantry context the exclusive
+mission-tier plan, so specialist roles cannot railroad a squad; rescue pickup
+infantry remain commandable while sealed shelter militia remain mission-owned.
+
+Earlier 2026-08-31 — added the player-placed infantry defense area: a persistent
 40-cell-diameter execution context whose local plan rotates bounded prepared
 cover and firing positions against the squad's own changing contact picture.
 
@@ -807,6 +811,42 @@ destination is therefore a parameter of the advance rather than a fact about
 the action, and a new order that moves a squad toward contact inherits the
 behaviour instead of restating a thinner version of it.
 
+**A squad arrives as a body, not as its fastest member.** A plan step is
+shared by the whole squad, and the first member to report the step done
+completes it for everybody — after which every other member finds the plan
+complete and skips its movement for that tick. So an arrival test that asks
+only about the member being polled does not merely finish early: it stops the
+squad, once per tick, for as long as one marine stands on the objective while
+the rest are still walking. The squad stutters in place at roughly half speed
+and the picture from outside is a movement bug rather than a completion bug.
+An attack move is therefore finished when every live member assigned to the
+step has closed to a squad-sized radius of the destination, deliberately
+looser than one member's own arrival radius, because this is a footprint
+check for a body of people and it must tolerate an ordinary trailing member
+without pinning the order on a straggler. A member that arrives first holds
+its ground and keeps firing; standing idle would move the same freeze down a
+scale rather than remove it.
+
+**A marine may improve its firing position within the footprint of the order
+it was given, and no further.** An advance that has not committed to a route
+contact can still be looking straight at a target it cannot reach — a contact
+far enough off the axis of advance to have correctly earned no commit is
+still a contact every rifle in the squad has a clear shot at and no rifle can
+hit. Closing that last gap is bounded by anchoring the firing-position search
+on the order's own destination cell. The anchor is the whole of the design:
+anchored on the member instead, the leash re-anchors every tick as the member
+moves and the bound becomes an unbounded creep toward the enemy — a slow
+charge that abandons the order and breaks the front — wearing a
+firing-position search as a disguise. A fixed anchor bounds the total
+excursion to that leash from the cell the squad was actually sent to, however
+long it spends trying, and a target too far off the destination for any cell
+inside the leash to reach is simply left to the ordinary route. That
+asymmetry is the feature. The improvement is confined to orders that carry no
+target zone: the firing-position search scores walkability and leash distance
+and knows nothing of zones or portals, and a room is routinely smaller across
+than the leash, so on a crossing to a named room the better shot could sit in
+the wrong room or past a portal the squad has not been told to cross.
+
 **Squads under one attack move are a maneuver group, the way fire teams inside
 a squad are.** Left to themselves, several squads converging on one position
 each reach the same correct-in-isolation conclusion — form a line and shoot —
@@ -1065,8 +1105,14 @@ doctrine, route costing, special-equipment gates, and moving fire rather than
 inventing a parallel manual movement loop. A broken team still peels on its own;
 an entirely broken squad or form-up state suspends execution without erasing the
 request. Arrival clears the tactical context before the ordinary mission replan
-on that command tick, and a hard withdrawal cancels it. Enemy, Mech, drone,
-rescue-guard, non-soldier, wiped, and stale squad selections are refused.
+on that command tick, and a hard withdrawal cancels it. While the context is
+active it is the squad's only MISSION-tier plan: unit-level planting, garrison,
+last-stand, and other authored mission goals cannot win goal arbitration over
+it, though cohesion survival may still suspend execution. A rescue pickup
+perimeter is a mission duty rather than a control lock, so its Marine infantry
+may be redirected and returns to the current rescue directive on release.
+Enemy, Mech, drone, shelter-militia, non-soldier, wiped, and stale squad
+selections are refused.
 
 That same world request is contextual when its cell lies inside an uncaptured
 Conquest compound. The compound's authored node remains the stable target while

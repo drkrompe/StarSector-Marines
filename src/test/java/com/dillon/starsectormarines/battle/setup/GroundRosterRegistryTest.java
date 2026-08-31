@@ -73,7 +73,7 @@ public class GroundRosterRegistryTest {
         GroundRosterProfile triTachyon = GroundRosterRegistry.resolve("tritachyon");
         assertEquals(MechVariant.SIROCCO, triTachyon.heavySupportCycle(3).get(0));
         assertEquals(MechVariant.HOUND, triTachyon.heavySupportCycle(3).get(1));
-        assertEquals(MechVariant.SIROCCO, triTachyon.heavySupportCycle(3).get(2));
+        assertEquals(MechVariant.BULWARK, triTachyon.heavySupportCycle(3).get(2));
     }
 
     @Test

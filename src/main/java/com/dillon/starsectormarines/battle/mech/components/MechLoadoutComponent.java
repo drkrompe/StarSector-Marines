@@ -266,6 +266,15 @@ public final class MechLoadoutComponent {
         return false;
     }
 
+    /** Longest targeting band of the hardware actually installed on this unit. */
+    public float maxWeaponRange() {
+        float range = 0f;
+        for (MechWeaponMount mount : mounts) {
+            if (mount != null) range = Math.max(range, mount.weaponDef().range);
+        }
+        return range;
+    }
+
     /** Supplied SRM band when present, otherwise the longest direct-fire band. */
     public float preferredDirectRange() {
         float missileRange = 0f;
