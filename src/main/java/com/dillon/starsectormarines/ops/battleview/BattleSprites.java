@@ -4,10 +4,12 @@ import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.MechLivery;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -69,6 +71,10 @@ public class BattleSprites {
     // ---- modular layered heavy mech ---------------------------------------
 
     private LayeredMechAssets layeredMechSprites;
+    private final java.util.EnumMap<MechLivery, LayeredMechAssets> layeredMechLiveries =
+            new java.util.EnumMap<>(MechLivery.class);
+    private final java.util.EnumMap<Faction, MechLivery> mechLiveryBySide =
+            new java.util.EnumMap<>(Faction.class);
     private boolean layeredMechSpritesLoadAttempted;
 
     // ---- vehicle sheets -----------------------------------------------------
@@ -171,6 +177,23 @@ public class BattleSprites {
     public java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites()      { return unitDeadSprites; }
     public java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() { return layeredUnitSprites; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
+    /** Complete livery selected for one tactical side, with the base set as fail-safe. */
+    public LayeredMechAssets layeredMechSprites(Faction side) {
+        MechLivery livery = mechLiveryBySide.getOrDefault(side, MechLivery.BASE);
+        LayeredMechAssets selected = layeredMechLiveries.get(livery);
+        return selected != null ? selected : layeredMechSprites();
+    }
+
+    /**
+     * Binds campaign identities to the two tactical sides. This is presentation
+     * state only and may be refreshed on every screen attachment, before or
+     * after the immutable sprite families have loaded.
+     */
+    public void configureMechLiveries(String marineFactionId, String defenderFactionId) {
+        mechLiveryBySide.put(Faction.MARINE, MechLivery.forFactionId(marineFactionId));
+        mechLiveryBySide.put(Faction.DEFENDER, MechLivery.forFactionId(defenderFactionId));
+        mechLiveryBySide.put(Faction.CIVILIAN, MechLivery.BASE);
+    }
     public Map<String, ShuttleSpriteCache> turretSprites()   { return turretSprites; }
     public Map<String, ShuttleSpriteCache> turretRecoilSprites() { return turretRecoilSprites; }
     /** Carrier-agnostic projectile-sprite lookup by texture path (what {@code ShotFx.Sprite} resolves against). Null if not loaded / no such path. */
@@ -670,6 +693,39 @@ public class BattleSprites {
         layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis,
                 houndChassis, siroccoChassis, foot, thighBone, arm, linearCannon, heavyCannon,
                 srm, lrm, flash);
+        layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
+        for (MechLivery livery : MechLivery.values()) {
+            if (livery == MechLivery.BASE) continue;
+            loadMechLivery(root, livery, socketedChassis, foot, thighBone, flash);
+        }
+    }
+
+    /** A skin is usable only when every faction-painted chassis and weapon layer exists. */
+    private void loadMechLivery(String baseRoot, MechLivery livery,
+                                LayeredSpriteCache socketedChassis,
+                                LayeredSpriteCache foot,
+                                LayeredSpriteCache thighBone,
+                                LayeredSpriteCache flash) {
+        String root = baseRoot + "factions/" + livery.assetFolder() + "/";
+        LayeredSpriteCache chassis = loadLayeredSprite(root + "chassis.png");
+        LayeredSpriteCache houndChassis = loadLayeredSprite(root + "chassis-hound.png");
+        LayeredSpriteCache siroccoChassis = loadLayeredSprite(root + "chassis-sirocco.png");
+        LayeredSpriteCache arm = loadLayeredSprite(root + "chaingun-arm.png");
+        LayeredSpriteCache linearCannon = loadLayeredSprite(root + "linear-cannon-variant.png");
+        LayeredSpriteCache heavyCannon = loadLayeredSprite(root + "heavy-cannon.png");
+        LayeredSpriteCache srm = loadLayeredSprite(root + "srm-pod.png");
+        LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-pod.png");
+        if (chassis == null || houndChassis == null || siroccoChassis == null
+                || arm == null || linearCannon == null || heavyCannon == null
+                || srm == null || lrm == null) {
+            LOG.warn("BattleSprites: modular mech livery " + livery
+                    + " incomplete; actors using it keep the complete base set");
+            return;
+        }
+        layeredMechLiveries.put(livery, new LayeredMechAssets(
+                chassis, socketedChassis, houndChassis, siroccoChassis,
+                foot, thighBone, arm, linearCannon, heavyCannon,
+                srm, lrm, flash));
     }
 
     private void loadLayeredFamily(LayeredArmorFamily familyId, String family,

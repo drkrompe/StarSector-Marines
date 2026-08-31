@@ -213,6 +213,19 @@ variant, role, and installed subsystem from the active mech squad into plain
 deployment values. The delivery power transports those values; landing then
 constructs the live loadout and installs the frozen subsystem.
 
+Campaign faction identity crosses into presentation separately from that
+hardware flow. At battle-screen attachment, the selected client's exact
+campaign faction id selects the marine livery and the target faction id (or an
+explicit defender comparison override) selects the defender livery. Tactical
+`MARINE`/`DEFENDER` identity remains only the lookup side; it does not become a
+campaign faction. The renderer resolves one complete livery family for that
+side—three chassis plus five weapon casings—with unknown human factions using
+the practical Independent/mercenary treatment and automated or absent identity
+retaining the base art. If any painted layer is unavailable, the entire mech
+uses the complete base family rather than mixing liveries. This bridge is
+presentation-only and never enters battle determinism, save data, spawning, or
+mechanical authority.
+
 Selecting an exact friendly mech during battle may request another effective
 role, another lance order, or a tactical move. The role request affects only
 that mech; the lance order request affects its whole battle lance; the tactical
