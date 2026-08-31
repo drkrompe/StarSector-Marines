@@ -34,9 +34,10 @@ class AirLocomotionTest {
      *
      * <p>Pinned against the list that used to be written out by hand, because
      * that list is what the derivation replaced and the replacement is only
-     * worth anything if it says the same thing. The two additions are
-     * deliberate: {@link ShuttleState#PAD_DESCENT} is a craft hovering over its
-     * landing zone, which is in the air by any reading.
+     * worth anything if it says the same thing. The additions are deliberate:
+     * {@link ShuttleState#PAD_DESCENT} is a craft hovering over its landing
+     * zone and {@link ShuttleState#PAD_ASCENT} one hovering over the pad it
+     * just left, which are in the air by any reading.
      */
     @Test
     void airborneIsTheFlyingPhasesAndNothingElse() {
@@ -44,8 +45,8 @@ class AirLocomotionTest {
         for (ShuttleState state : ShuttleState.values()) {
             if (AirLocomotion.of(state).airborne()) airborne.add(state);
         }
-        assertEquals(EnumSet.of(ShuttleState.INCOMING, ShuttleState.PAD_DESCENT,
-                        ShuttleState.DEPARTING,
+        assertEquals(EnumSet.of(ShuttleState.PAD_ASCENT, ShuttleState.INCOMING,
+                        ShuttleState.PAD_DESCENT, ShuttleState.DEPARTING,
                         ShuttleState.RETURNING, ShuttleState.ATTACK_RUN,
                         ShuttleState.REPOSITION),
                 airborne);
