@@ -65,7 +65,19 @@ import java.util.Random;
 final class AirfieldSortieScene {
 
     static final int WIDTH = 64;
-    static final int HEIGHT = 48;
+    /**
+     * Deep enough that the walk to the pad is a crossing rather than a step.
+     *
+     * <p>The crew forms up on the side's own rear edge, so the map's depth is
+     * the walk. At forty-eight the back fence sat nine rows from that edge,
+     * which left nowhere to put a fire team that was not either on top of the
+     * crew as it spawned or within reach of the parked aircraft — and the
+     * opposed loop recorded both at once: five of six shot down in four seconds
+     * where they stood, and two hulls burned on their stands by people who were
+     * supposed to be interdicting a walk. Depth is what buys the ambush a place
+     * to stand.
+     */
+    static final int HEIGHT = 80;
 
     /** Where the lot sits on this scene's map, leaving the crew ground to cross. */
     private static final int LOT_LEFT = 8;
@@ -86,9 +98,30 @@ final class AirfieldSortieScene {
     private static final int RAID_STANDOFF = 4;
     private static final int RAID_SIZE = 6;
 
-    /** Where the opposed variant puts its fire team: on the crew's line of march. */
+    /**
+     * Where the opposed variant puts its fire team: astride the line of march,
+     * and well away from both ends of it.
+     *
+     * <p>Both ends answer the question by making it a different question. On
+     * the crew's spawn it is a fire team shooting people as they form up, no
+     * walk involved: measured on the shallower map this scene used to have, it
+     * was five of six down in four seconds without anybody having gone
+     * anywhere. Close to the apron it burns the aircraft instead, which is the
+     * raid loop wearing this one's caption — the same run put two hulls out on
+     * their stands.
+     *
+     * <p>At this range it contests the crossing instead of deleting it, which
+     * is the sentence the pair is for. The crew walks into somebody's fire,
+     * halts and returns it, and the pad it was going to is still a hundred feet
+     * further on; what comes of that is the battle's to decide. The shipped
+     * recording gets four of the six aboard and lifts short-handed, against six
+     * and a clean thirty-five seconds unopposed. A worse exchange runs the
+     * deadline out with the ramp empty and scrubs the sortie. Either way nobody
+     * has touched the aircraft, which is the half of the claim the raid loop
+     * cannot make.
+     */
     private static final int AMBUSH_X = 31;
-    private static final int AMBUSH_Y = 40;
+    private static final int AMBUSH_Y = 51;
     private static final int AMBUSH_SIZE = 6;
 
     /**
@@ -300,7 +333,18 @@ final class AirfieldSortieScene {
         if (scene.variant() == Variant.RAID) return raidPhase(scene);
         ShuttleMission mission = scene.sim().world().mission(scene.shuttleId());
         if (mission == null) {
-            return scene.outcome()[0] != null ? scene.outcome()[0] : "sortie gone";
+            // A sortie that got off the ground recorded its outcome on the way
+            // out. One that never did was scrubbed where it stood: the deadline
+            // ran out with nobody up the ramp. That ending is reaped in the tick
+            // it happens, so there is no state left to read it off and the
+            // absence of a recorded outcome is itself the reading — which is
+            // the whole of what the opposed loop is for, and it used to caption
+            // itself "sortie gone" as though the aircraft had merely wandered
+            // off.
+            if (scene.outcome()[0] == null) {
+                scene.outcome()[0] = "SORTIE SCRUBBED — nobody reached the ramp";
+            }
+            return scene.outcome()[0];
         }
         if (mission.state == ShuttleState.DEPARTING || mission.state == ShuttleState.GONE) {
             scene.outcome()[0] = mission.deboardedThisSortie > 0
