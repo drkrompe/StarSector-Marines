@@ -53,6 +53,44 @@ class VehicleControlSystemTest {
         assertEquals(0f, convoy.control(id).localPlanFailureTime, 0.001f);
     }
 
+    /**
+     * The captured stall: a HEAVY_APC departing east down an open lane on a
+     * 280-wide map, exit waypoint at the usual off-map pad. Its rolling goal
+     * leaves the grid around x=271 — nine cells before its own footprint does —
+     * and the recorded truck sat at x=270.78 with speed 0 for the rest of the
+     * battle. Departure must complete instead.
+     */
+    @Test
+    void departingApcCrossesTheMapEdgeInsteadOfStallingAtTheHorizon() {
+        NavigationGrid grid = new NavigationGrid(280, 100);
+        carve(grid, 0, 78, 279, 82);
+        NavigationService navigation = new NavigationService(grid, new CellTopology(280, 100));
+        UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(280, 100), null);
+        ConvoyService convoy = roster.convoy();
+        VehicleMission mission = new VehicleMission(
+                new float[]{286f, 277.5f, 197.5f},
+                new float[]{80.5f, 80.5f, 80.5f},
+                new float[]{197.5f, 277.5f, 286f},
+                new float[]{80.5f, 80.5f, 80.5f},
+                0f, 4);
+        long id = convoy.spawn(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
+        GroundBody body = convoy.body(id);
+        body.teleport(262f, 80.5f, -90f);
+        body.speed = 0f;
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+
+        boolean arrived = false;
+        for (int i = 0; i < 600 && !arrived; i++) {
+            controls.tick(id, 0.05f, false);
+            arrived = controls.consumeArrived(id);
+        }
+
+        assertTrue(arrived, "the departing APC must reach its off-map exit (stopped at x="
+                + body.x + ", speed=" + body.speed
+                + ", failureTime=" + convoy.control(id).localPlanFailureTime + ")");
+        assertTrue(body.x > 279f, "it must actually leave the grid, not arrive inside the map");
+    }
+
     @Test
     void onGridPlannerFailureHoldsInsteadOfDrivingTheCoarseElbow() {
         NavigationGrid grid = new NavigationGrid(30, 30);
