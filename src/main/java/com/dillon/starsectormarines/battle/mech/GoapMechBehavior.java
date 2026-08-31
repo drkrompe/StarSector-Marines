@@ -24,9 +24,11 @@ import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Per-unit GOAP dispatch for mech-class units. Sibling of
@@ -172,7 +174,44 @@ public final class GoapMechBehavior implements UnitBehavior {
         }
 
         WorldState current = WorldStateBuilder.build(squad, sim);
-        Goal goal = Goal.pickMostRelevant(MECH_GOALS, current, squad, sim);
+        // The ladder descends past a goal that cannot be planned, as it does
+        // for infantry: committing a null plan tells a member to stand still
+        // and drop its path, which is never the right answer while another
+        // goal would have produced work.
+        //
+        // No mech squad can reach the bottom of this loop today, and that is
+        // a property of the action library rather than of the mech.
+        // ExecuteMechDoctrine carries no preconditions and satisfies
+        // ENEMY_DAMAGED, so the ENGAGEMENT floor always chains and the
+        // first pass always returns a plan. Infantry's counterpart
+        // {@code ApproachPosture} needs a target the squad may not have, which
+        // is exactly why the freeze was found there. The descent is here so
+        // the law holds for both dispatchers rather than for whichever one
+        // happens to have an unconditioned floor action — a mech action that
+        // ever grows a precondition must not reintroduce the freeze.
+        Goal goal;
+        SquadPlan plan;
+        Set<Goal> declined = Set.of();
+        while (true) {
+            goal = Goal.pickMostRelevant(MECH_GOALS, current, squad, sim, declined);
+            if (goal == null) {
+                plan = null;
+                break;
+            }
+            plan = goal.customPlan(squad, sim);
+            if (plan == null) {
+                plan = Planner.plan(
+                        current,
+                        goal.desiredState(squad, sim),
+                        MECH_ACTIONS,
+                        squad,
+                        sim,
+                        PLAN_NODE_LIMIT);
+            }
+            if (plan != null) break;
+            if (declined.isEmpty()) declined = new HashSet<>();
+            declined.add(goal);
+        }
         if (goal == null) {
             squad.currentPlan = null;
             squad.currentGoal = null;
@@ -180,17 +219,6 @@ public final class GoapMechBehavior implements UnitBehavior {
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
             squad.assignedObjectiveAtLastPlan = executableAssignment;
             return;
-        }
-
-        SquadPlan plan = goal.customPlan(squad, sim);
-        if (plan == null) {
-            plan = Planner.plan(
-                    current,
-                    goal.desiredState(squad, sim),
-                    MECH_ACTIONS,
-                    squad,
-                    sim,
-                    PLAN_NODE_LIMIT);
         }
 
         if (plan != null && !plan.isComplete()) {
