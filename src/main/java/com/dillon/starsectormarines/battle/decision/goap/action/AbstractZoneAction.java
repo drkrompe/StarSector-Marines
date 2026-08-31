@@ -190,6 +190,27 @@ abstract class AbstractZoneAction implements Action {
     }
 
     /**
+     * Whether this action may abandon its own destination to go and fight a
+     * contact that is merely visible, rather than one astride its route.
+     *
+     * <p>Separated from the route-threat commit on purpose, because the two
+     * are different decisions wearing the same {@code committed} flag.
+     * {@link #updateAdvanceThreat} commits a squad to a threat it has to walk
+     * through — the destination survives, and the leash is anchored on the
+     * route. Contact prosecution commits it to the primary contact wherever
+     * that contact happens to be, anchored on the squad's own centroid, and
+     * the destination plays no part in it at all. An action whose destination
+     * came from outside the AI needs to refuse the second while keeping the
+     * first.
+     *
+     * <p>Defaults to true: an autonomously assigned advance chooses its own
+     * fights, which is the whole point of the contact picture.
+     */
+    protected boolean prosecutesContactOffRoute(Squad squad) {
+        return true;
+    }
+
+    /**
      * Advance a member that is standing <em>outside</em> the target zone toward
      * {@code (destX, destY)} — an interior cell — taking opportunistic shots at
      * a visible in-range enemy while it moves. Caller invokes this only when
@@ -225,7 +246,8 @@ abstract class AbstractZoneAction implements Action {
             }
             doctrineHold = TacticalScoring.shouldHardHoldAdvance(squad,
                     squad.contactPicture, sim.getSimTickIndex());
-            prosecuteContact = advancingPicture && doctrine == Doctrine.HOLD
+            prosecuteContact = prosecutesContactOffRoute(squad)
+                    && advancingPicture && doctrine == Doctrine.HOLD
                     && squad.contactPicture.contactInitiative()
                     == ContactInitiative.PROSECUTE
                     && sim.resolveUnit(squad.contactPicture.primaryContactId()) != 0L;

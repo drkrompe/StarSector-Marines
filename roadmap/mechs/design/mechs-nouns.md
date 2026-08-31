@@ -62,9 +62,16 @@ increasing an encounter's total armored threat.
   later is admitted or refused by what it weighs.
 - A **machine on the stocks** is the part-built chassis itself, standing in a
   gantry as an ordinary battle body: seen, targeted and damaged exactly where it
-  stands. It is immobile and mindless and has no weapons, because it is not
-  finished. It is not a mech and never becomes one — a finished machine comes off
-  the stocks and an ordinary chassis stands where it stood.
+  stands. It is the **real variant** — an unfinished Hound is composed from a
+  Hound's own modular art and is a Hound's size, structure and silhouette — with
+  its plate fitted and empty. What it has not got is a **loadout**, and that
+  alone is what makes it inert: every firing path is keyed off the installed
+  mounts, so a chassis with none is skipped by all of them without anything
+  having been told to skip it. Being built on a chassis and carrying a loadout
+  are therefore separate questions; folding them together forces a choice between
+  an unfinished machine drawn as a generic mech and one that arrives with a
+  working gun. It is not a mech and never becomes one — a finished machine comes
+  off the stocks and an ordinary chassis stands where it stood.
 - **Subsystem inventory** is finite fleet stock. Installed components count
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
@@ -315,6 +322,11 @@ support sortie, subject only to practical runtime resources.
 - **Work destroyed is not refunded.** A machine shot on the stocks is wreckage
   and the next one starts from a keel. That is what makes an attacker's rounds
   worth spending on the building rather than only on the people in it.
+- **A captured works builds for whoever captured it.** A field works has no side
+  of its own: it produces for whichever side its technicians belong to, and who
+  those are is settled by who holds the ground. `ai-nouns.md` owns the crew and
+  the replacement rule; what follows here is that taking a motor pool is taking
+  its output rather than only denying it.
 - **The crew lays the keel.** A bay with nothing on its stocks starts the next
   machine on the first tick somebody is at the gantry to start it, so a crew that
   has stood down under fire lays nothing and a crew that is dead lays nothing

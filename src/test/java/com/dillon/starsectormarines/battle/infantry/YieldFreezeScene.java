@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -83,6 +85,15 @@ final class YieldFreezeScene {
     private static final int SQUAD_SIZE = 6;
     private static final long KIT_SEED = 20260831L;
 
+    /**
+     * Which dispatcher is under the microscope. The two share the ladder and
+     * the replan pass but not their goal and action libraries, and the ladder's
+     * floor is a property of the library rather than of the chassis — so the
+     * question has to be asked of each separately rather than assumed to
+     * transfer.
+     */
+    enum Force { INFANTRY, MECH }
+
     /** One loop's running tally. */
     static final class Tally {
         int squadId;
@@ -127,6 +138,10 @@ final class YieldFreezeScene {
      *                 order is relevant and the goal plans — the control.
      */
     static Scene build(boolean workable) {
+        return build(workable, Force.INFANTRY);
+    }
+
+    static Scene build(boolean workable, Force force) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) grid.setWalkableFloor(x, y);
@@ -150,7 +165,9 @@ final class YieldFreezeScene {
         sim.setMissionCompletionEnabled(false);
 
         Scene scene = new Scene(sim);
-        int squadId = spawnSquad(sim, scene.tally);
+        int squadId = force == Force.MECH
+                ? spawnMechLance(sim, scene.tally)
+                : spawnSquad(sim, scene.tally);
 
         // A whole map away, behind two walls, past marine vision, and immobile.
         // Present so the defender side is never absent; invisible and inaudible
@@ -220,6 +237,38 @@ final class YieldFreezeScene {
         tally.squadId = squadId;
         tally.startX = sumX / SQUAD_SIZE;
         tally.startY = sumY / SQUAD_SIZE;
+        return squadId;
+    }
+
+    /**
+     * A two-mech lance under the same order. Loadouts are attached because that
+     * component is what routes a unit to the mech dispatcher at all — without
+     * it these are ordinary bodies running the infantry ladder, and the scene
+     * would record the infantry answer twice under two names.
+     */
+    private static int spawnMechLance(BattleSimulation sim, Tally tally) {
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        float sumX = 0f;
+        float sumY = 0f;
+        int size = 2;
+        for (int i = 0; i < size; i++) {
+            EntitySpec spec = MechVariant.BULWARK.applyTo(new EntitySpec(
+                    "mech" + i, Faction.MARINE, UnitType.HEAVY_MECH,
+                    SQUAD_X + i * 2, DOOR_Y).squad(squadId));
+            long id = sim.spawn(spec);
+            sim.world().attachMechLoadout(id,
+                    MechVariant.BULWARK.createLoadout(MechRole.BALANCED));
+            sumX += sim.world().x(id);
+            sumY += sim.world().y(id);
+        }
+        Squad squad = sim.getSquad(squadId);
+        if (squad != null) {
+            squad.originalSize = size;
+            squad.aliveMembers = size;
+        }
+        tally.squadId = squadId;
+        tally.startX = sumX / size;
+        tally.startY = sumY / size;
         return squadId;
     }
 

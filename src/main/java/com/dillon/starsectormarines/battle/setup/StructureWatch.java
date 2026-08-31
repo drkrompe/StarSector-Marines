@@ -8,7 +8,10 @@ import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.ambient.JobSite;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.ambient.Shift;
+import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -66,7 +69,8 @@ public final class StructureWatch {
      */
     public static List<Long> man(BattleSimulation sim, Faction side,
                                  List<RoomSite> sites, List<FixtureTask> authored,
-                                 boolean[] berthed, Set<RoomPurpose> purposes, int watch) {
+                                 boolean[] berthed, Set<RoomPurpose> purposes, int watch,
+                                 WorksCrewService crews) {
         List<Long> hired = new ArrayList<>();
         if (watch <= 0 || sites.isEmpty()) return hired;
 
@@ -74,11 +78,30 @@ public final class StructureWatch {
             if (!purposes.contains(site.purpose())) continue;
             for (CrewRole role : CrewRole.values()) {
                 if (!Shift.basedAt(role, site, authored, berthed)) continue;
-                hired.addAll(stand(sim, side, site, role, authored, berthed, watch));
+                hired.addAll(stand(sim, side, site, role, authored, berthed, watch, crews));
             }
         }
         if (!hired.isEmpty()) sim.ambientTasks().settle();
         return hired;
+    }
+
+    /**
+     * The compound whose capture state says who holds this room, or null for one
+     * that is nobody's.
+     *
+     * <p>The anchor inside the extent, with no radius and no nearest-wins
+     * fallback. A garrison's own buildings each stand inside the compound that
+     * owns them — a fortress airfield's node sits on the middle of its apron and
+     * a motor pool's a few cells off the middle of its shed — and a worked room
+     * with no compound over it is a hangar in a city block rather than anybody's
+     * facility. Reaching for the nearest one instead would hand that hangar to
+     * whichever garrison happened to be closest, a hundred cells away.
+     */
+    private static TacticalNode holderOf(BattleSimulation sim, RoomSite site) {
+        for (CompoundService.Record record : sim.getCompoundService().getRecords()) {
+            if (site.contains(record.node.anchorX, record.node.anchorY)) return record.node;
+        }
+        return null;
     }
 
     /**
@@ -105,7 +128,6 @@ public final class StructureWatch {
     }
 
     /**
-     * What a trade turns out as here, which is its own kind with a sidearm.    /**
      * What a trade turns out as here, which is its own kind with a sidearm.
      *
      * <p>Whether somebody is armed is a decision of the force that posted them
@@ -123,10 +145,10 @@ public final class StructureWatch {
         return role.unit() == UnitType.ENGINEER ? UnitType.TECHNICIAN : role.unit();
     }
 
-    /** Draw up one trade's bill for one room and take on the hands it holds. */    /** Draw up one trade's bill for one room and take on the hands it holds. */
+    /** Draw up one trade's bill for one room and take on the hands it holds. */
     private static List<Long> stand(BattleSimulation sim, Faction side, RoomSite site,
                                     CrewRole role, List<FixtureTask> authored,
-                                    boolean[] berthed, int watch) {
+                                    boolean[] berthed, int watch, WorksCrewService crews) {
         Shift bill = Shift.postedAt(role, site, List.of(site), authored, berthed,
                 AmbientThreatPolicy.UNDER_FIRE);
         // The claim groups have to exist before anybody is handed a route that
@@ -138,6 +160,15 @@ public final class StructureWatch {
         List<Long> hired = new ArrayList<>();
         int hands = Math.min(watch, bill.capacity());
         UnitType type = issued(role);
+        if (hands <= 0) return hired;
+
+        // The posting is opened before anybody fills it, because it outlives
+        // them: a billet whose technician is shot is empty rather than gone, and
+        // whoever holds the building sends the next one.
+        WorksCrewService.Posting posting = crews == null ? null
+                : crews.post(site.id(), role, type, bill, holderOf(sim, site),
+                        site.centreX(), site.centreY(), hands);
+
         Squad crew = null;
         for (int index = 0; index < hands; index++) {
             AmbientTaskRoute route = bill.member(index);
@@ -150,6 +181,10 @@ public final class StructureWatch {
             long actor = sim.spawn(worker);
             sim.ambientTasks().assign(actor, route);
             hired.add(actor);
+            if (posting != null) {
+                posting.fill(index, actor);
+                posting.setWatchFor(side, crew == null ? 0 : crew.id);
+            }
         }
         if (crew != null) crew.originalSize = hired.size();
         return hired;

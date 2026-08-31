@@ -31,6 +31,14 @@ import java.util.Random;
  * leaf (the curb-side strip), or {@link CellTopology.GroundKind#GRASS} for
  * cells in the frame interior.
  *
+ * <p>The verge is planted ground, so like a park it keeps its grass on any
+ * world and does not consult the
+ * {@link com.dillon.starsectormarines.battle.world.gen.SurfacePalette}. It is a
+ * small share of the map — around a dozen cells where a park is a couple of
+ * hundred — but it is the same decision, made for the same reason: a street a
+ * colony chose to close and plant says something about the colony rather than
+ * about the planet.
+ *
  * <p>Pair decisions are cached so all cells in the same frame agree on the
  * outcome — partial frames (some cells converted, some not) would read as
  * artifact. Cells at four-way intersections (both perpendicular axes resolve to
