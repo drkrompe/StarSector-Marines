@@ -103,6 +103,8 @@ public final class VehicleControlSystem {
         s.localPlanFailureTime = 0f;
         s.localPlanFailureRerouteAttempted = false;
         s.dockingPath = null;
+        s.dockingIsDeparture = false;
+        s.turnaroundsUsed = 0;
         s.recovery = VehicleControlComponent.Recovery.NONE;
         s.recoveryAttempts = 0;
         s.recoveryBestRemaining = Float.MAX_VALUE;
@@ -158,9 +160,11 @@ public final class VehicleControlSystem {
             }
         }
 
-        // --- Terminal docking phase (inbound only) -------------------------
+        // --- Reeds-Shepp maneuver phase ------------------------------------
+        // A running maneuver owns the pose whichever direction it serves: an
+        // arrival dock inbound, a departure turnaround outbound.
+        if (s.dockingPath != null) { advanceDocking(mission, body, s, dt); return; }
         if (isInbound) {
-            if (s.dockingPath != null) { advanceDocking(mission, body, s, dt); return; }
             tryEngageDocking(mission, body, type, s, xs, ys);
             if (s.dockingPath != null) { advanceDocking(mission, body, s, dt); return; }
         }
@@ -207,6 +211,18 @@ public final class VehicleControlSystem {
                 s.localPlanFailureTime = 0f;
                 body.speed = 0f;
                 s.arrived = true;
+                return;
+            }
+            // A departing truck can be parked facing back down its own inbound
+            // approach: only the docking maneuver lands it on the outbound
+            // heading, so one that arrived through the plain distance gate keeps
+            // whatever heading it came in on. Forward planning then has nothing
+            // to find and never will, because turning a bicycle round needs more
+            // lateral room than a road has. Back and fill onto the corridor
+            // instead — the same Reeds-Shepp maneuver docking already uses.
+            if (!isInbound && tryEngageDepartureTurnaround(body, type, s)) {
+                s.localPlanFailureTime = 0f;
+                advanceDocking(mission, body, s, dt);
                 return;
             }
             s.localPlanFailureTime += dt;
@@ -561,6 +577,48 @@ public final class VehicleControlSystem {
     }
 
     /**
+     * Plan a Reeds-Shepp turnaround from the current pose onto the outbound
+     * corridor, for a departing vehicle that forward planning cannot move.
+     *
+     * <p>Reeds-Shepp is what makes this possible at all: it may reverse, and a
+     * bicycle that must reverse to turn round is exactly the case a
+     * forward-only trajectory search reports as "no route" forever. The goal is
+     * a pose a lead distance down the corridor, on the corridor's own heading,
+     * so completing the maneuver leaves the truck pointing where tracking wants
+     * it and ordinary pursuit takes over on the next tick.
+     *
+     * @return whether a feasible maneuver was engaged
+     */
+    private boolean tryEngageDepartureTurnaround(GroundBody body, VehicleType type,
+                                                 VehicleControlComponent s) {
+        if (!(body instanceof BicycleBody)) return false;
+        if (s.turnaroundsUsed >= VehicleController.MAX_DEPARTURE_TURNAROUNDS) return false;
+
+        float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
+        Pose start = new Pose(body.x, body.y, body.facingDegrees);
+        for (float factor : VehicleController.TURNAROUND_LEAD_FACTORS) {
+            Pose goal = s.corridor.targetAhead(body.x, body.y,
+                    VehicleController.turnaroundLead(turnRadius, factor));
+            ReedsShepp.Path path = ReedsShepp.shortest(start, goal, turnRadius);
+            if (path == null) continue;
+            if (path.lengthCells(turnRadius) < VehicleController.MIN_TURNAROUND_CELLS) return false;
+            if (!VehicleController.isPathFeasible(start, path, turnRadius, type,
+                    navigation.getGrid())) continue;
+
+            s.dockingPath = path;
+            s.dockingStartPose = start;
+            s.dockingTurnRadius = turnRadius;
+            s.dockingProgressCells = 0f;
+            s.dockingGoalFacingDeg = goal.facingDeg;
+            s.dockingIsDeparture = true;
+            s.turnaroundsUsed++;
+            s.trajectory = null;   // the maneuver owns the pose now
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Advance the docking truck by {@link VehicleController#DOCKING_SPEED} for one
      * tick along its Reeds-Shepp path, set the body's pose from the sampled point,
      * and flag arrival when the path's total length is consumed.
@@ -569,6 +627,19 @@ public final class VehicleControlSystem {
         s.dockingProgressCells += VehicleController.DOCKING_SPEED * dt;
         float totalCells = s.dockingPath.lengthCells(s.dockingTurnRadius);
         if (s.dockingProgressCells >= totalCells) {
+            if (s.dockingIsDeparture) {
+                // A turnaround ends wherever the path ends and hands the pose
+                // straight back to corridor tracking. Nothing has arrived.
+                Pose end = ReedsShepp.sample(s.dockingStartPose, s.dockingTurnRadius,
+                        s.dockingPath, totalCells);
+                body.x = end.x;
+                body.y = end.y;
+                body.facingDegrees = end.facingDeg;
+                body.speed = 0f;
+                s.dockingPath = null;
+                s.dockingIsDeparture = false;
+                return;
+            }
             body.teleport(mission.lzX, mission.lzY, s.dockingGoalFacingDeg);
             s.dockingPath = null;
             s.arrived = true;

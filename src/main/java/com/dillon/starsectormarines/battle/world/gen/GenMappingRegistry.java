@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,6 +61,17 @@ public final class GenMappingRegistry {
     /** {@link BlockKind} -> its code filler's tunables (pools/chances). The filler reads these instead of hardcoding them; the carve/scatter algorithm stays in the filler. */
     private final Map<BlockKind, FillerParams> fillerParams = new EnumMap<>(BlockKind.class);
     private final Map<BlockKind, CatalogSource> fillerSources = new EnumMap<>(BlockKind.class);
+    /**
+     * The same tunables qualified by the world's {@link SurfacePalette}, so one
+     * {@link BlockKind} means different ground on a rock than on a living world.
+     * Keyed by palette then kind rather than by a widened {@code BlockKind}
+     * vocabulary, because multiplying nature kinds by world types would fork
+     * every district weight table for a difference that is only ever material.
+     * An unauthored pair falls back to the palette-free entry above.
+     */
+    private final Map<SurfacePalette, Map<BlockKind, FillerParams>> surfaceFillerParams =
+            new EnumMap<>(SurfacePalette.class);
+    private final Map<String, CatalogSource> surfaceFillerSources = new HashMap<>();
     /**
      * Surface-relief per-{@link GroundKind} macro-height overrides <b>in metres
      * above the ground datum</b>, keyed by the kind's {@code name()} plus the
@@ -126,6 +138,23 @@ public final class GenMappingRegistry {
                 fillerSources.put(kind, source);
             }
         }
+        JSONObject surfaceFillers = root.optJSONObject("surfaceFillers");
+        if (surfaceFillers != null) {
+            for (Iterator<String> pit = surfaceFillers.keys(); pit.hasNext(); ) {
+                String paletteName = pit.next();
+                SurfacePalette palette = SurfacePalette.valueOf(paletteName);
+                JSONObject byKind = surfaceFillers.getJSONObject(paletteName);
+                for (Iterator<String> it = byKind.keys(); it.hasNext(); ) {
+                    String blockKindName = it.next();
+                    BlockKind kind = BlockKind.valueOf(blockKindName);
+                    requireUnique("surface filler mapping",
+                            paletteName + "/" + blockKindName, surfaceFillerSources, source);
+                    surfaceFillerParams
+                            .computeIfAbsent(palette, p -> new EnumMap<>(BlockKind.class))
+                            .put(kind, parseFillerParams(byKind.getJSONObject(blockKindName)));
+                }
+            }
+        }
         if (root.has("macroHeight")) {
             // The unitless 0..1 scale that key carried is gone. Reading those
             // numbers as metres would silently make a wall 0.9 m tall and its
@@ -140,7 +169,10 @@ public final class GenMappingRegistry {
         if (macroHeight != null) {
             for (Iterator<String> it = macroHeight.keys(); it.hasNext(); ) {
                 String key = it.next();
-                if (SurfaceRole.fromKeyOrNull(key) == null) GroundKind.valueOf(key);
+                if (!STRUCTURAL_MACRO_HEIGHT_KEYS.contains(key)
+                        && SurfaceRole.fromKeyOrNull(key) == null) {
+                    GroundKind.valueOf(key);
+                }
                 requireUnique("macro-height mapping", key, macroHeightSources, source);
                 macroHeightOverride.put(key, (float) macroHeight.getDouble(key));
                 macroHeightSources.put(key, source);
@@ -233,6 +265,26 @@ public final class GenMappingRegistry {
     }
 
     /**
+     * The tunables for {@code kind} on a world whose ground is {@code palette},
+     * falling back to the palette-free entry when that pair is unauthored — so a
+     * palette need only declare the kinds it actually changes, and a filler that
+     * predates palettes keeps working untouched.
+     *
+     * @param palette the world's surface; {@code null} reads as "no world", which
+     *                takes the palette-free entry.
+     */
+    public FillerParams fillerParams(BlockKind kind, SurfacePalette palette) {
+        if (palette != null) {
+            Map<BlockKind, FillerParams> byKind = surfaceFillerParams.get(palette);
+            if (byKind != null) {
+                FillerParams params = byKind.get(kind);
+                if (params != null) return params;
+            }
+        }
+        return fillerParams.get(kind);
+    }
+
+    /**
      * Sane per-{@link GroundKind} macro-height default, <b>in metres above the
      * ground datum</b>: ordinary ground is the datum itself, a building floor
      * stands on its slab, craters and water cut below it.
@@ -269,6 +321,41 @@ public final class GenMappingRegistry {
      */
     public static final float DEFAULT_WALL_MACRO_HEIGHT_METERS = 3.0f;
 
+    /**
+     * Macro-height keys that name a structure rather than a ground kind or a
+     * {@link SurfaceRole}. {@code WALL} and {@code ROOF} are already roles;
+     * a window is an aperture and draws through the barrier and aperture
+     * treatments rather than as a surface block, so it has no role to borrow
+     * and is named here instead.
+     */
+    private static final Set<String> STRUCTURAL_MACRO_HEIGHT_KEYS = Set.of("WINDOW");
+
+    /**
+     * Height of an intact roof, in metres. Defaults to the wall's, which makes
+     * a roofed building one solid mass rather than a lid sitting proud of its
+     * own walls — the shape a top-down shadow should read.
+     */
+    public float roofMacroHeightMeters() {
+        Float override = macroHeightOverride.get("ROOF");
+        return override != null ? override : wallMacroHeightMeters();
+    }
+
+    /**
+     * Height a window lowers its wall to, in metres — the sill.
+     *
+     * <p>Chest height, matching the low framed cover a
+     * {@code SharedEdgeBarrier.Kind.WINDOW} already gives: it is the same
+     * opening described to a different system, and the two should not disagree
+     * about how high it is.
+     */
+    public float windowSillMacroHeightMeters() {
+        Float override = macroHeightOverride.get("WINDOW");
+        return override != null ? override : DEFAULT_WINDOW_SILL_MACRO_HEIGHT_METERS;
+    }
+
+    /** @see #windowSillMacroHeightMeters() */
+    public static final float DEFAULT_WINDOW_SILL_MACRO_HEIGHT_METERS = 1.1f;
+
     /** {@code kind}'s macro height in metres — {@code "macroHeightMeters"} override, else {@link #defaultMacroHeightMeters}. */
     public float macroHeightMeters(GroundKind kind) {
         Float override = macroHeightOverride.get(kind.name());
@@ -291,7 +378,7 @@ public final class GenMappingRegistry {
      * quietly clipping every shadow against a constant nobody updated.
      */
     public float tallestMacroHeightMeters() {
-        float tallest = wallMacroHeightMeters();
+        float tallest = Math.max(wallMacroHeightMeters(), roofMacroHeightMeters());
         for (GroundKind kind : GroundKind.values()) {
             tallest = Math.max(tallest, macroHeightMeters(kind));
         }

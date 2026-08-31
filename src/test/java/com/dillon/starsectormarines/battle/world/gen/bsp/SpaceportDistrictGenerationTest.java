@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,8 @@ class SpaceportDistrictGenerationTest {
     @Test
     void spaceportWorldPublishesUsableBerthsOnOrdinaryUrbanMap() {
         TargetProfile profile = new TargetProfile(5, 6, 1, 1, "independent",
-                EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.SPACEPORT));
+                EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.SPACEPORT),
+                SurfacePalette.ROCK);
 
         MapResult map = new BspCityGenerator().generate(80, 80, 42L, null, profile);
         assertTrue(map.landingPads.size() >= 4,

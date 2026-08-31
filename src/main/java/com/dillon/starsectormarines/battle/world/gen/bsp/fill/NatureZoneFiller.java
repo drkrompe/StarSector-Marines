@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.FillerParams;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -80,7 +83,9 @@ public final class NatureZoneFiller implements BlockFiller {
         CellTopology topology = ctx.topology;
         Random rng = ctx.rng;
         GenMappingRegistry mapping = GenMappingRegistry.installed();
-        FillerParams params = (mapping == null) ? null : mapping.fillerParams(kind);
+        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
+        SurfacePalette palette = (profile == null) ? null : profile.surface();
+        FillerParams params = (mapping == null) ? null : mapping.fillerParams(kind, palette);
         paintBase(leaf, grid, topology, rng, params);
         TileRegistry reg = TileRegistry.installed();
         // Overlays need both the tile defs (TileRegistry) and the pools/chances
@@ -425,6 +430,14 @@ public final class NatureZoneFiller implements BlockFiller {
             case DIRT:  return "nature.dirt-1";
             case SAND:  return "nature.sand";
             case WATER: return "nature.water-1";
+            // Stone and rubble have no frame of their own on the nature strip,
+            // and returning null here means the cell silently hosts nothing at
+            // all -- a rock palette would scatter no rocks. Dirt is the honest
+            // stand-in for legality: rocks accept any ground-layer tile, and
+            // plants require grass specifically, so a stony surface correctly
+            // keeps its rocks and correctly grows nothing.
+            case STONE:
+            case RUBBLE: return "nature.dirt-1";
             default:    return null;
         }
     }

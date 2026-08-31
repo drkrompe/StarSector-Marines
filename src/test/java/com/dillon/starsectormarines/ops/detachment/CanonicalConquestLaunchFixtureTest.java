@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -91,7 +92,8 @@ class CanonicalConquestLaunchFixtureTest {
     private static BattleLaunchFixture reinforcedSouth() {
         TargetProfile target = new TargetProfile(5, 7, 2, 1, "independent",
                 EnumSet.of(EconomicFunction.HABITATION,
-                        EconomicFunction.SPACEPORT));
+                        EconomicFunction.SPACEPORT),
+                SurfacePalette.ROCK);
         return fixture("reinforced", 1L, DebugCompanyStage.REINFORCED,
                 72_112L, false, OperationTier.REINFORCED, RiskLevel.LOW,
                 target, List.of(new FighterWingCommitment(FighterProfile.TALON,
@@ -102,7 +104,8 @@ class CanonicalConquestLaunchFixtureTest {
         TargetProfile target = new TargetProfile(7, 5, 6, 2, "hegemony",
                 EnumSet.of(EconomicFunction.HEAVY_INDUSTRY,
                         EconomicFunction.MILITARY,
-                        EconomicFunction.SPACEPORT));
+                        EconomicFunction.SPACEPORT),
+                SurfacePalette.ROCK);
         return fixture("full-strength", 4_096L,
                 DebugCompanyStage.FULL_STRENGTH, 95_408L, true,
                 OperationTier.FULL_STRENGTH, RiskLevel.MEDIUM,
