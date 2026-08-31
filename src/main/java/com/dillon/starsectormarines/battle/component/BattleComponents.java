@@ -68,6 +68,20 @@ public final class BattleComponents {
      * fought alongside ({@code progression-nouns.md}).
      */
     public static final int IDENTITY_CAMPAIGN_SQUAD_ID = 5;
+    /**
+     * {@link #IDENTITY} field 6: the
+     * {@link com.dillon.starsectormarines.battle.air.Airframe} a parked
+     * aircraft is a hull of (OBJECT); null for everything else.
+     *
+     * <p>Here for the same reason {@link #IDENTITY_MECH_VARIANT} is: body
+     * geometry on these types comes from the per-instance thing rather than
+     * from the {@link com.dillon.starsectormarines.battle.unit.UnitType}, and
+     * the shared radius accessor has to reach it without a scan. The berth
+     * knows which airframe stands on it, but finding a berth from a unit id is
+     * a walk over every hardstand on the field, and that read is per candidate
+     * per shot.
+     */
+    public static final int IDENTITY_AIRFRAME = 6;
 
     /** {@link #POSITION} field 0: continuous position x (FLOAT) — cell (cx,cy) spans [cx,cx+1), center at cx+0.5; floor for the grid cell. */
     public static final int POSITION_X = 0;
@@ -1128,7 +1142,8 @@ public final class BattleComponents {
 
     public BattleComponents(EntityWorld world) {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT,
-                FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT);
+                FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT,
+                FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
         CORPSE          = world.register(4, "Corpse");

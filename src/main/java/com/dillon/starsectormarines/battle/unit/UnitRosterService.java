@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
@@ -398,10 +399,15 @@ public final class UnitRosterService {
     public IdentityService identity() { return identityService; }
 
     /**
-     * Physical radius for any body, shared by selection, separation, ballistics
-     * and AoE. A carried body answers through its carrier, which is what stopped
-     * every aircraft in the game — a Kite and a Valkyrie alike — reporting the
-     * one authored figure on {@code UnitType.BASED_AIRCRAFT}.
+     * Physical radius for any body, shared by selection, ballistics and AoE.
+     *
+     * <p>Every type whose geometry is per-instance answers from the per-instance
+     * thing — a turret from its structure, a chassis through its carrier, a mech
+     * from its variant, an aircraft from its airframe — and only a type whose
+     * whole archetype is one size falls through to {@code UnitType.radius}. An
+     * aircraft was the case that was missed: a parked Valkyrie reported the
+     * archetype's half-cell while the same Valkyrie taxiing reported four and a
+     * half, so it changed size the instant it launched or recovered.
      */
     public float radius(long id) {
         if (turretStateService.isTurret(id)) {
@@ -414,6 +420,8 @@ public final class UnitRosterService {
         }
         BodyCarrier carrier = bodyService.carrierOf(id);
         if (carrier != null) return carrier.targetRadius(id);
+        Airframe airframe = identityService.airframe(id);
+        if (airframe != null) return airframe.targetRadiusCells();
         MechVariant variant = identityService.mechVariant(id);
         return variant != null ? variant.radius : identityService.type(id).radius;
     }
@@ -675,6 +683,8 @@ public final class UnitRosterService {
                 BattleComponents.IDENTITY_CAMPAIGN_SQUAD_ID, spec.campaignSquadId);
         entityWorld.setObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_MECH_VARIANT, spec.mechVariant);
+        entityWorld.setObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_AIRFRAME, spec.airframe);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, spec.cellX + 0.5f);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, spec.cellY + 0.5f);
         if (mechLayerDrawn) {

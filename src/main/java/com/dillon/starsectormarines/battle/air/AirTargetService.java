@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -32,19 +31,6 @@ import java.util.function.LongConsumer;
  * <p>See {@code air-nouns.md}.
  */
 public final class AirTargetService implements BodyCarrier {
-
-    /**
-     * Fraction of a hull's drawn length that stands in for its body circle.
-     *
-     * <p>A single radius has to speak for a shape that is long and narrow, and
-     * the two obvious answers are both wrong: half the length circumscribes the
-     * hull and claims wingspans of empty air either side of it, while the
-     * roster's authored half-cell describes a machine that is plainly twelve
-     * cells of aircraft on the map. A vanilla hull is drawn roughly twice as
-     * long as it is wide, so half its length approximates its span and half of
-     * that is the radius of the circle inscribed in it.
-     */
-    private static final float RADIUS_PER_DRAWN_LENGTH = 0.25f;
 
     private final UnitRosterService roster;
 
@@ -139,20 +125,15 @@ public final class AirTargetService implements BodyCarrier {
     }
 
     /**
-     * The craft's body circle, derived from the hull it is drawn as rather than
-     * from the one authored number on {@code UnitType.BASED_AIRCRAFT}. A Kite
-     * and a Valkyrie are a four-fold size ladder and answering the same figure
-     * for both made a blast's catch radius against a transport the same as
-     * against a light shuttle.
+     * The craft's body circle, asked of the airframe rather than derived here.
+     * The hull standing on a hardstand answers the same question through the
+     * same method, which is what keeps a Valkyrie the same size across the one
+     * handoff this model keeps still.
      */
     @Override
     public float targetRadius(long id) {
         Airframe frame = roster.world().airframe(id);
-        float drawnLength = frame == null
-                ? UnitType.BASED_AIRCRAFT.radius
-                : HullFootprintResolver.visualLengthCells(frame.renderHullId())
-                    * AirAppearance.GROUND_SCALE;
-        return drawnLength * RADIUS_PER_DRAWN_LENGTH;
+        return frame == null ? UnitType.BASED_AIRCRAFT.radius : frame.targetRadiusCells();
     }
 
     @Override
