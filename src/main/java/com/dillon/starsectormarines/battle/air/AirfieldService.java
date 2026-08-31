@@ -95,6 +95,20 @@ public final class AirfieldService {
          */
         public long airframeId;
         /**
+         * The ground this berth's parked hull is holding, or {@code 0} when it
+         * is holding none: which cells of its footprint it took, and what was
+         * marked on them before it did.
+         *
+         * <p>Remembered rather than re-derived, because the square and the
+         * ground actually taken are not the same thing — a cell somebody is
+         * standing in is never closed, and a shed bay's own wall can lie inside
+         * the square — and because handing cells back as plain floor would flatten
+         * an apron a little on every sortie. Written by {@link AirfieldSystem},
+         * which is also the one place it is given back; opaque to everybody
+         * else, and only ever compared against zero.
+         */
+        public long closedGround;
+        /**
          * Structure left on the hull, carried across every handoff so an
          * aircraft that comes home shot up parks shot up and is written off by
          * that much less fire on the ground.
