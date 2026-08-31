@@ -98,6 +98,10 @@ final class GroundHeightPass {
     }
 
     /**
+     * @param relief      what stands on each cell, in metres — walls, intact
+     *                    roofs, and the sills windows lower them to. See
+     *                    {@link MacroReliefField}; the pass writes the channel
+     *                    but does not decide what goes in it.
      * @param marginCells cells to emit beyond the viewport on every side. Larger
      *                    than the other ground passes' halo because this target
      *                    is also the sun-shadow occluder field: a wall standing
@@ -105,20 +109,15 @@ final class GroundHeightPass {
      *                    its shadow pops into the view as the camera pans.
      */
     void render(BattleCamera cam, NavigationGrid grid, CellTopology topology,
-                GenMappingRegistry mapping, int marginCells) {
+                GenMappingRegistry mapping, MacroReliefField relief, int marginCells) {
         boolean textured = shader.ensure();
         float cellPx = cam.cellPxSize();
-        float wallHeight = encodeMacroMeters(mapping != null
-                ? mapping.wallMacroHeightMeters()
-                : GenMappingRegistry.DEFAULT_WALL_MACRO_HEIGHT_METERS);
         float[] currentShoreFactors = waterShoreFactors(topology);
         VisibleCellRect view = cam.visibleCells(marginCells, grid.getWidth(), grid.getHeight());
 
         for (int y = view.minY(); y <= view.maxY(); y++) {
             for (int x = view.minX(); x <= view.maxX(); x++) {
-                float macro = topology.isWall(x, y) ? wallHeight
-                        : encodeMacroMeters(mapping != null
-                                ? mapping.macroHeightMeters(topology.getGroundKind(x, y)) : 0f);
+                float macro = encodeMacroMeters(relief.metersAt(x, y));
                 float water = isWaterSurface(topology, x, y) ? 1f : 0f;
                 float shore = currentShoreFactors[topology.index(x, y)];
                 float cx = cam.cellToScreenX(x + 0.5f);
