@@ -4,27 +4,16 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — how much of an aircraft there is to hit is one number,
-asked of the airframe by both representations. A parked hull answered the
-archetype's flat half-cell while the same hull rolling answered its own drawn
-size.
-
-Updated: 2026-08-31 — whether a craft can be engaged is a relation between a
-shooter and it, not a property of it. The altitude rule is a per-weapon
-capability with one implementation, and the absolute predicates it stood in for
-are retired.
-
-Updated: 2026-08-31 — an aircraft is a body on the shared terms every body is
-on: one carrier surface, one admission, one damage route. The per-kind branches
-that read "vehicle, else aircraft, else roster unit" are gone, and the three
-liveness gates that predated air and silently omitted it are fixed.
-
 Updated: 2026-08-31 — an aircraft on its wheels is a real target rather than a
-damageable one: it is a body in the spatial index on the convoy's terms, its
-hull is an ordinary `HEALTH`/`ARMOR` pair instead of a field on the sortie, and
-it is acquired, aimed at, traced through cover and credited by the pipeline
-that already does all of that. The attrition field it replaces is deleted; a
-craft in the air stays out of reach until anti-air exists.
+damageable one, and it reaches that on the shared terms every body is on: one
+carrier surface, one admission, one damage route, its hull an ordinary
+`HEALTH`/`ARMOR` pair. Whether a craft can be engaged is a relation between a
+shooter and it rather than a property of it, with altitude a per-weapon
+capability. How much of an aircraft there is to hit is one number asked of the
+airframe by both representations; ground durability is a role ladder and no
+longer pretends to follow it. A parked hull is something to walk round and see
+round, its wreckage still is not, and a cook-off spares the next stand by rule
+rather than by arithmetic.
 
 ## Purpose
 
@@ -237,16 +226,68 @@ Tri-Tachyon or Remnant one flies Wasps and Thunders. Copying those hulls into
 in two enums; making the berth hold the smaller thing they have in common costs
 three methods. Ground durability is authored per fighter rather than scraped,
 the way a transport's is: a hull's campaign HP is balanced against ship weapons
-and says nothing about what a rifle section does to one parked on concrete. It
-follows drawn size, because on the ground the only thing that matters about an
-aircraft is how much of it there is, and the whole fighter ladder sits below
-the lightest transport.
+and says nothing about what a rifle section does to one parked on concrete.
+
+**And it is not a function of drawn size either.** It is a role-and-toughness
+ladder: a heavy fighter is heavy because of what it is built to survive, not
+because of how long its sprite is. The doc claimed the opposite for a while
+— that on the ground the only thing that matters about an aircraft is how much
+of it there is — and the roster appeared to bear it out, because a fighter
+carried a second, authored drawn length that ranked identically to its
+structure. Against the hulls the game actually ships it does not: order the six
+by real length and it runs Wasp, Talon, Broadsword, Dagger, Longbow, Thunder,
+while the structure on them runs 25, 30, **45**, 40, 38, **35**. The Broadsword
+is mid-sized and the toughest thing on any apron; the Thunder is the longest
+hull and nearly the softest. The numbers are right and the claim was wrong, so
+the authored length is deleted and the claim with it.
+
+Drawn size is not idle. It is what decides how easily a shot finds the aircraft
+— the target radius above — and it comes off the hull's own spec, one answer in
+one place. How much killing an aircraft takes is a separate fact, and keeping
+the two separate is what stops a re-cut sprite quietly re-balancing every
+apron on every field. The whole fighter ladder still sits below the lightest
+transport, which is what makes burning a row of fighters a faster afternoon
+than burning one transport.
 
 Every berth is on the apron, in the open. The base's hangars are where aircraft
 are worked on rather than where they wait, so an attacker who reaches the field
 can burn what is standing on it without going indoors — the exposure is the
 point, and it is what makes a raid on the field a real alternative to taking the
 compound. `mapgen-nouns.md` owns the lot's geometry.
+
+**An aircraft standing on a stand is standing on it.** The hull closes the
+ground under it to movement, so a raid on the apron is fought across a field of
+parked machines rather than an open one with pictures drawn on it, and the
+wreckage of an aircraft is no longer more solid than the aircraft. It blocks
+sight on the one cell it stands on and not across the rest of its footprint; the
+wreck-and-obstacle section below owns why, and the reason is that a wider
+opacity makes the aircraft unshootable. It is the middle of the stand and no
+more: a pad is five cells across and
+the hull takes the inner three, leaving a cell of marked concrete all the way
+round — which is exactly where the ground crew stand to reach the aircraft, and
+the reason the size is a fact about the stand rather than about the hull.
+
+**A hull that arrives moves nobody.** A wreck comes down once and steps the
+survivors out from under it; an aircraft is *placed*, at the start of the battle
+and again every time a turnaround finishes, so a placement that pushed people
+would hand whoever owns the field a free repeatable shove at whoever is standing
+on it. It takes the cells nobody is in and leaves the rest open instead, which
+is the same trade the wreck already makes where there is nowhere to put
+somebody. The gap lasts until the aircraft next leaves and is placed again;
+nothing watches for the cell to vacate, because watching costs a write per berth
+per tick to buy back a cell somebody is standing in anyway.
+
+**Every way an aircraft stops standing there gives the ground back, in one
+place.** Launching, burning on the concrete, being lost over the objective, and
+whatever ending nobody has written yet: the berth asks whether a live airframe
+is standing on it rather than enumerating the endings, because a release written
+into each ending is a release the next ending will not have — and what that
+leaves is an invisible wall in the middle of the apron that nothing can walk
+through and nothing explains. This is the shape the runway claim was eventually
+forced into for the same reason. The ground is given back *exactly*: the cells
+taken and the marks that were on them, never a blanket declaration of floor,
+because an apron handed back a little flatter on every sortie corrodes without
+anybody seeing it happen.
 
 **A field is worked by people, and they are on the roster.** An apron publishes
 servicing at both flanks of every stand and a board ahead of each nose, and the
@@ -283,10 +324,20 @@ Four rules give the field its stakes:
 - **Loss is permanent.** An airframe burned on its pad or lost over the
   objective is not replaced, and its berth is written off for the battle. A
   field is a finite thing to lose.
-- **A turnaround is a window.** Servicing used to be free and instant because it
-  happened off-map at a carrier nobody could reach. On a field it happens on
-  ground the attacker can walk onto, so it takes long enough that a field cannot
-  answer two requests back to back.
+- **A turnaround is a window, and it is a window because it is work.** Servicing
+  used to be free and instant because it happened off-map at a carrier nobody
+  could reach. On a field it happens on ground the attacker can walk onto — on
+  the aircraft's own stand, with the aircraft standing on it — and it is paid for
+  in hand-seconds from the technicians actually at that stand. A countdown made
+  the field answer again on schedule whether or not anybody was working, so
+  killing the ground crew denied it nothing and reaching the apron mid-servicing
+  found the aircraft was not even there. Every turnaround owes a base cost before
+  any damage is counted — magazines, tanks, a walk round — because a field whose
+  sorties are never intercepted would otherwise turn them round instantly, and
+  then owes the patching on top, so damage costs a field its next sortie as well
+  as its hull. A properly manned field turns one round in about the time the
+  countdown used to take; a field whose crew is dead never turns one round
+  again.
 - **An airframe destroyed on the ground goes up.** It is a full tank under a
   thin skin, and that is the whole reason burning one is worth a fire team's
   time; a hull that simply stopped existing was a target with a lot of hit
@@ -306,11 +357,22 @@ Four rules give the field its stakes:
   what the apron costs, or the whole reason a runway is dangerous is a lie for
   half its own length.
 
-The fire **does not chain**. Its reach is sized to the stand and the apron
-around it and stops short of the next hardstand, which an authored field puts
-eight cells away. A blast that took its neighbours with it would make one
-satchel worth an entire airfield and delete the only decision a raid contains,
-which is how much of the field to spend the visit on.
+The fire **does not chain**, and it is a rule rather than a clearance. An
+aircraft standing on a berth is left out of the blast outright, so one satchel
+is worth one aircraft whatever is parked either side of it. A blast that took
+its neighbours with it would make one satchel worth an entire airfield and
+delete the only decision a raid contains, which is how much of the field to
+spend the visit on, and that decision is too important to rest on two hulls
+being small enough. The fire's *reach* is still sized to the stand and the
+apron around it and still stops short of the next hardstand, which an authored
+field puts eight cells away — that is what keeps it off the ground crew and the
+riflemen over there, and it is the shortfall a wider blast or a tighter apron
+would spend. What no longer depends on it is the aircraft.
+
+Only the berth is spared, because only the berth is a decision. A craft caught
+taxiing, holding short or partway down a roll is on open ground beside a fire
+and burns like anything else out there, which is the same reason the crossing
+is worth attacking at all.
 
 **The wreck stays on the ground.** What the fire leaves is the aircraft's own
 hull, charred and in three pieces, lying at the place and bearing it was
@@ -354,15 +416,28 @@ The wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
 everybody sees and shoots straight across it. A non-walkable cell is opaque
 here unless it says otherwise, so the wreck says otherwise — a burnt-out
 airframe is a frame with holes in it, and an apron strewn with them is still an
-apron you can cover by fire. That is deliberately not how the intact scenery
-hulls dressing civilian berths behave: a whole aircraft is a solid object.
+apron you can cover by fire. **The intact hull that stood there was a solid
+object** — but only on the cell it stood on, and the difference is not
+fastidiousness. A sight line exempts its two endpoints and nothing else, so an
+object opaque across a footprint wider than one cell is an object nothing can
+shoot: it hides behind its own overhang, and its own explosion cannot reach the
+people who set it off. Measured, a field of three aircraft went from burned in
+five seconds by six riflemen to untouched after three minutes. So the aircraft's
+own cell blocks sight and the ground its wings reach over does not, which is the
+convention a defence post's emplacement already follows for the same reason —
+its turret cell is opaque and the rest of the post is non-walkable and
+see-through. What a footprint gives the people beside it is **cover**, and cover
+comes from being unwalkable rather than from being opaque.
 
 **A wreck never settles on top of somebody.** Whoever is standing where the
 hull comes down — the ground crew who walked out to fly it, the raider who
 walked out to burn it — steps clear to the nearest cell that will take them,
 and a cell nobody could be stepped out of is left open instead. A unit sealed
 into a cell it can never leave stops answering its orders for the rest of the
-battle, which is a far worse outcome than a hull with a gap in it.
+battle, which is a far worse outcome than a hull with a gap in it. A hull being
+*placed* on a berth does not step anybody at all — see the berth section above;
+a death happens once and a placement recurs, so only one of them may move
+people.
 
 A sortie's passengers are never at risk from this. An aircraft is taken off its
 berth at the moment the request is dispatched, before the crew starts walking,
@@ -701,14 +776,18 @@ decision, and coupling it to the art would re-tune every apron on every field
 whenever a sprite changed. The same separation the drawn-size fix drew, one seam
 over.
 
-Sizing the parked hull honestly has one consequence worth stating, because it
-runs against the no-chain rule above: a cook-off catches a neighbour at *blast
-radius plus that neighbour's own radius*, so an airframe whose radius exceeds
-the blast's shortfall against the eight-cell hardstand pitch would take the next
-stand with it. Every hull a field bases today is far inside that — the largest
-is about a cell and a half — and only the bus-tier transports approach it. If a
-field is ever based with one, the lever is the pitch or the blast, not a smaller
-aircraft.
+Sizing the parked hull honestly is what turned the no-chain rule above from a
+sum into a statement. A cook-off catches a body at *blast radius plus that
+body's own radius*, so for as long as every aircraft reported the archetype's
+flat half cell the rule held by four and a half cells against a pitch of eight,
+and nobody had to mean it. Reporting real drawn size put the largest transport
+at four and a half cells of aircraft on its own, which reaches across the gap;
+that it had never been seen was down to which hulls the fields happen to base,
+and a rule that survives on which hulls somebody picked is not a rule. So the
+berthed aircraft is excluded from the fire by name and the sum is no longer
+load-bearing for it. The bound the sum would have had to satisfy is not
+knowable anyway: it is the size of the largest hull anybody ever bases, which
+is not a number the build can be shown.
 
 **Rolling is not flying slowly.** Ground movement is its own locomotion model
 rather than the flight steering held down to walking pace. What flight does to
@@ -1077,7 +1156,8 @@ deterministic fixture replay.
 
 Fighters fly the same sortie as anything else the air model puts up. A
 `FighterProfile` is an airframe: it says what the aircraft looks like, which
-hull sizes and flies it, what it drops, and how much of it there is to shoot.
+hull sizes and flies it, what it drops, and how much killing it takes on the
+ground. How much of it there is comes off the hull and is not authored there.
 Everything else about a fighter is its sortie.
 
 A fighter used to be none of that. It lived in a cosmetic overlay with its own

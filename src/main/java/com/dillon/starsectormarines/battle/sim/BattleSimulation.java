@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
+import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
+import com.dillon.starsectormarines.battle.ambient.WorksCrewSystem;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.contact.CloseContactService;
@@ -58,6 +60,7 @@ import com.dillon.starsectormarines.battle.squad.SquadContactOnsetSystem;
 import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.air.AirfieldCrewSystem;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.AirfieldSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
@@ -352,6 +355,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CompoundCaptureSystem compoundCapture = new CompoundCaptureSystem();
     /** Per-hardstand berth state for a garrison airfield — what is parked, away, refitting, or burned. Empty on a battle with no authored field. */
     private final AirfieldService airfieldService = new AirfieldService();
+    private final AirfieldCrewSystem airfieldCrew = new AirfieldCrewSystem();
     /** Stateless tick consumer that stands airframes on their pads, writes off one destroyed where it sat, and counts down a turnaround. */
     private final AirfieldSystem airfieldSystem = new AirfieldSystem(Faction.DEFENDER);
     /** Decides when the field puts an armed aircraft over the battle. Self-gating: a field with no strip or no sheds flies nothing. */
@@ -368,6 +372,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     private FabricationService fabrication;
     private final FabricationSystem fabricationSystem = new FabricationSystem();
+    /**
+     * The watches standing on this map's worked structures, or null on a map
+     * with none. Installed by {@code BattleSetup}, which is where the rooms and
+     * the approach axis are in hand.
+     */
+    private WorksCrewService worksCrews;
+    private final WorksCrewSystem worksCrewSystem = new WorksCrewSystem();
 
     /**
      * Per-tick recompute driver for the defender's recapture-target registry
@@ -1511,6 +1522,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.garrisonSystem = system;
     }
 
+    /** The watches on this map's worked structures, or null where there are none. */
+    public WorksCrewService getWorksCrews() {
+        return worksCrews;
+    }
+
+    /** Installs the map's works watches. {@code BattleSetup} owns the call. */
+    public void setWorksCrews(WorksCrewService crews) {
+        this.worksCrews = crews;
+    }
+
     /** What every vehicle bay on this map is building, or null where none does. */
     public FabricationService getFabrication() {
         return fabrication;
@@ -1884,6 +1905,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // MARINE_HELD state. Runs before resource production and reinforcement
         // so both see the freshest capture state this tick.
         compoundCapture.tick(TICK_DT, this, compoundService);
+        // Before the field's own pass, so an airframe the crew finished this
+        // tick is airworthy on this tick rather than on the next one.
+        airfieldCrew.tick(TICK_DT, this, airfieldService);
         airfieldSystem.tick(TICK_DT, this, airfieldService);
         // After the berths, so a shed that just took an aircraft back is
         // airworthy in the same tick a strike might want it.
@@ -1899,6 +1923,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // production because it is the same kind of fact about a held building,
         // and after capture for the same reason.
         fabricationSystem.tick(TICK_DT, this, fabrication);
+        // After capture, because who a replacement belongs to is read off this
+        // tick's holder rather than last tick's, and before nothing in
+        // particular: somebody walking on at the map edge has a long way to go.
+        worksCrewSystem.tick(TICK_DT, this, worksCrews);
         // Recapture-target recompute must precede the reinforcement trigger
         // poll below so FrontLineReinforcementTrigger dispatches against this
         // tick's fresh contested/open state, not last tick's.

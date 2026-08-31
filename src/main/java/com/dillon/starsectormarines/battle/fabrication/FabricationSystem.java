@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fabrication;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -132,17 +133,19 @@ public final class FabricationSystem {
         MechVariant chassis = bay.chassis;
         EntitySpec frame = new EntitySpec("mf" + (nextFrame++), works.lastBuilder(),
                 UnitType.MACHINE_FRAME, stocks.centerX, stocks.centerY);
-        // Unarmoured on purpose: plate is the last thing that goes on, and a
-        // frame that arrived already proof against small arms would be a
-        // production line an infantry assault could not touch.
-        frame.maxHp(chassis.maxStructure);
-        frame.hp(Math.max(1f, chassis.maxStructure * FabricationService.KEEL_FRACTION));
+        // The chassis it is going to be, so a half-built Hound is drawn as a
+        // Hound and is the size and shape of one. What it does not get is a
+        // loadout, and that alone is what keeps it out of the turret pass and
+        // off every firing path.
+        frame.mechVariant(chassis);
         frame.role(UnitRole.STRUCTURE);
-        // No mech variant on the spec. A variant is a mech's installed hardware
-        // and only a mech type accepts one; what this body needs from the
-        // chassis is how much structure a finished one has, which is already in
-        // its maximum. The bay holds the chassis until there is a machine to
-        // give it to.
+        // Set after the chassis, which arrives whole. Its plate is fitted and
+        // empty rather than absent, which is the same thing to anything shooting
+        // at it and the honest shape: a frame is the chassis with nothing on it
+        // yet. A machine that arrived already proof against small arms would be
+        // a production line an infantry assault could not touch.
+        frame.armor(0f, chassis.armorCapacity, chassis.armorRating);
+        frame.hp(Math.max(1f, chassis.maxStructure * FabricationService.KEEL_FRACTION));
         works.lay(bay.siteId, sim.spawn(frame));
     }
 
@@ -205,7 +208,12 @@ public final class FabricationSystem {
         }
 
         long unit = sim.spawn(machine);
-        sim.world().attachMechLoadout(unit, chassis.createLoadout(chassis.defaultRole));
+        // The faction's own fit, not the catalog's neutral one. A shed builds
+        // out of the racks it has, so a Hegemony bay hangs Hegemony guns on the
+        // machine it just finished and the thing that drives out is
+        // indistinguishable from one that was already on the map.
+        sim.world().attachMechLoadout(unit, FactionMechLoadouts.create(
+                chassis, chassis.defaultRole, works.factionId()));
         LOG.info("FabricationSystem: " + builder + " " + chassis.displayName
                 + " rolled out of the bay at " + stocks.centerX + "," + stocks.centerY);
     }

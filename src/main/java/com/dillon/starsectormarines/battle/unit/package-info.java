@@ -7,7 +7,8 @@
  *           the faction roster ({@code FactionUnitRoster}), the spatial indices
  *           ({@code UnitSpatialIndex}, {@code UnitDestinationSpatialIndex}), the
  *           construction spec ({@code EntitySpec}), the off-roster body surface
- *           ({@code BodyCarrier}, {@code BodyService}), and the shared enums
+ *           ({@code BodyCarrier}, {@code BodyService}), the shared body
+ *           geometry decision ({@code BodyRadius}), and the shared enums
  *           ({@code Faction}, {@code UnitRole}, {@code UnitType}).
  * <br>Boundary: data substrate only — behaviors live in the actor domains
  *           ({@code infantry/}, {@code mech/}, ...), not here. For
@@ -25,7 +26,10 @@
  *           exactly what left three sites unable to see an aircraft. A carrier
  *           answers presence and altitude; whether a given shooter may engage a
  *           body is {@code combat/EngagementService}'s relation, not a
- *           predicate the body carries.
+ *           predicate the body carries. How big a body is may be <em>read</em>
+ *           by id or columnar for cost reasons, but it is <em>decided</em> once
+ *           in {@code BodyRadius}: a second derivation of a body's own geometry
+ *           does not belong anywhere, however cheap the access has to be.
  *
  * <p>See {@link com.dillon.starsectormarines.battle} and {@code ecs-nouns.md}.
  */

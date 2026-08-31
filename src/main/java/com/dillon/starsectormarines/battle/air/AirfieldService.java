@@ -4,7 +4,12 @@ import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
 
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Collections;
 import java.util.List;
 
@@ -90,13 +95,41 @@ public final class AirfieldService {
          */
         public long airframeId;
         /**
+         * The ground this berth's parked hull is holding, or {@code 0} when it
+         * is holding none: which cells of its footprint it took, and what was
+         * marked on them before it did.
+         *
+         * <p>Remembered rather than re-derived, because the square and the
+         * ground actually taken are not the same thing — a cell somebody is
+         * standing in is never closed, and a shed bay's own wall can lie inside
+         * the square — and because handing cells back as plain floor would flatten
+         * an apron a little on every sortie. Written by {@link AirfieldSystem},
+         * which is also the one place it is given back; opaque to everybody
+         * else, and only ever compared against zero.
+         */
+        public long closedGround;
+        /**
          * Structure left on the hull, carried across every handoff so an
          * aircraft that comes home shot up parks shot up and is written off by
          * that much less fire on the ground.
          */
         public float hullHp;
-        /** Sim-seconds of turnaround left before an airframe home from a sortie is airworthy again. */
-        public float refitRemaining;
+        /**
+         * Hull this airframe is being worked back up to, or 0 when it is not
+         * being turned round.
+         */
+        public float refitTarget;
+        /**
+         * Hand-seconds of turnaround left on this airframe.
+         *
+         * <p>Work rather than time, which is the whole of what a turnaround now
+         * is: a field with nobody on it never finishes one, and a field with a
+         * crew finishes it as fast as they get round to it. An aircraft home in
+         * one piece owes the base servicing; one home in pieces owes that and
+         * the patching, so damage costs a field its next sortie as well as its
+         * hull.
+         */
+        public float refitWork;
         /**
          * Whether the burnt-out airframe is still standing on this hardstand.
          *
@@ -130,23 +163,41 @@ public final class AirfieldService {
     }
 
     /**
-     * Sim-seconds a returned airframe spends on the ground before it can fly
-     * again.
+     * Hull one technician puts back on an airframe in one second at the stand.
      *
-     * <p>The existing air model already treats a re-arm as a full refit —
-     * magazines refilled, hull repaired — and made it free and instantaneous
-     * because it happened off-map at a carrier nobody could reach. Based
-     * aircraft move that servicing onto a piece of ground the attacker can walk
-     * onto, so it has to take long enough to be a window rather than a
-     * formality. Long enough that a field cannot answer two requests back to
-     * back; short enough that one sortie does not retire the aircraft.
+     * <p>A turnaround used to be a countdown, and the countdown was the whole of
+     * it: the field answered its next request forty-five seconds later whether
+     * anybody was working or not, so an attacker who killed the ground crew
+     * denied the field nothing at all. Counted in hands instead, a turnaround is
+     * work — done by people who can be shot on the apron, on an aircraft that is
+     * standing on it while they do it. See {@code air-nouns.md}; the vehicle
+     * bay's stocks are the same law on a different machine.
+     *
+     * <p>Fast per hand and slow in practice, which is the shape a field has. A
+     * technician at a stand puts hull back quickly; there are three of them, six
+     * stands, and a rotation that is mostly not at any one of them, so what an
+     * aircraft actually waits for is its turn.
      */
-    public static final float REFIT_SECONDS = 45f;
+    public static final float HULL_PER_HAND_SECOND = 2f;
+
+    /**
+     * Hand-seconds every turnaround costs before any damage is counted.
+     *
+     * <p>A turnaround is not only patching. Magazines are refilled, tanks are
+     * topped up, and somebody walks round the aircraft — all of which is work
+     * whether it came home shot up or untouched, and none of which shows on the
+     * hull. Without it a field whose sorties are never intercepted turns them
+     * round instantly, which is what the countdown this replaced was really
+     * protecting: a field cannot answer two requests back to back.
+     */
+    public static final float TURNAROUND_HAND_SECONDS = 25f;
 
     /** Fraction of the hull a full turnaround puts back. A field patches an airframe; it does not rebuild one. */
     private static final float REFIT_REPAIR_FRACTION = 0.5f;
 
     private final List<Berth> berths = new ArrayList<>();
+    /** Standing cell of every servicing point on the apron, to the berth it works. */
+    private final Map<Long, Integer> serviceCells = new HashMap<>();
     /**
      * Wrecks left by an airframe destroyed away from any berth — taxiing,
      * holding short, mid-roll. A hardstand kill needs none of this: its wreck
@@ -348,14 +399,23 @@ public final class AirfieldService {
 
     /**
      * Takes an airframe back, with whatever the sortie left of it, and starts
-     * its turnaround. It is not on the pad and cannot be shot until the refit
-     * finishes and {@link AirfieldSystem} puts it back.
+     * its turnaround.
+     *
+     * <p><b>It comes back onto its stand to be worked on, not into a hangar
+     * nobody can reach.</b> An aircraft under turnaround stands on the concrete
+     * with people round it, which is where a turnaround happens and is also the
+     * only way the window it opens is worth anything to an attacker — a
+     * servicing that took the aircraft off the map for its duration was a
+     * promise that the field would answer again shortly and nothing anybody
+     * could interrupt. {@link AirfieldSystem} puts it out; the crew works it up.
      */
     public void recover(Berth berth, float hullHp) {
         if (berth.state == BerthState.DESTROYED) return;
         berth.hullHp = Math.max(1f, Math.min(berth.airframe.maxHp(), hullHp));
         berth.state = BerthState.REFITTING;
-        berth.refitRemaining = REFIT_SECONDS;
+        berth.refitTarget = repaired(berth);
+        berth.refitWork = TURNAROUND_HAND_SECONDS
+                + (berth.refitTarget - berth.hullHp) / HULL_PER_HAND_SECOND;
         berth.airframeId = 0L;
     }
 
@@ -363,6 +423,39 @@ public final class AirfieldService {
     float repaired(Berth berth) {
         float repair = berth.airframe.maxHp() * REFIT_REPAIR_FRACTION;
         return Math.min(berth.airframe.maxHp(), berth.hullHp + repair);
+    }
+
+    /**
+     * The berth serviced from this standing cell, or -1 where none is.
+     *
+     * <p>The cell rather than the field, because standing on the apron is not
+     * working on an aircraft: the same technician on the same rotation is at a
+     * board one minute and a hull the next.
+     */
+    public int berthServicedFrom(int cellX, int cellY) {
+        Integer berth = serviceCells.get(key(cellX, cellY));
+        return berth == null ? -1 : berth;
+    }
+
+    /**
+     * Record where this field's servicing is done from, so the work somebody is
+     * doing can be matched to the aircraft it is being done to.
+     *
+     * <p>Handed in rather than derived, because the work is authored beside the
+     * berths and this is the same pass telling the field about it. See
+     * {@link AirfieldWork}.
+     */
+    public void installApronWork(List<FixtureTask> work) {
+        serviceCells.clear();
+        for (FixtureTask task : work) {
+            if (task.affordance() != Affordance.SERVICE) continue;
+            if (task.berth() == FixtureTask.NO_BERTH) continue;
+            serviceCells.put(key(task.cellX(), task.cellY()), task.berth());
+        }
+    }
+
+    private static long key(int x, int y) {
+        return ((long) x << 32) ^ (y & 0xffffffffL);
     }
 
     /**

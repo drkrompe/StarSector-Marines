@@ -1,9 +1,11 @@
 # World surface palette
 
-Status: IN PROGRESS — the palette reaches wild ground; cultivated ground and
-the ice case are open.
+Status: IN PROGRESS — the palette reaches wild ground and the wild/cultivated
+line is pinned; worlds beyond rock, dust and ice are open.
 
 Written: 2026-08-31
+Updated: 2026-08-31 — cultivated ground pinned by `CultivatedGroundTest`; the
+ice case closed by the `FROZEN` palette and the `floors.snow` plate.
 
 ## What this is
 
@@ -74,18 +76,12 @@ correctly grows nothing.
 
 ## What is open
 
-**Cultivated ground is not yet distinguished in code.** The wild/cultivated line
-above is honoured by which fills consult the palette, but `ParkFiller` and
-`PedestrianFrameStage` still paint `GRASS` unconditionally rather than declaring
-themselves cultivated. On an airless world that lawn should probably read as
-something under a dome, or not appear.
+**Only ROCK, ARID and FROZEN are authored.** Toxic, irradiated, volcanic and
+ash worlds all collapse into `ROCK`. Splitting them is a JSON block each plus a
+material family, once the art supports a visible difference.
 
-**Ice has no art.** `GroundKind.SNOW` is declared, unmapped in `groundRender`,
-explicitly skipped by the renderer, and there is no snow plate anywhere in the
-project. A frozen world therefore resolves to `ROCK` today. Making it real is an
-art job first: a `floors.snow` variant-pool block, a `groundRender` line, and
-deleting the renderer's `case SNOW: break;`.
-
-**Only ROCK and ARID are authored.** Toxic, irradiated, volcanic and ash worlds
-all collapse into `ROCK`. Splitting them is a JSON block each, once the art
-supports a visible difference.
+`FROZEN` is what that costs end to end, and it is worth writing down because it
+is the template: eight tileable materials, a `floors.snow` variant pool on eight
+free cells of the Floors plate, a `groundRender` line, a `surfaceFillers` block,
+a `SurfaceZoning` family, and a re-derive of the plate's `_height` / `_normal`
+companions. Only the first of those is slow.

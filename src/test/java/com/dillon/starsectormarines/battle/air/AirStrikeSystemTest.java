@@ -50,6 +50,22 @@ class AirStrikeSystemTest {
                 new Gantry(x, y, 2, 2, Gantry.Facing.SOUTH), FighterProfile.BROADSWORD);
     }
 
+    /**
+     * A field with people on it, as far as these tests care.
+     *
+     * <p>A turnaround is hand-work now: an unmanned field flies its aircraft
+     * once and never sees them again, which is the point of the law and is a
+     * different subject from dispatch. These tests are about which berths a
+     * field commits and how many at a time, so the field is simply declared to
+     * be staffed rather than given a crew, an apron and a hangar to stand them
+     * in.
+     */
+    private static void manned(BattleSimulation sim) {
+        for (AirfieldService.Berth berth : sim.getAirfieldService().berths()) {
+            berth.refitWork = 0f;
+        }
+    }
+
     /** A concentration worth attacking: a squad's worth of marines together. */
     private static void massMarines(BattleSimulation sim, int x, int y, int count) {
         for (int i = 0; i < count; i++) {
@@ -67,7 +83,10 @@ class AirStrikeSystemTest {
     }
 
     private static void advance(BattleSimulation sim, int ticks) {
-        for (int i = 0; i < ticks; i++) sim.advance(BattleSimulation.TICK_DT);
+        for (int i = 0; i < ticks; i++) {
+            manned(sim);
+            sim.advance(BattleSimulation.TICK_DT);
+        }
     }
 
     /** A massed enemy on a field's doorstep gets an aircraft sent at it. */
@@ -321,6 +340,7 @@ class AirStrikeSystemTest {
         Set<Long> rolled = new HashSet<>();
         Set<AirfieldService.Berth> berthsThisTick = new HashSet<>();
         for (int t = 0; t < seconds * 30; t++) {
+            manned(sim);
             sim.advance(BattleSimulation.TICK_DT);
             berthsThisTick.clear();
             int airborne = 0;

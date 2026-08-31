@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
+import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -1527,8 +1528,11 @@ public final class BattleSetup {
             rs.addTrigger(new ObjectiveLostTrigger());
         }
         basedAircraft(sim, map, groundRoster == null ? null : groundRoster.primaryFactionId());
+        // Opened before anything is manned, because a manning pass records its
+        // postings here and a posting outlives the people filling it.
+        sim.setWorksCrews(new WorksCrewService(axis));
         installAirfieldCrew(sim, map);
-        installVehicleBays(sim, map);
+        installVehicleBays(sim, map, groundRoster);
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
                 deliveryPolicy));
         rs.addMeans(new ShuttleMeans(axis, groundRoster, risk,
@@ -1617,11 +1621,16 @@ public final class BattleSetup {
 
         List<FixtureTask> apron = AirfieldWork.onTheApron(field, map.grid);
         if (apron.isEmpty()) return;
+        // The field is told where its servicing is done from in the same breath,
+        // so the work somebody is doing can be matched to the aircraft it is
+        // being done to without either side deriving the other's indices.
+        field.installApronWork(apron);
 
         List<RoomSite> rooms = RoomSite.findAll(map.topology,
                 map.grid.getWidth(), map.grid.getHeight());
         StructureWatch.man(sim, Faction.DEFENDER, rooms, apron,
-                AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), APRON_WATCH);
+                AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), APRON_WATCH,
+                sim.getWorksCrews());
     }
 
     /**
@@ -1638,17 +1647,24 @@ public final class BattleSetup {
      * <p>The crew is the defender's. A garrison's motor pool is worked by the
      * garrison, so its technicians are on the roster, can be shot, and stop
      * working when they are.
+     *
+     * @param groundRoster the defending faction's doctrine, which decides what
+     *                     the sheds are tooled for and what they hang on it;
+     *                     null builds the whole light catalog on a neutral fit
      */
-    private static void installVehicleBays(BattleSimulation sim, MapResult map) {
+    private static void installVehicleBays(BattleSimulation sim, MapResult map,
+                                           GroundRosterProfile groundRoster) {
         if (map.gantries.isEmpty()) return;
         List<RoomSite> rooms = RoomSite.findAll(map.topology,
                 map.grid.getWidth(), map.grid.getHeight());
-        FabricationService works = new FabricationService(map.gantries, map.fixtureTasks, rooms);
+        FabricationService works = new FabricationService(map.gantries, map.fixtureTasks,
+                rooms, groundRoster);
         if (works.isEmpty()) return;
 
         sim.setFabrication(works);
         StructureWatch.man(sim, Faction.DEFENDER, rooms, map.fixtureTasks,
-                works.berthed(), EnumSet.of(RoomPurpose.VEHICLE_BAY), BAY_WATCH);
+                works.berthed(), EnumSet.of(RoomPurpose.VEHICLE_BAY), BAY_WATCH,
+                sim.getWorksCrews());
     }
 
     /**

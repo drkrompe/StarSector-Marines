@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — gave the goal ladder a floor: relevance and workability
+Updated: 2026-08-31 — finished the goal ladder's floor: yielding an order is
+now a state a squad can be in rather than an absence of one, so a squad that
+declines its own assignment stands to instead of standing plan-less.
+
+Earlier 2026-08-31 — gave the goal ladder a floor: relevance and workability
 are separated, the ladder descends past a goal that cannot be planned, and
 ambient engagement is now an occupant of the idle bucket rather than a promise.
 
@@ -75,7 +79,20 @@ current knowledge. It chooses one goal and a short action sequence, then gives
 members roles within each step. A squad without an assignment remains useful:
 it falls through to ambient engagement rather than inventing a mission.
 
-**Ambient engagement** is that fall-through, and it closes on the squad's own
+**Yielding an order is a state, not an absence of one.** A mission goal may
+decline its own assignment deliberately — the zone it names turns out to be
+already clear, or unreachable — which means *hand me back*, not *I have nothing
+to do*. Those were once the same thing, because the ladder ended at the mission
+tier: a squad that correctly declined its order held no goal, no plan, and
+dropped the path it was walking, and could not recover on its own, since the
+individual tier owns no movement. **A squad is never left plan-less.** What it
+falls to is standing to: closing its scattered members up and holding, shots of
+opportunity still available, until an ordinary replan trigger or a fresh
+assignment moves it on. Standing to is a state rather than a task and therefore
+never completes — a floor that reported completion would re-enter itself every
+tick, which is the same churn plan stickiness exists to prevent.
+
+**Ambient engagement** sits above standing to and closes on the squad's own
 evidence: the freshest hostile it still believes in, or failing that the bearing
 of something it recently heard. Both halves of the law bind. A squad holding
 such a cue is never left standing — a composed squad with nothing to execute is
@@ -84,7 +101,10 @@ of its own and cannot recover from it. A squad holding no cue at all advances on
 nothing, because choosing a zone nobody assigned and going to take it is the
 squad inventing the mission this clause exists to forbid. An anonymous bearing
 is weaker evidence than a belief and expires far sooner than one: past that
-window it leads to where a fight was rather than where one is.
+window it leads to where a fight was rather than where one is. With no cue at
+all it gives way to standing to rather than advancing on nothing, because
+choosing a destination the squad has no evidence for is the mission-inventing
+this clause forbids.
 
 A **unit execution** is the per-tick realization of the assigned role. It can
 move, hold, acquire a target, or author a legal fire intent, but it does not
@@ -325,6 +345,62 @@ figure, because the racks are the thing a player can walk up and count, and hand
 are taken on one posting at a time round the whole ship — filling each posting to
 its own capacity in turn crews the compartments at the head of the list and
 leaves the rest deserted.
+
+**A posting outlives the people filling it, and belongs to whoever holds the
+place.** A manning pass that hires once and walks away is enough for a building
+nobody ever reaches and wrong for one somebody does: kill the crew and the
+facility is finished for the battle, whoever ends up standing in it. So a
+billet somebody died in is *empty* rather than gone — the room still has the
+work and the watch bill still says how it is walked — and after a long wait
+whoever holds the ground sends somebody to fill it.
+
+Both halves of that are the point. Killing a crew buys the minutes it takes a
+replacement to cross the map, which is a real result and not a permanent one; a
+facility one fire team could switch off forever would be a prize nobody who took
+it could use. And the side sent for is the side *holding* the building, read off
+the same capture state the resource pools use — so a motor pool taken from the
+defender turns out marine technicians, which is what makes a facility worth
+garrisoning rather than only worth clearing. A worked room with no compound over
+it is nobody's and is never refilled at all.
+
+Replacements arrive **on foot at their own side's rear edge** and walk to the
+work, which is the whole cost of the arrangement: a body in the open for a
+minute, and a building not working while it crosses. Nothing about that walk is
+special — the replacement is put on the map holding the billet's own rotation,
+and the ambient service paths them to its first stop exactly as it would
+somebody crossing a room.
+
+**A worker stops for a round, not for a visitor.** Whether authored work yields
+is a question about the actor, and there are two honest answers. A civilian
+yields to anybody armed and a guard yields to an enemy in reach, because neither
+has any business being there when trouble arrives. An armed trade with a job
+does not: a technician who downed tools because somebody hostile came within
+sight would spend a battle standing about in the one part of the map an attack
+passes through, and the facility they were posted to would stop producing the
+moment anybody looked at it — a whole rear going idle for a scout. So a works
+crew keeps at it through a firefight going on around them, breaks off when a
+round actually finds one of them, and goes back to it once nothing has for a few
+seconds. In between they are an ordinary unit and behave like one.
+
+Being hit is read as **structure lost since the last time the actor was asked**,
+which is a tick's worth. A near miss leaves nothing on the target to read, so
+they work through the rounds that miss and stop at the one that does not — a
+limitation rather than a decision.
+
+**A sidearm needs a squad, or it is a prop.** Target acquisition runs off the
+squad, so an armed worker in none is a person holding a pistol and watching:
+they take a round, are released to their own behaviour, and stand there. A works
+crew is therefore mustered as a squad — one per trade, since the stores and the
+gantries are different rotations — and that squad is claimed on the map's own
+authority rather than left unowned. An unowned squad is one mission command may
+take, and it would be right to: a squad it can see and has not been told is
+somebody else's is a squad it can use. A shed produces nothing once its
+technicians have been ordered to go and hold a road.
+
+Whether somebody is **armed at all** is a decision of the force that posted
+them rather than a fact about their trade. A merchant's engineer carries a
+spanner and a garrison's carries a pistol, and they are the same technician; the
+role says what the person is and the posting says what they were issued.
 
 **A room with nothing in it is nobody's posting, and that is the answer rather
 than a gap.** A technician's trade is servicing whatever is parked in a bay and
@@ -736,6 +812,19 @@ use the shared track to establish bounded firing positions. Prosecution never
 authorizes an unbounded chase or abandonment of the mission route; if no legal
 position exists inside the maneuver leash, the member continues its assigned
 advance.
+
+Prosecution is nonetheless the one commitment that leaves the destination out
+of the reckoning entirely: its firing positions are leashed to the squad's own
+centre rather than to the route, so the ordered cell is not routed to while it
+lasts, and release is the contact picture's decision rather than the order's.
+That is the right latitude for an assignment the squad chose the shape of, and
+the wrong latitude for a destination handed down from outside it, so **a
+directly ordered attack move declines contact prosecution.** It still fights
+what it meets — the route-threat commitment, the firing line, and shots of
+opportunity are unaffected, and an advancing HOLD that is receiving rather than
+prosecuting still plants the squad where it stands. What it will not do is
+decide on its own to walk off the ordered bearing after a contact somewhere
+else.
 
 While an advancing squad is committed to either kind of contact, a legal
 shooter plants and fires from a stanced posture instead of continuing the
@@ -1211,7 +1300,9 @@ request. Arrival clears the tactical context before the ordinary mission replan
 on that command tick, and a hard withdrawal cancels it. While the context is
 active it is the squad's only MISSION-tier plan: unit-level planting, garrison,
 last-stand, and other authored mission goals cannot win goal arbitration over
-it, though cohesion survival may still suspend execution. A rescue pickup
+it, though cohesion survival may still suspend execution. Its destination also
+outranks contact prosecution, which is the one contact commitment that would
+otherwise discard it — see the doctrine section. A rescue pickup
 perimeter is a mission duty rather than a control lock, so its Marine infantry
 may be redirected and returns to the current rescue directive on release.
 Enemy, Mech, drone, shelter-militia, non-soldier, wiped, and stale squad

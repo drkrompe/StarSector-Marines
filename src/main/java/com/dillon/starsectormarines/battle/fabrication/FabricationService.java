@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fabrication;
 import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
@@ -120,7 +121,19 @@ public final class FabricationService {
     /** Standing cell of every berth-bound servicing point, to the bay it belongs to. */
     private final Map<Long, Integer> serviceCells = new HashMap<>();
     private final List<MechVariant> buildable;
+    private final String factionId;
     private Faction lastBuilder = Faction.DEFENDER;
+
+    /**
+     * Open the works in every vehicle bay on this map, with no doctrine known.
+     *
+     * <p>Builds the whole light catalog, which is what a shed on a map with no
+     * campaign faction behind it can be said to make.
+     */
+    public FabricationService(List<Gantry> berths, List<FixtureTask> authored,
+                              List<RoomSite> sites) {
+        this(berths, authored, sites, null);
+    }
 
     /**
      * Open the works in every vehicle bay on this map.
@@ -129,11 +142,15 @@ public final class FabricationService {
      * @param authored the map's authored work points, for finding the cells a
      *     berth is serviced from
      * @param sites the map's rooms, for deciding which room each berth is in
+     * @param doctrine the ground doctrine of the faction this map belongs to,
+     *     which decides what its sheds are tooled for; null builds the whole
+     *     light catalog rather than nothing
      */
     public FabricationService(List<Gantry> berths, List<FixtureTask> authored,
-                              List<RoomSite> sites) {
+                              List<RoomSite> sites, GroundRosterProfile doctrine) {
         this.berths = List.copyOf(berths);
-        this.buildable = fieldBuildable();
+        this.buildable = tooledFor(doctrine);
+        this.factionId = doctrine == null ? null : doctrine.primaryFactionId();
 
         Map<Integer, List<Integer>> berthsBySite = new LinkedHashMap<>();
         for (int berth = 0; berth < this.berths.size(); berth++) {
@@ -161,6 +178,34 @@ public final class FabricationService {
             if (siteId == null) continue;
             serviceCells.put(key(task.cellX(), task.cellY()), siteId);
         }
+    }
+
+    /**
+     * What this map's sheds are tooled for: the faction's own heavy-support
+     * cycle, in its authored order, less anything too heavy for a field shed.
+     *
+     * <p>The same list the garrison's mechs are drawn from, so what walks out of
+     * the motor pool is what was already patrolling past it. A Path shed turns
+     * out Hounds because a Path lance is Hounds; the shed is not a second,
+     * quietly different opinion about what the faction fields.
+     *
+     * <p>Falls back to the whole light catalog rather than to nothing when the
+     * doctrine is unknown or is entirely too heavy. A shed that built nothing
+     * would be indistinguishable from one whose crew had all been killed, which
+     * is the one reading this feature must never be ambiguous about.
+     */
+    private static List<MechVariant> tooledFor(GroundRosterProfile doctrine) {
+        if (doctrine != null) {
+            List<MechVariant> issued = new ArrayList<>();
+            for (MechVariant variant : doctrine.heavySupport()) {
+                if (variant.maxStructure <= FIELD_SHED_STRUCTURE_LIMIT
+                        && !issued.contains(variant)) {
+                    issued.add(variant);
+                }
+            }
+            if (!issued.isEmpty()) return List.copyOf(issued);
+        }
+        return fieldBuildable();
     }
 
     /** Every chassis light enough for a field shed, in declaration order. */
@@ -191,6 +236,27 @@ public final class FabricationService {
     /** The claim group welding in this bay is published under. */
     public static String weldingGroup(int siteId) {
         return JobBoard.group(siteId, Affordance.SERVICE);
+    }
+
+    /** Every chassis this map's sheds are tooled for, in the order they build them. */
+    public List<MechVariant> buildable() {
+        return buildable;
+    }
+
+    /**
+     * The campaign faction whose parts are in these racks, or null where the
+     * map has no doctrine behind it.
+     *
+     * <p><b>The shed's stock is the shed's, not the crew's.</b> A motor pool is
+     * tooling, jigs and racks of that faction's parts, and taking the ground it
+     * stands on does not change any of that. So a machine finished by marines in
+     * a captured Tri-Tachyon bay is a Tri-Tachyon machine flying a marine flag —
+     * which is also the only answer that needs no invented doctrine for a side
+     * that has none, and the one that makes capturing a shed worth something
+     * beyond denial.
+     */
+    public String factionId() {
+        return factionId;
     }
 
     /** Whether any bay on this map is working. */
