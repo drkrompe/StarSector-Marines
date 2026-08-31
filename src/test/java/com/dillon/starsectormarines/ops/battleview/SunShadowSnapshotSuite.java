@@ -94,7 +94,7 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
      */
     private static final int AIR_CELL_PX = 12;
     private static final int AIR_VIEW_W = 44;
-    private static final int AIR_VIEW_H = 30;
+    private static final int AIR_VIEW_H = 40;
     /** Half the shadow's reach at full altitude, so hull and shadow sit either side of centre. */
     private static final float AIR_FRAME_LEAD_CELLS = 5f;
 
@@ -291,7 +291,7 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
      * to be timed against a flight profile would be answering the second.
      */
     private List<Panel> aircraftPanels(MapResult map, SnapshotContext context) {
-        int[] over = openGroundNear(map);
+        int[] over = openApronNear(map, AIR_SHADOW_REACH_CELLS);
         if (over == null) return List.of();
         // Its own renderer: collecting SHUTTLES brings the engine plume with
         // it, which is an own-GL pass no raster canvas can replay. The hull is
@@ -324,7 +324,13 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
      * examination.
      */
     private static void flyOver(BattleSimulation sim, float x, float y, float altitude) {
-        long id = sim.spawnShuttle(ShuttleType.values()[0], Faction.MARINE,
+        // The Valkyrie by name, and by a long way the most elongated hull in
+        // the roster at 84x264. A silhouette is the one shadow with an
+        // orientation to get wrong, and a near-square airframe cannot show it:
+        // this panel previewed ShuttleType.values()[0] -- the Aeroshuttle, at
+        // 82x66 -- while the silhouette was being drawn with its width and
+        // height transposed, and looked entirely correct doing so.
+        long id = sim.spawnShuttle(ShuttleType.VALKYRIE, Faction.MARINE,
                 x, y, x, y, x, y, 0f);
         // A spawned craft starts PENDING, which is off-map by definition, so
         // neither the hull nor its shadow is collected. Put it over the map
@@ -388,6 +394,60 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
      * <p>Open rather than anywhere: a marine indoors stands under a roof, and
      * its shadow would be an argument about the roof instead of about the body.
      */
+    /**
+     * Roughly how far down-sun a craft at full altitude throws its silhouette,
+     * so the panel can go looking for that much open ground. Derived from the
+     * shadow system's own altitude and the default elevation rather than
+     * guessed, and deliberately not imported from it: this is what the picture
+     * needs to contain, and a preview that silently reframed itself when a
+     * render constant moved would be the wrong kind of clever.
+     */
+    private static final float AIR_SHADOW_REACH_CELLS = 20f;
+
+    /**
+     * A cell with open ground running down-sun far enough to land a
+     * full-altitude aircraft shadow on.
+     *
+     * <p>{@link #openGroundNear} clears a horizontal line, which is exactly
+     * what a rank of marines needs and no use at all here. A craft at altitude
+     * throws its silhouette about fourteen cells along the sun's bearing, and
+     * the first spot the horizontal search returns puts that squarely on a
+     * building roof — where a dark shape on dark tiles reads as nothing, and
+     * the panel looks for all the world like the shadow is not being drawn.
+     * It was; this cost a round of chasing a rendering bug that did not exist.
+     */
+    private static int[] openApronNear(MapResult map, float reachCells) {
+        double bearing = Math.toRadians(SunLight.DEFAULT_AZIMUTH_DEGREES);
+        float dx = -(float) Math.cos(bearing);
+        float dy = -(float) Math.sin(bearing);
+        for (int y = 40; y < map.grid.getHeight() - 40; y++) {
+            for (int x = 40; x < map.grid.getWidth() - 40; x++) {
+                if (openAlong(map, x, y, dx, dy, reachCells)) return new int[]{x, y};
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Whether a band two cells either side of the sun's bearing is open for
+     * {@code cells} from {@code (x, y)}. Sampled at half a cell so a diagonal
+     * walk cannot step over a wall it passes through the corner of.
+     */
+    private static boolean openAlong(MapResult map, int x, int y,
+                                     float dx, float dy, float cells) {
+        for (float t = -2f; t <= cells; t += 0.5f) {
+            for (int side = -2; side <= 2; side++) {
+                int cx = Math.round(x + dx * t - dy * side);
+                int cy = Math.round(y + dy * t + dx * side);
+                if (!map.grid.isWalkable(cx, cy)) return false;
+                if (map.topology.getGroundKind(cx, cy) == CellTopology.GroundKind.INDOOR) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private static int[] openGroundNear(MapResult map) {
         int span = (BODY_COUNT - 1) * BODY_SPACING_CELLS;
         for (int y = 40; y < map.grid.getHeight() - 40; y++) {
