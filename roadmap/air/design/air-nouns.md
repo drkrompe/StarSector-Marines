@@ -4,6 +4,21 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-08-31 — how much of an aircraft there is to hit is one number,
+asked of the airframe by both representations. A parked hull answered the
+archetype's flat half-cell while the same hull rolling answered its own drawn
+size.
+
+Updated: 2026-08-31 — whether a craft can be engaged is a relation between a
+shooter and it, not a property of it. The altitude rule is a per-weapon
+capability with one implementation, and the absolute predicates it stood in for
+are retired.
+
+Updated: 2026-08-31 — an aircraft is a body on the shared terms every body is
+on: one carrier surface, one admission, one damage route. The per-kind branches
+that read "vehicle, else aircraft, else roster unit" are gone, and the three
+liveness gates that predated air and silently omitted it are fixed.
+
 Updated: 2026-08-31 — an aircraft on its wheels is a real target rather than a
 damageable one: it is a body in the spatial index on the convoy's terms, its
 hull is an ordinary `HEALTH`/`ARMOR` pair instead of a field on the sortie, and
@@ -148,17 +163,15 @@ walk skipped it for free. Teaching the combat stack an air-aware branch in each
 of those walks would have bought a handful of shootable aircraft at the cost of
 that property forever.
 
-The convoy work removed the branch from that trade. The unit spatial index is
-an index over *bodies* rather than over dense-roster rows, and a chassis reaches
-every scan by carrying `IDENTITY`, `HEALTH` and `ARMOR` and nothing else: no
-`POSITION`, so occupancy and separation skip it; no `COMBAT`, `MOVEMENT` or
-`ROLE`, so the fire system, the mover and the planner skip it.
-Membership-narrowing does the work the branch used to. **An air entity now
-carries exactly that trio on exactly those terms**, so a craft on its wheels is
-acquired, aimed at, led, traced through cover and walls, hit, credited and
-killed by the ordinary pipeline, and what puts it in reach of all of it is one
-line in the index rebuild. `AirTargetService` says which craft that is;
-`AirDamageResolver` applies the shared durability law to one.
+The convoy work removed the branch from that trade, and **an aircraft is now a
+body on the shared terms rather than an air-shaped copy of the convoy's**.
+`ecs-nouns.md` owns what a body is and what a carrier owes it;
+`AirTargetService` is Air's implementation of that surface, and the durability
+law, the damage route and the spatial admission are all the shared ones. What
+remains Air's own is the two things genuinely about aircraft: which craft ground
+fire can reach — on its wheels, in the open — and what dying means, which
+converges on `AirSystem`'s shoot-down so a kill lights the cook-off, leaves the
+wreck and gives the runway back.
 
 Structure therefore lives where every other body's does — an ordinary `HEALTH`
 component beside an ordinary `ARMOR` one — rather than in the sortie's mission
@@ -175,15 +188,31 @@ incoming accuracy and deliberately not a second durability profile — two ladde
 for one aircraft would be a fact with two values, consistent exactly as long as
 nobody re-dialled either.
 
-**A craft in the air is still not a target, and that is now the only
-simplification left.** It carries the same components as one on its wheels; what
-keeps it out of reach is that the index admits an aircraft only while the phase
-says it is on the ground. The remaining question is genuinely about altitude —
-whether a given weapon can reach up — and that is a per-weapon capability
-nothing answers yet, which is what the existing "only a defence post can reach
-up" filter is a hardcoded special case of. When anti-air arrives it is that
-filter that grows, not a second candidate set: a flying aircraft is already a
-body, and admitting it costs one condition.
+**A craft in the air is out of a rifleman's reach, and that is a fact about the
+rifleman.** It carries the same components as one on its wheels and is present
+in the battle in exactly the same sense; what separates the two is that
+engagement is a **relation** — can *this shooter* reach *that body* right now —
+rather than a property the body carries around.
+
+The relation has two halves and they are owned in different places. **Presence**
+is the carrier's: on the map, alive, and not down with the ramp open, since a
+loading craft's passengers have already left the roster and a landed one is the
+same craft at the other end of the trip. **Reach** is the shooter's, and the
+only question in it today is altitude. `EngagementService` is where the pair
+meet; `EngagementService.reachesAltitude` is the capability, and it is the one
+implementation of what used to be a hardcoded "only a defence post can reach up"
+filter written inside the anti-air drain — the one place that had ever needed
+it, and therefore the last place a second consumer would have looked.
+
+Splitting them is what lets the parts of the battle that are entitled to the
+absolute question keep asking it: the spatial index and the blast sweep serve a
+fight at ground level, so they admit a body that is present and on the ground,
+and a flying machine stays out of both. Nothing about that is a special case for
+air — it is the same derivation for any body a carrier ever calls airborne.
+
+When anti-air arrives it is the capability that grows, not a second candidate
+set. A weapon gains an authored elevation, `reachesAltitude` reads it, and every
+consumer of the relation inherits the change without being touched.
 
 The **berth** is the thing with identity, not the airframe. A hardstand is
 authored into the map and stays put; the aircraft on it comes and goes and may
@@ -625,6 +654,35 @@ seam the taxi/roll design above exists to keep invisible.
 `AircraftGroundAirHandoffScaleTest` pins the berth and the air-entity collector
 landing on the same drawn number so this cannot drift back apart silently.
 
+**And they are the same size to shoot at, for the same reason.** How much of an
+aircraft there is to hit is one number, and while each representation derived
+its own the same Valkyrie was four and a half cells of aircraft taxiing and half
+a cell on its hardstand — the archetype's authored figure, which is the answer
+for a type whose whole family is one size and is nothing to do with an aircraft.
+So the number is the **airframe's**, `Airframe.targetRadiusCells`, asked by the
+air carrier and by the shared roster accessor alike; a berthed hull reaches it
+through the airframe it carries, in a lookup rather than by asking the field
+which hardstand it is standing on, because that read happens per candidate per
+shot. That is the same convention a turret and a convoy chassis already follow:
+a type whose geometry is per-instance answers from the per-instance thing, and
+only a type that is genuinely one size falls through to `UnitType.radius`.
+
+**Being a large thing to hit is deliberately not being a large thing to walk
+round.** The footprint a parked aircraft denies people stays what it was, and is
+not derived from the hull: how much deck an aircraft takes up is a gameplay
+decision, and coupling it to the art would re-tune every apron on every field
+whenever a sprite changed. The same separation the drawn-size fix drew, one seam
+over.
+
+Sizing the parked hull honestly has one consequence worth stating, because it
+runs against the no-chain rule above: a cook-off catches a neighbour at *blast
+radius plus that neighbour's own radius*, so an airframe whose radius exceeds
+the blast's shortfall against the eight-cell hardstand pitch would take the next
+stand with it. Every hull a field bases today is far inside that — the largest
+is about a cell and a half — and only the bus-tier transports approach it. If a
+field is ever based with one, the lever is the pitch or the blast, not a smaller
+aircraft.
+
 **Rolling is not flying slowly.** Ground movement is its own locomotion model
 rather than the flight steering held down to walking pace. What flight does to
 change direction is point the nose and wait for the sideways component of its
@@ -692,16 +750,21 @@ roster and making it shootable would owe them a disposition nothing gives them.
 That is the same rule every other body follows and the same rule a convoy
 chassis follows: the crew of an aircraft see nothing — it carries no vision at
 all — and a shooter needs a clear line rather than a revealed cell. The
-player's own picture is a separate question and one the presentation tier
-currently answers differently for air than for anything else, drawing every
-craft on the map whether or not the player's side can see it. That is a real
-inconsistency, it predates any of this, and it belongs to the render tier
-rather than to the exposure model.
+player's own picture is a separate question, and `ShuttleRenderSystem` answers
+it differently for air on purpose: **every craft is drawn whether or not the
+player's side can see it, and that is a kept debugging affordance rather than a
+missing fog gate.** A sortie is a minute-long procedure across the whole map and
+watching all of it is how the thing gets developed at all. Do not "fix" it into
+a fog check; if the player's picture ever needs tightening, that is a decision
+about what a player should see, taken deliberately, and not a bug report about
+this line.
 
-The exposure predicate is derived from the locomotion, not listed, and so is
-the one an anti-air post reads: a phase left off a hand-written list is a phase
-nothing can touch. Replacing the armed loiter with attack runs did exactly that
-and made every strike invulnerable while it attacked.
+Both halves are derived from the locomotion, never listed: a phase left off a
+hand-written list is a phase nothing can touch, and replacing the armed loiter
+with attack runs did exactly that and made every strike invulnerable while it
+attacked. `ShuttleMission.isOnItsWheelsAndExposed` survives that change with one
+job left — deciding whether a kill leaves a hull on the apron or a machine
+falling out of the sky — and is no longer a targeting gate.
 
 A craft that has to roll has a **ground procedure** either side of its flight,
 and it is on its wheels and shootable for all of it: out of the shed, down to

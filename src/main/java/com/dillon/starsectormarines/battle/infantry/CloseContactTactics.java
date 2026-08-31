@@ -214,12 +214,18 @@ public final class CloseContactTactics {
      * A living person a blade can reach. Hardened classification is consulted
      * first because a convoy vehicle is a combat target that carries no
      * infantry identity to read.
+     *
+     * <p>An emplacement is refused explicitly rather than by naming the types
+     * that are one. A reaction strike is a knife going into somebody, and a
+     * turret, a drone hub, a range post and an aircraft on its wheels are none
+     * of them people — the last of those only became reachable at all once a
+     * held reference to an aircraft started resolving, and would otherwise have
+     * arrived here as marines stabbing an airframe.
      */
     private static boolean isLivingInfantry(long target, BattleView sim) {
         if (sim.isHardenedTarget(target) || !sim.identity().has(target)) return false;
         UnitType type = sim.identity().type(target);
-        if (!type.combatant || type.isDrone()) return false;
-        return type != UnitType.RANGE_TARGET;
+        return type.combatant && !type.isDrone() && !type.isStatic();
     }
 
     /**

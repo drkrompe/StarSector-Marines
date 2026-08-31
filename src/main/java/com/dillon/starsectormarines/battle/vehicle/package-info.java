@@ -7,7 +7,11 @@
  *           terminal Reeds-Shepp docking, convoy missions and control, and the
  *           component-native {@code VehicleType} model. Parked road vehicles
  *           are scenery, not vehicles: they are registry doodads.
- * <br>Boundary: ground kinematics use the bicycle model, NOT
+ * <br>Boundary: a chassis as something to shoot at is not here: it is
+ *           {@code ConvoyService}'s {@code BodyCarrier} implementation, and
+ *           the durability law and damage route it feeds are shared with every
+ *           other carried body ({@code ecs-nouns.md}).
+ *           Ground kinematics use the bicycle model, NOT
  *           {@code air/AirBody}. {@code VehicleType.createBody()} is the
  *           extension seam for new chassis (tanks, etc.) — add a chassis
  *           there rather than branching the kinematics.

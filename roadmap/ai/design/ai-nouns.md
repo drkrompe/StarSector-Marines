@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — made an active player infantry context the exclusive
+Updated: 2026-08-31 — gave the goal ladder a floor: relevance and workability
+are separated, the ladder descends past a goal that cannot be planned, and
+ambient engagement is now an occupant of the idle bucket rather than a promise.
+
+Earlier 2026-08-31 — made an active player infantry context the exclusive
 mission-tier plan, so specialist roles cannot railroad a squad; rescue pickup
 infantry remain commandable while sealed shelter militia remain mission-owned.
 
@@ -71,6 +75,17 @@ current knowledge. It chooses one goal and a short action sequence, then gives
 members roles within each step. A squad without an assignment remains useful:
 it falls through to ambient engagement rather than inventing a mission.
 
+**Ambient engagement** is that fall-through, and it closes on the squad's own
+evidence: the freshest hostile it still believes in, or failing that the bearing
+of something it recently heard. Both halves of the law bind. A squad holding
+such a cue is never left standing — a composed squad with nothing to execute is
+a worse failure than a wrong plan, because the individual tier owns no movement
+of its own and cannot recover from it. A squad holding no cue at all advances on
+nothing, because choosing a zone nobody assigned and going to take it is the
+squad inventing the mission this clause exists to forbid. An anonymous bearing
+is weaker evidence than a belief and expires far sooner than one: past that
+window it leads to where a fight was rather than where one is.
+
 A **unit execution** is the per-tick realization of the assigned role. It can
 move, hold, acquire a target, or author a legal fire intent, but it does not
 silently replace the squad's plan. Combat systems remain responsible for
@@ -97,6 +112,16 @@ outranks engagement, and engagement outranks idle behavior. Relevance chooses
 only among goals in the highest active category. A must-hold mission context
 therefore cannot be displaced merely because an ordinary combat goal scores
 more highly.
+
+**Wanting a goal and being able to act on it are different questions, and only
+the second one ends the search.** Relevance answers whether a goal is worth
+wanting from what the squad knows; whether it can be worked toward from where
+the squad stands is answered by planning it. A goal that wins its bucket and
+then yields no reachable plan is therefore set aside and the next-best goal is
+asked, down through the buckets to the idle floor — a declined goal does not
+speak for the ones beneath it. Only when every goal has either scored zero or
+declined is the squad genuinely idle. The categorical ordering is unaffected:
+descent is reached by a goal proving unworkable, never by one scoring poorly.
 
 Squad replanning remains serial unless a measured, explicit parallel contract
 is introduced. Its state, goals, actions, and read-only view boundary may
@@ -142,6 +167,18 @@ in the room they are standing in. Deliberately not a compartment: everything
 downstream of a fixture is the same problem in a berthing space and in a market
 square, and the only reason it began life tied to a ship is that a ship is where
 it was needed first.
+
+On a surface map a job site is **recovered rather than published**. Generation
+already stamps a room purpose on every cell of every room it furnishes, and a
+room is the contiguous run of cells carrying one — so the sites are read off the
+map at battle setup and no generator has to remember to hand its rooms on. Read
+off the purpose rather than off the building registry, which is the
+nearer-looking answer and the wrong one: a building is a closed region of
+interior found by flood fill, and a fortress vehicle shed comes out as one region
+of which the bay is most but not all, the remainder being the thresholds its
+doors were cut through. What a corridor is stays excluded — it is the space
+between rooms, it runs the length of a building, and taken as a site it would
+join everything at either end of it into one place with one purpose.
 
 A **role** is what somebody is aboard to do, as the jobs they will work. It names
 those jobs twice, because the same affordance is different work in different
@@ -288,6 +325,14 @@ figure, because the racks are the thing a player can walk up and count, and hand
 are taken on one posting at a time round the whole ship — filling each posting to
 its own capacity in turn crews the compartments at the head of the list and
 leaves the rest deserted.
+
+**A room with nothing in it is nobody's posting, and that is the answer rather
+than a gap.** A technician's trade is servicing whatever is parked in a bay and
+an empty bay publishes no servicing, so a shed with empty berths is a shed the
+manning pass declines to staff — correctly, and invisibly, since what a player
+sees is a furnished room with nobody in it. Anything that wants a room worked has
+to give the room something to be worked *on*; that is a fact about the place, not
+a knob on the manning.
 
 A shift is worked by whoever a caller hands it, which need not be anonymous. The
 same posting takes generated hands or named people carrying their own kit, and

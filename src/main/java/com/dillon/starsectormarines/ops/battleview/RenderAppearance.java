@@ -87,8 +87,10 @@ public final class RenderAppearance {
      * lives on the sim {@link UnitType#drawnAsSheet()} (so the sim tier can
      * gate {@code SPRITE} archetype membership without importing this
      * render-tier class) — this method just defers to it. {@code
-     * TURRET}/{@code DRONE_HUB_STRUCTURE} ({@link UnitType#isStatic()}) are the
-     * whole-sprite footprint-drawers; {@code DRONE} renders in its own layer.
+     * TURRET}/{@code DRONE_HUB_STRUCTURE} are the whole-sprite footprint-drawers;
+     * {@code DRONE} renders in its own layer. Sheet-drawn is asked first, so a
+     * body that stands still and does name a sheet — a machine part-built in a
+     * gantry — draws as one rather than falling into the footprint case.
      * Durability bars follow {@code combatant} (drones excluded), and a corpse sweep
      * needs only a dead sheet to exist.
      */

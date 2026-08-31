@@ -98,3 +98,33 @@ ImageGen returned a baked light checker in both accepted concept generations.
 The retained source was normalized to real alpha with
 `clean_imagegen_backgrounds.py`; no generated background enters a future runtime
 layer.
+
+# Rapid pulse-laser arm ImageGen concept
+
+Generated with the built-in ImageGen tool on 2026-08-31. The retained
+`pulse-laser-arm.png` is a compact direct replacement for the modular chaingun
+arm. Image 1 (`chaingun-arm-v2.png`) supplied only the buried rear-mount
+footprint, registration, and sprite density. Image 2
+(`weapon-concepts/shoulder-laser-cannon.png`) supplied only the strict-zenith,
+in-plane optical language and material treatment.
+
+> Use case: stylized-concept
+>
+> Asset type: production-source concept for one modular top-down tactical-game mech arm weapon sprite
+>
+> Primary request: create one compact rapid pulse-laser arm module that directly replaces the chaingun arm position. Use two stout parallel dark-gunmetal focusing rails around a narrow recessed optical path, small paired capacitor banks, restrained cyan indicators, and a broad olive-drab armored rear housing designed to disappear beneath the chassis.
+>
+> Critical perspective: strict 90-degree zenith orthographic top-down view. The weapon fires horizontally toward the north/top edge, parallel to the battlefield plane. The muzzle faces away from the camera, so no circular bore, aperture face, lens, dish, or glowing front surface is visible. At the extreme northmost tip show only a very thin edge-on cyan exit slit between constant-width north-south focusing rails.
+>
+> Composition/framing: exactly one isolated vertical arm module on the chaingun's compact footprint, approximately 1.65–1.8 times as long as wide, centered with generous transparent padding and a south/rear mounting tab. Symmetrical enough to mirror to the opposite arm.
+>
+> Style/medium: crisp high-resolution painted game sprite matching the existing modular family: fine surface noise, panel seams, fasteners, restrained wear, upper-left baked object lighting, olive painted composite casing, dark gunmetal mechanisms, small amber lamps, and restrained cyan illumination.
+>
+> Constraints: genuinely transparent background; exactly one object; no external cast shadow or glow halo; no scenery, checkerboard, text, insignia, logo, or watermark.
+>
+> Avoid: visible circular muzzle, upward barrel, face-up aperture, broad cyan top window, reactor, rotary barrels, ammunition belt, missiles, shoulder pod, rifle, turret, mech body, perspective, isometric, side view, multiple objects, or cropping.
+
+The first result satisfied the arm footprint and forward-axis read, so no
+geometry iteration was required. Its baked checker was removed with
+`clean_imagegen_backgrounds.py`; the cleaned source is the sole runtime geometry
+authority.

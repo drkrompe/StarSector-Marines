@@ -1176,7 +1176,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         MarineOpsUiViewport.REFERENCE_HEIGHT);
                 document.layout(viewport.documentWidth(), viewport.documentHeight());
                 UiElement target = instance.requireElement(
-                        viewModel.marineCards().get().get(0).primaryId());
+                        viewModel.marineCards().get().get(0).systemId());
                 document.pointerMoved(
                         target.box().borderBox().x() + target.box().borderBox().width() / 2f,
                         target.box().borderBox().y() + target.box().borderBox().height() / 2f);
