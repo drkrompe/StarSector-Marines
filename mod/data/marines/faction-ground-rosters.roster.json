@@ -101,7 +101,7 @@
     {
       "id": "roster.tritachyon",
       "factionIds": ["tritachyon"],
-      "heavySupport": ["sirocco", "hound"],
+      "heavySupport": ["sirocco", "hound", "bulwark"],
       "bulk": {
         "unitType": "MILITIA",
         "primaries": [{"id": "weapon.pulse-rifle", "weight": 50}, {"id": "weapon.dmr", "weight": 25}, {"id": "weapon.smg", "weight": 20}, {"id": "weapon.field-rifle", "weight": 5}],

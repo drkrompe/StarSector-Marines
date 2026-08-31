@@ -43,6 +43,31 @@ public interface RoomFitting {
     }
 
     /**
+     * Where a door may be <em>added</em> later, beyond the ones this room is
+     * entered by — or nothing, for an arrangement that has no room for another.
+     *
+     * <p>A separate question from {@link #hookups}, and separate for a reason
+     * that only shows on open ground. A hookup is how the room is entered, and
+     * it is answered before placement because it decides where the room may go;
+     * the placer scores a position by how many of the slots the deck around it
+     * can serve. A ward, though, is packed into solid ground and opens its yard
+     * out of whatever is left, so at the moment a building is placed there is
+     * no yard for a second door to face — and the further ways in it earns are
+     * cut afterwards, by a family that has ground to open. Folding those
+     * positions into the hookups instead would make them part of the placement
+     * score, which moves every room on every deck to satisfy doors nobody was
+     * going to cut there.
+     *
+     * <p>Cells are on the bulkhead ring in the canonical frame, exactly as a
+     * hookup's are. What a fitting states here it has to have arranged for: a
+     * bay opens its stores aisle behind each of these, so the door leads
+     * somewhere rather than onto the flank of a gantry.
+     */
+    default List<Hookup.DoorSlot> furtherDoors(RoomShape canonical) {
+        return List.of();
+    }
+
+    /**
      * Whether this arrangement has a handedness — a front and a back that a
      * mirror image would reverse.
      *
