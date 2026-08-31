@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
@@ -79,6 +80,8 @@ public class GroundSystem {
     /** The stateless motion driver every vehicle's {@code mission.controller} shim forwards to — one instance shared across the whole convoy. */
     private final VehicleControlSystem controlSystem;
     /** Player move orders. An active one temporarily owns a chassis's locomotion and nothing else. */
+    /** Who is riding in what. Owned by the sim; the ground system reads it when a hull dies. */
+    private final VehicleTransportService transport;
     private final VehicleMoveOrderService moveOrders = new VehicleMoveOrderService();
     private final VehicleMoveOrderSystem moveOrderSystem;
 
@@ -91,7 +94,7 @@ public class GroundSystem {
                         com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring,
                         World world, TurretFireSink fireSink, Random rng,
                         Consumer<EntitySpec> addUnitSink, SquadDirectiveControl commandControl,
-                        EffectsService effects) {
+                        EffectsService effects, VehicleTransportService transport) {
         this.navigation = navigation;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;
@@ -101,10 +104,11 @@ public class GroundSystem {
         this.addUnitSink = addUnitSink;
         this.commandControl = commandControl;
         this.effects = effects;
+        this.transport = transport;
         this.convoy = roster.convoy();
         this.controlSystem = new VehicleControlSystem(convoy, navigation);
         this.moveOrderSystem = new VehicleMoveOrderSystem(
-                moveOrders, convoy, navigation, controlSystem);
+                moveOrders, convoy, navigation, controlSystem, transport);
     }
 
     /** The mailbox the interface queues move requests into. */
@@ -271,7 +275,45 @@ public class GroundSystem {
             turret.burstRemaining = 0;
         }
         resolveOnboardPassengers(id, mission, type, body);
+        resolveOnboardRiders(id, body);
         effects.spawnSmokingWreck((int) Math.floor(body.x), (int) Math.floor(body.y));
+    }
+
+    /**
+     * A wrecked hull gives its riders the same deal a wrecked delivery gives
+     * its passenger count: one or two get out hurt and the rest do not get out.
+     * Riders are real units rather than a number, so getting out is a dismount
+     * and not getting out is a death — but the odds are the ones already
+     * shipped, because a truck brewing up should not depend on how the people
+     * inside it happened to be modelled.
+     */
+    private void resolveOnboardRiders(long id, GroundBody body) {
+        // Everyone comes off the vehicle first, standing where it stands.
+        // Damage is a spatial event — it reads the target's cell — so a rider
+        // cannot be hurt or killed while it is still inside and has no
+        // position. The ones who do not make it die at the hull, which is also
+        // where they were.
+        List<Long> aboard = transport.disembarkForWreck(id);
+        if (aboard.isEmpty()) return;
+        int survivors = Math.min(aboard.size(), 1 + rng.nextInt(2));
+        Set<Long> reserved = new HashSet<>();
+        int originX = (int) Math.floor(body.x);
+        int originY = (int) Math.floor(body.y);
+        for (int i = 0; i < aboard.size(); i++) {
+            long unit = aboard.get(i);
+            if (i < survivors) {
+                int[] cell = findDeboardCell(originX, originY, reserved);
+                if (cell != null) {
+                    reserved.add(((long) cell[0] << 32) | (cell[1] & 0xFFFFFFFFL));
+                    roster.world().setPos(unit, cell[0] + 0.5f, cell[1] + 0.5f);
+                }
+                roster.damageService().applyDamage(unit, id,
+                        roster.world().maxHp(unit) * 0.75f, 0f, 0f);
+            } else {
+                roster.damageService().applyDamage(unit, id,
+                        roster.world().maxHp(unit) * 4f, 1000f, 0f);
+            }
+        }
     }
 
     private void resolveOnboardPassengers(long id, VehicleMission mission,

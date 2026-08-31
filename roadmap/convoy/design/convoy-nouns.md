@@ -37,6 +37,13 @@ rather than a guarantee.
 Updated: 2026-08-31 — a chassis can be deployed with no errand and commanded,
 and only its owner may command it.
 
+Updated: 2026-08-31 — a vehicle can carry a named squad rather than a count;
+mounting narrows a unit instead of deleting it, and a ride ends the objective
+but not the claim.
+
+Updated: 2026-08-31 — mounting and dismounting are contextual right-click
+orders on the vehicle itself rather than buttons.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -334,6 +341,25 @@ it planned before.
   occupy — its footprint and its turning circle, not the infantry answer — and
   both the request and the destination are kept so the interface can say "here,
   not quite there."
+- **Carrying a number and carrying a person are different things.** Delivery
+  counts passengers: a convoy holds a remaining count and mints a fresh marine
+  per unload, and an evacuating civilian is deleted while a counter goes up.
+  That is right for arrivals and departures, where the individual is either not
+  yet real or gone for good. A **ride** is the other case — the squad that gets
+  out is the squad that got in, with its casualties, its loadout and its squad
+  still attached — so a passenger is the unit itself, narrowed rather than
+  counted.
+- Mounting takes away being somewhere and nothing else: position, and the path
+  it was following. Everything carrying authored numbers stays. Removing a
+  component drops its values for good, so a passenger stripped of its combat
+  data would come back disarmed — same identity, same squad, no weapon — which
+  no test about the squad surviving the ride would notice.
+- A ride ends a squad's objective and leaves its command claim alone. The
+  objective is a statement about a place, and a ride across the battlefield
+  makes it stale by construction: a squad that kept it would dismount and walk
+  straight back the way it was carried. The claim is untouched because nothing
+  about who owns the squad changed — a claim is handed off when it changes
+  hands, and being carried is not that.
 - A chassis need not be on an errand at all. A **deployed** vehicle is one put
   on the field with no delivery to run: it holds where it was set down until it
   is told to go somewhere. That is what a vehicle the player owns is doing
@@ -345,6 +371,18 @@ it planned before.
   entity id, so the order system is where that is decided rather than the
   picker; an enemy vehicle is a target, not a unit, and asking it to move is
   refused the same way any other impossible order is.
+- **The vehicle is the target, and what a click means follows from what is in
+  it.** Pointing a squad at a friendly transport with room is an order to get
+  in — it walks over and boards, and the destination follows the vehicle rather
+  than staying where the click landed, because a vehicle is not a cell and can
+  drive off while the squad is still walking. Pointing a loaded transport at
+  itself is an order to unload; pointing an empty one at itself is an ordinary
+  move. None of it needs a button, which is the grammar Red Alert 2 settled and
+  there is no reason to re-litigate.
+- Boarding is all or nothing on the squad, and "all" means the squad rather
+  than the seats. A squad ordered to a vehicle arrives strung out in formation,
+  so admitting whoever got there first boards one marine and leaves the rest
+  standing in the road with the order marked done.
 - A move order owns locomotion and nothing else. The turret, the payload, and
   the delivery obligation are untouched, and releasing the order hands the
   vehicle straight back to the errand it was on.

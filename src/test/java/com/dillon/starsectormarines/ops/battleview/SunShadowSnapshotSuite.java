@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -82,6 +84,22 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
 
     private static final EnumSet<RenderLayer> WITHOUT_SHADOWS =
             EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.UNITS);
+    /** Altitudes the aircraft panel freezes a shuttle at: on the deck, halfway up, at cruise. */
+    private static final float[] AIR_ALTITUDES = {0f, 0.5f, 1f};
+
+    /**
+     * Wide enough that a cruising hull and the ground three cells beneath it
+     * are both in frame. A transport is a dozen cells long, so a view framed
+     * for a marine puts the camera inside the aircraft.
+     */
+    private static final int AIR_CELL_PX = 12;
+    private static final int AIR_VIEW_W = 44;
+    private static final int AIR_VIEW_H = 30;
+
+    private static final EnumSet<RenderLayer> WITH_AIR_SHADOWS =
+            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS,
+                    RenderLayer.UNIT_SHADOWS, RenderLayer.SHUTTLES);
+
     private static final EnumSet<RenderLayer> WITH_SHADOWS =
             EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS,
                     RenderLayer.UNIT_SHADOWS, RenderLayer.UNITS);
@@ -137,6 +155,11 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
         }
 
         return List.of(
+                new SnapshotArtifact("aircraft.png", sheet(aircraftPanels(map, context),
+                        "An aircraft's shadow stays on the ground it is over. The gap is the "
+                                + "altitude, and it is the only cue that a hull shifted up the "
+                                + "screen is high rather than further north. Engine plume omitted "
+                                + "— own-GL, unreplayable here.")),
                 new SnapshotArtifact("bodies.png", sheet(bodyPanels(map, renderer),
                         "What a body casts, against the same bodies with the layer left out. "
                                 + (int) azimuth + " deg / "
@@ -246,6 +269,63 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
             breached++;
         }
         return breached;
+    }
+
+    /**
+     * One shuttle at three altitudes, each with its shadow.
+     *
+     * <p>The panel this design most needed and had never had. An aircraft's
+     * altitude here is presentational — {@code AirAppearance} shifts the hull up
+     * the screen by at most three cells and leaves sim position alone — so its
+     * shadow is drawn at the true ground position rather than offset by the sun.
+     * The argument was that the resulting gap becomes the altitude cue. Three
+     * frames of the same hull with only {@code altitudeT} changed is what turns
+     * that from an argument into something to look at.
+     *
+     * <p>Altitude is set directly rather than flown up to. The question is how a
+     * given altitude reads, not whether the climb works, and a preview that had
+     * to be timed against a flight profile would be answering the second.
+     */
+    private List<Panel> aircraftPanels(MapResult map, SnapshotContext context) {
+        int[] over = openGroundNear(map);
+        if (over == null) return List.of();
+        // Its own renderer: collecting SHUTTLES brings the engine plume with
+        // it, which is an own-GL pass no raster canvas can replay. The hull is
+        // what this panel wants and the plume is not, so this one tolerates the
+        // drop while every other panel here stays fail-loud.
+        HeadlessBattleMapRenderer renderer =
+                new HeadlessBattleMapRenderer(context.modRoot(), true);
+        float centerX = over[0] + 0.5f;
+        float centerY = over[1] + 0.5f;
+
+        List<Panel> panels = new ArrayList<>();
+        for (float altitude : AIR_ALTITUDES) {
+            panels.add(new Panel(renderer.renderView(map, SEED, centerX, centerY,
+                    AIR_VIEW_W, AIR_VIEW_H, AIR_CELL_PX,
+                    sim -> flyOver(sim, centerX, centerY, altitude), WITH_AIR_SHADOWS),
+                    String.format(Locale.ROOT, "altitude %.0f%%", altitude * 100f)));
+        }
+        return panels;
+    }
+
+    /**
+     * One shuttle held over a point at a chosen altitude.
+     *
+     * <p>Spawned through the ordinary air path, then frozen: the entry and exit
+     * are the same cell as the landing zone so nothing is mid-transit, and
+     * {@code altitudeT} is written directly because that is the variable under
+     * examination.
+     */
+    private static void flyOver(BattleSimulation sim, float x, float y, float altitude) {
+        long id = sim.spawnShuttle(ShuttleType.values()[0], Faction.MARINE,
+                x, y, x, y, x, y, 0f);
+        // A spawned craft starts PENDING, which is off-map by definition, so
+        // neither the hull nor its shadow is collected. Put it over the map
+        // rather than flying it there: the question is how an altitude reads,
+        // and a preview timed against a flight profile would be answering a
+        // different one.
+        sim.world().mission(id).state = ShuttleState.INCOMING;
+        sim.world().setAltitudeT(id, altitude);
     }
 
     /**

@@ -92,6 +92,7 @@ import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
+import com.dillon.starsectormarines.battle.vehicle.VehicleTransportService;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
@@ -322,6 +323,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechDoctrineSystem mechDoctrineSystem =
             new MechDoctrineSystem(mechDoctrines);
     /** Exact-player-mech one-shot movement overrides, drained beside doctrine commands. */
+    private final VehicleTransportService transport;
     private final MechMoveOrderService mechMoveOrders = new MechMoveOrderService();
     private final MechMoveOrderSystem mechMoveOrderSystem =
             new MechMoveOrderSystem(mechMoveOrders);
@@ -665,8 +667,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A gun run delivers through the same AoE pipeline as every other
         // explosion, so the air system needs it too.
         this.airSystem.setDetonations(detonations);
+        this.transport = new VehicleTransportService(rosterService, rosterService.convoy(),
+                entityWorld, battleComponents, navigation);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
-                turretFire, rng, this::spawn, this, effects);
+                turretFire, rng, this::spawn, this, effects, transport);
         this.vehicleDamageResolver.setDestructionSink(groundSystem::destroyVehicle);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
@@ -799,6 +803,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     /** The convoy-vehicle data owner — by-id reads of the {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} / {@code VEHICLE_MISSION} columns for the render / picking / debug passes. Service-direct, not via {@link #world()} ({@code World} is deprecated for migrated state). */
     public ConvoyService convoy() { return rosterService.convoy(); }
+    /** Who is riding in what — the data owner for {@code RIDING}, and the gate a pass consults to skip a passenger. */
+    public VehicleTransportService transport() { return transport; }
+
+    @Override
+    public boolean isRiding(long id) { return rosterService.isRiding(id); }
     /** The {@link VehicleMission} for a convoy-vehicle id (has-gated, {@code null} if not live) — the by-id read path {@link BattleView} consumers use. */
     public VehicleMission convoyMission(long id) { return rosterService.convoy().mission(id); }
     public List<Objective> getObjectives() { return objectivesService.getObjectives(); }

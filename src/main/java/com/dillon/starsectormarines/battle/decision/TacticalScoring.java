@@ -1151,6 +1151,11 @@ public final class TacticalScoring {
         for (int i = 0, n = attackers.size(); i < n; i++) {
             long shooter = attackers.getLong(i);
             if (!roster.isAliveById(shooter)) continue;
+            // Somebody who shot and then climbed into a vehicle is not singling
+            // anybody out any more, and has no position to measure from. The
+            // attacker record outlives the shot on purpose; being aboard is one
+            // of the ways it goes stale.
+            if (roster.isRiding(shooter)) continue;
             float dist = cellDistance(selfX, selfY,
                     world.x(shooter), world.y(shooter));
             if (dist < bestDist || (dist == bestDist && (best == 0L || shooter < best))) {

@@ -2,11 +2,13 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.AttackMoveGoal;
+import com.dillon.starsectormarines.battle.command.DefendAssignedAreaGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.goap.action.EnterZone;
 import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
+import com.dillon.starsectormarines.battle.decision.goap.action.DefendArea;
 import com.dillon.starsectormarines.battle.infantry.SecureCompoundGoal;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -14,6 +16,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveOrder;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveCaptureOrder;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveDefendAreaOrder;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveMoveOrder;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.SquadMoveOrderHighlightPublisher;
@@ -179,6 +182,43 @@ class SquadMoveOrderSystemTest {
         assertFalse(Paths.isEmpty(sim.world().path(squad.leaderId)));
         assertEquals(14, Paths.destX(sim.world().path(squad.leaderId)));
         assertEquals(5, Paths.destY(sim.world().path(squad.leaderId)));
+    }
+
+    @Test
+    void defendAreaIsPersistentBoundedAndKeepsMissionAuthorityUnderneath() {
+        BattleSimulation sim = openSimulation(64, 48);
+        Squad squad = infantrySquad(sim, Faction.MARINE, 5, 24, 1);
+        ObjectiveAssignment mission = ObjectiveAssignment.clearZone(squad.id, 7);
+        squad.assignedObjective = mission;
+
+        sim.getSquadMoveOrderService().requestDefendArea(squad.id, 32, 24);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        ActiveDefendAreaOrder order = assertInstanceOf(ActiveDefendAreaOrder.class,
+                sim.getSquadMoveOrderService().activeOrder(squad.id));
+        assertEquals(20, order.radiusCells());
+        assertSame(mission, squad.assignedObjective);
+        assertEquals(AssignmentKind.DEFEND_AREA,
+                squad.assignmentForExecution().kind());
+        assertEquals(20, squad.assignmentForExecution().targetRadiusCells());
+
+        GoapInfantryBehavior.replanIfNeeded(squad, sim);
+        assertSame(DefendAssignedAreaGoal.INSTANCE, squad.currentGoal);
+        assertInstanceOf(DefendArea.class, squad.currentPlan.currentStep().action);
+
+        squad.centroidX = order.destinationX() + 0.5f;
+        squad.centroidY = order.destinationY() + 0.5f;
+        sim.getSquadMoveOrderSystem().tick(sim);
+        assertSame(order, sim.getSquadMoveOrderService().activeOrder(squad.id),
+                "defense persists after arrival until superseded or withdrawn");
+
+        Selection selection = new Selection();
+        selection.selectSquad(squad.id);
+        HighlightOverlay overlay = new HighlightOverlay();
+        SquadMoveOrderHighlightPublisher.publish(selection, sim, overlay);
+        assertTrue(overlay.source(HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION)
+                .stream().anyMatch(cell -> cell.cellX == order.destinationX() + 20
+                        && cell.cellY == order.destinationY()));
     }
 
     @Test

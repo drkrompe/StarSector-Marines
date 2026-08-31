@@ -175,6 +175,12 @@ public final class SquadAlertSystem {
             if (!roster.squad().hasSquad(u)) continue;
             Squad squad = roster.getSquad(roster.squad().squadId(u));
             if (squad == null) continue;
+            if (roster.isRiding(u)) {
+                // Aboard something: still one of the squad's living members, but
+                // it holds no ground, sees nothing and contributes no centroid.
+                squad.aliveMembers++;
+                continue;
+            }
             float uAir = vision.airLosRadius(u);
             float uX = world.x(u);
             float uY = world.y(u);
