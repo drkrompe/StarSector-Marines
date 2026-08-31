@@ -4,7 +4,11 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — the selected infantry plate now arms a Defend Area
+Updated: 2026-08-31 — primary world selection now distinguishes a click from
+a drag marquee and deterministically selects one player squad or combat Mech
+inside the dragged area.
+
+Earlier 2026-08-31 — the selected infantry plate now arms a Defend Area
 placement mode whose next world click previews and places a 40-cell-diameter
 circle; right-click or Escape cancels placement.
 
@@ -239,6 +243,14 @@ document pixels.
 The standalone battle treats HUD chrome as an overlay rather than as space removed
 from the world. Its square-cell camera cover-fits the granted host viewport and pans
 the cropped map axis instead of shrinking to a centred map rectangle with dead bars.
+Primary world selection resolves on release. Motion within the pointer threshold
+remains the ordinary nearest-unit click, including defender inspection and empty-
+ground deselection. Crossing that threshold paints a bounded marquee and considers
+only live player infantry squads and combat Mechs; convoy vehicles, hostiles, and
+mission payloads are not drag candidates. The one candidate nearest the marquee
+center wins, with stable entity identity breaking an exact tie. This preserves the
+single-selection command model while leaving room for a later multi-selection
+authority rather than pretending a set exists today.
 Player-facing Conquest command intent occupies the top-left opposite the top-right
 time/objective rail. Tick Profile and DEBUG share one centred developer cluster.
 The selected player squad replaces the force plate with a 3-column by 4-slot
