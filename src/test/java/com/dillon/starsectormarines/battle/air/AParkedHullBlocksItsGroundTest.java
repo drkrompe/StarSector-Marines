@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -237,30 +238,47 @@ class AParkedHullBlocksItsGroundTest {
     }
 
     /**
-     * An arriving hull moves nobody, and seals nobody in.
+     * An arriving hull moves nobody but the one person under its wheels.
      *
      * <p>A berth is placed at the start of the battle and again on every
-     * completed refit, so a hull that stepped people clear would hand the side
-     * that owns the field a free repeatable shove at whoever is standing on it.
-     * It takes the cells nobody is in and leaves the rest open instead — the
-     * same trade a settling wreck makes when there is nowhere to put somebody,
-     * applied one step earlier.
+     * completed refit, so a hull that cleared its whole square would hand the
+     * side that owns the field a free repeatable shove at whoever is standing
+     * near it. The ring therefore takes the cells nobody is in and leaves the
+     * rest open — the same trade a settling wreck makes when there is nowhere
+     * to put somebody, applied one step earlier.
+     *
+     * <p>Its own cell is the exception and has to be: it is where the aircraft
+     * is spawned and the one cell of the square that is opaque, so leaving it
+     * open puts two bodies in one cell and makes the hull see-through into the
+     * bargain. Declining to place would be worse still — a pad anybody could
+     * stand on to stop a field flying.
      */
     @Test
-    void anArrivingHullMovesNobodyAndSealsNobodyIn() {
+    void anArrivingHullTakesItsOwnCellAndNoOtherOccupiedOne() {
         BattleSimulation sim = openSim();
         berth(sim);
-        long marine = sim.spawn(
+        long onTheStand = sim.spawn(
                 new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, PAD_X, PAD_Y));
+        long besideIt = sim.spawn(
+                new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, PAD_X + 1, PAD_Y));
 
         new AirfieldSystem(Faction.DEFENDER).tick(DT, sim, sim.getAirfieldService());
 
-        assertEquals(PAD_X, sim.world().cellX(marine), "the aircraft shoved them off the pad");
-        assertEquals(PAD_Y, sim.world().cellY(marine));
-        assertTrue(sim.getGrid().isWalkable(PAD_X, PAD_Y),
+        assertFalse(sim.getGrid().isWalkable(PAD_X, PAD_Y),
+                "the hull's own cell is ground it cannot do without");
+        assertTrue(sim.getGrid().blocksLineOfSight(PAD_X, PAD_Y),
+                "and a hull with a hole under it is a hull you can see through");
+        assertNotEquals(PAD_X + "," + PAD_Y,
+                sim.world().cellX(onTheStand) + "," + sim.world().cellY(onTheStand),
+                "the aircraft and the marine are standing in the same cell");
+        assertTrue(sim.getGrid().isWalkable(sim.world().cellX(onTheStand),
+                        sim.world().cellY(onTheStand)),
                 "sealed into a cell they can never leave");
-        assertFalse(sim.getGrid().isWalkable(PAD_X + 1, PAD_Y),
-                "one occupied cell should not cost the hull the rest of its ground");
+
+        assertEquals(PAD_X + 1, sim.world().cellX(besideIt), "the hull shoved a bystander");
+        assertEquals(PAD_Y, sim.world().cellY(besideIt));
+        assertTrue(sim.getGrid().isWalkable(PAD_X + 1, PAD_Y),
+                "a ring cell somebody is standing in is left open");
     }
 
     /**

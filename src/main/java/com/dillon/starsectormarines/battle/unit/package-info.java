@@ -11,7 +11,14 @@
  *           geometry decision ({@code BodyRadius}), and the shared enums
  *           ({@code Faction}, {@code UnitRole}, {@code UnitType}).
  * <br>Boundary: data substrate only — behaviors live in the actor domains
- *           ({@code infantry/}, {@code mech/}, ...), not here. For
+ *           ({@code infantry/}, {@code mech/}, ...), not here. The one
+ *           decision it does make is where an arrival actually stands: a spec
+ *           names a cell, adoption is the only place that sees every arrival,
+ *           and an arrival that carries no {@code MOVEMENT} takes that cell
+ *           while the incumbent steps aside ({@code StandingRoom}). Overlap
+ *           between two movers is left to {@code SeparationSystem}, which owns
+ *           it; what is fixed here is the case nothing later can undo, because
+ *           a body that cannot move has been placed once and for good. For
  *           proximity, use a spatial index's {@code gather()}; never scan
  *           the live registry. An entity is a bare {@code long} id: the roster
  *           holds a dense {@code long[]}, and every per-unit datum lives in the
