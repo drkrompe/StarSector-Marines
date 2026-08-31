@@ -62,6 +62,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationSpawnStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationTopologyStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalRegionStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.GrownTrunkSkeletonStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TrunkSkeletonStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ZoningOverlayStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
@@ -105,10 +106,10 @@ public final class BspCityGenerator implements MapGenerator {
     private final Map<BlockKind, BlockFiller> fillers = new EnumMap<>(BlockKind.class);
     private final Map<BlockKind, CompoundFiller> compoundFillers = new EnumMap<>(BlockKind.class);
 
-    /** Conquest map recipe (full stage list). Built once in the constructor; replayed per {@code generate()} call against a fresh context. */
-    private final GenRecipe conquestRecipe;
-    /** Legacy district-urban recipe (conquest-only stages omitted). */
-    private final GenRecipe legacyRecipe;
+    /** Conquest map recipe (full stage list). Rebuilt by the constructor and by {@link #useGrownRoads}; replayed per {@code generate()} call against a fresh context. */
+    private GenRecipe conquestRecipe;
+    /** Legacy district-urban recipe (conquest-only stages omitted). Rebuilt alongside {@link #conquestRecipe}. */
+    private GenRecipe legacyRecipe;
 
     /** Station-interior recipe — the inverted (solid-default) rooms-and-corridors map type. Selected via {@link #generateStation}. */
     private final GenRecipe stationRecipe;
@@ -152,8 +153,8 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new SpaceportDistrictFiller());
         registerCompound(new AirbaseCompoundFiller());
 
-        this.conquestRecipe = buildConquestRecipe();
-        this.legacyRecipe = buildLegacyRecipe();
+        this.conquestRecipe = buildConquestRecipe(new TrunkSkeletonStage());
+        this.legacyRecipe = buildLegacyRecipe(new TrunkSkeletonStage());
         this.stationRecipe = buildStationRecipe();
         this.concentricStationRecipe = buildConcentricStationRecipe();
         this.diamondStationRecipe = buildDiamondStationRecipe();
@@ -166,11 +167,15 @@ public final class BspCityGenerator implements MapGenerator {
      * the axis is always bound on the conquest path so every stage proceeds.
      * Output is byte-identical to the pre-recipe single-list path — same
      * {@code rng} draws in the same order.
+     *
+     * @param trunkStage the Step 1a trunk-planning stage — {@link TrunkSkeletonStage}
+     *                   by default, or a {@link GrownTrunkSkeletonStage} when
+     *                   {@link #useGrownRoads} has installed one.
      */
-    private GenRecipe buildConquestRecipe() {
+    private GenRecipe buildConquestRecipe(GenStage trunkStage) {
         return new GenRecipe("ConquestCity", List.of(
                 new InitFloorStage(),                       // Step 0
-                new TrunkSkeletonStage(),                   // Step 1a
+                trunkStage,                                 // Step 1a
                 new BspPartitionStage(),                    // Step 1b
                 new ZoningOverlayStage(),                   // Step 1c
                 new LabelLeavesStage(),                     // Step 2
@@ -208,11 +213,15 @@ public final class BspCityGenerator implements MapGenerator {
      * shared stages ({@code ZoningOverlay} / {@code LabelLeaves} /
      * {@code CompoundClaim} / {@code SpawnAnchor}) fork to their district / legacy
      * behavior internally.
+     *
+     * @param trunkStage the Step 1a trunk-planning stage — {@link TrunkSkeletonStage}
+     *                   by default, or a {@link GrownTrunkSkeletonStage} when
+     *                   {@link #useGrownRoads} has installed one.
      */
-    private GenRecipe buildLegacyRecipe() {
+    private GenRecipe buildLegacyRecipe(GenStage trunkStage) {
         return new GenRecipe("LegacyUrban", List.of(
                 new InitFloorStage(),                       // Step 0
-                new TrunkSkeletonStage(),                   // Step 1a
+                trunkStage,                                 // Step 1a
                 new BspPartitionStage(),                    // Step 1b
                 new ZoningOverlayStage(),                   // Step 1c   binds DISTRICT_MAP
                 new LabelLeavesStage(),                     // Step 2
@@ -302,6 +311,27 @@ public final class BspCityGenerator implements MapGenerator {
     /** Swap in a per-kind filler. Idempotent — last write wins. */
     public void register(BlockFiller filler) {
         fillers.put(filler.kind(), filler);
+    }
+
+    /**
+     * An explicit composition choice: replaces {@link TrunkSkeletonStage}'s
+     * fixed crossroad with a {@link GrownTrunkSkeletonStage} grown from
+     * {@code profile} wherever Step 1a runs in either the conquest or the
+     * legacy recipe, rebuilding both. Everything else in both recipes stays
+     * byte-identical. Passing {@code null} restores the stock stage.
+     *
+     * <p>Stock behavior is unchanged unless a caller opts in — no default
+     * path selects grown roads on its own.
+     *
+     * @return this, for chaining
+     */
+    public BspCityGenerator useGrownRoads(GrownTrunkPlan.Profile profile) {
+        GenStage trunkStage = profile != null
+                ? new GrownTrunkSkeletonStage(profile)
+                : new TrunkSkeletonStage();
+        this.conquestRecipe = buildConquestRecipe(trunkStage);
+        this.legacyRecipe = buildLegacyRecipe(trunkStage);
+        return this;
     }
 
     @Override
