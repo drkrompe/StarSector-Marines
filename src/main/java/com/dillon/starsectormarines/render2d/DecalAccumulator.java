@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
-import org.lwjgl.BufferUtils;
 
 import java.nio.ByteBuffer;
 
@@ -438,9 +437,13 @@ public final class DecalAccumulator {
         fboColor = glGenTextures();
 
         glBindTexture(GL_TEXTURE_2D, fboColor);
-        ByteBuffer empty = BufferUtils.createByteBuffer(fboPxW * fboPxH * 4);
         GlErrors.clear();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, fboPxW, fboPxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
+        // Null, not a zeroed buffer: this sizes the texture storage without
+        // uploading anything. The transparent surface this accumulator needs
+        // comes from the clearFbo() at the end of this method, which has to run
+        // regardless -- an uploaded zero fill only duplicated it, at the cost of
+        // an fboPxW*fboPxH*4 direct ByteBuffer.
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, fboPxW, fboPxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         GlErrors.check("glTexImage2D (decal FBO color)");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -463,9 +466,9 @@ public final class DecalAccumulator {
 
         LOG.debug("DecalAccumulator FBO " + fbo + " complete at " + fboPxW + "x" + fboPxH
                 + " (cells " + gridW + "x" + gridH + " × " + perCell + "px)");
-        // FBO starts with random / zeroed contents — make sure it's a clean
-        // transparent surface so the blit doesn't paint random pixels over the
-        // floor pass before any decals stamp.
+        // Freshly sized storage holds undefined pixels, and this accumulator
+        // blits every frame while only clearing on demand -- so this clear is
+        // what makes the surface transparent, not an initial upload.
         clearFbo();
     }
 
