@@ -108,7 +108,7 @@ public class GroundSystem {
         this.convoy = roster.convoy();
         this.controlSystem = new VehicleControlSystem(convoy, navigation);
         this.moveOrderSystem = new VehicleMoveOrderSystem(
-                moveOrders, convoy, navigation, controlSystem);
+                moveOrders, convoy, navigation, controlSystem, transport);
     }
 
     /** The mailbox the interface queues move requests into. */

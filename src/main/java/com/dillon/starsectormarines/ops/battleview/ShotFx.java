@@ -162,12 +162,11 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
     }
 
     private static ShotFx deriveMech(WeaponDef weapon) {
-        // Every mech weapon ships a projectile sprite today; the tracer arm is the
-        // faithful fallback (faction default, matching the old renderer — mech
-        // tracerColor was load-failure-only and unused in the shot pass).
+        // Null projectile art is an authored hitscan beam; physical shells and
+        // missiles continue to travel as sprites.
         Body body = weapon.projectileSpritePath != null
                 ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)
-                : new Tracer(null);
+                : new Tracer(weapon.tracerColor);
         return new ShotFx(body, tracerTail(weapon), weapon.arcHeight, false, null);
     }
 

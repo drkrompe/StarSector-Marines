@@ -210,6 +210,10 @@ final class LayeredMechComposer {
             emitShoulderFlashes(out, assets, chassis, leftShoulder, rightShoulder, false,
                     upperX, upperY, hullWidth, upperFacingDeg, alpha);
         }
+        if ((flags & LayeredMechAppearance.FLAG_LASER_FLASH) != 0) {
+            emitShoulderLaserFlashes(out, assets, chassis, leftShoulder, rightShoulder,
+                    upperX, upperY, hullWidth, upperFacingDeg, alpha);
+        }
     }
 
     private static LayerTransform layer(LayerPose pose, String id) {
@@ -301,6 +305,18 @@ final class LayeredMechComposer {
                 facingDeg, podLocalX(chassis, leftShoulder, rightShoulder, false), alpha);
     }
 
+    private static void emitShoulderLaserFlashes(Sink out, LayeredMechAssets assets,
+                                                  int chassis,
+                                                  int leftShoulder, int rightShoulder,
+                                                  float actorX, float actorY,
+                                                  float hullWidth, float facingDeg,
+                                                  float alpha) {
+        emitLaserFlash(out, assets, leftShoulder, actorX, actorY, hullWidth,
+                facingDeg, podLocalX(chassis, leftShoulder, rightShoulder, true), alpha);
+        emitLaserFlash(out, assets, rightShoulder, actorX, actorY, hullWidth,
+                facingDeg, podLocalX(chassis, leftShoulder, rightShoulder, false), alpha);
+    }
+
     private static float podLocalX(int chassis, int leftShoulder, int rightShoulder,
                                    boolean leftSlot) {
         int pod = leftSlot ? leftShoulder : rightShoulder;
@@ -326,11 +342,23 @@ final class LayeredMechComposer {
         }
     }
 
+    private static void emitLaserFlash(Sink out, LayeredMechAssets assets,
+                                       int installedPod,
+                                       float actorX, float actorY, float hullWidth,
+                                       float facingDeg, float localX, float alpha) {
+        if (installedPod != LayeredMechAppearance.POD_SHOULDER_LASER) return;
+        emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
+                localX, MechHardpointGeometry.podForward(installedPod), 0f, alpha);
+    }
+
     private static void emitPod(Sink out, LayeredMechAssets assets, int pod,
                                 float actorX, float actorY, float hullWidth,
                                 float facingDeg, float localX,
                                 float srmKick, float lrmKick, float alpha) {
-        if (isSmallPod(pod)) {
+        if (pod == LayeredMechAppearance.POD_SHOULDER_LASER) {
+            emitFromRearPivot(out, assets.shoulderLaser, actorX, actorY, hullWidth, facingDeg,
+                    localX, -0.30f, 1f, 0f, alpha);
+        } else if (isSmallPod(pod)) {
             emitFromRearPivot(out, assets.srmPod, actorX, actorY, hullWidth, facingDeg,
                     localX, -0.30f - (isSrmPod(pod) ? srmKick : lrmKick), 1f, 0f, alpha);
         } else if (isLargePod(pod)) {
