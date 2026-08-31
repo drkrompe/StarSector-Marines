@@ -124,7 +124,13 @@ public final class HoldPost implements Action {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        moveToward(member, sim, firingPos[0], firingPos[1]);
+        // The hold ring bounds straight-line distance; the walk is what the
+        // marine actually does. A firing position it cannot reach, or can only
+        // reach the long way round the building, leaves it holding the post it
+        // already has.
+        if (!PatrolMotion.moveToward(member, sim, firingPos[0], firingPos[1], true)) {
+            hold(member, sim);
+        }
         return ActionStatus.RUNNING;
     }
 
@@ -138,7 +144,7 @@ public final class HoldPost implements Action {
             tx = homeX + Math.round((tx - homeX) * scale);
             ty = homeY + Math.round((ty - homeY) * scale);
         }
-        moveToward(member, sim, tx, ty);
+        PatrolMotion.moveToward(member, sim, tx, ty);
         return ActionStatus.RUNNING;
     }
 
@@ -147,22 +153,8 @@ public final class HoldPost implements Action {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        moveToward(member, sim, homeX, homeY);
+        PatrolMotion.moveToward(member, sim, homeX, homeY);
         return ActionStatus.RUNNING;
-    }
-
-    private static void moveToward(long member, BattleControl sim, int tx, int ty) {
-        int[] path = sim.world().path(member);
-        int pathIdx = sim.world().pathIdx(member);
-        if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member), tx, ty, sim.getOccupancyMap()));
-            path = sim.world().path(member);
-            pathIdx = sim.world().pathIdx(member);
-        }
-        if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member);
-        }
     }
 
     private static void hold(long member, BattleControl sim) {

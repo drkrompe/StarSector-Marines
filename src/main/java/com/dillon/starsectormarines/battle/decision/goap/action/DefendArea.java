@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.infantry.ApproachBound;
 import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -110,7 +111,7 @@ public final class DefendArea implements Action {
             return ActionStatus.RUNNING;
         }
 
-        moveToward(member, firingPosition[0], firingPosition[1], sim);
+        moveToward(member, firingPosition[0], firingPosition[1], sim, true);
         return ActionStatus.RUNNING;
     }
 
@@ -169,6 +170,20 @@ public final class DefendArea implements Action {
     }
 
     private void moveToward(long member, int x, int y, BattleControl sim) {
+        moveToward(member, x, y, sim, false);
+    }
+
+    /**
+     * {@code boundDetour} refuses a route out of proportion to the straight
+     * line it stands in for — see {@link ApproachBound}. Only the firing
+     * position passes {@code true}: it is a cell chosen as an improvement
+     * inside the area, so walking round the outside of a building to reach it
+     * spends the defence of the area on getting somewhere marginally better.
+     * A prepared or quiet position is where the member belongs, and it goes
+     * there whichever way the ground allows.
+     */
+    private void moveToward(long member, int x, int y, BattleControl sim,
+                            boolean boundDetour) {
         if (sim.movement().atCell(member, x, y)) {
             PatrolMotion.hold(member, sim);
             return;
@@ -181,9 +196,15 @@ public final class DefendArea implements Action {
         }
         if (sim.movement().mayRepath(member)
                 && sim.world().pathIdx(member) >= Paths.cellCount(path)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member),
-                    x, y, sim.getOccupancyMap()));
+            int fromX = sim.world().cellX(member);
+            int fromY = sim.world().cellY(member);
+            int[] found = GridPathfinder.findPath(sim.getGrid(), fromX, fromY,
+                    x, y, sim.getOccupancyMap());
+            if (!ApproachBound.worthWalkingTo(fromX, fromY, x, y, found, boundDetour)) {
+                PatrolMotion.hold(member, sim);
+                return;
+            }
+            sim.setPath(member, found);
         }
         sim.advanceMovement(member);
     }

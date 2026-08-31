@@ -152,11 +152,40 @@ public final class PatrolMotion {
      * to pick a different target instead of parking forever.
      */
     public static boolean moveToward(long member, BattleControl sim, int tx, int ty) {
+        return moveToward(member, sim, tx, ty, false);
+    }
+
+    /**
+     * As {@link #moveToward(long, BattleControl, int, int)}, but with
+     * {@code boundDetour} refusing a route out of proportion to the straight
+     * line it stands in for — see {@link ApproachBound}.
+     *
+     * <p>Pass {@code true} only for a destination chosen as an improvement,
+     * which today means a firing position inside a post's own ring. A member
+     * returning home or walking to a heard noise passes {@code false}: the
+     * long way round is the right way when it is the only way.
+     *
+     * <p>The refusal clears the path rather than leaving an empty one behind.
+     * {@code setPath} stamps the repath throttle only on a non-empty
+     * assignment, so an empty path never throttles and the same search runs
+     * again next tick — and a search toward an unreachable cell exhausts the
+     * whole reachable component before failing. Parking in place is what the
+     * caller wanted; paying a full-component search per tick to do it is not.
+     */
+    public static boolean moveToward(long member, BattleControl sim, int tx, int ty,
+                                     boolean boundDetour) {
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
         if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member), tx, ty, sim.getOccupancyMap()));
+            int fromX = sim.world().cellX(member);
+            int fromY = sim.world().cellY(member);
+            int[] found = GridPathfinder.findPath(sim.getGrid(),
+                    fromX, fromY, tx, ty, sim.getOccupancyMap());
+            if (!ApproachBound.worthWalkingTo(fromX, fromY, tx, ty, found, boundDetour)) {
+                hold(member, sim);
+                return false;
+            }
+            sim.setPath(member, found);
             path = sim.world().path(member);
             pathIdx = sim.world().pathIdx(member);
         }

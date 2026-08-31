@@ -185,7 +185,13 @@ public final class GuardPostPatrol implements Action {
             PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        PatrolMotion.moveToward(member, sim, firingPos[0], firingPos[1]);
+        // A post that cannot walk to the better cell holds the one it has.
+        // The return has always reported an unreachable destination; this call
+        // simply stopped ignoring it, and now also declines a firing position
+        // that is inside the ring but around the far side of a building.
+        if (!PatrolMotion.moveToward(member, sim, firingPos[0], firingPos[1], true)) {
+            PatrolMotion.hold(member, sim);
+        }
         return ActionStatus.RUNNING;
     }
 

@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Posture;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.infantry.ApproachBound;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -157,25 +158,6 @@ abstract class AbstractZoneAction implements Action {
      */
     static final float OBJECTIVE_FIRING_LEASH = 8f;
 
-    /**
-     * How much further than the straight line a member may walk to take a
-     * firing position, as a multiple of that straight line.
-     *
-     * <p>Every leash here bounds the <em>straight-line</em> distance from an
-     * anchor, and the member has to walk a path. A wall makes those two
-     * numbers diverge without limit: measured on a probe, a spot three cells
-     * from its anchor and seven from the member was a thirty-nine cell march
-     * around the building between them. That is not the bounded improvement a
-     * leash is for — it is the objective abandoned for as long as the march
-     * takes — so travel is bounded in its own right rather than assumed from
-     * the leash.
-     */
-    static final float FIRING_DETOUR_RATIO = 2.5f;
-    /**
-     * Cells of travel allowed before the ratio applies, so a firing position
-     * one or two cells away is not refused for stepping around a crate.
-     */
-    static final float FIRING_DETOUR_SLACK = 4f;
 
     /** Role-slot prefix for the fire-team partition a bounding advance moves in. */
     static final String FIRE_TEAM = "fireteam:";
@@ -503,11 +485,8 @@ abstract class AbstractZoneAction implements Action {
      * stays testable without standing up an action.
      */
     static boolean worthWalkingTo(int fromX, int fromY, int[] firingPos, int[] path) {
-        if (Paths.isEmpty(path)) return false;
-        float straight = TacticalScoring.cellDistance(fromX, fromY,
-                firingPos[0], firingPos[1]);
-        return Paths.cellCount(path)
-                <= FIRING_DETOUR_SLACK + FIRING_DETOUR_RATIO * straight;
+        return ApproachBound.worthWalkingTo(fromX, fromY,
+                firingPos[0], firingPos[1], path, true);
     }
 
     protected static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
