@@ -15,6 +15,10 @@ Updated: 2026-08-30 — a chassis is an ordinary body: it carries `IDENTITY`,
 lives in the unit spatial index, and is a squad contact like any other enemy.
 The explicit convoy candidate set is gone from targeting.
 
+Updated: 2026-08-31 — an arrival gate is derived from the step a body takes in
+one tick, not authored as a bare distance, so a faster variant cannot drive
+through its own LZ without arriving.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -265,6 +269,16 @@ it planned before.
 - Arrival is not failure. Reaching the terminal corridor region must transition
   to landing/departure instead of triggering a false stuck recovery, and aiming
   at an off-map exit is arrival in progress rather than an unsolvable route.
+- An arrival gate is a distance, and a body samples its position once a tick.
+  Every such gate is therefore at least as wide as the ground the vehicle
+  covers between two samples, or it is a gate the vehicle jumps: outside on one
+  tick, outside on the next, arrival never firing, and the recovery ladder
+  inheriting a problem that was never about the route. Authored tolerances are
+  floors under that derivation, never the whole of it — the margin the shipped
+  `HEAVY_APC` enjoys is an accident of it being the only variant, and the
+  planned light scout is specified as faster. The same law holds on the air
+  side, where a gate carrying a term it had no business carrying put a
+  fighter's wheels down a runway's length from the numbers.
 - A vehicle moves under its own body or performs a bounded recovery. It never
   solves failure by crossing a wall or snapping through a corner; the durable
   terminal outcome for an unrecoverable route remains open.
