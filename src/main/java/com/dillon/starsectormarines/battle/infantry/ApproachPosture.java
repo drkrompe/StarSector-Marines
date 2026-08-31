@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
  * <b>Squad posture: close to firing range.</b> Pure movement — no firing
@@ -80,6 +81,28 @@ public final class ApproachPosture implements Action {
             }
             int[] path = GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap());
+            if (Paths.isEmpty(path)) {
+            // Stage 1 of findFiringPosition scores LOS and range and does
+            // not verify reachability, so a walled-off cell is an ordinary
+            // answer from it. Its stage 2 vantage probe does pathfind, and
+            // findReachableFiringPosition is the seam that falls through to
+            // it -- so an empty path here is a question for the probe, not
+            // a verdict. Dropping the target on it discards approaches that
+            // exist, which is a squad refusing to walk round a building.
+                dest = sim.getTacticalScoring().findReachableFiringPosition(member, target);
+                path = dest == null ? GridPathfinder.EMPTY_PATH
+                        : GridPathfinder.findPath(sim.getGrid(),
+                                sim.world().cellX(member), sim.world().cellY(member),
+                                dest[0], dest[1], sim.getOccupancyMap());
+            }
+            if (Paths.isEmpty(path)) {
+                // Both stages refuse: no approach exists from here.
+                sim.world().setTargetId(member, 0L);
+                return ActionStatus.RUNNING;
+            }
+            // Checked before the cohesion clamp on purpose: a clamp shortens a
+            // real route because the squad is strung out, which is not the same
+            // fact as no route existing, and must not drop the target.
             if (genericPursuit) path = InfantryCohesion.clampPursuitPath(path, squad);
             sim.setPath(member, path);
         }

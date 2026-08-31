@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * <ol>
  *   <li>{@link GenMappingRegistry#groundBlockId} returns the exact id each kind
  *       rendered as before the data extraction (and {@code null} for the
- *       special-cased SIDEWALK / dead SNOW);</li>
+ *       special-cased SIDEWALK);</li>
  *   <li>each mapped block lives on the sheet + {@code cellPx} the renderer's
  *       {@code sheetFor}/inset selection assumes — so a Floors block can't
  *       silently start drawing with a mismatched source rect.</li>
@@ -54,9 +54,9 @@ public class GroundRenderMappingTest {
         assertEquals("floors.sand",          m.groundBlockId(GroundKind.SAND));
         assertEquals("floors.brick",         m.groundBlockId(GroundKind.BRICK));
         assertEquals("water.water",          m.groundBlockId(GroundKind.WATER));
-        // Special-cased / dead — intentionally unmapped (renderer handles them in code).
+        assertEquals("floors.snow",          m.groundBlockId(GroundKind.SNOW));
+        // Special-cased — intentionally unmapped (renderer handles it in code).
         assertNull(m.groundBlockId(GroundKind.SIDEWALK));
-        assertNull(m.groundBlockId(GroundKind.SNOW));
     }
 
     @Test
@@ -82,6 +82,7 @@ public class GroundRenderMappingTest {
         assertBlock(reg, m, GroundKind.STONE,     TileManifest.FLOORS_SHEET, TileManifest.FLOORS_TILE_SIZE);
         assertBlock(reg, m, GroundKind.SAND,      TileManifest.FLOORS_SHEET, TileManifest.FLOORS_TILE_SIZE);
         assertBlock(reg, m, GroundKind.BRICK,     TileManifest.FLOORS_SHEET, TileManifest.FLOORS_TILE_SIZE);
+        assertBlock(reg, m, GroundKind.SNOW,      TileManifest.FLOORS_SHEET, TileManifest.FLOORS_TILE_SIZE);
         assertBlock(reg, m, GroundKind.WATER,     TileManifest.WATER_SHEET,  16);
     }
 

@@ -37,9 +37,32 @@ class SurfaceZoningTest {
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("toxic"));
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("irradiated"));
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("lava_minor"));
-        assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("cryovolcanic"));
-        assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("rocky_ice"));
-        assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("frozen"));
+    }
+
+    /**
+     * The cold family, which is about a quarter of the Sector's landable
+     * worlds and used to come out as bare grey regolith along with everything
+     * else that was not green or sandy.
+     */
+    @Test
+    void coldWorldsAreFrozen() {
+        assertEquals(SurfacePalette.FROZEN, SurfaceZoning.forPlanetType("frozen"));
+        assertEquals(SurfacePalette.FROZEN, SurfaceZoning.forPlanetType("frozen3"));
+        assertEquals(SurfacePalette.FROZEN, SurfaceZoning.forPlanetType("rocky_ice"));
+        assertEquals(SurfacePalette.FROZEN, SurfaceZoning.forPlanetType("cryovolcanic"));
+        assertEquals(SurfacePalette.FROZEN, SurfaceZoning.forPlanetType("toxic_cold"));
+    }
+
+    /**
+     * Cold is a climate, not a verdict on life. {@code tundra} carries
+     * vegetation and is matched by the living check first; {@code toxic_cold}
+     * shares its family name with plain {@code toxic} and must not drag it
+     * along.
+     */
+    @Test
+    void climateDoesNotOverruleHabitability() {
+        assertEquals(SurfacePalette.VERDANT, SurfaceZoning.forPlanetType("tundra"));
+        assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("toxic"));
     }
 
     /**
