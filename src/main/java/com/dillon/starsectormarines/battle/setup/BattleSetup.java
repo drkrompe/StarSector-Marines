@@ -96,6 +96,7 @@ import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
@@ -1696,16 +1697,50 @@ public final class BattleSetup {
         // one garrison airfield, and a second strip would belong to a second
         // field this service does not yet model.
         if (map.runways.isEmpty()) return;
-        sim.getAirfieldService().installRunway(map.runways.get(0));
-        // Aircraft in the sheds, but only on a field that has somewhere for
-        // them to roll. A shelter berth on a strip-less lot is an aircraft
-        // sealed in a shed for the battle: it cannot lift off where it stands
-        // and there is nothing to taxi to.
+        Runway strip = map.runways.get(0);
+        sim.getAirfieldService().installRunway(strip);
+        // Aircraft in the sheds, but only in the sheds of the field that owns
+        // the strip. A shelter berth anywhere else is an aircraft that cannot
+        // lift off where it stands and has nothing within reach to roll on:
+        // measured on conquest maps, three seeds in four put a shed a hundred
+        // and ten to a hundred and thirty cells from the only runway, and the
+        // fighter kept in it taxied for the city. "The map has a strip" was
+        // never the question this asks — "this shed has one" is.
+        List<Gantry> sheds = shedsOnTheFieldWith(strip, map.tacticalMap, map.shelters);
         List<FighterProfile> based = shedAircraft(
-                FighterProfile.poolForFaction(factionId), map.shelters);
-        for (int i = 0; i < map.shelters.size(); i++) {
-            sim.getAirfieldService().addShelterBerth(map.shelters.get(i), based.get(i));
+                FighterProfile.poolForFaction(factionId), sheds);
+        for (int i = 0; i < sheds.size(); i++) {
+            sim.getAirfieldService().addShelterBerth(sheds.get(i), based.get(i));
         }
+    }
+
+    /**
+     * The sheds standing on the same airfield as {@code strip}.
+     *
+     * <p>An airfield is the ground its {@code AIRBASE} node covers, which is
+     * the only handle on the map that says where one base stops and the next
+     * begins — a shed and a runway are both geometry and neither knows what lot
+     * laid it. Both come out of the same lot, so a strip always falls inside
+     * exactly one of them; a strip inside none is a map nobody has built yet,
+     * and basing nothing in its sheds leaves the field flying off its apron
+     * rather than taxiing an aircraft to a runway on the far side of a city.
+     */
+    static List<Gantry> shedsOnTheFieldWith(Runway strip, TacticalMap fields,
+                                            List<Gantry> shelters) {
+        for (TacticalNode node : fields.all()) {
+            if (node.kind != TacticalNode.Kind.AIRBASE) continue;
+            if (!within(node, strip.centreX(), strip.centreY())) continue;
+            List<Gantry> sheds = new ArrayList<>();
+            for (Gantry shed : shelters) {
+                if (within(node, shed.centerX, shed.centerY)) sheds.add(shed);
+            }
+            return sheds;
+        }
+        return List.of();
+    }
+
+    private static boolean within(TacticalNode node, float x, float y) {
+        return x >= node.left && x <= node.right && y >= node.top && y <= node.bottom;
     }
 
     /**
