@@ -37,10 +37,13 @@ retained generated linkage source is `sources/thigh-bone.png`.
 `factions/<family>/` contains appearance-only chassis skins for Hegemony,
 Tri-Tachyon, Persean League, Luddic Church, Knights of Ludd, Luddic Path,
 Sindrian Diktat, Lion's Guard, pirates, and the Independent/mercenary fallback.
-Every family repeats `chassis.png`, `chassis-hound.png`, and
-`chassis-sirocco.png`. The builder applies the accepted base chassis alpha mask,
-so a skin cannot change silhouette, hardpoint authority, scale, or mechanics.
-Weapon and gait layers remain shared.
+Every family repeats `chassis.png`, `chassis-hound.png`,
+`chassis-sirocco.png`, `chaingun-arm.png`, `linear-cannon-variant.png`,
+`heavy-cannon.png`, `srm-pod.png`, and `lrm-pod.png`. The builder applies each
+accepted base sprite's exact alpha mask, so a skin cannot change silhouette,
+hardpoint authority, scale, or mechanics. Weapon paint is transferred only
+through five reviewed casing masks; barrels, missiles, rack cavities, vents,
+fasteners, lamps, and gait layers remain the shared base hardware.
 
 Run `python art-source/mech-modular-topdown/build_assets.py` from the repository root after replacing a retained source. The generated
 previews use the same hull-relative placement model as the runtime composer and
@@ -54,3 +57,7 @@ three hulls to 208 pixels for direct sprite and hardpoint comparison.
 Run `python art-source/mech-modular-topdown/render_faction_variants.py` to
 regenerate the ten-family contact sheet at
 `roadmap/mechs/previews/factional-mech-variants.png`.
+
+Run `python art-source/mech-modular-topdown/render_faction_weapon_variants.py`
+to review those chassis with the derived faction weapon casings at
+`roadmap/mechs/previews/factional-mech-weapons.png`.

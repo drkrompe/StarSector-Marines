@@ -8,6 +8,8 @@ visible. Runtime dimensions use chassis width as their shared unit.
 from pathlib import Path
 from PIL import Image
 
+from derive_faction_weapons import build_faction_weapons
+
 
 # Raw art lives outside mod/, so the shipped folder never carries pre-pack
 # inputs. Outputs are addressed from the repository root rather than from
@@ -144,6 +146,7 @@ def main() -> None:
     normalize("thigh-bone.png", "thigh-bone.png", (40, 112))
     normalize("srm-pod.png", "srm-pod.png", (62, 88))
     normalize("lrm-pod.png", "lrm-pod.png", (76, 96))
+    build_faction_weapons()
     preview("idle.png", moving=False, firing=False)
     preview("moving-and-firing.png", moving=True, firing=True)
 
