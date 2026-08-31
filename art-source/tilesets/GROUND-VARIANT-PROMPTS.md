@@ -89,6 +89,29 @@ Pale warm tan wind-blown dust over hardpan. Eight variants:
 | 7 | fine dust with a sparse scatter of pale grit |
 | 8 | fine dust with a faint shallow depression, soft-edged |
 
+## Family: frozen snow -- fills `floors.snow`
+
+Unlike the two families above, this one has nothing to match: `GroundKind.SNOW`
+was declared years ago and never emitted by anything, so there is no shipped
+cell to sample. `regolith-1.png` is passed in as a reference for **format only**
+-- size, opacity, and how fine the detail has to be -- with the palette stated
+in words instead.
+
+Wind-packed snow over ice on an airless world. Cold pale blue-white and
+desaturated, around a mean of (206, 214, 224), never pure white and never fresh
+powder. Eight variants:
+
+| # | ask |
+|---|---|
+| 1 | even fine granular snow, featureless |
+| 2 | faint scatter of slightly paler wind-drifted flecks |
+| 3 | one very faint hairline crack in the ice beneath |
+| 4 | shallow soft-edged patch where the blue ice shows through |
+| 5 | loose cluster of small wind-carved ripples |
+| 6 | very slightly coarser overall, no distinct features |
+| 7 | two or three faint pale wind-scour streaks |
+| 8 | sparse dusting of darker grit frozen into the surface |
+
 ## Running it
 
 ```bash
@@ -98,6 +121,27 @@ codex exec -s workspace-write --skip-git-repo-check "<prompt>"
 `--full-auto` is not a flag in codex-cli 0.149. Write outputs to
 `art-source/tilesets/ground-variants-raw/`. **Forbid git in the prompt** —
 `codex exec` is an agent with repository access and will commit unasked.
+
+## The wrap is made here, not asked for
+
+`codex exec` returns a large square picture of a material. It cannot return a
+tile: the model has no way to see its own edges, so no amount of prompting makes
+opposite ones meet. `normalize_ground_variants.py` takes the masters and
+produces the tile -- a double-sized centre crop, downscaled, then wrapped by a
+four-corner blend that is periodic by construction rather than by inspection.
+It also shifts each tile onto the family's mean colour, which is a constant per
+channel and leaves the texture alone; the snow batch landed at a sibling spread
+of 8.2 and came out at 0.9.
+
+**Do not ask the agent to do this step.** `codex` runs under a pwsh that has
+neither `magick` nor any Python its `py` launcher can find, so it will generate
+the masters, fail every post-processing attempt, and sit there. Its masters are
+written to `$CODEX_HOME/generated_images/<session>/` regardless, which is where
+to pick them up from:
+
+```bash
+python art-source/tilesets/normalize_ground_variants.py     ~/.codex/generated_images/<session> art-source/tilesets/atlas-material-source/<family> <prefix>
+```
 
 ## Measured thresholds
 
