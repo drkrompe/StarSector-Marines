@@ -9,6 +9,9 @@ rather than a property of the body; presence and reach are owned separately.
 
 Updated: 2026-08-31 — named the body concept the disjoint families share and gave it one carrier-agnostic surface, so a consumer no longer re-derives which kind of thing it is holding.
 
+Updated: 2026-08-31 — a body's own geometry is one decision read two ways; the
+by-id and columnar accesses may differ in cost but never in answer.
+
 The battle simulation has one composition substrate: an `EntityWorld`.  This
 document names the durable model, ownership, and safety laws of that substrate.
 `BattleComponents` owns the battle component vocabulary.
@@ -182,6 +185,32 @@ for it.
 
 `air-nouns.md` and `convoy-nouns.md` own what their own carriers answer; neither
 restates the shared model.
+
+### One fact, two accesses
+
+A body's own geometry is decided in one place and read in two. Selection,
+ballistics, blast catch and the spatial index ask by id, a handful of times per
+shot; separation asks columnar, off the archetype tables it is already walking,
+once per live unit per tick. Turning the columnar walk into by-id probes would
+cost a lookup per unit per tick, so **the split in access is deliberate and
+stays** — what must not split is the answer. `BodyRadius` holds the precedence
+(turret structure, then airframe, then mech variant, then the archetype) and
+each caller feeds it the values it already has.
+
+Both derivations were written out longhand for a while, and they drifted the
+first time one of them grew a case: a per-instance branch was added to the by-id
+accessor only, and the same parked aircraft was several cells of hull to a round
+and half a cell to a shoulder. Nothing was loud about it — both answers were
+plausible floats — so the law is **a per-instance fact about a body gets one
+derivation, however many access shapes read it**, and it is pinned by a test
+that asks both ways for every kind of body that has one.
+
+The carried families sit outside that precedence rather than inside it, and for
+a structural reason rather than an omission: an air craft and a convoy chassis
+hold no `IDENTITY`, so they cannot feed it, and holding no `POSITION` they are
+never rows in the query separation walks. Dispatching to the carrier is a choice
+between storage families, made at the by-id call site; adding a carrier lookup to
+a hot columnar loop would buy nothing.
 
 ### Authored layered motion
 
