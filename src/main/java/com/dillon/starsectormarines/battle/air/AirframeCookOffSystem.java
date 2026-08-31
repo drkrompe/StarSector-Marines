@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 /**
@@ -40,21 +41,39 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  * caller can plausibly ask twice for the same airframe id, but because a
  * blast this specific is worth exactly one definition of "already burned" too.
  *
- * <p><b>It does not chain.</b> The blast is sized to the stand and the apron
- * around it and stops short of the next hardstand, which on an authored field
- * sits eight cells away. A fire that took its neighbours with it would make
- * one satchel worth an entire airfield and delete the decision of which
- * aircraft to spend the raid on; the attacker has to work down the line.
+ * <p><b>It does not chain, and that is a rule rather than a measurement.</b>
+ * An airframe standing on a berth is left out of the blast outright, so one
+ * satchel is worth one aircraft however large the aircraft on either side of
+ * it happen to be; the attacker works down the line. The blast is still sized
+ * to the stand and the apron around it and still stops short of the next
+ * hardstand, which an authored field puts {@link
+ * com.dillon.starsectormarines.battle.world.gen.AirbaseLot#BERTH_PITCH} cells
+ * away — that is what keeps the fire off the ground crew over there — but the
+ * aircraft's own survival no longer rests on it. It used to: the area sweep
+ * catches a body at blast radius <em>plus that body's own radius</em>, and
+ * once a parked hull started reporting its real drawn size instead of a flat
+ * half cell, a transport of the largest tier was wide enough to reach across
+ * the gap. Nothing on a field is based with one today, which is the only
+ * reason it was never seen, and "no field ever bases a bus" is a coincidence
+ * rather than a property.
+ *
+ * <p><b>Rolling is not standing.</b> The exclusion is for an aircraft on its
+ * own berth, which is a target the raider chose to spend time on rather than
+ * to spend it on the one already burning. A craft caught taxiing, holding
+ * short or partway down a roll is on open ground next to a fire and takes it
+ * like anything else out there — the same reason the crossing is dangerous at
+ * all.
  */
 public final class AirframeCookOffSystem {
 
     /**
      * Blast radius in cells — the stand, its apron, and no further.
      *
-     * <p>Deliberately short of the spacing between hardstands. See the class
-     * note on why this does not chain.
+     * <p>Short of the spacing between hardstands, so nobody standing at the
+     * next berth is in it. What the aircraft over there is spared by is the
+     * exclusion, not this number; see the class note.
      */
-    private static final float BLAST_RADIUS_CELLS = 4f;
+    public static final float BLAST_RADIUS_CELLS = 4f;
 
     /**
      * Damage to everything in the blast, before cover and armor.
@@ -131,7 +150,30 @@ public final class AirframeCookOffSystem {
                 // Friendly fire on. A fire does not check anybody's colours,
                 // and the ground crew walking out to the aircraft is exactly
                 // who is standing close enough to find that out.
-                /*friendlyFireImmune*/ false));
+                /*friendlyFireImmune*/ false,
+                /*directTargetId*/ 0L, /*directDamage*/ 0f, /*directPenetration*/ 0f,
+                /*authoredAftermath*/ false,
+                airframesOnTheirBerths()));
+    }
+
+    /**
+     * Every aircraft currently standing on a berth, which is the set this fire
+     * refuses to touch.
+     *
+     * <p>Read off the unit type rather than off the field's berth list: an
+     * airframe is a {@code BASED_AIRCRAFT} unit exactly while it is standing on
+     * one, and asking the type keeps the fire from having to know which field
+     * it is burning on. The dying airframe is in here too and is welcome to be
+     * — it is already dead.
+     */
+    private long[] airframesOnTheirBerths() {
+        LongArrayList berthed = new LongArrayList();
+        long[] dense = roster.denseArray();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            long id = dense[i];
+            if (roster.identity().type(id).isBasedAircraft()) berthed.add(id);
+        }
+        return berthed.toLongArray();
     }
 
     /** Whether {@code airframe} has already gone up. The double-fire guard's observable state. */

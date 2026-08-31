@@ -190,6 +190,67 @@ class AnApronIsWorkedByItsGroundCrewTest {
                 + " hands taken on is at any job");
     }
 
+    /**
+     * A crew on the apron works an aircraft's hull back up; the same field
+     * without them does not.
+     *
+     * <p>The end of the chain and the point of the whole thing. A turnaround
+     * used to be a countdown, so a field answered its next request on schedule
+     * whether or not anybody was working — an attacker who killed the ground
+     * crew denied it nothing at all. The control is half the test: leave the
+     * field unmanned for the same two minutes and the aircraft has to still be
+     * sitting there with the hull it came home with.
+     */
+    @Test
+    void aCrewOnTheApronWorksAnAircraftBackUp() {
+        assertTrue(hullMended(true) > 0f,
+                "two minutes of a manned apron put no hull back on anything");
+        assertEquals(0f, hullMended(false), 0.5f,
+                "an apron with nobody on it turned an aircraft round by itself");
+    }
+
+    /**
+     * How much hull a field puts back on one shot-up aircraft in two minutes.
+     *
+     * <p>One stand rather than a rank of them, because the question is whether
+     * the work reaches the aircraft at all. A field with six stands and three
+     * hands turns one round more slowly, which is its shape rather than a
+     * separate fact.
+     */
+    private static float hullMended(boolean manned) {
+        NavigationGrid grid = openField();
+        CellTopology topology = new CellTopology(W, H);
+        for (int x = 4; x < W - 4; x++) {
+            for (int y = 4; y < H - 4; y++) {
+                topology.setRoomPurpose(x, y, RoomPurpose.HANGAR);
+            }
+        }
+        BattleSimulation sim = new BattleSimulation(grid, topology);
+        sim.setMissionCompletionEnabled(false);
+        AirfieldService field = sim.getAirfieldService();
+        AirfieldService.Berth berth = stand(field, 20, 15);
+
+        List<FixtureTask> apron = AirfieldWork.onTheApron(field, grid);
+        field.installApronWork(apron);
+        if (manned) {
+            StructureWatch.man(sim, Faction.DEFENDER,
+                    RoomSite.findAll(topology, W, H), apron,
+                    AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), 2);
+        }
+
+        // Out and home shot up, which is what puts it on the turnaround.
+        sim.advance(BattleSimulation.TICK_DT);
+        field.launch(berth);
+        sim.advance(BattleSimulation.TICK_DT);
+        float damaged = ShuttleType.AEROSHUTTLE.maxHp * 0.2f;
+        field.recover(berth, damaged);
+
+        for (int tick = 0; tick < 30 * 120; tick++) sim.advance(BattleSimulation.TICK_DT);
+
+        assertTrue(berth.airframeId != 0L, "the aircraft never came back onto its stand");
+        return sim.world().hp(berth.airframeId) - damaged;
+    }
+
     private static AirfieldService.Berth stand(AirfieldService field, int x, int y) {
         return field.addBerth(LandingPad.garrison(x, y, LandingPad.Approach.SOUTH),
                 ShuttleType.AEROSHUTTLE, 0f);
