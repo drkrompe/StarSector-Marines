@@ -7,8 +7,10 @@ mechanical authority yet.
 
 The first draft established the accepted material language but was rejected as
 geometry: its circular emitter read as firing upward out of the battlefield and
-its long body read as an arm cannon. The following prompt sequence produced the
-retained compact, north-firing source.
+its long body read as an arm cannon. A compact revision removed the visible bore,
+but its broad glowing top channel still read as a vertical emitter or reactor.
+The final retained source uses an edge-on muzzle and long in-plane focusing
+rails so the firing direction survives the top-down camera.
 
 ## Initial generation
 
@@ -67,7 +69,32 @@ shoulder canvas would yield an approximately `64x112` module beside the current
 >
 > Avoid: changing the emitter or upper body, adding new components, missile cells, rockets, perspective, isometric view, side view, multiple objects, scenery, checkerboard background, cropping.
 
-ImageGen returned a baked light checker. The retained source was normalized to
-real alpha with `clean_imagegen_backgrounds.py`; no generated background enters
-a future runtime layer.
+## In-plane laser-cannon redesign
 
+The compact pod was rejected because the broad cyan channel still behaved like
+a glowing top surface. The retained redesign used the old source as its material
+reference, the shipped linear cannon only as a perspective reference, and the
+LRM pod only as a rear-footprint reference. The muzzle is deliberately reduced
+to a thin cyan line at the north edge: the camera sees no bore because the bore
+faces away along the battlefield plane.
+
+> Use case: precise-object-edit
+>
+> Asset type: production-source concept for a modular top-down tactical-game weapon sprite
+>
+> Input images: Image 1 is the edit target and supplies the accepted olive armor, gunmetal mechanisms, cyan optics, amber lamps, fine wear/noise, and object lighting. Image 2 is perspective and visual-scale reference only: its barrels lie flat in the battlefield plane and point north; do not copy its six-barrel geometry. Image 3 is footprint and mounting reference only; do not copy missile cells or rockets.
+>
+> Primary request: substantially redesign Image 1 so it reads immediately as a single shoulder-mounted laser cannon, not a reactor, shield generator, engine, or vertical emitter. The forward 55–60% is an unmistakable cannon barrel: two parallel dark-gunmetal focusing spars running north-south and flanking a narrow recessed optical beam guide. The rear 40–45% is a compact armored capacitor housing and broad shoulder mounting plate that can tuck beneath a mech chassis. Keep faction-paintable armor neutral olive-drab.
+>
+> Critical perspective: strict 90-degree zenith orthographic top-down view. The cannon fires horizontally toward the north/top edge, parallel to the battlefield plane. The muzzle faces away from the camera, so no circular bore, aperture face, dish, lens, or glowing front surface is visible. At the extreme northmost tip show only a very thin, almost edge-on horizontal cyan exit slit between the focusing spars. Keep the cyan beam guide narrow, recessed, and mostly dark rather than a broad luminous window.
+>
+> Composition/framing: exactly one isolated vertically oriented module, centered with generous genuinely transparent padding. Compact shoulder-weapon proportions, roughly 1.6–1.8 times as long as wide, with a strong north-south firing axis. The rear mounting cover is broader than the forward barrel, but the silhouette remains clearly a cannon rather than a box.
+>
+> Constraints: preserve Image 1's crisp painted sprite style and material language; genuinely transparent background; clean alpha; no external cast shadow or glow halo; one object only; readable at small gameplay scale; no text, insignia, logo, watermark, scenery, or checkerboard.
+>
+> Avoid: any circular or oval muzzle visible to camera, face-up aperture, upward-pointing barrel, vertical emitter, glowing dish, broad cyan window, reactor-core silhouette, engine pod, missile cells, rockets, six-barrel cluster, rifle stock, hand grips, arm cannon, turret base, mech body, vehicle, perspective, three-quarter, isometric, side view, multiple objects, or cropping.
+
+ImageGen returned a baked light checker in both accepted concept generations.
+The retained source was normalized to real alpha with
+`clean_imagegen_backgrounds.py`; no generated background enters a future runtime
+layer.
