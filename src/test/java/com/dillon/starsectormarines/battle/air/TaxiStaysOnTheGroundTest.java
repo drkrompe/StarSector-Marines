@@ -55,7 +55,7 @@ class TaxiStaysOnTheGroundTest {
                     50.5f, 30.5f, SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f);
             ShuttleMission mission = sim.world().mission(craft);
             mission.homeBerth = shed;
-            mission.hp = airfield.launch(shed);
+            sim.world().setHp(craft, airfield.launch(shed));
             mission.departFromRunway(STRIP, SHELTER_X, SHELTER_Y, 50.5f, 30.5f);
             sim.world().kinematics(craft).teleport(SHELTER_X, SHELTER_Y, 0f);
 
@@ -87,7 +87,7 @@ class TaxiStaysOnTheGroundTest {
                     50.5f, 30.5f, SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f);
             ShuttleMission mission = sim.world().mission(craft);
             mission.homeBerth = shed;
-            mission.hp = airfield.launch(shed);
+            sim.world().setHp(craft, airfield.launch(shed));
             mission.departFromRunway(STRIP, SHELTER_X, SHELTER_Y, 50.5f, 30.5f);
             sim.world().kinematics(craft).teleport(SHELTER_X, SHELTER_Y, 0f);
 

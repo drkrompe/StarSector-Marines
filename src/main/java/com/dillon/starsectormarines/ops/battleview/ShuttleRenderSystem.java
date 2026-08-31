@@ -116,7 +116,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // was a parked grid unit, so the whole airborne part of its life,
             // which is the part somebody is shooting at, showed nothing.
             emitDurability(out, cx, cy, pxH, pxW, alphaMult,
-                    world.airFaction(id), mission.hp, frame.maxHp());
+                    world.airFaction(id), world.hp(id), world.maxHp(id));
         }
     }
 

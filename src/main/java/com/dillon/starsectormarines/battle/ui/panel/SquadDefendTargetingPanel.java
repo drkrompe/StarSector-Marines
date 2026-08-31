@@ -14,7 +14,7 @@ import org.lwjgl.input.Keyboard;
 
 import java.util.List;
 
-/** Owns the world-click placement and preview for a selected squad's defend area. */
+/** Owns world-click placement for an infantry squad or Mech lance's defend area. */
 public final class SquadDefendTargetingPanel implements HudPanel {
 
     private final BattleUiContext ctx;
@@ -30,7 +30,7 @@ public final class SquadDefendTargetingPanel implements HudPanel {
         return targetingSquadId;
     }
 
-    /** Arms the selected squad, or cancels when the active command is clicked again. */
+    /** Arms the selected formation, or cancels when its command is clicked again. */
     public void toggle(int squadId) {
         if (squadId == Selection.NONE) return;
         if (targetingSquadId == squadId) {
@@ -38,7 +38,7 @@ public final class SquadDefendTargetingPanel implements HudPanel {
             return;
         }
         BattleSimulation sim = ctx.getSim();
-        if (validPlayerInfantry(sim, squadId)) targetingSquadId = squadId;
+        if (validPlayerDefendSquad(sim, squadId)) targetingSquadId = squadId;
     }
 
     public void cancel() {
@@ -51,7 +51,7 @@ public final class SquadDefendTargetingPanel implements HudPanel {
     public void update(float dt) {
         if (targetingSquadId == Selection.NONE) return;
         if (ctx.getSelection().getSelectedSquadId() != targetingSquadId
-                || !validPlayerInfantry(ctx.getSim(), targetingSquadId)) {
+                || !validPlayerDefendSquad(ctx.getSim(), targetingSquadId)) {
             cancel();
         }
     }
@@ -60,7 +60,7 @@ public final class SquadDefendTargetingPanel implements HudPanel {
     public void render(float alphaMult) {
         BattleSimulation sim = ctx.getSim();
         BattleCamera camera = ctx.getCamera();
-        if (!validPlayerInfantry(sim, targetingSquadId) || camera == null
+        if (!validPlayerDefendSquad(sim, targetingSquadId) || camera == null
                 || !camera.containsScreen(mouseX, mouseY)) return;
         int cellX = (int) Math.floor(camera.screenToCellX(mouseX));
         int cellY = (int) Math.floor(camera.screenToCellY(mouseY));
@@ -106,12 +106,23 @@ public final class SquadDefendTargetingPanel implements HudPanel {
         }
     }
 
-    private static boolean validPlayerInfantry(BattleSimulation sim, int squadId) {
+    private static boolean validPlayerDefendSquad(BattleSimulation sim, int squadId) {
         if (sim == null || squadId == Selection.NONE) return false;
         Squad squad = sim.getSquad(squadId);
-        return squad != null && squad.aliveMembers > 0
-                && squad.faction == Faction.MARINE
-                && !squad.isMechSquad() && !squad.isDroneSquad()
-                && !squad.rescuePickupGuard && !squad.rescueShelterGuard;
+        if (squad == null || squad.aliveMembers <= 0
+                || squad.faction != Faction.MARINE || squad.isDroneSquad()
+                || squad.rescuePickupGuard || squad.rescueShelterGuard
+                || squad.rescuePickupMech) return false;
+        long member = sim.resolveUnit(squad.leaderId);
+        if (member == 0L) {
+            for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+                member = sim.resolveUnit(sim.squadMemberAt(squad.id, i));
+                if (member != 0L) break;
+            }
+        }
+        if (member == 0L || !sim.identity().has(member)) return false;
+        var type = sim.identity().type(member);
+        return type.usesInfantryTraining()
+                || (squad.isMechSquad() && type.isMech());
     }
 }

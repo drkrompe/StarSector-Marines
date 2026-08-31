@@ -190,6 +190,25 @@ public class Detonations {
                 if (!grid.hasLineOfSight(targetCx, targetCy, ucx, ucy)) continue;
                 aoeScratch.add(vehicleId);
             }
+            // An aircraft on its wheels is caught by a blast the same way, and
+            // for the same reason it is not in the roster either: it is a body
+            // in the world rather than a row in a dense list. One in the air is
+            // out of reach of a ground detonation and stays out of this sweep.
+            roster.airTargets().forEachTargetable(craftId -> {
+                if (det.excludesAreaTarget(craftId)) return;
+                if (det.friendlyFireImmune
+                        && roster.airTargets().faction(craftId) == det.shooterFaction) return;
+                float ux = world.x(craftId);
+                float uy = world.y(craftId);
+                float dx = ux - det.endpointX;
+                float dy = uy - det.endpointY;
+                float hitR = det.aoeRadius + roster.radius(craftId);
+                if (dx * dx + dy * dy > hitR * hitR) return;
+                int ucx = (int) Math.floor(ux);
+                int ucy = (int) Math.floor(uy);
+                if (!grid.hasLineOfSight(targetCx, targetCy, ucx, ucy)) return;
+                aoeScratch.add(craftId);
+            });
             for (int i = 0, n = aoeScratch.size(); i < n; i++) {
                 damageService.applyDamage(aoeScratch.getLong(i), det.shooterId, det.damage, det.penetration, 1f);
             }
