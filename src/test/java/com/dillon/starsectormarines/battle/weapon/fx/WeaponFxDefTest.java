@@ -112,6 +112,9 @@ class WeaponFxDefTest {
         assertKinds(registry.get("weapon.mech-heavy-cannon").fx,
                 FxLayerKind.GLOW, FxLayerKind.EXPLOSION, FxLayerKind.RING,
                 FxLayerKind.FIRE, FxLayerKind.SMOKE, FxLayerKind.DUST);
+        assertKinds(registry.get("weapon.mech-shoulder-laser").fx,
+                FxLayerKind.GLOW, FxLayerKind.EXPLOSION, FxLayerKind.RING,
+                FxLayerKind.SMOKE, FxLayerKind.DUST);
 
         FxLayerDef rifleGlow = registry.get("weapon.field-rifle").fx
                 .layers(FxSlot.IMPACT).get(0);
