@@ -34,6 +34,8 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 
 import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.air.AirfieldWork;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
@@ -97,6 +99,7 @@ import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
+import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -1524,6 +1527,7 @@ public final class BattleSetup {
             rs.addTrigger(new ObjectiveLostTrigger());
         }
         basedAircraft(sim, map, groundRoster == null ? null : groundRoster.primaryFactionId());
+        installAirfieldCrew(sim, map);
         installVehicleBays(sim, map);
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
                 deliveryPolicy));
@@ -1577,6 +1581,48 @@ public final class BattleSetup {
      * great deal of work waiting on them.
      */
     private static final int BAY_WATCH = 3;
+
+    /**
+     * How many technicians stand a watch on one airfield.
+     *
+     * <p>A ground crew, not the apron's capacity. Six berths worked from both
+     * flanks is a dozen places to stand, and filling them would put a platoon of
+     * unarmed engineers on a field a garrison holds with a handful of riflemen.
+     * What a field has is a few people and more aircraft than they can be at
+     * once.
+     */
+    private static final int APRON_WATCH = 3;
+
+    /**
+     * Stand a ground crew on the airfield's apron.
+     *
+     * <p>The same trade that works a motor pool, because it is the same work: a
+     * machine standing in a berth with somebody servicing it. What the field
+     * offers is that servicing, at both flanks of every stand, and the board
+     * ahead of each nose that its state is read off — a rotation of two jobs
+     * across every aircraft on the field.
+     *
+     * <p>Installed after the berths, and it has to be. The work names which
+     * berth it services by index, so there is nothing to publish until the
+     * berths exist; and a berth's servicing is work only while something is
+     * standing on it, which is a question only the field can answer.
+     *
+     * <p>The crew is the defender's. A garrison's field is worked by the
+     * garrison, so its technicians are on the roster, can be shot on the apron,
+     * and stop working when they are.
+     */
+    private static void installAirfieldCrew(BattleSimulation sim, MapResult map) {
+        AirfieldService field = sim.getAirfieldService();
+        if (field.berths().isEmpty()) return;
+
+        List<FixtureTask> apron = AirfieldWork.onTheApron(field, map.grid);
+        if (apron.isEmpty()) return;
+
+        List<RoomSite> rooms = RoomSite.findAll(map.topology,
+                map.grid.getWidth(), map.grid.getHeight());
+        StructureWatch.man(sim, Faction.DEFENDER, rooms, apron,
+                AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), APRON_WATCH);
+    }
 
     /**
      * Open the works in every vehicle bay the map has, and stand a crew in it.
