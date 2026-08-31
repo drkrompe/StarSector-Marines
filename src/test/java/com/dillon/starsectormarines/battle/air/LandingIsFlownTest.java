@@ -156,7 +156,7 @@ class LandingIsFlownTest {
             mission.usesRunway = true;
             mission.shelterX = SHELTER_X;
             mission.shelterY = SHELTER_Y;
-            mission.hp = airfield.launch(shed);
+            sim.world().setHp(craft, airfield.launch(shed));
             sim.world().kinematics(craft).teleport(52.5f, 32.5f, 0f);
             mission.state = ShuttleState.LANDED;
             mission.marinesRemaining = 0;

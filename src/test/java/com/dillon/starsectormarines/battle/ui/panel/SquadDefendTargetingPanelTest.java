@@ -44,6 +44,25 @@ class SquadDefendTargetingPanelTest {
         assertEquals(Selection.NONE, panel.targetingSquadId());
     }
 
+    @Test
+    void selectedMechArmsOneAreaForItsWholeLance() {
+        Fixture fixture = fixture(UnitType.HEAVY_MECH);
+        SquadDefendTargetingPanel panel = new SquadDefendTargetingPanel(fixture);
+        panel.toggle(fixture.squad.id);
+
+        int screenX = Math.round(fixture.camera.cellToScreenX(36.5f));
+        int screenY = Math.round(fixture.camera.cellToScreenY(18.5f));
+        panel.handleInput(List.of(leftClick(screenX, screenY)));
+        fixture.sim.getSquadMoveOrderSystem().tick(fixture.sim);
+
+        ActiveDefendAreaOrder order = assertInstanceOf(ActiveDefendAreaOrder.class,
+                fixture.sim.getSquadMoveOrderService().activeOrder(fixture.squad.id));
+        assertEquals(36, order.destinationX());
+        assertEquals(18, order.destinationY());
+        assertEquals(20, order.radiusCells());
+        assertEquals(Selection.NONE, panel.targetingSquadId());
+    }
+
     private static InputEventAPI leftClick(int x, int y) {
         boolean[] consumed = {false};
         return (InputEventAPI) Proxy.newProxyInstance(
@@ -76,6 +95,10 @@ class SquadDefendTargetingPanelTest {
     }
 
     private static Fixture fixture() {
+        return fixture(UnitType.MARINE);
+    }
+
+    private static Fixture fixture(UnitType type) {
         int width = 64;
         int height = 48;
         NavigationGrid grid = new NavigationGrid(width, height);
@@ -84,16 +107,20 @@ class SquadDefendTargetingPanelTest {
         }
         BattleSimulation sim = new BattleSimulation(
                 grid, new CellTopology(width, height));
-        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        int squadId = sim.mintSquad(Faction.MARINE, type);
         Squad squad = sim.getSquad(squadId);
-        long member = sim.spawn(new EntitySpec("marine", Faction.MARINE,
-                UnitType.MARINE, 5, 20).squad(squadId).primaryWeapon(
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID)));
+        EntitySpec spec = new EntitySpec(type.isMech() ? "mech" : "marine",
+                Faction.MARINE, type, 5, 20).squad(squadId);
+        if (type.usesInfantryTraining()) {
+            spec.primaryWeapon(WeaponRegistry.require(
+                    WeaponRegistry.SQUAD_AUTOMATIC_ID));
+        }
+        long member = sim.spawn(spec);
         squad.leaderId = member;
         squad.aliveMembers = 1;
         squad.originalSize = 1;
         Selection selection = new Selection();
-        selection.selectSquad(squadId);
+        selection.selectUnit(squadId, member);
         BattleCamera camera = new BattleCamera(width, height);
         camera.setViewport(0f, 0f, 640f, 480f, 10f);
         return new Fixture(sim, squad, selection, camera);

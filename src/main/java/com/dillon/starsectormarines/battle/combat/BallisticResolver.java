@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -192,6 +193,7 @@ public final class BallisticResolver {
     private final UnitSpatialIndex unitIndex;
     private final UnitRosterService roster;
     private final ConvoyService convoy;
+    private final AirTargetService air;
 
     public BallisticResolver(NavigationGrid grid, DoodadService doodads,
                               UnitSpatialIndex unitIndex, UnitRosterService roster) {
@@ -200,6 +202,7 @@ public final class BallisticResolver {
         this.unitIndex = unitIndex;
         this.roster = roster;
         this.convoy = roster.convoy();
+        this.air = roster.airTargets();
     }
 
     /**
@@ -288,6 +291,9 @@ public final class BallisticResolver {
         if (convoy.isVehicle(target)) {
             wTargetX = convoy.velocityX(target);
             wTargetY = convoy.velocityY(target);
+        } else if (air.isAircraft(target)) {
+            wTargetX = air.velocityX(target);
+            wTargetY = air.velocityY(target);
         } else if (movement.has(target)) {
             wTargetX = movement.velX(target);
             wTargetY = movement.velY(target);
@@ -406,7 +412,9 @@ public final class BallisticResolver {
             long candidateId = candidates.ids[i];
             if (candidateId == source.entityId()) continue;
             boolean vehicle = convoy.isVehicle(candidateId);
+            boolean aircraft = !vehicle && air.isAircraft(candidateId);
             if (vehicle ? !convoy.isTargetable(candidateId)
+                    : aircraft ? !air.isTargetable(candidateId)
                     : !roster.isAliveById(candidateId)) continue;
 
             Faction candidateFaction = roster.identity().faction(candidateId);
@@ -437,6 +445,9 @@ public final class BallisticResolver {
             if (vehicle) {
                 wx = convoy.velocityX(candidateId);
                 wy = convoy.velocityY(candidateId);
+            } else if (aircraft) {
+                wx = air.velocityX(candidateId);
+                wy = air.velocityY(candidateId);
             } else if (movement.has(candidateId)) {
                 wx = movement.velX(candidateId);
                 wy = movement.velY(candidateId);
