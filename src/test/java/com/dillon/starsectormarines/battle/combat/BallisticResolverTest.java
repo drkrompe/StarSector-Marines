@@ -951,7 +951,8 @@ class BallisticResolverTest {
         // geometry simple.
         long farTarget = spawn(sim, Faction.DEFENDER, 20);
         // Incidental candidate at (7.5, 7.3): 1.8 cells off the ray at fire
-        // time — outside S1's flat GATHER_MARGIN_CELLS (1.0) plus radius, so
+        // time — outside the stationary base margin (largest body radius plus
+        // GATHER_SLACK_CELLS), so
         // S1's gather would never have surfaced it. Walking toward the row
         // (-y) at 1.5 c/s, it enters the ray's corridor mid-flight.
         long candidate = sim.spawn(new EntitySpec("candidate", Faction.DEFENDER, UnitType.MARINE, 7, 7));
