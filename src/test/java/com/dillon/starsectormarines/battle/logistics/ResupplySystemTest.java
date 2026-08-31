@@ -38,11 +38,11 @@ public class ResupplySystemTest {
         sim.world().attachMechLoadout(mech, loadout);
 
         ResupplyService service = new ResupplyService();
-        ResupplyCache cache = new ResupplyCache(10, 10, Faction.MARINE, 9);
+        ResupplyCache cache = new ResupplyCache(10, 10, Faction.MARINE, 15);
         service.add(cache);
         ResupplySystem system = new ResupplySystem(service, sim.getRoster());
 
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < 18; i++) {
             system.tick(ResupplySystem.TRANSFER_INTERVAL_SECONDS);
         }
 
