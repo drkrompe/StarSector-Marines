@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
@@ -147,12 +148,13 @@ public final class FortressWallStamper implements GenStage {
         markWard(compoundExclusion, ctx.get(BspKeys.FORTRESS_WARD), w, h);
         boolean[][] skip = mergeExclusions(ctx.get(BspKeys.ROAD_RESERVATION), compoundExclusion, w, h);
         boolean[][] wallMask = new boolean[w][h];
+        VehicleCorridor corridor = ctx.get(BspKeys.VEHICLE_CORRIDOR);
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
             stampSouthToNorth(grid, topology, bbox, keepCompound,
-                    wallMask, skip, ctx.tactical, w, h, rng);
+                    wallMask, skip, corridor, ctx.tactical, w, h, rng);
         } else {
             stampWestToEast(grid, topology, bbox, keepCompound,
-                    wallMask, skip, ctx.tactical, w, h, rng);
+                    wallMask, skip, corridor, ctx.tactical, w, h, rng);
         }
         demolishIntersectedBuildings(grid, topology, ctx.doodads, wallMask,
                 compoundExclusion, w, h);
@@ -275,6 +277,7 @@ public final class FortressWallStamper implements GenStage {
                                           int[] bbox, Compound keepCompound,
                                           boolean[][] wallMask,
                                           boolean[][] roadReservation,
+                                          VehicleCorridor corridor,
                                           List<TacticalNode> tactical,
                                           int w, int h, Random rng) {
         int fLeft   = bbox[0];
@@ -351,6 +354,11 @@ public final class FortressWallStamper implements GenStage {
         //    and MG cells. Spacing: at least MIN_GATE_SEPARATION between gates.
         int gateCount = GATE_COUNT_MIN + rng.nextInt(GATE_COUNT_MAX - GATE_COUNT_MIN + 1);
         List<Integer> gates = new ArrayList<>();
+        int[] roadGate = corridorSpan(corridor, wLeft, wRight, wBot, true);
+        if (roadGate != null) {
+            emitGate(tactical, roadGate[0], wBot, roadGate[1], true);
+            gates.add(roadGate[0]);
+        }
         int maxAttempts = gateCount * 40;
         int attempts = 0;
         while (gates.size() < gateCount && attempts < maxAttempts) {
@@ -420,6 +428,7 @@ public final class FortressWallStamper implements GenStage {
                                         int[] bbox, Compound keepCompound,
                                         boolean[][] wallMask,
                                         boolean[][] roadReservation,
+                                        VehicleCorridor corridor,
                                         List<TacticalNode> tactical,
                                         int w, int h, Random rng) {
         int fLeft   = bbox[0];   // attacker-facing edge of fortress biome (low x)
@@ -476,6 +485,11 @@ public final class FortressWallStamper implements GenStage {
 
         int gateCount = GATE_COUNT_MIN + rng.nextInt(GATE_COUNT_MAX - GATE_COUNT_MIN + 1);
         List<Integer> gates = new ArrayList<>();
+        int[] roadGate = corridorSpan(corridor, wBot, wTop, wLeft, false);
+        if (roadGate != null) {
+            emitGate(tactical, wLeft, roadGate[0], roadGate[1], false);
+            gates.add(roadGate[0]);
+        }
         int maxAttempts = gateCount * 40;
         int attempts = 0;
         while (gates.size() < gateCount && attempts < maxAttempts) {
@@ -557,6 +571,42 @@ public final class FortressWallStamper implements GenStage {
         tactical.add(new TacticalNode(TacticalNode.Kind.FORWARD_BUNKER,
                 cx, cy, cx - halfX, cy - halfY, cx + halfX, cy + halfY,
                 Faction.DEFENDER, 65, BUNKER_GARRISON_SIZE, standPositions));
+    }
+
+    /**
+     * The corridor's crossing of a wall line, as {@code {start, width}} along
+     * that line, or null when it does not cross.
+     *
+     * <p>This gate is <em>found</em>, not punched. {@code paintWall} skips
+     * reserved cells, so by the time the gate pass runs the wall already has a
+     * corridor-wide opening in it and the cells behind are untouched road. What
+     * was missing is that nobody knew it was a gate: no node meant no garrison
+     * on the one entrance a vehicle can use, while the rolled gates — placed by
+     * dice, on a wall the road happens to cross somewhere else — got three
+     * defenders each.
+     *
+     * <p>Emitting it <em>before</em> the roll also keeps the rolled gates off
+     * it, since {@link #MIN_GATE_SEPARATION} is measured against everything
+     * already in the list. A second gate opening into the same road would be
+     * two garrisons holding one crossing.
+     */
+    private static int[] corridorSpan(VehicleCorridor corridor, int lo, int hi,
+                                      int line, boolean horizontal) {
+        if (corridor == null) return null;
+        int start = -1;
+        int end = -1;
+        for (int i = lo; i <= hi; i++) {
+            boolean onCorridor = horizontal
+                    ? corridor.contains(i, line)
+                    : corridor.contains(line, i);
+            if (!onCorridor) {
+                if (start >= 0) break;
+                continue;
+            }
+            if (start < 0) start = i;
+            end = i;
+        }
+        return start < 0 ? null : new int[]{ start, end - start + 1 };
     }
 
     /**

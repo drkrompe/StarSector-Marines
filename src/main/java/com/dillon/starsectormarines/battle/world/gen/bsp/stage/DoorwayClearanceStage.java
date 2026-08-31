@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -116,9 +117,13 @@ public final class DoorwayClearanceStage implements GenStage {
      *
      * <p>Refused unless the threshold is a dead end, which is the whole of the
      * safety argument: walling a cell with one way out removes a stub, and
-     * walling one with two severs whatever they joined.
+     * walling one with two severs whatever they joined. Refused outright on a
+     * reserved road cell, which is owed to a consumer outside the generator.
      */
     private static void sealThreshold(GenContext ctx, int x, int y) {
+        boolean[][] roadReservation = ctx.get(BspKeys.ROAD_RESERVATION);
+        if (roadReservation != null && roadReservation[x][y]) return;
+
         int ways = 0;
         for (int[] step : new int[][]{ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) {
             if (ctx.grid.canTraverseCellStep(x, y, x + step[0], y + step[1])) ways++;

@@ -4,6 +4,11 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
+Updated: 2026-08-30 — added vehicle circulation: a corridor is a width
+contract rather than a centerline, reserved before packing where pedestrian
+circulation still is not, and validated by whether a hull fits rather than by
+whether cells connect.
+
 Updated: 2026-08-30 — an airbase lot now owns everything recorded about the
 ground it repaves, and a fortress ward refuses a lot over its keep; the lot also
 turns four ways, comes in three sizes that
@@ -227,6 +232,81 @@ their backs meet supporting walls, their working faces meet open room cells,
 and centerpieces are centered by their complete footprint. On the compact
 footprint, office facade windows yield to that required room capacity;
 reception and conference facades retain the building's firing apertures.
+
+## Vehicle circulation
+
+A **vehicle corridor** is the one road across a map a vehicle is guaranteed to
+be able to drive: a band of walkable cells running the full length of the
+traversal axis, from the defender's rear map edge, through the fortress, out
+into the city. It is authored before anything is built on it, and no later
+stamp may close a cell of it.
+
+Three road nouns are easy to confuse and mean different things. The **road
+graph** is a centerline skeleton — one cell thick — used to choose among
+places: where a convoy may enter, which junction is a plausible drop. The
+**road reservation** is the cell mask stampers consult before closing ground.
+The **corridor** is a *width contract*: not where the road is, but how much of
+it a hull can occupy. Only the third answers the question a ground
+reinforcement actually asks.
+
+That distinction is the defect the noun exists to name. Conquest shipped for
+a long time with the road preserved and unusable: the wall stamper honored the
+reservation perfectly, but the reservation was the graph's centerline, so the
+city's main street crossed the fortress wall as a single cell. Every check that
+asked whether a road was preserved said yes. Measured over forty maps, infantry
+walked through all of them and a vehicle could get from the rear edge into the
+city on twelve.
+
+**Vehicle circulation is reserved before packing; pedestrian circulation is
+still cut from what packing leaves.** This deliberately inverts the deck
+family's law — `ship-interiors-nouns.md` 11, rooms are packed and circulation
+is cut from the leftovers — for vehicles only, and the scope is the point. Two
+things separate a vehicle route from a deck corridor. It has an **external
+contract**: a convoy enters off-map at a known edge point and has to reach the
+city, so the route is owed to a consumer outside the generator rather than
+discovered inside it. And its **minimum width is a large enough fraction of the
+place** that it cannot be found in leftovers — a one-cell walking lane can be,
+five cells cannot. Reserving one spine is not partitioning, which is what the
+deck law forbids: the fortress ward still packs its buildings into what remains
+and still cuts its own foot traffic from the yard.
+
+**The corridor is not a new road.** The trunk skeleton already lays an arterial
+along each axis before the partition runs, and the one parallel to the traversal
+axis already spans the map edge to edge — which is why every generated map
+publishes exactly one road-graph exit on the defender's rear edge. The
+guaranteed rear entry has always been there structurally. What was missing is
+that nothing downstream was obliged to leave it drivable. So the corridor picks
+that trunk out and states its band as a fact the rest of the pipeline must
+honor, rather than letting each later stamper rediscover the road from a mask
+that does not describe its width.
+
+**A place that must be reached is told which road it keeps, not left to work it
+out.** The fortress ward used to derive its through route — shortest path over
+whatever crossed its band, dilated a cell — and that yielded a lane two cells
+wide whenever the path hugged the edge of the street carrying it, because the
+dilation could only keep cells the old road mask already held. The ward then
+demolished the rest, so the stage preserving the road was the stage narrowing
+it. A derived route inherits its width from geometry; an authored one states it.
+
+**Width is stated in what a hull needs, not in cells.** Five walkable cells
+because the fielded vehicle erodes to a radius-1 footprint and therefore needs a
+clear three-by-three: three is the arithmetic minimum and leaves exactly one
+drivable line, which one wreck closes and any stamp that clips one cell severs.
+Five leaves three, and matches the secondary trunk's own width so the fortress
+road reads continuous with the street it joins rather than pinching at the gate.
+
+**A gate on the corridor is found, not punched.** Because the wall stamper skips
+reserved cells, the wall already has a corridor-wide opening where the road
+crosses it. What that opening needs is not carving but *identity*: without a
+gate node nobody garrisons the one entrance a vehicle can use, while gates
+placed by dice elsewhere along the same wall each get their defenders.
+
+**Validation asks whether a hull fits, not whether cells connect.** Walkable and
+drivable are the two things this layer exists to stop conflating, so the
+standing check measures with the vehicle's own footprint erosion and asserts the
+narrowest drivable width across the fortress — not merely that a path exists.
+It runs on both traversal axes, because the original defect was four times worse
+on one of them and a single-axis check would have hidden it.
 
 ## City, station, and ship families
 

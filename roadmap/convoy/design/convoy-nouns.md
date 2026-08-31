@@ -4,6 +4,9 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 
 Written: 2026-08-23
 
+Updated: 2026-08-30 — map generation now guarantees a drivable corridor from
+the defender's rear edge to the city, so the strict rear entry admits a hull.
+
 Updated: 2026-08-30 — a wreck writes nothing to the navigation or sight map,
 a live vehicle wears the shared durability gauge, and a carrier that has
 unloaded departs rather than holding armed overwatch on its drop point.
@@ -38,6 +41,17 @@ the convoy accepts only the strict defender rear edge and a drop junction behind
 that band. The policy is frozen once a route commits rather than retargeting a
 vehicle already in motion. The road graph still supplies this map-aware
 selection vocabulary; it does not constrain the route between selected points.
+
+What the map owes a convoy is width, and it is now stated rather than hoped
+for. Map generation reserves a **vehicle corridor** — a drivable band from the
+defender's rear map edge, through the fortress, out to the city — before
+anything is built on it, so the guaranteed rear entry a Conquest dispatch
+insists on is guaranteed to admit a hull rather than merely to exist. Before
+that contract a convoy could get from the rear edge into the city on twelve of
+forty generated maps: the road was there and was narrower than the vehicle
+wherever the fortress had touched it. See the vehicle-circulation section of
+`mapgen-nouns.md`; the corridor is a width contract, where the road graph is a
+centerline for choosing among places.
 
 A convoy mission moves through a single lifecycle:
 

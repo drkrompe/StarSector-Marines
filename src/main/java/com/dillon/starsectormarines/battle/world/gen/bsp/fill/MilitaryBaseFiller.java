@@ -148,7 +148,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
         stampCommandRadar(compound, inCompound, memberCells, roadReservation,
                 grid, topology, doodads);
         furnishRoleAprons(compound, roadReservation, grid, topology, doodads, rng);
-        stampGunEmplacements(compound, inCompound, grid, topology, pois);
+        stampGunEmplacements(compound, inCompound, roadReservation, grid, topology, pois);
         CompoundWallApertures.stamp(inCompound, grid, topology);
         emitTacticalNodes(compound, leafPois, tactical);
     }
@@ -676,6 +676,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      * non-walkable wall so units can't path through it.
      */
     private void stampGunEmplacements(Compound compound, boolean[][] inCompound,
+                                      boolean[][] roadReservation,
                                       NavigationGrid grid, CellTopology topology,
                                       List<PointOfInterest> pois) {
         int w = inCompound.length;
@@ -695,6 +696,9 @@ public final class MilitaryBaseFiller implements CompoundFiller {
             if (x == 0 || x == w - 1 || y == 0 || y == h - 1) continue;
             if (inCompound[x][y]) continue;
             if (!touchesCompound(inCompound, x, y, w, h)) continue;
+            // Reserved road, likewise — a corner emplacement is dressing, and
+            // the road it would stand in is the convoy's only way through.
+            if (roadReservation[x][y]) continue;
             grid.setWalkable(x, y, false);
             grid.setWallHp(x, y, WALL_HP_FORTIFIED);
             topology.setGroundKind(x, y, EMPLACEMENT_GROUND);

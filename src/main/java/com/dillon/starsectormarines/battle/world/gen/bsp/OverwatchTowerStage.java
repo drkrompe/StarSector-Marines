@@ -116,6 +116,7 @@ public final class OverwatchTowerStage implements GenStage {
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         TraversalAxis axis = ctx.get(BspKeys.AXIS);
+        boolean[][] roadReservation = ctx.get(BspKeys.ROAD_RESERVATION);
 
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
         if (profile == null) profile = TargetProfile.NEUTRAL;
@@ -148,6 +149,12 @@ public final class OverwatchTowerStage implements GenStage {
             // Turning this single cell non-walkable must not sever the walkable
             // graph (a tower mounted in a 1-wide gap would wall it off).
             if (PlacementGuards.wouldPartitionWalkable(grid, new int[][]{{x, y}})) continue;
+            // That guard cannot see a road's width: taking one cell out of the
+            // 5-wide vehicle corridor leaves the walkable graph connected, so
+            // it passes while the drivable width drops below what a vehicle
+            // fits through. This stage runs near the end of the recipe, past
+            // every other validation, so nothing downstream catches it either.
+            if (roadReservation != null && roadReservation[x][y]) continue;
 
             stampTowerMount(grid, topology, x, y);
             List<DefensePost.TurretSpec> turrets = new ArrayList<>(1);
