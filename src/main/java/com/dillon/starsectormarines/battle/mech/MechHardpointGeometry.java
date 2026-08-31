@@ -48,6 +48,8 @@ public final class MechHardpointGeometry {
                     alternatingX(0.37f, releaseIndex), 0.51f);
             case LayeredMechAppearance.ARMS_NOSE_CHAINGUN -> new LocalPoint(0f, 0.52f);
             case LayeredMechAppearance.ARMS_HEAVY_CANNON -> new LocalPoint(0f, 0.57f);
+            case LayeredMechAppearance.ARMS_PULSE_LASER -> new LocalPoint(
+                    alternatingX(0.37f, releaseIndex), 0.39f);
             default -> new LocalPoint(0f, 0f);
         };
     }

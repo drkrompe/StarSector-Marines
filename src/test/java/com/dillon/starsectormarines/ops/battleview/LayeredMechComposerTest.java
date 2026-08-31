@@ -134,6 +134,35 @@ class LayeredMechComposerTest {
     }
 
     @Test
+    void dualPulseLasersReuseThePairedArmMountsAndMuzzles() {
+        LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
+        List<Layer> layers = new ArrayList<>();
+        MechVariant variant = MechVariant.BULWARK;
+
+        LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
+                        layers.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
+                assets, 400f, 300f, 208f,
+                0f, 0f, 0f, 0f, 0f, 0f,
+                LayeredMechAppearance.FLAG_CHAINGUN_FLASH,
+                variant.chassisAppearance, LayeredMechAppearance.ARMS_PULSE_LASER,
+                variant.leftShoulder.appearanceSelector,
+                variant.rightShoulder.appearanceSelector, 1f);
+
+        List<Layer> pulseArms = layers.stream()
+                .filter(layer -> fileName(layer.path()).equals("pulse-laser-arm.png"))
+                .toList();
+        List<Layer> flashes = layers.stream()
+                .filter(layer -> fileName(layer.path()).equals("marine-muzzle-flash.png"))
+                .toList();
+        assertEquals(2, pulseArms.size());
+        assertEquals(2, flashes.size());
+        assertEquals(31f, pulseArms.get(0).width(), 0.001f);
+        assertEquals(400f - 0.37f * 208f, flashes.get(0).x(), 0.001f);
+        assertEquals(400f + 0.37f * 208f, flashes.get(1).x(), 0.001f);
+        assertEquals(300f + 0.39f * 208f, flashes.get(0).y(), 0.001f);
+    }
+
+    @Test
     void missileFlashPreservesWeaponFamilyLayerTreatment() {
         LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
         MechVariant variant = MechVariant.SIROCCO;
