@@ -32,8 +32,13 @@ public final class AirAppearance {
      *
      * <p>The altitude cue is this <em>ratio</em>, not either scale by itself, so
      * it is the thing held fixed when the ground scale changes.
+     *
+     * <p>1.2 rather than the original 1.5: a climb is meant to read as "a
+     * little bigger up high", and 1.5 read as a near-50% pop — far more than
+     * subtle, and larger than the pop the ground/air handoff fix just
+     * eliminated at the other end of a flight.
      */
-    public static final float ALTITUDE_SCALE_GAIN = 1.5f;
+    public static final float ALTITUDE_SCALE_GAIN = 1.2f;
 
     /** Visual scale of a craft at cruising altitude (sells "I am up high"). */
     public static final float CRUISE_SCALE = GROUND_SCALE * ALTITUDE_SCALE_GAIN;
