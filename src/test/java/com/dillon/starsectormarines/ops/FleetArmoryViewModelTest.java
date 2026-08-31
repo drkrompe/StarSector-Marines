@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -83,6 +84,10 @@ class FleetArmoryViewModelTest {
         assertEquals("A II", firstMarine.armorBadge());
         assertTrue(firstMarine.primaryDescription().length() > 80);
         assertTrue(firstMarine.armorDescription().length() > 80);
+        assertNotNull(firstMarine.primaryFactionLogo());
+        assertFalse(firstMarine.primaryFactionLogoClasses().contains("faction-logo-hidden"));
+        assertEquals(firstMarine.armorFactionLogo(),
+                firstMarine.systemFactionLogo());
         assertTrue(viewModel.feedbackText().get().startsWith(
                 "Hover equipment names for field notes."));
         FleetArmoryViewModel.DoctrineTile assignedLoadout =
@@ -187,6 +192,14 @@ class FleetArmoryViewModelTest {
             assertTrue(factionLogo.box().borderBox().height() >= 24f);
             UiElement marineCard = instance.requireElement("marine-card:0");
             UiElement marineCanvas = instance.requireElement("marine-preview:0");
+            FleetArmoryViewModel.MarineViewerCard marine =
+                    viewModel.marineCards().get().get(0);
+            assertEquals(marine.primaryFactionLogo(),
+                    instance.requireElement(marine.primaryFactionLogoId()).imageSource());
+            assertEquals(marine.armorFactionLogo(),
+                    instance.requireElement(marine.armorFactionLogoId()).imageSource());
+            assertEquals(marine.primaryFactionLogo(),
+                    instance.requireElement(marine.primaryTooltipFactionLogoId()).imageSource());
             UiElement first = list.childAt(0);
             UiElement second = list.childAt(1);
             FleetArmoryViewModel.DoctrineTile alternative =
@@ -250,13 +263,16 @@ class FleetArmoryViewModelTest {
             document.layout(1744f, 938f);
 
             UiElement card = instance.requireElement(marine.id());
-            UiElement target = instance.requireElement(marine.primaryId());
-            UiElement popup = instance.requireElement(marine.primaryDescriptionId());
+            UiElement target = instance.requireElement(marine.systemId());
+            UiElement popup = instance.requireElement(marine.systemDescriptionId());
             UiElement stats = instance.requireElement(marine.weaponStatsId());
             assertEquals(UiLayout.STACK, card.layout());
             assertSame(card, popup.parent());
-            assertTrue(popup.text().startsWith(marine.primary()));
-            assertTrue(popup.text().contains(marine.primaryDescription()));
+            assertTrue(popup.childAt(1).text().startsWith(marine.system()));
+            assertTrue(popup.childAt(1).text().contains(marine.systemDescription()));
+            assertEquals(marine.systemFactionLogo(),
+                    instance.requireElement(marine.systemTooltipFactionLogoId()).imageSource());
+            assertEquals(Overflow.SCROLL, popup.overflow());
             assertTrue(popup.hasClass("tooltip-hidden"));
             assertTrue(stats.box().borderBox().width() > 250f);
 
@@ -265,7 +281,7 @@ class FleetArmoryViewModelTest {
             document.advance(0f);
 
             assertFalse(popup.hasClass("tooltip-hidden"));
-            assertTrue(popup.box().borderBox().width() >= 350f);
+            assertTrue(popup.box().borderBox().width() >= 370f);
             assertTrue(popup.box().borderBox().height() >= 130f);
             assertTrue(popup.box().borderBox().right()
                     <= card.box().contentBox().right() + 0.01f);
@@ -273,6 +289,14 @@ class FleetArmoryViewModelTest {
                     <= card.box().contentBox().bottom() + 0.01f);
             assertTrue(stats.box().borderBox().width() > 250f,
                     "opening lore must not resize the comparison meters");
+            assertTrue(popup.box().maxScrollTop() > 0f,
+                    "long integral-system lore should be reachable by scrolling: scrollHeight="
+                            + popup.box().scrollHeight() + ", contentHeight="
+                            + popup.box().contentBox().height() + ", copyHeight="
+                            + popup.childAt(1).box().borderBox().height());
+            assertTrue(document.pointerScrolled(centerX(popup), centerY(popup), 40f));
+            document.advance(0f);
+            assertTrue(popup.scrollTop() > 0f);
 
             document.pointerMoved(
                     card.box().contentBox().x() + 8f,

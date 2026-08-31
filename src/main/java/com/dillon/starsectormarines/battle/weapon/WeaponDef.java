@@ -43,6 +43,8 @@ public final class WeaponDef {
     public final String catalogRole;
     /** In-universe catalog copy authored in data for inspection surfaces. */
     public final String catalogDescription;
+    /** Representative vanilla faction-definition logo for marine-primary provenance. */
+    public final String catalogFactionLogo;
 
     // ---- sim ----
     public final float range;
@@ -132,7 +134,7 @@ public final class WeaponDef {
 
     private WeaponDef(String id, MountClass mount, String displayName, String modelName,
                       String designation, boolean designationTiered,
-                      String catalogRole, String catalogDescription,
+                      String catalogRole, String catalogDescription, String catalogFactionLogo,
                       float range, float damage, float accuracy, float cooldown,
                       float penetration, float contactDamage, float contactPenetration,
                       int bodyPenetrations,
@@ -160,6 +162,7 @@ public final class WeaponDef {
         this.designationTiered = designationTiered;
         this.catalogRole = catalogRole;
         this.catalogDescription = catalogDescription;
+        this.catalogFactionLogo = catalogFactionLogo;
         this.range = range;
         this.damage = damage;
         this.accuracy = accuracy;
@@ -282,6 +285,7 @@ public final class WeaponDef {
                 catalog.optBoolean("designationTiered", true),
                 emptyToNull(catalog.optString("role", null)),
                 emptyToNull(catalog.optString("description", null)),
+                emptyToNull(catalog.optString("factionLogo", null)),
                 (float) sim.getDouble("range"),
                 (float) sim.getDouble("damage"),
                 (float) sim.getDouble("accuracy"),
