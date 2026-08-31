@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.sim.CombatService;
@@ -119,6 +120,28 @@ public final class UnitRosterService {
      *  would only fire if a spawn happens before sim construction completes,
      *  which the harness prevents. */
     private DamageService damageService;
+    /** Walkability for {@link #settleFooting}'s step-aside. Set post-construction by
+     *  {@link #setNavigationGrid}, because the sim builds its navigation before its
+     *  roster; null in a bare unit test, where there are no walls to be put inside. */
+    private NavigationGrid navigationGrid;
+
+    /**
+     * How far a body displaced by an arrival may be set down from the contested
+     * cell. Chebyshev rings, so this is the ground immediately around it — the
+     * same reach {@code AirframeFootprint} steps somebody out from under a
+     * settling wreck, and for the same reason: a step, not a relocation.
+     */
+    private static final int FOOTING_STEP_RADIUS = 3;
+
+    /**
+     * Reach of the one spatial gather {@link #settleFooting} makes. Wide enough
+     * that a candidate whose index snapshot has drifted a step in the wrong
+     * direction is still in the set when its live cell is inside the search.
+     */
+    private static final float FOOTING_SCAN_RADIUS = 2 * FOOTING_STEP_RADIUS + 2f;
+
+    /** Reused across spawns — the seam is serial, and a spawn should not allocate a scratch buffer. */
+    private final LongBucket footingScan = new LongBucket();
 
     // ---- the dense, live-only entity roster ----
 
@@ -239,6 +262,11 @@ public final class UnitRosterService {
         this.damageService = damageService;
     }
 
+    /** Binds the grid {@link #settleFooting} asks where a displaced body may stand. Once, during sim setup. */
+    public void setNavigationGrid(NavigationGrid navigationGrid) {
+        this.navigationGrid = navigationGrid;
+    }
+
     /**
      * Exposes the raw squads map for {@code BattleSimulation}'s alias-field
      * init so the sim's 40+ internal {@code squads.get / squads.values}
@@ -255,6 +283,11 @@ public final class UnitRosterService {
      * AirSystem mid-tick deboard) see it on the next AI query, and returns the minted
      * id. The single immediate-spawn seam; {@code BattleSimulation.spawn} layers
      * fog-contributor registration on top. Serial phases only.
+     *
+     * <p>A spawn always happens. What it cannot do is stand a body that will
+     * never move on top of one that is already there — see
+     * {@link #settleFooting}, which is applied inside {@link #adopt} so the
+     * queued drain gets the same rule.
      */
     public long spawn(EntitySpec spec) {
         long id = adopt(spec);
@@ -827,7 +860,93 @@ public final class UnitRosterService {
         liveCount++;
         addToFactionSlice(id, spec.faction);
         if (inSquad) addToSquadSlice(id, spec.squadId);
+        settleFooting(id, spec);
         return id;
+    }
+
+    /**
+     * <b>A body that cannot move gets the cell it was given, and whoever is
+     * standing there steps off.</b> The arrival always happens.
+     *
+     * <p>A spec names a cell and nothing here ever checked whether one was free,
+     * so a marine standing on a hardstand when a refit finished ended up inside
+     * the aircraft. The rule lives at this seam rather than in each caller for
+     * the reason the airfield's own ground release was eventually forced into
+     * one place: a check written into each spawn site is a check the next spawn
+     * site will not have, and there are two dozen of them, most putting a body
+     * on one authored point with no search at all.
+     *
+     * <p><b>It is deliberately silent about two bodies that can both walk.</b>
+     * Overlap between movers is a transient the simulation already owns —
+     * {@code SeparationSystem} pushes them apart every tick, and has to, because
+     * play produces overlaps no spawn check could have prevented. A second,
+     * one-shot copy of that here would duplicate a working system while moving
+     * where several hundred units start a battle, and it would buy nothing: the
+     * pair separate within a few ticks either way.
+     *
+     * <p>What separation cannot undo is a decision taken <em>once</em>, on the
+     * tick a body arrives. An airframe stamps the ground under it as it lands,
+     * declining to close any cell somebody is standing in — so a marine on the
+     * stand leaves a permanent hole under a hull that is otherwise solid, and no
+     * later push closes it. That is why the rule keys on the arrival's mobility
+     * rather than on both bodies': a thing that cannot move is a thing whose
+     * placement is final.
+     *
+     * <p><b>Refusing is not an option, and that is what decides who moves.</b> A
+     * spawn that declined to happen is a berth that quietly stops flying, a pod
+     * that never deploys, a shed that builds nothing — and, worse, it hands an
+     * attacker a way to shut a field down by standing on its pad. That is not
+     * the free push {@code AirframeFootprint} refuses to give either: that
+     * refusal is about the ground <em>around</em> a hull, shoving whoever
+     * happens to be near a pad on every turnaround for the whole battle. This
+     * moves one body one step, out of the single cell a structure is physically
+     * standing in, on the tick it arrives.
+     *
+     * <p>When the incumbent cannot move either, they overlap. Two static
+     * placements in one cell is a fault upstream, and teleporting a turret off
+     * its own mount would hide it rather than fix it.
+     */
+    private void settleFooting(long id, EntitySpec spec) {
+        if (world.hasMovement(id)) return;
+        unitIndex.gather(spec.cellX + 0.5f, spec.cellY + 0.5f,
+                FOOTING_SCAN_RADIUS, footingScan);
+        long incumbent = standingIn(spec.cellX, spec.cellY, id);
+        if (incumbent == 0L || !world.hasMovement(incumbent)) return;
+        long cell = StandingRoom.nearest(spec.cellX, spec.cellY, FOOTING_STEP_RADIUS,
+                this::canStandIn, (x, y) -> standingIn(x, y, incumbent) != 0L);
+        if (cell == StandingRoom.NOWHERE) return;
+        world.setCellPos(incumbent, StandingRoom.cellX(cell), StandingRoom.cellY(cell));
+    }
+
+    /**
+     * The live body standing in {@code (x, y)}, ignoring {@code exclude}, or
+     * {@code 0L}.
+     *
+     * <p>Candidates come from {@link #footingScan} — the index snapshot gathered
+     * once per {@link #settleFooting} — but the cell comparison reads live
+     * positions, so a body the snapshot has drifted from still answers for where
+     * it actually is. A body with no {@code POSITION} holds no cell at all: a
+     * convoy chassis and an aircraft in the air are elsewhere by construction.
+     */
+    private long standingIn(int x, int y, long exclude) {
+        for (int i = 0; i < footingScan.size; i++) {
+            long u = footingScan.ids[i];
+            if (u == exclude) continue;
+            if (!world.hasPosition(u)) continue;
+            if (!isAliveById(u)) continue;
+            if (world.cellX(u) == x && world.cellY(u) == y) return u;
+        }
+        return 0L;
+    }
+
+    /**
+     * Ground somebody displaced by an arrival may be set down on. Without a grid
+     * — a unit test standing this service up on its own — there are no walls to
+     * be put inside, so every cell qualifies and the rule still holds.
+     */
+    private boolean canStandIn(int x, int y) {
+        if (navigationGrid == null) return true;
+        return navigationGrid.inBounds(x, y) && navigationGrid.isWalkable(x, y);
     }
 
     /**

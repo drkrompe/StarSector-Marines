@@ -602,6 +602,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         navigation.setOccupancyDeltaSink(damageService::applyOccupancyDelta);
         navigation.setRoster(rosterService);
         rosterService.setDamageService(damageService);
+        rosterService.setNavigationGrid(grid);
         // Entity-access facade — by-id accessors that read the archetype entity
         // world's component columns directly. Owned by the roster service (which
         // owns the world it reads); the sim aliases it for its world() getter.

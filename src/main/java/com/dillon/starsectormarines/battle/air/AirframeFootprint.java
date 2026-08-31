@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.air;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
+import com.dillon.starsectormarines.battle.unit.StandingRoom;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
@@ -15,19 +16,29 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
  * The ground does not care which of them put an aircraft there, only that a
  * patch of it just stopped being flat concrete.
  *
- * <p><b>A hull that arrives moves nobody; a hull that falls does.</b> The two
- * are not the same event. A wreck comes down once, on the tick something died,
- * and stepping the survivors out from under it is the alternative to sealing
- * them in. An aircraft is <em>placed</em> — at the start of the battle and
- * again every time a turnaround finishes — so a step-clear there would be a
- * free, repeatable shove that a defender gets for finishing a refit and an
- * attacker standing on the apron has no answer to. A placement therefore takes
- * only the cells nobody is standing in and leaves the rest open, which is the
- * same trade the wreck already makes one step earlier: a gap under the hull is
- * far cheaper than a body that cannot move. That gap lasts until the aircraft
- * next leaves and is placed again — nothing watches the cell for the moment it
+ * <p><b>A hull that arrives moves nobody but the one person under its wheels.</b>
+ * A wreck comes down once, on the tick something died, and stepping every
+ * survivor out from under it is the alternative to sealing them in. An aircraft
+ * is <em>placed</em> — at the start of the battle and again every time a
+ * turnaround finishes — so clearing its whole square would be a free,
+ * repeatable shove that a defender gets for finishing a refit and an attacker
+ * standing on the apron has no answer to. A placement therefore takes only the
+ * ring cells nobody is standing in and leaves the rest open, which is the same
+ * trade the wreck already makes one step earlier: a gap under the hull is far
+ * cheaper than a body that cannot move. That gap lasts until the aircraft next
+ * leaves and is placed again — nothing watches the cell for the moment it
  * vacates, because watching would cost a grid write per berth per tick to buy
  * back a cell somebody is standing in anyway.
+ *
+ * <p>Its <em>own</em> cell is the exception, and has to be. The aircraft stands
+ * there: it is the cell the hull is spawned on and the one cell of the square
+ * that is opaque, so leaving it open when somebody happens to be standing on it
+ * puts two bodies in one cell and makes the hull see-through as well. Nothing
+ * else can give — a berth that declined to place would quietly stop flying, and
+ * would hand an attacker a way to shut a field down by standing on the pad. So
+ * the occupant steps off, exactly as they would from under a falling wreck.
+ * That is one body, one step, on the tick a hull arrives, rather than a shove
+ * of whoever is near a pad, which is what the ring rule above is protecting.
  *
  * <p><b>A hull that is shot at may not blind itself.</b> A wreck is
  * see-through everywhere: a burnt-out airframe is a frame with holes in it, and
@@ -73,9 +84,10 @@ final class AirframeFootprint {
     private static final int WAS_VEHICLE = 2 * CELLS;
 
     /**
-     * How far from their own cell somebody caught under a settling wreck is
+     * How far from their own cell somebody caught under an arriving hull —
+     * a settling wreck, or an aircraft on the stand they are standing on — is
      * allowed to be moved. Chebyshev rings, so this is the ground immediately
-     * around the hull — a step out from under it, not a relocation.
+     * around the hull: a step out from under it, not a relocation.
      */
     private static final int STEP_CLEAR_RADIUS = 3;
 
@@ -86,8 +98,9 @@ final class AirframeFootprint {
      * Stands an intact hull on {@code (centerX, centerY)}.
      *
      * <p>{@code nearby} must hold every unit that could be inside the square;
-     * a cell one of them is standing in is left open rather than closed over
-     * them. Ground the aircraft did not take is left exactly as it was: a shed
+     * a ring cell one of them is standing in is left open rather than closed
+     * over them, while the centre is cleared and taken. Ground the aircraft did
+     * not take is left exactly as it was: a shed
      * bay's own wall can lie inside the square, and a hull does not own a wall
      * merely by parking beside it.
      *
@@ -96,6 +109,13 @@ final class AirframeFootprint {
      */
     static long stand(NavigationGrid grid, CellTopology topology, World world,
                       LongBucket nearby, int centerX, int centerY) {
+        // Before anything is measured: the hull's own cell is not one it can do
+        // without, so whoever is on it steps off first and the loop below then
+        // sees an empty stand. Done here rather than left to the spawn seam
+        // because by the time the aircraft is minted the ground has already been
+        // stamped around a cell this would have declined to close.
+        long onTheStand = occupantOf(world, nearby, centerX, centerY);
+        if (onTheStand != 0L) stepClear(grid, world, nearby, onTheStand, centerX, centerY);
         long taken = 0L;
         for (int y = centerY - HALF; y <= centerY + HALF; y++) {
             for (int x = centerX - HALF; x <= centerX + HALF; x++) {
@@ -188,23 +208,12 @@ final class AirframeFootprint {
      */
     private static void stepClear(NavigationGrid grid, World world, LongBucket nearby,
                                   long unit, int centerX, int centerY) {
-        int fromX = world.cellX(unit);
-        int fromY = world.cellY(unit);
-        for (int r = 1; r <= STEP_CLEAR_RADIUS; r++) {
-            for (int dy = -r; dy <= r; dy++) {
-                for (int dx = -r; dx <= r; dx++) {
-                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
-                    int x = fromX + dx;
-                    int y = fromY + dy;
-                    if (!grid.inBounds(x, y)) continue;
-                    if (within(x, y, centerX, centerY)) continue;
-                    if (!grid.isWalkable(x, y)) continue;
-                    if (occupied(world, nearby, x, y)) continue;
-                    world.setCellPos(unit, x, y);
-                    return;
-                }
-            }
-        }
+        long cell = StandingRoom.nearest(world.cellX(unit), world.cellY(unit), STEP_CLEAR_RADIUS,
+                (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y)
+                        && !within(x, y, centerX, centerY),
+                (x, y) -> occupied(world, nearby, x, y));
+        if (cell == StandingRoom.NOWHERE) return;
+        world.setCellPos(unit, StandingRoom.cellX(cell), StandingRoom.cellY(cell));
     }
 
     /**
@@ -231,6 +240,11 @@ final class AirframeFootprint {
 
     /** Whether any candidate unit is standing in {@code (x, y)}. */
     private static boolean occupied(World world, LongBucket nearby, int x, int y) {
+        return occupantOf(world, nearby, x, y) != 0L;
+    }
+
+    /** Which candidate unit is standing in {@code (x, y)}, or {@code 0L}. */
+    private static long occupantOf(World world, LongBucket nearby, int x, int y) {
         for (int i = 0; i < nearby.size; i++) {
             long u = nearby.ids[i];
             // Same rule as the gather above, and the same reason: a body with
@@ -238,8 +252,8 @@ final class AirframeFootprint {
             // from reserving the ground its own hull is about to come down on,
             // which would leave a hole in the middle of its wreck.
             if (!world.hasPosition(u)) continue;
-            if (world.cellX(u) == x && world.cellY(u) == y) return true;
+            if (world.cellX(u) == x && world.cellY(u) == y) return u;
         }
-        return false;
+        return 0L;
     }
 }
