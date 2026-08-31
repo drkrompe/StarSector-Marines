@@ -82,6 +82,13 @@ class WeaponRegistryParityTest {
         assertEquals(2f, pulseLaser.beamStyle().coreWidthPx(), EPS);
         assertEquals(7f, pulseLaser.beamStyle().glowWidthPx(), EPS);
         assertEquals(0.12f, pulseLaser.beamStyle().lifetimeSec(), EPS);
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_BASTION_AUTOCANNON_ID),
+                34f, 20f, 0.67f, 2.6f, 14f,
+                6, 0.14f, 0.45f, 180f, 0.19f, 0f,
+                0.45f, 6, 0f, false, false, 1f,
+                new Color(0xFF, 0xD0, 0x8A), ImpactKind.KINETIC,
+                "graphics/missiles/shell_small_yellow.png", 0.22f,
+                "light_autocannon_fire");
         assertMech(WeaponRegistry.require(WeaponRegistry.MECH_LINEAR_CANNON_ID),
                 32f, 27f, 0.68f, 2.8f, 8f,
                 2, 0.12f, 0.35f, 160f, 0.20f, 0f,
@@ -94,6 +101,16 @@ class WeaponRegistryParityTest {
                 1f, 18, 0.9f, false, false, 1f,
                 new Color(0xFF, 0xD0, 0x88), ImpactKind.CANNON_HE,
                 "graphics/missiles/shell_hellbore.png", 0.34f, "hellbore_fire");
+        WeaponDef demolition = WeaponRegistry.require(
+                WeaponRegistry.MECH_DEMOLITION_CANNON_ID);
+        assertMech(demolition,
+                20f, 62f, 0.50f, 5.8f, 16f,
+                1, 0f, 1.20f, 62.5f, 0.32f, 0f,
+                1.7f, 90, 1.4f, false, false, 1f,
+                new Color(0xFF, 0xB4, 0x5A), ImpactKind.CANNON_HE,
+                "graphics/missiles/shell_hellbore.png", 0.40f, "hellbore_fire");
+        assertEquals(88f, demolition.contactDamage, EPS);
+        assertEquals(26f, demolition.contactPenetration, EPS);
         assertMech(WeaponRegistry.require(WeaponRegistry.MECH_SRM_POD_ID),
                 18f, 49.5f, 0.55f, 5.5f, 14f,
                 4, 0.10f, 0f, 32.727272f, 0.55f, 0f,
@@ -117,6 +134,19 @@ class WeaponRegistryParityTest {
         assertEquals(150f, laser.contactDamage, EPS);
         assertEquals(40f, laser.contactPenetration, EPS);
         assertEquals(1, laser.bodyPenetrations);
+
+        WeaponDef thermal = WeaponRegistry.require(WeaponRegistry.MECH_THERMAL_LANCE_ID);
+        assertMech(thermal,
+                22f, 38f, 0.78f, 4.8f, 14f,
+                1, 0f, 0.25f, 300f, 0.10f, 0f,
+                1f, 35, 0.8f, false, false, 1f,
+                new Color(0xFF, 0xF0, 0xB0), ImpactKind.CANNON_HE,
+                null, 0f, "plasma_cannon_fire");
+        assertEquals(70f, thermal.contactDamage, EPS);
+        assertEquals(24f, thermal.contactPenetration, EPS);
+        assertEquals(3f, thermal.beamStyle().coreWidthPx(), EPS);
+        assertEquals(10f, thermal.beamStyle().glowWidthPx(), EPS);
+        assertEquals(0.38f, thermal.beamStyle().lifetimeSec(), EPS);
     }
 
     @Test

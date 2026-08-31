@@ -150,6 +150,12 @@ def main() -> None:
               "shoulder-laser-cannon.png", (76, 128))
     normalize("weapon-concepts/pulse-laser-arm.png",
               "pulse-laser-arm.png", (62, 112))
+    normalize("weapon-concepts/hegemony-bastion-autocannon.png",
+              "hegemony-bastion-autocannon.png", (64, 132))
+    normalize("weapon-concepts/pather-demolition-cannon.png",
+              "pather-demolition-cannon.png", (72, 124))
+    normalize("weapon-concepts/lions-guard-thermal-lance.png",
+              "lions-guard-thermal-lance.png", (76, 132))
     build_faction_weapons()
     preview("idle.png", moving=False, firing=False)
     preview("moving-and-firing.png", moving=True, firing=True)
