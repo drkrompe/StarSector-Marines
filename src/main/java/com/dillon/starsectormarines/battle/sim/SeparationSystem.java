@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
@@ -11,6 +12,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.unit.BodyRadius;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -43,8 +45,8 @@ import java.util.Map;
  * (mirrors {@code NavigationService.rebuildOccupancyMap}'s {@code gridOccupants}
  * query — POSITION present, not yet corpse-transmuted; every roster entity
  * already carries POSITION), {@code radius > 0} ({@link
- * com.dillon.starsectormarines.battle.unit.UnitType#radius}, true for every
- * type today), and {@code !}{@link World#hasKinematics}. The last clause is
+ * com.dillon.starsectormarines.battle.unit.BodyRadius}, positive for every
+ * body today), and {@code !}{@link World#hasKinematics}. The last clause is
  * what excludes drones: a drone is a dense-roster ground unit like any other
  * ({@code UnitRosterService.adopt} gives it POSITION/MOVEMENT same as
  * infantry), but its position is slaved to its {@code KINEMATICS} {@link
@@ -104,10 +106,22 @@ import java.util.Map;
 public final class SeparationSystem {
 
     /**
-     * Ordinary neighbor-query radius, in cells — 2 × the largest unit radius
-     * (mech, 0.6) plus a per-tick motion margin, so no overlapping pair can be
-     * outside the net even after this tick's movement. Mechs use
+     * Ordinary neighbor-query radius, in cells — 2 × a mech's 0.6 plus a
+     * per-tick motion margin, which covered every overlapping pair back when a
+     * mech was the largest thing on the grid. Mechs use
      * {@link #MECH_FORMATION_QUERY_RADIUS} instead.
+     *
+     * <p><b>It no longer covers every pair.</b> A parked aircraft is sized by
+     * its airframe — around four and a half cells for a Valkyrie — so a marine
+     * overlapping one is found only inside this net, and settles just outside
+     * it rather than clear of the hull. Widening the net is not free: it is the
+     * per-unit per-tick candidate gather, and paying a five-cell query on every
+     * marine to clear a handful of hardstands is the wrong trade. What actually
+     * keeps people off a hull is a navigation footprint — which a garrison
+     * berth does not stamp today, unlike a civilian scenery hull or a wreck.
+     * Separation was never going to be that: its push is deliberately clamped
+     * below walk speed, so a unit walking straight at a hull grinds through it
+     * however wide the net is.
      */
     public static final float QUERY_RADIUS = 1.5f;
     /** Fraction of a pair's overlap resolved per tick before the speed clamp — relaxation, not instant pop. */
@@ -358,6 +372,8 @@ public final class SeparationSystem {
                     BattleComponents.IDENTITY_FACTION).array();
             Object[] variants = table.objects(components.IDENTITY,
                     BattleComponents.IDENTITY_MECH_VARIANT).array();
+            Object[] airframes = table.objects(components.IDENTITY,
+                    BattleComponents.IDENTITY_AIRFRAME).array();
             int[] roles = table.ints(components.ROLE,
                     BattleComponents.ROLE_ORDINAL).array();
 
@@ -388,14 +404,19 @@ public final class SeparationSystem {
                 if (slot == UnitRosterService.INVALID_INDEX) continue;
 
                 UnitType type = (UnitType) types[row];
-                MechVariant variant = (MechVariant) variants[row];
                 String turretStructureId = hasTurretState
                         ? (String) turretStructureIds[row] : null;
                 StructureDef turretStructure = turretStructureId != null
                         ? TurretCatalogRegistry.requireStructure(turretStructureId) : null;
-                float radius = turretStructure != null
-                        ? turretStructure.radius
-                        : variant != null ? variant.radius : type.radius;
+                // The same precedence UnitRosterService.radius answers by id,
+                // fed off columns instead of lookups — a body that is one size
+                // to a round and another to a shove is the defect this shares
+                // its way out of. A carried body needs no branch here: it holds
+                // no POSITION and so is never a row in this query.
+                float radius = BodyRadius.resolve(turretStructure,
+                        (Airframe) airframes[row],
+                        (MechVariant) variants[row],
+                        type);
                 byte flags = POPULATED;
                 if (hasHealth && hp[row] > 0f
                         && !hasKinematics && radius > 0f) {
@@ -437,6 +458,22 @@ public final class SeparationSystem {
                         "live unit missing from gridOccupants query: " + dense[i]);
             }
         }
+    }
+
+    /**
+     * The footprint radius the last pass cached for {@code id}, or {@code -1}
+     * if it held no slot.
+     *
+     * <p>Package-private for {@code OneBodyIsOneSizeTest}. The columnar
+     * derivation drifting from the by-id one is silent by nature — both
+     * answers are plausible floats and nothing crashes — so the only thing
+     * that can catch it is reading back what this pass actually used.
+     */
+    float cachedRadius(long id) {
+        long[] dense = roster.denseArray();
+        int liveCount = roster.liveCount();
+        int slot = collisionSlot(id, dense, liveCount);
+        return slot == UnitRosterService.INVALID_INDEX ? -1f : collisionRadius[slot];
     }
 
     private static boolean hasFlag(byte flags, byte flag) {

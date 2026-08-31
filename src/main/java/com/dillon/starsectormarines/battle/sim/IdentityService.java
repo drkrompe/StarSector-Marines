@@ -37,10 +37,22 @@ public final class IdentityService {
         this.components = components;
     }
 
-    /** Presence check — true iff {@code id} carries IDENTITY. Every ground unit + corpse does; air/vehicle carry their own AIR_IDENTITY/GROUND_IDENTITY instead. */
+    /**
+     * Presence check — true iff {@code id} carries IDENTITY. Every ground unit
+     * and corpse does, and so does every carried body: an air craft and a
+     * convoy chassis carry IDENTITY <em>as well as</em> their own
+     * AIR_IDENTITY / GROUND_IDENTITY, which is precisely what lets the ordinary
+     * body paths read them. The domain component holds the domain type; this
+     * one holds what every body has.
+     */
     public boolean has(long id) { return entityWorld.has(id, components.IDENTITY); }
 
-    /** The entity's human-readable greppable name (seeded from the ctor String id). Fail-loud on an entity with no IDENTITY (an air craft / convoy vehicle); gate on {@link #has} if the caller isn't sure it's a ground unit. */
+    /**
+     * The entity's human-readable greppable name (seeded from the ctor String
+     * id). Fail-loud on an entity with no IDENTITY; gate on {@link #has} if the
+     * caller isn't sure. A carried body is not such an entity — it carries
+     * IDENTITY too, and answers here.
+     */
     public String name(long id) { return (String) entityWorld.getObject(id, components.IDENTITY, BattleComponents.IDENTITY_NAME); }
 
     /**
@@ -48,8 +60,9 @@ public final class IdentityService {
      * block). The by-id replacement for the {@code Entity.type} field read as the
      * handle collapses to a bare {@code long} (identity-collapse Phase D). IDENTITY
      * rides the death transmute, so this is readable on a corpse too. Fail-loud on an
-     * entity with no IDENTITY (an air craft / convoy vehicle carries its own
-     * AIR_IDENTITY / GROUND_IDENTITY type instead).
+     * entity with no IDENTITY. A carried body carries IDENTITY alongside its own
+     * AIR_IDENTITY / GROUND_IDENTITY and answers here with the archetype every
+     * body has; its domain type is asked of the domain component.
      */
     public UnitType type(long id) { return (UnitType) entityWorld.getObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE); }
 
