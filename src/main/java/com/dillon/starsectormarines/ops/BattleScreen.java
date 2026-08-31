@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
-import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoice;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoiceResolver;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -32,6 +31,7 @@ import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
+import com.dillon.starsectormarines.battle.ui.panel.OrderIntentCursorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDefendTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
@@ -49,7 +49,6 @@ import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
-import com.dillon.starsectormarines.battle.turret.TurretImpactAudio;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -67,6 +66,7 @@ import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
 import com.dillon.starsectormarines.ops.battleview.SunLight;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
+import com.dillon.starsectormarines.ops.battleview.ShotImpactAudio;
 import com.dillon.starsectormarines.ops.loot.LootGenerator;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.fs.starfarer.api.Global;
@@ -203,6 +203,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private CommandPowerTargetingPanel commandPowerTargeting;
     /** World placement half of the selected-infantry Defend Area order. */
     private SquadDefendTargetingPanel squadDefendTargeting;
+    /** Says what a right-click would do at the cell under the pointer. */
+    private OrderIntentCursorPanel orderIntentCursor;
     /** Shared selection state read by HUD panels (and, later, a world-picker). Survives across attach()/rebuild() cycles; self-heals when the selected squad disappears. */
     private final Selection selection = new Selection();
     /** Shared debug cell-highlight overlay — populated by HUD panels, rendered between the grid pass and the unit sprites. */
@@ -455,6 +457,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Impact FX: spawn at the moment the shot's visual reaches its endpoint
         // (instant for marine line tracers, on lifetime expiry for projectile
         // sprites), then advance particles on the same scaled clock.
+        renderer.getBeamFx().advance(dt * speedMultiplier);
         spawnImpactFx(sim);
         for (float[] impact : sim.getHeavyImpactsThisFrame()) {
             renderer.getImpactFx().spawnHeavyImpact(impact[0], impact[1], impact[2]);
@@ -574,10 +577,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         // an armed power claims the map click before squad selection sees it.
         commandPowerTargeting = new CommandPowerTargetingPanel(this);
         hud.addPanel(commandPowerTargeting);
-        // Added above the picker and power targeter. Arming either targeting
-        // family cancels the other, so only one world click owner is live.
+        // Added above the picker and power targeter. Infantry squads and Mech
+        // lances share this Defend Area placement owner. Arming either
+        // targeting family cancels the other, so only one world click owner
+        // is live.
         squadDefendTargeting = new SquadDefendTargetingPanel(this);
+        orderIntentCursor = new OrderIntentCursorPanel(this);
         hud.addPanel(squadDefendTargeting);
+        hud.addPanel(orderIntentCursor);
         hud.addPanel(new TaskForceStatusPanel(this));
         // Per-squad GOAP plan readout. It has no all-squad overview: the
         // diagnostic opens only while WorldPicker has a squad in Selection.
@@ -689,7 +696,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         retainedSquadOverlay.attach(position, sim);
         if (retainedMechOverlay == null) {
-            retainedMechOverlay = new BattleMechOverlay(selection);
+            retainedMechOverlay = new BattleMechOverlay(selection,
+                    this::toggleSquadDefendTargeting,
+                    () -> squadDefendTargeting != null
+                            ? squadDefendTargeting.targetingSquadId()
+                            : Selection.NONE);
         }
         retainedMechOverlay.attach(position, sim);
         if (retainedPowerOverlay == null) {
@@ -876,7 +887,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             float pitch = ENGINE_PITCH_IDLE + (ENGINE_PITCH_CRUISE - ENGINE_PITCH_IDLE) * intensity + pitchOffset;
             Vector2f loc = new Vector2f(body.x * AUDIO_WORLD_UNITS_PER_CELL,
                                         body.y * AUDIO_WORLD_UNITS_PER_CELL);
-            Vector2f vel = shuttleVelocity(mission, body);
+            Vector2f vel = shuttleVelocity(body);
             // The AirBody instance is the stable per-entity loop-voice key (same
             // instance every frame and across sorties), so concurrent craft on the
             // same clip stay on distinct voices.
@@ -885,11 +896,21 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
     }
 
-    /** Per-frame velocity for {@link #driveShuttleEngineLoops} Doppler — reads the AirBody directly. Returns zero on the ground / off-screen so audio stays parked. */
-    private static Vector2f shuttleVelocity(ShuttleMission mission, AirBody body) {
-        if (mission.state != ShuttleState.INCOMING && mission.state != ShuttleState.DEPARTING) {
-            return new Vector2f(0f, 0f);
-        }
+    /**
+     * Per-frame velocity for {@link #driveShuttleEngineLoops} Doppler.
+     *
+     * <p>Read off the body and nothing else. This used to be gated on a
+     * hand-written pair of phases — INCOMING and DEPARTING, the only two that
+     * existed when it was written — so a craft attacking, repositioning,
+     * coming home, settling onto a pad or climbing off one all read as parked
+     * and the Doppler on a machine crossing the camera at speed simply did not
+     * happen. The same fault {@code ShuttleMission.isOverTheBattle} was
+     * converted away from, and here there is nothing to place a new phase on:
+     * the body is the authority for motion, a parked craft's velocity is
+     * already zero because it is not moving, and every locomotion model in the
+     * feature composes {@code vx}/{@code vy} as it goes.
+     */
+    private static Vector2f shuttleVelocity(AirBody body) {
         return new Vector2f(body.vx * AUDIO_WORLD_UNITS_PER_CELL,
                             body.vy * AUDIO_WORLD_UNITS_PER_CELL);
     }
@@ -962,6 +983,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // whole travel instantly. Traveling bodies (sprites and bolts) wait
         // for arrival in the second pass.
         for (ShotEvent s : sim.getShotsThisFrame()) {
+            renderer.getBeamFx().spawn(s);
             renderer.getGroundLights().spawnMuzzle(s);
             // Every shooting marine / militia / alien ejects a casing where
             // they're standing (skip rockets — tube-launched, no brass).
@@ -978,6 +1000,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
             ImpactDecals.spawnWeaponImpact(sim, rng, fx, s.toX, s.toY, isWall);
+            playImpactCue(s, rng, zeroVel);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
             if (!ShotFx.of(s).travels()) continue;
@@ -985,36 +1008,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             WeaponFxDef fx = WeaponFxRuntime.definition(s);
             WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
-            if (s.turretStructureDef != null) {
-                TurretImpactAudio.Cue cue = TurretImpactAudio.resolve(
-                        s.turretStructureDef, SFX_NEAR_EXPLOSION);
-                if (cue != null) {
-                    float pitch = 0.9f + rng.nextFloat() * 0.2f;
-                    Vector2f loc = new Vector2f(
-                            s.toX * AUDIO_WORLD_UNITS_PER_CELL,
-                            s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                    Global.getSoundPlayer().playSound(
-                            cue.soundId(), pitch, cue.volume(), loc, zeroVel);
-                }
-            } else if (s.specialEquipmentDef != null) {
-                float pitch = 0.9f + rng.nextFloat() * 0.2f;
-                Vector2f loc = new Vector2f(
-                        s.toX * AUDIO_WORLD_UNITS_PER_CELL,
-                        s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                if (s.specialEquipmentDef.impactSoundId() != null) {
-                    Global.getSoundPlayer().playSound(s.specialEquipmentDef.impactSoundId(),
-                            pitch, 0.70f, loc, zeroVel);
-                }
-            } else if (s.mechWeaponDef != null) {
-                if (fx.hasExplosiveImpact()) {
-                    float pitch = 0.9f + rng.nextFloat() * 0.2f;
-                    Vector2f loc = new Vector2f(
-                            s.toX * AUDIO_WORLD_UNITS_PER_CELL,
-                            s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                    float volume = fx.hasHeavyImpact() ? 0.86f : 0.65f;
-                    Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, volume, loc, zeroVel);
-                }
-            }
+            playImpactCue(s, rng, zeroVel);
             ImpactDecals.spawnWeaponImpact(sim, rng, fx, s.toX, s.toY, isWall);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
         }
@@ -1030,6 +1024,16 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getImpactFx().spawnHeavyImpact(point[0], point[1], INTERCEPT_BURST_CELLS);
             renderer.getGroundLights().spawnImpact(null, point[0], point[1]);
         }
+    }
+
+    private void playImpactCue(ShotEvent shot, java.util.Random rng, Vector2f zeroVel) {
+        ShotImpactAudio.Cue cue = ShotImpactAudio.resolve(shot, SFX_NEAR_EXPLOSION);
+        if (cue == null) return;
+        Vector2f loc = new Vector2f(
+                shot.toX * AUDIO_WORLD_UNITS_PER_CELL,
+                shot.toY * AUDIO_WORLD_UNITS_PER_CELL);
+        Global.getSoundPlayer().playSound(
+                cue.soundId(), 0.9f + rng.nextFloat() * 0.2f, cue.volume(), loc, zeroVel);
     }
 
     /** True when the endpoint cell is non-walkable (wall / vehicle / turret mount) and the impact should read as a chip on solid material rather than a kick of floor dust. */

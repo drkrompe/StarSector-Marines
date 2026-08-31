@@ -8,8 +8,9 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 
-import com.dillon.starsectormarines.battle.decision.goap.Goal;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.perception.NoiseKind;
@@ -251,6 +252,12 @@ public final class Squad {
 
     ObjectiveAssignment playerTacticalOrder() {
         return playerTacticalOrder;
+    }
+
+    /** Whether battle-local player authority currently owns this assignment shape. */
+    public boolean hasPlayerTacticalOrder(AssignmentKind kind) {
+        ObjectiveAssignment tactical = playerTacticalOrder;
+        return tactical != null && tactical.kind() == kind;
     }
 
     void clearPlayerTacticalOrder() {

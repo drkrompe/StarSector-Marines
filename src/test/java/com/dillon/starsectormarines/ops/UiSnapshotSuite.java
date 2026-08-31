@@ -254,12 +254,18 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("battle-hud-selected-squad-wide.png",
                         renderBattleSquadOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                new SnapshotArtifact("battle-hud-selected-squad-2560x1440.png",
+                        renderBattleSquadOverlay(context, renderer,
+                                2560, 1440, false)),
                 new SnapshotArtifact("battle-hud-selected-squad-hover-wide.png",
                         renderBattleSquadOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("battle-hud-selected-mech-wide.png",
                         renderBattleMechOverlay(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                new SnapshotArtifact("battle-hud-selected-mech-defend-area-2560x1440.png",
+                        renderBattleMechOverlay(context, renderer,
+                                2560, 1440, true)),
                 new SnapshotArtifact("battle-hud-command-overlay-wide.png",
                         renderBattleHudCommandOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -506,16 +512,28 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     /** Full-screen evidence for one selected mech's battle-local doctrine override. */
     private static BufferedImage renderBattleMechOverlay(
             SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height) throws Exception {
+            int width, int height, boolean defendAreaTargeting) throws Exception {
         BufferedImage image = renderBattleBackdrop(width, height);
+        if (defendAreaTargeting) {
+            Graphics2D targetGraphics = image.createGraphics();
+            targetGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            targetGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            paintWorldTarget(targetGraphics, width * 0.56f, height * 0.54f,
+                    18f, BattlefieldMarkerPresentation.target(
+                            "DEFEND AREA", true, 20f));
+            targetGraphics.dispose();
+        }
         Reactor reactor = new Reactor();
         BattleMechOverlayModel model = new BattleMechOverlayModel(
                 reactor, () -> { }, (mechId, role) -> { },
-                (mechId, order) -> { });
+                (mechId, order) -> { }, squadId -> { });
         model.updateProjected(new BattleMechOverlayModel.MechState(
-                303L, "Sirocco Three", MechVariant.SIROCCO.displayName,
+                3, 303L, "Sirocco Three", MechVariant.SIROCCO.displayName,
                 MechRole.LR_SUPPORT, MechRole.BALANCED,
                 MechLanceOrder.FREE_REIGN,
+                defendAreaTargeting,
                 BattleMechOverlayModel.selectableRoles()));
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
@@ -9,8 +10,9 @@ import java.util.List;
 
 /**
  * Emits the {@link RenderLayer#VEHICLES} layer — parked aircraft resting on
- * their berths, drawn at their hull's authored length and pivot. Sits above
- * ground/decals and below doodads/units.
+ * their berths, drawn at their hull's authored length and pivot, scaled up by
+ * {@link AirAppearance#GROUND_SCALE} like every other aircraft at rest. Sits
+ * above ground/decals and below doodads/units.
  *
  * <p>Parked road vehicles used to share this layer as a second, parallel prop
  * model with their own list, sheet cache, and footprint stamp. They are
@@ -45,15 +47,17 @@ public final class ParkedAircraftRenderSystem implements RenderSystem {
 
             float hullLenCells = HullFootprintResolver.visualLengthCells(
                     parked.type.renderHullId());
-            float pxLen = hullLenCells * cellPx;
+            float pxLen = hullLenCells * cellPx * AirAppearance.GROUND_SCALE;
             float[] pivot = HullPivotResolver.pivotOffset(parked.type.renderHullId());
+            float pvx = pivot[0] * AirAppearance.GROUND_SCALE;
+            float pvy = pivot[1] * AirAppearance.GROUND_SCALE;
             float rad = (float) Math.toRadians(parked.facingDegrees);
             float c = (float) Math.cos(rad);
             float s = (float) Math.sin(rad);
             float cx = cam.cellToScreenX(parked.centerX + 0.5f
-                    + pivot[0] * c - pivot[1] * s);
+                    + pvx * c - pvy * s);
             float cy = cam.cellToScreenY(parked.centerY + 0.5f
-                    + pivot[0] * s + pivot[1] * c);
+                    + pvx * s + pvy * c);
             out.addSprite(RenderLayer.VEHICLES, cache.sprite,
                     cx, cy, pxLen * cache.aspect, pxLen,
                     parked.facingDegrees,

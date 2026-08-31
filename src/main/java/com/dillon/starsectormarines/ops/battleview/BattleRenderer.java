@@ -202,6 +202,8 @@ public class BattleRenderer {
 
     /** Ground-combat impact FX engine. */
     private final ImpactFx impactFx = new ImpactFx();
+    /** Presentation-owned full-path beams whose afterimage outlives the ballistic event. */
+    private final BeamFxService beamFx = new BeamFxService();
 
     /** World-layer renderer for the compound capture-state markers. */
     private final CompoundMarkerRenderer compoundMarkers = new CompoundMarkerRenderer();
@@ -268,9 +270,10 @@ public class BattleRenderer {
                         })),
                 new ShuttleRenderSystem(sprites),
                 // SHOTS: contrails first (the ContrailFxService emits RIBBON commands; its
-                // trail lifecycle is ticked from BattleScreen.advance), then the
-                // ShotRenderService body sweeps (tracers → bolts → projectile sprites).
-                // Listed contrails-first so submission order stays stable.
+                // trail lifecycle is ticked from BattleScreen.advance), then delivered
+                // ordnance, lingering beams, and ShotRenderService body sweeps
+                // (ordinary tracers → bolts → projectile sprites).
+                // Listed in this order so submission stays stable.
                 RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
                         contrailFx.collect(out, ctx.alphaMult)),
                 // Delivered ordnance sits with the shot bodies: it is rounds in
@@ -278,6 +281,8 @@ public class BattleRenderer {
                 // its own arrival spawns.
                 RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
                         ordnanceTraceFx.collect(ctx.camera, out, ctx.alphaMult)),
+                RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
+                        beamFx.collect(ctx.camera, out, ctx.alphaMult)),
                 new ShotRenderService(sprites, impactFx),
                 RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) ->
                         out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))));
@@ -396,6 +401,9 @@ public class BattleRenderer {
 
     /** Accessor for {@code BattleScreen.advance()} — spawn and advance impact FX particles. */
     public ImpactFx getImpactFx() { return impactFx; }
+
+    /** Authored lingering beam traces spawned and aged by the active presentation host. */
+    public BeamFxService getBeamFx() { return beamFx; }
 
     /** Accessor for {@code BattleScreen.advance()} — tick the contrail trail lifecycle on real dt. */
     public ContrailFxService getContrailFx() { return contrailFx; }

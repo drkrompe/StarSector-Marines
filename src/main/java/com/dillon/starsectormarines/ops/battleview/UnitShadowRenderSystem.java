@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
+import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -20,6 +21,22 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  * does it without drawing anything: terrain heights live in a cell field the
  * shader marches over. A marine has no cell to put a height in, so a body
  * draws its own shadow, on its own layer, beneath itself.
+ *
+ * <h2>Two shapes, because two things are being drawn</h2>
+ * <p>A body on the ground casts an <b>ellipse</b>. Nothing about a marine's
+ * outline survives being projected onto the ground at this scale, so a soft
+ * oval at the feet is both what an eye expects and all the information there
+ * is. An earlier version stretched that oval down-sun by the sun's whole
+ * reach, on the theory that a shadow is as long as the light says it is. At a
+ * marine's height that is three times the body's own length, and a soft blob
+ * three times too long does not read as a shadow — it reads as a smear
+ * trailing off the model.
+ *
+ * <p>An aircraft casts <b>its own hull</b>. The same sprite the aircraft is
+ * drawn with, tinted away to nothing and laid on the ground: a silhouette,
+ * because at eight to twelve cells long the outline is the whole point and an
+ * oval that size is a puddle. It costs no new art and cannot drift out of step
+ * with the hull, since it <em>is</em> the hull.
  *
  * <h2>Two kinds of height, and only one of them is physical</h2>
  * <p>A ground unit's height is real. It comes from
@@ -48,6 +65,28 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  * the arithmetic never would have — separation is the whole cue, and the
  * lateral offset is what provides it.
  *
+ * <h2>A shadow lies entirely down-sun of what casts it</h2>
+ * <p>The ellipse is offset by half its own length, so its near edge falls on
+ * the caster's centre and every part of it is on the far side from the light.
+ * An earlier version offset by a quarter of the sun's reach, which for a marine
+ * left about a fifth of a cell of shadow lying <em>between</em> the body and the
+ * sun — subtle in a still, and exactly the sort of thing that reads as wrong
+ * without being nameable.
+ *
+ * <p>A body genuinely does shade its own base, so the strictly physical near
+ * edge is one body radius up-sun rather than zero. That is not what is drawn
+ * here, deliberately: at these sizes the honest version is indistinguishable
+ * from the error it permits, and a rule with no exceptions is worth more than a
+ * fifth of a cell of realism.
+ *
+ * <p>The rule has one consequence worth knowing. As the sun approaches
+ * overhead the reach goes to nothing, the ellipse shrinks to the body's own
+ * width — and it is still anchored at the centre, so it sits half a width to
+ * one side instead of underneath. That is unavoidable: a blob centred under an
+ * overhead body necessarily extends up-sun, so "centred at noon" and "never
+ * up-sun" cannot both hold. The low sun is the case that looks wrong when it is
+ * wrong, so it is the one the rule serves.
+ *
  * <h2>Fog</h2>
  * <p>A shadow is gated on exactly the visibility its caster is, because a
  * shadow nobody should see is a unit nobody should see. That gate is load
@@ -60,27 +99,36 @@ public final class UnitShadowRenderSystem implements RenderSystem {
     private static final float SHADOW_ALPHA = 0.55f;
 
     /**
-     * How wide the blob is relative to the caster's body radius. Wider than the
-     * body because a soft falloff has no edge — sized to the body exactly, the
-     * visible part reads much smaller than the thing casting it.
+     * How wide the ellipse is relative to the caster's body radius. Wider than
+     * the body because a soft falloff has no edge — sized to the body exactly,
+     * the visible part reads much smaller than the thing casting it.
      */
     private static final float BLOB_WIDTH_PER_RADIUS = 2.6f;
 
     /**
-     * How wide an aircraft's shadow is against its length. A hull is longer
-     * than it is wide from above, and a circular blob under a transport reads
-     * as a puddle rather than as the machine casting it.
+     * How much of the sun's true reach the ellipse takes as length, beyond the
+     * body's own width.
+     *
+     * <p>A fraction rather than the whole of it. The reach at a marine's height
+     * is about three body-lengths, and a soft blob drawn out that far does not
+     * read as a shadow — it reads as a smear trailing off the model. What the
+     * reach is still good for is <em>relative</em> length: a mech's ellipse
+     * comes out longer than a marine's, and a low sun lengthens both.
      */
-    private static final float AIR_BLOB_WIDTH_FRACTION = 0.55f;
+    private static final float ELLIPSE_REACH_FRACTION = 0.35f;
 
     /**
-     * How much of its opacity an aircraft's shadow keeps at altitude.
+     * An aircraft silhouette's opacity, below a ground body's.
      *
-     * <p>The one thing height honestly changes about a shadow: thrown from
-     * further off it has a wider penumbra and reads softer. It does not read
-     * smaller — see the sizing below.
+     * <p>Lower rather than higher, which reverses the previous value and is
+     * worth saying why. While the aircraft cast a stretched radial blob it had
+     * to ask for roughly triple a marine's alpha merely to be visible at all,
+     * because a falloff spread over seven times the length is nearly all faint
+     * tail. A silhouette has no falloff: every pixel inside the hull's outline
+     * is at full strength, so the number that was barely visible as a blob
+     * would be a hole in the ground as a shape.
      */
-    private static final float AIR_ALPHA_AT_ALTITUDE = 0.7f;
+    private static final float AIR_SHADOW_ALPHA = 0.42f;
 
     /**
      * The altitude, in cells, an aircraft at full height casts from.
@@ -93,10 +141,9 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      * the hull to read, which makes this a presentational choice of the same
      * kind as the lift.
      *
-     * <p><b>Unverified.</b> The value is reasoned, not measured: the aircraft
-     * shadow is collected on every frame and has never yet been seen painted,
-     * so nothing here has been judged against a picture the way the ground
-     * constants were. Treat it as a starting point for whoever finds out why.
+     * <p>Judged against the aircraft panel of the {@code sun-shadows} suite,
+     * where it is what separates the hull from its shadow at full altitude
+     * without throwing the shadow clean out of the same shot.
      */
     private static final float AIR_SHADOW_ALTITUDE_CELLS = 11f;
 
@@ -114,19 +161,25 @@ public final class UnitShadowRenderSystem implements RenderSystem {
     }
 
     /**
-     * Every shadow is the engine glow, tinted dark: a radial falloff is a radial
-     * falloff whatever it was drawn for, and the softness is most of what sells
-     * this. A hard-edged quad reads as a sticker.
+     * A ground body's ellipse is the mod's own shadow disc, tinted dark. The
+     * soft edge is most of what sells this — a hard-edged quad reads as a
+     * sticker — which is why the layer originally borrowed the vanilla engine
+     * glow, on the reasoning that a radial falloff is a radial falloff whatever
+     * it was drawn for. That sprite is not a radial falloff: it is a four-lobed
+     * flare with concave notches bitten out of its corners, and stretched
+     * down-sun those notches become a chevron. Every marine on the field stood
+     * on one for the whole life of this layer, and from outside it read as the
+     * shadow being clipped, or as several shadows stacked on one body.
+     *
+     * <p>An aircraft brings its own shape and needs no stand-in at all.
      */
     @Override
     public void collect(RenderContext ctx, DrawList out) {
         if (!sun.casts()) return;
-        sprites.ensureEngineFxSprites();
-        SpriteAPI blob = sprites.engineGlowSprite();
-        if (blob == null) return;
-
-        collectGroundBodies(ctx, out, blob);
-        collectAircraft(ctx, out, blob);
+        sprites.ensureShadowSprite();
+        SpriteAPI blob = sprites.shadowBlobSprite();
+        if (blob != null) collectGroundBodies(ctx, out, blob);
+        collectAircraft(ctx, out);
     }
 
     /**
@@ -160,14 +213,19 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 float heightCells = 2f * roster.hitHalfHeight(entityId);
                 if (radiusCells <= 0f || heightCells <= 0f) continue;
 
-                float reach = sun.reachCells(heightCells);
-                // Away from the sun, from the body's own feet.
-                float shadowX = rx[r] - sun.dirX() * reach * 0.5f;
-                float shadowY = ry[r] - sun.dirY() * reach * 0.5f;
+                float widthCells = radiusCells * BLOB_WIDTH_PER_RADIUS;
+                float lengthCells = widthCells
+                        + sun.reachCells(heightCells) * ELLIPSE_REACH_FRACTION;
 
-                float width = radiusCells * BLOB_WIDTH_PER_RADIUS * cellPx;
-                float length = width + reach * cellPx;
-                emit(out, blob, cam, shadowX, shadowY, width, length,
+                // Half its own length down-sun, which puts the ellipse's near
+                // edge on the body's centre: nothing may lie between a body
+                // and the light that is casting it. See the class doc.
+                float anchor = lengthCells * 0.5f;
+                float shadowX = rx[r] - sun.dirX() * anchor;
+                float shadowY = ry[r] - sun.dirY() * anchor;
+
+                emit(out, blob, cam, shadowX, shadowY,
+                        lengthCells * cellPx, widthCells * cellPx,
                         shadowAngleDegrees(), alpha * SHADOW_ALPHA * sun.shadowStrength());
             }
         }
@@ -178,9 +236,10 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      * upward render offset is the altitude cue, and the shadow is what makes it
      * readable as height rather than as northward travel.
      */
-    private void collectAircraft(RenderContext ctx, DrawList out, SpriteAPI blob) {
+    private void collectAircraft(RenderContext ctx, DrawList out) {
         long[] airIds = ctx.sim.getAirEntityIds();
         if (airIds.length == 0) return;
+        sprites.ensureAirframeSprites();
 
         World world = ctx.sim.world();
         BattleCamera cam = ctx.camera;
@@ -194,6 +253,8 @@ public final class UnitShadowRenderSystem implements RenderSystem {
 
             Airframe frame = world.airframe(id);
             if (frame == null) continue;
+            ShuttleSpriteCache cache = sprites.airframeSprites().get(frame);
+            if (cache == null) continue;
 
             // The hull's real extent, from the same resolver the hull sprite
             // uses. An earlier version sized this from AirAppearance.scaleMult,
@@ -204,26 +265,37 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             float hullLengthCells = HullFootprintResolver.visualLengthCells(frame.renderHullId());
             if (hullLengthCells <= 0f) continue;
 
-            float altitudeT = world.altitudeT(id);
-            float alpha = ctx.alphaMult * SHADOW_ALPHA * sun.shadowStrength()
-                    * lerp(1f, AIR_ALPHA_AT_ALTITUDE, altitudeT);
+            float alpha = ctx.alphaMult * AIR_SHADOW_ALPHA * sun.shadowStrength();
 
             // Away from the sun by the altitude the hull is drawn at, which is
             // the game's own altitude rather than a second one invented here.
-            float reach = sun.reachCells(AIR_SHADOW_ALTITUDE_CELLS * altitudeT);
-            float shadowX = body.x - sun.dirX() * reach;
-            float shadowY = body.y - sun.dirY() * reach;
+            float reach = sun.reachCells(AIR_SHADOW_ALTITUDE_CELLS * world.altitudeT(id));
 
             // The craft's footprint on the ground, and nothing about how high it
             // is. Under a directional sun a rigid body's shadow is the size of
             // the body whatever its altitude; the hull drawing larger as it
-            // climbs is a camera-proximity cue rather than growth. An earlier
-            // version had the shadow SHRINK as the hull grew, which is backwards
-            // twice over and left a transport casting less than the marine
-            // standing beside it.
-            float length = hullLengthCells * AirAppearance.GROUND_SCALE * cellPx;
-            emit(out, blob, cam, shadowX, shadowY,
-                    length * AIR_BLOB_WIDTH_FRACTION, length, body.facingDegrees, alpha);
+            // climbs is a camera-proximity cue rather than growth. So this is
+            // AirAppearance.GROUND_SCALE where the hull draw uses scaleMult, and
+            // the two deliberately diverge as the aircraft rises.
+            float pxLen = hullLengthCells * cellPx * AirAppearance.GROUND_SCALE;
+
+            // The same pivot correction the hull draw makes, at the scale the
+            // shadow is drawn at. Without it the silhouette sits off its own
+            // aircraft by the hull's centre-of-gravity offset -- a fixed error
+            // that would read as a sun bearing nobody set.
+            float[] pivot = HullPivotResolver.pivotOffset(frame.renderHullId());
+            float rad = (float) Math.toRadians(body.facingDegrees);
+            float pc = (float) Math.cos(rad);
+            float psn = (float) Math.sin(rad);
+            float pvx = pivot[0] * AirAppearance.GROUND_SCALE;
+            float pvy = pivot[1] * AirAppearance.GROUND_SCALE;
+            float shadowX = body.x + (pvx * pc - pvy * psn) - sun.dirX() * reach;
+            float shadowY = body.y + (pvx * psn + pvy * pc) - sun.dirY() * reach;
+
+            // pxW/pxH exactly as ShuttleRenderSystem computes them for the
+            // hull, so the silhouette is the same rectangle at the same facing.
+            emit(out, cache.sprite, cam, shadowX, shadowY,
+                    pxLen * cache.aspect, pxLen, body.facingDegrees, alpha);
         }
     }
 
@@ -240,18 +312,28 @@ public final class UnitShadowRenderSystem implements RenderSystem {
         return (float) Math.toDegrees(Math.atan2(-sun.dirY(), -sun.dirX()));
     }
 
-    private static void emit(DrawList out, SpriteAPI blob, BattleCamera cam,
+    /**
+     * Lays one sprite on the ground as a shadow of itself: tinted to the sun's
+     * own shade at a third strength, so what survives the draw is the sprite's
+     * alpha and none of its colour. A silhouette and a soft ellipse are the
+     * same draw; only the sprite differs.
+     *
+     * <p>{@code pxW}/{@code pxH} are in
+     * {@link DrawList#addSprite}'s own order, deliberately. An earlier version
+     * named them width and length and handed them over swapped, which is
+     * invisible on anything near square — the shuttle in the preview suite
+     * included — and turns a long, narrow hull into a wide smear lying across
+     * its own axis. Matching the callee's order removes the chance to get it
+     * wrong rather than documenting how not to.
+     */
+    private static void emit(DrawList out, SpriteAPI shape, BattleCamera cam,
                              float worldX, float worldY,
-                             float width, float length, float angleDegrees, float alpha) {
-        if (alpha <= 0.004f || width <= 0f || length <= 0f) return;
-        out.addSprite(RenderLayer.UNIT_SHADOWS, blob,
+                             float pxW, float pxH, float angleDegrees, float alpha) {
+        if (alpha <= 0.004f || pxW <= 0f || pxH <= 0f) return;
+        out.addSprite(RenderLayer.UNIT_SHADOWS, shape,
                 cam.cellToScreenX(worldX), cam.cellToScreenY(worldY),
-                length, width, angleDegrees,
+                pxW, pxH, angleDegrees,
                 SunLight.TINT_R * 0.35f, SunLight.TINT_G * 0.35f, SunLight.TINT_B * 0.35f,
                 alpha);
-    }
-
-    private static float lerp(float a, float b, float t) {
-        return a + (b - a) * Math.max(0f, Math.min(1f, t));
     }
 }

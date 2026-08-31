@@ -4,7 +4,17 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — the selected infantry plate now arms a Defend Area
+Updated: 2026-08-31 — the selected-infantry plate now protects squad identity,
+strength, and morale in a summary row while contextual controls occupy a
+separate tactical-order row; the selected-Mech plate gives lance-wide Defend
+Area its own full-width section rather than packing it into coordination or
+doctrine controls.
+
+Earlier 2026-08-31 — primary world selection now distinguishes a click from a
+drag marquee and deterministically selects one player squad or combat Mech
+inside the dragged area.
+
+Earlier 2026-08-31 — the selected infantry plate now arms a Defend Area
 placement mode whose next world click previews and places a 40-cell-diameter
 circle; right-click or Escape cancels placement.
 
@@ -239,6 +249,14 @@ document pixels.
 The standalone battle treats HUD chrome as an overlay rather than as space removed
 from the world. Its square-cell camera cover-fits the granted host viewport and pans
 the cropped map axis instead of shrinking to a centred map rectangle with dead bars.
+Primary world selection resolves on release. Motion within the pointer threshold
+remains the ordinary nearest-unit click, including defender inspection and empty-
+ground deselection. Crossing that threshold paints a bounded marquee and considers
+only live player infantry squads and combat Mechs; convoy vehicles, hostiles, and
+mission payloads are not drag candidates. The one candidate nearest the marquee
+center wins, with stable entity identity breaking an exact tie. This preserves the
+single-selection command model while leaving room for a later multi-selection
+authority rather than pretending a set exists today.
 Player-facing Conquest command intent occupies the top-left opposite the top-right
 time/objective rail. Tick Profile and DEBUG share one centred developer cluster.
 The selected player squad replaces the force plate with a 3-column by 4-slot
@@ -248,9 +266,13 @@ role, armour, and readiness without enlarging the persistent HUD. Selecting an
 exact live player Mech replaces that infantry roster with a compact Mech plate:
 variant, deployed doctrine, effective doctrine, the lance-wide Form on Lead or
 Free Reign order, Brawler, Tank, Long Range Support, and Balanced choices, plus
-Reset Doctrine. Tank is presentation shorthand for Frontline Support. Scope is
+Reset Doctrine. A separate full-width tactical-order section arms lance-wide
+Defend Area placement; it is vertically separated from coordination and doctrine
+so the additional action cannot compress either control family. Tank is
+presentation shorthand for Frontline Support. Scope is
 visible beside the controls: the lance order affects the whole selected battle
-lance while doctrine affects only the exact selected mech. The plate projects
+lance, Defend Area affects that whole lance's temporary assignment, and doctrine
+affects only the exact selected mech. The plate projects
 the simulation's effective state and sends serialized battle-command requests;
 it never mutates the squad, loadout, campaign default, assignment, or contact
 picture directly, and it is absent for enemies, infantry, rescue payloads, and
@@ -269,8 +291,13 @@ opens a bounded, scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
 
-The same selected-infantry plate exposes **Defend Area** as a deliberate
-two-step command rather than overloading the contextual right-click gesture.
+The selected-infantry plate and selected-Mech plate expose **Defend Area**
+as a deliberate two-step command rather than overloading the contextual
+right-click gesture. Infantry issues it for the selected squad; a Mech issues
+one shared order for its whole battle lance.
+The infantry summary row is reserved for squad identity, strength, and morale;
+its contextual controls live in a separate tactical-order row so adding or
+renaming an order cannot compress the status readout.
 Arming it gives the next primary world click to a circular twenty-cell-radius
 reticle; right-click, Escape, or selection change cancels without issuing an
 order. Placement returns the input seam to ordinary world selection, while the

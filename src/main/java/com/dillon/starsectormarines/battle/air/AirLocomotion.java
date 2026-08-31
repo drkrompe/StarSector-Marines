@@ -40,7 +40,7 @@ public enum AirLocomotion {
 
     /**
      * On a solved trajectory — a curvature-feasible path the craft is being
-     * flown along, or a descent onto a point.
+     * flown along, or a descent onto a point, or a climb off one.
      *
      * <p>The mode the transitions live in, and the one that used to be a
      * teleport. Reaching a threshold and reaching it <em>pointed down the
@@ -82,6 +82,7 @@ public enum AirLocomotion {
                 return GROUNDED;
             case RETURNING:
             case PAD_DESCENT:
+            case PAD_ASCENT:
                 return MANAGED;
             case INCOMING:
             case ATTACK_RUN:

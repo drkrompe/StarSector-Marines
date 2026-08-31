@@ -276,7 +276,7 @@ public final class ShuttleMeans implements ReinforcementMeans {
                 /*pendingDelay*/ 0f);
         ShuttleMission mission = sim.world().mission(shuttleId);
         if (berth != null) {
-            mission.hp = sim.getAirfieldService().launch(berth);
+            sim.world().setHp(shuttleId, sim.getAirfieldService().launch(berth));
             mission.homeBerth = berth;
         }
         // Whoever the delivery policy says owns a delivered squad — the mission

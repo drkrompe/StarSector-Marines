@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
 import com.dillon.starsectormarines.battle.decision.goap.action.DefendArea;
 import com.dillon.starsectormarines.battle.infantry.SecureCompoundGoal;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
+import com.dillon.starsectormarines.battle.mech.GoapMechBehavior;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -222,6 +224,47 @@ class SquadMoveOrderSystemTest {
     }
 
     @Test
+    void defendAreaAppliesToTheWholeMechLanceWhileRetainingCombatTargets() {
+        BattleSimulation sim = openSimulation(80, 48);
+        Squad lance = squad(sim, Faction.MARINE, UnitType.HEAVY_MECH,
+                17, 20, 2);
+        ObjectiveAssignment mission = ObjectiveAssignment.clearZone(lance.id, 9);
+        lance.assignedObjective = mission;
+        long enemy = sim.spawn(new EntitySpec("enemy", Faction.DEFENDER,
+                UnitType.MARINE, 14, 20));
+        for (int i = 0; i < sim.squadMemberCount(lance.id); i++) {
+            sim.world().setTargetId(sim.squadMemberAt(lance.id, i), enemy);
+        }
+
+        sim.getSquadMoveOrderService().requestDefendArea(lance.id, 36, 20);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        ActiveDefendAreaOrder order = assertInstanceOf(ActiveDefendAreaOrder.class,
+                sim.getSquadMoveOrderService().activeOrder(lance.id));
+        assertSame(mission, lance.assignedObjective);
+        assertEquals(AssignmentKind.DEFEND_AREA,
+                lance.assignmentForExecution().kind());
+        assertEquals(20, order.radiusCells());
+
+        GoapMechBehavior.replanIfNeeded(lance, sim);
+        assertSame(DefendAssignedAreaGoal.INSTANCE, lance.currentGoal);
+        assertInstanceOf(DefendArea.class, lance.currentPlan.currentStep().action);
+        for (int i = 0; i < sim.squadMemberCount(lance.id); i++) {
+            long mech = sim.squadMemberAt(lance.id, i);
+            GoapMechBehavior.INSTANCE.update(mech, sim);
+            assertEquals(enemy, sim.targetOf(mech),
+                    "the area order must retain each chassis's combat target while positioning");
+            if (!Paths.isEmpty(sim.world().path(mech))) {
+                int dx = Paths.destX(sim.world().path(mech)) - order.destinationX();
+                int dy = Paths.destY(sim.world().path(mech)) - order.destinationY();
+                assertTrue(dx * dx + dy * dy
+                                <= order.radiusCells() * order.radiusCells(),
+                        "each chassis should take a position inside the lance's area");
+            }
+        }
+    }
+
+    @Test
     void arrivalHandsBackAndSurvivalSuspendsWhileWithdrawalCancels() {
         BattleSimulation sim = openSimulation(20, 12);
         Squad squad = infantrySquad(sim, Faction.MARINE, 3, 5, 2);
@@ -275,6 +318,30 @@ class SquadMoveOrderSystemTest {
         assertNull(sim.getSquadMoveOrderService().activeOrder(Integer.MAX_VALUE));
     }
 
+    @Test
+    void defendAreaRejectsEnemyCivilianAndRescueFormations() {
+        BattleSimulation sim = openSimulation(20, 12);
+        Squad enemy = infantrySquad(sim, Faction.DEFENDER, 3, 5, 1);
+        Squad civilian = squad(sim, Faction.MARINE, UnitType.CIVILIAN, 4, 5, 1);
+        Squad rescueGuard = infantrySquad(sim, Faction.MARINE, 5, 5, 1);
+        rescueGuard.rescuePickupGuard = true;
+        Squad rescueMech = squad(sim, Faction.MARINE,
+                UnitType.HEAVY_MECH, 6, 5, 1);
+        rescueMech.rescuePickupMech = true;
+
+        for (int id : new int[]{enemy.id, civilian.id, rescueGuard.id,
+                rescueMech.id, Integer.MAX_VALUE}) {
+            sim.getSquadMoveOrderService().requestDefendArea(id, 12, 5);
+        }
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        assertNull(sim.getSquadMoveOrderService().activeOrder(enemy.id));
+        assertNull(sim.getSquadMoveOrderService().activeOrder(civilian.id));
+        assertNull(sim.getSquadMoveOrderService().activeOrder(rescueGuard.id));
+        assertNull(sim.getSquadMoveOrderService().activeOrder(rescueMech.id));
+        assertNull(sim.getSquadMoveOrderService().activeOrder(Integer.MAX_VALUE));
+    }
+
     private static Squad infantrySquad(BattleSimulation sim, Faction faction,
                                         int x, int y, int count) {
         return squad(sim, faction, UnitType.MARINE, x, y, count);
@@ -292,8 +359,14 @@ class SquadMoveOrderSystemTest {
             if (type.usesInfantryTraining()) {
                 spec.primaryWeapon(WeaponRegistry.require(
                         WeaponRegistry.SQUAD_AUTOMATIC_ID));
+            } else if (type.isMech()) {
+                MechVariant.BULWARK.applyTo(spec);
             }
             long member = sim.spawn(spec);
+            if (type.isMech()) {
+                sim.world().attachMechLoadout(member,
+                        MechVariant.BULWARK.createLoadout(null));
+            }
             if (i == 0) squad.leaderId = member;
             sumX += sim.world().x(member);
             sumY += sim.world().y(member);

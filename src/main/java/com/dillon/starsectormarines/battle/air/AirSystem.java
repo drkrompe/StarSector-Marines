@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -72,24 +73,37 @@ public class AirSystem {
     private static final float AA_DPS_PER_POST = 6f;
 
     /**
-     * Cell radius within which ground troops can engage an aircraft that is on
-     * its wheels. Rifle reach rather than the AA bubble: this is people
-     * shooting at a machine trundling past them.
+     * How well fire lands on an aircraft crossing open ground, against the same
+     * fire aimed at one standing on a stand.
+     *
+     * <p>The skin is the same skin — an airframe's structure and armour are one
+     * ladder whether it is parked or rolling — so what separates the two is how
+     * often a round finds it, not how much it takes when one does. A hull on
+     * chocks is a mark you can settle onto; the same hull going past you at
+     * taxi speed is not, and the resolver leads a mover perfectly on purpose,
+     * so nothing else in the pipeline expresses that.
+     *
+     * <p>Set by measurement rather than by taste. The attrition field this
+     * replaced was hand-tuned until a six-man fire team needed the better part
+     * of four seconds to write a Broadsword off and a three-man team took about
+     * half its hull over a crossing — slow enough that a craft which keeps
+     * rolling gets past them, fast enough that one caught in the middle of the
+     * apron does not. Measured against that: rifles at full effect killed the
+     * same hull in 2.3s with six and 3.7s with three, which is a fire team
+     * roughly twice as lethal as the field it replaced. At this multiplier the
+     * same measurements read 3.4s and 8.1s, either side of the pair the old
+     * field was chosen to produce.
      */
-    private static final float GROUND_FIRE_RADIUS_CELLS = 10f;
+    private static final float ROLLING_ACCURACY_MULT = 0.40f;
 
     /**
-     * HP/sec each enemy shooter in range drains from a taxiing aircraft.
-     *
-     * <p>Tuned by watching it. At five a second a fire team of six wrote a
-     * Broadsword off in a second and a half, which is not a crossing under fire
-     * — the aircraft never got anywhere and the recording was of a machine
-     * dying beside its own shed. At two, the same team needs the better part of
-     * four seconds, so an aircraft that keeps rolling can get past them and one
-     * that is caught in the middle of the apron does not. The pressure is the
-     * point; the instant kill was just a number.
+     * Cell radius searched for ground units near a wreck settling onto a
+     * taxiway, wide enough to cover the wreck's own footprint plus the
+     * step-clear ring around it with margin to spare. Not tuned; this only has
+     * to be a generous superset, since {@link GroundWreckFootprint} filters
+     * the candidates itself.
      */
-    private static final float GROUND_FIRE_DPS_EACH = 2f;
+    private static final float GROUND_WRECK_GATHER_RADIUS_CELLS = 8f;
 
     /**
      * Floor under the distance at which an INCOMING craft snaps to the LZ and
@@ -189,8 +203,45 @@ public class AirSystem {
      */
     private static final float PAD_HOVER_T = 0.3f;
 
-    /** Sim-seconds a vertical lift spends settling from that hover onto the pad. */
-    private static final float PAD_SETTLE_SEC = 0.9f;
+    /**
+     * Sim-seconds a vertical lift spends climbing straight off its own
+     * hardstand before it turns for the LZ.
+     *
+     * <p>Unlike the settle this mirrors, there is nothing physical to wait
+     * for here — the craft is holding station over the pad it started on, so
+     * nothing it does changes how long the climb should take. A stated
+     * duration is therefore not the fault {@link #MAX_PAD_SETTLE_SEC} exists
+     * to bound; it is simply how long the climb-out is authored to look.
+     */
+    private static final float PAD_ASCENT_SEC = 0.9f;
+
+    /**
+     * How many sim-seconds a settle onto a pad is given to converge on its
+     * own before it is landed regardless.
+     *
+     * <p>The settle now ends on a condition — over the pad, and its speed
+     * killed — rather than on a clock, which is what fixed the bus-tier fault
+     * this project measured: a stated 0.9s duration snapped a Buffalo or a
+     * Mule to a stop while it was still three-odd cells short of the pad,
+     * because their gentler brakes could not kill a run-in's worth of speed
+     * that fast. A condition that might in principle never converge is worse
+     * than the clock it replaced, though, so this is the same shape as
+     * {@link #MAX_GO_AROUNDS}: a bound that is essentially never reached in
+     * practice (the braking law that drives the settle converges every hull
+     * tier in well under a second) and exists only so a pathological case
+     * lands instead of hovering for the rest of the battle. Landing on this
+     * bound still respects the brake — nothing is moved, only the settle is
+     * accepted as finished — which is what keeps it from being the same snap
+     * under a different name.
+     */
+    private static final float MAX_PAD_SETTLE_SEC = 5f;
+
+    /**
+     * Speed floor recorded as a settle's entry speed, so a craft that crosses
+     * the arrival gate essentially stationary does not divide by (near) zero
+     * when the descent profile normalises against it.
+     */
+    private static final float MIN_SETTLE_ENTRY_SPEED = 0.05f;
 
     /**
      * Fastest the drawn altitude may move, per second.
@@ -243,12 +294,23 @@ public class AirSystem {
     private final BattleComponents components;
 
     /**
-     * The air-craft spawn archetype {@code {AIR_IDENTITY, KINEMATICS,
-     * SHUTTLE_MISSION, APPEARANCE}} — adopted into the one entity world by
-     * {@link UnitRosterService#allocateAir}. Cached once (the component types are world-lifetime). No
-     * grid/combat components, so every grid walk skips air for free.
+     * The air-craft spawn archetype — adopted into the one entity world by
+     * {@link UnitRosterService#allocateAir}. Cached once (the component types
+     * are world-lifetime).
+     *
+     * <p>Still no {@code POSITION}, {@code COMBAT}, {@code MOVEMENT} or
+     * {@code ROLE}, which is what keeps occupancy, separation, the fire system,
+     * the mover and the planner off air for free. What it does carry is the
+     * convoy chassis's trio — {@code IDENTITY}, {@code HEALTH}, {@code ARMOR} —
+     * because an aircraft on its wheels has to be perceived, traced against
+     * line of sight, hit, attributed and killed, and those are exactly the
+     * columns the paths that already do all of that read. Membership-narrowing
+     * does the work an air-aware branch in each of them used to.
      */
     private final ComponentType[] shuttleArchetype;
+
+    /** Monotonic suffix for the greppable {@code IDENTITY} name; never recycled, so two craft never share one. */
+    private int spawnSequence;
 
     public AirSystem(NavigationService navigation, UnitRosterService roster,
                      TacticalScoring tacticalScoring, World world, TurretFireSink fireSink,
@@ -268,7 +330,8 @@ public class AirSystem {
         this.components = roster.components();
         this.shuttleArchetype = new ComponentType[]{
                 components.AIR_IDENTITY, components.KINEMATICS, components.SHUTTLE_MISSION,
-                components.APPEARANCE};
+                components.APPEARANCE, components.IDENTITY, components.HEALTH,
+                components.ARMOR};
     }
 
     /**
@@ -322,15 +385,45 @@ public class AirSystem {
         AirBody body = new AirBody();
         body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
         ShuttleMission mission = new ShuttleMission(lzX, lzY, entryX, entryY, exitX, exitY,
-                pendingDelay, 0, frame.maxHp());
+                pendingDelay, 0);
         long id = roster.allocateAir(shuttleArchetype);
         world.setAirIdentity(id, frame, faction);
         world.setKinematics(id, body);
         world.setMission(id, mission);
+        seedDurability(id, frame, faction);
         world.setAltitudeT(id, 1f);
         world.setFlightPhase(id, 0f);
         air.add(id);
         return id;
+    }
+
+    /**
+     * Gives a fresh craft the columns that make it a body worth shooting at:
+     * who it belongs to, how much of it there is, and how much skin is over
+     * that.
+     *
+     * <p>The durability is {@link BasedAircraft}'s, deliberately and to the
+     * number. A machine rolling across an apron and one standing on the pad
+     * beside it are the same airframe with the same skin, and two ladders for
+     * one aircraft would be a fact with two values — the sort that stays
+     * consistent exactly as long as nobody re-dials either.
+     */
+    private void seedDurability(long id, Airframe frame, Faction faction) {
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE,
+                UnitType.BASED_AIRCRAFT);
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, faction);
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_NAME,
+                "aircraft-" + (++spawnSequence));
+        float capacity = Math.max(1f, frame.maxHp());
+        world.setMaxHp(id, capacity);
+        world.setHp(id, capacity);
+        entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_DAMAGE_TAKEN_MULT, 1f);
+        entityWorld.setFloat(id, components.HEALTH,
+                BattleComponents.HEALTH_INCOMING_ACCURACY_MULT, ROLLING_ACCURACY_MULT);
+        float skin = capacity * BasedAircraft.ARMOR_CAPACITY_FRACTION;
+        world.setMaxArmor(id, skin);
+        world.setArmor(id, skin);
+        world.setArmorRating(id, BasedAircraft.ARMOR_RATING);
     }
 
     /** Spawns an infantry shuttle carrying a validated subset of its physical seats. */
@@ -345,7 +438,7 @@ public class AirSystem {
         AirBody body = new AirBody();
         body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
         ShuttleMission mission = new ShuttleMission(lzX, lzY, entryX, entryY, exitX, exitY,
-                pendingDelay, seatsPerSortie, type.maxHp);
+                pendingDelay, seatsPerSortie);
         // Taken off the hull once, here, rather than read off it every tick:
         // the hull says what it can do and the sortie says what it is doing.
         mission.deboardInterval = type.deboardInterval;
@@ -353,6 +446,7 @@ public class AirSystem {
         world.setAirIdentity(id, type, faction);
         world.setKinematics(id, body);
         world.setMission(id, mission);
+        seedDurability(id, type, faction);
         // Seed the authored render-state column (cruise altitude, zero wobble
         // phase). The state-machine tick drives it thereafter; the render/audio
         // passes read it by id.
@@ -409,6 +503,18 @@ public class AirSystem {
         this.detonations = detonations;
     }
 
+    /**
+     * The blast a craft killed on the ground shares with one burned on its
+     * pad. Null until wired; a grounded kill then leaves its wreck without the
+     * fire, the same graceful degradation {@link #detonations} gets.
+     */
+    private AirframeCookOffSystem airframeCookOff;
+
+    /** Gives this system the same cook-off a hardstand kill lights off, for a craft it kills on the ground itself. */
+    public void setAirframeCookOff(AirframeCookOffSystem airframeCookOff) {
+        this.airframeCookOff = airframeCookOff;
+    }
+
     /** Tells this system which field its based sorties belong to. */
     public void setAirfield(AirfieldService airfield) {
         this.airfield = airfield;
@@ -424,12 +530,12 @@ public class AirSystem {
      * lost — is an aircraft that did not come back, and its berth is written
      * off for the battle. A field is a finite thing to lose.
      */
-    private void handBackToField(ShuttleMission mission, boolean recovered) {
+    private void handBackToField(ShuttleMission mission, boolean recovered, float hullHp) {
         AirfieldService.Berth berth = mission.homeBerth;
         if (berth == null) return;
         mission.homeBerth = null;
         if (airfield == null) return;
-        if (recovered) airfield.recover(berth, mission.hp);
+        if (recovered) airfield.recover(berth, hullHp);
         else airfield.destroyed(berth);
     }
 
@@ -474,37 +580,25 @@ public class AirSystem {
         LongBucket scratch = new LongBucket();
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
-            boolean flying = isAirborneHittable(mission.state);
-            boolean rolling = isOnItsWheelsAndExposed(mission.state);
-            if (!flying && !rolling) continue;
+            if (!isAirborneHittable(mission.state)) continue;
             AirBody body = world.kinematics(id);
             Faction faction = world.airFaction(id);
             scratch.clear();
-            navigation.getUnitIndex().gather(body.x, body.y,
-                    flying ? AA_THREAT_RADIUS_CELLS : GROUND_FIRE_RADIUS_CELLS, scratch);
-            int shooters = 0;
+            navigation.getUnitIndex().gather(body.x, body.y, AA_THREAT_RADIUS_CELLS, scratch);
+            int posts = 0;
             for (int i = 0, n = scratch.size; i < n; i++) {
                 long e = scratch.ids[i];
                 if (roster.identity().faction(e) == faction) continue;
                 if (!world.isAlive(e)) continue;
-                if (flying) {
-                    // Only a defense post can reach up. Infantry and mechs
-                    // cannot engage something overhead.
-                    if (!roster.identity().type(e).isTurret()) continue;
-                } else {
-                    // On the ground it is a large slow object in the open, and
-                    // anything that shoots can shoot it. A structure cannot —
-                    // that would make a parked aircraft threaten a taxiing one.
-                    if (roster.identity().type(e).isStatic()
-                            && !roster.identity().type(e).isTurret()) {
-                        continue;
-                    }
-                }
-                shooters++;
+                // Only a defense post can reach up. Infantry and mechs
+                // cannot engage something overhead.
+                if (!roster.identity().type(e).isTurret()) continue;
+                posts++;
             }
-            if (shooters == 0) continue;
-            mission.hp -= shooters * (flying ? AA_DPS_PER_POST : GROUND_FIRE_DPS_EACH) * dt;
-            if (mission.hp <= 0f) shootDown(id, body, mission, shooters);
+            if (posts == 0) continue;
+            float hp = world.hp(id) - posts * AA_DPS_PER_POST * dt;
+            world.setHp(id, hp);
+            if (hp <= 0f) shootDown(id, body, mission, posts + " AA post(s)");
         }
     }
 
@@ -521,49 +615,73 @@ public class AirSystem {
     }
 
     /**
-     * Ground phases where the aircraft is out in the open under its own power,
-     * and anything with a weapon can shoot it.
+     * Shoot-down: the shuttle dies with its undelivered marines aboard. Terminal like the
+     * DEPARTING→GONE transition — set GONE; {@link #reapGoneCraft} destroys the entity (dropping every
+     * component) at end of tick.
      *
-     * <p>This is what a runway is <em>for</em>. A strip buys a minute of
-     * movement across open ground in exchange for not lifting vertically off a
-     * stand, and that trade is worth nothing if the minute is invulnerable —
-     * which it was: air could only ever be engaged by defence posts, and only
-     * while airborne, so a fighter taxiing past a fire team was in no danger
-     * whatsoever.
-     *
-     * <p>Two of the grounded phases are deliberately not here, and both are
-     * down with the ramp open rather than moving under their own power. A
-     * loading craft's passengers have already been taken off the roster, so
-     * making it shootable would owe them a disposition that nothing currently
-     * gives them; a landed one is the same craft at the other end of the trip.
-     * See {@code air-nouns.md}.
+     * <p>Grounded and airborne draw the one distinction {@code air-nouns.md} asks for. A craft killed
+     * taxiing, holding short, or partway down a roll is under its own power on the ground, and the same
+     * full tank under the same thin skin that makes a hardstand kill worth a fire team's time — it gets
+     * the same cook-off blast and a wreck that stays where it stopped. A craft lost at altitude falls; it
+     * does not leave a neat hull at the coordinates it was flying over, so it keeps the plain crash FX
+     * this always used and leaves no ground wreck.
      */
-    private static boolean isOnItsWheelsAndExposed(ShuttleState st) {
-        return AirLocomotion.of(st) == AirLocomotion.GROUNDED
-                && st != ShuttleState.LOADING && st != ShuttleState.LANDED;
+    private void shootDown(long id, AirBody body, ShuttleMission mission, String killedBy) {
+        if (mission.isOnItsWheelsAndExposed()) {
+            groundedShootDown(id, body, mission);
+        } else {
+            // Crash FX: a burning wreck + smoke-plume column at the crash site, so a shot-down dropship
+            // reads as a flaming wreck instead of just vanishing. Both feed the smoke/fire puff lists the
+            // renderer drains (EffectsService → ImpactFx → IMPACT_FX), the same path turret/mech/hub wrecks
+            // use — so it shows in the bridge and standalone alike. Clamp to an in-bounds cell (a shuttle
+            // can be shot down a few cells off-map on an exit leg) and co-locate the plume on that cell.
+            NavigationGrid grid = navigation.getGrid();
+            int wx = Math.max(0, Math.min(grid.getWidth() - 1, (int) Math.floor(body.x)));
+            int wy = Math.max(0, Math.min(grid.getHeight() - 1, (int) Math.floor(body.y)));
+            effects.spawnSmokePlume(wx + 0.5f, wy + 0.5f);
+            effects.spawnSmokingWreck(wx, wy);
+        }
+
+        handBackToField(mission, /*recovered*/ false, world.hp(id));
+        mission.state = ShuttleState.GONE;
+        LOG.info("air: shuttle " + world.airframe(id) + " shot down by " + killedBy + " with "
+                + mission.marinesRemaining + " marine(s) still aboard.");
     }
 
     /**
-     * Shoot-down: the shuttle dies in the air with its undelivered marines aboard. Terminal like the
-     * DEPARTING→GONE transition — set GONE; {@link #reapGoneCraft} destroys the entity (dropping every
-     * component) at end of tick.
+     * A craft the damage pipeline has just run out of structure. The one way
+     * an aircraft dies to real fire, and deliberately the same one an AA
+     * bubble uses: the cook-off, the wreck where it stopped, the berth written
+     * off and the runway given back are what a kill owes, and a second death
+     * path would be a kill that quietly skipped them.
      */
-    private void shootDown(long id, AirBody body, ShuttleMission mission, int posts) {
-        // Crash FX: a burning wreck + smoke-plume column at the crash site, so a shot-down dropship
-        // reads as a flaming wreck instead of just vanishing. Both feed the smoke/fire puff lists the
-        // renderer drains (EffectsService → ImpactFx → IMPACT_FX), the same path turret/mech/hub wrecks
-        // use — so it shows in the bridge and standalone alike. Clamp to an in-bounds cell (a shuttle
-        // can be shot down a few cells off-map on an exit leg) and co-locate the plume on that cell.
-        NavigationGrid grid = navigation.getGrid();
-        int wx = Math.max(0, Math.min(grid.getWidth() - 1, (int) Math.floor(body.x)));
-        int wy = Math.max(0, Math.min(grid.getHeight() - 1, (int) Math.floor(body.y)));
-        effects.spawnSmokePlume(wx + 0.5f, wy + 0.5f);
-        effects.spawnSmokingWreck(wx, wy);
+    public void destroyAircraft(long id) {
+        ShuttleMission mission = world.mission(id);
+        if (mission == null || mission.state == ShuttleState.GONE) return;
+        shootDown(id, world.kinematics(id), mission, "ground fire");
+    }
 
-        handBackToField(mission, /*recovered*/ false);
-        mission.state = ShuttleState.GONE;
-        LOG.info("air: shuttle " + world.airframe(id) + " shot down by " + posts + " AA post(s) with "
-                + mission.marinesRemaining + " marine(s) still aboard.");
+    /**
+     * The ground half of a shoot-down. Lights the same fire a hardstand kill does — one definition of
+     * the blast either way, see {@link AirframeCookOffSystem} — and leaves the hull where it stopped: a
+     * {@link GroundWreck} the field remembers for the rest of the battle and a footprint stamped into the
+     * ground the same way {@link AirfieldSystem} stamps one on a pad. {@code homeBerth} is written off by
+     * the caller's {@link #handBackToField}, not here — a wreck away from a berth is not the berth's own
+     * {@code wreckOnPad}, so the two stay independent facts the way {@link GroundWreck}'s class note
+     * explains.
+     */
+    private void groundedShootDown(long id, AirBody body, ShuttleMission mission) {
+        Faction faction = world.airFaction(id);
+        if (airframeCookOff != null) {
+            airframeCookOff.cookOff(id, body.x, body.y, faction);
+        }
+        if (airfield == null) return;
+        GroundWreck wreck = new GroundWreck(body.x, body.y, body.facingDegrees, world.airframe(id));
+        airfield.addGroundWreck(wreck);
+        LongBucket nearby = new LongBucket();
+        navigation.getUnitIndex().gather(body.x, body.y, GROUND_WRECK_GATHER_RADIUS_CELLS, nearby);
+        GroundWreckFootprint.settle(navigation.getGrid(), navigation.getTopology(), world,
+                nearby, wreck.cellX(), wreck.cellY());
     }
 
     /**
@@ -625,8 +743,8 @@ public class AirSystem {
                     embark(mission);
                     if (readyToLift(mission)) {
                         closeBoarding(mission);
-                        beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
-                        mission.state = ShuttleState.INCOMING;
+                        mission.padPhaseElapsed = 0f;
+                        mission.state = ShuttleState.PAD_ASCENT;
                     } else if (mission.boardingPatience <= 0f) {
                         // Out of time. Anyone already up the ramp flies — they
                         // were taken off the roster to board, so scrubbing on
@@ -637,15 +755,40 @@ public class AirSystem {
                         boolean anybodyAboard = mission.marinesRemaining > 0;
                         closeBoarding(mission);
                         if (anybodyAboard) {
-                            beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
-                            mission.state = ShuttleState.INCOMING;
+                            mission.padPhaseElapsed = 0f;
+                            mission.state = ShuttleState.PAD_ASCENT;
                         } else {
                             // Scrubbed on the pad with nobody aboard. The
                             // aircraft never went anywhere, so it is still the
                             // field's and goes straight back on its stand.
-                            handBackToField(mission, /*recovered*/ true);
+                            handBackToField(mission, /*recovered*/ true, world.hp(id));
                             mission.state = ShuttleState.GONE;
                         }
+                    }
+                    break;
+
+                case PAD_ASCENT:
+                    // Holding over the pad it just left and climbing, the
+                    // mirror of PAD_DESCENT: nothing is going anywhere yet,
+                    // only up. Station-keeping rather than steering toward the
+                    // LZ, because the LZ is the next phase's business — this
+                    // one is entirely about not popping to cruise altitude in
+                    // the tick INCOMING starts.
+                    AirSteeringSystem.steer(body, mission.entryX, mission.entryY,
+                            SteeringMode.STATION, flight, dt);
+                    mission.padPhaseElapsed += dt;
+                    world.setAltitudeT(id, smoothstep(
+                            Math.min(1f, mission.padPhaseElapsed / PAD_ASCENT_SEC)));
+                    world.setFlightPhase(id, world.flightPhase(id)
+                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                    if (mission.padPhaseElapsed >= PAD_ASCENT_SEC) {
+                        // Full cruise height before the first INCOMING sample
+                        // is taken, which is what keeps that sample a no-op:
+                        // its own ratio-based ramp starts a fresh leg already
+                        // believing the craft is at cruise, so there is
+                        // nothing left for it to jump from.
+                        beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
+                        mission.state = ShuttleState.INCOMING;
                     }
                     break;
 
@@ -851,7 +994,7 @@ public class AirSystem {
                             mission.shelterX, mission.shelterY, dt);
                     if (body.distanceTo(mission.shelterX, mission.shelterY) < THRESHOLD_ARRIVAL_DIST) {
                         mission.clearTaxiRoute();
-                        handBackToField(mission, /*recovered*/ true);
+                        handBackToField(mission, /*recovered*/ true, world.hp(id));
                         mission.state = ShuttleState.GONE;
                     }
                     break;
@@ -888,7 +1031,8 @@ public class AirSystem {
                             < flyingArrivalDist(SHUTTLE_LZ_ARRIVAL_FLOOR, body, flight, dt)) {
                         // Over the pad with its speed washed off. What is left
                         // is the settle, and it is flown rather than skipped.
-                        mission.settleTimer = PAD_SETTLE_SEC;
+                        mission.padDescentEntrySpeed = Math.max(body.speed(), MIN_SETTLE_ENTRY_SPEED);
+                        mission.padPhaseElapsed = 0f;
                         mission.state = ShuttleState.PAD_DESCENT;
                     }
                     break;
@@ -904,20 +1048,42 @@ public class AirSystem {
                     // mid-air and reappearing landed.
                     AirSteeringSystem.steer(body, mission.lzX, mission.lzY,
                             SteeringMode.STATION, flight, dt);
-                    mission.settleTimer -= dt;
-                    float held = Math.max(0f, mission.settleTimer) / PAD_SETTLE_SEC;
-                    world.setAltitudeT(id, PAD_HOVER_T * held * held * (3f - 2f * held));
+                    mission.padPhaseElapsed += dt;
+                    // Driven by how much of the craft's own drift is still
+                    // there to kill, not by a clock: a gentle-braking bus and
+                    // a nimble drop craft do not owe the eye the same number
+                    // of seconds, only the same picture of slowing down.
+                    float speedFrac = clamp01(body.speed() / mission.padDescentEntrySpeed);
+                    world.setAltitudeT(id, PAD_HOVER_T * smoothstep(speedFrac));
                     world.setFlightPhase(id, world.flightPhase(id)
                             + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
-                    if (mission.settleTimer <= 0f) {
+                    // Down is a fact about the craft, not a duration: it has to
+                    // actually be over the pad, and it has to have actually
+                    // stopped. A hull that brakes gently just takes a few more
+                    // ticks to satisfy the second half — it is never snapped
+                    // to a stop early the way a fixed clock used to snap it.
+                    boolean overThePad = body.distanceTo(mission.lzX, mission.lzY)
+                            < flyingArrivalDist(SHUTTLE_LZ_ARRIVAL_FLOOR, body, flight, dt);
+                    boolean speedKilled = body.speed() <= settledSpeed(flight, dt);
+                    boolean timedOut = mission.padPhaseElapsed >= MAX_PAD_SETTLE_SEC;
+                    if ((overThePad && speedKilled) || timedOut) {
+                        if (timedOut && !(overThePad && speedKilled)) {
+                            LOG.warn("air: " + world.airframe(id) + " settling onto its pad at ("
+                                    + mission.lzX + "," + mission.lzY + ") did not converge within "
+                                    + MAX_PAD_SETTLE_SEC + "s (speed " + body.speed()
+                                    + ", " + body.distanceTo(mission.lzX, mission.lzY)
+                                    + " cells out) — landing where it is.");
+                        }
                         world.setAltitudeT(id, 0f);
-                        // Its weight is on the pad, so nothing is left moving.
-                        // Nothing is moved, either: the craft stays exactly
-                        // where it flew itself to.
-                        body.vx = 0f;
-                        body.vy = 0f;
-                        body.ax = 0f;
-                        body.ay = 0f;
+                        // Nothing is moved: the craft stays exactly where it
+                        // flew itself to, carrying whatever sliver of drift
+                        // speedKilled judged not worth another tick's brake.
+                        // Not forced to exactly zero — nothing downstream of
+                        // LANDED reads the body's velocity for motion, and
+                        // forcing it here would be one more artificial
+                        // deceleration stacked on top of this tick's real one,
+                        // which is exactly the kind of snap this settle exists
+                        // to remove.
                         mission.state = ShuttleState.LANDED;
                         mission.deboardCountdown = mission.deboardInterval;
                     }
@@ -993,10 +1159,13 @@ public class AirSystem {
                             mission.deboardedThisSortie = 0;   // fresh sortie → loadout index restarts at 0
                             mission.pendingDelay = mission.rearmDelay;
                             // The re-arm is a full refit at the carrier, so repair the hull too —
-                            // without this, AA damage (D3) carries across sorties and a cycling
-                            // shuttle dies early on a later run despite "re-arming". Symmetric with
-                            // the magazine refill below.
-                            mission.hp = frame.maxHp();
+                            // without this, damage taken on one run carries across sorties and a
+                            // cycling shuttle dies early on a later one despite "re-arming". The
+                            // skin is made good in the same breath, since a refit that left the
+                            // armour spent would be a repair that only half happened. Symmetric
+                            // with the magazine refill below.
+                            world.setHp(id, frame.maxHp());
+                            world.setArmor(id, world.maxArmor(id));
                             // Clear the sortie-local squad cache. Untagged
                             // personnel mint a fresh squad next cycle; tagged
                             // campaign personnel resolve their existing
@@ -1023,7 +1192,7 @@ public class AirSystem {
                             // has landed at home, and the air entity ends
                             // because the aircraft has stopped being one, not
                             // because it has stopped existing.
-                            handBackToField(mission, /*recovered*/ true);
+                            handBackToField(mission, /*recovered*/ true, world.hp(id));
                             mission.state = ShuttleState.GONE;
                         }
                     }
@@ -1418,6 +1587,41 @@ public class AirSystem {
      */
     static float flownArrivalDist(float floorCells, AirBody body, float dt) {
         return Math.max(floorCells, ARRIVAL_TICK_MARGIN * body.speed() * dt);
+    }
+
+    /**
+     * How slow is stopped, for a craft settling onto a pad — tested against
+     * the hull's own brake rather than an authored number, the same reasoning
+     * {@link #flyingArrivalDist} applies to position.
+     *
+     * <p>Exactly one more tick's worth of braking: {@link AirHandling#brakingAccel()}
+     * is the most forward speed {@link AirSteeringSystem#steer} can shed in a
+     * single tick, so a craft at or under this is a craft one more tick of the
+     * same braking law would carry to zero anyway. Nothing wider is needed —
+     * the brake-to-a-point law this settle flies converges the hull's speed
+     * and its distance to the pad together (both go to zero at once under
+     * continuous following), so by the time position has closed to
+     * {@link #flyingArrivalDist}'s gate the speed is already most of the way
+     * to this floor on its own.
+     */
+    private static float settledSpeed(AirHandling flight, float dt) {
+        return flight.brakingAccel() * dt;
+    }
+
+    /** {@code t} folded into {@code [0, 1]}. */
+    private static float clamp01(float t) {
+        if (t < 0f) return 0f;
+        if (t > 1f) return 1f;
+        return t;
+    }
+
+    /**
+     * Ease {@code t ∈ [0, 1]} through a flat start and a flat finish rather
+     * than a constant rate — the shape both pad phases ride so a hover reads
+     * as easing to a stop / away rather than switching on and off.
+     */
+    private static float smoothstep(float t) {
+        return t * t * (3f - 2f * t);
     }
 
     /**
