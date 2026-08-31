@@ -4,6 +4,10 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-08-31 — a cook-off no longer spares the next stand by arithmetic.
+An aircraft on a berth is excluded from the blast, so the rule holds for a hull
+larger than any the build can enumerate.
+
 Updated: 2026-08-31 — how much of an aircraft there is to hit is one number,
 asked of the airframe by both representations. A parked hull answered the
 archetype's flat half-cell while the same hull rolling answered its own drawn
@@ -306,11 +310,22 @@ Four rules give the field its stakes:
   what the apron costs, or the whole reason a runway is dangerous is a lie for
   half its own length.
 
-The fire **does not chain**. Its reach is sized to the stand and the apron
-around it and stops short of the next hardstand, which an authored field puts
-eight cells away. A blast that took its neighbours with it would make one
-satchel worth an entire airfield and delete the only decision a raid contains,
-which is how much of the field to spend the visit on.
+The fire **does not chain**, and it is a rule rather than a clearance. An
+aircraft standing on a berth is left out of the blast outright, so one satchel
+is worth one aircraft whatever is parked either side of it. A blast that took
+its neighbours with it would make one satchel worth an entire airfield and
+delete the only decision a raid contains, which is how much of the field to
+spend the visit on, and that decision is too important to rest on two hulls
+being small enough. The fire's *reach* is still sized to the stand and the
+apron around it and still stops short of the next hardstand, which an authored
+field puts eight cells away — that is what keeps it off the ground crew and the
+riflemen over there, and it is the shortfall a wider blast or a tighter apron
+would spend. What no longer depends on it is the aircraft.
+
+Only the berth is spared, because only the berth is a decision. A craft caught
+taxiing, holding short or partway down a roll is on open ground beside a fire
+and burns like anything else out there, which is the same reason the crossing
+is worth attacking at all.
 
 **The wreck stays on the ground.** What the fire leaves is the aircraft's own
 hull, charred and in three pieces, lying at the place and bearing it was
@@ -701,14 +716,18 @@ decision, and coupling it to the art would re-tune every apron on every field
 whenever a sprite changed. The same separation the drawn-size fix drew, one seam
 over.
 
-Sizing the parked hull honestly has one consequence worth stating, because it
-runs against the no-chain rule above: a cook-off catches a neighbour at *blast
-radius plus that neighbour's own radius*, so an airframe whose radius exceeds
-the blast's shortfall against the eight-cell hardstand pitch would take the next
-stand with it. Every hull a field bases today is far inside that — the largest
-is about a cell and a half — and only the bus-tier transports approach it. If a
-field is ever based with one, the lever is the pitch or the blast, not a smaller
-aircraft.
+Sizing the parked hull honestly is what turned the no-chain rule above from a
+sum into a statement. A cook-off catches a body at *blast radius plus that
+body's own radius*, so for as long as every aircraft reported the archetype's
+flat half cell the rule held by four and a half cells against a pitch of eight,
+and nobody had to mean it. Reporting real drawn size put the largest transport
+at four and a half cells of aircraft on its own, which reaches across the gap;
+that it had never been seen was down to which hulls the fields happen to base,
+and a rule that survives on which hulls somebody picked is not a rule. So the
+berthed aircraft is excluded from the fire by name and the sum is no longer
+load-bearing for it. The bound the sum would have had to satisfy is not
+knowable anyway: it is the size of the largest hull anybody ever bases, which
+is not a number the build can be shown.
 
 **Rolling is not flying slowly.** Ground movement is its own locomotion model
 rather than the flight steering held down to walking pace. What flight does to
