@@ -254,8 +254,8 @@ public class ShotFxTest {
                     || WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(w.id);
             assertEquals(expectedTrail, !w.fx.layers(FxSlot.TRAIL).isEmpty(),
                     "authored trail for " + w);
-            if (WeaponRegistry.MECH_CHAINGUN_ID.equals(w.id)) {
-                assertTracerTail(fx, w, 1.10f, "mech chaingun");
+            if (w.tracerTailCells() > 0f) {
+                assertTracerTail(fx, w, w.tracerTailCells(), "mech ballistic tracer");
             } else {
                 assertNull(fx.tracerTail(), "mech weapon has no authored tracer tail: " + w);
             }

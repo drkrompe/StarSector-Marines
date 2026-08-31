@@ -266,6 +266,14 @@ final class LayeredMechComposer {
                     -0.37f, -0.15f + kick, 0.5f, 0f, alpha);
             emitFromRearPivot(out, assets.pulseLaserArm, actorX, actorY, hullWidth, facingDeg,
                     0.37f, -0.15f + kick, 0.5f, 0f, alpha);
+        } else if (arms == LayeredMechAppearance.ARMS_BASTION_AUTOCANNON) {
+            emitFromRearPivot(out, assets.bastionAutocannon, actorX, actorY, hullWidth,
+                    facingDeg, -0.37f, -0.15f + kick, 0.5f, 0f, alpha);
+            emitFromRearPivot(out, assets.bastionAutocannon, actorX, actorY, hullWidth,
+                    facingDeg, 0.37f, -0.15f + kick, 0.5f, 0f, alpha);
+        } else if (arms == LayeredMechAppearance.ARMS_DEMOLITION_CANNON) {
+            emitFromRearPivot(out, assets.demolitionCannon, actorX, actorY, hullWidth,
+                    facingDeg, 0f, -0.05f, 1f, 0f, alpha);
         }
     }
 
@@ -292,7 +300,8 @@ final class LayeredMechComposer {
                 primary.xHullWidths(), primary.yHullWidths() - recoil, 0f, alpha);
         if (arms == LayeredMechAppearance.ARMS_CHAINGUN
                 || arms == LayeredMechAppearance.ARMS_LINEAR_CANNON
-                || arms == LayeredMechAppearance.ARMS_PULSE_LASER) {
+                || arms == LayeredMechAppearance.ARMS_PULSE_LASER
+                || arms == LayeredMechAppearance.ARMS_BASTION_AUTOCANNON) {
             MechHardpointGeometry.LocalPoint secondary =
                     MechHardpointGeometry.armsMuzzle(arms, 1);
             emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
@@ -352,7 +361,8 @@ final class LayeredMechComposer {
                                        int installedPod,
                                        float actorX, float actorY, float hullWidth,
                                        float facingDeg, float localX, float alpha) {
-        if (installedPod != LayeredMechAppearance.POD_SHOULDER_LASER) return;
+        if (installedPod != LayeredMechAppearance.POD_SHOULDER_LASER
+                && installedPod != LayeredMechAppearance.POD_THERMAL_LANCE) return;
         emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
                 localX, MechHardpointGeometry.podForward(installedPod), 0f, alpha);
     }
@@ -363,6 +373,9 @@ final class LayeredMechComposer {
                                 float srmKick, float lrmKick, float alpha) {
         if (pod == LayeredMechAppearance.POD_SHOULDER_LASER) {
             emitFromRearPivot(out, assets.shoulderLaser, actorX, actorY, hullWidth, facingDeg,
+                    localX, -0.30f, 1f, 0f, alpha);
+        } else if (pod == LayeredMechAppearance.POD_THERMAL_LANCE) {
+            emitFromRearPivot(out, assets.thermalLance, actorX, actorY, hullWidth, facingDeg,
                     localX, -0.30f, 1f, 0f, alpha);
         } else if (isSmallPod(pod)) {
             emitFromRearPivot(out, assets.srmPod, actorX, actorY, hullWidth, facingDeg,
