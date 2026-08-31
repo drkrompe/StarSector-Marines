@@ -150,6 +150,48 @@ public final class VehicleController {
         return path != null && isPathFeasible(start, path, turnRadius, type, grid);
     }
 
+    /**
+     * Whether a vehicle standing at ({@code x}, {@code y}) on
+     * {@code bodyFacingDeg} can back and fill onto the route
+     * ({@code routeXs}, {@code routeYs}) that starts there.
+     *
+     * <p>The strict counterpart to {@link #canReverseDirectionAt}, and the one
+     * dispatch has to believe. That method asks whether the <em>docking</em>
+     * maneuver could turn the vehicle round, which it evaluates from a pose one
+     * trigger distance back up the approach — often a materially wider piece of
+     * road than the drop point itself. But docking is an attempt, not a
+     * guarantee: it is tried from whatever pose the body actually holds on each
+     * tick inside the trigger radius, and a truck that arrives through the plain
+     * distance gate instead is left standing on the drop point on the heading it
+     * drove in on. Measured on seed 8919: the docking question answered yes six
+     * cells back, where the road opens out, and the vehicle then sat on a
+     * five-cell-wide drop point where no maneuver fits, for the rest of the
+     * battle.
+     *
+     * <p>So the question worth asking before committing to a route is the one
+     * with no run-up in it: from the drop point, on the heading the route will
+     * deliver, is there a feasible way onto the exit? That is exactly what the
+     * runtime turnaround attempts, asked ahead of time.
+     */
+    public static boolean canTurnOntoRouteAt(NavigationGrid grid, VehicleType type,
+                                             float x, float y, float bodyFacingDeg,
+                                             float[] routeXs, float[] routeYs) {
+        GroundBody body = type.createBody();
+        if (!(body instanceof BicycleBody)) return true;
+        if (routeXs.length < 2) return true;
+        float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
+        ReferenceCorridor corridor = new ReferenceCorridor(routeXs, routeYs, 1);
+        Pose start = new Pose(x, y, bodyFacingDeg);
+        for (float factor : TURNAROUND_LEAD_FACTORS) {
+            Pose goal = corridor.targetAhead(x, y, turnaroundLead(turnRadius, factor));
+            ReedsShepp.Path path = ReedsShepp.shortest(start, goal, turnRadius);
+            if (path == null) continue;
+            if (path.lengthCells(turnRadius) < MIN_TURNAROUND_CELLS) return true; // already aligned
+            if (isPathFeasible(start, path, turnRadius, type, grid)) return true;
+        }
+        return false;
+    }
+
     /** Sample step (cells) along the RS path when validating feasibility against {@link VehicleFootprint}. */
     private static final float DOCKING_FOOTPRINT_SAMPLE_CELLS = 0.5f;
     /** Sim-seconds a vehicle must be wall-blocked before it starts reversing. Brief pause reads as "realizing the turn won't fit." */
