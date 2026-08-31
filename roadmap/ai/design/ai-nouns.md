@@ -985,6 +985,18 @@ bug, and this one was an expensive bug — but the measured cost is squads lost
 on approach where they used to stand still, and the gain is pressing that had
 not been happening. Which of those a mission wants is doctrine, not a defect.
 
+**An unreachable answer from the picker is a question, not a verdict.** The
+firing-position search is two-stage: the first scores line of sight and weapon
+range and never asks whether a path exists, the second walks vantage
+candidates and pathfinds, taking the first it can actually reach. So a cell
+across a wall is an ordinary answer from the first stage, and the right
+response is to ask the second — only when both refuse is the target genuinely
+unapproachable from here. A caller that drops on the first refusal discards
+approaches that exist, which is a squad declining to walk round a building; a
+caller that takes the cell anyway pins the member on an empty path, and
+because the repath throttle is stamped only on a non-empty assignment, pays a
+full-component search every tick to stand there.
+
 A perceived contact and a usable firing line are distinct. Perception may use
 the cached projected-cell line of sight, while a ground direct-fire decision
 must validate the member's true point against the intended target's true point.
