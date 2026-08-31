@@ -78,6 +78,9 @@ public class GroundSystem {
     private final ConvoyService convoy;
     /** The stateless motion driver every vehicle's {@code mission.controller} shim forwards to — one instance shared across the whole convoy. */
     private final VehicleControlSystem controlSystem;
+    /** Player move orders. An active one temporarily owns a chassis's locomotion and nothing else. */
+    private final VehicleMoveOrderService moveOrders = new VehicleMoveOrderService();
+    private final VehicleMoveOrderSystem moveOrderSystem;
 
     /** The backbone: world entity ids of live convoy vehicles. The {@link VehicleMission} bags
      *  live in the {@code VEHICLE_MISSION} component (reached via {@link ConvoyService#mission},
@@ -100,7 +103,15 @@ public class GroundSystem {
         this.effects = effects;
         this.convoy = roster.convoy();
         this.controlSystem = new VehicleControlSystem(convoy, navigation);
+        this.moveOrderSystem = new VehicleMoveOrderSystem(
+                moveOrders, convoy, navigation, controlSystem);
     }
+
+    /** The mailbox the interface queues move requests into. */
+    public VehicleMoveOrderService moveOrders() { return moveOrders; }
+
+    /** The order system, for the highlight overlay. */
+    public VehicleMoveOrderSystem moveOrderSystem() { return moveOrderSystem; }
 
     /** Snapshot of the live convoy-vehicle entity ids — the id backbone the render / picking / debug
      *  passes walk, resolving each vehicle by id via {@link ConvoyService}. The ground twin of
@@ -127,9 +138,19 @@ public class GroundSystem {
      * — caller is responsible for matching {@code dt} to its tick cadence.
      */
     public void tick(float dt) {
+        moveOrderSystem.tickPending();
         for (long id : convoy.entityIds()) {
             VehicleMission m = convoy.mission(id);
             VehicleType type = convoy.vehicleType(id);
+            // An order owns the chassis's locomotion while it lasts. The errand
+            // is not cancelled — it is standing still — so nothing else in the
+            // state machine runs for this vehicle, deboarding included.
+            if (moveOrderSystem.executeIfActive(id, dt)) {
+                if (m.isVisible()) {
+                    m.recordTick(convoy.body(id), convoy.control(id).wallStuckTime());
+                }
+                continue;
+            }
             switch (m.state) {
                 case PENDING:
                     m.pendingDelay -= dt;
