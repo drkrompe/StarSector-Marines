@@ -2,10 +2,8 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-25 — fire-team inspection now pairs a two-by-two marine dossier grid
-with a known-only vertical loadout browser. Inline team tabs, status-colored dossier
-borders, Weapon/Armor modes, and rarity filters leave discovery intact while scaling
-the browser toward a much larger campaign collection.
+Updated: 2026-08-31 — faction-authored loadout cards now pair provenance with the
+vanilla faction flag selected by authored presentation data.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -112,6 +110,9 @@ breadcrumb keeps every completed level directly reachable.
 - Every known built-in entry reads tier, rarity, provenance, and lore from authored
   data. Tier communicates expected capability; rarity communicates campaign acquisition
   scarcity and presentation, never random selection weight.
+- Every faction-authored Weapon Loadout and Tactic Sheet card shows the corresponding
+  vanilla faction flag beside its provenance; company-authored definitions do not
+  inherit a misleading faction badge.
 - Selecting or issuing a loadout never rolls from a pool. Its twelve ordered billets
   and special-equipment placements are deterministic authored contents.
 - Player definitions round-trip with `MarineArmory`; built-ins cannot be renamed or
