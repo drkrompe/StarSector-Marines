@@ -8,7 +8,10 @@
  *           turrets ({@code MountedTurret}, {@code TurretMount}),
  *           steering ({@code SteeringMode}), and engine slots
  *           ({@code engine/}). Shuttles and (planned) fighters share
- *           {@code AirBody}.
+ *           {@code AirBody}. An aircraft on its wheels is also a combat
+ *           target: {@code AirTargetService} says which craft ground fire can
+ *           reach and {@code AirDamageResolver} applies the shared durability
+ *           law to one, both on {@code ConvoyService}'s terms.
  * <br>Boundary: motion is <em>composed</em>, not inherited — sync a unit's
  *           cell/render position from its {@code AirBody} each tick, or
  *           shots fire from the spawn point while sprites orbit.

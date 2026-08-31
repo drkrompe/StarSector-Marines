@@ -336,6 +336,34 @@ public final class UnitSpatialIndex {
             }
         }
         addConvoyBodies(roster);
+        addExposedAircraft(roster);
+    }
+
+    /**
+     * Inserts every aircraft that is on its wheels in the open, on the same
+     * terms as the convoy bodies above: a craft rolling across an apron is a
+     * large slow object anybody can see and shoot, and it reaches the scans
+     * that decide those things by being in this snapshot rather than by
+     * teaching each of them what an aircraft is.
+     *
+     * <p>A craft in the air is deliberately absent. Anti-air is a per-weapon
+     * question about altitude that nothing answers yet, and admitting a flying
+     * machine here would have every rifle on the map take shots at it — so the
+     * gate is exactly the one the exposure model already draws, and it moves
+     * with the phase rather than with anything this class knows.
+     */
+    private void addExposedAircraft(UnitRosterService roster) {
+        World world = roster.world();
+        roster.airTargets().forEachTargetable(id -> {
+            observeBodyRadius(roster, id);
+            float x = world.x(id);
+            float y = world.y(id);
+            Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
+            if (bucket == null) return;
+            bucket.add(id, x, y,
+                    (byte) roster.identity().faction(id).ordinal(),
+                    roster.identity().type(id).combatant);
+        });
     }
 
     /**
