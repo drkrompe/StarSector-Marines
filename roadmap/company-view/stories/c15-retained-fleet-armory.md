@@ -2,8 +2,8 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-31 — faction-authored loadout cards now pair provenance with the
-vanilla faction flag selected by authored presentation data.
+Updated: 2026-08-31 — faction-authored loadout and issued-equipment cards now pair
+provenance with vanilla faction flags; long equipment field notes scroll in place.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -133,6 +133,11 @@ breadcrumb keeps every completed level directly reachable.
 - Each marine dossier keeps its battle-composed portrait in the upper-right, surfaces
   class plus weapon and armor tier as badges, and reads weapon, armor, and specialty
   prose from their owning data definitions rather than screen-authored copy.
+- Issued weapon, armor, specialty, and carried integral-system labels and tooltip
+  headings show the representative vanilla faction flag from their owning catalog or
+  armor tradition. Missing or uncarried equipment reserves no empty badge space.
+- Equipment field-note overlays remain bounded to the dossier and scroll when their
+  authored title and prose exceed the available height; no lore is silently clipped.
 - Damage, range, accuracy, sustained output, health, armor, resistance, and actual
   movement speed appear as comparative meters with exact values; their fill scale is
   stable across the four marines rather than relative to only the selected team.
