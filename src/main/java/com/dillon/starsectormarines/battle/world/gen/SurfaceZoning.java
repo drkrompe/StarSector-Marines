@@ -45,9 +45,15 @@ public final class SurfaceZoning {
         if (id.contains("desert") || id.contains("arid")) {
             return SurfacePalette.ARID;
         }
+        // Cold worlds. "ice" catches rocky_ice; "cryo" catches cryovolcanic;
+        // "cold" catches toxic_cold. Checked after the living worlds because
+        // tundra is habitable and keeps its vegetation despite the climate.
+        if (id.contains("frozen") || id.contains("ice") || id.contains("cryo")
+                || id.contains("cold")) {
+            return SurfacePalette.FROZEN;
+        }
         // Everything else the Sector actually fights over: barren, rocky,
-        // toxic, irradiated, lava, cryovolcanic, frozen. Frozen reads as stone
-        // rather than ice because there is no snow art in the project yet.
+        // toxic, irradiated, lava.
         return SurfacePalette.ROCK;
     }
 }

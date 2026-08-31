@@ -796,6 +796,20 @@ symptom in isolation, so the contrast — cultivated lawn beside wild regolith o
 the *same* world — is what is pinned, in `CultivatedGroundTest`. What survives
 in the built area is the colony's; what surrounds it is the planet's.
 
+**A world the palette has no entry for is a world that looks like every other
+one.** `GroundKind.SNOW` was declared and then emitted by nothing: unmapped in
+`groundRender`, skipped outright by the renderer, refused relief by the
+micro-height sampler. So the whole cold family — the `frozen` types,
+`rocky_ice`, `cryovolcanic`, `toxic_cold`, about a quarter of the Sector's
+landable worlds — came out as the same grey regolith as a barren rock, and
+nothing anywhere reported a problem. A dead enum value is not a neutral
+placeholder; it is a silent verdict that some quarter of the map space does not
+exist.
+
+That is the shape of the remaining gap rather than a closed question. Toxic,
+irradiated and volcanic worlds still collapse into rock for exactly the same
+reason, and will until each has a material family of its own.
+
 An **economic district** earns its identity through navigable geometry, cover,
 destruction, and sightlines. Spaceport aprons exemplify this: they are open
 tarmac with sparse, destructible hard cover and a reachable control hardpoint,

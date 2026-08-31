@@ -7,8 +7,10 @@ Written: 2026-08-23
 Updated: 2026-08-31 — the disjoint families share one named body concept behind
 one carrier-agnostic surface; engagement is a relation between a shooter and a
 body rather than a property of the body, with presence and reach owned
-separately; and a body's own geometry is one decision read two ways, the by-id
-and columnar accesses differing in cost but never in answer.
+separately; a body's own geometry is one decision read two ways, the by-id
+and columnar accesses differing in cost but never in answer; and the spawn seam
+places rather than merely creates, so an arrival that will never move gets the
+cell it was given and the incumbent steps aside.
 
 The battle simulation has one composition substrate: an `EntityWorld`.  This
 document names the durable model, ownership, and safety laws of that substrate.
@@ -67,6 +69,25 @@ telemetry may ride the row move while live-only combat and behavior capability
 is removed. `POSITION` is the single ground-location authority; its cell
 projection is owned by `continuous-positions-nouns.md`. Air and convoy entities
 use their own lifecycle components rather than pretending to be grid units.
+
+**Arriving is a placement, not only a creation.** A spec names a cell, and the
+seam that adopts it is the only place that sees every arrival, so the standing
+rule about who may stand where belongs there rather than in each caller — most
+of which put a body on one authored point with no search of their own. The rule
+is narrow on purpose: **an arrival lacking `MOVEMENT` takes its cell and the
+incumbent steps aside.** Overlap between two bodies that can walk is left alone,
+because it is a transient the simulation already resolves continuously and
+because play produces overlaps no spawn check could prevent. What no later push
+can undo is a decision taken once on the tick a body arrives — the ground an
+airframe stamps as it lands, which leaves permanently open any cell somebody was
+standing in — and a body that cannot move is exactly a body whose placement is
+final.
+
+The rule never refuses. A spawn that declined to happen is a berth that quietly
+stops flying and, worse, a way for an attacker to shut a facility down by
+standing on it. When the incumbent cannot move either, the two overlap: two
+static placements in one cell is a fault upstream that teleporting one of them
+would hide.
 
 **Leaving is not dying, and the two remove different things.** Dropping a unit
 from the dense roster is only half of a death: it is deliberately paired with
