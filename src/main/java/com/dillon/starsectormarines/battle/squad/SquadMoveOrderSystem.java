@@ -291,7 +291,7 @@ public final class SquadMoveOrderSystem {
         Squad squad = sim.getSquad(squadId);
         if (squad == null || squad.faction != Faction.MARINE
                 || squad.isMechSquad() || squad.isDroneSquad()
-                || squad.rescuePickupGuard || squad.rescueShelterGuard) {
+                || squad.rescueShelterGuard) {
             return null;
         }
         long member = firstLiveMember(squad, sim);
@@ -305,8 +305,8 @@ public final class SquadMoveOrderSystem {
                                                  BattleSimulation sim) {
         Squad squad = sim.getSquad(squadId);
         if (squad == null || squad.faction != Faction.MARINE
-                || squad.isDroneSquad() || squad.rescuePickupGuard
-                || squad.rescueShelterGuard || squad.rescuePickupMech) {
+                || squad.isDroneSquad() || squad.rescueShelterGuard
+                || squad.rescuePickupMech) {
             return null;
         }
         long member = firstLiveMember(squad, sim);

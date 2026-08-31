@@ -63,6 +63,18 @@ class SquadDefendTargetingPanelTest {
         assertEquals(Selection.NONE, panel.targetingSquadId());
     }
 
+    @Test
+    void rescuePickupInfantryCanArmTheSamePlayerAreaOrder() {
+        Fixture fixture = fixture();
+        fixture.squad.rescuePickupGuard = true;
+        SquadDefendTargetingPanel panel = new SquadDefendTargetingPanel(fixture);
+
+        panel.toggle(fixture.squad.id);
+
+        assertEquals(fixture.squad.id, panel.targetingSquadId(),
+                "rescue perimeter duty must not disable player command controls");
+    }
+
     private static InputEventAPI leftClick(int x, int y) {
         boolean[] consumed = {false};
         return (InputEventAPI) Proxy.newProxyInstance(
