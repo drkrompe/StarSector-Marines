@@ -29,11 +29,13 @@ class BattleMechOverlayModelTest {
         AtomicInteger backs = new AtomicInteger();
         AtomicReference<Request> requested = new AtomicReference<>();
         AtomicReference<LanceRequest> lanceRequested = new AtomicReference<>();
+        AtomicInteger defendRequested = new AtomicInteger(-1);
         BattleMechOverlayModel model = new BattleMechOverlayModel(
                 reactor, backs::incrementAndGet,
                 (mechId, role) -> requested.set(new Request(mechId, role)),
                 (mechId, order) -> lanceRequested.set(
-                        new LanceRequest(mechId, order)));
+                        new LanceRequest(mechId, order)),
+                defendRequested::set);
         List<MechRole> roles = BattleMechOverlayModel.selectableRoles();
         assertEquals(4, roles.size());
         assertEquals("BRAWLER", upper(roles.get(0)));
@@ -44,8 +46,8 @@ class BattleMechOverlayModelTest {
         MechRole effective = roles.get(0);
         MechRole deployed = roles.get(1);
         assertTrue(model.updateProjected(new BattleMechOverlayModel.MechState(
-                42L, "Atlas Three", "Bulwark", deployed, effective,
-                MechLanceOrder.FORM_ON_LEAD, roles)).visible());
+                7, 42L, "Atlas Three", "Bulwark", deployed, effective,
+                MechLanceOrder.FORM_ON_LEAD, false, roles)).visible());
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 Path.of("mod").resolve(path)), List.of(BattleMechOverlay.COMPONENT_PATH));
@@ -72,8 +74,16 @@ class BattleMechOverlayModelTest {
                     .hasClass("doctrine-state-overridden"));
             assertEquals("LANCE ORDER", instance.requireElement(
                     "battle-mech-lance-order-heading").text());
-            assertEquals("WHOLE SQUAD", instance.requireElement(
+            assertEquals("WHOLE LANCE", instance.requireElement(
                     "battle-mech-lance-order-scope").text());
+            assertEquals("TACTICAL ORDER", instance.requireElement(
+                    "battle-mech-tactical-order-heading").text());
+            assertEquals("WHOLE LANCE", instance.requireElement(
+                    "battle-mech-tactical-order-scope").text());
+            assertEquals("DEFEND AREA", instance.requireElement(
+                    "battle-mech-defend-area-name").text());
+            assertEquals("PLACE 40-CELL ZONE", instance.requireElement(
+                    "battle-mech-defend-area-meta").text());
             assertEquals("SELECTED MECH", instance.requireElement(
                     "battle-mech-doctrine-scope").text());
             assertEquals("RESET DOCTRINE", instance.requireElement(
@@ -98,6 +108,32 @@ class BattleMechOverlayModelTest {
                     <= BattleMechOverlay.DOCUMENT_WIDTH);
             assertTrue(instance.requireElement("battle-mech-panel").box().borderBox().bottom()
                     <= BattleMechOverlay.DOCUMENT_HEIGHT);
+            assertTrue(instance.requireElement("battle-mech-lance-order-cards")
+                    .box().borderBox().bottom()
+                    < instance.requireElement("battle-mech-tactical-order-heading-row")
+                    .box().borderBox().y());
+            assertTrue(instance.requireElement("battle-mech-defend-area")
+                    .box().borderBox().bottom()
+                    < instance.requireElement("battle-mech-doctrine-heading-row")
+                    .box().borderBox().y());
+            assertTrue(instance.requireElement("battle-mech-defend-area")
+                    .box().borderBox().width() > 380f,
+                    "the lance action needs a full row rather than another packed chip");
+
+            click(document, instance.requireElement("battle-mech-defend-area"));
+            assertEquals(7, defendRequested.get());
+
+            assertTrue(model.updateProjected(new BattleMechOverlayModel.MechState(
+                    7, 42L, "Atlas Three", "Bulwark", deployed, effective,
+                    MechLanceOrder.FORM_ON_LEAD, true, roles)).visible());
+            instance.flush();
+            document.advance(0f);
+            assertEquals("CANCEL AREA", instance.requireElement(
+                    "battle-mech-defend-area-name").text());
+            assertEquals("PLACEMENT ARMED", instance.requireElement(
+                    "battle-mech-defend-area-meta").text());
+            assertTrue(instance.requireElement("battle-mech-defend-area")
+                    .hasClass("mech-defend-area-active"));
 
             click(document, instance.requireElement("battle-mech-free-reign"));
             assertEquals(42L, lanceRequested.get().mechId());
@@ -105,8 +141,8 @@ class BattleMechOverlayModelTest {
                     lanceRequested.get().order());
 
             assertTrue(model.updateProjected(new BattleMechOverlayModel.MechState(
-                    42L, "Atlas Three", "Bulwark", deployed, effective,
-                    MechLanceOrder.FREE_REIGN, roles)).visible());
+                    7, 42L, "Atlas Three", "Bulwark", deployed, effective,
+                    MechLanceOrder.FREE_REIGN, false, roles)).visible());
             instance.flush();
             document.advance(0f);
             assertFalse(instance.requireElement("battle-mech-form-on-lead")
@@ -128,8 +164,8 @@ class BattleMechOverlayModelTest {
             assertNull(requested.get().role());
 
             assertTrue(model.updateProjected(new BattleMechOverlayModel.MechState(
-                    42L, "Atlas Three", "Bulwark", deployed, deployed,
-                    MechLanceOrder.FREE_REIGN, roles)).visible());
+                    7, 42L, "Atlas Three", "Bulwark", deployed, deployed,
+                    MechLanceOrder.FREE_REIGN, false, roles)).visible());
             instance.flush();
             document.advance(0f);
             assertEquals("DOCTRINE DEFAULT",
@@ -147,11 +183,13 @@ class BattleMechOverlayModelTest {
         AtomicInteger requests = new AtomicInteger();
         BattleMechOverlayModel model = new BattleMechOverlayModel(
                 new Reactor(), () -> { }, (mechId, role) -> requests.incrementAndGet(),
-                (mechId, order) -> requests.incrementAndGet());
+                (mechId, order) -> requests.incrementAndGet(),
+                squadId -> requests.incrementAndGet());
 
         assertFalse(model.updateProjected(null).visible());
         assertFalse(model.updateProjected(new BattleMechOverlayModel.MechState(
-                0L, "", "", null, null, null, List.of())).visible());
+                -1, 0L, "", "", null, null, null,
+                false, List.of())).visible());
         assertEquals(0, requests.get());
     }
 

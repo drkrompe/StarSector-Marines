@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -219,15 +220,20 @@ public final class VehicleBayFitting implements RoomFitting {
     /**
      * Two ways a bay meets the deck, in order of preference.
      *
-     * <p>The first is a drive-through: a door at the forward end of each long
-     * side, so a machine has a way in and a way out that is not the way it came.
-     * That is what a vehicle bay is for, and it puts both doors clear of the
-     * gantry ranks rather than through them.
+     * <p>The first is a drive-through: a machine-width door at the forward end
+     * of each long side, so a machine has a way in and a way out that is not the
+     * way it came. That is what a vehicle bay is for, and it puts both doors
+     * clear of the gantry ranks rather than through them.
      *
      * <p>The second is a single door on the forward bulkhead, amidships, for the
      * hull that simply has no passage down either side of the bay. It is a
      * worse bay and it is offered second, but it is a bay rather than a hold
      * with gantries in it.
+     *
+     * <p>The doors the hands use are stated apart, in {@link #furtherDoors}:
+     * they are places a door may be added rather than ways the room has to be
+     * reachable, and a placer that scored positions by them would move the room
+     * to serve doors it was not going to cut.
      */
     @Override
     public boolean handed() {
@@ -246,43 +252,117 @@ public final class VehicleBayFitting implements RoomFitting {
                 Hookup.of(Hookup.DoorSlot.run(length - DOORWAY, -1, DOORWAY, 1)));
     }
 
+    /**
+     * A door onto each stores aisle, on both flanks.
+     *
+     * <p>The aisles are the one place another door costs nothing. Each gap
+     * between two bays already runs a single file from the outer bulkhead in to
+     * the service lane, because that aisle is how the stores stacked either side
+     * of it are worked; a door at its outboard end opens onto circulation that
+     * is already there. Anywhere else along that wall is a bay, and a door into
+     * a bay is a hatch that takes a berth.
+     *
+     * <p>One cell rather than two, and that is the honest width rather than a
+     * saving. The aisle behind it is one cell, so a wider opening would admit a
+     * machine that then has a rank of gantries either side of it and nowhere to
+     * go. The shed's machines leave by the doors at the vestibule; these are for
+     * the hands.
+     */
+    @Override
+    public List<Hookup.DoorSlot> furtherDoors(RoomShape canonical) {
+        int depth = canonical.height();
+        List<Hookup.DoorSlot> slots = new ArrayList<>();
+        for (int aisle : Plan.of(canonical.width(), depth).aisles()) {
+            slots.add(Hookup.DoorSlot.run(aisle, -1, 1, 1));
+            slots.add(Hookup.DoorSlot.run(aisle, depth, 1, 1));
+        }
+        return List.copyOf(slots);
+    }
+
+    /**
+     * Where an arrangement of this footprint puts its ranks, its gaps and its
+     * shop.
+     *
+     * <p>Computed once and read by both the doors and the fill, because they are
+     * two statements about one plan and the doors are stated first. A door is
+     * authored on a stores aisle; the aisle is opened by the fill. Working that
+     * arithmetic out twice would let the two drift apart silently — the room
+     * would still generate, still be walkable, and have its doors opening onto
+     * the side of a bay.
+     */
+    private record Plan(int along, int across, int bayDepth, boolean facingRanks,
+                        int vestibule, int shopWidth, int bayLimit,
+                        int laneFrom, int laneSpan, int[] aisles) {
+
+        static Plan of(int along, int across) {
+            int bayDepth = Math.min(BAY_DEPTH, (across - SERVICE_LANE) / 2);
+            boolean facingRanks = bayDepth >= 3;
+            if (!facingRanks) {
+                bayDepth = Math.max(3, across - SERVICE_LANE);
+            }
+
+            int vestibule = Math.min(VESTIBULE, Math.max(0, along - BAY_WIDTH));
+            int shopWidth = Math.min(SHOP_WIDTH, Math.max(0, along - vestibule - BAY_WIDTH - 1));
+            int bayLimit = along - shopWidth;
+            int laneFrom = bayDepth;
+            int laneSpan = Math.max(1, across - (facingRanks ? 2 * bayDepth : bayDepth));
+
+            List<Integer> aisles = new ArrayList<>();
+            for (int cursor = vestibule; cursor + BAY_WIDTH <= bayLimit;
+                 cursor += BAY_WIDTH + BAY_GAP) {
+                int from = cursor + BAY_WIDTH;
+                if (gapAisle(from, bayLimit) >= 0) aisles.add(gapAisle(from, bayLimit));
+            }
+            int[] opened = new int[aisles.size()];
+            for (int i = 0; i < opened.length; i++) opened[i] = aisles.get(i);
+
+            return new Plan(along, across, bayDepth, facingRanks, vestibule, shopWidth,
+                    bayLimit, laneFrom, laneSpan, opened);
+        }
+    }
+
+    /**
+     * The single file opened down the middle of the gap starting at {@code from},
+     * or -1 where the remainder is too narrow to stack either side of one.
+     *
+     * <p>The one place the gap's geometry is written. {@link #layStores} opens
+     * this cell and {@link Plan} authors a door onto it, and they have to be the
+     * same cell.
+     */
+    private static int gapAisle(int from, int limit) {
+        int width = Math.min(BAY_GAP, limit - from);
+        return width < 3 ? -1 : from + width / 2;
+    }
+
     @Override
     public void fit(RoomFloor floor) {
-        int along = floor.canonicalWidth();
-        int across = floor.canonicalHeight();
-
-        int bayDepth = Math.min(BAY_DEPTH, (across - SERVICE_LANE) / 2);
-        boolean facingRanks = bayDepth >= 3;
-        if (!facingRanks) {
-            bayDepth = Math.max(3, across - SERVICE_LANE);
-        }
-
-        int vestibule = Math.min(VESTIBULE, Math.max(0, along - BAY_WIDTH));
-        int shopWidth = Math.min(SHOP_WIDTH, Math.max(0, along - vestibule - BAY_WIDTH - 1));
-        int bayLimit = along - shopWidth;
-        int laneFrom = bayDepth;
-        int laneSpan = Math.max(1, across - (facingRanks ? 2 * bayDepth : bayDepth));
+        Plan plan = Plan.of(floor.canonicalWidth(), floor.canonicalHeight());
+        int along = plan.along();
+        int across = plan.across();
 
         // Circulation first, both runs of it: the vestibule the doors open into
         // and the service lane the ranks face across. Everything placed after
         // this has to work around them, which is the point.
-        reserve(floor, 0, 0, vestibule, across);
-        reserve(floor, vestibule, laneFrom, bayLimit - vestibule, laneSpan);
+        reserve(floor, 0, 0, plan.vestibule(), across);
+        reserve(floor, plan.vestibule(), plan.laneFrom(),
+                plan.bayLimit() - plan.vestibule(), plan.laneSpan());
 
-        int cursor = vestibule;
+        int cursor = plan.vestibule();
         int bay = 0;
-        while (cursor + BAY_WIDTH <= bayLimit) {
-            layBay(floor, cursor, 0, bayDepth, true, bay++);
-            if (facingRanks) {
-                layBay(floor, cursor, across - bayDepth, bayDepth, false, bay++);
+        while (cursor + BAY_WIDTH <= plan.bayLimit()) {
+            layBay(floor, cursor, 0, plan.bayDepth(), true, bay++);
+            if (plan.facingRanks()) {
+                layBay(floor, cursor, across - plan.bayDepth(), plan.bayDepth(), false, bay++);
             }
-            layStores(floor, cursor + BAY_WIDTH, bayLimit, across, bayDepth, facingRanks);
+            layStores(floor, cursor + BAY_WIDTH, plan.bayLimit(), across,
+                    plan.bayDepth(), plan.facingRanks());
             cursor += BAY_WIDTH + BAY_GAP;
         }
 
-        stubStrandedDoors(floor, along, across, laneFrom, laneSpan, vestibule);
-        if (shopWidth > 0) {
-            layShop(floor, bayLimit, along, across);
+        stubStrandedDoors(floor, along, across,
+                plan.laneFrom(), plan.laneSpan(), plan.vestibule());
+        if (plan.shopWidth() > 0) {
+            layShop(floor, plan.bayLimit(), along, across);
         }
     }
 
@@ -505,7 +585,8 @@ public final class VehicleBayFitting implements RoomFitting {
                            int across, int bayDepth, boolean facingRanks) {
         int width = Math.min(BAY_GAP, limit - from);
         if (width <= 0) return;
-        if (width < 3) {
+        int aisle = gapAisle(from, limit);
+        if (aisle < 0) {
             // Too narrow to stack either side of an aisle. Left as lane rather
             // than packed with stock, because a remainder nobody can work is
             // deck the service lane may as well have.
@@ -513,7 +594,6 @@ public final class VehicleBayFitting implements RoomFitting {
             return;
         }
 
-        int aisle = from + width / 2;
         reserve(floor, aisle, 0, 1, across);
 
         // Seeded off the gap's own column, so two gaps do not stack identical

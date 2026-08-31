@@ -84,6 +84,26 @@
         [
           5,
           1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1
+        ],
+        [
+          8,
+          1
+        ],
+        [
+          9,
+          1
+        ],
+        [
+          10,
+          1
         ]
       ],
       "id": "floors.sand"
@@ -232,20 +252,50 @@
     },
     {
       "col": 3,
-      "description": "sand-2",
+      "description": "sandvar-1",
       "name": "floors.sand v1",
       "row": 1
     },
     {
       "col": 4,
-      "description": "sand-3",
+      "description": "sandvar-2",
       "name": "floors.sand v2",
       "row": 1
     },
     {
       "col": 5,
-      "description": "sand-4",
+      "description": "sandvar-3",
       "name": "floors.sand v3",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "sandvar-4",
+      "name": "floors.sand v4",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "sandvar-5",
+      "name": "floors.sand v5",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "sandvar-6",
+      "name": "floors.sand v6",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "description": "sandvar-7",
+      "name": "floors.sand v7",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "sandvar-8",
+      "name": "floors.sand v8",
       "row": 1
     }
   ],
