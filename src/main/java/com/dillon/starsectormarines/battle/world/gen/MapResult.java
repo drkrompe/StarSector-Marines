@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -116,6 +117,16 @@ public final class MapResult {
      * network (wilderness / spacehulk gens) return {@link RoadGraph#EMPTY}.
      */
     public final RoadGraph roadGraph;
+    /**
+     * The one road across this map a vehicle is guaranteed to be able to
+     * drive, reserved before anything was built on it and honored by every
+     * stamp that followed. Where {@link #roadGraph} is a centerline skeleton
+     * for choosing among places, this is a width contract: the band a ground
+     * reinforcement can actually get a hull down, from the defender's rear map
+     * edge to the city. Null for every family that has no traversal axis, and
+     * on a conquest map generated with the corridor switched off.
+     */
+    public final VehicleCorridor vehicleCorridor;
     /**
      * Conquest biome-band overlay ({@code reinforcement-nouns.md}) —
      * the slice a cell falls in (BEACH/PORT/CITY/FORTRESS_DISTRICT/OUTSKIRTS),
@@ -291,6 +302,29 @@ public final class MapResult {
                      List<FixtureTask> fixtureTasks,
                      List<Runway> runways,
                      List<Gantry> shelters) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, roadGraph,
+                landingPads, landingAreas, biomeMap, gantries, fixtureTasks, runways,
+                shelters, null);
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap,
+                     Buildings buildings,
+                     List<DefensePost> defensePosts,
+                     RoadGraph roadGraph,
+                     List<LandingPad> landingPads,
+                     List<LandingArea> landingAreas,
+                     BiomeMap biomeMap,
+                     List<Gantry> gantries,
+                     List<FixtureTask> fixtureTasks,
+                     List<Runway> runways,
+                     List<Gantry> shelters,
+                     VehicleCorridor vehicleCorridor) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -306,6 +340,7 @@ public final class MapResult {
         this.buildings = buildings;
         this.defensePosts = defensePosts;
         this.roadGraph = roadGraph;
+        this.vehicleCorridor = vehicleCorridor;
         this.biomeMap = biomeMap;
         this.gantries = gantries == null ? Collections.emptyList() : List.copyOf(gantries);
         this.fixtureTasks = fixtureTasks == null
