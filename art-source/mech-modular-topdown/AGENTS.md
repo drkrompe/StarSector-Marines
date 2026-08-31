@@ -28,3 +28,15 @@ rules apply to the modular mech raster pipeline in this directory.
   contact sheets at gameplay scale. A visually attractive result that changes
   geometry, registration, or protected hardware is not an acceptable livery.
 
+## Top-down direct-fire concepts
+
+- For a barrel that fires north along the battlefield plane, make the camera see
+  the barrel's top surfaces and only an edge-on muzzle line at the northmost tip.
+  A visible circular aperture points toward the camera, not toward the target.
+- Hiding the bore is insufficient when a broad emissive channel remains on the
+  weapon's top face; that reads as a vertical emitter or reactor. Use long
+  parallel focusing rails and a narrow recessed optical path to carry the
+  horizontal firing axis through the silhouette.
+- Label each ImageGen input by role. A shipped cannon may be a perspective
+  reference and a missile pod a footprint reference without either donating its
+  weapon geometry to the new concept.
