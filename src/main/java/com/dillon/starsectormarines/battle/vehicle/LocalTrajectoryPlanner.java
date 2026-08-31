@@ -57,6 +57,11 @@ public final class LocalTrajectoryPlanner {
 
     private LocalTrajectoryPlanner() {}
 
+    /** Rolling horizon (cells) for a vehicle of this minimum turn radius. */
+    private static float horizon(float turnRadiusCells) {
+        return Math.max(MIN_HORIZON_CELLS, HORIZON_TURN_RADIUS_FACTOR * turnRadiusCells);
+    }
+
     /**
      * Plan a feasible trajectory from {@code start} toward a goal a horizon
      * down {@code corridor}. Returns {@code null} if the bounded search finds
@@ -68,8 +73,7 @@ public final class LocalTrajectoryPlanner {
         if (!(body instanceof BicycleBody)) return null;
         float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
 
-        float horizon = Math.max(MIN_HORIZON_CELLS, HORIZON_TURN_RADIUS_FACTOR * turnRadius);
-        Pose goal = corridor.targetAhead(start.x, start.y, horizon);
+        Pose goal = corridor.targetAhead(start.x, start.y, horizon(turnRadius));
         float goalRadius = Math.max(MIN_GOAL_RADIUS_CELLS, GOAL_RADIUS_TURN_RADIUS_FACTOR * turnRadius);
 
         boolean routeEnd = samePoint(goal.x, goal.y, corridor.endX(), corridor.endY());
@@ -94,6 +98,31 @@ public final class LocalTrajectoryPlanner {
     }
 
     /**
+     * True when the rolling goal this planner would aim at lies outside the
+     * grid — the route ahead has left the map and there is nothing on-grid left
+     * to solve. A convoy's exit waypoint sits a deliberate pad beyond the
+     * perimeter, so every departing vehicle enters this state a full horizon
+     * (~10 cells for a HEAVY_APC) before its own footprint leaves the grid.
+     * Without it that whole stretch reads as an ordinary route failure and the
+     * truck brakes to a permanent halt inside the map: the local search can
+     * never reach an off-grid goal, and no re-route can move a goal that is off
+     * the map by design.
+     *
+     * <p>Distinct from {@link VehicleFootprint#isPoseWithinGrid} on the body:
+     * that says the crossing has physically begun, this says the planning
+     * horizon has. The controller needs the earlier of the two to know it is on
+     * the off-map tail rather than stuck.
+     */
+    static boolean isPlanningIntoOffMapTail(Pose pose, ReferenceCorridor corridor,
+                                            VehicleType type, NavigationGrid grid) {
+        GroundBody body = type.createBody();
+        if (!(body instanceof BicycleBody)) return false;
+        Pose goal = corridor.targetAhead(pose.x, pose.y,
+                horizon(((BicycleBody) body).minTurnRadiusCells()));
+        return !grid.inBounds((int) Math.floor(goal.x), (int) Math.floor(goal.y));
+    }
+
+    /**
      * True when {@code pose} occupies the same soft goal region Hybrid A* uses
      * after the rolling target has pinned to the route endpoint. A controller
      * calls this only after no executable forward trajectory remains: at that
@@ -104,8 +133,7 @@ public final class LocalTrajectoryPlanner {
         GroundBody body = type.createBody();
         if (!(body instanceof BicycleBody)) return false;
         float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
-        float horizon = Math.max(MIN_HORIZON_CELLS, HORIZON_TURN_RADIUS_FACTOR * turnRadius);
-        Pose goal = corridor.targetAhead(pose.x, pose.y, horizon);
+        Pose goal = corridor.targetAhead(pose.x, pose.y, horizon(turnRadius));
         if (!samePoint(goal.x, goal.y, corridor.endX(), corridor.endY())) return false;
         float goalRadius = Math.max(MIN_GOAL_RADIUS_CELLS,
                 GOAL_RADIUS_TURN_RADIUS_FACTOR * turnRadius);

@@ -11,6 +11,9 @@ Updated: 2026-08-30 — a wreck writes nothing to the navigation or sight map,
 a live vehicle wears the shared durability gauge, and a carrier that has
 unloaded departs rather than holding armed overwatch on its drop point.
 
+Updated: 2026-08-30 — the convoy candidate set now reaches every enemy scan,
+not only the primary target picker, so a driving vehicle draws opportunity fire.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -100,6 +103,21 @@ position, velocity, radius, and height. Moving vehicles still do not occupy the
 infantry grid or participate in ordinary unit-unit collision; that remains the
 vehicle-interaction extension.
 
+**Every** enemy scan owes that candidate set, not just the one a shooter
+reaches when it has nothing else to do. The primary picker carried it alone for
+a while and the result was a column that drove past squads unengaged: the
+opportunity-fire picker, the engagement-discipline alternative, and the
+retarget-margin check are what a marine with an infantry target already in hand
+actually consults, and all three were reading the spatial index alone — which
+is built from the dense roster and therefore cannot contain a vehicle. A new
+scan that gathers from the unit index inherits the same blindness by default;
+give it the convoy sweep at the same time.
+
+Squad awareness is deliberately the exception. A vehicle carries no identity,
+so it is never a believed contact and never enters the contact picture,
+doctrine, or alert level; it is something individuals shoot at, not something a
+squad forms a picture of.
+
 A vehicle is seen but never sees. It carries no perception components at all, so
 any code that reads a target's sight stats must treat "target" and "perceiver"
 as separate roles: the seeing side of a line-of-sight pair reads the fail-loud
@@ -146,9 +164,19 @@ authoritative. If no safe forward segment remains after an inbound vehicle has
 entered the aligned terminal goal region, its current footprint-valid pose is
 the landing pose; terminal proximity must not strand the payload as a false
 planning failure.
-Coarse pursuit is limited to deliberate off-map entry and exit tails. Once the
-full footprint is on-grid, a missing local trajectory means brake and reroute,
-never "drive the rejected coarse corner anyway."
+Coarse pursuit is limited to deliberate off-map entry and exit tails. Where a
+vehicle stands is the wrong way to recognise one: the tail begins where the
+*planning horizon* leaves the map, not where the footprint does. A route's exit
+waypoint sits a fixed pad beyond the perimeter, so a departing vehicle aims its
+rolling goal off-grid a full horizon — about ten cells for a HEAVY_APC — before
+any part of it crosses the edge. Reading that stretch as an ordinary planning
+failure halts a departure inside the map permanently: no bounded local search
+can reach a goal that is off the grid, and no reroute can move a waypoint that
+is off the map by design. Within the tail, coarse pursuit drives the corridor
+out; the footprint gate still applies while the carrot is on-grid, so the
+concession is to the map edge and not to walls. Everywhere else the rule is
+unchanged: with on-grid route still to solve, a missing local trajectory means
+brake and reroute, never "drive the rejected coarse corner anyway."
 
 Recovery is progressive rather than permission to clip geometry. Ordinary
 feasible drift receives a fresh local trajectory. A wall-blocked or
@@ -176,7 +204,8 @@ it planned before.
   final kinematic authority, and any changed-grid failure stops and recovers
   instead of degrading to raw polyline pursuit.
 - Arrival is not failure. Reaching the terminal corridor region must transition
-  to landing/departure instead of triggering a false stuck recovery.
+  to landing/departure instead of triggering a false stuck recovery, and aiming
+  at an off-map exit is arrival in progress rather than an unsolvable route.
 - A vehicle moves under its own body or performs a bounded recovery. It never
   solves failure by crossing a wall or snapping through a corner; the durable
   terminal outcome for an unrecoverable route remains open.

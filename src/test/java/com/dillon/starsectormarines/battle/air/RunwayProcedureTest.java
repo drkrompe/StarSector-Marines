@@ -421,6 +421,143 @@ class RunwayProcedureTest {
     }
 
     /**
+     * The wheels go down on the runway.
+     *
+     * <p>Where a landing ends had gone unmeasured because the heading was
+     * right: the craft crossed the numbers two degrees off the centreline and
+     * every test about the arrival was about that. It was arriving two degrees
+     * off the centreline seventeen cells before the centreline started —
+     * the arrival was gated on the rule for a craft steered <em>at</em> a
+     * point, which admits a whole turning circle so a body that can only orbit
+     * its destination is still allowed to reach it, and a fighter's circle at
+     * approach speed is seventeen cells. Nothing on a solved approach can
+     * orbit, so all that width bought was a fighter putting its wheels down at
+     * x=79 on a strip that ends at 62.5, and one arriving from the other end
+     * touching down at x=-9.6, off the map.
+     *
+     * <p>Measured as a projection onto the strip's own axis rather than as a
+     * distance to the threshold, because a landing long is as wrong as a
+     * landing short and a radius cannot tell them apart.
+     */
+    @Test
+    void aLandingPutsTheWheelsDownOnTheStrip() {
+        try (BattleSimulation sim = openSimulation()) {
+            AirfieldService airfield = sim.getAirfieldService();
+            AirfieldService.Berth shed = airfield.addShelterBerth(
+                    new Gantry((int) SHELTER_X, (int) SHELTER_Y, 2, 2, Gantry.Facing.SOUTH),
+                    FighterProfile.BROADSWORD);
+            long fighter = sim.spawnSortie(FighterProfile.BROADSWORD, Faction.DEFENDER,
+                    50.5f, 30.5f, SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f);
+            ShuttleMission mission = sim.world().mission(fighter);
+            mission.homeBerth = shed;
+            mission.hp = airfield.launch(shed);
+            mission.landOnRunway(STRIP, 55.5f, 30.5f, SHELTER_X, SHELTER_Y);
+            mission.exitX = mission.touchdownX;
+            mission.exitY = mission.touchdownY;
+            mission.state = ShuttleState.RETURNING;
+            sim.world().kinematics(fighter).teleport(55.5f, 30.5f, 0f);
+
+            AirBody body = sim.world().kinematics(fighter);
+            float downX = body.x;
+            float downY = body.y;
+            for (int i = 0; i < 6000 && mission.state == ShuttleState.RETURNING; i++) {
+                downX = body.x;
+                downY = body.y;
+                sim.advance(BattleSimulation.TICK_DT);
+            }
+            assertEquals(ShuttleState.LANDING_ROLL, mission.state, "never got down");
+
+            // How far along the strip the wheels touched, from the threshold it
+            // landed on toward the one it rolls out to.
+            float axisX = mission.holdX - mission.touchdownX;
+            float axisY = mission.holdY - mission.touchdownY;
+            float length = (float) Math.hypot(axisX, axisY);
+            float along = ((downX - mission.touchdownX) * axisX
+                    + (downY - mission.touchdownY) * axisY) / length;
+            float across = Math.abs((downX - mission.touchdownX) * -axisY
+                    + (downY - mission.touchdownY) * axisX) / length;
+
+            assertTrue(along > -STRIP.widthCells && along < length,
+                    "touched down " + along + " cells along a " + length
+                            + "-cell strip, which is not on it");
+            assertTrue(across < STRIP.widthCells,
+                    "touched down " + across + " cells off the centreline");
+        }
+    }
+
+    /**
+     * A craft that ceases to exist gives the strip back.
+     *
+     * <p>The runway is held by an aircraft, and an aircraft on it can be shot:
+     * ground fire reaches a machine on its wheels, which is what the whole
+     * exposed ground procedure is for. Nothing on the shoot-down path released
+     * the strip, so a fighter killed during its takeoff roll left the field
+     * claimed by a craft that no longer existed — and every sortie that came
+     * home afterwards was refused the runway and flew circuits until the battle
+     * ended, which is exactly what a player reported as an aircraft stuck
+     * looping on approach.
+     *
+     * <p>Asked of the teardown rather than of the shoot-down, because that is
+     * the one place every ending goes through and therefore the only place the
+     * property can be true for endings nobody has written yet.
+     */
+    @Test
+    void aCraftTornDownOnTheStripDoesNotKeepIt() {
+        try (BattleSimulation sim = openSimulation()) {
+            AirfieldService airfield = sim.getAirfieldService();
+            long craft = inTheShed(sim, 55.5f, 30.5f);
+            ShuttleMission mission = sim.world().mission(craft);
+            mission.state = ShuttleState.HOLDING_SHORT;
+            advance(sim, 1);
+            assertEquals(craft, airfield.runwayOccupant(), "never got the strip in the first place");
+
+            // Killed where it stands, the way ground fire ends one.
+            mission.state = ShuttleState.GONE;
+            advance(sim, 1);
+
+            assertFalse(airfield.runwayBusy(),
+                    "the strip is still recorded to an aircraft that no longer exists");
+            assertTrue(airfield.claimRunway(99L), "and nothing else can ever use it");
+        }
+    }
+
+    /**
+     * An aircraft that cannot get the strip does not circle forever.
+     *
+     * <p>A go-around is the right answer to a runway somebody is standing on
+     * and an unbounded one is not an answer at all: it is what turns a busy
+     * minute into an aircraft that never lands. The fallback is deliberately a
+     * landing rather than a departure or a despawn — two aircraft on one strip
+     * for a few seconds is a far smaller fault than an airframe that circles
+     * for the rest of the battle.
+     */
+    @Test
+    void anAircraftDeniedTheStripLandsAnyway() {
+        try (BattleSimulation sim = openSimulation()) {
+            AirfieldService airfield = sim.getAirfieldService();
+            long homebound = inTheShed(sim, 55.5f, 30.5f);
+            ShuttleMission returning = sim.world().mission(homebound);
+            returning.landOnRunway(STRIP, 55.5f, 30.5f, SHELTER_X, SHELTER_Y);
+            returning.exitX = returning.touchdownX;
+            returning.exitY = returning.touchdownY;
+            returning.state = ShuttleState.RETURNING;
+            sim.world().kinematics(homebound)
+                    .teleport(returning.touchdownX, returning.touchdownY, 0f);
+            // Something is on the strip and is never going to move off it.
+            long squatter = 4242L;
+            airfield.claimRunway(squatter);
+
+            assertEquals(ShuttleState.LANDING_ROLL,
+                    leaving(sim, returning, ShuttleState.RETURNING),
+                    "circled a strip it could not have instead of landing on it");
+            assertTrue(returning.goAroundsFlown > 0,
+                    "landed without ever going round, so nothing was denied");
+            assertEquals(homebound, airfield.runwayOccupant(),
+                    "rolling out on a strip still recorded to somebody else");
+        }
+    }
+
+    /**
      * Coming home: down on the strip, along it, and back into the shed.
      *
      * <p>The craft holds the runway for the rollout, because it is standing on
