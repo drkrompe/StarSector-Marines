@@ -429,7 +429,13 @@ Do not run builds or leave generated task files there.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.
-- `gradlew.bat runStarsector` → deploys then launches via `starsector-core/starsector.bat`.
+- `gradlew.bat runStarsector` → deploys then launches the game, running the java
+  command line read out of `starsector-core/starsector.bat` rather than the .bat
+  itself. The installed .bat ends in a malformed `if errorlevel 1 {` block, so
+  `cmd /c` returns that block's status and a JVM that dies mid-battle still
+  leaves the task green. Running the command line directly makes the reported
+  exit code the JVM's own. **A JVM fatal error prints to the Gradle console, not
+  to `starsector.log`** — read the console first when the game dies silently.
 - `gradlew.bat prepareCatalogSmoke` → stages the additive two-provider catalog
   acceptance fixture without launching Starsector. Pass
   `-PcatalogSmokeMode=collision` to stage the duplicate-id variant.
