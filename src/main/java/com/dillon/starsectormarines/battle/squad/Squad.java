@@ -219,31 +219,42 @@ public final class Squad {
     public ObjectiveAssignment assignedObjective;
 
     /**
-     * Battle-local player locomotion override. It is an executable
-     * attack-move assignment so infantry retain their ordinary fire-team and
-     * contact behavior, but it never replaces the authoritative mission
-     * directive in {@link #assignedObjective}.
+     * Battle-local player tactical context. Ground clicks supply attack-move;
+     * contextual objective clicks supply the mission's existing action shape.
+     * Neither replaces the authoritative directive in
+     * {@link #assignedObjective}.
      */
-    private volatile ObjectiveAssignment tacticalMoveOrder;
+    private volatile ObjectiveAssignment playerTacticalOrder;
 
     /**
      * The assignment-shaped context tactical behavior may execute this tick.
-     * Form-up masks every order. Once ready, a temporary player squad move
+     * Form-up masks every order. Once ready, a temporary player tactical order
      * takes precedence without replacing {@link #assignedObjective}; otherwise
      * the authoritative mission assignment passes through unchanged.
      */
     public ObjectiveAssignment assignmentForExecution() {
         if (SquadFormUpSystem.formingUp(this)) return null;
-        ObjectiveAssignment tactical = tacticalMoveOrder;
+        ObjectiveAssignment tactical = playerTacticalOrder;
         return tactical != null ? tactical : assignedObjective;
     }
 
     void applyTacticalMoveOrder(int cellX, int cellY) {
-        tacticalMoveOrder = ObjectiveAssignment.attackMove(id, cellX, cellY);
+        applyPlayerTacticalOrder(ObjectiveAssignment.attackMove(id, cellX, cellY));
     }
 
-    void clearTacticalMoveOrder() {
-        tacticalMoveOrder = null;
+    void applyPlayerTacticalOrder(ObjectiveAssignment order) {
+        if (order == null || order.squadId() != id) {
+            throw new IllegalArgumentException("tactical order must belong to squad " + id);
+        }
+        playerTacticalOrder = order;
+    }
+
+    ObjectiveAssignment playerTacticalOrder() {
+        return playerTacticalOrder;
+    }
+
+    void clearPlayerTacticalOrder() {
+        playerTacticalOrder = null;
     }
 
     /** Null when command execution is ready, otherwise a stable diagnostic reason. */
