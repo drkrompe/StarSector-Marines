@@ -18,7 +18,7 @@ class SnapshotDiscoveryTest {
 
         assertEquals(List.of("airfield-sortie", "armory", "deployable-cover", "durability-bars", "frontage-scene",
                 "integral-system-fx", "killing-ground", "layers", "mech-doctrine", "perception-sweep",
-                "point-defence", "runway-sortie", "ship-decks", "turrets", "ui"), ids);
+                "point-defence", "runway-sortie", "ship-decks", "sun-shadows", "turrets", "ui"), ids);
     }
 
     @Test

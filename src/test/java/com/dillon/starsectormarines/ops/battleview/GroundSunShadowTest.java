@@ -12,12 +12,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The sun-shadow march, asked directly.
  *
- * <p>{@link #shadowAt} mirrors the occlusion loop in
- * {@link GroundParallaxPipeline}'s composite against a hand-built height field.
- * That keeps the question about the arithmetic — how far a wall of a stated
- * height reaches under a sun at a stated elevation, which way the shadow falls,
- * and whether an occluder off the edge of the view is in the texture at all —
- * rather than about a generated map, a shader compile, or a GL context.
+ * <p>{@link GroundSunShadowReference} mirrors the occlusion loop in
+ * {@link GroundParallaxPipeline}'s composite; these tests run it against
+ * hand-built height fields. That keeps the question about the arithmetic — how
+ * far a wall of a stated height reaches under a sun at a stated elevation, which
+ * way the shadow falls, and whether an occluder off the edge of the view is in
+ * the texture at all — rather than about a generated map, a shader compile, or
+ * a GL context.
  *
  * <p>The whole feature rests on one substitution: heights are metres and one
  * cell is one metre ({@link AirScale#METERS_PER_CELL}), so a shadow's length in
@@ -29,10 +30,6 @@ class GroundSunShadowTest {
     /** Height of the wall every field here stands up, in metres. */
     private static final float WALL_METERS = 3f;
 
-    /** A height field in metres above the ground datum, sampled at a world-cell position. */
-    private interface HeightField {
-        float metersAt(float worldX, float worldY);
-    }
 
     // ---------------------------------------------------------------- encode --
 
@@ -72,7 +69,7 @@ class GroundSunShadowTest {
      */
     @Test
     void shadowReachesTheLengthTheSunElevationImplies() {
-        HeightField wall = wallAtColumn(10);
+        GroundSunShadowReference.HeightField wall = wallAtColumn(10);
 
         // tan(45) == 1, so a 3 m wall lays down 3 cells of shadow.
         assertTrue(shadowAt(wall, 9.5f, 0f, 0f, 45f) > 0.99f, "1 cell out must be full shadow");
@@ -90,7 +87,7 @@ class GroundSunShadowTest {
 
     @Test
     void theWallItselfAndTheSunFacingSideStayLit() {
-        HeightField wall = wallAtColumn(10);
+        GroundSunShadowReference.HeightField wall = wallAtColumn(10);
         assertEquals(0f, shadowAt(wall, 10.5f, 0f, 0f, 45f), 1e-4f,
                 "a wall cannot shadow itself");
         assertEquals(0f, shadowAt(wall, 11.5f, 0f, 0f, 45f), 1e-4f,
@@ -99,7 +96,7 @@ class GroundSunShadowTest {
 
     @Test
     void theShadowFallsAwayFromWhicheverBearingTheSunIsOn() {
-        HeightField wall = wallAtColumn(10);
+        GroundSunShadowReference.HeightField wall = wallAtColumn(10);
         assertTrue(shadowAt(wall, 9.5f, 0f, 0f, 45f) > 0.99f,
                 "a sun toward +X must shadow the cell on its -X side");
         assertEquals(0f, shadowAt(wall, 9.5f, 0f, 180f, 45f), 1e-4f,
@@ -131,8 +128,8 @@ class GroundSunShadowTest {
     @Test
     void anOccluderOutsideTheViewStillCastsIntoIt() {
         float viewMinX = 12f;
-        HeightField whole = wallAtColumn(10);
-        HeightField clampedToView = (x, y) -> whole.metersAt(Math.max(viewMinX, x), y);
+        GroundSunShadowReference.HeightField whole = wallAtColumn(10);
+        GroundSunShadowReference.HeightField clampedToView = (x, y) -> whole.metersAt(Math.max(viewMinX, x), y);
 
         float sampleX = 12.5f;
         assertTrue(shadowAt(whole, sampleX, 0f, 180f, 45f) > 0.99f,
@@ -180,55 +177,24 @@ class GroundSunShadowTest {
 
     // ------------------------------------------------------------------ mirror --
 
-    /**
-     * The composite's occlusion loop, on the CPU. Kept a faithful mirror of the
-     * GLSL in {@code GroundParallaxPipeline.FRAGMENT_SRC}: same step schedule,
-     * same soft ramp, same running maximum.
-     */
-    static float shadowAt(HeightField field, float worldX, float worldY,
-                          float sunAzimuthDegrees, float sunElevationDegrees) {
-        return shadowAt(field, worldX, worldY, sunAzimuthDegrees, sunElevationDegrees, WALL_METERS);
+    /** The shared CPU mirror, for a field whose tallest surface is {@link #WALL_METERS}. */
+    private static float shadowAt(GroundSunShadowReference.HeightField field,
+                                  float worldX, float worldY,
+                                  float sunAzimuthDegrees, float sunElevationDegrees) {
+        return GroundSunShadowReference.shadowAt(field, worldX, worldY,
+                sunAzimuthDegrees, sunElevationDegrees, WALL_METERS);
     }
 
-    static float shadowAt(HeightField field, float worldX, float worldY,
-                          float sunAzimuthDegrees, float sunElevationDegrees,
-                          float tallestMeters) {
-        float rangeCells = rangeCells(sunElevationDegrees, tallestMeters);
-        float base = field.metersAt(worldX, worldY);
-        float rise = (float) Math.tan(Math.toRadians(sunElevationDegrees));
-        float stepCells = Math.min(rangeCells / GroundParallaxPipeline.SHADOW_STEPS,
-                GroundParallaxPipeline.SHADOW_STEP_MAX_CELLS);
-        double azimuth = Math.toRadians(sunAzimuthDegrees);
-        float dirX = (float) Math.cos(azimuth);
-        float dirY = (float) Math.sin(azimuth);
-
-        float shadow = 0f;
-        for (int i = 1; i <= GroundParallaxPipeline.SHADOW_STEPS; i++) {
-            float t = i * stepCells;
-            float occluder = field.metersAt(worldX + dirX * t, worldY + dirY * t);
-            float ray = base + t * rise;
-            float lit = (occluder - ray) / GroundParallaxPipeline.SHADOW_SOFTNESS_METERS;
-            shadow = Math.max(shadow, Math.max(0f, Math.min(1f, lit)));
-        }
-        return shadow;
-    }
-
-    /**
-     * What the pipeline would ask for, given the tallest surface on the map.
-     *
-     * <p>Reading the range off the tallest occluder is the same rule
-     * {@code GroundParallaxPipeline.shadowRangeCells} follows, and it is
-     * load-bearing here: a march sized for a 3 m wall cannot see the far end of
-     * a 6 m one, so a test that fixed the range would report that height
-     * stopped mattering above 3 m.
-     */
-    private static float rangeCells(float sunElevationDegrees, float tallestMeters) {
-        float rise = (float) Math.tan(Math.toRadians(sunElevationDegrees));
-        return Math.min(GroundParallaxPipeline.MAX_SHADOW_RANGE_CELLS, tallestMeters / rise);
+    private static float shadowAt(GroundSunShadowReference.HeightField field,
+                                  float worldX, float worldY,
+                                  float sunAzimuthDegrees, float sunElevationDegrees,
+                                  float tallestMeters) {
+        return GroundSunShadowReference.shadowAt(field, worldX, worldY,
+                sunAzimuthDegrees, sunElevationDegrees, tallestMeters);
     }
 
     /** Cells from the wall to the last fully shadowed sample, marching away from a sun toward +X. */
-    private static float furthestShadowedCell(HeightField field, float elevationDegrees,
+    private static float furthestShadowedCell(GroundSunShadowReference.HeightField field, float elevationDegrees,
                                               float tallestMeters) {
         float furthest = 0f;
         for (float x = 9.5f; x > -12f; x -= 0.25f) {
@@ -239,7 +205,7 @@ class GroundSunShadowTest {
         return furthest;
     }
 
-    private static HeightField wallAtColumn(int column) {
+    private static GroundSunShadowReference.HeightField wallAtColumn(int column) {
         return wallAtColumn(column, WALL_METERS);
     }
 
@@ -249,7 +215,7 @@ class GroundSunShadowTest {
      * question here is the march's arithmetic and a filter would only blur the
      * answer.
      */
-    private static HeightField wallAtColumn(int column, float meters) {
+    private static GroundSunShadowReference.HeightField wallAtColumn(int column, float meters) {
         return (x, y) -> (int) Math.floor(x) == column ? meters : 0f;
     }
 }

@@ -4,8 +4,10 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — added exact-Mech tactical move orders with reachable-cell
-snapping, moving fire, survival suspension, and arrival handback.
+Updated: 2026-08-31 — distinguished faction livery from hardware variant and
+fixed it to the accepted chassis silhouette and shared equipment layers; added
+exact-Mech tactical move orders with reachable-cell snapping, moving fire,
+survival suspension, and arrival handback.
 
 ## Purpose
 
@@ -21,6 +23,10 @@ increasing an encounter's total armored threat.
 - A **variant** is persistent hardware identity: chassis body, physical
   dimensions, default loadout, silhouette, and default doctrine. It owns what
   a live mech is.
+- A **livery** is appearance-only faction or company surface treatment for a
+  known chassis. It may change paint, plate-face material, wear, and
+  non-readable markings, but it is not a hardware variant and owns no geometry,
+  mount, loadout, durability, movement, doctrine, or faction-wide bonus.
 - A **role** is tactical doctrine. It owns where a mech attempts to operate,
   what it supports, and when it advances, holds, or withdraws. A recommended
   role is not a chassis lock; the same hardware may receive another doctrine.
@@ -243,6 +249,10 @@ support sortie, subject only to practical runtime resources.
 - Variant, physical geometry, and visible silhouette must agree. A lighter
   render scale may not retain heavy-sized picking, collision, hit, blast, or
   morale behavior.
+- A livery consumes the accepted chassis silhouette and shared equipment
+  layers. It may not alter alpha footprint, hardpoint openings, layer order,
+  runtime scale, or any mechanical authority merely to strengthen faction
+  flavor.
 - Hardware and doctrine are independent. Do not encode a planner behavior in
   a variant name or infer a chassis solely from its assigned role.
 - A battle role override changes only local tactical manner. It does not author
