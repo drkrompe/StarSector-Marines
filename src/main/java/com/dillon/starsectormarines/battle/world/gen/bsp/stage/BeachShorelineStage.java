@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
@@ -55,6 +57,12 @@ public final class BeachShorelineStage implements GenStage {
             throw new IllegalStateException(
                     "BeachShorelineStage requires BIOME_MAP — conquest recipe only");
         }
+        // A shore needs a sea. On a world that has none the approach band is
+        // dry ground all the way to the map edge, and stamping water there put
+        // five hundred cells of impassable terrain on an airless rock.
+        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
+        SurfacePalette surface = profile == null ? SurfacePalette.ROCK : profile.surface();
+        if (!surface.bearsOpenWater()) return;
         applyBeachShoreline(ctx, ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS), biomeMap,
                 ctx.get(BspKeys.ROAD_RESERVATION), ctx.doodads, ctx.rng);
     }
