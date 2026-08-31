@@ -24,9 +24,11 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Per-unit GOAP dispatch for infantry. Pairs with the squad-level replan
@@ -82,7 +84,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             RecoverFromAmbush.INSTANCE,
             BreachToEngage.INSTANCE,
             HoldEngagementLineGoal.INSTANCE,
-            EliminateEnemiesGoal.INSTANCE
+            EliminateEnemiesGoal.INSTANCE,
+            AmbientEngagementGoal.INSTANCE
     );
 
     /**
@@ -330,7 +333,43 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         if (memberCountChanged) squad.clearBoundingOverwatch();
 
         WorldState current = WorldStateBuilder.build(squad, sim);
-        Goal goal = pickGoal(current, squad, sim);
+        // Walk down the ladder rather than stopping at the first winner.
+        // Relevance answers "is this goal worth wanting"; only the planner
+        // answers "can it be acted on from here", and a goal that loses the
+        // second question used to end the search holding a null plan — which
+        // a member reads as an order to stand still and drop its path. A
+        // declined goal is therefore set aside and the next-best is asked,
+        // down to the IDLE floor. Bounded by the goal count: each pass either
+        // returns a plan or removes one goal from contention.
+        Goal goal;
+        SquadPlan plan;
+        Set<Goal> declined = Set.of();
+        while (true) {
+            goal = pickGoal(current, squad, sim, declined);
+            if (goal == null) {
+                plan = null;
+                break;
+            }
+            // Custom-plan escape hatch: goals that synthesize their plan
+            // directly (e.g. SecureObjectiveZone walking a zone-graph BFS
+            // path) bypass the backward-chaining search and return their plan
+            // ready to be filled with role assignments below. Returning null
+            // means "use the planner", not "no plan" — the decline is the
+            // planner's null below.
+            plan = goal.customPlan(squad, sim);
+            if (plan == null) {
+                plan = Planner.plan(
+                        current,
+                        goal.desiredState(squad, sim),
+                        INFANTRY_ACTIONS,
+                        squad,
+                        sim,
+                        PLAN_NODE_LIMIT);
+            }
+            if (plan != null) break;
+            if (declined.isEmpty()) declined = new HashSet<>();
+            declined.add(goal);
+        }
         if (goal == null) {
             // No relevant goal — sit idle until something changes.
             squad.currentPlan = null;
@@ -341,22 +380,6 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.clearMechScreen();
             squad.clearBoundingOverwatch();
             return;
-        }
-
-        // Custom-plan escape hatch: goals that synthesize their plan directly
-        // (e.g. SecureObjectiveZone walking a zone-graph BFS path) bypass the
-        // backward-chaining search and return their plan ready to be filled
-        // with role assignments below. Returns null when the goal wants to
-        // fall back to the planner — keeps the API a single switch.
-        SquadPlan plan = goal.customPlan(squad, sim);
-        if (plan == null) {
-            plan = Planner.plan(
-                    current,
-                    goal.desiredState(squad, sim),
-                    INFANTRY_ACTIONS,
-                    squad,
-                    sim,
-                    PLAN_NODE_LIMIT);
         }
 
         if (plan != null && !plan.isComplete()) {
@@ -409,11 +432,11 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      * mission goal cannot compete merely because it also lives in MISSION.
      */
     private static Goal pickGoal(WorldState current, Squad squad,
-                                 BattleSimulation sim) {
+                                 BattleSimulation sim, Set<Goal> declined) {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null
                 || !squad.hasPlayerTacticalOrder(assignment.kind())) {
-            return Goal.pickMostRelevant(INFANTRY_GOALS, current, squad, sim);
+            return Goal.pickMostRelevant(INFANTRY_GOALS, current, squad, sim, declined);
         }
 
         Goal tacticalGoal = switch (assignment.kind()) {
@@ -422,12 +445,17 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             case DEFEND_AREA -> DefendAssignedAreaGoal.INSTANCE;
             default -> null;
         };
+        // The player's own order still outranks the authored library, but it
+        // is not exempt from having to be workable: a declined tactical goal
+        // yields to the non-mission ladder rather than pinning the squad to an
+        // order it cannot act on.
         if (tacticalGoal != null
+                && !declined.contains(tacticalGoal)
                 && tacticalGoal.relevance(current, squad, sim) > 0f) {
             return tacticalGoal;
         }
         return Goal.pickMostRelevant(
-                NON_MISSION_INFANTRY_GOALS, current, squad, sim);
+                NON_MISSION_INFANTRY_GOALS, current, squad, sim, declined);
     }
 
     private static boolean protectedShelterGuard(

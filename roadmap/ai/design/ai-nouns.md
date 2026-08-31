@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — made an active player infantry context the exclusive
+Updated: 2026-08-31 — gave the goal ladder a floor: relevance and workability
+are separated, the ladder descends past a goal that cannot be planned, and
+ambient engagement is now an occupant of the idle bucket rather than a promise.
+
+Earlier 2026-08-31 — made an active player infantry context the exclusive
 mission-tier plan, so specialist roles cannot railroad a squad; rescue pickup
 infantry remain commandable while sealed shelter militia remain mission-owned.
 
@@ -71,6 +75,17 @@ current knowledge. It chooses one goal and a short action sequence, then gives
 members roles within each step. A squad without an assignment remains useful:
 it falls through to ambient engagement rather than inventing a mission.
 
+**Ambient engagement** is that fall-through, and it closes on the squad's own
+evidence: the freshest hostile it still believes in, or failing that the bearing
+of something it recently heard. Both halves of the law bind. A squad holding
+such a cue is never left standing — a composed squad with nothing to execute is
+a worse failure than a wrong plan, because the individual tier owns no movement
+of its own and cannot recover from it. A squad holding no cue at all advances on
+nothing, because choosing a zone nobody assigned and going to take it is the
+squad inventing the mission this clause exists to forbid. An anonymous bearing
+is weaker evidence than a belief and expires far sooner than one: past that
+window it leads to where a fight was rather than where one is.
+
 A **unit execution** is the per-tick realization of the assigned role. It can
 move, hold, acquire a target, or author a legal fire intent, but it does not
 silently replace the squad's plan. Combat systems remain responsible for
@@ -97,6 +112,16 @@ outranks engagement, and engagement outranks idle behavior. Relevance chooses
 only among goals in the highest active category. A must-hold mission context
 therefore cannot be displaced merely because an ordinary combat goal scores
 more highly.
+
+**Wanting a goal and being able to act on it are different questions, and only
+the second one ends the search.** Relevance answers whether a goal is worth
+wanting from what the squad knows; whether it can be worked toward from where
+the squad stands is answered by planning it. A goal that wins its bucket and
+then yields no reachable plan is therefore set aside and the next-best goal is
+asked, down through the buckets to the idle floor — a declined goal does not
+speak for the ones beneath it. Only when every goal has either scored zero or
+declined is the squad genuinely idle. The categorical ordering is unaffected:
+descent is reached by a goal proving unworkable, never by one scoring poorly.
 
 Squad replanning remains serial unless a measured, explicit parallel contract
 is introduced. Its state, goals, actions, and read-only view boundary may
