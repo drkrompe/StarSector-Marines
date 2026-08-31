@@ -474,7 +474,8 @@
           "coreWidthPx": 3.0,
           "glowColor": "2D8CFF",
           "glowWidthPx": 12.0,
-          "pulseCycles": 2.0
+          "pulseCycles": 2.0,
+          "lifetimeSec": 1.0
         },
         "projectileSprite": null,
         "projectileVisualCells": 0.0
