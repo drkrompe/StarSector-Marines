@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -119,6 +120,9 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot());
+        // The craft panel walks one aircraft's shadow away from itself, so how
+        // much aircraft there is has to be the real number.
+        InstalledHullSpecs.install(context.starsectorCore());
 
         MapResult map = new BspCityGenerator().generate(MAP_W, MAP_H, SEED, AXIS);
         HeadlessBattleMapRenderer renderer = new HeadlessBattleMapRenderer(context.modRoot());
