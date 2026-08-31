@@ -1,9 +1,13 @@
 # Grown road graph
 
-Status: SPIKE LANDED — opt-in and unwired; the density knob and the zoning
-boundary below are what remain before any recipe adopts it.
+Status: SPIKE LANDED — opt-in and unwired. Density is now one knob and the
+zoning worry was unfounded; giving the hinterland any content is what remains.
 
 Written: 2026-08-30
+
+Updated: 2026-08-31 — density collapsed to `Profile.of(density)` and measured
+monotonic; the zoning concern retracted as unfounded; hinterland content opened
+as the remaining work.
 
 ## What this is
 
@@ -55,17 +59,55 @@ and `hamlet` produce genuine settlement with open country around it.
 
 ## What is not right yet
 
-**The density ladder is not monotonic across seeds.** At seed 777 the doodad
-counts fall 174 / 175 / 102 / 69 as intended; at seed 42 they run
-151 / 172 / 39 / 90 and `hamlet` comes out *denser* than `town`. Two knobs
-interact — budget and arm length set how far growth spreads, `frontageDepth`
-sets how wide the built ribbon is — so a clustered `town` leaves large fields
-while a spread-out `hamlet` puts thin frontage everywhere. These want collapsing
-into one density control with the others derived.
+**The hinterland has no content.** It is flat `GRASS` and nothing else, which
+reads as a green void rather than as countryside. `BspKeys.HINTERLAND` is
+written and still has no consumer. `NatureZoneFiller` already does the job for a
+rect — weighted ground plus plant and rock scatter — and `BlockLeaf` is only a
+rect, so it can be handed a hinterland `SubRect` directly. Two cautions: it
+calls `setWalkableFloor` on every cell, and at its stock 12% rock chance a
+40x40 region draws a few hundred rocks, some of them impassable, which the
+no-islands law has to survive.
 
-**Zoning does not know the hinterland exists.** `DistrictMap` is a blind 20x20
-grid, so `RES` and `MIX` labels land on empty fields. Zoning has to consult the
-hinterland before a recipe adopts this.
+Vegetation art is also thin: the only plants in the project are
+`nature.shrub-1..3` and `nature.tuft-1..3` on the sliced nature sheet, all
+`validOn` grass, and there are no tree doodads at all. Terrain painting is
+uncorrelated per cell rather than noise-driven, and the nature sheet has no edge
+frames, so a grass/dirt boundary is a hard cell edge. Patchy countryside will
+look like salt and pepper until one of those changes.
+
+## Density is one knob
+
+`Profile.of(density)` derives every other parameter; `city()`, `town()` and
+`hamlet()` are named points on it. Measured over 24 seeds at 80x80, open-country
+share falls monotonically with density:
+
+| density | 0.00 | 0.20 | 0.40 | 0.55 | 0.75 | 1.00 |
+|---|---|---|---|---|---|---|
+| open share | 0.637 | 0.431 | 0.236 | 0.148 | 0.058 | 0.000 |
+
+Three per-seed inversions in 120 adjacent-step comparisons, all mid-ladder where
+between-seed variance is widest.
+
+**Arm length must not scale with density.** That was the whole fault: a sparse
+profile with longer arms lays a thin ribbon of frontage across the entire map
+instead of making a smaller settlement, so it measured denser than the profile
+above it. Fewer junctions at a fixed reach is what a smaller town is.
+
+**Built-cell share is the wrong measure and hid this.** At full density there is
+no hinterland, so the non-built remainder is road, and adding junctions lowers
+built share — the ladder appeared to reverse at the top for a reason that had
+nothing to do with settlement. Open-country share is what density controls.
+
+## Retracted: zoning over the hinterland
+
+An earlier reading of the comparison images said `RES` and `MIX` labels were
+landing on empty fields and that zoning would need to consult the hinterland.
+That was wrong. Sub-rects and hinterland are disjoint by construction and BSP
+partitions only sub-rects, so no leaf can exist on hinterland ground and no
+filler runs there. Measured across 144 generated maps, sub-rect and hinterland
+cells overlapped zero times. The labels are the debug overlay drawing
+`DistrictMap`'s 20x20 grid across the whole map, which is a property of the
+preview and not of generation.
 
 ## The `BiomeKind` constraint
 
