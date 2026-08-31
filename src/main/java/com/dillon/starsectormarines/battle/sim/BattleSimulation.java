@@ -91,6 +91,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
@@ -873,6 +874,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public MechDoctrineService getMechDoctrineService() { return mechDoctrines; }
     /** Player battle-only exact-mech move-order mailbox and active projection. */
     public MechMoveOrderService getMechMoveOrderService() { return mechMoveOrders; }
+
+    /** Player move orders for exact ground vehicles; owned by {@code GroundSystem} beside the driver they use. */
+    public VehicleMoveOrderService getVehicleMoveOrderService() {
+        return groundSystem == null ? null : groundSystem.moveOrders();
+    }
     /** Exact-mech move executor used by the mech unit-dispatch path. */
     public MechMoveOrderSystem getMechMoveOrderSystem() { return mechMoveOrderSystem; }
     /** Player battle-only infantry squad move-order mailbox and projection. */
