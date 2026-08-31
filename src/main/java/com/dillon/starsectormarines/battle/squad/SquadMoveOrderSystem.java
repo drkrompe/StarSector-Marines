@@ -77,7 +77,8 @@ public final class SquadMoveOrderSystem {
             // and the plain move, because the APC is the more specific answer
             // to what the player pointed at.
             if (request.kind != PendingOrder.Kind.DEFEND_AREA) {
-                long ride = mountableVehicleAt(request.cellX, request.cellY, squad, sim);
+                long ride = sim.transport().mountableVehicleFor(request.cellX, request.cellY,
+                        squad.faction, sim.squadMemberCount(squad.id));
                 if (ride != 0L) {
                     activateMount(request, squad, ride, sim);
                     continue;
@@ -130,24 +131,6 @@ public final class SquadMoveOrderSystem {
      * the click was at ordinary ground — or at a vehicle that cannot take them,
      * which is the same thing as far as the order is concerned.
      */
-    private static long mountableVehicleAt(int cellX, int cellY, Squad squad,
-                                           BattleSimulation sim) {
-        for (long id : sim.getConvoyVehicleIds()) {
-            VehicleMission mission = sim.convoyMission(id);
-            if (mission == null || !mission.isVisible()
-                    || mission.state == VehicleState.WRECKED) continue;
-            if (sim.convoy().faction(id) != squad.faction) continue;
-            GroundBody body = sim.convoy().body(id);
-            if (Math.abs(body.x - (cellX + 0.5f)) > VEHICLE_CLICK_TOLERANCE_CELLS
-                    || Math.abs(body.y - (cellY + 0.5f)) > VEHICLE_CLICK_TOLERANCE_CELLS) {
-                continue;
-            }
-            if (sim.transport().seatsFree(id) < sim.squadMemberCount(squad.id)) continue;
-            return id;
-        }
-        return 0L;
-    }
-
     private void activateMount(PendingOrder request, Squad squad, long vehicleId,
                                BattleSimulation sim) {
         GroundBody body = sim.convoy().body(vehicleId);
