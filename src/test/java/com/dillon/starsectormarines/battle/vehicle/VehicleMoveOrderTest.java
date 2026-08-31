@@ -50,7 +50,9 @@ class VehicleMoveOrderTest {
 
         VehicleMoveOrderService orders = new VehicleMoveOrderService();
         VehicleMoveOrderSystem system = new VehicleMoveOrderSystem(orders, convoy, navigation,
-                new VehicleControlSystem(convoy, navigation));
+                new VehicleControlSystem(convoy, navigation),
+                new VehicleTransportService(roster, convoy,
+                        roster.entityWorld(), roster.components(), navigation));
         return new Rig(convoy, orders, system, id, body, grid);
     }
 

@@ -41,19 +41,24 @@ public final class VehicleMoveOrderSystem {
 
     /** How far the resolver may look for drivable ground near the clicked cell. */
     private static final int SNAP_RADIUS = 6;
+    /** How far off its own centre a click still counts as pointing at the hull. */
+    private static final float SELF_CLICK_TOLERANCE_CELLS = 1.5f;
 
     private final VehicleMoveOrderService service;
     private final ConvoyService convoy;
     private final NavigationService navigation;
     private final VehicleControlSystem controlSystem;
+    private final VehicleTransportService transport;
 
     public VehicleMoveOrderSystem(VehicleMoveOrderService service, ConvoyService convoy,
                                   NavigationService navigation,
-                                  VehicleControlSystem controlSystem) {
+                                  VehicleControlSystem controlSystem,
+                                  VehicleTransportService transport) {
         this.service = service;
         this.convoy = convoy;
         this.navigation = navigation;
         this.controlSystem = controlSystem;
+        this.transport = transport;
     }
 
     /** Resolves every queued request. Call once per tick, before driving. */
@@ -62,6 +67,17 @@ public final class VehicleMoveOrderSystem {
             if (!commandable(entry.getKey())) service.forget(entry.getKey());
         }
         for (PendingOrder request : service.drainPending()) {
+            // Right-clicking a loaded transport on itself is "everybody out",
+            // the way Red Alert 2 read it: the vehicle is the target, and what
+            // it does depends on whether anybody is in it. Resolved before the
+            // move, because a click on your own hull is not a destination.
+            if (commandable(request.vehicleId)
+                    && pointsAtItself(request)
+                    && !transport.manifest(request.vehicleId).isEmpty()) {
+                transport.dismountAll(request.vehicleId);
+                service.complete(request.vehicleId);
+                continue;
+            }
             if (!commandable(request.vehicleId)) {
                 service.refuse(request.vehicleId, request.cellX, request.cellY,
                         Refusal.NOT_COMMANDABLE);
@@ -118,6 +134,13 @@ public final class VehicleMoveOrderSystem {
      * id is all it takes — so the system that acts on them is where "this one
      * is not yours" has to be decided.
      */
+    /** Whether the click landed on the vehicle's own hull rather than on ground. */
+    private boolean pointsAtItself(VehicleMoveOrderService.PendingOrder request) {
+        GroundBody body = convoy.body(request.vehicleId);
+        return Math.abs(body.x - (request.cellX + 0.5f)) <= SELF_CLICK_TOLERANCE_CELLS
+                && Math.abs(body.y - (request.cellY + 0.5f)) <= SELF_CLICK_TOLERANCE_CELLS;
+    }
+
     private boolean commandable(long id) {
         if (!convoy.isVehicle(id)) return false;
         if (convoy.faction(id) != Faction.MARINE) return false;

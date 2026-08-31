@@ -195,11 +195,11 @@ class SiroccoScreenedOverwatchTest {
     }
 
     @Test
-    void tankToLongRangeSupportUsesPartlySpentLrmsAndMovesBehindMarines() {
+    void longRangeSupportUsesPartlySpentLrmsAndMovesBehindMarines() {
         BattleSimulation sim = openSimulation();
-        long bulwark = spawnMech(sim, Faction.MARINE,
-                MechVariant.BULWARK, 46, 30);
-        Squad squad = sim.squadOf(bulwark);
+        long sirocco = spawnMech(sim, Faction.MARINE,
+                MechVariant.SIROCCO, 46, 30);
+        Squad squad = sim.squadOf(sirocco);
         long infantry = spawnInfantry(sim, Faction.MARINE, 39, 30);
         long enemy = sim.spawn(new EntitySpec(
                 "enemy", Faction.DEFENDER, UnitType.MARINE,
@@ -208,23 +208,23 @@ class SiroccoScreenedOverwatchTest {
                 THREAT_X, THREAT_Y, sim.getSimTickIndex());
         squad.lastSeenEnemyX = THREAT_X;
         squad.lastSeenEnemyY = THREAT_Y;
-        sim.world().setTargetId(bulwark, enemy);
+        sim.world().setTargetId(sirocco, enemy);
         sim.getUnitIndex().rebuild(sim.getRoster());
-        MechLoadoutComponent loadout = sim.world().mechLoadout(bulwark);
+        MechLoadoutComponent loadout = sim.world().mechLoadout(sirocco);
         MechWeaponMount lrm = loadout.mount(MechMountSlot.RIGHT_SHOULDER);
         lrm.ammo = Math.max(1, lrm.ammo - 1);
 
         sim.getMechDoctrineService().requestOverride(
-                bulwark, MechRole.LR_SUPPORT);
+                sirocco, MechRole.LR_SUPPORT);
         new MechDoctrineSystem(sim.getMechDoctrineService()).tick(sim);
-        ExecuteMechDoctrine.INSTANCE.execute(bulwark, squad, sim);
+        ExecuteMechDoctrine.INSTANCE.execute(sirocco, squad, sim);
 
         assertEquals(MechRole.LR_SUPPORT, loadout.effectiveRole());
         assertTrue(loadout.overwatchLongRangeBand,
                 "a fresh LR order should use every available LRM instead of inheriting rearm fallback");
         assertEquals(infantry, loadout.overwatchScreenId);
         assertTrue(loadout.overwatchCellX < sim.world().cellX(infantry));
-        assertFalse(Paths.isEmpty(sim.world().path(bulwark)),
+        assertFalse(Paths.isEmpty(sim.world().path(sirocco)),
                 "the serialized doctrine command should author visible repositioning");
     }
 

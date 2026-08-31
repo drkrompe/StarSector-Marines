@@ -339,6 +339,29 @@ class BallisticResolverTest {
     }
 
     @Test
+    void authoredBodyPenetrationPassesThroughOneActorAndStopsOnTheNext() {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long interposer = spawn(sim, Faction.DEFENDER, 6);
+        long target = spawn(sim, Faction.DEFENDER, 12);
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution res = resolver.resolve(
+                shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, 1,
+                new QueueRandom(0f, 0.5f, 0.5f, 0f));
+
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
+        assertEquals(target, res.victimId());
+        assertTrue(res.hitIntended());
+        assertEquals(2, res.bodyHits().size());
+        assertEquals(interposer, res.bodyHits().get(0).victimId());
+        assertEquals(target, res.bodyHits().get(1).victimId());
+        assertTrue(res.bodyHits().get(0).flightTime() < res.bodyHits().get(1).flightTime());
+    }
+
+    @Test
     void marineRoundsIgnoreCivilianBodiesAndReachTheLockedEnemy() {
         BattleSimulation sim = openArena();
         DoodadService doodads = new DoodadService(sim.getGrid());

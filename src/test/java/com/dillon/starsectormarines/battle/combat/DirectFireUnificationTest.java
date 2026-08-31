@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -190,6 +191,35 @@ class DirectFireUnificationTest {
         PendingDetonation mortarBlast = turretSim.getInflightDetonations().get(0);
         assertEquals(mortarDef.mount.weapon.aoeRadius, mortarBlast.aoeRadius, EPS);
         assertEquals(mortarDef.mount.weapon.wallDamage, mortarBlast.wallDamage);
+    }
+
+    @Test
+    void shoulderLaserContactsTwoBodiesButExcludesBothFromItsCompactBlast() {
+        BattleSimulation sim = arena(false, 12345L);
+        long mech = sim.spawn(new EntitySpec("bulwark", Faction.MARINE,
+                UnitType.HEAVY_MECH, 2, ROW));
+        long interposer = sim.spawn(new EntitySpec("interposer", Faction.DEFENDER,
+                UnitType.MARINE, 6, ROW));
+        long victim = target(sim);
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
+
+        sim.fireMechWeapon(mech, victim, laser, 2f);
+
+        ShotEvent shot = onlyShot(sim);
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, shot.stopKind);
+        assertEquals(1, sim.getInflightDetonations().size());
+        PendingDetonation blast = sim.getInflightDetonations().get(0);
+        assertEquals(sim.world().x(victim) - sim.getRoster().radius(victim),
+                blast.endpointX, 0.02f);
+        assertTrue(blast.excludesAreaTarget(interposer));
+        assertTrue(blast.excludesAreaTarget(victim));
+        assertEquals(2, blast.areaExcludedTargetCount());
+
+        List<ShotService.PendingImpact> impacts = sim.getShots().snapshotActiveImpacts();
+        assertEquals(2, impacts.size());
+        assertTrue(impacts.stream().anyMatch(hit -> hit.victimId == interposer));
+        assertTrue(impacts.stream().anyMatch(hit -> hit.victimId == victim));
+        assertTrue(impacts.stream().allMatch(hit -> hit.damage == laser.contactDamage));
     }
 
     @Test

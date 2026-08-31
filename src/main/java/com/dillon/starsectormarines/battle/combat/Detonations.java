@@ -151,7 +151,7 @@ public class Detonations {
             long[] dense = roster.denseArray();
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 long u = dense[i];
-                if (hasDirectPayload && u == det.directTargetId) continue;
+                if (det.excludesAreaTarget(u)) continue;
                 if (det.friendlyFireImmune && roster.identity().faction(u) == det.shooterFaction) continue;
                 // TRUE position, not cell center — a unit's physical footprint
                 // (UnitType.radius) is added to the blast radius so bigger units
@@ -176,7 +176,7 @@ public class Detonations {
             // the same physical splash test explicitly.
             for (long vehicleId : roster.convoy().entityIds()) {
                 if (!roster.convoy().isTargetable(vehicleId)) continue;
-                if (hasDirectPayload && vehicleId == det.directTargetId) continue;
+                if (det.excludesAreaTarget(vehicleId)) continue;
                 if (det.friendlyFireImmune
                         && roster.convoy().faction(vehicleId) == det.shooterFaction) continue;
                 float ux = world.x(vehicleId);

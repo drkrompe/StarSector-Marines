@@ -28,7 +28,7 @@ class LayeredMechComposerTest {
 
         assertEquals(List.of(
                         "foot.png", "foot.png", "chaingun-arm.png", "chaingun-arm.png",
-                        "chassis.png", "lrm-pod.png", "lrm-pod.png"),
+                        "chassis.png", "lrm-pod.png", "shoulder-laser-cannon.png"),
                 layers.stream().map(layer -> fileName(layer.path())).toList());
         assertEquals(208f, layers.get(4).width(), 0.001f);
         assertEquals(31f, layers.get(2).width(), 0.001f,
@@ -147,6 +147,20 @@ class LayeredMechComposerTest {
         assertEquals(400f - 0.40f * 208f, flashes.get(0).x(), 0.001f);
         assertEquals(400f + 0.40f * 208f, flashes.get(1).x(), 0.001f);
         assertEquals(300f + 0.12f * 208f, flashes.get(0).y(), 0.001f);
+    }
+
+    @Test
+    void shoulderLaserFlashUsesTheEdgeOnEmitterMuzzle() {
+        LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
+        List<Layer> layers = emitFlashingMech(assets, MechVariant.BULWARK,
+                LayeredMechAppearance.FLAG_LASER_FLASH);
+
+        List<Layer> flashes = layers.stream()
+                .filter(layer -> fileName(layer.path()).equals("marine-muzzle-flash.png"))
+                .toList();
+        assertEquals(1, flashes.size());
+        assertEquals(400f + 0.40f * 208f, flashes.get(0).x(), 0.001f);
+        assertEquals(300f + 0.32f * 208f, flashes.get(0).y(), 0.001f);
     }
 
     private static List<Layer> emitFlashingMech(LayeredMechAssets assets,

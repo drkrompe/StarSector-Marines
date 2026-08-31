@@ -294,6 +294,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case CORE -> new Color(0xF0, 0xC9, 0x52);
             case BALLISTIC -> new Color(0xE5, 0x83, 0x45);
             case MISSILE -> new Color(0x6D, 0xD5, 0xF2);
+            case OMNI -> new Color(0xB5, 0x87, 0xF4);
             case AMMO -> new Color(0x9E, 0xBD, 0x6A);
             case UTILITY -> new Color(0xB1, 0x8B, 0xE8);
         };
@@ -387,6 +388,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 token("linear-cannon-variant.png", 58, 138),
                 token("heavy-cannon.png", 64, 128), token("srm-pod.png", 62, 88),
                 token("lrm-pod.png", 76, 96),
+                token("shoulder-laser-cannon.png", 76, 128),
                 LayeredSpriteCache.headless(
                         "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png",
                         48, 48));

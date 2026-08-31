@@ -235,13 +235,20 @@ public class ShotFxTest {
     }
 
     @Test
-    public void mechWeaponsAreSpritesCarryingArcAndAuthoredTrails() {
+    public void mechWeaponsCarryAuthoredProjectileOrBeamPresentation() {
         for (WeaponDef w : WeaponRegistry.installed().all()) {
             if (w.mount != MountClass.MECH_MOUNT) continue;
             ShotFx fx = ShotFx.of(shot(null, null, null, w));
-            Sprite body = assertSprite(fx, "mech " + w);
-            assertEquals(w.projectileSpritePath(), body.spritePath(), "sprite path for " + w);
-            assertEquals(w.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + w);
+            if (w.projectileSpritePath() != null) {
+                Sprite body = assertSprite(fx, "mech " + w);
+                assertEquals(w.projectileSpritePath(), body.spritePath(), "sprite path for " + w);
+                assertEquals(w.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + w);
+                assertTrue(fx.travels(), "mech projectile travels: " + w);
+            } else {
+                assertInstanceOf(Tracer.class, fx.body(), "null projectile art authors a beam");
+                assertEquals(w.tracerColor, ((Tracer) fx.body()).color());
+                assertFalse(fx.travels(), "mech beam is drawn across the resolved lane");
+            }
             assertEquals(w.arcHeight, fx.arcHeight(), 0f, "arcHeight for " + w);
             boolean expectedTrail = WeaponRegistry.MECH_SRM_POD_ID.equals(w.id)
                     || WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(w.id);
@@ -252,7 +259,6 @@ public class ShotFxTest {
             } else {
                 assertNull(fx.tracerTail(), "mech weapon has no authored tracer tail: " + w);
             }
-            assertTrue(fx.travels(), "mech body travels: " + w);
             assertFalse(fx.boostRamp(), "mech weapons don't boost-ramp: " + w);
             assertNull(fx.contrail(), "mech weapons carry no contrail ribbon: " + w);
         }
