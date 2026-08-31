@@ -16,6 +16,7 @@ implementation subtracks of this one noun, not separate domains.
 | `multi-truck-convoys.md` | **Queued.** LZ separation is shipped; add one dispatch's staggered same-route vehicles and following distance after the single-vehicle route/control behavior passes playtest. This is the trigger for real planner-budget measurement. |
 | `slice-5-perf-budget.md` | **Deferred behind multi-truck convoys.** Profile live simultaneous planners first; only then add the cache, scheduling, or reuse that measured frame cost requires. |
 | `truck-infantry-interaction.md` | **Queued.** Define authoritative moving-vehicle occupancy/collision before choosing yielding, impact, or hybrid behavior; current vehicles are intentionally outside infantry grid collision. |
+| `vehicle-as-commandable-unit.md` | **Direction, in progress.** A vehicle becomes a unit the player selects and orders. Step 1 (dissolve `isInbound` into a corridor + arrival policy) is the current work; move orders and a marine-side chassis follow. |
 | `vehicle-variants.md` | **Queued.** Supply and scout roles need their own payload authority and acceptance cases; a supply delivery must integrate with reinforcement supply rather than merely reuse troop deboarding. |
 
 The completed routing and controller slices are listed in `shipped.md`.
