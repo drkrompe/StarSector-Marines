@@ -4,11 +4,9 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a landing is flown, and the strip it lands on is a resource nothing may hold after it stops existing.
-
-Updated: 2026-08-30 — the two-representations split now has a stated expiry:
-bodies reach the scans generically, so anti-air will not need an air-aware
-branch in every grid walk.
+Updated: 2026-08-31 — the pad settle ends on a condition rather than a clock, a
+launch off a hardstand climbs before it flies away, and `isOverTheBattle` is an
+exhaustive switch rather than a list a phase can fall out of.
 
 ## Purpose
 
@@ -723,6 +721,17 @@ pad, taxiing, holding short, rolling, or taxiing back in was not drawn at all.
 A minute of exposed ground movement nobody can see is a vertical lift with
 extra steps.
 
+Splitting the predicate did not close the hole; it moved it. The "over the
+battle" half was still a hand list — INCOMING, PAD_DESCENT, LANDED, DEPARTING,
+RETURNING — and `ATTACK_RUN` and `REPOSITION` were added to the phase enum
+afterwards without a mention in it, which is the whole of a strike aircraft's
+time actually attacking. A fighter mid gun-run swept no fog and fired no
+mounted turret, invisible in exactly the way the runway-exposure list already
+warned about once. `ShuttleMission.isOverTheBattle` is now an exhaustive
+switch with no default case: every phase this enum ever grows must be placed
+on one side or the other before the project compiles, so the next phase added
+cannot repeat this by omission the way the last two did.
+
 The strip itself is a **resource with one occupant**. Two aircraft rolling down
 one runway is not a race the simulation is entitled to lose, and the queue that
 falls out of it is the point — a field with three aircraft and one strip
@@ -792,6 +801,20 @@ people who can be seen and shot, they cross open ground to reach the field, and
 an attacker standing on the airfield — or merely shooting across it — has
 stopped the lift without touching the aircraft.
 
+**Launching off a hardstand climbs before it flies away.** Loading pins the
+craft to the ground, and the leg that follows judges its own altitude by how
+much of the flight to the LZ is left — which is already the whole flight on
+the very first sample of a fresh one. Without something between them a sortie
+that just finished boarding popped from the ground to cruising height in the
+single tick the ramp closed: altitude and drawn scale both jumped their full
+range in one frame, the same discontinuity the settle below exists to remove,
+run the other way. So a launch climbs on the spot, over the pad it just left,
+before it turns for the LZ — the mirror of the settle, and a phase of its own
+for the same reason: a craft climbing straight up and a craft flying a leg are
+not moved by the same model. Only a sortie that starts down on its own
+hardstand needs this; one entering from off-map is already at cruise, and one
+rolling off a strip reaches cruise over the length of its takeoff roll.
+
 **A vertical lift settles onto its pad; it does not arrive on it.** The run in
 brakes down to a hover over the spot, and the last of the descent is its own
 phase: the craft holds, kills the drift it came in with, and sinks. Its heading
@@ -801,6 +824,24 @@ moving — which is a helicopter ceasing to exist mid-air and reappearing landed
 and reads exactly as badly as that sounds. A pad does not need a runway's
 circuit, because a machine that lands vertically can arrive from any bearing;
 what it needs is the deceleration and the descent to be things that take time.
+
+**The settle ends on a condition, not a duration.** It used to end after a
+stated number of seconds regardless of where that left the craft, which is the
+same placement the settle itself exists to remove, just deferred rather than
+undone: a stated duration is somebody's guess at how long braking takes, and a
+bus-tier hull's gentler brakes make that guess wrong by exactly the margin its
+brakes are gentler. Measured on the shipped hull ladder, every bus-tier
+transport — Buffalo, Tarsus, Mule, Nebula, Valkyrie — was still two and a half
+to nearly four cells short of the pad, doing several cells a second, when the
+clock ran out, and was snapped to a dead stop there anyway: over a hundred
+cells/sec² against a brake rated for four. The settle now ends when the
+craft is genuinely down — over the pad, and its speed killed — both read off
+the body's own motion rather than off a clock, and both against numbers the
+hull owns (its braking accel) rather than one authored duration asked to fit
+every hull. A settle that could in principle never converge would be worse
+than the snap it replaces, so it still carries a bound; landing on that bound
+still respects the brake; nothing is moved, the settle is simply accepted as
+finished where the craft actually is.
 
 **Unloading is bounded at both ends of the trip.** A passenger needs somewhere
 to stand, and a landing zone can have nowhere: a squad that lands and holds
