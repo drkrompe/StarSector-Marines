@@ -172,7 +172,9 @@ public final class VehicleControlSystem {
         // forward segment.
         int lastIdx = xs.length - 1;
         float distToLast = body.distanceTo(xs[lastIdx], ys[lastIdx]);
-        float threshold = isInbound ? VehicleController.LZ_ARRIVAL_DIST : VehicleController.EXIT_ARRIVAL_DIST;
+        float threshold = VehicleController.arrivalDist(
+                isInbound ? VehicleController.LZ_ARRIVAL_DIST : VehicleController.EXIT_ARRIVAL_DIST,
+                body, dt);
         if (distToLast < threshold) {
             if (isInbound) body.teleport(xs[lastIdx], ys[lastIdx], body.facingDegrees);
             s.arrived = true;
