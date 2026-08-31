@@ -27,9 +27,12 @@ import java.util.List;
  *
  * <p>Lives in the {@link Priority#SURVIVAL} bucket so it outranks
  * {@link EliminateEnemiesGoal} (ENGAGEMENT) but loses to
- * {@link Priority#MISSION} goals like {@link SecureObjectiveZone} and
- * {@link CordonForPlant}, which keeps the planter from breaking the plant
- * just because the rest of the squad's been mauled.
+ * ordinary {@link Priority#MISSION} goals like {@link SecureObjectiveZone}
+ * and {@link CordonForPlant}, which keeps the planter from breaking the plant
+ * just because the rest of the squad's been mauled. An active player tactical
+ * context is the exception: its matching mission goal yields to this survival
+ * bucket while cohesion is broken, then resumes without letting another
+ * mission goal railroad the squad.
  *
  * <p>Custom-plan: synthesizes a single-step plan of {@link BreakContact}.
  * The action runs perpetually (never returns SUCCESS); the squad-level
