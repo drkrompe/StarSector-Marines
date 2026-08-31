@@ -189,22 +189,19 @@ public final class VehicleControlSystem {
             s.trajCarrotAtEnd = false;
         }
 
-        // A null plan while the body is fully on-grid means the kinematic
+        // A null plan with on-grid route still to solve means the kinematic
         // planner rejected the route ahead. Do not feed that same sharp coarse
         // polyline to the bicycle controller: brake, then ask the macro router
         // for a genuinely different turn-aware corridor. Coarse pursuit remains
-        // only for the deliberate off-map entry/exit crossing, where no complete
-        // footprint pose exists in the grid yet.
-        boolean bodyFullyOnGrid = VehicleFootprint.isPoseWithinGrid(
-                body.x, body.y, body.facingDegrees,
-                type.visualLengthCells, type.visualWidthCells, navigation.getGrid());
-        if (s.trajectory == null && bodyFullyOnGrid) {
+        // only for the deliberate off-map entry/exit crossing.
+        if (s.trajectory == null && onGridRouteRemains(body, type, s)) {
+            Pose here = new Pose(body.x, body.y, body.facingDegrees);
             // Hybrid A*'s soft goal is deliberately wider than the exact LZ
             // snap. If the truck has reached that terminal region and no safe
             // forward motion remains, this is the best footprint-valid landing
             // pose—not a failed bend that should hold the payload forever.
             if (isInbound && LocalTrajectoryPlanner.isInTerminalGoalRegion(
-                    new Pose(body.x, body.y, body.facingDegrees), s.corridor, type)) {
+                    here, s.corridor, type)) {
                 s.localPlanFailureTime = 0f;
                 body.speed = 0f;
                 s.arrived = true;
@@ -323,6 +320,22 @@ public final class VehicleControlSystem {
         if (s.trajProgress >= s.trajectory.lengthCells() * VehicleController.REPLAN_CONSUMED_FRACTION) return true;
         if (s.corridor.offCorridorDistance(body.x, body.y) > VehicleController.REPLAN_DRIFT_CELLS) return true;
         return false;
+    }
+
+    /**
+     * True while there is still on-grid route for the local planner to solve, so
+     * a null trajectory is a genuine route failure rather than the off-map
+     * crossing. Two ways to be on the tail: the footprint has physically left
+     * the grid (the inbound spawn leg), or the rolling goal has (every outbound
+     * exit, which pins its goal to a waypoint a fixed pad beyond the perimeter
+     * long before the body reaches the edge).
+     */
+    private boolean onGridRouteRemains(GroundBody body, VehicleType type, VehicleControlComponent s) {
+        NavigationGrid grid = navigation.getGrid();
+        if (!VehicleFootprint.isPoseWithinGrid(body.x, body.y, body.facingDegrees,
+                type.visualLengthCells, type.visualWidthCells, grid)) return false;
+        return !LocalTrajectoryPlanner.isPlanningIntoOffMapTail(
+                new Pose(body.x, body.y, body.facingDegrees), s.corridor, type, grid);
     }
 
     /**
