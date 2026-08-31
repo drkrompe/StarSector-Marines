@@ -518,7 +518,16 @@ public final class ShuttleMission {
 
     /**
      * Whether the aircraft is out in the open on its wheels under its own
-     * power — and therefore something anybody with a weapon can shoot at.
+     * power.
+     *
+     * <p><b>No longer a targeting gate.</b> Whether a given shooter can engage
+     * this craft is {@code EngagementService.canEngage}, which asks the carrier
+     * for presence and altitude and the shooter for whether it can reach up;
+     * this predicate said "anybody with a weapon can shoot at it", which was
+     * true of the only shooters that existed and stopped being the shape of the
+     * question. What is left for it is the one thing it genuinely decides:
+     * whether a kill leaves a hull on the ground or a machine falling out of
+     * the sky.
      *
      * <p>This is what a runway is <em>for</em>. A strip buys a minute of
      * movement across open ground in exchange for not lifting vertically off a
