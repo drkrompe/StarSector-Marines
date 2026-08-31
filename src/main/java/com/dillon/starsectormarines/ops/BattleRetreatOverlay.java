@@ -118,4 +118,10 @@ final class BattleRetreatOverlay {
         return new UiViewport(position.getX() + EDGE_INSET,
                 position.getY() + EDGE_INSET, width, height, scale);
     }
+
+    boolean blocksWorldPointer(float x, float y) {
+        if (viewport == null) return false;
+        return x >= viewport.screenX() && x < viewport.screenX() + viewport.width()
+                && y >= viewport.screenY() && y < viewport.screenY() + viewport.height();
+    }
 }

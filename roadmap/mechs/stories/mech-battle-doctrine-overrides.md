@@ -92,7 +92,8 @@ at deployment.
 ## Out of scope
 
 - Persisting a new default from battle or adding the Mech Lab authoring flow.
-- Player-authored destinations, targets, waypoints, or knowledge.
+- Player-authored targets, waypoints, or knowledge. The separate one-shot
+  tactical destination contract is standing behavior in `mechs-nouns.md`.
 - Per-member lance orders; coordination mode belongs to the battle lance.
 - New chassis, weapons, damage rules, morale tuning, or campaign inventory.
 - Treating the UI label Tank as a new hardware family.

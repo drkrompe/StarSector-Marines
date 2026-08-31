@@ -191,6 +191,11 @@ final class BattleSquadOverlay {
                 PANEL_WIDTH * viewport.documentScale(), viewport.height());
     }
 
+    boolean blocksWorldPointer(float x, float y) {
+        return presentation.visible()
+                && (insidePanel(x, y) || insideVisibleTooltip(x, y));
+    }
+
     private boolean insideVisibleTooltip(float x, float y) {
         if (viewport == null || markupInstance == null
                 || markupInstance.requireElement("battle-squad-tooltip")

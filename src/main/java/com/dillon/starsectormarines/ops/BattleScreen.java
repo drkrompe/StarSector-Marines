@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.SabotageCommanderOverlay
 import com.dillon.starsectormarines.battle.ui.highlight.RaidCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.ExtractionCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
+import com.dillon.starsectormarines.battle.ui.highlight.MechMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
@@ -470,6 +471,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // green cells track members as they move; clears itself when the
         // selection drops or the squad is wiped out.
         SelectionHighlightPublisher.publish(selection, sim, highlights);
+        MechMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         CommanderInfluenceOverlayPublisher.publish(sim, highlights,
                 debugMarineFriendlyInfluence, debugMarineHostileInfluence,
                 debugDefenderFriendlyInfluence, debugDefenderHostileInfluence);
@@ -1112,7 +1114,33 @@ public class BattleScreen implements Screen, BattleUiContext {
      * key keeps panning between events).
      */
     private void handleCameraInput(List<InputEventAPI> events) {
-        cameraControls.process(events, camera);
+        cameraControls.process(events, camera, CameraControls.PointerSpace.SCREEN,
+                this::requestSelectedMechMove);
+    }
+
+    /** Queues a one-shot exact-mech move from a stationary world RMB click. */
+    private void requestSelectedMechMove(float screenX, float screenY) {
+        BattleSimulation sim = getSim();
+        long mech = selection.getSelectedUnitEntityId();
+        if (sim == null || mech == 0L || camera == null) return;
+        if (battleChromeBlocksWorldPointer(screenX, screenY)) return;
+        int cellX = (int) Math.floor(camera.screenToCellX(screenX));
+        int cellY = (int) Math.floor(camera.screenToCellY(screenY));
+        if (!sim.getGrid().inBounds(cellX, cellY)) return;
+        sim.getMechMoveOrderService().requestMove(mech, cellX, cellY);
+    }
+
+    private boolean battleChromeBlocksWorldPointer(float screenX, float screenY) {
+        return retainedOverlay != null
+                && retainedOverlay.blocksWorldPointer(screenX, screenY)
+                || retainedSquadOverlay != null
+                && retainedSquadOverlay.blocksWorldPointer(screenX, screenY)
+                || retainedMechOverlay != null
+                && retainedMechOverlay.blocksWorldPointer(screenX, screenY)
+                || retainedPowerOverlay != null
+                && retainedPowerOverlay.blocksWorldPointer(screenX, screenY)
+                || retainedRetreatOverlay != null
+                && retainedRetreatOverlay.blocksWorldPointer(screenX, screenY);
     }
 
     /** Debug-only: Z toggles {@link #debugZonesVisible}. Used to eyeball-verify the zone graph after wall breaches. */

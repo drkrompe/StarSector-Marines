@@ -4,8 +4,8 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — the exact-friendly-Mech plate now separates its lance-wide
-Form on Lead / Free Reign order from the selected member's field doctrine.
+Updated: 2026-08-31 — exact-friendly-Mech selection now supports a stationary
+world right-click move order while preserving RMB-drag camera panning.
 
 ## Purpose
 
@@ -249,7 +249,12 @@ lance while doctrine affects only the exact selected mech. The plate projects
 the simulation's effective state and sends serialized battle-command requests;
 it never mutates the squad, loadout, campaign default, assignment, or contact
 picture directly, and it is absent for enemies, infantry, rescue payloads, and
-stale selections. Selecting a squad opens a bounded, scrollable GOAP diagnostic beneath the right rail;
+stale selections. With that exact friendly Mech selected, a stationary
+right-click on world ground requests a one-shot tactical move; the simulation's
+resolved reachable destination is shown as a cyan cell cue until arrival.
+Crossing the pointer threshold instead keeps RMB-drag camera panning, and HUD
+chrome blocks the world request behind it. Selecting a squad opens a bounded,
+scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
 
