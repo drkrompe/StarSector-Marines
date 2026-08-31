@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /** Traverse-aware target retention shared by every mech combat posture. */
@@ -76,8 +77,15 @@ public final class MechTargeting {
             best = candidate;
             bestDistance = distance;
         }
-        for (long candidate : sim.getConvoyVehicleIds()) {
-            if (!sim.isCombatTarget(candidate)
+        // Every body that is not a roster row, asked once. This was a walk of
+        // the convoy vehicle list alone, so a mech could not see a taxiing
+        // aircraft that the infantry beside it — which reach candidates through
+        // the spatial index — were already shooting at. Same question, two
+        // answers, depending on who asked.
+        BodyService bodies = sim.bodies();
+        for (int i = 0, n = bodies.bodyCount(); i < n; i++) {
+            long candidate = bodies.bodyAt(i);
+            if (!sim.canEngage(mech, candidate)
                     || sim.identity().faction(candidate) == ownFaction) continue;
             float distance = TacticalScoring.cellDistance(
                     sim.world().x(mech), sim.world().y(mech),
@@ -116,19 +124,21 @@ public final class MechTargeting {
     private static boolean isBeliefLegal(long mech, long target, Squad squad,
                                          BattleView sim) {
         return squad != null && squad.believedContact(target) != null
-                && target != 0L && sim.resolveUnit(target) != 0L
+                && target != 0L
                 && sim.identity().faction(target) != sim.identity().faction(mech)
-                && sim.isCombatTarget(target);
+                && sim.canEngage(mech, target);
     }
 
     private static boolean isDirectlyEngageable(long mech, long target,
                                                  float hipFacing, float range,
                                                  BattleView sim) {
-        if (target == 0L || sim.resolveUnit(target) == 0L) return false;
-        if (sim.identity().faction(target) == sim.identity().faction(mech)
-                || !sim.isCombatTarget(target)) {
-            return false;
-        }
+        // Re-asked every tick, and asked as the relation rather than as a
+        // liveness check plus a separate absolute predicate. A held lock on
+        // something this mech has stopped being able to reach — a craft that
+        // lifted, a chassis that became a wreck — drops here rather than
+        // surviving until range or line of sight happens to break it.
+        if (!sim.canEngage(mech, target)) return false;
+        if (sim.identity().faction(target) == sim.identity().faction(mech)) return false;
         float dx = sim.world().x(target) - sim.world().x(mech);
         float dy = sim.world().y(target) - sim.world().y(mech);
         float distance = (float) Math.sqrt(dx * dx + dy * dy);

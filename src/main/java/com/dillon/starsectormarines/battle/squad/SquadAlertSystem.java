@@ -126,12 +126,17 @@ public final class SquadAlertSystem {
 
     /**
      * Whether a remembered contact identity still names something a squad can
-     * act on. Mirrors {@code BattleSimulation.resolveUnit}: a live unit, or a
-     * targetable convoy vehicle, which carries no identity component and so
-     * must not be tested through one.
+     * act on — a live roster unit, or a body its carrier says is still
+     * reachable.
+     *
+     * <p>This used to spell that out as "a live unit, or a targetable convoy
+     * vehicle", which is the same sentence {@code BattleSimulation.resolveUnit}
+     * spelled out, and both of them silently dropped an aircraft the moment one
+     * became a body. The list is now one question asked of the carrier
+     * registry, so the next carrier is remembered without anybody editing this.
      */
-    private boolean identityResolves(long unitId) {
-        return roster.isLive(unitId) || roster.convoy().isTargetable(unitId);
+    boolean identityResolves(long unitId) {
+        return roster.bodies().isTargetable(unitId);
     }
 
     public void tick(float dt, int simTick) {

@@ -41,6 +41,21 @@ public enum ArmorTradition {
         this.key = key;
     }
 
+    /** Vanilla faction-definition logo used when this tradition appears in inspection UI. */
+    public String factionLogo() {
+        return switch (this) {
+            case INDEPENDENT -> "graphics/factions/neutral_traders.png";
+            case HEGEMONY -> "graphics/factions/hegemony.png";
+            case TRITACHYON -> "graphics/factions/tritachyon.png";
+            case PERSEAN -> "graphics/factions/persean_league.png";
+            case LUDDIC_CHURCH, KNIGHTS_OF_LUDD -> "graphics/factions/luddic_church.png";
+            case LUDDIC_PATH -> "graphics/factions/luddic_path.png";
+            case SINDRIAN_DIKTAT -> "graphics/factions/sindrian_diktat.png";
+            case LIONS_GUARD -> "graphics/factions/lg.png";
+            case PIRATES -> "graphics/factions/pirates.png";
+        };
+    }
+
     /**
      * @param armorId named in the failure so an author knows which catalog entry
      *                to fix.

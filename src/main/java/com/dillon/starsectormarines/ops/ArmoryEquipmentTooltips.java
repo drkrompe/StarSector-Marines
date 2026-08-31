@@ -47,7 +47,28 @@ final class ArmoryEquipmentTooltips {
         UiElement popup = markup.requireElement(tooltipId)
                 .align(UiAlign.CENTER, UiAlign.START)
                 .addClass(HIDDEN_CLASS);
+        if (popup.childCount() > 1) {
+            UiElement copy = popup.childAt(1);
+            copy.preferredHeight(wrappedCopyHeight(copy.text()));
+        }
         return new EquipmentTooltip(markup.requireElement(targetId), popup);
+    }
+
+    /** Conservative body-font wrap estimate so the scroll extent contains all authored copy. */
+    private static float wrappedCopyHeight(String text) {
+        if (text == null || text.isBlank()) return 18f;
+        int lines = 1;
+        int column = 0;
+        for (String word : text.trim().split("\\s+")) {
+            int width = word.length() + (column == 0 ? 0 : 1);
+            if (column > 0 && column + width > 40) {
+                lines++;
+                column = word.length();
+            } else {
+                column += width;
+            }
+        }
+        return Math.max(18f, lines * 16f);
     }
 
     void update() {

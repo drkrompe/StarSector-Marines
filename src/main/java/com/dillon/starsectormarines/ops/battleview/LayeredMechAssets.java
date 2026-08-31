@@ -14,6 +14,7 @@ public final class LayeredMechAssets {
     public final LayeredSpriteCache srmPod;
     public final LayeredSpriteCache lrmPod;
     public final LayeredSpriteCache shoulderLaser;
+    public final LayeredSpriteCache pulseLaserArm;
     public final LayeredSpriteCache muzzleFlash;
 
     public LayeredMechAssets(LayeredSpriteCache chassis, LayeredSpriteCache socketedChassis,
@@ -25,6 +26,7 @@ public final class LayeredMechAssets {
                              LayeredSpriteCache srmPod,
                              LayeredSpriteCache lrmPod,
                              LayeredSpriteCache shoulderLaser,
+                             LayeredSpriteCache pulseLaserArm,
                              LayeredSpriteCache muzzleFlash) {
         this.chassis = chassis;
         this.socketedChassis = socketedChassis;
@@ -38,6 +40,7 @@ public final class LayeredMechAssets {
         this.srmPod = srmPod;
         this.lrmPod = lrmPod;
         this.shoulderLaser = shoulderLaser;
+        this.pulseLaserArm = pulseLaserArm;
         this.muzzleFlash = muzzleFlash;
     }
 }

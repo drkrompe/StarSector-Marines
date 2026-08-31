@@ -70,8 +70,18 @@ class WeaponRegistryParityTest {
                 0.6f, 3, 0f, false, false, 1f,
                 new Color(0xFF, 0xE8, 0xC0), ImpactKind.KINETIC,
                 "graphics/missiles/shell_small_yellow.png", 0.18f, "chaingun_fire");
-        assertEquals(0.55f,
+        assertEquals(1.10f,
                 WeaponRegistry.require(WeaponRegistry.MECH_CHAINGUN_ID).tracerTailCells(), EPS);
+        WeaponDef pulseLaser = WeaponRegistry.require(WeaponRegistry.MECH_PULSE_LASER_ID);
+        assertMech(pulseLaser,
+                32f, 18f, 0.72f, 2.1f, 9f,
+                8, 0.075f, 0.55f, 320f, 0.10f, 0f,
+                0.35f, 3, 0f, false, false, 1f,
+                new Color(0xD8, 0xFC, 0xFF), ImpactKind.RIFLE,
+                null, 0f, "pulse_laser_fire");
+        assertEquals(2f, pulseLaser.beamStyle().coreWidthPx(), EPS);
+        assertEquals(7f, pulseLaser.beamStyle().glowWidthPx(), EPS);
+        assertEquals(0.12f, pulseLaser.beamStyle().lifetimeSec(), EPS);
         assertMech(WeaponRegistry.require(WeaponRegistry.MECH_LINEAR_CANNON_ID),
                 32f, 27f, 0.68f, 2.8f, 8f,
                 2, 0.12f, 0.35f, 160f, 0.20f, 0f,
@@ -101,11 +111,11 @@ class WeaponRegistryParityTest {
         assertMech(laser,
                 36f, 24f, 0.82f, 7f, 10f,
                 1, 0f, 0.08f, 360f, 0.10f, 0f,
-                1.5f, 12, 0.75f, false, false, 1f,
+                1.5f, 100, 0.75f, false, false, 1f,
                 new Color(0xD8, 0xFC, 0xFF), ImpactKind.CANNON_HE,
                 null, 0f, "pulse_laser_fire");
-        assertEquals(95f, laser.contactDamage, EPS);
-        assertEquals(30f, laser.contactPenetration, EPS);
+        assertEquals(150f, laser.contactDamage, EPS);
+        assertEquals(40f, laser.contactPenetration, EPS);
         assertEquals(1, laser.bodyPenetrations);
     }
 

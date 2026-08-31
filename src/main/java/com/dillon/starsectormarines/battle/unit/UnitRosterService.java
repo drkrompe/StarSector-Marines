@@ -180,6 +180,12 @@ public final class UnitRosterService {
     // Data owner for "which aircraft can be shot at right now". Takes `this` for the
     // same reason the convoy service does; the ref is stored, not dereferenced here.
     private final AirTargetService airTargetService = new AirTargetService(this);
+    /**
+     * The registry of off-roster body carriers. Everything downstream that used
+     * to ask "is this a vehicle? is this an aircraft?" asks this instead, so a
+     * fourth kind of body registers here and reaches every consumer at once.
+     */
+    private final BodyService bodyService = new BodyService(this);
     private final World world = new World(entityWorld, components, combatService, movementService);
 
     /**
@@ -222,6 +228,8 @@ public final class UnitRosterService {
         this.damageService = damageService;
         factionIndexById.defaultReturnValue(INVALID_INDEX);
         arrivalSquads.defaultReturnValue(Squad.NO_SQUAD);
+        bodyService.register(convoyService);
+        bodyService.register(airTargetService);
     }
 
     /** Bind the damage service after construction — used by the sim ctor to break
@@ -389,7 +397,12 @@ public final class UnitRosterService {
     /** Data owner for the IDENTITY component (type/faction/name) — {@code identity().name(id)} is the greppable-name read for debug dumps / logs / tests. */
     public IdentityService identity() { return identityService; }
 
-    /** Profile-aware physical radius shared by selection, separation, ballistics and AoE. */
+    /**
+     * Physical radius for any body, shared by selection, separation, ballistics
+     * and AoE. A carried body answers through its carrier, which is what stopped
+     * every aircraft in the game — a Kite and a Valkyrie alike — reporting the
+     * one authored figure on {@code UnitType.BASED_AIRCRAFT}.
+     */
     public float radius(long id) {
         if (turretStateService.isTurret(id)) {
             // Gate on the id, not the resolved def: structure() requires its
@@ -399,7 +412,8 @@ public final class UnitRosterService {
             String structureId = turretStateService.structureId(id);
             if (structureId != null) return turretStateService.structure(id).radius;
         }
-        if (convoyService.isVehicle(id)) return convoyService.targetRadius(id);
+        BodyCarrier carrier = bodyService.carrierOf(id);
+        if (carrier != null) return carrier.targetRadius(id);
         MechVariant variant = identityService.mechVariant(id);
         return variant != null ? variant.radius : identityService.type(id).radius;
     }
@@ -413,8 +427,8 @@ public final class UnitRosterService {
      */
     public float threatRange(long id) {
         if (combatService.has(id)) return world.attackRange(id);
-        if (convoyService.isVehicle(id)) return convoyService.weaponRange(id);
-        return 0f;
+        BodyCarrier carrier = bodyService.carrierOf(id);
+        return carrier != null ? carrier.weaponRange(id) : 0f;
     }
 
     /** Profile-aware target-plane half-height for ballistic contact. */
@@ -427,7 +441,8 @@ public final class UnitRosterService {
             String structureId = turretStateService.structureId(id);
             if (structureId != null) return turretStateService.structure(id).hitHalfHeight;
         }
-        if (convoyService.isVehicle(id)) return convoyService.hitHalfHeight(id);
+        BodyCarrier carrier = bodyService.carrierOf(id);
+        if (carrier != null) return carrier.hitHalfHeight(id);
         MechVariant variant = identityService.mechVariant(id);
         return variant != null ? variant.hitHalfHeight : identityService.type(id).hitHalfHeight;
     }
@@ -449,6 +464,13 @@ public final class UnitRosterService {
 
     /** Data owner for an aircraft as a target — which craft ground fire can reach, and how fast they are going. */
     public AirTargetService airTargets() { return airTargetService; }
+
+    /**
+     * The off-roster bodies — every thing in the battle that can be perceived,
+     * scored, targeted, hit and killed without being a row in this roster.
+     * Consumers ask it rather than asking each carrier in turn.
+     */
+    public BodyService bodies() { return bodyService; }
 
     // ---- allocate / release (the spawn + death seam) ----
 

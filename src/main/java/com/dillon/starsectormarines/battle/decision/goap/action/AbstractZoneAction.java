@@ -134,6 +134,29 @@ abstract class AbstractZoneAction implements Action {
     /** Maximum off-axis firing-position radius at full threat weight. */
     static final float ADVANCE_LEASH_MAX = 12f;
 
+    /**
+     * Off-axis firing radius, anchored on the order's own destination cell,
+     * that an approaching ({@code haltOnContact}) member may spend closing on
+     * a target it can see but cannot yet reach. Matches
+     * {@link AttackMove#BASE_OF_FIRE_LEASH} — the same bounded improvement,
+     * available here to a member that was never assigned base-of-fire at all,
+     * just to bring one order's own destination into range of a target that
+     * is off-axis enough to have earned no threat commit.
+     *
+     * <p><b>Anchored on the destination, and it has to stay that way.</b> A
+     * leash anchored on the member's own current position re-anchors every
+     * tick: close the gap and the edge of the leash closes with you, which is
+     * an unbounded creep toward the enemy — a slow charge that abandons the
+     * order and breaks the commander's front — dressed up as a firing-position
+     * search. Anchoring on the fixed cell the squad was actually sent to
+     * bounds the total excursion to this many cells from that cell, forever,
+     * however long the member spends trying. A target far enough off the
+     * destination that no cell inside this leash can reach it is left to the
+     * ordinary route; that asymmetry (near miss solved, far miss ignored) is
+     * the feature, not a gap in it.
+     */
+    static final float OBJECTIVE_FIRING_LEASH = 8f;
+
     /** Role-slot prefix for the fire-team partition a bounding advance moves in. */
     static final String FIRE_TEAM = "fireteam:";
     /** Test/fixture aliases for the first two organizational teams. */
@@ -228,13 +251,15 @@ abstract class AbstractZoneAction implements Action {
         }
 
         boolean inContact = false;
+        boolean clearShotOnTarget = false;
         if (target != 0L) {
             float d = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
                     sim.world().x(target), sim.world().y(target));
-            boolean clearShot = sim.getTacticalScoring().hasClearShot(member, target);
-            inContact = d <= sim.world().attackRange(member) && clearShot;
+            clearShotOnTarget = sim.getTacticalScoring().hasClearShot(member, target);
+            inContact = d <= sim.world().attackRange(member) && clearShotOnTarget;
         }
 
+        long opportune = 0L;
         if (inContact) {
             sim.combat().setFireIntent(member, target,
                     committed ? FireStance.STANCED : FireStance.MOVING,
@@ -249,7 +274,7 @@ abstract class AbstractZoneAction implements Action {
             // zone push, the trigger just stops it being a sitting duck.
             // FiringSystem's beginBurst tracks the intent target, so the
             // follow-up burst tracks the enemy we shot, not the pursuit target.
-            long opportune = sim.getTacticalScoring().closestEnemyInAttackRange(
+            opportune = sim.getTacticalScoring().closestEnemyInAttackRange(
                     member, sim.combat().reflexTargetId(member),
                     TacticalScoring.OPPORTUNITY_RETARGET_DISTANCE_MARGIN);
             if (opportune != 0L) {
@@ -299,6 +324,51 @@ abstract class AbstractZoneAction implements Action {
         if (doctrineHold) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
             return;
+        }
+
+        // A marine may improve its firing position within the footprint of
+        // the order it was given, and no further.
+        //
+        // This is the approach-only counterpart to the committed firing-line
+        // branch above: committed is false here, which is exactly the squad
+        // 148 case that motivated it — ten marines marching an objective hop
+        // while the sole observed contact sat 28-33 cells out, off the
+        // advance axis, and correctly failed to commit the squad (see
+        // ADVANCE_THREAT_LOOKAHEAD) while nine of its ten rifles also
+        // correctly had a clear shot on something they could not reach.
+        // Without this, "not committed" meant "do nothing but hope the
+        // opportunistic shot above found a closer target" — which it usually
+        // doesn't, since the whole reason this member is here is that the
+        // only thing it can see is the one thing it cannot hit. So: not
+        // fighting a route contact worth committing to, not already firing on
+        // anything (opportune == 0L), but looking straight at something out
+        // of range with nothing in the way. Close enough of that gap to
+        // shoot, anchored within OBJECTIVE_FIRING_LEASH cells of the
+        // destination this member was actually sent to — see that constant
+        // for why the destination and not the member is the anchor.
+        // Restricted to an order with no target zone -- which today is
+        // exactly the attack move, the case this was built for. An approach
+        // that is crossing to a named room has one too, and
+        // findFiringPositionWithin scores walkability and leash distance
+        // only: it knows nothing about zones or portals. A room is routinely
+        // smaller across than this leash, so on that path the better shot
+        // could sit inside a different room, or past a portal the squad has
+        // not been told to cross yet. Widening this to a zone-bound approach
+        // is a question about zone containment, and wants answering there
+        // rather than assumed here.
+        if (haltOnContact && !committed && !inContact && targetZoneId < 0
+                && target != 0L && clearShotOnTarget && opportune == 0L) {
+            int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
+                    member, target, destX, destY, OBJECTIVE_FIRING_LEASH);
+            if (firingPos != null) {
+                if (sim.movement().mayRepath(member)) {
+                    sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                            sim.world().cellX(member), sim.world().cellY(member),
+                            firingPos[0], firingPos[1], sim.getOccupancyMap()));
+                }
+                sim.advanceMovement(member);
+                return;
+            }
         }
 
         if (sim.movement().mayRepath(member)) {

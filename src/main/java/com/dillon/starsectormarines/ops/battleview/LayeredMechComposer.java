@@ -261,6 +261,11 @@ final class LayeredMechComposer {
         } else if (arms == LayeredMechAppearance.ARMS_HEAVY_CANNON) {
             emitFromRearPivot(out, assets.heavyCannon, actorX, actorY, hullWidth, facingDeg,
                     0f, -0.05f, 1f, 0f, alpha);
+        } else if (arms == LayeredMechAppearance.ARMS_PULSE_LASER) {
+            emitFromRearPivot(out, assets.pulseLaserArm, actorX, actorY, hullWidth, facingDeg,
+                    -0.37f, -0.15f + kick, 0.5f, 0f, alpha);
+            emitFromRearPivot(out, assets.pulseLaserArm, actorX, actorY, hullWidth, facingDeg,
+                    0.37f, -0.15f + kick, 0.5f, 0f, alpha);
         }
     }
 
@@ -286,7 +291,8 @@ final class LayeredMechComposer {
         emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
                 primary.xHullWidths(), primary.yHullWidths() - recoil, 0f, alpha);
         if (arms == LayeredMechAppearance.ARMS_CHAINGUN
-                || arms == LayeredMechAppearance.ARMS_LINEAR_CANNON) {
+                || arms == LayeredMechAppearance.ARMS_LINEAR_CANNON
+                || arms == LayeredMechAppearance.ARMS_PULSE_LASER) {
             MechHardpointGeometry.LocalPoint secondary =
                     MechHardpointGeometry.armsMuzzle(arms, 1);
             emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,

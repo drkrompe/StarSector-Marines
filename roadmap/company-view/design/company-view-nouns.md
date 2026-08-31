@@ -4,8 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — faction-authored Armory loadouts carry the vanilla faction
-flag beside their provenance, while company-authored definitions remain unbadged.
+Updated: 2026-08-31 — faction-authored Armory loadouts and individual issued
+equipment carry vanilla faction flags, while company-authored definitions remain
+unbadged; long dossier field notes scroll instead of clipping.
 
 ## Purpose
 
@@ -158,7 +159,11 @@ Weapon, armor, and specialty descriptions come from their owning data catalogs, 
 from Fleet Armory markup. Those descriptions appear as bounded dossier overlays when
 the corresponding equipment label is hovered; the normal card keeps identity,
 comparison meters, and exact values continuously visible instead of clipping lore into
-the comparison surface. Health, armor, resistance, and actual movement speed share
+the comparison surface. Each issued weapon, armor pattern, specialty item, and carried
+integral system pairs its equipment label and overlay heading with the representative
+vanilla faction flag authored by its owning catalog or armor tradition. A bounded
+overlay scrolls when its full field note exceeds the available card height, so authored
+copy remains reachable rather than being clipped. Health, armor, resistance, and actual movement speed share
 the durability-and-mobility meter block; damage, range, accuracy, and sustained output
 share the weapon block. Catalog-wide ceilings keep every comparison stable across
 team selection and equipment changes.

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.air.TaxiingAircraftIsOneBodyTest;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MechTargetingTest {
 
@@ -80,6 +82,27 @@ class MechTargetingTest {
         sim.world().setTargetId(fixture.mech(), believed);
         assertEquals(0L, MechTargeting.refreshTarget(fixture.mech(), sim),
                 "remembering an identity must not reveal or pursue its hidden live position");
+    }
+
+    /**
+     * A mech's candidate set has to be every body, not the roster plus a named
+     * list of vehicles. It was the latter, so a taxiing aircraft — which
+     * reaches the infantry through the spatial index and is shot at by them
+     * routinely — was invisible to the mech standing next to them. Same
+     * question, two answers, depending on who asked.
+     */
+    @Test
+    void acquiresATaxiingAircraftTheInfantryCanAlreadyShootAt() {
+        BattleSimulation sim = arena();
+        long mech = mechFacingNorth(sim);
+        long craft = TaxiingAircraftIsOneBodyTest.taxiingAircraft(
+                sim.getRoster(), Faction.DEFENDER, 20.5f, 26.5f);
+        sim.getUnitIndex().rebuild(sim.getRoster());
+
+        assertTrue(sim.canEngage(mech, craft),
+                "an aircraft on its wheels is something anybody with a weapon can engage");
+        assertEquals(craft, MechTargeting.refreshTarget(mech, sim),
+                "and the mech's own candidate walk has to contain it");
     }
 
     private static BattleSimulation arena() {
