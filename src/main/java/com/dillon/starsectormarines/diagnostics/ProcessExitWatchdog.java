@@ -45,6 +45,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * chose to exit and the banner names who; heartbeat then nothing means the
  * process was destroyed underneath the JVM, and the last heartbeat's memory
  * figures and game-thread frame are the only surviving evidence.
+ *
+ * <p><strong>Check both channels before concluding the hook never ran.</strong>
+ * The banner goes to the log and to {@code System.err}, which the launcher
+ * captures to {@code build/starsector-run/console.log}. Absent from the log but
+ * present there means logging died first, not that the process was killed --
+ * a distinction the whole diagnosis turns on. Read it alongside the exit status
+ * in {@code run-summary.txt}: a status of zero means something asked the process
+ * to stop, so zero with no banner on either channel is a kill from outside the
+ * JVM, while a crash arrives as an NTSTATUS instead.
  */
 public final class ProcessExitWatchdog {
 
@@ -125,11 +134,40 @@ public final class ProcessExitWatchdog {
             // INFO, not ERROR: every ordinary quit runs this hook too, and a
             // banner that cries wolf on each of them stops being read. What
             // makes it evidence is its position at the tail of a truncated log.
-            LOG.info(describeShutdown(
-                    uptimeMillis, memorySummary(), snapshot(threads)));
+            String banner = describeShutdown(
+                    uptimeMillis, memorySummary(), snapshot(threads));
+            LOG.info(banner);
+            announce(banner);
         } catch (Throwable failure) {
             System.err.println("ProcessExitWatchdog: JVM shutting down after "
                     + uptimeMillis + "ms; could not describe it: " + failure);
+        }
+    }
+
+    /**
+     * Repeats the banner on {@code System.err}, which is a separate channel from
+     * the log on purpose.
+     *
+     * <p>The whole diagnosis rests on one inference: banner absent means the hook
+     * never ran, so the process was destroyed rather than asked to stop. That
+     * only holds if a hook which <em>did</em> run is certain to leave a mark, and
+     * a banner written solely through log4j is not — a closed appender, a
+     * repository already shut down, or an exit racing the appender's own cleanup
+     * all swallow it silently and look exactly like a hook that never ran.
+     * {@code System.err} is owned by the JVM rather than by the logging
+     * framework, and the launcher captures it, so a hook that runs says so
+     * through a channel the log cannot lose.
+     *
+     * <p>Deliberately not a file: mod code has no filesystem access outside
+     * Starsector's own settings API, and a shutdown hook is the worst possible
+     * place to discover that.
+     */
+    private static void announce(String banner) {
+        try {
+            System.err.println(banner);
+            System.err.flush();
+        } catch (Throwable ignored) {
+            // Nothing left to report through; the log line above is the fallback.
         }
     }
 
