@@ -236,6 +236,15 @@ public final class AirbaseLot {
     /** Wingtip clearance between neighbouring berths. */
     private static final int PAD_GAP = 3;
     /**
+     * Cells between the centres of two berths standing side by side.
+     *
+     * <p>Public because it is not only a layout number: it is the distance a
+     * fire on one stand has to stay short of, and the cook-off's own reach is
+     * checked against it. Narrowing the apron therefore has to be a decision
+     * about the fire as well as about the ground.
+     */
+    public static final int BERTH_PITCH = PAD + PAD_GAP;
+    /**
      * Rows between the runway and the apron, so the two read as separate
      * surfaces — and nothing at all on a site with no runway.
      *
@@ -543,7 +552,7 @@ public final class AirbaseLot {
                 ? (alongLo() + alongHi() - span) / 2 + PAD / 2
                 : alongLo() + 2 + PAD / 2;
         for (int i = 0; i < size.pads; i++) {
-            int along = start + i * (PAD + PAD_GAP);
+            int along = start + i * BERTH_PITCH;
             int cx = alongY ? along : row;
             int cy = alongY ? row : along;
             markBerth(ctx, cx, cy);
