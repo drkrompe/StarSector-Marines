@@ -107,16 +107,18 @@ answerable.
 The rest of generation is on stock too, for now. The switch is one line in
 `BspCityGenerator.recipeFor`, and two things are in the way of pulling it:
 
-**A spaceport world does not reliably get a port.** The district contract wants
-one large related apron. Over five seeds it appeared on one of five grown maps
-at the density a size-5 market asks for, and four of five at 0.55. The stock
-partition manages one of five, so this is a weakness the grown path exposes
-rather than one it introduces — but `SpaceportDistrictGenerationTest` passes on
-stock at its chosen seed and fails on grown, and that is a regression for the
-scenario it pins whatever the general rate is.
+**A spaceport world does not reliably get a port on a grown partition.** Over
+60 seeds with a size-5 spaceport market, the stock partition published four or
+more berths on 60 of 60 and the grown one on 33. The campus falls short because
+its candidate window is a hardcoded quadrant intersected with one trunk
+quadrant, and a grown skeleton often leaves too few connected leaves inside it.
+See `spaceport-campus-window.md`.
 
-**Wild terrain reads as static in the real art.** In debug colours the
-per-cell ground pick looked like plausible rough ground. Rendered through the
-sprite path it is visual noise across whole regions, and it is the first thing
-the eye lands on. See `grown-road-graph.md` for why it is uncorrelated and what
-fixing it needs.
+An earlier version of this section put the stock rate at one in five and called
+the weakness pre-existing rather than grown-specific. That measurement was taken
+while recipe selection still keyed off market size, so its stock control was
+running grown.
+
+~~Wild terrain reads as static in the real art.~~ Fixed: the surface palettes
+draw one material each, and `floors.stone` and `floors.sand` have eight real
+variants apiece where they previously held one picture in three cells.

@@ -77,6 +77,15 @@ Each means still rejects a request once its corresponding defender supply chain 
 9. The frozen ground roster chooses defender unit tier and equipment/protection identity. It does not decide force quantity, support eligibility, delivery feasibility, AI, objectives, or the player's campaign roster.
 10. A feasibility probe is a necessary condition for its own commit. It may be cheaper than the commit and may still be wrong, but it must never be wrong in the direction that promises a delivery the commit cannot make, and whatever it does not prove must be stated where the probe is written.
 
+**A structure that makes a unit is not a means.** A vehicle bay on the map
+builds chassis out of the work its technicians do and puts them on its own
+berths; it answers no request, is never selected against anything, and owes no
+arrival estimate, because it does not arrive. It stands to a mech roughly as an
+armoury stands to a ticket — production from a held and worked building — with a
+unit at the end of it instead of a number, and `mechs-nouns.md` owns it. What it
+shares with a means is only the law every producer of battle actors obeys: what
+comes out is an ordinary unit in an ordinary squad.
+
 ## Boundaries and extension paths
 
 `conquest-nouns.md` owns compound capture, ownership state, and the conquest win condition. Reinforcement reads compound availability as supply; it does not own capture progression. `convoy-nouns.md` owns vehicle routing, movement, and deboarding. `air-nouns.md` owns shuttle bodies and sorties. The commander/AI layer owns what a delivered squad does after its objective assignment, while reinforcement only supplies the initial tactical intent.

@@ -389,14 +389,18 @@ public final class BspCityGenerator implements MapGenerator {
      * <p><b>The campaign already decides the shape; nothing consumes it yet.</b>
      * {@link SettlementZoning} derives density and lifeline from the market, and
      * {@link TargetProfile#link()} carries them, so switching production over is
-     * the one line this method is missing. It is missing on purpose. A
-     * spaceport world at its campaign-chosen density does not reliably publish
-     * a usable civilian port on a grown map — measured over five seeds, the
-     * large related apron the district contract wants appeared on four of five
-     * grown maps at density 0.55 and one of five at the density a size-5 market
-     * asks for. The stock partition manages one of five, so this is a weakness
-     * the grown path exposes rather than one it introduces, and it is the kind
-     * of thing that should be looked at before mission maps change under it.
+     * the one line this method is missing. It is missing on purpose: a grown
+     * partition does not reliably give a port enough parcels. Measured over 60
+     * seeds with a size-5 spaceport market, the stock partition published four
+     * or more berths on 60 of 60 and the grown one on 33; the campus falls
+     * short because the candidate window is a hardcoded quadrant of the map
+     * intersected with one trunk quadrant, and a grown skeleton often leaves
+     * too few connected leaves inside it.
+     *
+     * <p>An earlier note here put the stock rate at one in five and called the
+     * weakness pre-existing. That measurement was taken while this method still
+     * auto-selected the grown recipe from market size, so its stock control was
+     * running grown; the shortfall belongs to the grown partition.
      */
     private GenRecipe recipeFor(TraversalAxis axis, TargetProfile profile) {
         if (axis != null) return conquestRecipe;
