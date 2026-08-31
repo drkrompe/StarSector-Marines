@@ -23,6 +23,48 @@ public final class VehicleController {
     /** Distance threshold (cells) at which a DEPARTING vehicle hits its final exit waypoint and is considered gone. */
     static final float EXIT_ARRIVAL_DIST = 1.0f;
     /**
+     * How many ticks' worth of travel an arrival gate is guaranteed to be wider
+     * than. One would be the bare condition for the gate being crossable at
+     * all; two leaves margin for a body that is not driving straight at the
+     * waypoint and for the tick the crossing straddles. Same value and same
+     * reasoning as the air side's arrival margin.
+     */
+    static final float ARRIVAL_TICK_MARGIN = 2f;
+
+    /**
+     * How near its final waypoint a vehicle has to come, in cells: the authored
+     * tolerance, or two ticks of travel, whichever is wider.
+     *
+     * <p>The tolerances above are distances, and a body samples its position
+     * once a tick. A gate narrower than the distance covered between two
+     * samples is a gate the vehicle jumps clean over: it is outside on one
+     * tick, outside on the next, and arrival never fires at all — the truck
+     * drives through its own LZ and the recovery ladder inherits a problem
+     * that was never about the route.
+     *
+     * <p>Today's fleet does not reach that: {@link VehicleType#HEAVY_APC} runs
+     * at 2.8 cells/sec, which is 0.093 cells on a 1/30 tick against a 0.25-cell
+     * gate, so this {@code max} is a no-op and the shipped arrival distances
+     * are unchanged. It is written down because
+     * the margin is a coincidence of there being one vehicle type: the planned
+     * light scout is specified as <em>faster</em>, and at 8 cells/sec it steps
+     * 0.27 cells a tick and would silently stop being able to arrive. Deriving
+     * the gate from the step is what keeps that a tuning number rather than a
+     * new class of stuck vehicle.
+     *
+     * <p>Speed rather than the type's maximum, so a vehicle crawling into a
+     * tight LZ still gets the tight authored tolerance and the exact snap.
+     * Absolute, because a reversing body has negative speed and still covers
+     * ground.
+     *
+     * @param floorCells the authored tolerance, in cells
+     * @param body       the vehicle, read for the speed it is actually making
+     * @param dt         the tick this gate is being tested on
+     */
+    static float arrivalDist(float floorCells, GroundBody body, float dt) {
+        return Math.max(floorCells, ARRIVAL_TICK_MARGIN * Math.abs(body.speed) * dt);
+    }
+    /**
      * Range from LZ (cells) at which an inbound truck attempts to switch from
      * pursuit to Reeds-Shepp docking. Sized to ~2× the truck's min turn radius
      * so the RS path fits in a comfortable window — long enough to be useful,

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -84,6 +85,22 @@ public class UnitSpatialIndexBodyMembershipTest {
         index.gather(14.5f, 10.5f, 8f, out);
         assertFalse(contains(out, pending), "a chassis still off-map is not on the map");
         assertFalse(contains(out, wreck), "a wreck is scenery, not a body");
+    }
+
+    @Test
+    public void theMaxBodyRadiusCoversTheLargestBodyHeld() {
+        UnitSpatialIndex index = new UnitSpatialIndex(64, 64);
+        UnitRosterService roster = new UnitRosterService(index, null);
+        long marine = roster.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 10, 10));
+        assertEquals(roster.radius(marine), index.maxBodyRadius(), 1e-4f,
+                "with only riflemen on the map that is as big as a body gets");
+
+        long apc = parkedVehicle(roster, Faction.DEFENDER, VehicleState.INCOMING, 14.5f, 10.5f);
+        assertEquals(roster.radius(apc), index.maxBodyRadius(), 1e-4f,
+                "a chassis is much larger and the bound has to follow it");
+        assertTrue(index.maxBodyRadius() > roster.radius(marine),
+                "the whole point: a broad phase padding by an infantry radius "
+                        + "would gather the hull's centre out of range and miss it");
     }
 
     @Test

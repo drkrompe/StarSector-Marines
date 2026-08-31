@@ -15,6 +15,10 @@ Updated: 2026-08-30 — a chassis is an ordinary body: it carries `IDENTITY`,
 lives in the unit spatial index, and is a squad contact like any other enemy.
 The explicit convoy candidate set is gone from targeting.
 
+Updated: 2026-08-31 — an arrival gate is derived from the step a body takes in
+one tick, not authored as a bare distance, so a faster variant cannot drive
+through its own LZ without arriving.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -139,9 +143,33 @@ per-slot dedupe.
 
 One dense-roster walk still carries an explicit convoy sweep: the area-detonation
 splash in `Detonations`. It scans the whole live population rather than querying
-the index, and converting it needs a bound on the largest body radius that would
-silently drop blast victims if it were wrong. It is the last site of the old
-shape, kept deliberately rather than by omission.
+the index, and it stays that way on purpose — the reason is worth writing down,
+because "use the index" looks obviously right here and is not.
+
+A broad phase over the index returns the bodies whose **centre** sat within the
+asked radius **at the last rebuild**. Both halves of that need padding, and only
+one of them can be bounded. The radius half now can: `UnitSpatialIndex.maxBodyRadius()`
+measures the largest body it has ever held, so a caller asking "does this circle
+touch that body" widens its query by a number that is measured rather than
+authored. That matters because the inputs are content: a turret's radius comes
+from the turret-emplacement JSON and a chassis's is derived from its art
+dimensions, so a hardcoded margin goes stale on a content edit, in a file nobody
+would connect to blast damage.
+
+The staleness half cannot be bounded. Index positions are a tick-start snapshot,
+and a body can be **teleported** between rebuilds — deboarding, an equipment drop,
+any `setCellPos`. There is no speed term that covers a teleport, so an index query
+can miss a body that is genuinely inside the blast, and the failure is silent:
+one fewer casualty, no error. Converting the splash proved this rather than
+predicting it — a satchel charge that follows a target which then moves five
+cells stopped destroying it, because the snapshot still had the target where it
+had been. Ballistics accepts the same risk knowingly (its consequence is a missed
+round, and its corridor query pads for motion); an area effect that silently
+spares a victim is a worse trade than a full walk over a few hundred live bodies.
+
+Splash therefore reads live positions over the live population, and pays the
+explicit convoy sweep as the price. That is a considered exception to "every
+proximity scan goes through the index", not an unconverted leftover.
 
 A vehicle is seen but never sees. It carries no perception components at all, so
 any code that reads a target's sight stats must treat "target" and "perceiver"
@@ -231,6 +259,16 @@ it planned before.
 - Arrival is not failure. Reaching the terminal corridor region must transition
   to landing/departure instead of triggering a false stuck recovery, and aiming
   at an off-map exit is arrival in progress rather than an unsolvable route.
+- An arrival gate is a distance, and a body samples its position once a tick.
+  Every such gate is therefore at least as wide as the ground the vehicle
+  covers between two samples, or it is a gate the vehicle jumps: outside on one
+  tick, outside on the next, arrival never firing, and the recovery ladder
+  inheriting a problem that was never about the route. Authored tolerances are
+  floors under that derivation, never the whole of it — the margin the shipped
+  `HEAVY_APC` enjoys is an accident of it being the only variant, and the
+  planned light scout is specified as faster. The same law holds on the air
+  side, where a gate carrying a term it had no business carrying put a
+  fighter's wheels down a runway's length from the numbers.
 - A vehicle moves under its own body or performs a bounded recovery. It never
   solves failure by crossing a wall or snapping through a corner; the durable
   terminal outcome for an unrecoverable route remains open.
