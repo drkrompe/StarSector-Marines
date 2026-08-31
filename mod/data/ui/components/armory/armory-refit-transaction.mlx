@@ -32,7 +32,10 @@
 
           <div id="{marine.equipmentId}" class="marine-equipment-columns">
             <div id="{marine.weaponColumnId}" class="marine-equipment-column">
-              <div id="{marine.primaryId}" class="marine-equipment-title equipment-note-target label surface-dark tone-edge">{marine.primary}</div>
+              <div id="{marine.primaryId}" class="marine-equipment-title equipment-note-target surface-dark tone-edge">
+                <img id="{marine.primaryFactionLogoId}" class="{marine.primaryFactionLogoClasses}" src="{marine.primaryFactionLogo}" />
+                <div id="{marine.primaryTextId}" class="marine-equipment-title-text label tone-edge">{marine.primary}</div>
+              </div>
               <div id="{marine.weaponDetailId}" class="marine-equipment-detail">
                 <div id="{marine.weaponStatsId}" class="marine-stat-group weapon-stat-group">
                   <div each="stat in marine.weaponStats" key="{stat.id}" id="{stat.id}" class="marine-stat-row">
@@ -45,10 +48,16 @@
                 </div>
               </div>
               <div id="{marine.weaponDeltaId}" class="{marine.deltaClasses}">{marine.weaponDelta}</div>
-              <div id="{marine.specialId}" class="marine-equipment-title equipment-note-target label surface-dark tone-accent">{marine.special}</div>
+              <div id="{marine.specialId}" class="marine-equipment-title equipment-note-target surface-dark tone-accent">
+                <img id="{marine.specialFactionLogoId}" class="{marine.specialFactionLogoClasses}" src="{marine.specialFactionLogo}" />
+                <div id="{marine.specialTextId}" class="marine-equipment-title-text label tone-accent">{marine.special}</div>
+              </div>
             </div>
             <div id="{marine.armorColumnId}" class="marine-equipment-column">
-              <div id="{marine.armorId}" class="marine-equipment-title equipment-note-target label surface-dark">{marine.armor}</div>
+              <div id="{marine.armorId}" class="marine-equipment-title equipment-note-target surface-dark">
+                <img id="{marine.armorFactionLogoId}" class="{marine.armorFactionLogoClasses}" src="{marine.armorFactionLogo}" />
+                <div id="{marine.armorTextId}" class="marine-equipment-title-text label">{marine.armor}</div>
+              </div>
               <div id="{marine.armorDetailId}" class="marine-equipment-detail">
                 <div id="{marine.armorStatsId}" class="marine-stat-group armor-stat-group">
                   <div each="stat in marine.armorStats" key="{stat.id}" id="{stat.id}" class="marine-stat-row">
@@ -61,16 +70,31 @@
                 </div>
               </div>
               <div id="{marine.armorDeltaId}" class="{marine.deltaClasses}">{marine.armorDelta}</div>
-              <div id="{marine.systemId}" class="{marine.systemClasses}">{marine.system}</div>
+              <div id="{marine.systemId}" class="{marine.systemClasses}">
+                <img id="{marine.systemFactionLogoId}" class="{marine.systemFactionLogoClasses}" src="{marine.systemFactionLogo}" />
+                <div id="{marine.systemTextId}" class="marine-equipment-title-text label">{marine.system}</div>
+              </div>
               <div id="{marine.careerId}" class="marine-career label surface-dark tone-muted">{marine.career}</div>
             </div>
           </div>
         </div>
 
-        <div id="{marine.primaryDescriptionId}" class="marine-equipment-tooltip label tooltip-hidden">{marine.primary}  //  {marine.primaryDescription}</div>
-        <div id="{marine.armorDescriptionId}" class="marine-equipment-tooltip armor-equipment-tooltip label tooltip-hidden">{marine.armor}  //  {marine.armorDescription}</div>
-        <div id="{marine.specialDescriptionId}" class="marine-equipment-tooltip special-equipment-tooltip label tooltip-hidden">{marine.special}  //  {marine.specialDescription}</div>
-        <div id="{marine.systemDescriptionId}" class="marine-equipment-tooltip system-equipment-tooltip label tooltip-hidden">{marine.system}  //  {marine.systemDescription}</div>
+        <div id="{marine.primaryDescriptionId}" class="marine-equipment-tooltip tooltip-hidden">
+          <img id="{marine.primaryTooltipFactionLogoId}" class="{marine.primaryFactionLogoClasses}" src="{marine.primaryFactionLogo}" />
+          <div id="{marine.primaryTooltipTextId}" class="equipment-tooltip-copy label">{marine.primary}  //  {marine.primaryDescription}</div>
+        </div>
+        <div id="{marine.armorDescriptionId}" class="marine-equipment-tooltip armor-equipment-tooltip tooltip-hidden">
+          <img id="{marine.armorTooltipFactionLogoId}" class="{marine.armorFactionLogoClasses}" src="{marine.armorFactionLogo}" />
+          <div id="{marine.armorTooltipTextId}" class="equipment-tooltip-copy label">{marine.armor}  //  {marine.armorDescription}</div>
+        </div>
+        <div id="{marine.specialDescriptionId}" class="marine-equipment-tooltip special-equipment-tooltip tooltip-hidden">
+          <img id="{marine.specialTooltipFactionLogoId}" class="{marine.specialFactionLogoClasses}" src="{marine.specialFactionLogo}" />
+          <div id="{marine.specialTooltipTextId}" class="equipment-tooltip-copy label">{marine.special}  //  {marine.specialDescription}</div>
+        </div>
+        <div id="{marine.systemDescriptionId}" class="marine-equipment-tooltip system-equipment-tooltip tooltip-hidden">
+          <img id="{marine.systemTooltipFactionLogoId}" class="{marine.systemFactionLogoClasses}" src="{marine.systemFactionLogo}" />
+          <div id="{marine.systemTooltipTextId}" class="equipment-tooltip-copy label">{marine.system}  //  {marine.systemDescription}</div>
+        </div>
       </div>
     </div>
 
@@ -132,7 +156,9 @@
 
   .marine-equipment-columns { flex-direction: row; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
   .marine-equipment-column { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; gap: 3px; overflow: hidden; }
-  .marine-equipment-title { height: 22px; padding: 3px 5px; border-width: 1px; }
+  .marine-equipment-title { flex-direction: row; height: 22px; padding: 3px 5px; border-width: 1px; gap: 5px; overflow: hidden; }
+  .marine-equipment-title-text { width: 0px; height: 16px; flex-grow: 1; overflow: hidden; }
+  .equipment-faction-logo { width: 28px; height: 14px; }
   .equipment-note-target:hover { background-color: #173044; border-color: #6ed7ff; color: #e8f5ff; }
   .marine-equipment-detail { flex-direction: row; height: 62px; overflow: hidden; }
   .marine-stat-group { flex-direction: column; gap: 2px; }
@@ -158,11 +184,13 @@
   .marine-career { height: 22px; padding: 3px 5px; border-width: 1px; }
 
   .marine-equipment-tooltip {
-    width: 360px;
+    flex-direction: column;
+    width: 380px;
     height: 142px;
-    padding: 12px;
+    padding: 10px;
+    gap: 6px;
     border-width: 2px;
-    overflow: hidden;
+    overflow: scroll;
     white-space: normal;
     background-color: #09131d;
     border-color: #53c6e8;
@@ -171,6 +199,9 @@
   .armor-equipment-tooltip { border-color: #dfb84d; }
   .special-equipment-tooltip { border-color: #71d6c1; }
   .system-equipment-tooltip { border-color: #c79ce8; }
+  .marine-equipment-tooltip .equipment-faction-logo { width: 48px; height: 24px; }
+  .equipment-tooltip-copy { width: 100%; white-space: normal; font-family: body; }
+  .equipment-faction-logo.faction-logo-hidden { width: 0px; height: 0px; opacity: 0; }
   .marine-equipment-tooltip.tooltip-hidden {
     width: 0px;
     height: 0px;
