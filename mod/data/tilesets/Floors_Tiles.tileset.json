@@ -74,6 +74,68 @@
     {
       "cells": [
         [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          6,
+          2
+        ],
+        [
+          7,
+          2
+        ]
+      ],
+      "id": "floors.sand"
+    },
+    {
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ]
+      ],
+      "id": "floors.brick"
+    },
+    {
+      "cells": [
+        [
           3,
           1
         ],
@@ -106,32 +168,7 @@
           1
         ]
       ],
-      "id": "floors.sand"
-    },
-    {
-      "cells": [
-        [
-          0,
-          0
-        ],
-        [
-          1,
-          0
-        ],
-        [
-          2,
-          0
-        ],
-        [
-          3,
-          0
-        ],
-        [
-          4,
-          0
-        ]
-      ],
-      "id": "floors.brick"
+      "id": "floors.snow"
     }
   ],
   "cellPx": 56,
@@ -252,51 +289,99 @@
     },
     {
       "col": 3,
-      "description": "sandvar-1",
-      "name": "floors.sand v1",
+      "description": "snowvar-1",
+      "name": "floors.snow v1",
       "row": 1
     },
     {
       "col": 4,
-      "description": "sandvar-2",
-      "name": "floors.sand v2",
+      "description": "snowvar-2",
+      "name": "floors.snow v2",
       "row": 1
     },
     {
       "col": 5,
-      "description": "sandvar-3",
-      "name": "floors.sand v3",
+      "description": "snowvar-3",
+      "name": "floors.snow v3",
       "row": 1
     },
     {
       "col": 6,
-      "description": "sandvar-4",
-      "name": "floors.sand v4",
+      "description": "snowvar-4",
+      "name": "floors.snow v4",
       "row": 1
     },
     {
       "col": 7,
-      "description": "sandvar-5",
-      "name": "floors.sand v5",
+      "description": "snowvar-5",
+      "name": "floors.snow v5",
       "row": 1
     },
     {
       "col": 8,
-      "description": "sandvar-6",
-      "name": "floors.sand v6",
+      "description": "snowvar-6",
+      "name": "floors.snow v6",
       "row": 1
     },
     {
       "col": 9,
-      "description": "sandvar-7",
-      "name": "floors.sand v7",
+      "description": "snowvar-7",
+      "name": "floors.snow v7",
       "row": 1
     },
     {
       "col": 10,
+      "description": "snowvar-8",
+      "name": "floors.snow v8",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "description": "sandvar-1",
+      "name": "floors.sand v1",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "description": "sandvar-2",
+      "name": "floors.sand v2",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "description": "sandvar-3",
+      "name": "floors.sand v3",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "description": "sandvar-4",
+      "name": "floors.sand v4",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "description": "sandvar-5",
+      "name": "floors.sand v5",
+      "row": 2
+    },
+    {
+      "col": 5,
+      "description": "sandvar-6",
+      "name": "floors.sand v6",
+      "row": 2
+    },
+    {
+      "col": 6,
+      "description": "sandvar-7",
+      "name": "floors.sand v7",
+      "row": 2
+    },
+    {
+      "col": 7,
       "description": "sandvar-8",
       "name": "floors.sand v8",
-      "row": 1
+      "row": 2
     }
   ],
   "doodads": [],
