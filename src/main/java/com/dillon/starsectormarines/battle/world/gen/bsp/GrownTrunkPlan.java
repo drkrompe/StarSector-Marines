@@ -82,19 +82,55 @@ public final class GrownTrunkPlan {
             this.frontageDepth = frontageDepth;
         }
 
+        /** Arm length does not vary with density — see {@link #of}. */
+        private static final float ARM_LO_FRAC = 0.14f;
+        private static final float ARM_HI_FRAC = 0.30f;
+
+        /** At or above this density the map is built everywhere and has no hinterland. */
+        private static final float FULLY_BUILT_AT = 0.95f;
+
+        /**
+         * The single density control: 0 is a road through open country, 1 is
+         * dense urban sprawl. Everything else is derived, because hand-tuned
+         * profiles disagreed with each other.
+         *
+         * <p><b>Arm length is deliberately held constant.</b> It is the one
+         * parameter that must not scale with density, and scaling it is what
+         * made the first three profiles non-monotonic: a sparse profile with
+         * longer arms spreads a thin ribbon of frontage across the whole map
+         * instead of making a smaller settlement, so it measured as
+         * <em>denser</em> than the profile above it on some seeds. Fewer
+         * junctions at a fixed reach is what "smaller town" means; longer reach
+         * at fewer junctions just means "same city, worse roads".
+         */
+        public static Profile of(float density) {
+            float d = Math.max(0f, Math.min(1f, density));
+            return new Profile(
+                    Math.round(lerp(3f, 20f, d)),
+                    lerp(0.45f, 0.90f, d),
+                    ARM_LO_FRAC,
+                    ARM_HI_FRAC,
+                    lerp(0.25f, 0.55f, d),
+                    d >= FULLY_BUILT_AT ? Integer.MAX_VALUE : Math.round(lerp(6f, 24f, d)));
+        }
+
+        private static float lerp(float a, float b, float t) {
+            return a + (b - a) * t;
+        }
+
         /** Dense urban sprawl — the closest analogue to what BSP produces today. */
         public static Profile city() {
-            return new Profile(18, 0.85f, 0.14f, 0.30f, 0.55f, Integer.MAX_VALUE);
+            return of(1.0f);
         }
 
         /** A settlement with open ground around it. */
         public static Profile town() {
-            return new Profile(10, 0.70f, 0.14f, 0.30f, 0.40f, 14);
+            return of(0.55f);
         }
 
         /** A road or two through mostly open country. */
         public static Profile hamlet() {
-            return new Profile(5, 0.55f, 0.18f, 0.38f, 0.30f, 7);
+            return of(0.2f);
         }
     }
 
