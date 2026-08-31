@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /** Traverse-aware target retention shared by every mech combat posture. */
@@ -76,7 +77,14 @@ public final class MechTargeting {
             best = candidate;
             bestDistance = distance;
         }
-        for (long candidate : sim.getConvoyVehicleIds()) {
+        // Every body that is not a roster row, asked once. This was a walk of
+        // the convoy vehicle list alone, so a mech could not see a taxiing
+        // aircraft that the infantry beside it — which reach candidates through
+        // the spatial index — were already shooting at. Same question, two
+        // answers, depending on who asked.
+        BodyService bodies = sim.bodies();
+        for (int i = 0, n = bodies.bodyCount(); i < n; i++) {
+            long candidate = bodies.bodyAt(i);
             if (!sim.isCombatTarget(candidate)
                     || sim.identity().faction(candidate) == ownFaction) continue;
             float distance = TacticalScoring.cellDistance(

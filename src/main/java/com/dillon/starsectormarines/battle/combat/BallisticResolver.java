@@ -1,11 +1,11 @@
 package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.smoke.SmokeObscuration;
+import com.dillon.starsectormarines.battle.unit.BodyCarrier;
+import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -156,12 +156,12 @@ public final class BallisticResolver {
         final int doodadLevel;
         final long unitId;
         final boolean friendly;
-        final boolean vehicle;
+        final boolean hull;
         final int victimCellX;
         final int victimCellY;
 
         private Event(float t, boolean doodad, float x, float y, float z, int doodadLevel,
-                       long unitId, boolean friendly, boolean vehicle,
+                       long unitId, boolean friendly, boolean hull,
                        int victimCellX, int victimCellY) {
             this.t = t;
             this.doodad = doodad;
@@ -171,7 +171,7 @@ public final class BallisticResolver {
             this.doodadLevel = doodadLevel;
             this.unitId = unitId;
             this.friendly = friendly;
-            this.vehicle = vehicle;
+            this.hull = hull;
             this.victimCellX = victimCellX;
             this.victimCellY = victimCellY;
         }
@@ -181,9 +181,9 @@ public final class BallisticResolver {
         }
 
         static Event unit(float t, float x, float y, float z, long unitId,
-                           boolean friendly, boolean vehicle,
+                           boolean friendly, boolean hull,
                            int victimCellX, int victimCellY) {
-            return new Event(t, false, x, y, z, 0, unitId, friendly, vehicle,
+            return new Event(t, false, x, y, z, 0, unitId, friendly, hull,
                     victimCellX, victimCellY);
         }
     }
@@ -192,8 +192,7 @@ public final class BallisticResolver {
     private final DoodadService doodads;
     private final UnitSpatialIndex unitIndex;
     private final UnitRosterService roster;
-    private final ConvoyService convoy;
-    private final AirTargetService air;
+    private final BodyService bodies;
 
     public BallisticResolver(NavigationGrid grid, DoodadService doodads,
                               UnitSpatialIndex unitIndex, UnitRosterService roster) {
@@ -201,8 +200,7 @@ public final class BallisticResolver {
         this.doodads = doodads;
         this.unitIndex = unitIndex;
         this.roster = roster;
-        this.convoy = roster.convoy();
-        this.air = roster.airTargets();
+        this.bodies = roster.bodies();
     }
 
     /**
@@ -288,12 +286,10 @@ public final class BallisticResolver {
         // contribution and reproduces S1's aim point exactly.
         float wTargetX = 0f;
         float wTargetY = 0f;
-        if (convoy.isVehicle(target)) {
-            wTargetX = convoy.velocityX(target);
-            wTargetY = convoy.velocityY(target);
-        } else if (air.isAircraft(target)) {
-            wTargetX = air.velocityX(target);
-            wTargetY = air.velocityY(target);
+        BodyCarrier targetCarrier = bodies.carrierOf(target);
+        if (targetCarrier != null) {
+            wTargetX = targetCarrier.velocityX(target);
+            wTargetY = targetCarrier.velocityY(target);
         } else if (movement.has(target)) {
             wTargetX = movement.velX(target);
             wTargetY = movement.velY(target);
@@ -411,10 +407,11 @@ public final class BallisticResolver {
         for (int i = 0; i < candidates.size; i++) {
             long candidateId = candidates.ids[i];
             if (candidateId == source.entityId()) continue;
-            boolean vehicle = convoy.isVehicle(candidateId);
-            boolean aircraft = !vehicle && air.isAircraft(candidateId);
-            if (vehicle ? !convoy.isTargetable(candidateId)
-                    : aircraft ? !air.isTargetable(candidateId)
+            // One question, one answer, whatever is carrying the body. The
+            // branch this replaces asked it twice and had to be widened for
+            // every carrier added.
+            BodyCarrier carrier = bodies.carrierOf(candidateId);
+            if (carrier != null ? !carrier.isTargetable(candidateId)
                     : !roster.isAliveById(candidateId)) continue;
 
             Faction candidateFaction = roster.identity().faction(candidateId);
@@ -442,12 +439,9 @@ public final class BallisticResolver {
             // is intentionally unsynchronized.
             float wx = 0f;
             float wy = 0f;
-            if (vehicle) {
-                wx = convoy.velocityX(candidateId);
-                wy = convoy.velocityY(candidateId);
-            } else if (aircraft) {
-                wx = air.velocityX(candidateId);
-                wy = air.velocityY(candidateId);
+            if (carrier != null) {
+                wx = carrier.velocityX(candidateId);
+                wy = carrier.velocityY(candidateId);
             } else if (movement.has(candidateId)) {
                 wx = movement.velX(candidateId);
                 wy = movement.velY(candidateId);
@@ -474,9 +468,7 @@ public final class BallisticResolver {
             // apply their own Z gates at their respective event sites;
             // structural walls alone remain full-height.
             float contactZ = fromZ + zSlope * rayDistAtEntry;
-            if (Math.abs(contactZ) > (vehicle
-                    ? convoy.hitHalfHeight(candidateId)
-                    : roster.hitHalfHeight(candidateId))) continue;
+            if (Math.abs(contactZ) > roster.hitHalfHeight(candidateId)) continue;
 
             boolean friendly = candidateFaction == shooterFaction;
             if (friendly && rayDistAtEntry < PROXIMITY_CATCH_ZERO_DISTANCE) continue;
@@ -491,7 +483,7 @@ public final class BallisticResolver {
             int victimCellX = (int) Math.floor(ux + wx * sEntry);
             int victimCellY = (int) Math.floor(uy + wy * sEntry);
             events.add(Event.unit(sEntry, contactX, contactY, contactZ,
-                    candidateId, friendly, vehicle, victimCellX, victimCellY));
+                    candidateId, friendly, carrier != null, victimCellX, victimCellY));
         }
 
         // Step 5: walk events sorted by t; first non-penetrated stop wins. A wall (when
@@ -518,9 +510,13 @@ public final class BallisticResolver {
             long victim = e.unitId;
             int fromDx = shooterCellX - e.victimCellX;
             int fromDy = shooterCellY - e.victimCellY;
-            int coverLevel = e.vehicle ? 0
+            // A hull takes no terrain cover. Low cover is a thing a person
+            // gets behind, and a chassis or an airframe is neither the size nor
+            // the shape to do it — a rule that predates air and, before the
+            // collapse, was spelled "is it a vehicle".
+            int coverLevel = e.hull ? 0
                     : grid.getCoverAt(e.victimCellX, e.victimCellY, fromDx, fromDy);
-            float coverCatchHalfHeight = e.vehicle ? 0f : grid.getCoverCatchHalfHeight(
+            float coverCatchHalfHeight = e.hull ? 0f : grid.getCoverCatchHalfHeight(
                     e.victimCellX, e.victimCellY, fromDx, fromDy);
             if (!intersectsCatchBand(e.z, coverCatchHalfHeight)) coverLevel = 0;
             float coverBlockChance = BLOCK_CHANCE_BY_LEVEL[

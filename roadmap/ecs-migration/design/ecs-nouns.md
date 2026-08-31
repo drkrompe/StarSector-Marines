@@ -4,7 +4,7 @@ Status: ACTIVE — `EntityWorld` is the battle composition substrate; capability
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — made convoy durability a shared component capability without grid-unit membership.
+Updated: 2026-08-31 — named the body concept the disjoint families share and gave it one carrier-agnostic surface, so a consumer no longer re-derives which kind of thing it is holding.
 
 The battle simulation has one composition substrate: an `EntityWorld`.  This
 document names the durable model, ownership, and safety laws of that substrate.
@@ -122,6 +122,47 @@ These families may share the same `EntityWorld` without being forced through a
 false common component. A new component must have a stable capability/lifecycle
 reason; a new query should name a real consumer set, not a speculative generic
 API.
+
+### A body, and who carries it
+
+**A body is a thing that can be perceived, scored, targeted, hit, attributed and
+killed.** Three of the families above are one, and the disjoint families are
+disjoint in *storage* only: an air craft and a convoy chassis are not grid actors
+and must not become them, because carrying no `POSITION`, `COMBAT`, `MOVEMENT` or
+`ROLE` is exactly what keeps occupancy, separation, the fire system, the mover and
+the planner off them for free. Membership-narrowing is load-bearing and is not
+what the shared concept collapses.
+
+What it collapses is the **consumer seam**. For a while every downstream site
+re-derived the carrier for itself — the spatial index had an admission path per
+kind, ballistics branched twice on which kind it held, the splash sweep ran a
+loop per kind, and the damage service dispatched into a near-identical resolver
+per kind. Adding the third kind meant editing every one of them, and three sites
+were missed: a mech could not target an aircraft the infantry beside it were
+shooting at, a held weapon reference to one resolved to nothing, and a squad's
+memory of one evaporated on the next ageing pass. None of those failures were
+about aircraft.
+
+So the **carrier registers and the consumer asks**. A `BodyCarrier` answers the
+questions the duplication actually needed — is this mine, can it be reached right
+now, whose is it, where is it going, how big is it, how far can it shoot, and
+what happens when it dies — and `BodyService` is the registry every consumer goes
+through. Two standing consequences:
+
+- **Adding a carrier is implementing one interface, not patching N sites.** A
+  fourth kind of body registers and is in the spatial index, the ballistic
+  candidate walk, the blast sweep, the damage route, the mech candidate set, the
+  held-reference gate and the squad-belief predicate by construction. This is
+  pinned by a test whose carrier is none of the shipped kinds.
+- **Common route, per-carrier sink.** One damage resolver applies the shared
+  durability law and the shared telemetry seam to any carried body; what dying
+  *means* stays the carrier's, because a roster unit's death cascade (corpse
+  pose, equipment drop, leader promotion, the death mailbox) has nothing to do
+  for a chassis, and an aircraft's has to light a cook-off and give a runway
+  back.
+
+`air-nouns.md` and `convoy-nouns.md` own what their own carriers answer; neither
+restates the shared model.
 
 ### Authored layered motion
 
