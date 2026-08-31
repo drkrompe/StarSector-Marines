@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — added the first contextual squad order: an uncaptured
+Updated: 2026-08-31 — added the player-placed infantry defense area: a persistent
+40-cell-diameter execution context whose local plan rotates bounded prepared
+cover and firing positions against the squad's own changing contact picture.
+
+Earlier 2026-08-31 — added the first contextual squad order: an uncaptured
 Conquest compound reuses the ordinary secure-compound plan through territorial
 completion, then hands execution back to mission command.
 
@@ -1073,6 +1077,17 @@ threshold, clears the capture room, and holds it. Reaching the marker or capture
 cell does not finish the order; only the compound state reaching `MARINE_HELD`
 does. A captured compound is ordinary ground again, and an unreachable
 contextual target is refused without clearing a still-effective player order.
+
+A selected Marine infantry squad may instead receive a persistent **defend
+area** context through a deliberate two-step command. Its clicked center snaps
+to connected walkable ground and owns a circular twenty-cell radius. The
+authoritative mission directive remains stored underneath, while the local
+MISSION plan keeps every prepared position, firing-position search, and target
+response inside the circle. It reads the squad's own contact picture: as a
+believed threat bearing moves, the squad rotates a spaced firing line and
+claims directional cover facing that report; direct targets are engaged from
+bounded cover without losing moving fire. Broken fire teams still peel under
+cohesion law, and a new player order or hard withdrawal supersedes the defense.
 
 ## Mission, space, and feature boundaries
 

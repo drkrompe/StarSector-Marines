@@ -18,6 +18,8 @@ import com.fs.starfarer.api.ui.PositionAPI;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
 
 /** Host bridge for the compact MLX-authored selected-squad roster. */
 final class BattleSquadOverlay {
@@ -36,6 +38,7 @@ final class BattleSquadOverlay {
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), List.of(COMPONENT_PATH));
     private final Selection selection;
+    private final IntSupplier targetingSquadId;
     private final BattleSquadOverlayModel model;
     private final List<MemberElement> memberElements = new ArrayList<>();
 
@@ -47,9 +50,12 @@ final class BattleSquadOverlay {
     private BattleSquadOverlayModel.Presentation presentation =
             new BattleSquadOverlayModel.Presentation(false);
 
-    BattleSquadOverlay(Selection selection) {
+    BattleSquadOverlay(Selection selection, IntConsumer defendAreaAction,
+                       IntSupplier targetingSquadId) {
         this.selection = selection;
-        model = new BattleSquadOverlayModel(reactor, selection::clear);
+        this.targetingSquadId = targetingSquadId;
+        model = new BattleSquadOverlayModel(reactor, selection::clear,
+                () -> defendAreaAction.accept(selection.getSelectedSquadId()));
     }
 
     void attach(PositionAPI nextPosition, BattleSimulation sim) {
@@ -85,6 +91,7 @@ final class BattleSquadOverlay {
         for (String id : List.of(
                 "battle-squad-overlay", "battle-squad-panel", "battle-squad-header",
                 "battle-squad-back", "battle-squad-title", "battle-squad-strength",
+                "battle-squad-defend-area",
                 "battle-squad-morale", "battle-squad-morale-fill",
                 "battle-squad-fireteams", "battle-squad-tooltip",
                 "battle-squad-tooltip-title", "battle-squad-tooltip-team",
@@ -182,7 +189,7 @@ final class BattleSquadOverlay {
                 selected = Selection.NONE;
             }
         }
-        return model.update(sim, selected);
+        return model.update(sim, selected, targetingSquadId.getAsInt());
     }
 
     private boolean insidePanel(float x, float y) {
