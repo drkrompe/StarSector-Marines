@@ -4,7 +4,10 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-31 — a selected Marine infantry squad may hold a persistent
+Updated: 2026-08-31 — active player infantry context now exclusively owns the
+squad's mission-tier plan, including specialist and rescue pickup squads, while
+the underlying directive remains authoritative and resumes on release.
+Earlier 2026-08-31 — a selected Marine infantry squad may hold a persistent
 player-placed 40-cell-diameter defense area beneath its authoritative directive.
 Earlier 2026-08-31 — an uncaptured Conquest compound may be selected as a
 contextual squad action that persists through approach and fighting until the
@@ -308,7 +311,13 @@ authoritative directive and owner remain unchanged. Local AI still decides how
 the squad crosses contact and fires, form-up and cohesion survival may suspend
 it, and hard withdrawal cancels it. Arrival removes the temporary context before
 the ordinary directive replans, so the intervention neither becomes a second
-assignment writer nor leaves an unowned interval.
+assignment writer nor leaves an unowned interval. Until that boundary, the
+player context is the exclusive MISSION-tier input to local planning; a
+unit-level specialist task or authored last stand cannot compete around the
+executable assignment and make the accepted order inert. Infantry assigned to
+a rescue pickup perimeter remain eligible because the intervention changes
+execution, not rescue ownership. Shelter militia remain mission-owned rather
+than becoming part of the player's deployed force.
 
 A contextual squad action applies the same execution-only authority to a legal
 mission interaction. The first production action is Conquest capture: clicking
