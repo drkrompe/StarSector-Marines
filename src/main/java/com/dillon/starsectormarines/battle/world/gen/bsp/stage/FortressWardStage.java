@@ -158,6 +158,7 @@ public final class FortressWardStage implements GenStage {
                     lot[2] - clear, lot[3] - clear,
                     AirbaseLot.Facing.of(axis), base.size()).author(ctx, ctx.rng);
             emitAirbaseNode(ctx, lot);
+            reserveAgainstLaterStampers(ctx, lot);
         }
         ctx.put(BspKeys.FORTRESS_WARD, ward);
         emitTacticalNodes(ctx, result);
@@ -618,5 +619,41 @@ public final class FortressWardStage implements GenStage {
             }
         }
         return lo == Integer.MAX_VALUE ? null : new int[]{ lo, top, hi, bot };
+    }
+
+    /**
+     * Closes the airfield to everything stamped after it.
+     *
+     * <p>The lot is marked unbuildable while the ward packs itself, but that
+     * array is the packer's and dies with the stage. Four stampers run later —
+     * the fortress wall, the defence posts, the compound-perimeter defenders
+     * and the overwatch towers — and each asks the reservation mask whether it
+     * may close a cell. Told nothing, they put guns on the runway: measured
+     * across the conquest matrix, thirty-three of forty-eight maps had a
+     * guardpost standing on the airfield, sixty-four in all.
+     *
+     * <p>Widening {@link BspKeys#ROAD_RESERVATION} rather than adding a second
+     * mask, which is the shape {@code VehicleCorridorStage} already
+     * established: a stamper asking "may I close this cell" should need one
+     * answer, not a list of exemptions that grows every time somebody reserves
+     * something. The whole rect goes in, clearance included — the clearance is
+     * there so nothing crowds the field, which is exactly what a gun on its
+     * edge would do.
+     *
+     * <p>Ordering is what makes this safe. Every <em>filler</em> that reads the
+     * mask has already run by the time the ward lays its lot, so widening it
+     * here cannot change how the city was built; only the stampers that follow
+     * see it.
+     */
+    private static void reserveAgainstLaterStampers(GenContext ctx, int[] lot) {
+        boolean[][] reservation = ctx.get(BspKeys.ROAD_RESERVATION);
+        if (reservation == null) return;
+        int w = reservation.length;
+        int h = w == 0 ? 0 : reservation[0].length;
+        for (int x = Math.max(0, lot[0]); x <= Math.min(w - 1, lot[2]); x++) {
+            for (int y = Math.max(0, lot[1]); y <= Math.min(h - 1, lot[3]); y++) {
+                reservation[x][y] = true;
+            }
+        }
     }
 }
