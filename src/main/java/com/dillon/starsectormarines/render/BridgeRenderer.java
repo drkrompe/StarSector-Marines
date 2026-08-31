@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -245,12 +246,15 @@ public class BridgeRenderer {
         fboDepth = glGenRenderbuffers();
 
         glBindTexture(GL_TEXTURE_2D, fboColor);
-        // Use a real (zeroed) buffer rather than null — some drivers/LWJGL paths refuse null.
-        java.nio.ByteBuffer empty = BufferUtils.createByteBuffer(w * h * 4);
         // Clear once here; each check below drains fully, so every later call in
         // this sequence starts on an empty queue and is attributed to itself.
         GlErrors.clear();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
+        // Null, not a zeroed buffer: this sizes the texture storage without
+        // uploading anything. LWJGL 2 supports it by design -- the ByteBuffer
+        // overload skips its buffer check on null and passes address 0, which is
+        // the standard way to size an FBO attachment. Both render paths clear
+        // this target before drawing, so nothing ever read the uploaded zeros.
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         GlErrors.check("glTexImage2D fboColor");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
