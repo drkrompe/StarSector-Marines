@@ -131,6 +131,19 @@ public final class ConquestCommand implements ConquestFrontCommand,
     /** {@link #friendlyLeadForward} sentinel: no living friendly holds this track. */
     private static final int NO_FRIENDLY_LEAD = Integer.MIN_VALUE;
 
+    /**
+     * {@code -Dbattle.command.emptyTrackAdvance=false} restores the behaviour
+     * where a track holding no believed hostile at all receives no staging
+     * order, which is the control this layer's change has to be measured
+     * against. Reaching that control by checking out an older commit measures
+     * every other difference between the two trees at the same time.
+     */
+    public static final String EMPTY_TRACK_ADVANCE_PROPERTY =
+            "battle.command.emptyTrackAdvance";
+
+    static final boolean EMPTY_TRACK_ADVANCE_ENABLED = Boolean.parseBoolean(
+            System.getProperty(EMPTY_TRACK_ADVANCE_PROPERTY, "true"));
+
     /** Stand this many cells behind the nearest believed hostile in a track. */
     static final int TRACK_LINE_STANDOFF_CELLS = 8;
     /** A staging marker may lead the current friendly line by at most this much. */
@@ -446,7 +459,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
                         }
                         SquadDirective planned = directive(squad,
                                 preferredTrack, stage.trackIndex(),
-                                AssignmentReason.TRACK_LINE_ADVANCE);
+                                trackFront(squad, stage.trackIndex(), frame)
+                                        .believed()
+                                        ? AssignmentReason.TRACK_LINE_ADVANCE
+                                        : AssignmentReason
+                                        .TRACK_LINE_SCOUT_ADVANCE);
                         if (deferredCaptures.contains(squad.id)) {
                             planned = planned.withDistantCaptureDeferred();
                         }
@@ -783,8 +800,14 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 continue;
             }
             int preferredTrack = stripFor(squad);
+            // A scout advance into a track nobody has seen anything in is not
+            // front resistance, and must not consume the front reserve that
+            // holds squads back from distant captures. The reserve exists so
+            // somebody stays on live work; staging blind is what a squad does
+            // precisely when there is none.
             if (targetChoice(squad, preferredTrack, frame).targetZoneId >= 0
-                    || laneStageChoice(squad, preferredTrack, frame) != null) {
+                    || (trackFront(squad, preferredTrack, frame).believed()
+                    && laneStageChoice(squad, preferredTrack, frame) != null)) {
                 actionable.add(squad.id);
             }
         }
@@ -1091,6 +1114,17 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private record TrackStage(int trackIndex, int cellX, int cellY) { }
 
     /**
+     * What this side believes about hostiles in one track, read for one squad.
+     *
+     * @param believed whether any contact at all is placed in the track
+     * @param nearestHostileForward forward coordinate of the nearest contact
+     *        within {@link #TRACK_LINE_STANDOFF_LATERAL_CELLS} of the squad's
+     *        own line of advance, or {@link Integer#MAX_VALUE} when the track
+     *        is believed but nothing stands in this squad's corridor
+     */
+    private record TrackFront(boolean believed, int nearestHostileForward) { }
+
+    /**
      * Gives a contact-free rear squad an own-force destination behind its
      * preferred track's believed hostile frontier. Specific zone work is
      * selected before this fallback; local contact also suppresses it so the
@@ -1104,9 +1138,26 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * <p>A believed front in the track with nothing in that corridor drops the
      * standoff bound rather than the stage: the squad knows where the lane is
      * contested and simply is not the one facing it, so the friendly line and
-     * the stride cap size its step. A track with no belief at all still
-     * declines to stage — an own-force push on no intelligence is a decision
-     * for the mission phase, not for this fallback.
+     * the stride cap size its step.
+     *
+     * <p><b>A track with no belief at all stages too, bounded by its
+     * neighbours' lead.</b> Declining to was a deadlock rather than caution: a
+     * track nobody advances through is a track nobody sights anything in, so
+     * the belief that would authorize the advance can only be produced by the
+     * advance itself. Observed as ten squads and ninety-eight marines standing
+     * still for a whole battle in the one lateral band that happened to hold
+     * no defenders, never firing a shot, while the commander correctly
+     * reported {@code NO_ACTIONABLE_TRACK_TARGET} at every pulse. The
+     * compound-capture path cannot relieve it either, because
+     * {@link #frontHasReached} gates distant detachments on a front that this
+     * same stall is what stops moving.
+     *
+     * <p>The objection the old rule was making is still right, and is now
+     * answered by the bound instead of by refusal: an own-force push on no
+     * intelligence must not become a lone flank out ahead of everybody. So an
+     * unscouted track may lead {@link #neighbourLeadForward} by at most
+     * {@link #TRACK_LINE_LEAD_CELLS}, which advances the whole line abreast
+     * and pins a track that has run ahead until the rest come up.
      */
     private TrackStage laneStageChoice(PlanningSquad squad, int track,
                                        ConquestCommandFrame frame) {
@@ -1137,35 +1188,34 @@ public final class ConquestCommand implements ConquestFrontCommand,
                                          ConquestCommandFrame frame,
                                          boolean attacking) {
         if (track < 0 || track >= STRIP_COUNT) return null;
-        CommanderInfluenceSnapshot influence = frame.influence();
-        if (influence == null) return null;
+        if (frame.influence() == null) return null;
 
         int squadLateral = Math.round(trackLayout.lateralCoordinate(
                 squad.centroidX, squad.centroidY));
-        boolean trackFrontBelieved = false;
-        int nearestHostileForward = Integer.MAX_VALUE;
-        for (CommanderContact contact : influence.contacts()) {
-            if (trackLayout.trackForCell(contact.cellX(), contact.cellY()) != track) {
-                continue;
-            }
-            trackFrontBelieved = true;
-            int contactLateral = Math.round(trackLayout.lateralCoordinate(
-                    contact.cellX(), contact.cellY()));
-            if (Math.abs(contactLateral - squadLateral)
-                    > TRACK_LINE_STANDOFF_LATERAL_CELLS) continue;
-            int forward = Math.round(trackLayout.forwardCoordinate(
-                    contact.cellX(), contact.cellY()));
-            nearestHostileForward = Math.min(nearestHostileForward, forward);
-        }
-        if (!trackFrontBelieved) return null;
+        TrackFront front = trackFront(squad, track, frame);
+        // The relaxation below is for the squad that has nothing: no belief in
+        // its track and no contact of its own. A squad in contact is not stuck
+        // — the tactical layer has a real target for it — and an exterior
+        // contact the commander has not yet placed must stay ambient rather
+        // than becoming a fabricated forward order.
+        if (!front.believed()
+                && (attacking || !EMPTY_TRACK_ADVANCE_ENABLED)) return null;
 
         int squadForward = Math.round(trackLayout.forwardCoordinate(
                 squad.centroidX, squad.centroidY));
         int friendlyLead = friendlyLeadForward(track, squadForward, frame);
-        int safeFront = attacking || nearestHostileForward == Integer.MAX_VALUE
+        int safeFront = attacking
+                || front.nearestHostileForward() == Integer.MAX_VALUE
                 ? Integer.MAX_VALUE
-                : nearestHostileForward - TRACK_LINE_STANDOFF_CELLS;
+                : front.nearestHostileForward() - TRACK_LINE_STANDOFF_CELLS;
         int supportedFront = friendlyLead + TRACK_LINE_LEAD_CELLS;
+        if (!front.believed()) {
+            int neighbourLead = neighbourLeadForward(track, frame);
+            if (neighbourLead != NO_FRIENDLY_LEAD) {
+                supportedFront = Math.min(supportedFront,
+                        neighbourLead + TRACK_LINE_LEAD_CELLS);
+            }
+        }
         int strideFront = squadForward + TRACK_LINE_MAX_STRIDE_CELLS;
         int desiredForward = Math.min(safeFront,
                 Math.min(supportedFront, strideFront));
@@ -1235,6 +1285,55 @@ public final class ConquestCommand implements ConquestFrontCommand,
                                     int lateral, int forward) {
         return influence.lossesAtWorld(trackLayout.cellX(lateral, forward),
                 trackLayout.cellY(lateral, forward));
+    }
+
+    /**
+     * Reads one track's believed hostile front from the squad's own corridor.
+     * A contact at the far lateral edge of the same track is not in front of
+     * this squad and must not set its standoff, but it does still make the
+     * track believed: somebody is there, and this squad simply is not the one
+     * facing them.
+     */
+    private TrackFront trackFront(PlanningSquad squad, int track,
+                                  ConquestCommandFrame frame) {
+        CommanderInfluenceSnapshot influence = frame.influence();
+        if (influence == null) return new TrackFront(false, Integer.MAX_VALUE);
+        int squadLateral = Math.round(trackLayout.lateralCoordinate(
+                squad.centroidX, squad.centroidY));
+        boolean believed = false;
+        int nearest = Integer.MAX_VALUE;
+        for (CommanderContact contact : influence.contacts()) {
+            if (trackLayout.trackForCell(contact.cellX(), contact.cellY())
+                    != track) continue;
+            believed = true;
+            int contactLateral = Math.round(trackLayout.lateralCoordinate(
+                    contact.cellX(), contact.cellY()));
+            if (Math.abs(contactLateral - squadLateral)
+                    > TRACK_LINE_STANDOFF_LATERAL_CELLS) continue;
+            nearest = Math.min(nearest, Math.round(
+                    trackLayout.forwardCoordinate(
+                            contact.cellX(), contact.cellY())));
+        }
+        return new TrackFront(believed, nearest);
+    }
+
+    /**
+     * Forward lead of the most advanced living mobile squad in either track
+     * beside this one, or {@link #NO_FRIENDLY_LEAD} when neither holds
+     * anybody. This is the line an unscouted track dresses on: the same
+     * neighbour-support law {@link #latchFrontReach} reads the front's reach
+     * through, and the bound that keeps a blind advance from becoming a lone
+     * flank walking off ahead of the force that would have to support it.
+     */
+    private int neighbourLeadForward(int track, ConquestCommandFrame frame) {
+        int lead = NO_FRIENDLY_LEAD;
+        for (int neighbour = track - 1; neighbour <= track + 1; neighbour++) {
+            if (neighbour == track) continue;
+            if (neighbour < 0 || neighbour >= STRIP_COUNT) continue;
+            lead = Math.max(lead,
+                    friendlyLeadForward(neighbour, NO_FRIENDLY_LEAD, frame));
+        }
+        return lead;
     }
 
     private int friendlyLeadForward(int track, int fallback,
@@ -1694,10 +1793,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
             }
         } else if (old.kind() == AssignmentKind.ADVANCE_TRACK
                 || old.kind() == AssignmentKind.ATTACK_MOVE) {
-            AssignmentReason keeps = old.kind() == AssignmentKind.ATTACK_MOVE
-                    ? AssignmentReason.TRACK_LINE_ATTACK
-                    : AssignmentReason.TRACK_LINE_ADVANCE;
-            if (reason != keeps) {
+            boolean keeps = old.kind() == AssignmentKind.ATTACK_MOVE
+                    ? reason == AssignmentReason.TRACK_LINE_ATTACK
+                    // A staging order does not become a different order
+                    // because the track it crosses has since been sighted, or
+                    // has gone quiet again. Both reasons publish the same
+                    // ADVANCE_TRACK marker and differ only in what the
+                    // commander knew when it chose the cell.
+                    : reason == AssignmentReason.TRACK_LINE_ADVANCE
+                    || reason == AssignmentReason.TRACK_LINE_SCOUT_ADVANCE;
+            if (!keeps) {
                 return CommandStabilityBreak.CONTEXT_INVALIDATED;
             }
             if (!frame.topology().inBounds(old.targetCellX(), old.targetCellY())

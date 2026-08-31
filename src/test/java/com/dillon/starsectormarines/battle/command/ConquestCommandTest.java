@@ -21,8 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Coverage for {@link ConquestCommand}'s strip-partition + forward-most-
@@ -236,7 +238,7 @@ public class ConquestCommandTest {
     }
 
     @Test
-    public void emptyStripClearsAssignment() {
+    public void emptyStripStagesAScoutAdvance() {
         BattleSimulation sim = openSim();
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         // Squad in strip 0; no defenders anywhere.
@@ -244,8 +246,70 @@ public class ConquestCommandTest {
 
         tick(cmd, sim);
 
-        assertNull(squad.assignedObjective,
-                "strip with no defenders → null assignment, squad falls through to EliminateEnemies");
+        // A strip nobody advances through is a strip nobody sights anything
+        // in. Standing still waiting for a contact the advance itself has to
+        // produce is the deadlock, not the safe option.
+        assertNotNull(squad.assignedObjective,
+                "a strip with no belief still gets a forward order");
+        assertEquals(AssignmentKind.ADVANCE_TRACK,
+                squad.assignedObjective.kind());
+        assertEquals(AssignmentReason.TRACK_LINE_SCOUT_ADVANCE,
+                cmd.frontSnapshot().directiveFor(squad.id).reason());
+        assertTrue(squad.assignedObjective.targetCellY() > 5,
+                "the order is forward along the traversal axis");
+    }
+
+    /**
+     * A deep open map, because the shared fixture is ten cells along the
+     * traversal axis and the staging bounds are eight — every candidate line
+     * lands on the same cell there, so the fixture cannot tell a bound that
+     * bites from one that does not.
+     */
+    private static BattleSimulation deepOpenSim() {
+        int deepH = 40;
+        NavigationGrid grid = new NavigationGrid(W, deepH);
+        for (int y = 0; y < deepH; y++) {
+            for (int x = 0; x < W; x++) {
+                if (x == 10 || x == 20) continue;
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        return new BattleSimulation(grid, new CellTopology(W, deepH));
+    }
+
+    @Test
+    public void unscoutedTrackWaitsForItsNeighboursToComeAbreast() {
+        BattleSimulation sim = deepOpenSim();
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        // No defenders anywhere: both strips are unbelieved, so both squads
+        // reach the scout advance and only the neighbour bound separates them.
+        Squad ahead = addMarineSquad(sim, 2f, 20f);    // strip 0, well forward
+        Squad behind = addMarineSquad(sim, 15f, 2f);   // strip 1, well back
+
+        tick(cmd, sim);
+
+        assertNull(ahead.assignedObjective,
+                "a blind track already ahead of its neighbours holds until they come up");
+        assertEquals(AssignmentReason.NO_ACTIONABLE_TRACK_TARGET,
+                cmd.frontSnapshot().directiveFor(ahead.id).reason());
+
+        assertNotNull(behind.assignedObjective,
+                "the trailing track advances toward the line");
+        assertEquals(AssignmentKind.ADVANCE_TRACK,
+                behind.assignedObjective.kind());
+        assertEquals(AssignmentReason.TRACK_LINE_SCOUT_ADVANCE,
+                cmd.frontSnapshot().directiveFor(behind.id).reason());
+        assertTrue(behind.assignedObjective.targetCellY() > 2,
+                "and it advances forward along the traversal axis");
+    }
+
+    @Test
+    public void scoutAdvanceIsOffUnderTheControlSwitch() {
+        assumeTrue(ConquestCommand.EMPTY_TRACK_ADVANCE_ENABLED,
+                "control run already has the switch off; nothing to compare");
+        assertEquals("battle.command.emptyTrackAdvance",
+                ConquestCommand.EMPTY_TRACK_ADVANCE_PROPERTY,
+                "the control run's documented switch name is part of the contract");
     }
 
     @Test
@@ -336,7 +400,11 @@ public class ConquestCommandTest {
         // assignment is written even if defenders exist elsewhere.
         // (The other strip's squad — none in this test — would get the
         // assignment instead.)
-        assertNull(squad.assignedObjective,
+        assertEquals(AssignmentKind.ADVANCE_TRACK,
+                squad.assignedObjective.kind(),
+                "the squad advances in its own strip rather than clearing the other one");
+        assertEquals(0, cmd.stripIndexOf(squad.id));
+        assertTrue(squad.assignedObjective.targetCellX() < 10,
                 "defender outside this squad's strip should not pull this squad off-axis");
     }
 
@@ -1273,10 +1341,13 @@ public class ConquestCommandTest {
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         tick(cmd, sim);
 
-        assertNull(squad.assignedObjective,
+        assertNotEquals(AssignmentKind.SECURE_COMPOUND,
+                squad.assignedObjective == null
+                        ? null : squad.assignedObjective.kind(),
                 "an obsolete capture must not pin a squad outside a sealed compound");
-        assertEquals(AssignmentReason.NO_ACTIONABLE_TRACK_TARGET,
-                cmd.frontSnapshot().directiveFor(squad.id).reason());
+        assertEquals(AssignmentReason.TRACK_LINE_SCOUT_ADVANCE,
+                cmd.frontSnapshot().directiveFor(squad.id).reason(),
+                "released, the squad advances on its own strip instead of idling");
     }
 
     @Test
@@ -1303,9 +1374,19 @@ public class ConquestCommandTest {
 
         CommandDirective result = service.snapshot(Faction.MARINE)
                 .directiveFor(squad.id);
-        assertNull(squad.assignedObjective);
-        assertEquals(CommandDirective.Status.RELEASED, result.status());
-        assertTrue(result.dispositionReason().contains("objective completed"));
+        // The capture lease breaks on completion, and the same pulse gives the
+        // freed squad its next order rather than leaving it standing on a
+        // compound it has already taken — so the directive is ACTIVE on a new
+        // assignment, not RELEASED into idleness.
+        assertNotEquals(AssignmentKind.SECURE_COMPOUND,
+                squad.assignedObjective == null
+                        ? null : squad.assignedObjective.kind(),
+                "the completed capture is released rather than retained");
+        assertNotEquals(AssignmentKind.SECURE_COMPOUND,
+                result.assignment() == null
+                        ? null : result.assignment().kind(),
+                "the published directive no longer carries the finished capture");
+        assertNotSame(first.assignment(), result.assignment());
     }
 
     @Test
