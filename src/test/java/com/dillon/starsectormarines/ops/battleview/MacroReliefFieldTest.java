@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
@@ -109,6 +110,70 @@ class MacroReliefFieldTest {
                 "an interior nobody registered as a building keeps its floor height");
     }
 
+    /**
+     * A door is a gap in a wall, not a gap in the building.
+     *
+     * <p>The flood fill seeds on non-wall cells carrying a building-kind hint,
+     * and a doorway carries neither a wall tag nor a hint — so it fell through
+     * to its ground kind and every door notched its own building's shadow.
+     */
+    @Test
+    void aDoorwayIntoARoofedBuildingKeepsTheRoofOverIt() {
+        CellTopology topology = walledBox();
+        topology.setTag(4, 5, CellTopology.Tag.WALL, false);
+        MacroReliefField relief =
+                field(topology, gridWithDoorwayAt(4, 5), roofOverInterior(topology));
+
+        assertEquals(GenMappingRegistry.installed().roofMacroHeightMeters(),
+                relief.metersAt(4, 5), 1e-4f,
+                "the lintel carries the roof across the threshold");
+    }
+
+    @Test
+    void aGateWithOpenGroundBothSidesStaysOpen() {
+        CellTopology topology = walledBox();
+        MacroReliefField relief = field(topology, gridWithDoorwayAt(0, 0), Buildings.EMPTY);
+
+        assertEquals(0f, relief.metersAt(0, 0), 1e-4f,
+                "a gate in open ground has nothing overhead and must not invent a roof");
+    }
+
+    @Test
+    void aDoorwayWhoseOwnRoofCavedInStaysOpen() {
+        CellTopology topology = walledBox();
+        topology.setTag(4, 5, CellTopology.Tag.WALL, false);
+        topology.setRoofDestroyed(4, 5, true);
+        MacroReliefField relief =
+                field(topology, gridWithDoorwayAt(4, 5), roofOverInterior(topology));
+
+        assertTrue(relief.metersAt(4, 5)
+                        < GenMappingRegistry.installed().roofMacroHeightMeters(),
+                "a cave-in is the more specific statement about that cell");
+    }
+
+    /**
+     * The lintel reads the roof mask as the buildings left it, never as it is
+     * being written — otherwise a line of thresholds walks the roof out across
+     * open ground one cell at a time.
+     */
+    @Test
+    void adjacentDoorwaysDoNotChainTheRoofOutwards() {
+        CellTopology topology = walledBox();
+        topology.setTag(4, 5, CellTopology.Tag.WALL, false);
+        NavigationGrid grid = new NavigationGrid(WORLD, WORLD);
+        grid.setDoorway(4, 5, true);
+        grid.setDoorway(4, 6, true);
+        grid.setDoorway(4, 7, true);
+        MacroReliefField relief = field(topology, grid, roofOverInterior(topology));
+
+        assertEquals(GenMappingRegistry.installed().roofMacroHeightMeters(),
+                relief.metersAt(4, 5), 1e-4f, "the threshold itself is covered");
+        assertEquals(0f, relief.metersAt(4, 6), 1e-4f,
+                "the cell beyond it is outside, and stays outside");
+        assertEquals(0f, relief.metersAt(4, 7), 1e-4f,
+                "and the roof does not keep walking");
+    }
+
     /** The march has to reach the tallest thing that can stand, which is now the roof. */
     @Test
     void theTallestHeightCoversTheRoof() {
@@ -120,7 +185,19 @@ class MacroReliefFieldTest {
     // ------------------------------------------------------------------------
 
     private static MacroReliefField field(CellTopology topology, Buildings buildings) {
-        return new MacroReliefField(topology, buildings, GenMappingRegistry.installed());
+        return field(topology, new NavigationGrid(WORLD, WORLD), buildings);
+    }
+
+    private static MacroReliefField field(CellTopology topology, NavigationGrid grid,
+                                          Buildings buildings) {
+        return new MacroReliefField(topology, grid, buildings, GenMappingRegistry.installed());
+    }
+
+    /** A doorway punched through the shell's south wall at (4, 5). */
+    private static NavigationGrid gridWithDoorwayAt(int x, int y) {
+        NavigationGrid grid = new NavigationGrid(WORLD, WORLD);
+        grid.setDoorway(x, y, true);
+        return grid;
     }
 
     /** Walls on the ring x,y in [2..5]; interior 3..4 is INDOOR floor. */

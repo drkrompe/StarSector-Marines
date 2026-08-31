@@ -529,7 +529,7 @@ public final class GroundParallaxPipeline {
         // building registry and the barrier list, so the cost is the number of
         // roofed cells rather than the size of the map.
         MacroReliefField relief =
-                new MacroReliefField(topology, sim.getBuildings(), mapping);
+                new MacroReliefField(topology, grid, sim.getBuildings(), mapping);
         int margin = heightPadCells;
         // Clears to the ground datum, not to mid-channel: off-grid texels have
         // to read as flat ground or the margin would ring the map in a 16 m
