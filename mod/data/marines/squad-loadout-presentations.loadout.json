@@ -6,6 +6,7 @@
       "tier": 1,
       "rarity": "COMMON",
       "provenance": "Independent frontier",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "lore": "A practical station-security issue for settlements that cannot expect prompt naval help. Ubiquitous Domain-pattern Rooks fill the racks while each fire-team lead receives the one traded Lancer worth entrusting to a trained hand."
     },
     {
@@ -14,6 +15,7 @@
       "tier": 3,
       "rarity": "RARE",
       "provenance": "Luddic Path",
+      "factionLogo": "graphics/factions/luddic_path.png",
       "lore": "Recovered Pather assault tables contain no clean quartermaster's mirror of a state arsenal. Blackforge Rattlers, old Rooks, industrial Breachhands, and a scarce captured heavy weapon turn ordinary compartments into close, decisive killing grounds."
     },
     {
@@ -22,6 +24,7 @@
       "tier": 3,
       "rarity": "UNCOMMON",
       "provenance": "Persean League coalition",
+      "factionLogo": "graphics/factions/persean_league.png",
       "lore": "League interoperability means agreeing on cells, ammunition, and fire-team roles without pretending every member world owns the same factories. Lancers lead, Rooks and Stalwarts sustain the line, Longbows exploit open lanes, and Wayfarer smoke keeps a stalled advance moving."
     },
     {
@@ -30,6 +33,7 @@
       "tier": 4,
       "rarity": "RARE",
       "provenance": "Deniable corporate security",
+      "factionLogo": "graphics/factions/tritachyon.png",
       "lore": "A Tri-Tachyon-adjacent blacksite package for breaking defended rooms before the enemy can reorganize. Clean Lancer cells provide the line fire; serial-free Rattlers open the breach; a single diverted Shattercap answers massed soft targets without appearing on a corporate manifest."
     },
     {
@@ -38,6 +42,7 @@
       "tier": 4,
       "rarity": "EXOTIC",
       "provenance": "Hegemony auxiliary tables",
+      "factionLogo": "graphics/factions/hegemony.png",
       "lore": "A low-tech support establishment built to keep firing after a campaign has outlasted its first supply plan. Every team combines the serviceable Rook, a Stalwart automatic, and a Longbow marksman; old Annihilator clusters and tightly controlled Breachlights provide the scarce heavy issue."
     },
     {
@@ -46,6 +51,7 @@
       "tier": 1,
       "rarity": "COMMON",
       "provenance": "Independent frontier",
+      "factionLogo": "graphics/factions/neutral_traders.png",
       "lore": "A frontier quartermaster calls it a protection schedule because inventory sounds better than desperation. Each team gives its leader the one sound Ward kit, then distributes an expired Cordon shell, a breaker-yard Lashplate harness, and sealed fatigues according to fit rather than hope."
     },
     {
@@ -54,6 +60,7 @@
       "tier": 2,
       "rarity": "UNCOMMON",
       "provenance": "Sindrian security",
+      "factionLogo": "graphics/factions/sindrian_diktat.png",
       "lore": "A mixed protection schedule descended from refinery guards and planetary auxiliaries. Imported Janus suits go to mobile response billets, Ward kits go where cameras are watching, and the rest receive sealed fatigues beneath a very visible uniform."
     },
     {
@@ -62,6 +69,7 @@
       "tier": 2,
       "rarity": "UNCOMMON",
       "provenance": "Hegemony auxiliary formations",
+      "factionLogo": "graphics/factions/hegemony.png",
       "lore": "The Hegemony expects auxiliaries to hold formation even when the quartermaster cannot furnish a regular battalion. Ward security kits cover the section while one Legionary suit per fire team anchors the billets most likely to receive contact."
     },
     {
@@ -70,6 +78,7 @@
       "tier": 2,
       "rarity": "UNCOMMON",
       "provenance": "Persean League mobile guard",
+      "factionLogo": "graphics/factions/persean_league.png",
       "lore": "A coalition screen values common interfaces more than a single world’s parade standard. Imported Janus suits give half the formation speed and threat awareness; locally replaceable Ward kits keep the remainder useful when the imported weave needs a depot."
     },
     {
@@ -78,6 +87,7 @@
       "tier": 2,
       "rarity": "UNCOMMON",
       "provenance": "Luddic Church wardens",
+      "factionLogo": "graphics/factions/luddic_church.png",
       "lore": "Parish wardens do not waste inherited machinery where common plate will serve. Ward kits protect the congregation’s ordinary defenders while two maintained Legionary shells per squad are entrusted to proven custodians expected to stand against the first breach."
     },
     {
@@ -86,6 +96,7 @@
       "tier": 2,
       "rarity": "UNCOMMON",
       "provenance": "Pirate and Pather raiders",
+      "factionLogo": "graphics/factions/pirates.png",
       "lore": "Blackforge shops cut security shells and cargo frames down for fast violent work, then issue the results to almost everyone expected to reach the target. The final pair receive sealed fatigues, a weapon, and no illusion that recovery is part of the plan."
     },
     {
@@ -94,6 +105,7 @@
       "tier": 2,
       "rarity": "RARE",
       "provenance": "Tri-Tachyon security doctrine",
+      "factionLogo": "graphics/factions/tritachyon.png",
       "lore": "Janus scout suits equip the operators expected to see the enemy, survive the first exchange, and disappear before heavier forces arrive. Cheaper Ward backing leaves the expensive sensor weave concentrated where corporate doctrine expects the best return."
     },
     {
@@ -102,6 +114,7 @@
       "tier": 3,
       "rarity": "RARE",
       "provenance": "Hegemony line formations",
+      "factionLogo": "graphics/factions/hegemony.png",
       "lore": "Hegemony protection tables privilege standardized, repairable plate over elegant integration. Legionary suits dominate the establishment and Bastion laminates fill the remaining powered billets, giving the whole squad the weight to take contact and keep its formation."
     },
     {
@@ -110,6 +123,7 @@
       "tier": 3,
       "rarity": "UNCOMMON",
       "provenance": "Persean League coalition line",
+      "factionLogo": "graphics/factions/persean_league.png",
       "lore": "A full Bastion schedule is the League ideal: not identical national uniforms, but plates, seals, and powered joints that member worlds have agreed to replace. Its protection and handling stay deliberately balanced because coalition logistics punish brilliant exceptions."
     },
     {
@@ -118,6 +132,7 @@
       "tier": 3,
       "rarity": "RARE",
       "provenance": "Tri-Tachyon response teams",
+      "factionLogo": "graphics/factions/tritachyon.png",
       "lore": "Aegis composite armor refuses the low-tech premise that line infantry must become easy targets to survive. Predictive threat displays and powered balance correction preserve speed and reduce clean hostile solutions, paid for with less plate and a demanding maintenance train."
     },
     {
@@ -126,6 +141,7 @@
       "tier": 3,
       "rarity": "RARE",
       "provenance": "Luddic Church sanctioned guard",
+      "factionLogo": "graphics/factions/luddic_church.png",
       "lore": "Palatine shells are inherited tools under discipline, not casual celebrations of machinery. Artisan-fitted ceramic and conservative joint governors make the formation slow, but its unusually resistant plate rewards the guardians who hold a chosen line."
     },
     {
@@ -134,6 +150,7 @@
       "tier": 3,
       "rarity": "RARE",
       "provenance": "Sindrian regular formations",
+      "factionLogo": "graphics/factions/sindrian_diktat.png",
       "lore": "Furnace armor turns petrochemical industry into visible state power. Thick sacrificial laminate gives every soldier a deep protection reserve, while heat, ordinary resistance materials, and a conspicuous silhouette make maneuver and incoming fire less forgiving."
     },
     {
@@ -142,6 +159,7 @@
       "tier": 3,
       "rarity": "UNCOMMON",
       "provenance": "Veteran outlaw warbands",
+      "factionLogo": "graphics/factions/pirates.png",
       "lore": "A Reaver rig is what remains when a Blackforge frame survives enough raids to earn powered bracing and still more ship plate. Veteran crews get speed and an intimidating reserve of material, but mismatched layers provide poor resistance to a serious penetrator."
     },
     {
@@ -150,6 +168,7 @@
       "tier": 4,
       "rarity": "EXOTIC",
       "provenance": "Hegemony XIV shock tables",
+      "factionLogo": "graphics/factions/hegemony.png",
       "lore": "A complete XIV battlesuit establishment is the Hegemony’s answer to a breach that must become a held corridor. Dense Domain-spec ceramic and standardized powered bracing absorb sustained punishment, while the squad accepts a measured advance and an obvious target profile."
     },
     {
@@ -158,6 +177,7 @@
       "tier": 4,
       "rarity": "EXOTIC",
       "provenance": "Tri-Tachyon blacksite security",
+      "factionLogo": "graphics/factions/tritachyon.png",
       "lore": "Specter battlesuits make a walking tank behave like corporate response equipment: high-output joints, composite protection, and continuous threat prediction over maximum plate. They cross danger quickly and remain difficult to settle sights on, but cannot trade punishment with XIV shells forever."
     },
     {
@@ -166,6 +186,7 @@
       "tier": 4,
       "rarity": "RARE",
       "provenance": "Persean League breach formations",
+      "factionLogo": "graphics/factions/persean_league.png",
       "lore": "Bulwark suits extend coalition interoperability into the assault role. Replaceable actuators and modular plate blocks give member worlds a heavy system they can actually sustain, producing credible protection and handling without relying on one inaccessible miracle component."
     },
     {
@@ -174,6 +195,7 @@
       "tier": 4,
       "rarity": "EXOTIC",
       "provenance": "Knights of Ludd consecrated custody",
+      "factionLogo": "graphics/factions/luddic_church.png",
       "lore": "Reliquary battlesuits are restored one shell at a time and entrusted only after strict trials of stewardship. Their dense fitted armor turns aside heavy fire better than most infantry systems, but immense mass and conservative governors demand patience from the knight inside."
     },
     {
@@ -182,6 +204,7 @@
       "tier": 4,
       "rarity": "EXOTIC",
       "provenance": "Lion’s Guard prestige issue",
+      "factionLogo": "graphics/factions/lg.png",
       "lore": "The Lion’s Mantle is armor as state theater: oversized cooling loops, lavish support, thick laminate, and polished fittings visible across a refinery concourse. Its enormous reserve rewards a disciplined frontal advance while weight and spectacle surrender both speed and subtlety."
     },
     {
@@ -190,6 +213,7 @@
       "tier": 4,
       "rarity": "RARE",
       "provenance": "Pather and pirate foundry cells",
+      "factionLogo": "graphics/factions/luddic_path.png",
       "lore": "Foundry-breakers are cargo exoskeletons buried under stolen servos and welded ship plate. Crude mass lets them keep moving after cleaner suits would fail, but poor resistance, brutal handling, and a vast target profile make every assault a wager against concentrated fire."
     }
   ]

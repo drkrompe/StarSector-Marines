@@ -31,6 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * terrain assets, builds the matching macro/micro/water/shore metadata target,
  * and evaluates the shader equations with bilinear texture sampling.
  *
+ * <p>It also runs the sun's cast-shadow march over the same scene, so the
+ * contact sheet shows what a directional sun does to real terrain rather than
+ * to a diagram. {@code GroundSunShadowTest} owns the march's arithmetic; this
+ * one owns the picture.
+ *
  * <p>The diagnostic contact sheet is written to
  * {@code build/surface-relief/parallax-pixel-comparison.png}. It contains the
  * zero-strength baseline, default and maximum dial settings, amplified diffs,
@@ -62,10 +67,15 @@ class GroundParallaxPixelComparisonTest {
                 GroundParallaxPipeline.MAX_SURFACE_STRENGTH,
                 GroundParallaxPipeline.MAX_WATER_WAVE_AMPLITUDE, WAVE_TIME);
 
+        BufferedImage unshadowed = shade(scene, atDefault.image, 0f);
+        BufferedImage shadowed = shade(scene, atDefault.image,
+                GroundParallaxPipeline.DEFAULT_SUN_SHADOW_STRENGTH);
+
         Metrics zeroMetrics = compare(scene.color, baseline.image);
         Metrics defaultMetrics = compare(scene.color, atDefault.image);
         Metrics animationMetrics = compare(atDefault.image, atNextWave.image);
         Metrics maxMetrics = compare(scene.color, atMax.image);
+        Metrics shadowMetrics = compare(atDefault.image, shadowed);
 
         assertEquals(0, zeroMetrics.changedPixels,
                 "zero strength must be pixel-identical to the source FBO");
@@ -81,13 +91,23 @@ class GroundParallaxPixelComparisonTest {
                 "advancing wave time should visibly animate the water surface");
         assertEquals(0, atDefault.waterLandCrossings,
                 "water displacement must backtrack before sampling a land texel");
+        assertEquals(0, compare(atDefault.image, unshadowed).changedPixels,
+                "zero shadow strength must be pixel-identical to the accepted composite");
+        assertTrue(shadowMetrics.changedPixels > VIEW_W * VIEW_H / 200,
+                "the building's walls should lay down a visible patch of shadow");
+        assertTrue(shadowMetrics.meanChannelDelta > 0.5,
+                "the default shadow strength should survive 8-bit output quantization");
+        assertTrue(shadedFlankIsDarkerThanSunlitFlank(shadowed),
+                "the flank away from the sun must come out darker than the flank facing it");
 
         Files.createDirectories(OUT_DIR);
         BufferedImage defaultDiff = difference(scene.color, atDefault.image, 16);
         BufferedImage maxDiff = difference(scene.color, atMax.image, 8);
         BufferedImage heightImage = metadataImage(scene);
+        BufferedImage shadowDiff = difference(atDefault.image, shadowed, 3);
         BufferedImage contact = contactSheet(scene.color, atDefault.image, atMax.image,
-                defaultDiff, maxDiff, heightImage, defaultMetrics, maxMetrics,
+                defaultDiff, maxDiff, heightImage, shadowed, shadowDiff,
+                defaultMetrics, maxMetrics, shadowMetrics,
                 atDefault.maxDisplacementPx, atMax.maxDisplacementPx);
         Path output = OUT_DIR.resolve("parallax-pixel-comparison.png");
         ImageIO.write(contact, "PNG", output.toFile());
@@ -104,6 +124,11 @@ class GroundParallaxPixelComparisonTest {
                 GroundParallaxPipeline.MAX_STRENGTH,
                 maxMetrics.changedPercent(), maxMetrics.meanChannelDelta,
                 maxMetrics.maxChannelDelta, atMax.maxDisplacementPx);
+        System.out.printf(Locale.ROOT,
+                "[parallax-pixel] sun    %.0f deg az / %.0f deg el: changed %.2f%%, mean RGB delta %.3f%n",
+                GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES,
+                GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
+                shadowMetrics.changedPercent(), shadowMetrics.meanChannelDelta);
         System.out.println("[parallax-pixel] wrote " + output.toAbsolutePath());
     }
 
@@ -126,7 +151,7 @@ class GroundParallaxPixelComparisonTest {
                 float shore = scene.shore[index];
                 float macroMaterial = lerp(1f, GroundParallaxPipeline.WATER_MACRO_SCALE, water);
                 float microMaterial = lerp(1f, GroundParallaxPipeline.WATER_MICRO_SCALE, water);
-                float relief = (macro - GroundParallaxPipeline.MACRO_CENTER)
+                float relief = GroundHeightPass.decodeMacroMeters(macro)
                         * structureStrength * macroMaterial
                         + GroundHeightPass.microRelief(micro) * surfaceStrength * microMaterial;
 
@@ -185,6 +210,82 @@ class GroundParallaxPixelComparisonTest {
         return new Warp(output, Math.sqrt(maxDisplacementSq), waterLandCrossings);
     }
 
+    /**
+     * The composite's cast-shadow term over an already-warped image.
+     *
+     * <p>Runs after the parallax lookup and before event lights, exactly as the
+     * shader does, so the panel on the contact sheet is the accepted S2 image
+     * with the sun applied rather than a separate rendering of the same scene.
+     * The macro field is sampled bilinearly and clamped at its edge, which is
+     * what the real (padded) height texture does at its own boundary.
+     *
+     * <p>The march itself comes from {@link GroundSunShadowReference} — one
+     * copy of the shader's arithmetic, shared with the unit tests and the
+     * snapshot suite, because three re-derivations of it would disagree.
+     */
+    private static BufferedImage shade(Scene scene, BufferedImage warped, float strength) {
+        return GroundSunShadowReference.shade(warped,
+                (worldX, worldY) -> macroMetersAt(scene, worldX, worldY),
+                new GroundSunShadowReference.PixelToWorld() {
+                    @Override
+                    public float worldX(int pixelX) {
+                        return (pixelX + 0.5f) / VIEW_W * GRID_W;
+                    }
+
+                    @Override
+                    public float worldY(int pixelY) {
+                        return (1f - (pixelY + 0.5f) / VIEW_H) * GRID_H;
+                    }
+                },
+                GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES,
+                GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
+                strength, tallestSceneMeters());
+    }
+
+    private static float macroMetersAt(Scene scene, float worldX, float worldY) {
+        return GroundHeightPass.decodeMacroMeters(
+                sampleBilinearUv(scene.macro, worldX / GRID_W, worldY / GRID_H));
+    }
+
+    private static float tallestSceneMeters() {
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        return mapping != null ? mapping.tallestMacroHeightMeters()
+                : GenMappingRegistry.DEFAULT_WALL_MACRO_HEIGHT_METERS;
+    }
+
+    /**
+     * The building's two flanks, compared — which is what says the shadow fell
+     * the right <em>way</em> rather than merely existing.
+     *
+     * <p>The default sun sits at 135°, up and to the left, so shadows lie down
+     * and to the right: the strip east of the building's east wall is shaded and
+     * the strip west of its west wall is not. Both strips are sampled over the
+     * same rows, which is also the same ground blocks, so the comparison is of
+     * the light and not of the terrain.
+     */
+    private static boolean shadedFlankIsDarkerThanSunlitFlank(BufferedImage shadowed) {
+        double shaded = meanLuma(shadowed, 31, 31, 4, 10);
+        double sunlit = meanLuma(shadowed, 19, 20, 4, 10);
+        return shaded < sunlit * 0.9;
+    }
+
+    private static double meanLuma(BufferedImage image, int gx0, int gx1, int gy0, int gy1) {
+        double total = 0;
+        int count = 0;
+        for (int gy = gy0; gy <= gy1; gy++) {
+            for (int gx = gx0; gx <= gx1; gx++) {
+                for (int py = 0; py < CELL_PX; py++) {
+                    for (int px = 0; px < CELL_PX; px++) {
+                        int rgb = image.getRGB(gx * CELL_PX + px, gy * CELL_PX + py);
+                        total += ((rgb >>> 16) & 0xFF) + ((rgb >>> 8) & 0xFF) + (rgb & 0xFF);
+                        count += 3;
+                    }
+                }
+            }
+        }
+        return count == 0 ? 0 : total / count;
+    }
+
     private static Scene buildScene() throws IOException {
         TileRegistry registry = TileRegistry.installed();
         GenMappingRegistry mapping = GenMappingRegistry.installed();
@@ -197,7 +298,7 @@ class GroundParallaxPixelComparisonTest {
         clear.setColor(new Color(BACKDROP_RGB));
         clear.fillRect(0, 0, VIEW_W, VIEW_H);
         clear.dispose();
-        float[] macro = filledChannel(0.5f);
+        float[] macro = filledChannel(GroundHeightPass.encodeMacroMeters(0f));
         float[] micro = filledChannel(0.5f);
         float[] water = new float[VIEW_W * VIEW_H];
         float[] shore = new float[VIEW_W * VIEW_H];
@@ -210,16 +311,16 @@ class GroundParallaxPixelComparisonTest {
                             registry.block("urban.wall"), gx, gy);
                 } else if (isBuildingInterior(gx, gy)) {
                     stampBlock(color, macro, micro, water, shore, sheets, registry.block("urban.floor"),
-                            mapping.macroHeight(CellTopology.GroundKind.INDOOR), gx, gy, false, false);
+                            mapping.macroHeightMeters(CellTopology.GroundKind.INDOOR), gx, gy, false, false);
                 } else if (isSceneWater(gx, gy)) {
                     stampBlock(color, macro, micro, water, shore, sheets, registry.block("water.water"),
-                            mapping.macroHeight(CellTopology.GroundKind.WATER), gx, gy, true, true);
+                            mapping.macroHeightMeters(CellTopology.GroundKind.WATER), gx, gy, true, true);
                 } else {
                     String blockId;
                     if (gy < GRID_H / 2) blockId = gx < GRID_W / 2 ? "floors.grass" : "floors.dirt";
                     else blockId = gx < GRID_W / 2 ? "floors.sand" : "floors.stone";
                     stampBlock(color, macro, micro, water, shore, sheets, registry.block(blockId),
-                            0.5f, gx, gy, true, false);
+                            0f, gx, gy, true, false);
                 }
             }
         }
@@ -245,20 +346,21 @@ class GroundParallaxPixelComparisonTest {
                     wall.cellPx, wall.cellPx, gx, gy);
         }
         fillChannels(macro, micro, water, shore,
-                mapping.wallMacroHeight(), 0.5f, 0f, 0f, gx, gy);
+                mapping.wallMacroHeightMeters(), 0.5f, 0f, 0f, gx, gy);
     }
 
+    /** @param macroMeters macro height in metres above the ground datum, as the mapping authors it. */
     private static void stampBlock(BufferedImage color, float[] macro, float[] micro,
                                    float[] water, float[] shore,
                                    Map<String, BufferedImage> sheets, GridBlockDef block,
-                                   float macroHeight, int gx, int gy,
+                                   float macroMeters, int gx, int gy,
                                    boolean derived, boolean waterSurface) throws IOException {
         float waterValue = waterSurface ? 1f : 0f;
         float shoreValue = waterSurface ? sceneShoreFactor(gx, gy) : 0f;
         int[] frame = block.resolve(false, false, false, false, gx, gy);
         if (frame == null) {
             fillChannels(macro, micro, water, shore,
-                    macroHeight, 0.5f, waterValue, shoreValue, gx, gy);
+                    macroMeters, 0.5f, waterValue, shoreValue, gx, gy);
             return;
         }
         int inset = block.cellPx >= TileManifest.TILE_SIZE
@@ -271,13 +373,13 @@ class GroundParallaxPixelComparisonTest {
         stampColor(color, sheet(sheets, block.sheetPath), srcX, srcY, srcW, srcH, gx, gy);
         if (!derived) {
             fillChannels(macro, micro, water, shore,
-                    macroHeight, 0.5f, waterValue, shoreValue, gx, gy);
+                    macroMeters, 0.5f, waterValue, shoreValue, gx, gy);
             return;
         }
         BufferedImage heightSheet = sheet(sheets,
                 GroundMicroHeightSampler.derivedHeightPath(block.sheetPath));
         fillChannels(macro, micro, water, shore,
-                macroHeight, 0.5f, waterValue, shoreValue, gx, gy);
+                macroMeters, 0.5f, waterValue, shoreValue, gx, gy);
         stampDerivedHeight(micro, heightSheet, srcX, srcY, srcW, srcH, gx, gy);
     }
 
@@ -312,9 +414,11 @@ class GroundParallaxPixelComparisonTest {
         }
     }
 
+    /** @param macroMeters metres above the ground datum; encoded here, exactly as {@link GroundHeightPass} encodes it. */
     private static void fillChannels(float[] macro, float[] micro, float[] water, float[] shore,
-                                     float macroValue, float microValue,
+                                     float macroMeters, float microValue,
                                      float waterValue, float shoreValue, int gx, int gy) {
+        float macroValue = GroundHeightPass.encodeMacroMeters(macroMeters);
         int dstX = gx * CELL_PX;
         int dstY = gy * CELL_PX;
         for (int py = 0; py < CELL_PX; py++) {
@@ -413,12 +517,25 @@ class GroundParallaxPixelComparisonTest {
         return diff;
     }
 
+    /** Metres shown at full red in the metadata panel. Well above a wall, so the ladder stays legible without clipping. */
+    private static final float MACRO_DISPLAY_CEILING_METERS = 6f;
+
+    /**
+     * The metadata target, as a picture.
+     *
+     * <p>The macro channel is re-scaled for display against
+     * {@link #MACRO_DISPLAY_CEILING_METERS} rather than shown raw. Raw, the
+     * whole authored ladder lives in the bottom sixth of the channel — the
+     * encoding's ceiling is 28 m and a wall is 3 — so every surface reads as
+     * near-black and the panel stops answering the question it exists for.
+     */
     private static BufferedImage metadataImage(Scene scene) {
         BufferedImage image = new BufferedImage(VIEW_W, VIEW_H, BufferedImage.TYPE_INT_ARGB);
         for (int y = 0; y < VIEW_H; y++) {
             for (int x = 0; x < VIEW_W; x++) {
                 int index = y * VIEW_W + x;
-                int r = Math.round(clamp01(scene.macro[index]) * 255f);
+                float meters = GroundHeightPass.decodeMacroMeters(scene.macro[index]);
+                int r = Math.round(clamp01(meters / MACRO_DISPLAY_CEILING_METERS) * 255f);
                 int g = Math.round(clamp01(scene.micro[index]) * 255f);
                 int b = Math.round(clamp01(Math.max(scene.water[index], scene.shore[index])) * 255f);
                 image.setRGB(x, y, 0xFF000000 | r << 16 | g << 8 | b);
@@ -430,12 +547,13 @@ class GroundParallaxPixelComparisonTest {
     private static BufferedImage contactSheet(
             BufferedImage baseline, BufferedImage atDefault, BufferedImage atMax,
             BufferedImage defaultDiff, BufferedImage maxDiff, BufferedImage height,
-            Metrics defaultMetrics, Metrics maxMetrics,
+            BufferedImage shadowed, BufferedImage shadowDiff,
+            Metrics defaultMetrics, Metrics maxMetrics, Metrics shadowMetrics,
             double defaultDisplacement, double maxDisplacement) {
         int panelW = VIEW_W / 2;
         int panelH = VIEW_H / 2;
         int labelH = 34;
-        BufferedImage contact = new BufferedImage(panelW * 3, (panelH + labelH) * 2,
+        BufferedImage contact = new BufferedImage(panelW * 4, (panelH + labelH) * 2,
                 BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = contact.createGraphics();
         g.setColor(new Color(0x10151D));
@@ -459,7 +577,16 @@ class GroundParallaxPixelComparisonTest {
                 String.format(Locale.ROOT, "max abs diff x8 | %.2f%% changed",
                         maxMetrics.changedPercent()));
         drawPanel(g, height, 2, 1, panelW, panelH, labelH,
-                "metadata: R macro / G micro / B water+shore");
+                String.format(Locale.ROOT, "R macro 0-%.0fm / G micro / B water+shore",
+                        MACRO_DISPLAY_CEILING_METERS));
+        drawPanel(g, shadowed, 3, 0, panelW, panelH, labelH,
+                String.format(Locale.ROOT, "sun %.0f/%.0f deg | %.2f strength",
+                        GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES,
+                        GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
+                        GroundParallaxPipeline.DEFAULT_SUN_SHADOW_STRENGTH));
+        drawPanel(g, shadowDiff, 3, 1, panelW, panelH, labelH,
+                String.format(Locale.ROOT, "sun abs diff x3 | %.2f%% changed",
+                        shadowMetrics.changedPercent()));
         g.dispose();
         return contact;
     }

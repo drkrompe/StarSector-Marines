@@ -83,6 +83,14 @@ dependencies {
             new File(starsectorCore, 'lwjgl.jar'),
             new File(starsectorCore, 'lwjgl_util.jar'),
     )
+    // `shaderEvidence` makes a real GL context (HeadlessGl) and drives the mod's
+    // own render classes through it, so the test sources need LWJGL 2 to COMPILE
+    // against as well. compileOnly, exactly as `main` has it: the game supplies
+    // the jar at runtime and it must never enter the shipped one.
+    testCompileOnly files(
+            new File(starsectorCore, 'lwjgl.jar'),
+            new File(starsectorCore, 'lwjgl_util.jar'),
+    )
 }
 
 // Every Test task here runs the same test source set, so every one of them
@@ -129,7 +137,7 @@ test {
         excludeTags 'battle-profile', 'commander-balance',
                 'sabotage-command-evidence', 'assault-command-evidence',
                 'raid-command-evidence', 'extraction-command-evidence',
-                'crew-liveliness'
+                'crew-liveliness', 'shader-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -195,6 +203,34 @@ tasks.register('crewEvidence', Test) {
     classpath = sourceSets.test.runtimeClasspath
     useJUnitPlatform {
         includeTags 'crew-liveliness'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// The only evidence here that makes a real OpenGL context. Everything else
+// headless -- the snapshot suites, the shader pixel oracles -- draws through
+// Java2D or models GLSL on the CPU, which is blind to the ways a shader really
+// fails: a driver rejecting a construct, or a uniform set under a name the
+// linked program does not have (which is silent, by specification). Opt-in and
+// excluded from `test` because it needs an accelerated driver, and a suite that
+// requires a GPU is a suite that fails on the machine that has none.
+//
+// LWJGL 2, deliberately: the mod's render classes are written against it, so
+// this runs them rather than a re-implementation of them. The jar is already on
+// the test runtime classpath and HeadlessGl finds the natives beside the game
+// through `starsectorDir`, so there is nothing new to install.
+tasks.register('shaderEvidence', Test) {
+    group = 'verification'
+    description = 'Compile and link every mod shader on a real driver; opt-in, excluded from test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'shader-evidence'
     }
     maxParallelForks = 1
     outputs.upToDateWhen { false }

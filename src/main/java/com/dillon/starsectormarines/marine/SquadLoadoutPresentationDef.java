@@ -10,6 +10,7 @@ public record SquadLoadoutPresentationDef(
         int tier,
         SquadLoadoutRarity rarity,
         String provenance,
+        String factionLogo,
         String lore) {
 
     public enum Kind {
@@ -32,7 +33,9 @@ public record SquadLoadoutPresentationDef(
             throw new JSONException(id + " tier must be between 1 and 5");
         }
         return new SquadLoadoutPresentationDef(id, kind, tier, rarity,
-                requireText(json, "provenance", id), requireText(json, "lore", id));
+                requireText(json, "provenance", id),
+                requireText(json, "factionLogo", id),
+                requireText(json, "lore", id));
     }
 
     private static String requireText(JSONObject json, String key, String owner)

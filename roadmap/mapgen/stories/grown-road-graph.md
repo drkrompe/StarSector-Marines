@@ -1,9 +1,14 @@
 # Grown road graph
 
-Status: SPIKE LANDED — opt-in and unwired; the density knob and the zoning
-boundary below are what remain before any recipe adopts it.
+Status: SPIKE LANDED — opt-in and unwired. Density is one knob, the hinterland
+is dressed, and the zoning worry was unfounded. Terrain coherence and the
+`BiomeKind` question are what remain.
 
 Written: 2026-08-30
+
+Updated: 2026-08-31 — density collapsed to `Profile.of(density)` and measured
+monotonic; the zoning concern retracted as unfounded; the hinterland now dressed
+by `HinterlandFillStage`.
 
 ## What this is
 
@@ -55,17 +60,70 @@ and `hamlet` produce genuine settlement with open country around it.
 
 ## What is not right yet
 
-**The density ladder is not monotonic across seeds.** At seed 777 the doodad
-counts fall 174 / 175 / 102 / 69 as intended; at seed 42 they run
-151 / 172 / 39 / 90 and `hamlet` comes out *denser* than `town`. Two knobs
-interact — budget and arm length set how far growth spreads, `frontageDepth`
-sets how wide the built ribbon is — so a clustered `town` leaves large fields
-while a spread-out `hamlet` puts thin frontage everywhere. These want collapsing
-into one density control with the others derived.
+**Hinterland terrain is noise, not landscape.** `HinterlandFillStage` dresses it
+now, but the ground pick is one independent `rng` draw per cell against an
+80/15/5 grass/dirt/sand weighting, so dirt appears as isolated speckles rather
+than as coherent patches. It reads as rough ground at map zoom and as static
+close up. Two things are missing and both are real work: a spatially coherent
+field to drive the pick, and edge frames — the nature sheet has none, so any
+grass/dirt boundary is a hard cell edge whatever chooses it.
 
-**Zoning does not know the hinterland exists.** `DistrictMap` is a blind 20x20
-grid, so `RES` and `MIX` labels land on empty fields. Zoning has to consult the
-hinterland before a recipe adopts this.
+**There are no trees.** The whole plant vocabulary is `nature.shrub-1..3` and
+`nature.tuft-1..3` on the sliced nature sheet, all `validOn` grass, and there
+are no vegetation doodads at all. Countryside without trees has a ceiling on how
+much it can read as countryside, and that ceiling is art rather than code.
+
+## Density is one knob
+
+`Profile.of(density)` derives every other parameter; `city()`, `town()` and
+`hamlet()` are named points on it. Measured over 24 seeds at 80x80, open-country
+share falls monotonically with density:
+
+| density | 0.00 | 0.20 | 0.40 | 0.55 | 0.75 | 1.00 |
+|---|---|---|---|---|---|---|
+| open share | 0.637 | 0.431 | 0.236 | 0.148 | 0.058 | 0.000 |
+
+Three per-seed inversions in 120 adjacent-step comparisons, all mid-ladder where
+between-seed variance is widest.
+
+**Arm length must not scale with density.** That was the whole fault: a sparse
+profile with longer arms lays a thin ribbon of frontage across the entire map
+instead of making a smaller settlement, so it measured denser than the profile
+above it. Fewer junctions at a fixed reach is what a smaller town is.
+
+**Built-cell share is the wrong measure and hid this.** At full density there is
+no hinterland, so the non-built remainder is road, and adding junctions lowers
+built share — the ladder appeared to reverse at the top for a reason that had
+nothing to do with settlement. Open-country share is what density controls.
+
+## The hinterland is dressed, and is deliberately not a block
+
+`HinterlandFillStage` reads `BspKeys.HINTERLAND` and hands each region to
+`NatureZoneFiller` as grassland — weighted ground plus plant and rock scatter.
+It is included only in the grown recipes; the stock path omits it rather than
+running it as a no-op, which is how this pipeline forks.
+
+**A hinterland region is not a `BlockLeaf` and must not become one.** Emitting
+these rects into the partition would have been less code and is wrong in kind: a
+leaf is a city parcel, so labelling would zone it, the size constraints would
+demote it, and a compound claim could try to build on it. Open country is the
+absence of a parcel.
+
+It cannot strand anybody, and that follows from the data rather than from a
+check: the grassland ground pool is grass, dirt and sand with no water, and its
+rock pool is small and medium rocks, all passable. The fill only ever adds
+walkable ground.
+
+## Retracted: zoning over the hinterland
+
+An earlier reading of the comparison images said `RES` and `MIX` labels were
+landing on empty fields and that zoning would need to consult the hinterland.
+That was wrong. Sub-rects and hinterland are disjoint by construction and BSP
+partitions only sub-rects, so no leaf can exist on hinterland ground and no
+filler runs there. Measured across 144 generated maps, sub-rect and hinterland
+cells overlapped zero times. The labels are the debug overlay drawing
+`DistrictMap`'s 20x20 grid across the whole map, which is a property of the
+preview and not of generation.
 
 ## The `BiomeKind` constraint
 
