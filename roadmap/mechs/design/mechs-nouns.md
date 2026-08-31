@@ -62,9 +62,16 @@ increasing an encounter's total armored threat.
   later is admitted or refused by what it weighs.
 - A **machine on the stocks** is the part-built chassis itself, standing in a
   gantry as an ordinary battle body: seen, targeted and damaged exactly where it
-  stands. It is immobile and mindless and has no weapons, because it is not
-  finished. It is not a mech and never becomes one — a finished machine comes off
-  the stocks and an ordinary chassis stands where it stood.
+  stands. It is the **real variant** — an unfinished Hound is composed from a
+  Hound's own modular art and is a Hound's size, structure and silhouette — with
+  its plate fitted and empty. What it has not got is a **loadout**, and that
+  alone is what makes it inert: every firing path is keyed off the installed
+  mounts, so a chassis with none is skipped by all of them without anything
+  having been told to skip it. Being built on a chassis and carrying a loadout
+  are therefore separate questions; folding them together forces a choice between
+  an unfinished machine drawn as a generic mech and one that arrives with a
+  working gun. It is not a mech and never becomes one — a finished machine comes
+  off the stocks and an ordinary chassis stands where it stood.
 - **Subsystem inventory** is finite fleet stock. Installed components count
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
