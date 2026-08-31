@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -59,6 +60,13 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
     private static final int WINDOW_W = 84;
     private static final int WINDOW_H = 56;
 
+    /** The breach panels frame one building instead of a block of city, so they zoom in and cover less. */
+    private static final int BREACH_CELL_PX = 24;
+    private static final int BREACH_VIEW_W = 40;
+    private static final int BREACH_VIEW_H = 28;
+    /** Roughly what a detonation takes out, and comfortably inside the rim's reach at the default sun. */
+    private static final int BREACH_RADIUS_CELLS = 3;
+
     @Override
     public String id() {
         return "sun-shadows";
@@ -74,14 +82,16 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
         DiskRegistries.installMapGeneration(context.projectRoot());
 
         MapResult map = new BspCityGenerator().generate(MAP_W, MAP_H, SEED, AXIS);
-        BufferedImage whole = new HeadlessBattleMapRenderer(context.modRoot())
-                .render(map, SEED, CELL_PX);
+        HeadlessBattleMapRenderer renderer = new HeadlessBattleMapRenderer(context.modRoot());
+        BufferedImage whole = renderer.render(map, SEED, CELL_PX);
         Window window = densestBuiltWindow(map.topology);
         BufferedImage ground = crop(whole, window);
 
         GenMappingRegistry mapping = GenMappingRegistry.installed();
-        float tallest = mapping.tallestMacroHeightMeters();
-        GroundSunShadowReference.HeightField field = heightField(map.topology, mapping);
+        MacroReliefField relief = new MacroReliefField(map.topology, map.buildings, mapping);
+        float tallest = relief.tallestMeters();
+        GroundSunShadowReference.HeightField field = relief::metersAt;
+        System.out.println("[sun-shadows] " + relief);
         GroundSunShadowReference.PixelToWorld worldAt = pixelToWorld(window);
 
         float azimuth = GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES;
@@ -108,6 +118,11 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
         }
 
         return List.of(
+                new SnapshotArtifact("roof-breach.png", sheet(breachPanels(map, renderer),
+                        "A roof is what a building casts with. Same map, same "
+                                + (int) azimuth + " deg / "
+                                + (int) GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES
+                                + " deg sun, seed " + SEED + ".")),
                 new SnapshotArtifact("elevation-ladder.png", sheet(ladder,
                         "Sun elevation sets reach. Same map, same bearing "
                                 + (int) azimuth + " deg, seed " + SEED + ".")),
@@ -117,34 +132,101 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
                                 + " deg elevation, seed " + SEED + ".")));
     }
 
-    /** What a wall of the tallest authored height lays down, in cells, at this elevation. */
-    private static float reachCells(float tallestMeters, float elevationDegrees) {
-        return tallestMeters / (float) Math.tan(Math.toRadians(elevationDegrees));
+    /**
+     * The building the sun is actually for: intact, and with a hole in its roof.
+     *
+     * <p>Roof destruction already happens in play — a detonation cracks a roof
+     * and an adjacent wall collapse takes the cells beside it — and until now it
+     * changed only what the roof pass drew. It is the clearest case the height
+     * model has: a solid block, then daylight through the hole and the intact
+     * roof's own shadow lying across it.
+     */
+    private List<Panel> breachPanels(MapResult map, HeadlessBattleMapRenderer renderer) {
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        Building target = largestBuildingIn(map, densestBuiltWindow(map.topology));
+        if (target == null) return List.of();
+
+        // Framed on the one building at twice the city's zoom. At twelve pixels
+        // a cell a hole a few cells across is a smudge; the whole point is the
+        // rim's own shadow lying inside it, and that has to be looked at.
+        float centerX = (target.minX + target.maxX + 1) * 0.5f;
+        float centerY = (target.minY + target.maxY + 1) * 0.5f;
+        BufferedImage ground = renderer.renderView(map, SEED, centerX, centerY,
+                BREACH_VIEW_W, BREACH_VIEW_H, BREACH_CELL_PX);
+        GroundSunShadowReference.PixelToWorld worldAt = viewPixelToWorld(centerX, centerY);
+
+        MacroReliefField intact = new MacroReliefField(map.topology, map.buildings, mapping);
+        int breached = breachRoof(map.topology, target);
+        MacroReliefField holed = new MacroReliefField(map.topology, map.buildings, mapping);
+
+        List<Panel> panels = new ArrayList<>();
+        panels.add(new Panel(shade(ground, intact, worldAt),
+                "roof intact | the building casts as one solid block"));
+        panels.add(new Panel(shade(ground, holed, worldAt),
+                breached + " roof cells caved in | the rim casts into its own hole"));
+        return panels;
+    }
+
+    /** Where a pixel of a {@code renderView} frame sits in world cells. */
+    private static GroundSunShadowReference.PixelToWorld viewPixelToWorld(float centerCellX,
+                                                                         float centerCellY) {
+        return new GroundSunShadowReference.PixelToWorld() {
+            @Override
+            public float worldX(int pixelX) {
+                return centerCellX + (pixelX + 0.5f - BREACH_VIEW_W * BREACH_CELL_PX * 0.5f)
+                        / BREACH_CELL_PX;
+            }
+
+            @Override
+            public float worldY(int pixelY) {
+                return centerCellY - (pixelY + 0.5f - BREACH_VIEW_H * BREACH_CELL_PX * 0.5f)
+                        / BREACH_CELL_PX;
+            }
+        };
+    }
+
+    private BufferedImage shade(BufferedImage ground, MacroReliefField relief,
+                                GroundSunShadowReference.PixelToWorld worldAt) {
+        return GroundSunShadowReference.shade(ground, relief::metersAt, worldAt,
+                GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES,
+                GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
+                GroundParallaxPipeline.DEFAULT_SUN_SHADOW_STRENGTH, relief.tallestMeters());
+    }
+
+    /** The biggest roof in frame, so the hole is large enough to read at this zoom. */
+    private static Building largestBuildingIn(MapResult map, Window window) {
+        Building best = null;
+        for (Building building : map.buildings.all()) {
+            if (building.maxX < window.minX || building.minX >= window.minX + WINDOW_W) continue;
+            if (building.maxY < window.minY || building.minY >= window.maxY() + 1) continue;
+            if (best == null || building.cellCount() > best.cellCount()) best = building;
+        }
+        return best;
     }
 
     /**
-     * Macro height in metres at a world position, read straight off the
-     * topology the way {@link GroundHeightPass} reads it.
-     *
-     * <p>Sampled per cell rather than interpolated: the real height target
-     * draws one flat quad per cell, so bilinear filtering only ever blends
-     * across the single texel on a cell boundary. Nearest is the honest model
-     * of that, and it keeps the shadow's near edge on the wall it belongs to.
+     * Cave in a patch in the middle of a roof, the size a detonation actually
+     * takes out. Not half the building: a hole wider than the rim's own reach
+     * is mostly lit floor, which shows that a lower cell is lighter and not
+     * that the roof around it is still standing between that floor and the sun.
      */
-    private static GroundSunShadowReference.HeightField heightField(CellTopology topology,
-                                                                   GenMappingRegistry mapping) {
-        float wall = mapping.wallMacroHeightMeters();
-        return (worldX, worldY) -> {
-            int cx = (int) Math.floor(worldX);
-            int cy = (int) Math.floor(worldY);
-            if (cx < 0 || cy < 0 || cx >= topology.getWidth() || cy >= topology.getHeight()) {
-                // Off-map reads as flat ground, matching the height target's
-                // clear. An off-map cliff would ring the whole city in shadow.
-                return 0f;
-            }
-            return topology.isWall(cx, cy) ? wall
-                    : mapping.macroHeightMeters(topology.getGroundKind(cx, cy));
-        };
+    private static int breachRoof(CellTopology topology, Building building) {
+        int centerX = (building.minX + building.maxX) / 2;
+        int centerY = (building.minY + building.maxY) / 2;
+        int breached = 0;
+        for (int i = 0, n = building.cellCount(); i < n; i++) {
+            int dx = building.cellsX[i] - centerX;
+            int dy = building.cellsY[i] - centerY;
+            if (dx * dx + dy * dy > BREACH_RADIUS_CELLS * BREACH_RADIUS_CELLS) continue;
+            topology.setRoofDestroyed(building.cellsX[i], building.cellsY[i], true);
+            breached++;
+        }
+        return breached;
+    }
+
+    /** What a wall of the tallest authored height lays down, in cells, at this elevation. */
+    private static float reachCells(float tallestMeters, float elevationDegrees) {
+        return tallestMeters / (float) Math.tan(Math.toRadians(elevationDegrees));
     }
 
     /**

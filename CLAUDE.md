@@ -447,7 +447,7 @@ The discovered suite ids and default output directories are:
 | `runway-sortie` | Two animated loops of one station flying a fighter off its strip: the whole cycle unopposed — taxi, roll, gun runs, approach, rollout, taxi in — and the same cycle with a fire team astride the taxiway | `build/snapshots/runway-sortie/` |
 | `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
 | `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
-| `sun-shadows` | One generated city shaded by the directional sun: an elevation ladder and a bearing sweep, each against a no-sun control. **CPU model of the composite shader, not the shader** | `build/snapshots/sun-shadows/` |
+| `sun-shadows` | One generated city shaded by the directional sun: an elevation ladder, a bearing sweep, and one building's roof caved in beside itself intact — each against a control. **CPU model of the composite shader, not the shader** | `build/snapshots/sun-shadows/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote

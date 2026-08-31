@@ -140,7 +140,10 @@ public final class GenMappingRegistry {
         if (macroHeight != null) {
             for (Iterator<String> it = macroHeight.keys(); it.hasNext(); ) {
                 String key = it.next();
-                if (SurfaceRole.fromKeyOrNull(key) == null) GroundKind.valueOf(key);
+                if (!STRUCTURAL_MACRO_HEIGHT_KEYS.contains(key)
+                        && SurfaceRole.fromKeyOrNull(key) == null) {
+                    GroundKind.valueOf(key);
+                }
                 requireUnique("macro-height mapping", key, macroHeightSources, source);
                 macroHeightOverride.put(key, (float) macroHeight.getDouble(key));
                 macroHeightSources.put(key, source);
@@ -269,6 +272,41 @@ public final class GenMappingRegistry {
      */
     public static final float DEFAULT_WALL_MACRO_HEIGHT_METERS = 3.0f;
 
+    /**
+     * Macro-height keys that name a structure rather than a ground kind or a
+     * {@link SurfaceRole}. {@code WALL} and {@code ROOF} are already roles;
+     * a window is an aperture and draws through the barrier and aperture
+     * treatments rather than as a surface block, so it has no role to borrow
+     * and is named here instead.
+     */
+    private static final Set<String> STRUCTURAL_MACRO_HEIGHT_KEYS = Set.of("WINDOW");
+
+    /**
+     * Height of an intact roof, in metres. Defaults to the wall's, which makes
+     * a roofed building one solid mass rather than a lid sitting proud of its
+     * own walls — the shape a top-down shadow should read.
+     */
+    public float roofMacroHeightMeters() {
+        Float override = macroHeightOverride.get("ROOF");
+        return override != null ? override : wallMacroHeightMeters();
+    }
+
+    /**
+     * Height a window lowers its wall to, in metres — the sill.
+     *
+     * <p>Chest height, matching the low framed cover a
+     * {@code SharedEdgeBarrier.Kind.WINDOW} already gives: it is the same
+     * opening described to a different system, and the two should not disagree
+     * about how high it is.
+     */
+    public float windowSillMacroHeightMeters() {
+        Float override = macroHeightOverride.get("WINDOW");
+        return override != null ? override : DEFAULT_WINDOW_SILL_MACRO_HEIGHT_METERS;
+    }
+
+    /** @see #windowSillMacroHeightMeters() */
+    public static final float DEFAULT_WINDOW_SILL_MACRO_HEIGHT_METERS = 1.1f;
+
     /** {@code kind}'s macro height in metres — {@code "macroHeightMeters"} override, else {@link #defaultMacroHeightMeters}. */
     public float macroHeightMeters(GroundKind kind) {
         Float override = macroHeightOverride.get(kind.name());
@@ -291,7 +329,7 @@ public final class GenMappingRegistry {
      * quietly clipping every shadow against a constant nobody updated.
      */
     public float tallestMacroHeightMeters() {
-        float tallest = wallMacroHeightMeters();
+        float tallest = Math.max(wallMacroHeightMeters(), roofMacroHeightMeters());
         for (GroundKind kind : GroundKind.values()) {
             tallest = Math.max(tallest, macroHeightMeters(kind));
         }
