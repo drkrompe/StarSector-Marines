@@ -141,7 +141,16 @@ SRM shoulders. Tri-Tachyon issue replaces the arms with paired rapid pulse-laser
 arrays and the right omni shoulder with a long-cooldown direct laser cannon whose
 lance can pass through one body. Those are explicit faction hardware swaps;
 livery changes only the accepted casing paint of whichever components are
-installed. The Hound is a quick close-assault strider that lacks long-range pressure. The
+installed. Hegemony Bulwarks replace the arm battery with paired Bastion
+autocannons: slower six-round service bursts trade saturation for range and
+armor penetration. Luddic Path Hounds replace the nose gun with a five-shell
+Foundry Breaker, an inaccurate demolition cannon whose contact payload, broad
+blast, and structural damage make every shot consequential. Lion's Guard
+Siroccos replace the right LRM rack with a short-ranged thermal lance whose
+directional contact burn and one-cell impact bloom reward aggressive support.
+These signature fits belong to the exact campaign faction ids `hegemony`,
+`luddic_path`, and `lions_guard`; the Diktat does not inherit Guard prototypes.
+The Hound is a quick close-assault strider that lacks long-range pressure. The
 Sirocco is a fragile long-range specialist whose cannon is an anti-hardened
 fallback rather than a replacement close-range saturation weapon. Those are
 hardware identities; any deployed chassis may receive any of these doctrines:
