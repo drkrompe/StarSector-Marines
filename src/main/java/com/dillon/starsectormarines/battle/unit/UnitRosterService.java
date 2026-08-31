@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
@@ -408,22 +407,26 @@ public final class UnitRosterService {
      * aircraft was the case that was missed: a parked Valkyrie reported the
      * archetype's half-cell while the same Valkyrie taxiing reported four and a
      * half, so it changed size the instant it launched or recovered.
+     *
+     * <p>The order itself lives on {@link BodyRadius}, shared with the columnar
+     * derivation in {@code SeparationSystem}; this method's job is the four
+     * by-id lookups that feed it. A carried body is dispatched first because it
+     * holds no {@code IDENTITY} to feed them with.
      */
     public float radius(long id) {
-        if (turretStateService.isTurret(id)) {
-            // Gate on the id, not the resolved def: structure() requires its
-            // id and throws on a turret authored without one, so the old
-            // null-check could never fire. Sampling this for every body at
-            // spawn is what surfaced it.
-            String structureId = turretStateService.structureId(id);
-            if (structureId != null) return turretStateService.structure(id).radius;
-        }
         BodyCarrier carrier = bodyService.carrierOf(id);
         if (carrier != null) return carrier.targetRadius(id);
-        Airframe airframe = identityService.airframe(id);
-        if (airframe != null) return airframe.targetRadiusCells();
-        MechVariant variant = identityService.mechVariant(id);
-        return variant != null ? variant.radius : identityService.type(id).radius;
+        // Gate on the id, not the resolved def: structure() requires its id and
+        // throws on a turret authored without one, so a null-check on the def
+        // could never fire. Sampling this for every body at spawn is what
+        // surfaced it.
+        StructureDef turretStructure =
+                turretStateService.isTurret(id) && turretStateService.structureId(id) != null
+                        ? turretStateService.structure(id) : null;
+        return BodyRadius.resolve(turretStructure,
+                identityService.airframe(id),
+                identityService.mechVariant(id),
+                identityService.type(id));
     }
 
     /**

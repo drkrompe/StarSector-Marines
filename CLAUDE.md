@@ -164,7 +164,7 @@ Do not run builds or leave generated task files there.
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
   a suite degrades to not drawing those sprites if it is missing. Select
-  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,point-defence,runway-sortie,ship-decks,sun-shadows,turrets,ui`
+  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,point-defence,runway-sortie,ship-decks,sun-shadows,turrets,ui,yield-freeze`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
@@ -486,6 +486,7 @@ The discovered suite ids and default output directories are:
 | `runway-sortie` | Two animated loops of one station flying a fighter off its strip: the whole cycle unopposed — taxi, roll, gun runs, approach, rollout, taxi in — and the same cycle with a fire team astride the taxiway | `build/snapshots/runway-sortie/` |
 | `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
 | `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
+| `yield-freeze` | One squad under one order, recorded twice: the order worth having, and the same order over a zone that turns out to be empty. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
 | `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, marines casting beside the same marines with the shadow layer left out, and one craft at three altitudes walking its shadow away from itself — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
@@ -609,6 +610,35 @@ cost 93s of a 560s `:test` run, and the owner judged the invariants not worth
 that. A scene is still the right instrument for a question about one behavior;
 reach for it from a snapshot suite or a scratch harness rather than from the
 default suite.
+
+`YieldFreezeScene` is the fifth: one marine squad, one `CLEAR_ZONE` order, and
+three rooms in a row. It exists because a mission goal may decline its own order
+deliberately — `ClearAssignedZoneGoal` yields when the assigned zone turns out to
+hold no live enemy, so the commander can reassign — and beneath a yielded
+mission goal the ladder was empty. The squad got no goal at all: a null plan, and
+members that drop their paths by design.
+
+**Plan-less ticks are the reading, not distance.** A squad holding position
+deliberately does not move either, so distance cannot tell a considered halt from
+an absence of orders. What separates them is whether the squad holds a plan at
+all, and a fix here should drive plan-less ticks to zero *without* necessarily
+moving the squad one cell — a squad that wanders off looking for work has been
+given the mission-inventing behaviour the noun doc forbids.
+
+**A distant enemy is an attractor, not a bystander.** `BreachToEngage` falls back
+to an omniscient nearest-enemy scan for squads that have not ticked targeting
+yet, so the lone far-off defender every scene keeps alive to stop the simulation
+terminating will be walked to if it can be reached. The first version of this
+scene left a door in the far wall and recorded both loops crossing the whole map
+to it — near-identical distances, and nothing whatever about the yield. Seal that
+room: the goal's own reachability gate then rules the defender out.
+
+**A control that reproduces the defect measures nothing.** The control's defender
+first stood on the doorway's own sight line, so the squad shot it down the
+corridor without ever crossing, the zone went clear, and the control yielded and
+froze exactly like the case it was meant to contrast with. Moved off that line it
+crosses properly — and then falls into the same hole once it finishes, which is
+the more useful recording of the two.
 
 Snapshot generation is tool/test infrastructure and must not enter the shipped
 mod jar. Keep reusable catalog and runner code in `:layer-authoring`, keep
