@@ -139,6 +139,9 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         }
     }
 
+    /** Set {@code -Dbattle.diag.commandCounts} to have every collected frame print its per-layer command count. */
+    private static final String COMMAND_COUNT_PROPERTY = "battle.diag.commandCounts";
+
     @Override
     public boolean draw(CanvasHostPass pass, CanvasContext context,
                         CanvasHostViewport viewport, float alphaMult) {
@@ -148,6 +151,20 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         // folded into the battle commands and then multiplied a second time.
         BattleSceneFrame frame = scenePass.prepare(viewport, 1f);
         DrawList commands = renderer.collectWorld(frame.context(), frame.layers());
+        // Opt-in per-layer census. "Nothing appeared" has two very different
+        // causes -- a collector that emitted nothing, and a drain that dropped
+        // what it was given -- and they look identical from the picture. This
+        // separates them in one run; guessing between them cost several.
+        if (System.getProperty(COMMAND_COUNT_PROPERTY) != null) {
+            StringBuilder diag = new StringBuilder("[cmd-counts]");
+            for (RenderLayer probe : RenderLayer.values()) {
+                if (commands.count(probe) > 0) {
+                    diag.append(' ').append(probe).append('=').append(commands.count(probe));
+                }
+            }
+            diag.append(" | selected=").append(frame.layers());
+            System.out.println(diag);
+        }
         for (RenderLayer layer : RenderLayer.values()) {
             if (!frame.layers().contains(layer)) continue;
             for (int index = 0; index < commands.count(layer); index++) {
