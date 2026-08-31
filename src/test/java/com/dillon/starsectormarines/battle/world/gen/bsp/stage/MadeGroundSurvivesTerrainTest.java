@@ -3,6 +3,10 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
@@ -10,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import org.junit.jupiter.api.Test;
 
+import java.util.EnumSet;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,6 +51,11 @@ class MadeGroundSurvivesTerrainTest {
         GenContext ctx = new GenContext(grid, topology, new Random(1L), W, H, 1L);
         ctx.put(BspKeys.BIOME_MAP,
                 new BiomeMap(W, H, TraversalAxis.SOUTH_TO_NORTH, new Random(1L)));
+        // The override paints the world's own approach ground, so the fixture
+        // has to say which world it is on. A living one, whose approach is sand.
+        ctx.put(BspKeys.MARKET_PROFILE, new TargetProfile(5, 5, 1, 0, "independent",
+                EnumSet.noneOf(EconomicFunction.class),
+                SurfacePalette.VERDANT, SettlementLink.ROAD));
         return ctx;
     }
 
@@ -70,6 +80,23 @@ class MadeGroundSurvivesTerrainTest {
 
         assertEquals(GroundKind.SAND, ctx.topology.getGroundKind(cell[0], cell[1]),
                 "the beach override stopped repainting ordinary outdoor ground");
+    }
+
+    /** A world with no sea has no sand either: its approach is the ground it is made of. */
+    @Test
+    void aBarrenWorldsBeachTakesItsOwnGround() {
+        GenContext ctx = beachContext();
+        ctx.put(BspKeys.MARKET_PROFILE, new TargetProfile(5, 5, 1, 0, "independent",
+                EnumSet.noneOf(EconomicFunction.class),
+                SurfacePalette.ROCK, SettlementLink.ROAD));
+        int[] cell = aBeachCell(ctx);
+        assertNotNull(cell, "no beach band on the map — the test proves nothing");
+
+        new BiomeGroundOverrideStage().run(ctx);
+
+        assertEquals(SurfacePalette.ROCK.approachGround(),
+                ctx.topology.getGroundKind(cell[0], cell[1]),
+                "a barren world's approach band should not be sand");
     }
 
     @Test

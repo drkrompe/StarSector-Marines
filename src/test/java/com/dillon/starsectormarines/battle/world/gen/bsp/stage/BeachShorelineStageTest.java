@@ -1,13 +1,18 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.EnumSet;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +36,9 @@ class BeachShorelineStageTest {
         ctx.put(BspKeys.BIOME_MAP, new BiomeMap(width, height,
                 TraversalAxis.SOUTH_TO_NORTH, new Random(seed)));
         ctx.put(BspKeys.ROAD_RESERVATION, new boolean[width][height]);
+        // A shore needs a sea: the stage only stamps water on a world whose
+        // surface bears it, so this fixture has to say which world it is on.
+        ctx.put(BspKeys.MARKET_PROFILE, oceanWorld());
 
         new BeachShorelineStage().run(ctx);
         new FinalizeStage().run(ctx);
@@ -53,4 +61,12 @@ class BeachShorelineStageTest {
         }
         assertTrue(testedBanks > 0, "representative shoreline should expose a walkable bank");
     }
+
+    /** A world with a sea. The stage declines to stamp water on one without. */
+    private static TargetProfile oceanWorld() {
+        return new TargetProfile(5, 5, 1, 0, "independent",
+                EnumSet.noneOf(EconomicFunction.class),
+                SurfacePalette.VERDANT, SettlementLink.ROAD);
+    }
+
 }
