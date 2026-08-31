@@ -440,9 +440,21 @@ Do not run builds or leave generated task files there.
   only, so the task tees them to `build/starsector-run/console.log` and points
   `-XX:ErrorFile` at `build/starsector-run/hs_err_pid<pid>.log`. Every run also
   writes `build/starsector-run/run-summary.txt` with the decoded exit status.
+  The summary is written by a finalizer, so it appears even when the launch task
+  is aborted — a `doLast` is skipped in exactly the cases worth recording, and a
+  run that produced no summary at all once left its exit status unrecoverable.
   When the game dies without explanation, read those before `starsector.log` —
   log4j buffers, so a hard kill can drop the log's last lines while the console
   capture keeps them.
+  **`-PstockJvm` drops every `-XX:` flag the install carries, plus `-noverify`**,
+  keeping heap sizing, `--enable-preview`, the module opens, the system
+  properties and the classpath (100 launch args become 32). The installed
+  `vmparams` is not stock — it is a community performance file carrying
+  `UseAVX=3`, `AVX3Threshold=0`, `-AlignVector`, `EnableVectorAggressiveReboxing`,
+  `UseVectorStubs`, `ShenandoahGCMode=iu` and `-noverify`, any of which can end a
+  process in ways that skip the JVM's own crash reporting. It is a control for
+  "is it the flags?", not a recommendation; bisect them only once that answers
+  yes. The summary records which mode ran.
   **The exit status is the fact that separates the cases**, which is why it is
   written to a file rather than only logged. `0` means something asked the
   process to stop, so a `0` with no shutdown banner in the log means it was
