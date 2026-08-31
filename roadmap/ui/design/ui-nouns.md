@@ -4,8 +4,12 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — primary world selection now distinguishes a click from
-a drag marquee and deterministically selects one player squad or combat Mech
+Updated: 2026-08-31 — the selected-infantry plate now protects squad identity,
+strength, and morale in a summary row while contextual controls occupy a
+separate tactical-order row.
+
+Earlier 2026-08-31 — primary world selection now distinguishes a click from a
+drag marquee and deterministically selects one player squad or combat Mech
 inside the dragged area.
 
 Earlier 2026-08-31 — the selected infantry plate now arms a Defend Area
@@ -283,6 +287,9 @@ highlight controls or per-slot assignment inventories.
 
 The same selected-infantry plate exposes **Defend Area** as a deliberate
 two-step command rather than overloading the contextual right-click gesture.
+Its summary row is reserved for squad identity, strength, and morale; contextual
+controls live in a separate tactical-order row so adding or renaming an order
+cannot compress the status readout.
 Arming it gives the next primary world click to a circular twenty-cell-radius
 reticle; right-click, Escape, or selection change cancels without issuing an
 order. Placement returns the input seam to ordinary world selection, while the

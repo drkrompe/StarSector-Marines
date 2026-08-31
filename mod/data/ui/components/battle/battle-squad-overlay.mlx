@@ -2,15 +2,21 @@
   <div id="battle-squad-overlay" class="battle-squad-overlay" style="background-color: transparent">
     <div id="battle-squad-panel" class="squad-panel">
       <div id="battle-squad-header" class="squad-header">
-        <button id="battle-squad-back" class="squad-back" onclick="{backAction}">&lt; BACK</button>
-        <div id="battle-squad-title" class="label heading squad-title">{squadTitle}</div>
-        <div id="battle-squad-strength" class="label heading squad-strength">{squadStrength}</div>
-        <button id="battle-squad-defend-area" class="{defendAreaClasses}" onclick="{defendAreaAction}">{defendAreaLabel}</button>
-        <div id="battle-squad-morale" class="squad-morale">
-          <div id="battle-squad-morale-label" class="label morale-label">{moraleLabel}</div>
-          <div id="battle-squad-morale-track" class="morale-track">
-            <div id="battle-squad-morale-fill" class="morale-fill" style="{moraleStyle}" />
+        <div id="battle-squad-summary" class="squad-summary">
+          <button id="battle-squad-back" class="squad-back" onclick="{backAction}">&lt; BACK</button>
+          <div id="battle-squad-title" class="label heading squad-title">{squadTitle}</div>
+          <div id="battle-squad-strength" class="label heading squad-strength">{squadStrength}</div>
+          <div id="battle-squad-morale" class="squad-morale">
+            <div id="battle-squad-morale-label" class="label morale-label">{moraleLabel}</div>
+            <div id="battle-squad-morale-track" class="morale-track">
+              <div id="battle-squad-morale-fill" class="morale-fill" style="{moraleStyle}" />
+            </div>
           </div>
+        </div>
+        <div id="battle-squad-orders" class="squad-orders">
+          <div id="battle-squad-order-label" class="label heading squad-order-label">TACTICAL ORDER</div>
+          <div id="battle-squad-order-spacer" class="squad-order-spacer" />
+          <button id="battle-squad-defend-area" class="{defendAreaClasses}" onclick="{defendAreaAction}">{defendAreaLabel}</button>
         </div>
       </div>
 
@@ -59,7 +65,7 @@
 
   .squad-panel {
     width: 414px;
-    height: 178px;
+    height: 214px;
     flex-direction: column;
     padding: 7px;
     gap: 6px;
@@ -71,9 +77,16 @@
 
   .squad-header {
     width: 100%;
+    height: 66px;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .squad-summary {
+    width: 100%;
     height: 30px;
     flex-direction: row;
-    gap: 6px;
+    gap: 8px;
   }
 
   .squad-back {
@@ -86,8 +99,9 @@
   }
 
   .squad-title {
-    width: 104px;
+    width: 0px;
     height: 18px;
+    flex-grow: 1;
     padding: 6px 0px;
     color: #c8e0ff;
   }
@@ -100,7 +114,7 @@
   }
 
   .squad-defend-area {
-    width: 82px;
+    width: 126px;
     height: 18px;
     padding: 5px;
     border-width: 1px;
@@ -117,9 +131,8 @@
   }
 
   .squad-morale {
-    width: 0px;
+    width: 102px;
     height: 25px;
-    flex-grow: 1;
     flex-direction: column;
     gap: 3px;
     padding: 2px 0px;
@@ -128,6 +141,22 @@
   .morale-label { width: 100%; height: 13px; text-align: right; color: #8b9aaf; }
   .morale-track { width: 100%; height: 3px; background-color: #172231; }
   .morale-fill { height: 100%; background-color: #78d494; }
+
+  .squad-orders {
+    width: 100%;
+    height: 30px;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .squad-order-label {
+    width: 128px;
+    height: 18px;
+    padding: 6px 0px;
+    color: #8b9aaf;
+  }
+
+  .squad-order-spacer { width: 0px; height: 1px; flex-grow: 1; }
 
   .fireteam-grid {
     width: 100%;
