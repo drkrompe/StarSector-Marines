@@ -1,8 +1,7 @@
 # Grown road graph
 
-Status: SPIKE LANDED — opt-in and unwired. Density is one knob, the hinterland
-is dressed, and the zoning worry was unfounded. Terrain coherence and the
-`BiomeKind` question are what remain.
+Status: LIVE — non-conquest battles grow their roads from the campaign.
+Conquest keeps the stock crossroad. The `BiomeKind` question is what remains.
 
 Written: 2026-08-30
 
