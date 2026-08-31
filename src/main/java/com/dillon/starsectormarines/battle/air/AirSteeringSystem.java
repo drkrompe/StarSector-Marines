@@ -59,6 +59,8 @@ public final class AirSteeringSystem {
             body.facingDegrees = approachAngle(body.facingDegrees, goalFacing, maxTurn);
         }
 
+        body.facingDegrees = wrap180(body.facingDegrees);
+
         float rad = (float) Math.toRadians(body.facingDegrees);
         float fx = -(float) Math.sin(rad);
         float fy =  (float) Math.cos(rad);
@@ -88,7 +90,7 @@ public final class AirSteeringSystem {
         // forward thrust ramps in only as the nose comes around toward the
         // goal — so buses get a clean "pause, swing, then go" startup that
         // matches how a heavy aircraft pivots before committing thrust.
-        float headingErrDeg = Math.abs(((goalFacing - body.facingDegrees + 540f) % 360f) - 180f);
+        float headingErrDeg = Math.abs(wrap180(goalFacing - body.facingDegrees));
         float thrustGate = Math.max(0f, 1f - headingErrDeg / 90f);
         desiredFwd *= thrustGate;
 
@@ -117,19 +119,49 @@ public final class AirSteeringSystem {
         if (dt > 1e-6f) {
             body.ax = (body.vx - vx0) / dt;
             body.ay = (body.vy - vy0) / dt;
-            float dFacing = ((body.facingDegrees - facing0 + 540f) % 360f) - 180f;
+            float dFacing = wrap180(body.facingDegrees - facing0);
             body.angVelDegPerSec = dFacing / dt;
         }
     }
 
     /**
      * Rotates {@code from} toward {@code to} by at most {@code maxStep}
-     * degrees, choosing the shortest arc through the ±180° wrap.
+     * degrees, choosing the shortest arc through the ±180° wrap, and hands back
+     * a heading that has not wound.
      */
     private static float approachAngle(float from, float to, float maxStep) {
-        float delta = ((to - from + 540f) % 360f) - 180f;
+        float delta = wrap180(to - from);
         if (delta >  maxStep) delta =  maxStep;
         if (delta < -maxStep) delta = -maxStep;
-        return from + delta;
+        return wrap180(from + delta);
+    }
+
+    /**
+     * The shortest signed arc equivalent to {@code deg}, in {@code (-180, 180]}.
+     *
+     * <p>Written out rather than as the {@code (deg + 540) % 360 - 180} idiom
+     * this used to use, which is only correct while its input stays above
+     * {@code -540}: Java's float remainder keeps the sign of its left operand,
+     * so a large negative difference comes back with the arc measured the long
+     * way round and the craft is commanded to turn away from where it is going,
+     * at full rate, indefinitely.
+     *
+     * <p>Two things conspired to make that reachable. A heading integrated
+     * without wrapping winds — an aircraft that flies a circuit is at 450° when
+     * it comes round — and
+     * {@link AirBody#facingToward(float, float)} answers in
+     * {@code (-270, 180]} rather than about zero. Together they put six hundred
+     * degrees between the two operands, which is exactly where the idiom
+     * inverts. It went unnoticed while the only long continuous turn in the
+     * game was a repositioning fighter that never had to arrive anywhere; a
+     * flown landing does, and a craft on a two-hundred-cell approach reached
+     * the threshold, turned away from the runway at full rate and stopped.
+     * {@code GroundDriveSystem} carries the same note for the same reason.
+     */
+    private static float wrap180(float deg) {
+        float d = deg % 360f;
+        if (d > 180f) d -= 360f;
+        if (d <= -180f) d += 360f;
+        return d;
     }
 }

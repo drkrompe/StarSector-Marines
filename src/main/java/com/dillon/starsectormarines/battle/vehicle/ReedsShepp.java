@@ -91,6 +91,25 @@ public final class ReedsShepp {
      * input (start == goal exactly) returns a zero-length path.
      */
     public static Path shortest(Pose start, Pose goal, float turnRadius) {
+        return best(start, goal, turnRadius, /*forwardOnly*/ false);
+    }
+
+    /**
+     * The shortest candidate that never goes into reverse — a Dubins path.
+     *
+     * <p>Same enumeration, filtered. Reverse is a legitimate manoeuvre for
+     * something on wheels and is not one for something in the air: an aircraft
+     * asked to fly the shortest Reeds-Shepp path can be handed a cusp, and a
+     * cusp flown is a machine going backwards. Filtering before the minimum is
+     * taken rather than rejecting the winner afterwards is what makes this
+     * usable as a planner — the forward-only optimum exists for any two poses,
+     * so this returns a path wherever {@link #shortest} would.
+     */
+    public static Path shortestForward(Pose start, Pose goal, float turnRadius) {
+        return best(start, goal, turnRadius, /*forwardOnly*/ true);
+    }
+
+    private static Path best(Pose start, Pose goal, float turnRadius, boolean forwardOnly) {
         double sTheta = Math.toRadians(start.facingDeg + 90.0);
         double gTheta = Math.toRadians(goal.facingDeg + 90.0);
         double dx = goal.x - start.x;
@@ -105,6 +124,7 @@ public final class ReedsShepp {
         float bestLen = Float.MAX_VALUE;
         for (Path p : enumerateCandidates(x, y, phi)) {
             if (p == null) continue;
+            if (forwardOnly && !isForwardOnly(p)) continue;
             if (p.lengthUnits < bestLen) {
                 bestLen = p.lengthUnits;
                 best = p;
@@ -176,7 +196,16 @@ public final class ReedsShepp {
         double xi = x - Math.sin(phi);
         double eta = y - 1.0 + Math.cos(phi);
         double u = Math.sqrt(xi * xi + eta * eta);
-        double t = Math.atan2(eta, xi);
+        // Normalized, not raw. atan2 answers in (-pi, pi] and an arc is
+        // measured the way round the vehicle actually drives it, so a raw
+        // negative here is a legal left turn of nearly a full circle being
+        // reported as an impossible one — and the family was then rejected
+        // outright. It cost nothing while reverse was allowed, since a cusp is
+        // shorter than a 350-degree arc and won every time; it is the whole
+        // difference for a forward-only caller, which has no cusp to fall back
+        // on. A landing aircraft asked for a U-turn onto its own centreline got
+        // no path at all.
+        double t = mod2pi(Math.atan2(eta, xi));
         double v = mod2pi(phi - t);
         if (t < -EPS || v < -EPS) return null;
         return path(elem(Type.LEFT, true, t), elem(Type.STRAIGHT, true, u), elem(Type.LEFT, true, v));
@@ -286,6 +315,14 @@ public final class ReedsShepp {
                 // τμ: R−L+R−
                 timeflip(reflect(LpRmLp(-x, -y, phi)))
         };
+    }
+
+    /** Whether every segment of {@code p} with real length is driven forward. */
+    private static boolean isForwardOnly(Path p) {
+        for (Element e : p.elements) {
+            if (!e.forward && e.length > EPS) return false;
+        }
+        return true;
     }
 
     private static Path reflect(Path p) {
