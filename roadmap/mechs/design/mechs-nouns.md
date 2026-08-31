@@ -4,9 +4,10 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — defined Long-Range Support's broad screened front,
-rear-oblique firing lane, combat-zone standoff envelope, partial-rack entry,
-and persistent rearm cycle.
+Updated: 2026-08-31 — distinguished faction livery from hardware variant and
+fixed it to the accepted chassis silhouette and shared equipment layers; added
+exact-Mech tactical move orders with reachable-cell snapping, moving fire,
+survival suspension, and arrival handback.
 
 ## Purpose
 
@@ -22,6 +23,10 @@ increasing an encounter's total armored threat.
 - A **variant** is persistent hardware identity: chassis body, physical
   dimensions, default loadout, silhouette, and default doctrine. It owns what
   a live mech is.
+- A **livery** is appearance-only faction or company surface treatment for a
+  known chassis. It may change paint, plate-face material, wear, and
+  non-readable markings, but it is not a hardware variant and owns no geometry,
+  mount, loadout, durability, movement, doctrine, or faction-wide bonus.
 - A **role** is tactical doctrine. It owns where a mech attempts to operate,
   what it supports, and when it advances, holds, or withdraws. A recommended
   role is not a chassis lock; the same hardware may receive another doctrine.
@@ -99,6 +104,11 @@ increasing an encounter's total armored threat.
   and support tethering so every member may execute its own doctrine
   independently. Both remain subordinate to the lance's mission assignment
   and legal contact picture. A lance begins on Form on Lead.
+- A **tactical move order** is a one-shot, battle-local destination for one
+  exact player Mech. It temporarily owns that chassis's locomotion without
+  replacing the lance's mission directive, shared plan, doctrine, or contact
+  picture. The clicked ground resolves to the nearest reachable walkable cell;
+  arrival releases the order back to ordinary behavior.
 - A **force budget** is the ordinary-encounter authority that admits defender
   mechs and static defenses only when the attacker-side force can support them.
   Authored set pieces may explicitly decline that protection; Conquest does.
@@ -203,14 +213,21 @@ deployment values. The delivery power transports those values; landing then
 constructs the live loadout and installs the frozen subsystem.
 
 Selecting an exact friendly mech during battle may request another effective
-role or another lance order. The role request affects only that mech; the lance
-order request affects its whole battle lance. The battle applies either request
-at its serialized command boundary, invalidates the movement and planning state
-owned by the changed layer, and replans immediately. The interrupt preserves
-the mission assignment, legal contact picture, morale, damage, ammunition,
-cooldowns, and deployed role. It cannot target an enemy, non-mech, stale entity,
-or rescue payload, and it never writes back to campaign state. Persistent
-doctrine authoring remains a Mech Lab responsibility.
+role, another lance order, or a tactical move. The role request affects only
+that mech; the lance order request affects its whole battle lance; the tactical
+move temporarily affects only the selected chassis's locomotion. The battle
+applies each request at its serialized command boundary. Doctrine and lance
+changes invalidate the movement and planning state owned by the changed layer
+and replan immediately. A move resolves the clicked ground to the nearest
+walkable cell connected to the selected Mech, clears only that member's old
+path, and leaves the shared plan in place. It keeps acquiring legal contacts
+and firing installed weapons while walking. Arrival removes the override before
+ordinary doctrine executes, so there is no planless handback tick. Broken-morale
+survival suspends rather than erases the move; a hard withdrawal cancels it.
+These interrupts preserve the mission assignment, legal contact picture,
+morale, damage, ammunition, cooldowns, and deployed role. They cannot target an
+enemy, non-mech, stale entity, or rescue payload, and never write back to
+campaign state. Persistent doctrine authoring remains a Mech Lab responsibility.
 
 Defender setup produces a deterministic sequence of variants, not an
 interchangeable mech count. Risk, target conditions, and attacking force
@@ -232,6 +249,10 @@ support sortie, subject only to practical runtime resources.
 - Variant, physical geometry, and visible silhouette must agree. A lighter
   render scale may not retain heavy-sized picking, collision, hit, blast, or
   morale behavior.
+- A livery consumes the accepted chassis silhouette and shared equipment
+  layers. It may not alter alpha footprint, hardpoint openings, layer order,
+  runtime scale, or any mechanical authority merely to strengthen faction
+  flavor.
 - Hardware and doctrine are independent. Do not encode a planner behavior in
   a variant name or infer a chassis solely from its assigned role.
 - A battle role override changes only local tactical manner. It does not author
@@ -241,6 +262,12 @@ support sortie, subject only to practical runtime resources.
   default. Free Reign removes generic lance formation and the Brawler's generic
   support tether, but it does not erase the shared assignment, grant hostile
   knowledge, or suppress ally geometry required by a selected doctrine.
+- A tactical move order changes one Mech's locomotion only. It does not become
+  a squad assignment, acquire directive authority, change doctrine or lance
+  order, disclose a hostile, or silence installed weapons.
+- Tactical move arrival is a completion boundary, not a new hold posture. The
+  order releases immediately to the still-current squad plan and effective
+  doctrine. Broken-morale survival may suspend it, and withdrawal may cancel it.
 - Mixed-role lances apply doctrine per live mech. One member's role may not
   starve another member's doctrine through a shared squad plan.
 - Every specialist loses a meaningful capability as well as durability; a

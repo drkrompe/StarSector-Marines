@@ -90,6 +90,8 @@ import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
+import com.dillon.starsectormarines.battle.mech.MechMoveOrderService;
+import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -316,6 +318,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechDoctrineService mechDoctrines = new MechDoctrineService();
     private final MechDoctrineSystem mechDoctrineSystem =
             new MechDoctrineSystem(mechDoctrines);
+    /** Exact-player-mech one-shot movement overrides, drained beside doctrine commands. */
+    private final MechMoveOrderService mechMoveOrders = new MechMoveOrderService();
+    private final MechMoveOrderSystem mechMoveOrderSystem =
+            new MechMoveOrderSystem(mechMoveOrders);
 
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. Declared before {@link #reinforcement} so it can be constructor-injected into it. */
     private final BattleResources battleResources = new BattleResources();
@@ -859,6 +865,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public com.dillon.starsectormarines.battle.power.CommandPowerService getCommandPowerService() { return commandPowers; }
     /** Player battle-only mech doctrine command mailbox. */
     public MechDoctrineService getMechDoctrineService() { return mechDoctrines; }
+    /** Player battle-only exact-mech move-order mailbox and active projection. */
+    public MechMoveOrderService getMechMoveOrderService() { return mechMoveOrders; }
+    /** Exact-mech move executor used by the mech unit-dispatch path. */
+    public MechMoveOrderSystem getMechMoveOrderSystem() { return mechMoveOrderSystem; }
     public void setCommandPowerResources(com.dillon.starsectormarines.battle.power.CommandPowerResources resources) {
         commandPowers.setResources(resources);
     }
@@ -1641,6 +1651,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // replans. A changed member or lance therefore executes its new
         // battlefield manner on this same fixed tick.
         mechDoctrineSystem.tick(this);
+        mechMoveOrderSystem.tick(this);
         tickProfile.lap(TickProfile.Phase.COMMANDER);
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
         // ordering + parallelism notes.
