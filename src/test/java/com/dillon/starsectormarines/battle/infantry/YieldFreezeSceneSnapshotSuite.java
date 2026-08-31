@@ -42,6 +42,16 @@ import java.util.Locale;
  * sequence rather than the endpoint, and it is exactly the position the squad
  * that prompted this work was in — orders completed, nothing beneath them.
  *
+ * <p><b>The mech loops answer the same question of the other dispatcher, and
+ * the answer is different.</b> A lance under the identical yielded order never
+ * loses its goal at all - {@code MechAssignedObjectiveGoal} does not stand down
+ * on a zone that turns out to be clear the way its infantry counterpart does,
+ * and beneath it the mech engagement floor is both always relevant and always
+ * plannable, so that ladder cannot reach an idle bucket. The mech loops are
+ * kept because that is worth being able to re-check rather than remember, and
+ * because the invariant holding it up lives in the action library where nothing
+ * would announce its removal. {@code MechLadderHasAFloorTest} pins it.
+ *
  * <p><b>The frames show positions, not terrain.</b> The map is built by hand so
  * the three rooms are exact, and hand-built grids carry no generator art, so the
  * walls do not draw. Read the GIFs to confirm the scene is the scene — six cyan
@@ -67,13 +77,16 @@ public final class YieldFreezeSceneSnapshotSuite implements SnapshotSuite {
         BattleReviewFrameRenderer renderer =
                 new BattleReviewFrameRenderer(context.modRoot(), WIDTH, HEIGHT);
         return List.of(
-                record(renderer, "workable", true),
-                record(renderer, "yielded", false));
+                record(renderer, "workable", true, YieldFreezeScene.Force.INFANTRY),
+                record(renderer, "yielded", false, YieldFreezeScene.Force.INFANTRY),
+                record(renderer, "mech-workable", true, YieldFreezeScene.Force.MECH),
+                record(renderer, "mech-yielded", false, YieldFreezeScene.Force.MECH));
     }
 
     private SnapshotArtifact record(BattleReviewFrameRenderer renderer, String label,
-                                    boolean workable) throws Exception {
-        Scene scene = YieldFreezeScene.build(workable);
+                                    boolean workable, YieldFreezeScene.Force force)
+            throws Exception {
+        Scene scene = YieldFreezeScene.build(workable, force);
         List<BufferedImage> frames = new ArrayList<>(TICKS / FRAME_EVERY_TICKS + 1);
         for (int tick = 0; tick <= TICKS; tick++) {
             if (tick % FRAME_EVERY_TICKS == 0) {
@@ -85,7 +98,7 @@ public final class YieldFreezeSceneSnapshotSuite implements SnapshotSuite {
         // Printed as well as drawn, because the finding is a number that a
         // picture of two stationary squads cannot carry.
         System.out.printf(Locale.ROOT,
-                "    [yield-freeze] %-8s zone=%d planless=%d/%d (%.0f%%)  planlessForGoodFrom=%s"
+                "    [yield-freeze] %-14s zone=%d planless=%d/%d (%.0f%%)  planlessForGoodFrom=%s"
                         + "  travelled=%.1f cells  endZone=%d  goal first=%s last=%s  alive=%d%n",
                 label, tally.targetZoneId,
                 tally.planlessTicks, tally.ticks, percent(tally.planlessTicks, tally.ticks),

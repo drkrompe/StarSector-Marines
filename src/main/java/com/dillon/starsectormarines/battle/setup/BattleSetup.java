@@ -1532,7 +1532,7 @@ public final class BattleSetup {
         // postings here and a posting outlives the people filling it.
         sim.setWorksCrews(new WorksCrewService(axis));
         installAirfieldCrew(sim, map);
-        installVehicleBays(sim, map);
+        installVehicleBays(sim, map, groundRoster);
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
                 deliveryPolicy));
         rs.addMeans(new ShuttleMeans(axis, groundRoster, risk,
@@ -1647,12 +1647,18 @@ public final class BattleSetup {
      * <p>The crew is the defender's. A garrison's motor pool is worked by the
      * garrison, so its technicians are on the roster, can be shot, and stop
      * working when they are.
+     *
+     * @param groundRoster the defending faction's doctrine, which decides what
+     *                     the sheds are tooled for and what they hang on it;
+     *                     null builds the whole light catalog on a neutral fit
      */
-    private static void installVehicleBays(BattleSimulation sim, MapResult map) {
+    private static void installVehicleBays(BattleSimulation sim, MapResult map,
+                                           GroundRosterProfile groundRoster) {
         if (map.gantries.isEmpty()) return;
         List<RoomSite> rooms = RoomSite.findAll(map.topology,
                 map.grid.getWidth(), map.grid.getHeight());
-        FabricationService works = new FabricationService(map.gantries, map.fixtureTasks, rooms);
+        FabricationService works = new FabricationService(map.gantries, map.fixtureTasks,
+                rooms, groundRoster);
         if (works.isEmpty()) return;
 
         sim.setFabrication(works);
