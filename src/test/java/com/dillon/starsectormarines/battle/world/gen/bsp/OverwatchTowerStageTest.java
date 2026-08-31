@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -71,7 +72,8 @@ public class OverwatchTowerStageTest {
     void fortifiedWorldsFieldMoreAndHeavierGuns() {
         BspCityGenerator gen = new BspCityGenerator();
         TargetProfile fortified = new TargetProfile(8, 5, 7, 2, "hegemony",
-                EnumSet.of(EconomicFunction.HEAVY_INDUSTRY)); // defenseLevel 7 → heavy tier
+                EnumSet.of(EconomicFunction.HEAVY_INDUSTRY), // defenseLevel 7 → heavy tier
+                SurfacePalette.ROCK);
         int neutralTotal = 0, fortifiedTotal = 0, fortifiedHeavy = 0, neutralHeavy = 0;
         for (long seed : CONQUEST_SEEDS) {
             List<DefensePost> n = towers(gen.generate(240, 160, seed, TraversalAxis.SOUTH_TO_NORTH, TargetProfile.NEUTRAL));

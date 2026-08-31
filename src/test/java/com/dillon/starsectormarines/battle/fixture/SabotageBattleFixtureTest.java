@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -44,7 +45,8 @@ class SabotageBattleFixtureTest {
         TargetProfile profile = new TargetProfile(
                 5, 6, 4, 2, "independent",
                 EnumSet.of(EconomicFunction.HABITATION,
-                        EconomicFunction.SPACEPORT));
+                        EconomicFunction.SPACEPORT),
+                SurfacePalette.ROCK);
         SabotageBattleFixture fixture =
                 SabotageBattleFixture.fromFactoryInputs(
                         48_151L, manifest, true, OperationTier.ESTABLISHED,

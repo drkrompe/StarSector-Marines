@@ -45,6 +45,39 @@
       "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2", "nature.rock-large-1", "nature.rock-large-2", "nature.rock-large-3"]
     }
   },
+  "surfaceFillers": {
+    "ROCK": {
+      "NATURE_GRASSLAND": {
+        "groundPool": [
+          { "kind": "STONE", "w": 45 }, { "kind": "DIRT", "w": 40 }, { "kind": "RUBBLE", "w": 15 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.20,
+        "plantPool": [],
+        "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
+      },
+      "NATURE_BEACH": {
+        "groundPool": [
+          { "kind": "STONE", "w": 55 }, { "kind": "DIRT", "w": 45 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.22,
+        "plantPool": [],
+        "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
+      }
+    },
+    "ARID": {
+      "NATURE_GRASSLAND": {
+        "groundPool": [
+          { "kind": "SAND", "w": 55 }, { "kind": "DIRT", "w": 35 }, { "kind": "STONE", "w": 10 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.14,
+        "plantPool": [],
+        "rockPool": ["nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1", "nature.rock-medium-2"]
+      }
+    }
+  },
   "macroHeight": {
     "WALL":    0.90,
     "INDOOR":  0.65,
