@@ -143,6 +143,18 @@ downstream of a fixture is the same problem in a berthing space and in a market
 square, and the only reason it began life tied to a ship is that a ship is where
 it was needed first.
 
+On a surface map a job site is **recovered rather than published**. Generation
+already stamps a room purpose on every cell of every room it furnishes, and a
+room is the contiguous run of cells carrying one — so the sites are read off the
+map at battle setup and no generator has to remember to hand its rooms on. Read
+off the purpose rather than off the building registry, which is the
+nearer-looking answer and the wrong one: a building is a closed region of
+interior found by flood fill, and a fortress vehicle shed comes out as one region
+of which the bay is most but not all, the remainder being the thresholds its
+doors were cut through. What a corridor is stays excluded — it is the space
+between rooms, it runs the length of a building, and taken as a site it would
+join everything at either end of it into one place with one purpose.
+
 A **role** is what somebody is aboard to do, as the jobs they will work. It names
 those jobs twice, because the same affordance is different work in different
 rooms: stowage in a vehicle bay is the parts run and belongs to whoever works the
@@ -288,6 +300,14 @@ figure, because the racks are the thing a player can walk up and count, and hand
 are taken on one posting at a time round the whole ship — filling each posting to
 its own capacity in turn crews the compartments at the head of the list and
 leaves the rest deserted.
+
+**A room with nothing in it is nobody's posting, and that is the answer rather
+than a gap.** A technician's trade is servicing whatever is parked in a bay and
+an empty bay publishes no servicing, so a shed with empty berths is a shed the
+manning pass declines to staff — correctly, and invisibly, since what a player
+sees is a furnished room with nobody in it. Anything that wants a room worked has
+to give the room something to be worked *on*; that is a fact about the place, not
+a knob on the manning.
 
 A shift is worked by whoever a caller hands it, which need not be anonymous. The
 same posting takes generated hands or named people carrying their own kit, and

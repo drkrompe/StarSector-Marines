@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.combat.Detonations;
+import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -309,6 +310,9 @@ public class AirSystem {
      */
     private final ComponentType[] shuttleArchetype;
 
+    /** Who can reach what: the anti-air bubble asks it the same way targeting does. */
+    private final EngagementService engagement;
+
     /** Monotonic suffix for the greppable {@code IDENTITY} name; never recycled, so two craft never share one. */
     private int spawnSequence;
 
@@ -316,6 +320,7 @@ public class AirSystem {
                      TacticalScoring tacticalScoring, World world, TurretFireSink fireSink,
                      Random rng, Function<EntitySpec, Long> addUnitSink, EffectsService effects,
                      ResupplyService resupply, SquadDirectiveControl commandControl) {
+        this.engagement = new EngagementService(roster);
         this.navigation = navigation;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;
@@ -577,10 +582,11 @@ public class AirSystem {
      */
     private void tickAirThreat(float dt) {
         if (air.isEmpty()) return;
+        AirTargetService craft = roster.airTargets();
         LongBucket scratch = new LongBucket();
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
-            if (!isAirborneHittable(mission.state)) continue;
+            if (!craft.isAirborne(id)) continue;
             AirBody body = world.kinematics(id);
             Faction faction = world.airFaction(id);
             scratch.clear();
@@ -590,9 +596,12 @@ public class AirSystem {
                 long e = scratch.ids[i];
                 if (roster.identity().faction(e) == faction) continue;
                 if (!world.isAlive(e)) continue;
-                // Only a defense post can reach up. Infantry and mechs
-                // cannot engage something overhead.
-                if (!roster.identity().type(e).isTurret()) continue;
+                // "Only a defence post can reach up" was written out here, in
+                // the one place that had ever needed it. It is a weapon
+                // capability rather than an air-system rule, so the engagement
+                // relation owns it now and this reads the same answer every
+                // other consumer reads.
+                if (!engagement.reachesAltitude(e)) continue;
                 posts++;
             }
             if (posts == 0) continue;
@@ -600,18 +609,6 @@ public class AirSystem {
             world.setHp(id, hp);
             if (hp <= 0f) shootDown(id, body, mission, posts + " AA post(s)");
         }
-    }
-
-    /**
-     * Airborne states an AA post can hit — the descent gauntlet, the settle
-     * onto the pad, the runs, the egress and the approach home. Asked of the
-     * locomotion rather than listed, because "can a post
-     * reach it" is exactly "is it in the air", and a list is a thing a later
-     * phase gets left out of. A LANDED shuttle deboarding on the ground is
-     * exempt: it is already down.
-     */
-    private static boolean isAirborneHittable(ShuttleState st) {
-        return AirLocomotion.of(st).airborne();
     }
 
     /**
