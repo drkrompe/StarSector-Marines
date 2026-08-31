@@ -29,7 +29,23 @@ public final class HeadlessBattleMapRenderer {
      * with.
      */
     public HeadlessBattleMapRenderer(Path modRoot) {
-        this(HeadlessBattleSceneRenderer.resourceRoots(modRoot), modRoot);
+        this(modRoot, false);
+    }
+
+    /**
+     * The same, optionally tolerating GL-owned decorative commands.
+     *
+     * <p>A few layers emit a {@code CUSTOM} command that owns its own GL and
+     * cannot be replayed into a raster canvas — an aircraft's engine plume is
+     * the standing case. Fail-loud is right by default: a snapshot that
+     * silently dropped part of its subject would be worse than one that
+     * stopped. A caller collecting such a layer for something else entirely,
+     * as a shadow preview collects {@code SHUTTLES} for the hull rather than
+     * for the plume, opts out here and says so in its caption.
+     */
+    public HeadlessBattleMapRenderer(Path modRoot, boolean skipUnsupportedCommands) {
+        this(HeadlessBattleSceneRenderer.resourceRoots(modRoot), modRoot,
+                skipUnsupportedCommands);
     }
 
     /**
@@ -42,7 +58,7 @@ public final class HeadlessBattleMapRenderer {
      */
     public HeadlessBattleMapRenderer(List<Path> resourceRoots) {
         this(resourceRoots, resourceRoots == null || resourceRoots.isEmpty()
-                ? null : resourceRoots.get(resourceRoots.size() - 1));
+                ? null : resourceRoots.get(resourceRoots.size() - 1), false);
     }
 
     /**
@@ -55,7 +71,8 @@ public final class HeadlessBattleMapRenderer {
      * inside Starsector. Two different questions -- where art may be found, and
      * where the catalogs live -- so they are two parameters.
      */
-    private HeadlessBattleMapRenderer(List<Path> resourceRoots, Path catalogRoot) {
+    private HeadlessBattleMapRenderer(List<Path> resourceRoots, Path catalogRoot,
+                                      boolean skipUnsupportedCommands) {
         if (resourceRoots == null || resourceRoots.isEmpty()) {
             throw new IllegalArgumentException("at least one resource root is required");
         }
@@ -63,7 +80,8 @@ public final class HeadlessBattleMapRenderer {
                 .map(root -> root.toAbsolutePath().normalize())
                 .toList();
         Path shipped = catalogRoot.toAbsolutePath().normalize();
-        drain = new HeadlessUiRenderer(roots, new HeadlessBattleSceneRenderer(shipped));
+        drain = new HeadlessUiRenderer(roots,
+                new HeadlessBattleSceneRenderer(shipped, skipUnsupportedCommands));
     }
 
     /**
