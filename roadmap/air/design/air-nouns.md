@@ -8,10 +8,10 @@ Updated: 2026-08-31 — a cook-off no longer spares the next stand by arithmetic
 An aircraft on a berth is excluded from the blast, so the rule holds for a hull
 larger than any the build can enumerate.
 
-Updated: 2026-08-31 — how much of an aircraft there is to hit is one number,
-asked of the airframe by both representations. A parked hull answered the
-archetype's flat half-cell while the same hull rolling answered its own drawn
-size.
+Updated: 2026-08-31 — ground durability is a role ladder rather than a function
+of drawn size, and the authored per-fighter length that made it look like one
+is gone. How much of an aircraft there is to hit is still one number, asked
+of the airframe by both representations and read off its hull's own spec.
 
 Updated: 2026-08-31 — whether a craft can be engaged is a relation between a
 shooter and it, not a property of it. The altitude rule is a per-weapon
@@ -241,10 +241,28 @@ Tri-Tachyon or Remnant one flies Wasps and Thunders. Copying those hulls into
 in two enums; making the berth hold the smaller thing they have in common costs
 three methods. Ground durability is authored per fighter rather than scraped,
 the way a transport's is: a hull's campaign HP is balanced against ship weapons
-and says nothing about what a rifle section does to one parked on concrete. It
-follows drawn size, because on the ground the only thing that matters about an
-aircraft is how much of it there is, and the whole fighter ladder sits below
-the lightest transport.
+and says nothing about what a rifle section does to one parked on concrete.
+
+**And it is not a function of drawn size either.** It is a role-and-toughness
+ladder: a heavy fighter is heavy because of what it is built to survive, not
+because of how long its sprite is. The doc claimed the opposite for a while
+— that on the ground the only thing that matters about an aircraft is how much
+of it there is — and the roster appeared to bear it out, because a fighter
+carried a second, authored drawn length that ranked identically to its
+structure. Against the hulls the game actually ships it does not: order the six
+by real length and it runs Wasp, Talon, Broadsword, Dagger, Longbow, Thunder,
+while the structure on them runs 25, 30, **45**, 40, 38, **35**. The Broadsword
+is mid-sized and the toughest thing on any apron; the Thunder is the longest
+hull and nearly the softest. The numbers are right and the claim was wrong, so
+the authored length is deleted and the claim with it.
+
+Drawn size is not idle. It is what decides how easily a shot finds the aircraft
+— the target radius above — and it comes off the hull's own spec, one answer in
+one place. How much killing an aircraft takes is a separate fact, and keeping
+the two separate is what stops a re-cut sprite quietly re-balancing every
+apron on every field. The whole fighter ladder still sits below the lightest
+transport, which is what makes burning a row of fighters a faster afternoon
+than burning one transport.
 
 Every berth is on the apron, in the open. The base's hangars are where aircraft
 are worked on rather than where they wait, so an attacker who reaches the field
@@ -1106,7 +1124,8 @@ deterministic fixture replay.
 
 Fighters fly the same sortie as anything else the air model puts up. A
 `FighterProfile` is an airframe: it says what the aircraft looks like, which
-hull sizes and flies it, what it drops, and how much of it there is to shoot.
+hull sizes and flies it, what it drops, and how much killing it takes on the
+ground. How much of it there is comes off the hull and is not authored there.
 Everything else about a fighter is its sortie.
 
 A fighter used to be none of that. It lived in a cosmetic overlay with its own
