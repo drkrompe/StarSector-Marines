@@ -605,7 +605,7 @@ tasks.register('undeployMod', Delete) {
  * under the read-only game install, so read its command line and run it directly:
  * same flags, same working directory, but the exit code and stderr are the JVM's.
  */
-def starsectorLaunchArgv(File coreDir, File diagnosticsDir) {
+def starsectorLaunchArgv(File coreDir, File diagnosticsDir, boolean stockJvm) {
     def bat = new File(coreDir, 'starsector.bat')
     if (!bat.isFile()) {
         throw new GradleException("No starsector.bat in ${coreDir} -- cannot launch the game")
@@ -624,7 +624,22 @@ def starsectorLaunchArgv(File coreDir, File diagnosticsDir) {
     // a game update may wipe. Name a path under build/ instead so the crash
     // report lands with the rest of this run's evidence.
     def errorFile = new File(diagnosticsDir, 'hs_err_pid%p.log')
-    [java.canonicalPath, "-XX:ErrorFile=${errorFile.absolutePath}".toString()] + parts.tail()
+
+    // -PstockJvm drops every -XX: flag the install carries, plus -noverify, and
+    // keeps heap sizing, module opens, system properties and the classpath. It
+    // is a control, not a recommendation: the installed vmparams is a community
+    // performance file carrying UseAVX=3, AVX3Threshold=0, -AlignVector,
+    // EnableVectorAggressiveReboxing, UseVectorStubs, ShenandoahGCMode=iu and
+    // -noverify, any of which can end a process in ways that skip the JVM's own
+    // crash reporting entirely. Dropping the lot in one go answers "is it the
+    // flags?" in a single run; bisecting them only makes sense after that
+    // answers yes. Our own -XX:ErrorFile is added after the filter so a crash
+    // report still lands where the rest of the evidence goes.
+    def flags = parts.tail()
+    if (stockJvm) {
+        flags = flags.findAll { !it.startsWith('-XX:') && it != '-noverify' }
+    }
+    [java.canonicalPath, "-XX:ErrorFile=${errorFile.absolutePath}".toString()] + flags
 }
 
 /**
@@ -661,13 +676,17 @@ class TeeOutputStream extends OutputStream {
     @Override void close() { flush() }
 }
 
+def stockJvmRequested = providers.gradleProperty('stockJvm').map { true }.orElse(false)
+
 tasks.register('runStarsector', Exec) {
     group = 'starsector'
-    description = 'Launch Starsector after deploying the mod'
+    description = 'Launch Starsector after deploying the mod (-PstockJvm drops the -XX: flags from vmparams)'
     dependsOn 'deployMod'
+    finalizedBy 'reportStarsectorRun'
     def coreDir = new File(starsectorDir, 'starsector-core')
     def diagnosticsDir = layout.buildDirectory.dir('starsector-run').get().asFile
     def consoleLog = new File(diagnosticsDir, 'console.log')
+    def stock = stockJvmRequested
     workingDir coreDir
     // Report the JVM's own status rather than failing the build on it: a crash
     // and an ordinary quit both end this task, and only the message differs.
@@ -681,30 +700,56 @@ tasks.register('runStarsector', Exec) {
         sink = new BufferedOutputStream(new FileOutputStream(consoleLog))
         standardOutput = new TeeOutputStream(System.out, sink)
         errorOutput = new TeeOutputStream(System.err, sink)
-        commandLine starsectorLaunchArgv(coreDir, diagnosticsDir)
+        commandLine starsectorLaunchArgv(coreDir, diagnosticsDir, stock.get())
+        if (stock.get()) {
+            logger.lifecycle('runStarsector: -PstockJvm -- launching without the -XX: flags from vmparams')
+        }
     }
     doLast {
         sink?.flush()
         sink?.close()
-        int code = executionResult.get().exitValue
+    }
+}
+
+/**
+ * Writes the run's exit status down, as a finalizer rather than inside the launch.
+ *
+ * A finalizer runs even when the task it follows fails or is aborted, and that is
+ * the whole point: a `doLast` is skipped exactly in the cases worth recording. One
+ * silent death produced no summary at all and no build failure either, which left
+ * the most diagnostic fact about it unrecoverable and the absence itself confusing.
+ * This always writes a file, saying plainly when the status could not be obtained.
+ */
+tasks.register('reportStarsectorRun') {
+    def diagnosticsDir = layout.buildDirectory.dir('starsector-run').get().asFile
+    def consoleLog = new File(diagnosticsDir, 'console.log')
+    def launch = tasks.named('runStarsector', Exec)
+    doLast {
+        diagnosticsDir.mkdirs()
+        def result = launch.get().executionResult.getOrNull()
         def crashes = diagnosticsDir.listFiles({ f -> f.name.startsWith('hs_err_pid') } as FileFilter)
-
-        // Write the exit status down. It is the most diagnostic fact about a death
-        // that produced no output, and it separates cases nothing else can: 0 means
-        // something asked the process to stop, while an NTSTATUS means the OS killed
-        // it and says why. Logged only to the console it is lost to scrollback, which
-        // is the mistake this task exists to stop repeating.
-        def status = describeExitCode(code)
+        def lines = []
+        if (result == null) {
+            lines << 'exit code : unavailable -- the launch task did not complete'
+            lines << 'meaning   : the build was aborted before the exit status could be read'
+        } else {
+            int code = result.exitValue
+            lines << 'exit code : ' + code + ' (' + unsignedHex(code) + ')'
+            lines << 'meaning   : ' + describeExitCode(code)
+        }
+        lines << 'stock jvm : ' + stockJvmRequested.get()
+        lines << 'finished  : ' + new Date()
+        lines << 'console   : ' + consoleLog
+        lines << 'crash log : ' + (crashes ? crashes*.name.join(', ') : 'none written')
+        lines << ''
         def summary = new File(diagnosticsDir, 'run-summary.txt')
-        summary.text = ['exit code : ' + code + ' (' + unsignedHex(code) + ')',
-                        'meaning   : ' + status,
-                        'finished  : ' + new Date(),
-                        'console   : ' + consoleLog,
-                        'crash log : ' + (crashes ? crashes*.name.join(', ') : 'none written'),
-                        ''].join(System.lineSeparator())
+        summary.text = lines.join(System.lineSeparator())
 
-        if (code != 0) {
-            logger.error("Starsector exited with code ${code} (${unsignedHex(code)}) -- ${status}."
+        if (result == null) {
+            logger.error("Starsector run status unavailable -- see ${consoleLog}.")
+        } else if (result.exitValue != 0) {
+            logger.error("Starsector exited with code ${result.exitValue} "
+                    + "(${unsignedHex(result.exitValue)}) -- ${describeExitCode(result.exitValue)}."
                     + " See ${summary} and ${consoleLog}.")
         } else {
             logger.lifecycle("Starsector exited cleanly (code 0). Run details in ${summary}.")

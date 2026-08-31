@@ -7,7 +7,8 @@ Written: 2026-08-23
 Updated: 2026-08-31 — extended appearance-only livery onto authored equipment
 casing without surrendering shared hardware geometry; added exact-Mech tactical
 move orders and a distinct lance-wide Defend Area order with reachable placement,
-combat-active positioning, and mission handback.
+combat-active positioning, and mission handback; a field works is now tooled for
+its map's own faction and issues that faction's fit.
 
 ## Purpose
 
@@ -59,7 +60,9 @@ increasing an encounter's total armored threat.
   them in, the technicians who work it, or anything about a machine once it has
   driven out. What it can lay down is bounded by what a field shed can carry,
   stated as structure rather than as a list of chassis names, so a chassis added
-  later is admitted or refused by what it weighs.
+  later is admitted or refused by what it weighs. Within that bound it is
+  **tooled for one faction**: the map's own, which is the same doctrine its
+  garrison's lance is drawn from.
 - A **machine on the stocks** is the part-built chassis itself, standing in a
   gantry as an ordinary battle body: seen, targeted and damaged exactly where it
   stands. It is the **real variant** — an unfinished Hound is composed from a
@@ -327,6 +330,25 @@ support sortie, subject only to practical runtime resources.
   those are is settled by who holds the ground. `ai-nouns.md` owns the crew and
   the replacement rule; what follows here is that taking a motor pool is taking
   its output rather than only denying it.
+- **A shed builds the faction's own machines, not the catalog's.** Both halves:
+  which chassis it lays down are the map faction's authored heavy-support cycle,
+  in that cycle's order, less anything too heavy for a field shed; and what it
+  hangs on the finished one is that faction's issue rather than the chassis's
+  neutral production fit. So what drives out of a garrison's motor pool is
+  indistinguishable from what was already patrolling past it — a Path shed turns
+  out Hounds because a Path lance is Hounds. A shed with a second, quietly
+  different opinion about what its faction fields would make every faction's
+  motor pool the same building with a different roof.
+- **The stock is the shed's, not the crew's.** A motor pool is tooling, jigs and
+  racks of one faction's parts, and taking the ground it stands on changes none
+  of that. A machine finished by marines in a captured Tri-Tachyon bay flies a
+  marine flag, because they built it, and carries Tri-Tachyon guns, because that
+  is what was in the racks. This is also the only answer that needs no invented
+  doctrine for a side that has none, and it is what makes capturing a shed worth
+  something beyond denial. Where the map has no faction behind it at all, the
+  shed falls back to the whole light catalogue on a neutral fit — never to
+  building nothing, which is indistinguishable from a shed whose crew have all
+  been killed.
 - **The crew lays the keel.** A bay with nothing on its stocks starts the next
   machine on the first tick somebody is at the gantry to start it, so a crew that
   has stood down under fire lays nothing and a crew that is dead lays nothing

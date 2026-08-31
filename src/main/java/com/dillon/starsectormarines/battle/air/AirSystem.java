@@ -101,7 +101,7 @@ public class AirSystem {
      * Cell radius searched for ground units near a wreck settling onto a
      * taxiway, wide enough to cover the wreck's own footprint plus the
      * step-clear ring around it with margin to spare. Not tuned; this only has
-     * to be a generous superset, since {@link GroundWreckFootprint} filters
+     * to be a generous superset, since {@link AirframeFootprint} filters
      * the candidates itself.
      */
     private static final float GROUND_WRECK_GATHER_RADIUS_CELLS = 8f;
@@ -677,7 +677,7 @@ public class AirSystem {
         airfield.addGroundWreck(wreck);
         LongBucket nearby = new LongBucket();
         navigation.getUnitIndex().gather(body.x, body.y, GROUND_WRECK_GATHER_RADIUS_CELLS, nearby);
-        GroundWreckFootprint.settle(navigation.getGrid(), navigation.getTopology(), world,
+        AirframeFootprint.settleWreck(navigation.getGrid(), navigation.getTopology(), world,
                 nearby, wreck.cellX(), wreck.cellY());
     }
 
@@ -1418,7 +1418,17 @@ public class AirSystem {
     private void taxiToward(long id, ShuttleMission mission, AirBody body,
                             AirHandling flight, float goalX, float goalY, float dt) {
         NavigationGrid grid = navigation.getGrid();
-        if (mission.taxiPath == null) {
+        // A craft still standing in its own parked footprint has a start cell
+        // nothing can route out of, and the answer comes back empty. That is a
+        // tick long — the field lifts the hull's ground the moment it notices
+        // the aircraft has gone — so the failure is asked again rather than
+        // kept, which is the difference between rolling out of the shed and
+        // steering at the threshold through it. A craft standing on open
+        // ground that cannot solve its route keeps the empty answer, since
+        // re-running a search that exhausts the map every tick is worse than
+        // driving straight at the goal.
+        if (mission.taxiPath == null
+                || (Paths.isEmpty(mission.taxiPath) && !walkableAt(grid, body.x, body.y))) {
             mission.taxiPath = navigation.findGeometricPath(
                     (int) Math.floor(body.x), (int) Math.floor(body.y),
                     (int) Math.floor(goalX), (int) Math.floor(goalY));

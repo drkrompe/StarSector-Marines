@@ -37,6 +37,12 @@ import java.util.Map;
  * own planner re-deciding, while a thrashing assignment is the commander
  * re-tasking it faster than it can execute anything.
  *
+ * <p>{@link Layer#MISSION} and {@link Layer#ASSIGNMENT} are separate rungs for
+ * the same reason. A player order overrides the commander's assignment without
+ * replacing it, so the two disagree for as long as the order stands — and a
+ * capture that reported only the commander's side confidently named an order
+ * the squad was not carrying out.
+ *
  * <p>Sampling is per UI frame and deduplicated by {@code simTickIndex}, so a
  * paused battle contributes no samples and a frame that advanced several
  * ticks still contributes one. Frame counts are therefore a lower bound on
@@ -62,6 +68,14 @@ public final class SquadOrderRecorder {
     private static final String NONE = "—";
 
     /**
+     * Marks an order the player issued directly. Without it an
+     * {@code ATTACK_MOVE} the player clicked and an {@code ATTACK_MOVE} a
+     * commander assigned read identically, which is the one distinction
+     * somebody reading a dump to work out who pointed the squad needs.
+     */
+    public static final String PLAYER_ORDER_PREFIX = "player ";
+
+    /**
      * One rung of the order stack. Ordered outermost (what command wants)
      * to innermost (what the squad is doing about it), so a dump reads
      * top-down from cause to effect.
@@ -69,7 +83,13 @@ public final class SquadOrderRecorder {
     public enum Layer {
         /** Ledger-owned command directive: who owns the squad and on what standing. */
         DIRECTIVE("directive"),
-        /** The tactical task the squad currently holds. */
+        /** The strategic task the mission commander assigned, whatever stands on top of it. */
+        MISSION("mission"),
+        /**
+         * The tactical task the squad is actually carrying out — a live player
+         * order when one stands, otherwise the mission assignment itself.
+         * Marked {@code player } when the player issued it.
+         */
         ASSIGNMENT("assignment"),
         /** Whether that task is actually executable right now. */
         EXECUTION("execution"),
@@ -213,12 +233,13 @@ public final class SquadOrderRecorder {
     private static String label(Layer layer, Squad squad, BattleSimulation sim) {
         return switch (layer) {
             case DIRECTIVE -> directiveLabel(sim.getSquadCommandDirective(squad.id));
-            case ASSIGNMENT -> assignmentLabel(squad.assignedObjective);
+            case MISSION -> assignmentLabel(squad.assignedObjective);
+            case ASSIGNMENT -> executingAssignmentLabel(squad);
             case EXECUTION -> executionLabel(squad);
             case GOAL -> goalLabel(squad);
             case ACTION -> actionLabel(squad);
             case DOCTRINE -> doctrineLabel(squad.contactPicture);
-            case ORDER -> assignmentLabel(squad.assignedObjective)
+            case ORDER -> executingAssignmentLabel(squad)
                     + " » " + goalLabel(squad)
                     + " » " + actionLabel(squad);
         };
@@ -230,8 +251,26 @@ public final class SquadOrderRecorder {
                 + "/" + directive.authority().name();
     }
 
+    /**
+     * The order the squad is actually carrying out. A battle-local player
+     * order stands over the commander's assignment without replacing it, so
+     * this reports the player's when one is set and marks it as theirs; the
+     * assignment it stands on stays readable in {@link Layer#MISSION}.
+     *
+     * <p>Deliberately the order the squad <em>holds</em> rather than
+     * {@code assignmentForExecution()}, which form-up masks to null: a squad
+     * still assembling has an order, and whether it can act on it yet is what
+     * {@link Layer#EXECUTION} is for.
+     */
+    static String executingAssignmentLabel(Squad squad) {
+        ObjectiveAssignment player = squad.playerTacticalOrder();
+        return player != null
+                ? PLAYER_ORDER_PREFIX + assignmentLabel(player)
+                : assignmentLabel(squad.assignedObjective);
+    }
+
     /** Same shape the panel's Assignment row draws: kind plus whichever target slots the kind populates. */
-    static String assignmentLabel(ObjectiveAssignment assignment) {
+    public static String assignmentLabel(ObjectiveAssignment assignment) {
         if (assignment == null) return NONE;
         StringBuilder sb = new StringBuilder(assignment.kind().name());
         if (assignment.targetZoneId() >= 0) sb.append(" zone:").append(assignment.targetZoneId());
