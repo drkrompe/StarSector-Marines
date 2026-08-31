@@ -24,10 +24,15 @@ public final class CameraControls {
 
     /** Cells per second of keyboard pan, in world cells. */
     private static final float KEY_PAN_CELLS_PER_SEC = 18f;
+    /** Pointer travel required before a battle RMB gesture becomes a pan. */
+    private static final float RIGHT_DRAG_THRESHOLD_PX = 4f;
 
     private final boolean shiftRightReserved;
 
     private boolean panDragging;
+    private boolean rightGestureActive;
+    private float rightDownX;
+    private float rightDownY;
     private float lastDragX;
     private float lastDragY;
     private boolean panKeyW;
@@ -77,6 +82,12 @@ public final class CameraControls {
         float y(float screenY);
     }
 
+    /** Optional owner of an RMB click that did not cross the pan threshold. */
+    @FunctionalInterface
+    public interface RightClickHandler {
+        void onRightClick(float pointerX, float pointerY);
+    }
+
     /** Read the frame's input and move the camera with it. */
     public void process(List<InputEventAPI> events, BattleCamera camera) {
         process(events, camera, PointerSpace.SCREEN);
@@ -85,6 +96,16 @@ public final class CameraControls {
     /** @param space converts the game's pointer coordinates into the camera's */
     public void process(List<InputEventAPI> events, BattleCamera camera,
                         PointerSpace space) {
+        process(events, camera, space, null);
+    }
+
+    /**
+     * Processes camera input while reserving a stationary RMB gesture for the
+     * supplied click owner. Passing {@code null} preserves immediate RMB-drag
+     * behavior for camera-only views.
+     */
+    public void process(List<InputEventAPI> events, BattleCamera camera,
+                        PointerSpace space, RightClickHandler rightClickHandler) {
         if (events == null || camera == null || space == null) return;
         for (InputEventAPI event : events) {
             if (event.isConsumed()) continue;
@@ -109,19 +130,45 @@ public final class CameraControls {
                 float downX = space.x(event.getX());
                 float downY = space.y(event.getY());
                 if (!camera.containsScreen(downX, downY)) continue;
-                panDragging = true;
+                rightGestureActive = true;
+                rightDownX = downX;
+                rightDownY = downY;
+                panDragging = rightClickHandler == null;
                 lastDragX = downX;
                 lastDragY = downY;
                 event.consume();
                 continue;
             }
             if (event.isRMBUpEvent()) {
+                if (rightGestureActive) {
+                    float upX = space.x(event.getX());
+                    float upY = space.y(event.getY());
+                    if (!panDragging && rightClickHandler != null
+                            && camera.containsScreen(upX, upY)) {
+                        rightClickHandler.onRightClick(upX, upY);
+                    }
+                    event.consume();
+                }
+                rightGestureActive = false;
                 panDragging = false;
                 continue;
             }
-            if (panDragging && event.isMouseMoveEvent()) {
+            if (rightGestureActive && event.isMouseMoveEvent()) {
                 float x = space.x(event.getX());
                 float y = space.y(event.getY());
+                if (!panDragging) {
+                    float dx = x - rightDownX;
+                    float dy = y - rightDownY;
+                    float thresholdSq = RIGHT_DRAG_THRESHOLD_PX
+                            * RIGHT_DRAG_THRESHOLD_PX;
+                    if (dx * dx + dy * dy >= thresholdSq) {
+                        panDragging = true;
+                    }
+                }
+                if (!panDragging) {
+                    event.consume();
+                    continue;
+                }
                 // Dragging right pulls the world right, so the camera goes
                 // left over it. panByPixels negates internally; this passes the
                 // raw mouse delta.
@@ -166,6 +213,7 @@ public final class CameraControls {
      * the state this exists to avoid.
      */
     public void release() {
+        rightGestureActive = false;
         panDragging = false;
         panKeyW = false;
         panKeyA = false;

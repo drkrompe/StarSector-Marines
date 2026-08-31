@@ -4,10 +4,9 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — made Long-Range Support's screened position categorical,
-broad, and clear of every friendly body; aligned its movement axis with its
-current engageable target and gave combat-zone assignments a bounded standoff
-envelope while that target remains inside the commanded zone.
+Updated: 2026-08-31 — added the exact-Mech tactical movement override: a
+reachable one-shot destination below squad assignment, with moving fire,
+survival suspension, and arrival handback.
 
 Earlier 2026-08-30 — added the two onset moments and made battle Mech role
 overrides and lance-wide coordination orders serialized local-plan interrupts
@@ -1035,6 +1034,16 @@ already use and remains subordinate to survival, rescue, and mission laws.
 Rejecting an enemy, non-mech, rescue payload, or vanished identity is part of
 that authority boundary. A role request is exact-member state; a lance-order
 request is shared by the selected member's current battle squad.
+
+A legal player tactical move request uses that same serialized boundary but
+does not invalidate or replace the shared squad plan. It resolves the clicked
+ground to the nearest walkable cell in the selected Mech's connected navigation
+component and temporarily intercepts only that member's locomotion. Target
+refresh and installed-weapon fire continue during the walk. Reaching the cell
+removes the override before ordinary unit execution continues on the same tick;
+broken-morale survival suspends it, while a hard withdrawal invalidates it. The
+request therefore supplies neither a squad assignment nor a hostile target and
+never changes the knowledge available to the squad.
 
 ## Mission, space, and feature boundaries
 
