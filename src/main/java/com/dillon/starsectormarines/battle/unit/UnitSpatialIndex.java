@@ -319,6 +319,11 @@ public final class UnitSpatialIndex {
         for (int i = 0; i < liveCount; i++) {
             long id = dense[i];
             if (scratchIds[i] != id) {
+                // A passenger is live and deliberately has no position: it is
+                // inside a vehicle, so it occupies no cell and belongs in no
+                // bucket. Everything else missing from the position query is
+                // the corruption this check exists to catch.
+                if (roster.isRiding(id)) continue;
                 throw new IllegalStateException(
                         "live unit missing from gridOccupants query: " + id);
             }

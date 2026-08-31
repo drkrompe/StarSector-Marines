@@ -344,6 +344,19 @@ public final class UnitRosterService {
     /** Data owner for the SQUAD component (membership) — inject into consumers that gate on hasSquad / read squadId. Distinct from {@link #getSquad(int)} (the squad-object registry). */
     public SquadService squad() { return squadService; }
 
+    /**
+     * Whether {@code id} is riding inside a vehicle rather than standing on the
+     * map. A passenger is live and deliberately carries no {@code POSITION}, so
+     * every pass that walks the dense roster and reads where a unit is has to
+     * ask this first. It is alive — it is simply not anywhere.
+     */
+    /** The damage authority, for the few systems that must kill something outright. */
+    public DamageService damageService() { return damageService; }
+
+    public boolean isRiding(long id) {
+        return entityWorld.has(id, components.RIDING);
+    }
+
     /** Data owner for the ROLE component (behavior-dispatch role) — inject into consumers that read/reassign a unit's role. */
     public RoleService role() { return roleService; }
 

@@ -114,6 +114,14 @@ public interface BattleView {
      */
     long squadMemberAt(int squadId, int index);
 
+    /**
+     * Whether {@code id} is riding inside a vehicle rather than standing on the
+     * map. It is alive and still one of its squad, but it holds no ground, sees
+     * nothing and has no position to read — so any evaluator that asks where a
+     * unit is must ask this first.
+     */
+    boolean isRiding(long id);
+
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. */
     byte[] getOccupancyMap();
 

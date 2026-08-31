@@ -218,6 +218,11 @@ public final class UnitUpdateSystem implements AutoCloseable {
         // releases interrupted actors before this phase, so their existing
         // role resumes here without a role swap or a second actor model.
         if (sim.ambientTasks().isControlling(u)) return;
+        // A passenger is inside a vehicle: it has no position to act from and
+        // nothing to decide until it is set down again. Checked explicitly
+        // rather than inferred from a missing POSITION, so a unit that lost its
+        // position by accident still fails loudly instead of going quiet.
+        if (sim.transport().isRiding(u)) return;
         long t0 = System.nanoTime();
         UnitBehavior behavior;
         TickInnerProfile.Bucket bucket;

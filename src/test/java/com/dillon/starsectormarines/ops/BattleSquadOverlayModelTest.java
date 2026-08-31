@@ -38,8 +38,9 @@ class BattleSquadOverlayModelTest {
     void mlxProjectsThreeFireTeamsAndHoveredLoadout() throws Exception {
         Reactor reactor = new Reactor();
         AtomicInteger backs = new AtomicInteger();
+        AtomicInteger defendAreas = new AtomicInteger();
         BattleSquadOverlayModel model = new BattleSquadOverlayModel(
-                reactor, backs::incrementAndGet);
+                reactor, backs::incrementAndGet, defendAreas::incrementAndGet);
         model.updateProjected(new BattleSquadOverlayModel.SquadState(
                 "Squad 20", 11, 12, 0.72f, members()));
 
@@ -53,6 +54,8 @@ class BattleSquadOverlayModelTest {
             assertEquals("SQUAD 20", instance.requireElement("battle-squad-title").text());
             assertEquals("11/12", instance.requireElement("battle-squad-strength").text());
             assertEquals(3, instance.requireElement("battle-squad-fireteams").childCount());
+            assertEquals("DEFEND AREA", instance.requireElement(
+                    "battle-squad-defend-area").text());
             for (int team = 0; team < 3; team++) {
                 assertEquals(4, instance.requireElement(
                         "battle-squad-fireteam-" + team + "-members").childCount());
@@ -87,6 +90,14 @@ class BattleSquadOverlayModelTest {
             assertTrue(document.pointerUp(back.x() + back.width() * 0.5f,
                     back.y() + back.height() * 0.5f));
             assertEquals(1, backs.get());
+
+            var defend = instance.requireElement("battle-squad-defend-area")
+                    .box().borderBox();
+            assertTrue(document.pointerDown(defend.x() + defend.width() * 0.5f,
+                    defend.y() + defend.height() * 0.5f));
+            assertTrue(document.pointerUp(defend.x() + defend.width() * 0.5f,
+                    defend.y() + defend.height() * 0.5f));
+            assertEquals(1, defendAreas.get());
         }
     }
 

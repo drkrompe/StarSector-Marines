@@ -45,7 +45,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
     private static final Color LABEL_TEXT = new Color(0xEE, 0xF4, 0xF5);
 
     private final BattleUiContext ctx;
-    private final BitmapFont font = Fonts.ORBITRON_12_BOLD;
+    private static final BitmapFont FONT = Fonts.ORBITRON_12_BOLD;
     private String targetingPowerId;
     private int mouseX;
     private int mouseY;
@@ -56,6 +56,10 @@ public final class CommandPowerTargetingPanel implements HudPanel {
 
     public String targetingPowerId() {
         return targetingPowerId;
+    }
+
+    public void cancel() {
+        targetingPowerId = null;
     }
 
     /** Arms a ready power, or cancels it when its selected card is clicked again. */
@@ -107,9 +111,9 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         paintTargetingMarker(camera, marker, centerX, centerY, alphaMult);
     }
 
-    private void paintTargetingMarker(BattleCamera camera,
-                                      BattlefieldMarkerPresentation.TargetMarker marker,
-                                      float centerX, float centerY, float alphaMult) {
+    static void paintTargetingMarker(BattleCamera camera,
+                                     BattlefieldMarkerPresentation.TargetMarker marker,
+                                     float centerX, float centerY, float alphaMult) {
         Color color = marker.tone();
         float radius = BattlefieldMarkerPresentation.targetRadius(
                 camera.cellPxSize(), marker.radiusCells());
@@ -147,7 +151,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         paintCenterDiamond(centerX, centerY, r, g, b, alphaMult);
 
         String label = marker.label() + "  //  " + marker.status();
-        float labelWidth = font.measureWidth(label);
+        float labelWidth = FONT.measureWidth(label);
         float plateWidth = labelWidth + 18f;
         float plateHeight = 22f;
         float plateX = clamp(centerX - plateWidth * 0.5f,
@@ -173,7 +177,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         glEnd();
         glPopAttrib();
 
-        font.drawString(label, plateX + 10f,
+        FONT.drawString(label, plateX + 10f,
                 plateY + plateHeight - 5f, LABEL_TEXT, alphaMult);
     }
 
