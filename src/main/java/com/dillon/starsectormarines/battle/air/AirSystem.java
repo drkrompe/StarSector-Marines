@@ -160,6 +160,25 @@ public class AirSystem {
     private static final float ARRIVAL_TICK_MARGIN = 2f;
 
     /**
+     * How many circuits a craft denied the strip flies before it lands anyway.
+     *
+     * <p>A go-around is the right answer to a runway somebody is standing on,
+     * and an unbounded one is not an answer at all — it is the mechanism that
+     * turns a busy minute into an aircraft that circles for the rest of the
+     * battle. Two is enough for ordinary contention to clear (a departure holds
+     * the strip for about five seconds and a rollout for about four, against a
+     * circuit of seven and a half) and few enough that nobody watching thinks
+     * the aircraft is broken.
+     *
+     * <p>What follows the last one is a <em>landing</em>. A craft that gives up
+     * by leaving, or by ceasing to exist, has turned a queueing problem into a
+     * lost airframe; one that puts down on an occupied strip has at worst two
+     * aircraft on one runway for a few seconds, which is the lesser fault by a
+     * wide margin.
+     */
+    private static final int MAX_GO_AROUNDS = 2;
+
+    /**
      * How high a vertical lift hovers over its pad at the end of its run in,
      * before it sinks onto it.
      *
@@ -419,6 +438,16 @@ public class AirSystem {
             long id = it.next();
             ShuttleMission mission = world.mission(id);
             if (mission == null || mission.state == ShuttleState.GONE) {
+                // Whatever it was holding, it is not holding it any more. This
+                // is the one place every craft ceases to exist — shot down,
+                // scrubbed on its pad, home and shut down — so it is the one
+                // place that can say so once for all of them. A craft killed
+                // on the strip used to take the field with it: nothing on the
+                // shoot-down path released, the claim outlived the aircraft,
+                // and every sortie that came home afterwards was refused the
+                // runway and flew circuits until the battle ended. Measured at
+                // seventy-five go-arounds and still going.
+                if (airfield != null) airfield.releaseRunway(id);
                 entityWorld.destroy(id);
                 it.remove();
             }
@@ -748,11 +777,34 @@ public class AirSystem {
                     // the strip — so a bare geometric test would land it on the
                     // runway it was refused.
                     if (carrot.nextIdx < approach.thresholdIdx) break;
+                    // On final, and asking for the strip every tick of it
+                    // rather than once as it crosses the numbers. A craft that
+                    // asked only at the threshold asked once per circuit while
+                    // a craft holding short asked thirty times a second, and
+                    // lost that race about as often as the strip was busy —
+                    // which on a field flying several sorties off one runway is
+                    // most of the time. Both ends of the strip's queue now ask
+                    // at the same rate, so a landing that has to wait waits for
+                    // the strip rather than for its own next circuit.
+                    boolean holdsTheStrip = airfield.claimRunway(id)
+                            // An aircraft that cannot land is a worse outcome
+                            // than two on one strip. After enough circuits it
+                            // stops asking and puts down: a real machine low on
+                            // fuel declares an emergency and lands anyway, and
+                            // the fallback here has to be a landing rather than
+                            // a craft that quietly ceases to exist.
+                            || mission.goAroundsFlown >= MAX_GO_AROUNDS;
                     boolean arrived = pastTheThreshold(mission, body)
                             || body.distanceTo(mission.touchdownX, mission.touchdownY)
-                                    < flyingArrivalDist(THRESHOLD_ARRIVAL_DIST, body, flight, dt);
+                                    < flownArrivalDist(THRESHOLD_ARRIVAL_DIST, body, dt);
                     if (!arrived) break;
-                    if (airfield.claimRunway(id)) {
+                    if (holdsTheStrip) {
+                        // Takes it outright rather than asking, because the
+                        // craft is about to be standing on it either way: an
+                        // emergency landing that left the strip recorded to
+                        // somebody else would have the aircraft roll out
+                        // without holding the runway it is on.
+                        airfield.takeRunway(id);
                         // Touchdown, and nothing is moved. The aircraft is
                         // where it flew itself to, pointed the way the path
                         // ended, carrying the speed it arrived with; the wheels
@@ -769,6 +821,7 @@ public class AirSystem {
                         // this pose to the fix behind the threshold, which is a
                         // circuit rather than a straight line.
                         mission.approach = null;
+                        mission.goAroundsFlown++;
                     }
                     break;
                 }
@@ -1341,6 +1394,30 @@ public class AirSystem {
         // past — so there is no circle to admit, only the step.
         float orbit = turnRateRad < 1e-3f ? 0f : speed / turnRateRad;
         return Math.max(floorCells, Math.max(ARRIVAL_TICK_MARGIN * speed * dt, orbit));
+    }
+
+    /**
+     * How near a point a craft being <em>flown along a path</em> has to come.
+     *
+     * <p>The step, and only the step. {@link #flyingArrivalDist} admits a whole
+     * turning circle as well, because a body steered <em>at</em> a point it
+     * cannot turn tightly enough to reach settles into an orbit around it and
+     * would otherwise never be sampled inside any gate. Nothing here can orbit:
+     * a craft on a solved approach is chasing a carrot that slides along the
+     * path and runs on past the threshold down the strip, so the one way it can
+     * miss a gate is by stepping over it between two samples.
+     *
+     * <p>Admitting the circle anyway is not free, and the price is exactly its
+     * width. A fighter turns inside seventeen cells at approach speed, so a
+     * landing gated on {@link #flyingArrivalDist} fired seventeen cells short of
+     * the numbers: measured on the shipped airfield the aircraft touched down at
+     * x=79 on a strip that ends at x=62.5 and rolled out across open ground into
+     * it, and an approach from the other end put the wheels down at x=-9.6,
+     * which is off the map. The heading was right and the position was a
+     * runway's width of nonsense either side.
+     */
+    static float flownArrivalDist(float floorCells, AirBody body, float dt) {
+        return Math.max(floorCells, ARRIVAL_TICK_MARGIN * body.speed() * dt);
     }
 
     /**
