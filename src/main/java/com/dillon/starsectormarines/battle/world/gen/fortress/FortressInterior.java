@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -143,6 +144,7 @@ public final class FortressInterior {
         RoomPacker packer = new RoomPacker(
                 ctx, footings(ctx, ground, muster), muster, PALETTE, MASSING);
         List<RoomPacker.Placed> placed = new ArrayList<>();
+        List<RoomShape> authored = new ArrayList<>();
         List<FortressBuilding> unplaced = new ArrayList<>();
         for (FortressBuilding building : FortressProgram.expanded(program)) {
             RoomPacker.Request request = new RoomPacker.Request(
@@ -153,9 +155,11 @@ public final class FortressInterior {
                 unplaced.add(building);
             } else {
                 placed.add(room);
+                authored.add(building.shape());
             }
         }
         metalYard(ctx, ground, placed);
+        openFurtherDoors(ctx, packer, placed, authored);
         stampWalls(ctx, placed);
         furnish(ctx, placed);
         stampWindows(ctx, placed);
@@ -164,6 +168,63 @@ public final class FortressInterior {
         // built from leftovers gets the shape leftovers have — a shallow strip,
         // never a facility.
         return new Result(placed, unplaced);
+    }
+
+    /**
+     * Give every building the further ways in its floor earns, now that the
+     * yard around it exists.
+     *
+     * <p>Ordered between the yard and the walls on purpose, and it has to be
+     * both. Before the yard there is nothing outside a building for a second
+     * door to open onto, so the packer's own massing rule found none and every
+     * building in every ward shipped enterable from exactly one face — a slab
+     * an attacker never has to choose an approach to and a defender never has
+     * to cover more than one side of. After the walls it would be too late in a
+     * different way: a wall is stamped from a mask of which of its faces are
+     * outside, and the stamp skips walkable ring cells precisely so an opening
+     * is not framed shut. A door cut afterwards would be a door with a wall
+     * drawn over it.
+     *
+     * <p>Also before the fill, because a fitting is handed its doors and some of
+     * them arrange around them — a bay joins each of its side doors to the
+     * service lane, a berth keeps a rack's width by each hatch.
+     */
+    private static void openFurtherDoors(GenContext ctx, RoomPacker packer,
+                                         List<RoomPacker.Placed> placed,
+                                         List<RoomShape> authored) {
+        boolean[][] openGround = openGround(ctx, placed);
+        for (int i = 0; i < placed.size(); i++) {
+            placed.set(i, packer.openFurtherWaysIn(
+                    placed.get(i), authored.get(i), openGround));
+        }
+    }
+
+    /**
+     * Ground anybody may stand on that is not the inside of a building: the
+     * yard, the parade ground, and the passages cut through them.
+     *
+     * <p>The exclusion is the point. A building's own floor is walkable too, and
+     * where two of them share a wall ring a door cut into it would open one
+     * straight into the other — no yard crossed, no approach chosen, and two
+     * buildings joined into one enfilade. What a further way in is for is
+     * another side to come at the place from.
+     */
+    private static boolean[][] openGround(GenContext ctx, List<RoomPacker.Placed> placed) {
+        boolean[][] interior = new boolean[ctx.width][ctx.height];
+        for (RoomPacker.Placed room : placed) {
+            for (int[] cell : room.shape().filled()) {
+                int x = room.originX() + cell[0];
+                int y = room.originY() + cell[1];
+                if (x >= 0 && y >= 0 && x < ctx.width && y < ctx.height) interior[x][y] = true;
+            }
+        }
+        boolean[][] open = new boolean[ctx.width][ctx.height];
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                open[x][y] = ctx.grid.isWalkable(x, y) && !interior[x][y];
+            }
+        }
+        return open;
     }
 
     /**

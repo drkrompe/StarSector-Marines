@@ -28,7 +28,7 @@ class LayeredMechComposerTest {
 
         assertEquals(List.of(
                         "foot.png", "foot.png", "chaingun-arm.png", "chaingun-arm.png",
-                        "chassis.png", "lrm-pod.png", "shoulder-laser-cannon.png"),
+                        "chassis.png", "lrm-pod.png", "lrm-pod.png"),
                 layers.stream().map(layer -> fileName(layer.path())).toList());
         assertEquals(208f, layers.get(4).width(), 0.001f);
         assertEquals(31f, layers.get(2).width(), 0.001f,
@@ -153,7 +153,8 @@ class LayeredMechComposerTest {
     void shoulderLaserFlashUsesTheEdgeOnEmitterMuzzle() {
         LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
         List<Layer> layers = emitFlashingMech(assets, MechVariant.BULWARK,
-                LayeredMechAppearance.FLAG_LASER_FLASH);
+                LayeredMechAppearance.FLAG_LASER_FLASH,
+                LayeredMechAppearance.POD_SHOULDER_LASER);
 
         List<Layer> flashes = layers.stream()
                 .filter(layer -> fileName(layer.path()).equals("marine-muzzle-flash.png"))
@@ -165,6 +166,13 @@ class LayeredMechComposerTest {
 
     private static List<Layer> emitFlashingMech(LayeredMechAssets assets,
                                                 MechVariant variant, int flags) {
+        return emitFlashingMech(assets, variant, flags,
+                variant.rightShoulder.appearanceSelector);
+    }
+
+    private static List<Layer> emitFlashingMech(LayeredMechAssets assets,
+                                                MechVariant variant, int flags,
+                                                int rightShoulderAppearance) {
         List<Layer> layers = new ArrayList<>();
         LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
                         layers.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
@@ -172,7 +180,7 @@ class LayeredMechComposerTest {
                 0f, 0f, 0f, 0f, 0f, 0f, flags,
                 variant.chassisAppearance, variant.arms.appearanceSelector,
                 variant.leftShoulder.appearanceSelector,
-                variant.rightShoulder.appearanceSelector, 1f);
+                rightShoulderAppearance, 1f);
         return layers;
     }
 

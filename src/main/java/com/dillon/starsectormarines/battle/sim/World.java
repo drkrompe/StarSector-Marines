@@ -331,6 +331,7 @@ public final class World {
     public void attachMechLoadout(long id, MechLoadoutComponent loadout) {
         entityWorld.addComponent(id, components.MECH_LOADOUT);
         entityWorld.setObject(id, components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE, loadout);
+        setAttackRange(id, loadout.maxWeaponRange());
         if (entityWorld.has(id, components.MECH_LAYERED_ANIMATION)) {
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_CHASSIS, loadout.variant.chassisAppearance);

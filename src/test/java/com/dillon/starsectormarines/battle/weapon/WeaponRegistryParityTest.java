@@ -101,11 +101,11 @@ class WeaponRegistryParityTest {
         assertMech(laser,
                 36f, 24f, 0.82f, 7f, 10f,
                 1, 0f, 0.08f, 360f, 0.10f, 0f,
-                1.5f, 12, 0.75f, false, false, 1f,
+                1.5f, 100, 0.75f, false, false, 1f,
                 new Color(0xD8, 0xFC, 0xFF), ImpactKind.CANNON_HE,
                 null, 0f, "pulse_laser_fire");
-        assertEquals(95f, laser.contactDamage, EPS);
-        assertEquals(30f, laser.contactPenetration, EPS);
+        assertEquals(150f, laser.contactDamage, EPS);
+        assertEquals(40f, laser.contactPenetration, EPS);
         assertEquals(1, laser.bodyPenetrations);
     }
 
