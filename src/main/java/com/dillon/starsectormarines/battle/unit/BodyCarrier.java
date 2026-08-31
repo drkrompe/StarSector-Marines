@@ -42,12 +42,38 @@ public interface BodyCarrier {
     boolean owns(long id);
 
     /**
-     * Whether {@code id} can be reached at all right now — present on the map,
+     * Whether {@code id} is in the battle at all right now: on the map,
      * structurally alive, and not in one of the states this carrier exempts.
-     * A wreck, a chassis still off-map, and a craft in the air are each a body
-     * that exists and cannot be shot.
+     * A wreck and a chassis still off-map fail it; a craft in the air passes,
+     * because being out of a rifleman's reach is a fact about the rifleman.
      */
-    boolean isTargetable(long id);
+    boolean isPresent(long id);
+
+    /**
+     * Whether the body is off the ground, and therefore reachable only by
+     * something that can put fire up there.
+     *
+     * <p>The half of reachability that is <em>relational</em>, split out for
+     * exactly that reason. "Can this be shot" was asked absolutely for a long
+     * time and only ever had a relational answer: an aircraft on final and a
+     * defence post are engaged, an aircraft on final and a rifle section are
+     * not, and the candidate has not changed between the two.
+     */
+    boolean isAirborne(long id);
+
+    /**
+     * Whether ground fire can reach {@code id}: present, and on the ground.
+     *
+     * <p>The gate the spatial index and the blast sweep consult, which is why
+     * it is derived rather than asked. Both of those serve a battle fought at
+     * ground level — admitting a flying machine to the index would have every
+     * rifle on the map take shots at it — and neither is the place the
+     * altitude question belongs. A shooter that can reach up asks
+     * {@code EngagementService.canEngage} instead, which is the relation.
+     */
+    default boolean isTargetable(long id) {
+        return isPresent(id) && !isAirborne(id);
+    }
 
     /** Which side the body belongs to. */
     Faction faction(long id);

@@ -205,10 +205,22 @@ public interface BattleView {
     /** Live cover screens placed out of the carried special slot, and their remaining lifetime. */
     DeployedCoverService deployedCover();
 
-    /** True for a live hostile-capable roster actor or a targetable convoy vehicle. */
-    boolean isCombatTarget(long id);
+    /**
+     * Whether {@code shooterId} may engage {@code candidateId} right now.
+     *
+     * <p>Relational on purpose. The absolute predicate this replaces had to
+     * answer for the most limited shooter on the map, so the one case that
+     * differed — a defence post reaching something in the air — lived
+     * elsewhere as a hardcoded filter, and the shared answer was wrong for it.
+     * See {@code EngagementService}.
+     */
+    boolean canEngage(long shooterId, long candidateId);
 
-    /** Armor-aware target classification used by rockets, satchels, and mech preference. */
+    /**
+     * Armor-aware target classification used by rockets, satchels, and mech
+     * preference. Absolute on purpose: how hard a thing is to hurt is a
+     * property of the thing, not of the pair.
+     */
     boolean isHardenedTarget(long id);
 
     /** Entity-access facade for broad by-id component reads ({@code world().hp(id)}); focused consumers should prefer the owning component service. See {@link World}. */

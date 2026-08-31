@@ -148,9 +148,12 @@ position, velocity, radius, and height.
 `ConvoyService` is Convoy's implementation of that surface, and it is the same
 surface an aircraft implements. Convoy states nothing about how a body is
 perceived, damaged or killed that is not the shared answer — what stays here is
-what is genuinely about a chassis: it is reachable while it is on the map and
-not a wreck, its radius comes from its own art dimensions, its reach is its
-turret's, and dying means `GroundSystem` stops it and leaves the hull.
+what is genuinely about a chassis: it is present while it is on the map and not
+a wreck, it is never airborne, its radius comes from its own art dimensions, its
+reach is its turret's, and dying means `GroundSystem` stops it and leaves the
+hull. Whether a particular shooter may engage it is the shared relation, which
+for a chassis reduces to presence because nothing about a truck is a question of
+altitude.
 
 It reaches the scans through the **unit spatial index**, which is an index over
 bodies rather than a bucketed copy of the dense infantry roster. That

@@ -189,12 +189,18 @@ public final class ConvoyService implements BodyCarrier {
         if (destructionSink != null) destructionSink.accept(id);
     }
 
-    /** Visible, structurally alive vehicles are valid combat targets. */
+    /** A chassis is in the battle while it is on the map, whole, and alive. */
     @Override
-    public boolean isTargetable(long id) {
+    public boolean isPresent(long id) {
         VehicleMission mission = mission(id);
         return mission != null && mission.isVisible() && mission.state != VehicleState.WRECKED
                 && roster.isAliveById(id);
+    }
+
+    /** Never: a chassis drives. Nothing about a truck is a question of altitude. */
+    @Override
+    public boolean isAirborne(long id) {
+        return false;
     }
 
     /**

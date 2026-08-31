@@ -13,7 +13,10 @@
  *           ({@code DurabilityModel}, {@code MitigationService},
  *           {@code MitigationSystem}),
  *           detonations, the shared chassis-weapon firing mechanism
- *           ({@code HeavyWeapons}), the fire-intent execution system
+ *           ({@code HeavyWeapons}), the engagement relation
+ *           ({@code EngagementService} — can this shooter reach that body
+ *           right now, including the per-weapon altitude capability),
+ *           the fire-intent execution system
  *           ({@code FiringSystem} — consumes the {@code COMBAT} fire-intent
  *           queue the behaviors write), range/stance rules, and the single
  *           visual-effects sink ({@code fx/EffectsService}).

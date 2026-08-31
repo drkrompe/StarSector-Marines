@@ -281,7 +281,7 @@ final class MechScreenAdvance {
 
     private static long liveHostileTarget(long mech, Squad squad, BattleView sim) {
         long target = sim.resolveUnit(sim.targetOf(mech));
-        return target != 0L && sim.isCombatTarget(target)
+        return target != 0L && sim.canEngage(mech, target)
                 && sim.identity().faction(target) != squad.faction
                 ? target : 0L;
     }

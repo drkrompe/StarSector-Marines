@@ -42,7 +42,8 @@ public class BodyCarrierRegistryTest {
         }
 
         @Override public boolean owns(long candidate) { return candidate == id; }
-        @Override public boolean isTargetable(long candidate) { return candidate == id && reachable; }
+        @Override public boolean isPresent(long candidate) { return candidate == id && reachable; }
+        @Override public boolean isAirborne(long candidate) { return false; }
         @Override public Faction faction(long candidate) { return Faction.DEFENDER; }
         @Override public float velocityX(long candidate) { return 0f; }
         @Override public float velocityY(long candidate) { return 0f; }

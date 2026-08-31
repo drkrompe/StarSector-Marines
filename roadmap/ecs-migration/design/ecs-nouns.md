@@ -4,6 +4,9 @@ Status: ACTIVE — `EntityWorld` is the battle composition substrate; capability
 
 Written: 2026-08-23
 
+Updated: 2026-08-31 — engagement is a relation between a shooter and a body
+rather than a property of the body; presence and reach are owned separately.
+
 Updated: 2026-08-31 — named the body concept the disjoint families share and gave it one carrier-agnostic surface, so a consumer no longer re-derives which kind of thing it is holding.
 
 The battle simulation has one composition substrate: an `EntityWorld`.  This
@@ -160,6 +163,22 @@ through. Two standing consequences:
   pose, equipment drop, leader promotion, the death mailbox) has nothing to do
   for a chassis, and an aircraft's has to light a cook-off and give a runway
   back.
+
+A carrier answers **presence** — is this body in the battle, whole and alive —
+and whether it is **airborne**. It does not answer "can this be shot", because
+that was never a property of a body: an aircraft on final and a defence post are
+engaged, the same aircraft and a rifle section are not, and nothing about the
+aircraft differs between the two sentences. **Engagement is a relation**, and
+`EngagementService.canEngage(shooter, candidate)` is where the candidate's
+presence meets the shooter's reach.
+
+The absolute form is still derived and still used, because two consumers are
+entitled to it: the spatial index and the blast sweep serve a battle fought at
+ground level, so they admit a body that is present and not airborne. What must
+not happen again is the shooter's half of the question being written out at the
+one site that first needed it — "only a defence post can reach up" lived inside
+the anti-air drain, which is the last place a second consumer would have looked
+for it.
 
 `air-nouns.md` and `convoy-nouns.md` own what their own carriers answer; neither
 restates the shared model.

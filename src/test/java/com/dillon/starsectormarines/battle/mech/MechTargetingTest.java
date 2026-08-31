@@ -99,7 +99,7 @@ class MechTargetingTest {
                 sim.getRoster(), Faction.DEFENDER, 20.5f, 26.5f);
         sim.getUnitIndex().rebuild(sim.getRoster());
 
-        assertTrue(sim.isCombatTarget(craft),
+        assertTrue(sim.canEngage(mech, craft),
                 "an aircraft on its wheels is something anybody with a weapon can engage");
         assertEquals(craft, MechTargeting.refreshTarget(mech, sim),
                 "and the mech's own candidate walk has to contain it");
