@@ -4,35 +4,16 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — a parked aircraft is something to walk round and see
-round, and its wreckage still is not. An intact hull closed nothing at all,
-so a marine walked through a fighter and round the hulk of it.
-
-Updated: 2026-08-31 — a cook-off no longer spares the next stand by arithmetic.
-An aircraft on a berth is excluded from the blast, so the rule holds for a hull
-larger than any the build can enumerate.
-
-Updated: 2026-08-31 — ground durability is a role ladder rather than a function
-of drawn size, and the authored per-fighter length that made it look like one
-is gone. How much of an aircraft there is to hit is still one number, asked
-of the airframe by both representations and read off its hull's own spec.
-
-Updated: 2026-08-31 — whether a craft can be engaged is a relation between a
-shooter and it, not a property of it. The altitude rule is a per-weapon
-capability with one implementation, and the absolute predicates it stood in for
-are retired.
-
-Updated: 2026-08-31 — an aircraft is a body on the shared terms every body is
-on: one carrier surface, one admission, one damage route. The per-kind branches
-that read "vehicle, else aircraft, else roster unit" are gone, and the three
-liveness gates that predated air and silently omitted it are fixed.
-
 Updated: 2026-08-31 — an aircraft on its wheels is a real target rather than a
-damageable one: it is a body in the spatial index on the convoy's terms, its
-hull is an ordinary `HEALTH`/`ARMOR` pair instead of a field on the sortie, and
-it is acquired, aimed at, traced through cover and credited by the pipeline
-that already does all of that. The attrition field it replaces is deleted; a
-craft in the air stays out of reach until anti-air exists.
+damageable one, and it reaches that on the shared terms every body is on: one
+carrier surface, one admission, one damage route, its hull an ordinary
+`HEALTH`/`ARMOR` pair. Whether a craft can be engaged is a relation between a
+shooter and it rather than a property of it, with altitude a per-weapon
+capability. How much of an aircraft there is to hit is one number asked of the
+airframe by both representations; ground durability is a role ladder and no
+longer pretends to follow it. A parked hull is something to walk round and see
+round, its wreckage still is not, and a cook-off spares the next stand by rule
+rather than by arithmetic.
 
 ## Purpose
 
