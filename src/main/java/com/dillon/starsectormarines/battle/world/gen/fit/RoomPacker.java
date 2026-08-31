@@ -577,6 +577,126 @@ public final class RoomPacker {
     }
 
     /**
+     * Cut the further ways into a placed room that its floor earns, now that the
+     * ground outside it is open.
+     *
+     * <p>{@link #withFurtherWaysIn} asks the same question while packing, and
+     * inside a hull that is the only moment there is: a deck is solid until
+     * something carves it, so the space a second door would face either exists
+     * already or is tunnelled to on the spot. On open ground it is the other way
+     * round. A ward is packed into solid ground and its yard is opened
+     * afterwards out of whatever the buildings did not take, so at the moment
+     * each building is placed there is no yard for a further door to face and
+     * the search finds nothing on any other face — for every building, on every
+     * map. Measured over sixty generated wards it delivered one face per
+     * building without exception, the vehicle shed included, which is the case
+     * the rule's own reasoning is written about.
+     *
+     * <p>So a family that opens ground asks again once it has. The law is
+     * unchanged — faces rather than count, one per {@code floorPerWayIn} cells
+     * of floor — and only the moment differs.
+     *
+     * <p><b>Only where the room says a door may go.</b> A fitting that authors
+     * its hookups has budgeted for the doors in them: a berth keeps a rack's
+     * width by each hatch, a bay opens its stores aisle behind each of its side
+     * doors. Cutting somewhere else would put a door against whatever the fill
+     * happened to stand there, and nothing downstream would notice — the room
+     * stays walkable through its first door and the new one opens onto a crate.
+     * A room that authors nothing therefore keeps the single way in the packing
+     * found it, which is what it had before.
+     *
+     * @param canonical the room's shape as its fitting authored it, before pose
+     * @param openGround ground anybody may stand on that is not another
+     *     building's interior — the yard, and the passages cut through it
+     */
+    public Placed openFurtherWaysIn(Placed room, RoomShape canonical, boolean[][] openGround) {
+        if (massing.floorPerWayIn() <= 0) return room;
+        int wanted = Math.min(MAX_WAYS_IN,
+                1 + room.shape().area() / massing.floorPerWayIn());
+        Set<Integer> faces = facesUsed(room);
+        if (faces.size() >= wanted) return room;
+
+        Set<Long> authored = authoredDoorCells(room, canonical);
+        if (authored.isEmpty()) return room;
+
+        List<Doorway> doors = new ArrayList<>(room.doors());
+        for (int[] doorway : room.shape().doorways()) {
+            if (faces.size() >= wanted) break;
+            int face = faceKey(doorway[2] - doorway[0], doorway[3] - doorway[1]);
+            if (faces.contains(face)) continue;
+            int doorX = room.originX() + doorway[0];
+            int doorY = room.originY() + doorway[1];
+            if (!inBounds(doorX, doorY)) continue;
+            if (!authored.contains(cellKey(doorX, doorY))) continue;
+            // Already a doorway on this face, cut by the packing or by an
+            // earlier turn of this loop.
+            if (ctx.grid.isWalkable(doorX, doorY)) continue;
+            int outX = room.originX() + doorway[2];
+            int outY = room.originY() + doorway[3];
+            if (!inBounds(outX, outY) || !openGround[outX][outY]) continue;
+            carveDoorway(doorX, doorY);
+            doors.add(new Doorway(doorX, doorY));
+            faces.add(face);
+        }
+        if (doors.size() == room.doors().size()) return room;
+        rebuildSums();
+        return new Placed(room.shape(), room.pose(), room.originX(), room.originY(),
+                room.purpose(), doors);
+    }
+
+    /** Which of a placed room's faces already carry a door. */
+    private static Set<Integer> facesUsed(Placed room) {
+        Set<Integer> faces = new HashSet<>();
+        for (int[] doorway : room.shape().doorways()) {
+            int x = room.originX() + doorway[0];
+            int y = room.originY() + doorway[1];
+            for (Doorway door : room.doors()) {
+                if (door.x() != x || door.y() != y) continue;
+                faces.add(faceKey(doorway[2] - doorway[0], doorway[3] - doorway[1]));
+            }
+        }
+        return faces;
+    }
+
+    /**
+     * Every bulkhead cell this room's fitting states a door may occupy, in map
+     * coordinates, across all of its authored alternatives.
+     *
+     * <p>Its {@link RoomFitting#furtherDoors} and every one of its hookups, not
+     * only the hookup the placement took. A hookup is an arrangement the fitting
+     * is willing to be entered by; which of them was served on the day is a fact
+     * about the surrounding ground, and a door the room would have accepted as
+     * its front is not less acceptable as its second. That matters here more
+     * than it sounds: on open ground the far half of the bay's own drive-through
+     * was never once cut, because when the shed was placed there was no yard on
+     * that side yet.
+     *
+     * @return empty where the fitting authors no hookups at all, which reads as
+     *     "this room states nothing" rather than as "nowhere is permitted"
+     */
+    private Set<Long> authoredDoorCells(Placed room, RoomShape canonical) {
+        RoomFitting fitting = RoomFittings.forRoom(ctx, room.purpose(), canonical);
+        if (fitting == null) return Set.of();
+        List<Hookup.DoorSlot> slots = new ArrayList<>(fitting.furtherDoors(canonical));
+        for (Hookup hookup : fitting.hookups(canonical)) slots.addAll(hookup.slots());
+
+        Set<Long> cells = new HashSet<>();
+        for (Hookup.DoorSlot slot : slots) {
+            for (int[] cell : slot.cells()) {
+                int[] posed = room.pose()
+                        .map(cell[0], cell[1], canonical.width(), canonical.height());
+                cells.add(cellKey(room.originX() + posed[0], room.originY() + posed[1]));
+            }
+        }
+        return cells;
+    }
+
+    /** One of the four outward directions a bulkhead cell can face, as a key. */
+    private static int faceKey(int dirX, int dirY) {
+        return (dirX + 1) * 3 + (dirY + 1);
+    }
+
+    /**
      * This room's authored doorway cells on faces none of {@code taken} uses.
      *
      * <p>Empty when every face is spoken for, which {@link #findAccess} reads as
