@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
+import com.dillon.starsectormarines.battle.vehicle.Pose;
 import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
@@ -159,13 +160,28 @@ public class AirSystem {
     private static final float ARRIVAL_TICK_MARGIN = 2f;
 
     /**
-     * How far out on the extended centreline a homebound aircraft joins final.
+     * How high a vertical lift hovers over its pad at the end of its run in,
+     * before it sinks onto it.
      *
-     * <p>Long enough that the last leg is unmistakably the runway axis and the
-     * craft is straight by the time it reaches the threshold; short enough that
-     * a field near a map edge still has room for it.
+     * <p>A stated height rather than the bottom of the approach ramp, because
+     * the run in and the settle are different manoeuvres: one is flown and one
+     * is not. Low enough to read as a machine about to put its weight down and
+     * high enough that the sink is visible.
      */
-    private static final float APPROACH_LEAD_CELLS = 14f;
+    private static final float PAD_HOVER_T = 0.3f;
+
+    /** Sim-seconds a vertical lift spends settling from that hover onto the pad. */
+    private static final float PAD_SETTLE_SEC = 0.9f;
+
+    /**
+     * Fastest the drawn altitude may move, per second.
+     *
+     * <p>Height is lerped along a leg, so a leg replaced mid-flight — a
+     * go-around starts a fresh approach from wherever the craft got to — would
+     * otherwise jump the aircraft from the deck to cruise in one tick.
+     * Rate-limiting it turns that into a climb-out.
+     */
+    private static final float ALTITUDE_RATE_PER_SEC = 1.2f;
     /** Cell radius around a flying turret's origin where walls are treated as transparent — models the shuttle being "above" its containing building. Tuned to typical building wall thickness; past this, real LOS rules apply. */
     private static final float SHUTTLE_AIR_LOS_RADIUS = 3.5f;
 
@@ -483,13 +499,15 @@ public class AirSystem {
     }
 
     /**
-     * Airborne states an AA post can hit — the descent gauntlet, the armed loiter, and the egress. A
-     * LANDED shuttle deboarding on the ground is exempt (it's already "down").
+     * Airborne states an AA post can hit — the descent gauntlet, the settle
+     * onto the pad, the armed loiter, the runs, the egress and the approach
+     * home. Asked of the locomotion rather than listed, because "can a post
+     * reach it" is exactly "is it in the air", and a list is a thing a later
+     * phase gets left out of. A LANDED shuttle deboarding on the ground is
+     * exempt: it is already down.
      */
     private static boolean isAirborneHittable(ShuttleState st) {
-        return st == ShuttleState.INCOMING || st == ShuttleState.HOVER_STATION
-                || st == ShuttleState.DEPARTING || st == ShuttleState.RETURNING
-                || st == ShuttleState.ATTACK_RUN || st == ShuttleState.REPOSITION;
+        return AirLocomotion.of(st).airborne();
     }
 
     /**
@@ -503,15 +521,16 @@ public class AirSystem {
      * while airborne, so a fighter taxiing past a fire team was in no danger
      * whatsoever.
      *
-     * <p>A loading craft is deliberately not here. It is down with its ramp
-     * open and its passengers have already been taken off the roster, so making
-     * it shootable would owe them a disposition that nothing currently gives
-     * them; see {@code air-nouns.md}.
+     * <p>Two of the grounded phases are deliberately not here, and both are
+     * down with the ramp open rather than moving under their own power. A
+     * loading craft's passengers have already been taken off the roster, so
+     * making it shootable would owe them a disposition that nothing currently
+     * gives them; a landed one is the same craft at the other end of the trip.
+     * See {@code air-nouns.md}.
      */
     private static boolean isOnItsWheelsAndExposed(ShuttleState st) {
-        return st == ShuttleState.TAXI_OUT || st == ShuttleState.HOLDING_SHORT
-                || st == ShuttleState.TAKEOFF_ROLL
-                || st == ShuttleState.LANDING_ROLL || st == ShuttleState.TAXI_IN;
+        return AirLocomotion.of(st) == AirLocomotion.GROUNDED
+                && st != ShuttleState.LOADING && st != ShuttleState.LANDED;
     }
 
     /**
@@ -664,7 +683,7 @@ public class AirSystem {
                     // far end. Rotating early would put it in the air over its
                     // own runway with the roll unfinished.
                     updateShuttleAltitude(id, mission, body, mission.rollX, mission.rollY,
-                            /*incoming*/ false, dt);
+                            /*incoming*/ false, 0f, dt);
                     if (reachedOrPassed(body, mission.holdX, mission.holdY,
                             mission.rollX, mission.rollY)) {
                         if (airfield != null) airfield.releaseRunway(id);
@@ -710,53 +729,75 @@ public class AirSystem {
                     }
                     break;
 
-                case RETURNING:
-                    // An approach, so it is flown like one: losing height the
-                    // whole way rather than climbing out.
-                    AirSteeringSystem.steer(body, mission.exitX, mission.exitY,
-                            mission.onFinalApproach ? SteeringMode.CRUISE
-                                    : SteeringMode.BRAKE_TO_STATION, flight, dt);
-                    updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY,
-                            /*incoming*/ true, dt);
-                    if (body.distanceTo(mission.exitX, mission.exitY)
-                            >= (mission.onFinalApproach
-                                    ? flyingArrivalDist(THRESHOLD_ARRIVAL_DIST, body, flight, dt)
-                                    : joinFinalReachedDist(flight))) {
-                        break;
-                    }
-                    if (!mission.onFinalApproach) {
-                        // Out on the extended centreline. Turn in; the leg from
-                        // here to the threshold is the runway axis.
-                        mission.onFinalApproach = true;
-                        mission.exitX = mission.touchdownX;
-                        mission.exitY = mission.touchdownY;
+                case RETURNING: {
+                    // An approach, and it is flown. The path from where the
+                    // aircraft is to the threshold pointing down the strip is
+                    // solved as geometry once and then tracked, so the aircraft
+                    // is straight on arrival because the path it flew ended
+                    // that way rather than because the simulation put it
+                    // straight when it got there.
+                    Runway strip = airfield == null ? null : airfield.runway();
+                    if (strip == null) {
+                        // No strip to come home to. Leave, rather than circle a
+                        // field that is not there.
+                        mission.approach = null;
                         beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
+                        mission.state = ShuttleState.DEPARTING;
                         break;
                     }
-                    // Over the threshold, lined up. A craft that finds the strip
-                    // in use holds here until whoever is rolling is done with it.
-                    if (airfield != null && airfield.claimRunway(id)) {
-                        // Takeover. The landing itself is not flown: the
-                        // aircraft is put on the centreline pointing down it and
-                        // the rollout is driven from there. Asking the steering
-                        // to brake a flying body onto a point left it arriving
-                        // crabbed and pirouetting on the runway to sort itself
-                        // out.
-                        body.teleport(mission.touchdownX, mission.touchdownY,
-                                AirBody.facingToward(mission.holdX - mission.touchdownX,
-                                        mission.holdY - mission.touchdownY));
+                    if (mission.approach == null) {
+                        mission.approach = planApproach(mission, body, flight, strip);
+                    }
+                    RunwayApproach approach = mission.approach;
+                    PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y,
+                            approach.xs, approach.ys, approach.leg, approach.lookAheadCells);
+                    approach.leg = carrot.nextIdx;
+                    AirSteeringSystem.steer(body, carrot.x, carrot.y, SteeringMode.CRUISE, flight, dt);
+                    float toGo = PurePursuit.remainingPathLength(body.x, body.y,
+                            approach.xs, approach.ys, carrot.nextIdx);
+                    driveAltitude(id, approach.descentRemaining(toGo), 0f, dt);
+                    // Only once the follower has actually crossed the final
+                    // approach fix is there a landing to test for, and it is
+                    // the cursor that says so rather than the look-ahead: the
+                    // carrot runs off the end of the path a whole look-ahead
+                    // early, which for a fighter is fourteen cells and lands it
+                    // straight off the turn, still crabbed. The condition also
+                    // has to be something a craft just sent round again fails,
+                    // and that one is downfield of the threshold pointing along
+                    // the strip — so a bare geometric test would land it on the
+                    // runway it was refused.
+                    if (carrot.nextIdx < approach.thresholdIdx) break;
+                    boolean arrived = pastTheThreshold(mission, body)
+                            || body.distanceTo(mission.touchdownX, mission.touchdownY)
+                                    < flyingArrivalDist(THRESHOLD_ARRIVAL_DIST, body, flight, dt);
+                    if (!arrived) break;
+                    if (airfield.claimRunway(id)) {
+                        // Touchdown, and nothing is moved. The aircraft is
+                        // where it flew itself to, pointed the way the path
+                        // ended, carrying the speed it arrived with; the wheels
+                        // take it from there and bleed that speed off down the
+                        // strip. This is the seam the teleport used to paper
+                        // over.
                         world.setAltitudeT(id, 0f);
                         mission.groundSteer = 0f;
+                        mission.approach = null;
                         mission.state = ShuttleState.LANDING_ROLL;
+                    } else {
+                        // Somebody else has the strip. Go round. Discarding the
+                        // path is the whole of it: the next one is solved from
+                        // this pose to the fix behind the threshold, which is a
+                        // circuit rather than a straight line.
+                        mission.approach = null;
                     }
                     break;
+                }
 
                 case LANDING_ROLL:
                     world.setAltitudeT(id, 0f);
-                    // On the wheels, braking down the strip. The takeover put
-                    // the craft on the centreline pointing along it and a
+                    // On the wheels, braking down the strip. The craft
+                    // flew itself onto the centreline pointing along it and a
                     // wheeled body cannot leave that line sideways, so the nose
-                    // no longer has to be pinned there every tick to stop it
+                    // does not have to be pinned there every tick to stop it
                     // weathercocking across the runway.
                     mission.groundSteer = GroundDriveSystem.drive(body, mission.groundSteer,
                             mission.holdX, mission.holdY,
@@ -791,7 +832,11 @@ public class AirSystem {
                         // cells short of the target.
                         world.setAltitudeT(id, 1f);
                     } else {
-                        updateShuttleAltitude(id, mission, body, mission.lzX, mission.lzY, /*incoming=*/true, dt);
+                        // Down to a hover rather than down to the ground:
+                        // the last of the descent belongs to the settle, which
+                        // is a different manoeuvre and its own phase.
+                        updateShuttleAltitude(id, mission, body, mission.lzX, mission.lzY,
+                                /*incoming=*/true, PAD_HOVER_T, dt);
                     }
                     if (mission.strikeSortie
                             && body.distanceTo(mission.lzX, mission.lzY)
@@ -812,12 +857,43 @@ public class AirSystem {
                     }
                     if (body.distanceTo(mission.lzX, mission.lzY)
                             < flyingArrivalDist(SHUTTLE_LZ_ARRIVAL_FLOOR, body, flight, dt)) {
-                        body.teleport(mission.lzX, mission.lzY, body.facingDegrees);
+                        // Over the pad with its speed washed off. What is left
+                        // is the settle, and it is flown rather than skipped.
+                        mission.settleTimer = PAD_SETTLE_SEC;
+                        mission.state = ShuttleState.PAD_DESCENT;
+                    }
+                    break;
+
+                case PAD_DESCENT: {
+                    // Holding over the spot and sinking onto it, the way a
+                    // helicopter arrives. Station-keeping rather than braking
+                    // toward the pad, because the craft is already there and
+                    // what is left is killing the drift it came in with. Its
+                    // heading is whatever the run in left it on and is never
+                    // touched: the snap this replaces put the aircraft on the
+                    // pad in one tick, which read as it ceasing to exist
+                    // mid-air and reappearing landed.
+                    AirSteeringSystem.steer(body, mission.lzX, mission.lzY,
+                            SteeringMode.STATION, flight, dt);
+                    mission.settleTimer -= dt;
+                    float held = Math.max(0f, mission.settleTimer) / PAD_SETTLE_SEC;
+                    world.setAltitudeT(id, PAD_HOVER_T * held * held * (3f - 2f * held));
+                    world.setFlightPhase(id, world.flightPhase(id)
+                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                    if (mission.settleTimer <= 0f) {
                         world.setAltitudeT(id, 0f);
+                        // Its weight is on the pad, so nothing is left moving.
+                        // Nothing is moved, either: the craft stays exactly
+                        // where it flew itself to.
+                        body.vx = 0f;
+                        body.vy = 0f;
+                        body.ax = 0f;
+                        body.ay = 0f;
                         mission.state = ShuttleState.LANDED;
                         mission.deboardCountdown = mission.deboardInterval;
                     }
                     break;
+                }
 
                 case LANDED:
                     mission.deboardCountdown -= dt;
@@ -908,7 +984,8 @@ public class AirSystem {
 
                 case DEPARTING:
                     AirSteeringSystem.steer(body, mission.exitX, mission.exitY, SteeringMode.CRUISE, flight, dt);
-                    updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY, /*incoming=*/false, dt);
+                    updateShuttleAltitude(id, mission, body, mission.exitX, mission.exitY,
+                            /*incoming=*/false, 0f, dt);
                     if (body.distanceTo(mission.exitX, mission.exitY)
                             < flyingArrivalDist(SHUTTLE_EXIT_ARRIVAL_FLOOR, body, flight, dt)) {
                         if (mission.currentCycle + 1 < mission.totalCycles) {
@@ -1144,15 +1221,14 @@ public class AirSystem {
     private void beginEgress(long id, ShuttleMission mission, AirBody body, boolean fromHover) {
         Runway strip = airfield == null ? null : airfield.runway();
         if (mission.usesRunway && strip != null) {
-            float[] touchdown = strip.touchdownThreshold(body.x, body.y);
             mission.landOnRunway(strip, body.x, body.y, mission.shelterX, mission.shelterY);
-            // Out to the extended centreline first. The leg after this one is
-            // the runway axis, which is what lines the aircraft up without
-            // anybody having to test its heading.
-            float[] joinFinal = strip.approachPoint(touchdown, APPROACH_LEAD_CELLS);
-            mission.onFinalApproach = false;
-            mission.exitX = joinFinal[0];
-            mission.exitY = joinFinal[1];
+            // The approach itself is solved on the first RETURNING tick rather
+            // than here, because it is solved from a pose and the craft is
+            // about to leave this one — a transport lifting off a pad is
+            // pointing wherever it was parked.
+            mission.approach = null;
+            mission.exitX = mission.touchdownX;
+            mission.exitY = mission.touchdownY;
             // Not held at cruise the way a departure out of a hover is: this
             // leg is a descent, and the altitude lerp has to be free to run it
             // down to the threshold.
@@ -1233,27 +1309,53 @@ public class AirSystem {
     }
 
     /**
-     * How near the join-final point counts as reaching it, for a craft that is
-     * still flying.
+     * Works out the circuit this craft flies onto its threshold, from the pose
+     * it is in right now.
      *
-     * <p>A flying tolerance, deliberately not the ground one. A wheeled
-     * aircraft can be asked to stop on a point and does; an aircraft in the air
-     * cannot fly a circle tighter than its own turn radius, so a gate narrower
-     * than that radius is a gate it can orbit forever — and one Broadsword did
-     * exactly that, circling its own join-final point two cells out at four
-     * cells a second for the rest of the battle while the strip stood empty.
-     * The radius is what the gate is derived from rather than a number in
-     * cells, because the same craft's radius is not the same number between one
-     * calibration of atmospheric handling and the next.
+     * <p>Solved from the live pose every time one is needed rather than laid
+     * out at dispatch. A path is the answer to a question asked from one place
+     * and one heading, so a craft that has been sent round again is asking a
+     * different question.
      *
-     * <p>A hull whose radius is wider than the lead out to the join point joins
-     * final the moment the leg starts, which is the honest answer: an aircraft
-     * that cannot fly the hook has not got one to fly, and it still reaches the
-     * threshold and is taken over there.
+     * <p>A landing that will not solve still lands: the fallback flies straight
+     * in and arrives on whatever heading it managed, which is what every
+     * landing did before the arrival was solved at all. It says so, because how
+     * often a field cannot fit a circuit is worth knowing rather than
+     * discovering.
      */
-    private static float joinFinalReachedDist(AirHandling flight) {
-        if (flight.maxTurnRateDegPerSec() < 1e-3f) return APPROACH_LEAD_CELLS;
-        return Math.max(THRESHOLD_ARRIVAL_DIST, flight.minTurnRadiusCells());
+    private RunwayApproach planApproach(ShuttleMission mission, AirBody body,
+                                        AirHandling flight, Runway strip) {
+        NavigationGrid grid = navigation.getGrid();
+        RunwayApproach planned = RunwayApproach.plan(
+                new Pose(body.x, body.y, body.facingDegrees), strip,
+                new float[]{mission.touchdownX, mission.touchdownY},
+                flight.minTurnRadiusCells(), grid.getWidth(), grid.getHeight());
+        if (!planned.solved) {
+            LOG.info("air: no curvature-feasible approach onto ("
+                    + mission.touchdownX + "," + mission.touchdownY
+                    + ") — flying it straight in.");
+        } else if (planned.wide) {
+            LOG.info("air: the approach onto (" + mission.touchdownX + ","
+                    + mission.touchdownY + ") takes the craft well off the map.");
+        }
+        return planned;
+    }
+
+    /**
+     * Whether the craft is downfield of the threshold it is landing on — over
+     * the strip rather than short of it.
+     *
+     * <p>A projection onto the roll axis rather than a distance, because past
+     * is past however wide, and a craft crossing a fine gate at flying speed
+     * is inside it only between two samples.
+     */
+    private static boolean pastTheThreshold(ShuttleMission mission, AirBody body) {
+        float axisX = mission.holdX - mission.touchdownX;
+        float axisY = mission.holdY - mission.touchdownY;
+        float lengthSq = axisX * axisX + axisY * axisY;
+        if (lengthSq < 1e-6f) return true;
+        return (body.x - mission.touchdownX) * axisX
+                + (body.y - mission.touchdownY) * axisY >= 0f;
     }
 
     /**
@@ -1699,7 +1801,8 @@ public class AirSystem {
      * altitudeT so it dies cleanly on the ground), computed at render time.
      */
     private void updateShuttleAltitude(long id, ShuttleMission mission, AirBody body,
-                                       float toX, float toY, boolean incoming, float dt) {
+                                       float toX, float toY, boolean incoming,
+                                       float floorT, float dt) {
         float altitudeT;
         if (!incoming && mission.departingFromHover) {
             // Departing straight out of HOVER_STATION — the shuttle is already
@@ -1711,11 +1814,36 @@ public class AirSystem {
             float ratio = remaining / mission.legStartDist;
             if (ratio < 0f) ratio = 0f;
             if (ratio > 1f) ratio = 1f;
-            altitudeT = incoming ? ratio : (1f - ratio);
+            altitudeT = floorT + (1f - floorT) * (incoming ? ratio : (1f - ratio));
         }
         world.setAltitudeT(id, altitudeT);
         // Advance the wobble phase; the scale multiplier is derived from
         // altitudeT + flightPhase by AirAppearance at render time, not stored.
+        world.setFlightPhase(id, world.flightPhase(id)
+                + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+    }
+
+    /**
+     * Walks the drawn altitude toward where the craft has got to along a leg,
+     * at a bounded rate.
+     *
+     * <p>Rate-limited, unlike the straight-line lerp above, because the leg it
+     * measures against can be replaced while it is being flown: a craft sent
+     * round again starts a fresh approach from wherever it is, and a bare lerp
+     * would put it back at cruise height in one tick.
+     *
+     * @param ratio  how much of the leg is left, 1 at the start and 0 at the end
+     * @param floorT the height the leg bottoms out at
+     */
+    private void driveAltitude(long id, float ratio, float floorT, float dt) {
+        if (ratio < 0f) ratio = 0f;
+        if (ratio > 1f) ratio = 1f;
+        float target = floorT + (1f - floorT) * ratio;
+        float step = ALTITUDE_RATE_PER_SEC * dt;
+        float delta = target - world.altitudeT(id);
+        if (delta > step) delta = step;
+        if (delta < -step) delta = -step;
+        world.setAltitudeT(id, world.altitudeT(id) + delta);
         world.setFlightPhase(id, world.flightPhase(id)
                 + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
     }
