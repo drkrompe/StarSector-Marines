@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.infantry.EliminateEnemiesGoal;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -70,6 +71,34 @@ public class GoalTest {
         // Mission trumps both.
         assertSame(mission, Goal.pickMostRelevant(
                 List.of(engagement, survival, mission), WorldState.EMPTY, null, null));
+    }
+
+    @Test
+    public void declinedGoalYieldsToTheNextBucketDown() {
+        Goal mission    = stubGoal("M", Goal.Priority.MISSION,    0.8f);
+        Goal engagement = stubGoal("E", Goal.Priority.ENGAGEMENT, 1.0f);
+        Goal floor      = stubGoal("F", Goal.Priority.IDLE,       1.0f);
+        List<Goal> all = List.of(mission, engagement, floor);
+
+        assertSame(mission, Goal.pickMostRelevant(all, WorldState.EMPTY, null, null, Set.of()));
+        assertSame(engagement, Goal.pickMostRelevant(
+                all, WorldState.EMPTY, null, null, Set.of(mission)),
+                "a declined MISSION goal must not block the ENGAGEMENT bucket");
+        assertSame(floor, Goal.pickMostRelevant(
+                all, WorldState.EMPTY, null, null, Set.of(mission, engagement)),
+                "the IDLE floor is reachable once the buckets above it decline");
+        assertNull(Goal.pickMostRelevant(
+                all, WorldState.EMPTY, null, null, Set.of(mission, engagement, floor)),
+                "every goal declined → null, the genuinely-idle case");
+    }
+
+    @Test
+    public void decliningOneGoalLeavesItsBucketSiblingInContention() {
+        Goal preferred = stubGoal("P", Goal.Priority.ENGAGEMENT, 1.0f);
+        Goal sibling   = stubGoal("S", Goal.Priority.ENGAGEMENT, 0.5f);
+        assertSame(sibling, Goal.pickMostRelevant(
+                List.of(preferred, sibling), WorldState.EMPTY, null, null, Set.of(preferred)),
+                "declining the bucket winner promotes the runner-up, not the next bucket");
     }
 
     // --- stubs -----------------------------------------------------------

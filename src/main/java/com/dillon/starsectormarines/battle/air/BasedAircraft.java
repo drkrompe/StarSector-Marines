@@ -62,11 +62,18 @@ public final class BasedAircraft {
      * <p>Hull HP is passed in rather than taken from the airframe because an
      * aircraft that comes home shot up parks shot up. The caller still owns
      * handing the result to {@code sim.spawn}.
+     *
+     * <p>The airframe goes onto the unit as well as its numbers. How much of an
+     * aircraft there is to hit is per-instance geometry, and the alternative to
+     * carrying it — asking the field which berth this id is standing on — is a
+     * walk over every hardstand from inside the per-candidate-per-shot radius
+     * read.
      */
     public static EntitySpec create(String id, Faction faction, Airframe airframe,
                                     int cellX, int cellY, float hullHp) {
         float capacity = Math.max(1f, airframe.maxHp());
         return new EntitySpec(id, faction, UnitType.BASED_AIRCRAFT, cellX, cellY)
+                .airframe(airframe)
                 .health(capacity)
                 .hp(Math.max(1f, Math.min(capacity, hullHp)))
                 .armor(capacity * ARMOR_CAPACITY_FRACTION, ARMOR_RATING)

@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
+import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -105,6 +106,19 @@ public interface BattleView {
      */
     long liveUnitAt(int index);
 
+    /**
+     * Every body in the battle that is not a row in the dense roster — a convoy
+     * chassis, an aircraft on its wheels, whatever registers next.
+     *
+     * <p>Paired with {@link #liveUnitCount()} / {@link #liveUnitAt(int)} this is
+     * the whole population a scan has to consider, and it is deliberately one
+     * accessor rather than one per kind. A consumer that walked the roster and
+     * then a named list of vehicles was a consumer that stopped being right the
+     * day a second kind of off-roster body existed — which is exactly how a mech
+     * came to be unable to target an aircraft that infantry could shoot at.
+     */
+    BodyService bodies();
+
     /** Number of live members in one squad's primitive member slice. */
     int squadMemberCount(int squadId);
 
@@ -191,10 +205,22 @@ public interface BattleView {
     /** Live cover screens placed out of the carried special slot, and their remaining lifetime. */
     DeployedCoverService deployedCover();
 
-    /** True for a live hostile-capable roster actor or a targetable convoy vehicle. */
-    boolean isCombatTarget(long id);
+    /**
+     * Whether {@code shooterId} may engage {@code candidateId} right now.
+     *
+     * <p>Relational on purpose. The absolute predicate this replaces had to
+     * answer for the most limited shooter on the map, so the one case that
+     * differed — a defence post reaching something in the air — lived
+     * elsewhere as a hardcoded filter, and the shared answer was wrong for it.
+     * See {@code EngagementService}.
+     */
+    boolean canEngage(long shooterId, long candidateId);
 
-    /** Armor-aware target classification used by rockets, satchels, and mech preference. */
+    /**
+     * Armor-aware target classification used by rockets, satchels, and mech
+     * preference. Absolute on purpose: how hard a thing is to hurt is a
+     * property of the thing, not of the pair.
+     */
     boolean isHardenedTarget(long id);
 
     /** Entity-access facade for broad by-id component reads ({@code world().hp(id)}); focused consumers should prefer the owning component service. See {@link World}. */

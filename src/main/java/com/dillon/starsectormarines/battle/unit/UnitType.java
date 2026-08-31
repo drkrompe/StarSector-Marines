@@ -35,6 +35,31 @@ public enum UnitType {
     ALIEN      ("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true, 15.0f, 3.0f, 2.2f, 0.32f, 1.1f, 22.0f, 34.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.2f, 0.3f, 0.45f),
     /** Compatibility archetype for modular strider mechs. The persistent {@link com.dillon.starsectormarines.battle.mech.MechVariant} supplies each body's actual stats, geometry, and installed {@link MechLoadoutComponent}; an unspecified profile defaults to the stock heavy Bulwark. Defender mechs show up when the target planet produces or demands heavy armaments. */
     HEAVY_MECH ("graphics/battle/heavy-mech.png",  "graphics/battle/heavy-mech-dead.png",  true,  550f, 36.0f, 1.15f, 0.40f, 0.6f, 40.0f, 55.0f, FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 1.5f, 0.6f, 0.80f),
+    /**
+     * A machine on the stocks in a vehicle bay — the chassis a garrison's
+     * technicians are building, standing in its berth while they build it.
+     *
+     * <p>Combatant so it is seen, targeted and damaged exactly where it stands,
+     * which is the whole reason it has a body at all: a production line nobody
+     * can shoot is a number going up in a building. {@link #isStatic}, so it
+     * neither paths nor thinks — a frame in a gantry is not deciding anything —
+     * and its role is {@link UnitRole#STRUCTURE}, so it has no aim loop and
+     * never fires. It is not finished; it has no weapons to fire with.
+     *
+     * <p><b>Its structure is how built it is.</b> HP is not a proxy for
+     * progress here, it is the progress: welding raises it, a marine lowers it,
+     * and the machine is finished when it is whole. So it spawns near zero and
+     * is trivially easy to destroy early, which is correct — a keel is not a
+     * mech. Maximum structure comes from the chassis on the instance, the same
+     * convention as {@link #TURRET}; the value here is a zero placeholder.
+     *
+     * <p>Drawn on the mech's own sheet rather than the layered chassis: an
+     * unfinished machine has no livery, and standing still is what it does.
+     * It keeps the mech's corpse sheet, so a frame shot in its bay leaves a
+     * hulk in the gantry rather than vanishing.
+     */
+    MACHINE_FRAME("graphics/battle/heavy-mech.png", "graphics/battle/heavy-mech-dead.png",
+                                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 0f, 0.6f, 0.80f),
     /** Random urban resident. Wanders the map and flees gunfire. Non-combatant; combat stats are unused but kept zero-safe. No corpse — civilian death just removes them from the map. */
     CIVILIAN   ("graphics/battle/civilian.png",    null,                                   false,  8f, 0f,   2.4f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Maintenance / industrial worker. Same role as civilian — wanders, flees. */
@@ -138,7 +163,7 @@ public enum UnitType {
      */
     public boolean isStatic() {
         return this == TURRET || this == DRONE_HUB_STRUCTURE || this == RANGE_TARGET
-                || this == BASED_AIRCRAFT;
+                || this == BASED_AIRCRAFT || this == MACHINE_FRAME;
     }
 
     /**
@@ -148,6 +173,15 @@ public enum UnitType {
      * is not this: it is an air entity with no unit type at all.
      */
     public boolean isBasedAircraft() { return this == BASED_AIRCRAFT; }
+
+    /**
+     * Whether this archetype is a machine part-built in a vehicle bay — the
+     * type tag that sits beside {@link #isTurret} and {@link #isBasedAircraft}
+     * for the same reason: what a body is stays a fact about its archetype, so
+     * the grid walks classify one without asking the works whether an id is a
+     * frame.
+     */
+    public boolean isMachineFrame() { return this == MACHINE_FRAME; }
 
     /**
      * Whether this archetype is a drone launch hub — the classification gate
@@ -203,12 +237,20 @@ public enum UnitType {
      * component at spawn ({@code UnitRosterService.allocate}) and that the
      * render tier's {@code RenderAppearance.derive} defers to (this is the
      * single source of truth; the render-tier switch used to duplicate it).
-     * {@link #isStatic} types ({@link #TURRET} / {@link #DRONE_HUB_STRUCTURE} /
-     * {@link #BASED_AIRCRAFT}) draw as whole rotated sprites instead, and {@link #DRONE} draws in its
-     * own layer — everything else (infantry, mechs, civilians) is sheet-drawn.
+     *
+     * <p><b>Having a sheet, not being mobile.</b> This used to read as
+     * {@code !isStatic()}, which was true of exactly the same set for exactly
+     * the wrong reason: every type that drew some other way — a turret, a drone
+     * hub, a based aircraft, a convoy chassis — happens to be one whose picture
+     * comes from its instance, and so declares no sheet here. Immobility is not
+     * what makes a body draw differently, and reading it that way makes a thing
+     * that stands still and does have a sheet undrawable. {@link #TURRET} /
+     * {@link #DRONE_HUB_STRUCTURE} / {@link #BASED_AIRCRAFT} still draw as whole
+     * rotated sprites and {@link #DRONE} still draws in its own layer, because
+     * none of them names one.
      */
     public boolean drawnAsSheet() {
-        return !isStatic() && this != DRONE && this != GROUND_VEHICLE;
+        return !spritePath.isEmpty();
     }
 
     /**

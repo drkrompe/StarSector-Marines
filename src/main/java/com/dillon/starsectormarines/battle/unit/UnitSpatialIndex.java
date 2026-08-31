@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -274,6 +273,11 @@ public final class UnitSpatialIndex {
      */
     public void rebuild(UnitRosterService roster) {
         this.roster = roster;
+        // The tick's one body pass. Refreshing the off-roster snapshot here
+        // rather than beside this call means no caller — production, harness or
+        // fixture — can forget it and get an index that silently holds only the
+        // roster.
+        roster.bodies().refresh();
         for (int i = 0; i < buckets.length; i++) {
             Bucket b = buckets[i];
             if (b != null) {
@@ -335,61 +339,40 @@ public final class UnitSpatialIndex {
                         scratchCombatants[i] != 0);
             }
         }
-        addConvoyBodies(roster);
-        addExposedAircraft(roster);
+        addOffRosterBodies(roster);
     }
 
     /**
-     * Inserts every aircraft that is on its wheels in the open, on the same
-     * terms as the convoy bodies above: a craft rolling across an apron is a
-     * large slow object anybody can see and shoot, and it reaches the scans
-     * that decide those things by being in this snapshot rather than by
-     * teaching each of them what an aircraft is.
+     * Inserts every body that is not a row in the dense roster — a convoy
+     * chassis, an aircraft on its wheels, whatever registers next — so a body
+     * that moves under its own kinematics is found by the same proximity
+     * queries as one that walks the grid.
      *
-     * <p>A craft in the air is deliberately absent. Anti-air is a per-weapon
-     * question about altitude that nothing answers yet, and admitting a flying
-     * machine here would have every rifle on the map take shots at it — so the
-     * gate is exactly the one the exposure model already draws, and it moves
-     * with the phase rather than with anything this class knows.
-     */
-    private void addExposedAircraft(UnitRosterService roster) {
-        World world = roster.world();
-        roster.airTargets().forEachTargetable(id -> {
-            observeBodyRadius(roster, id);
-            float x = world.x(id);
-            float y = world.y(id);
-            Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
-            if (bucket == null) return;
-            bucket.add(id, x, y,
-                    (byte) roster.identity().faction(id).ordinal(),
-                    roster.identity().type(id).combatant);
-        });
-    }
-
-    /**
-     * Inserts the convoy chassis after the roster, so a body that moves under
-     * its own kinematics is found by the same proximity queries as one that
-     * walks the grid. This is the whole reason the index is no longer "the
-     * roster, bucketed": a vehicle is a unit for the purposes of being seen,
-     * scored and shot at, and every scan that had to remember an extra convoy
-     * sweep forgot at least once.
+     * <p>This is the whole reason the index is no longer "the roster,
+     * bucketed", and the reason it is one loop rather than one per kind. Every
+     * scan that had to remember an extra convoy sweep forgot at least once, and
+     * a rebuild with a path per carrier is the same defect one level up: the
+     * path for the third kind was written a week after the second and the sites
+     * around it were not.
      *
-     * <p>Vehicles are appended rather than interleaved so ties among roster
-     * units still resolve on dense-roster order. Their positions come from the
-     * kinematic body — a chassis carries {@code IDENTITY} but deliberately no
-     * {@code POSITION}, which is what keeps occupancy and separation off it —
-     * so they are read by id rather than off the column walk above. The count
-     * is one to a few per battle; a per-vehicle probe is the right trade
-     * against a second archetype walk.
+     * <p>Off-roster bodies are appended rather than interleaved so ties among
+     * roster units still resolve on dense-roster order. Their positions are
+     * read by id, because a carried body holds {@code IDENTITY} and
+     * deliberately no {@code POSITION} — which is exactly what keeps occupancy
+     * and separation off it. The count is a handful per battle; a per-body
+     * probe is the right trade against a second archetype walk.
+     *
+     * <p>A body its carrier says is out of reach is absent: a wreck is scenery,
+     * a chassis still off-map is not there, and a craft in the air is a body
+     * nothing on the ground can touch. The gate is the carrier's, so it moves
+     * with the carrier rather than with anything this class knows.
      */
-    private void addConvoyBodies(UnitRosterService roster) {
-        ConvoyService convoy = roster.convoy();
+    private void addOffRosterBodies(UnitRosterService roster) {
+        BodyService bodies = roster.bodies();
         World world = roster.world();
-        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
-            long id = convoy.vehicleAt(i);
-            // A wreck is scenery and a vehicle still off-map is not there at
-            // all; neither is a body anything should find by looking around.
-            if (!convoy.isTargetable(id)) continue;
+        for (int i = 0, n = bodies.bodyCount(); i < n; i++) {
+            long id = bodies.bodyAt(i);
+            if (!bodies.isTargetable(id)) continue;
             observeBodyRadius(roster, id);
             float x = world.x(id);
             float y = world.y(id);

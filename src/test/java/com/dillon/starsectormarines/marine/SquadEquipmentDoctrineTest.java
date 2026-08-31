@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -40,12 +41,34 @@ class SquadEquipmentDoctrineTest {
             SquadLoadoutPresentationDef presentation =
                     SquadLoadoutPresentationRegistry.get(loadoutId);
             assertNotNull(presentation, loadoutId + " has authored presentation");
-            Path logo = starsectorCore.resolve(presentation.factionLogo()).normalize();
-            assertTrue(logo.startsWith(starsectorCore),
-                    loadoutId + " must use an asset inside the vanilla install");
-            assertTrue(Files.isRegularFile(logo),
-                    loadoutId + " faction logo does not exist: " + logo);
+            assertVanillaLogo(starsectorCore, loadoutId, presentation.factionLogo());
         }
+    }
+
+    @Test
+    void everyIndividualEquipmentFactionLogoIsShippedByVanilla() {
+        Path starsectorCore = Path.of(System.getProperty("starsectorDir"))
+                .resolve("starsector-core").toAbsolutePath().normalize();
+
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
+            assertVanillaLogo(starsectorCore, weapon.id, weapon.catalogFactionLogo);
+        }
+        for (SpecialEquipmentDef equipment : SpecialEquipmentRegistry.installed().all()) {
+            assertVanillaLogo(starsectorCore, equipment.id(), equipment.catalogFactionLogo());
+        }
+        for (ArmorTradition tradition : ArmorTradition.values()) {
+            assertVanillaLogo(starsectorCore, tradition.key, tradition.factionLogo());
+        }
+    }
+
+    private static void assertVanillaLogo(Path starsectorCore, String owner, String logoPath) {
+        assertNotNull(logoPath, owner + " has no representative faction logo");
+        Path logo = starsectorCore.resolve(logoPath).normalize();
+        assertTrue(logo.startsWith(starsectorCore),
+                owner + " must use an asset inside the vanilla install");
+        assertTrue(Files.isRegularFile(logo),
+                owner + " faction logo does not exist: " + logo);
     }
 
     /**

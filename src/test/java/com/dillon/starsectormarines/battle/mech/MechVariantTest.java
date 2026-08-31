@@ -99,20 +99,26 @@ class MechVariantTest {
     }
 
     @Test
-    void triTachyonDoctrineReplacesOnlyTheBulwarksRightMissileRack() {
+    void triTachyonDoctrineFieldsPulseArmsAndTheRightShoulderLance() {
         MechLoadoutComponent triTachyon = FactionMechLoadouts.create(
                 MechVariant.BULWARK, null, "tritachyon");
         MechLoadoutComponent independent = FactionMechLoadouts.create(
                 MechVariant.BULWARK, null, "independent");
 
+        assertSame(MechWeaponComponent.DUAL_PULSE_LASERS,
+                triTachyon.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.SRM_15,
                 triTachyon.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.SHOULDER_LASER_CANNON,
                 triTachyon.mount(MechMountSlot.RIGHT_SHOULDER).component);
         assertTrue(triTachyon.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
+        assertTrue(triTachyon.hasWeapon(WeaponRegistry.MECH_PULSE_LASER_ID));
+        assertSame(MechWeaponComponent.DUAL_CHAINGUNS,
+                independent.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.SRM_15,
                 independent.mount(MechMountSlot.RIGHT_SHOULDER).component);
         assertFalse(independent.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
+        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_PULSE_LASER_ID));
 
         BattleSimulation sim = arena();
         long bulwark = sim.spawn(MechVariant.BULWARK.applyTo(new EntitySpec(

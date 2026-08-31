@@ -516,6 +516,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                     layer(MECH_ROOT + "heavy-cannon.png"), layer(MECH_ROOT + "srm-pod.png"),
                     layer(MECH_ROOT + "lrm-pod.png"),
                     layer(MECH_ROOT + "shoulder-laser-cannon.png"),
+                    layer(MECH_ROOT + "pulse-laser-arm.png"),
                     layer("graphics/battle/marine-modular-topdown/marine-muzzle-flash.png"));
         }
 

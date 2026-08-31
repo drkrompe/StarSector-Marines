@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
@@ -180,6 +181,12 @@ public final class UnitRosterService {
     // Data owner for "which aircraft can be shot at right now". Takes `this` for the
     // same reason the convoy service does; the ref is stored, not dereferenced here.
     private final AirTargetService airTargetService = new AirTargetService(this);
+    /**
+     * The registry of off-roster body carriers. Everything downstream that used
+     * to ask "is this a vehicle? is this an aircraft?" asks this instead, so a
+     * fourth kind of body registers here and reaches every consumer at once.
+     */
+    private final BodyService bodyService = new BodyService(this);
     private final World world = new World(entityWorld, components, combatService, movementService);
 
     /**
@@ -222,6 +229,8 @@ public final class UnitRosterService {
         this.damageService = damageService;
         factionIndexById.defaultReturnValue(INVALID_INDEX);
         arrivalSquads.defaultReturnValue(Squad.NO_SQUAD);
+        bodyService.register(convoyService);
+        bodyService.register(airTargetService);
     }
 
     /** Bind the damage service after construction — used by the sim ctor to break
@@ -389,7 +398,17 @@ public final class UnitRosterService {
     /** Data owner for the IDENTITY component (type/faction/name) — {@code identity().name(id)} is the greppable-name read for debug dumps / logs / tests. */
     public IdentityService identity() { return identityService; }
 
-    /** Profile-aware physical radius shared by selection, separation, ballistics and AoE. */
+    /**
+     * Physical radius for any body, shared by selection, ballistics and AoE.
+     *
+     * <p>Every type whose geometry is per-instance answers from the per-instance
+     * thing — a turret from its structure, a chassis through its carrier, a mech
+     * from its variant, an aircraft from its airframe — and only a type whose
+     * whole archetype is one size falls through to {@code UnitType.radius}. An
+     * aircraft was the case that was missed: a parked Valkyrie reported the
+     * archetype's half-cell while the same Valkyrie taxiing reported four and a
+     * half, so it changed size the instant it launched or recovered.
+     */
     public float radius(long id) {
         if (turretStateService.isTurret(id)) {
             // Gate on the id, not the resolved def: structure() requires its
@@ -399,7 +418,10 @@ public final class UnitRosterService {
             String structureId = turretStateService.structureId(id);
             if (structureId != null) return turretStateService.structure(id).radius;
         }
-        if (convoyService.isVehicle(id)) return convoyService.targetRadius(id);
+        BodyCarrier carrier = bodyService.carrierOf(id);
+        if (carrier != null) return carrier.targetRadius(id);
+        Airframe airframe = identityService.airframe(id);
+        if (airframe != null) return airframe.targetRadiusCells();
         MechVariant variant = identityService.mechVariant(id);
         return variant != null ? variant.radius : identityService.type(id).radius;
     }
@@ -413,8 +435,8 @@ public final class UnitRosterService {
      */
     public float threatRange(long id) {
         if (combatService.has(id)) return world.attackRange(id);
-        if (convoyService.isVehicle(id)) return convoyService.weaponRange(id);
-        return 0f;
+        BodyCarrier carrier = bodyService.carrierOf(id);
+        return carrier != null ? carrier.weaponRange(id) : 0f;
     }
 
     /** Profile-aware target-plane half-height for ballistic contact. */
@@ -427,7 +449,8 @@ public final class UnitRosterService {
             String structureId = turretStateService.structureId(id);
             if (structureId != null) return turretStateService.structure(id).hitHalfHeight;
         }
-        if (convoyService.isVehicle(id)) return convoyService.hitHalfHeight(id);
+        BodyCarrier carrier = bodyService.carrierOf(id);
+        if (carrier != null) return carrier.hitHalfHeight(id);
         MechVariant variant = identityService.mechVariant(id);
         return variant != null ? variant.hitHalfHeight : identityService.type(id).hitHalfHeight;
     }
@@ -449,6 +472,13 @@ public final class UnitRosterService {
 
     /** Data owner for an aircraft as a target — which craft ground fire can reach, and how fast they are going. */
     public AirTargetService airTargets() { return airTargetService; }
+
+    /**
+     * The off-roster bodies — every thing in the battle that can be perceived,
+     * scored, targeted, hit and killed without being a row in this roster.
+     * Consumers ask it rather than asking each carrier in turn.
+     */
+    public BodyService bodies() { return bodyService; }
 
     // ---- allocate / release (the spawn + death seam) ----
 
@@ -653,6 +683,8 @@ public final class UnitRosterService {
                 BattleComponents.IDENTITY_CAMPAIGN_SQUAD_ID, spec.campaignSquadId);
         entityWorld.setObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_MECH_VARIANT, spec.mechVariant);
+        entityWorld.setObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_AIRFRAME, spec.airframe);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, spec.cellX + 0.5f);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, spec.cellY + 0.5f);
         if (mechLayerDrawn) {

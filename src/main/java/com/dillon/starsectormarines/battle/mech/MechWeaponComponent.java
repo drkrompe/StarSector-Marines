@@ -21,6 +21,8 @@ public enum MechWeaponComponent {
             2, -1, LayeredMechAppearance.ARMS_LINEAR_CANNON),
     SINGLE_HEAVY_CANNON("Heavy cannon", MountFamily.ARMS, "weapon.mech-heavy-cannon",
             1, -1, LayeredMechAppearance.ARMS_HEAVY_CANNON),
+    DUAL_PULSE_LASERS("Dual pulse lasers", MountFamily.ARMS, "weapon.mech-pulse-laser",
+            8, -1, LayeredMechAppearance.ARMS_PULSE_LASER),
 
     SRM_5("SRM-5", MountFamily.SHOULDER, "weapon.mech-srm-pod",
             2, 6, LayeredMechAppearance.POD_SMALL_SRM),

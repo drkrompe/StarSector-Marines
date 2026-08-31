@@ -43,6 +43,32 @@ class MechWeaponLaunchOriginTest {
     }
 
     @Test
+    void dualPulseLasersAlternateAcrossTheSameArmHardpoints() {
+        BattleSimulation sim = arena();
+        long mech = sim.spawn(MechVariant.BULWARK.applyTo(new EntitySpec(
+                "tri-tachyon bulwark", Faction.MARINE, UnitType.HEAVY_MECH, 8, 8)));
+        MechLoadoutComponent loadout = FactionMechLoadouts.create(
+                MechVariant.BULWARK, MechVariant.BULWARK.defaultRole, "tritachyon");
+        sim.world().attachMechLoadout(mech, loadout);
+        long target = sim.spawn(new EntitySpec(
+                "target", Faction.DEFENDER, UnitType.MARINE, 8, 20));
+        loadout.torsoFacingDegrees = 0f;
+        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
+
+        sim.fireMechWeapon(mech, target, arms, 1f);
+        ShotEvent first = sim.getActiveShots().get(0);
+        arms.burstRemaining = arms.component.projectilesPerTrigger - 1;
+        sim.fireMechWeapon(mech, target, arms, 1f);
+        ShotEvent second = sim.getActiveShots().get(1);
+
+        float hullWidth = LayeredMechAppearance.hullWidthCells(loadout.variant.renderScale);
+        assertEquals(sim.world().renderX(mech) - 0.37f * hullWidth, first.fromX, EPS);
+        assertEquals(sim.world().renderX(mech) + 0.37f * hullWidth, second.fromX, EPS);
+        assertEquals(sim.world().renderY(mech) + 0.39f * hullWidth, first.fromY, EPS);
+        assertEquals(first.fromY, second.fromY, EPS);
+    }
+
+    @Test
     void missileShotAndProjectileStartAtTheInstalledShoulderPod() {
         BattleSimulation sim = arena();
         long mech = spawnBulwark(sim, 8, 8);

@@ -47,6 +47,10 @@ orders on the vehicle itself rather than buttons.
 Updated: 2026-08-31 — the pointer says which contextual order a right-click
 would issue, resolved through the same services the order systems use.
 
+Updated: 2026-08-31 — a chassis is one implementation of the shared body
+surface rather than its own target model; the explicit convoy loops in the
+spatial index, ballistics, the splash sweep and the damage route are gone.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -140,6 +144,17 @@ kinematics, mission, shared `HEALTH`/`ARMOR`, and optional turret authority stay
 separate from its passenger payload, and its continuous body supplies target
 position, velocity, radius, and height.
 
+`ecs-nouns.md` owns what a body is and what carrying one obliges;
+`ConvoyService` is Convoy's implementation of that surface, and it is the same
+surface an aircraft implements. Convoy states nothing about how a body is
+perceived, damaged or killed that is not the shared answer — what stays here is
+what is genuinely about a chassis: it is present while it is on the map and not
+a wreck, it is never airborne, its radius comes from its own art dimensions, its
+reach is its turret's, and dying means `GroundSystem` stops it and leaves the
+hull. Whether a particular shooter may engage it is the shared relation, which
+for a chassis reduces to presence because nothing about a truck is a question of
+altitude.
+
 It reaches the scans through the **unit spatial index**, which is an index over
 bodies rather than a bucketed copy of the dense infantry roster. That
 distinction is the whole design. For a while a vehicle was instead a world
@@ -207,11 +222,16 @@ had been. Ballistics accepts the same risk knowingly (its consequence is a misse
 round, and its corridor query pads for motion); an area effect that silently
 spares a victim is a worse trade than a full walk over a few hundred live bodies.
 
-Splash therefore reads live positions over the live population, and pays the
-explicit convoy sweep as the price. That is a considered exception to "every
-proximity scan goes through the index", not an unconverted leftover — and note
-that the overlap query does not rescue it. Query semantics and snapshot
-staleness are different axes; fixing the first does nothing for the second.
+Splash therefore reads live positions over the live population, and pays a
+second walk over the off-roster bodies as the price. That is a considered
+exception to "every proximity scan goes through the index", not an unconverted
+leftover — and note that the overlap query does not rescue it. Query semantics
+and snapshot staleness are different axes; fixing the first does nothing for the
+second.
+
+That walk is over *bodies*, not over convoys. It was a convoy loop with an
+aircraft loop bolted on beside it, which is how a blast sized itself against a
+chassis correctly and against every aircraft in the game identically.
 
 A vehicle is seen but never sees. It carries no perception components at all, so
 any code that reads a target's sight stats must treat "target" and "perceiver"
