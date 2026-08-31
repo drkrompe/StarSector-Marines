@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * What a squad wants to be true. The planner's per-replan flow:
@@ -113,10 +114,28 @@ public interface Goal {
      * are kept; in practice deterministic given the input list order).
      */
     static Goal pickMostRelevant(List<Goal> goals, WorldState state, Squad squad, BattleView sim) {
+        return pickMostRelevant(goals, state, squad, sim, Set.of());
+    }
+
+    /**
+     * As {@link #pickMostRelevant(List, WorldState, Squad, BattleView)}, ignoring
+     * goals in {@code declined}.
+     *
+     * <p>The replan pass uses this to walk down the ladder when the winner of a
+     * bucket turns out to have no reachable plan. Relevance answers "is this
+     * goal worth wanting", which is not the same question as "can this goal be
+     * acted on from here", and only the planner answers the second. Without a
+     * descent the first unanswerable goal ends the search and the squad holds
+     * no plan at all — see {@code ai-nouns.md} on falling through to ambient
+     * engagement.
+     */
+    static Goal pickMostRelevant(List<Goal> goals, WorldState state, Squad squad,
+                                 BattleView sim, Set<Goal> declined) {
         Priority[] buckets = Priority.values();
         Goal[] bucketBest = new Goal[buckets.length];
         float[] bucketBestRelevance = new float[buckets.length];
         for (Goal g : goals) {
+            if (declined.contains(g)) continue;
             float r = g.relevance(state, squad, sim);
             if (r <= 0f) continue;
             int idx = g.priority().ordinal();
