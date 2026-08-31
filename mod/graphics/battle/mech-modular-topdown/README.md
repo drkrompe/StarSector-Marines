@@ -34,6 +34,14 @@ full-resolution ImageGen sources live in `sources/`, including
 `linear-cannon-variant.png` remain available for authored custom loads. The
 retained generated linkage source is `sources/thigh-bone.png`.
 
+`factions/<family>/` contains appearance-only chassis skins for Hegemony,
+Tri-Tachyon, Persean League, Luddic Church, Knights of Ludd, Luddic Path,
+Sindrian Diktat, Lion's Guard, pirates, and the Independent/mercenary fallback.
+Every family repeats `chassis.png`, `chassis-hound.png`, and
+`chassis-sirocco.png`. The builder applies the accepted base chassis alpha mask,
+so a skin cannot change silhouette, hardpoint authority, scale, or mechanics.
+Weapon and gait layers remain shared.
+
 Run `python art-source/mech-modular-topdown/build_assets.py` from the repository root after replacing a retained source. The generated
 previews use the same hull-relative placement model as the runtime composer and
 are written beneath `build/sprite-previews/mech/` rather than packaged with the mod.
@@ -42,3 +50,7 @@ Run `python art-source/mech-modular-topdown/render_variants.py` to regenerate th
 sheet at `roadmap/mechs/previews/layered-mech-variants.png`. Its upper row keeps
 the variants' gameplay-relative render scales; its lower row normalizes all
 three hulls to 208 pixels for direct sprite and hardpoint comparison.
+
+Run `python art-source/mech-modular-topdown/render_faction_variants.py` to
+regenerate the ten-family contact sheet at
+`roadmap/mechs/previews/factional-mech-variants.png`.

@@ -6,6 +6,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -16,6 +18,11 @@ class LayeredMechAssetTest {
 
     private static final Path ROOT = Path.of(
             "mod", "graphics", "battle", "mech-modular-topdown");
+    private static final String[] FACTION_SKINS = {
+            "hegemony", "tri-tachyon", "persean-league", "luddic-church",
+            "knights-of-ludd", "luddic-path", "sindrian-diktat", "lions-guard",
+            "pirates", "independent"
+    };
 
     @Test
     void familyChassisSpritesAreNormalizedTransparentAndDistinct() throws IOException {
@@ -29,6 +36,23 @@ class LayeredMechAssetTest {
         assertNotEquals(pixelHash(bulwark), pixelHash(hound));
         assertNotEquals(pixelHash(bulwark), pixelHash(sirocco));
         assertNotEquals(pixelHash(hound), pixelHash(sirocco));
+    }
+
+    @Test
+    void factionSkinsRetainExactChassisMasksAndDistinctPaint() throws IOException {
+        String[] chassis = {"chassis.png", "chassis-hound.png", "chassis-sirocco.png"};
+        for (String filename : chassis) {
+            BufferedImage base = load(filename);
+            Set<Integer> paintHashes = new HashSet<>();
+            for (String faction : FACTION_SKINS) {
+                BufferedImage skin = load("factions/" + faction + "/" + filename);
+                assertNormalizedTransparent(skin);
+                assertAlphaMaskEquals(base, skin);
+                assertNotEquals(pixelHash(base), pixelHash(skin), faction + "/" + filename);
+                assertTrue(paintHashes.add(pixelHash(skin)),
+                        "duplicate faction paint for " + filename + ": " + faction);
+            }
+        }
     }
 
     @Test
@@ -80,5 +104,16 @@ class LayeredMechAssetTest {
             }
         }
         return hash;
+    }
+
+    private static void assertAlphaMaskEquals(BufferedImage expected, BufferedImage actual) {
+        assertEquals(expected.getWidth(), actual.getWidth());
+        assertEquals(expected.getHeight(), actual.getHeight());
+        for (int y = 0; y < expected.getHeight(); y++) {
+            for (int x = 0; x < expected.getWidth(); x++) {
+                assertEquals(expected.getRGB(x, y) >>> 24, actual.getRGB(x, y) >>> 24,
+                        "alpha mismatch at " + x + "," + y);
+            }
+        }
     }
 }
