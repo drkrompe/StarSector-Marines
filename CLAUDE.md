@@ -438,10 +438,18 @@ Do not run builds or leave generated task files there.
   **The JVM's own output never reaches `starsector.log`.** A fatal-error block, a
   native loader failure, and anything printed outside log4j go to stdout/stderr
   only, so the task tees them to `build/starsector-run/console.log` and points
-  `-XX:ErrorFile` at `build/starsector-run/hs_err_pid<pid>.log`. When the game
-  dies without explanation, read those two before `starsector.log` — log4j
-  buffers, so a hard kill can drop the last lines of the log while the console
+  `-XX:ErrorFile` at `build/starsector-run/hs_err_pid<pid>.log`. Every run also
+  writes `build/starsector-run/run-summary.txt` with the decoded exit status.
+  When the game dies without explanation, read those before `starsector.log` —
+  log4j buffers, so a hard kill can drop the log's last lines while the console
   capture keeps them.
+  **The exit status is the fact that separates the cases**, which is why it is
+  written to a file rather than only logged. `0` means something asked the
+  process to stop, so a `0` with no shutdown banner in the log means it was
+  killed from outside the JVM. An NTSTATUS names a cause instead:
+  `0xC0000005` is a native crash, and `0xC000001D` (illegal instruction) points
+  at the experimental `-XX:UseAVX` / vector flags in the installed `vmparams`
+  rather than at anything in the mod.
 - `gradlew.bat prepareCatalogSmoke` → stages the additive two-provider catalog
   acceptance fixture without launching Starsector. Pass
   `-PcatalogSmokeMode=collision` to stage the duplicate-id variant.
