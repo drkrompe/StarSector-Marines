@@ -434,8 +434,14 @@ Do not run builds or leave generated task files there.
   itself. The installed .bat ends in a malformed `if errorlevel 1 {` block, so
   `cmd /c` returns that block's status and a JVM that dies mid-battle still
   leaves the task green. Running the command line directly makes the reported
-  exit code the JVM's own. **A JVM fatal error prints to the Gradle console, not
-  to `starsector.log`** — read the console first when the game dies silently.
+  exit code the JVM's own.
+  **The JVM's own output never reaches `starsector.log`.** A fatal-error block, a
+  native loader failure, and anything printed outside log4j go to stdout/stderr
+  only, so the task tees them to `build/starsector-run/console.log` and points
+  `-XX:ErrorFile` at `build/starsector-run/hs_err_pid<pid>.log`. When the game
+  dies without explanation, read those two before `starsector.log` — log4j
+  buffers, so a hard kill can drop the last lines of the log while the console
+  capture keeps them.
 - `gradlew.bat prepareCatalogSmoke` → stages the additive two-provider catalog
   acceptance fixture without launching Starsector. Pass
   `-PcatalogSmokeMode=collision` to stage the duplicate-id variant.
