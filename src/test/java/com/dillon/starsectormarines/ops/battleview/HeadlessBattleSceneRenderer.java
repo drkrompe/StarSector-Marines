@@ -79,6 +79,13 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             HeadlessArmoryPreviewRenderer.installCatalogs(modRoot);
             installTileCatalogs(modRoot);
             sprites = sharedSprites(modRoot);
+            // BattleScreen.attach loads these before it builds batches; nothing
+            // does it here, so a headless scene collected every unit and drew
+            // none of them -- UnitRenderService skips a row whose sheet is
+            // null, silently, which reads as a render system that does not
+            // work rather than as art that was never loaded.
+            sprites.ensureUnitSheets();
+            sprites.ensureEngineFxSprites();
             renderer = new BattleRenderer(sprites);
             this.skipUnsupportedCommands = skipUnsupportedCommands;
         } catch (Exception failure) {
