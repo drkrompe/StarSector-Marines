@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — extended the one-shot tactical movement override to a
+Updated: 2026-08-31 — added the first contextual squad order: an uncaptured
+Conquest compound reuses the ordinary secure-compound plan through territorial
+completion, then hands execution back to mission command.
+
+Earlier 2026-08-31 — extended the one-shot tactical movement override to a
 selected Marine infantry squad, using its ordinary attack-move plan so fire-team
 organization, moving fire, survival, and mission handback remain intact.
 
@@ -1059,6 +1063,16 @@ an entirely broken squad or form-up state suspends execution without erasing the
 request. Arrival clears the tactical context before the ordinary mission replan
 on that command tick, and a hard withdrawal cancels it. Enemy, Mech, drone,
 rescue-guard, non-soldier, wiped, and stale squad selections are refused.
+
+That same world request is contextual when its cell lies inside an uncaptured
+Conquest compound. The compound's authored node remains the stable target while
+its live capture-zone id may rebind after topology changes. Execution becomes
+the existing `SECURE_COMPOUND` plan, so the squad approaches through ordinary
+route costing and fire-team contact behavior, commits through the final room
+threshold, clears the capture room, and holds it. Reaching the marker or capture
+cell does not finish the order; only the compound state reaching `MARINE_HELD`
+does. A captured compound is ordinary ground again, and an unreachable
+contextual target is refused without clearing a still-effective player order.
 
 ## Mission, space, and feature boundaries
 

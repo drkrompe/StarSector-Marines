@@ -110,10 +110,10 @@ class GroundShaderGlEvidence {
             program.set2f("sunDir", -0.707f, 0.707f);
             program.set1f("sunRisePerCell", 0.78f);
             program.set1f("shadowRangeCells", 3.8f);
-            program.set1f("shadowStrength", GroundParallaxPipeline.DEFAULT_SUN_SHADOW_STRENGTH);
+            program.set1f("shadowStrength", SunLight.DEFAULT_SHADOW_STRENGTH);
             program.set1f("shadowSoftnessMeters", GroundParallaxPipeline.SHADOW_SOFTNESS_METERS);
-            program.set3f("shadowTint", GroundParallaxPipeline.SHADOW_TINT_R,
-                    GroundParallaxPipeline.SHADOW_TINT_G, GroundParallaxPipeline.SHADOW_TINT_B);
+            program.set3f("shadowTint", SunLight.TINT_R,
+                    SunLight.TINT_G, SunLight.TINT_B);
             program.set1f("aspect", 1.777f);
             program.set1f("lightingStrength", GroundParallaxPipeline.DEFAULT_LIGHTING_STRENGTH);
             for (int i = 0; i < GroundLightService.MAX_SHADER_LIGHTS; i++) {

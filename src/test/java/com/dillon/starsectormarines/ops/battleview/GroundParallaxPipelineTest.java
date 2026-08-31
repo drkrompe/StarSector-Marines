@@ -21,37 +21,6 @@ class GroundParallaxPipelineTest {
     }
 
     @Test
-    void sunSettingsClampToTheirDebugDialRanges() {
-        GroundParallaxPipeline pipeline = new GroundParallaxPipeline();
-        assertEquals(GroundParallaxPipeline.DEFAULT_SUN_SHADOW_STRENGTH,
-                pipeline.sunShadowStrength(), 1e-6f);
-        assertEquals(GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES,
-                pipeline.sunAzimuthDegrees(), 1e-6f);
-        assertEquals(GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
-                pipeline.sunElevationDegrees(), 1e-6f);
-
-        pipeline.setSunShadowStrength(-1f);
-        pipeline.setSunAzimuthDegrees(-30f);
-        pipeline.setSunElevationDegrees(-5f);
-        assertEquals(GroundParallaxPipeline.MIN_SUN_SHADOW_STRENGTH,
-                pipeline.sunShadowStrength(), 1e-6f);
-        assertEquals(GroundParallaxPipeline.MIN_SUN_AZIMUTH_DEGREES,
-                pipeline.sunAzimuthDegrees(), 1e-6f);
-        assertEquals(GroundParallaxPipeline.MIN_SUN_ELEVATION_DEGREES,
-                pipeline.sunElevationDegrees(), 1e-6f);
-
-        pipeline.setSunShadowStrength(99f);
-        pipeline.setSunAzimuthDegrees(999f);
-        pipeline.setSunElevationDegrees(999f);
-        assertEquals(GroundParallaxPipeline.MAX_SUN_SHADOW_STRENGTH,
-                pipeline.sunShadowStrength(), 1e-6f);
-        assertEquals(GroundParallaxPipeline.MAX_SUN_AZIMUTH_DEGREES,
-                pipeline.sunAzimuthDegrees(), 1e-6f);
-        assertEquals(GroundParallaxPipeline.MAX_SUN_ELEVATION_DEGREES,
-                pipeline.sunElevationDegrees(), 1e-6f);
-    }
-
-    @Test
     void independentSurfaceAndWaterSettingsClampToTheirDialRanges() {
         GroundParallaxPipeline pipeline = new GroundParallaxPipeline();
         assertEquals(GroundParallaxPipeline.DEFAULT_SURFACE_STRENGTH,

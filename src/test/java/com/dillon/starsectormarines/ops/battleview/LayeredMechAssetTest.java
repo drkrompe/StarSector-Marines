@@ -23,6 +23,16 @@ class LayeredMechAssetTest {
             "knights-of-ludd", "luddic-path", "sindrian-diktat", "lions-guard",
             "pirates", "independent"
     };
+    private static final SpriteSpec[] WEAPONS = {
+            new SpriteSpec("chaingun-arm.png", 62, 112, 2_500),
+            new SpriteSpec("linear-cannon-variant.png", 58, 138, 2_500),
+            new SpriteSpec("heavy-cannon.png", 64, 128, 2_500),
+            new SpriteSpec("srm-pod.png", 62, 88, 2_500),
+            new SpriteSpec("lrm-pod.png", 76, 96, 2_500)
+    };
+
+    private record SpriteSpec(String filename, int width, int height, int minimumVisiblePixels) {
+    }
 
     @Test
     void familyChassisSpritesAreNormalizedTransparentAndDistinct() throws IOException {
@@ -51,6 +61,25 @@ class LayeredMechAssetTest {
                 assertNotEquals(pixelHash(base), pixelHash(skin), faction + "/" + filename);
                 assertTrue(paintHashes.add(pixelHash(skin)),
                         "duplicate faction paint for " + filename + ": " + faction);
+            }
+        }
+    }
+
+    @Test
+    void factionWeaponSkinsRetainExactMasksSharedHardwareAndDistinctPaint() throws IOException {
+        for (SpriteSpec weapon : WEAPONS) {
+            BufferedImage base = load(weapon.filename());
+            Set<Integer> paintHashes = new HashSet<>();
+            for (String faction : FACTION_SKINS) {
+                BufferedImage skin = load("factions/" + faction + "/" + weapon.filename());
+                assertTransparentSprite(skin, weapon.width(), weapon.height(),
+                        weapon.minimumVisiblePixels());
+                assertAlphaMaskEquals(base, skin);
+                assertNotEquals(pixelHash(base), pixelHash(skin),
+                        faction + "/" + weapon.filename());
+                assertTrue(paintHashes.add(pixelHash(skin)),
+                        "duplicate faction paint for " + weapon.filename() + ": " + faction);
+                assertSharedHardwareRemains(base, skin);
             }
         }
     }
@@ -115,5 +144,19 @@ class LayeredMechAssetTest {
                         "alpha mismatch at " + x + "," + y);
             }
         }
+    }
+
+    private static void assertSharedHardwareRemains(BufferedImage base, BufferedImage skin) {
+        int visible = 0;
+        int unchanged = 0;
+        for (int y = 0; y < base.getHeight(); y++) {
+            for (int x = 0; x < base.getWidth(); x++) {
+                if ((base.getRGB(x, y) >>> 24) < 24) continue;
+                visible++;
+                if (base.getRGB(x, y) == skin.getRGB(x, y)) unchanged++;
+            }
+        }
+        assertTrue(unchanged > visible / 6,
+                "at least one sixth of visible weapon hardware must remain byte-identical");
     }
 }

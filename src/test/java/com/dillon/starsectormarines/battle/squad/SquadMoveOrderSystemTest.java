@@ -3,12 +3,18 @@ package com.dillon.starsectormarines.battle.squad;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.AttackMoveGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.goap.action.EnterZone;
 import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
+import com.dillon.starsectormarines.battle.infantry.SecureCompoundGoal;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveOrder;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveCaptureOrder;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveMoveOrder;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.SquadMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -28,6 +34,94 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadMoveOrderSystemTest {
+
+    @Test
+    void uncapturedObjectiveRunsTheOrdinarySecureActionUntilCaptureCompletes() {
+        BattleSimulation sim = partitionedSimulation();
+        Squad squad = infantrySquad(sim, Faction.MARINE, 3, 5, 2);
+        ObjectiveAssignment mission = ObjectiveAssignment.clearZone(squad.id, 7);
+        squad.assignedObjective = mission;
+        TacticalNode objective = compoundAt(13, 5);
+        CompoundService.Record record = sim.getCompoundService().register(objective);
+
+        sim.getSquadMoveOrderService().requestMove(squad.id, 13, 5);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        ActiveOrder active = sim.getSquadMoveOrderService().activeOrder(squad.id);
+        ActiveCaptureOrder capture = assertInstanceOf(ActiveCaptureOrder.class, active);
+        int captureZone = sim.getCompoundService().captureZoneId(record, sim);
+        assertEquals(objective, capture.targetNode());
+        assertEquals(record.captureCellX, capture.destinationX());
+        assertEquals(record.captureCellY, capture.destinationY());
+        assertSame(mission, squad.assignedObjective);
+        assertEquals(AssignmentKind.SECURE_COMPOUND,
+                squad.assignmentForExecution().kind());
+        assertEquals(captureZone, squad.assignmentForExecution().targetZoneId());
+        assertSame(objective, squad.assignmentForExecution().targetNode());
+
+        Selection selection = new Selection();
+        selection.selectSquad(squad.id);
+        HighlightOverlay overlay = new HighlightOverlay();
+        SquadMoveOrderHighlightPublisher.publish(selection, sim, overlay);
+        assertEquals(record.captureCellX, overlay.source(
+                HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION).get(0).cellX);
+        assertEquals(record.captureCellY, overlay.source(
+                HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION).get(0).cellY);
+
+        GoapInfantryBehavior.replanIfNeeded(squad, sim);
+        assertSame(SecureCompoundGoal.INSTANCE, squad.currentGoal);
+        assertInstanceOf(EnterZone.class, squad.currentPlan.currentStep().action,
+                "the contextual order reuses the combat-aware compound approach");
+
+        record.state = CompoundService.CompoundState.CONTESTED;
+        sim.getSquadMoveOrderSystem().tick(sim);
+        assertSame(active, sim.getSquadMoveOrderService().activeOrder(squad.id),
+                "arrival and contested progress do not complete the action");
+
+        record.state = CompoundService.CompoundState.MARINE_HELD;
+        sim.getSquadMoveOrderSystem().tick(sim);
+        assertNull(sim.getSquadMoveOrderService().activeOrder(squad.id));
+        assertSame(mission, squad.assignmentForExecution());
+        assertNull(squad.currentPlan,
+                "completion hands back before the authoritative mission replans");
+    }
+
+    @Test
+    void capturedObjectiveRemainsOrdinaryGroundForMoveOrders() {
+        BattleSimulation sim = openSimulation(20, 12);
+        Squad squad = infantrySquad(sim, Faction.MARINE, 3, 5, 1);
+        TacticalNode objective = compoundAt(13, 5);
+        CompoundService.Record record = sim.getCompoundService().register(objective);
+        record.state = CompoundService.CompoundState.MARINE_HELD;
+
+        sim.getSquadMoveOrderService().requestMove(squad.id, 13, 5);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        assertInstanceOf(ActiveMoveOrder.class,
+                sim.getSquadMoveOrderService().activeOrder(squad.id));
+        assertEquals(AssignmentKind.ATTACK_MOVE,
+                squad.assignmentForExecution().kind());
+    }
+
+    @Test
+    void unreachableObjectiveIsRejectedWithoutClearingTheCurrentOrder() {
+        BattleSimulation sim = disconnectedSimulation();
+        Squad squad = infantrySquad(sim, Faction.MARINE, 3, 5, 1);
+        sim.getCompoundService().register(compoundAt(13, 5));
+
+        sim.getSquadMoveOrderService().requestMove(squad.id, 6, 5);
+        sim.getSquadMoveOrderSystem().tick(sim);
+        ActiveOrder incumbent = sim.getSquadMoveOrderService().activeOrder(squad.id);
+        assertInstanceOf(ActiveMoveOrder.class, incumbent);
+
+        sim.getSquadMoveOrderService().requestMove(squad.id, 13, 5);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        assertSame(incumbent,
+                sim.getSquadMoveOrderService().activeOrder(squad.id));
+        assertEquals(AssignmentKind.ATTACK_MOVE,
+                squad.assignmentForExecution().kind());
+    }
 
     @Test
     void commandSnapsToReachableGroundWithoutReplacingMissionAuthority() {
@@ -177,5 +271,37 @@ class SquadMoveOrderSystemTest {
             for (int x = 0; x < width; x++) grid.setWalkableFloor(x, y);
         }
         return new BattleSimulation(grid, new CellTopology(width, height));
+    }
+
+    private static BattleSimulation partitionedSimulation() {
+        int width = 20;
+        int height = 12;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (x != 8) grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setWalkableFloor(8, 5);
+        grid.setDoorway(8, 5, true);
+        return new BattleSimulation(grid, new CellTopology(width, height));
+    }
+
+    private static BattleSimulation disconnectedSimulation() {
+        int width = 20;
+        int height = 12;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (x != 8) grid.setWalkableFloor(x, y);
+            }
+        }
+        return new BattleSimulation(grid, new CellTopology(width, height));
+    }
+
+    private static TacticalNode compoundAt(int x, int y) {
+        return new TacticalNode(TacticalNode.Kind.BARRACKS, x, y,
+                x - 1, y - 1, x + 1, y + 1,
+                Faction.DEFENDER, 50, 4);
     }
 }

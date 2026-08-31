@@ -4,13 +4,16 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — a mission now states the map features it requires and a
+Updated: 2026-08-31 — a selected Marine infantry squad can be contextually
+ordered to secure an uncaptured compound through `MARINE_HELD` completion.
+
+Earlier 2026-08-29 — a mission now states the map features it requires and a
 map that falls short is re-rolled rather than played.
 
-Updated: 2026-08-29 — compact numbered world beacons now reserve progress and
+Earlier 2026-08-29 — compact numbered world beacons now reserve progress and
 animation for actively contested compounds.
 
-Updated: 2026-08-28 — made the footprint-resolved capture room authoritative
+Earlier 2026-08-28 — made the footprint-resolved capture room authoritative
 across capture, command, execution, presentation, and evidence, and scoped
 occupancy to the footprint as well so an open compound is capturable.
 
@@ -155,6 +158,14 @@ matching the battle objective rail. Defender- and marine-held beacons stay
 subdued; only a contested compound gains the amber progress arc, percentage,
 and restrained pulse. The marker remains centered on the authored compound for
 legibility and does not replace the resolved capture cell as tactical authority.
+
+A player contextual capture request follows the same authority. A click inside
+an uncaptured compound names its stable authored node, resolves that node's live
+capture room, and temporarily asks the selected Marine infantry squad to execute
+the ordinary secure-compound action. The squad approaches, clears, and holds;
+arrival alone does not release it. Release occurs when this compound reports
+`MARINE_HELD`, at which point the squad resumes the current mission directive.
+A compound already held by Marines is ordinary ground for right-click movement.
 
 Having a capture room is not sufficient; marines have to be able to walk into
 it. Every compound is therefore reachable from the marine spawn, and generation
