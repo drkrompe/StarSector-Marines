@@ -15,12 +15,38 @@ package com.dillon.starsectormarines.battle.air;
  */
 public final class AirAppearance {
 
-    /** Visual scale of a craft at cruising altitude (sells "I am up high"). Ground scale is 1.0. */
-    public static final float CRUISE_SCALE = 1.5f;
+    /**
+     * Visual scale of a craft standing on the ground.
+     *
+     * <p>An aircraft's drawn size comes from its hull's own sprite height (see
+     * {@code HullFootprintResolver}), which puts a fighter at a true-to-scale
+     * handful of cells — correct, and far too small to read on a map where the
+     * thing next to it is a marine. This is the deliberate departure from that
+     * scale, applied on the ground and carried up with the altitude term, so a
+     * parked aircraft is a recognisable object rather than a speck on an apron.
+     */
+    public static final float GROUND_SCALE = 1.5f;
+
+    /**
+     * How much larger a craft draws at cruising altitude than on the ground.
+     *
+     * <p>The altitude cue is this <em>ratio</em>, not either scale by itself, so
+     * it is the thing held fixed when the ground scale changes.
+     */
+    public static final float ALTITUDE_SCALE_GAIN = 1.5f;
+
+    /** Visual scale of a craft at cruising altitude (sells "I am up high"). */
+    public static final float CRUISE_SCALE = GROUND_SCALE * ALTITUDE_SCALE_GAIN;
     /** Frequency (Hz) of the in-flight scale wobble. Slower than a heartbeat — reads as atmospheric drift, not a flicker. */
     public static final float WOBBLE_HZ = 0.7f;
-    /** Peak amplitude of the wobble, in scale units. ±0.04 on top of a 1.5 cruise = ~2.7%; well inside the 5% target. */
-    public static final float WOBBLE_AMPLITUDE = 0.04f;
+    /**
+     * Peak amplitude of the wobble, as a fraction of the cruise scale.
+     *
+     * <p>Proportional rather than absolute, so growing the aircraft does not
+     * quietly flatten the drift: 2.7% of whatever cruise happens to be, which
+     * is inside the 5% target at any scale.
+     */
+    public static final float WOBBLE_FRACTION = 0.027f;
     /** Peak screen-Y offset (cells) at {@code altitudeT == 1} to sell altitude in the top-down view. Render-only; sim-space position is unchanged. */
     public static final float VISUAL_ALT_PEAK_CELLS = 3.0f;
     /** Engine intensity while parked on the ground — quiet hum, not silent. */
@@ -29,13 +55,15 @@ public final class AirAppearance {
     private AirAppearance() {}
 
     /**
-     * Render scale multiplier derived from altitude + wobble phase. 1.0 on the
-     * ground (the wobble is gated by {@code altitudeT}, so it dies cleanly at 0),
-     * rising to ~{@link #CRUISE_SCALE} at altitude.
+     * Render scale multiplier derived from altitude + wobble phase.
+     * {@link #GROUND_SCALE} on the ground (the wobble is gated by
+     * {@code altitudeT}, so it dies cleanly at 0), rising to
+     * ~{@link #CRUISE_SCALE} at altitude.
      */
     public static float scaleMult(float altitudeT, float flightPhase) {
-        float base = 1f + (CRUISE_SCALE - 1f) * altitudeT;
-        float wobble = (float) Math.sin(flightPhase) * WOBBLE_AMPLITUDE * altitudeT;
+        float base = GROUND_SCALE + (CRUISE_SCALE - GROUND_SCALE) * altitudeT;
+        float wobble = (float) Math.sin(flightPhase)
+                * (WOBBLE_FRACTION * CRUISE_SCALE) * altitudeT;
         return base + wobble;
     }
 

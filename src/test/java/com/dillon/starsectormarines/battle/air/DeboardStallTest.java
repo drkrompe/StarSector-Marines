@@ -80,8 +80,7 @@ class DeboardStallTest {
         assertEquals(0, mission.deboardedThisSortie,
                 "there was genuinely nowhere to put anybody");
         assertTrue(mission.state == ShuttleState.DEPARTING
-                        || mission.state == ShuttleState.GONE
-                        || mission.state == ShuttleState.HOVER_STATION,
+                        || mission.state == ShuttleState.GONE,
                 "the craft gave up and left rather than holding the LZ: "
                         + mission.state);
     }

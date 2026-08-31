@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
@@ -417,8 +419,20 @@ public final class AirbaseLot {
      * people can get past the base, and leaving it as raw dirt in the middle of
      * a made facility reads as ground nobody thought about rather than as the
      * way round.
+     *
+     * <p><b>Paving is replacing, so the lot takes out what was there.</b> Not
+     * only the cells: a building id, a kind hint, a wall mask, a doorway or an
+     * authored edge that outlives the building it belonged to is worse than
+     * clutter. A roof is drawn wherever a cell carries a building id, and a
+     * hint left under fresh tarmac is re-flooded into one at finalize — which
+     * is a brick slab standing in the middle of the apron with no walls under
+     * it, because the walls were paved over and the id was not. The same goes
+     * for what generation recorded about the ground: a point of interest or a
+     * tactical node still naming a demolished building sends a squad to hold a
+     * place that is now a taxiway, and puts a capture marker on it.
      */
     private void pave(GenContext ctx) {
+        clearPriorGround(ctx);
         for (int x = left - clearance; x <= right + clearance; x++) {
             for (int y = bottom - clearance; y <= top + clearance; y++) {
                 if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
@@ -436,6 +450,52 @@ public final class AirbaseLot {
                 ctx.markMadeGround(x, y);
             }
         }
+    }
+
+    /**
+     * Take out whatever stood on this reservation before the lot claimed it.
+     *
+     * <p>Run over the whole reservation rather than only inside the fence,
+     * because the verge is paved walkable too: a wall cell turned into
+     * sidewalk while its building id and kind hint stay behind is the same
+     * orphan roof, just outside the wire.
+     *
+     * <p>A host that hands over occupied ground is normally the thing at fault
+     * — a mission objective ought to be refused a site rather than buried under
+     * one, which is why the fortress ward declines a lot over its keep. This is
+     * what makes that a placement rule rather than a rendering accident: with
+     * nothing left behind, ground the lot was given is ground the lot has, and
+     * a host's mistake shows up as a missing building instead of as a marker
+     * floating on an apron.
+     */
+    private void clearPriorGround(GenContext ctx) {
+        for (int x = left - clearance; x <= right + clearance; x++) {
+            for (int y = bottom - clearance; y <= top + clearance; y++) {
+                if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
+                // Before the cell is repaved: an authored edge whose structure
+                // is about to be tarmac is scenery with nothing to belong to,
+                // and an edge the fence cannot then author on.
+                ctx.grid.removeEdgeBarrier(x, y, Direction.E);
+                ctx.grid.removeEdgeBarrier(x, y, Direction.N);
+                ctx.grid.removeEdgeBarrier(x, y, Direction.W);
+                ctx.grid.removeEdgeBarrier(x, y, Direction.S);
+                ctx.grid.setDoorway(x, y, false);
+                ctx.topology.setWallDirMask(x, y, 0);
+                ctx.topology.setWindow(x, y, false);
+                ctx.topology.setBuildingKindHint(x, y, null);
+                ctx.topology.setBuildingId(x, y, 0);
+                ctx.topology.setTag(x, y, Tag.WALL, false);
+            }
+        }
+        ctx.doodads.removeIf(doodad -> onReservation(doodad.cellX, doodad.cellY));
+        ctx.pois.removeIf(poi -> onReservation(poi.anchorCellX, poi.anchorCellY));
+        ctx.tactical.removeIf(node -> onReservation(node.anchorX, node.anchorY));
+    }
+
+    /** Whether this cell is anywhere on the ground the lot reserved. */
+    private boolean onReservation(int x, int y) {
+        return x >= left - clearance && x <= right + clearance
+                && y >= bottom - clearance && y <= top + clearance;
     }
 
     /**

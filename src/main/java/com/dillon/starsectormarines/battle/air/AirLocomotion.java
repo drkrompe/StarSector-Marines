@@ -84,7 +84,6 @@ public enum AirLocomotion {
             case PAD_DESCENT:
                 return MANAGED;
             case INCOMING:
-            case HOVER_STATION:
             case ATTACK_RUN:
             case REPOSITION:
             case DEPARTING:
