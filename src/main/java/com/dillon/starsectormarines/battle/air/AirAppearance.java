@@ -97,6 +97,12 @@ public final class AirAppearance {
      * for rather than the altitude: it is the one ground phase where the
      * engines are doing everything they can, and at the start of it the
      * aircraft is still at zero altitude.
+     *
+     * <p>{@code PAD_ASCENT} and {@code PAD_DESCENT} are deliberately absent
+     * from this switch. Both fall to {@code altitudeT} itself, which is
+     * already the plume this method exists to compute: a craft climbing off
+     * its pad or settling onto one is drawn with the plume rising and fading
+     * exactly as its altitude does, with nothing extra to say for either.
      */
     public static float thrusterPlume(ShuttleState state, float altitudeT) {
         switch (state) {
