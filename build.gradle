@@ -688,14 +688,59 @@ tasks.register('runStarsector', Exec) {
         sink?.close()
         int code = executionResult.get().exitValue
         def crashes = diagnosticsDir.listFiles({ f -> f.name.startsWith('hs_err_pid') } as FileFilter)
+
+        // Write the exit status down. It is the most diagnostic fact about a death
+        // that produced no output, and it separates cases nothing else can: 0 means
+        // something asked the process to stop, while an NTSTATUS means the OS killed
+        // it and says why. Logged only to the console it is lost to scrollback, which
+        // is the mistake this task exists to stop repeating.
+        def status = describeExitCode(code)
+        def summary = new File(diagnosticsDir, 'run-summary.txt')
+        summary.text = ['exit code : ' + code + ' (' + unsignedHex(code) + ')',
+                        'meaning   : ' + status,
+                        'finished  : ' + new Date(),
+                        'console   : ' + consoleLog,
+                        'crash log : ' + (crashes ? crashes*.name.join(', ') : 'none written'),
+                        ''].join(System.lineSeparator())
+
         if (code != 0) {
-            logger.error("Starsector exited with code ${code}. Console output (where a JVM "
-                    + "fatal error prints -- it never reaches starsector.log) was captured to "
-                    + "${consoleLog}.")
+            logger.error("Starsector exited with code ${code} (${unsignedHex(code)}) -- ${status}."
+                    + " See ${summary} and ${consoleLog}.")
+        } else {
+            logger.lifecycle("Starsector exited cleanly (code 0). Run details in ${summary}.")
         }
         if (crashes) {
             logger.error("JVM crash report(s) written: ${crashes*.name.join(', ')} in ${diagnosticsDir}")
         }
+    }
+}
+
+/** The exit status as Windows wrote it. Java narrows the DWORD to a negative int. */
+def unsignedHex(int code) {
+    '0x' + Long.toHexString(code & 0xFFFFFFFFL).toUpperCase()
+}
+
+/**
+ * What Windows means by a process exit code, for the ones worth recognising.
+ *
+ * A death that logs nothing is identified by its exit status or not at all, and
+ * the NTSTATUS values name a cause: an illegal instruction points at the JVM's
+ * experimental -XX:UseAVX / vector flags rather than at anything in the mod, and
+ * an access violation points at native or driver code. Zero is the one to read
+ * carefully -- it means the process was asked to stop, so if no shutdown banner
+ * was logged it was killed from outside rather than having crashed.
+ */
+def describeExitCode(int code) {
+    switch (code & 0xFFFFFFFFL) {
+        case 0L:          return 'asked to stop -- with no shutdown banner logged, killed from outside the JVM'
+        case 1L:          return 'generic failure'
+        case 0xC0000005L: return 'ACCESS_VIOLATION -- native crash in driver or JNI code'
+        case 0xC000001DL: return 'ILLEGAL_INSTRUCTION -- suspect the experimental -XX:UseAVX / vector flags in vmparams'
+        case 0xC0000374L: return 'HEAP_CORRUPTION'
+        case 0xC00000FDL: return 'STACK_OVERFLOW'
+        case 0xC000013AL: return 'CONTROL_C_EXIT -- terminated by a console interrupt'
+        case 0x40010004L: return 'DBG_TERMINATE_PROCESS -- killed by a debugger or Task Manager'
+        default:          return 'unrecognised'
     }
 }
 
