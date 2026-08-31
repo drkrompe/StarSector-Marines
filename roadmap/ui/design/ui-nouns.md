@@ -4,7 +4,11 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — a stationary right-click inside an uncaptured Conquest
+Updated: 2026-08-31 — the selected infantry plate now arms a Defend Area
+placement mode whose next world click previews and places a 40-cell-diameter
+circle; right-click or Escape cancels placement.
+
+Earlier 2026-08-31 — a stationary right-click inside an uncaptured Conquest
 compound now resolves the selected infantry squad's gesture as capture rather
 than bare ground movement.
 
@@ -264,6 +268,16 @@ completes; a Marine-held compound remains ordinary ground. Selecting a squad
 opens a bounded, scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
+
+The same selected-infantry plate exposes **Defend Area** as a deliberate
+two-step command rather than overloading the contextual right-click gesture.
+Arming it gives the next primary world click to a circular twenty-cell-radius
+reticle; right-click, Escape, or selection change cancels without issuing an
+order. Placement returns the input seam to ordinary world selection, while the
+selected squad's accepted circle remains visible as a center and perimeter cue
+until another order or withdrawal supersedes it. Presentation supplies only
+the squad identity and clicked cell; the simulation validates and snaps the
+center and owns the defensive behavior.
 
 ## Vertical scrolling
 

@@ -37,6 +37,8 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  *                    serve one; {@code -1} for pure tactical assignments
  * @param targetCellX  exact rally/escort cell; {@code -1} when not cell-scoped
  * @param targetCellY  exact rally/escort cell; {@code -1} when not cell-scoped
+ * @param targetRadiusCells radius of a bounded cell area; {@code -1} when the
+ *                          assignment is not area-scoped
  */
 public record ObjectiveAssignment(
         int squadId,
@@ -45,10 +47,20 @@ public record ObjectiveAssignment(
         TacticalNode targetNode,
         int objectiveId,
         int targetCellX,
-        int targetCellY) {
+        int targetCellY,
+        int targetRadiusCells) {
 
     /** Sentinel returned by zone-id / objective-id slots when the assignment isn't scoped to them. */
     public static final int UNSCOPED = -1;
+
+    /** Exact-cell/zone constructor for assignments with no radius. */
+    public ObjectiveAssignment(int squadId, AssignmentKind kind,
+                               int targetZoneId, TacticalNode targetNode,
+                               int objectiveId, int targetCellX,
+                               int targetCellY) {
+        this(squadId, kind, targetZoneId, targetNode, objectiveId,
+                targetCellX, targetCellY, UNSCOPED);
+    }
 
     /** Convenience: zone-scoped clear with no node + no objective backref. */
     public static ObjectiveAssignment clearZone(int squadId, int zoneId) {
@@ -78,6 +90,14 @@ public record ObjectiveAssignment(
     public static ObjectiveAssignment defendArea(int squadId, int cellX, int cellY) {
         return new ObjectiveAssignment(squadId, AssignmentKind.DEFEND_AREA,
                 UNSCOPED, null, UNSCOPED, cellX, cellY);
+    }
+
+    /** Player-authored circular defense area centered on reachable ground. */
+    public static ObjectiveAssignment defendArea(int squadId, int cellX, int cellY,
+                                                  int radiusCells) {
+        if (radiusCells < 1) throw new IllegalArgumentException("radiusCells must be positive");
+        return new ObjectiveAssignment(squadId, AssignmentKind.DEFEND_AREA,
+                UNSCOPED, null, UNSCOPED, cellX, cellY, radiusCells);
     }
 
     /** Attacker-side Conquest staging point behind the believed lane front. */

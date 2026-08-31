@@ -11,7 +11,8 @@ final class CommandFrameCopies {
         if (source == null) return null;
         return new ObjectiveAssignment(source.squadId(), source.kind(),
                 source.targetZoneId(), node(source.targetNode()),
-                source.objectiveId(), source.targetCellX(), source.targetCellY());
+                source.objectiveId(), source.targetCellX(), source.targetCellY(),
+                source.targetRadiusCells());
     }
 
     static CommandDirective directive(CommandDirective source) {

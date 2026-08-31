@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.DefendTrack;
+import com.dillon.starsectormarines.battle.decision.goap.action.DefendArea;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -27,9 +28,11 @@ public final class DefendAssignedAreaGoal implements Goal {
             return 0f;
         }
         if (assignment.targetCellX() < 0 || assignment.targetCellY() < 0) return 0f;
-        if (state.get(Predicate.MORALE_BROKEN) || state.get(Predicate.HAS_TARGET)) {
+        if (state.get(Predicate.MORALE_BROKEN)) {
             return 0f;
         }
+        if (assignment.targetRadiusCells() < 1
+                && state.get(Predicate.HAS_TARGET)) return 0f;
         return 0.86f;
     }
 
@@ -45,16 +48,24 @@ public final class DefendAssignedAreaGoal implements Goal {
         }
         int x = assignment.targetCellX();
         int y = assignment.targetCellY();
+        int radius = assignment.targetRadiusCells();
         SquadPlan current = squad.currentPlan;
         if (current != null && !current.isComplete()) {
             SquadPlan.Step step = current.currentStep();
-            if (step != null && step.action instanceof DefendTrack defend
+            if (radius > 0 && step != null
+                    && step.action instanceof DefendArea defend
+                    && defend.centerX() == x && defend.centerY() == y
+                    && defend.radius() == radius) {
+                return current;
+            }
+            if (radius < 1 && step != null && step.action instanceof DefendTrack defend
                     && defend.assignmentKind() == AssignmentKind.DEFEND_AREA
                     && defend.targetX() == x && defend.targetY() == y) {
                 return current;
             }
         }
-        return new SquadPlan(List.of(new SquadPlan.Step(
-                new DefendTrack(AssignmentKind.DEFEND_AREA, x, y))));
+        return new SquadPlan(List.of(new SquadPlan.Step(radius > 0
+                ? new DefendArea(x, y, radius)
+                : new DefendTrack(AssignmentKind.DEFEND_AREA, x, y))));
     }
 }

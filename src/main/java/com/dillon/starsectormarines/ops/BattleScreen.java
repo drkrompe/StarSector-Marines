@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
+import com.dillon.starsectormarines.battle.ui.panel.SquadDefendTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.CommanderInfluenceOverlayPublisher;
@@ -200,6 +201,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleRetreatOverlay retainedRetreatOverlay;
     /** World click/reticle half of the power flow; card selection lives in MLX. */
     private CommandPowerTargetingPanel commandPowerTargeting;
+    /** World placement half of the selected-infantry Defend Area order. */
+    private SquadDefendTargetingPanel squadDefendTargeting;
     /** Shared selection state read by HUD panels (and, later, a world-picker). Survives across attach()/rebuild() cycles; self-heals when the selected squad disappears. */
     private final Selection selection = new Selection();
     /** Shared debug cell-highlight overlay — populated by HUD panels, rendered between the grid pass and the unit sprites. */
@@ -571,6 +574,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         // an armed power claims the map click before squad selection sees it.
         commandPowerTargeting = new CommandPowerTargetingPanel(this);
         hud.addPanel(commandPowerTargeting);
+        // Added above the picker and power targeter. Arming either targeting
+        // family cancels the other, so only one world click owner is live.
+        squadDefendTargeting = new SquadDefendTargetingPanel(this);
+        hud.addPanel(squadDefendTargeting);
         hud.addPanel(new TaskForceStatusPanel(this));
         // Per-squad GOAP plan readout. It has no all-squad overview: the
         // diagnostic opens only while WorldPicker has a squad in Selection.
@@ -674,7 +681,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         retainedOverlay.attach(position, sim, speedMultiplier);
         if (retainedSquadOverlay == null) {
-            retainedSquadOverlay = new BattleSquadOverlay(selection);
+            retainedSquadOverlay = new BattleSquadOverlay(selection,
+                    this::toggleSquadDefendTargeting,
+                    () -> squadDefendTargeting != null
+                            ? squadDefendTargeting.targetingSquadId()
+                            : Selection.NONE);
         }
         retainedSquadOverlay.attach(position, sim);
         if (retainedMechOverlay == null) {
@@ -683,7 +694,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         retainedMechOverlay.attach(position, sim);
         if (retainedPowerOverlay == null) {
             retainedPowerOverlay = new BattlePowerOverlay(
-                    commandPowerTargeting::toggle,
+                    this::toggleCommandPowerTargeting,
                     commandPowerTargeting::targetingPowerId);
         }
         retainedPowerOverlay.attach(position, sim);
@@ -692,6 +703,18 @@ public class BattleScreen implements Screen, BattleUiContext {
                     this::retreatFromBattle, this::continueFromBattle);
         }
         retainedRetreatOverlay.attach(position, sim != null && sim.isComplete());
+    }
+
+    private void toggleSquadDefendTargeting(int squadId) {
+        if (squadDefendTargeting == null) return;
+        if (commandPowerTargeting != null) commandPowerTargeting.cancel();
+        squadDefendTargeting.toggle(squadId);
+    }
+
+    private void toggleCommandPowerTargeting(String powerId) {
+        if (commandPowerTargeting == null) return;
+        if (squadDefendTargeting != null) squadDefendTargeting.cancel();
+        commandPowerTargeting.toggle(powerId);
     }
 
     private void toggleConquestPicture(Faction perspective) {
