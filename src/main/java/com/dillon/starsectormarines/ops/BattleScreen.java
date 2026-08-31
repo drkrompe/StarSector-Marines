@@ -42,6 +42,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.RaidCommanderOverlayPubl
 import com.dillon.starsectormarines.battle.ui.highlight.ExtractionCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.MechMoveOrderHighlightPublisher;
+import com.dillon.starsectormarines.battle.ui.highlight.SquadMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
@@ -472,6 +473,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // selection drops or the squad is wiped out.
         SelectionHighlightPublisher.publish(selection, sim, highlights);
         MechMoveOrderHighlightPublisher.publish(selection, sim, highlights);
+        SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         CommanderInfluenceOverlayPublisher.publish(sim, highlights,
                 debugMarineFriendlyInfluence, debugMarineHostileInfluence,
                 debugDefenderFriendlyInfluence, debugDefenderHostileInfluence);
@@ -1115,19 +1117,28 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private void handleCameraInput(List<InputEventAPI> events) {
         cameraControls.process(events, camera, CameraControls.PointerSpace.SCREEN,
-                this::requestSelectedMechMove);
+                this::requestSelectedTacticalMove);
     }
 
-    /** Queues a one-shot exact-mech move from a stationary world RMB click. */
-    private void requestSelectedMechMove(float screenX, float screenY) {
+    /** Queues a one-shot exact-mech or infantry-squad tactical move. */
+    private void requestSelectedTacticalMove(float screenX, float screenY) {
         BattleSimulation sim = getSim();
-        long mech = selection.getSelectedUnitEntityId();
-        if (sim == null || mech == 0L || camera == null) return;
+        if (sim == null || camera == null) return;
         if (battleChromeBlocksWorldPointer(screenX, screenY)) return;
         int cellX = (int) Math.floor(camera.screenToCellX(screenX));
         int cellY = (int) Math.floor(camera.screenToCellY(screenY));
         if (!sim.getGrid().inBounds(cellX, cellY)) return;
-        sim.getMechMoveOrderService().requestMove(mech, cellX, cellY);
+        long selectedUnit = selection.getSelectedUnitEntityId();
+        if (selectedUnit != 0L && sim.world().hasMechLoadout(selectedUnit)) {
+            sim.getMechMoveOrderService().requestMove(
+                    selectedUnit, cellX, cellY);
+            return;
+        }
+        int selectedSquad = selection.getSelectedSquadId();
+        if (selectedSquad != Selection.NONE) {
+            sim.getSquadMoveOrderService().requestMove(
+                    selectedSquad, cellX, cellY);
+        }
     }
 
     private boolean battleChromeBlocksWorldPointer(float screenX, float screenY) {

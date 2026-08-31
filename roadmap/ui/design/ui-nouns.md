@@ -4,8 +4,9 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — exact-friendly-Mech selection now supports a stationary
-world right-click move order while preserving RMB-drag camera panning.
+Updated: 2026-08-31 — stationary world right-click movement now serves both an
+exact friendly Mech and a selected friendly infantry squad while preserving
+RMB-drag camera panning.
 
 ## Purpose
 
@@ -253,7 +254,10 @@ stale selections. With that exact friendly Mech selected, a stationary
 right-click on world ground requests a one-shot tactical move; the simulation's
 resolved reachable destination is shown as a cyan cell cue until arrival.
 Crossing the pointer threshold instead keeps RMB-drag camera panning, and HUD
-chrome blocks the world request behind it. Selecting a squad opens a bounded,
+chrome blocks the world request behind it. A selected friendly infantry squad
+uses the same gesture and cue at squad scope, whether selection came from one
+world member or the squad roster; the surface supplies only the requested cell
+and does not mutate mission authority or combat state. Selecting a squad opens a bounded,
 scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
