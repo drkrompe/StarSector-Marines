@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -72,7 +73,7 @@ public final class VehicleTransportService {
 
     /** Whether {@code unit} is currently riding in something. */
     public boolean isRiding(long unit) {
-        return entityWorld.has(unit, components.RIDING);
+        return roster.isRiding(unit);
     }
 
     /** The vehicle carrying {@code unit}, or {@code 0L} when it is on its own feet. */
@@ -133,11 +134,22 @@ public final class VehicleTransportService {
      * @return how many got out; a passenger with nowhere to stand stays aboard
      */
     public int dismountAll(long vehicle) {
+        return dismountUpTo(vehicle, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Sets at most {@code limit} of the passengers down, in manifest order.
+     * Bounded because a hull that brews up lets only some of them out.
+     *
+     * @return how many got out
+     */
+    public int dismountUpTo(long vehicle, int limit) {
         if (!convoy.isVehicle(vehicle)) return 0;
         GroundBody body = convoy.body(vehicle);
         Set<Long> taken = new HashSet<>();
         int out = 0;
         for (long unit : manifest(vehicle)) {
+            if (out >= limit) break;
             int[] cell = openCellNear((int) Math.floor(body.x), (int) Math.floor(body.y), taken);
             if (cell == null) break;
             taken.add(key(cell[0], cell[1]));
@@ -161,6 +173,7 @@ public final class VehicleTransportService {
                     new ComponentType[]{components.POSITION, components.MOVEMENT},
                     new ComponentType[]{components.RIDING});
             roster.world().setPos(unit, body.x, body.y);
+            settleFreshMovement(unit);
         }
         return aboard;
     }
@@ -177,6 +190,17 @@ public final class VehicleTransportService {
                 new ComponentType[]{components.POSITION, components.MOVEMENT},
                 new ComponentType[]{components.RIDING});
         roster.world().setPos(unit, x, y);
+        settleFreshMovement(unit);
+    }
+
+    /**
+     * A re-added component arrives zeroed, and a null path is not the same
+     * thing as no path — the movers read its length. Give a dismounted unit
+     * the empty path a unit that never moved would have.
+     */
+    private void settleFreshMovement(long unit) {
+        roster.movement().setPathRef(unit, GridPathfinder.EMPTY_PATH);
+        roster.movement().setPathIdx(unit, 0);
     }
 
     private List<Long> squadMembersNear(long vehicle, int squadId) {

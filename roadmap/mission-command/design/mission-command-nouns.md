@@ -4,7 +4,9 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-31 — an uncaptured Conquest compound may be selected as a
+Updated: 2026-08-31 — a selected Marine infantry squad may hold a persistent
+player-placed 40-cell-diameter defense area beneath its authoritative directive.
+Earlier 2026-08-31 — an uncaptured Conquest compound may be selected as a
 contextual squad action that persists through approach and fighting until the
 territorial objective reports completion.
 Earlier 2026-08-31 — a selected Marine infantry squad may take a one-shot
@@ -316,6 +318,15 @@ completion; the squad approaches, clears, and holds through the ordinary local
 AI until territorial authority reports `MARINE_HELD`. Completion, hard
 withdrawal, loss, or invalidated reachability removes the temporary context and
 reveals the latest authoritative directive without an unassigned interval.
+
+A player-placed defend area is another execution-only intervention, not an
+Assault command-area claim. The player selects an eligible Marine infantry
+squad, arms the order, and places a circle twenty cells in radius around a
+reachable center. The local squad plan owns threat-facing cover, bounded firing
+positions, and moving fire inside that geometry; mission command retains its
+directive and ownership underneath. The defense persists until superseded or
+hard withdrawal rather than completing merely because the squad reached its
+center.
 
 A frozen **command doctrine profile** may bias legal assignment, reserve,
 recapture, and local-posture choices. It does not add objectives, knowledge,

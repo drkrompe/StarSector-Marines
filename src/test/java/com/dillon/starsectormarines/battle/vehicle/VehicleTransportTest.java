@@ -128,6 +128,35 @@ class VehicleTransportTest {
         assertTrue(sim.transport().manifest(apc).isEmpty());
     }
 
+    @Test
+    void aWreckedHullLetsOnlySomeOfThemOut() {
+        // The same deal a wrecked delivery already gives its passenger count:
+        // one or two get out hurt and the rest do not get out. Riders are real
+        // units, so getting out is a dismount and not getting out is a death.
+        BattleSimulation sim = arena();
+        long apc = apcAt(sim, 30.5f, 30.5f);
+        int squadId = squadBeside(sim, 30, 30);
+        sim.transport().mountSquad(apc, squadId);
+        assertEquals(3, sim.transport().manifest(apc).size());
+
+        // Killed the way anything kills it, so this exercises the real
+        // destruction path rather than a method the game never calls directly.
+        float hull = sim.convoy().structure(apc) + sim.convoy().armor(apc);
+        sim.applyDamage(apc, 0L, hull * 4f, 10_000f, 0f);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertTrue(sim.transport().manifest(apc).isEmpty(),
+                "nobody is still riding a wreck");
+        int stillAlive = 0;
+        long[] dense = sim.getRoster().denseArray();
+        for (int i = 0; i < sim.getRoster().liveCount(); i++) {
+            long unit = dense[i];
+            if (sim.squad().hasSquad(unit) && sim.squad().squadId(unit) == squadId) stillAlive++;
+        }
+        assertTrue(stillAlive >= 1 && stillAlive <= 2,
+                "one or two bail out of three (got " + stillAlive + ")");
+    }
+
     private static long firstSquadMember(BattleSimulation sim, int squadId) {
         long[] dense = sim.getRoster().denseArray();
         for (int i = 0; i < sim.getRoster().liveCount(); i++) {

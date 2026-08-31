@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
 import com.dillon.starsectormarines.battle.nav.ReachableCellResolver;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveCaptureOrder;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveDefendAreaOrder;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveMoveOrder;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveOrder;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.PendingOrder;
@@ -62,6 +63,10 @@ public final class SquadMoveOrderSystem {
             Record capture = uncapturedCompoundAt(
                     request.cellX, request.cellY, sim);
             if (capture != null) {
+                if (request.kind == PendingOrder.Kind.DEFEND_AREA) {
+                    activateDefendArea(request, squad, origin, sim);
+                    continue;
+                }
                 int targetZone = sim.getCompoundService()
                         .captureZoneId(capture, sim);
                 if (!reachable(origin, targetZone, sim)) continue;
@@ -77,6 +82,11 @@ public final class SquadMoveOrderSystem {
                 continue;
             }
 
+            if (request.kind == PendingOrder.Kind.DEFEND_AREA) {
+                activateDefendArea(request, squad, origin, sim);
+                continue;
+            }
+
             int[] destination = ReachableCellResolver.nearest(sim.getGrid(),
                     origin[0], origin[1], request.cellX, request.cellY);
             if (destination == null) continue;
@@ -88,6 +98,20 @@ public final class SquadMoveOrderSystem {
             squad.applyTacticalMoveOrder(destination[0], destination[1]);
             invalidateExecution(squad, sim);
         }
+    }
+
+    private void activateDefendArea(PendingOrder request, Squad squad,
+                                    int[] origin, BattleSimulation sim) {
+        int[] center = ReachableCellResolver.nearest(sim.getGrid(),
+                origin[0], origin[1], request.cellX, request.cellY);
+        if (center == null) return;
+        int radius = SquadMoveOrderService.DEFEND_AREA_RADIUS_CELLS;
+        ActiveDefendAreaOrder order = new ActiveDefendAreaOrder(
+                request.cellX, request.cellY, center[0], center[1], radius);
+        service.activate(squad.id, order);
+        squad.applyPlayerTacticalOrder(ObjectiveAssignment.defendArea(
+                squad.id, center[0], center[1], radius));
+        invalidateExecution(squad, sim);
     }
 
     private void release(int squadId, ActiveOrder order, Squad squad,
