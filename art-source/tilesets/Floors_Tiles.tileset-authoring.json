@@ -3935,8 +3935,8 @@
       ],
       "id": "doodad.floors.c6r10",
       "included": true,
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-mountain/stone.png",
-      "note": "stone-1",
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-1.png",
+      "note": "regolith-1",
       "rect": [
         285,
         493,
@@ -3954,8 +3954,8 @@
       ],
       "id": "doodad.floors.c7r10",
       "included": true,
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-mountain/stone.png",
-      "note": "stone-2",
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-2.png",
+      "note": "regolith-2",
       "rect": [
         333,
         493,
@@ -3973,8 +3973,8 @@
       ],
       "id": "doodad.floors.c8r10",
       "included": true,
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-mountain/stone.png",
-      "note": "stone-3",
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-3.png",
+      "note": "regolith-3",
       "rect": [
         380,
         493,
@@ -3990,13 +3990,17 @@
         1
       ],
       "id": "doodad.floors.c9r10",
-      "included": false,
+      "included": true,
       "rect": [
         428,
         493,
         48,
         50
-      ]
+      ],
+      "block": "floors.stone",
+      "slot": "v4",
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-4.png",
+      "note": "regolith-4"
     },
     {
       "cover": "none",
@@ -4005,13 +4009,17 @@
         1
       ],
       "id": "doodad.floors.c10r10",
-      "included": false,
+      "included": true,
       "rect": [
         476,
         493,
         47,
         50
-      ]
+      ],
+      "block": "floors.stone",
+      "slot": "v5",
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-5.png",
+      "note": "regolith-5"
     },
     {
       "block": "floors.dirt",
@@ -4341,13 +4349,17 @@
         1
       ],
       "id": "doodad.floors.c6r11",
-      "included": false,
+      "included": true,
       "rect": [
         285,
         543,
         48,
         49
-      ]
+      ],
+      "block": "floors.stone",
+      "slot": "v6",
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-6.png",
+      "note": "regolith-6"
     },
     {
       "cover": "none",
@@ -4356,13 +4368,17 @@
         1
       ],
       "id": "doodad.floors.c7r11",
-      "included": false,
+      "included": true,
       "rect": [
         333,
         543,
         47,
         49
-      ]
+      ],
+      "block": "floors.stone",
+      "slot": "v7",
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-7.png",
+      "note": "regolith-7"
     },
     {
       "cover": "none",
@@ -4371,13 +4387,17 @@
         1
       ],
       "id": "doodad.floors.c8r11",
-      "included": false,
+      "included": true,
       "rect": [
         380,
         543,
         48,
         49
-      ]
+      ],
+      "block": "floors.stone",
+      "slot": "v8",
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-8.png",
+      "note": "regolith-8"
     },
     {
       "cover": "none",
@@ -9885,7 +9905,7 @@
   "gridCols": 25,
   "gridRows": 26,
   "idPrefix": "doodad.floors",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom. 1225x1284 at 25x26.\n\nThe game asks this sheet for seventeen of its 650 cells: five variant pools and nothing else. Those seventeen are included and the rest are not, so the atlas holds seventeen tiles rather than the plate's 650. Everything else stays here in the raw art and in these entries; including a cell is all it takes to bring one back.\n\nTwo pools take their picture from a tileable material rather than from the plate. floors.stone and floors.sand were pasted in by texture-atlases.json, which is why all three cells of each are the same pixels - the paste wrote one 52x52 tile into all of them, so the hash pick between 'variants' has always been a no-op. Preserved as three so this export is provably the same art; reducing each to one is a content decision.\n\nThe eleven plate cells carry a 7px sprite border. ImageGen drew a dark rim around each isolated cell, and a repeating ground field shows that rim as a lattice at every tile boundary, so the border is mirrored away from the interior.",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom. 1225x1284 at 25x26.\n\nThe game asks this sheet for seventeen of its 650 cells: five variant pools and nothing else. Those seventeen are included and the rest are not, so the atlas holds seventeen tiles rather than the plate's 650. Everything else stays here in the raw art and in these entries; including a cell is all it takes to bring one back.\n\nTwo pools take their picture from a tileable material rather than from the plate. floors.sand's three cells still share one material file, so its hash pick between 'variants' remains a no-op -- all three are the same pixels.\n\nfloors.stone no longer does. It carried the same defect until 2026-08-31: one 52x52 tile pasted into all three cells, so a pool that exists to stop a large field repeating had nothing to pick between. It now has eight cells, each with its own material, generated to match the original stone's palette and grain and to tile seamlessly. The five added cells are plate cells that were never included; their rects only decide the packed size, since a material overrides the picture.\n\nThis matters most to barren surfaces. A rock world's ground is drawn from this one pool, and with a single picture the alternative was mixing STONE with DIRT and RUBBLE per cell, which reads as static rather than as ground.\n\nThe eleven plate cells carry a 7px sprite border. ImageGen drew a dark rim around each isolated cell, and a repeating ground field shows that rim as a lattice at every tile boundary, so the border is mirrored away from the interior.",
   "sheet": "art-source/tilesets/Floors_Tiles.raw.png",
   "sheetName": "Floors_Tiles"
 }
