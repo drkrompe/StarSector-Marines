@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
@@ -127,7 +128,10 @@ public final class FortressWardStage implements GenStage {
         int[] ward = wardRect(band, axis, ctx.width, ctx.height, citadel, roadCells);
         if (ward == null) return;
 
-        boolean[][] roads = wardRoads(ctx, ward, axis);
+        VehicleCorridor corridor = ctx.get(BspKeys.VEHICLE_CORRIDOR);
+        boolean[][] roads = corridor != null
+                ? wardCorridor(ctx, ward, corridor)
+                : wardRoads(ctx, ward, axis);
         clearWard(ctx, ward, citadel, roads);
         boolean[][] buildable = buildable(ctx, ward, citadel, roads);
         boolean[][] circulation = hasAny(roads) ? roads : approach(ctx, ward, axis);
@@ -338,8 +342,8 @@ public final class FortressWardStage implements GenStage {
     }
 
     /**
-     * The one city road the fortress keeps: a through route across the ward,
-     * and the full width of the street carrying it.
+     * The stretch of the map's vehicle corridor that runs through this ward:
+     * the one road the fortress keeps, at the width a vehicle needs.
      *
      * <p>Not every road crossing the band. Keeping the whole street grid was the
      * first attempt and it subdivided the ward into blocks smaller than the
@@ -348,13 +352,40 @@ public final class FortressWardStage implements GenStage {
      * inherit a city's streets; it has a road in and a road out, and its own
      * circulation is cut by the packing.
      *
-     * <p>Keeping <em>one</em> rather than none is what makes the rest work. The
-     * road graph was published before this stage ran, so a ward that demolished
-     * every road under it would leave the map claiming routes that no longer
-     * exist, and a defender convoy committing from the rear would try to drive
-     * one. The kept route already reaches the wall's line, so the gate has
+     * <p><b>The ward is told which road that is rather than working it out.</b>
+     * {@link #wardRoads} worked it out — shortest path over whatever road cells
+     * crossed the band, then dilated one cell — and the result was a lane two
+     * cells wide whenever that path hugged the edge of the street carrying it,
+     * because the dilation could only keep cells the old road mask already
+     * held. Two cells is walkable and not drivable, which is the whole defect:
+     * the fortress kept a road nothing with wheels could use, and every check
+     * that asked whether a road was preserved said yes. Clipping an authored
+     * band has the property the derivation could not — its width is stated up
+     * front rather than inherited from geometry that may or may not have been
+     * wide enough.
+     *
+     * <p>The kept route still reaches the wall's line, so the gate has
      * somewhere obvious to be: where the fortress's own traffic runs out to
      * meet it.
+     */
+    private static boolean[][] wardCorridor(GenContext ctx, int[] ward, VehicleCorridor corridor) {
+        boolean[][] kept = new boolean[ctx.width][ctx.height];
+        for (int x = ward[0]; x <= ward[2]; x++) {
+            for (int y = ward[1]; y <= ward[3]; y++) kept[x][y] = corridor.contains(x, y);
+        }
+        return kept;
+    }
+
+    /**
+     * How the ward chose its through route before the corridor was authored:
+     * the shortest run of road across the band, dilated by a cell.
+     *
+     * <p>Retained as the fallback for a map with no corridor bound — which in
+     * practice means a control run with
+     * {@code -Dbattle.mapgen.vehicleCorridor=false}, so that switch produces
+     * the fortress exactly as it generated before this layer existed rather
+     * than one with no road at all. See {@link #wardCorridor} for why the
+     * derivation was not good enough to keep as the production path.
      */
     private static boolean[][] wardRoads(GenContext ctx, int[] ward, TraversalAxis axis) {
         boolean[][] kept = new boolean[ctx.width][ctx.height];
