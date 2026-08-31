@@ -1,6 +1,6 @@
 # Weapon material-ID ImageGen passes
 
-Generated with the built-in ImageGen tool on 2026-08-31. These five images are
+Generated with the built-in ImageGen tool on 2026-08-31. These six images are
 semantic classification aids, not shipping color or geometry. The builder keys
 their magenta regions into reviewed weapon paint masks, then applies those masks
 to the original weapon pixels.
@@ -34,9 +34,14 @@ table below.
 | `linear-cannon-variant.png` | `../linear-cannon-concept.png` | Olive housing, side supports, and casing beneath the barrels | Six barrel tubes, mechanisms, vents, bolts, copper/orange pipes and lamps, and outlines |
 | `srm-pod.png` | `../srm-pod.png` | Olive outer casing, top rail, and painted front covers | Missile caps, rack grid and cavities, mechanisms, bolts, lamps, warning marks, and outlines |
 | `lrm-pod.png` | `../lrm-pod.png` | Olive outer casing, top rail, center brace, and painted front covers | Missile caps, rack grid and cavities, mechanisms, bolts, lamps, warning marks, and outlines |
+| `shoulder-laser-cannon.png` | `../weapon-concepts/shoulder-laser-cannon.png` | Olive external armor shells, central plates, outer shoulders, and X-braced rear mounting cover | Cyan emitter and capacitor indicator, focusing rails and collar, gunmetal frame, hinge, conduits, heat sinks, vents, mounting lip, lamps, fasteners, gaps, cavities, and outlines |
 
-ImageGen returned an RGB checker preview rather than real alpha, and its SRM
+ImageGen returned RGB checker previews rather than real alpha, and its SRM
 canvas was one pixel wider and one pixel shorter than the source. Neither fact
-enters the asset: `derive_faction_weapons.py` reads only magenta dominance,
+enters an asset: `derive_faction_weapons.py` reads only magenta dominance,
 resamples that semantic field to the original source canvas, normalizes it with
 the original alpha crop, and takes all shipped pixels from the accepted weapon.
+The retained laser-cannon pass currently classifies 36.3% of its opaque source
+as paintable casing; it is intentionally not registered in the deterministic
+builder until the weapon's runtime name, shoulder layout, and accepted canvas
+are implemented together.
