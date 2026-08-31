@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — an aircraft is one entity moved three ways, and a landing is flown rather than captured.
+Updated: 2026-08-30 — a landing is flown, and the strip it lands on is a resource nothing may hold after it stops existing.
 
 ## Purpose
 
@@ -705,10 +705,40 @@ launches them in sequence, so anything sitting between a shed and the threshold
 delays every one of them. That queue was theory while a field flew one sortie
 at a time; with several up it is load-bearing, and holding short is an ordinary
 part of a departure rather than an edge case. A craft holds the strip from the moment it starts its
-roll until it is airborne, and through a landing rollout, because it is standing
-on it; releasing is tolerant of a craft that never held it, since a strip left
-claimed by an aircraft that no longer exists closes the field for the rest of
-the battle.
+roll until it is airborne, through the final approach it is committed to, and
+through a landing rollout, because in each of those it is either standing on the
+strip or about to be.
+
+**A claim outlives its aircraft, and that is a field closed for the battle.**
+An aircraft on its wheels is shootable — that is what the exposed ground
+procedure is for — so a fighter killed during its takeoff roll is an ordinary
+thing to happen, and nothing on that path gave the runway back. Every sortie
+that came home afterwards was refused the strip and flew circuits until the
+battle ended: measured at seventy-five go-arounds and still climbing, which from
+outside is exactly one aircraft looping forever on approach. The release
+therefore belongs to the **teardown** — the one place every ending goes through,
+whether the craft was shot down, scrubbed on its pad, or shut down in its own
+shed — rather than to any of the endings, so an ending nobody has written yet
+inherits it. Releasing stays tolerant of a craft that never held the strip,
+which is what lets that one call be unconditional.
+
+**Both ends of the queue ask at the same rate.** The strip goes to whoever asks
+on the tick it is free, which is deliberate — a queue with entries in it would
+have to survive one of them being destroyed on the taxiway — but that rule is
+only fair while everybody asks equally often. A craft holding short asks every
+tick; a homebound craft that asked once, as it crossed the numbers, asked once
+per circuit, and lost that race about as often as the strip was busy. On a field
+flying several sorties off one runway that is most of the time, and the result
+is a landing that never happens for a reason that has nothing to do with
+geometry. So a craft **on final asks for every tick of it**, from the fix to the
+threshold.
+
+**And a go-around is bounded, because an aircraft that cannot land is a bug
+with no acceptable duration.** After a couple of circuits the craft stops asking
+and puts down on the strip whatever is recorded against it. The fallback has to
+be a landing: a craft that gave up by leaving, or by ceasing to exist, would
+have turned a queueing problem into a lost airframe, while two aircraft on one
+runway for a few seconds is the lesser fault by a wide margin.
 
 Handling on the ground is the **same hull with a ceiling on it** — a bus taxis
 like a bus — rather than a second authored profile per aircraft, which would be
@@ -917,6 +947,19 @@ shrink that changes a hull's physical scale.
   all: the floors are a transport's, and a fighter several times faster steps
   over every one of them. Ground tolerances stay separate and stay authored — a
   wheeled aircraft can be asked to hold short of a point and does.
+- **The circle is admitted for a craft steered at a point and never for one
+  flown along a path.** An orbit is what a body does when it is aimed at
+  something inside its own turning circle. A craft following a carrot that
+  slides along a solved path and runs on past its destination cannot do it, so
+  the term buys nothing there and costs exactly its own width — and its width is
+  a runway. Gated on the steered rule, a fighter's landing fired seventeen cells
+  short of the numbers: the wheels went down at x=79 on a strip that ends at
+  62.5, and an arrival from the other end put them down at x=-9.6, off the map.
+  Both were correct to within two degrees of heading, which is why it went
+  unnoticed — a landing is a pose, and half of one being right proves nothing
+  about the other. Where an arrival is flown rather than steered the gate is the
+  step alone, and the real capture is the geometry the path was solved to:
+  crossing the threshold.
 - **An aircraft is one entity for its whole life, and what changes is how it is
   moved.** Grounded, managed and free flight are three sets of physics over one
   body, swapped at phase boundaries; the phase is the single source of truth for
