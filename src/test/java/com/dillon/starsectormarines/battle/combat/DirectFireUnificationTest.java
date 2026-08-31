@@ -38,13 +38,18 @@ class DirectFireUnificationTest {
 
     private static BattleSimulation arena(boolean wallColumn, long seed) {
         NavigationGrid grid = new NavigationGrid(W, H);
+        CellTopology topology = new CellTopology(W, H);
         for (int y = 0; y < H; y++) {
             for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
         }
         if (wallColumn) {
-            for (int y = 0; y < H; y++) grid.setWalkable(WALL_X, y, false);
+            for (int y = 0; y < H; y++) {
+                grid.setWalkable(WALL_X, y, false);
+                grid.setWallHp(WALL_X, y, 100);
+                topology.setWall(WALL_X, y, true);
+            }
         }
-        return new BattleSimulation(grid, new CellTopology(W, H), seed);
+        return new BattleSimulation(grid, topology, seed);
     }
 
     private static long target(BattleSimulation sim) {
@@ -220,6 +225,30 @@ class DirectFireUnificationTest {
         assertTrue(impacts.stream().anyMatch(hit -> hit.victimId == interposer));
         assertTrue(impacts.stream().anyMatch(hit -> hit.victimId == victim));
         assertTrue(impacts.stream().allMatch(hit -> hit.damage == laser.contactDamage));
+    }
+
+    @Test
+    void shoulderLaserBreachesAnOrdinaryWallWithOneTightStructuralImpact() {
+        BattleSimulation sim = arena(true, 12345L);
+        long mech = sim.spawn(new EntitySpec("tri-tachyon bulwark", Faction.MARINE,
+                UnitType.HEAVY_MECH, 2, ROW));
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
+
+        sim.fireMechWeapon(mech, target(sim), laser, 2f);
+
+        ShotEvent shot = onlyShot(sim);
+        assertEquals(BallisticResolver.StopKind.WALL, shot.stopKind);
+        assertEquals(100, sim.getGrid().getWallHp(WALL_X, ROW));
+        for (int i = 0; i < 20 && !sim.getInflightDetonations().isEmpty(); i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+        assertEquals(0, sim.getGrid().getWallHp(WALL_X, ROW));
+        assertTrue(sim.getGrid().isWalkable(WALL_X, ROW));
+        assertFalse(sim.getTopology().isWall(WALL_X, ROW));
+        assertEquals(100, sim.getGrid().getWallHp(WALL_X, ROW - 1),
+                "the anti-structure pulse stays narrower than rocket demolition");
+        assertEquals(100, sim.getGrid().getWallHp(WALL_X, ROW + 1),
+                "the anti-structure pulse stays narrower than rocket demolition");
     }
 
     @Test
