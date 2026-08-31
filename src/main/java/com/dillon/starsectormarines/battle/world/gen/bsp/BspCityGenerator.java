@@ -49,6 +49,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FillDispatchStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HinterlandFillStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LabelLeavesStage;
@@ -154,8 +155,8 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new SpaceportDistrictFiller());
         registerCompound(new AirbaseCompoundFiller());
 
-        this.conquestRecipe = buildConquestRecipe(new TrunkSkeletonStage());
-        this.legacyRecipe = buildLegacyRecipe(new TrunkSkeletonStage());
+        this.conquestRecipe = buildConquestRecipe(new TrunkSkeletonStage(), null);
+        this.legacyRecipe = buildLegacyRecipe(new TrunkSkeletonStage(), null);
         this.stationRecipe = buildStationRecipe();
         this.concentricStationRecipe = buildConcentricStationRecipe();
         this.diamondStationRecipe = buildDiamondStationRecipe();
@@ -173,8 +174,8 @@ public final class BspCityGenerator implements MapGenerator {
      *                   by default, or a {@link GrownTrunkSkeletonStage} when
      *                   {@link #useGrownRoads} has installed one.
      */
-    private GenRecipe buildConquestRecipe(GenStage trunkStage) {
-        return new GenRecipe("ConquestCity", List.of(
+    private GenRecipe buildConquestRecipe(GenStage trunkStage, GenStage hinterlandStage) {
+        return new GenRecipe("ConquestCity", compose(
                 new InitFloorStage(),                       // Step 0
                 trunkStage,                                 // Step 1a
                 new BspPartitionStage(),                    // Step 1b
@@ -186,6 +187,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new RoadGraphStage(),                       // Step 2c
                 new VehicleCorridorStage(),                 // Step 2c'  conquest-only
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
+                hinterlandStage,                            // Step 3a   grown-roads-only; null omits it
                 new PedestrianFrameStage(),                 // Step 3a'
                 new BiomeGroundOverrideStage(),             // Step 3b   conquest-only
                 new BeachShorelineStage(),                  // Step 3b'  conquest-only
@@ -220,8 +222,8 @@ public final class BspCityGenerator implements MapGenerator {
      *                   by default, or a {@link GrownTrunkSkeletonStage} when
      *                   {@link #useGrownRoads} has installed one.
      */
-    private GenRecipe buildLegacyRecipe(GenStage trunkStage) {
-        return new GenRecipe("LegacyUrban", List.of(
+    private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage) {
+        return new GenRecipe("LegacyUrban", compose(
                 new InitFloorStage(),                       // Step 0
                 trunkStage,                                 // Step 1a
                 new BspPartitionStage(),                    // Step 1b
@@ -231,6 +233,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new CompoundClaimStage(),                   // Step 2b
                 new RoadGraphStage(),                       // Step 2c
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
+                hinterlandStage,                            // Step 3a   grown-roads-only; null omits it
                 new PedestrianFrameStage(),                 // Step 3a'
                 new KeepEntryChamberStamper(),              // Step 3c'''
                 new TacticalLinkStage(),                    // Step 3d
@@ -305,6 +308,15 @@ public final class BspCityGenerator implements MapGenerator {
                 new InteriorAnchorFitStage()));  // closing: POI anchors vs the finished grid
     }
 
+    /** Stage list with null entries dropped, so an optional stage can be omitted by passing null. */
+    private static List<GenStage> compose(GenStage... stages) {
+        List<GenStage> out = new ArrayList<>(stages.length);
+        for (GenStage stage : stages) {
+            if (stage != null) out.add(stage);
+        }
+        return out;
+    }
+
     /** Swap in a compound-aware filler. Idempotent — last write wins. */
     public void registerCompound(CompoundFiller filler) {
         compoundFillers.put(filler.kind(), filler);
@@ -328,11 +340,14 @@ public final class BspCityGenerator implements MapGenerator {
      * @return this, for chaining
      */
     public BspCityGenerator useGrownRoads(GrownTrunkPlan.Profile profile) {
-        GenStage trunkStage = profile != null
-                ? new GrownTrunkSkeletonStage(profile)
-                : new TrunkSkeletonStage();
-        this.conquestRecipe = buildConquestRecipe(trunkStage);
-        this.legacyRecipe = buildLegacyRecipe(trunkStage);
+        boolean grown = profile != null;
+        GenStage trunkStage = grown ? new GrownTrunkSkeletonStage(profile) : new TrunkSkeletonStage();
+        // Omitted rather than run as a no-op on the stock path: recipe
+        // membership is how this pipeline forks, and a stage that is present
+        // but does nothing is exactly what that convention exists to avoid.
+        GenStage hinterlandStage = grown ? new HinterlandFillStage() : null;
+        this.conquestRecipe = buildConquestRecipe(trunkStage, hinterlandStage);
+        this.legacyRecipe = buildLegacyRecipe(trunkStage, hinterlandStage);
         return this;
     }
 
