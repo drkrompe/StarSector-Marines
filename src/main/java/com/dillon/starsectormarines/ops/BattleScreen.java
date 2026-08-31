@@ -610,6 +610,26 @@ public class BattleScreen implements Screen, BattleUiContext {
                 GroundParallaxPipeline.MIN_LIGHTING_STRENGTH,
                 GroundParallaxPipeline.MAX_LIGHTING_STRENGTH,
                 2.0);
+        debugPanel.addDial("Sun shadows",
+                () -> renderer.getGroundParallax().sunShadowStrength(),
+                value -> renderer.getGroundParallax().setSunShadowStrength((float) value),
+                GroundParallaxPipeline.MIN_SUN_SHADOW_STRENGTH,
+                GroundParallaxPipeline.MAX_SUN_SHADOW_STRENGTH,
+                1.0);
+        // Both sun dials are linear: they are angles, and a reader dragging one
+        // is looking for a bearing or a time of day, not tuning a coefficient.
+        debugPanel.addDial("Sun azimuth",
+                () -> renderer.getGroundParallax().sunAzimuthDegrees(),
+                value -> renderer.getGroundParallax().setSunAzimuthDegrees((float) value),
+                GroundParallaxPipeline.MIN_SUN_AZIMUTH_DEGREES,
+                GroundParallaxPipeline.MAX_SUN_AZIMUTH_DEGREES,
+                1.0);
+        debugPanel.addDial("Sun elevation",
+                () -> renderer.getGroundParallax().sunElevationDegrees(),
+                value -> renderer.getGroundParallax().setSunElevationDegrees((float) value),
+                GroundParallaxPipeline.MIN_SUN_ELEVATION_DEGREES,
+                GroundParallaxPipeline.MAX_SUN_ELEVATION_DEGREES,
+                1.0);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
         debugPanel.addToggle("Capture commander trace",
                 () -> getSim() != null && getSim().isCommandTraceEnabled(),
