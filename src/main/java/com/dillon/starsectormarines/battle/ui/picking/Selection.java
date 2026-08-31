@@ -5,8 +5,8 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 /**
  * Mutable, shared selection state for the battle HUD. One instance lives on
  * {@link com.dillon.starsectormarines.battle.ui.BattleUiContext}; panels read
- * it to decide what to display, and click handlers (HUD rows today, a world
- * picker tomorrow) write it.
+ * it to decide what to display, and click handlers in both HUD rows and the
+ * world picker write it.
  *
  * <p>Carries two related ids: a squad id (drives the whole detail-panel
  * filter) and an optional unit id within that squad. World-clicks set both
