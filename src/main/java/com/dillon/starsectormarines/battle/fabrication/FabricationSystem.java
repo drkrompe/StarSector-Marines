@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fabrication;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -207,7 +208,12 @@ public final class FabricationSystem {
         }
 
         long unit = sim.spawn(machine);
-        sim.world().attachMechLoadout(unit, chassis.createLoadout(chassis.defaultRole));
+        // The faction's own fit, not the catalog's neutral one. A shed builds
+        // out of the racks it has, so a Hegemony bay hangs Hegemony guns on the
+        // machine it just finished and the thing that drives out is
+        // indistinguishable from one that was already on the map.
+        sim.world().attachMechLoadout(unit, FactionMechLoadouts.create(
+                chassis, chassis.defaultRole, works.factionId()));
         LOG.info("FabricationSystem: " + builder + " " + chassis.displayName
                 + " rolled out of the bay at " + stocks.centerX + "," + stocks.centerY);
     }
