@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.render2d.ShaderProgram;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 
 import java.nio.ByteBuffer;
@@ -765,9 +764,15 @@ public final class GroundParallaxPipeline {
     private int[] buildFbo(int pxW, int pxH) {
         int tex = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, tex);
-        ByteBuffer empty = BufferUtils.createByteBuffer(pxW * pxH * 4);
         GlErrors.clear();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, pxW, pxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
+        // Null, not a zeroed buffer: this sizes the texture storage without
+        // uploading anything. LWJGL 2 supports it by design -- the ByteBuffer
+        // overload skips its buffer check on null and passes address 0. Every
+        // target here is cleared at the top of the frame that draws it, and to
+        // a datum rather than to zero, so the uploaded pixels were never read.
+        // Rebuilds follow the view size and the sun's height pad, which made
+        // the discarded buffers worth hundreds of MB of direct memory mid-battle.
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, pxW, pxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         GlErrors.check("glTexImage2D (ground parallax FBO)");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
