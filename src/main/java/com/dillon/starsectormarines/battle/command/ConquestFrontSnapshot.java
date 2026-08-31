@@ -36,6 +36,12 @@ public record ConquestFrontSnapshot(
         COMPOUND_ASSAULT_ADJACENT,
         TRACK_ADVANCE,
         TRACK_LINE_ADVANCE,
+        /**
+         * Squad's own track holds no believed hostile at all: advance abreast
+         * of the neighbouring tracks rather than stand still waiting for a
+         * sighting only advancing can produce.
+         */
+        TRACK_LINE_SCOUT_ADVANCE,
         /** Squad is in contact on a believed lane front: clear forward rather than stand off. */
         TRACK_LINE_ATTACK,
         ADJACENT_TRACK_SUPPORT,
