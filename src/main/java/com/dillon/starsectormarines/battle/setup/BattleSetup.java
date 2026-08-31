@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 
 import com.dillon.starsectormarines.battle.air.AirArmament;
@@ -2195,7 +2196,7 @@ public final class BattleSetup {
                 }
                 unit.squad(squad.id);
                 long member = sim.spawn(unit);
-                attachMechLoadout(sim, member, mechVariant);
+                attachMechLoadout(sim, member, mechVariant, groundRoster);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -2246,7 +2247,7 @@ public final class BattleSetup {
                 }
                 unit.squad(squad.id);
                 long member = sim.spawn(unit);
-                attachMechLoadout(sim, member, mechVariant);
+                attachMechLoadout(sim, member, mechVariant, groundRoster);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -2309,7 +2310,7 @@ public final class BattleSetup {
                 }
                 unit.squad(squad.id);
                 long member = sim.spawn(unit);
-                attachMechLoadout(sim, member, mechVariant);
+                attachMechLoadout(sim, member, mechVariant, groundRoster);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -2340,10 +2341,13 @@ public final class BattleSetup {
      * {@code addComponent} row-move keyed by {@code entityId}, which the registry
      * assigns at allocate time.
      */
-    private static void attachMechLoadout(BattleSimulation sim, long unit, MechVariant mechVariant) {
+    private static void attachMechLoadout(BattleSimulation sim, long unit,
+                                          MechVariant mechVariant,
+                                          GroundRosterProfile groundRoster) {
         if (mechVariant != null) {
             sim.world().attachMechLoadout(unit,
-                    mechVariant.createLoadout(mechVariant.defaultRole));
+                    FactionMechLoadouts.create(mechVariant, mechVariant.defaultRole,
+                            groundRoster.primaryFactionId()));
         }
     }
 
