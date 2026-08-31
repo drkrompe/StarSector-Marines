@@ -5,8 +5,6 @@ import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
-import com.dillon.starsectormarines.battle.turret.TurretImpactAudio;
-import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -18,6 +16,7 @@ import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
+import com.dillon.starsectormarines.ops.battleview.ShotImpactAudio;
 import com.fs.starfarer.api.Global;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -97,7 +96,7 @@ public final class GroundSimPresentation {
         NavigationGrid grid = sim.getGrid();
         Random rng = ThreadLocalRandom.current();
 
-        spawnFireFx(fx, sim, grid);
+        spawnFireFx(fx, sim, grid, rng);
         spawnImpactFxAndSounds(fx, sim, grid, rng);
         playFireSounds(sim, rng);
         playDeathVoice(sim);
@@ -136,13 +135,14 @@ public final class GroundSimPresentation {
 
     /** Line-tracer impacts land instantly (the beam covers its whole travel at fire), plus per-shot
      *  muzzle/backblast flourishes. Traveling bodies defer their impact to arrival. */
-    private void spawnFireFx(ImpactFx fx, BattleSimulation sim, NavigationGrid grid) {
+    private void spawnFireFx(ImpactFx fx, BattleSimulation sim, NavigationGrid grid, Random rng) {
         for (ShotEvent s : sim.getShotsThisFrame()) {
             WeaponFxRuntime.spawnMuzzle(fx, s);
             if (ShotFx.of(s).travels()) continue;
             if (!s.impacts()) continue;
             WeaponFxRuntime.spawnImpactAndAftermath(
                     fx, s, isWallAt(grid, s.toX, s.toY));
+            playImpactCue(s, rng);
         }
     }
 
@@ -153,27 +153,16 @@ public final class GroundSimPresentation {
             if (!ShotFx.of(s).travels()) continue;
             if (!s.impacts()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
-            WeaponFxDef weaponFx = WeaponFxRuntime.definition(s);
             WeaponFxRuntime.spawnImpactAndAftermath(fx, s, isWall);
-            if (s.turretStructureDef != null) {
-                TurretImpactAudio.Cue cue = TurretImpactAudio.resolve(
-                        s.turretStructureDef, SFX_NEAR_EXPLOSION);
-                if (cue != null) {
-                    float pitch = 0.9f + rng.nextFloat() * 0.2f;
-                    playAtCell(cue.soundId(), pitch, cue.volume(), s.toX, s.toY);
-                }
-            } else if (s.specialEquipmentDef != null) {
-                if (s.specialEquipmentDef.impactSoundId() != null) {
-                    playAtCell(s.specialEquipmentDef.impactSoundId(),
-                            0.9f + rng.nextFloat() * 0.2f, 0.70f, s.toX, s.toY);
-                }
-            } else if (s.mechWeaponDef != null) {
-                if (weaponFx.hasExplosiveImpact()) {
-                    playExplosion(s.toX, s.toY,
-                            weaponFx.hasHeavyImpact() ? 0.86f : 0.65f, rng);
-                }
-            }
+            playImpactCue(s, rng);
         }
+    }
+
+    private void playImpactCue(ShotEvent shot, Random rng) {
+        ShotImpactAudio.Cue cue = ShotImpactAudio.resolve(shot, SFX_NEAR_EXPLOSION);
+        if (cue == null) return;
+        playAtCell(cue.soundId(), 0.9f + rng.nextFloat() * 0.2f,
+                cue.volume(), shot.toX, shot.toY);
     }
 
     /** Per-weapon fire SFX, positional at the shooter cell. Mirrors the standalone's source dispatch
@@ -236,10 +225,6 @@ public final class GroundSimPresentation {
     private void parkListener(BattleSimulation sim) {
         cfg.targetableCentroid(scratch);
         Global.getSoundPlayer().setListenerPosOverrideOneFrame(new Vector2f(scratch.x, scratch.y));
-    }
-
-    private void playExplosion(float cellX, float cellY, float volume, Random rng) {
-        playAtCell(SFX_NEAR_EXPLOSION, 0.9f + rng.nextFloat() * 0.2f, volume, cellX, cellY);
     }
 
     /** Play {@code soundId} positioned at a sim cell, projected into the shared combat-world frame. */
