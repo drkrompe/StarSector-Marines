@@ -48,6 +48,8 @@ WEAPONS = (
     Weapon("heavy-cannon.png", "heavy-cannon.png", "heavy-cannon.png", (64, 128)),
     Weapon("srm-pod.png", "srm-pod.png", "srm-pod.png", (62, 88)),
     Weapon("lrm-pod.png", "lrm-pod.png", "lrm-pod.png", (76, 96)),
+    Weapon("weapon-concepts/shoulder-laser-cannon.png", "shoulder-laser-cannon.png",
+           "shoulder-laser-cannon.png", (76, 128)),
 )
 
 CHASSIS = ("chassis.png", "chassis-hound.png", "chassis-sirocco.png")

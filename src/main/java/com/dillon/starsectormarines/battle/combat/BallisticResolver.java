@@ -118,9 +118,17 @@ public final class BallisticResolver {
      * target (drives {@code ShotEvent.hit}); {@code friendlyHit} is true
      * when the recorded victim shares the shooter's faction.
      */
+    /** One accepted actor contact retained even when authored penetration lets the round continue. */
+    public record BodyHit(long victimId, float x, float y, float z, float flightTime,
+                          boolean intended, boolean friendly) { }
+
     public record Resolution(float endX, float endY, float endZ, float flightTime,
                               long victimId, boolean hitIntended,
-                              boolean friendlyHit, StopKind kind) {
+                              boolean friendlyHit, StopKind kind,
+                              List<BodyHit> bodyHits) {
+        public Resolution {
+            bodyHits = List.copyOf(bodyHits);
+        }
         /** True when the round reached a physical contact rather than leaving the modeled segment. */
         public boolean impacts() {
             return kind != StopKind.OVERSHOOT;
@@ -217,11 +225,19 @@ public final class BallisticResolver {
                                float finalAccuracy, float effectiveSpread,
                                float roundVelocity, float maximumTargetingRange,
                                Random rng) {
+        return resolve(shooter, target, finalAccuracy, effectiveSpread, roundVelocity,
+                maximumTargetingRange, 0, rng);
+    }
+
+    public Resolution resolve(long shooter, long target,
+                               float finalAccuracy, float effectiveSpread,
+                               float roundVelocity, float maximumTargetingRange,
+                               int bodyPenetrations, Random rng) {
         World world = roster.world();
         return resolve(new Source(shooter, world.renderX(shooter), world.renderY(shooter),
                         0f, roster.identity().faction(shooter)),
                 target, finalAccuracy, effectiveSpread, roundVelocity,
-                maximumTargetingRange, rng);
+                maximumTargetingRange, bodyPenetrations, rng);
     }
 
     /**
@@ -233,11 +249,22 @@ public final class BallisticResolver {
                                float finalAccuracy, float effectiveSpread,
                                float roundVelocity, float maximumTargetingRange,
                                Random rng) {
+        return resolve(source, target, finalAccuracy, effectiveSpread, roundVelocity,
+                maximumTargetingRange, 0, rng);
+    }
+
+    public Resolution resolve(Source source, long target,
+                               float finalAccuracy, float effectiveSpread,
+                               float roundVelocity, float maximumTargetingRange,
+                               int bodyPenetrations, Random rng) {
         if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
             throw new IllegalArgumentException("roundVelocity must be finite and positive");
         }
         if (!(maximumTargetingRange > 0f) || !Float.isFinite(maximumTargetingRange)) {
             throw new IllegalArgumentException("maximumTargetingRange must be finite and positive");
+        }
+        if (bodyPenetrations < 0) {
+            throw new IllegalArgumentException("bodyPenetrations cannot be negative");
         }
         World world = roster.world();
         MovementService movement = roster.movement();
@@ -308,7 +335,7 @@ public final class BallisticResolver {
         }
         float maximumFlightDistance = maximumTargetingRange * FLIGHT_RANGE_MULTIPLIER;
         float rawLen = maximumFlightDistance;
-        if (aim.onTarget()) {
+        if (aim.onTarget() && bodyPenetrations == 0) {
             float targetContactTime = firstCircleContactTime(
                     fromX, fromY, dirX, dirY, roundVelocity,
                     targetX, targetY, wTargetX, wTargetY, targetRadius(target));
@@ -456,12 +483,14 @@ public final class BallisticResolver {
                     candidateId, friendly, vehicle, victimCellX, victimCellY));
         }
 
-        // Step 5: walk events sorted by t; first stop wins. A wall (when
+        // Step 5: walk events sorted by t; first non-penetrated stop wins. A wall (when
         // present) is never a member of this list — it necessarily sits at
         // the ray's own endpoint, so every doodad/unit event's t is <= the
         // wall's t by construction; reaching the end of the list without a
         // stop is exactly "nothing stopped it before the wall/ray end".
         events.sort((a, b) -> Float.compare(a.t, b.t));
+        List<BodyHit> bodyHits = new ArrayList<>();
+        int penetrationsRemaining = bodyPenetrations;
         for (Event e : events) {
             float proximityScale = proximityCatchScale(e.t * roundVelocity);
             if (e.doodad) {
@@ -469,7 +498,8 @@ public final class BallisticResolver {
                         Math.min(e.doodadLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
                         * proximityScale;
                 if (blockChance > 0f && rng.nextFloat() < blockChance) {
-                    return new Resolution(e.x, e.y, e.z, e.t, 0L, false, false, StopKind.DOODAD_BLOCK);
+                    return new Resolution(e.x, e.y, e.z, e.t, 0L,
+                            anyIntended(bodyHits), false, StopKind.DOODAD_BLOCK, bodyHits);
                 }
                 continue; // fly on
             }
@@ -486,27 +516,41 @@ public final class BallisticResolver {
                     Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
                     * proximityScale;
             if (coverBlockChance > 0f && rng.nextFloat() < coverBlockChance) {
-                return new Resolution(e.x, e.y, e.z, e.t, 0L, false, false, StopKind.COVER_CLIP);
+                return new Resolution(e.x, e.y, e.z, e.t, 0L,
+                        anyIntended(bodyHits), false, StopKind.COVER_CLIP, bodyHits);
             }
 
             boolean isLockedTarget = victim == target;
             if (isLockedTarget) {
                 if (!aim.onTarget()) continue;
-                return new Resolution(e.x, e.y, e.z, e.t, victim, true, e.friendly, StopKind.UNIT_HIT);
+                BodyHit hit = new BodyHit(victim, e.x, e.y, e.z, e.t, true, e.friendly);
+                bodyHits.add(hit);
+                if (penetrationsRemaining-- > 0) continue;
+                return new Resolution(e.x, e.y, e.z, e.t, victim, true,
+                        e.friendly, StopKind.UNIT_HIT, bodyHits);
             }
             float hitChance = (e.friendly
                     ? FRIENDLY_INCIDENTAL_HIT_CHANCE * proximityScale
                     : HOSTILE_INCIDENTAL_HIT_CHANCE)
                     * world.incomingAccuracyMult(victim);
             if (hitChance > 0f && rng.nextFloat() < hitChance) {
-                return new Resolution(e.x, e.y, e.z, e.t, victim, false, e.friendly, StopKind.UNIT_HIT);
+                BodyHit hit = new BodyHit(victim, e.x, e.y, e.z, e.t, false, e.friendly);
+                bodyHits.add(hit);
+                if (penetrationsRemaining-- > 0) continue;
+                return new Resolution(e.x, e.y, e.z, e.t, victim,
+                        anyIntended(bodyHits), e.friendly, StopKind.UNIT_HIT, bodyHits);
             }
             // else fly on
         }
 
         StopKind finalKind = wallFound ? StopKind.WALL : StopKind.OVERSHOOT;
         return new Resolution(rayEndX, rayEndY, fromZ + zSlope * rayLen, rayLen / roundVelocity,
-                0L, false, false, finalKind);
+                0L, anyIntended(bodyHits), false, finalKind, bodyHits);
+    }
+
+    private static boolean anyIntended(List<BodyHit> hits) {
+        for (BodyHit hit : hits) if (hit.intended()) return true;
+        return false;
     }
 
     private float targetRadius(long id) {

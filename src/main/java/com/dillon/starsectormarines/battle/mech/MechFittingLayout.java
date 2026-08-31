@@ -36,6 +36,7 @@ public final class MechFittingLayout {
         CORE("CORE"),
         BALLISTIC("BALLISTIC"),
         MISSILE("MISSILE"),
+        OMNI("OMNI"),
         AMMO("AMMO"),
         UTILITY("UTILITY");
 
@@ -124,7 +125,7 @@ public final class MechFittingLayout {
                         0f, 0.72f, 0f, 1.50f, 2.20f, 0.68f, true),
                 socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 3,
                         -0.72f, 0.08f, -1.38f, -0.48f, 1.40f, 0.72f, true),
-                socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 3,
+                socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 3,
                         0.72f, 0.08f, 1.38f, -0.48f, 1.40f, 0.72f, true),
                 socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 3,
                         0f, -0.58f, -1.38f, 0.72f, 1.70f, 0.68f, true),

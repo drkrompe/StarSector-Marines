@@ -44,10 +44,10 @@ VARIANTS = (
         "chaingun-arm.png",
         "dual-narrow",
         "lrm-pod.png",
-        "lrm-pod.png",
+        "shoulder-laser-cannon.png",
         "top-pair",
         1.60,
-        "DUAL CHAINGUNS  /  SRM-15  /  LRM-15",
+        "DUAL CHAINGUNS  /  SRM-15  /  SHOULDER LASER",
     ),
     Variant(
         "HOUND",
