@@ -72,7 +72,11 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
      * faction-default color from the shot via {@link #defaultTracerColor} (per-shot,
      * not type-flyweight).
      */
-    public record Tracer(Color color) implements Body {}
+    public record Tracer(Color color, WeaponDef.BeamStyle style) implements Body {
+        public Tracer {
+            if (style == null) style = WeaponDef.BeamStyle.DEFAULT;
+        }
+    }
 
     /** Short line following a projectile body; length is authored in world cells. */
     public record TracerTail(Color color, float lengthCells) {}
@@ -91,7 +95,8 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
     }
 
     /** No weapon source (detonations / legacy callers) → a faction-default tracer. */
-    private static final ShotFx NO_SOURCE = new ShotFx(new Tracer(null), null, 0f, false, null);
+    private static final ShotFx NO_SOURCE = new ShotFx(
+            new Tracer(null, WeaponDef.BeamStyle.DEFAULT), null, 0f, false, null);
 
     /** The composition for a shot — never null; dispatches on the single non-null weapon source. */
     public static ShotFx of(ShotEvent s) {
@@ -166,7 +171,7 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
         // missiles continue to travel as sprites.
         Body body = weapon.projectileSpritePath != null
                 ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)
-                : new Tracer(weapon.tracerColor);
+                : new Tracer(weapon.tracerColor, weapon.beamStyle);
         return new ShotFx(body, tracerTail(weapon), weapon.arcHeight, false, null);
     }
 

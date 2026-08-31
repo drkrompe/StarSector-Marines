@@ -6,8 +6,8 @@ Written: 2026-08-23
 
 Updated: 2026-08-31 — extended appearance-only livery onto authored equipment
 casing without surrendering shared hardware geometry; added exact-Mech tactical
-move orders with reachable-cell snapping, moving fire, survival suspension, and
-arrival handback.
+move orders and a distinct lance-wide Defend Area order with reachable placement,
+combat-active positioning, and mission handback.
 
 ## Purpose
 
@@ -110,6 +110,13 @@ increasing an encounter's total armored threat.
   replacing the lance's mission directive, shared plan, doctrine, or contact
   picture. The clicked ground resolves to the nearest reachable walkable cell;
   arrival releases the order back to ordinary behavior.
+- A **Defend Area order** is a persistent, battle-local tactical assignment for
+  one whole battle lance. Its clicked center resolves to reachable ground and
+  owns a circular twenty-cell-radius zone. Every live lance member positions
+  and reacts inside that shared boundary while retaining its own combat target,
+  installed weapons, and ordinary damage, ammunition, and cooldown state. It is
+  distinct from both exact-Mech movement and Form on Lead / Free Reign
+  coordination, and remains until superseded or withdrawal cancels it.
 - A **force budget** is the ordinary-encounter authority that admits defender
   mechs and static defenses only when the attacker-side force can support them.
   Authored set pieces may explicitly decline that protection; Conquest does.
@@ -230,15 +237,18 @@ presentation-only and never enters battle determinism, save data, spawning, or
 mechanical authority.
 
 Selecting an exact friendly mech during battle may request another effective
-role, another lance order, or a tactical move. The role request affects only
-that mech; the lance order request affects its whole battle lance; the tactical
-move temporarily affects only the selected chassis's locomotion. The battle
+role, another lance order, a lance-wide Defend Area order, or a tactical move.
+The role request affects only that mech; the lance and Defend Area requests
+affect its whole battle lance; the tactical move temporarily affects only the
+selected chassis's locomotion. The battle
 applies each request at its serialized command boundary. Doctrine and lance
 changes invalidate the movement and planning state owned by the changed layer
-and replan immediately. A move resolves the clicked ground to the nearest
-walkable cell connected to the selected Mech, clears only that member's old
-path, and leaves the shared plan in place. It keeps acquiring legal contacts
-and firing installed weapons while walking. Arrival removes the override before
+and replan immediately. Defend Area installs one player tactical assignment on
+the battle lance and gives its specialized bounded-defense plan precedence over
+the underlying mission until superseded. A move resolves the clicked ground to
+the nearest walkable cell connected to the selected Mech, clears only that
+member's old path, and leaves the shared plan in place. It keeps acquiring legal
+contacts and firing installed weapons while walking. Arrival removes the override before
 ordinary doctrine executes, so there is no planless handback tick. Broken-morale
 survival suspends rather than erases the move; a hard withdrawal cancels it.
 These interrupts preserve the mission assignment, legal contact picture,
@@ -284,6 +294,10 @@ support sortie, subject only to practical runtime resources.
 - A tactical move order changes one Mech's locomotion only. It does not become
   a squad assignment, acquire directive authority, change doctrine or lance
   order, disclose a hostile, or silence installed weapons.
+- A Defend Area order changes the whole battle lance's temporary tactical
+  assignment, never one chassis's doctrine or the Form on Lead / Free Reign
+  coordination rule. Its center and radius constrain positioning without
+  disclosing contacts or suspending ordinary weapons.
 - Tactical move arrival is a completion boundary, not a new hold posture. The
   order releases immediately to the still-current squad plan and effective
   doctrine. Broken-morale survival may suspend it, and withdrawal may cancel it.

@@ -21,10 +21,11 @@ import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.PendingOr
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
- * Resolves a player world click into a temporary infantry execution assignment.
- * Ground uses attack-move; an uncaptured Conquest compound uses the ordinary
- * secure-compound action until capture completes. Mission ownership remains in
- * {@link Squad#assignedObjective} throughout.
+ * Resolves a player world click into a temporary squad execution assignment.
+ * Infantry ground clicks use attack-move, an uncaptured Conquest compound uses
+ * the ordinary secure-compound action until capture completes, and Defend Area
+ * is available to either infantry or an ordinary player Mech lance. Mission
+ * ownership remains in {@link Squad#assignedObjective} throughout.
  */
 public final class SquadMoveOrderSystem {
 
@@ -42,7 +43,9 @@ public final class SquadMoveOrderSystem {
         for (var active : service.activeEntries()) {
             int squadId = active.getKey();
             ActiveOrder order = active.getValue();
-            Squad squad = validPlayerInfantrySquad(squadId, sim);
+            Squad squad = order instanceof ActiveDefendAreaOrder
+                    ? validPlayerDefendSquad(squadId, sim)
+                    : validPlayerInfantrySquad(squadId, sim);
             if (squad == null) {
                 release(squadId, order, sim.getSquad(squadId), sim);
                 continue;
@@ -67,7 +70,9 @@ public final class SquadMoveOrderSystem {
         }
 
         for (PendingOrder request : service.drainPending()) {
-            Squad squad = validPlayerInfantrySquad(request.squadId, sim);
+            Squad squad = request.kind == PendingOrder.Kind.DEFEND_AREA
+                    ? validPlayerDefendSquad(request.squadId, sim)
+                    : validPlayerInfantrySquad(request.squadId, sim);
             if (squad == null || withdrawing(squad)) continue;
             int[] origin = origin(squad, sim);
             if (origin == null) continue;
@@ -77,7 +82,8 @@ public final class SquadMoveOrderSystem {
             // and the plain move, because the APC is the more specific answer
             // to what the player pointed at.
             if (request.kind != PendingOrder.Kind.DEFEND_AREA) {
-                long ride = mountableVehicleAt(request.cellX, request.cellY, squad, sim);
+                long ride = sim.transport().mountableVehicleFor(request.cellX, request.cellY,
+                        squad.faction, sim.squadMemberCount(squad.id));
                 if (ride != 0L) {
                     activateMount(request, squad, ride, sim);
                     continue;
@@ -130,24 +136,6 @@ public final class SquadMoveOrderSystem {
      * the click was at ordinary ground — or at a vehicle that cannot take them,
      * which is the same thing as far as the order is concerned.
      */
-    private static long mountableVehicleAt(int cellX, int cellY, Squad squad,
-                                           BattleSimulation sim) {
-        for (long id : sim.getConvoyVehicleIds()) {
-            VehicleMission mission = sim.convoyMission(id);
-            if (mission == null || !mission.isVisible()
-                    || mission.state == VehicleState.WRECKED) continue;
-            if (sim.convoy().faction(id) != squad.faction) continue;
-            GroundBody body = sim.convoy().body(id);
-            if (Math.abs(body.x - (cellX + 0.5f)) > VEHICLE_CLICK_TOLERANCE_CELLS
-                    || Math.abs(body.y - (cellY + 0.5f)) > VEHICLE_CLICK_TOLERANCE_CELLS) {
-                continue;
-            }
-            if (sim.transport().seatsFree(id) < sim.squadMemberCount(squad.id)) continue;
-            return id;
-        }
-        return 0L;
-    }
-
     private void activateMount(PendingOrder request, Squad squad, long vehicleId,
                                BattleSimulation sim) {
         GroundBody body = sim.convoy().body(vehicleId);
@@ -310,6 +298,23 @@ public final class SquadMoveOrderSystem {
         return member == 0L || !sim.identity().has(member)
                 || !sim.identity().type(member).usesInfantryTraining()
                 ? null : squad;
+    }
+
+    /** Player-authored area defence is shared by infantry squads and Mech lances. */
+    private static Squad validPlayerDefendSquad(int squadId,
+                                                 BattleSimulation sim) {
+        Squad squad = sim.getSquad(squadId);
+        if (squad == null || squad.faction != Faction.MARINE
+                || squad.isDroneSquad() || squad.rescuePickupGuard
+                || squad.rescueShelterGuard || squad.rescuePickupMech) {
+            return null;
+        }
+        long member = firstLiveMember(squad, sim);
+        if (member == 0L || !sim.identity().has(member)) return null;
+        var type = sim.identity().type(member);
+        boolean defendCapable = type.usesInfantryTraining()
+                || (squad.isMechSquad() && type.isMech());
+        return defendCapable ? squad : null;
     }
 
     private static void invalidateExecution(Squad squad,

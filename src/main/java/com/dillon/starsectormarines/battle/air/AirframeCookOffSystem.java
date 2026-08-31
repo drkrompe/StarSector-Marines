@@ -28,6 +28,18 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
  * reading position off the event's snapshot because the unit is released by
  * the time the mailbox drains.
  *
+ * <p><b>A second door, for a death with no {@code DeathEvent} to knock with.</b>
+ * A parked airframe is an ordinary grid unit, so its death publishes one; a
+ * taxiing airframe is an air entity with no grid or combat components, so its
+ * death is a mission-state transition and nothing else — there is no unit for
+ * a {@code DeathDispatcher} to have heard about. {@link #cookOff} is that
+ * second door, called directly by {@code AirSystem} for a craft it kills in a
+ * grounded phase. Both doors open onto the same fire: the radius, the damage,
+ * the friendly-fire behaviour and the refusal to chain are one definition
+ * either way, and both share the double-fire guard below — not because either
+ * caller can plausibly ask twice for the same airframe id, but because a
+ * blast this specific is worth exactly one definition of "already burned" too.
+ *
  * <p><b>It does not chain.</b> The blast is sized to the stand and the apron
  * around it and stops short of the next hardstand, which on an authored field
  * sits eight cells away. A fire that took its neighbours with it would make
@@ -89,16 +101,30 @@ public final class AirframeCookOffSystem {
     public void onDeath(DeathEvent event) {
         long airframe = event.unitId();
         if (!roster.identity().type(airframe).isBasedAircraft()) return;
+        ignite(airframe, event.x(), event.y(), roster.identity().faction(airframe));
+    }
+
+    /**
+     * Sets off the same blast for an airframe that died away from its pad —
+     * taxiing, holding short, partway down a takeoff roll or a landing
+     * rollout — where there is no grid unit and therefore no {@link
+     * DeathEvent} to publish one through. See the class note on why this and
+     * {@link #onDeath} are one fire rather than two.
+     */
+    public void cookOff(long airframe, float x, float y, Faction faction) {
+        ignite(airframe, x, y, faction);
+    }
+
+    private void ignite(long airframe, float x, float y, Faction faction) {
         if (!burned.add(airframe)) return;
-        Faction faction = roster.identity().faction(airframe);
-        effects.spawnHeavyImpact(event.x(), event.y(), BLAST_RADIUS_CELLS);
-        effects.spawnSmokingWreck(event.cellX(), event.cellY());
+        effects.spawnHeavyImpact(x, y, BLAST_RADIUS_CELLS);
+        effects.spawnSmokingWreck((int) Math.floor(x), (int) Math.floor(y));
         detonations.detonateNow(new PendingDetonation(
                 // Nobody is credited: what kills anyone here is the aircraft's
                 // own fuel, and the round that opened the tank was fired at
                 // the aircraft. An attacker earns the airframe, not the burns.
                 CombatTelemetryService.NO_ATTACKER,
-                event.x(), event.y(), /*remainingTime*/ 0f,
+                x, y, /*remainingTime*/ 0f,
                 BLAST_RADIUS_CELLS, BLAST_DAMAGE, BLAST_PENETRATION,
                 WALL_DAMAGE, faction, /*aerialDelivery*/ false,
                 WALL_DAMAGE_RADIUS_CELLS, /*spawnDustOnWallBreak*/ true,

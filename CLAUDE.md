@@ -438,10 +438,18 @@ Do not run builds or leave generated task files there.
   **The JVM's own output never reaches `starsector.log`.** A fatal-error block, a
   native loader failure, and anything printed outside log4j go to stdout/stderr
   only, so the task tees them to `build/starsector-run/console.log` and points
-  `-XX:ErrorFile` at `build/starsector-run/hs_err_pid<pid>.log`. When the game
-  dies without explanation, read those two before `starsector.log` — log4j
-  buffers, so a hard kill can drop the last lines of the log while the console
+  `-XX:ErrorFile` at `build/starsector-run/hs_err_pid<pid>.log`. Every run also
+  writes `build/starsector-run/run-summary.txt` with the decoded exit status.
+  When the game dies without explanation, read those before `starsector.log` —
+  log4j buffers, so a hard kill can drop the log's last lines while the console
   capture keeps them.
+  **The exit status is the fact that separates the cases**, which is why it is
+  written to a file rather than only logged. `0` means something asked the
+  process to stop, so a `0` with no shutdown banner in the log means it was
+  killed from outside the JVM. An NTSTATUS names a cause instead:
+  `0xC0000005` is a native crash, and `0xC000001D` (illegal instruction) points
+  at the experimental `-XX:UseAVX` / vector flags in the installed `vmparams`
+  rather than at anything in the mod.
 - `gradlew.bat prepareCatalogSmoke` → stages the additive two-provider catalog
   acceptance fixture without launching Starsector. Pass
   `-PcatalogSmokeMode=collision` to stage the duplicate-id variant.
@@ -478,7 +486,7 @@ The discovered suite ids and default output directories are:
 | `runway-sortie` | Two animated loops of one station flying a fighter off its strip: the whole cycle unopposed — taxi, roll, gun runs, approach, rollout, taxi in — and the same cycle with a fire team astride the taxiway | `build/snapshots/runway-sortie/` |
 | `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
 | `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
-| `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, and marines casting beside the same marines with the shadow layer left out — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
+| `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, marines casting beside the same marines with the shadow layer left out, and one craft at three altitudes walking its shadow away from itself — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote

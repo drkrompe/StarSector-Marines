@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Battle-local request mailbox and accepted state for infantry squad orders. */
+/** Battle-local mailbox for infantry orders and shared infantry/Mech area defence. */
 public final class SquadMoveOrderService {
 
     /** A 40-by-40-cell circular footprint: twenty cells from center to edge. */

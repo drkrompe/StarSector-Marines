@@ -100,12 +100,25 @@ public final class World {
     // spans [cx,cx+1), center at cx+0.5); cellX/cellY are the derived grid cell
     // (floor) for nav/LoS/fog lookups, kept as int-returning accessors so the
     // existing cell-space call sites compile unchanged.
+    /**
+     * Whether {@code id} stands on a grid cell of its own. False for the bodies
+     * that carry their own kinematics instead — a convoy chassis, an aircraft —
+     * which is exactly what a caller about to <em>write</em> a cell has to know:
+     * they answer {@link #x}/{@link #y} off their body and there is no cell
+     * column to put anything back into.
+     */
+    public boolean hasPosition(long id) { return entityWorld.has(id, components.POSITION); }
+
     public float x(long id) {
         if (entityWorld.has(id, components.POSITION)) {
             return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
         }
         GroundBody body = groundBody(id);
         if (body != null) return body.x;
+        // POSITION is checked above, so a drone — which carries both a cell and
+        // a body — never reaches this and keeps answering off its cell.
+        AirBody flier = kinematics(id);
+        if (flier != null) return flier.x;
         return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
     }
     public float y(long id) {
@@ -114,6 +127,8 @@ public final class World {
         }
         GroundBody body = groundBody(id);
         if (body != null) return body.y;
+        AirBody flier = kinematics(id);
+        if (flier != null) return flier.y;
         return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
     }
     public void setPos(long id, float x, float y) {
@@ -135,13 +150,30 @@ public final class World {
     // strict hp/cell accessors. Center-based, same as x()/y().
     public float renderX(long id) {
         GroundBody body = groundBody(id);
-        return body != null ? body.x
-                : entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X, 0f);
+        if (body != null) return body.x;
+        AirBody flier = flierWithoutACell(id);
+        if (flier != null) return flier.x;
+        return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X, 0f);
     }
     public float renderY(long id) {
         GroundBody body = groundBody(id);
-        return body != null ? body.y
-                : entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y, 0f);
+        if (body != null) return body.y;
+        AirBody flier = flierWithoutACell(id);
+        if (flier != null) return flier.y;
+        return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y, 0f);
+    }
+
+    /**
+     * The kinematic body of a craft that has no grid cell of its own — an
+     * aircraft, which is a body and nothing else.
+     *
+     * <p>Gated on the absence of {@code POSITION} rather than on the presence of
+     * {@code KINEMATICS}, because a drone carries both and its cell is the
+     * authority the rest of the grid stack already agrees with; answering off
+     * its body here would quietly put two positions in play for one actor.
+     */
+    private AirBody flierWithoutACell(long id) {
+        return entityWorld.has(id, components.POSITION) ? null : kinematics(id);
     }
 
     private GroundBody groundBody(long id) {

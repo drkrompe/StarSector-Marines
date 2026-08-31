@@ -4,11 +4,12 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — a landing is flown, and the strip it lands on is a resource nothing may hold after it stops existing.
-
-Updated: 2026-08-30 — the two-representations split now has a stated expiry:
-bodies reach the scans generically, so anti-air will not need an air-aware
-branch in every grid walk.
+Updated: 2026-08-31 — an aircraft on its wheels is a real target rather than a
+damageable one: it is a body in the spatial index on the convoy's terms, its
+hull is an ordinary `HEALTH`/`ARMOR` pair instead of a field on the sortie, and
+it is acquired, aimed at, traced through cover and credited by the pipeline
+that already does all of that. The attrition field it replaces is deleted; a
+craft in the air stays out of reach until anti-air exists.
 
 ## Purpose
 
@@ -67,6 +68,13 @@ present, who owns it, and what it can do in the battle.
 altitude. It is not a second physics body. Visual scale, offset, and engine
 intensity are derived from that state and the body, keeping the simulation and
 the rendered craft anchored to the same actor.
+
+A craft's drawn size is `AirAppearance.GROUND_SCALE` on the ground rising to
+`GROUND_SCALE × ALTITUDE_SCALE_GAIN` at altitude — the gain is factored out as
+a ratio precisely so climbing can be re-dialled without touching the ground
+size the two representations agree on. It was brought down from 1.5 to 1.2 on
+2026-08-31: the earlier value read as a near-50%-larger pop rather than the
+subtle "a little bigger up high" the cue is meant to be.
 
 ## Hull-derived facts
 
@@ -131,36 +139,51 @@ An aircraft is **two representations, one thing**. In the air it is an air
 entity. On its hardstand it is an ordinary grid unit, and a launch or a landing
 is a handoff between them.
 
-The split is deliberate and load-bearing. An air entity carries no grid or
-combat components, which is what lets every grid walk in the battle skip air
-for free; a parked aircraft, meanwhile, has to be perceived, gated by fog,
-traced against line of sight, hit, attributed, killed and wrecked — all
-grid/combat concerns. Teaching the combat stack an air-aware branch in each of
-them would buy a handful of shootable aircraft at the cost of that property
-forever. Being a unit on the ground buys the same behaviour for nothing. The
-unit is a target and never a weapon: it is a structure, so it neither aims nor
-fires, and what it does is stand there and be worth shooting.
+**Both of them are bodies, and being a body is what makes an aircraft
+shootable.** The split used to carry that weight as well: a parked aircraft was
+a grid unit precisely so that being perceived, traced against line of sight,
+hit, attributed, killed and wrecked came from the paths that already did those
+things, and an air entity carried no grid or combat components so every grid
+walk skipped it for free. Teaching the combat stack an air-aware branch in each
+of those walks would have bought a handful of shootable aircraft at the cost of
+that property forever.
 
-**That reasoning has an expiry date, and the convoy work moved it closer.** The
-argument above weighs "a handful of shootable aircraft" against an air-aware
-branch in every grid walk — and the branch is what made it a bad trade. The
-unit spatial index is now an index over *bodies* rather than over dense-roster
-rows, and a convoy chassis reaches every scan by carrying `IDENTITY` and
-nothing else: no `POSITION`, so occupancy and separation still skip it; no
-`COMBAT`, `MOVEMENT` or `ROLE`, so the fire system, the mover and the planner
-still skip it. Membership-narrowing does the work the branch used to. An
-airborne craft that gained `IDENTITY` and `HEALTH` on the same terms would be
-seen, targeted and damaged by the paths that already do those things, without
-anything acquiring an air-aware branch.
+The convoy work removed the branch from that trade. The unit spatial index is
+an index over *bodies* rather than over dense-roster rows, and a chassis reaches
+every scan by carrying `IDENTITY`, `HEALTH` and `ARMOR` and nothing else: no
+`POSITION`, so occupancy and separation skip it; no `COMBAT`, `MOVEMENT` or
+`ROLE`, so the fire system, the mover and the planner skip it.
+Membership-narrowing does the work the branch used to. **An air entity now
+carries exactly that trio on exactly those terms**, so a craft on its wheels is
+acquired, aimed at, led, traced through cover and walls, hit, credited and
+killed by the ordinary pipeline, and what puts it in reach of all of it is one
+line in the index rebuild. `AirTargetService` says which craft that is;
+`AirDamageResolver` applies the shared durability law to one.
 
-Nothing is planned here yet, and airborne craft remain undamageable — they
-carry no `HEALTH` at all, which is why nothing can shoot at one. But the
-moment anti-air exists, "not a target while flying" stops being a simplification
-and becomes the thing in the way. The shape to reach for then is the convoy's,
-not a second explicit candidate set: a flying aircraft is a body, and the
-altitude question ("can this shooter reach up?") is a per-weapon capability,
-which is what the existing "only a defence post can reach up" filter is already
-a hardcoded special case of.
+Structure therefore lives where every other body's does — an ordinary `HEALTH`
+component beside an ordinary `ARMOR` one — rather than in the sortie's mission
+bag. There is one hull number, written by the launch that took the aircraft off
+its berth, drained by whatever shoots it, read by the bar over it and handed
+back to the berth when it parks. A sortie carries what the aircraft is doing,
+never how much of it is left.
+
+The skin is one skin. A parked airframe and a rolling one are the same hull and
+take the same armour off the same ladder; what separates them is how often a
+round finds them, because a hull on chocks is a mark you can settle onto and one
+going past at taxi speed is not. That is a single authored multiplier on
+incoming accuracy and deliberately not a second durability profile — two ladders
+for one aircraft would be a fact with two values, consistent exactly as long as
+nobody re-dialled either.
+
+**A craft in the air is still not a target, and that is now the only
+simplification left.** It carries the same components as one on its wheels; what
+keeps it out of reach is that the index admits an aircraft only while the phase
+says it is on the ground. The remaining question is genuinely about altitude —
+whether a given weapon can reach up — and that is a per-weapon capability
+nothing answers yet, which is what the existing "only a defence post can reach
+up" filter is a hardcoded special case of. When anti-air arrives it is that
+filter that grows, not a second candidate set: a flying aircraft is already a
+body, and admitting it costs one condition.
 
 The **berth** is the thing with identity, not the airframe. A hardstand is
 authored into the map and stays put; the aircraft on it comes and goes and may
@@ -208,15 +231,24 @@ Four rules give the field its stakes:
   happened off-map at a carrier nobody could reach. On a field it happens on
   ground the attacker can walk onto, so it takes long enough that a field cannot
   answer two requests back to back.
-- **An airframe destroyed on its stand goes up.** It is a full tank under a thin
-  skin, and that is the whole reason burning one is worth a fire team's time; a
-  hull that simply stopped existing was a target with a lot of hit points and
-  nothing else. It leaves a fireball, a burning wreck, and a blast that catches
-  whoever is beside it — the raiders who walked onto the apron included, since
-  fire does not check anybody's colours, and the ground crew that came out to
-  fly it. Recorded: burning three aircraft from four cells away cost about half
-  a six-man fire team. Riflemen out-range that comfortably, so the price is for
-  standing on the apron rather than for the raid.
+- **An airframe destroyed on the ground goes up.** It is a full tank under a
+  thin skin, and that is the whole reason burning one is worth a fire team's
+  time; a hull that simply stopped existing was a target with a lot of hit
+  points and nothing else. It leaves a fireball, a burning wreck, and a blast
+  that catches whoever is beside it — the raiders who walked onto the apron
+  included, since fire does not check anybody's colours, and the ground crew
+  that came out to fly it. Recorded: burning three aircraft from four cells
+  away cost about half a six-man fire team. Riflemen out-range that
+  comfortably, so the price is for standing on the apron rather than for the
+  raid. **Parked or rolling makes no difference.** A fighter killed taxiing,
+  holding short, or partway down a takeoff roll or a landing rollout is the
+  same tank under the same skin as one killed on its stand, and it goes up the
+  same way. Taxiing aircraft became genuinely shootable once a strip made the
+  ground procedure exposed rather than a formality, and a kill on it that
+  produced neither fire nor wreck would have been a cheaper kill than the
+  identical one a few seconds later on the stand — the crossing has to cost
+  what the apron costs, or the whole reason a runway is dangerous is a lie for
+  half its own length.
 
 The fire **does not chain**. Its reach is sized to the stand and the apron
 around it and stops short of the next hardstand, which an authored field puts
@@ -224,16 +256,31 @@ eight cells away. A blast that took its neighbours with it would make one
 satchel worth an entire airfield and delete the only decision a raid contains,
 which is how much of the field to spend the visit on.
 
-**The wreck stays on the concrete.** What the fire leaves is the aircraft's own
+**The wreck stays on the ground.** What the fire leaves is the aircraft's own
 hull, charred and in three pieces, lying at the place and bearing it was
-standing, for the rest of the battle. The smoke that marks a fresh kill burns
+destroyed, for the rest of the battle. The smoke that marks a fresh kill burns
 out in half a minute, and with nothing permanent behind it a burned field looks
 exactly like a field whose aircraft happen to be away, which is precisely the
-question a raider walked over there to settle. It is drawn off the berth rather
-than off the airframe, because the airframe is dead, released and gone by the
-time anybody looks at the pad again, and the berth is the thing that outlives
-what stands on it. An aircraft lost over the objective leaves an empty stand:
-the same terminal state, and deliberately not the same picture.
+question a raider walked over there to settle.
+
+Where that place is depends on how the aircraft died. On a hardstand the wreck
+is drawn off the berth rather than off the airframe, because the airframe is
+dead, released and gone by the time anybody looks at the pad again, and the
+berth is the thing that outlives what stands on it — a berth's own wreck never
+moves, so its position is a fact the berth already carries. A craft killed
+taxiing, holding short, or partway down a roll has no berth under it: it
+stopped wherever the fire caught it, off the stand it flew from and often well
+short of the one it was headed to. Its wreck is the same hull torn the same
+way, but it has to carry its own position and bearing instead of borrowing a
+berth's, since nothing else on the field remembers where a taxiway kill
+happened. The berth that sortie flew from is still written off — a field
+does not get an airframe back because the wreck is somewhere else — it simply
+has no hulk sitting on its own pad to show for it.
+
+An aircraft lost over the objective leaves an empty stand and no wreck at all:
+the same terminal state as either kind of ground kill, and deliberately not
+the same picture. A craft shot down at altitude falls; it does not leave a
+neat hull at the coordinates it happened to be flying over.
 
 **A hull comes apart along a V.** The nose section separates as a wedge and
 what is left splits down the spine, both tears walked so the edges are ragged
@@ -264,9 +311,10 @@ battle, which is a far worse outcome than a hull with a gap in it.
 A sortie's passengers are never at risk from this. An aircraft is taken off its
 berth at the moment the request is dispatched, before the crew starts walking,
 so the airframe standing on a pad and the crew walking toward it are never on
-the field at the same time; the craft they board is an air entity that ground
-fire cannot reach. Should a loading craft ever be made shootable, it owes its
-passengers a disposition, because they have already been taken off the roster.
+the field at the same time; the craft they board is loading, which is the one
+grounded phase ground fire is refused. Should a loading craft ever be made
+shootable, it owes its passengers a disposition, because they have already been
+taken off the roster.
 
 Every way a sortie can end draws one distinction: a craft that reached its own
 pad is an aircraft home from a job, and one that ended any other way is an
@@ -566,6 +614,17 @@ between the two representations is at a standstill, on a berth; making the taxi
 a grid walk and the roll a flight would put a second handoff in the middle of
 one continuous movement, which is exactly the seam this model keeps still.
 
+**The two representations draw the same size at that seam, by law.** The berth
+hull (`UnitRenderService`'s `emitHull`, and the wreck it leaves behind) and the
+air entity at `altitudeT == 0` (`ShuttleRenderSystem`) both draw at
+`AirAppearance.GROUND_SCALE`; a parked scenery hull on a civilian berth
+(`ParkedAircraftRenderSystem`) agrees for the same reason — it is the same kind
+of object at rest. A hull that changed size crossing the one handoff this model
+keeps still would read as a launch or a recovery popping, which is exactly the
+seam the taxi/roll design above exists to keep invisible.
+`AircraftGroundAirHandoffScaleTest` pins the berth and the air-entity collector
+landing on the same drawn number so this cannot drift back apart silently.
+
 **Rolling is not flying slowly.** Ground movement is its own locomotion model
 rather than the flight steering held down to walking pace. What flight does to
 change direction is point the nose and wait for the sideways component of its
@@ -610,17 +669,37 @@ reason the phase is asked for rather than the altitude: it is the one ground
 phase where the engines are doing everything they can, and at the start of it
 the aircraft is still at zero altitude.
 
-**And it really is shootable.** Air used to be reachable only by defence posts
+**And it really is shot at.** Air used to be reachable only by defence posts
 and only while airborne, which meant the minute of open ground a strip buys was
 a minute of complete safety — a fighter taxiing past a fire team was in no
-danger whatsoever, and the trade the runway exists to make was a fiction. An
-aircraft on its wheels is a large slow object in the open and anything with a
-weapon can engage it, at rifle reach rather than through an anti-air bubble,
-and harder per shooter than a post manages against something flying. A loading
-craft stays exempt: its passengers have already left the roster and making it
-shootable would owe them a disposition nothing gives them.
+danger whatsoever, and the trade the runway exists to make was a fiction. It
+was then made damageable without being made a target: an attrition field
+counted enemies within ten cells and subtracted hull, so the aircraft lost
+structure while nothing in the battle had aimed at it. Nobody fired a round,
+nothing was drawn or heard, cover and walls and roofs counted for nothing, an
+enemy who could not see it drained it anyway, and no shooter was credited with
+the kill. Damageable and targetable are different properties and the difference
+is the whole feature.
 
-The same list is what an anti-air post reads, so a phase left off it is a phase
+An aircraft on its wheels is a large slow object in the open, so it is acquired
+and engaged like anything else: within rifle reach rather than through an
+anti-air bubble, by whoever has a clear line to it, through the cover and the
+walls that stand between, with tracers and impacts and somebody credited
+afterwards. A loading craft stays exempt: its passengers have already left the
+roster and making it shootable would owe them a disposition nothing gives them.
+
+**Being shot at is a matter of line of sight, and it is not gated on fog.**
+That is the same rule every other body follows and the same rule a convoy
+chassis follows: the crew of an aircraft see nothing — it carries no vision at
+all — and a shooter needs a clear line rather than a revealed cell. The
+player's own picture is a separate question and one the presentation tier
+currently answers differently for air than for anything else, drawing every
+craft on the map whether or not the player's side can see it. That is a real
+inconsistency, it predates any of this, and it belongs to the render tier
+rather than to the exposure model.
+
+The exposure predicate is derived from the locomotion, not listed, and so is
+the one an anti-air post reads: a phase left off a hand-written list is a phase
 nothing can touch. Replacing the armed loiter with attack runs did exactly that
 and made every strike invulnerable while it attacked.
 
@@ -723,6 +802,17 @@ pad, taxiing, holding short, rolling, or taxiing back in was not drawn at all.
 A minute of exposed ground movement nobody can see is a vertical lift with
 extra steps.
 
+Splitting the predicate did not close the hole; it moved it. The "over the
+battle" half was still a hand list — INCOMING, PAD_DESCENT, LANDED, DEPARTING,
+RETURNING — and `ATTACK_RUN` and `REPOSITION` were added to the phase enum
+afterwards without a mention in it, which is the whole of a strike aircraft's
+time actually attacking. A fighter mid gun-run swept no fog and fired no
+mounted turret, invisible in exactly the way the runway-exposure list already
+warned about once. `ShuttleMission.isOverTheBattle` is now an exhaustive
+switch with no default case: every phase this enum ever grows must be placed
+on one side or the other before the project compiles, so the next phase added
+cannot repeat this by omission the way the last two did.
+
 The strip itself is a **resource with one occupant**. Two aircraft rolling down
 one runway is not a race the simulation is entitled to lose, and the queue that
 falls out of it is the point — a field with three aircraft and one strip
@@ -792,6 +882,20 @@ people who can be seen and shot, they cross open ground to reach the field, and
 an attacker standing on the airfield — or merely shooting across it — has
 stopped the lift without touching the aircraft.
 
+**Launching off a hardstand climbs before it flies away.** Loading pins the
+craft to the ground, and the leg that follows judges its own altitude by how
+much of the flight to the LZ is left — which is already the whole flight on
+the very first sample of a fresh one. Without something between them a sortie
+that just finished boarding popped from the ground to cruising height in the
+single tick the ramp closed: altitude and drawn scale both jumped their full
+range in one frame, the same discontinuity the settle below exists to remove,
+run the other way. So a launch climbs on the spot, over the pad it just left,
+before it turns for the LZ — the mirror of the settle, and a phase of its own
+for the same reason: a craft climbing straight up and a craft flying a leg are
+not moved by the same model. Only a sortie that starts down on its own
+hardstand needs this; one entering from off-map is already at cruise, and one
+rolling off a strip reaches cruise over the length of its takeoff roll.
+
 **A vertical lift settles onto its pad; it does not arrive on it.** The run in
 brakes down to a hover over the spot, and the last of the descent is its own
 phase: the craft holds, kills the drift it came in with, and sinks. Its heading
@@ -801,6 +905,24 @@ moving — which is a helicopter ceasing to exist mid-air and reappearing landed
 and reads exactly as badly as that sounds. A pad does not need a runway's
 circuit, because a machine that lands vertically can arrive from any bearing;
 what it needs is the deceleration and the descent to be things that take time.
+
+**The settle ends on a condition, not a duration.** It used to end after a
+stated number of seconds regardless of where that left the craft, which is the
+same placement the settle itself exists to remove, just deferred rather than
+undone: a stated duration is somebody's guess at how long braking takes, and a
+bus-tier hull's gentler brakes make that guess wrong by exactly the margin its
+brakes are gentler. Measured on the shipped hull ladder, every bus-tier
+transport — Buffalo, Tarsus, Mule, Nebula, Valkyrie — was still two and a half
+to nearly four cells short of the pad, doing several cells a second, when the
+clock ran out, and was snapped to a dead stop there anyway: over a hundred
+cells/sec² against a brake rated for four. The settle now ends when the
+craft is genuinely down — over the pad, and its speed killed — both read off
+the body's own motion rather than off a clock, and both against numbers the
+hull owns (its braking accel) rather than one authored duration asked to fit
+every hull. A settle that could in principle never converge would be worse
+than the snap it replaces, so it still carries a bound; landing on that bound
+still respects the brake; nothing is moved, the settle is simply accepted as
+finished where the craft actually is.
 
 **Unloading is bounded at both ends of the trip.** A passenger needs somewhere
 to stand, and a landing zone can have nowhere: a squad that lands and holds

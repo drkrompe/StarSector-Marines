@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Publishes the selected infantry squad's accepted move or objective cell. */
+/** Publishes the selected infantry squad or Mech lance's accepted tactical area/cell. */
 public final class SquadMoveOrderHighlightPublisher {
 
     private SquadMoveOrderHighlightPublisher() { }

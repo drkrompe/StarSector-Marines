@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
@@ -176,6 +177,9 @@ public final class UnitRosterService {
     // because adoption must mint through the shared allocateVehicle; the ref is stored,
     // not dereferenced during construction (used at spawn time).
     private final ConvoyService convoyService = new ConvoyService(this);
+    // Data owner for "which aircraft can be shot at right now". Takes `this` for the
+    // same reason the convoy service does; the ref is stored, not dereferenced here.
+    private final AirTargetService airTargetService = new AirTargetService(this);
     private final World world = new World(entityWorld, components, combatService, movementService);
 
     /**
@@ -442,6 +446,9 @@ public final class UnitRosterService {
 
     /** Data owner for convoy-vehicle world entities (ground archetype) — {@code GroundSystem} adopts / reaps vehicles and reads their identity + pose by id through it. */
     public ConvoyService convoy() { return convoyService; }
+
+    /** Data owner for an aircraft as a target — which craft ground fire can reach, and how fast they are going. */
+    public AirTargetService airTargets() { return airTargetService; }
 
     // ---- allocate / release (the spawn + death seam) ----
 
