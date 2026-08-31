@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
+import com.dillon.starsectormarines.battle.ui.panel.OrderIntentCursorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDefendTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
@@ -203,6 +204,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private CommandPowerTargetingPanel commandPowerTargeting;
     /** World placement half of the selected-infantry Defend Area order. */
     private SquadDefendTargetingPanel squadDefendTargeting;
+    /** Says what a right-click would do at the cell under the pointer. */
+    private OrderIntentCursorPanel orderIntentCursor;
     /** Shared selection state read by HUD panels (and, later, a world-picker). Survives across attach()/rebuild() cycles; self-heals when the selected squad disappears. */
     private final Selection selection = new Selection();
     /** Shared debug cell-highlight overlay — populated by HUD panels, rendered between the grid pass and the unit sprites. */
@@ -577,7 +580,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Added above the picker and power targeter. Arming either targeting
         // family cancels the other, so only one world click owner is live.
         squadDefendTargeting = new SquadDefendTargetingPanel(this);
+        orderIntentCursor = new OrderIntentCursorPanel(this);
         hud.addPanel(squadDefendTargeting);
+        hud.addPanel(orderIntentCursor);
         hud.addPanel(new TaskForceStatusPanel(this));
         // Per-squad GOAP plan readout. It has no all-squad overview: the
         // diagnostic opens only while WorldPicker has a squad in Selection.

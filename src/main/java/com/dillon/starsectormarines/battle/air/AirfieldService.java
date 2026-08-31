@@ -147,6 +147,14 @@ public final class AirfieldService {
     private static final float REFIT_REPAIR_FRACTION = 0.5f;
 
     private final List<Berth> berths = new ArrayList<>();
+    /**
+     * Wrecks left by an airframe destroyed away from any berth — taxiing,
+     * holding short, mid-roll. A hardstand kill needs none of this: its wreck
+     * is the berth's own {@link Berth#wreckOnPad}, drawn at a position the
+     * berth already carries. A wreck out here has no berth under it, so it
+     * carries its own position instead. See {@link #addGroundWreck}.
+     */
+    private final List<GroundWreck> groundWrecks = new ArrayList<>();
     private Runway runway;
     /** The craft currently using the strip, or {@code 0} when it is free. */
     private long runwayOccupant;
@@ -383,6 +391,22 @@ public final class AirfieldService {
     public void burnedOnPad(Berth berth) {
         destroyed(berth);
         berth.wreckOnPad = true;
+    }
+
+    /**
+     * Records a wreck at wherever an airframe died under its own power —
+     * taxiing, holding short, mid-roll — with no berth under it to remember
+     * it for. {@code AirSystem} calls this directly for a craft it kills in a
+     * grounded phase, the same way {@link #burnedOnPad} is this field's record
+     * of a hardstand kill.
+     */
+    public void addGroundWreck(GroundWreck wreck) {
+        groundWrecks.add(wreck);
+    }
+
+    /** Every wreck this field is carrying that is not sitting on a berth. */
+    public List<GroundWreck> groundWrecks() {
+        return Collections.unmodifiableList(groundWrecks);
     }
 
     /** The berth holding a given live parked airframe, or null. */
