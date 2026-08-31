@@ -424,18 +424,16 @@ public final class UnitSpatialIndex {
      * that only grows can never under-report, which is the only direction that
      * matters here.
      *
-     * <p><b>This is what a broad phase pads with.</b> Every query returns the
-     * bodies whose <em>centre</em> lies within the asked radius, so a caller
-     * testing "does this circle touch that body" has to widen its query by the
-     * biggest radius any body might have — and a caller that pads with too
-     * little silently drops victims rather than failing. Hardcoding the number
-     * does not work: a turret's radius is authored in the turret catalog JSON
-     * and a chassis's is derived from its art dimensions, so a constant
-     * compiled against today's data goes stale on a content edit, in a file
-     * nobody would think to connect to blast damage. It is measured here
-     * instead, off the bodies that actually exist.
+     * <p>It is what {@link #gatherOverlapping} and {@link #gatherAlongSegment}
+     * pad with, and it is deliberately not public: a bound every caller has to
+     * remember to add is the same defect as a sweep every caller has to
+     * remember to run. Measured rather than authored because the inputs are
+     * content — a turret's radius is authored in the turret catalog JSON and a
+     * chassis's is derived from its art dimensions, so a constant compiled
+     * against today's data goes stale on an edit to a file nobody would think
+     * to connect to blast damage.
      */
-    public float maxBodyRadius() {
+    float maxBodyRadiusForTest() {
         return maxBodyRadius;
     }
 
@@ -476,6 +474,32 @@ public final class UnitSpatialIndex {
      */
     public void gather(float cx, float cy, float radius, LongBucket out) {
         gather(cx, cy, radius, -1, out);
+    }
+
+    /**
+     * Every body whose <em>own circle</em> touches the circle
+     * ({@code cx}, {@code cy}, {@code radius}) — the query to ask when the
+     * question is physical: does this blast, this corridor, this footprint
+     * reach that body.
+     *
+     * <p>{@link #gather} answers a different question — whose <em>centre</em>
+     * lies inside the circle — and the difference is a body's own radius. A
+     * caller that wants contact and asks {@code gather} has to widen its query
+     * by the largest radius any body might have, and a caller that widens by
+     * too little silently drops bodies instead of failing. That padding is the
+     * index's business, not each caller's: it is the only party that knows how
+     * big the bodies it holds are. `convoy-nouns.md` records what it cost to
+     * learn that — a 1.2-cell hull against a 1.0-cell margin put rounds
+     * through an APC at point-blank range.
+     *
+     * <p>Conservative, not exact: the pad is the largest body radius the index
+     * holds rather than each candidate's own, so a query near a small body may
+     * return a few extra candidates. That is the correct direction for a broad
+     * phase — the caller's exact per-body test is still the authority — and it
+     * keeps the per-entry data out of the rebuild hot path.
+     */
+    public void gatherOverlapping(float cx, float cy, float radius, LongBucket out) {
+        gather(cx, cy, radius + maxBodyRadius, -1, out);
     }
 
     /**
@@ -781,6 +805,11 @@ public final class UnitSpatialIndex {
      * output buffer) — see the class Javadoc's Threading note.
      */
     public void gatherAlongSegment(float x0, float y0, float x1, float y1, float margin, LongBucket out) {
+        // A body's own radius is added here rather than by the caller, for the
+        // reason spelled out on gatherOverlapping: the margin a caller passes
+        // is the clearance it wants BEYOND the bodies, and the index is the
+        // only party that knows how big those are.
+        margin += maxBodyRadius;
         out.clear();
         if (margin <= 0f) return;
         float dx = x1 - x0;
