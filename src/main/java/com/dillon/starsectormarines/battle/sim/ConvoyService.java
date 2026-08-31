@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -15,6 +17,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Data owner + factory for convoy ground vehicles as world entities — the ground
@@ -53,6 +56,9 @@ public final class ConvoyService {
     /** World-resident live vehicles and persistent wrecks; N is normally 1-4. */
     private final List<Long> entityIds = new ArrayList<>();
 
+    /** Monotonic suffix for the greppable {@code IDENTITY} name; never recycled, so two chassis never share one. */
+    private int spawnSequence;
+
     public ConvoyService(UnitRosterService roster) {
         this.roster = roster;
     }
@@ -82,11 +88,19 @@ public final class ConvoyService {
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;
         // GROUND_TURRET is present only when armed.
         ComponentType[] archetype = (turret != null)
-                ? new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION,
-                    c.VEHICLE_CONTROL, c.GROUND_TURRET, c.HEALTH, c.ARMOR}
-                : new ComponentType[]{c.GROUND_IDENTITY, c.GROUND_KINEMATICS, c.VEHICLE_MISSION,
-                    c.VEHICLE_CONTROL, c.HEALTH, c.ARMOR};
+                ? new ComponentType[]{c.IDENTITY, c.GROUND_IDENTITY, c.GROUND_KINEMATICS,
+                    c.VEHICLE_MISSION, c.VEHICLE_CONTROL, c.GROUND_TURRET, c.HEALTH, c.ARMOR}
+                : new ComponentType[]{c.IDENTITY, c.GROUND_IDENTITY, c.GROUND_KINEMATICS,
+                    c.VEHICLE_MISSION, c.VEHICLE_CONTROL, c.HEALTH, c.ARMOR};
         long id = roster.allocateVehicle(archetype);
+        // IDENTITY makes the chassis a body the ordinary grid walks can read:
+        // faction, archetype, and a greppable name, exactly as a turret or a
+        // parked airframe carries them. It deliberately brings no POSITION,
+        // so the occupancy and separation queries keyed on that still skip it.
+        world.setObject(id, c.IDENTITY, BattleComponents.IDENTITY_TYPE, UnitType.GROUND_VEHICLE);
+        world.setObject(id, c.IDENTITY, BattleComponents.IDENTITY_FACTION, faction);
+        world.setObject(id, c.IDENTITY, BattleComponents.IDENTITY_NAME,
+                type.name().toLowerCase(Locale.ROOT) + "-" + (++spawnSequence));
         world.setObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_TYPE, type);
         world.setObject(id, c.GROUND_IDENTITY, BattleComponents.GROUND_IDENTITY_FACTION, faction);
         world.setObject(id, c.GROUND_KINEMATICS, BattleComponents.GROUND_KINEMATICS_BODY, body);
@@ -104,6 +118,9 @@ public final class ConvoyService {
             world.setObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE, turret);
         }
         entityIds.add(id);
+        // A chassis that spawns already on the map is a body somebody could be
+        // looking at this tick; one still off-map joins at the next rebuild.
+        if (isTargetable(id)) roster.indexVehicle(id);
         return id;
     }
 
@@ -114,6 +131,7 @@ public final class ConvoyService {
      */
     public void despawn(long id) {
         if (id == 0L) return;
+        roster.unindexVehicle(id);
         roster.entityWorld().destroy(id);
         entityIds.remove(id);
     }
@@ -148,6 +166,22 @@ public final class ConvoyService {
         VehicleMission mission = mission(id);
         return mission != null && mission.isVisible() && mission.state != VehicleState.WRECKED
                 && roster.isAliveById(id);
+    }
+
+    /**
+     * How far this chassis can shoot, in cells — its turret weapon's range, or
+     * {@code 0} for an unarmed hull. A vehicle carries no {@code COMBAT}
+     * component (its turret runs its own aim loop rather than the infantry
+     * fire path), so the threat scans read reach through here instead of the
+     * fail-loud {@code World.attackRange}. An unarmed truck answering zero is
+     * the right answer, not a missing one: it is a thing to shoot at, not a
+     * thing to take cover from.
+     */
+    public float weaponRange(long id) {
+        VehicleType type = vehicleType(id);
+        if (type == null || !type.hasTurretWeapon()) return 0f;
+        StructureDef structure = type.turretStructure();
+        return structure != null ? structure.mount.weapon.range : 0f;
     }
 
     /** Circular contact radius used by ballistic and blast broad phases. */

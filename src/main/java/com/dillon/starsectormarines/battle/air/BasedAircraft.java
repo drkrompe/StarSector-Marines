@@ -18,6 +18,13 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * combat stack to see air would have bought three shootable aircraft at the
  * cost of that property forever.
  *
+ * <p>That trade has since shifted. The unit spatial index indexes bodies rather
+ * than dense-roster rows, so an entity now reaches every scan by carrying
+ * {@code IDENTITY} alone and is skipped by the fire, movement and planning
+ * systems for lack of their components — a convoy chassis works exactly that
+ * way. When anti-air arrives, an airborne craft can become a body on the same
+ * terms rather than earning a branch in each grid walk; see {@code air-nouns.md}.
+ *
  * <p>The shape is {@link com.dillon.starsectormarines.battle.drone.DroneHub}'s:
  * combatant so it is targeted and damaged, {@link UnitRole#STRUCTURE} so it
  * never aims and never fires, and a per-instance hull rather than stats on the

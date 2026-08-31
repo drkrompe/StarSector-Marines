@@ -365,9 +365,6 @@ public final class BallisticResolver {
         float margin = GATHER_MARGIN_CELLS + MAX_MOVER_SPEED_CELLS * (rayLen / roundVelocity);
         LongBucket candidates = new LongBucket();
         unitIndex.gatherAlongSegment(fromX, fromY, rayEndX, rayEndY, margin, candidates);
-        for (long vehicleId : convoy.entityIds()) {
-            if (convoy.isTargetable(vehicleId)) candidates.add(vehicleId);
-        }
         for (int i = 0; i < candidates.size; i++) {
             long candidateId = candidates.ids[i];
             if (candidateId == source.entityId()) continue;
@@ -386,7 +383,7 @@ public final class BallisticResolver {
 
             // The same physical body circle SeparationSystem shoves apart and
             // Detonations/WorldPicker size against — one radius concept per body.
-            float r = vehicle ? convoy.targetRadius(candidateId) : roster.radius(candidateId);
+            float r = roster.radius(candidateId);
             float ux = world.x(candidateId);
             float uy = world.y(candidateId);
 
@@ -503,11 +500,11 @@ public final class BallisticResolver {
     }
 
     private float targetRadius(long id) {
-        return convoy.isVehicle(id) ? convoy.targetRadius(id) : roster.radius(id);
+        return roster.radius(id);
     }
 
     private float targetHitHalfHeight(long id) {
-        return convoy.isVehicle(id) ? convoy.hitHalfHeight(id) : roster.hitHalfHeight(id);
+        return roster.hitHalfHeight(id);
     }
 
     /**

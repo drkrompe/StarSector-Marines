@@ -125,13 +125,15 @@ public final class HitResponseSystem {
         });
         if (!claimed[0]) return;
         long expectedTargetId = world.targetId(target);
-        if (!roster.isLive(expectedTargetId)) return;
+        // isAliveById rather than isLive: a marine whose current target is a
+        // convoy chassis is still a marine that can be talked off it.
+        if (!roster.isAliveById(expectedTargetId)) return;
         if (shooter != 0L && expectedTargetId == shooter) return;
         VisionService vision = roster.vision();
         boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
                 world.cellX(target), world.cellY(target),
                 world.cellX(expectedTargetId), world.cellY(expectedTargetId),
-                vision.airLosRadius(target), vision.airLosRadius(expectedTargetId));
+                vision.airLosRadius(target), vision.targetAirLosRadius(expectedTargetId));
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
         if (rng.nextFloat() >= chance) return;
         damageService.applyReprio(target, expectedTargetId);

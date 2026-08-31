@@ -180,7 +180,7 @@ public final class BattleRadioChatter {
                         if (!TacticalScoring.canSeePair(sim.getGrid(),
                                 sim.world().cellX(spotter), sim.world().cellY(spotter),
                                 unitX, unitY, sim.vision().airLosRadius(spotter),
-                                sim.vision().airLosRadius(unit))) continue;
+                                sim.vision().targetAirLosRadius(unit))) continue;
                         mechVisible = true;
                         mechSpotterSquadId = squad.id;
                         break;

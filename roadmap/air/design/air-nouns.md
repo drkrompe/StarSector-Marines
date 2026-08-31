@@ -6,6 +6,10 @@ Written: 2026-08-23
 
 Updated: 2026-08-30 — an aircraft is one entity moved three ways, and a landing is flown rather than captured.
 
+Updated: 2026-08-30 — the two-representations split now has a stated expiry:
+bodies reach the scans generically, so anti-air will not need an air-aware
+branch in every grid walk.
+
 ## Purpose
 
 Air is the battle tier's atmospheric craft: transports that deliver people and
@@ -136,6 +140,27 @@ them would buy a handful of shootable aircraft at the cost of that property
 forever. Being a unit on the ground buys the same behaviour for nothing. The
 unit is a target and never a weapon: it is a structure, so it neither aims nor
 fires, and what it does is stand there and be worth shooting.
+
+**That reasoning has an expiry date, and the convoy work moved it closer.** The
+argument above weighs "a handful of shootable aircraft" against an air-aware
+branch in every grid walk — and the branch is what made it a bad trade. The
+unit spatial index is now an index over *bodies* rather than over dense-roster
+rows, and a convoy chassis reaches every scan by carrying `IDENTITY` and
+nothing else: no `POSITION`, so occupancy and separation still skip it; no
+`COMBAT`, `MOVEMENT` or `ROLE`, so the fire system, the mover and the planner
+still skip it. Membership-narrowing does the work the branch used to. An
+airborne craft that gained `IDENTITY` and `HEALTH` on the same terms would be
+seen, targeted and damaged by the paths that already do those things, without
+anything acquiring an air-aware branch.
+
+Nothing is planned here yet, and airborne craft remain undamageable — they
+carry no `HEALTH` at all, which is why nothing can shoot at one. But the
+moment anti-air exists, "not a target while flying" stops being a simplification
+and becomes the thing in the way. The shape to reach for then is the convoy's,
+not a second explicit candidate set: a flying aircraft is a body, and the
+altitude question ("can this shooter reach up?") is a per-weapon capability,
+which is what the existing "only a defence post can reach up" filter is already
+a hardcoded special case of.
 
 The **berth** is the thing with identity, not the airframe. A hardstand is
 authored into the map and stays put; the aircraft on it comes and goes and may

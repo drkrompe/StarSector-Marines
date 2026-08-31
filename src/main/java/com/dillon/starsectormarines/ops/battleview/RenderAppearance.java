@@ -105,7 +105,8 @@ public final class RenderAppearance {
             kind = SpriteKind.WHOLE_SPRITE;
             footprint = true;
         } else {
-            // The remaining case is DRONE — drawn in its own layer.
+            // The remaining cases are DRONE and GROUND_VEHICLE, each drawn by
+            // its own domain pass rather than by the unit sprite pipeline.
             kind = SpriteKind.NONE;
             footprint = false;
         }

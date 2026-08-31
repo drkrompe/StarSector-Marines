@@ -213,25 +213,34 @@ public final class SquadAlertSystem {
                         + (float) cellDy * cellDy;
                 boolean inKillZone = needsKillZone
                         && distanceSquared <= KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS;
+                // A convoy chassis is a body in the index but not a row in the
+                // dense roster, so it has no slot to key the once-per-tick
+                // dedupe on. It is observed through the slotless overload
+                // instead; there are a handful of them, so the repeated put a
+                // second squadmate causes is cheaper than a parallel table.
                 int otherRosterSlot = UnitRosterService.INVALID_INDEX;
                 boolean needsObservation = visionRange > 0f
                         && cellDistanceSquared <= visionRangeSquared;
                 if (needsObservation) {
                     otherRosterSlot = roster.indexOf(other);
-                    needsObservation = !squad.observedDirectlyOnTick(
-                            otherRosterSlot, simTick);
+                    needsObservation = otherRosterSlot == UnitRosterService.INVALID_INDEX
+                            || !squad.observedDirectlyOnTick(otherRosterSlot, simTick);
                 }
                 if (!inKillZone && !needsObservation) continue;
                 if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
-                        uAir, vision.airLosRadius(other))) continue;
+                        uAir, vision.targetAirLosRadius(other))) continue;
                 if (inKillZone) {
                     squad._killZoneSightedThisTick = true;
                     needsKillZone = false;
                 }
                 if (needsObservation) {
                     squad._engagedThisTick = true;
-                    squad.observeDirectContact(other, otherCellX, otherCellY,
-                            simTick, otherRosterSlot);
+                    if (otherRosterSlot == UnitRosterService.INVALID_INDEX) {
+                        squad.observeDirectContact(other, otherCellX, otherCellY, simTick);
+                    } else {
+                        squad.observeDirectContact(other, otherCellX, otherCellY,
+                                simTick, otherRosterSlot);
+                    }
                 }
             }
         }

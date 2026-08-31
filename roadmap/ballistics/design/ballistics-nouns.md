@@ -56,12 +56,15 @@ other physical gameplay; vertical contact uses the body's lightweight combat
 silhouette. This is a target-plane convention, not terrain elevation, gravity,
 or a general airborne collision policy.
 
-The dense ground-unit spatial index supplies ordinary body candidates. The
-small convoy population is appended explicitly from `ConvoyService`; each live
-vehicle contributes its continuous body position/velocity and authored radius
-and height. This keeps vehicle contact physical without pretending that an APC
-is a grid infantry row. Wrecked vehicles are no longer damageable contacts;
-their persistent obstruction belongs to navigation rather than Ballistics.
+The unit spatial index supplies every body candidate, convoy chassis included —
+it indexes bodies rather than dense-roster rows, so a vehicle needs no separate
+append. Each live vehicle contributes its continuous body position and velocity;
+its radius and height come from the roster's per-instance dispatch, the same
+call that answers for a turret's structure and a mech's variant. This keeps
+vehicle contact physical without pretending that an APC is a grid infantry row.
+Wrecked vehicles are no longer damageable contacts and leave the index at the
+moment they wreck; their persistent obstruction belongs to navigation rather
+than Ballistics.
 
 Contacts are considered in travel order. A structural wall is a full-height
 hard stop. A crossed physical cover feature, a directional cover edge at a
