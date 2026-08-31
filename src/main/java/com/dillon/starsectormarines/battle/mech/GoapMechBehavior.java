@@ -90,6 +90,13 @@ public final class GoapMechBehavior implements UnitBehavior {
         Squad squad = sim.squadOf(unit);
         if (squad == null) return;
 
+        // A player move order temporarily owns this exact chassis's
+        // locomotion, not the squad plan. It keeps the ordinary targeting and
+        // weapon pass alive, then releases before doctrine runs on arrival.
+        if (sim.getMechMoveOrderSystem().executeIfActive(unit, squad, sim)) {
+            return;
+        }
+
         SquadPlan plan = squad.currentPlan;
         if (plan == null || plan.isComplete()) {
             // Replan catches up next tick; idle this frame rather than fall

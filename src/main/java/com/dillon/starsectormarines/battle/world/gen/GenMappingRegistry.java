@@ -73,12 +73,13 @@ public final class GenMappingRegistry {
             new EnumMap<>(SurfacePalette.class);
     private final Map<String, CatalogSource> surfaceFillerSources = new HashMap<>();
     /**
-     * Surface-relief (S2) per-{@link GroundKind} macro-height overrides, keyed by
-     * the kind's {@code name()} plus the sentinel key {@code "WALL"} (walls aren't
-     * a {@code GroundKind} — they're {@code CellTopology.isWall}, orthogonal to
-     * ground kind). Sparse: {@link #macroHeight} / {@link #wallMacroHeight} fall
-     * back to the sane code defaults below for any key absent here, so an
-     * unmapped tile is mid-height rather than unresolved.
+     * Surface-relief per-{@link GroundKind} macro-height overrides <b>in metres
+     * above the ground datum</b>, keyed by the kind's {@code name()} plus the
+     * sentinel key {@code "WALL"} (walls aren't a {@code GroundKind} — they're
+     * {@code CellTopology.isWall}, orthogonal to ground kind). Sparse:
+     * {@link #macroHeightMeters} / {@link #wallMacroHeightMeters} fall back to
+     * the sane code defaults below for any key absent here, so an unmapped tile
+     * sits at the datum rather than unresolved.
      */
     private final Map<String, Float> macroHeightOverride = new LinkedHashMap<>();
     private final Map<String, CatalogSource> macroHeightSources = new LinkedHashMap<>();
@@ -154,11 +155,24 @@ public final class GenMappingRegistry {
                 }
             }
         }
-        JSONObject macroHeight = root.optJSONObject("macroHeight");
+        if (root.has("macroHeight")) {
+            // The unitless 0..1 scale that key carried is gone. Reading those
+            // numbers as metres would silently make a wall 0.9 m tall and its
+            // sun shadow a third of the length it should be, so refuse the
+            // document rather than reinterpret it.
+            throw new JSONException("Obsolete 'macroHeight' section in " + source.describe()
+                    + ": macro heights are now authored in metres under 'macroHeightMeters'"
+                    + " (1 cell = 1 metre; a wall is about "
+                    + DEFAULT_WALL_MACRO_HEIGHT_METERS + " m).");
+        }
+        JSONObject macroHeight = root.optJSONObject("macroHeightMeters");
         if (macroHeight != null) {
             for (Iterator<String> it = macroHeight.keys(); it.hasNext(); ) {
                 String key = it.next();
-                if (SurfaceRole.fromKeyOrNull(key) == null) GroundKind.valueOf(key);
+                if (!STRUCTURAL_MACRO_HEIGHT_KEYS.contains(key)
+                        && SurfaceRole.fromKeyOrNull(key) == null) {
+                    GroundKind.valueOf(key);
+                }
                 requireUnique("macro-height mapping", key, macroHeightSources, source);
                 macroHeightOverride.put(key, (float) macroHeight.getDouble(key));
                 macroHeightSources.put(key, source);
@@ -271,34 +285,107 @@ public final class GenMappingRegistry {
     }
 
     /**
-     * Sane per-{@link GroundKind} macro-height default (surface-relief S2):
-     * walls/structures high, buildings raised, ground mid, rubble/craters low,
-     * water lowest. {@link #macroHeight(GroundKind)} / {@link #wallMacroHeight()}
-     * prefer a {@code "macroHeight"} mapping-JSON override for the same key
-     * ({@code kind.name()}, or {@code "WALL"}) over this table.
+     * Sane per-{@link GroundKind} macro-height default, <b>in metres above the
+     * ground datum</b>: ordinary ground is the datum itself, a building floor
+     * stands on its slab, craters and water cut below it.
+     *
+     * <p>Metres rather than an invented 0..1 scale because
+     * {@link com.dillon.starsectormarines.battle.air.AirScale#METERS_PER_CELL}
+     * already anchors this world at one cell per metre. That makes every relief
+     * number checkable against something real, and it is what lets a sun at a
+     * stated elevation cast a shadow of the right length with nothing to
+     * calibrate: a 3 m wall under a 30° sun reaches 5.2 m, which is 5.2 cells.
+     *
+     * <p>{@link #macroHeightMeters(GroundKind)} /
+     * {@link #wallMacroHeightMeters()} prefer a {@code "macroHeightMeters"}
+     * mapping-JSON override for the same key ({@code kind.name()}, or
+     * {@code "WALL"}) over this table.
      */
-    private static float defaultMacroHeight(GroundKind kind) {
+    private static float defaultMacroHeightMeters(GroundKind kind) {
         switch (kind) {
-            case INDOOR: return 0.65f; // building floor — raised
-            case RUBBLE: return 0.30f; // craters/rubble — low
-            case WATER:  return 0.15f; // lowest
-            default:     return 0.50f; // ground — mid
+            case INDOOR: return 0.30f;  // building floor — up a slab's step
+            case RUBBLE: return -0.25f; // craters/rubble — scooped out
+            case WATER:  return -0.50f; // lowest
+            default:     return 0f;     // ordinary ground — the datum
         }
     }
 
-    /** Walls aren't a {@link GroundKind} ({@code CellTopology.isWall} is orthogonal) — same scale, tall extreme. */
-    public static final float DEFAULT_WALL_MACRO_HEIGHT = 0.90f;
+    /**
+     * Walls aren't a {@link GroundKind} ({@code CellTopology.isWall} is
+     * orthogonal) — one storey, in the same metres.
+     *
+     * <p>A single height for every wall is the current limit of the model: a
+     * compound's perimeter and a habitat's outer shell cast the same shadow.
+     * Per-{@link SurfaceRole} heights are the natural next authoring step, and
+     * the override map is already keyed to accept them.
+     */
+    public static final float DEFAULT_WALL_MACRO_HEIGHT_METERS = 3.0f;
 
-    /** {@code kind}'s macro height — mapping-JSON {@code "macroHeight"} override, else {@link #defaultMacroHeight}. */
-    public float macroHeight(GroundKind kind) {
-        Float override = macroHeightOverride.get(kind.name());
-        return override != null ? override : defaultMacroHeight(kind);
+    /**
+     * Macro-height keys that name a structure rather than a ground kind or a
+     * {@link SurfaceRole}. {@code WALL} and {@code ROOF} are already roles;
+     * a window is an aperture and draws through the barrier and aperture
+     * treatments rather than as a surface block, so it has no role to borrow
+     * and is named here instead.
+     */
+    private static final Set<String> STRUCTURAL_MACRO_HEIGHT_KEYS = Set.of("WINDOW");
+
+    /**
+     * Height of an intact roof, in metres. Defaults to the wall's, which makes
+     * a roofed building one solid mass rather than a lid sitting proud of its
+     * own walls — the shape a top-down shadow should read.
+     */
+    public float roofMacroHeightMeters() {
+        Float override = macroHeightOverride.get("ROOF");
+        return override != null ? override : wallMacroHeightMeters();
     }
 
-    /** Wall macro height — mapping-JSON {@code "macroHeight": {"WALL": ...}} override, else {@link #DEFAULT_WALL_MACRO_HEIGHT}. */
-    public float wallMacroHeight() {
+    /**
+     * Height a window lowers its wall to, in metres — the sill.
+     *
+     * <p>Chest height, matching the low framed cover a
+     * {@code SharedEdgeBarrier.Kind.WINDOW} already gives: it is the same
+     * opening described to a different system, and the two should not disagree
+     * about how high it is.
+     */
+    public float windowSillMacroHeightMeters() {
+        Float override = macroHeightOverride.get("WINDOW");
+        return override != null ? override : DEFAULT_WINDOW_SILL_MACRO_HEIGHT_METERS;
+    }
+
+    /** @see #windowSillMacroHeightMeters() */
+    public static final float DEFAULT_WINDOW_SILL_MACRO_HEIGHT_METERS = 1.1f;
+
+    /** {@code kind}'s macro height in metres — {@code "macroHeightMeters"} override, else {@link #defaultMacroHeightMeters}. */
+    public float macroHeightMeters(GroundKind kind) {
+        Float override = macroHeightOverride.get(kind.name());
+        return override != null ? override : defaultMacroHeightMeters(kind);
+    }
+
+    /** Wall macro height in metres — {@code "macroHeightMeters": {"WALL": ...}} override, else {@link #DEFAULT_WALL_MACRO_HEIGHT_METERS}. */
+    public float wallMacroHeightMeters() {
         Float override = macroHeightOverride.get("WALL");
-        return override != null ? override : DEFAULT_WALL_MACRO_HEIGHT;
+        return override != null ? override : DEFAULT_WALL_MACRO_HEIGHT_METERS;
+    }
+
+    /**
+     * The tallest macro height any cell of this mapping can report, in metres.
+     *
+     * <p>The sun-shadow march needs a finite distance to search, and the
+     * tallest thing that can stand on the map is what sets it: nothing reaches
+     * further than {@code tallest / tan(elevation)}. Reading it from the data
+     * means authoring a taller wall lengthens the search on its own, instead of
+     * quietly clipping every shadow against a constant nobody updated.
+     */
+    public float tallestMacroHeightMeters() {
+        float tallest = Math.max(wallMacroHeightMeters(), roofMacroHeightMeters());
+        for (GroundKind kind : GroundKind.values()) {
+            tallest = Math.max(tallest, macroHeightMeters(kind));
+        }
+        for (Float override : macroHeightOverride.values()) {
+            tallest = Math.max(tallest, override);
+        }
+        return tallest;
     }
 
     /** The raw doodad ids for {@code poolId} (empty if none authored). */

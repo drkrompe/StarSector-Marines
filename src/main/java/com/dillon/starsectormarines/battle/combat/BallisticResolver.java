@@ -75,9 +75,10 @@ public final class BallisticResolver {
      * when a 1.2-cell APC became an ordinary index body: a point-blank shot
      * down a lane the hull overhung passed through it, because the speed term
      * that topped the margin up shrinks to nothing over a two-cell shot. The
-     * radius half now comes from {@link UnitSpatialIndex#maxBodyRadius()},
-     * which is measured rather than authored, and this constant is only the
-     * slack it was always meant to be.
+     * body-size half is no longer this constant's job, or any caller's —
+     * {@link UnitSpatialIndex#gatherAlongSegment} adds it, because the index
+     * is the only party that knows how big the bodies it holds are. What is
+     * left here is the clearance it was always meant to be.
      */
     public static final float GATHER_SLACK_CELLS = 1.0f;
     /**
@@ -371,8 +372,7 @@ public final class BallisticResolver {
         // gather margin grows with flight exposure — a slow round's corridor
         // can be entered mid-flight by a candidate whose fire-tick position
         // sits outside the base margin.
-        float margin = unitIndex.maxBodyRadius() + GATHER_SLACK_CELLS
-                + MAX_MOVER_SPEED_CELLS * (rayLen / roundVelocity);
+        float margin = GATHER_SLACK_CELLS + MAX_MOVER_SPEED_CELLS * (rayLen / roundVelocity);
         LongBucket candidates = new LongBucket();
         unitIndex.gatherAlongSegment(fromX, fromY, rayEndX, rayEndY, margin, candidates);
         for (int i = 0; i < candidates.size; i++) {

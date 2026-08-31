@@ -142,4 +142,10 @@ final class BattlePowerOverlay {
         return new UiViewport(position.getX() + (position.getWidth() - width) * 0.5f,
                 position.getY() + BOTTOM_INSET, width, height, scale);
     }
+
+    boolean blocksWorldPointer(float x, float y) {
+        if (!presentation.visible() || viewport == null) return false;
+        return x >= viewport.screenX() && x < viewport.screenX() + viewport.width()
+                && y >= viewport.screenY() && y < viewport.screenY() + viewport.height();
+    }
 }

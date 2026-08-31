@@ -12,6 +12,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,6 +25,28 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadEquipmentDoctrineTest {
+
+    @Test
+    void everyBuiltInLoadoutUsesAFactionLogoShippedByVanilla() {
+        Path starsectorCore = Path.of(System.getProperty("starsectorDir"))
+                .resolve("starsector-core").toAbsolutePath().normalize();
+        List<String> loadoutIds = new ArrayList<>();
+        SquadEquipmentDoctrines.weaponDoctrines().stream()
+                .map(SquadWeaponDoctrine::id).forEach(loadoutIds::add);
+        SquadEquipmentDoctrines.armorPlans().stream()
+                .map(SquadArmorPlan::id).forEach(loadoutIds::add);
+
+        for (String loadoutId : loadoutIds) {
+            SquadLoadoutPresentationDef presentation =
+                    SquadLoadoutPresentationRegistry.get(loadoutId);
+            assertNotNull(presentation, loadoutId + " has authored presentation");
+            Path logo = starsectorCore.resolve(presentation.factionLogo()).normalize();
+            assertTrue(logo.startsWith(starsectorCore),
+                    loadoutId + " must use an asset inside the vanilla install");
+            assertTrue(Files.isRegularFile(logo),
+                    loadoutId + " faction logo does not exist: " + logo);
+        }
+    }
 
     /**
      * Every authored plan issues a whole squad and is presentable.
