@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
@@ -89,6 +91,21 @@ public final class AirDeliveryContext {
             }
         }
         return null;
+    }
+
+    /**
+     * Puts a ground vehicle on the field at ({@code x}, {@code y}) with no
+     * errand — the chassis equivalent of setting a passenger down.
+     *
+     * <p>A vehicle is not a unit spec: it carries a body, a turret and a
+     * mission rather than a loadout and a squad, so it is spawned through the
+     * convoy service rather than the unit sink.
+     */
+    public long deployVehicle(VehicleType type, float x, float y, float facingDeg) {
+        VehicleMission mission = VehicleMission.deployed(x, y);
+        long id = roster.convoy().spawn(type, faction, mission);
+        roster.convoy().body(id).teleport(x, y, facingDeg);
+        return id;
     }
 
     public int mintSquad(UnitType type) {
