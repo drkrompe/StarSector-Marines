@@ -250,7 +250,14 @@ public final class Squad {
         playerTacticalOrder = order;
     }
 
-    ObjectiveAssignment playerTacticalOrder() {
+    /**
+     * The battle-local player order standing on this squad, or {@code null}
+     * when the mission assignment is the only order it holds. Unlike
+     * {@link #assignmentForExecution()} this is not masked by form-up, so a
+     * squad still assembling still reports the order it will run once ready —
+     * which is what a diagnostic readout wants to say about it.
+     */
+    public ObjectiveAssignment playerTacticalOrder() {
         return playerTacticalOrder;
     }
 
