@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenKey;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 
@@ -43,6 +44,14 @@ public final class BspKeys {
 
     /** Vehicle-navigation skeleton extracted from the road mask. Flows into {@code MapResult}. */
     public static final GenKey<RoadGraph> ROAD_GRAPH = GenKey.of("roadGraph");
+
+    /**
+     * The one road across the map a vehicle is guaranteed to be able to drive,
+     * reserved before anything is built on it. Bound only on the conquest
+     * recipe; its band is also unioned into {@link #ROAD_RESERVATION}, so a
+     * stamper asking "may I close this cell" needs only that mask.
+     */
+    public static final GenKey<VehicleCorridor> VEHICLE_CORRIDOR = GenKey.of("vehicleCorridor");
 
     /** Claimed multi-leaf compounds; perimeter stampers read it for exclusion masks. */
     public static final GenKey<List<Compound>> COMPOUNDS = GenKey.of("compounds");
