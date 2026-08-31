@@ -88,7 +88,7 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
         BufferedImage ground = crop(whole, window);
 
         GenMappingRegistry mapping = GenMappingRegistry.installed();
-        MacroReliefField relief = new MacroReliefField(map.topology, map.buildings, mapping);
+        MacroReliefField relief = new MacroReliefField(map.topology, map.grid, map.buildings, mapping);
         float tallest = relief.tallestMeters();
         GroundSunShadowReference.HeightField field = relief::metersAt;
         System.out.println("[sun-shadows] " + relief);
@@ -155,9 +155,9 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
                 BREACH_VIEW_W, BREACH_VIEW_H, BREACH_CELL_PX);
         GroundSunShadowReference.PixelToWorld worldAt = viewPixelToWorld(centerX, centerY);
 
-        MacroReliefField intact = new MacroReliefField(map.topology, map.buildings, mapping);
+        MacroReliefField intact = new MacroReliefField(map.topology, map.grid, map.buildings, mapping);
         int breached = breachRoof(map.topology, target);
-        MacroReliefField holed = new MacroReliefField(map.topology, map.buildings, mapping);
+        MacroReliefField holed = new MacroReliefField(map.topology, map.grid, map.buildings, mapping);
 
         List<Panel> panels = new ArrayList<>();
         panels.add(new Panel(shade(ground, intact, worldAt),
