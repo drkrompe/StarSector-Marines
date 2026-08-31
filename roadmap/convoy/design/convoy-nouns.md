@@ -23,6 +23,10 @@ Updated: 2026-08-31 — route construction proves the turn from the way a truck
 arrives to the way it must leave, and a departure that finds itself misaligned
 backs and fills onto its corridor instead of holding.
 
+Updated: 2026-08-31 — the control layer takes a route and a leg rather than an
+inbound/outbound flag, so what arrival means is a property of the journey and a
+route need not belong to a delivery.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -205,6 +209,16 @@ late impacts cannot repeat wreck or passenger effects.
 Routing and motion are one convoy model, not separate features. The route layer
 chooses an advisory corridor; the control layer drives a physically plausible
 body toward it.
+
+The control layer is handed **a route and a leg** — what the vehicle is driving
+this route for — rather than a flag naming which half of a delivery it is on.
+The leg is what makes reaching the end of a route mean something: how near
+counts as arrived, whether the body settles exactly on the last waypoint,
+whether the docking maneuver may earn it a departure heading, whether the
+planner's soft terminal region is good enough, and whether the vehicle may back
+and fill to get started. A delivery supplies two legs in sequence; the route is
+not otherwise special, which is what leaves room for a vehicle to be sent
+somewhere that is not a delivery at all — see `vehicle-as-commandable-unit.md`.
 
 Roads are a **cost preference**, not topology a vehicle must follow. A route
 search favors road and hardscape cells, accepts costlier open terrain for a

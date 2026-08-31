@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle.components;
 
 import com.dillon.starsectormarines.battle.vehicle.Pose;
 import com.dillon.starsectormarines.battle.vehicle.ReedsShepp;
+import com.dillon.starsectormarines.battle.vehicle.VehicleLeg;
 import com.dillon.starsectormarines.battle.vehicle.ReferenceCorridor;
 import com.dillon.starsectormarines.battle.vehicle.Trajectory;
 
@@ -24,10 +25,18 @@ public final class VehicleControlComponent {
     /** Recovery phase. {@code REVERSING} means a committed backup maneuver owns the pose until it completes. */
     public enum Recovery { NONE, REVERSING }
 
-    /** Active corridor for the current direction; rebuilt when inbound flips to outbound. */
+    /** Active corridor for the route being driven; rebuilt when the route or the leg changes. */
     public ReferenceCorridor corridor;
-    /** Last direction passed to the control tick; a change rebuilds the corridor. {@code null} until the first tick. */
-    public Boolean lastInbound;
+    /**
+     * The route the corridor was built from, held by reference so a caller
+     * handing over a different one rebuilds. A re-plan installs its replacement
+     * here too, so the rebuild fires once for the re-plan rather than again on
+     * the next tick. {@code null} until the first tick.
+     */
+    public float[] routeXs;
+    public float[] routeYs;
+    /** What the current route is being driven for; a change rebuilds the corridor. {@code null} until the first tick. */
+    public VehicleLeg leg;
 
     /** Current rolling local plan the body is tracking, or {@code null} when on the coarse-corridor fallback. */
     public Trajectory trajectory;
