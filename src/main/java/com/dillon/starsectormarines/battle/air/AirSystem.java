@@ -92,6 +92,15 @@ public class AirSystem {
     private static final float GROUND_FIRE_DPS_EACH = 2f;
 
     /**
+     * Cell radius searched for ground units near a wreck settling onto a
+     * taxiway, wide enough to cover the wreck's own footprint plus the
+     * step-clear ring around it with margin to spare. Not tuned; this only has
+     * to be a generous superset, since {@link GroundWreckFootprint} filters
+     * the candidates itself.
+     */
+    private static final float GROUND_WRECK_GATHER_RADIUS_CELLS = 8f;
+
+    /**
      * Floor under the distance at which an INCOMING craft snaps to the LZ and
      * transitions to LANDED. Tight enough that the snap is invisible; loose
      * enough that the asymptotic brake-to-station taper doesn't stall short.
@@ -446,6 +455,18 @@ public class AirSystem {
         this.detonations = detonations;
     }
 
+    /**
+     * The blast a craft killed on the ground shares with one burned on its
+     * pad. Null until wired; a grounded kill then leaves its wreck without the
+     * fire, the same graceful degradation {@link #detonations} gets.
+     */
+    private AirframeCookOffSystem airframeCookOff;
+
+    /** Gives this system the same cook-off a hardstand kill lights off, for a craft it kills on the ground itself. */
+    public void setAirframeCookOff(AirframeCookOffSystem airframeCookOff) {
+        this.airframeCookOff = airframeCookOff;
+    }
+
     /** Tells this system which field its based sorties belong to. */
     public void setAirfield(AirfieldService airfield) {
         this.airfield = airfield;
@@ -581,26 +602,60 @@ public class AirSystem {
     }
 
     /**
-     * Shoot-down: the shuttle dies in the air with its undelivered marines aboard. Terminal like the
+     * Shoot-down: the shuttle dies with its undelivered marines aboard. Terminal like the
      * DEPARTING→GONE transition — set GONE; {@link #reapGoneCraft} destroys the entity (dropping every
      * component) at end of tick.
+     *
+     * <p>Grounded and airborne draw the one distinction {@code air-nouns.md} asks for. A craft killed
+     * taxiing, holding short, or partway down a roll is under its own power on the ground, and the same
+     * full tank under the same thin skin that makes a hardstand kill worth a fire team's time — it gets
+     * the same cook-off blast and a wreck that stays where it stopped. A craft lost at altitude falls; it
+     * does not leave a neat hull at the coordinates it was flying over, so it keeps the plain crash FX
+     * this always used and leaves no ground wreck.
      */
     private void shootDown(long id, AirBody body, ShuttleMission mission, int posts) {
-        // Crash FX: a burning wreck + smoke-plume column at the crash site, so a shot-down dropship
-        // reads as a flaming wreck instead of just vanishing. Both feed the smoke/fire puff lists the
-        // renderer drains (EffectsService → ImpactFx → IMPACT_FX), the same path turret/mech/hub wrecks
-        // use — so it shows in the bridge and standalone alike. Clamp to an in-bounds cell (a shuttle
-        // can be shot down a few cells off-map on an exit leg) and co-locate the plume on that cell.
-        NavigationGrid grid = navigation.getGrid();
-        int wx = Math.max(0, Math.min(grid.getWidth() - 1, (int) Math.floor(body.x)));
-        int wy = Math.max(0, Math.min(grid.getHeight() - 1, (int) Math.floor(body.y)));
-        effects.spawnSmokePlume(wx + 0.5f, wy + 0.5f);
-        effects.spawnSmokingWreck(wx, wy);
+        if (isOnItsWheelsAndExposed(mission.state)) {
+            groundedShootDown(id, body, mission);
+        } else {
+            // Crash FX: a burning wreck + smoke-plume column at the crash site, so a shot-down dropship
+            // reads as a flaming wreck instead of just vanishing. Both feed the smoke/fire puff lists the
+            // renderer drains (EffectsService → ImpactFx → IMPACT_FX), the same path turret/mech/hub wrecks
+            // use — so it shows in the bridge and standalone alike. Clamp to an in-bounds cell (a shuttle
+            // can be shot down a few cells off-map on an exit leg) and co-locate the plume on that cell.
+            NavigationGrid grid = navigation.getGrid();
+            int wx = Math.max(0, Math.min(grid.getWidth() - 1, (int) Math.floor(body.x)));
+            int wy = Math.max(0, Math.min(grid.getHeight() - 1, (int) Math.floor(body.y)));
+            effects.spawnSmokePlume(wx + 0.5f, wy + 0.5f);
+            effects.spawnSmokingWreck(wx, wy);
+        }
 
         handBackToField(mission, /*recovered*/ false);
         mission.state = ShuttleState.GONE;
         LOG.info("air: shuttle " + world.airframe(id) + " shot down by " + posts + " AA post(s) with "
                 + mission.marinesRemaining + " marine(s) still aboard.");
+    }
+
+    /**
+     * The ground half of a shoot-down. Lights the same fire a hardstand kill does — one definition of
+     * the blast either way, see {@link AirframeCookOffSystem} — and leaves the hull where it stopped: a
+     * {@link GroundWreck} the field remembers for the rest of the battle and a footprint stamped into the
+     * ground the same way {@link AirfieldSystem} stamps one on a pad. {@code homeBerth} is written off by
+     * the caller's {@link #handBackToField}, not here — a wreck away from a berth is not the berth's own
+     * {@code wreckOnPad}, so the two stay independent facts the way {@link GroundWreck}'s class note
+     * explains.
+     */
+    private void groundedShootDown(long id, AirBody body, ShuttleMission mission) {
+        Faction faction = world.airFaction(id);
+        if (airframeCookOff != null) {
+            airframeCookOff.cookOff(id, body.x, body.y, faction);
+        }
+        if (airfield == null) return;
+        GroundWreck wreck = new GroundWreck(body.x, body.y, body.facingDegrees, world.airframe(id));
+        airfield.addGroundWreck(wreck);
+        LongBucket nearby = new LongBucket();
+        navigation.getUnitIndex().gather(body.x, body.y, GROUND_WRECK_GATHER_RADIUS_CELLS, nearby);
+        GroundWreckFootprint.settle(navigation.getGrid(), navigation.getTopology(), world,
+                nearby, wreck.cellX(), wreck.cellY());
     }
 
     /**
