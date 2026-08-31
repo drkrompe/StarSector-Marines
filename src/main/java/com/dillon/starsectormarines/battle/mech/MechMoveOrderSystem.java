@@ -7,8 +7,8 @@ import com.dillon.starsectormarines.battle.mech.MechMoveOrderService.ActiveOrder
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService.PendingOrder;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.nav.ReachableCellResolver;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -98,32 +98,10 @@ public final class MechMoveOrderSystem {
      */
     static int[] nearestReachableCell(long mech, int requestedX, int requestedY,
                                       BattleSimulation sim) {
-        NavigationGrid grid = sim.getGrid();
-        if (!grid.inBounds(requestedX, requestedY)) return null;
         int startX = sim.world().cellX(mech);
         int startY = sim.world().cellY(mech);
-        if (!grid.inBounds(startX, startY)) return null;
-        int[] components = GridPathfinder.labelConnectedComponents(grid);
-        int width = grid.getWidth();
-        int component = components[grid.index(startX, startY)];
-        if (component < 0) return null;
-
-        int best = -1;
-        long bestDistanceSq = Long.MAX_VALUE;
-        for (int y = 0; y < grid.getHeight(); y++) {
-            for (int x = 0; x < width; x++) {
-                int index = grid.index(x, y);
-                if (components[index] != component || !grid.isWalkable(x, y)) continue;
-                long dx = x - (long) requestedX;
-                long dy = y - (long) requestedY;
-                long distanceSq = dx * dx + dy * dy;
-                if (distanceSq < bestDistanceSq) {
-                    bestDistanceSq = distanceSq;
-                    best = index;
-                }
-            }
-        }
-        return best >= 0 ? new int[]{best % width, best / width} : null;
+        return ReachableCellResolver.nearest(sim.getGrid(), startX, startY,
+                requestedX, requestedY);
     }
 
     private static void moveToward(long mech, ActiveOrder order,

@@ -36,3 +36,4 @@ Mission Command shipped ledger.
 | `29-sirocco-screened-overwatch.md` | 2026-08-22 | `98fcc3fb` | `ai-nouns.md` |
 | `30-mech-formation-discipline.md` | 2026-08-22 | `861a5bf1` | `ai-nouns.md` |
 | `31-adaptive-squad-formations.md` | 2026-08-22 | `4c0864d9` | `ai-nouns.md` |
+| `squad-tactical-move-order.md` | 2026-08-31 | this change | `ai-nouns.md` |
