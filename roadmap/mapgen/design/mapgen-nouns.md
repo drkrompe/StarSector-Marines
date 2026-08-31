@@ -4,19 +4,15 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — added vehicle circulation: a corridor is a width
-contract rather than a centerline, reserved before packing where pedestrian
-circulation still is not, and validated by whether a hull fits rather than by
-whether cells connect.
-
 Updated: 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
 its berths, so being a working field is one decision rather than two that can
 disagree; a city's compound airfield is one and its block-sized pad is not. The
 lot owns the ground it repaves and is reserved against the stampers that follow
 it; a fortress ward refuses a lot over its keep; the lot turns four ways and
-comes in sizes that grow along the frontage rather than into the depth.
-
-Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
+comes in sizes that grow along the frontage rather than into the depth. Vehicle
+circulation is a width contract rather than a centerline, reserved before
+packing where pedestrian circulation still is not, and validated by whether a
+hull fits rather than by whether cells connect. Earlier: replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
 field-revetment profile that law admits; added the Conquest fortress ward,
 packed walls as authored rather than left over, family-neutral room fittings,
