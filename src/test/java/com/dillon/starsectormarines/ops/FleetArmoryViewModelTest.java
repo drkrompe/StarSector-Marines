@@ -9,8 +9,10 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
+import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
@@ -90,6 +92,8 @@ class FleetArmoryViewModelTest {
                         .findFirst().orElseThrow();
         assertEquals("Common", assignedLoadout.rarity());
         assertTrue(assignedLoadout.metadata().contains("TIER I"));
+        assertEquals("graphics/factions/neutral_traders.png",
+                assignedLoadout.factionLogo());
         assertTrue(assignedLoadout.description().length() > 120);
         assertTrue(viewModel.weaponDoctrineTiles().get().size()
                 < roster.armory().weaponDoctrines().size());
@@ -111,6 +115,23 @@ class FleetArmoryViewModelTest {
         assertEquals(viewModel.selectedWeaponDoctrineId(), squad.weaponDoctrineId());
         assertEquals(viewModel.selectedArmorDoctrineId(), squad.armorDoctrineId());
         assertTrue(viewModel.feedbackText().get().contains("issued"));
+    }
+
+    @Test
+    void companyAuthoredLoadoutsDoNotBorrowAFactionFlag() {
+        MarineRoster roster = fullSquad();
+        SquadWeaponDoctrine source = SquadEquipmentDoctrines.weaponById(
+                SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS);
+        SquadWeaponDoctrine custom = roster.armory().createWeaponDoctrine(
+                "Company Pattern", source.issues());
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
+
+        FleetArmoryViewModel.DoctrineTile tile = viewModel.weaponDoctrineTiles().get()
+                .stream().filter(candidate -> candidate.id().endsWith(custom.id()))
+                .findFirst().orElseThrow();
+        assertNull(tile.factionLogo());
+        assertTrue(tile.factionLogoClasses().contains("faction-logo-hidden"));
+        assertTrue(tile.metadata().contains("Company-authored"));
     }
 
     @Test
@@ -158,6 +179,12 @@ class FleetArmoryViewModelTest {
             UiElement list = instance.requireElement("weapon-doctrine-list");
             assertTrue(instance.requireElement("show-weapon-picker").hasClass("selected"));
             assertTrue(instance.requireElement("armor-doctrine-slot").hasClass("picker-hidden"));
+            FleetArmoryViewModel.DoctrineTile firstTile =
+                    viewModel.weaponDoctrineTiles().get().get(0);
+            UiElement factionLogo = instance.requireElement(firstTile.factionLogoId());
+            assertEquals(firstTile.factionLogo(), factionLogo.imageSource());
+            assertTrue(factionLogo.box().borderBox().width() >= 48f);
+            assertTrue(factionLogo.box().borderBox().height() >= 24f);
             UiElement marineCard = instance.requireElement("marine-card:0");
             UiElement marineCanvas = instance.requireElement("marine-preview:0");
             UiElement first = list.childAt(0);
