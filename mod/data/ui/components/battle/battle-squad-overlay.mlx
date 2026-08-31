@@ -1,10 +1,11 @@
-<template props="squadTitle,squadStrength,moraleLabel,moraleStyle,fireTeams,tooltipClasses,tooltipTitle,tooltipTeam,tooltipPrimary,tooltipSpecial,tooltipSystem,tooltipProfile,backAction">
+<template props="squadTitle,squadStrength,moraleLabel,moraleStyle,defendAreaLabel,defendAreaClasses,fireTeams,tooltipClasses,tooltipTitle,tooltipTeam,tooltipPrimary,tooltipSpecial,tooltipSystem,tooltipProfile,backAction,defendAreaAction">
   <div id="battle-squad-overlay" class="battle-squad-overlay" style="background-color: transparent">
     <div id="battle-squad-panel" class="squad-panel">
       <div id="battle-squad-header" class="squad-header">
         <button id="battle-squad-back" class="squad-back" onclick="{backAction}">&lt; BACK</button>
         <div id="battle-squad-title" class="label heading squad-title">{squadTitle}</div>
         <div id="battle-squad-strength" class="label heading squad-strength">{squadStrength}</div>
+        <button id="battle-squad-defend-area" class="{defendAreaClasses}" onclick="{defendAreaAction}">{defendAreaLabel}</button>
         <div id="battle-squad-morale" class="squad-morale">
           <div id="battle-squad-morale-label" class="label morale-label">{moraleLabel}</div>
           <div id="battle-squad-morale-track" class="morale-track">
@@ -96,6 +97,23 @@
     height: 18px;
     padding: 6px 0px;
     color: #c8e0ff;
+  }
+
+  .squad-defend-area {
+    width: 82px;
+    height: 18px;
+    padding: 5px;
+    border-width: 1px;
+    border-color: #4f6d8e;
+    font-family: heading;
+    text-align: center;
+    color: #6ed7ff;
+  }
+
+  .squad-defend-area-active {
+    border-color: #ffd464;
+    background-color: #3a3018;
+    color: #ffd464;
   }
 
   .squad-morale {
