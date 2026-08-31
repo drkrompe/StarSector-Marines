@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,6 +109,11 @@ final class RunwaySortieScene {
      * is that the first frame is the aircraft leaving its shed.
      */
     static Scene build(long seed, Variant variant) {
+        // An aircraft is the size its hull's own spec says, and headless
+        // nothing has told the resolver where that spec lives. Left unprimed
+        // every hull on the field is one length, which is a recording of
+        // aircraft none of them are.
+        InstalledHullSpecs.install();
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology topology = new CellTopology(WIDTH, HEIGHT);
         for (int x = 0; x < WIDTH; x++) {

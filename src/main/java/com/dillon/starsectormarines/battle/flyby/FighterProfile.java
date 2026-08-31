@@ -10,9 +10,10 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The fighters that exist: which hull each one is, how much of it there is, and
- * what it carries. An {@link Airframe}, so a berth can hold one and a sortie can
- * fly one.
+ * The fighters that exist: which hull each one is, how much killing it takes on
+ * the ground, and what it carries. How much of it there is comes off the hull
+ * itself and is not authored here. An {@link Airframe}, so a berth can hold one
+ * and a sortie can fly one.
  *
  * <p>All sprite paths resolve against the vanilla install — Starsector's resource
  * loader walks core + enabled mods, so {@code "graphics/ships/wasp_ftr.png"} from
@@ -29,19 +30,19 @@ import java.util.List;
 public enum FighterProfile implements Airframe {
 
     /** Talon — light autocannon, fast and twitchy. */
-    TALON("graphics/ships/talon/talon.png", "talon", 1.5f, 30f, 1,
+    TALON("graphics/ships/talon/talon.png", "talon", 30f, 1,
             new Color(0xFF, 0xE0, 0x70)),
 
     /** Wasp — small drone with a pulse laser. */
-    WASP("graphics/ships/wasp_ftr.png", "wasp", 1.3f, 25f, 1,
+    WASP("graphics/ships/wasp_ftr.png", "wasp", 25f, 1,
             new Color(0x88, 0xFF, 0xFF)),
 
     /** Broadsword — heavy fighter, dual chaingun. The strafe of choice. */
-    BROADSWORD("graphics/ships/broadsword.png", "broadsword", 2.0f, 45f, 2,
+    BROADSWORD("graphics/ships/broadsword.png", "broadsword", 45f, 2,
             new Color(0xFF, 0xE0, 0x70)),
 
     /** Thunder — interceptor with twin ion bolts. */
-    THUNDER("graphics/ships/thunder.png", "thunder", 1.7f, 35f, 2,
+    THUNDER("graphics/ships/thunder.png", "thunder", 35f, 2,
             new Color(0x70, 0xC8, 0xFF)),
 
     /**
@@ -49,11 +50,11 @@ public enum FighterProfile implements Airframe {
      * neither a gun that hits where the nose points nor a bomb that falls
      * behind, but a pod of powered rounds released from well outside gun range.
      */
-    LONGBOW("graphics/ships/longbow_intg.png", "longbow", 1.8f, 38f, 1,
+    LONGBOW("graphics/ships/longbow_intg.png", "longbow", 38f, 1,
             new Color(0xC0, 0xE8, 0xFF)),
 
     /** Dagger — Tri-Tachyon torpedo bomber; a stick of bombs that flattens walls and chews into clusters. */
-    DAGGER("graphics/ships/dagger_trp.png", "dagger", 1.9f, 40f, 1,
+    DAGGER("graphics/ships/dagger_trp.png", "dagger", 40f, 1,
             new Color(0xFF, 0xB0, 0x60));
 
     /** Vanilla sprite path. Lazy-loaded once by the render tier. */
@@ -66,20 +67,32 @@ public enum FighterProfile implements Airframe {
      * {@link com.dillon.starsectormarines.battle.air.ShuttleType#matchingHullIds}.
      */
     public final String hullId;
-    /** Drawn length in cells (sprite's longer axis). Smaller = "higher altitude"; we lean on shadow offset + tint for the rest. */
-    public final float visualLengthCells;
     /**
      * Structure on this airframe when it is standing on a berth.
      *
      * <p>An authored ladder rather than a scrape, the way
      * {@link com.dillon.starsectormarines.battle.air.ShuttleType#maxHp} is: a
      * hull's campaign HP is balanced against ship weapons and says nothing
-     * about what a rifle section does to one parked on concrete. It follows
-     * {@link #visualLengthCells}, because on the ground the only thing that
-     * matters about a fighter is how much of it there is. The whole ladder
-     * sits below the lightest transport — a Hermes is 55 — so a fighter is
-     * three or four rifle hits rather than five, and a fire team walking onto
-     * an apron of them can burn several.
+     * about what a rifle section does to one parked on concrete.
+     *
+     * <p><b>And deliberately not a function of drawn size either.</b> It is a
+     * role-and-toughness ladder: a heavy fighter is heavy because of what it is
+     * built to survive, not because of how long its sprite is, so the
+     * Broadsword parks as the toughest thing on any apron while the Thunder,
+     * the longest hull on this list, is one of the softest. This field once
+     * carried a second, authored "drawn length" that ranked identically to it,
+     * which made the correspondence look like a law; the hulls the game
+     * actually ships do not rank that way, and the number that says how much
+     * aircraft there is lives in one place — the hull's own spec, through
+     * {@code HullFootprintResolver}.
+     *
+     * <p>Drawn size is not idle. It is what decides how easily a shot finds
+     * the aircraft, through {@code Airframe.targetRadiusCells}, which is a
+     * different question from how much killing it takes.
+     *
+     * <p>The whole ladder sits below the lightest transport — a Hermes is 55 —
+     * so a fire team walking onto an apron of fighters can burn several in the
+     * time one transport would cost it.
      */
     public final float parkedHp;
     /**
@@ -102,11 +115,10 @@ public enum FighterProfile implements Airframe {
      */
     public final Color tracerColor;
 
-    FighterProfile(String spritePath, String hullId, float visualLengthCells, float parkedHp,
+    FighterProfile(String spritePath, String hullId, float parkedHp,
                    int mounts, Color tracerColor) {
         this.spritePath = spritePath;
         this.hullId = hullId;
-        this.visualLengthCells = visualLengthCells;
         this.parkedHp = parkedHp;
         this.mounts = mounts;
         this.tracerColor = tracerColor;

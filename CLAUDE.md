@@ -544,6 +544,17 @@ exactly that for a while, and its under-fire loop reported a delivery that was
 never actually contested. Seed a loadout and mint a squad, then check the
 recording says what you think it says.
 
+**A headless aircraft is the size somebody primed it to be.** Hull geometry
+comes from the install's own `.ship` specs through `SettingsAPI`, and outside
+the game there is no `SettingsAPI`, so `HullFootprintResolver` quietly falls
+back to one flat length for every hull alike — a Wasp the size of a Valkyrie,
+and with it a body radius, a drawn hull and a blast catch belonging to an
+aircraft that exists nowhere. `InstalledHullSpecs.install()` is the one way to
+prime it; the JUnit extension and `CreateSnapshotsCli` call it, and a scene
+calls it itself so a scratch harness gets it too. Anything that *measures*
+aircraft size should assert `HullFootprintResolver.isMeasured` rather than
+trust the number, because the fallback is silent by design.
+
 Prefer a scene over a mission harness whenever the question is about one
 behavior rather than about a whole battle's balance, and add another scene
 rather than widening this one past what its name claims.

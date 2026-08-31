@@ -813,6 +813,19 @@ authorizes an unbounded chase or abandonment of the mission route; if no legal
 position exists inside the maneuver leash, the member continues its assigned
 advance.
 
+Prosecution is nonetheless the one commitment that leaves the destination out
+of the reckoning entirely: its firing positions are leashed to the squad's own
+centre rather than to the route, so the ordered cell is not routed to while it
+lasts, and release is the contact picture's decision rather than the order's.
+That is the right latitude for an assignment the squad chose the shape of, and
+the wrong latitude for a destination handed down from outside it, so **a
+directly ordered attack move declines contact prosecution.** It still fights
+what it meets — the route-threat commitment, the firing line, and shots of
+opportunity are unaffected, and an advancing HOLD that is receiving rather than
+prosecuting still plants the squad where it stands. What it will not do is
+decide on its own to walk off the ordered bearing after a contact somewhere
+else.
+
 While an advancing squad is committed to either kind of contact, a legal
 shooter plants and fires from a stanced posture instead of continuing the
 mission route. A successful shot may author the ordinary cooldown-staggered
@@ -1275,7 +1288,9 @@ request. Arrival clears the tactical context before the ordinary mission replan
 on that command tick, and a hard withdrawal cancels it. While the context is
 active it is the squad's only MISSION-tier plan: unit-level planting, garrison,
 last-stand, and other authored mission goals cannot win goal arbitration over
-it, though cohesion survival may still suspend execution. A rescue pickup
+it, though cohesion survival may still suspend execution. Its destination also
+outranks contact prosecution, which is the one contact commitment that would
+otherwise discard it — see the doctrine section. A rescue pickup
 perimeter is a mission duty rather than a control lock, so its Marine infantry
 may be redirected and returns to the current rescue directive on release.
 Enemy, Mech, drone, shelter-militia, non-soldier, wiped, and stale squad

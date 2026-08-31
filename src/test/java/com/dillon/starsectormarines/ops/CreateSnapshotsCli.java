@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotCatalog;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotRunner;
@@ -22,6 +23,11 @@ public final class CreateSnapshotsCli {
                 ? Path.of(args[2])
                 : projectRoot.resolve("build/snapshots");
         String selector = args.length > 3 ? args[3] : "all";
+
+        // Suites read art from the install as well as from `mod/`; hull
+        // geometry arrives the same way, and without it every aircraft in every
+        // suite draws and is shot at as the same size.
+        InstalledHullSpecs.install(starsectorCore);
 
         SnapshotCatalog catalog = SnapshotCatalog.discover();
         List<SnapshotSuite> suites = catalog.select(selector);
