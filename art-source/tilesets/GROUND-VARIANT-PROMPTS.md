@@ -176,6 +176,14 @@ exact size, full opacity, tile-against-self seam energy versus interior energy,
 and per-family colour spread. ImageGen does not report when it has ignored a
 constraint, and on past batches most of a first pass failed at least one.
 
+**`--family` is required whenever the directory holds more than one.** Colour
+spread is a within-family measure, so run over a mixed folder it reports the
+distance *between* families — `ground-variants-raw` now holds regolith, dust and
+sand, and measuring the lot scores 75 against a threshold of 6 with every tile in
+it fine. The flag used to be only the report's label and this command was
+therefore already lying by the time a third family arrived; it now selects the
+tiles too, and a name matching nothing is an error rather than a silent pass.
+
 ## Reference the material file, not an atlas cell
 
 The first arid batch was told to match "the cell at x=0, y=56" of the exported
