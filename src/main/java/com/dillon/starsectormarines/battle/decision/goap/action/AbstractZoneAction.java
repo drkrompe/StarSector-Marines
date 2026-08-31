@@ -318,11 +318,23 @@ abstract class AbstractZoneAction implements Action {
         if (committed && target != 0L && threatAnchorX >= 0 && threatAnchorY >= 0) {
             int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
                     member, target, threatAnchorX, threatAnchorY, engageLeash);
-            // A refusal falls through to the objective route rather than
-            // returning. Returning on an unreachable position is what froze a
-            // committed member in place indefinitely; walking on toward the
-            // objective is a worse firing position and a live marine.
-            if (advanceToReachableFiringPosition(member, sim, firingPos)) return;
+            // The two refusals are different facts and get different
+            // answers. No path at all means the commitment cannot be
+            // prosecuted by walking, so the member holds and fights from
+            // where it stands — which is what a committed member does on its
+            // firing line anyway. Marching it to the objective instead sends
+            // a squad that has decided to fight straight past the enemy, and
+            // the matrix charged twelve extra squads for that. A path that is
+            // merely not worth the walk leaves a member that can still move,
+            // so it carries on toward the objective.
+            switch (advanceToReachableFiringPosition(member, sim, firingPos)) {
+                case MOVED -> { return; }
+                case UNREACHABLE -> {
+                    if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+                    return;
+                }
+                case NOT_WORTH_THE_WALK -> { /* fall through to the objective */ }
+            }
         }
 
         // A flank/rear or adverse-odds picture can order a contact line even
@@ -369,7 +381,10 @@ abstract class AbstractZoneAction implements Action {
                 && target != 0L && clearShotOnTarget && opportune == 0L) {
             int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
                     member, target, destX, destY, OBJECTIVE_FIRING_LEASH);
-            if (advanceToReachableFiringPosition(member, sim, firingPos)) return;
+            // Uncommitted: this member was never told to fight here, so any
+            // refusal simply resumes the order it does have.
+            if (advanceToReachableFiringPosition(member, sim, firingPos)
+                    == FiringApproach.MOVED) return;
         }
 
         if (sim.movement().mayRepath(member)) {
@@ -432,25 +447,46 @@ abstract class AbstractZoneAction implements Action {
      * <p>The pathfind here is the one the caller was making anyway, so
      * refusing costs nothing it was not already paying.
      */
-    protected static boolean advanceToReachableFiringPosition(long member,
-                                                              BattleControl sim,
-                                                              int[] firingPos) {
-        if (firingPos == null) return false;
+    protected enum FiringApproach {
+        /** A move was authored toward the position. */
+        MOVED,
+        /**
+         * No path exists. There is nothing to walk toward, so the commitment
+         * cannot be prosecuted by moving and the member should hold where it
+         * is rather than resume the objective.
+         */
+        UNREACHABLE,
+        /**
+         * A path exists but costs far more than the straight line it stands
+         * in for. The member can move perfectly well — it just should not
+         * spend the march on this — so carrying on toward the objective is
+         * the better use of the same legs.
+         */
+        NOT_WORTH_THE_WALK
+    }
+
+    protected static FiringApproach advanceToReachableFiringPosition(long member,
+                                                                     BattleControl sim,
+                                                                     int[] firingPos) {
+        if (firingPos == null) return FiringApproach.UNREACHABLE;
         if (!sim.movement().mayRepath(member)) {
             // Throttled: the path in hand was checked when it was set, so
             // walking it on is right. Nothing in hand means nothing to walk.
-            if (Paths.isEmpty(sim.world().path(member))) return false;
+            if (Paths.isEmpty(sim.world().path(member))) return FiringApproach.UNREACHABLE;
             sim.advanceMovement(member);
-            return true;
+            return FiringApproach.MOVED;
         }
         int memberX = sim.world().cellX(member);
         int memberY = sim.world().cellY(member);
         int[] path = GridPathfinder.findPath(sim.getGrid(), memberX, memberY,
                 firingPos[0], firingPos[1], sim.getOccupancyMap());
-        if (!worthWalkingTo(memberX, memberY, firingPos, path)) return false;
+        if (Paths.isEmpty(path)) return FiringApproach.UNREACHABLE;
+        if (!worthWalkingTo(memberX, memberY, firingPos, path)) {
+            return FiringApproach.NOT_WORTH_THE_WALK;
+        }
         sim.setPath(member, path);
         sim.advanceMovement(member);
-        return true;
+        return FiringApproach.MOVED;
     }
 
     /**

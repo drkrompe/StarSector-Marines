@@ -906,12 +906,29 @@ bounded improvement but the objective abandoned for as long as the march
 takes. So travel is bounded in its own right, and a position that cannot be
 reached at all is refused rather than walked at.
 
-**Refusing must fall through, never return.** A committed member that returned
-on an unreachable position set an empty path, moved nobody, and did the same
-again next tick — and because the repath throttle is stamped only on a
-non-empty assignment, the throttle never engaged and a full-component search
-ran every tick for as long as the commitment held. The escape is to carry on
-toward the objective: a worse firing position and a live marine.
+**The two refusals are different facts and get different answers.** No path at
+all means the commitment cannot be prosecuted by walking, so the member holds
+and fights from where it stands — which is what a committed member does on its
+firing line anyway. A path that merely costs more than it is worth leaves a
+member who can still move perfectly well, so it carries on toward the
+objective. Collapsing the two into one answer sends a squad that has decided
+to fight marching straight past the enemy, and the canonical matrix charged
+several extra squads for it.
+
+What neither answer may be is the old one. A committed member that returned on
+an unreachable position set an empty path and moved nobody, and because the
+repath throttle is stamped only on a non-empty assignment the throttle never
+engaged: the same search ran again next tick, and a search toward an
+unreachable cell exhausts the whole reachable component before failing. The
+freeze cost a full-component search per member per tick.
+
+**That freeze was accidentally load-bearing, which is worth knowing before
+removing one.** A frozen member stays out of the ground it was frozen short
+of, so the canonical fixtures had been quietly banking a caution nobody
+designed. Ending it is still right — a squad that stops for no reason is a
+bug, and this one was an expensive bug — but the measured cost is squads lost
+on approach where they used to stand still, and the gain is pressing that had
+not been happening. Which of those a mission wants is doctrine, not a defect.
 
 A perceived contact and a usable firing line are distinct. Perception may use
 the cached projected-cell line of sight, while a ground direct-fire decision

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -99,5 +100,24 @@ public class FiringPositionReachabilityTest {
         assertTrue(path.length > 0, "fixture must be reachable");
         assertTrue(AbstractZoneAction.worthWalkingTo(18, 4, spot, path),
                 "a short jog around one blocked cell must not be refused");
+    }
+
+    @Test
+    public void theTwoRefusalsAreDistinguished() {
+        // The committed branch answers them differently: no path means hold
+        // and fight from here, a path not worth walking means carry on to the
+        // objective. Collapsing them sent squads that had decided to fight
+        // marching past the enemy, which the Conquest matrix charged for.
+        BattleSimulation sealed = walledSim(-1);
+        int[] spot = {25, 4};
+        assertEquals(0, pathTo(sealed, 18, 4, spot).length,
+                "sealed fixture must be unreachable");
+
+        BattleSimulation open = walledSim(22);
+        int[] longWay = pathTo(open, 18, 4, spot);
+        assertTrue(longWay.length > 0, "door fixture must be reachable");
+        assertFalse(AbstractZoneAction.worthWalkingTo(18, 4, spot, longWay),
+                "the long way round must read as not worth the walk, which is "
+                        + "a different refusal from having no path at all");
     }
 }
