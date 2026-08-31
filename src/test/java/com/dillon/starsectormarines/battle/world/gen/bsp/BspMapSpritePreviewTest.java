@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -274,7 +275,7 @@ public class BspMapSpritePreviewTest {
         Files.createDirectories(OUT_DIR);
         TargetProfile profile = new TargetProfile(5, 6, 1, 1, "independent",
                 EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.SPACEPORT),
-                SurfacePalette.ROCK);
+                SurfacePalette.ROCK, SettlementLink.ROAD);
         MapResult map = new BspCityGenerator().generate(GRID_W, GRID_H, 42L, null, profile);
         BufferedImage img = renderMapSprites(map, 42L);
 
@@ -296,7 +297,7 @@ public class BspMapSpritePreviewTest {
         Files.createDirectories(OUT_DIR);
         TargetProfile profile = new TargetProfile(5, 6, 1, 1, "independent",
                 EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.SPACEPORT),
-                SurfacePalette.ROCK);
+                SurfacePalette.ROCK, SettlementLink.ROAD);
         List<ShuttleAssignment> manifest = List.of(
                 new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),
                 new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),

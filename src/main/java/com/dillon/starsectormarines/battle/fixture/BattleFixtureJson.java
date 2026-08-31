@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -556,6 +557,7 @@ public final class BattleFixtureJson {
         }
         encoded.put("functions", functions);
         encoded.put("surface", profile.surface().name());
+        encoded.put("link", profile.link().name());
         return encoded;
     }
 
@@ -571,6 +573,10 @@ public final class BattleFixtureJson {
                 ? enumValueIgnoreCase(SurfacePalette.class,
                         encoded.getString("surface"), "surface palette")
                 : SurfacePalette.ROCK;
+        SettlementLink link = encoded.has("link")
+                ? enumValueIgnoreCase(SettlementLink.class,
+                        encoded.getString("link"), "settlement link")
+                : SettlementLink.ROAD;
         return new TargetProfile(
                 encoded.getInt("marketSize"),
                 encoded.getInt("stability"),
@@ -578,7 +584,8 @@ public final class BattleFixtureJson {
                 encoded.getInt("spaceportTier"),
                 encoded.getString("factionId"),
                 functions,
-                surface);
+                surface,
+                link);
     }
 
     private static <E extends Enum<E>> E enumValue(

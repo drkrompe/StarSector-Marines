@@ -1,7 +1,8 @@
 # Settlement off-map link
 
-Status: BOTH GUARANTEES LAND — road and landing are enforced and measured.
-What remains is a campaign source that ever asks for anything but ROAD.
+Status: WIRED BUT NOT SWITCHED ON — the campaign derives the link and the
+density, and nothing consumes them yet. Adopting grown maps waits on terrain
+coherence and the spaceport apron, both measured below.
 
 Written: 2026-08-31
 
@@ -79,9 +80,43 @@ side is still striped and marked and contributes nothing to
 `MapResult.landingPads`, so a leaf merely carrying the label would have looked
 like a link without being one.
 
-## What remains
+## The campaign chooses it
 
-**Nothing selects a link from the campaign yet.** Every generated settlement is
-`ROAD` because that is the default. An outpost or a ruin has to be asked for.
-Market conditions are the natural source when that matters — the same boundary
-`SurfaceZoning` reads planet type at.
+`SettlementZoning` reads market size and the decivilized condition at the same
+boundary `SurfaceZoning` reads planet type, and answers two questions: what the
+settlement's lifeline is, and how densely it is built.
+
+A market of size 3 or below is an outpost supplied by ship — a mining claim, a
+waystation, a survey post, the places nobody paved a road to. Anything larger
+grew where people could drive to it. Decivilized is `NONE` at any size.
+
+**No market is an absence of information, not a claim of isolation.** A battle
+with nothing behind it reads as `ROAD` and takes the stock crossroad rather than
+a grown settlement, because density is derived from market size and there is
+nothing to derive it from. That is a real rule and not a carve-out for tests.
+
+## Nothing has been switched over yet
+
+Conquest keeps `TrunkSkeletonStage`'s fixed crossroad, and there is deliberately
+no grown conquest recipe to reach by accident. The reason is ordering rather
+than doubt: Conquest is the mission the campaign is built around and its balance
+was measured against the maps it has now, so changing the ground under it while
+judging whether the new ground is better would leave neither question
+answerable.
+
+The rest of generation is on stock too, for now. The switch is one line in
+`BspCityGenerator.recipeFor`, and two things are in the way of pulling it:
+
+**A spaceport world does not reliably get a port.** The district contract wants
+one large related apron. Over five seeds it appeared on one of five grown maps
+at the density a size-5 market asks for, and four of five at 0.55. The stock
+partition manages one of five, so this is a weakness the grown path exposes
+rather than one it introduces — but `SpaceportDistrictGenerationTest` passes on
+stock at its chosen seed and fails on grown, and that is a regression for the
+scenario it pins whatever the general rate is.
+
+**Wild terrain reads as static in the real art.** In debug colours the
+per-cell ground pick looked like plausible rough ground. Rendered through the
+sprite path it is visual noise across whole regions, and it is the first thing
+the eye lands on. See `grown-road-graph.md` for why it is uncorrelated and what
+fixing it needs.
