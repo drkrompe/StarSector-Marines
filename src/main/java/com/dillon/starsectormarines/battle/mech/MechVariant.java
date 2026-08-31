@@ -12,7 +12,7 @@ public enum MechVariant {
             LayeredMechAppearance.CHASSIS_CLEAN,
             MechWeaponComponent.DUAL_CHAINGUNS,
             MechWeaponComponent.SRM_15,
-            MechWeaponComponent.LRM_15,
+            MechWeaponComponent.SHOULDER_LASER_CANNON,
             MechRole.ARMORED_SUPPORT),
 
     HOUND("hound", "Hound", 350f, 500f, 14f, 1.70f, 0.42f, 50f,

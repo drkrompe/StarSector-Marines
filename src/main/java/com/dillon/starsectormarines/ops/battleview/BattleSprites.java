@@ -682,18 +682,19 @@ public class BattleSprites {
         LayeredSpriteCache heavyCannon = loadLayeredSprite(root + "heavy-cannon.png");
         LayeredSpriteCache srm = loadLayeredSprite(root + "srm-pod.png");
         LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-pod.png");
+        LayeredSpriteCache shoulderLaser = loadLayeredSprite(root + "shoulder-laser-cannon.png");
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
         if (chassis == null || socketedChassis == null || houndChassis == null
                 || siroccoChassis == null || foot == null || thighBone == null || arm == null
                 || linearCannon == null || heavyCannon == null
-                || srm == null || lrm == null || flash == null) {
+                || srm == null || lrm == null || shoulderLaser == null || flash == null) {
             LOG.warn("BattleSprites: modular mech layers incomplete; legacy heavy-mech sheet remains active");
             return;
         }
         layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis,
                 houndChassis, siroccoChassis, foot, thighBone, arm, linearCannon, heavyCannon,
-                srm, lrm, flash);
+                srm, lrm, shoulderLaser, flash);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
         for (MechLivery livery : MechLivery.values()) {
             if (livery == MechLivery.BASE) continue;
@@ -716,9 +717,10 @@ public class BattleSprites {
         LayeredSpriteCache heavyCannon = loadLayeredSprite(root + "heavy-cannon.png");
         LayeredSpriteCache srm = loadLayeredSprite(root + "srm-pod.png");
         LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-pod.png");
+        LayeredSpriteCache shoulderLaser = loadLayeredSprite(root + "shoulder-laser-cannon.png");
         if (chassis == null || houndChassis == null || siroccoChassis == null
                 || arm == null || linearCannon == null || heavyCannon == null
-                || srm == null || lrm == null) {
+                || srm == null || lrm == null || shoulderLaser == null) {
             LOG.warn("BattleSprites: modular mech livery " + livery
                     + " incomplete; actors using it keep the complete base set");
             return;
@@ -726,7 +728,7 @@ public class BattleSprites {
         layeredMechLiveries.put(livery, new LayeredMechAssets(
                 chassis, socketedChassis, houndChassis, siroccoChassis,
                 foot, thighBone, arm, linearCannon, heavyCannon,
-                srm, lrm, flash));
+                srm, lrm, shoulderLaser, flash));
     }
 
     private void loadLayeredFamily(LayeredArmorFamily familyId, String family,

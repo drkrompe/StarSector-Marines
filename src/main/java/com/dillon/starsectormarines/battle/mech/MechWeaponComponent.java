@@ -29,7 +29,10 @@ public enum MechWeaponComponent {
     LRM_5("LRM-5", MountFamily.SHOULDER, "weapon.mech-lrm-artillery",
             2, 4, LayeredMechAppearance.POD_SMALL_LRM),
     LRM_15("LRM-15", MountFamily.SHOULDER, "weapon.mech-lrm-artillery",
-            5, 3, LayeredMechAppearance.POD_LARGE_LRM);
+            5, 3, LayeredMechAppearance.POD_LARGE_LRM),
+    SHOULDER_LASER_CANNON("Shoulder laser cannon", MountFamily.SHOULDER,
+            "weapon.mech-shoulder-laser", 1, -1,
+            LayeredMechAppearance.POD_SHOULDER_LASER);
 
     public enum MountFamily { ARMS, SHOULDER }
 

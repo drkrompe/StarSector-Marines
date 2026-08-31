@@ -444,6 +444,49 @@
       "audio": { "fireSound": "pilum_lrm_fire" }
     },
     {
+      "id": "weapon.mech-shoulder-laser",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "Shoulder Laser Cannon",
+        "modelName": "Lance Cannon",
+        "designation": "SLC",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 36.0,
+        "damage": 24.0,
+        "accuracy": 0.82,
+        "cooldown": 7.0,
+        "penetration": 10.0,
+        "contact": { "damage": 95.0, "penetration": 30.0 },
+        "bodyPenetrations": 1,
+        "hitSpread": 0.08,
+        "roundVelocity": 360.0,
+        "flightSec": 0.10,
+        "aoeRadius": 1.0,
+        "wallDamage": 12,
+        "wallDamageRadius": 0.75,
+        "noiseMagnitude": 1.5
+      },
+      "render": {
+        "tracerColor": "70E8FF",
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.72, "lifetime": 0.10, "color": "80F0FF" },
+          { "kind": "ring", "radius": 0.38, "lifetime": 0.16, "color": "C8F8FF" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.95, "lifetime": 0.18, "color": "80E8FF" },
+          { "kind": "ring", "radius": 0.72, "lifetime": 0.30, "color": "B8F4FF" },
+          { "kind": "dust", "radius": 0.55, "lifetime": 0.30 }
+        ]
+      },
+      "audio": { "fireSound": "pulse_laser_fire" }
+    },
+    {
       "id": "weapon.annihilator-launcher",
       "mount": "marine-secondary",
       "catalog": {

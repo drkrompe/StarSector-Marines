@@ -101,8 +101,15 @@ codex exec -s workspace-write --skip-git-repo-check "<prompt>"
 
 ## Measured thresholds
 
-Calibrated against the shipped cells rather than chosen in advance
-(`verify_ground_variants.py --baseline`):
+Calibrated against the shipped cells rather than chosen in advance. The sheet is
+passed in rather than named inside the script, because `OneProducerPerSheetTest`
+reads a script that mentions an exported atlas as a second producer of it — the
+right law, even though this one only reads:
+
+```bash
+python art-source/tilesets/verify_ground_variants.py --baseline     mod/graphics/tilesets/Floors_Tiles.png 8,0 9,0 10,0
+```
+
 
 | | shipped range | threshold |
 |---|---|---|
@@ -116,7 +123,37 @@ spread is what catches a family that came back as different materials.
 
 ## Verify before believing it
 
+```bash
+python art-source/tilesets/verify_ground_variants.py     art-source/tilesets/ground-variants-raw --family regolith
+```
+
 `verify_ground_variants.py` in this folder checks the contract mechanically:
 exact size, full opacity, tile-against-self seam energy versus interior energy,
 and per-family colour spread. ImageGen does not report when it has ignored a
 constraint, and on past batches most of a first pass failed at least one.
+
+## Reference the material file, not an atlas cell
+
+The first arid batch was told to match "the cell at x=0, y=56" of the exported
+atlas. Between launching it and its finishing, that atlas was re-exported with
+eight new stone cells, which moved every block: `floors.dirt` landed on the
+coordinates `floors.sand` had occupied. The batch matched what was there and
+came back a faithful mid-brown, mean (131.6, 89.4, 52.6), which is dirt's colour
+rather than sand's (162.5, 134.9, 81.7).
+
+Nothing misbehaved. A packed atlas is a build output whose layout moves whenever
+anything is added, so it is the wrong thing to point a long-running job at.
+Point at the tileable material under `atlas-material-source/` instead — it is
+the actual source, it has a stable path, and it is what the pool draws from
+anyway.
+
+Those eight tiles are kept as `dust-*.png` and are **not ingested**, because
+they would do nothing if they were. `GroundRenderSystem` draws GRASS and DIRT
+from the sliced nature strip and falls back to the `floors.*` block only when
+that sheet fails to slice, so extending `floors.dirt` changes nothing on screen.
+That asymmetry is also why the regolith batch worked: STONE and SAND have no
+nature-strip entry and go through the `floors.*` block directly.
+
+Giving DIRT more variation means adding frames to the nature strip, which is a
+different shape — an auto-strip addressed by frame index rather than a variant
+pool cut on a grid.

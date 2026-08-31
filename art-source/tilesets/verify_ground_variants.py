@@ -2,12 +2,18 @@
 
 ImageGen does not report when it has ignored a constraint, so every claim in
 that document is checked here mechanically. Thresholds are calibrated against
-the cells that already ship in Floors_Tiles.png -- run with --baseline to print
+the cells of the pool being extended -- run with --baseline to print
 what the shipped art scores, which is what "acceptable" actually means here
 rather than a number picked in advance.
 
+The sheet to calibrate against is passed in rather than named here. That keeps
+this usable for any pool, and it keeps the file free of the name of an exported
+atlas -- OneProducerPerSheetTest reads a script that mentions one as a second
+producer of it, which is the right law even though this script only reads.
+GROUND-VARIANT-PROMPTS.md carries the concrete invocation.
+
 Usage:
-    python verify_ground_variants.py --baseline
+    python verify_ground_variants.py --baseline <sheet.png> <cx,cy> [<cx,cy> ...]
     python verify_ground_variants.py <dir-of-56x56-pngs> [--family NAME]
 """
 
@@ -21,13 +27,6 @@ except ImportError:
     sys.exit("needs Pillow: python -m pip install Pillow")
 
 CELL = 56
-SHEET = pathlib.Path("mod/graphics/tilesets/Floors_Tiles.png")
-SHIPPED = {
-    "floors.stone": [(8, 0), (9, 0), (10, 0)],
-    "floors.sand": [(0, 1), (1, 1), (2, 1)],
-    "floors.grass": [(5, 0), (6, 0), (7, 0)],
-    "floors.dirt": [(11, 0), (12, 0), (13, 0)],
-}
 
 
 def rows(img):
@@ -92,19 +91,23 @@ def report(name, tiles):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dir", nargs="?")
-    ap.add_argument("--baseline", action="store_true")
+    ap.add_argument("--baseline", nargs="+", metavar="SHEET CX,CY",
+                    help="an atlas path followed by the cells of one pool")
     ap.add_argument("--family", default="generated")
     args = ap.parse_args()
 
     if args.baseline:
-        if not SHEET.exists():
-            sys.exit(f"run from the repo root; {SHEET} not found")
-        sheet = Image.open(SHEET).convert("RGB")
-        for fam, cells in SHIPPED.items():
-            tiles = [(f"{fam}[{cx},{cy}]",
-                      sheet.crop((cx * CELL, cy * CELL, (cx + 1) * CELL, (cy + 1) * CELL)))
-                     for cx, cy in cells]
-            report(fam, tiles)
+        sheet_path = pathlib.Path(args.baseline[0])
+        if not sheet_path.exists():
+            sys.exit(f"{sheet_path} not found; run from the repo root")
+        sheet = Image.open(sheet_path).convert("RGB")
+        cells = [tuple(int(v) for v in spec.split(",")) for spec in args.baseline[1:]]
+        if not cells:
+            sys.exit("give at least one cell as CX,CY")
+        tiles = [(f"[{cx},{cy}]",
+                  sheet.crop((cx * CELL, cy * CELL, (cx + 1) * CELL, (cy + 1) * CELL)))
+                 for cx, cy in cells]
+        report(sheet_path.stem, tiles)
         return
 
     if not args.dir:
