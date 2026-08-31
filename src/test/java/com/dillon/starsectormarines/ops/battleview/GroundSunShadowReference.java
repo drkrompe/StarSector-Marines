@@ -83,11 +83,11 @@ final class GroundSunShadowReference {
                         worldAt.worldX(x), worldAt.worldY(y),
                         sunAzimuthDegrees, sunElevationDegrees, tallestMeters);
                 int r = Math.round(((rgb >>> 16) & 0xFF)
-                        * lerp(1f, GroundParallaxPipeline.SHADOW_TINT_R, k));
+                        * lerp(1f, SunLight.TINT_R, k));
                 int g = Math.round(((rgb >>> 8) & 0xFF)
-                        * lerp(1f, GroundParallaxPipeline.SHADOW_TINT_G, k));
+                        * lerp(1f, SunLight.TINT_G, k));
                 int b = Math.round((rgb & 0xFF)
-                        * lerp(1f, GroundParallaxPipeline.SHADOW_TINT_B, k));
+                        * lerp(1f, SunLight.TINT_B, k));
                 output.setRGB(x, y, (rgb & 0xFF000000) | r << 16 | g << 8 | b);
             }
         }
