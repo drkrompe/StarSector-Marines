@@ -189,8 +189,45 @@ public class AirSystem {
      */
     private static final float PAD_HOVER_T = 0.3f;
 
-    /** Sim-seconds a vertical lift spends settling from that hover onto the pad. */
-    private static final float PAD_SETTLE_SEC = 0.9f;
+    /**
+     * Sim-seconds a vertical lift spends climbing straight off its own
+     * hardstand before it turns for the LZ.
+     *
+     * <p>Unlike the settle this mirrors, there is nothing physical to wait
+     * for here — the craft is holding station over the pad it started on, so
+     * nothing it does changes how long the climb should take. A stated
+     * duration is therefore not the fault {@link #MAX_PAD_SETTLE_SEC} exists
+     * to bound; it is simply how long the climb-out is authored to look.
+     */
+    private static final float PAD_ASCENT_SEC = 0.9f;
+
+    /**
+     * How many sim-seconds a settle onto a pad is given to converge on its
+     * own before it is landed regardless.
+     *
+     * <p>The settle now ends on a condition — over the pad, and its speed
+     * killed — rather than on a clock, which is what fixed the bus-tier fault
+     * this project measured: a stated 0.9s duration snapped a Buffalo or a
+     * Mule to a stop while it was still three-odd cells short of the pad,
+     * because their gentler brakes could not kill a run-in's worth of speed
+     * that fast. A condition that might in principle never converge is worse
+     * than the clock it replaced, though, so this is the same shape as
+     * {@link #MAX_GO_AROUNDS}: a bound that is essentially never reached in
+     * practice (the braking law that drives the settle converges every hull
+     * tier in well under a second) and exists only so a pathological case
+     * lands instead of hovering for the rest of the battle. Landing on this
+     * bound still respects the brake — nothing is moved, only the settle is
+     * accepted as finished — which is what keeps it from being the same snap
+     * under a different name.
+     */
+    private static final float MAX_PAD_SETTLE_SEC = 5f;
+
+    /**
+     * Speed floor recorded as a settle's entry speed, so a craft that crosses
+     * the arrival gate essentially stationary does not divide by (near) zero
+     * when the descent profile normalises against it.
+     */
+    private static final float MIN_SETTLE_ENTRY_SPEED = 0.05f;
 
     /**
      * Fastest the drawn altitude may move, per second.
@@ -625,8 +662,8 @@ public class AirSystem {
                     embark(mission);
                     if (readyToLift(mission)) {
                         closeBoarding(mission);
-                        beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
-                        mission.state = ShuttleState.INCOMING;
+                        mission.padPhaseElapsed = 0f;
+                        mission.state = ShuttleState.PAD_ASCENT;
                     } else if (mission.boardingPatience <= 0f) {
                         // Out of time. Anyone already up the ramp flies — they
                         // were taken off the roster to board, so scrubbing on
@@ -637,8 +674,8 @@ public class AirSystem {
                         boolean anybodyAboard = mission.marinesRemaining > 0;
                         closeBoarding(mission);
                         if (anybodyAboard) {
-                            beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
-                            mission.state = ShuttleState.INCOMING;
+                            mission.padPhaseElapsed = 0f;
+                            mission.state = ShuttleState.PAD_ASCENT;
                         } else {
                             // Scrubbed on the pad with nobody aboard. The
                             // aircraft never went anywhere, so it is still the
@@ -646,6 +683,31 @@ public class AirSystem {
                             handBackToField(mission, /*recovered*/ true);
                             mission.state = ShuttleState.GONE;
                         }
+                    }
+                    break;
+
+                case PAD_ASCENT:
+                    // Holding over the pad it just left and climbing, the
+                    // mirror of PAD_DESCENT: nothing is going anywhere yet,
+                    // only up. Station-keeping rather than steering toward the
+                    // LZ, because the LZ is the next phase's business — this
+                    // one is entirely about not popping to cruise altitude in
+                    // the tick INCOMING starts.
+                    AirSteeringSystem.steer(body, mission.entryX, mission.entryY,
+                            SteeringMode.STATION, flight, dt);
+                    mission.padPhaseElapsed += dt;
+                    world.setAltitudeT(id, smoothstep(
+                            Math.min(1f, mission.padPhaseElapsed / PAD_ASCENT_SEC)));
+                    world.setFlightPhase(id, world.flightPhase(id)
+                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                    if (mission.padPhaseElapsed >= PAD_ASCENT_SEC) {
+                        // Full cruise height before the first INCOMING sample
+                        // is taken, which is what keeps that sample a no-op:
+                        // its own ratio-based ramp starts a fresh leg already
+                        // believing the craft is at cruise, so there is
+                        // nothing left for it to jump from.
+                        beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
+                        mission.state = ShuttleState.INCOMING;
                     }
                     break;
 
@@ -888,7 +950,8 @@ public class AirSystem {
                             < flyingArrivalDist(SHUTTLE_LZ_ARRIVAL_FLOOR, body, flight, dt)) {
                         // Over the pad with its speed washed off. What is left
                         // is the settle, and it is flown rather than skipped.
-                        mission.settleTimer = PAD_SETTLE_SEC;
+                        mission.padDescentEntrySpeed = Math.max(body.speed(), MIN_SETTLE_ENTRY_SPEED);
+                        mission.padPhaseElapsed = 0f;
                         mission.state = ShuttleState.PAD_DESCENT;
                     }
                     break;
@@ -904,20 +967,42 @@ public class AirSystem {
                     // mid-air and reappearing landed.
                     AirSteeringSystem.steer(body, mission.lzX, mission.lzY,
                             SteeringMode.STATION, flight, dt);
-                    mission.settleTimer -= dt;
-                    float held = Math.max(0f, mission.settleTimer) / PAD_SETTLE_SEC;
-                    world.setAltitudeT(id, PAD_HOVER_T * held * held * (3f - 2f * held));
+                    mission.padPhaseElapsed += dt;
+                    // Driven by how much of the craft's own drift is still
+                    // there to kill, not by a clock: a gentle-braking bus and
+                    // a nimble drop craft do not owe the eye the same number
+                    // of seconds, only the same picture of slowing down.
+                    float speedFrac = clamp01(body.speed() / mission.padDescentEntrySpeed);
+                    world.setAltitudeT(id, PAD_HOVER_T * smoothstep(speedFrac));
                     world.setFlightPhase(id, world.flightPhase(id)
                             + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
-                    if (mission.settleTimer <= 0f) {
+                    // Down is a fact about the craft, not a duration: it has to
+                    // actually be over the pad, and it has to have actually
+                    // stopped. A hull that brakes gently just takes a few more
+                    // ticks to satisfy the second half — it is never snapped
+                    // to a stop early the way a fixed clock used to snap it.
+                    boolean overThePad = body.distanceTo(mission.lzX, mission.lzY)
+                            < flyingArrivalDist(SHUTTLE_LZ_ARRIVAL_FLOOR, body, flight, dt);
+                    boolean speedKilled = body.speed() <= settledSpeed(flight, dt);
+                    boolean timedOut = mission.padPhaseElapsed >= MAX_PAD_SETTLE_SEC;
+                    if ((overThePad && speedKilled) || timedOut) {
+                        if (timedOut && !(overThePad && speedKilled)) {
+                            LOG.warn("air: " + world.airframe(id) + " settling onto its pad at ("
+                                    + mission.lzX + "," + mission.lzY + ") did not converge within "
+                                    + MAX_PAD_SETTLE_SEC + "s (speed " + body.speed()
+                                    + ", " + body.distanceTo(mission.lzX, mission.lzY)
+                                    + " cells out) — landing where it is.");
+                        }
                         world.setAltitudeT(id, 0f);
-                        // Its weight is on the pad, so nothing is left moving.
-                        // Nothing is moved, either: the craft stays exactly
-                        // where it flew itself to.
-                        body.vx = 0f;
-                        body.vy = 0f;
-                        body.ax = 0f;
-                        body.ay = 0f;
+                        // Nothing is moved: the craft stays exactly where it
+                        // flew itself to, carrying whatever sliver of drift
+                        // speedKilled judged not worth another tick's brake.
+                        // Not forced to exactly zero — nothing downstream of
+                        // LANDED reads the body's velocity for motion, and
+                        // forcing it here would be one more artificial
+                        // deceleration stacked on top of this tick's real one,
+                        // which is exactly the kind of snap this settle exists
+                        // to remove.
                         mission.state = ShuttleState.LANDED;
                         mission.deboardCountdown = mission.deboardInterval;
                     }
@@ -1418,6 +1503,41 @@ public class AirSystem {
      */
     static float flownArrivalDist(float floorCells, AirBody body, float dt) {
         return Math.max(floorCells, ARRIVAL_TICK_MARGIN * body.speed() * dt);
+    }
+
+    /**
+     * How slow is stopped, for a craft settling onto a pad — tested against
+     * the hull's own brake rather than an authored number, the same reasoning
+     * {@link #flyingArrivalDist} applies to position.
+     *
+     * <p>Exactly one more tick's worth of braking: {@link AirHandling#brakingAccel()}
+     * is the most forward speed {@link AirSteeringSystem#steer} can shed in a
+     * single tick, so a craft at or under this is a craft one more tick of the
+     * same braking law would carry to zero anyway. Nothing wider is needed —
+     * the brake-to-a-point law this settle flies converges the hull's speed
+     * and its distance to the pad together (both go to zero at once under
+     * continuous following), so by the time position has closed to
+     * {@link #flyingArrivalDist}'s gate the speed is already most of the way
+     * to this floor on its own.
+     */
+    private static float settledSpeed(AirHandling flight, float dt) {
+        return flight.brakingAccel() * dt;
+    }
+
+    /** {@code t} folded into {@code [0, 1]}. */
+    private static float clamp01(float t) {
+        if (t < 0f) return 0f;
+        if (t > 1f) return 1f;
+        return t;
+    }
+
+    /**
+     * Ease {@code t ∈ [0, 1]} through a flat start and a flat finish rather
+     * than a constant rate — the shape both pad phases ride so a hover reads
+     * as easing to a stop / away rather than switching on and off.
+     */
+    private static float smoothstep(float t) {
+        return t * t * (3f - 2f * t);
     }
 
     /**

@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.EnumSet;
 
@@ -95,27 +97,38 @@ class LandingIsFlownTest {
      * <p>The Huey shape: brake out of the run in, hold over the spot, and sink.
      * The settle is a phase of its own because it is a different way of moving
      * — and because the arrival it replaces was one tick long.
+     *
+     * <p>Run across every {@link ShuttleType} rather than just the Aeroshuttle
+     * this test used to fly alone. The settle used to end on a stated
+     * duration regardless of whether the craft had actually stopped, and a
+     * bus-tier hull — a Buffalo, a Mule — brakes at a third of the Aeroshuttle's
+     * rate: measured, that duration expired with the bus still doing several
+     * cells a second and it was snapped to a stop several cells short of the
+     * pad, shedding well over a hundred cells/sec² in the one tick the clock
+     * ran out on. The nimble tier passed this test the whole time; only the
+     * bus tier proves the fix.
      */
-    @Test
-    void aShuttleSettlesOntoItsPadRatherThanArrivingOnIt() {
+    @ParameterizedTest
+    @EnumSource(ShuttleType.class)
+    void aShuttleSettlesOntoItsPadRatherThanArrivingOnIt(ShuttleType type) {
         try (BattleSimulation sim = openSimulation()) {
-            long craft = sim.spawnShuttle(ShuttleType.AEROSHUTTLE, Faction.DEFENDER,
+            long craft = sim.spawnShuttle(type, Faction.DEFENDER,
                     30.5f, 20.5f, -6f, 20.5f, -6f, 20.5f, 0f, 1);
-            Continuity flown = flyItDown(sim, craft, 4000);
+            Continuity flown = flyItDown(sim, craft, 8000);
 
             assertTrue(flown.seen().contains(ShuttleState.PAD_DESCENT),
-                    "arrived on the pad without settling onto it: " + flown.seen());
+                    type + " arrived on the pad without settling onto it: " + flown.seen());
             assertTrue(flown.seen().contains(ShuttleState.LANDED),
-                    "never got down: " + flown.seen());
+                    type + " never got down: " + flown.seen());
 
-            AirHandling flight = ShuttleType.AEROSHUTTLE;
+            AirHandling flight = type;
             assertTrue(flown.jumpCells()
                             <= flight.maxSpeed() * BattleSimulation.TICK_DT * TOLERANCE,
-                    "moved " + flown.jumpCells() + " cells in a tick, which is further than "
-                            + "it can fly — something placed it");
+                    type + " moved " + flown.jumpCells() + " cells in a tick, which is further "
+                            + "than it can fly — something placed it");
             assertTrue(flown.decelCellsPerSec2() <= flight.brakingAccel() * TOLERANCE,
-                    "shed " + flown.decelCellsPerSec2() + " cells/sec^2 in a tick, which is "
-                            + "harder than it can brake — something stopped it");
+                    type + " shed " + flown.decelCellsPerSec2() + " cells/sec^2 in a tick, which "
+                            + "is harder than it can brake — something stopped it");
         }
     }
 
