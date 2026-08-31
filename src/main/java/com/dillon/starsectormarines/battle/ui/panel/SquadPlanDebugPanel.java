@@ -49,8 +49,11 @@ import java.util.List;
  * problem of the squad roster and covered the battlefield with developer
  * state. Picking a squad through
  * {@link com.dillon.starsectormarines.battle.ui.picking.WorldPicker} opens its
- * focused plan dump: goal + priority bucket, the squad's commander assignment,
- * one row per GOAP step, and the current world-state predicate grid. The old
+ * focused plan dump: goal + priority bucket, the order the squad is carrying
+ * out, one row per GOAP step, and the current world-state predicate grid. A
+ * player order stands over the commander's assignment rather than replacing
+ * it, so the Assignment row names the player's and adds an "Under order:" row
+ * for the assignment beneath — both are worth having at once. The old
  * per-slot/path-highlight controls duplicated world path diagnostics while
  * making the panel too tall to read alongside mission UI. The predicate grid
  * still answers "why isn't this squad doing anything?" from the selected
@@ -278,10 +281,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // Section 2: contact/doctrine, initiative, HOLD freshness, and fire readiness.
         lines += 7;
         dividers += 1;
-        // Section 3: goal + assignment; autonomous command adds the committed
+        // Section 3: goal + assignment; a live player order adds the mission
+        // assignment it stands on, autonomous command adds the committed
         // common envelope, the ownership ledger adds directive provenance,
         // and Conquest adds its typed track reasoning.
         lines += 3;
+        if (s.playerTacticalOrder() != null) lines += 1;
         CommanderSnapshot<?> commander = commanderSnapshot(s, ctx.getSim());
         CommandDirective directive = commandDirective(s, ctx.getSim(), commander);
         CommandDirective activeDirective = ctx.getSim()
@@ -425,33 +430,29 @@ public final class SquadPlanDebugPanel implements HudPanel {
         CommandDirective directive = commandDirective(s, ctx.getSim(), commander);
         CommandDirective activeDirective = ctx.getSim()
                 .getSquadCommandDirective(s.id);
-        ObjectiveAssignment displayedAssignment = directive != null
-                && directive.status() != CommandDirective.Status.REJECTED
-                ? directive.assignment() : s.assignedObjective;
-        // Commander assignment readout — what Tier C told this squad to do
-        // (or "—" if no commander wrote one). Distinct from Goal: the goal
-        // is what the squad picked to pursue *this tick*; the assignment is
-        // what the commander wants the squad to be doing strategically.
-        // They diverge when the assignment's zone is unreachable or its
-        // kind doesn't match any registered MISSION-priority goal.
+        // Assignment readout — the order this squad is actually carrying out
+        // (or "—" if nobody wrote one). Distinct from Goal: the goal is what
+        // the squad picked to pursue *this tick*; the assignment is the task
+        // it was handed. They diverge when the assignment's zone is
+        // unreachable or its kind doesn't match any registered
+        // MISSION-priority goal. A player order stands over the commander's
+        // assignment without replacing it, so it reads here marked as the
+        // player's and the assignment underneath gets its own row.
         if (detailScroll.lineVisible(lineY, DETAIL_LINE_H, vpBottomY, vpTopY)) {
             font.drawString("Assignment:", lineX, lineY, DETAIL_LABEL_FG, alphaMult);
-            String assignLabel = "—";
-            if (displayedAssignment != null) {
-                ObjectiveAssignment a = displayedAssignment;
-                StringBuilder sb = new StringBuilder(a.kind().name());
-                if (a.targetZoneId() >= 0) sb.append(" zone:").append(a.targetZoneId());
-                if (a.targetNode() != null) sb.append(" node");
-                if (a.objectiveId() >= 0) sb.append(" obj:").append(a.objectiveId());
-                if (a.targetCellX() >= 0 && a.targetCellY() >= 0) {
-                    sb.append(" cell:").append(a.targetCellX())
-                            .append(',').append(a.targetCellY());
-                }
-                assignLabel = sb.toString();
-            }
-            font.drawString(assignLabel, lineX + 96f, lineY, DETAIL_VALUE_FG, alphaMult);
+            font.drawString(executingAssignmentLabel(s, directive),
+                    lineX + 96f, lineY, DETAIL_VALUE_FG, alphaMult);
         }
         lineY -= DETAIL_LINE_H;
+        String overriddenMission = overriddenMissionLabel(s, directive);
+        if (overriddenMission != null) {
+            if (detailScroll.lineVisible(lineY, DETAIL_LINE_H, vpBottomY, vpTopY)) {
+                font.drawString("Under order:", lineX, lineY, DETAIL_LABEL_FG, alphaMult);
+                font.drawString(overriddenMission, lineX + 96f, lineY,
+                        DETAIL_VALUE_FG, alphaMult);
+            }
+            lineY -= DETAIL_LINE_H;
+        }
         lineY = drawLineIfVisible(font, executionSummary(s),
                 lineX, lineY, DETAIL_VALUE_FG, alphaMult,
                 vpBottomY, vpTopY);
@@ -821,6 +822,46 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 ? "Directive —   Authority —"
                 : String.format("Directive %s   Authority %s",
                 directive.status(), directive.authority());
+    }
+
+    /**
+     * The Assignment row's value: the order the squad is actually carrying
+     * out, marked when the player issued it rather than a commander. A player
+     * order overrides the commander's assignment without replacing it, so
+     * reading the commander's side here names an order the squad is not
+     * following. The assignment underneath is drawn by
+     * {@link #overriddenMissionLabel}.
+     */
+    static String executingAssignmentLabel(Squad squad, CommandDirective directive) {
+        ObjectiveAssignment player = squad.playerTacticalOrder();
+        return player != null
+                ? SquadOrderRecorder.PLAYER_ORDER_PREFIX
+                        + SquadOrderRecorder.assignmentLabel(player)
+                : SquadOrderRecorder.assignmentLabel(
+                        missionAssignment(squad, directive));
+    }
+
+    /**
+     * The commander assignment a live player order is standing on, or
+     * {@code null} when nothing is overridden and the row is not drawn — the
+     * value of this panel is that both stay inspectable at once.
+     */
+    static String overriddenMissionLabel(Squad squad, CommandDirective directive) {
+        return squad.playerTacticalOrder() == null ? null
+                : SquadOrderRecorder.assignmentLabel(
+                        missionAssignment(squad, directive));
+    }
+
+    /**
+     * A committed directive is the fresher statement of what the commander
+     * wants; the squad's own field is what it is still holding when the
+     * directive was rejected or none was published.
+     */
+    private static ObjectiveAssignment missionAssignment(
+            Squad squad, CommandDirective directive) {
+        return directive != null
+                && directive.status() != CommandDirective.Status.REJECTED
+                ? directive.assignment() : squad.assignedObjective;
     }
 
     static String executionSummary(Squad squad) {

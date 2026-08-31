@@ -1,6 +1,14 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.ui.debug.SquadOrderRecorder.Layer;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -10,6 +18,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -118,6 +127,82 @@ class SquadOrderRecorderTest {
         assertEquals("HOLD", transitions.getJSONObject(0).getString("from"));
         assertEquals("ADVANCE", transitions.getJSONObject(0).getString("to"));
         assertEquals(8, transitions.getJSONObject(0).getInt("tick"));
+    }
+
+    /**
+     * The reported order has to be the one the squad is carrying out. A player
+     * order overrides the commander's assignment without replacing it, and a
+     * capture that read the commander's field named {@code CLEAR_ZONE} for
+     * every frame of a squad walking to a cell the player clicked — confidently
+     * and wrongly, with the player's order appearing nowhere.
+     */
+    @Test
+    void aLivePlayerOrderIsTheReportedOrderAndTheMissionStaysReadable() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        squad.leaderId = sim.spawn(new EntitySpec("Marine", Faction.MARINE,
+                UnitType.MARINE, 2, 2).squad(squadId));
+        squad.assignedObjective = ObjectiveAssignment.clearZone(squadId, 194);
+
+        assertEquals("CLEAR_ZONE zone:194",
+                SquadOrderRecorder.executingAssignmentLabel(squad));
+
+        sim.getSquadMoveOrderService().requestMove(squadId, 15, 9);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        assertNotNull(squad.playerTacticalOrder(),
+                "the move order must have been accepted, or this measures nothing");
+        assertEquals("player ATTACK_MOVE cell:15,9",
+                SquadOrderRecorder.executingAssignmentLabel(squad));
+        assertEquals("CLEAR_ZONE zone:194",
+                SquadOrderRecorder.assignmentLabel(squad.assignedObjective),
+                "the mission assignment underneath stays inspectable");
+    }
+
+    /**
+     * The layers have to be wired to those two readings, which is the half of
+     * the defect a label test alone cannot see: the labels were always right,
+     * the {@code order} and {@code assignment} layers just asked the wrong
+     * field for them.
+     */
+    @Test
+    void theOrderLayersReportThePlayerOrderAndTheMissionLayerTheAssignment()
+            throws Exception {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        squad.leaderId = sim.spawn(new EntitySpec("Marine", Faction.MARINE,
+                UnitType.MARINE, 2, 2).squad(squadId));
+        squad.assignedObjective = ObjectiveAssignment.clearZone(squadId, 194);
+        sim.getSquadMoveOrderService().requestMove(squadId, 15, 9);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        SquadOrderRecorder recorder = new SquadOrderRecorder(squadId, 1);
+        recorder.sample(squad, sim);
+
+        assertEquals("player ATTACK_MOVE cell:15,9",
+                onlyValue(recorder, Layer.ASSIGNMENT));
+        assertEquals("CLEAR_ZONE zone:194", onlyValue(recorder, Layer.MISSION));
+        assertTrue(onlyValue(recorder, Layer.ORDER)
+                        .startsWith("player ATTACK_MOVE cell:15,9 »"),
+                "the composite order line leads with what is being executed");
+    }
+
+    private static String onlyValue(SquadOrderRecorder recorder, Layer layer)
+            throws Exception {
+        JSONArray values = layer(recorder, layer).getJSONArray("values");
+        assertEquals(1, values.length());
+        return values.getJSONObject(0).getString("value");
+    }
+
+    private static BattleSimulation openSim() {
+        NavigationGrid grid = new NavigationGrid(20, 12);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) grid.setWalkableFloor(x, y);
+        }
+        return new BattleSimulation(grid,
+                new CellTopology(grid.getWidth(), grid.getHeight()));
     }
 
     // --- helpers: read one layer's tallies back out of the JSON view ---

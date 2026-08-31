@@ -213,6 +213,12 @@ public final class SquadStateDumper {
         o.put("assignedNodeMustHold", squad.assignedNode != null && squad.assignedNode.mustHold);
         o.put("assignedObjective", squad.assignedObjective != null
                 ? buildAssignmentJson(squad.assignedObjective) : JSONObject.NULL);
+        // A player order stands over assignedObjective without replacing it,
+        // so the executing assignment below is otherwise indistinguishable
+        // from a commander-issued one of the same kind.
+        o.put("playerTacticalOrder", squad.playerTacticalOrder() != null
+                ? buildAssignmentJson(squad.playerTacticalOrder())
+                : JSONObject.NULL);
         ObjectiveAssignment executable = squad.assignmentForExecution();
         JSONObject execution = new JSONObject();
         execution.put("status", executable != null ? "READY" :

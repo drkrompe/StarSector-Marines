@@ -44,6 +44,8 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadPlanDebugPanelTest {
@@ -340,6 +342,42 @@ class SquadPlanDebugPanelTest {
         squad.originalSize = 12;
         assertEquals("Execution READY",
                 SquadPlanDebugPanel.executionSummary(squad));
+    }
+
+    /**
+     * The Assignment row has to name what the squad is carrying out. A player
+     * order overrides the commander's assignment without replacing it, so a
+     * row built from the commander's side reads as a confident, wrong answer —
+     * and the assignment it stands on still has to be readable beside it.
+     */
+    @Test
+    void assignmentRowNamesThePlayerOrderAndKeepsTheMissionBeneathIt() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        squad.leaderId = sim.spawn(new EntitySpec("Marine", Faction.MARINE,
+                UnitType.MARINE, 2, 2).squad(squadId));
+        squad.assignedObjective = ObjectiveAssignment.clearZone(squadId, 194);
+        CommandDirective committed = new CommandDirective(squadId,
+                Faction.MARINE, "conquest-attacker",
+                CommandAuthority.MISSION_COMMAND, "ZONE_PUSH",
+                ObjectiveAssignment.clearZone(squadId, 194),
+                12, -1, CommandDirective.Status.ACTIVE, "");
+
+        assertEquals("CLEAR_ZONE zone:194",
+                SquadPlanDebugPanel.executingAssignmentLabel(squad, committed));
+        assertNull(SquadPlanDebugPanel.overriddenMissionLabel(squad, committed),
+                "with no player order there is nothing standing on the mission");
+
+        sim.getSquadMoveOrderService().requestMove(squadId, 15, 9);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        assertNotNull(squad.playerTacticalOrder(),
+                "the move order must have been accepted, or this measures nothing");
+        assertEquals("player ATTACK_MOVE cell:15,9",
+                SquadPlanDebugPanel.executingAssignmentLabel(squad, committed));
+        assertEquals("CLEAR_ZONE zone:194",
+                SquadPlanDebugPanel.overriddenMissionLabel(squad, committed));
     }
 
     private static BattleSimulation openSim() {
