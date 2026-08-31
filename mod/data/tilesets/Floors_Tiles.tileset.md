@@ -17,7 +17,7 @@ variant pool has no geometry and is picked by hashing the cell.
 | `floors.grass` | variants | grass-1 | — |
 | `floors.dirt` | variants | dirt-1 | — |
 | `floors.stone` | variants | regolith-1 | — |
-| `floors.sand` | variants | sand-2 | — |
+| `floors.sand` | variants | sandvar-1 | — |
 | `floors.brick` | variants | fl-tile-1 | — |
 
 ## Doodads
