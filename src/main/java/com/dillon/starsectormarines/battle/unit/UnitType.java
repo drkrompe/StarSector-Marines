@@ -50,13 +50,21 @@ public enum UnitType {
      * progress here, it is the progress: welding raises it, a marine lowers it,
      * and the machine is finished when it is whole. So it spawns near zero and
      * is trivially easy to destroy early, which is correct — a keel is not a
-     * mech. Maximum structure comes from the chassis on the instance, the same
-     * convention as {@link #TURRET}; the value here is a zero placeholder.
+     * mech.
      *
-     * <p>Drawn on the mech's own sheet rather than the layered chassis: an
-     * unfinished machine has no livery, and standing still is what it does.
-     * It keeps the mech's corpse sheet, so a frame shot in its bay leaves a
-     * hulk in the gantry rather than vanishing.
+     * <p><b>Drawn as the chassis it is going to be.</b> A machine on the stocks
+     * is a named variant taking shape, so it is composed from that variant's own
+     * modular art exactly as the finished machine will be — an unfinished Hound
+     * looks like a Hound. What it has not got is a loadout, which is what keeps
+     * it out of the turret pass and off every firing path without anything
+     * having to say so. Its dimensions, structure and silhouette all come from
+     * the chassis on the instance; the values here are zero placeholders, the
+     * same convention as {@link #TURRET}.
+     *
+     * <p>It keeps the mech's sheet and corpse sheet for the reasons every
+     * layer-drawn unit does: a fallback if the composition cannot load, and a
+     * hulk left in the gantry when one is shot rather than a machine that
+     * vanishes.
      */
     MACHINE_FRAME("graphics/battle/heavy-mech.png", "graphics/battle/heavy-mech-dead.png",
                                                    true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 0f, 0.6f, 0.80f),
@@ -309,8 +317,22 @@ public enum UnitType {
         return drawnAsLayers() && combatant && this != ALIEN && this != SWARM_RUNNER;
     }
 
+    /**
+     * Whether this archetype <em>is</em> a {@link com.dillon.starsectormarines.battle.mech.MechVariant}
+     * — built on a named chassis, taking its dimensions, structure and
+     * silhouette from one.
+     *
+     * <p>Deliberately not {@link #isMech}, which asks the narrower question of
+     * whether the unit carries a loadout. A machine part-built in a gantry is
+     * the chassis it is going to be and has to look like one; it simply has no
+     * weapons on it yet. Folding the two together forces a choice between an
+     * unfinished Hound that is drawn as a generic mech and one that arrives with
+     * a working gun.
+     */
+    public boolean hasChassis() { return this == HEAVY_MECH || this == MACHINE_FRAME; }
+
     /** Whether this chassis has a modular true-overhead live composition. */
-    public boolean drawnAsMechLayers() { return this == HEAVY_MECH; }
+    public boolean drawnAsMechLayers() { return hasChassis(); }
 
     /**
      * Sprite-sheet frame indexing convention. Each layout names what indices 0..N

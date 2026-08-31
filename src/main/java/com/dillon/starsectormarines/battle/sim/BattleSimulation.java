@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
+import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
+import com.dillon.starsectormarines.battle.ambient.WorksCrewSystem;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.contact.CloseContactService;
@@ -370,6 +372,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     private FabricationService fabrication;
     private final FabricationSystem fabricationSystem = new FabricationSystem();
+    /**
+     * The watches standing on this map's worked structures, or null on a map
+     * with none. Installed by {@code BattleSetup}, which is where the rooms and
+     * the approach axis are in hand.
+     */
+    private WorksCrewService worksCrews;
+    private final WorksCrewSystem worksCrewSystem = new WorksCrewSystem();
 
     /**
      * Per-tick recompute driver for the defender's recapture-target registry
@@ -1513,6 +1522,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.garrisonSystem = system;
     }
 
+    /** The watches on this map's worked structures, or null where there are none. */
+    public WorksCrewService getWorksCrews() {
+        return worksCrews;
+    }
+
+    /** Installs the map's works watches. {@code BattleSetup} owns the call. */
+    public void setWorksCrews(WorksCrewService crews) {
+        this.worksCrews = crews;
+    }
+
     /** What every vehicle bay on this map is building, or null where none does. */
     public FabricationService getFabrication() {
         return fabrication;
@@ -1904,6 +1923,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // production because it is the same kind of fact about a held building,
         // and after capture for the same reason.
         fabricationSystem.tick(TICK_DT, this, fabrication);
+        // After capture, because who a replacement belongs to is read off this
+        // tick's holder rather than last tick's, and before nothing in
+        // particular: somebody walking on at the map edge has a long way to go.
+        worksCrewSystem.tick(TICK_DT, this, worksCrews);
         // Recapture-target recompute must precede the reinforcement trigger
         // poll below so FrontLineReinforcementTrigger dispatches against this
         // tick's fresh contested/open state, not last tick's.
