@@ -176,7 +176,7 @@ class AnApronIsWorkedByItsGroundCrewTest {
         List<FixtureTask> apron = AirfieldWork.onTheApron(field, grid);
         List<RoomSite> rooms = RoomSite.findAll(topology, W, H);
         List<Long> crew = StructureWatch.man(sim, Faction.DEFENDER, rooms, apron,
-                AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), 2);
+                AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), 2, null);
 
         assertFalse(crew.isEmpty(), "the field took nobody on");
         for (int tick = 0; tick < 30 * 60; tick++) sim.advance(BattleSimulation.TICK_DT);
@@ -235,7 +235,7 @@ class AnApronIsWorkedByItsGroundCrewTest {
         if (manned) {
             StructureWatch.man(sim, Faction.DEFENDER,
                     RoomSite.findAll(topology, W, H), apron,
-                    AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), 2);
+                    AirfieldWork.occupied(field), EnumSet.of(RoomPurpose.HANGAR), 2, null);
         }
 
         // Out and home shot up, which is what puts it on the turnaround.

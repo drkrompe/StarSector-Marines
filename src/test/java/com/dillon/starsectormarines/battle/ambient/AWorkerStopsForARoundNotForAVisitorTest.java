@@ -207,7 +207,7 @@ class AWorkerStopsForARoundNotForAVisitorTest {
         sim.setFabrication(fabrication);
 
         List<Long> crew = StructureWatch.man(sim, Faction.DEFENDER, rooms, authored,
-                fabrication.berthed(), EnumSet.of(RoomPurpose.VEHICLE_BAY), 2);
+                fabrication.berthed(), EnumSet.of(RoomPurpose.VEHICLE_BAY), 2, null);
         assertFalse(crew.isEmpty(), "nobody was taken on");
         return new Works(sim, fabrication, crew);
     }

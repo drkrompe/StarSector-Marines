@@ -326,6 +326,30 @@ are taken on one posting at a time round the whole ship — filling each posting
 its own capacity in turn crews the compartments at the head of the list and
 leaves the rest deserted.
 
+**A posting outlives the people filling it, and belongs to whoever holds the
+place.** A manning pass that hires once and walks away is enough for a building
+nobody ever reaches and wrong for one somebody does: kill the crew and the
+facility is finished for the battle, whoever ends up standing in it. So a
+billet somebody died in is *empty* rather than gone — the room still has the
+work and the watch bill still says how it is walked — and after a long wait
+whoever holds the ground sends somebody to fill it.
+
+Both halves of that are the point. Killing a crew buys the minutes it takes a
+replacement to cross the map, which is a real result and not a permanent one; a
+facility one fire team could switch off forever would be a prize nobody who took
+it could use. And the side sent for is the side *holding* the building, read off
+the same capture state the resource pools use — so a motor pool taken from the
+defender turns out marine technicians, which is what makes a facility worth
+garrisoning rather than only worth clearing. A worked room with no compound over
+it is nobody's and is never refilled at all.
+
+Replacements arrive **on foot at their own side's rear edge** and walk to the
+work, which is the whole cost of the arrangement: a body in the open for a
+minute, and a building not working while it crosses. Nothing about that walk is
+special — the replacement is put on the map holding the billet's own rotation,
+and the ambient service paths them to its first stop exactly as it would
+somebody crossing a room.
+
 **A worker stops for a round, not for a visitor.** Whether authored work yields
 is a question about the actor, and there are two honest answers. A civilian
 yields to anybody armed and a guard yields to an enemy in reach, because neither
