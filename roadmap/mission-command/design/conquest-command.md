@@ -4,9 +4,11 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-08-29 — the Marine command picture now has a compact player-facing
-three-lane projection in the battle HUD. Earlier: made lane-stage standoff read
-the squad's own corridor so a front believed off that line does not withhold orders.
+Updated: 2026-08-30 — a track with no believed front now stages forward, bounded
+by its neighbours' lead, instead of standing still waiting for a sighting only
+advancing can produce. Earlier: a compact player-facing three-lane projection in
+the battle HUD; lane-stage standoff read from the squad's own corridor so a
+front believed off that line does not withhold orders.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `conquest-nouns.md` for territory, compounds, supply, keep, and victory law.
@@ -34,8 +36,29 @@ cells laterally, and a contact at its far edge is not in front of the squad. A
 front believed in the track but not in that corridor drops the standoff and
 lets the remaining bounds size the step — knowing the lane is contested
 elsewhere is a reason to advance in step with the friendly line, never a reason
-to stand still. A track with no believed front at all still declines to stage.
-Local contact then hands execution to squad doctrine.
+to stand still. Local contact then hands execution to squad doctrine.
+
+A track with **no believed front at all** stages too, and this is the harder
+half of the law. Refusing to was a deadlock rather than caution: a track nobody
+advances through is a track nobody sights anything in, so the belief that would
+authorize the advance can only be produced by the advance itself, and the
+compound-capture path cannot break the cycle because distant detachments are
+gated on a front that the same stall is what stops moving. Measured at ten
+squads and ninety-eight marines standing still for an entire battle in the one
+lateral band that happened to hold no defenders, never firing a shot, while the
+commander correctly reported no actionable track target at every pulse.
+
+The objection that refusal was making — an own-force push on no intelligence
+must not become a lone flank walking off ahead of the force that would have to
+support it — is answered by a bound instead. An unscouted track may lead its
+*neighbouring* tracks' friendly lead by the same margin a believed one may lead
+its own, so the line advances abreast and a track that has run out ahead holds
+until the rest come up. The relaxation is confined to staging: a squad already
+in contact is not stuck, and an exterior contact the commander has not yet
+placed stays ambient rather than becoming a fabricated forward order. A blind
+advance is published under its own reason, and does not count as the actionable
+front work that holds squads back from distant captures — staging blind is what
+a squad does precisely when there is none.
 
 When only the canonical keep remains, all available assault squads converge
 across track boundaries. If the keep is held and one earlier compound is the
