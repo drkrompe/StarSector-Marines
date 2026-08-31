@@ -4,13 +4,11 @@ Status: ACTIVE — `EntityWorld` is the battle composition substrate; capability
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — engagement is a relation between a shooter and a body
-rather than a property of the body; presence and reach are owned separately.
-
-Updated: 2026-08-31 — named the body concept the disjoint families share and gave it one carrier-agnostic surface, so a consumer no longer re-derives which kind of thing it is holding.
-
-Updated: 2026-08-31 — a body's own geometry is one decision read two ways; the
-by-id and columnar accesses may differ in cost but never in answer.
+Updated: 2026-08-31 — the disjoint families share one named body concept behind
+one carrier-agnostic surface; engagement is a relation between a shooter and a
+body rather than a property of the body, with presence and reach owned
+separately; and a body's own geometry is one decision read two ways, the by-id
+and columnar accesses differing in cost but never in answer.
 
 The battle simulation has one composition substrate: an `EntityWorld`.  This
 document names the durable model, ownership, and safety laws of that substrate.
@@ -206,11 +204,14 @@ derivation, however many access shapes read it**, and it is pinned by a test
 that asks both ways for every kind of body that has one.
 
 The carried families sit outside that precedence rather than inside it, and for
-a structural reason rather than an omission: an air craft and a convoy chassis
-hold no `IDENTITY`, so they cannot feed it, and holding no `POSITION` they are
-never rows in the query separation walks. Dispatching to the carrier is a choice
-between storage families, made at the by-id call site; adding a carrier lookup to
-a hot columnar loop would buy nothing.
+a structural reason rather than an omission: their size comes from a different
+source — a vehicle type or an airframe their carrier holds — rather than from a
+later step of the same order. They carry `IDENTITY` like every other body, which
+is what lets the ordinary paths read them; what they lack is `POSITION`, so they
+are never rows in the query separation walks and the columnar caller cannot meet
+one. Dispatching to the carrier is a choice between storage families, made once
+at the by-id call site; adding a carrier lookup to a hot columnar loop would buy
+nothing.
 
 ### Authored layered motion
 
