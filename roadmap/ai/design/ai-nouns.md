@@ -890,16 +890,6 @@ bound is restarted from the new partition even when a sticky mission plan keeps
 the same target zone and destination; geometric plan continuity is not team
 continuity.
 
-**A squad is in range when enough of it is, not when its longest gun is.**
-Squad-level facts assembled by asking whether *any* member satisfies them let
-one specialist speak for a body of people: a single anti-materiel rifleman
-makes a ten-marine squad read as in range and engaged while the other nine
-stand well outside their own weapons' reach and never submit a fire intent at
-all. A range fact is therefore a quorum over the squad's live members — at
-least half, each counted once however many contacts happen to put it in range
-— so the planner that consumes it sees a squad that cannot yet fight as a
-squad, and closes before it decides it is fighting.
-
 A perceived contact and a usable firing line are distinct. Perception may use
 the cached projected-cell line of sight, while a ground direct-fire decision
 must validate the member's true point against the intended target's true point.
