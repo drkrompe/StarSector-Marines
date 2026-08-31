@@ -206,8 +206,30 @@ public final class HoldZone extends AbstractZoneAction {
                 hold(member, sim);
                 return ActionStatus.RUNNING;
             }
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap()));
+            int[] path = GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member),
+                    dest[0], dest[1], sim.getOccupancyMap());
+            if (Paths.isEmpty(path)) {
+            // Stage 1 of findFiringPosition scores LOS and range and does
+            // not verify reachability, so a walled-off cell is an ordinary
+            // answer from it. Its stage 2 vantage probe does pathfind, and
+            // findReachableFiringPosition is the seam that falls through to
+            // it -- so an empty path here is a question for the probe, not
+            // a verdict. Dropping the target on it discards approaches that
+            // exist, which is a squad refusing to walk round a building.
+                dest = sim.getTacticalScoring().findReachableFiringPosition(member, target);
+                path = dest == null ? GridPathfinder.EMPTY_PATH
+                        : GridPathfinder.findPath(sim.getGrid(),
+                                sim.world().cellX(member), sim.world().cellY(member),
+                                dest[0], dest[1], sim.getOccupancyMap());
+            }
+            if (Paths.isEmpty(path)) {
+                // Both stages refuse: no approach exists from here.
+                sim.world().setTargetId(member, 0L);
+                hold(member, sim);
+                return ActionStatus.RUNNING;
+            }
+            sim.setPath(member, path);
         }
         sim.advanceMovement(member);
         return ActionStatus.RUNNING;

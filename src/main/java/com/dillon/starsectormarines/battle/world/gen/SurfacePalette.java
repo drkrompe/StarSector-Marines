@@ -33,7 +33,19 @@ public enum SurfacePalette {
     ARID(false, GroundKind.SAND),
 
     /** A living world: grass and soil, with shrubs and tufts among the stones. */
-    VERDANT(true, GroundKind.SAND);
+    VERDANT(true, GroundKind.SAND),
+
+    /**
+     * Wind-packed snow over ice. Rocks scatter; nothing grows.
+     *
+     * <p>A quarter of the Sector's landable worlds are in this family — the
+     * {@code frozen} types, {@code rocky_ice}, {@code cryovolcanic},
+     * {@code toxic_cold} — and every one of them used to come out as bare grey
+     * regolith, because {@link GroundKind#SNOW} was declared and then never
+     * emitted by anything. It bears no open water: what water a frozen world
+     * has is the ground.
+     */
+    FROZEN(false, GroundKind.SNOW);
 
     private final boolean openWater;
     private final GroundKind approachGround;

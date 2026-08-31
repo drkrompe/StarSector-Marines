@@ -71,7 +71,7 @@ final class GroundMicroHeightSampler {
 
     private Sample resolveUncached(NavigationGrid grid, CellTopology topology, int gridX, int gridY,
                                    boolean wall, CellTopology.GroundKind kind) {
-        if (wall || kind == CellTopology.GroundKind.SNOW) return null;
+        if (wall) return null;
 
         GenMappingRegistry mapping = GenMappingRegistry.installed();
         TileRegistry tileReg = TileRegistry.installed();

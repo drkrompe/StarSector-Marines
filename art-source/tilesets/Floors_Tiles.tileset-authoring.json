@@ -20,6 +20,10 @@
     {
       "id": "floors.brick",
       "layout": "variants"
+    },
+    {
+      "id": "floors.snow",
+      "layout": "variants"
     }
   ],
   "cellPx": 56,
@@ -3984,6 +3988,7 @@
       "slot": "v3"
     },
     {
+      "block": "floors.stone",
       "cover": "none",
       "footprintCells": [
         1,
@@ -3991,18 +3996,18 @@
       ],
       "id": "doodad.floors.c9r10",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-4.png",
+      "note": "regolith-4",
       "rect": [
         428,
         493,
         48,
         50
       ],
-      "block": "floors.stone",
-      "slot": "v4",
-      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-4.png",
-      "note": "regolith-4"
+      "slot": "v4"
     },
     {
+      "block": "floors.stone",
       "cover": "none",
       "footprintCells": [
         1,
@@ -4010,16 +4015,15 @@
       ],
       "id": "doodad.floors.c10r10",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-5.png",
+      "note": "regolith-5",
       "rect": [
         476,
         493,
         47,
         50
       ],
-      "block": "floors.stone",
-      "slot": "v5",
-      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-5.png",
-      "note": "regolith-5"
+      "slot": "v5"
     },
     {
       "block": "floors.dirt",
@@ -4343,6 +4347,7 @@
       ]
     },
     {
+      "block": "floors.stone",
       "cover": "none",
       "footprintCells": [
         1,
@@ -4350,18 +4355,18 @@
       ],
       "id": "doodad.floors.c6r11",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-6.png",
+      "note": "regolith-6",
       "rect": [
         285,
         543,
         48,
         49
       ],
-      "block": "floors.stone",
-      "slot": "v6",
-      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-6.png",
-      "note": "regolith-6"
+      "slot": "v6"
     },
     {
+      "block": "floors.stone",
       "cover": "none",
       "footprintCells": [
         1,
@@ -4369,18 +4374,18 @@
       ],
       "id": "doodad.floors.c7r11",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-7.png",
+      "note": "regolith-7",
       "rect": [
         333,
         543,
         47,
         49
       ],
-      "block": "floors.stone",
-      "slot": "v7",
-      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-7.png",
-      "note": "regolith-7"
+      "slot": "v7"
     },
     {
+      "block": "floors.stone",
       "cover": "none",
       "footprintCells": [
         1,
@@ -4388,16 +4393,15 @@
       ],
       "id": "doodad.floors.c8r11",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-8.png",
+      "note": "regolith-8",
       "rect": [
         380,
         543,
         48,
         49
       ],
-      "block": "floors.stone",
-      "slot": "v8",
-      "material": "art-source/tilesets/atlas-material-source/regolith/regolith-8.png",
-      "note": "regolith-8"
+      "slot": "v8"
     },
     {
       "cover": "none",
@@ -4730,124 +4734,156 @@
       ]
     },
     {
+      "block": "floors.snow",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c6r12",
-      "included": false,
+      "included": true,
       "rect": [
         285,
         592,
         48,
         50
-      ]
+      ],
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-1.png",
+      "note": "snowvar-1",
+      "slot": "v1"
     },
     {
+      "block": "floors.snow",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c7r12",
-      "included": false,
+      "included": true,
       "rect": [
         333,
         592,
         47,
         50
-      ]
+      ],
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-2.png",
+      "note": "snowvar-2",
+      "slot": "v2"
     },
     {
+      "block": "floors.snow",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c8r12",
-      "included": false,
+      "included": true,
       "rect": [
         380,
         592,
         48,
         50
-      ]
+      ],
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-3.png",
+      "note": "snowvar-3",
+      "slot": "v3"
     },
     {
+      "block": "floors.snow",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c9r12",
-      "included": false,
+      "included": true,
       "rect": [
         428,
         592,
         48,
         50
-      ]
+      ],
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-4.png",
+      "note": "snowvar-4",
+      "slot": "v4"
     },
     {
+      "block": "floors.snow",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c10r12",
-      "included": false,
+      "included": true,
       "rect": [
         476,
         592,
         47,
         50
-      ]
+      ],
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-5.png",
+      "note": "snowvar-5",
+      "slot": "v5"
     },
     {
+      "block": "floors.snow",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c11r12",
-      "included": false,
+      "included": true,
       "rect": [
         523,
         592,
         48,
         50
-      ]
+      ],
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-6.png",
+      "note": "snowvar-6",
+      "slot": "v6"
     },
     {
+      "block": "floors.snow",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c12r12",
-      "included": false,
+      "included": true,
       "rect": [
         571,
         592,
         47,
         50
-      ]
+      ],
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-7.png",
+      "note": "snowvar-7",
+      "slot": "v7"
     },
     {
+      "block": "floors.snow",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c13r12",
-      "included": false,
+      "included": true,
       "rect": [
         618,
         592,
         48,
         50
-      ]
+      ],
+      "material": "art-source/tilesets/atlas-material-source/snow-variants/snowvar-8.png",
+      "note": "snowvar-8",
+      "slot": "v8"
     },
     {
       "cover": "none",
@@ -5537,6 +5573,7 @@
       "slot": "v3"
     },
     {
+      "block": "floors.sand",
       "cover": "none",
       "footprintCells": [
         1,
@@ -5544,18 +5581,18 @@
       ],
       "id": "doodad.floors.c9r14",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-4.png",
+      "note": "sandvar-4",
       "rect": [
         428,
         691,
         48,
         49
       ],
-      "block": "floors.sand",
-      "slot": "v4",
-      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-4.png",
-      "note": "sandvar-4"
+      "slot": "v4"
     },
     {
+      "block": "floors.sand",
       "cover": "none",
       "footprintCells": [
         1,
@@ -5563,16 +5600,15 @@
       ],
       "id": "doodad.floors.c10r14",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-5.png",
+      "note": "sandvar-5",
       "rect": [
         476,
         691,
         47,
         49
       ],
-      "block": "floors.sand",
-      "slot": "v5",
-      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-5.png",
-      "note": "sandvar-5"
+      "slot": "v5"
     },
     {
       "cover": "none",
@@ -5875,6 +5911,7 @@
       ]
     },
     {
+      "block": "floors.sand",
       "cover": "none",
       "footprintCells": [
         1,
@@ -5882,18 +5919,18 @@
       ],
       "id": "doodad.floors.c6r15",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-6.png",
+      "note": "sandvar-6",
       "rect": [
         285,
         740,
         48,
         50
       ],
-      "block": "floors.sand",
-      "slot": "v6",
-      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-6.png",
-      "note": "sandvar-6"
+      "slot": "v6"
     },
     {
+      "block": "floors.sand",
       "cover": "none",
       "footprintCells": [
         1,
@@ -5901,18 +5938,18 @@
       ],
       "id": "doodad.floors.c7r15",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-7.png",
+      "note": "sandvar-7",
       "rect": [
         333,
         740,
         47,
         50
       ],
-      "block": "floors.sand",
-      "slot": "v7",
-      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-7.png",
-      "note": "sandvar-7"
+      "slot": "v7"
     },
     {
+      "block": "floors.sand",
       "cover": "none",
       "footprintCells": [
         1,
@@ -5920,16 +5957,15 @@
       ],
       "id": "doodad.floors.c8r15",
       "included": true,
+      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-8.png",
+      "note": "sandvar-8",
       "rect": [
         380,
         740,
         48,
         50
       ],
-      "block": "floors.sand",
-      "slot": "v8",
-      "material": "art-source/tilesets/atlas-material-source/sand-variants/sandvar-8.png",
-      "note": "sandvar-8"
+      "slot": "v8"
     },
     {
       "cover": "none",
