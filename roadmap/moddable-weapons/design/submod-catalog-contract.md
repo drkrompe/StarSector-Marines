@@ -123,6 +123,15 @@ disables the tail. A tail without `render.projectileSprite` is rejected. This
 is presentation over the resolved flight and does not change round velocity,
 contact, or arrival time.
 
+A hitscan weapon (no `render.projectileSprite`) may optionally declare a
+`render.beam` object. `coreWidthPx` controls the bright tracer line;
+`glowColor` plus the wider `glowWidthPx` add its halo, and `pulseCycles` counts
+smooth brightness pulses across the shot's visual lifetime. Screen-pixel widths
+keep the beam readable while zooming. Omission preserves the ordinary two-pixel
+tracer, and beam styling on a projectile-sprite weapon is rejected. The
+weapon's `audio.impactSound` is emitted at the same resolved terminal stop as
+its authored impact layers; an overshooting penetrative beam emits neither.
+
 ## Tilesets and mappings
 
 `tilesets` files add stable tile, grid-block, and doodad definitions to one
