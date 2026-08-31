@@ -25,6 +25,7 @@ public final class LayeredMechAppearance {
     public static final int ARMS_LINEAR_CANNON = 1;
     public static final int ARMS_NOSE_CHAINGUN = 2;
     public static final int ARMS_HEAVY_CANNON = 3;
+    public static final int ARMS_PULSE_LASER = 4;
     public static final int CHASSIS_CLEAN = 0;
     public static final int CHASSIS_SOCKETED = 1;
     public static final int CHASSIS_HOUND = 2;

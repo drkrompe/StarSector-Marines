@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -18,6 +19,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.LongConsumer;
 
 /**
  * Data owner + factory for convoy ground vehicles as world entities — the ground
@@ -50,7 +52,7 @@ import java.util.Locale;
  * convoy tick runs in the serial GROUND_SYSTEM phase), so {@link #despawn}'s
  * {@code destroy} is safe at the tick barrier without a {@code CommandBuffer}.
  */
-public final class ConvoyService {
+public final class ConvoyService implements BodyCarrier {
 
     private final UnitRosterService roster;
     /** World-resident live vehicles and persistent wrecks; N is normally 1-4. */
@@ -58,6 +60,9 @@ public final class ConvoyService {
 
     /** Monotonic suffix for the greppable {@code IDENTITY} name; never recycled, so two chassis never share one. */
     private int spawnSequence;
+
+    /** Setup-time cycle break: {@code GroundSystem} is constructed after the damage service. */
+    private LongConsumer destructionSink;
 
     public ConvoyService(UnitRosterService roster) {
         this.roster = roster;
@@ -118,6 +123,7 @@ public final class ConvoyService {
             world.setObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE, turret);
         }
         entityIds.add(id);
+        roster.bodies().admit(id);
         // A chassis that spawns already on the map is a body somebody could be
         // looking at this tick; one still off-map joins at the next rebuild.
         if (isTargetable(id)) roster.indexVehicle(id);
@@ -161,11 +167,40 @@ public final class ConvoyService {
         return roster.entityWorld().has(id, roster.components().GROUND_IDENTITY);
     }
 
-    /** Visible, structurally alive vehicles are valid combat targets. */
-    public boolean isTargetable(long id) {
+    @Override
+    public boolean owns(long id) {
+        return isVehicle(id);
+    }
+
+    /** Visits every convoy entity, live hulls and persistent wrecks alike. */
+    @Override
+    public void forEachBody(LongConsumer visitor) {
+        for (int i = 0, n = entityIds.size(); i < n; i++) visitor.accept(entityIds.get(i));
+    }
+
+    /** Setup-time cycle break: {@code GroundSystem} is constructed after the damage service. */
+    public void setDestructionSink(LongConsumer sink) {
+        this.destructionSink = sink;
+    }
+
+    /** A hull out of structure stops and becomes scenery; {@code GroundSystem} owns the transition. */
+    @Override
+    public void destroy(long id) {
+        if (destructionSink != null) destructionSink.accept(id);
+    }
+
+    /** A chassis is in the battle while it is on the map, whole, and alive. */
+    @Override
+    public boolean isPresent(long id) {
         VehicleMission mission = mission(id);
         return mission != null && mission.isVisible() && mission.state != VehicleState.WRECKED
                 && roster.isAliveById(id);
+    }
+
+    /** Never: a chassis drives. Nothing about a truck is a question of altitude. */
+    @Override
+    public boolean isAirborne(long id) {
+        return false;
     }
 
     /**
@@ -177,6 +212,7 @@ public final class ConvoyService {
      * the right answer, not a missing one: it is a thing to shoot at, not a
      * thing to take cover from.
      */
+    @Override
     public float weaponRange(long id) {
         VehicleType type = vehicleType(id);
         if (type == null || !type.hasTurretWeapon()) return 0f;
@@ -185,11 +221,13 @@ public final class ConvoyService {
     }
 
     /** Circular contact radius used by ballistic and blast broad phases. */
+    @Override
     public float targetRadius(long id) {
         VehicleType type = vehicleType(id);
         return type != null ? Math.max(type.visualLengthCells, type.visualWidthCells) * 0.5f : 0f;
     }
 
+    @Override
     public float hitHalfHeight(long id) {
         VehicleType type = vehicleType(id);
         return type != null ? type.hitHalfHeight : 0f;
@@ -201,12 +239,14 @@ public final class ConvoyService {
     public float maxArmor(long id) { return roster.world().maxArmor(id); }
     public float armorRating(long id) { return roster.world().armorRating(id); }
 
+    @Override
     public float velocityX(long id) {
         GroundBody body = body(id);
         if (body == null) return 0f;
         return -(float) Math.sin(Math.toRadians(body.facingDegrees)) * body.speed;
     }
 
+    @Override
     public float velocityY(long id) {
         GroundBody body = body(id);
         if (body == null) return 0f;
@@ -232,6 +272,7 @@ public final class ConvoyService {
     }
 
     /** The vehicle's faction, or {@code null} if {@code id} isn't a live ground craft (has-gated). */
+    @Override
     public Faction faction(long id) {
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();

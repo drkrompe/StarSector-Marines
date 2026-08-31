@@ -53,6 +53,13 @@ increasing an encounter's total armored threat.
   configured together in the Mech Lab. One selected active squad becomes
   the payload when a sourced Mech Support power is committed. It is distinct
   from the battle-lifetime lance that realizes that payload after landing.
+- A **field works** is a vehicle bay on a battle map that is building a chassis
+  rather than only sheltering one. It is the only structure on a map that makes
+  a unit. It owns what is on its stocks and how far along it is; it does not own
+  the berths it stands them in, the technicians who work it, or anything about a
+  machine once it has driven out. What it can lay down is bounded by what a field
+  shed can carry, stated as structure rather than as a list of chassis names, so
+  a chassis added later is admitted or refused by what it weighs.
 - **Subsystem inventory** is finite fleet stock. Installed components count
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
@@ -124,10 +131,12 @@ increasing an encounter's total armored threat.
 ## Family and doctrine
 
 The Bulwark is the durable all-band anchor and compatibility control case. Its
-left shoulder carries close SRM saturation while its right omni shoulder carries a
-long-cooldown direct laser cannon whose lance can pass through one body; the
-weapon is shared hardware, and faction livery changes only its casing paint. The
-Hound is a quick close-assault strider that lacks long-range pressure. The
+neutral production fit carries paired chaingun arms and twin close-saturation
+SRM shoulders. Tri-Tachyon issue replaces the arms with paired rapid pulse-laser
+arrays and the right omni shoulder with a long-cooldown direct laser cannon whose
+lance can pass through one body. Those are explicit faction hardware swaps;
+livery changes only the accepted casing paint of whichever components are
+installed. The Hound is a quick close-assault strider that lacks long-range pressure. The
 Sirocco is a fragile long-range specialist whose cannon is an anti-hardened
 fallback rather than a replacement close-range saturation weapon. Those are
 hardware identities; any deployed chassis may receive any of these doctrines:
@@ -273,6 +282,21 @@ support sortie, subject only to practical runtime resources.
 
 ## Laws
 
+- **A field works produces from work done, never from elapsed time.** Its
+  progress is counted in hand-seconds credited to technicians actually at a
+  servicing point in that bay — not standing in it, not walking across it, and
+  not at its stores or its terminals, which are jobs the same person does on the
+  same rotation. A shed on a clock would be a timer wearing a building's clothes:
+  an attacker could stand in the doorway killing its crew and the line would run
+  at exactly the same rate. Counting hands is what makes every consequence fall
+  out on its own, and the difference is invisible from outside because both
+  versions produce machines.
+- **A built machine is an ordinary unit and is left unclaimed.** Nothing about
+  having been made here rather than delivered here changes how it fights, who may
+  command it, or how it dies. It is minted into an ordinary squad with no
+  delivery-arm claim, because a claim of that kind outranks mission command and
+  would leave the machine visible to its own side's commander and permanently
+  immovable by it.
 - Variant, physical geometry, and visible silhouette must agree. A lighter
   render scale may not retain heavy-sized picking, collision, hit, blast, or
   morale behavior.

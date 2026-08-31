@@ -53,6 +53,14 @@ def main() -> None:
                   fill=(225, 181, 81))
 
         for column, variant in enumerate(VARIANTS):
+            if folder == "tri-tachyon" and variant.name == "BULWARK":
+                variant = replace(
+                    variant,
+                    arms="pulse-laser-arm.png",
+                    left_pod="srm-pod.png",
+                    right_pod="shoulder-laser-cannon.png",
+                    loadout="DUAL PULSE LASERS  /  SRM-15  /  SHOULDER LASER",
+                )
             skinned = replace(
                 variant,
                 chassis=faction_path(folder, variant.chassis),
