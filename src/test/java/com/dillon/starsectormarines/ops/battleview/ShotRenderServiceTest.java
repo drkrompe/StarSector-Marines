@@ -122,17 +122,16 @@ class ShotRenderServiceTest {
     }
 
     @Test
-    void shoulderLaserPaintsPulsingGlowBehindItsBrightCore() {
+    void shoulderLaserLingersForOneSecondWithoutChangingItsShotClock() {
         WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
         ShotEvent shot = new ShotEvent(3f, 5f, 17f, 5f, true, Faction.MARINE, 0.10f,
                 null, null, null, laser);
-        ShotFx.Tracer tracer = (ShotFx.Tracer) ShotFx.of(shot).body();
-        BattleSimulation sim = openArena(20, 20);
-        sim.postShot(shot);
+        BeamFxService beams = new BeamFxService();
+        beams.spawn(shot);
         DrawList out = new DrawList();
+        BattleCamera camera = context(openArena(20, 20)).camera;
 
-        shot.lifetime = 0.05f;
-        new ShotRenderService(new BattleSprites(), new ImpactFx()).collect(context(sim), out);
+        beams.collect(camera, out, 1f);
 
         assertEquals(2, out.count(RenderLayer.SHOTS), "blue glow plus white-blue core");
         DrawCommand glow = out.buffer(RenderLayer.SHOTS)[0];
@@ -141,12 +140,19 @@ class ShotRenderServiceTest {
         assertEquals(3f, core.angleDegrees(), EPS);
         assertEquals(laser.beamStyle().glowColor().getBlue() / 255f, glow.blue(), EPS);
         assertEquals(laser.tracerColor().getBlue() / 255f, core.blue(), EPS);
-        assertEquals(1f, ShotRenderService.tracerPulse(shot, tracer), EPS,
-                "two-cycle beam returns to full brightness at midlife");
+        assertEquals(1f, laser.beamStyle().lifetimeSec(), EPS);
+        assertEquals(0.10f, shot.lifetimeMax, EPS,
+                "presentation lifetime must not alter ballistic timing");
 
-        shot.lifetime = 0.075f;
-        assertEquals(0.10f, ShotRenderService.tracerPulse(shot, tracer), EPS,
-                "quarter-life trough remains visible rather than blinking off");
+        beams.advance(0.75f);
+        DrawList late = new DrawList();
+        beams.collect(camera, late, 1f);
+        assertEquals(2, late.count(RenderLayer.SHOTS), "afterimage remains visible at 750 ms");
+
+        beams.advance(0.26f);
+        DrawList expired = new DrawList();
+        beams.collect(camera, expired, 1f);
+        assertEquals(0, expired.count(RenderLayer.SHOTS));
     }
 
     @Test

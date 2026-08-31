@@ -96,6 +96,8 @@ public final class GroundSimPresentation {
         NavigationGrid grid = sim.getGrid();
         Random rng = ThreadLocalRandom.current();
 
+        renderer.getBeamFx().advance(dt);
+        for (ShotEvent shot : sim.getShotsThisFrame()) renderer.getBeamFx().spawn(shot);
         spawnFireFx(fx, sim, grid, rng);
         spawnImpactFxAndSounds(fx, sim, grid, rng);
         playFireSounds(sim, rng);
