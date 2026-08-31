@@ -5,6 +5,7 @@
       "catalog": {
         "displayName": "Annihilator Rocket Launcher",
         "subtitle": "Limited-ammunition support weapon",
+        "factionLogo": "graphics/factions/hegemony.png",
         "description": "The Hegemony cut an old Domain Annihilator cassette into a disposable shoulder cluster, then every low-tech arsenal copied it. It breaches walls and hardened emplacements without distinguishing friend from foe."
       },
       "activation": {
@@ -57,6 +58,7 @@
       "catalog": {
         "displayName": "Breachlight Anti-Materiel Rifle",
         "subtitle": "Limited-ammunition support weapon",
+        "factionLogo": "graphics/factions/tritachyon.png",
         "description": "Tri-Tachyon's Breachlight drives a magnetic heavy round through armor seams without endangering nearby friendlies. It carries four shots, depends on proprietary cells, and cannot breach walls."
       },
       "activation": {
@@ -108,6 +110,7 @@
       "catalog": {
         "displayName": "Wayfarer Smoke Grenades",
         "subtitle": "Limited-ammunition tactical utility",
+        "factionLogo": "graphics/factions/persean_league.png",
         "description": "League quartermasters built Wayfarer smoke to defeat incompatible coalition optics. Its dense multispectral cloud harms no one, blocks both sides equally, and buys only seconds to move."
       },
       "activation": {
@@ -175,6 +178,7 @@
       "catalog": {
         "displayName": "Shattercap Fragmentation Grenades",
         "subtitle": "Limited-ammunition anti-personnel ordnance",
+        "factionLogo": "graphics/factions/persean_league.png",
         "description": "Kazeron adopted the Shattercap; leaked specifications now feed Diktat, pirate, and Pather arsenals. Its compact blast breaks exposed infantry but barely troubles walls or hardened emplacements."
       },
       "activation": {
@@ -228,6 +232,7 @@
       "catalog": {
         "displayName": "Emberjaw Thermal Breacher",
         "subtitle": "Reusable cooldown-gated anti-hard contact channel",
+        "factionLogo": "graphics/factions/neutral_traders.png",
         "description": "Independent breaker yards cut hulls apart with the Emberjaw; Church custodians keep older units running and pirates convert whatever they salvage. The carrier must stand against the work and hold it: a long, visible channel that ruins armor and emplacements at arm's length, and opens an authored breach point. It has no blast and cannot chew arbitrary walls."
       },
       "activation": {
@@ -280,6 +285,7 @@
       "catalog": {
         "displayName": "Quillon Vibro-Blade",
         "subtitle": "Reusable cooldown-gated anti-personnel contact reaction",
+        "factionLogo": "graphics/factions/hegemony.png",
         "description": "A rugged Hegemony boarding pattern copied across League and Diktat arsenals, with rare monofilament corporate tools and crude outlaw imitations beside it. One short reaction against somebody already inside arm's reach when a firefight collapses into contact. It cannot be used on machinery, and it will not chase anyone."
       },
       "activation": {
@@ -332,6 +338,7 @@
       "catalog": {
         "displayName": "Breachhand Mag-Clamp Kit",
         "subtitle": "Reusable cooldown-gated demolition utility",
+        "factionLogo": "graphics/factions/luddic_church.png",
         "description": "Gilead voidwrights built the Breachhand for sealed machinery and hull work; Knights maintain originals while Pathers and pirates copy them. Successful planting starts its recharge cycle."
       },
       "activation": {
@@ -391,6 +398,7 @@
       "catalog": {
         "displayName": "Palisade Interceptor Pod",
         "subtitle": "Placed, self-expiring ordnance denial",
+        "factionLogo": "graphics/factions/luddic_church.png",
         "description": "A Gilead voidwright shipping-lane pod cut down for ground work: a cluster gun on a folding tripod that shreds incoming warheads and nothing else. It carries the rounds you brought, runs its cell flat, and can be shot like anything else standing in the open."
       },
       "activation": {
@@ -443,6 +451,7 @@
       "catalog": {
         "displayName": "Rampart Field Revetment",
         "subtitle": "Placed, self-expiring directional cover",
+        "factionLogo": "graphics/factions/hegemony.png",
         "description": "A Hegemony engineer pattern old enough that every arsenal builds its own: folding mesh baskets and a stake kit a marine drops across the front of the ground they are already holding. It stops nothing a soldier could not step over, and catches what crosses it at chest height. It covers one side of one boundary, and it comes down again."
       },
       "activation": {

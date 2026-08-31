@@ -9,6 +9,7 @@
         "designation": "FR-1",
         "designationTiered": false,
         "role": "LINE",
+        "factionLogo": "graphics/factions/neutral_traders.png",
         "description": "Preserved in countless Domain forge archives, the Rook serves Hegemony auxiliaries, Church militias, and frontier guards. Its heavy slug rewards steady aim; the slow action punishes a collapsing line."
       },
       "sim": {
@@ -47,6 +48,7 @@
         "designation": "PLS",
         "designationTiered": true,
         "role": "LINE",
+        "factionLogo": "graphics/factions/tritachyon.png",
         "description": "Tri-Tachyon sold the Lancer as a corporate-security arm before the AI Wars made its logo awkward. Proprietary cells deliver flexible three-pulse fire at a corporate-maintenance price."
       },
       "sim": {
@@ -84,6 +86,7 @@
         "designation": "SHD",
         "designationTiered": true,
         "role": "ASSAULT",
+        "factionLogo": "graphics/factions/pirates.png",
         "description": "Rattler is a black-market family, not one factory pattern. Pirate shops and Pather cells turn civilian flechette mechanisms into brutal close-range boarding carbines."
       },
       "sim": {
@@ -123,6 +126,7 @@
         "designation": "SA",
         "designationTiered": true,
         "role": "SUPPORT",
+        "factionLogo": "graphics/factions/hegemony.png",
         "description": "The Hegemony standardized the Stalwart from a Domain support rifle. Its reinforced receiver sustains long slug bursts while League and Diktat arsenals copy it freely."
       },
       "sim": {
@@ -162,6 +166,7 @@
         "designation": "RG",
         "designationTiered": true,
         "role": "MARKSMAN",
+        "factionLogo": "graphics/factions/persean_league.png",
         "description": "Kazeron combines revived the Longbow as a League interoperability project. Its standardized cells drive a narrow penetrator down sight lines ordinary rifles cannot contest."
       },
       "sim": {
@@ -201,6 +206,7 @@
         "designation": "DPLS",
         "designationTiered": true,
         "role": "DRONE",
+        "factionLogo": "graphics/factions/tritachyon.png",
         "description": "Tri-Tachyon designed the Wisp for tireless facility-security drones. Its measured two-pulse cadence favors persistent pressure; human-compatible stocks were never part of the contract."
       },
       "sim": {
@@ -254,7 +260,7 @@
       },
       "render": {
         "tracerColor": "FFE8C0",
-        "tracerTailCells": 0.55,
+        "tracerTailCells": 1.10,
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.18
       },
@@ -269,6 +275,54 @@
         ]
       },
       "audio": { "fireSound": "chaingun_fire" }
+    },
+    {
+      "id": "weapon.mech-pulse-laser",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "Rapid Pulse Laser",
+        "modelName": "Staccato Array",
+        "designation": "MPL",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 32.0,
+        "damage": 18.0,
+        "accuracy": 0.72,
+        "cooldown": 2.1,
+        "penetration": 9.0,
+        "burstCount": 8,
+        "burstSpacing": 0.075,
+        "hitSpread": 0.55,
+        "roundVelocity": 320.0,
+        "flightSec": 0.10,
+        "aoeRadius": 0.35,
+        "wallDamage": 3,
+        "noiseMagnitude": 0.8
+      },
+      "render": {
+        "tracerColor": "D8FCFF",
+        "beam": {
+          "coreWidthPx": 2.0,
+          "glowColor": "39A4FF",
+          "glowWidthPx": 7.0,
+          "pulseCycles": 1.0,
+          "lifetimeSec": 0.12
+        },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.48, "lifetime": 0.08, "color": "68D8FF" },
+          { "kind": "ring", "radius": 0.24, "lifetime": 0.10, "color": "D8FCFF" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.12, "color": "58C8FF" },
+          { "kind": "dust", "radius": 0.22, "lifetime": 0.20 }
+        ]
+      },
+      "audio": { "fireSound": "pulse_laser_fire" }
     },
     {
       "id": "weapon.mech-linear-cannon",
@@ -458,13 +512,13 @@
         "accuracy": 0.82,
         "cooldown": 7.0,
         "penetration": 10.0,
-        "contact": { "damage": 95.0, "penetration": 30.0 },
+        "contact": { "damage": 150.0, "penetration": 40.0 },
         "bodyPenetrations": 1,
         "hitSpread": 0.08,
         "roundVelocity": 360.0,
         "flightSec": 0.10,
         "aoeRadius": 1.5,
-        "wallDamage": 12,
+        "wallDamage": 100,
         "wallDamageRadius": 0.75,
         "noiseMagnitude": 1.5
       },

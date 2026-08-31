@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.perception.NoiseKind;
 
+import java.util.function.LongPredicate;
+
 /** Test-fixture access to the production belief publication boundary. */
 public final class SquadBeliefTestAccess {
 
@@ -17,6 +19,13 @@ public final class SquadBeliefTestAccess {
     public static void observeAudible(Squad squad, int cellX, int cellY, int simTick,
                                       float confidence, NoiseKind kind) {
         squad.observeAudibleBearing(cellX, cellY, simTick, confidence, 0L, kind);
+        squad.publishBeliefSnapshot();
+    }
+
+    /** Runs one belief-ageing pass under {@code stillResolves} and republishes. */
+    public static void ageBeliefs(Squad squad, float dt, int simTick,
+                                  LongPredicate stillResolves) {
+        squad.beginBeliefTick(dt, simTick, stillResolves);
         squad.publishBeliefSnapshot();
     }
 

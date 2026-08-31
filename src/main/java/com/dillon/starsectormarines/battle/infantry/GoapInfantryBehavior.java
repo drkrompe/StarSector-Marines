@@ -88,6 +88,17 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             AmbientEngagementGoal.INSTANCE
     );
 
+    /**
+     * Fallback library while a player tactical context is suspended by
+     * cohesion. No unrelated mission goal may fill that gap: doing so lets a
+     * planter, last stand, or other authored mission role railroad the squad
+     * while the player's order is still active.
+     */
+    private static final List<Goal> NON_MISSION_INFANTRY_GOALS = INFANTRY_GOALS
+            .stream()
+            .filter(goal -> goal.priority() != Goal.Priority.MISSION)
+            .toList();
+
     /** Actions the planner may use. */
     public static final List<Action> INFANTRY_ACTIONS = List.of(
             EngagePosture.INSTANCE,
@@ -334,7 +345,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         SquadPlan plan;
         Set<Goal> declined = Set.of();
         while (true) {
-            goal = Goal.pickMostRelevant(INFANTRY_GOALS, current, squad, sim, declined);
+            goal = pickGoal(current, squad, sim, declined);
             if (goal == null) {
                 plan = null;
                 break;
@@ -412,6 +423,39 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         squad.timeSinceReplan = 0f;
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
         squad.assignedObjectiveAtLastPlan = executableAssignment;
+    }
+
+    /**
+     * Player tactical context is the squad's exclusive mission-tier context
+     * until completion. Survival may still suspend it, and the order system
+     * removes it before a hard withdrawal replans, but an unrelated authored
+     * mission goal cannot compete merely because it also lives in MISSION.
+     */
+    private static Goal pickGoal(WorldState current, Squad squad,
+                                 BattleSimulation sim, Set<Goal> declined) {
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
+        if (assignment == null
+                || !squad.hasPlayerTacticalOrder(assignment.kind())) {
+            return Goal.pickMostRelevant(INFANTRY_GOALS, current, squad, sim, declined);
+        }
+
+        Goal tacticalGoal = switch (assignment.kind()) {
+            case ATTACK_MOVE -> AttackMoveGoal.INSTANCE;
+            case SECURE_COMPOUND -> SecureCompoundGoal.INSTANCE;
+            case DEFEND_AREA -> DefendAssignedAreaGoal.INSTANCE;
+            default -> null;
+        };
+        // The player's own order still outranks the authored library, but it
+        // is not exempt from having to be workable: a declined tactical goal
+        // yields to the non-mission ladder rather than pinning the squad to an
+        // order it cannot act on.
+        if (tacticalGoal != null
+                && !declined.contains(tacticalGoal)
+                && tacticalGoal.relevance(current, squad, sim) > 0f) {
+            return tacticalGoal;
+        }
+        return Goal.pickMostRelevant(
+                NON_MISSION_INFANTRY_GOALS, current, squad, sim, declined);
     }
 
     private static boolean protectedShelterGuard(
