@@ -15,6 +15,12 @@ GROUND-VARIANT-PROMPTS.md carries the concrete invocation.
 Usage:
     python verify_ground_variants.py --baseline <sheet.png> <cx,cy> [<cx,cy> ...]
     python verify_ground_variants.py <dir-of-56x56-pngs> [--family NAME]
+
+--family selects the tiles it measures as well as labelling the report, because
+the colour-spread check is a within-family measure: run over a directory holding
+two families it reports the distance between them, which is large and means
+nothing. That was not always so, and the batch that found it scored 162 against
+a threshold of 6 while every tile in it was fine.
 """
 
 import argparse
@@ -93,7 +99,11 @@ def main():
     ap.add_argument("dir", nargs="?")
     ap.add_argument("--baseline", nargs="+", metavar="SHEET CX,CY",
                     help="an atlas path followed by the cells of one pool")
-    ap.add_argument("--family", default="generated")
+    ap.add_argument("--family", default=None,
+                    help="only the tiles whose filename starts with this, and "
+                         "the label for the report. Colour spread is a "
+                         "within-family measure, so a mixed directory without "
+                         "this reports the spread between families instead.")
     args = ap.parse_args()
 
     if args.baseline:
@@ -113,9 +123,12 @@ def main():
     if not args.dir:
         sys.exit("give a directory of PNGs, or --baseline")
     files = sorted(pathlib.Path(args.dir).glob("*.png"))
+    if args.family:
+        files = [f for f in files if f.name.startswith(args.family)]
     if not files:
-        sys.exit(f"no PNGs in {args.dir}")
-    report(args.family, [(f.name, Image.open(f)) for f in files])
+        sys.exit(f"no PNGs in {args.dir}"
+                 + (f" named {args.family}*" if args.family else ""))
+    report(args.family or "generated", [(f.name, Image.open(f)) for f in files])
 
 
 if __name__ == "__main__":
