@@ -742,6 +742,28 @@ the historical neutral output. Structural geography still owns its bands: an
 economy signal may sharpen compatible city content but cannot erase the purpose
 of a harbor, perimeter, or fortress.
 
+**A band's purpose is structural; what it is made of is the world's.** Those are
+different questions and only the first is protected. The conquest progression —
+an attacker edge, a port, a city bulk, a fortress at the deep end — is the
+mission's spine and two reinforcement systems read it as a front-line ordering,
+so a band is never deleted for want of a matching world fact. But the attacker
+edge was also always a sand beach with a real sea in it, on every world.
+Measured over twelve seeds, a barren airless rock carried the same five hundred
+cells of open water as a garden world, and about three thousand cells of sand;
+nothing about the planet reached the decision.
+
+Water is impassable, so that was terrain shaping the approach on a world with
+none of it. The surface palette now answers both halves: whether standing water
+belongs here at all, and what the approach band is floored with. A living world
+keeps its shore; a rock gets a stone flat and a desert gets dune. The band is
+still there, still first, still where the marines land.
+
+**The theme tables roll water independently of the shoreline**, so gating one
+does not gate the other — waterfront and wetland lots place their own ponds, and
+a rock kept ninety cells of standing water after the shore was gone. On a dry
+world those lots become open ground, which is what a waterfront structurally is:
+the edge of the built area, floored by whatever the world is made of.
+
 An **economic district** earns its identity through navigable geometry, cover,
 destruction, and sightlines. Spaceport aprons exemplify this: they are open
 tarmac with sparse, destructible hard cover and a reachable control hardpoint,

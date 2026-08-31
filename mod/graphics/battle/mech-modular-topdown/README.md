@@ -39,10 +39,12 @@ Tri-Tachyon, Persean League, Luddic Church, Knights of Ludd, Luddic Path,
 Sindrian Diktat, Lion's Guard, pirates, and the Independent/mercenary fallback.
 Every family repeats `chassis.png`, `chassis-hound.png`,
 `chassis-sirocco.png`, `chaingun-arm.png`, `linear-cannon-variant.png`,
-`heavy-cannon.png`, `srm-pod.png`, and `lrm-pod.png`. The builder applies each
+`heavy-cannon.png`, `srm-pod.png`, `lrm-pod.png`, `shoulder-laser-cannon.png`,
+`pulse-laser-arm.png`, `hegemony-bastion-autocannon.png`,
+`pather-demolition-cannon.png`, and `lions-guard-thermal-lance.png`. The builder applies each
 accepted base sprite's exact alpha mask, so a skin cannot change silhouette,
 hardpoint authority, scale, or mechanics. Weapon paint is transferred only
-through five reviewed casing masks; barrels, missiles, rack cavities, vents,
+through ten reviewed casing masks; barrels, missiles, rack cavities, vents,
 fasteners, lamps, and gait layers remain the shared base hardware.
 
 Run `python art-source/mech-modular-topdown/build_assets.py` from the repository root after replacing a retained source. The generated

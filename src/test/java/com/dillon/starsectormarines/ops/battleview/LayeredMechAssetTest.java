@@ -30,7 +30,10 @@ class LayeredMechAssetTest {
             new SpriteSpec("srm-pod.png", 62, 88, 2_500),
             new SpriteSpec("lrm-pod.png", 76, 96, 2_500),
             new SpriteSpec("shoulder-laser-cannon.png", 76, 128, 2_500),
-            new SpriteSpec("pulse-laser-arm.png", 62, 112, 2_500)
+            new SpriteSpec("pulse-laser-arm.png", 62, 112, 2_500),
+            new SpriteSpec("hegemony-bastion-autocannon.png", 64, 132, 1_600),
+            new SpriteSpec("pather-demolition-cannon.png", 72, 124, 1_800),
+            new SpriteSpec("lions-guard-thermal-lance.png", 76, 132, 1_800)
     };
 
     private record SpriteSpec(String filename, int width, int height, int minimumVisiblePixels) {

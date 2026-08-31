@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -35,6 +37,9 @@ public final class BiomeGroundOverrideStage implements GenStage {
             throw new IllegalStateException(
                     "BiomeGroundOverrideStage requires BIOME_MAP — conquest recipe only");
         }
+        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
+        GroundKind approach = (profile == null ? SurfacePalette.ROCK : profile.surface())
+                .approachGround();
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         int w = grid.getWidth();
@@ -50,7 +55,7 @@ public final class BiomeGroundOverrideStage implements GenStage {
                 if (ctx.isMadeGround(x, y)) continue;
                 GroundKind g = topology.getGroundKind(x, y);
                 if (g == GroundKind.INDOOR || g == GroundKind.WATER) continue;
-                topology.setGroundKind(x, y, GroundKind.SAND);
+                topology.setGroundKind(x, y, approach);
             }
         }
     }
