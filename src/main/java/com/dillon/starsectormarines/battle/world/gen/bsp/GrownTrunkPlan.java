@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.Plan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.SubRect;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.TrunkKind;
@@ -71,15 +72,29 @@ public final class GrownTrunkPlan {
          * buildings along the roads with open country behind them.
          */
         public final int frontageDepth;
+        /**
+         * How this settlement joins the rest of its world. {@link SettlementLink#ROAD}
+         * makes growth guarantee an arterial off the map edge even when it never
+         * grew that far on its own.
+         */
+        public final SettlementLink link;
 
         public Profile(int junctionBudget, float branchChance, float armLenLoFrac,
                        float armLenHiFrac, float fourWayChance, int frontageDepth) {
+            this(junctionBudget, branchChance, armLenLoFrac, armLenHiFrac,
+                    fourWayChance, frontageDepth, SettlementLink.ROAD);
+        }
+
+        public Profile(int junctionBudget, float branchChance, float armLenLoFrac,
+                       float armLenHiFrac, float fourWayChance, int frontageDepth,
+                       SettlementLink link) {
             this.junctionBudget = junctionBudget;
             this.branchChance = branchChance;
             this.armLenLoFrac = armLenLoFrac;
             this.armLenHiFrac = armLenHiFrac;
             this.fourWayChance = fourWayChance;
             this.frontageDepth = frontageDepth;
+            this.link = (link == null) ? SettlementLink.ROAD : link;
         }
 
         /** Arm length does not vary with density — see {@link #of}. */
@@ -104,6 +119,11 @@ public final class GrownTrunkPlan {
          * at fewer junctions just means "same city, worse roads".
          */
         public static Profile of(float density) {
+            return of(density, SettlementLink.ROAD);
+        }
+
+        /** As {@link #of(float)}, for a settlement whose lifeline is stated rather than assumed. */
+        public static Profile of(float density, SettlementLink link) {
             float d = Math.max(0f, Math.min(1f, density));
             return new Profile(
                     Math.round(lerp(3f, 20f, d)),
@@ -111,7 +131,8 @@ public final class GrownTrunkPlan {
                     ARM_LO_FRAC,
                     ARM_HI_FRAC,
                     lerp(0.25f, 0.55f, d),
-                    d >= FULLY_BUILT_AT ? Integer.MAX_VALUE : Math.round(lerp(6f, 24f, d)));
+                    d >= FULLY_BUILT_AT ? Integer.MAX_VALUE : Math.round(lerp(6f, 24f, d)),
+                    link);
         }
 
         private static float lerp(float a, float b, float t) {
@@ -222,6 +243,10 @@ public final class GrownTrunkPlan {
             }
         }
 
+        if (profile.link == SettlementLink.ROAD && !anySegmentLeavesMap(trunks, width, height)) {
+            linkOffMap(road, bands, trunks, seedX, seedY, width, height, rng);
+        }
+
         List<SubRect> subRects = new ArrayList<>();
         List<SubRect> hinterland = new ArrayList<>();
         boolean[][] beyondFrontage = beyondFrontage(bands, width, height, profile.frontageDepth);
@@ -330,6 +355,88 @@ public final class GrownTrunkPlan {
         for (int y = r.y0; y <= r.y1; y++) {
             for (int x = r.x0; x <= r.x1; x++) road[x][y] = true;
         }
+    }
+
+
+    // ---- the off-map link -------------------------------------------------
+
+    /** True when some band already runs out to the perimeter. */
+    private static boolean anySegmentLeavesMap(List<TrunkSegment> trunks, int w, int h) {
+        for (int i = 0; i < trunks.size(); i++) {
+            TrunkSegment t = trunks.get(i);
+            if (t.left <= 0 || t.top <= 0 || t.right >= w - 1 || t.bottom >= h - 1) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Drives one arterial from the settlement centre out to the nearest map
+     * edge, so a settlement that never grew that far is still joined to the
+     * planetary network.
+     *
+     * <p><b>It bends.</b> A road laid straight from the middle of a town to the
+     * edge of the world reads as a runway rather than as a road; one right-angle
+     * turn on the way reads as terrain the surveyors went around, and costs
+     * nothing, since a segment is a rectangle and an L is two of them. A drawn
+     * offset of zero degenerates to the straight case on its own, which is fine
+     * — some roads really do run straight — so the bend is drawn rather than
+     * forced.
+     *
+     * <p>The band is {@link TrunkKind#PRIMARY} because a link to the outside is
+     * an arterial, and because the road graph only promotes a perimeter cell to
+     * an off-map entry node when the band inside it is wide enough to carry a
+     * centreline of any depth.
+     */
+    private static void linkOffMap(boolean[][] road, boolean[][] bands, List<TrunkSegment> trunks,
+                                   int cx, int cy, int w, int h, Random rng) {
+        int hw = TrunkKind.PRIMARY.width / 2;
+        int distW = cx, distE = w - 1 - cx, distS = cy, distN = h - 1 - cy;
+        int min = Math.min(Math.min(distW, distE), Math.min(distS, distN));
+        int dir = (min == distE) ? DIR_E : (min == distW) ? DIR_W : (min == distN) ? DIR_N : DIR_S;
+
+        boolean horizontal = (dir == DIR_E || dir == DIR_W);
+        int span = horizontal ? h : w;
+        int here = horizontal ? cy : cx;
+        int lo = hw + 1, hi = span - 2 - hw;
+        int bend = here;
+        if (hi > lo) {
+            int reach = Math.max(1, span / 6);
+            bend = clamp(here - reach + rng.nextInt(2 * reach + 1), lo, hi);
+        }
+
+        // The connector along the other axis, when the bend actually moved.
+        if (bend != here) {
+            int runLo = Math.max(0, Math.min(here, bend) - hw);
+            int runHi = Math.min(span - 1, Math.max(here, bend) + hw);
+            SubRect connector = horizontal
+                    ? new SubRect(cx - hw, runLo, cx + hw, runHi)
+                    : new SubRect(runLo, cy - hw, runHi, cy + hw);
+            emit(road, bands, trunks, clampRect(connector, w, h), !horizontal);
+        }
+
+        // The run out to the edge, on the bend's line.
+        SubRect out;
+        if (dir == DIR_E)      out = new SubRect(cx - hw, bend - hw, w - 1,   bend + hw);
+        else if (dir == DIR_W) out = new SubRect(0,       bend - hw, cx + hw, bend + hw);
+        else if (dir == DIR_N) out = new SubRect(bend - hw, cy - hw, bend + hw, h - 1);
+        else                   out = new SubRect(bend - hw, 0,       bend + hw, cy + hw);
+        emit(road, bands, trunks, clampRect(out, w, h), horizontal);
+    }
+
+    private static void emit(boolean[][] road, boolean[][] bands, List<TrunkSegment> trunks,
+                             SubRect r, boolean horizontal) {
+        paintBand(road, r);
+        paintBand(bands, r);
+        trunks.add(new TrunkSegment(r.x0, r.y0, r.x1, r.y1, TrunkKind.PRIMARY, horizontal));
+    }
+
+    private static SubRect clampRect(SubRect r, int w, int h) {
+        return new SubRect(clamp(r.x0, 0, w - 1), clamp(r.y0, 0, h - 1),
+                clamp(r.x1, 0, w - 1), clamp(r.y1, 0, h - 1));
+    }
+
+    private static int clamp(int v, int lo, int hi) {
+        return v < lo ? lo : Math.min(v, hi);
     }
 
     // ---- region decomposition ---------------------------------------------

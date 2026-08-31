@@ -69,7 +69,7 @@ class GroundParallaxPixelComparisonTest {
 
         BufferedImage unshadowed = shade(scene, atDefault.image, 0f);
         BufferedImage shadowed = shade(scene, atDefault.image,
-                GroundParallaxPipeline.DEFAULT_SUN_SHADOW_STRENGTH);
+                SunLight.DEFAULT_SHADOW_STRENGTH);
 
         Metrics zeroMetrics = compare(scene.color, baseline.image);
         Metrics defaultMetrics = compare(scene.color, atDefault.image);
@@ -126,8 +126,8 @@ class GroundParallaxPixelComparisonTest {
                 maxMetrics.maxChannelDelta, atMax.maxDisplacementPx);
         System.out.printf(Locale.ROOT,
                 "[parallax-pixel] sun    %.0f deg az / %.0f deg el: changed %.2f%%, mean RGB delta %.3f%n",
-                GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES,
-                GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
+                SunLight.DEFAULT_AZIMUTH_DEGREES,
+                SunLight.DEFAULT_ELEVATION_DEGREES,
                 shadowMetrics.changedPercent(), shadowMetrics.meanChannelDelta);
         System.out.println("[parallax-pixel] wrote " + output.toAbsolutePath());
     }
@@ -237,8 +237,8 @@ class GroundParallaxPixelComparisonTest {
                         return (1f - (pixelY + 0.5f) / VIEW_H) * GRID_H;
                     }
                 },
-                GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES,
-                GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
+                SunLight.DEFAULT_AZIMUTH_DEGREES,
+                SunLight.DEFAULT_ELEVATION_DEGREES,
                 strength, tallestSceneMeters());
     }
 
@@ -581,9 +581,9 @@ class GroundParallaxPixelComparisonTest {
                         MACRO_DISPLAY_CEILING_METERS));
         drawPanel(g, shadowed, 3, 0, panelW, panelH, labelH,
                 String.format(Locale.ROOT, "sun %.0f/%.0f deg | %.2f strength",
-                        GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES,
-                        GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
-                        GroundParallaxPipeline.DEFAULT_SUN_SHADOW_STRENGTH));
+                        SunLight.DEFAULT_AZIMUTH_DEGREES,
+                        SunLight.DEFAULT_ELEVATION_DEGREES,
+                        SunLight.DEFAULT_SHADOW_STRENGTH));
         drawPanel(g, shadowDiff, 3, 1, panelW, panelH, labelH,
                 String.format(Locale.ROOT, "sun abs diff x3 | %.2f%% changed",
                         shadowMetrics.changedPercent()));

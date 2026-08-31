@@ -122,23 +122,42 @@ Do not run builds or leave generated task files there.
   standing goal is an idle share of zero, with the resting, socialising and
   exercising columns carrying the crew's off-watch time instead; see
   `CrewLivelinessEvidence` for why the dead count as idle.
-- `gradlew.bat shaderEvidence` → compiles and links every shader the mod defines
-  on a **real OpenGL driver**, and checks that every uniform the ground
-  composite uploads exists in the linked program. This is the only evidence here
-  that runs GLSL rather than modelling it: the snapshot suites draw through
+- `gradlew.bat shaderEvidence` → everything that needs a **real OpenGL driver**.
+  It compiles and links every shader the mod defines, checks that every uniform
+  the ground composite uploads exists in the linked program, and runs the state
+  brackets against the state the game hands a UI hook. This is the only evidence
+  here that runs GL rather than modelling it: the snapshot suites draw through
   Java2D and the shader oracles re-implement the arithmetic on the CPU, which
-  proves geometry and is blind to a syntax error, a construct one driver rejects,
-  or a renamed uniform — and that last one is silent by specification, since
-  `glUniform*` on an unknown location is defined to do nothing.
+  proves geometry and is blind to a syntax error, a construct one driver
+  rejects, or a renamed uniform — and that last one is silent by specification,
+  since `glUniform*` on an unknown location is defined to do nothing.
   Opt-in and excluded from `test`, because it needs an accelerated driver and a
   suite that requires a GPU fails on the machine that has none; where no context
   can be made it reports that it skipped rather than failing. It uses LWJGL 2
   from the game's own install (`HeadlessGl`), deliberately: the mod's render
   classes are written against those bindings, so this runs them rather than a
   re-implementation of them, and it costs no new dependency.
-  **It does not cover the host's GL state.** Starsector hands its UI hooks a
-  polluted context and this one is clean, so a green run says the shader is
-  correct, not that the effect survives contact with the game.
+- **A clean context proves nothing about the brackets, which is why the hostile
+  fixture exists.** A fresh context starts at GL defaults — alpha writes on,
+  ordinary blending, scissor off, no program bound — which are very nearly the
+  values `GlStateBracket.applyTextured2DState` sets. Every normalisation in that
+  method is therefore a no-op on a clean context, and dropping any one of them
+  leaves a clean-context test just as green while the game renders wrong.
+  `GlStateBracketHostileStateEvidence` sets the documented incoming state —
+  alpha masked out of the colour write mask, a foreign blend function left
+  behind by another draw — and asserts both directions: our draw still lands
+  correctly, and the caller's state comes back untouched afterwards. It carries
+  its own control (the same draw unbracketed) so it cannot pass by measuring
+  nothing.
+  It also pins that **scissor is inherited on purpose**. The tile brackets leave
+  the scissor test alone because a tile pass draws into the game's own target,
+  inside the panel rect Starsector has already clipped to, and wants to stay
+  there; the FBO brackets disable it because that target is ours and the UI's
+  clip rect refers to a different surface. Same reasoning, opposite answer —
+  neither is a default worth inheriting by accident.
+  **What it still cannot do** is discover a hostile value nobody wrote down in
+  it. A fixture encodes what we believe arrives; that residue is the part that
+  still wants a live pass.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context.
   It reads art from `mod/` first and the installed game second — the game's own
