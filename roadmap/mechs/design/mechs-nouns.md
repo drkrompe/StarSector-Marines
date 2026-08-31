@@ -315,6 +315,11 @@ support sortie, subject only to practical runtime resources.
 - **Work destroyed is not refunded.** A machine shot on the stocks is wreckage
   and the next one starts from a keel. That is what makes an attacker's rounds
   worth spending on the building rather than only on the people in it.
+- **A captured works builds for whoever captured it.** A field works has no side
+  of its own: it produces for whichever side its technicians belong to, and who
+  those are is settled by who holds the ground. `ai-nouns.md` owns the crew and
+  the replacement rule; what follows here is that taking a motor pool is taking
+  its output rather than only denying it.
 - **The crew lays the keel.** A bay with nothing on its stocks starts the next
   machine on the first tick somebody is at the gantry to start it, so a crew that
   has stood down under fire lays nothing and a crew that is dead lays nothing
