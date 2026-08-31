@@ -122,6 +122,59 @@ class ShotRenderServiceTest {
     }
 
     @Test
+    void chaingunShellCarriesAReadableLongBallisticTracer() {
+        SpriteAPI fakeSprite = (SpriteAPI) Proxy.newProxyInstance(
+                SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},
+                (proxy, method, args) -> null);
+        BattleSprites sprites = new BattleSprites() {
+            @Override
+            public ShuttleSpriteCache projectileSprite(String path) {
+                return new ShuttleSpriteCache(fakeSprite, 1f);
+            }
+        };
+        BattleSimulation sim = openArena(20, 20);
+        WeaponDef chaingun = WeaponRegistry.require(WeaponRegistry.MECH_CHAINGUN_ID);
+        ShotEvent shot = new ShotEvent(5f, 5f, 15f, 5f, true,
+                Faction.MARINE, 1f, null, null, null, chaingun);
+        shot.lifetime = 0.5f;
+        sim.postShot(shot);
+        DrawList out = new DrawList();
+
+        new ShotRenderService(sprites, new ImpactFx()).collect(context(sim), out);
+
+        assertEquals(2, out.count(RenderLayer.SHOTS), "tracer plus physical shell");
+        DrawCommand tail = out.buffer(RenderLayer.SHOTS)[0];
+        assertEquals(DrawCommand.Kind.LINE, tail.kind());
+        assertEquals(1.10f * 32f, Math.abs(tail.width() - tail.centerX()), 1e-4f,
+                "the heavy automatic burst gets a longer readable tracer than a rifle");
+        assertEquals(2f, tail.angleDegrees(), EPS);
+    }
+
+    @Test
+    void rapidPulseLaserLeavesOnlyABriefOverlappingBeamPulse() {
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_PULSE_LASER_ID);
+        ShotEvent shot = new ShotEvent(3f, 5f, 17f, 5f, true, Faction.MARINE, 0.10f,
+                null, null, null, laser);
+        BeamFxService beams = new BeamFxService();
+        beams.spawn(shot);
+        BattleCamera camera = context(openArena(20, 20)).camera;
+        DrawList initial = new DrawList();
+
+        beams.collect(camera, initial, 1f);
+
+        assertEquals(2, initial.count(RenderLayer.SHOTS), "cyan glow plus white-blue core");
+        assertEquals(7f, initial.buffer(RenderLayer.SHOTS)[0].angleDegrees(), EPS);
+        assertEquals(2f, initial.buffer(RenderLayer.SHOTS)[1].angleDegrees(), EPS);
+        assertEquals(0.12f, laser.beamStyle().lifetimeSec(), EPS);
+
+        beams.advance(0.13f);
+        DrawList expired = new DrawList();
+        beams.collect(camera, expired, 1f);
+        assertEquals(0, expired.count(RenderLayer.SHOTS),
+                "each pulse clears before the following burst reads as a continuous lance");
+    }
+
+    @Test
     void shoulderLaserLingersForOneSecondWithoutChangingItsShotClock() {
         WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
         ShotEvent shot = new ShotEvent(3f, 5f, 17f, 5f, true, Faction.MARINE, 0.10f,

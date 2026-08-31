@@ -23,7 +23,7 @@ public final class FactionMechLoadouts {
         MechRole deployedRole = role != null ? role : variant.defaultRole;
         if (variant == MechVariant.BULWARK && isTriTachyon(factionId)) {
             return new MechLoadoutComponent(variant,
-                    variant.arms,
+                    MechWeaponComponent.DUAL_PULSE_LASERS,
                     variant.leftShoulder,
                     MechWeaponComponent.SHOULDER_LASER_CANNON,
                     deployedRole);

@@ -1,6 +1,6 @@
 # Weapon material-ID ImageGen passes
 
-Generated with the built-in ImageGen tool on 2026-08-31. These six images are
+Generated with the built-in ImageGen tool on 2026-08-31. These seven images are
 semantic classification aids, not shipping color or geometry. The builder keys
 their magenta regions into reviewed weapon paint masks, then applies those masks
 to the original weapon pixels.
@@ -35,6 +35,7 @@ table below.
 | `srm-pod.png` | `../srm-pod.png` | Olive outer casing, top rail, and painted front covers | Missile caps, rack grid and cavities, mechanisms, bolts, lamps, warning marks, and outlines |
 | `lrm-pod.png` | `../lrm-pod.png` | Olive outer casing, top rail, center brace, and painted front covers | Missile caps, rack grid and cavities, mechanisms, bolts, lamps, warning marks, and outlines |
 | `shoulder-laser-cannon.png` | `../weapon-concepts/shoulder-laser-cannon.png` | Broad rear shoulder-housing plates, rear center mounting cover, and the paired olive side housings beside the barrel base | Twin long gunmetal focusing spars, recessed cyan beam guide, edge-on exit slit, capacitor indicator, collars, frame, conduits, heat sinks, vents, mounting lip, lamps, fasteners, gaps, cavities, and outlines |
+| `pulse-laser-arm.png` | `../weapon-concepts/pulse-laser-arm.png` | Broad rear mounting housing and center armor plate, paired olive side housings beside the focusing rails, olive plates around the capacitor banks, and rear mounting tab | Twin gunmetal focusing rails, recessed cyan optical path, edge-on exit slit, capacitor indicators, frames, conduits, vents, fasteners, lamps, mechanisms, gaps, cavities, and outlines |
 
 ImageGen returned RGB checker previews rather than real alpha. Its SRM canvas
 was one pixel wider and one pixel shorter than the source; the redesigned laser

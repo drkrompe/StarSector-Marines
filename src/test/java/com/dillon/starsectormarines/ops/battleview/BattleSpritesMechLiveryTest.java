@@ -20,6 +20,8 @@ class BattleSpritesMechLiveryTest {
                 marine.houndChassis.sourcePath);
         assertEquals(factionPath("tri-tachyon", "linear-cannon-variant.png"),
                 marine.linearCannon.sourcePath);
+        assertEquals(factionPath("tri-tachyon", "pulse-laser-arm.png"),
+                marine.pulseLaserArm.sourcePath);
         assertEquals(factionPath("lions-guard", "chassis-sirocco.png"),
                 defender.siroccoChassis.sourcePath);
         assertEquals(factionPath("lions-guard", "lrm-pod.png"),
