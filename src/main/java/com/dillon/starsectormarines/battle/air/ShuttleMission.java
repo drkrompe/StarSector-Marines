@@ -23,7 +23,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * data.
  *
  * <p>Lifecycle: PENDING (waiting on stagger) → INCOMING (steering from off-map
- * entry to LZ) → LANDED (deboarding marines or awaiting rescue passengers) →
+ * entry to LZ) → PAD_DESCENT (settling onto it) → LANDED (deboarding marines or awaiting rescue passengers) →
  * optional HOVER_STATION (armed fire-support loiter) → DEPARTING (steering to
  * exit) → GONE. With
  * {@link #totalCycles} &gt; 1 the shuttle re-enters PENDING after DEPARTING and
@@ -314,17 +314,27 @@ public final class ShuttleMission {
     public float lastRunBearingDeg;
 
     /**
-     * Whether this homebound craft has joined final and is flying the runway
-     * axis rather than manoeuvring to reach it.
+     * The solved approach this homebound craft is flying, or null before one
+     * has been worked out.
      *
-     * <p>The approach is two legs on purpose. The first goes to a point out on
-     * the extended centreline and may be flown from any direction; the second
-     * goes from there to the threshold, which is the runway axis, so the
-     * aircraft is lined up by arrival without anybody testing its heading.
+     * <p>Cleared rather than edited whenever the approach stops being the one
+     * to fly — the craft is down, or it was denied the strip and is going
+     * round again. A path is the answer to a question asked from one pose, so
+     * a new pose is a new question.
      */
-    public boolean onFinalApproach;
+    public RunwayApproach approach;
 
-    /** The threshold this approach is aimed at — where the takeover puts the aircraft down. */
+    /**
+     * Sim-seconds left in a vertical settle onto a pad.
+     *
+     * <p>What a helicopter does at the end of an approach and what the arrival
+     * used to skip: the craft holds over the spot, kills its drift, and sinks
+     * onto it. Counted down rather than derived from height so the descent
+     * takes the same time whatever height the run in left the craft at.
+     */
+    public float settleTimer;
+
+    /** The threshold this approach is aimed at — where the aircraft flies itself onto the strip. */
     public float touchdownX, touchdownY;
 
     /**
@@ -411,8 +421,8 @@ public final class ShuttleMission {
         float[] touchdown = strip.opposite(rollout);
         this.holdX = rollout[0];
         this.holdY = rollout[1];
-        // Both ends, together. The rollout target alone is not enough to fly a
-        // landing: the takeover and the roll both need to know which way down
+        // Both ends, together. The rollout target alone is not enough to fly
+        // a landing: the approach and the roll both need to know which way down
         // the strip the aircraft is pointing, and deriving that from one end
         // and the craft's position gets it wrong the moment the craft is past
         // the threshold.
@@ -496,7 +506,8 @@ public final class ShuttleMission {
      * fifty-cell air search should be sweeping from either.
      */
     public boolean isOverTheBattle() {
-        return state == ShuttleState.INCOMING || state == ShuttleState.LANDED
+        return state == ShuttleState.INCOMING || state == ShuttleState.PAD_DESCENT
+                || state == ShuttleState.LANDED
                 || state == ShuttleState.HOVER_STATION || state == ShuttleState.DEPARTING
                 || state == ShuttleState.RETURNING;
     }

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — where a round lands is delivery physics, not a lead dial; a gun run can be seen and heard; a sortie has an origin, and air cover flies in off the map; an aircraft on its wheels is driven rather than flown, and is still the air entity while it is; a fighter flies a wide banking circuit, and a flying arrival tolerance is derived from what the craft is doing.
+Updated: 2026-08-30 — an aircraft is one entity moved three ways; a landing is flown rather than captured, and a vertical lift settles onto its pad.
 
 ## Purpose
 
@@ -26,6 +26,25 @@ facing, velocity, and motion state. A body is a kinematic fact, not a behavior
 or a visual approximation. Steering systems supply goals and modes; the body's
 handling determines the resulting turn, acceleration, drift, and stopping
 shape.
+
+**Locomotion** is how a craft is being moved right now, and it is the thing
+that changes across a sortie. One aircraft, one entity, three ways of moving
+it: **grounded** on its wheels, **managed** along a solved trajectory, and
+**free flight** under the steering. A machine parked in a shed, one rolling
+down a taxiway, one being flown onto a threshold and one making a gun run are
+not four kinds of thing — they are the same thing under four sets of physics,
+and saying so is what lets the whole sortie be one entity.
+
+**The phase is the only source of truth for the mode.** A stored mode is a
+second thing to keep in step, and the phase already says everything it does: a
+craft rolling out is on its wheels because it is rolling out. So the mode is
+derived, the derivation is total, and a phase that would need two modes is a
+phase that wants splitting rather than a mode that wants a flag. That is
+exactly why the settle onto a landing pad is a phase of its own and not a timer
+inside the run in. It also removes the hand-written lists that used to answer
+cross-cutting questions: whether an anti-air post can reach a craft is whether
+the craft is in the air, which is the mode, and a list is a thing the next
+phase added gets left out of. See `AirLocomotion`.
 
 **Ground position** and **air position** are different representations, not
 different universes. Ground actors use grid membership where occupancy,
@@ -562,15 +581,73 @@ the only part where the aircraft is accelerating and not yet flying. Coming
 home it is the same in reverse — touch down at the end it reaches first, roll
 out to the far one, turn off, taxi back to its own shed.
 
-**A landing is captured, not flown.** The approach is two legs: out to a point
-on the extended centreline, which may be reached from any direction, and then
-down it to the threshold — and because that second leg *is* the runway axis,
-the aircraft is lined up on arrival without anybody testing its heading. At the
-threshold the simulation takes the aircraft over: it is put on the centreline
-pointing along it and the rollout is driven from there, with the nose held on
-the strip for the whole of it. Asking the steering to brake a flying body onto
-a point left craft arriving crabbed and pirouetting on the runway to sort
-themselves out.
+**A landing is flown, and nothing puts the aircraft down.** The approach used
+to be a railroad with a takeover at the end of it: out to a point a stated
+fourteen cells along the extended centreline, then down that centreline, and at
+the threshold the simulation placed the craft on the strip pointing along it and
+drove the rollout from there. It worked while every aircraft could turn inside
+seven cells. The atmosphere calibration that widened the circle to twenty-odd
+made it geometrically impossible — a machine cannot turn onto a centreline it
+joins fourteen cells short of the threshold — and what the takeover had been
+hiding all along was a craft arriving crabbed and being snapped straight. At the
+widened calibration it stopped hiding it: measured, a fighter reached the
+threshold a hundred and seven degrees off the runway on average, and from four
+dozen arrival poses only five ever reached it at all. The rest orbited.
+
+So the arrival is **solved and then flown**. Where the craft is and where it has
+to be are both poses, and the shortest path between two poses under a bound on
+how tightly a vehicle can turn is a closed-form question the project already
+answers for its ground vehicles; the forward-only subset of that answer is a
+Dubins path, and one exists for any two poses. The circuit falls out of the
+geometry — the leg out, the turn onto final, the straight run in — rather than
+being authored, and **the touchdown is a real arrival**: the aircraft keeps its
+position, keeps the heading the path ended on, and keeps the speed it came in
+with, so the rollout starts from a landing rather than from a standstill on the
+numbers. Measured on the shipped airfield, a fighter now crosses the threshold
+two degrees off the centreline at approach speed, with no tick in the whole
+approach moving it further than its own airspeed allows.
+
+Three things about that path are load-bearing.
+
+**It is solved to a final approach fix, not to the threshold.** The last stretch
+is a straight line down the runway axis, which absorbs whatever the turn left
+and — the structural reason — makes a go-around a re-plan rather than a
+degenerate one. A craft denied the strip a cell short of the threshold, asked
+for a path to the threshold, is told to fly straight ahead; asked for a path to
+the fix behind it, it is told to fly a circuit, which is what a go-around is.
+How long that final is derived from the turn radius rather than stated in cells,
+because the number it replaces was right for a shuttle and impossible for a
+fighter.
+
+**It is planned at a wider circle than the craft can fly**, because a path laid
+out at the tightest arc a hull manages is one the follower has no margin to
+correct on: it falls progressively outside the curve and never catches up.
+
+**It runs on past the threshold, down the strip.** A follower whose carrot has
+nowhere left to slide pins it to the last point and starts chasing it, and a
+body with a turn radius chasing a point it is offset from swings its nose
+further off the closer it gets. The takeoff roll already aims its carrot beyond
+the far threshold for exactly this reason; a landing has the same shape arriving
+from the other end. **The look-ahead is the crab at touchdown** — a craft
+following a carrot on the centreline from half a cell off it arrives
+`atan(offset / lookAhead)` crooked — and that lands on a specific number,
+because a wheeled aircraft more than five degrees off where it is going stops
+and swings its nose round standing still, which on a runway is the pirouette
+this whole model exists to remove.
+
+The approach is obstacle-free and constant-radius, which is honest at altitude
+and would not be on the ground, and it is a path rather than a trajectory: how
+fast the craft flies it stays the caller's business. A circuit at a fast hull's
+radius is large, and on a small map it takes the aircraft off the edge for
+several seconds — thirty-odd cells outside a seventy-six cell field, measured.
+That is reported and not corrected. The map edge is not a wall to something at
+altitude, every off-map sortie crosses it by construction, and the only way to
+buy the legibility back would be to arrive crabbed. If a hull spends too long
+out of sight coming home, the lever is the atmosphere calibration that set its
+circle. A landing that will not solve at all still lands — it flies straight in
+and arrives on whatever heading it managed, which is what every landing did
+before — but Dubins has an answer for any two poses, so that is a guard rather
+than a case: across four dozen arrival poses for two hulls it never once fired.
 
 **Coming home is not leaving.** A craft that rolled off a strip owes itself back
 to it, and the leg that takes it there is an approach: it steers to a runway
@@ -632,6 +709,16 @@ happens to be drawn. One that has to be loaded has both: the garrison commits
 people who can be seen and shot, they cross open ground to reach the field, and
 an attacker standing on the airfield — or merely shooting across it — has
 stopped the lift without touching the aircraft.
+
+**A vertical lift settles onto its pad; it does not arrive on it.** The run in
+brakes down to a hover over the spot, and the last of the descent is its own
+phase: the craft holds, kills the drift it came in with, and sinks. Its heading
+is whatever the approach left it on and is never touched. What that replaces was
+a single tick in which the shuttle stopped being where it was and stopped
+moving — which is a helicopter ceasing to exist mid-air and reappearing landed,
+and reads exactly as badly as that sounds. A pad does not need a runway's
+circuit, because a machine that lands vertically can arrive from any bearing;
+what it needs is the deceleration and the descent to be things that take time.
 
 **Unloading is bounded at both ends of the trip.** A passenger needs somewhere
 to stand, and a landing zone can have nowhere: a squad that lands and holds
@@ -792,6 +879,13 @@ shrink that changes a hull's physical scale.
   all: the floors are a transport's, and a fighter several times faster steps
   over every one of them. Ground tolerances stay separate and stay authored — a
   wheeled aircraft can be asked to hold short of a point and does.
+- **An aircraft is one entity for its whole life, and what changes is how it is
+  moved.** Grounded, managed and free flight are three sets of physics over one
+  body, swapped at phase boundaries; the phase is the single source of truth for
+  which one has it. Nothing is placed at a boundary between them — a landing
+  that ends in a teleport is a handoff pretending to be a manoeuvre, and every
+  arrival gate, descent and rollout downstream of it was tuned against a
+  discontinuity rather than against the aircraft.
 - Runtime hull specifications are the shared, mod-aware source for hull facts.
   Hand-authored exceptions require a concrete non-standard craft, not routine
   per-hull tuning.

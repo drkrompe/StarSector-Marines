@@ -306,6 +306,7 @@ final class AirfieldSortieScene {
             case LOADING -> "LOADING on the pad  •  " + mission.marinesRemaining
                     + " aboard  •  " + aboardTimeLeft(mission) + "s to go";
             case INCOMING -> "airborne  •  " + mission.marinesRemaining + " aboard";
+            case PAD_DESCENT -> "settling onto the LZ  •  " + mission.marinesRemaining + " aboard";
             case LANDED -> "landed  •  " + mission.marinesRemaining + " still aboard";
             case HOVER_STATION -> "overwatch";
             case DEPARTING -> "outbound for the field  •  " + scene.outcome()[0];
