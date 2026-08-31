@@ -764,6 +764,19 @@ a rock kept ninety cells of standing water after the shore was gone. On a dry
 world those lots become open ground, which is what a waterfront structurally is:
 the edge of the built area, floored by whatever the world is made of.
 
+**The palette governs ground nobody planted, and stops at the settlement's own
+made ground.** Parks and street verges keep their grass on an airless rock:
+lawn there is a statement about the colony that shipped the soil in and waters
+it, not about the planet. Measured on a barren world, every remaining green cell
+is exactly that — a couple of hundred cells of park and a dozen of verge, with
+no leak from the wild fills or the hinterland pre-paint.
+
+Both halves are one law and neither is safe alone. A palette nobody wired up and
+a palette applied one layer too broadly are different bugs with the same
+symptom in isolation, so the contrast — cultivated lawn beside wild regolith on
+the *same* world — is what is pinned, in `CultivatedGroundTest`. What survives
+in the built area is the colony's; what surrounds it is the planet's.
+
 An **economic district** earns its identity through navigable geometry, cover,
 destruction, and sightlines. Spaceport aprons exemplify this: they are open
 tarmac with sparse, destructible hard cover and a reachable control hardpoint,
