@@ -193,6 +193,43 @@ class LayeredMechComposerTest {
         assertEquals(300f + 0.32f * 208f, flashes.get(0).y(), 0.001f);
     }
 
+    @Test
+    void signatureFactionWeaponsUseTheirAuthoredHardpoints() {
+        LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
+        List<Layer> bastion = new ArrayList<>();
+        LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
+                        bastion.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
+                assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f,
+                LayeredMechAppearance.FLAG_CHAINGUN_FLASH,
+                MechVariant.BULWARK.chassisAppearance,
+                LayeredMechAppearance.ARMS_BASTION_AUTOCANNON,
+                LayeredMechAppearance.POD_LARGE_SRM,
+                LayeredMechAppearance.POD_LARGE_SRM, 1f);
+        assertEquals(2, bastion.stream().filter(layer ->
+                fileName(layer.path()).equals("hegemony-bastion-autocannon.png")).count());
+        assertEquals(2, bastion.stream().filter(layer ->
+                fileName(layer.path()).equals("marine-muzzle-flash.png")).count());
+
+        List<Layer> demolition = new ArrayList<>();
+        LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
+                        demolition.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
+                assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f, 0,
+                MechVariant.HOUND.chassisAppearance,
+                LayeredMechAppearance.ARMS_DEMOLITION_CANNON,
+                LayeredMechAppearance.POD_SMALL_SRM,
+                LayeredMechAppearance.POD_NONE, 1f);
+        assertEquals(1, demolition.stream().filter(layer ->
+                fileName(layer.path()).equals("pather-demolition-cannon.png")).count());
+
+        List<Layer> thermal = emitFlashingMech(assets, MechVariant.SIROCCO,
+                LayeredMechAppearance.FLAG_LASER_FLASH,
+                LayeredMechAppearance.POD_THERMAL_LANCE);
+        assertEquals(1, thermal.stream().filter(layer ->
+                fileName(layer.path()).equals("lions-guard-thermal-lance.png")).count());
+        assertEquals(1, thermal.stream().filter(layer ->
+                fileName(layer.path()).equals("marine-muzzle-flash.png")).count());
+    }
+
     private static List<Layer> emitFlashingMech(LayeredMechAssets assets,
                                                 MechVariant variant, int flags) {
         return emitFlashingMech(assets, variant, flags,

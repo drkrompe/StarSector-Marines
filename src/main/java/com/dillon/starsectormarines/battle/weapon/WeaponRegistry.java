@@ -50,6 +50,9 @@ public final class WeaponRegistry {
     public static final String MECH_LRM_ARTILLERY_ID = "weapon.mech-lrm-artillery";
     public static final String MECH_SHOULDER_LASER_ID = "weapon.mech-shoulder-laser";
     public static final String MECH_PULSE_LASER_ID = "weapon.mech-pulse-laser";
+    public static final String MECH_BASTION_AUTOCANNON_ID = "weapon.mech-bastion-autocannon";
+    public static final String MECH_DEMOLITION_CANNON_ID = "weapon.mech-demolition-cannon";
+    public static final String MECH_THERMAL_LANCE_ID = "weapon.mech-thermal-lance";
 
     /**
      * Core resources retained for standalone tools and compatibility tests.

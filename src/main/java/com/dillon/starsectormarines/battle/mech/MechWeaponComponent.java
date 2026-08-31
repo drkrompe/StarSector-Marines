@@ -23,6 +23,12 @@ public enum MechWeaponComponent {
             1, -1, LayeredMechAppearance.ARMS_HEAVY_CANNON),
     DUAL_PULSE_LASERS("Dual pulse lasers", MountFamily.ARMS, "weapon.mech-pulse-laser",
             8, -1, LayeredMechAppearance.ARMS_PULSE_LASER),
+    DUAL_BASTION_AUTOCANNONS("Dual Bastion autocannons", MountFamily.ARMS,
+            "weapon.mech-bastion-autocannon", 6, -1,
+            LayeredMechAppearance.ARMS_BASTION_AUTOCANNON),
+    DEMOLITION_CANNON("Demolition cannon", MountFamily.ARMS,
+            "weapon.mech-demolition-cannon", 1, 5,
+            LayeredMechAppearance.ARMS_DEMOLITION_CANNON),
 
     SRM_5("SRM-5", MountFamily.SHOULDER, "weapon.mech-srm-pod",
             2, 6, LayeredMechAppearance.POD_SMALL_SRM),
@@ -34,7 +40,10 @@ public enum MechWeaponComponent {
             5, 3, LayeredMechAppearance.POD_LARGE_LRM),
     SHOULDER_LASER_CANNON("Shoulder laser cannon", MountFamily.SHOULDER,
             "weapon.mech-shoulder-laser", 1, -1,
-            LayeredMechAppearance.POD_SHOULDER_LASER);
+            LayeredMechAppearance.POD_SHOULDER_LASER),
+    THERMAL_LANCE("Thermal lance", MountFamily.SHOULDER,
+            "weapon.mech-thermal-lance", 1, -1,
+            LayeredMechAppearance.POD_THERMAL_LANCE);
 
     public enum MountFamily { ARMS, SHOULDER }
 
