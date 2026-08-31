@@ -158,12 +158,14 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
 
         return List.of(
                 new SnapshotArtifact("aircraft.png", sheet(aircraftPanels(map, context),
-                        "One craft, three altitudes. The shadow keeps the craft's ground "
-                                + "footprint and walks away from it as the sun's reach grows, so "
-                                + "the gap is the altitude. Engine plume omitted — own-GL, "
-                                + "unreplayable here.")),
+                        "One craft, three altitudes. The shadow is the hull's own sprite "
+                                + "laid on the ground, kept at its ground size and walking away "
+                                + "from the craft as the sun's reach grows, so the gap is the "
+                                + "altitude. Engine plume omitted — own-GL, unreplayable "
+                                + "here.")),
                 new SnapshotArtifact("bodies.png", sheet(bodyPanels(map, renderer),
-                        "What a body casts, against the same bodies with the layer left out. "
+                        "What a body casts — an ellipse leaning down-sun — against the "
+                                + "same bodies with the layer left out. "
                                 + (int) azimuth + " deg / "
                                 + (int) SunLight.DEFAULT_ELEVATION_DEGREES
                                 + " deg sun, seed " + SEED + ".")),
