@@ -101,8 +101,15 @@ codex exec -s workspace-write --skip-git-repo-check "<prompt>"
 
 ## Measured thresholds
 
-Calibrated against the shipped cells rather than chosen in advance
-(`verify_ground_variants.py --baseline`):
+Calibrated against the shipped cells rather than chosen in advance. The sheet is
+passed in rather than named inside the script, because `OneProducerPerSheetTest`
+reads a script that mentions an exported atlas as a second producer of it — the
+right law, even though this one only reads:
+
+```bash
+python art-source/tilesets/verify_ground_variants.py --baseline     mod/graphics/tilesets/Floors_Tiles.png 8,0 9,0 10,0
+```
+
 
 | | shipped range | threshold |
 |---|---|---|
@@ -115,6 +122,10 @@ picture, so passing the seam check is necessary and not sufficient — the colou
 spread is what catches a family that came back as different materials.
 
 ## Verify before believing it
+
+```bash
+python art-source/tilesets/verify_ground_variants.py     art-source/tilesets/ground-variants-raw --family regolith
+```
 
 `verify_ground_variants.py` in this folder checks the contract mechanically:
 exact size, full opacity, tile-against-self seam energy versus interior energy,

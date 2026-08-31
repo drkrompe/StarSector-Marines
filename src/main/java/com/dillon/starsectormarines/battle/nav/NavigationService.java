@@ -405,6 +405,12 @@ public final class NavigationService {
      */
     public void setPath(long id, int[] newPath) {
         World world = roster.world();
+        // A unit riding in a vehicle has no MOVEMENT to hold a path, and
+        // routing one is meaningless while it is not on the map. Giving it a
+        // path is the caller's mistake; clearing the path of something that has
+        // none is trivially already done, and callers do exactly that when an
+        // order finishes by putting the squad aboard.
+        if (roster.isRiding(id)) return;
         int[] oldPath = world.path(id);
         int oldDestX = Paths.destX(oldPath);
         int oldDestY = Paths.destY(oldPath);

@@ -20,16 +20,16 @@
     {
       "cells": [
         [
-          11,
-          0
+          0,
+          1
         ],
         [
-          12,
-          0
+          1,
+          1
         ],
         [
-          13,
-          0
+          2,
+          1
         ]
       ],
       "id": "floors.dirt"
@@ -47,6 +47,26 @@
         [
           10,
           0
+        ],
+        [
+          11,
+          0
+        ],
+        [
+          12,
+          0
+        ],
+        [
+          13,
+          0
+        ],
+        [
+          14,
+          0
+        ],
+        [
+          15,
+          0
         ]
       ],
       "id": "floors.stone"
@@ -54,15 +74,15 @@
     {
       "cells": [
         [
-          0,
+          3,
           1
         ],
         [
-          1,
+          4,
           1
         ],
         [
-          2,
+          5,
           1
         ]
       ],
@@ -146,54 +166,84 @@
     },
     {
       "col": 8,
-      "description": "stone-1",
+      "description": "regolith-1",
       "name": "floors.stone v1",
       "row": 0
     },
     {
       "col": 9,
-      "description": "stone-2",
+      "description": "regolith-2",
       "name": "floors.stone v2",
       "row": 0
     },
     {
       "col": 10,
-      "description": "stone-3",
+      "description": "regolith-3",
       "name": "floors.stone v3",
       "row": 0
     },
     {
       "col": 11,
-      "description": "dirt-1",
-      "name": "floors.dirt v1",
+      "description": "regolith-4",
+      "name": "floors.stone v4",
       "row": 0
     },
     {
       "col": 12,
-      "description": "dirt-2",
-      "name": "floors.dirt v2",
-      "row": 0
-    },
-    {
-      "col": 13,
-      "description": "dirt-3",
-      "name": "floors.dirt v3",
+      "description": "regolith-5",
+      "name": "floors.stone v5",
       "row": 0
     },
     {
       "col": 0,
+      "description": "dirt-1",
+      "name": "floors.dirt v1",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "dirt-2",
+      "name": "floors.dirt v2",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "dirt-3",
+      "name": "floors.dirt v3",
+      "row": 1
+    },
+    {
+      "col": 13,
+      "description": "regolith-6",
+      "name": "floors.stone v6",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "regolith-7",
+      "name": "floors.stone v7",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "regolith-8",
+      "name": "floors.stone v8",
+      "row": 0
+    },
+    {
+      "col": 3,
       "description": "sand-2",
       "name": "floors.sand v1",
       "row": 1
     },
     {
-      "col": 1,
+      "col": 4,
       "description": "sand-3",
       "name": "floors.sand v2",
       "row": 1
     },
     {
-      "col": 2,
+      "col": 5,
       "description": "sand-4",
       "name": "floors.sand v3",
       "row": 1

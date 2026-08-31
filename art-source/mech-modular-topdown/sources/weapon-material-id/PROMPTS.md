@@ -46,6 +46,8 @@ The laser-cannon material-ID pass was regenerated after the in-plane barrel
 redesign. Its prompt explicitly protected both focusing spars and the narrow
 cyan optical path while selecting the olive shoulder housing. After resampling
 the semantic field to the source canvas, it classifies 31.3% of the opaque
-source as paintable casing. It is intentionally not registered in the
-deterministic builder until the weapon's runtime name, shoulder layout, and
-accepted canvas are implemented together.
+source as paintable casing. Registration waited until the weapon's runtime
+name, shoulder layout, and accepted canvas could be implemented together. That
+registration is now complete:
+the builder emits `shoulder-laser-cannon.png` at `76x128` plus every faction
+casing variant from this retained semantic pass.

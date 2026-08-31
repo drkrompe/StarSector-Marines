@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — missed free flight follows weapon reach while accurate contact walks stop at the intended body.
+Updated: 2026-08-31 — authored body penetration lets a direct round retain ordered contacts before its terminal stop.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -23,6 +23,9 @@ projectile.
   low path rather than a second hidden hit roll.
 - A **contact** is a candidate physical stop along that path: a wall, crossed
   cover feature, directional cover edge, or body silhouette.
+- **Body penetration** is an authored count of accepted body contacts a direct
+  resolved round may pass through. It never permits a round through structural
+  walls, doodad blocks, or caught cover.
 - **Obscuration** is matter on the path that degrades the sight picture
   without being a contact. Smoke is the only obscurant today. It is measured
   as a depth in cells and never appears among contacts.
@@ -44,10 +47,11 @@ Unless a physical contact stops it first, a miss remains live out to one and a
 half times the firing weapon's maximum targeting range. A near target therefore
 does not give its misses an arbitrary short tail; the same weapon carries a
 stray round the same maximum distance regardless of which legal target supplied
-the aim direction. A successful aim needs contact work only through the
-intended body's predicted entry point. Walls, cover, and interposing bodies
-before that point still win, while irrelevant space behind the committed hit is
-never gathered or sorted.
+the aim direction. An ordinary successful aim needs contact work only through
+the intended body's predicted entry point. A definition with positive body
+penetration keeps the full modeled reach so the ordered walk can continue past
+that body. Walls, cover, and interposing bodies before either endpoint still
+win; only an accepted body contact may consume one penetration and continue.
 
 Weapon velocity is part of play. The aim leads a moving intended target and
 body contacts are evaluated along the same flight timeline, so a slower round
@@ -72,6 +76,14 @@ body, and a body contact may each stop the round only according to their own
 rules. A failed probabilistic catch lets the round continue, so a miss can
 strike a later physical body. Nothing may apply damage or presentation as if a
 later contact won over an earlier stop.
+
+Every accepted body contact is retained with its own position and flight time.
+Once the authored body-penetration count is exhausted, the next accepted body
+is the terminal stop. A contact-and-area weapon centers its one compact area
+payload on that terminal body or structural stop. Every actor recorded as
+physically contacted is excluded from the area payload and receives only its
+contact payload; a penetrative lane that leaves the modeled segment produces no
+phantom terminal explosion.
 
 Structural tracing follows the round's true source-to-aim segment through every
 grid-cell square it intersects and stops at the near wall boundary. The direct-

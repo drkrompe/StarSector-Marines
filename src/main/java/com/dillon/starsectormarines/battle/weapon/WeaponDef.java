@@ -55,6 +55,8 @@ public final class WeaponDef {
     public final float contactDamage;
     /** Armor penetration paired with {@link #contactDamage}; zero when no distinct contact payload exists. */
     public final float contactPenetration;
+    /** Number of actor bodies a resolved direct-fire round may pass through before the next contact stops it. */
+    public final int bodyPenetrations;
     /** Rounds per fire decision. 1 = single shot. */
     public final int burstCount;
     /** Sim-seconds between burst rounds. Ignored when {@link #burstCount} is 1. */
@@ -130,6 +132,7 @@ public final class WeaponDef {
                       String catalogRole, String catalogDescription,
                       float range, float damage, float accuracy, float cooldown,
                       float penetration, float contactDamage, float contactPenetration,
+                      int bodyPenetrations,
                       int burstCount, float burstSpacing, int projectilesPerShot,
                       float accuracyFalloff, float hitSpread, float roundVelocity,
                       float minRange, float aoeRadius, int wallDamage,
@@ -160,6 +163,7 @@ public final class WeaponDef {
         this.penetration = penetration;
         this.contactDamage = contactDamage;
         this.contactPenetration = contactPenetration;
+        this.bodyPenetrations = bodyPenetrations;
         this.burstCount = burstCount;
         this.burstSpacing = burstSpacing;
         this.projectilesPerShot = projectilesPerShot;
@@ -279,6 +283,7 @@ public final class WeaponDef {
                 (float) sim.getDouble("penetration"),
                 contact != null ? (float) contact.getDouble("damage") : 0f,
                 contact != null ? (float) contact.getDouble("penetration") : 0f,
+                sim.optInt("bodyPenetrations", 0),
                 sim.optInt("burstCount", 1),
                 (float) sim.optDouble("burstSpacing", 0.0),
                 sim.optInt("projectilesPerShot", 1),
@@ -365,6 +370,16 @@ public final class WeaponDef {
         }
         if (def.contactDamage < 0f || def.contactPenetration < 0f) {
             throw new JSONException("Weapon '" + def.id + "' contact payload cannot be negative");
+        }
+        if (def.bodyPenetrations < 0) {
+            throw new JSONException("Weapon '" + def.id + "' bodyPenetrations cannot be negative");
+        }
+        if (def.bodyPenetrations > 0
+                && (def.mount != MountClass.MECH_MOUNT || def.indirectFire
+                || def.interceptableProjectile || def.contactDamage <= 0f
+                || !(def.roundVelocity > 0f))) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' bodyPenetrations requires a direct resolved mech round with a contact payload");
         }
         if (def.interceptableProjectile && !(def.roundVelocity > 0f)) {
             throw new JSONException("Weapon '" + def.id

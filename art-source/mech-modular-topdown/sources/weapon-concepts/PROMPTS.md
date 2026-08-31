@@ -2,8 +2,8 @@
 
 Generated with the built-in ImageGen tool on 2026-08-31. The retained
 `shoulder-laser-cannon.png` is an art-first prototype for a direct-fire energy
-weapon that can occupy a shoulder missile-pod position. It has no runtime or
-mechanical authority yet.
+weapon that occupies a shoulder missile-pod position. The retained concept is
+the geometry authority for the registered runtime shoulder laser cannon.
 
 The first draft established the accepted material language but was rejected as
 geometry: its circular emitter read as firing upward out of the battlefield and
