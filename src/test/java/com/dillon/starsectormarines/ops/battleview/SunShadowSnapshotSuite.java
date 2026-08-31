@@ -94,12 +94,12 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
         System.out.println("[sun-shadows] " + relief);
         GroundSunShadowReference.PixelToWorld worldAt = pixelToWorld(window);
 
-        float azimuth = GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES;
-        float strength = GroundParallaxPipeline.DEFAULT_SUN_SHADOW_STRENGTH;
+        float azimuth = SunLight.DEFAULT_AZIMUTH_DEGREES;
+        float strength = SunLight.DEFAULT_SHADOW_STRENGTH;
 
         List<Panel> ladder = new ArrayList<>();
         ladder.add(new Panel(ground, "no sun (control)"));
-        for (float elevation : new float[]{20f, GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES, 65f}) {
+        for (float elevation : new float[]{20f, SunLight.DEFAULT_ELEVATION_DEGREES, 65f}) {
             ladder.add(new Panel(
                     GroundSunShadowReference.shade(ground, field, worldAt,
                             azimuth, elevation, strength, tallest),
@@ -112,7 +112,7 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
         for (float bearing : new float[]{45f, 135f, 315f}) {
             bearings.add(new Panel(
                     GroundSunShadowReference.shade(ground, field, worldAt,
-                            bearing, GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
+                            bearing, SunLight.DEFAULT_ELEVATION_DEGREES,
                             strength, tallest),
                     String.format(Locale.ROOT, "%.0f deg bearing", bearing)));
         }
@@ -121,14 +121,14 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("roof-breach.png", sheet(breachPanels(map, renderer),
                         "A roof is what a building casts with. Same map, same "
                                 + (int) azimuth + " deg / "
-                                + (int) GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES
+                                + (int) SunLight.DEFAULT_ELEVATION_DEGREES
                                 + " deg sun, seed " + SEED + ".")),
                 new SnapshotArtifact("elevation-ladder.png", sheet(ladder,
                         "Sun elevation sets reach. Same map, same bearing "
                                 + (int) azimuth + " deg, seed " + SEED + ".")),
                 new SnapshotArtifact("bearing.png", sheet(bearings,
                         "Bearing sets direction. Same map, same "
-                                + (int) GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES
+                                + (int) SunLight.DEFAULT_ELEVATION_DEGREES
                                 + " deg elevation, seed " + SEED + ".")));
     }
 
@@ -188,9 +188,9 @@ public final class SunShadowSnapshotSuite implements SnapshotSuite {
     private BufferedImage shade(BufferedImage ground, MacroReliefField relief,
                                 GroundSunShadowReference.PixelToWorld worldAt) {
         return GroundSunShadowReference.shade(ground, relief::metersAt, worldAt,
-                GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES,
-                GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
-                GroundParallaxPipeline.DEFAULT_SUN_SHADOW_STRENGTH, relief.tallestMeters());
+                SunLight.DEFAULT_AZIMUTH_DEGREES,
+                SunLight.DEFAULT_ELEVATION_DEGREES,
+                SunLight.DEFAULT_SHADOW_STRENGTH, relief.tallestMeters());
     }
 
     /** The biggest roof in frame, so the hole is large enough to read at this zoom. */

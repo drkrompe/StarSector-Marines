@@ -143,10 +143,10 @@ class GroundSunShadowTest {
         GroundParallaxPipeline pipeline = new GroundParallaxPipeline();
 
         for (float elevation : new float[]{
-                GroundParallaxPipeline.MIN_SUN_ELEVATION_DEGREES,
-                GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
-                GroundParallaxPipeline.MAX_SUN_ELEVATION_DEGREES}) {
-            pipeline.setSunElevationDegrees(elevation);
+                SunLight.MIN_ELEVATION_DEGREES,
+                SunLight.DEFAULT_ELEVATION_DEGREES,
+                SunLight.MAX_ELEVATION_DEGREES}) {
+            pipeline.sun().setElevationDegrees(elevation);
             assertTrue(pipeline.heightPadCells() >= Math.ceil(pipeline.shadowRangeCells()),
                     "at " + elevation + " degrees the margin must cover the march");
         }
@@ -155,11 +155,11 @@ class GroundSunShadowTest {
     @Test
     void turningShadowsOffGivesBackTheOrdinaryHalo() {
         GroundParallaxPipeline pipeline = new GroundParallaxPipeline();
-        pipeline.setSunElevationDegrees(GroundParallaxPipeline.MIN_SUN_ELEVATION_DEGREES);
+        pipeline.sun().setElevationDegrees(SunLight.MIN_ELEVATION_DEGREES);
         assertTrue(pipeline.heightPadCells() > VisibleCellRect.GEOMETRY_MARGIN_CELLS,
                 "a low sun should have grown the margin in the first place");
 
-        pipeline.setSunShadowStrength(0f);
+        pipeline.sun().setShadowStrength(0f);
         assertEquals(0f, pipeline.shadowRangeCells(), 1e-6f);
         assertEquals(VisibleCellRect.GEOMETRY_MARGIN_CELLS, pipeline.heightPadCells(),
                 "shadows off must cost neither the margin's fill nor its memory");
@@ -168,9 +168,9 @@ class GroundSunShadowTest {
     @Test
     void theMarchIsBoundedEvenAtTheLowestSunTheDialAllows() {
         GroundParallaxPipeline pipeline = new GroundParallaxPipeline();
-        pipeline.setSunElevationDegrees(0f); // clamps to the floor
-        assertEquals(GroundParallaxPipeline.MIN_SUN_ELEVATION_DEGREES,
-                pipeline.sunElevationDegrees(), 1e-4f);
+        pipeline.sun().setElevationDegrees(0f); // clamps to the floor
+        assertEquals(SunLight.MIN_ELEVATION_DEGREES,
+                pipeline.sun().elevationDegrees(), 1e-4f);
         assertTrue(pipeline.shadowRangeCells() <= GroundParallaxPipeline.MAX_SHADOW_RANGE_CELLS,
                 "the tangent must not be allowed to run away");
     }
