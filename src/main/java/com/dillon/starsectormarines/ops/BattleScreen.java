@@ -1117,11 +1117,11 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private void handleCameraInput(List<InputEventAPI> events) {
         cameraControls.process(events, camera, CameraControls.PointerSpace.SCREEN,
-                this::requestSelectedTacticalMove);
+                this::requestSelectedTacticalOrder);
     }
 
-    /** Queues a one-shot exact-mech or infantry-squad tactical move. */
-    private void requestSelectedTacticalMove(float screenX, float screenY) {
+    /** Queues an exact-mech move or context-resolved infantry squad order. */
+    private void requestSelectedTacticalOrder(float screenX, float screenY) {
         BattleSimulation sim = getSim();
         if (sim == null || camera == null) return;
         if (battleChromeBlocksWorldPointer(screenX, screenY)) return;

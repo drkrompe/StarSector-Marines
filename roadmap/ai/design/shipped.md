@@ -37,3 +37,4 @@ Mission Command shipped ledger.
 | `30-mech-formation-discipline.md` | 2026-08-22 | `861a5bf1` | `ai-nouns.md` |
 | `31-adaptive-squad-formations.md` | 2026-08-22 | `4c0864d9` | `ai-nouns.md` |
 | `squad-tactical-move-order.md` | 2026-08-31 | this change | `ai-nouns.md` |
+| `squad-contextual-capture-order.md` | 2026-08-31 | this change | `ai-nouns.md`, `conquest-nouns.md` |
