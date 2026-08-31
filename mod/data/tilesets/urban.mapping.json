@@ -49,7 +49,7 @@
     "ROCK": {
       "NATURE_GRASSLAND": {
         "groundPool": [
-          { "kind": "STONE", "w": 45 }, { "kind": "DIRT", "w": 40 }, { "kind": "RUBBLE", "w": 15 }
+          { "kind": "STONE", "w": 100 }
         ],
         "plantChance": 0.0,
         "rockChance": 0.20,
@@ -58,7 +58,7 @@
       },
       "NATURE_BEACH": {
         "groundPool": [
-          { "kind": "STONE", "w": 55 }, { "kind": "DIRT", "w": 45 }
+          { "kind": "STONE", "w": 100 }
         ],
         "plantChance": 0.0,
         "rockChance": 0.22,
@@ -69,7 +69,7 @@
     "ARID": {
       "NATURE_GRASSLAND": {
         "groundPool": [
-          { "kind": "SAND", "w": 55 }, { "kind": "DIRT", "w": 35 }, { "kind": "STONE", "w": 10 }
+          { "kind": "SAND", "w": 100 }
         ],
         "plantChance": 0.0,
         "rockChance": 0.14,

@@ -41,6 +41,12 @@ Updated: 2026-08-31 — a vehicle can carry a named squad rather than a count;
 mounting narrows a unit instead of deleting it, and a ride ends the objective
 but not the claim.
 
+Updated: 2026-08-31 — mounting and dismounting are contextual right-click
+orders on the vehicle itself rather than buttons.
+
+Updated: 2026-08-31 — the pointer says which contextual order a right-click
+would issue, resolved through the same services the order systems use.
+
 ## Purpose and boundary
 
 A convoy is the battle-layer **ground delivery means**: it brings a
@@ -368,6 +374,29 @@ it planned before.
   entity id, so the order system is where that is decided rather than the
   picker; an enemy vehicle is a target, not a unit, and asking it to move is
   refused the same way any other impossible order is.
+- **The vehicle is the target, and what a click means follows from what is in
+  it.** Pointing a squad at a friendly transport with room is an order to get
+  in — it walks over and boards, and the destination follows the vehicle rather
+  than staying where the click landed, because a vehicle is not a cell and can
+  drive off while the squad is still walking. Pointing a loaded transport at
+  itself is an order to unload; pointing an empty one at itself is an ordinary
+  move. None of it needs a button, which is the grammar Red Alert 2 settled and
+  there is no reason to re-litigate.
+- **A contextual order has to be legible before it is issued.** The click means
+  different things over different ground, and nothing on screen says so until
+  after the fact — which makes a good interaction an undiscoverable one. The
+  pointer therefore carries the verb it would perform, and stays silent for an
+  ordinary move, which is the default and would only be noise.
+- That preview asks the same services the order systems ask, never a second copy
+  of the rule. A cursor that offers a ride the order then refuses is worse than
+  a cursor that says nothing, so "can this squad board that vehicle" and "is
+  this click on that hull" each have exactly one implementation, and the
+  cursor's promise is tested against what the click actually does rather than
+  against itself.
+- Boarding is all or nothing on the squad, and "all" means the squad rather
+  than the seats. A squad ordered to a vehicle arrives strung out in formation,
+  so admitting whoever got there first boards one marine and leaves the rest
+  standing in the road with the order marked done.
 - A move order owns locomotion and nothing else. The turret, the payload, and
   the delivery obligation are untouched, and releasing the order hands the
   vehicle straight back to the errand it was on.

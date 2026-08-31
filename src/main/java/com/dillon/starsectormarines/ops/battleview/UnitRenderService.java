@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.AnimationClip;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.GroundWreck;
@@ -294,14 +295,21 @@ public final class UnitRenderService implements RenderSystem {
         }
 
         String hullId = airframe.renderHullId();
-        float alongPx = HullFootprintResolver.visualLengthCells(hullId) * cellPx;
+        // Ground scale, matching the intact hull emitHull draws: the wreck is
+        // that same hull's own pieces, and a wreck a third smaller than the
+        // aircraft that stood there a second earlier would read as a second,
+        // smaller object rather than the same one broken.
+        float alongPx = HullFootprintResolver.visualLengthCells(hullId) * cellPx
+                * AirAppearance.GROUND_SCALE;
         float acrossPx = alongPx * cache.aspect;
         float[] pivot = HullPivotResolver.pivotOffset(hullId);
+        float pvx = pivot[0] * AirAppearance.GROUND_SCALE;
+        float pvy = pivot[1] * AirAppearance.GROUND_SCALE;
         float rad = (float) Math.toRadians(facingDegrees);
         float faceCos = (float) Math.cos(rad);
         float faceSin = (float) Math.sin(rad);
-        float baseX = cam.cellToScreenX(padCellX + pivot[0] * faceCos - pivot[1] * faceSin);
-        float baseY = cam.cellToScreenY(padCellY + pivot[0] * faceSin + pivot[1] * faceCos);
+        float baseX = cam.cellToScreenX(padCellX + pvx * faceCos - pvy * faceSin);
+        float baseY = cam.cellToScreenY(padCellY + pvx * faceSin + pvy * faceCos);
 
         HullBreakup breakup = wreckFor(wreckKey, seedX, seedY, hullId);
         for (HullBreakup.Piece piece : breakup.pieces()) {
@@ -438,6 +446,13 @@ public final class UnitRenderService implements RenderSystem {
      * airframe and facing as plain values rather than a berth is what lets a
      * {@link GroundWreck} — which has no berth under it — draw through the
      * same code as a parked or pad-wrecked one.
+     *
+     * <p>Drawn at {@link AirAppearance#GROUND_SCALE} — the same size an air
+     * entity draws at {@code altitudeT == 0} — so a launch or a recovery hands
+     * off between this hull and {@code ShuttleRenderSystem}'s without a pop.
+     * The pivot offset is scaled the same way {@code ShuttleRenderSystem}
+     * scales its own: it is a vector in the hull's own drawn frame, so an
+     * unscaled pivot on a scaled hull anchors the sprite off its pad.
      */
     private void emitHull(DrawList out, BattleCamera cam, Airframe airframe, float facingDegrees,
                           float centerCellX, float centerCellY, float cellPx,
@@ -449,9 +464,12 @@ public final class UnitRenderService implements RenderSystem {
         float rad = (float) Math.toRadians(facingDegrees);
         float c = (float) Math.cos(rad);
         float sn = (float) Math.sin(rad);
-        float cx = cam.cellToScreenX(centerCellX + pivot[0] * c - pivot[1] * sn);
-        float cy = cam.cellToScreenY(centerCellY + pivot[0] * sn + pivot[1] * c);
-        emitWholeSprite(out, cache, facingDegrees, hullLenCells * cellPx,
+        float pvx = pivot[0] * AirAppearance.GROUND_SCALE;
+        float pvy = pivot[1] * AirAppearance.GROUND_SCALE;
+        float cx = cam.cellToScreenX(centerCellX + pvx * c - pvy * sn);
+        float cy = cam.cellToScreenY(centerCellY + pvx * sn + pvy * c);
+        emitWholeSprite(out, cache, facingDegrees,
+                hullLenCells * cellPx * AirAppearance.GROUND_SCALE,
                 cx, cy, r, g, b, alphaMult);
     }
 
@@ -981,9 +999,10 @@ public final class UnitRenderService implements RenderSystem {
                 bodyPx = DroneHub.VISUAL_CELLS * cellPx;
             } else if (type.isBasedAircraft()) {
                 AirfieldService.Berth berth = ctx.sim.getAirfieldService().berthOf(u);
-                bodyPx = (berth != null
+                bodyPx = berth != null
                         ? HullFootprintResolver.visualLengthCells(berth.airframe.renderHullId())
-                        : 1f) * cellPx;
+                                * AirAppearance.GROUND_SCALE * cellPx
+                        : cellPx;
             } else {
                 bodyPx = unitSize * appearance.renderScale;
             }

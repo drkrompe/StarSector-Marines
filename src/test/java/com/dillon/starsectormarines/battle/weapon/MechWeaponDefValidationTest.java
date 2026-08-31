@@ -38,6 +38,37 @@ class MechWeaponDefValidationTest {
         assertThrows(JSONException.class, () -> WeaponDef.parse(json));
     }
 
+    @Test
+    void directResolvedMechRoundMayAuthorBodyPenetrationWithContactPayload() throws Exception {
+        JSONObject json = directContactWeapon();
+        json.getJSONObject("sim").put("bodyPenetrations", 1);
+
+        assertDoesNotThrow(() -> WeaponDef.parse(json));
+    }
+
+    @Test
+    void bodyPenetrationRejectsIndirectOrPayloadlessDefinitions() throws Exception {
+        JSONObject indirect = mechWeapon();
+        indirect.getJSONObject("sim").put("bodyPenetrations", 1);
+        assertThrows(JSONException.class, () -> WeaponDef.parse(indirect));
+
+        JSONObject payloadless = directContactWeapon();
+        payloadless.getJSONObject("sim").remove("contact");
+        payloadless.getJSONObject("sim").put("bodyPenetrations", 1);
+        assertThrows(JSONException.class, () -> WeaponDef.parse(payloadless));
+    }
+
+    private static JSONObject directContactWeapon() throws Exception {
+        JSONObject json = mechWeapon();
+        JSONObject sim = json.getJSONObject("sim");
+        sim.remove("arcHeight");
+        sim.remove("interceptableProjectile");
+        sim.remove("indirectFire");
+        sim.remove("noLosAccuracyMult");
+        sim.put("contact", new JSONObject().put("damage", 20).put("penetration", 8));
+        return json;
+    }
+
     private static JSONObject mechWeapon() throws Exception {
         return new JSONObject("""
                 {

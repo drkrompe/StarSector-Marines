@@ -22,11 +22,12 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * that drives this data is {@link AirSystem}'s state-machine tick — this is pure
  * data.
  *
- * <p>Lifecycle: PENDING (waiting on stagger) → INCOMING (steering from off-map
- * entry to LZ) → PAD_DESCENT (settling onto it) → LANDED (deboarding marines
- * or awaiting rescue passengers) → DEPARTING (steering to exit) → GONE. With
- * {@link #totalCycles} &gt; 1 the shuttle re-enters PENDING after DEPARTING and
- * flies another sortie.
+ * <p>Lifecycle: PENDING (waiting on stagger) → optional LOADING → optional
+ * PAD_ASCENT (climbing off a hardstand) → INCOMING (steering from the entry
+ * point to the LZ) → PAD_DESCENT (settling onto it) → LANDED (deboarding
+ * marines or awaiting rescue passengers) → DEPARTING (steering to exit) →
+ * GONE. With {@link #totalCycles} &gt; 1 the shuttle re-enters PENDING after
+ * DEPARTING and flies another sortie.
  */
 public final class ShuttleMission {
 
@@ -319,14 +320,33 @@ public final class ShuttleMission {
     public int goAroundsFlown;
 
     /**
-     * Sim-seconds left in a vertical settle onto a pad.
+     * Sim-seconds spent so far in the current pad phase — {@link ShuttleState#PAD_ASCENT}
+     * or {@link ShuttleState#PAD_DESCENT}. Reset to 0 on entry to either.
      *
-     * <p>What a helicopter does at the end of an approach and what the arrival
-     * used to skip: the craft holds over the spot, kills its drift, and sinks
-     * onto it. Counted down rather than derived from height so the descent
-     * takes the same time whatever height the run in left the craft at.
+     * <p>The ascent's climb is timed directly off this: there is nothing
+     * physical to wait for in a vertical climb held over one spot, so its
+     * height is simply this elapsed time normalised against how long a climb
+     * takes. The descent reads it only as a safety bound — its actual
+     * completion is a condition on the body ({@link #padDescentEntrySpeed}
+     * and the craft's live position), never this clock, because a clock
+     * raced against a bus-tier hull's gentle brakes is exactly the fault this
+     * field used to cause: the settle ended on a stated duration regardless of
+     * whether the craft had actually killed its speed, so a heavy hull was
+     * snapped to a stop still travelling. What is left of the clock here is
+     * only the guard against a settle that, for some reason, never converges —
+     * see {@code AirSystem#MAX_PAD_SETTLE_SEC}.
      */
-    public float settleTimer;
+    public float padPhaseElapsed;
+
+    /**
+     * The craft's speed at the moment it entered {@link ShuttleState#PAD_DESCENT}.
+     *
+     * <p>The descent's visible height is driven by how much of that speed is
+     * still left — 1 at entry, 0 once the drift is killed — rather than by a
+     * clock, so what the eye sees sinking is tied to the same quantity the
+     * settle is actually waiting on.
+     */
+    public float padDescentEntrySpeed;
 
     /** The threshold this approach is aimed at — where the aircraft flies itself onto the strip. */
     public float touchdownX, touchdownY;
@@ -481,11 +501,26 @@ public final class ShuttleMission {
      * ground crew inside its own perimeter — the last place a hull-mounted
      * autocannon should be hunting for targets, and not somewhere a
      * fifty-cell air search should be sweeping from either.
+     *
+     * <p>Written as an exhaustive switch rather than the list this used to be.
+     * The list once read INCOMING, PAD_DESCENT, LANDED, DEPARTING, RETURNING —
+     * every phase that existed when it was written — and {@link ShuttleState#ATTACK_RUN}
+     * and {@link ShuttleState#REPOSITION} were added afterwards and simply
+     * never got a mention, which made a strike aircraft's whole time on
+     * station invisible to fog reveal and mute on its own turrets. A switch
+     * with no {@code default} forces every phase this enum ever grows to be
+     * placed on one side or the other before the project compiles again; a
+     * list just grows a hole.
      */
     public boolean isOverTheBattle() {
-        return state == ShuttleState.INCOMING || state == ShuttleState.PAD_DESCENT
-                || state == ShuttleState.LANDED || state == ShuttleState.DEPARTING
-                || state == ShuttleState.RETURNING;
+        return switch (state) {
+            case PENDING, GONE,
+                 LOADING, PAD_ASCENT,
+                 TAXI_OUT, HOLDING_SHORT, TAKEOFF_ROLL,
+                 LANDING_ROLL, TAXI_IN -> false;
+            case INCOMING, PAD_DESCENT, ATTACK_RUN, REPOSITION,
+                 LANDED, DEPARTING, RETURNING -> true;
+        };
     }
 
     /**
