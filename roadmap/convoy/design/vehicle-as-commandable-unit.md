@@ -1,12 +1,12 @@
 # Direction: a vehicle is a unit the player can order
 
-Status: ACTIVE — steps 1 and 2 landed; only a player-owned chassis remains.
-Read `convoy-nouns.md` first.
+Status: SHIPPED — a player-owned chassis can be selected and ordered.
+Read `convoy-nouns.md` first, which now carries the standing model.
 
 Written: 2026-08-31
 
-Updated: 2026-08-31 — the control layer takes a route and a `VehicleLeg`, and
-vehicles accept move orders; what remains is a chassis the player owns.
+Updated: 2026-08-31 — all three steps landed. What remains is content and
+tuning (other chassis, campaign gating), not model work.
 
 The destination: the player selects a vehicle on the battlefield, right-clicks
 a cell, and the vehicle does its best to get there. Not a delivery being
@@ -103,14 +103,18 @@ Two consequences, and they are the actual design work:
   good play when the player can see why; it is a bug when the truck silently
   stops.
 
-## Prerequisite that is not movement
+## Where a player's chassis comes from
 
-Every vehicle on the field today belongs to the defender: `ConvoyMeans` is a
-defender reinforcement means. "Select the APC and move it" therefore needs a
-marine-side vehicle to exist at all, which is `vehicle-variants.md`'s concern
-rather than this one. The movement work can land first and be exercised against
-defender vehicles in a harness; the feature is not playable until a player owns
-a chassis.
+Delivered, like the mech lance it shares a carrier with: an **Armour Support**
+command power flies a heavy transport to a chosen landing zone and sets one
+`HEAVY_APC` down. That reuses the whole shuttle lifecycle — the carrier is
+exposed on the way in and can be shot down with the vehicle aboard — and needs
+no new campaign plumbing beyond the hull that already grants the mech lance.
+
+What comes off the ramp is not a squad. It is a chassis in the `DEPLOYED` state
+with nothing to do, which is exactly the thing the rest of this document was
+built to command. Other chassis and the campaign gating that decides who gets
+one belong to `vehicle-variants.md`.
 
 ## Sequence
 
@@ -122,7 +126,9 @@ a chassis.
    hard refusal and a reachability answer that accounts for turning room.~~
    **Landed.** `VehicleMoveOrderService`/`System`, refusal reasons carried to
    the overlay, and the give-up that replaces the silent permanent hold.
-3. **A marine-side vehicle** to command.
+3. ~~**A marine-side vehicle** to command.~~ **Landed.** An Armour Support
+   command power sets a marine `HEAVY_APC` down at a chosen landing zone in the
+   `DEPLOYED` state, and ownership is enforced where orders are acted on.
 
 Ordering matters: (2) is small once (1) is done and awkward before it, and (3)
 is independent of both.

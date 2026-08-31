@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.MarineInsertion;
+import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.ReconPing;
@@ -22,8 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PowerCatalogTest {
 
     @Test
-    void valkyrieCommitsBothGroundSupportCapabilities() {
-        assertEquals(List.of(MechSupport.ID, MarineInsertion.ID),
+    void valkyrieCommitsEveryGroundSupportCapabilityItCarries() {
+        // The heavy transport that brings a mech lance down also brings the
+        // armour: same carrier, same delivery, so it grants all three.
+        assertEquals(List.of(MechSupport.ID, MarineInsertion.ID, VehicleSupport.ID),
                 PowerCatalog.contributedPowerIds("valkyrie", Set.of()));
     }
 

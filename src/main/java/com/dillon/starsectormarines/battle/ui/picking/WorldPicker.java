@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ui.picking;
 
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -93,6 +94,11 @@ public final class WorldPicker implements HudPanel {
         for (long id : ids) {
             VehicleMission v = convoy.mission(id);
             if (v == null || !v.isVisible()) continue;
+            // Selection is the front door to commanding a vehicle, so it is
+            // the player's own chassis or nothing. An enemy APC is a target,
+            // not a unit, and picking one would have handed the right-click
+            // dispatch somebody else's vehicle to order about.
+            if (convoy.faction(id) != Faction.MARINE) continue;
             GroundBody body = convoy.body(id);
             float dx = body.x - worldX;
             float dy = body.y - worldY;
