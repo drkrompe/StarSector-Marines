@@ -19,11 +19,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * A vehicle bay builds machines out of the work its technicians actually do,
- * and out of nothing else.
+ * and out of nothing else — onto a body anybody can shoot.
  *
  * <p>This is the whole claim of the feature and the one thing about it worth
  * protecting. A shed that turned out a machine every so many seconds would be a
@@ -35,8 +36,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * machines.
  *
  * <p>So the control is half the test rather than an afterthought: the same shed,
- * the same berths, the same stocks, nobody in it. If that one advances too, the
- * measurement is of the clock.
+ * the same berths, nobody in it. If that one builds too, the measurement is of
+ * the clock.
+ *
+ * <p>The other half is the body. A machine on the stocks is a unit whose
+ * structure is how built it is, so welding is putting it together and a marine's
+ * fire is taking it apart, and neither needs a rule of its own.
  */
 class AShedBuildsWhatItsCrewWorksTest {
 
@@ -48,7 +53,7 @@ class AShedBuildsWhatItsCrewWorksTest {
     private static final int BAY_W = 20;
     private static final int BAY_H = 12;
 
-    /** A shed with a crew in it advances its build; the same shed empty does not. */
+    /** A shed with a crew in it builds; the same shed empty does not. */
     @Test
     void theWorkIsTheCrewsAndNobodyElsesClock() {
         Shed manned = shed(true);
@@ -61,11 +66,12 @@ class AShedBuildsWhatItsCrewWorksTest {
         run(manned, 60f);
         run(empty, 60f);
 
-        assertTrue(handSeconds(manned) > 0f,
-                "a minute of a manned shed advanced its build not at all");
-        assertEquals(0f, handSeconds(empty), 0f,
-                "an empty shed built " + handSeconds(empty)
-                        + " hand-seconds of machine on its own");
+        assertTrue(manned.works.bays().get(0).hasFrame(),
+                "a minute of a manned shed put nothing on its stocks at all");
+        assertTrue(structureBuilt(manned) > keel(manned),
+                "the crew laid a keel and then welded nothing onto it");
+        assertFalse(empty.works.bays().get(0).hasFrame(),
+                "a shed with nobody in it laid a keel by itself");
     }
 
     /**
@@ -85,35 +91,82 @@ class AShedBuildsWhatItsCrewWorksTest {
 
         run(shed, seconds);
 
-        float credited = handSeconds(shed);
-        float ifEverybodyWelded = shed.crew.size() * seconds;
-        assertTrue(credited < ifEverybodyWelded,
-                "every hand in the bay was credited for the whole minute (" + credited
+        float welded = structureBuilt(shed) - keel(shed);
+        float ifEverybodyWelded = shed.crew.size() * seconds
+                * FabricationService.STRUCTURE_PER_HAND_SECOND;
+        assertTrue(welded < ifEverybodyWelded,
+                "every hand in the bay was credited for the whole minute (" + welded
                         + " of a possible " + ifEverybodyWelded + "), so the rotation"
                         + " is not being read");
     }
 
     /**
-     * A finished bay puts an ordinary machine on one of its berths.
+     * A machine finished is a machine off the stocks and an ordinary unit in its
+     * place.
      *
-     * <p>The work is set to done rather than waited for, because how long a
-     * machine takes is a tuning figure and this is about what happens when it is
-     * finished. What matters is that the thing that comes out is a unit like any
-     * other, on the side that built it, standing where a machine stands.
+     * <p>The structure is set to whole rather than waited for, because how long
+     * a machine takes is a tuning figure and this is about what happens when it
+     * is done. What matters is that the frame goes and a chassis of the side
+     * that built it stands where it stood — not both, which would be a garrison
+     * gaining a mech and keeping the scaffolding.
      */
     @Test
-    void aFinishedBayRollsAMachineOut() {
+    void aFinishedMachineComesOffTheStocks() {
         Shed shed = shed(true);
         assertEquals(0, mechs(shed), "the bay had a machine in it before it built one");
 
-        shed.works.work(shed.works.bays().get(0).siteId,
-                FabricationService.HAND_SECONDS_PER_MACHINE);
-        run(shed, 1f);
+        run(shed, 2f);
+        FabricationService.Works bay = shed.works.bays().get(0);
+        assertTrue(bay.hasFrame(), "the crew laid nothing to finish");
+        long frame = bay.frameId;
+        shed.sim.world().setHp(frame, shed.sim.world().maxHp(frame));
+        run(shed, BattleSimulation.TICK_DT);
 
-        assertEquals(1, mechs(shed), "the finished build did not come out of the bay");
-        assertEquals(1, shed.works.bays().get(0).completed, "the bay did not count its output");
-        assertTrue(shed.works.bays().get(0).worked < FabricationService.HAND_SECONDS_PER_MACHINE,
-                "the bay kept its finished work rather than laying the next machine down");
+        assertEquals(1, mechs(shed), "the finished machine did not come out of the bay");
+        assertEquals(1, bay.completed, "the bay did not count its output");
+        assertFalse(shed.sim.getRoster().isLive(frame),
+                "the frame is still standing in the gantry beside the machine it became");
+    }
+
+    /**
+     * A machine shot on the stocks is work lost.
+     *
+     * <p>This is what a body is for. Nothing is refunded and nothing is
+     * remembered: the crew comes back to an empty gantry and starts from a keel,
+     * which is what makes an attacker's rounds worth spending on the building
+     * rather than only on the people in it.
+     */
+    @Test
+    void aMachineShotOnTheStocksIsWorkLost() {
+        Shed shed = shed(true);
+        run(shed, 30f);
+
+        FabricationService.Works bay = shed.works.bays().get(0);
+        assertTrue(bay.hasFrame(), "there was nothing on the stocks to shoot");
+        long frame = bay.frameId;
+        float built = shed.sim.world().hp(frame);
+        assertTrue(built > keel(shed), "the machine had not been worked on yet");
+
+        shed.sim.applyDamage(frame, shed.sim.world().maxHp(frame) * 2f, 1f);
+        run(shed, BattleSimulation.TICK_DT);
+
+        assertFalse(shed.sim.getRoster().isLive(frame),
+                "the frame survived twice its own structure");
+        assertEquals(0, bay.completed, "a destroyed machine was counted as output");
+
+        // Caught on the tick it appears. Nobody lays a keel from the stores or
+        // the readout, so the crew starts again on their own cadence rather than
+        // on the tick the wreck was cleared — and by the time a fixed wait was
+        // over they would have welded the replacement past the point the
+        // question is about.
+        long replacement = layNext(shed, bay, 30f);
+        assertTrue(replacement != 0L, "the crew never started again");
+        assertNotEquals(frame, replacement, "the destroyed machine came back");
+        assertTrue(shed.sim.world().hp(replacement)
+                        <= keel(shed) + FabricationService.STRUCTURE_PER_HAND_SECOND,
+                "the replacement started at " + shed.sim.world().hp(replacement)
+                        + " rather than at a keel, so the "  + built
+                        + " points the destroyed machine had were refunded");
     }
 
     /** A field shed lays down light chassis and not an assault one. */
@@ -127,16 +180,41 @@ class AShedBuildsWhatItsCrewWorksTest {
                         + shed.works.bays().get(0).chassis.displayName);
     }
 
-    /** Every berth of a working bay is occupied, which is what makes it a posting. */
+    /**
+     * A bay offers servicing where its machine stands, and not at its empty
+     * gantries.
+     *
+     * <p>Both halves. Without the first the room is nobody's posting and the
+     * shed generates furnished and unstaffed; without the second the crew is
+     * sent to weld on empty air, which is the mistake the berth-bound link
+     * exists to prevent, arrived at from the generous end.
+     */
     @Test
-    void aWorkingBayHasItsBerthsFull() {
+    void aBayOffersServicingWhereTheMachineIs() {
         Shed shed = shed(false);
 
         boolean[] berthed = shed.works.berthed();
         assertEquals(2, berthed.length);
-        for (int berth = 0; berth < berthed.length; berth++) {
-            assertTrue(berthed[berth], "berth " + berth + " of a working bay stands empty,"
-                    + " so the bay publishes no servicing and is nobody's posting");
+        int stocks = shed.works.bays().get(0).stocks;
+        assertTrue(berthed[stocks],
+                "the berth the machine stands in publishes no servicing,"
+                        + " so the bay is nobody's posting");
+        assertFalse(berthed[stocks == 0 ? 1 : 0],
+                "an empty gantry is offering work on the machine in it");
+    }
+
+    /** Guards the harness itself: a bay nobody could reach would pass by default. */
+    @Test
+    void theCrewCanReachTheirOwnWork() {
+        Shed shed = shed(true);
+        run(shed, 30f);
+
+        assertFalse(shed.crew.isEmpty(), "no crew was hired at all");
+        for (long hand : shed.crew) {
+            assertTrue(shed.sim.getRoster().isLive(hand), "a technician left the roster");
+            assertTrue(shed.sim.getGrid().isWalkable(
+                            shed.sim.world().cellX(hand), shed.sim.world().cellY(hand)),
+                    "a technician is standing where there is no floor");
         }
     }
 
@@ -202,16 +280,38 @@ class AShedBuildsWhatItsCrewWorksTest {
     }
 
     /**
-     * Every hand-second this shed has ever been credited.
+     * Every point of structure this shed has ever put on a machine.
      *
-     * <p>Not the work standing on the stocks. A bay that finishes a machine
-     * clears its counter and lays the next one down, so reading the counter
-     * alone reports a shed that has just built something as a shed that has
-     * built nothing — which is the opposite of the truth and reads as a pass.
+     * <p>Not the structure standing in the gantry. A bay that finishes a machine
+     * clears its stocks, so reading the body alone reports a shed that has just
+     * built one as a shed that has built nothing — the opposite of the truth,
+     * and it reads as a pass.
      */
-    private static float handSeconds(Shed shed) {
+    private static float structureBuilt(Shed shed) {
         FabricationService.Works bay = shed.works.bays().get(0);
-        return bay.worked + bay.completed * FabricationService.HAND_SECONDS_PER_MACHINE;
+        float standing = bay.hasFrame() ? shed.sim.world().hp(bay.frameId) : 0f;
+        return standing + bay.completed * bay.chassis.maxStructure;
+    }
+
+    /** What a keel of this bay's chassis is worth, so welding can be told from laying. */
+    private static float keel(Shed shed) {
+        return shed.works.bays().get(0).chassis.maxStructure
+                * FabricationService.KEEL_FRACTION;
+    }
+
+    /**
+     * Tick until this bay has something on its stocks again, and answer with it
+     * the moment it appears.
+     *
+     * @return the new body, or 0 if none was laid inside {@code within}
+     */
+    private static long layNext(Shed shed, FabricationService.Works bay, float within) {
+        int ticks = Math.round(within / BattleSimulation.TICK_DT);
+        for (int tick = 0; tick < ticks; tick++) {
+            shed.sim.advance(BattleSimulation.TICK_DT);
+            if (bay.hasFrame()) return bay.frameId;
+        }
+        return 0L;
     }
 
     private static void run(Shed shed, float seconds) {
@@ -228,20 +328,5 @@ class AShedBuildsWhatItsCrewWorksTest {
             if (shed.sim.identity().type(id) == UnitType.HEAVY_MECH) found++;
         }
         return found;
-    }
-
-    /** Guards the harness itself: a bay nobody could reach would pass by default. */
-    @Test
-    void theCrewCanReachTheirOwnWork() {
-        Shed shed = shed(true);
-        run(shed, 30f);
-
-        assertFalse(shed.crew.isEmpty(), "no crew was hired at all");
-        for (long hand : shed.crew) {
-            assertTrue(shed.sim.getRoster().isLive(hand), "a technician left the roster");
-            assertTrue(shed.sim.getGrid().isWalkable(
-                            shed.sim.world().cellX(hand), shed.sim.world().cellY(hand)),
-                    "a technician is standing where there is no floor");
-        }
     }
 }
