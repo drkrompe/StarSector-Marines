@@ -181,6 +181,9 @@ public final class WorldStateBuilder {
         float r2 = InfantryCohesion.COHESION_RADIUS * InfantryCohesion.COHESION_RADIUS;
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long u = sim.squadMemberAt(squad.id, i);
+            // Somebody aboard a vehicle is wherever the vehicle is, which is
+            // not a thing the squad's own cohesion has an opinion about.
+            if (sim.isRiding(u)) continue;
             float dx = sim.world().x(u) - squad.centroidX;
             float dy = sim.world().y(u) - squad.centroidY;
             if (dx * dx + dy * dy > r2) return false;

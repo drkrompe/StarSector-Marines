@@ -429,6 +429,10 @@ public final class SeparationSystem {
         }
         for (int i = 0; i < liveCount; i++) {
             if (!hasFlag(collisionFlags[i], POPULATED)) {
+                // A passenger has no position and so cannot crowd anybody. It
+                // is legitimately absent from the query; anything else missing
+                // is the corruption this check is here for.
+                if (roster.isRiding(dense[i])) continue;
                 throw new IllegalStateException(
                         "live unit missing from gridOccupants query: " + dense[i]);
             }
