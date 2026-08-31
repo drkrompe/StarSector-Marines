@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — gave the goal ladder a floor: relevance and workability
+Updated: 2026-08-31 — finished the goal ladder's floor: yielding an order is
+now a state a squad can be in rather than an absence of one, so a squad that
+declines its own assignment stands to instead of standing plan-less.
+
+Earlier 2026-08-31 — gave the goal ladder a floor: relevance and workability
 are separated, the ladder descends past a goal that cannot be planned, and
 ambient engagement is now an occupant of the idle bucket rather than a promise.
 
@@ -75,7 +79,20 @@ current knowledge. It chooses one goal and a short action sequence, then gives
 members roles within each step. A squad without an assignment remains useful:
 it falls through to ambient engagement rather than inventing a mission.
 
-**Ambient engagement** is that fall-through, and it closes on the squad's own
+**Yielding an order is a state, not an absence of one.** A mission goal may
+decline its own assignment deliberately — the zone it names turns out to be
+already clear, or unreachable — which means *hand me back*, not *I have nothing
+to do*. Those were once the same thing, because the ladder ended at the mission
+tier: a squad that correctly declined its order held no goal, no plan, and
+dropped the path it was walking, and could not recover on its own, since the
+individual tier owns no movement. **A squad is never left plan-less.** What it
+falls to is standing to: closing its scattered members up and holding, shots of
+opportunity still available, until an ordinary replan trigger or a fresh
+assignment moves it on. Standing to is a state rather than a task and therefore
+never completes — a floor that reported completion would re-enter itself every
+tick, which is the same churn plan stickiness exists to prevent.
+
+**Ambient engagement** sits above standing to and closes on the squad's own
 evidence: the freshest hostile it still believes in, or failing that the bearing
 of something it recently heard. Both halves of the law bind. A squad holding
 such a cue is never left standing — a composed squad with nothing to execute is
@@ -84,7 +101,10 @@ of its own and cannot recover from it. A squad holding no cue at all advances on
 nothing, because choosing a zone nobody assigned and going to take it is the
 squad inventing the mission this clause exists to forbid. An anonymous bearing
 is weaker evidence than a belief and expires far sooner than one: past that
-window it leads to where a fight was rather than where one is.
+window it leads to where a fight was rather than where one is. With no cue at
+all it gives way to standing to rather than advancing on nothing, because
+choosing a destination the squad has no evidence for is the mission-inventing
+this clause forbids.
 
 A **unit execution** is the per-tick realization of the assigned role. It can
 move, hold, acquire a target, or author a legal fire intent, but it does not
