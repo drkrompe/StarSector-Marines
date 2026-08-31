@@ -32,7 +32,8 @@ public final class SquadMoveOrderService {
 
     /** Accepted contextual order projected for execution and UI feedback. */
     public sealed interface ActiveOrder
-            permits ActiveMoveOrder, ActiveCaptureOrder, ActiveDefendAreaOrder {
+            permits ActiveMoveOrder, ActiveCaptureOrder, ActiveDefendAreaOrder,
+                    ActiveMountOrder {
         int requestedX();
         int requestedY();
         int destinationX();
@@ -48,6 +49,20 @@ public final class SquadMoveOrderService {
     public record ActiveCaptureOrder(int requestedX, int requestedY,
                                      int destinationX, int destinationY,
                                      TacticalNode targetNode)
+            implements ActiveOrder { }
+
+    /**
+     * Walk to a friendly vehicle and get in it.
+     *
+     * <p>The destination is where the vehicle was when the order was last
+     * refreshed rather than where it was clicked, because a vehicle is not a
+     * cell — it can drive off while the squad is still walking, and an order
+     * aimed at the ground it used to be standing on would march the squad to an
+     * empty patch of road.
+     */
+    public record ActiveMountOrder(int requestedX, int requestedY,
+                                   int destinationX, int destinationY,
+                                   long vehicleId)
             implements ActiveOrder { }
 
     /** Persistent circular player defense area centered on reachable ground. */
