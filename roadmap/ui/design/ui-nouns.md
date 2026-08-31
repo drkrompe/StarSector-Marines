@@ -4,9 +4,9 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — stationary world right-click movement now serves both an
-exact friendly Mech and a selected friendly infantry squad while preserving
-RMB-drag camera panning.
+Updated: 2026-08-31 — a stationary right-click inside an uncaptured Conquest
+compound now resolves the selected infantry squad's gesture as capture rather
+than bare ground movement.
 
 ## Purpose
 
@@ -257,8 +257,11 @@ Crossing the pointer threshold instead keeps RMB-drag camera panning, and HUD
 chrome blocks the world request behind it. A selected friendly infantry squad
 uses the same gesture and cue at squad scope, whether selection came from one
 world member or the squad roster; the surface supplies only the requested cell
-and does not mutate mission authority or combat state. Selecting a squad opens a bounded,
-scrollable GOAP diagnostic beneath the right rail;
+and does not mutate mission authority or combat state. When that cell lies
+inside an uncaptured Conquest compound, the simulation resolves the gesture to
+the compound's authoritative capture room and keeps the cue there until capture
+completes; a Marine-held compound remains ordinary ground. Selecting a squad
+opens a bounded, scrollable GOAP diagnostic beneath the right rail;
 it reports the decision sequence and predicates without reintroducing path-cell
 highlight controls or per-slot assignment inventories.
 

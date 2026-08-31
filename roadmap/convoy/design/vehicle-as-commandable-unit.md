@@ -1,8 +1,12 @@
 # Direction: a vehicle is a unit the player can order
 
-Status: ACTIVE — direction, not yet implemented. Read `convoy-nouns.md` first.
+Status: ACTIVE — steps 1 and 2 landed; only a player-owned chassis remains.
+Read `convoy-nouns.md` first.
 
 Written: 2026-08-31
+
+Updated: 2026-08-31 — the control layer takes a route and a `VehicleLeg`, and
+vehicles accept move orders; what remains is a chassis the player owns.
 
 The destination: the player selects a vehicle on the battlefield, right-clicks
 a cell, and the vehicle does its best to get there. Not a delivery being
@@ -41,6 +45,8 @@ rather than treating as a large feature.
   recovery ladder none of them know what an LZ is. They follow a corridor.
 
 ## The one structural blocker: a route is a script, not a thing
+
+*(Resolved by step 1 below; kept because it is why the rest is shaped as it is.)*
 
 `VehicleMission` describes a delivery errand — an inbound polyline, a drop
 point, an outbound polyline — and `GroundSystem` is the five-state script that
@@ -108,11 +114,14 @@ a chassis.
 
 ## Sequence
 
-1. **Dissolve `isInbound`** into a corridor plus an arrival policy on
-   `VehicleControlSystem`. Pure refactor; no behavior change; existing tests are
-   the guard.
-2. **Vehicle move orders** against the `MechMoveOrderService` template, with
-   hard refusal and a reachability answer that accounts for turning room.
+1. ~~**Dissolve `isInbound`** into a corridor plus an arrival policy on
+   `VehicleControlSystem`.~~ **Landed.** `VehicleLeg` carries the arrival
+   semantics and the route is a parameter; behavioral equivalence was checked
+   by replaying conquest seeds against the immediately preceding commit.
+2. ~~**Vehicle move orders** against the `MechMoveOrderService` template, with
+   hard refusal and a reachability answer that accounts for turning room.~~
+   **Landed.** `VehicleMoveOrderService`/`System`, refusal reasons carried to
+   the overlay, and the give-up that replaces the silent permanent hold.
 3. **A marine-side vehicle** to command.
 
 Ordering matters: (2) is small once (1) is done and awkward before it, and (3)
