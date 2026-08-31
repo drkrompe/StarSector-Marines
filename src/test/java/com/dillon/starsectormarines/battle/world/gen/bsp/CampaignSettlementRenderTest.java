@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
+import java.util.Locale;
 
 /**
  * What a settlement actually looks like once the campaign chooses its shape —
@@ -57,12 +58,19 @@ class CampaignSettlementRenderTest {
     @Test
     void renderCampaignDrivenSettlements() throws Exception {
         Files.createDirectories(OUT_DIR);
+        for (SurfacePalette palette : new SurfacePalette[]{ SurfacePalette.ROCK, SurfacePalette.ARID }) {
+            renderLadder(palette);
+        }
+    }
+
+    /** One row per market size on one world surface, beside a stock control. */
+    private void renderLadder(SurfacePalette palette) throws Exception {
         for (long seed : SEEDS) {
             BufferedImage[] tiles = new BufferedImage[SIZES.length + 1];
             tiles[0] = tile(new BspCityGenerator().generate(GRID, GRID, seed),
                     seed, "stock (no market)");
             for (int i = 0; i < SIZES.length; i++) {
-                TargetProfile profile = market(SIZES[i]);
+                TargetProfile profile = market(SIZES[i], palette);
                 // The override, because production is deliberately still on
                 // the stock recipe -- these renders are the evidence for
                 // whether that should change.
@@ -73,21 +81,22 @@ class CampaignSettlementRenderTest {
                 tiles[i + 1] = tile(map, seed, caption(profile));
             }
             BufferedImage sheet = row(tiles);
-            Path out = OUT_DIR.resolve(String.format("campaign-settlement-%04d.png", (int) seed));
+            Path out = OUT_DIR.resolve(String.format("campaign-settlement-%s-%04d.png",
+                    palette.name().toLowerCase(Locale.ROOT), (int) seed));
             ImageIO.write(sheet, "PNG", out.toFile());
             System.out.println("  wrote " + out.toAbsolutePath());
         }
     }
 
-    private static TargetProfile market(int size) {
+    private static TargetProfile market(int size, SurfacePalette palette) {
         return new TargetProfile(size, 5, 1, size >= 5 ? 1 : 0, "independent",
-                EnumSet.noneOf(EconomicFunction.class), SurfacePalette.ROCK,
+                EnumSet.noneOf(EconomicFunction.class), palette,
                 SettlementZoning.linkFor(size, false));
     }
 
     private static String caption(TargetProfile p) {
         SettlementLink link = p.link();
-        return String.format("size %d  %s  density %.2f", p.marketSize(), link,
+        return String.format("size %d  %s  %s  density %.2f", p.marketSize(), p.surface(), link,
                 SettlementZoning.densityFor(p.marketSize()));
     }
 
