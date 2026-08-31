@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
@@ -103,7 +104,8 @@ public class ConquestBattleSetupTest {
     @Test
     public void everyInfantryDefenderCarriesVariedOwningFactionIssue() {
         TargetProfile pirateWorld = new TargetProfile(
-                5, 5, 1, 1, "pirates", Set.of(), SurfacePalette.ROCK);
+                5, 5, 1, 1, "pirates", Set.of(), SurfacePalette.ROCK,
+                SettlementLink.ROAD);
         BattleSimulation sim = BattleSetup.createConquest(
                 4_269L,
                 List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1)),

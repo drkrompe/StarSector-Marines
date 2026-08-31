@@ -27,7 +27,7 @@ class DefenderFactionAxisTest {
     /** One market's read, as {@code TargetProfileResolver} would hand it over. */
     private static final TargetProfile MARKET = new TargetProfile(6, 5, 3, 1, "hegemony",
             EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.MILITARY),
-            SurfacePalette.ROCK);
+            SurfacePalette.ROCK, SettlementLink.ROAD);
 
     private static final int WIDTH = 128;
     private static final int HEIGHT = 96;
@@ -78,7 +78,7 @@ class DefenderFactionAxisTest {
         String asFortified = mapDigest(generator.generate(WIDTH, HEIGHT, SEED, AXIS,
                 new TargetProfile(MARKET.marketSize(), MARKET.stability(), 7,
                         MARKET.spaceportTier(), MARKET.factionId(), MARKET.functions(),
-                        MARKET.surface())));
+                        MARKET.surface(), MARKET.link())));
         assertNotEquals(asOwned, asFortified,
                 "defense level drives the overwatch line, so this digest must move with it");
     }

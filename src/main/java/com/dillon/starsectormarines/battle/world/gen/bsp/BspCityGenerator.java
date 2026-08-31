@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
@@ -114,6 +115,8 @@ public final class BspCityGenerator implements MapGenerator {
     private GenRecipe conquestRecipe;
     /** Legacy district-urban recipe (conquest-only stages omitted). Rebuilt alongside {@link #conquestRecipe}. */
     private GenRecipe legacyRecipe;
+    /** Explicit grown-roads override from {@link #useGrownRoads}; null means "ask the campaign". */
+    private GrownTrunkPlan.Profile grownOverride;
 
     /** Station-interior recipe — the inverted (solid-default) rooms-and-corridors map type. Selected via {@link #generateStation}. */
     private final GenRecipe stationRecipe;
@@ -346,20 +349,59 @@ public final class BspCityGenerator implements MapGenerator {
      * @return this, for chaining
      */
     public BspCityGenerator useGrownRoads(GrownTrunkPlan.Profile profile) {
-        boolean grown = profile != null;
-        GenStage trunkStage = grown ? new GrownTrunkSkeletonStage(profile) : new TrunkSkeletonStage();
-        // Omitted rather than run as a no-op on the stock path: recipe
-        // membership is how this pipeline forks, and a stage that is present
-        // but does nothing is exactly what that convention exists to avoid.
-        GenStage hinterlandStage = grown ? new HinterlandFillStage() : null;
-        // A settlement supplied by ship must hold somewhere to land; one joined
-        // by road, or one abandoned, must not be given a pad it never had.
-        GenStage landingLinkStage = (grown && profile.link == SettlementLink.LANDING)
+        this.grownOverride = profile;
+        return this;
+    }
+
+    /**
+     * The legacy recipe with the grown road skeleton in place of the fixed
+     * crossroad, plus the stages that only a grown settlement needs.
+     *
+     * <p>Built per call rather than cached, because its shape depends on the
+     * settlement: density and lifeline come from the world being fought over,
+     * and one shared pre-built recipe cannot answer for two different markets.
+     * A recipe is an immutable stage list, so this costs a couple of dozen
+     * allocations once per battle.
+     *
+     * <p><b>There is no grown conquest recipe.</b> Conquest keeps the fixed
+     * crossroad until the grown maps have been shown to play as well, so that
+     * the mission the campaign is built around does not change underneath a
+     * quality judgement that has not been made yet.
+     */
+    private GenRecipe grownLegacyRecipe(GrownTrunkPlan.Profile profile) {
+        // Omitted rather than run as no-ops: recipe membership is how this
+        // pipeline forks, and a present-but-inert stage is what that convention
+        // exists to avoid.
+        GenStage landingLinkStage = (profile.link == SettlementLink.LANDING)
                 ? new SettlementLandingLinkStage()
                 : null;
-        this.conquestRecipe = buildConquestRecipe(trunkStage, hinterlandStage, landingLinkStage);
-        this.legacyRecipe = buildLegacyRecipe(trunkStage, hinterlandStage, landingLinkStage);
-        return this;
+        return buildLegacyRecipe(new GrownTrunkSkeletonStage(profile),
+                new HinterlandFillStage(), landingLinkStage);
+    }
+
+    /**
+     * Which recipe this battle gets.
+     *
+     * <p>Conquest is pinned to the stock crossroad, and so, for now, is
+     * everything else: grown settlements are reached only through an explicit
+     * {@link #useGrownRoads} override, which is the tooling and comparison path.
+     *
+     * <p><b>The campaign already decides the shape; nothing consumes it yet.</b>
+     * {@link SettlementZoning} derives density and lifeline from the market, and
+     * {@link TargetProfile#link()} carries them, so switching production over is
+     * the one line this method is missing. It is missing on purpose. A
+     * spaceport world at its campaign-chosen density does not reliably publish
+     * a usable civilian port on a grown map — measured over five seeds, the
+     * large related apron the district contract wants appeared on four of five
+     * grown maps at density 0.55 and one of five at the density a size-5 market
+     * asks for. The stock partition manages one of five, so this is a weakness
+     * the grown path exposes rather than one it introduces, and it is the kind
+     * of thing that should be looked at before mission maps change under it.
+     */
+    private GenRecipe recipeFor(TraversalAxis axis, TargetProfile profile) {
+        if (axis != null) return conquestRecipe;
+        if (grownOverride != null) return grownLegacyRecipe(grownOverride);
+        return legacyRecipe;
     }
 
     @Override
@@ -409,7 +451,7 @@ public final class BspCityGenerator implements MapGenerator {
         // Recipe selection is the conquest/legacy fork: axis present → the full
         // conquest sequence; axis absent → the legacy district recipe (which
         // omits the conquest-only stages rather than running them as no-ops).
-        GenRecipe recipe = (axis != null) ? conquestRecipe : legacyRecipe;
+        GenRecipe recipe = recipeFor(axis, profile);
         recipe.run(ctx);
         if (axis != null) requireExactlyOneCentralKeep(ctx);
 
