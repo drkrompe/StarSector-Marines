@@ -24,15 +24,16 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
  * nine-fold apart, and a marine could stand in the middle of the hull.
  *
  * <p><b>A carried body is resolved before this and not by it.</b> A convoy
- * chassis and an airborne craft answer through their {@link BodyCarrier}, and
- * they carry no {@code IDENTITY} at all — carrying no {@code POSITION},
- * {@code COMBAT}, {@code MOVEMENT} or {@code ROLE} is exactly what keeps
- * occupancy, separation, the mover and the planner off them. So a carried body
- * cannot even feed the parameters below, and it is never a row in the
- * {@code gridOccupants} query separation walks. That is a dispatch between
- * storage families rather than a step of this precedence, which is why it sits
- * at the by-id call site: adding a carrier lookup to a hot columnar loop would
- * buy nothing and cost a probe per unit per tick.
+ * chassis and an airborne craft answer through their {@link BodyCarrier},
+ * which is a different source rather than a later step: their size comes from
+ * a vehicle type or an airframe the carrier holds, not from the columns below.
+ * They carry {@code IDENTITY} like any other body — that is what lets the
+ * ordinary paths read them — but carrying no {@code POSITION} they are never
+ * rows in the {@code gridOccupants} query separation walks, so the columnar
+ * caller cannot meet one. Dispatching to the carrier is therefore a choice
+ * between storage families, made once at the by-id call site; adding a carrier
+ * lookup to a hot columnar loop would buy nothing and cost a probe per unit
+ * per tick.
  */
 public final class BodyRadius {
 
