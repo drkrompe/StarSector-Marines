@@ -38,7 +38,11 @@ public final class AirfieldSystem {
         if (service == null || service.berths().isEmpty()) return;
         for (AirfieldService.Berth berth : service.berths()) {
             switch (berth.state) {
-                case PARKED -> {
+                // Standing on its concrete, either ready to go or being worked
+                // back up to it. One rule for both, because what is on the pad
+                // is the same aircraft either way and everything that can happen
+                // to it there can happen in both states.
+                case PARKED, REFITTING -> {
                     if (berth.airframeId != 0L && !sim.world().isAlive(berth.airframeId)) {
                         // Burned where it stood. The berth is written off for
                         // the battle, nothing replaces it, and the hulk stays
@@ -49,17 +53,8 @@ public final class AirfieldSystem {
                         settleWreck(sim, berth);
                     } else if (berth.airframeId == 0L) {
                         place(sim, service, berth);
-                    }
-                }
-                case REFITTING -> {
-                    berth.refitRemaining -= dt;
-                    if (berth.refitRemaining <= 0f) {
-                        berth.refitRemaining = 0f;
-                        berth.hullHp = service.repaired(berth);
-                        berth.state = AirfieldService.BerthState.PARKED;
-                        // Placed on the next pass through PARKED above, so
-                        // there is one rule for "a parked berth has an
-                        // aircraft on it" rather than two.
+                    } else {
+                        turnaround(sim, berth);
                     }
                 }
                 case AWAY -> {
@@ -79,6 +74,24 @@ public final class AirfieldSystem {
                 }
             }
         }
+    }
+
+    /**
+     * Keep the berth's hull in step with the aircraft standing on it, and let it
+     * off the turnaround when the crew have it back up.
+     *
+     * <p>The unit is the truth while it is standing there. A berth that kept its
+     * own number would launch an aircraft at whatever hull it landed with,
+     * however much of it had since been shot off on the pad or welded back on —
+     * which is the same figure being kept in two places and drifting the moment
+     * anything touches either.
+     */
+    private static void turnaround(BattleControl sim, AirfieldService.Berth berth) {
+        berth.hullHp = sim.world().hp(berth.airframeId);
+        if (berth.state != AirfieldService.BerthState.REFITTING) return;
+        if (berth.refitWork > 0f) return;
+        berth.refitTarget = 0f;
+        berth.state = AirfieldService.BerthState.PARKED;
     }
 
     /**
