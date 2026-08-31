@@ -56,6 +56,8 @@ public final class PendingDetonation {
     public final float directDamage;
     /** Efficiency input against actor armor for the physical contact. */
     public final float directPenetration;
+    /** Actor contacts that receive a separate contact payload and must not also receive this area payload. */
+    private final long[] areaExcludedTargetIds;
     /** Wall HP knocked off the endpoint cell on detonation. 0 = no structural damage. */
     public final int wallDamage;
     /** Faction of the firing unit. Currently unused (FF on); captured for future per-side filters. */
@@ -110,7 +112,7 @@ public final class PendingDetonation {
                 wallDamage, shooterFaction, aerialDelivery,
                 /*wallDamageRadius*/ 0f, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false,
                 /*directTargetId*/ 0L, /*directDamage*/ 0f, /*directPenetration*/ 0f,
-                /*authoredAftermath*/ false);
+                /*authoredAftermath*/ false, new long[0]);
     }
 
     public PendingDetonation(long shooterId,
@@ -125,7 +127,7 @@ public final class PendingDetonation {
                 wallDamage, shooterFaction, aerialDelivery,
                 wallDamageRadius, spawnDustOnWallBreak, friendlyFireImmune,
                 /*directTargetId*/ 0L, /*directDamage*/ 0f, /*directPenetration*/ 0f,
-                /*authoredAftermath*/ false);
+                /*authoredAftermath*/ false, new long[0]);
     }
 
     public PendingDetonation(long shooterId,
@@ -140,7 +142,7 @@ public final class PendingDetonation {
         this(shooterId, endpointX, endpointY, remainingTime, aoeRadius, damage, penetration,
                 wallDamage, shooterFaction, aerialDelivery,
                 wallDamageRadius, spawnDustOnWallBreak, friendlyFireImmune,
-                0L, 0f, 0f, authoredAftermath);
+                0L, 0f, 0f, authoredAftermath, new long[0]);
     }
 
     public PendingDetonation(long shooterId,
@@ -155,6 +157,25 @@ public final class PendingDetonation {
                              float directDamage,
                              float directPenetration,
                              boolean authoredAftermath) {
+        this(shooterId, endpointX, endpointY, remainingTime, aoeRadius, damage, penetration,
+                wallDamage, shooterFaction, aerialDelivery, wallDamageRadius,
+                spawnDustOnWallBreak, friendlyFireImmune, directTargetId,
+                directDamage, directPenetration, authoredAftermath, new long[0]);
+    }
+
+    public PendingDetonation(long shooterId,
+                             float endpointX, float endpointY, float remainingTime,
+                             float aoeRadius, float damage, float penetration,
+                             int wallDamage, Faction shooterFaction,
+                             boolean aerialDelivery,
+                             float wallDamageRadius,
+                             boolean spawnDustOnWallBreak,
+                             boolean friendlyFireImmune,
+                             long directTargetId,
+                             float directDamage,
+                             float directPenetration,
+                             boolean authoredAftermath,
+                             long[] areaExcludedTargetIds) {
         this.shooterId     = shooterId;
         this.endpointX     = endpointX;
         this.endpointY     = endpointY;
@@ -165,6 +186,8 @@ public final class PendingDetonation {
         this.directTargetId = directTargetId;
         this.directDamage = directDamage;
         this.directPenetration = directPenetration;
+        this.areaExcludedTargetIds = areaExcludedTargetIds != null
+                ? areaExcludedTargetIds.clone() : new long[0];
         this.wallDamage    = wallDamage;
         this.shooterFaction = shooterFaction;
         this.aerialDelivery = aerialDelivery;
@@ -172,5 +195,17 @@ public final class PendingDetonation {
         this.spawnDustOnWallBreak = spawnDustOnWallBreak;
         this.friendlyFireImmune = friendlyFireImmune;
         this.authoredAftermath = authoredAftermath;
+    }
+
+    public boolean excludesAreaTarget(long targetId) {
+        if (targetId == directTargetId && directTargetId != 0L && directDamage > 0f) return true;
+        for (long excluded : areaExcludedTargetIds) {
+            if (excluded == targetId) return true;
+        }
+        return false;
+    }
+
+    public int areaExcludedTargetCount() {
+        return areaExcludedTargetIds.length;
     }
 }
