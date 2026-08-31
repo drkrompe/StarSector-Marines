@@ -55,6 +55,9 @@ public final class BspKeys {
     /** Trunk skeleton (arterials + sub-rects + intersection). Produced by the trunk stage, read by BSP partition / zoning / pedestrian / road-graph stages. */
     public static final GenKey<TrunkPlan.Plan> TRUNK_PLAN = GenKey.of("trunkPlan");
 
+    /** Open ground the road growth never reached, left unpartitioned. Absent when the stock trunk stage ran. */
+    public static final GenKey<List<TrunkPlan.SubRect>> HINTERLAND = GenKey.of("hinterland");
+
     /** BSP leaf partition over the trunk sub-rects. Produced by the partition stage, read by label / seed / claim / fill / pedestrian stages. */
     public static final GenKey<Bsp.Partition> PARTITION = GenKey.of("partition");
 
