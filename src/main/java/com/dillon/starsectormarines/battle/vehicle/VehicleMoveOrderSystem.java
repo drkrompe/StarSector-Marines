@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService.ActiveOrder;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService.PendingOrder;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService.Refusal;
@@ -108,9 +109,18 @@ public final class VehicleMoveOrderSystem {
         return true;
     }
 
-    /** Whether {@code id} is still a live vehicle that can be given orders. */
+    /**
+     * Whether {@code id} is still a live vehicle of the player's that can be
+     * given orders.
+     *
+     * <p>The faction check is not belt-and-braces on the picker: it is the
+     * authority boundary. Orders are queued by id from the interface, and an
+     * id is all it takes — so the system that acts on them is where "this one
+     * is not yours" has to be decided.
+     */
     private boolean commandable(long id) {
         if (!convoy.isVehicle(id)) return false;
+        if (convoy.faction(id) != Faction.MARINE) return false;
         VehicleMission mission = convoy.mission(id);
         return mission != null
                 && mission.state != VehicleState.WRECKED

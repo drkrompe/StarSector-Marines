@@ -18,7 +18,13 @@ package com.dillon.starsectormarines.battle.vehicle;
  * <p>There is no phase between setting the payload down and leaving, armed or
  * not. A carrier that has unloaded turns for its outbound corridor — see
  * `convoy-nouns.md`.
+ *
+ * <p>{@link #DEPLOYED} is outside that flow entirely: a chassis on the field
+ * with no errand, holding position until somebody tells it to go somewhere. It
+ * is what a vehicle the player owns is doing between orders, and it is the
+ * state that makes delivery one of the things a vehicle can be doing rather
+ * than the whole of what a vehicle is.
  */
 public enum VehicleState {
-    PENDING, INCOMING, LANDED, DEPARTING, WRECKED, GONE
+    PENDING, INCOMING, LANDED, DEPARTING, DEPLOYED, WRECKED, GONE
 }
