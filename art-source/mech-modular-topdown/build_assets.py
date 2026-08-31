@@ -17,6 +17,18 @@ REPOSITORY = HERE.parent.parent
 SOURCES = HERE / "sources"
 ROOT = REPOSITORY / "mod" / "graphics" / "battle" / "mech-modular-topdown"
 PREVIEWS = REPOSITORY / "build" / "sprite-previews" / "mech"
+FACTION_SKINS = (
+    "hegemony",
+    "tri-tachyon",
+    "persean-league",
+    "luddic-church",
+    "knights-of-ludd",
+    "luddic-path",
+    "sindrian-diktat",
+    "lions-guard",
+    "pirates",
+    "independent",
+)
 
 
 def content_crop(image: Image.Image, threshold: int = 24) -> Image.Image:
@@ -29,15 +41,25 @@ def content_crop(image: Image.Image, threshold: int = 24) -> Image.Image:
 
 
 def normalize(source: str, output: str, size: tuple[int, int],
-              flip_top_bottom: bool = False) -> Image.Image:
-    image = content_crop(Image.open(SOURCES / source))
+              flip_top_bottom: bool = False,
+              alpha_from: str | None = None) -> Image.Image:
+    raw = Image.open(SOURCES / source).convert("RGBA")
+    if raw.getchannel("A").getextrema()[0] == 255:
+        raise ValueError(f"{source} has no transparent background")
+    image = content_crop(raw)
     if flip_top_bottom:
         image = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
     image.thumbnail(size, Image.Resampling.LANCZOS)
     canvas = Image.new("RGBA", size)
     canvas.alpha_composite(image, ((size[0] - image.width) // 2,
                                    (size[1] - image.height) // 2))
-    canvas.save(ROOT / output)
+    if alpha_from is not None:
+        base = Image.open(ROOT / alpha_from).convert("RGBA")
+        canvas = Image.alpha_composite(base, canvas)
+        canvas.putalpha(base.getchannel("A"))
+    output_path = ROOT / output
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(output_path)
     return canvas
 
 
@@ -102,6 +124,17 @@ def main() -> None:
               flip_top_bottom=True)
     normalize("hound-hull.png", "chassis-sirocco.png", (208, 208),
               flip_top_bottom=True)
+    for faction in FACTION_SKINS:
+        source_root = f"faction-chassis/{faction}"
+        output_root = f"factions/{faction}"
+        normalize(f"{source_root}/bulwark.png", f"{output_root}/chassis.png",
+                  (208, 208), alpha_from="chassis.png")
+        normalize(f"{source_root}/hound.png", f"{output_root}/chassis-hound.png",
+                  (208, 208), flip_top_bottom=True,
+                  alpha_from="chassis-hound.png")
+        normalize(f"{source_root}/sirocco.png", f"{output_root}/chassis-sirocco.png",
+                  (208, 208), flip_top_bottom=True,
+                  alpha_from="chassis-sirocco.png")
     derive_foot_from_hull((44, 38))
     # Heavy hardpoints are sized deliberately against the 208px chassis width:
     # arms ~= 27%, SRM ~= 30%, LRM ~= 36%. Rear pivots remain buried.
