@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.LeafAdjacency;
-import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -59,26 +58,17 @@ public final class SpaceportDistrictPlanStage implements GenStage {
             if (leaf.kind == BlockKind.SPACEPORT_PAD) incidental.add(leaf);
         }
 
-        TrunkPlan.Plan trunkPlan = ctx.get(BspKeys.TRUNK_PLAN);
-        int portX = ctx.width / 8;
-        int portY = 5 * ctx.height / 8;
-        int portDistrictX = portX / districtMap.districtCellWidth();
-        int portDistrictY = portY / districtMap.districtCellHeight();
+        // The pocket is wherever the zoning put it. This stage used to
+        // re-derive the same (width/8, 5*height/8) constant ZoningOverlayStage
+        // used, so the two agreed only by coincidence and both were wrong about
+        // where a campus would fit; the district map is now the single answer.
         Set<BlockLeaf> candidates = Collections.newSetFromMap(new IdentityHashMap<>());
         for (BlockLeaf leaf : partition.leaves) {
-            int dx = leaf.centerX() / districtMap.districtCellWidth();
-            int dy = leaf.centerY() / districtMap.districtCellHeight();
-            boolean inReservedBlock = dx >= portDistrictX && dx <= portDistrictX + 1
-                    && dy >= portDistrictY && dy <= portDistrictY + 1;
-            boolean sameTrunkQuadrant = trunkPlan == null
-                    || sameSide(leaf.centerX(), portX,
-                            (trunkPlan.intersection.x0 + trunkPlan.intersection.x1) / 2)
-                    && sameSide(leaf.centerY(), portY,
-                            (trunkPlan.intersection.y0 + trunkPlan.intersection.y1) / 2);
-            if (leaf.width() >= PAD_MIN_SIDE && leaf.height() >= PAD_MIN_SIDE
-                    && inReservedBlock && sameTrunkQuadrant) {
-                candidates.add(leaf);
+            if (leaf.width() < PAD_MIN_SIDE || leaf.height() < PAD_MIN_SIDE) continue;
+            if (districtMap.themeAt(leaf.centerX(), leaf.centerY()) != MapDistrictTheme.HARBOR_PORT) {
+                continue;
             }
+            candidates.add(leaf);
         }
         if (candidates.isEmpty()) return;
 
@@ -212,7 +202,4 @@ public final class SpaceportDistrictPlanStage implements GenStage {
         return Math.abs(a.centerX() - b.centerX()) + Math.abs(a.centerY() - b.centerY());
     }
 
-    private static boolean sameSide(int value, int anchor, int divider) {
-        return anchor < divider ? value < divider : value > divider;
-    }
 }
