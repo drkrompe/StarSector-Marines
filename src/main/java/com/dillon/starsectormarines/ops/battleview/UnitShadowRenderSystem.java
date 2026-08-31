@@ -73,11 +73,32 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      */
     private static final float AIR_BLOB_WIDTH_FRACTION = 0.55f;
 
-    /** An aircraft's shadow at full altitude, relative to its size on the ground. */
-    private static final float AIR_BLOB_MIN_SCALE = 0.55f;
+    /**
+     * How much of its opacity an aircraft's shadow keeps at altitude.
+     *
+     * <p>The one thing height honestly changes about a shadow: thrown from
+     * further off it has a wider penumbra and reads softer. It does not read
+     * smaller — see the sizing below.
+     */
+    private static final float AIR_ALPHA_AT_ALTITUDE = 0.7f;
 
-    /** And how much of its opacity it keeps up there. A shadow thrown from higher is fainter and more diffuse. */
-    private static final float AIR_ALPHA_AT_ALTITUDE = 0.85f;
+    /**
+     * The altitude, in cells, an aircraft at full height casts from.
+     *
+     * <p>Its own constant rather than {@link AirAppearance#VISUAL_ALT_PEAK_CELLS},
+     * which was chosen to nudge a sprite a few cells up the screen and is far
+     * too small for this job: three cells at the default sun offsets a shadow
+     * about a fifth of a transport's length, so it never clears the aircraft
+     * casting it and cannot be seen at all. Separation has to be comparable to
+     * the hull to read, which makes this a presentational choice of the same
+     * kind as the lift.
+     *
+     * <p><b>Unverified.</b> The value is reasoned, not measured: the aircraft
+     * shadow is collected on every frame and has never yet been seen painted,
+     * so nothing here has been judged against a picture the way the ground
+     * constants were. Treat it as a starting point for whoever finds out why.
+     */
+    private static final float AIR_SHADOW_ALTITUDE_CELLS = 11f;
 
     private final BattleSprites sprites;
     private final SunLight sun;
@@ -184,17 +205,23 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             if (hullLengthCells <= 0f) continue;
 
             float altitudeT = world.altitudeT(id);
-            float shrink = lerp(1f, AIR_BLOB_MIN_SCALE, altitudeT);
             float alpha = ctx.alphaMult * SHADOW_ALPHA * sun.shadowStrength()
                     * lerp(1f, AIR_ALPHA_AT_ALTITUDE, altitudeT);
 
             // Away from the sun by the altitude the hull is drawn at, which is
             // the game's own altitude rather than a second one invented here.
-            float reach = sun.reachCells(AirAppearance.VISUAL_ALT_PEAK_CELLS * altitudeT);
+            float reach = sun.reachCells(AIR_SHADOW_ALTITUDE_CELLS * altitudeT);
             float shadowX = body.x - sun.dirX() * reach;
             float shadowY = body.y - sun.dirY() * reach;
 
-            float length = hullLengthCells * shrink * cellPx;
+            // The craft's footprint on the ground, and nothing about how high it
+            // is. Under a directional sun a rigid body's shadow is the size of
+            // the body whatever its altitude; the hull drawing larger as it
+            // climbs is a camera-proximity cue rather than growth. An earlier
+            // version had the shadow SHRINK as the hull grew, which is backwards
+            // twice over and left a transport casting less than the marine
+            // standing beside it.
+            float length = hullLengthCells * AirAppearance.GROUND_SCALE * cellPx;
             emit(out, blob, cam, shadowX, shadowY,
                     length * AIR_BLOB_WIDTH_FRACTION, length, body.facingDegrees, alpha);
         }
