@@ -45,8 +45,9 @@ public class BattleSprites {
     // ---- asset-path constants -----------------------------------------------
 
     private static final String SPRITE_DECAL_SHEET  = "graphics/decals/decals.png";
-    private static final String ENGINE_FLAME_SPRITE = "graphics/fx/engineflame32.png";
-    private static final String ENGINE_GLOW_SPRITE  = "graphics/fx/engineglow32.png";
+    /** Vanilla, so the headless sprite set resolves these off the install root rather than through the game. */
+    static final String ENGINE_FLAME_SPRITE = "graphics/fx/engineflame32.png";
+    static final String ENGINE_GLOW_SPRITE  = "graphics/fx/engineglow32.png";
     private static final String ICON_ALARM          = "graphics/icons/Alarm 512 px.png";
     private static final String ICON_DANGER         = "graphics/icons/Danger sign 1 512 px.png";
     private static final String ICON_STAR           = "graphics/icons/Star 512 px.png";

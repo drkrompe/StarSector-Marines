@@ -17,7 +17,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * A vehicle told to go somewhere. The interesting cases are the ones a
+ * A vehicle of the player's told to go somewhere. Ownership is covered by
+ * {@code MarineChassisTest}; these are about what happens once an order is
+ * legitimately accepted. The interesting cases are the ones a
  * dispatched delivery never has to face, because a dispatcher only ever commits
  * to a route it has already proved: a destination with no drivable route to it,
  * and an order that turns out not to work after it was accepted.
@@ -40,7 +42,7 @@ class VehicleMoveOrderTest {
         VehicleMission mission = new VehicleMission(
                 new float[]{10.5f, 20.5f}, new float[]{30.5f, 30.5f},
                 new float[]{20.5f, 10.5f}, new float[]{30.5f, 30.5f}, 0f, 4);
-        long id = convoy.spawn(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
+        long id = convoy.spawn(VehicleType.HEAVY_APC, Faction.MARINE, mission);
         mission.state = VehicleState.LANDED;
         GroundBody body = convoy.body(id);
         body.teleport(20.5f, 30.5f, facingDeg);

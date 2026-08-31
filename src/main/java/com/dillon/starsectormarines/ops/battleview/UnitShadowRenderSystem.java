@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -34,12 +36,17 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  * sun. Casting from an invented one would be worse than useless: a cruising
  * shuttle at any honest altitude throws its shadow clean off the screen.
  *
- * <p>So an aircraft's shadow sits at its <em>true ground position</em> and does
- * not chase the sun at all. The hull is already drawn those few cells up, so the
- * gap between hull and shadow is the altitude cue the game had all along —
- * previously ambiguous, because a sprite shifted up the screen and a sprite
- * further north look identical from above. The shadow is what disambiguates it.
- * Mixing in a sun offset as well would be two altitude models arguing.
+ * <p>So an aircraft casts from its <em>presentational</em> altitude: the same
+ * {@link AirAppearance#VISUAL_ALT_PEAK_CELLS} the hull is lifted by, treated as
+ * a height and run through the same {@link SunLight#reachCells} a wall uses. No
+ * invented metres, and the sun is never asked to reconcile two altitude models.
+ *
+ * <p>An earlier version left the shadow at the true ground position, reasoning
+ * that the hull's own upward shift was already the gap. It is not: three cells
+ * of lift against an eight-cell transport leaves the shadow entirely underneath
+ * its own aircraft at every altitude. The preview showed that immediately and
+ * the arithmetic never would have — separation is the whole cue, and the
+ * lateral offset is what provides it.
  *
  * <h2>Fog</h2>
  * <p>A shadow is gated on exactly the visibility its caster is, because a
@@ -50,7 +57,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 public final class UnitShadowRenderSystem implements RenderSystem {
 
     /** How dark a shadow is at full strength, before the sun's own dial scales it. */
-    private static final float SHADOW_ALPHA = 0.42f;
+    private static final float SHADOW_ALPHA = 0.55f;
 
     /**
      * How wide the blob is relative to the caster's body radius. Wider than the
@@ -59,11 +66,18 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      */
     private static final float BLOB_WIDTH_PER_RADIUS = 2.6f;
 
+    /**
+     * How wide an aircraft's shadow is against its length. A hull is longer
+     * than it is wide from above, and a circular blob under a transport reads
+     * as a puddle rather than as the machine casting it.
+     */
+    private static final float AIR_BLOB_WIDTH_FRACTION = 0.55f;
+
     /** An aircraft's shadow at full altitude, relative to its size on the ground. */
     private static final float AIR_BLOB_MIN_SCALE = 0.55f;
 
     /** And how much of its opacity it keeps up there. A shadow thrown from higher is fainter and more diffuse. */
-    private static final float AIR_ALPHA_AT_ALTITUDE = 0.45f;
+    private static final float AIR_ALPHA_AT_ALTITUDE = 0.85f;
 
     private final BattleSprites sprites;
     private final SunLight sun;
@@ -157,14 +171,32 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             AirBody body = world.kinematics(id);
             if (body == null) continue;
 
+            Airframe frame = world.airframe(id);
+            if (frame == null) continue;
+
+            // The hull's real extent, from the same resolver the hull sprite
+            // uses. An earlier version sized this from AirAppearance.scaleMult,
+            // which is an altitude zoom of about 1.2 rather than a length in
+            // cells -- so a twelve-cell transport cast a shadow the size of a
+            // marine's and it was invisible under its own aircraft. The
+            // preview is what found it; the arithmetic had looked fine.
+            float hullLengthCells = HullFootprintResolver.visualLengthCells(frame.renderHullId());
+            if (hullLengthCells <= 0f) continue;
+
             float altitudeT = world.altitudeT(id);
-            float footprint = AirAppearance.scaleMult(altitudeT, world.flightPhase(id));
-            float scale = lerp(1f, AIR_BLOB_MIN_SCALE, altitudeT);
+            float shrink = lerp(1f, AIR_BLOB_MIN_SCALE, altitudeT);
             float alpha = ctx.alphaMult * SHADOW_ALPHA * sun.shadowStrength()
                     * lerp(1f, AIR_ALPHA_AT_ALTITUDE, altitudeT);
 
-            float size = footprint * scale * BLOB_WIDTH_PER_RADIUS * cellPx;
-            emit(out, blob, cam, body.x, body.y, size, size, body.facingDegrees, alpha);
+            // Away from the sun by the altitude the hull is drawn at, which is
+            // the game's own altitude rather than a second one invented here.
+            float reach = sun.reachCells(AirAppearance.VISUAL_ALT_PEAK_CELLS * altitudeT);
+            float shadowX = body.x - sun.dirX() * reach;
+            float shadowY = body.y - sun.dirY() * reach;
+
+            float length = hullLengthCells * shrink * cellPx;
+            emit(out, blob, cam, shadowX, shadowY,
+                    length * AIR_BLOB_WIDTH_FRACTION, length, body.facingDegrees, alpha);
         }
     }
 

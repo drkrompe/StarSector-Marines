@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.MarineInsertion;
+import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.ops.Mission;
 import com.fs.starfarer.api.Global;
@@ -171,6 +172,7 @@ public final class PowerCatalog {
         if (APOGEE_HULL.equals(baseId)) ids.add(ReconPing.ID);
         if (VALKYRIE_HULL.equals(baseId)) ids.add(MechSupport.ID);
         if (VALKYRIE_HULL.equals(baseId)) ids.add(MarineInsertion.ID);
+        if (VALKYRIE_HULL.equals(baseId)) ids.add(VehicleSupport.ID);
         if (TARSUS_HULL.equals(baseId) || ATLAS_HULL.equals(baseId)) {
             ids.add(EmergencyResupply.ID);
         }
@@ -192,6 +194,7 @@ public final class PowerCatalog {
         if (EmergencyResupply.ID.equals(id)) return new EmergencyResupply();
         if (OrbitalBarrage.ID.equals(id)) return new OrbitalBarrage();
         if (MarineInsertion.ID.equals(id)) return new MarineInsertion();
+        if (VehicleSupport.ID.equals(id)) return new VehicleSupport();
         return null;
     }
 }
