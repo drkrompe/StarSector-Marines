@@ -52,6 +52,15 @@ WEAPONS = (
            "shoulder-laser-cannon.png", (76, 128)),
     Weapon("weapon-concepts/pulse-laser-arm.png", "pulse-laser-arm.png",
            "pulse-laser-arm.png", (62, 112)),
+    Weapon("weapon-concepts/hegemony-bastion-autocannon.png",
+           "hegemony-bastion-autocannon.png",
+           "hegemony-bastion-autocannon.png", (64, 132)),
+    Weapon("weapon-concepts/pather-demolition-cannon.png",
+           "pather-demolition-cannon.png",
+           "pather-demolition-cannon.png", (72, 124)),
+    Weapon("weapon-concepts/lions-guard-thermal-lance.png",
+           "lions-guard-thermal-lance.png",
+           "lions-guard-thermal-lance.png", (76, 132)),
 )
 
 CHASSIS = ("chassis.png", "chassis-hound.png", "chassis-sirocco.png")

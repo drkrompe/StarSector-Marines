@@ -128,3 +128,78 @@ The first result satisfied the arm footprint and forward-axis read, so no
 geometry iteration was required. Its baked checker was removed with
 `clean_imagegen_backgrounds.py`; the cleaned source is the sole runtime geometry
 authority.
+
+# Faction-signature mech weapons
+
+Generated with the built-in ImageGen tool on 2026-08-31. These three concepts
+were accepted together because their silhouettes and mechanics express three
+different equipment institutions rather than applying cosmetic faction motifs
+to the same gun. Each generation used shipped mech parts only as style,
+perspective, and hardpoint-scale references.
+
+## Hegemony Bastion autocannon
+
+> Create one isolated modular mech arm weapon concept for a 2D tactical game: a
+> Hegemony service-issue burst autocannon intended to render as a mirrored
+> left/right pair. Match the painterly, weathered, high-detail language and
+> transparent-cutout presentation of the reference modular weapons, but design
+> new geometry. True orthographic top-down view, camera directly above at 90
+> degrees, zero perspective and zero foreshortening. The gun lies flat in the
+> ground plane. Rear mounting pivot at the bottom; barrel points toward the top
+> edge. The muzzle opening must not face the viewer: show only a thin edge-on
+> dark slit at the topmost end. Use a long constant-width armored receiver,
+> twin recoil rails, thick practical barrel shroud, exposed ammunition feed,
+> standardized bolts, and replaceable olive-drab plates with restrained orange
+> service markings. Heavy, maintainable institutional military engineering;
+> no ornament, hands, or chassis. Strong small-sprite silhouette, centered with
+> generous transparent padding; no shadow, floor, background, text, or border.
+
+The output required no geometry revision. The checker was converted to real
+alpha before registration as `hegemony-bastion-autocannon.png`.
+
+## Luddic Path Foundry Breaker
+
+> Create one isolated modular mech weapon concept for a 2D tactical game: a
+> Luddic Path converted industrial demolition cannon, a single centerline
+> arm/nose weapon for a light assault mech. Match the painterly, weathered,
+> high-detail language and transparent-cutout presentation of the references,
+> but use unmistakably improvised new geometry. True orthographic top-down view,
+> camera directly above at 90 degrees, zero perspective and foreshortening. The
+> cannon lies flat in the ground plane. Rear pivot at the bottom; barrel points
+> to the top edge. The muzzle must not face the viewer: depict only a narrow
+> edge-on black slit at the top. Use a brutally short oversized bore in a welded
+> industrial jacket, asymmetrical recoil cylinder, repurposed mining braces,
+> exposed hose and breech clamps, and scavenged olive, rust-red, and bare dark
+> steel panels. It must read as a dangerous workshop conversion for one
+> demolition shell, not a sleek cannon or rocket launcher. No religious symbol,
+> fantasy ornament, hands, or chassis; transparent padded cutout with no shadow,
+> floor, background, text, or border.
+
+The accepted first generation became `pather-demolition-cannon.png` after
+checker cleanup.
+
+## Lion's Guard thermal lance
+
+> Create one isolated modular mech shoulder weapon concept for a 2D tactical
+> game: a Lion's Guard prestige thermal lance, an experimental direct-fire
+> energy projector that replaces a missile rack. Match the painterly,
+> weathered, high-detail language and transparent-cutout presentation of the
+> reference weapons while creating distinct geometry. True orthographic
+> top-down view, camera directly above at 90 degrees, zero perspective and
+> foreshortening. The whole weapon lies flat in the ground plane. Rear shoulder
+> pivot at the bottom; emitter points toward the top edge. The emitter must not
+> point toward the viewer: show only a thin edge-on luminous slit at the top,
+> never a circular lens. Use an armored rectangular projector body, oversized
+> symmetrical cooling vanes, compact fuel-cell heat exchangers, dark gunmetal
+> machinery, deep Sindrian red lacquer, brass-gold trim, and restrained cream
+> identification marks. Prestigious, aggressive, heavily supported prototype
+> hardware; a subtle hot-amber seam is acceptable, but no beam or VFX. No lion
+> icon, text, hands, or chassis; padded transparent cutout with no cast shadow,
+> floor, background, label, or border.
+
+The concept returned with a dark amber halo. A cleanup edit preserved its
+accepted identity while requesting fully transparent pixels outside the hard
+weapon silhouette and removal of all black backdrop, halo, bloom, haze, and
+cast light. ImageGen simplified a few subpixel details during that cleanup, so
+the cleaned result—not the haloed draft—is the explicit retained geometry
+authority for `lions-guard-thermal-lance.png`.

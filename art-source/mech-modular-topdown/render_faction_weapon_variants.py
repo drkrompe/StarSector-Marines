@@ -61,6 +61,26 @@ def main() -> None:
                     right_pod="shoulder-laser-cannon.png",
                     loadout="DUAL PULSE LASERS  /  SRM-15  /  SHOULDER LASER",
                 )
+            elif folder == "hegemony" and variant.name == "BULWARK":
+                variant = replace(
+                    variant,
+                    arms="hegemony-bastion-autocannon.png",
+                    arm_layout="dual-narrow",
+                    loadout="DUAL BASTION AUTOCANNONS  /  SRM-15  /  SRM-15",
+                )
+            elif folder == "luddic-path" and variant.name == "HOUND":
+                variant = replace(
+                    variant,
+                    arms="pather-demolition-cannon.png",
+                    arm_layout="nose-heavy",
+                    loadout="FOUNDRY BREAKER  /  SRM-5",
+                )
+            elif folder == "lions-guard" and variant.name == "SIROCCO":
+                variant = replace(
+                    variant,
+                    right_pod="lions-guard-thermal-lance.png",
+                    loadout="HEAVY CANNON  /  LRM-5  /  THERMAL LANCE",
+                )
             skinned = replace(
                 variant,
                 chassis=faction_path(folder, variant.chassis),
