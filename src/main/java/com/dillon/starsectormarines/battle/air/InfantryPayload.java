@@ -34,10 +34,9 @@ public enum InfantryPayload implements AirDeliveryPayload {
         CampaignSquadTag tag = loadout != null ? loadout.campaignSquad : null;
         if (tag != null) {
             // Campaign personnel group by (campaign squad, LZ), not by sortie, so a
-            // squad that needs three lifts lands as one unit. Writing it back onto
-            // the mission keeps the shuttle's rear-overwatch hover following this
-            // squad; AirSystem's per-cycle reset is harmless because the next
-            // deboard resolves the same squad out of the index again.
+            // squad that needs three lifts lands as one unit. AirSystem's
+            // per-cycle reset is harmless because the next deboard resolves the
+            // same squad out of the index again.
             boolean firstDeboardForSortie = mission.squadId == Squad.NO_SQUAD;
             mission.squadId = context.squadForCampaign(type, tag);
             if (firstDeboardForSortie) {

@@ -4,8 +4,9 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — a wreck writes nothing to the navigation or sight map,
-and a live vehicle wears the shared durability gauge.
+Updated: 2026-08-30 — a wreck writes nothing to the navigation or sight map,
+a live vehicle wears the shared durability gauge, and a carrier that has
+unloaded departs rather than holding armed overwatch on its drop point.
 
 ## Purpose and boundary
 
@@ -22,10 +23,9 @@ vehicle may have a different body, payload, or parked behavior without changing
 the delivery lifecycle or treating roads as kinematic rails.
 
 The current operational variant is the defender `HEAVY_APC`: four
-faction-rostered infantry passengers, a roof weapon, and a timed overwatch
-after disembarkation. The old
-`MILITIA_TRUCK` is retired. Parked map vehicles are separate static scenery and
-obstacles, not convoy actors.
+faction-rostered infantry passengers and a roof weapon. The old `MILITIA_TRUCK`
+is retired. Parked map vehicles are separate static scenery and obstacles, not
+convoy actors.
 
 ## Delivery authority and lifecycle
 
@@ -41,17 +41,25 @@ selection vocabulary; it does not constrain the route between selected points.
 
 A convoy mission moves through a single lifecycle:
 
-`PENDING → INCOMING → LANDED → OVERWATCH → DEPARTING → GONE`, with
-`WRECKED` as a terminal transition from any visible live state.
+`PENDING → INCOMING → LANDED → DEPARTING → GONE`, with `WRECKED` as a terminal
+transition from any visible live state.
 
 `PENDING` is the off-map stagger. `INCOMING` drives from an off-map staging
 point to the landing zone. `LANDED` releases passengers one at a time into a
-nearby free cell and assigns their new squad to the reinforcement objective.
-An armed APC then `OVERWATCH`s before `DEPARTING`; a variant that does not
-linger may go straight to departure. `GONE` is terminal and removes the world
-actor. `WRECKED` stops motion and weapons, removes combat targetability, and
-retains the chassis as presentation. Dispatch proves inbound and outbound
-travel before creating the vehicle.
+nearby free cell and assigns their new squad to the reinforcement objective,
+then the carrier turns for its outbound corridor. `GONE` is terminal and
+removes the world actor. `WRECKED` stops motion and weapons, removes combat
+targetability, and retains the chassis as presentation. Dispatch proves inbound
+and outbound travel before creating the vehicle.
+
+**A carrier that has unloaded leaves.** There is no phase between setting the
+payload down and departing, whatever is on the roof. An armed APC that stayed
+to work the drop zone was a free gun emplacement the reinforcement never paid
+for, arriving on a timer rather than on anything the battle decided. The roof
+weapon is what the vehicle defends *itself* with over a drive through contested
+ground — it is live for the whole errand, inbound and outbound alike — not a
+reason to park. The air transports lost the same phase for the same reason; see
+`air-nouns.md`.
 
 A wreck writes nothing to the map. It is a rendered chassis, not terrain: it
 closes no navigation cell and casts no line-of-sight shadow. A hull dies

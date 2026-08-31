@@ -330,7 +330,6 @@ public class AirSystem {
         // Taken off the hull once, here, rather than read off it every tick:
         // the hull says what it can do and the sortie says what it is doing.
         mission.deboardInterval = type.deboardInterval;
-        mission.fireSupportSec = type.fireSupportSec;
         long id = roster.allocateAir(shuttleArchetype);
         world.setAirIdentity(id, type, faction);
         world.setKinematics(id, body);
@@ -426,23 +425,6 @@ public class AirSystem {
         }
     }
 
-    /**
-     * True when this craft is armed and assigned a fire-support role — after
-     * LANDED → marinesRemaining==0, gates the HOVER_STATION transition vs. the
-     * immediate DEPARTING path. Presence of the {@link AirTurrets} component IS
-     * "armed."
-     */
-    private boolean shouldHoverLoiter(long id, ShuttleMission mission) {
-        return mission.postDeliveryDisposition == PostDeliveryDisposition.LOITER_IF_ARMED
-                && mission.assignedRole != null && world.hasAirTurrets(id);
-    }
-
-    /** True when every mounted turret has fired dry (or the craft is unarmed) — a HOVER_STATION exit trigger. */
-    private boolean allTurretsDry(long id) {
-        AirTurrets t = world.airTurrets(id);
-        return t == null || t.allDry();
-    }
-
     public void tick(float dt) {
         advanceShuttles(dt);
         tickAirThreat(dt);
@@ -455,8 +437,7 @@ public class AirSystem {
      * Anti-air: each airborne shuttle within range of an enemy defense post (turret) takes HP drain,
      * summed over every post in its AA bubble. At zero HP it's shot down — the marines still aboard are
      * lost, so a hot drop zone yields a partial-success wave (S3d D3). This is the first damage source
-     * for {@link ShuttleMission#hp}, so the {@link ShuttleMission#HOVER_HP_THRESHOLD} loiter-abort also goes
-     * live here. Area drain, not lock-on projectiles — the same "structures threaten an area" model as
+     * for {@link ShuttleMission#hp}. Area drain, not lock-on projectiles — the same "structures threaten an area" model as
      * ground-vs-infantry. Posts come from the spatial index, so this is O(shuttles × small bucket).
      */
     private void tickAirThreat(float dt) {
@@ -500,8 +481,8 @@ public class AirSystem {
 
     /**
      * Airborne states an AA post can hit — the descent gauntlet, the settle
-     * onto the pad, the armed loiter, the runs, the egress and the approach
-     * home. Asked of the locomotion rather than listed, because "can a post
+     * onto the pad, the runs, the egress and the approach home. Asked of the
+     * locomotion rather than listed, because "can a post
      * reach it" is exactly "is it in the air", and a list is a thing a later
      * phase gets left out of. A LANDED shuttle deboarding on the ground is
      * exempt: it is already down.
@@ -709,7 +690,7 @@ public class AirSystem {
                         if (mission.passesLeft > 0) {
                             beginReposition(id, mission, body);
                         } else {
-                            beginEgress(id, mission, body, /*fromHover*/ false);
+                            beginEgress(mission, body);
                         }
                     }
                     break;
@@ -845,12 +826,7 @@ public class AirSystem {
                         // touchdown because that is what arriving means here —
                         // the craft is over the objective rather than stopped
                         // on a point on it.
-                        // Already at height, so no climb to play: a takeoff
-                        // ramp here would drop the aircraft to the deck and
-                        // fly it back up over its own target.
-                        mission.takeoffTimer = 0f;
                         world.setAltitudeT(id, 1f);
-                        mission.departingFromHover = false;
                         if (mission.passesLeft <= 0) mission.passesLeft = STRIKE_PASSES;
                         beginAttackRun(id, mission, body);
                         break;
@@ -931,54 +907,10 @@ public class AirSystem {
                     }
                     if (mission.marinesRemaining == 0
                             && !mission.awaitingEvacuees) {
-                        if (shouldHoverLoiter(id, mission)) {
-                            // Lift off the LZ and station-keep above the squad
-                            // for the type's fire-support window. Initial hover
-                            // point is the LZ; each subsequent tick follows the
-                            // squad centroid (leashed to LZ radius).
-                            mission.hoverPointX = mission.lzX;
-                            mission.hoverPointY = mission.lzY;
-                            mission.hoverTimerSec = mission.fireSupportSec;
-                            mission.takeoffTimer = ShuttleMission.T_TAKEOFF_SEC;
-                            world.setAltitudeT(id, 0f);   // smoothstep ramps from here
-                            mission.departingFromHover = false;
-                            mission.state = ShuttleState.HOVER_STATION;
-                        } else {
-                            beginEgress(id, mission, body, /*fromHover*/ false);
-                        }
-                    }
-                    break;
-
-                case HOVER_STATION:
-                    // Follow the squad: hover point tracks the alive squad
-                    // centroid, clamped to a leash radius around the LZ so a
-                    // wiped squad or a runaway scout doesn't drag the shuttle
-                    // across the whole map.
-                    updateHoverFollow(mission);
-                    AirSteeringSystem.steer(body, mission.hoverPointX, mission.hoverPointY, SteeringMode.STATION, flight, dt);
-                    mission.hoverTimerSec -= dt;
-                    // Takeoff phase — smoothstep altitudeT 0 → 1 over
-                    // T_TAKEOFF_SEC for a visible acceleration / deceleration
-                    // climb instead of a one-tick pop into the air.
-                    float hoverAltitudeT;
-                    if (mission.takeoffTimer > 0f) {
-                        mission.takeoffTimer -= dt;
-                        float u = 1f - Math.max(0f, mission.takeoffTimer / ShuttleMission.T_TAKEOFF_SEC);
-                        hoverAltitudeT = u * u * (3f - 2f * u);  // smoothstep
-                    } else {
-                        hoverAltitudeT = 1f;
-                    }
-                    world.setAltitudeT(id, hoverAltitudeT);
-                    world.setFlightPhase(id, world.flightPhase(id)
-                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
-                    // Exit triggers — first-of (timer expired, all ammo dry,
-                    // HP pressure). HP threshold is wired forward for AA work;
-                    // today there's no damage source so it never trips.
-                    boolean fuelOut = mission.hoverTimerSec <= 0f;
-                    boolean ammoOut = allTurretsDry(id);
-                    boolean hpPressured = mission.hp <= frame.maxHp() * ShuttleMission.HOVER_HP_THRESHOLD;
-                    if (fuelOut || ammoOut || hpPressured) {
-                        beginEgress(id, mission, body, /*fromHover*/ true);
+                        // Unloaded is done. A transport lifts and goes: the
+                        // delivery is what it was flown for, and station-keeping
+                        // over the drop point is a second job nobody ordered.
+                        beginEgress(mission, body);
                     }
                     break;
 
@@ -1020,7 +952,6 @@ public class AirSystem {
                             body.teleport(mission.entryX, mission.entryY,
                                     AirBody.facingToward(mission.lzX - mission.entryX, mission.lzY - mission.entryY));
                             world.setAltitudeT(id, 1f);
-                            mission.departingFromHover = false;
                             // Re-arm: refill every mount's magazine, drop any
                             // stale target lock so the next hover starts clean.
                             AirTurrets rearm = world.airTurrets(id);
@@ -1218,7 +1149,7 @@ public class AirSystem {
      * the end of the runway it reaches first rather than fly the length of its
      * own field to land the wrong way down it.
      */
-    private void beginEgress(long id, ShuttleMission mission, AirBody body, boolean fromHover) {
+    private void beginEgress(ShuttleMission mission, AirBody body) {
         Runway strip = airfield == null ? null : airfield.runway();
         if (mission.usesRunway && strip != null) {
             mission.landOnRunway(strip, body.x, body.y, mission.shelterX, mission.shelterY);
@@ -1229,15 +1160,10 @@ public class AirSystem {
             mission.approach = null;
             mission.exitX = mission.touchdownX;
             mission.exitY = mission.touchdownY;
-            // Not held at cruise the way a departure out of a hover is: this
-            // leg is a descent, and the altitude lerp has to be free to run it
-            // down to the threshold.
-            mission.departingFromHover = false;
             beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
             mission.state = ShuttleState.RETURNING;
             return;
         }
-        mission.departingFromHover = fromHover;
         beginShuttleLeg(mission, body, mission.exitX, mission.exitY);
         mission.state = ShuttleState.DEPARTING;
     }
@@ -1803,19 +1729,16 @@ public class AirSystem {
     private void updateShuttleAltitude(long id, ShuttleMission mission, AirBody body,
                                        float toX, float toY, boolean incoming,
                                        float floorT, float dt) {
-        float altitudeT;
-        if (!incoming && mission.departingFromHover) {
-            // Departing straight out of HOVER_STATION — the shuttle is already
-            // at cruise altitude, so a distance-ratio lerp from "ground" would
-            // make it visibly descend and re-climb. Hold at the top.
-            altitudeT = 1f;
-        } else {
-            float remaining = body.distanceTo(toX, toY);
-            float ratio = remaining / mission.legStartDist;
-            if (ratio < 0f) ratio = 0f;
-            if (ratio > 1f) ratio = 1f;
-            altitudeT = floorT + (1f - floorT) * (incoming ? ratio : (1f - ratio));
-        }
+        // Every leg runs the ramp now. The exception used to be a departure
+        // straight out of an armed hover, which was already at cruise and would
+        // otherwise dip and re-climb; that loiter no longer exists, so the
+        // special case went with it rather than lingering as a flag nothing
+        // ever sets.
+        float remaining = body.distanceTo(toX, toY);
+        float ratio = remaining / mission.legStartDist;
+        if (ratio < 0f) ratio = 0f;
+        if (ratio > 1f) ratio = 1f;
+        float altitudeT = floorT + (1f - floorT) * (incoming ? ratio : (1f - ratio));
         world.setAltitudeT(id, altitudeT);
         // Advance the wobble phase; the scale multiplier is derived from
         // altitudeT + flightPhase by AirAppearance at render time, not stored.
@@ -1925,46 +1848,6 @@ public class AirSystem {
             if (roster.squad().hasSquad(u) && roster.squad().squadId(u) == squadId) return true;
         }
         return false;
-    }
-
-    /**
-     * Recomputes {@link ShuttleMission#hoverPointX}/{@code hoverPointY} from the
-     * alive squad centroid, pulled back by {@link ShuttleMission#HOVER_STANDOFF_CELLS}
-     * along the LZ→centroid bearing (rear-overwatch standoff). Holds the
-     * previous value if the squad is wiped (no alive squadmates) so the
-     * shuttle doesn't snap back to the LZ on the last marine's death — it
-     * stays where it was supporting.
-     */
-    private void updateHoverFollow(ShuttleMission mission) {
-        if (mission.squadId == Squad.NO_SQUAD) return;
-        float sumX = 0f, sumY = 0f;
-        int n = 0;
-        for (int i = 0, live = roster.liveCount(); i < live; i++) {
-            long u = roster.get(i);
-            if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != mission.squadId) continue;
-            sumX += world.x(u);
-            sumY += world.y(u);
-            n++;
-        }
-        if (n == 0) return;  // squad wiped — hold current hover point
-        float cx = sumX / n;
-        float cy = sumY / n;
-        float dx = cx - mission.lzX;
-        float dy = cy - mission.lzY;
-        float dist = (float) Math.sqrt(dx * dx + dy * dy);
-        // Rear-overwatch standoff: shift the hover point from centroid back
-        // toward the LZ. Below the standoff radius there's no stable bearing,
-        // so just hold over the LZ until the squad pushes out.
-        if (dist > ShuttleMission.HOVER_STANDOFF_CELLS) {
-            float k = (dist - ShuttleMission.HOVER_STANDOFF_CELLS) / dist;
-            cx = mission.lzX + dx * k;
-            cy = mission.lzY + dy * k;
-        } else {
-            cx = mission.lzX;
-            cy = mission.lzY;
-        }
-        mission.hoverPointX = cx;
-        mission.hoverPointY = cy;
     }
 
     /**

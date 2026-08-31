@@ -58,7 +58,6 @@ class StrafeLethalityTest {
                 targetX + 0.5f, targetY + 0.5f, 5f, 5f, 5f, 5f, 0f);
         ShuttleMission mission = sim.world().mission(fighter);
         mission.strikeSortie = true;
-        mission.fireSupportSec = 25f;
         sim.world().kinematics(fighter).teleport(5f, 5f, 0f);
         mission.state = ShuttleState.INCOMING;
 

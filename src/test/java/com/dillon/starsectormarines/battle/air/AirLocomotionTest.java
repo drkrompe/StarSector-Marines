@@ -45,7 +45,7 @@ class AirLocomotionTest {
             if (AirLocomotion.of(state).airborne()) airborne.add(state);
         }
         assertEquals(EnumSet.of(ShuttleState.INCOMING, ShuttleState.PAD_DESCENT,
-                        ShuttleState.HOVER_STATION, ShuttleState.DEPARTING,
+                        ShuttleState.DEPARTING,
                         ShuttleState.RETURNING, ShuttleState.ATTACK_RUN,
                         ShuttleState.REPOSITION),
                 airborne);

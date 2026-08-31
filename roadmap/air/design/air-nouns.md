@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — an aircraft is one entity moved three ways; a landing is flown rather than captured, and a vertical lift settles onto its pad.
+Updated: 2026-08-30 — an aircraft is one entity moved three ways, and a landing is flown rather than captured.
 
 ## Purpose
 
@@ -480,14 +480,39 @@ the objective is its guns rather than its ramp, so unlike a transport it never
 touches down on what it was sent to attack — it arrives on station, which is a
 wider thing than arriving on a cell.
 
-The field flies **one at a time**, on an interval. A garrison that scrambled
-its whole air arm at first contact would spend itself in the opening minute and
-have nothing left for the assault the field exists to answer, and the single
-sortie is what makes air a recurring threat instead of one event. The target is
-the **densest** enemy concentration rather than the nearest or the largest:
-nearest sends aircraft after whichever scout wandered closest to the fence,
-largest picks the same push every time, and density is both what an aircraft is
-good against and what a player can see the reason for afterwards.
+The field **commits half its sheds and keeps half back**, rounded up so a
+one-shed strip still flies. A garrison that scrambled its whole air arm at first
+contact would spend itself in the opening minute and have nothing left for the
+assault the field exists to answer; a garrison that flew one aircraft while four
+sat in their hangars is not exercising restraint, it is a station whose air arm
+does not exist. The limit is a share of the field's own surviving
+establishment, so a strip with one shed and a station with six are different
+propositions, and an attacker who burns hangars narrows what the field can put
+up *now* as well as what it can put up ever. It is asked of the **berths** —
+how many sheds are committed — rather than of the aircraft, because a berth is
+what a sortie actually spends.
+
+**The stagger between launches is not the gap between sorties.** It used to be
+the latter, and that alone made the limit meaningless: at the current
+atmosphere calibration a sortie is about forty seconds from shed to shed, so a
+forty-five second wait after each one guaranteed the field was empty before the
+next aircraft moved, whatever any cap said — and what a playtester saw was a
+station with five airframes putting exactly one over the battle. What paces a
+launch is how fast the base can push one departure through its own taxiway and
+strip, which is a handful of seconds; what limits the field is the share above.
+The pacing is physical and the limit is doctrine, and confusing the two is what
+produced a doctrine nobody had chosen.
+
+The target is the **densest** enemy concentration rather than the nearest or
+the largest: nearest sends aircraft after whichever scout wandered closest to
+the fence, largest picks the same push every time, and density is both what an
+aircraft is good against and what a player can see the reason for afterwards.
+With more than one aircraft up the field asks for the densest concentration
+**nobody is already working** — two cluster radii clear of it, so the second
+sortie is attacking somebody the first is not. Two aircraft on one platoon
+stays available and is the answer when the map holds only one concentration
+worth attacking; what it must not be is the only sentence the dispatcher can
+say.
 
 **A strike cannot be shown to shoot headlessly.** Its guns are placed from the
 hull's real weapon slots, which need the game loaded to read, so a headless
@@ -677,7 +702,9 @@ The strip itself is a **resource with one occupant**. Two aircraft rolling down
 one runway is not a race the simulation is entitled to lose, and the queue that
 falls out of it is the point — a field with three aircraft and one strip
 launches them in sequence, so anything sitting between a shed and the threshold
-delays every one of them. A craft holds the strip from the moment it starts its
+delays every one of them. That queue was theory while a field flew one sortie
+at a time; with several up it is load-bearing, and holding short is an ordinary
+part of a departure rather than an edge case. A craft holds the strip from the moment it starts its
 roll until it is airborne, and through a landing rollout, because it is standing
 on it; releasing is tolerant of a craft that never held it, since a strip left
 claimed by an aircraft that no longer exists closes the field for the rest of
@@ -748,11 +775,22 @@ the mission commander. Handing them over rather than merely releasing them is
 the load-bearing part: a commander's pool is what it owns, so an unclaimed
 squad is every bit as stranded as an over-claimed one. Without the handoff the
 ground crew that did not fly stands on the pad for the rest of the battle while
-each new sortie marches another four out to join them. `LOITER_IF_ARMED` preserves bounded fire support;
-`DEPART` takes off immediately even when the hull has weapons. It is an air
-entity throughout that lifecycle, not a temporary handle or a parallel id
-space. Transport survival, payload delivery, and optional mounted fire support
-are role capabilities; they do not make the craft a normal grid combat unit.
+each new sortie marches another four out to join them. It is an air entity
+throughout that lifecycle, not a temporary handle or a parallel id space.
+Transport survival, payload delivery, and mounted guns are role capabilities;
+they do not make the craft a normal grid combat unit.
+
+**A transport that has unloaded leaves.** There is no phase between setting the
+payload down and turning for the exit, whatever the hull is carrying on its
+hardpoints. An armed craft that stayed to work the drop zone was a free
+gunship: it hung over the objective on the squad's centroid with nothing but a
+fuel timer to make it go, so the delivery quietly bought fire support the
+mission never paid for and the marines it dropped were not the ones deciding
+the fight. Guns on a transport are what it defends *itself* with on the way in
+and the way out — a run through an anti-air bubble is the risk the sortie takes
+— not a reason to hold station. A craft that wants to work a target is flying a
+strike, which is its own sortie with its own attack runs and its own cost.
+Conquest already delivered this way; every other mission now does too.
 
 `ShuttleType.capacity` is the hull maximum. `ShuttleAssignment.seatsPerSortie`
 is the actual manifest and is restored on every cycle. Arrangement, shared
