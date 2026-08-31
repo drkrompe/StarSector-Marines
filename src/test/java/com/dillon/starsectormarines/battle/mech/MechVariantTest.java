@@ -133,6 +133,34 @@ class MechVariantTest {
     }
 
     @Test
+    void factionDoctrineFieldsTheThreeAcceptedSignatureWeapons() {
+        MechLoadoutComponent hegemony = FactionMechLoadouts.create(
+                MechVariant.BULWARK, null, "hegemony");
+        assertSame(MechWeaponComponent.DUAL_BASTION_AUTOCANNONS,
+                hegemony.mount(MechMountSlot.ARMS).component);
+        assertTrue(hegemony.hasWeapon(WeaponRegistry.MECH_BASTION_AUTOCANNON_ID));
+        assertSame(MechWeaponComponent.SRM_15,
+                hegemony.mount(MechMountSlot.RIGHT_SHOULDER).component);
+
+        MechLoadoutComponent path = FactionMechLoadouts.create(
+                MechVariant.HOUND, null, "LUDDIC_PATH");
+        assertSame(MechWeaponComponent.DEMOLITION_CANNON,
+                path.mount(MechMountSlot.ARMS).component);
+        assertEquals(5, path.mount(MechMountSlot.ARMS).ammo);
+        assertTrue(path.hasWeapon(WeaponRegistry.MECH_DEMOLITION_CANNON_ID));
+
+        MechLoadoutComponent guard = FactionMechLoadouts.create(
+                MechVariant.SIROCCO, null, " lions_guard ");
+        assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON,
+                guard.mount(MechMountSlot.ARMS).component);
+        assertSame(MechWeaponComponent.LRM_5,
+                guard.mount(MechMountSlot.LEFT_SHOULDER).component);
+        assertSame(MechWeaponComponent.THERMAL_LANCE,
+                guard.mount(MechMountSlot.RIGHT_SHOULDER).component);
+        assertTrue(guard.hasWeapon(WeaponRegistry.MECH_THERMAL_LANCE_ID));
+    }
+
+    @Test
     void profileStatsAppearanceAndPhysicalBodyPersistOnTheEntity() {
         BattleSimulation sim = arena();
         BattleComponents components = sim.getBattleComponents();

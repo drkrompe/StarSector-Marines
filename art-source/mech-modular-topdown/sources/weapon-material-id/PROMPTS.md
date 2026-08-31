@@ -1,6 +1,6 @@
 # Weapon material-ID ImageGen passes
 
-Generated with the built-in ImageGen tool on 2026-08-31. These seven images are
+Generated with the built-in ImageGen tool on 2026-08-31. These ten images are
 semantic classification aids, not shipping color or geometry. The builder keys
 their magenta regions into reviewed weapon paint masks, then applies those masks
 to the original weapon pixels.
@@ -36,6 +36,9 @@ table below.
 | `lrm-pod.png` | `../lrm-pod.png` | Olive outer casing, top rail, center brace, and painted front covers | Missile caps, rack grid and cavities, mechanisms, bolts, lamps, warning marks, and outlines |
 | `shoulder-laser-cannon.png` | `../weapon-concepts/shoulder-laser-cannon.png` | Broad rear shoulder-housing plates, rear center mounting cover, and the paired olive side housings beside the barrel base | Twin long gunmetal focusing spars, recessed cyan beam guide, edge-on exit slit, capacitor indicator, collars, frame, conduits, heat sinks, vents, mounting lip, lamps, fasteners, gaps, cavities, and outlines |
 | `pulse-laser-arm.png` | `../weapon-concepts/pulse-laser-arm.png` | Broad rear mounting housing and center armor plate, paired olive side housings beside the focusing rails, olive plates around the capacitor banks, and rear mounting tab | Twin gunmetal focusing rails, recessed cyan optical path, edge-on exit slit, capacitor indicators, frames, conduits, vents, fasteners, lamps, mechanisms, gaps, cavities, and outlines |
+| `hegemony-bastion-autocannon.png` | `../weapon-concepts/hegemony-bastion-autocannon.png` | Every olive-drab external armor casing plate, including its small painted service marks | Black barrel and shroud, muzzle slit, recoil rails and cylinders, ammunition belt and feed, hoses, vents, fasteners, gaps, cavities, outlines, and bare metal |
+| `pather-demolition-cannon.png` | `../weapon-concepts/pather-demolition-cannon.png` | Olive and rust-red external plates, welded armor braces, access hatch, and painted rear mount casing | Oversized barrel and muzzle slit, weld beads, recoil ram, pressure-cylinder hardware, hoses, pipes, clamps, bolts, joints, gaps, cavities, outlines, and bare steel |
+| `lions-guard-thermal-lance.png` | `../weapon-concepts/lions-guard-thermal-lance.png` | Deep-red lacquer plates, cream identification chevrons, and gold/brass external trim plates | Dark emitter body, edge-on amber emitter seam, cooling fins, heat exchangers, lamps and glowing cells, pipes, vents, fasteners, gaps, cavities, outlines, gunmetal mechanisms, and mounting socket |
 
 ImageGen returned RGB checker previews rather than real alpha. Its SRM canvas
 was one pixel wider and one pixel shorter than the source; the redesigned laser
@@ -52,3 +55,10 @@ name, shoulder layout, and accepted canvas could be implemented together. That
 registration is now complete:
 the builder emits `shoulder-laser-cannon.png` at `76x128` plus every faction
 casing variant from this retained semantic pass.
+
+The three faction-signature passes used the same classification-only handoff.
+The Bastion and demolition passes returned aligned checker previews. The
+thermal-lance pass added a non-authoritative magenta halo; it is harmless
+because the builder resamples the semantic field to the accepted source crop
+and multiplies it by the normalized base sprite's exact alpha before measuring
+or applying paint. All three passed the reviewed 20–82% casing-coverage guard.

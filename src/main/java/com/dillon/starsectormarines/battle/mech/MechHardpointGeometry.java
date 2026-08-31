@@ -50,6 +50,9 @@ public final class MechHardpointGeometry {
             case LayeredMechAppearance.ARMS_HEAVY_CANNON -> new LocalPoint(0f, 0.57f);
             case LayeredMechAppearance.ARMS_PULSE_LASER -> new LocalPoint(
                     alternatingX(0.37f, releaseIndex), 0.39f);
+            case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> new LocalPoint(
+                    alternatingX(0.37f, releaseIndex), 0.49f);
+            case LayeredMechAppearance.ARMS_DEMOLITION_CANNON -> new LocalPoint(0f, 0.52f);
             default -> new LocalPoint(0f, 0f);
         };
     }
@@ -72,7 +75,8 @@ public final class MechHardpointGeometry {
     }
 
     public static float podForward(int podAppearance) {
-        if (podAppearance == LayeredMechAppearance.POD_SHOULDER_LASER) return 0.32f;
+        if (podAppearance == LayeredMechAppearance.POD_SHOULDER_LASER
+                || podAppearance == LayeredMechAppearance.POD_THERMAL_LANCE) return 0.32f;
         return isSmallPod(podAppearance) ? 0.12f : 0.16f;
     }
 
