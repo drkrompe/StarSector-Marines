@@ -59,6 +59,11 @@ final class GroundWreckFootprint {
         LongArrayList caught = new LongArrayList();
         for (int i = 0; i < nearby.size; i++) {
             long u = nearby.ids[i];
+            // Only somebody standing in a cell can be stepped out of one. The
+            // scan reaches every body near the wreck, and some of them —
+            // a convoy chassis, the aircraft that is dying here — move on their
+            // own kinematics and have no cell to be moved to.
+            if (!world.hasPosition(u)) continue;
             if (within(world.cellX(u), world.cellY(u), centerX, centerY)) caught.add(u);
         }
         for (int i = 0; i < caught.size(); i++) {
@@ -122,6 +127,11 @@ final class GroundWreckFootprint {
     private static boolean occupied(World world, LongBucket nearby, int x, int y) {
         for (int i = 0; i < nearby.size; i++) {
             long u = nearby.ids[i];
+            // Same rule as the gather above, and the same reason: a body with
+            // no cell holds none. It also keeps the aircraft that is dying here
+            // from reserving the ground its own hull is about to come down on,
+            // which would leave a hole in the middle of its wreck.
+            if (!world.hasPosition(u)) continue;
             if (world.cellX(u) == x && world.cellY(u) == y) return true;
         }
         return false;

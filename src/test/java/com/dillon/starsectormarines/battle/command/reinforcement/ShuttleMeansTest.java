@@ -625,7 +625,7 @@ public class ShuttleMeansTest {
         ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
 
         // Killed in the air rather than on the way home.
-        mission.hp = 0.0001f;
+        sim.world().setHp(sim.getAirEntityIds()[0], 0.0001f);
         for (int i = 0; i < 4000
                 && berth.state == AirfieldService.BerthState.AWAY
                 && mission.state != ShuttleState.GONE; i++) {

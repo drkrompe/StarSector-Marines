@@ -161,7 +161,7 @@ public final class AirStrikeSystem {
         ShuttleMission mission = sim.world().mission(craft);
         // The hull that leaves is the hull that was in the shed, damage and
         // all, and it owes itself back to that shed.
-        mission.hp = field.launch(shed);
+        sim.world().setHp(craft, field.launch(shed));
         mission.homeBerth = shed;
         mission.strikeSortie = true;
         sim.world().kinematics(craft).teleport(shelterX, shelterY, shed.facingDegrees);

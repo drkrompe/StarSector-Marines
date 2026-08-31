@@ -177,7 +177,7 @@ class RunwayProcedureTest {
                     50.5f, 30.5f, SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f, 1);
             ShuttleMission mission = sim.world().mission(craft);
             mission.homeBerth = shed;
-            mission.hp = airfield.launch(shed);
+            sim.world().setHp(craft, airfield.launch(shed));
             mission.departFromRunway(STRIP, SHELTER_X, SHELTER_Y, 50.5f, 30.5f);
             sim.world().kinematics(craft).teleport(SHELTER_X, SHELTER_Y, 0f);
 
@@ -233,7 +233,7 @@ class RunwayProcedureTest {
                     50.5f, 30.5f, SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f);
             ShuttleMission mission = sim.world().mission(fighter);
             mission.homeBerth = shed;
-            mission.hp = airfield.launch(shed);
+            sim.world().setHp(fighter, airfield.launch(shed));
             mission.departFromRunway(STRIP, SHELTER_X, SHELTER_Y, 50.5f, 30.5f);
             sim.world().kinematics(fighter).teleport(SHELTER_X, SHELTER_Y, 0f);
 
@@ -279,7 +279,7 @@ class RunwayProcedureTest {
             ShuttleMission mission = sim.world().mission(fighter);
             mission.homeBerth = shed;
             mission.strikeSortie = true;
-            mission.hp = airfield.launch(shed);
+            sim.world().setHp(fighter, airfield.launch(shed));
             mission.departFromRunway(STRIP, SHELTER_X, SHELTER_Y, 50.5f, 30.5f);
             sim.world().kinematics(fighter).teleport(SHELTER_X, SHELTER_Y, 0f);
 
@@ -351,7 +351,7 @@ class RunwayProcedureTest {
                 mission.usesRunway = true;
                 mission.shelterX = SHELTER_X;
                 mission.shelterY = SHELTER_Y;
-                mission.hp = airfield.launch(shed);
+                sim.world().setHp(craft, airfield.launch(shed));
                 sim.world().kinematics(craft).teleport(from[0], from[1], 0f);
                 mission.state = ShuttleState.LANDED;
                 mission.marinesRemaining = 0;
@@ -450,7 +450,7 @@ class RunwayProcedureTest {
                     50.5f, 30.5f, SHELTER_X, SHELTER_Y, SHELTER_X, SHELTER_Y, 0f);
             ShuttleMission mission = sim.world().mission(fighter);
             mission.homeBerth = shed;
-            mission.hp = airfield.launch(shed);
+            sim.world().setHp(fighter, airfield.launch(shed));
             mission.landOnRunway(STRIP, 55.5f, 30.5f, SHELTER_X, SHELTER_Y);
             mission.exitX = mission.touchdownX;
             mission.exitY = mission.touchdownY;

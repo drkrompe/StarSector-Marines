@@ -323,7 +323,7 @@ final class RunwaySortieScene {
         ShuttleMission mission = scene.sim().world().mission(scene.craftId());
         if (mission == null) return 0;
         float max = Math.max(1f, FighterProfile.BROADSWORD.maxHp());
-        return Math.max(0, Math.round(100f * mission.hp / max));
+        return Math.max(0, Math.round(100f * scene.sim().world().hp(scene.craftId()) / max));
     }
 
     /** How many of the platoon the strike was flown against are still alive. */
