@@ -37,7 +37,10 @@ public enum LayeredArmorFamily {
             case MARINE_RED: return OUTLAW;
             case MILITIA: return MILITIA;
             case CIVILIAN: return CIVILIAN_COLONIST;
-            case ENGINEER: return ENGINEER;
+            case ENGINEER:
+            // The same workwear, because it is the same person. What a sidearm
+            // changes is what they do when shot at, not what they are wearing.
+            case TECHNICIAN: return ENGINEER;
             case SCIENTIST: return SCIENTIST;
             case ALIEN:
             case SWARM_RUNNER: return XENO;

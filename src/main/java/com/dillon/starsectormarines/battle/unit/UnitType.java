@@ -64,6 +64,26 @@ public enum UnitType {
     CIVILIAN   ("graphics/battle/civilian.png",    null,                                   false,  8f, 0f,   2.4f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Maintenance / industrial worker. Same role as civilian — wanders, flees. */
     ENGINEER   ("graphics/battle/engineer.png",    null,                                   false, 10f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
+    /**
+     * A garrison's working trade with a sidearm on their hip — the technicians
+     * a motor pool or an airfield is staffed with.
+     *
+     * <p>The same person as an {@link #ENGINEER} and drawn on the same sheet;
+     * what differs is that somebody issued them a pistol, which is a decision of
+     * the force that posted them rather than a fact about the trade. A ship's
+     * engineer is not armed and a garrison's is.
+     *
+     * <p>Armed, not soldiers. The numbers are a sidearm's: short reach, poor
+     * accuracy, a slow cycle and little of the morale weight a rifle section
+     * carries. A technician who is shot at can shoot back, cannot hold ground,
+     * and is worth an attacker's attention only because they are standing on
+     * something that matters.
+     *
+     * <p>No corpse sheet, like the engineer they are. What the art has is
+     * civilians who vanish, and inventing a body for one trade would leave the
+     * hangar's fallen drawn and the barracks' undrawn.
+     */
+    TECHNICIAN ("graphics/battle/engineer.png",    null,                                   true,  12f, 7.0f, 2.2f, 0.15f, 1.4f, 9.0f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 0.2f, 0.3f, 0.45f),
     /** Lab tech. Same role as civilian — wanders, flees. Lower HP than engineer; same speed. */
     SCIENTIST  ("graphics/battle/scientist.png",   null,                                   false,  8f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Invisible, simulation-only backstop used by authored live-fire tasks. It is targetable and static but never participates in a campaign roster or render pass. */
@@ -184,6 +204,16 @@ public enum UnitType {
     public boolean isMachineFrame() { return this == MACHINE_FRAME; }
 
     /**
+     * Whether this archetype is an armed working trade rather than a soldier.
+     *
+     * <p>Used where "combatant" is too blunt a word for what somebody is. A
+     * technician with a pistol counts as armed everywhere the flag is read, and
+     * a commander that weighed one the same as a rifleman would read a works
+     * crew as a garrison.
+     */
+    public boolean isTechnician() { return this == TECHNICIAN; }
+
+    /**
      * Whether this archetype is a drone launch hub — the classification gate
      * that replaced the old {@code instanceof} subclass checks once the hub's
      * live state moved off a dedicated {@code Entity} subclass and onto the
@@ -270,6 +300,7 @@ public enum UnitType {
     public boolean drawnAsLayers() {
         return this == MARINE || this == MARINE_BLUE || this == MARINE_RED
                 || this == MILITIA || this == CIVILIAN || this == ENGINEER
+                || this == TECHNICIAN
                 || this == SCIENTIST || this == ALIEN || this == SWARM_RUNNER;
     }
 

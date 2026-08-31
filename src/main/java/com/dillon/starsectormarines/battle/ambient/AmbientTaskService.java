@@ -88,6 +88,10 @@ public final class AmbientTaskService {
     private final Map<Long, Long> liveFireTargets = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> primaryFireWindows = new ConcurrentHashMap<>();
     private final Map<Long, AmbientTaskPose> livePoses = new ConcurrentHashMap<>();
+    /** Structure each actor had when last asked, for spotting the tick a round lands. */
+    private final Map<Long, Float> watchedStructure = new ConcurrentHashMap<>();
+    /** Below this, a difference in structure is arithmetic rather than a hit. */
+    private static final float HIT_EPSILON = 1e-3f;
     private AmbientLiveFireSink liveFireSink = AmbientLiveFireSink.NONE;
     private float elapsedSeconds;
 
@@ -153,6 +157,7 @@ public final class AmbientTaskService {
         liveFireTargets.remove(actorId);
         primaryFireWindows.remove(actorId);
         livePoses.remove(actorId);
+        watchedStructure.remove(actorId);
         taskPoints.release(actorId);
         if (roster.isLive(actorId) && world.hasMovement(actorId)) navigation.clearPath(actorId);
     }
@@ -704,10 +709,10 @@ public final class AmbientTaskService {
     }
 
     private boolean isThreatened(long actorId, AmbientTaskRoute route) {
-        if (route.threatPolicy() == AmbientThreatPolicy.NONE || route.threatRadiusCells() <= 0f) {
-            return false;
-        }
+        if (route.threatPolicy() == AmbientThreatPolicy.NONE) return false;
         if (world.hasAiState(actorId) && world.fallbackTimer(actorId) > 0f) return true;
+        if (route.threatPolicy() == AmbientThreatPolicy.UNDER_FIRE) return tookAHit(actorId);
+        if (route.threatRadiusCells() <= 0f) return false;
         float x = world.x(actorId);
         float y = world.y(actorId);
         Faction faction = roster.identity().faction(actorId);
@@ -722,6 +727,30 @@ public final class AmbientTaskService {
             if (dx * dx + dy * dy <= radiusSq) return true;
         }
         return false;
+    }
+
+    /**
+     * Whether this actor lost structure since the last time it was asked.
+     *
+     * <p>The cheapest honest reading of "somebody is shooting at me". Telemetry
+     * counts damage but only ever upward, so a total says whether an actor has
+     * <em>ever</em> been hit rather than whether they are being hit now; what
+     * separates a technician who should dive for cover from one who was grazed
+     * ten minutes ago is that the number moved this tick.
+     *
+     * <p>Asked once per tick per actor, which is what makes the difference a
+     * tick's worth. Both callers are inside the roster walk and exactly one of
+     * them runs for any given actor — the assigned branch or the stood-down one.
+     *
+     * <p>A near miss does not count, and that is a limitation rather than a
+     * decision. Rounds that go past leave nothing on the target to read, so a
+     * technician works through the ones that miss and stops at the one that
+     * does not.
+     */
+    private boolean tookAHit(long actorId) {
+        float structure = world.hp(actorId);
+        Float before = watchedStructure.put(actorId, structure);
+        return before != null && structure < before - HIT_EPSILON;
     }
 
     private static float loopSeconds(AmbientTaskRoute route) {

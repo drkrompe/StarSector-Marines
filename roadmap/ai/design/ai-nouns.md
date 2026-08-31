@@ -326,6 +326,38 @@ are taken on one posting at a time round the whole ship — filling each posting
 its own capacity in turn crews the compartments at the head of the list and
 leaves the rest deserted.
 
+**A worker stops for a round, not for a visitor.** Whether authored work yields
+is a question about the actor, and there are two honest answers. A civilian
+yields to anybody armed and a guard yields to an enemy in reach, because neither
+has any business being there when trouble arrives. An armed trade with a job
+does not: a technician who downed tools because somebody hostile came within
+sight would spend a battle standing about in the one part of the map an attack
+passes through, and the facility they were posted to would stop producing the
+moment anybody looked at it — a whole rear going idle for a scout. So a works
+crew keeps at it through a firefight going on around them, breaks off when a
+round actually finds one of them, and goes back to it once nothing has for a few
+seconds. In between they are an ordinary unit and behave like one.
+
+Being hit is read as **structure lost since the last time the actor was asked**,
+which is a tick's worth. A near miss leaves nothing on the target to read, so
+they work through the rounds that miss and stop at the one that does not — a
+limitation rather than a decision.
+
+**A sidearm needs a squad, or it is a prop.** Target acquisition runs off the
+squad, so an armed worker in none is a person holding a pistol and watching:
+they take a round, are released to their own behaviour, and stand there. A works
+crew is therefore mustered as a squad — one per trade, since the stores and the
+gantries are different rotations — and that squad is claimed on the map's own
+authority rather than left unowned. An unowned squad is one mission command may
+take, and it would be right to: a squad it can see and has not been told is
+somebody else's is a squad it can use. A shed produces nothing once its
+technicians have been ordered to go and hold a road.
+
+Whether somebody is **armed at all** is a decision of the force that posted
+them rather than a fact about their trade. A merchant's engineer carries a
+spanner and a garrison's carries a pistol, and they are the same technician; the
+role says what the person is and the posting says what they were issued.
+
 **A room with nothing in it is nobody's posting, and that is the answer rather
 than a gap.** A technician's trade is servicing whatever is parked in a bay and
 an empty bay publishes no servicing, so a shed with empty berths is a shed the
