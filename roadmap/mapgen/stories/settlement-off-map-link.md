@@ -1,56 +1,87 @@
 # Settlement off-map link
 
-Status: PLANNED — depends on `grown-road-graph.md`; the invariant below is the
-whole of the work.
+Status: BOTH GUARANTEES LAND — road and landing are enforced and measured.
+What remains is a campaign source that ever asks for anything but ROAD.
 
 Written: 2026-08-31
 
-## The law
+Updated: 2026-08-31 — scoped from a blanket invariant to a declared
+`SettlementLink`, so a ruin is a value rather than an exception.
 
-**Every settlement is reachable from off the map, by road or by landing.** A
-settlement is connected to the rest of its world one of two ways:
+## Not every map, only a living one
 
-- a **ground link** — at least one arterial running off the map edge, joining
-  the planetary road network; or
-- a **landing link** — a landing facility on the map, which is what an off-grid
-  outpost has instead. Supplies and relief arrive by ship.
+The first draft of this said *every settlement is reachable from off the map*.
+That is wrong as a blanket law. An inhabited colony nothing can reach is a
+generation defect; a ruin nothing can reach is the point of the ruin, and a law
+with an exception carved out for abandoned sites is a law somebody will forget
+to except.
 
-A map with neither is a generation defect rather than a flavour choice, and it
-is a defect that hides: `RoadGraphBuilder` promotes a perimeter cell to a convoy
-entry node only where a band at least five cells wide reaches the map edge, so a
-settlement with no road out has nowhere for ground reinforcement to arrive from
-and nothing reports it.
+So the requirement is a stated property, `SettlementLink`, with three values:
 
-## Why it is open now
+| | meaning | guarantee |
+|---|---|---|
+| `ROAD` | joined to the planetary road network | at least one arterial runs off the map edge |
+| `LANDING` | off-grid; supplied by ship | a landing facility on the map, and no road out |
+| `NONE` | abandoned, ruined, never connected | nothing |
 
-`GrownTrunkPlan` reaches the edge only when growth happens to run that way. An
-arm that would overhang is painted through to the perimeter — that much is
-deliberate, and exists precisely so the band carries an entry node — but nothing
-*guarantees* any arm gets that far. At low density the whole settlement can sit
-in the middle of the map with no link at all.
+Ruins are not yet generated. `NONE` exists now anyway, because the moment they
+are, the shape they need is already a value rather than a change to a law.
 
-## Shape of the work
+## What the defect actually was
 
-The link is a property of the settlement, stated rather than hoped for.
-Following the density knob's precedent, it belongs on `GrownTrunkPlan.Profile`:
-how many arterials must leave the map, where zero means an off-grid outpost that
-must instead carry a landing facility.
+Growth reaches an edge only when it happens to run that way, and a landing
+facility is rare. Measured over 100 seeds per density with nothing declared
+(`NONE`), counting maps with no off-map road entry, no landing pad, and neither:
 
-**A link may bend.** A road out is not a highway ruled from the settlement to
-the edge; one right-angle turn on the way reads as terrain the road went around
-and costs nothing, since a `TrunkSegment` is already a rectangle and an L is
-simply two of them.
+| density | no road | no pad | **neither** |
+|---|---|---|---|
+| 0.20 | 23/100 | 79/100 | **15/100** |
+| 0.55 | 4/100 | 73/100 | 3/100 |
+| 1.00 | 0/100 | 70/100 | 0/100 |
 
-**An outpost is not a new kind of place.** `LANDING_ZONE`, `SPACEPORT_PAD`,
-`AIRBASE_PAD` and `AIRBASE_COMPOUND` already exist as lots, so an off-grid
-settlement is an ordinary one whose link happens to be a pad. The work is to
-guarantee the lot is present when the roads are absent, not to invent content
-for it.
+Fifteen percent of sparse settlements could not be reached by any means at all.
+With `ROAD` the road count is 0 at every density; with `LANDING` the pad count
+is 0 at every density and the road count is deliberately unchanged, because an
+off-grid outpost is supposed to have no road. Neither case leaves anything
+stranded.
 
-## Acceptance
+At full density the average entry count is identical with and without the
+guarantee (9.94), so it acts only where growth did not.
 
-Over a seed survey at each density: every generated map has at least one
-perimeter road exit or at least one landing facility, and a map declared
-off-grid has a landing facility and no perimeter exit. That is a survey, so it
-is evidence rather than a `:test` case; the unit test is on whichever function
-decides the link.
+That defect hid completely. `RoadGraphBuilder` promotes a perimeter cell to an
+off-map entry node only where a band wide enough to carry a centreline actually
+reaches the edge, and `ConvoyMeans.canFulfill` returns false with no log when
+there are no perimeter nodes — so ground reinforcement was simply never offered
+and nothing said why.
+
+## The road bends
+
+A road laid straight from the middle of a town to the edge of the world reads as
+a runway. One right-angle turn on the way reads as terrain the surveyors went
+around, and costs nothing, since a segment is already a rectangle and an L is
+two of them. The offset is drawn rather than forced, so a zero offset degenerates
+to the straight case on its own — some roads really do run straight.
+
+The forced band is `PRIMARY`, because a link to the outside is an arterial and
+because a narrower band would leave the road graph with no perimeter node to
+promote — the failure this whole story exists to prevent, reintroduced by the
+fix for it.
+
+## The pad is promoted, not rolled
+
+`SettlementLandingLinkStage` is in a recipe only when the settlement is
+`LANDING`, and sits beside `AirbasePadSeedStage` — after the compound seeds have
+taken their parcels, before the claim stage. It scans for a leaf that actually
+*publishes* a pad and otherwise promotes the largest ordinary block.
+
+"Actually publishes" is the whole subtlety. A `LANDING_ZONE` below five cells a
+side is still striped and marked and contributes nothing to
+`MapResult.landingPads`, so a leaf merely carrying the label would have looked
+like a link without being one.
+
+## What remains
+
+**Nothing selects a link from the campaign yet.** Every generated settlement is
+`ROAD` because that is the default. An outpost or a ruin has to be asked for.
+Market conditions are the natural source when that matters — the same boundary
+`SurfaceZoning` reads planet type at.
