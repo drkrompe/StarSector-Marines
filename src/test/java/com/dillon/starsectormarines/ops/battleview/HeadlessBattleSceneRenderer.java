@@ -301,6 +301,8 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         private final SpriteSheetFrames urban3Frames;
         private final SpriteSheetFrames natureFrames;
         private final LayeredMechAssets mech;
+        private SpriteAPI engineFlame;
+        private SpriteAPI engineGlow;
 
         private HeadlessBattleSprites(Path modRoot) throws Exception {
             this.modRoot = modRoot.toAbsolutePath().normalize();
@@ -319,6 +321,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             natureFrames = slice(TileManifest.NATURE_SHEET);
             loadInfantry();
             loadHulls();
+            loadEngineFx();
             mech = loadMech();
         }
 
@@ -339,6 +342,33 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         private void loadHulls() {
             for (ShuttleType type : ShuttleType.values()) loadHull(type);
             for (FighterProfile fighter : FighterProfile.values()) loadHull(fighter);
+        }
+
+        /**
+         * Loads the vanilla effect sprites.
+         *
+         * <p>Same reason as the hulls, and reached the same way: these live in
+         * the install rather than the mod folder, and the vanilla root is
+         * already in {@link #resourceRoots}. The base class loads them through
+         * {@code Global.getSettings().loadTexture}, which is a stub here and
+         * hands back null, so every consumer of an effect sprite silently drew
+         * nothing in headless evidence — an engine plume, and any later system
+         * that borrows a radial falloff for something of its own.
+         *
+         * <p>Best effort per sprite, as with a hull: a missing effect is worth
+         * far less than the frame it would have appeared in.
+         */
+        private void loadEngineFx() {
+            engineFlame = spriteOrNull(ENGINE_FLAME_SPRITE);
+            engineGlow = spriteOrNull(ENGINE_GLOW_SPRITE);
+        }
+
+        private SpriteAPI spriteOrNull(String path) {
+            try {
+                return sprite(path);
+            } catch (IOException | RuntimeException missing) {
+                return null;
+            }
         }
 
         private void loadHull(Airframe airframe) {
@@ -385,6 +415,10 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         }
         @Override public LayeredMechAssets layeredMechSprites() { return mech; }
         @Override public Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframes; }
+        @Override public SpriteAPI engineFlameSprite() { return engineFlame; }
+        @Override public SpriteAPI engineGlowSprite() { return engineGlow; }
+        /** Already loaded in the constructor, off the resource roots rather than through the game. */
+        @Override public void ensureEngineFxSprites() { }
         @Override public UnitLayerLayouts unitLayerLayouts() { return layouts; }
 
         private Asset asset(SpriteAPI sprite) {

@@ -34,14 +34,18 @@ table below.
 | `linear-cannon-variant.png` | `../linear-cannon-concept.png` | Olive housing, side supports, and casing beneath the barrels | Six barrel tubes, mechanisms, vents, bolts, copper/orange pipes and lamps, and outlines |
 | `srm-pod.png` | `../srm-pod.png` | Olive outer casing, top rail, and painted front covers | Missile caps, rack grid and cavities, mechanisms, bolts, lamps, warning marks, and outlines |
 | `lrm-pod.png` | `../lrm-pod.png` | Olive outer casing, top rail, center brace, and painted front covers | Missile caps, rack grid and cavities, mechanisms, bolts, lamps, warning marks, and outlines |
-| `shoulder-laser-cannon.png` | `../weapon-concepts/shoulder-laser-cannon.png` | Olive external armor shells, central plates, outer shoulders, and X-braced rear mounting cover | Cyan emitter and capacitor indicator, focusing rails and collar, gunmetal frame, hinge, conduits, heat sinks, vents, mounting lip, lamps, fasteners, gaps, cavities, and outlines |
+| `shoulder-laser-cannon.png` | `../weapon-concepts/shoulder-laser-cannon.png` | Broad rear shoulder-housing plates, rear center mounting cover, and the paired olive side housings beside the barrel base | Twin long gunmetal focusing spars, recessed cyan beam guide, edge-on exit slit, capacitor indicator, collars, frame, conduits, heat sinks, vents, mounting lip, lamps, fasteners, gaps, cavities, and outlines |
 
-ImageGen returned RGB checker previews rather than real alpha, and its SRM
-canvas was one pixel wider and one pixel shorter than the source. Neither fact
-enters an asset: `derive_faction_weapons.py` reads only magenta dominance,
-resamples that semantic field to the original source canvas, normalizes it with
-the original alpha crop, and takes all shipped pixels from the accepted weapon.
-The retained laser-cannon pass currently classifies 36.3% of its opaque source
-as paintable casing; it is intentionally not registered in the deterministic
-builder until the weapon's runtime name, shoulder layout, and accepted canvas
-are implemented together.
+ImageGen returned RGB checker previews rather than real alpha. Its SRM canvas
+was one pixel wider and one pixel shorter than the source; the redesigned laser
+pass is `1054x1492` against a `1058x1487` source. Neither fact enters an asset:
+`derive_faction_weapons.py` reads only magenta dominance, resamples that semantic
+field to the original source canvas, normalizes it with the original alpha crop,
+and takes all shipped pixels from the accepted weapon.
+The laser-cannon material-ID pass was regenerated after the in-plane barrel
+redesign. Its prompt explicitly protected both focusing spars and the narrow
+cyan optical path while selecting the olive shoulder housing. After resampling
+the semantic field to the source canvas, it classifies 31.3% of the opaque
+source as paintable casing. It is intentionally not registered in the
+deterministic builder until the weapon's runtime name, shoulder layout, and
+accepted canvas are implemented together.
