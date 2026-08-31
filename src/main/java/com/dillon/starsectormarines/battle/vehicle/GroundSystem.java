@@ -32,8 +32,8 @@ import java.util.function.Consumer;
 
 /**
  * Owns every ground vehicle in the battle and drives them each tick.
- * Handles convoy trucks (arrive, deboard, depart) and armored vehicles
- * like the APC (arrive, deboard, stay in overwatch with turret active).
+ * Every carrier runs the same errand — arrive, deboard, depart — with its
+ * turret live for the whole of it, the APC's roof gun included.
  *
  * <p>Mirrors {@link com.dillon.starsectormarines.battle.air.AirSystem}'s
  * shape — a stateless per-tick state-machine pass over an id backbone. Each
@@ -165,19 +165,10 @@ public class GroundSystem {
                                 + UNLOAD_PATIENCE_SEC + "s. Moving off with them aboard.");
                         m.marinesRemaining = 0;
                     }
+                    // Unloaded is done. The carrier moves off: the delivery is
+                    // what it drove in for, and sitting on the drop point with
+                    // the gun running is a second job nobody ordered.
                     if (m.marinesRemaining == 0) {
-                        if (type.departsAfterDeboard) {
-                            m.state = VehicleState.DEPARTING;
-                        } else {
-                            m.overwatchCountdown = type.overwatchDurationSec;
-                            m.state = VehicleState.OVERWATCH;
-                        }
-                    }
-                    break;
-
-                case OVERWATCH:
-                    m.overwatchCountdown -= dt;
-                    if (m.overwatchCountdown <= 0f) {
                         m.state = VehicleState.DEPARTING;
                     }
                     break;

@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.model.BuildingKind;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -17,7 +21,10 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Random;
 
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -443,6 +450,92 @@ class AirbaseLotTest {
                         + pad.centerX + "," + pad.centerY);
             }
         }
+    }
+
+
+    /**
+     * The lot owns every cell it repaves.
+     *
+     * <p>A facility laid over ground somebody already built on has to take the
+     * building out with it, and "the building" is not only its cells. A roof is
+     * drawn wherever a cell carries a building id, and a building-kind hint
+     * left under fresh tarmac is flooded into one at finalize — so a lot that
+     * repaved a shell and left its hint behind produced a brick slab standing
+     * in the middle of the apron with no walls under it, wearing the demolished
+     * building's capture marker. That is what the owner saw: an aircraft parked
+     * on a roof.
+     *
+     * <p>Asked of the smallest lot on a hand-built shell, because this is one
+     * rectangle sweep and orientation cannot change it. What it costs to ask
+     * of a generated Conquest city instead is a world generation per case.
+     */
+    @Test
+    void theLotTakesOutWhatItPavedOver() {
+        AirbaseLot.Size size = AirbaseLot.Size.STRIP;
+        AirbaseLot.Facing facing = AirbaseLot.Facing.SOUTH;
+        int spanX = AirbaseLot.spanX(size, facing);
+        int spanY = AirbaseLot.spanY(size, facing);
+        int w = spanX + MARGIN * 2;
+        int h = spanY + MARGIN * 2;
+        NavigationGrid grid = new NavigationGrid(w, h);
+        CellTopology topology = new CellTopology(w, h);
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                grid.setWalkableFloor(x, y);
+                topology.setGroundKind(x, y, GroundKind.DIRT);
+                topology.setRoomPurpose(x, y, RoomPurpose.GENERIC);
+            }
+        }
+        GenContext ctx = new GenContext(grid, topology, new Random(1L), w, h, 1L);
+
+        // A shell standing where the lot is about to go: walls, a roofed
+        // interior the flood-fill has already claimed, a door, and the things
+        // generation recorded about it.
+        int left = MARGIN;
+        int bottom = MARGIN;
+        int right = left + spanX - 1;
+        int top = bottom + spanY - 1;
+        int sl = left + 2, sb = bottom + 2, sr = left + 7, st = bottom + 7;
+        for (int x = sl; x <= sr; x++) {
+            for (int y = sb; y <= st; y++) {
+                boolean ring = x == sl || x == sr || y == sb || y == st;
+                if (ring) {
+                    grid.setWalkable(x, y, false);
+                    topology.setWall(x, y, true);
+                    topology.setWallDirMask(x, y, CellTopology.WALL_DIR_N);
+                } else {
+                    topology.setBuildingKindHint(x, y, BuildingKind.FORTIFIED);
+                    topology.setBuildingId(x, y, 7);
+                }
+            }
+        }
+        grid.setWalkableFloor(sl + 2, sb);
+        grid.setDoorway(sl + 2, sb, true);
+        ctx.pois.add(new PointOfInterest(PointOfInterest.Kind.COMMS,
+                sl, sb, sr, st, sl + 2, sb + 2));
+        ctx.tactical.add(new TacticalNode(TacticalNode.Kind.COMMAND_POST,
+                sl + 2, sb + 2, sl, sb, sr, st, Faction.DEFENDER, 90, 4, true));
+
+        new AirbaseLot(left, bottom, right, top, facing, size).author(ctx, new Random(1L));
+
+        for (int x = left - size.clearance(); x <= right + size.clearance(); x++) {
+            for (int y = bottom - size.clearance(); y <= top + size.clearance(); y++) {
+                assertEquals(0, topology.getBuildingId(x, y),
+                        "a building id survived the paving at " + x + "," + y
+                                + " — the renderer draws that as a roof");
+                assertNull(topology.getBuildingKindHint(x, y),
+                        "a building-kind hint survived the paving at " + x + "," + y
+                                + " — the flood-fill turns that back into a roof");
+                if (grid.isWalkable(x, y)) {
+                    assertFalse(topology.isWall(x, y),
+                            "a wall tag survived on walkable ground at " + x + "," + y);
+                }
+            }
+        }
+        assertTrue(ctx.pois.isEmpty(),
+                "a point of interest survived on ground the lot repaved");
+        assertTrue(ctx.tactical.isEmpty(),
+                "a tactical node survived on ground the lot repaved");
     }
 
     /** Rows behind a berth that belong to the taxiway rather than to a shed. */

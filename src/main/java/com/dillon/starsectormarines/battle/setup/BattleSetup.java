@@ -36,7 +36,6 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
-import com.dillon.starsectormarines.battle.air.PostDeliveryDisposition;
 import com.dillon.starsectormarines.battle.air.TurretMount;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -1211,9 +1210,6 @@ public final class BattleSetup {
             mission.landingAreaId = slot.landingAreaId();
             mission.arrivalGroupId = slot.arrivalGroupId();
             mission.expectedArrivalStrength = slot.expectedStrength();
-            mission.postDeliveryDisposition = slot.departAfterDelivery()
-                    ? PostDeliveryDisposition.DEPART
-                    : PostDeliveryDisposition.LOITER_IF_ARMED;
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
                 cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(a.seatsPerSortie, rng);
@@ -1251,8 +1247,7 @@ public final class BattleSetup {
 
     private record ConquestArrivalSlot(
             LandingPad pad, int landingAreaId, int arrivalGroupId,
-            int expectedStrength, float pendingDelay, float rearmDelay,
-            boolean departAfterDelivery) {}
+            int expectedStrength, float pendingDelay, float rearmDelay) {}
 
     private static List<ConquestArrivalSlot> conquestArrivalSlots(
             MapResult map, List<ShuttleAssignment> assignments,
@@ -1267,7 +1262,7 @@ public final class BattleSetup {
                 legacy.add(new ConquestArrivalSlot(
                         LandingPad.fallback(cell[0], cell[1]), -1, -1, 0,
                         i * SHUTTLE_DROP_STAGGER_SEC,
-                        ShuttleMission.DEFAULT_REARM_DELAY_SEC, false));
+                        ShuttleMission.DEFAULT_REARM_DELAY_SEC));
             }
             return legacy;
         }
@@ -1317,8 +1312,7 @@ public final class BattleSetup {
                 slots.add(new ConquestArrivalSlot(
                         area.berth(member - i), areaIndex, group, expected,
                         group * SHUTTLE_DROP_STAGGER_SEC + pendingJitter,
-                        ShuttleMission.DEFAULT_REARM_DELAY_SEC + rearmJitter,
-                        true));
+                        ShuttleMission.DEFAULT_REARM_DELAY_SEC + rearmJitter));
             }
             segmentGroup++;
         }

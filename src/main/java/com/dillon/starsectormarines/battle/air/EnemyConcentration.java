@@ -27,6 +27,18 @@ public final class EnemyConcentration {
     /** Units that have to be inside {@link #CLUSTER_RADIUS} before it is worth a sortie. */
     public static final int MIN_CLUSTER = 4;
 
+    /**
+     * How far apart two concentrations have to be before they are worth
+     * separate aircraft.
+     *
+     * <p>Two cluster radii: far enough that the two candidates cannot share a
+     * single unit between them, so a second sortie sent here is attacking
+     * somebody the first one is not. Anything narrower merely picks the
+     * next-densest member of the same platoon, which is the same target with a
+     * different name on it.
+     */
+    public static final float SEPARATE_TARGET_DIST = 2f * CLUSTER_RADIUS;
+
     private EnemyConcentration() {}
 
     /**
@@ -37,6 +49,27 @@ public final class EnemyConcentration {
      * is paid a handful of times in a battle rather than every tick.
      */
     public static long densest(BattleSimulation sim, Faction enemy) {
+        return densestAwayFrom(sim, enemy, null, 0, 0f);
+    }
+
+    /**
+     * The densest live concentration of {@code enemy} that is at least
+     * {@code minSeparation} cells from every position in {@code avoidXy}, or
+     * {@code 0} when there is no such thing.
+     *
+     * <p>What lets a field with several aircraft up spread them over the
+     * battle instead of stacking them on one platoon. Two aircraft sent at the
+     * same concentration is a legitimate tactic and stays available — the
+     * caller falls back to {@link #densest} when this finds nothing — but it
+     * has to be a decision rather than the only sentence the code can say.
+     *
+     * @param avoidXy    interleaved x, y of positions already being attacked;
+     *                   may be null when nothing is
+     * @param avoidCount how many pairs of {@code avoidXy} are populated
+     */
+    public static long densestAwayFrom(BattleSimulation sim, Faction enemy,
+                                       float[] avoidXy, int avoidCount,
+                                       float minSeparation) {
         UnitRosterService roster = sim.getRoster();
         long[] candidates = roster.factionDenseArray(enemy);
         int count = roster.factionLiveCount(enemy);
@@ -46,6 +79,7 @@ public final class EnemyConcentration {
         int bestCount = MIN_CLUSTER - 1;
         for (int i = 0; i < count; i++) {
             long u = candidates[i];
+            if (tooClose(world.x(u), world.y(u), avoidXy, avoidCount, minSeparation)) continue;
             sim.getUnitIndex().gatherFaction(world.x(u), world.y(u),
                     CLUSTER_RADIUS, enemy, near);
             if (near.size > bestCount) {
@@ -54,5 +88,18 @@ public final class EnemyConcentration {
             }
         }
         return best;
+    }
+
+    /** Whether {@code (x, y)} is inside {@code minSeparation} of anything already engaged. */
+    private static boolean tooClose(float x, float y, float[] avoidXy, int avoidCount,
+                                    float minSeparation) {
+        if (avoidXy == null || avoidCount <= 0 || minSeparation <= 0f) return false;
+        float limit = minSeparation * minSeparation;
+        for (int i = 0; i < avoidCount; i++) {
+            float dx = x - avoidXy[i * 2];
+            float dy = y - avoidXy[i * 2 + 1];
+            if (dx * dx + dy * dy < limit) return true;
+        }
+        return false;
     }
 }
