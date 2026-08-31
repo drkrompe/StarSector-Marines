@@ -5,6 +5,9 @@ is not.
 
 Written: 2026-08-28
 
+Updated: 2026-08-30 — the ward is told which road it keeps rather than
+deriving it; see the vehicle-corridor section of `mapgen-nouns.md`.
+
 Updated: 2026-08-28 — the Conquest fortress ward now packs, furnishes and berths
 from its own program, so steps 2 to 4 are shipped for that family; its buildings
 now author their walls and keep them out of the street, the wall stamper no
@@ -183,10 +186,19 @@ sized as though they were not there comes up short by exactly what they occupy.
 **A fortress does not inherit a city's street grid.** Keeping every road that
 crossed the band subdivided it into blocks smaller than the buildings meant to
 stand in them — 2647 buildable cells and not one clear pocket for a
-fifteen-by-nine shed. The ward keeps one through route and the full width of the
-street carrying it: enough to keep the published road graph honest, since a
-defender convoy still commits along it, without cutting the ward into
-courtyards.
+fifteen-by-nine shed. The ward keeps one road through it and nothing else:
+enough that a defender convoy can still commit along it, without cutting the
+ward into courtyards.
+
+**Which road that is, the ward is told.** It used to work it out — shortest path
+over whatever crossed its band, dilated by a cell — and the result was a lane
+two cells wide whenever that path hugged the edge of the street carrying it,
+because the dilation could only keep cells the old road mask already held. Two
+cells is walkable and not drivable, and the ward then demolished the rest, so
+the stage preserving the road was the stage narrowing it. The road is now
+authored before the ward runs and clipped to it; see the vehicle-corridor
+section of `mapgen-nouns.md` for the width contract and why it is reserved
+ahead of packing when pedestrian circulation still is not.
 
 **A room that means to hold bays is sized from the bay module.** A shed picked
 to look about right came out at fifteen by nine, which the fitting could only
