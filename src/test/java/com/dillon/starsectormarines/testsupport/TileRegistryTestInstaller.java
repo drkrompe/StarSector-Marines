@@ -21,8 +21,9 @@ import java.nio.file.Paths;
 /**
  * Auto-registered JUnit extension that installs the disk-loaded catalogs before
  * any test runs — mirroring what {@code onApplicationLoad} does in-game. The
- * map-generation chain comes from {@link DiskRegistries}, shared with the
- * authoring workbench and the snapshot suites; the campaign-side catalogs below
+ * map-generation chain comes from {@link DiskRegistries} and the hull geometry
+ * from {@link InstalledHullSpecs}, both shared with the authoring workbench and
+ * the snapshot suites; the campaign-side catalogs below
  * are the ones only a test needs. Without the tile registry, gen code
  * under test takes its {@code installed() == null} path: {@code NatureZoneFiller}
  * skips overlay scatter, which diverges the gen RNG stream (and therefore every
@@ -44,6 +45,10 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
         // nothing to install them: a page that opened on rooms it could not
         // furnish was how that came to light.
         DiskRegistries.installMapGeneration();
+        // The other half of "what the game would have loaded": hull geometry,
+        // which comes from the install rather than from the mod folder. Without
+        // it every aircraft under test is the same size as every other one.
+        InstalledHullSpecs.install();
         if (SpecialEquipmentRegistry.installed() == null) {
             SpecialEquipmentRegistry equipment = new SpecialEquipmentRegistry();
             for (String path : SpecialEquipmentRegistry.BUILTIN_CATALOGS) {

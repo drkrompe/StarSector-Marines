@@ -169,6 +169,42 @@ class AShedBuildsWhatItsCrewWorksTest {
                         + " points the destroyed machine had were refunded");
     }
 
+    /**
+     * A machine on the stocks is the chassis it is going to be, and is inert.
+     *
+     * <p>Both halves, and they pull against each other. It has to be the real
+     * variant — an unfinished Hound is a Hound taking shape, drawn from the same
+     * modular art and the same size and structure as the one that will drive out
+     * — and it has to be unable to do anything. What separates them is the
+     * loadout: the frame is composed from a chassis and carries no weapons, so
+     * every firing path skips it without anything having been told to.
+     */
+    @Test
+    void aMachineOnTheStocksIsItsChassisAndCannotFight() {
+        Shed shed = shed(true);
+        run(shed, 2f);
+
+        FabricationService.Works bay = shed.works.bays().get(0);
+        assertTrue(bay.hasFrame(), "the crew laid nothing to look at");
+        long frame = bay.frameId;
+
+        assertEquals(UnitType.MACHINE_FRAME, shed.sim.identity().type(frame));
+        assertTrue(UnitType.MACHINE_FRAME.hasChassis(),
+                "a machine on the stocks is not built on a chassis, so it cannot be"
+                        + " drawn as one");
+        assertTrue(UnitType.MACHINE_FRAME.drawnAsMechLayers(),
+                "the frame is drawn as a generic mech rather than as its own chassis");
+        assertEquals(bay.chassis.maxStructure, shed.sim.world().maxHp(frame), 0.01f,
+                "the frame is not the size of the machine it is becoming");
+
+        assertFalse(UnitType.MACHINE_FRAME.isMech(),
+                "the frame counts as a mech, so it would be given a loadout");
+        assertFalse(shed.sim.world().hasMechLoadout(frame),
+                "an unfinished machine is carrying weapons");
+        assertTrue(shed.sim.world().hp(frame) < shed.sim.world().maxHp(frame),
+                "the frame arrived finished");
+    }
+
     /** A field shed lays down light chassis and not an assault one. */
     @Test
     void aFieldShedBuildsWhatAFieldShedCanBuild() {

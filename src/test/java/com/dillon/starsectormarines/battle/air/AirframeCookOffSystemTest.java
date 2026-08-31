@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -9,12 +10,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -155,8 +152,8 @@ class AirframeCookOffSystemTest {
      * Aeroshuttle was asking about the smallest hull on the list.
      */
     @Test
-    void noShippedAirframeTakesTheNextStandWithIt() throws Exception {
-        for (Airframe frame : everyAirframeAtItsDrawnSize()) {
+    void noShippedAirframeTakesTheNextStandWithIt() {
+        for (Airframe frame : everyShippedAirframe()) {
             BattleSimulation sim = openSim();
             long first = parkedAircraft(sim, PAD_X, PAD_Y, frame);
             long neighbour = parkedAircraft(sim, PAD_X + AirbaseLot.BERTH_PITCH, PAD_Y, frame);
@@ -212,35 +209,24 @@ class AirframeCookOffSystemTest {
         assertTrue(onMap(sim, beside));
     }
 
-    private static List<Airframe> everyAirframeAtItsDrawnSize() throws Exception {
-        List<Airframe> all = new ArrayList<>();
-        for (ShuttleType type : ShuttleType.values()) all.add(atItsDrawnSize(type));
-        for (FighterProfile fighter : FighterProfile.values()) all.add(atItsDrawnSize(fighter));
-        return all;
-    }
-
-    private static Airframe atItsDrawnSize(Airframe frame) throws Exception {
-        float drawnLengthCells = AirScale.cellsForHeightPx(hullHeightPx(frame.renderHullId()));
-        return new DrawnToSize(frame, drawnLengthCells
-                * AirAppearance.GROUND_SCALE * Airframe.RADIUS_PER_DRAWN_LENGTH);
-    }
-
     /**
-     * The forward pixel extent the game sizes {@code hullId} by, read off the
-     * install's own spec.
+     * Every airframe the game ships, each reporting the size it really is.
      *
-     * <p>{@link Airframe#targetRadiusCells} goes through
-     * {@code HullFootprintResolver}, which needs a loaded game and otherwise
-     * caches a flat fallback — so headless every hull on the list reports the
-     * same three cells, and a test that let it would be asking its question
-     * about an aircraft none of them are. Deliberately unguarded: a hull whose
-     * spec cannot be read here would put this test back to measuring the
-     * fallback, which is the failure it exists to avoid.
+     * <p>Asserted rather than assumed. {@link Airframe#targetRadiusCells} goes
+     * through {@code HullFootprintResolver}, which falls back to one flat
+     * length for any hull it cannot read — so an install this run cannot see
+     * would hand back sixteen identical aircraft, and every assertion below
+     * would pass while measuring none of them.
      */
-    private static float hullHeightPx(String hullId) throws Exception {
-        Path spec = Paths.get(System.getProperty("starsectorDir"),
-                "starsector-core", "data", "hulls", hullId + ".ship");
-        return (float) new JSONObject(Files.readString(spec)).getDouble("height");
+    private static List<Airframe> everyShippedAirframe() {
+        List<Airframe> all = new ArrayList<>();
+        for (ShuttleType type : ShuttleType.values()) all.add(type);
+        for (FighterProfile fighter : FighterProfile.values()) all.add(fighter);
+        for (Airframe frame : all) {
+            assertTrue(HullFootprintResolver.isMeasured(frame.renderHullId()),
+                    frame + " is standing in at a fallback size rather than its own");
+        }
+        return all;
     }
 
     /**
