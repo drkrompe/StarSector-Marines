@@ -670,7 +670,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.transport = new VehicleTransportService(rosterService, rosterService.convoy(),
                 entityWorld, battleComponents, navigation);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
-                turretFire, rng, this::spawn, this, effects);
+                turretFire, rng, this::spawn, this, effects, transport);
         this.vehicleDamageResolver.setDestructionSink(groundSystem::destroyVehicle);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
@@ -805,6 +805,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public ConvoyService convoy() { return rosterService.convoy(); }
     /** Who is riding in what — the data owner for {@code RIDING}, and the gate a pass consults to skip a passenger. */
     public VehicleTransportService transport() { return transport; }
+
+    @Override
+    public boolean isRiding(long id) { return rosterService.isRiding(id); }
     /** The {@link VehicleMission} for a convoy-vehicle id (has-gated, {@code null} if not live) — the by-id read path {@link BattleView} consumers use. */
     public VehicleMission convoyMission(long id) { return rosterService.convoy().mission(id); }
     public List<Objective> getObjectives() { return objectivesService.getObjectives(); }
