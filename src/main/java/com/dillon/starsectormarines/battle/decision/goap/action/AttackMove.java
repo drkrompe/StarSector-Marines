@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.infantry.ReinforceContact;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -310,12 +309,13 @@ public final class AttackMove extends AbstractZoneAction {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
             return;
         }
-        if (sim.movement().mayRepath(member)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member),
-                    firingPos[0], firingPos[1], sim.getOccupancyMap()));
+        // A fixing squad that cannot walk to the better position plants where
+        // it stands rather than freezing against it: holding the contact's
+        // attention is the job, and it is done from here or not at all.
+        if (advanceToReachableFiringPosition(member, sim, firingPos)
+                != FiringApproach.MOVED) {
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
         }
-        sim.advanceMovement(member);
     }
 
     @Override

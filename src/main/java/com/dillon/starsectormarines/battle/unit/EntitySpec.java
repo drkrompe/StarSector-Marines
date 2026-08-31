@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
@@ -62,6 +63,8 @@ public final class EntitySpec {
     public String campaignSquadId;
     /** Persistent physical/loadout profile for mech-class entities; null otherwise. */
     public MechVariant mechVariant;
+    /** Which aircraft this hull is, for a based aircraft; null otherwise. */
+    public Airframe airframe;
     public LayeredArmorFamily layeredArmorFamily;
     public Objective assignedObjective;
     public int homeCellX = -1;
@@ -127,6 +130,13 @@ public final class EntitySpec {
         return variant.applyTo(this);
     }
     public EntitySpec layeredArmorFamily(LayeredArmorFamily family) { this.layeredArmorFamily = family; return this; }
+
+    /**
+     * Names the aircraft this hull is, so the body accessors can size it
+     * without asking the field which berth it is standing on. Same convention
+     * as {@link #mechVariant}: geometry comes from the per-instance thing.
+     */
+    public EntitySpec airframe(Airframe airframe) { this.airframe = airframe; return this; }
 
     public EntitySpec moveSpeed(float v) { this.moveSpeed = v; return this; }
     public EntitySpec hp(float v) { this.hp = v; return this; }

@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — made an active player infantry context the exclusive
+Updated: 2026-08-31 — gave the goal ladder a floor: relevance and workability
+are separated, the ladder descends past a goal that cannot be planned, and
+ambient engagement is now an occupant of the idle bucket rather than a promise.
+
+Earlier 2026-08-31 — made an active player infantry context the exclusive
 mission-tier plan, so specialist roles cannot railroad a squad; rescue pickup
 infantry remain commandable while sealed shelter militia remain mission-owned.
 
@@ -71,6 +75,17 @@ current knowledge. It chooses one goal and a short action sequence, then gives
 members roles within each step. A squad without an assignment remains useful:
 it falls through to ambient engagement rather than inventing a mission.
 
+**Ambient engagement** is that fall-through, and it closes on the squad's own
+evidence: the freshest hostile it still believes in, or failing that the bearing
+of something it recently heard. Both halves of the law bind. A squad holding
+such a cue is never left standing — a composed squad with nothing to execute is
+a worse failure than a wrong plan, because the individual tier owns no movement
+of its own and cannot recover from it. A squad holding no cue at all advances on
+nothing, because choosing a zone nobody assigned and going to take it is the
+squad inventing the mission this clause exists to forbid. An anonymous bearing
+is weaker evidence than a belief and expires far sooner than one: past that
+window it leads to where a fight was rather than where one is.
+
 A **unit execution** is the per-tick realization of the assigned role. It can
 move, hold, acquire a target, or author a legal fire intent, but it does not
 silently replace the squad's plan. Combat systems remain responsible for
@@ -97,6 +112,16 @@ outranks engagement, and engagement outranks idle behavior. Relevance chooses
 only among goals in the highest active category. A must-hold mission context
 therefore cannot be displaced merely because an ordinary combat goal scores
 more highly.
+
+**Wanting a goal and being able to act on it are different questions, and only
+the second one ends the search.** Relevance answers whether a goal is worth
+wanting from what the squad knows; whether it can be worked toward from where
+the squad stands is answered by planning it. A goal that wins its bucket and
+then yields no reachable plan is therefore set aside and the next-best goal is
+asked, down through the buckets to the idle floor — a declined goal does not
+speak for the ones beneath it. Only when every goal has either scored zero or
+declined is the squad genuinely idle. The categorical ordering is unaffected:
+descent is reached by a goal proving unworkable, never by one scoring poorly.
 
 Squad replanning remains serial unless a measured, explicit parallel contract
 is introduced. Its state, goals, actions, and read-only view boundary may
@@ -913,6 +938,42 @@ and no old slot may keep dead members or duplicate its survivors. Any active
 bound is restarted from the new partition even when a sticky mission plan keeps
 the same target zone and destination; geometric plan continuity is not team
 continuity.
+
+**A firing position is somewhere the marine can actually get to.** The
+pickers score walkability, leash distance, weapon range and line of fire, and
+none of them asks whether a path exists — a cell with a clear shot from the
+far side of a sealed wall is an ordinary answer from them. Every leash in the
+advance bounds *straight-line* distance from an anchor while the member has to
+*walk*, and a building makes those two numbers diverge without limit: a
+position three cells from its anchor and seven from the marine can be a
+thirty-nine cell march around the obstacle between them, which is not a
+bounded improvement but the objective abandoned for as long as the march
+takes. So travel is bounded in its own right, and a position that cannot be
+reached at all is refused rather than walked at.
+
+**The two refusals are different facts and get different answers.** No path at
+all means the commitment cannot be prosecuted by walking, so the member holds
+and fights from where it stands — which is what a committed member does on its
+firing line anyway. A path that merely costs more than it is worth leaves a
+member who can still move perfectly well, so it carries on toward the
+objective. Collapsing the two into one answer sends a squad that has decided
+to fight marching straight past the enemy, and the canonical matrix charged
+several extra squads for it.
+
+What neither answer may be is the old one. A committed member that returned on
+an unreachable position set an empty path and moved nobody, and because the
+repath throttle is stamped only on a non-empty assignment the throttle never
+engaged: the same search ran again next tick, and a search toward an
+unreachable cell exhausts the whole reachable component before failing. The
+freeze cost a full-component search per member per tick.
+
+**That freeze was accidentally load-bearing, which is worth knowing before
+removing one.** A frozen member stays out of the ground it was frozen short
+of, so the canonical fixtures had been quietly banking a caution nobody
+designed. Ending it is still right — a squad that stops for no reason is a
+bug, and this one was an expensive bug — but the measured cost is squads lost
+on approach where they used to stand still, and the gain is pressing that had
+not been happening. Which of those a mission wants is doctrine, not a defect.
 
 A perceived contact and a usable firing line are distinct. Perception may use
 the cached projected-cell line of sight, while a ground direct-fire decision

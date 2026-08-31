@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -56,6 +57,19 @@ public final class IdentityService {
     public MechVariant mechVariant(long id) {
         return (MechVariant) entityWorld.getObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_MECH_VARIANT);
+    }
+
+    /**
+     * The airframe a parked aircraft is a hull of, or null for anything else.
+     *
+     * <p>The berth is what has identity on a field, so this is deliberately not
+     * a second record of where the aircraft is kept — it is the one fact about
+     * the airframe that a body's shared accessors need, held where they can
+     * reach it in a lookup rather than a walk over the field's hardstands.
+     */
+    public Airframe airframe(long id) {
+        return (Airframe) entityWorld.getObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_AIRFRAME);
     }
 
     /**
