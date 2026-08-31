@@ -52,27 +52,28 @@ public final class VehicleControlSystem {
     }
 
     /**
-     * Advance vehicle {@code id} one tick. {@code isInbound} selects the inbound
-     * vs. outbound corridor; a change of direction since the previous tick rebuilds
-     * the corridor and clears the rolling plan / docking state (this replaces the
-     * old manual {@code waypointIndex = 1} reset in {@link GroundSystem}'s
-     * LANDED).
+     * Advance vehicle {@code id} one tick along the route ({@code xs},
+     * {@code ys}) it has been handed, driving it as a {@code leg} of the given
+     * kind. Handing over a different route, or the same route for a different
+     * kind of leg, rebuilds the corridor and clears the rolling plan and
+     * maneuver state.
+     *
+     * <p>The route is a parameter rather than something read off the mission,
+     * so a vehicle can be sent somewhere that is not part of a delivery — see
+     * {@code vehicle-as-commandable-unit.md}.
      */
-    public void tick(long id, float dt, boolean isInbound) {
+    public void tick(long id, float dt, float[] xs, float[] ys, VehicleLeg leg) {
         VehicleMission mission = convoy.mission(id);
         GroundBody body = convoy.body(id);
         VehicleType type = convoy.vehicleType(id);
         VehicleControlComponent s = convoy.control(id);
 
-        float[] xs = isInbound ? mission.inboundX : mission.outboundX;
-        float[] ys = isInbound ? mission.inboundY : mission.outboundY;
-
-        if (s.lastInbound == null || s.lastInbound != isInbound) {
+        if (s.routeXs != xs || s.routeYs != ys || s.leg != leg) {
             initCorridor(s, xs, ys);
-            s.lastInbound = isInbound;
+            s.leg = leg;
         }
 
-        advance(mission, body, type, s, xs, ys, dt, isInbound);
+        advance(mission, body, type, s, xs, ys, dt, leg);
     }
 
     /**
@@ -96,6 +97,8 @@ public final class VehicleControlSystem {
     private void initCorridor(VehicleControlComponent s, float[] xs, float[] ys,
                               boolean clearRescueFirstSteps) {
         s.corridor = new ReferenceCorridor(xs, ys, 1);
+        s.routeXs = xs;
+        s.routeYs = ys;
         s.trajectory = null;
         s.trajProgress = 0f;
         s.sinceReplan = 0f;
@@ -123,7 +126,7 @@ public final class VehicleControlSystem {
      * shared wall-stuck reverse stub wrapping the kinematic move.
      */
     private void advance(VehicleMission mission, GroundBody body, VehicleType type,
-                         VehicleControlComponent s, float[] xs, float[] ys, float dt, boolean isInbound) {
+                         VehicleControlComponent s, float[] xs, float[] ys, float dt, VehicleLeg leg) {
         // Keep the advisory cursor abreast of the pose so remainingLength /
         // the rolling goal measure from the current segment.
         s.corridor.advance(body.x, body.y);
@@ -164,7 +167,7 @@ public final class VehicleControlSystem {
         // A running maneuver owns the pose whichever direction it serves: an
         // arrival dock inbound, a departure turnaround outbound.
         if (s.dockingPath != null) { advanceDocking(mission, body, s, dt); return; }
-        if (isInbound) {
+        if (leg.docksOnArrival()) {
             tryEngageDocking(mission, body, type, s, xs, ys);
             if (s.dockingPath != null) { advanceDocking(mission, body, s, dt); return; }
         }
@@ -176,11 +179,9 @@ public final class VehicleControlSystem {
         // forward segment.
         int lastIdx = xs.length - 1;
         float distToLast = body.distanceTo(xs[lastIdx], ys[lastIdx]);
-        float threshold = VehicleController.arrivalDist(
-                isInbound ? VehicleController.LZ_ARRIVAL_DIST : VehicleController.EXIT_ARRIVAL_DIST,
-                body, dt);
+        float threshold = VehicleController.arrivalDist(leg.arrivalFloorCells(), body, dt);
         if (distToLast < threshold) {
-            if (isInbound) body.teleport(xs[lastIdx], ys[lastIdx], body.facingDegrees);
+            if (leg.snapsToEndpoint()) body.teleport(xs[lastIdx], ys[lastIdx], body.facingDegrees);
             s.arrived = true;
             return;
         }
@@ -206,7 +207,7 @@ public final class VehicleControlSystem {
             // snap. If the truck has reached that terminal region and no safe
             // forward motion remains, this is the best footprint-valid landing
             // pose—not a failed bend that should hold the payload forever.
-            if (isInbound && LocalTrajectoryPlanner.isInTerminalGoalRegion(
+            if (leg.terminalRegionCountsAsArrival() && LocalTrajectoryPlanner.isInTerminalGoalRegion(
                     here, s.corridor, type)) {
                 s.localPlanFailureTime = 0f;
                 body.speed = 0f;
@@ -220,7 +221,7 @@ public final class VehicleControlSystem {
             // to find and never will, because turning a bicycle round needs more
             // lateral room than a road has. Back and fill onto the corridor
             // instead — the same Reeds-Shepp maneuver docking already uses.
-            if (!isInbound && tryEngageDepartureTurnaround(body, type, s)) {
+            if (leg.mayTurnAroundOntoRoute() && tryEngageDepartureTurnaround(body, type, s)) {
                 s.localPlanFailureTime = 0f;
                 advanceDocking(mission, body, s, dt);
                 return;
@@ -482,9 +483,9 @@ public final class VehicleControlSystem {
         TerrainCostField cost = mission.routeCostField;
         VehicleClearance clr = mission.routeClearance;
         if (cost == null || clr == null) return false; // not cost-routed — can't lap
-        boolean inbound = s.lastInbound != null && s.lastInbound;
-        float[] xs = inbound ? mission.inboundX : mission.outboundX;
-        float[] ys = inbound ? mission.inboundY : mission.outboundY;
+        float[] xs = s.routeXs;
+        float[] ys = s.routeYs;
+        if (xs == null || ys == null) return false;
         NavigationGrid grid = navigation.getGrid();
 
         int goalIdx = VehicleController.lastOnGridIndex(xs, ys, grid);
@@ -514,10 +515,14 @@ public final class VehicleControlSystem {
         float[][] re = rescue.points();
 
         float[][] full = VehicleController.appendTail(re, xs, ys, goalIdx);
-        if (inbound) {
+        // Publish the replacement wherever the route came from, so the caller
+        // keeps handing back the same arrays and the corridor is not rebuilt
+        // twice. A route that belongs to neither delivery leg — a player move
+        // order — simply has nothing to publish to.
+        if (xs == mission.inboundX) {
             mission.inboundX = full[0];
             mission.inboundY = full[1];
-        } else {
+        } else if (xs == mission.outboundX) {
             mission.outboundX = full[0];
             mission.outboundY = full[1];
         }

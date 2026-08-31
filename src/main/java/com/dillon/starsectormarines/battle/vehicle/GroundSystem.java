@@ -137,7 +137,8 @@ public class GroundSystem {
                     break;
 
                 case INCOMING:
-                    controlSystem.tick(id, dt, true);
+                    controlSystem.tick(id, dt, m.inboundX, m.inboundY,
+                            VehicleLeg.DELIVERY_RUN);
                     if (controlSystem.consumeArrived(id)) {
                         m.state = VehicleState.LANDED;
                         m.deboardCountdown = type.deboardInterval;
@@ -174,7 +175,8 @@ public class GroundSystem {
                     break;
 
                 case DEPARTING:
-                    controlSystem.tick(id, dt, false);
+                    controlSystem.tick(id, dt, m.outboundX, m.outboundY,
+                            VehicleLeg.DEPARTURE_RUN);
                     if (controlSystem.consumeArrived(id)) {
                         m.state = VehicleState.GONE;  // reaped end-of-tick by reapGoneVehicles()
                     }

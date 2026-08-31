@@ -35,7 +35,7 @@ class VehicleControlSystemTest {
 
         boolean arrived = false;
         for (int i = 0; i < 400 && !arrived; i++) {
-            controls.tick(id, 0.05f, true);
+            controls.tick(id, 0.05f, mission.inboundX, mission.inboundY, VehicleLeg.DELIVERY_RUN);
             arrived = controls.consumeArrived(id);
         }
 
@@ -81,7 +81,7 @@ class VehicleControlSystemTest {
 
         boolean arrived = false;
         for (int i = 0; i < 600 && !arrived; i++) {
-            controls.tick(id, 0.05f, false);
+            controls.tick(id, 0.05f, mission.outboundX, mission.outboundY, VehicleLeg.DEPARTURE_RUN);
             arrived = controls.consumeArrived(id);
         }
 
@@ -109,7 +109,9 @@ class VehicleControlSystemTest {
         VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
         GroundBody body = convoy.body(id);
 
-        for (int i = 0; i < 20; i++) controls.tick(id, 0.1f, true);
+        for (int i = 0; i < 20; i++) {
+            controls.tick(id, 0.1f, mission.inboundX, mission.inboundY, VehicleLeg.DELIVERY_RUN);
+        }
 
         assertFalse(convoy.control(id).hasTrajectory(), "the elbow has no executable forward trajectory");
         assertEquals(11.5f, body.x, 0.001f,
