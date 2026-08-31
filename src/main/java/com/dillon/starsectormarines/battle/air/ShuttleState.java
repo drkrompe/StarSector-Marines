@@ -8,10 +8,10 @@ package com.dillon.starsectormarines.battle.air;
  *
  * <p>Lifecycle: PENDING (waiting on stagger / re-arm, off-map + engine-silent) →
  * optional LOADING (down on its own hardstand while its squad walks out to it) →
- * INCOMING (steering from the entry point to the LZ) → LANDED (deboarding marines)
- * → DEPARTING (steering to exit) → GONE (terminal). With
- * {@code totalCycles > 1} a shuttle re-enters PENDING after DEPARTING and flies
- * another sortie.
+ * INCOMING (steering from the entry point to the LZ) → PAD_DESCENT (settling
+ * onto it) → LANDED (deboarding marines) → DEPARTING (steering to exit) → GONE
+ * (terminal). With {@code totalCycles > 1} a shuttle re-enters PENDING after
+ * DEPARTING and flies another sortie.
  *
  * <p>There is no phase between setting the payload down and leaving. A
  * transport that has unloaded turns for the exit, because the delivery is what
@@ -23,6 +23,10 @@ package com.dillon.starsectormarines.battle.air;
  * LANDING_ROLL → TAXI_IN after it comes home. Those phases are on the ground — the aircraft is
  * a target for all of them — which is what a runway buys over a vertical lift
  * off a hardstand. See `air-nouns.md`.
+ *
+ * <p>Every phase names exactly one {@link AirLocomotion} — the phase is the
+ * single source of truth for which locomotion model has the body, and there is
+ * no second field to keep in step with it.
  *
  * <p>A top-level enum (formerly {@code Shuttle.State}) so it outlives the
  * dissolved {@code Shuttle} handle; see {@code air-nouns.md}.
@@ -60,7 +64,24 @@ public enum ShuttleState {
      * was nowhere on the map for it to load.
      */
     LOADING,
-    INCOMING, LANDED,
+    INCOMING,
+    /**
+     * Over its landing zone, settling onto it.
+     *
+     * <p>A vertical lift arrives at a pad the way a helicopter does: it brakes
+     * out of its run in, comes to a hover over the spot, holds, and sinks onto
+     * it. That is a different thing from the leg that brought it there, which
+     * is flown, and the difference is the reason this is a phase rather than a
+     * timer inside {@link #INCOMING} — a phase names exactly one
+     * {@link AirLocomotion}, and a craft that is cruising in and a craft that
+     * is settling are not being moved by the same model.
+     *
+     * <p>It replaces a snap. The arrival used to put the craft on the pad and
+     * zero it in a single tick, which read as the shuttle stopping existing
+     * mid-air and reappearing landed.
+     */
+    PAD_DESCENT,
+    LANDED,
     /**
      * Flying a straight line through the target with the guns going.
      *

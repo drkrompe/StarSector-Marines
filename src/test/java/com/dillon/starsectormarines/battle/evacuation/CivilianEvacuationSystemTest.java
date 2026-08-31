@@ -311,7 +311,16 @@ class CivilianEvacuationSystemTest {
                 sim.getCivilianEvacuationTracker().activeCount());
         assertEquals(0, mission.evacueesAboard);
 
+        // Over the pickup point, so the run in is over — but a vertical lift
+        // settles onto a point rather than arriving on it, and the civilians
+        // wait for its weight to be on the ground.
         sim.advance(BattleSimulation.TICK_DT);
+        assertEquals(ShuttleState.PAD_DESCENT, mission.state);
+        assertEquals(0, mission.evacueesAboard, "boarded a craft still in the air");
+
+        for (int i = 0; i < 200 && mission.state == ShuttleState.PAD_DESCENT; i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
 
         assertEquals(ShuttleState.LANDED, mission.state);
         assertEquals(payload.size(), mission.evacueesAboard);
