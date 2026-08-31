@@ -57,6 +57,9 @@ public final class UnitSpatialIndex {
      */
     public static final int BUCKET = 16;
 
+    /** Grows to the largest body radius seen; see {@link #maxBodyRadius()}. */
+    private float maxBodyRadius;
+
     /**
      * Faction-filtered snapshot slice for one spatial bucket. The primitive
      * position data is deliberately duplicated from the all-unit slice: dense
@@ -354,6 +357,7 @@ public final class UnitSpatialIndex {
             // A wreck is scenery and a vehicle still off-map is not there at
             // all; neither is a body anything should find by looking around.
             if (!convoy.isTargetable(id)) continue;
+            observeBodyRadius(roster, id);
             float x = world.x(id);
             float y = world.y(id);
             Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
@@ -391,6 +395,7 @@ public final class UnitSpatialIndex {
     public void add(UnitRosterService roster, long id) {
         this.roster = roster;
         if (!roster.isAliveById(id)) return;
+        observeBodyRadius(roster, id);
         World world = roster.world();
         float x = world.x(id);
         float y = world.y(id);
@@ -411,6 +416,32 @@ public final class UnitSpatialIndex {
         for (Bucket bucket : buckets) {
             if (bucket != null && bucket.removeStable(id)) return;
         }
+    }
+
+    /**
+     * Largest physical radius among the bodies this index has ever held, in
+     * cells. Monotonic on purpose: a body's radius never changes, and a max
+     * that only grows can never under-report, which is the only direction that
+     * matters here.
+     *
+     * <p><b>This is what a broad phase pads with.</b> Every query returns the
+     * bodies whose <em>centre</em> lies within the asked radius, so a caller
+     * testing "does this circle touch that body" has to widen its query by the
+     * biggest radius any body might have — and a caller that pads with too
+     * little silently drops victims rather than failing. Hardcoding the number
+     * does not work: a turret's radius is authored in the turret catalog JSON
+     * and a chassis's is derived from its art dimensions, so a constant
+     * compiled against today's data goes stale on a content edit, in a file
+     * nobody would think to connect to blast damage. It is measured here
+     * instead, off the bodies that actually exist.
+     */
+    public float maxBodyRadius() {
+        return maxBodyRadius;
+    }
+
+    private void observeBodyRadius(UnitRosterService roster, long id) {
+        float r = roster.radius(id);
+        if (r > maxBodyRadius) maxBodyRadius = r;
     }
 
     /**
