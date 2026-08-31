@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAssaultPicture;
+import com.dillon.starsectormarines.battle.squad.SquadPlan;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +53,20 @@ public final class AttackMove extends AbstractZoneAction {
 
     /** Cells from the destination within which the attack move is done. */
     public static final float ARRIVAL_RADIUS = 2f;
+    /**
+     * Cells from the destination within which the whole squad — not just the
+     * member being asked — counts as arrived. An attack move plan is one step
+     * shared by the squad, so the first member inside {@link #ARRIVAL_RADIUS}
+     * cannot be allowed to complete it alone: {@code GoapInfantryBehavior}
+     * advances the plan off any member reporting {@code SUCCESS}, and every
+     * other member then finds the plan complete and skips its movement call
+     * for that tick, freezing the squad in place while it replans. Deliberately
+     * looser than {@code ARRIVAL_RADIUS} — this is a footprint check for a
+     * body of people, not a single member's cell, and it has to tolerate an
+     * ordinary trailing member without pinning the squad on a straggler that
+     * can never quite close the gap.
+     */
+    static final float SQUAD_ARRIVAL_RADIUS = 5f;
     /** Off-axis firing radius a fixing squad may use while holding the contact. */
     static final float BASE_OF_FIRE_LEASH = 8f;
     /**
@@ -116,7 +131,18 @@ public final class AttackMove extends AbstractZoneAction {
 
         if (TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
                 destX + 0.5f, destY + 0.5f) <= ARRIVAL_RADIUS) {
-            return ActionStatus.SUCCESS;
+            if (squadHasArrived(squad, sim)) {
+                return ActionStatus.SUCCESS;
+            }
+            // This member is on the objective, but the plan step is shared
+            // by the whole squad and reporting SUCCESS here would complete
+            // it off this one arrival, freezing every other member's
+            // movement for the tick (see SQUAD_ARRIVAL_RADIUS). Hold this
+            // member's ground and keep it shooting rather than idling —
+            // doing nothing here just moves the freeze down to one marine
+            // instead of fixing it.
+            holdArrival(member, sim);
+            return ActionStatus.RUNNING;
         }
 
         int[] aim = maneuverAim(squad, assault, sim);
@@ -181,6 +207,83 @@ public final class AttackMove extends AbstractZoneAction {
             return new int[]{destX, destY};
         }
         return flank;
+    }
+
+    /**
+     * Whether the squad, not just {@code member}, has closed on the
+     * destination. Read off the plan's current step so an arriving member
+     * only waits on the squadmates actually assigned this step — a member
+     * that has fallen out of the step (dropped a fire team, reassigned) never
+     * pins one that is still in it. Falls back to the squad's whole live
+     * roster when the plan or its current step is unavailable, since a
+     * member executing this action always belongs to some squad whether or
+     * not a plan currently names it.
+     */
+    private boolean squadHasArrived(Squad squad, BattleControl sim) {
+        SquadPlan plan = squad.currentPlan;
+        SquadPlan.Step step = plan != null ? plan.currentStep() : null;
+        if (step != null) {
+            for (long assigned : step.allAssignedMembers()) {
+                long resolved = sim.resolveUnit(assigned);
+                if (resolved == 0L) continue; // no longer alive; not a straggler
+                if (!withinSquadArrival(resolved, sim)) return false;
+            }
+            return true;
+        }
+        int count = sim.squadMemberCount(squad.id);
+        for (int i = 0; i < count; i++) {
+            if (!withinSquadArrival(sim.squadMemberAt(squad.id, i), sim)) return false;
+        }
+        return true;
+    }
+
+    private boolean withinSquadArrival(long unit, BattleControl sim) {
+        return TacticalScoring.cellDistance(sim.world().x(unit), sim.world().y(unit),
+                destX + 0.5f, destY + 0.5f) <= SQUAD_ARRIVAL_RADIUS;
+    }
+
+    /**
+     * Plant here once arrived rather than idle while the rest of the squad
+     * closes. Mirrors the target-then-opportunistic-fire idiom
+     * {@link AbstractZoneAction#advanceIntoZone} uses for a moving member:
+     * keep pursuing a live worthwhile target, fall back to
+     * {@link TacticalScoring#findBestTarget} when it goes stale, and fire
+     * {@code STANCED} — planted, not moving — either on that target in range
+     * with a clear shot or, failing that, on whatever enemy is closest and
+     * actually shootable from here.
+     *
+     * <p>No post-fire cover reposition, unlike the committed firing line.
+     * That hook authors a short path which the next tick's {@code clearPath}
+     * here would simply throw away — {@code advanceIntoZone} pays for an
+     * {@code activeCoverReposition} check to avoid exactly that — and the
+     * move it authors can carry this member back outside
+     * {@link #ARRIVAL_RADIUS}, un-arriving the marine whose arrival is the
+     * only reason this branch is running. Holding the objective cell is the
+     * point; drifting off it for better cover is a different order.
+     */
+    private void holdArrival(long member, BattleControl sim) {
+        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+        long target = sim.targetOf(member);
+        if (target == 0L || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
+            sim.world().setTargetId(member, target);
+        }
+        if (target != 0L) {
+            float distance = TacticalScoring.cellDistance(
+                    sim.world().x(member), sim.world().y(member),
+                    sim.world().x(target), sim.world().y(target));
+            if (distance <= sim.world().attackRange(member)
+                    && sim.getTacticalScoring().hasClearShot(member, target)) {
+                sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
+                return;
+            }
+        }
+        long opportune = sim.getTacticalScoring().closestEnemyInAttackRange(
+                member, sim.combat().reflexTargetId(member),
+                TacticalScoring.OPPORTUNITY_RETARGET_DISTANCE_MARGIN);
+        if (opportune != 0L) {
+            sim.combat().setFireIntent(member, opportune, FireStance.STANCED, false);
+        }
     }
 
     /**
