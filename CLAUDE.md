@@ -81,6 +81,22 @@ Do not run builds or leave generated task files there.
 
 ## Build & deploy
 
+- **Never run `gradlew --stop`, and never make it a retry step.** It stops every
+  daemon on the machine, not just yours. Concurrent sessions are the norm here,
+  so a single `--stop` aborts whatever they are running: their `:test` runs fail
+  with `Gradle build daemon has been stopped: stop command received`, and a
+  `runStarsector` session loses the game itself, because the game is a child of
+  the daemon and goes down with the build. That looks exactly like a silent game
+  crash from the inside — exit status 0, no exception, no `hs_err`, no shutdown
+  hook, no `run-summary.txt` — and one such "crash" cost a long investigation
+  before the daemon log gave it away at the matching second. As a retry step it
+  is self-feeding: the stop fails other sessions, whose retries stop more
+  daemons. A build that seems stuck is nearly always another session holding a
+  lock; wait, or run the one task you need. To confirm a stop after the fact,
+  grep `~/.gradle/daemon/<version>/*.log` for `stop() called on daemon` and
+  compare the timestamp. Routine `other compatible daemons were started ... idle
+  for 0 minutes` entries are ordinary culling of idle daemons and are harmless.
+
 - Shell `JAVA_HOME`: `C:\Program Files\JetBrains\IntelliJ IDEA 2025.3.2\jbr`.
   Set this explicitly before invoking Gradle from PowerShell; do not guess a
   Java install or substitute Starsector's bundled runtime:
