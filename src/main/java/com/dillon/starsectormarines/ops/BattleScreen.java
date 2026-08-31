@@ -458,6 +458,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Impact FX: spawn at the moment the shot's visual reaches its endpoint
         // (instant for marine line tracers, on lifetime expiry for projectile
         // sprites), then advance particles on the same scaled clock.
+        renderer.getBeamFx().advance(dt * speedMultiplier);
         spawnImpactFx(sim);
         for (float[] impact : sim.getHeavyImpactsThisFrame()) {
             renderer.getImpactFx().spawnHeavyImpact(impact[0], impact[1], impact[2]);
@@ -973,6 +974,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // whole travel instantly. Traveling bodies (sprites and bolts) wait
         // for arrival in the second pass.
         for (ShotEvent s : sim.getShotsThisFrame()) {
+            renderer.getBeamFx().spawn(s);
             renderer.getGroundLights().spawnMuzzle(s);
             // Every shooting marine / militia / alien ejects a casing where
             // they're standing (skip rockets — tube-launched, no brass).

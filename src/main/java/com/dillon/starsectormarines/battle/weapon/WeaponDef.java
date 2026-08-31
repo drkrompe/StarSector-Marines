@@ -343,16 +343,18 @@ public final class WeaponDef {
                 ? parseColor(beam.getString("glowColor"), weaponId + ".render.beam") : null;
         float glowWidth = (float) beam.optDouble("glowWidthPx", 0.0);
         float pulseCycles = (float) beam.optDouble("pulseCycles", 0.0);
+        float lifetimeSec = (float) beam.optDouble("lifetimeSec", 0.0);
         var keys = beam.keys();
         while (keys.hasNext()) {
             String key = String.valueOf(keys.next());
-            if (!Set.of("coreWidthPx", "glowColor", "glowWidthPx", "pulseCycles").contains(key)) {
+            if (!Set.of("coreWidthPx", "glowColor", "glowWidthPx", "pulseCycles",
+                    "lifetimeSec").contains(key)) {
                 throw new JSONException("Weapon '" + weaponId
                         + "' render.beam has unknown field '" + key + "'");
             }
         }
         try {
-            return new BeamStyle(coreWidth, glowColor, glowWidth, pulseCycles);
+            return new BeamStyle(coreWidth, glowColor, glowWidth, pulseCycles, lifetimeSec);
         } catch (IllegalArgumentException e) {
             throw new JSONException("Invalid beam style for weapon '" + weaponId + "': " + e.getMessage());
         }
@@ -468,16 +470,18 @@ public final class WeaponDef {
      * remains readable at every camera zoom; pulse cycles are counted over the shot's visual life.
      */
     public record BeamStyle(float coreWidthPx, Color glowColor,
-                            float glowWidthPx, float pulseCycles) {
-        public static final BeamStyle DEFAULT = new BeamStyle(2f, null, 0f, 0f);
+                            float glowWidthPx, float pulseCycles, float lifetimeSec) {
+        public static final BeamStyle DEFAULT = new BeamStyle(2f, null, 0f, 0f, 0f);
 
         public BeamStyle {
             if (!(coreWidthPx > 0f) || !Float.isFinite(coreWidthPx)) {
                 throw new IllegalArgumentException("coreWidthPx must be finite and positive");
             }
             if (!Float.isFinite(glowWidthPx) || glowWidthPx < 0f
-                    || !Float.isFinite(pulseCycles) || pulseCycles < 0f) {
-                throw new IllegalArgumentException("glowWidthPx and pulseCycles must be finite and non-negative");
+                    || !Float.isFinite(pulseCycles) || pulseCycles < 0f
+                    || !Float.isFinite(lifetimeSec) || lifetimeSec < 0f) {
+                throw new IllegalArgumentException(
+                        "glowWidthPx, pulseCycles, and lifetimeSec must be finite and non-negative");
             }
             if ((glowColor == null) != (glowWidthPx == 0f)) {
                 throw new IllegalArgumentException("glowColor and positive glowWidthPx must be declared together");

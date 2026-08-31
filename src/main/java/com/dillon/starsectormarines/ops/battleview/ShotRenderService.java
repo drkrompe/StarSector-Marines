@@ -85,6 +85,7 @@ public final class ShotRenderService implements RenderSystem {
         // Hitscan tracer sweep: shots whose body is a full path line.
         for (ShotEvent s : shots) {
             if (!(ShotFx.of(s).body() instanceof ShotFx.Tracer tracer)) continue;
+            if (tracer.style().lifetimeSec() > 0f) continue;
             float lifeT = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
             float pulse = tracerPulse(s, tracer);
             Color c = tracer.color() != null
@@ -244,8 +245,7 @@ public final class ShotRenderService implements RenderSystem {
         if (cycles <= 0f) return 1f;
         float lifeT = Math.max(0f, Math.min(1f,
                 shot.lifetime / Math.max(0.001f, shot.lifetimeMax)));
-        float ageT = 1f - lifeT;
-        return 0.55f + 0.45f * (float) Math.cos(ageT * cycles * Math.PI * 2.0);
+        return BeamFxService.pulse(cycles, lifeT);
     }
 
     private static float bearingDeg(float fromX, float fromY, float toX, float toY) {
