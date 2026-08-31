@@ -383,6 +383,15 @@ public final class FogOfWarService {
                 cohort.contributors.remove(i);
                 continue;
             }
+            // Somebody inside a vehicle sees nothing out of it and has no cell
+            // to see from. Its footprint comes down and it stops contributing
+            // until it is set down again — the same shape as a contributor that
+            // died, except it comes back.
+            if (roster.isRiding(e.unitId)) {
+                decrementFootprint(e);
+                cohort.contributors.remove(i);
+                continue;
+            }
 
             int cx = world.cellX(e.unitId);
             int cy = world.cellY(e.unitId);

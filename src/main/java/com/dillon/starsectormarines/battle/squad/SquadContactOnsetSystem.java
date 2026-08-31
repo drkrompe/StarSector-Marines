@@ -78,6 +78,9 @@ public final class SquadContactOnsetSystem {
         for (int i = 0, n = roster.squadMemberCount(squad.id); i < n; i++) {
             long member = members[i];
             if (!roster.isAliveById(member)) continue;
+            // Aboard a vehicle: nothing can be in contact with somebody who is
+            // not on the map.
+            if (roster.isRiding(member)) continue;
             long contact = scoring.closeContactOpening(
                     member, TacticalScoring.CLOSE_QUARTERS_CELLS);
             boolean close = contact != 0L;
