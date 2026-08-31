@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — the two representations now draw the same size at their handoff seam.
+Updated: 2026-08-31 — the two representations now draw the same size at their handoff seam, and the altitude scale gain was redialled down to a subtler cue.
 
 ## Purpose
 
@@ -63,6 +63,13 @@ present, who owns it, and what it can do in the battle.
 altitude. It is not a second physics body. Visual scale, offset, and engine
 intensity are derived from that state and the body, keeping the simulation and
 the rendered craft anchored to the same actor.
+
+A craft's drawn size is `AirAppearance.GROUND_SCALE` on the ground rising to
+`GROUND_SCALE × ALTITUDE_SCALE_GAIN` at altitude — the gain is factored out as
+a ratio precisely so climbing can be re-dialled without touching the ground
+size the two representations agree on. It was brought down from 1.5 to 1.2 on
+2026-08-31: the earlier value read as a near-50%-larger pop rather than the
+subtle "a little bigger up high" the cue is meant to be.
 
 ## Hull-derived facts
 
