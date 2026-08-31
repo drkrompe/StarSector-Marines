@@ -128,7 +128,7 @@ Do not run builds or leave generated task files there.
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
   a suite degrades to not drawing those sprites if it is missing. Select
-  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,point-defence,runway-sortie,ship-decks,turrets,ui`
+  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,point-defence,runway-sortie,ship-decks,sun-shadows,turrets,ui`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
@@ -430,6 +430,7 @@ The discovered suite ids and default output directories are:
 | `runway-sortie` | Two animated loops of one station flying a fighter off its strip: the whole cycle unopposed — taxi, roll, gun runs, approach, rollout, taxi in — and the same cycle with a fire team astride the taxiway | `build/snapshots/runway-sortie/` |
 | `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
 | `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
+| `sun-shadows` | One generated city shaded by the directional sun: an elevation ladder and a bearing sweep, each against a no-sun control. **CPU model of the composite shader, not the shader** | `build/snapshots/sun-shadows/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote

@@ -218,44 +218,28 @@ class GroundParallaxPixelComparisonTest {
      * with the sun applied rather than a separate rendering of the same scene.
      * The macro field is sampled bilinearly and clamped at its edge, which is
      * what the real (padded) height texture does at its own boundary.
+     *
+     * <p>The march itself comes from {@link GroundSunShadowReference} — one
+     * copy of the shader's arithmetic, shared with the unit tests and the
+     * snapshot suite, because three re-derivations of it would disagree.
      */
     private static BufferedImage shade(Scene scene, BufferedImage warped, float strength) {
-        BufferedImage output = new BufferedImage(VIEW_W, VIEW_H, BufferedImage.TYPE_INT_ARGB);
-        double azimuth = Math.toRadians(GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES);
-        float dirX = (float) Math.cos(azimuth);
-        float dirY = (float) Math.sin(azimuth);
-        float rise = (float) Math.tan(
-                Math.toRadians(GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES));
-        float rangeCells = Math.min(GroundParallaxPipeline.MAX_SHADOW_RANGE_CELLS,
-                tallestSceneMeters() / rise);
-        float stepCells = Math.min(rangeCells / GroundParallaxPipeline.SHADOW_STEPS,
-                GroundParallaxPipeline.SHADOW_STEP_MAX_CELLS);
+        return GroundSunShadowReference.shade(warped,
+                (worldX, worldY) -> macroMetersAt(scene, worldX, worldY),
+                new GroundSunShadowReference.PixelToWorld() {
+                    @Override
+                    public float worldX(int pixelX) {
+                        return (pixelX + 0.5f) / VIEW_W * GRID_W;
+                    }
 
-        for (int y = 0; y < VIEW_H; y++) {
-            float worldY = (1f - (y + 0.5f) / VIEW_H) * GRID_H;
-            for (int x = 0; x < VIEW_W; x++) {
-                float worldX = (x + 0.5f) / VIEW_W * GRID_W;
-                float base = macroMetersAt(scene, worldX, worldY);
-                float shadow = 0f;
-                for (int i = 1; i <= GroundParallaxPipeline.SHADOW_STEPS; i++) {
-                    float t = i * stepCells;
-                    float occluder = macroMetersAt(scene, worldX + dirX * t, worldY + dirY * t);
-                    float ray = base + t * rise;
-                    shadow = Math.max(shadow, clamp01(
-                            (occluder - ray) / GroundParallaxPipeline.SHADOW_SOFTNESS_METERS));
-                }
-                int rgb = warped.getRGB(x, y);
-                float k = shadow * strength;
-                int r = Math.round(((rgb >>> 16) & 0xFF)
-                        * lerp(1f, GroundParallaxPipeline.SHADOW_TINT_R, k));
-                int g = Math.round(((rgb >>> 8) & 0xFF)
-                        * lerp(1f, GroundParallaxPipeline.SHADOW_TINT_G, k));
-                int b = Math.round((rgb & 0xFF)
-                        * lerp(1f, GroundParallaxPipeline.SHADOW_TINT_B, k));
-                output.setRGB(x, y, 0xFF000000 | r << 16 | g << 8 | b);
-            }
-        }
-        return output;
+                    @Override
+                    public float worldY(int pixelY) {
+                        return (1f - (pixelY + 0.5f) / VIEW_H) * GRID_H;
+                    }
+                },
+                GroundParallaxPipeline.DEFAULT_SUN_AZIMUTH_DEGREES,
+                GroundParallaxPipeline.DEFAULT_SUN_ELEVATION_DEGREES,
+                strength, tallestSceneMeters());
     }
 
     private static float macroMetersAt(Scene scene, float worldX, float worldY) {

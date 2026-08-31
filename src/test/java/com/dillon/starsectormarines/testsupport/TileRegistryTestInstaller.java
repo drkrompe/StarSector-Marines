@@ -3,9 +3,6 @@ package com.dillon.starsectormarines.testsupport;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
-import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
-import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -22,10 +19,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
- * Auto-registered JUnit extension that installs the disk-loaded
- * {@link TileRegistry}, {@link GenMappingRegistry}, {@link WeaponRegistry}, and
- * {@link SpecialEquipmentRegistry} instances before any test runs — mirroring what
- * {@code onApplicationLoad} does in-game. Without the tile registry, gen code
+ * Auto-registered JUnit extension that installs the disk-loaded catalogs before
+ * any test runs — mirroring what {@code onApplicationLoad} does in-game. The
+ * map-generation chain comes from {@link DiskRegistries}, shared with the
+ * authoring workbench and the snapshot suites; the campaign-side catalogs below
+ * are the ones only a test needs. Without the tile registry, gen code
  * under test takes its {@code installed() == null} path: {@code NatureZoneFiller}
  * skips overlay scatter, which diverges the gen RNG stream (and therefore every
  * preview PNG) from production. Without the mapping registry, fillers that read
@@ -45,31 +43,7 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
         // Shared with the authoring workbench, which needs the same two and had
         // nothing to install them: a page that opened on rooms it could not
         // furnish was how that came to light.
-        DiskRegistries.install();
-        if (WeaponRegistry.installed() == null) {
-            WeaponRegistry weapons = new WeaponRegistry();
-            for (String path : WeaponRegistry.BUILTIN_CATALOGS) {
-                weapons.ingest(new JSONObject(Files.readString(Paths.get("mod", path))));
-            }
-            WeaponRegistry.install(weapons);
-        }
-        if (TurretCatalogRegistry.installed() == null) {
-            TurretCatalogRegistry turrets = new TurretCatalogRegistry();
-            for (String path : TurretCatalogRegistry.BUILTIN_CATALOGS) {
-                turrets.ingest(new JSONObject(Files.readString(Paths.get("mod", path))),
-                        WeaponRegistry.installed());
-            }
-            TurretCatalogRegistry.install(turrets);
-        }
-        if (DefensePostLayoutRegistry.installed() == null) {
-            DefensePostLayoutRegistry layouts = new DefensePostLayoutRegistry();
-            for (String path : DefensePostLayoutRegistry.BUILTIN_CATALOGS) {
-                layouts.ingest(new JSONObject(Files.readString(Paths.get("mod", path))),
-                        TurretCatalogRegistry.installed());
-            }
-            layouts.validateCompleteness();
-            DefensePostLayoutRegistry.install(layouts);
-        }
+        DiskRegistries.installMapGeneration();
         if (SpecialEquipmentRegistry.installed() == null) {
             SpecialEquipmentRegistry equipment = new SpecialEquipmentRegistry();
             for (String path : SpecialEquipmentRegistry.BUILTIN_CATALOGS) {

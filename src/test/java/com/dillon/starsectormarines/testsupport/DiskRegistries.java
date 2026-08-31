@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.testsupport;
 
+import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.json.JSONObject;
@@ -59,5 +62,53 @@ public final class DiskRegistries {
     /** The same, for a caller that is already running from the repository root. */
     public static void install() throws Exception {
         install(Paths.get(""));
+    }
+
+    /**
+     * Everything a <b>generated map</b> needs, which is more than the two above.
+     *
+     * <p>Stamping a city places defence posts, and a post resolves its layout
+     * through the turret catalog, which resolves its weapons through the weapon
+     * registry. That chain fails loud rather than degrading, so a caller that
+     * installs only tiles and mapping does not get a plainer city — it gets an
+     * exception from three frames inside the generator, naming a registry it
+     * never heard of.
+     *
+     * <p>Order is load-bearing: weapons, then turrets, then posts.
+     *
+     * @param projectRoot the repository root; the mod folder is found beneath it
+     */
+    public static void installMapGeneration(Path projectRoot) throws Exception {
+        install(projectRoot);
+        Path mod = projectRoot.resolve("mod");
+        if (WeaponRegistry.installed() == null) {
+            WeaponRegistry weapons = new WeaponRegistry();
+            for (String path : WeaponRegistry.BUILTIN_CATALOGS) {
+                weapons.ingest(new JSONObject(Files.readString(mod.resolve(path))));
+            }
+            WeaponRegistry.install(weapons);
+        }
+        if (TurretCatalogRegistry.installed() == null) {
+            TurretCatalogRegistry turrets = new TurretCatalogRegistry();
+            for (String path : TurretCatalogRegistry.BUILTIN_CATALOGS) {
+                turrets.ingest(new JSONObject(Files.readString(mod.resolve(path))),
+                        WeaponRegistry.installed());
+            }
+            TurretCatalogRegistry.install(turrets);
+        }
+        if (DefensePostLayoutRegistry.installed() == null) {
+            DefensePostLayoutRegistry layouts = new DefensePostLayoutRegistry();
+            for (String path : DefensePostLayoutRegistry.BUILTIN_CATALOGS) {
+                layouts.ingest(new JSONObject(Files.readString(mod.resolve(path))),
+                        TurretCatalogRegistry.installed());
+            }
+            layouts.validateCompleteness();
+            DefensePostLayoutRegistry.install(layouts);
+        }
+    }
+
+    /** The same, for a caller that is already running from the repository root. */
+    public static void installMapGeneration() throws Exception {
+        installMapGeneration(Paths.get(""));
     }
 }
