@@ -4,7 +4,7 @@ Status: ACTIVE — semantic terrain relief, a directional sun, and presentation-
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — macro relief is measured in metres and a directional sun casts from it.
+Updated: 2026-08-31 — macro relief is metres, a directional sun casts from it, and roofs and window apertures carry their own heights.
 
 ## Purpose
 
@@ -36,6 +36,22 @@ physical model of the map.
   ray climbing at the sun's elevation. It is an interpretation of macro
   relief, so anything with an authored height casts — walls because they are
   tall, not because they are walls.
+- A **roof** is what a building casts with. Its interior floor is a floor, but
+  the thing standing between the sun and the ground is the roof, so a roofed
+  interior stands at roof height and the building casts as a solid block rather
+  than as a hollow outline of its own walls. A cell whose roof has caved in
+  drops back to its floor, which is what puts daylight into a breached building
+  and lays the intact rim's own shadow across the hole. Roof *visibility* is a
+  separate thing and changes nothing: a roof faded out so the player can see
+  inside is still standing, and reading that fade would make a building's
+  shadow pulse with what the player happens to know.
+- A **window** is an aperture, and in a height field the way to let light
+  through one is to lower it. A window cut into a thick structural wall stands
+  at its **sill**: light passes over the sill and lands behind the opening
+  while the full-height wall either side keeps its shadow. A window on a shared
+  edge needs nothing — the aperture there is the floor gap between two wall
+  cells, already at the datum, so the light is already through it. Giving that
+  pane a height would mean claiming a walkable cell it does not occupy.
 - The **shadow margin** is the band of off-view cells the macro-relief target
   carries beyond the viewport. An occluder has to be in that target to cast
   out of it, so the margin is what stops a wall just past the sun-ward edge
@@ -104,6 +120,10 @@ alter map data or simulation.
 - Ground lights are additive and bounded. No active lights, or zero lighting
   strength, preserves the ordinary unlit ground composite; lights do not cast
   shadows or become a visibility system.
+- Macro height is a physical claim, never a visibility one. What a cell stands
+  at follows what is built there — walls, intact roofs, apertures — and never
+  what any faction can currently see. A height that moved with the fog would be
+  a shadow reporting knowledge.
 - The sun casts on the ground plane only, and its shadows are not sight. They
   never darken units, never gate what a unit can see or be seen from, and are
   computed from presentation data no simulation reads. A marine standing in a
@@ -135,12 +155,14 @@ This is a deliberate quality boundary, not an asset-loading failure. Any unit
 lighting uses a separate sprite-normal path and never displaces units with
 ground parallax.
 
-Every wall is one height. A compound's perimeter and a habitat's outer shell
-cast the same shadow, which is the current limit of the model rather than a
-property of the world; per-surface heights are the next authoring step, and the
-mapping's override table is already keyed to accept them. Nor do units cast:
-the composite runs beneath them, so a marine and a truck lay down nothing.
-Both are quality boundaries a later story may move, not defects in this one.
+Every wall is one height, and so is every roof. A compound's perimeter and a
+habitat's outer shell cast the same shadow, and a single-storey shed casts as
+far as a warehouse. That is the current limit of the model rather than a
+property of the world; per-surface and per-building heights are the next
+authoring step, and the mapping's override table is already keyed to accept
+them. Nor do units cast: the composite runs beneath them, so a marine and a
+truck lay down nothing. All are quality boundaries a later story may move,
+not defects in this one.
 
 ## Boundaries
 

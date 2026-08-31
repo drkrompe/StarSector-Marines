@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -66,7 +67,8 @@ class BattleFixtureJsonTest {
                 new TargetProfile(6, 8, 5, 2, "hegemony",
                         EnumSet.of(EconomicFunction.HABITATION,
                                 EconomicFunction.HEAVY_INDUSTRY,
-                                EconomicFunction.SPACEPORT)),
+                                EconomicFunction.SPACEPORT),
+                        SurfacePalette.ROCK),
                 true);
 
         BattleFixture decoded = BattleFixtureJson.fromJson(
@@ -87,7 +89,8 @@ class BattleFixtureJsonTest {
                 RiskLevel.HIGH,
                 new TargetProfile(7, 4, 6, 3, "hegemony",
                         EnumSet.of(EconomicFunction.HEAVY_INDUSTRY,
-                                EconomicFunction.SPACEPORT)),
+                                EconomicFunction.SPACEPORT),
+                        SurfacePalette.ROCK),
                 List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
                         Faction.MARINE, 2, 12f, 30f)),
                 List.of(
@@ -116,7 +119,8 @@ class BattleFixtureJsonTest {
                 RiskLevel.HIGH,
                 new TargetProfile(6, 3, 5, 2, "luddic_path",
                         EnumSet.of(EconomicFunction.MINING,
-                                EconomicFunction.HEAVY_INDUSTRY)),
+                                EconomicFunction.HEAVY_INDUSTRY),
+                        SurfacePalette.ROCK),
                 List.of(
                         new FighterWingCommitment(FighterProfile.BROADSWORD,
                                 Faction.MARINE, 2, 5f, 18f),
@@ -148,7 +152,8 @@ class BattleFixtureJsonTest {
                 new TargetProfile(6, 7, 5, 2, "independent",
                         EnumSet.of(EconomicFunction.HABITATION,
                                 EconomicFunction.SPACEPORT,
-                                EconomicFunction.MILITARY)),
+                                EconomicFunction.MILITARY),
+                        SurfacePalette.ROCK),
                 List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
                         Faction.MARINE, 2, 5f, 18f)),
                 List.of(new FighterWingCommitment(FighterProfile.TALON,
@@ -170,7 +175,8 @@ class BattleFixtureJsonTest {
                 true, OperationTier.ESTABLISHED, RiskLevel.HIGH,
                 new TargetProfile(6, 5, 4, 2, "independent",
                         EnumSet.of(EconomicFunction.SPACEPORT,
-                                EconomicFunction.HEAVY_INDUSTRY)),
+                                EconomicFunction.HEAVY_INDUSTRY),
+                        SurfacePalette.ROCK),
                 List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
                         Faction.MARINE, 1, 6f, 20f)),
                 List.of(new FighterWingCommitment(FighterProfile.TALON,
@@ -345,7 +351,8 @@ class BattleFixtureJsonTest {
                 20,
                 new TargetProfile(5, 7, 2, 1, "independent",
                         EnumSet.of(EconomicFunction.HABITATION,
-                                EconomicFunction.SPACEPORT)),
+                                EconomicFunction.SPACEPORT),
+                        SurfacePalette.ROCK),
                 false);
     }
 

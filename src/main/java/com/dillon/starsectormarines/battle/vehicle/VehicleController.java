@@ -74,6 +74,82 @@ public final class VehicleController {
     static final float DOCKING_TRIGGER_CELLS = 6f;
     /** Constant forward speed (cells/sec) along the Reeds-Shepp docking path. Slower than cruise to read as a careful approach. */
     static final float DOCKING_SPEED = 2.0f;
+    /**
+     * How far down the outbound corridor a departure turnaround aims, as a
+     * multiple of the vehicle's turn radius. Far enough that Reeds-Shepp has
+     * room to back and fill onto the corridor heading, near enough that the
+     * maneuver stays in the local neighborhood the footprint check can vouch for.
+     */
+    static final float TURNAROUND_LEAD_TURN_RADIUS_FACTOR = 2.5f;
+    /**
+     * Floor on that lead (cells). Deliberately small: lateral room is the
+     * scarce resource in a road, a nearer goal buys a tighter swing, and a
+     * floor of six cells was enough to reject the nine-cell road the short
+     * lead fits in.
+     */
+    static final float MIN_TURNAROUND_LEAD_CELLS = 2f;
+    /**
+     * Below this path length (cells) a turnaround is not worth engaging — the
+     * body is already close enough to the corridor heading that ordinary
+     * forward tracking is the right tool, and engaging anyway would hand the
+     * pose to the sampler for nothing.
+     */
+    static final float MIN_TURNAROUND_CELLS = 0.5f;
+    /**
+     * Turnarounds allowed per route. A misaligned departure needs exactly one;
+     * the bound is what stops a pose no maneuver can rescue from re-engaging
+     * every time forward planning fails.
+     */
+    static final int MAX_DEPARTURE_TURNAROUNDS = 2;
+
+    /**
+     * Lead distances (cells) tried for a departure turnaround, as multiples of
+     * the turn radius, shortest first.
+     *
+     * <p>Shortest first because a nearer goal forces Reeds-Shepp into a tighter
+     * solution, and lateral room is the scarce thing in a road. Measured on the
+     * shipped APC: aiming three cells ahead swings 3.15 cells wide, aiming ten
+     * swings 7.92 — the difference between fitting in a nine-cell road and
+     * needing a twenty-five-cell one.
+     */
+    static final float[] TURNAROUND_LEAD_FACTORS = {0.75f, 1.5f, 2.5f};
+
+    /** Lead distance (cells) for a departure turnaround at this turn radius. */
+    static float turnaroundLead(float turnRadiusCells, float factor) {
+        return Math.max(MIN_TURNAROUND_LEAD_CELLS, factor * turnRadiusCells);
+    }
+
+    /**
+     * Whether a vehicle arriving on {@code approachFacingDeg} can end up facing
+     * {@code departFacingDeg} at ({@code lzX}, {@code lzY}) without leaving the
+     * drivable map — the docking maneuver's own question, asked before dispatch
+     * commits to the route rather than after a truck is standing on it.
+     *
+     * <p>An LZ whose entry and exit disagree by more than the chassis can turn
+     * in the room available is a delivery that completes and then strands: the
+     * truck reaches the drop point, unloads, and can never point at its exit.
+     * Nothing downstream recovers from that, because the recovery ladder plans
+     * forward motion and the vehicle needs to reverse direction. Route
+     * construction already proves the ordinary bends; this proves the one bend
+     * that is not on either polyline.
+     */
+    public static boolean canReverseDirectionAt(NavigationGrid grid, VehicleType type,
+                                         float lzX, float lzY,
+                                         float approachFacingDeg, float departFacingDeg) {
+        GroundBody body = type.createBody();
+        if (!(body instanceof BicycleBody)) return true;
+        float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
+        // Where the truck is when the docking maneuver would engage: one
+        // trigger distance back along the heading it arrives on.
+        double noseRad = Math.toRadians(approachFacingDeg + 90f);
+        float startX = lzX - (float) Math.cos(noseRad) * DOCKING_TRIGGER_CELLS;
+        float startY = lzY - (float) Math.sin(noseRad) * DOCKING_TRIGGER_CELLS;
+        Pose start = new Pose(startX, startY, approachFacingDeg);
+        ReedsShepp.Path path = ReedsShepp.shortest(start, new Pose(lzX, lzY, departFacingDeg),
+                turnRadius);
+        return path != null && isPathFeasible(start, path, turnRadius, type, grid);
+    }
+
     /** Sample step (cells) along the RS path when validating feasibility against {@link VehicleFootprint}. */
     private static final float DOCKING_FOOTPRINT_SAMPLE_CELLS = 0.5f;
     /** Sim-seconds a vehicle must be wall-blocked before it starts reversing. Brief pause reads as "realizing the turn won't fit." */

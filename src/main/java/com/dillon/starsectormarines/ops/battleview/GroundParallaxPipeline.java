@@ -581,6 +581,13 @@ public final class GroundParallaxPipeline {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
         GenMappingRegistry mapping = GenMappingRegistry.installed();
+        // Rebuilt per frame rather than cached: a roof caves in and a wall is
+        // breached mid-battle, and a field held across frames would keep
+        // shadowing a building that is no longer there. It gathers from the
+        // building registry and the barrier list, so the cost is the number of
+        // roofed cells rather than the size of the map.
+        MacroReliefField relief =
+                new MacroReliefField(topology, sim.getBuildings(), mapping);
         int margin = heightPadCells;
         // Clears to the ground datum, not to mid-channel: off-grid texels have
         // to read as flat ground or the margin would ring the map in a 16 m
@@ -589,7 +596,7 @@ public final class GroundParallaxPipeline {
             glColorMask(true, true, true, true);
             glClearColor(GroundHeightPass.MACRO_DATUM, 0.5f, 0f, 0f);
             glClear(GL_COLOR_BUFFER_BIT);
-            heightPass.render(rc.camera, grid, topology, mapping, margin);
+            heightPass.render(rc.camera, grid, topology, mapping, relief, margin);
         });
     }
 
