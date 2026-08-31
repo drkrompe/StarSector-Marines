@@ -9,7 +9,9 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.AnimationClip;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.air.GroundWreck;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
@@ -90,8 +92,15 @@ public final class UnitRenderService implements RenderSystem {
 
     private final BattleSprites sprites;
     private final SystemHaloComposer halo = new SystemHaloComposer();
-    /** How each destroyed hardstand's hull came apart, worked out on first draw and kept for the battle. */
-    private final Map<AirfieldService.Berth, HullBreakup> wrecks = new IdentityHashMap<>();
+    /**
+     * How each destroyed airframe's hull came apart, worked out on first draw
+     * and kept for the battle. Keyed by identity on whichever object carries
+     * that wreck's position — a {@link AirfieldService.Berth} for one burned
+     * on its pad, a {@link GroundWreck} for one that came down away from a
+     * berth — since either is a stable, never-replaced object for as long as
+     * the wreck exists.
+     */
+    private final Map<Object, HullBreakup> wrecks = new IdentityHashMap<>();
 
     public UnitRenderService(BattleSprites sprites) {
         this.sprites = sprites;
@@ -224,10 +233,15 @@ public final class UnitRenderService implements RenderSystem {
      * released, and never coming back — so the wreck is drawn off the berth,
      * which is the thing on this field that has identity and outlives what
      * stands on it.
+     *
+     * <p>A craft killed under its own power away from any berth — taxiing,
+     * holding short, mid-roll — has no berth to be drawn off, so its wreck is
+     * a {@link GroundWreck} instead, carrying its own position and bearing.
+     * Same charred hull, same tear, drawn wherever it actually stopped.
      */
     private void sweepBasedAircraft(RenderContext ctx, DrawList out) {
         AirfieldService airfield = ctx.sim.getAirfieldService();
-        if (airfield.berths().isEmpty()) return;
+        if (airfield.berths().isEmpty() && airfield.groundWrecks().isEmpty()) return;
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
@@ -237,18 +251,23 @@ public final class UnitRenderService implements RenderSystem {
             if (!ctx.sim.identity().type(u).isBasedAircraft()) continue;
             AirfieldService.Berth berth = airfield.berthOf(u);
             if (berth == null) continue;
-            emitHull(out, cam, berth, world.renderX(u), world.renderY(u),
+            emitHull(out, cam, berth.airframe, berth.facingDegrees, world.renderX(u), world.renderY(u),
                     cellPx, 1f, 1f, 1f, alphaMult);
         }
         for (AirfieldService.Berth berth : airfield.berths()) {
             if (!berth.wreckOnPad) continue;
-            emitWreck(out, cam, berth, cellPx, alphaMult);
+            emitWreck(out, cam, berth, berth.centerX + 0.5f, berth.centerY + 0.5f, berth.facingDegrees,
+                    berth.airframe, berth.centerX, berth.centerY, cellPx, alphaMult);
+        }
+        for (GroundWreck wreck : airfield.groundWrecks()) {
+            emitWreck(out, cam, wreck, wreck.x, wreck.y, wreck.facingDegrees,
+                    wreck.airframe, wreck.cellX(), wreck.cellY(), cellPx, alphaMult);
         }
     }
 
     /**
-     * Draws one berth's wreck: the hull torn into three pieces that have
-     * shifted where they lie, every one of them charred.
+     * Draws one wreck: the hull torn into three pieces that have shifted where
+     * they lie, every one of them charred.
      *
      * <p>The tear is {@link HullBreakup}'s and the pieces are drawn as source
      * sub-rectangles of the aircraft's own sprite, so this needs no wreck art
@@ -257,34 +276,34 @@ public final class UnitRenderService implements RenderSystem {
      * size cannot be addressed that way, so it falls back to the whole charred
      * hull rather than drawing nothing.
      *
-     * <p>Seeded off the hardstand, which does not move: the wreck on a given
-     * pad is torn the same way on every frame of the battle and again in a
-     * replay of it, and two wrecks on one field are torn differently.
+     * <p>{@code wreckKey} identifies the wreck for {@link #wreckFor} — the
+     * {@link AirfieldService.Berth} or {@link GroundWreck} carrying this
+     * position, which does not move: the wreck at a given place is torn the
+     * same way on every frame of the battle and again in a replay of it, and
+     * two wrecks on one field are torn differently.
      */
-    private void emitWreck(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
-                           float cellPx, float alphaMult) {
-        ShuttleSpriteCache cache = sprites.airframeSprites().get(berth.airframe);
+    private void emitWreck(DrawList out, BattleCamera cam, Object wreckKey,
+                           float padCellX, float padCellY, float facingDegrees, Airframe airframe,
+                           int seedX, int seedY, float cellPx, float alphaMult) {
+        ShuttleSpriteCache cache = sprites.airframeSprites().get(airframe);
         if (cache == null || cache.sprite == null) return;
-        float padCellX = berth.centerX + 0.5f;
-        float padCellY = berth.centerY + 0.5f;
         if (cache.pxW <= 0 || cache.pxH <= 0) {
-            emitHull(out, cam, berth, padCellX, padCellY, cellPx,
+            emitHull(out, cam, airframe, facingDegrees, padCellX, padCellY, cellPx,
                     BURNT_HULL_R, BURNT_HULL_G, BURNT_HULL_B, alphaMult);
             return;
         }
 
-        String hullId = berth.airframe.renderHullId();
+        String hullId = airframe.renderHullId();
         float alongPx = HullFootprintResolver.visualLengthCells(hullId) * cellPx;
         float acrossPx = alongPx * cache.aspect;
         float[] pivot = HullPivotResolver.pivotOffset(hullId);
-        float facing = berth.facingDegrees;
-        float rad = (float) Math.toRadians(facing);
+        float rad = (float) Math.toRadians(facingDegrees);
         float faceCos = (float) Math.cos(rad);
         float faceSin = (float) Math.sin(rad);
         float baseX = cam.cellToScreenX(padCellX + pivot[0] * faceCos - pivot[1] * faceSin);
         float baseY = cam.cellToScreenY(padCellY + pivot[0] * faceSin + pivot[1] * faceCos);
 
-        HullBreakup breakup = wreckFor(berth);
+        HullBreakup breakup = wreckFor(wreckKey, seedX, seedY, hullId);
         for (HullBreakup.Piece piece : breakup.pieces()) {
             float spinRad = (float) Math.toRadians(piece.spinDegrees());
             float spinCos = (float) Math.cos(spinRad);
@@ -299,7 +318,7 @@ public final class UnitRenderService implements RenderSystem {
             for (HullBreakup.Run run : piece.runs()) {
                 emitWreckRun(out, cache, run, piece.spinDegrees(), acrossPx, alongPx,
                         centreX, centreY, slideX, slideY, spinCos, spinSin,
-                        baseX, baseY, faceCos, faceSin, facing, alphaMult);
+                        baseX, baseY, faceCos, faceSin, facingDegrees, alphaMult);
             }
         }
     }
@@ -378,22 +397,20 @@ public final class UnitRenderService implements RenderSystem {
     }
 
     /**
-     * The tear for one hardstand, worked out once and kept.
+     * The tear for one wreck, worked out once and kept.
      *
      * <p>Small enough a map to walk rather than index: a field has a handful of
-     * berths and only the destroyed ones ever land in here.
+     * wrecks on it at most.
      */
-    private HullBreakup wreckFor(AirfieldService.Berth berth) {
-        HullBreakup cached = wrecks.get(berth);
+    private HullBreakup wreckFor(Object wreckKey, int seedX, int seedY, String hullId) {
+        HullBreakup cached = wrecks.get(wreckKey);
         if (cached != null) return cached;
         // Keyed on the hull's own name rather than an enum position, so
         // reordering a list of aircraft does not silently re-tear every wreck
         // on every map. String.hashCode is specified, so a replay tears the
         // same way.
-        HullBreakup torn = HullBreakup.of(
-                ((long) berth.centerX << 20) ^ berth.centerY
-                        ^ berth.airframe.renderHullId().hashCode());
-        wrecks.put(berth, torn);
+        HullBreakup torn = HullBreakup.of(((long) seedX << 20) ^ seedY ^ hullId.hashCode());
+        wrecks.put(wreckKey, torn);
         return torn;
     }
 
@@ -412,27 +429,29 @@ public final class UnitRenderService implements RenderSystem {
     private static final float BURNT_HULL_B = 0.20f;
 
     /**
-     * Draws one berth's hull centred on {@code (centerCellX, centerCellY)} at
-     * the berth's facing, tinted by {@code (r, g, b)}.
+     * Draws one hull centred on {@code (centerCellX, centerCellY)} at
+     * {@code facingDegrees}, tinted by {@code (r, g, b)}.
      *
      * <p>Shared by the live airframe and the wreck so the two can never drift
      * apart in size, pivot or bearing: a hulk that sat a foot off where the
-     * aircraft had been standing would read as a second object.
+     * aircraft had been standing would read as a second object. Taking the
+     * airframe and facing as plain values rather than a berth is what lets a
+     * {@link GroundWreck} — which has no berth under it — draw through the
+     * same code as a parked or pad-wrecked one.
      */
-    private void emitHull(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
+    private void emitHull(DrawList out, BattleCamera cam, Airframe airframe, float facingDegrees,
                           float centerCellX, float centerCellY, float cellPx,
                           float r, float g, float b, float alphaMult) {
-        ShuttleSpriteCache cache = sprites.airframeSprites().get(berth.airframe);
+        ShuttleSpriteCache cache = sprites.airframeSprites().get(airframe);
         if (cache == null || cache.sprite == null) return;
-        float hullLenCells = HullFootprintResolver.visualLengthCells(
-                berth.airframe.renderHullId());
-        float[] pivot = HullPivotResolver.pivotOffset(berth.airframe.renderHullId());
-        float rad = (float) Math.toRadians(berth.facingDegrees);
+        float hullLenCells = HullFootprintResolver.visualLengthCells(airframe.renderHullId());
+        float[] pivot = HullPivotResolver.pivotOffset(airframe.renderHullId());
+        float rad = (float) Math.toRadians(facingDegrees);
         float c = (float) Math.cos(rad);
         float sn = (float) Math.sin(rad);
         float cx = cam.cellToScreenX(centerCellX + pivot[0] * c - pivot[1] * sn);
         float cy = cam.cellToScreenY(centerCellY + pivot[0] * sn + pivot[1] * c);
-        emitWholeSprite(out, cache, berth.facingDegrees, hullLenCells * cellPx,
+        emitWholeSprite(out, cache, facingDegrees, hullLenCells * cellPx,
                 cx, cy, r, g, b, alphaMult);
     }
 
