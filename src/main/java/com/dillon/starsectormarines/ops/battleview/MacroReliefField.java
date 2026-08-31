@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.Building;
@@ -24,6 +25,14 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
  *       caved in drops back to its floor, which punches daylight into a
  *       breached building and lays the intact roof's own shadow across the
  *       hole.</li>
+ *   <li><b>A doorway keeps the roof over it.</b> A door is a gap in a wall,
+ *       not a gap in the building: there is a lintel above it and the roof
+ *       carries straight across the threshold. Left at ground height, every
+ *       door punched a notch out of its building's shadow — which is the one
+ *       shape a building's shadow should never have. A doorway takes roof
+ *       height when it opens onto roofed ground, so an internal threshold and
+ *       a front door both stay covered, while a compound's gate — open yard on
+ *       both sides and nothing overhead — correctly does not.</li>
  *   <li><b>A window cut into a wall is a low spot in it.</b> A
  *       {@link CellTopology.Tag#WINDOW} cell is an aperture through a thick
  *       structural wall, and in a height field the honest way to let light
@@ -69,8 +78,10 @@ public final class MacroReliefField {
      * of the map.
      */
     private final boolean[] roofed;
+    private int lintelCells;
 
-    public MacroReliefField(CellTopology topology, Buildings buildings, GenMappingRegistry mapping) {
+    public MacroReliefField(CellTopology topology, NavigationGrid grid,
+                            Buildings buildings, GenMappingRegistry mapping) {
         this.topology = topology;
         this.mapping = mapping;
         this.wallMeters = mapping != null
@@ -83,6 +94,7 @@ public final class MacroReliefField {
 
         this.roofed = new boolean[topology.getWidth() * topology.getHeight()];
         markRoofs(buildings);
+        markDoorwayLintels(grid);
     }
 
     /** Metres above the ground datum at {@code (x, y)}; the datum itself outside the map. */
@@ -130,6 +142,53 @@ public final class MacroReliefField {
         return total;
     }
 
+    /**
+     * Carry the roof across every doorway that opens onto roofed ground.
+     *
+     * <p>Read against the mask as {@link #markRoofs} left it, never against
+     * itself: a doorway marked here must not become the neighbour that
+     * qualifies the next one, or a run of thresholds would walk the roof out
+     * across a courtyard a cell at a time.
+     *
+     * <p>A doorway whose own roof has caved in stays open. The cave-in is the
+     * more specific statement about that cell.
+     */
+    private void markDoorwayLintels(NavigationGrid grid) {
+        if (grid == null) return;
+        boolean[] lintel = new boolean[roofed.length];
+        int covered = 0;
+        for (int y = 0; y < topology.getHeight(); y++) {
+            for (int x = 0; x < topology.getWidth(); x++) {
+                if (!grid.isDoorway(x, y) || topology.isRoofDestroyed(x, y)) continue;
+                if (roofedAt(x - 1, y) || roofedAt(x + 1, y)
+                        || roofedAt(x, y - 1) || roofedAt(x, y + 1)) {
+                    lintel[topology.index(x, y)] = true;
+                    covered++;
+                }
+            }
+        }
+        for (int i = 0; i < roofed.length; i++) {
+            if (lintel[i]) roofed[i] = true;
+        }
+        lintelCells = covered;
+    }
+
+    /**
+     * How many doorways took a lintel.
+     *
+     * <p>Separated from the roofed total because that total also moves whenever
+     * map generation changes, and a number that cannot be attributed is not
+     * evidence for anything.
+     */
+    public int lintelCellCount() {
+        return lintelCells;
+    }
+
+    private boolean roofedAt(int x, int y) {
+        if (x < 0 || y < 0 || x >= topology.getWidth() || y >= topology.getHeight()) return false;
+        return roofed[topology.index(x, y)];
+    }
+
     private void markRoofs(Buildings buildings) {
         if (buildings == null || buildings.isEmpty()) return;
         for (Building building : buildings.all()) {
@@ -146,6 +205,6 @@ public final class MacroReliefField {
     public String toString() {
         return "MacroReliefField[wall=" + wallMeters + "m roof=" + roofMeters
                 + "m sill=" + windowSillMeters + "m roofed=" + roofedCellCount()
-                + " windows=" + windowCellCount() + "]";
+                + " (" + lintelCells + " door lintels) windows=" + windowCellCount() + "]";
     }
 }
