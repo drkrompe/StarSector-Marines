@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Synthetic-grid coverage for {@link CompoundPerimeterDefenderStamper}. Each
@@ -43,6 +45,18 @@ public class CompoundPerimeterDefenderStamperTest {
     private static void runStamper(NavigationGrid grid, TraversalAxis axis, List<TacticalNode> tactical) {
         GenContext ctx = new GenContext(grid, new CellTopology(W, H), new Random(0), W, H, 0L);
         if (axis != null) ctx.put(BspKeys.AXIS, axis);
+        ctx.tactical.addAll(tactical);
+        new CompoundPerimeterDefenderStamper().run(ctx);
+        tactical.clear();
+        tactical.addAll(ctx.tactical);
+    }
+
+    /** As {@link #runStamper}, with a reservation mask bound. */
+    private static void runStamper(NavigationGrid grid, TraversalAxis axis,
+                                   List<TacticalNode> tactical, boolean[][] reserved) {
+        GenContext ctx = new GenContext(grid, new CellTopology(W, H), new Random(0), W, H, 0L);
+        if (axis != null) ctx.put(BspKeys.AXIS, axis);
+        ctx.put(BspKeys.ROAD_RESERVATION, reserved);
         ctx.tactical.addAll(tactical);
         new CompoundPerimeterDefenderStamper().run(ctx);
         tactical.clear();
@@ -183,5 +197,80 @@ public class CompoundPerimeterDefenderStamperTest {
 
         assertEquals(1, tactical.size(),
                 "null axis (legacy maps) must skip stamping — no attacker side known");
+    }
+
+    /**
+     * A lookout does not stand on ground somebody else is relying on.
+     *
+     * <p>The anchor is the first <em>walkable</em> cell outside the compound's
+     * attacker-facing edge, and a runway is open ground — so a compound beside
+     * the ward airfield planted its guardpost on the apron. Measured across the
+     * conquest matrix, thirty-three of forty-eight maps had a guardpost on the
+     * airfield and this stamper accounted for thirty-five of the sixty-four.
+     * The scan now steps over reserved ground rather than stopping on it.
+     */
+    @Test
+    public void aReservedCellIsNotAPlaceToStand() {
+        NavigationGrid grid = openGrid();
+        List<TacticalNode> tactical = new ArrayList<>();
+        tactical.add(compoundNode(TacticalNode.Kind.BARRACKS, 8, 8, 12, 12));
+
+        // The two rows immediately south of the compound are spoken for.
+        boolean[][] reserved = new boolean[W][H];
+        for (int x = 0; x < W; x++) {
+            reserved[x][7] = true;
+            reserved[x][6] = true;
+        }
+
+        runStamper(grid, TraversalAxis.SOUTH_TO_NORTH, tactical, reserved);
+
+        assertEquals(2, tactical.size(), "one GUARDPOST should have been appended");
+        TacticalNode post = tactical.get(1);
+        assertEquals(TacticalNode.Kind.GUARDPOST, post.kind);
+        assertFalse(reserved[post.anchorX][post.anchorY],
+                "the guardpost was planted on reserved ground at "
+                        + post.anchorX + "," + post.anchorY);
+        assertTrue(post.anchorY < 7,
+                "the scan stopped short instead of stepping past the reservation");
+    }
+
+    /**
+     * And with nothing reserved it still stands where it always did, so the
+     * change is a refusal rather than a relocation.
+     */
+    @Test
+    public void anUnreservedApproachIsUnchanged() {
+        NavigationGrid grid = openGrid();
+        List<TacticalNode> withMask = new ArrayList<>();
+        withMask.add(compoundNode(TacticalNode.Kind.BARRACKS, 8, 8, 12, 12));
+        runStamper(grid, TraversalAxis.SOUTH_TO_NORTH, withMask, new boolean[W][H]);
+
+        List<TacticalNode> withoutMask = new ArrayList<>();
+        withoutMask.add(compoundNode(TacticalNode.Kind.BARRACKS, 8, 8, 12, 12));
+        runStamper(grid, TraversalAxis.SOUTH_TO_NORTH, withoutMask);
+
+        assertEquals(withoutMask.get(1).anchorX, withMask.get(1).anchorX);
+        assertEquals(withoutMask.get(1).anchorY, withMask.get(1).anchorY);
+    }
+
+    /**
+     * A compound with nothing legal outside it gets no lookout at all, rather
+     * than one standing somewhere it must not.
+     */
+    @Test
+    public void anApproachThatIsEntirelySpokenForYieldsNoPost() {
+        NavigationGrid grid = openGrid();
+        List<TacticalNode> tactical = new ArrayList<>();
+        tactical.add(compoundNode(TacticalNode.Kind.BARRACKS, 8, 8, 12, 12));
+
+        boolean[][] reserved = new boolean[W][H];
+        for (int x = 0; x < W; x++) {
+            for (int y = 0; y < H; y++) reserved[x][y] = true;
+        }
+
+        runStamper(grid, TraversalAxis.SOUTH_TO_NORTH, tactical, reserved);
+
+        assertEquals(1, tactical.size(),
+                "a guardpost was emitted with nowhere legal to put it");
     }
 }
