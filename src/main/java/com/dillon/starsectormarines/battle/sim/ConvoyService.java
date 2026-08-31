@@ -118,6 +118,20 @@ public final class ConvoyService {
         entityIds.remove(id);
     }
 
+    /**
+     * How many convoy entities exist, wrecks included. Paired with
+     * {@link #vehicleAt} for the per-unit target scans, which run for every
+     * combatant every tick and cannot afford {@link #entityIds}'s copy.
+     */
+    public int vehicleCount() {
+        return entityIds.size();
+    }
+
+    /** The convoy entity at {@code index} in {@code [0, vehicleCount())}. */
+    public long vehicleAt(int index) {
+        return entityIds.get(index);
+    }
+
     /** Snapshot of every convoy entity, including persistent wrecks. */
     public long[] entityIds() {
         long[] ids = new long[entityIds.size()];

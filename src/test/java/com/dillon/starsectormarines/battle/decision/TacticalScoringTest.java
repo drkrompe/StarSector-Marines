@@ -19,6 +19,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1123,6 +1126,92 @@ public class TacticalScoringTest {
         sim.getGrid().setWalkableFloor(8, 4);
         assertEquals(enemy, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
                 "the same live floats remain shootable on the inclusive range boundary");
+    }
+
+    /**
+     * Spawns a hostile vehicle standing still at {@code (x + 0.5, y + 0.5)} in
+     * the given lifecycle state. The mission's inbound queue is what places
+     * the body, so both waypoints sit on the same cell.
+     */
+    private static long parkedVehicle(BattleSimulation sim, Faction faction,
+                                      VehicleState state, float x, float y) {
+        VehicleMission mission = new VehicleMission(
+                new float[]{x, x}, new float[]{y, y},
+                new float[]{x, x}, new float[]{y, y},
+                0f, VehicleType.HEAVY_APC.capacity);
+        mission.state = state;
+        return sim.convoy().spawn(VehicleType.HEAVY_APC, faction, mission);
+    }
+
+    @Test
+    public void closestEnemyInAttackRangeIncludesADrivingVehicle() {
+        // The convoy slice is absent from the dense roster the spatial index
+        // is built from, so without an explicit sweep an APC crossing a
+        // marine's front is not a shot of opportunity at all.
+        BattleSimulation sim = openArena(40, 10);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        sim.world().setAttackRange(marine, 20f);
+        long apc = parkedVehicle(sim, Faction.DEFENDER, VehicleState.INCOMING, 12.5f, 5.5f);
+
+        assertEquals(apc, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "an in-range hostile vehicle is an opportunity target");
+    }
+
+    @Test
+    public void closestEnemyInAttackRangePrefersTheNearerOfVehicleAndInfantry() {
+        BattleSimulation sim = openArena(40, 10);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        sim.world().setAttackRange(marine, 20f);
+        long apc = parkedVehicle(sim, Faction.DEFENDER, VehicleState.INCOMING, 10.5f, 5.5f);
+        long infantry = unit(sim, Faction.DEFENDER, 18, 5);
+
+        assertEquals(apc, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "the vehicle is nearer, so it wins the distance-only pick");
+
+        sim.world().setPos(infantry, 7.5f, 5.5f);
+        assertEquals(infantry, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "the vehicle does not outrank a nearer rifleman either");
+    }
+
+    @Test
+    public void closestEnemyInAttackRangeSkipsOffMapAndWreckedVehicles() {
+        BattleSimulation sim = openArena(40, 10);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        sim.world().setAttackRange(marine, 20f);
+        parkedVehicle(sim, Faction.DEFENDER, VehicleState.PENDING, 10.5f, 5.5f);
+        parkedVehicle(sim, Faction.DEFENDER, VehicleState.WRECKED, 11.5f, 5.5f);
+        parkedVehicle(sim, Faction.MARINE, VehicleState.INCOMING, 12.5f, 5.5f);
+
+        assertEquals(0L, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "a vehicle not yet on the map, a wreck, and a friendly are all non-targets");
+    }
+
+    @Test
+    public void lowDensityAlternativeIncludesADrivingVehicle() {
+        // Engagement discipline releases a clustered target by finding another
+        // one worth advancing on; a vehicle is never itself a hostile cluster.
+        BattleSimulation sim = openArena(40, 10);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        long clustered = unit(sim, Faction.DEFENDER, 20, 5);
+        long apc = parkedVehicle(sim, Faction.DEFENDER, VehicleState.INCOMING, 12.5f, 5.5f);
+
+        assertEquals(apc, sim.getTacticalScoring()
+                        .findBestVisibleLowDensityTarget(marine, clustered),
+                "the vehicle is the visible alternative to the rejected target");
+    }
+
+    @Test
+    public void pursuitYieldsToAVehicleClosingInsideTheMargin() {
+        BattleSimulation sim = openArena(40, 10);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        sim.world().setAttackRange(marine, 30f);
+        long distant = unit(sim, Faction.DEFENDER, 30, 5);
+        assertTrue(sim.getTacticalScoring().shouldKeepPursuing(marine, distant),
+                "with nothing else on the map the distant rifleman is kept");
+
+        parkedVehicle(sim, Faction.DEFENDER, VehicleState.INCOMING, 10.5f, 5.5f);
+        assertFalse(sim.getTacticalScoring().shouldKeepPursuing(marine, distant),
+                "an APC closing well inside the retarget margin breaks the fixation");
     }
 
     @Test
