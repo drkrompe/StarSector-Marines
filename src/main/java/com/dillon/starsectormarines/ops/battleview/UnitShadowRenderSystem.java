@@ -161,16 +161,23 @@ public final class UnitShadowRenderSystem implements RenderSystem {
     }
 
     /**
-     * A ground body's ellipse is the engine glow, tinted dark: a radial falloff
-     * is a radial falloff whatever it was drawn for, and the soft edge is most
-     * of what sells this. A hard-edged quad reads as a sticker. An aircraft
-     * brings its own shape and needs no such stand-in.
+     * A ground body's ellipse is the mod's own shadow disc, tinted dark. The
+     * soft edge is most of what sells this — a hard-edged quad reads as a
+     * sticker — which is why the layer originally borrowed the vanilla engine
+     * glow, on the reasoning that a radial falloff is a radial falloff whatever
+     * it was drawn for. That sprite is not a radial falloff: it is a four-lobed
+     * flare with concave notches bitten out of its corners, and stretched
+     * down-sun those notches become a chevron. Every marine on the field stood
+     * on one for the whole life of this layer, and from outside it read as the
+     * shadow being clipped, or as several shadows stacked on one body.
+     *
+     * <p>An aircraft brings its own shape and needs no stand-in at all.
      */
     @Override
     public void collect(RenderContext ctx, DrawList out) {
         if (!sun.casts()) return;
-        sprites.ensureEngineFxSprites();
-        SpriteAPI blob = sprites.engineGlowSprite();
+        sprites.ensureShadowSprite();
+        SpriteAPI blob = sprites.shadowBlobSprite();
         if (blob != null) collectGroundBodies(ctx, out, blob);
         collectAircraft(ctx, out);
     }
@@ -218,7 +225,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 float shadowY = ry[r] - sun.dirY() * anchor;
 
                 emit(out, blob, cam, shadowX, shadowY,
-                        widthCells * cellPx, lengthCells * cellPx,
+                        lengthCells * cellPx, widthCells * cellPx,
                         shadowAngleDegrees(), alpha * SHADOW_ALPHA * sun.shadowStrength());
             }
         }
@@ -285,6 +292,8 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             float shadowX = body.x + (pvx * pc - pvy * psn) - sun.dirX() * reach;
             float shadowY = body.y + (pvx * psn + pvy * pc) - sun.dirY() * reach;
 
+            // pxW/pxH exactly as ShuttleRenderSystem computes them for the
+            // hull, so the silhouette is the same rectangle at the same facing.
             emit(out, cache.sprite, cam, shadowX, shadowY,
                     pxLen * cache.aspect, pxLen, body.facingDegrees, alpha);
         }
@@ -308,14 +317,22 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      * own shade at a third strength, so what survives the draw is the sprite's
      * alpha and none of its colour. A silhouette and a soft ellipse are the
      * same draw; only the sprite differs.
+     *
+     * <p>{@code pxW}/{@code pxH} are in
+     * {@link DrawList#addSprite}'s own order, deliberately. An earlier version
+     * named them width and length and handed them over swapped, which is
+     * invisible on anything near square — the shuttle in the preview suite
+     * included — and turns a long, narrow hull into a wide smear lying across
+     * its own axis. Matching the callee's order removes the chance to get it
+     * wrong rather than documenting how not to.
      */
     private static void emit(DrawList out, SpriteAPI shape, BattleCamera cam,
                              float worldX, float worldY,
-                             float width, float length, float angleDegrees, float alpha) {
-        if (alpha <= 0.004f || width <= 0f || length <= 0f) return;
+                             float pxW, float pxH, float angleDegrees, float alpha) {
+        if (alpha <= 0.004f || pxW <= 0f || pxH <= 0f) return;
         out.addSprite(RenderLayer.UNIT_SHADOWS, shape,
                 cam.cellToScreenX(worldX), cam.cellToScreenY(worldY),
-                length, width, angleDegrees,
+                pxW, pxH, angleDegrees,
                 SunLight.TINT_R * 0.35f, SunLight.TINT_G * 0.35f, SunLight.TINT_B * 0.35f,
                 alpha);
     }
