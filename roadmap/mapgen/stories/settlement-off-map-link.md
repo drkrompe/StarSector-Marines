@@ -1,8 +1,7 @@
 # Settlement off-map link
 
-Status: WIRED BUT NOT SWITCHED ON — the campaign derives the link and the
-density, and nothing consumes them yet. Adopting grown maps waits on terrain
-coherence and the spaceport apron, both measured below.
+Status: LIVE — every non-conquest battle grows its settlement from the market.
+Conquest keeps the stock crossroad.
 
 Written: 2026-08-31
 
@@ -54,6 +53,67 @@ off-map entry node only where a band wide enough to carry a centreline actually
 reaches the edge, and `ConvoyMeans.canFulfill` returns false with no log when
 there are no perimeter nodes — so ground reinforcement was simply never offered
 and nothing said why.
+
+## The road bends
+
+A road laid straight from the middle of a town to the edge of the world reads as
+a runway. One right-angle turn on the way reads as terrain the surveyors went
+around, and costs nothing, since a segment is already a rectangle and an L is
+two of them. The offset is drawn rather than forced, so a zero offset degenerates
+to the straight case on its own — some roads really do run straight.
+
+The forced band is `PRIMARY`, because a link to the outside is an arterial and
+because a narrower band would leave the road graph with no perimeter node to
+promote — the failure this whole story exists to prevent, reintroduced by the
+fix for it.
+
+## The pad is promoted, not rolled
+
+`SettlementLandingLinkStage` is in a recipe only when the settlement is
+`LANDING`, and sits beside `AirbasePadSeedStage` — after the compound seeds have
+taken their parcels, before the claim stage. It scans for a leaf that actually
+*publishes* a pad and otherwise promotes the largest ordinary block.
+
+"Actually publishes" is the whole subtlety. A `LANDING_ZONE` below five cells a
+side is still striped and marked and contributes nothing to
+`MapResult.landingPads`, so a leaf merely carrying the label would have looked
+like a link without being one.
+
+## The campaign chooses it
+
+`SettlementZoning` reads market size and the decivilized condition at the same
+boundary `SurfaceZoning` reads planet type, and answers two questions: what the
+settlement's lifeline is, and how densely it is built.
+
+A market of size 3 or below is an outpost supplied by ship — a mining claim, a
+waystation, a survey post, the places nobody paved a road to. Anything larger
+grew where people could drive to it. Decivilized is `NONE` at any size.
+
+**No market is an absence of information, not a claim of isolation.** A battle
+with nothing behind it reads as `ROAD` and takes the stock crossroad rather than
+a grown settlement, because density is derived from market size and there is
+nothing to derive it from. That is a real rule and not a carve-out for tests.
+
+## Switched on
+
+Every battle without a traversal axis now grows its settlement from what the
+campaign says about the market. Conquest keeps `TrunkSkeletonStage`'s fixed
+crossroad, and there is deliberately no grown conquest recipe to reach by
+accident: it is the mission the campaign is built around, its balance was
+measured against the maps it has, and the ground under it does not move while
+that judgement stands.
+
+A profile with no market behind it takes the stock recipe. That is a rule
+rather than a carve-out for tests — density is derived from market size, so a
+battle with nothing behind it has nothing to derive it from.
+
+The three things that blocked this are all closed:
+
+| | was | now |
+|---|---|---|
+| wild terrain read as static | one material per cell across three families | one material per surface, eight variants each |
+| apron never contiguous | unmeetable by construction — the filler must leave the centerline drivable | measured as the killing ground it is for; 59/60 stock, 53/60 grown |
+| port campus starved | pocket hardcoded to one map corner; grown pads 33/60 | pocket placed where a campus fits; grown pads 58/60, stock held at 60/60 |
 
 ## The road bends
 
