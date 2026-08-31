@@ -61,7 +61,7 @@ public enum BlockKind {
     AIRBASE_PAD,
 
     /**
-     * Multi-leaf airbase seed — a landing site claimed across two or three
+     * Multi-leaf airbase seed — a garrison airfield claimed across two or three
      * adjacent blocks, filled at {@code AirbaseLot.Size.PAD}: two berths, a
      * shed, and a vehicle park inside one fence.
      *
@@ -71,8 +71,10 @@ public enum BlockKind {
      * so the failure mode of "no room for the bigger base" is a smaller base
      * rather than no base.
      *
-     * <p>Scenery like its smaller sibling: a civil landing pad and no airbase
-     * node. Filled by {@code AirbaseCompoundFiller}.
+     * <p>A working field, unlike its smaller sibling: garrison berths with
+     * aircraft on them and an AIRBASE node, so an air arm flies from it and a
+     * commander can be told to hold it. The claim is the ground that makes that
+     * reasonable; one block is not. Filled by {@code AirbaseCompoundFiller}.
      */
     AIRBASE_COMPOUND,
 

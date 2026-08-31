@@ -4,7 +4,9 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — an aircraft on its wheels is a real target rather than a
+Updated: 2026-08-31 — an authored airfield is a base whose lot published it as
+one, berths and node together, so a generated field loads its crew instead of
+flying pre-loaded. An aircraft on its wheels is a real target rather than a
 damageable one, and it reaches that on the shared terms every body is on: one
 carrier surface, one admission, one damage route, its hull an ordinary
 `HEALTH`/`ARMOR` pair. Whether a craft can be engaged is a relation between a
@@ -1040,7 +1042,15 @@ Distinct from the **scenery hulls** that dress surplus civilian port berths.
 Those are props: no unit, no HP, and nothing flies them. They look identical on
 the map and are not the same kind of thing at all.
 
-A sortie flown from an **authored airfield** has one more phase in front of
+An **authored airfield** is a base whose lot published it as one. That is a
+single fact carrying both halves — berths the air arm draws sorties from, and
+the `AIRBASE` node a commander reads as a place to take — and the two are
+inseparable on purpose, because a field with only the first half is a spawner
+wearing an airfield's paint. Whoever asks whether the garrison can fly is asking
+about a base with a node on it; a civil landing pad has neither half and is
+somewhere to put an aircraft down. `mapgen-nouns.md` owns which lots are which.
+
+A sortie flown from an authored airfield has one more phase in front of
 that. The craft starts down on its own hardstand and **loads on the ground**:
 its passengers are not aboard when it spawns, but walk out to the pad and
 embark, and it lifts when it is full or when nobody else is coming. That is the

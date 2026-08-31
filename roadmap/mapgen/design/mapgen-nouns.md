@@ -9,10 +9,12 @@ contract rather than a centerline, reserved before packing where pedestrian
 circulation still is not, and validated by whether a hull fits rather than by
 whether cells connect.
 
-Updated: 2026-08-30 — an airbase lot owns the ground it repaves, and is reserved
-against the stampers that follow it; a fortress ward refuses a lot over its
-keep; the lot turns four ways and comes in three sizes that grow along the
-frontage rather than into the depth.
+Updated: 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
+its berths, so being a working field is one decision rather than two that can
+disagree; a city's compound airfield is one and its block-sized pad is not. The
+lot owns the ground it repaves and is reserved against the stampers that follow
+it; a fortress ward refuses a lot over its keep; the lot turns four ways and
+comes in sizes that grow along the frontage rather than into the depth.
 
 Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
 the no-islands law construction must satisfy and added the passable
@@ -504,14 +506,31 @@ compact size therefore fits where the full one cannot — a city block, a
 compound's yard, a map that is not a fortress — and it is the shape a player's
 own arrival wants: a berth, its servicing, and a fence round the lot.
 
-**Whether a base is operational is the host's call, not the lot's.** The
-geometry is identical either way; what changes is who picks its berths up. A
-fortress ward publishes garrison berths, which supply an air arm and can be
-taken to stop it. A city block publishes a civil landing pad and no airbase
-node, so nothing flies from it and nothing gates on holding it — it is a place
-a mission can put somebody down, and a walled lot with hard cover to fight over
-once they are. Building a second, cosmetic airbase to get the second behaviour
-would be two things to keep in step for no reason.
+**Whether a base is operational is one decision, and the lot carries all of
+it.** The geometry is identical either way; what changes is what the lot
+publishes about its berths. A garrison field publishes berths an air arm draws
+sorties from *and* the `AIRBASE` tactical node that lets a commander see it as a
+place to be taken. A civil site publishes a landing pad and nothing else — a
+place a mission can put somebody down, and a walled lot with hard cover to fight
+over once they are. Building a second, cosmetic airbase to get the second
+behaviour would be two things to keep in step for no reason.
+
+**The node is the lot's to publish, for the same reason the strip is.** The lot
+knows where it put the base; a host that says so again is a second description
+of one fact, and one of the two will be missing. It was the fortress ward's for
+a while and only the fortress ward's, so the city claim laid down every physical
+part of a field — berths, sheds, markings, aircraft standing on the apron — and
+published nothing that said it was one. Nothing gated on holding it and no
+sortie loaded a crew there; a base an attacker could walk across without
+affecting anything. Splitting the switch from what it switches is what made that
+possible, so they are not split: berths and node come out together or neither
+does.
+
+**Which airbases are operational is a size decision, not a host decision.** A
+claim across several blocks is the ground a base needs, so a city's compound
+airfield is a working field. The block-sized pad is not, and that is a judgement
+about the game rather than about the art — a capturable airbase wedged into one
+city block is a different thing from a landing site in one.
 
 **A city landmark is promoted from what is left, after the compounds have
 claimed.** Promoted rather than rolled per block, because only a handful of

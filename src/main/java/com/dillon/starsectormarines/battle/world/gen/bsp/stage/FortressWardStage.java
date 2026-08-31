@@ -157,7 +157,6 @@ public final class FortressWardStage implements GenStage {
             new AirbaseLot(lot[0] + clear, lot[1] + clear,
                     lot[2] - clear, lot[3] - clear,
                     AirbaseLot.Facing.of(axis), base.size()).author(ctx, ctx.rng);
-            emitAirbaseNode(ctx, lot);
             reserveAgainstLaterStampers(ctx, lot);
         }
         ctx.put(BspKeys.FORTRESS_WARD, ward);
@@ -304,14 +303,6 @@ public final class FortressWardStage implements GenStage {
             }
         }
         return false;
-    }
-
-    /** The airbase as one position to take, the same shape the old airfield published. */
-    private static void emitAirbaseNode(GenContext ctx, int[] lot) {
-        ctx.tactical.add(new TacticalNode(TacticalNode.Kind.AIRBASE,
-                (lot[0] + lot[2]) / 2, (lot[1] + lot[3]) / 2,
-                lot[0], lot[1], lot[2], lot[3],
-                Faction.DEFENDER, 65, 3, false));
     }
 
     /** Assemble a ward rectangle from its depth run and its lateral run. */

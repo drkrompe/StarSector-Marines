@@ -189,6 +189,11 @@ class AirbaseLotTest {
     }
 
     private static Lot author(AirbaseLot.Size size, AirbaseLot.Facing facing) {
+        return author(size, facing, LandingPad.Purpose.GARRISON_AIRFIELD);
+    }
+
+    private static Lot author(AirbaseLot.Size size, AirbaseLot.Facing facing,
+                              LandingPad.Purpose purpose) {
         int spanX = AirbaseLot.spanX(size, facing);
         int spanY = AirbaseLot.spanY(size, facing);
         int w = spanX + MARGIN * 2;
@@ -205,8 +210,8 @@ class AirbaseLotTest {
         GenContext ctx = new GenContext(grid, topology, new Random(1L), w, h, 1L);
         int left = MARGIN;
         int bottom = MARGIN;
-        new AirbaseLot(left, bottom, left + spanX - 1, bottom + spanY - 1, facing, size)
-                .author(ctx, new Random(1L));
+        new AirbaseLot(left, bottom, left + spanX - 1, bottom + spanY - 1,
+                facing, size, purpose).author(ctx, new Random(1L));
         return new Lot(grid, topology, ctx, left, bottom,
                 left + spanX - 1, bottom + spanY - 1);
     }
@@ -534,8 +539,45 @@ class AirbaseLotTest {
         }
         assertTrue(ctx.pois.isEmpty(),
                 "a point of interest survived on ground the lot repaved");
-        assertTrue(ctx.tactical.isEmpty(),
+        // The lot's own airbase node is published after the paving and is the
+        // one node expected to be standing here; anything else belonged to the
+        // building that was demolished.
+        assertEquals(List.of(TacticalNode.Kind.AIRBASE),
+                ctx.tactical.stream().map(node -> node.kind).toList(),
                 "a tactical node survived on ground the lot repaved");
+    }
+
+    /**
+     * A working field publishes itself as a place to take; a civil pad does not.
+     *
+     * <p>This is the difference between an air arm and scenery, and it is
+     * silent both ways. Without the node a field keeps its berths, its aircraft
+     * and its markings while no commander can see it is a field — its sorties
+     * then fly pre-loaded, which is the spawner the loading phase replaced.
+     * With one on a civil pad, a landing site in the middle of a city becomes
+     * something an attacker has to capture.
+     */
+    @ParameterizedTest
+    @EnumSource(AirbaseLot.Size.class)
+    void onlyAGarrisonFieldPublishesAnAirbaseNode(AirbaseLot.Size size) {
+        Lot field = author(size, AirbaseLot.Facing.SOUTH,
+                LandingPad.Purpose.GARRISON_AIRFIELD);
+        List<TacticalNode> nodes = field.ctx().tactical;
+        assertEquals(1, nodes.size(), size + ": one node for one field");
+
+        TacticalNode node = nodes.get(0);
+        assertEquals(TacticalNode.Kind.AIRBASE, node.kind);
+        assertEquals(Faction.DEFENDER, node.defaultGuard);
+        // The lot fence to fence, not the clear ground reserved outside it.
+        assertEquals(field.left(), node.left, size + ": node left");
+        assertEquals(field.bottom(), node.top, size + ": node low y");
+        assertEquals(field.right(), node.right, size + ": node right");
+        assertEquals(field.top(), node.bottom, size + ": node high y");
+
+        Lot civil = author(size, AirbaseLot.Facing.SOUTH,
+                LandingPad.Purpose.CIVIC_LANDING_ZONE);
+        assertTrue(civil.ctx().tactical.isEmpty(),
+                size + ": a civil landing pad is not a base anybody flies from");
     }
 
     /** Rows behind a berth that belong to the taxiway rather than to a shed. */
