@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.render2d;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.GL_FALSE;
@@ -60,7 +62,7 @@ public final class ShaderProgram {
     private boolean attempted;
     private boolean broken;
     private int program;
-    private final Map<String, Integer> uniformLocs = new HashMap<>();
+    private final Map<String, Integer> uniformLocs = new LinkedHashMap<>();
 
     public ShaderProgram(String label, String vertexSource, String fragmentSource) {
         this.label = label;
@@ -114,6 +116,40 @@ public final class ShaderProgram {
 
     private int loc(String name) {
         return uniformLocs.computeIfAbsent(name, n -> glGetUniformLocation(program, n));
+    }
+
+    /**
+     * Every uniform name this program has been asked to set, in first-asked
+     * order. Paired with {@link #unresolvedUniforms()} it says how much was
+     * actually checked — an empty missing-list means nothing when nothing was
+     * looked up.
+     */
+    /**
+     * Names this program was asked to set that the linked program does not
+     * have, in the order they were first asked for.
+     *
+     * <p>Setting an unknown uniform is silent: {@code glGetUniformLocation}
+     * answers -1 and {@code glUniform*} on -1 is defined to do nothing. So a
+     * renamed or mistyped uniform is not an error anywhere — the effect simply
+     * comes out wrong, which is the hardest kind of render bug to trace back.
+     * This is the record that makes it sayable, for evidence that runs against
+     * a real context.
+     *
+     * <p>A name can also land here legitimately: GLSL strips a uniform the
+     * shader never reads, so a value the Java side still bothers to upload
+     * reports missing. That is worth knowing too — it is dead work.
+     */
+    public List<String> requestedUniforms() {
+        return new ArrayList<>(uniformLocs.keySet());
+    }
+
+    /** @see #requestedUniforms() */
+    public List<String> unresolvedUniforms() {
+        List<String> missing = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : uniformLocs.entrySet()) {
+            if (entry.getValue() < 0) missing.add(entry.getKey());
+        }
+        return missing;
     }
 
     /** Releases the GL program object. Safe to call whether or not {@link #ensure()} ever succeeded. */
