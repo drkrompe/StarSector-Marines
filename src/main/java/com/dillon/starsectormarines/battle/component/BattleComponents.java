@@ -274,6 +274,8 @@ public final class BattleComponents {
     public static final int ROLE_ORDINAL = 0;
 
     /** {@link #HOME} field 0: the garrison idle-post cell x (INT). */
+    /** {@code RIDING} field 0 — entity id of the vehicle carrying this unit. */
+    public static final int RIDING_CARRIER_ID = 0;
     public static final int HOME_CELL_X = 0;
     /** {@link #HOME} field 1: the garrison idle-post cell y (INT). */
     public static final int HOME_CELL_Y = 1;
@@ -698,6 +700,28 @@ public final class BattleComponents {
      * {@code ecs-nouns.md}.
      */
     public final ComponentType HOME;
+    /**
+     * Optional passenger state — one LONG field, the entity id of the vehicle
+     * this unit is riding in. <em>Optional and rare</em>: added when a unit
+     * mounts and removed when it dismounts, so "has RIDING" <em>is</em> "is
+     * aboard something".
+     *
+     * <p>A mounted unit keeps everything about who it is — {@code IDENTITY},
+     * {@code HEALTH}, {@code SQUAD}, its loadout — and loses everything about
+     * being somewhere: {@code POSITION}, {@code MOVEMENT}, {@code VISION},
+     * {@code COMBAT}. That is the same membership-narrowing a convoy chassis
+     * already relies on, one level down: the occupancy map, the fire system,
+     * the mover and the sight passes stop matching it without any of them
+     * learning what a passenger is. This component exists so the unit update
+     * can say so explicitly rather than inferring it from a missing
+     * {@code POSITION}, which would silently swallow a genuine bug.
+     *
+     * <p>Live-only, and the single source of truth for who is aboard what:
+     * a carrier's manifest is the set of units whose {@code RIDING} names it,
+     * so there is no second list to fall out of step. Data owner
+     * {@code battle.vehicle.VehicleTransportService}.
+     */
+    public final ComponentType RIDING;
     /**
      * Optional objective/kit task — two <em>nullable</em> OBJECT fields: the
      * {@link com.dillon.starsectormarines.battle.command.objective.Objective}
@@ -1136,6 +1160,7 @@ public final class BattleComponents {
         SQUAD           = world.register(19, "Squad", FieldKind.INT, FieldKind.INT);
         ROLE            = world.register(20, "Role", FieldKind.INT);
         HOME            = world.register(21, "Home", FieldKind.INT, FieldKind.INT);
+        RIDING          = world.register(40, "Riding", FieldKind.LONG);
         TASK            = world.register(22, "Task", FieldKind.OBJECT, FieldKind.OBJECT);
         GROUND_IDENTITY   = world.register(23, "GroundIdentity", FieldKind.OBJECT, FieldKind.OBJECT);
         GROUND_KINEMATICS = world.register(24, "GroundKinematics", FieldKind.OBJECT);
