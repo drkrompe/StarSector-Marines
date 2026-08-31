@@ -188,6 +188,10 @@ public final class CommanderInfluenceService {
             com.dillon.starsectormarines.battle.unit.UnitType type) {
         if (type.isMech()) return 8f;
         if (type.isTurret() || type.isDroneHub()) return 4f;
+        // A works crew with sidearms is armed and is not a garrison. Counted as
+        // riflemen, a manned motor pool and airfield would read to a commander
+        // as a dozen more defenders holding the rear.
+        if (type.isTechnician()) return 0.25f;
         return 1f;
     }
 
