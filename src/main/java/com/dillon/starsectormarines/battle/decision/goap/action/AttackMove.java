@@ -51,7 +51,7 @@ import java.util.Map;
 public final class AttackMove extends AbstractZoneAction {
 
     /** Cells from the destination within which the attack move is done. */
-    static final float ARRIVAL_RADIUS = 2f;
+    public static final float ARRIVAL_RADIUS = 2f;
     /** Off-axis firing radius a fixing squad may use while holding the contact. */
     static final float BASE_OF_FIRE_LEASH = 8f;
     /**

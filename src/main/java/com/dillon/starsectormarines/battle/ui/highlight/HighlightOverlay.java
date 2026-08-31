@@ -39,6 +39,8 @@ public final class HighlightOverlay {
     public static final String SRC_SELECTED_UNIT   = "selected-unit";
     public static final String SRC_MECH_MOVE_DESTINATION =
             "mech-move-destination";
+    public static final String SRC_SQUAD_MOVE_DESTINATION =
+            "squad-move-destination";
     public static final String SRC_CAPTAIN         = "captain";
     public static final String SRC_BELIEVED_CONTACTS = "believed-contacts";
     public static final String SRC_HEARD_NOISE      = "heard-noise";
@@ -79,6 +81,8 @@ public final class HighlightOverlay {
     public static final Color COLOR_SELECTED_PRIMARY = new Color(0xFF, 0xD4, 0x64, 0xFF); // gold
     public static final Color COLOR_MECH_MOVE_DESTINATION =
             new Color(0x50, 0xE8, 0xFF, 0xFF); // command cyan
+    public static final Color COLOR_SQUAD_MOVE_DESTINATION =
+            COLOR_MECH_MOVE_DESTINATION;
     public static final Color COLOR_CAPTAIN        = new Color(0xFF, 0xD0, 0x40, 0xFF);  // gold
     public static final Color COLOR_BELIEVED_CONTACT = new Color(0xFF, 0x50, 0xA0, 0xFF); // magenta
     public static final Color COLOR_AUDIO_CONTACT  = new Color(0xFF, 0xA0, 0x38, 0xFF); // amber

@@ -3,8 +3,12 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 /**
- * One strategic task assigned to one squad by its faction's
- * {@link MissionCommand}. Read by MISSION-priority GOAP goals
+ * One immutable assignment-shaped execution context for a squad. Ordinarily
+ * it is the strategic task assigned by the faction's {@link MissionCommand};
+ * a battle-local tactical move may temporarily expose an {@link
+ * AssignmentKind#ATTACK_MOVE} through {@code Squad.assignmentForExecution()}
+ * while leaving the authoritative directive untouched. Read by
+ * MISSION-priority GOAP goals
  * ({@code ClearAssignedZoneGoal}, {@code HoldAssignedNodeGoal},
  * {@code RushAssignedObjectiveGoal}) to decide whether they're relevant
  * this tick.

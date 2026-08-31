@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — added the exact-Mech tactical movement override: a
+Updated: 2026-08-31 — extended the one-shot tactical movement override to a
+selected Marine infantry squad, using its ordinary attack-move plan so fire-team
+organization, moving fire, survival, and mission handback remain intact.
+
+Earlier 2026-08-31 — added the exact-Mech tactical movement override: a
 reachable one-shot destination below squad assignment, with moving fire,
 survival suspension, and arrival handback.
 
@@ -1044,6 +1048,17 @@ removes the override before ordinary unit execution continues on the same tick;
 broken-morale survival suspends it, while a hard withdrawal invalidates it. The
 request therefore supplies neither a squad assignment nor a hostile target and
 never changes the knowledge available to the squad.
+
+A selected Marine infantry squad may receive the same one-shot destination at
+the squad decision layer. The accepted cell temporarily becomes its executable
+attack-move context while the authoritative mission directive remains stored
+and inspectable underneath. That reuses ordinary fire-team roles, contact
+doctrine, route costing, special-equipment gates, and moving fire rather than
+inventing a parallel manual movement loop. A broken team still peels on its own;
+an entirely broken squad or form-up state suspends execution without erasing the
+request. Arrival clears the tactical context before the ordinary mission replan
+on that command tick, and a hard withdrawal cancels it. Enemy, Mech, drone,
+rescue-guard, non-soldier, wiped, and stale squad selections are refused.
 
 ## Mission, space, and feature boundaries
 
