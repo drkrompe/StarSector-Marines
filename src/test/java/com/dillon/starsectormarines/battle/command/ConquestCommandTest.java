@@ -14,7 +14,12 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -992,7 +997,11 @@ public class ConquestCommandTest {
                 TacticalNode.Kind.ARMORY, 5, 5, 3, 3, 15, 7,
                 Faction.DEFENDER, 90, 4));
         Squad left = addMarineSquad(sim, 5f, 1f);
-        Squad right = addMarineSquad(sim, 28f, 1f);
+        // Track 1, not track 2: the second squad still has to walk to the
+        // compound, but a capture two tracks from home is refused outright
+        // now, which would have made this a test of the track bound rather
+        // than of the quota.
+        Squad right = addMarineSquad(sim, 18f, 1f);
 
         ConquestCommand cmd = new ConquestCommand(
                 TraversalAxis.SOUTH_TO_NORTH);
@@ -1010,7 +1019,9 @@ public class ConquestCommandTest {
                 TacticalNode.Kind.ARMORY, 5, 5, 3, 3, 15, 7,
                 Faction.DEFENDER, 90, 4));
         Squad contact = addMarineSquad(sim, 5f, 1f);
-        Squad free = addMarineSquad(sim, 28f, 1f);
+        // Track 1 — one track from the compound, so the reserve is what
+        // decides which of the two departs rather than the track bound.
+        Squad free = addMarineSquad(sim, 15f, 1f);
         long defender = addDefender(sim, 6, 1);
         establishMarineContact(sim, contact, defender);
 
@@ -1050,6 +1061,13 @@ public class ConquestCommandTest {
         registerCompound(sim, new TacticalNode(
                 TacticalNode.Kind.ARMORY, 5, 5, 3, 3, 15, 7,
                 Faction.DEFENDER, 90, 4));
+        // The defended room the front squad is working is also a compound, so
+        // the slot it is being held back from is one on its OWN track. A slot
+        // two tracks away is refused rather than deferred, and a flag saying
+        // both would explain neither.
+        registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.BARRACKS, 24, 5, 23, 4, 25, 6,
+                Faction.DEFENDER, 80, 4));
         Squad capture = addMarineSquad(sim, 5f, 1f);
         Squad front = addMarineSquad(sim, 24f, 1f);
         addDefender(sim, 24, 5);
@@ -1616,6 +1634,198 @@ public class ConquestCommandTest {
                 + (isSecureCompound(reporter) ? 1 : 0);
         assertEquals(1, onCompound,
                 "one squad takes a small compound; the other keeps its own work");
+    }
+
+    // ---- Capture allocation stays near home ----
+
+    /**
+     * A three-room compound band in the far track — rooms at 16, 20 and 24
+     * sharing wall columns — in otherwise open ground. Three rooms rate the
+     * two-squad quota, and the band anchors on the room at 24, so its capture
+     * zone sits squarely in track 2 while a squad in track 0 is two tracks
+     * from it with a slot still open.
+     */
+    private static BattleSimulation farTrackCompoundSim() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        carveRoom(grid, 16, 5);
+        carveRoom(grid, 20, 5);
+        carveRoom(grid, 24, 5);
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
+    private static TacticalNode registerFarTrackCompound(BattleSimulation sim) {
+        return registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.BARRACKS, 24, 5, 14, 3, 26, 7,
+                Faction.DEFENDER, 90, 4));
+    }
+
+    /**
+     * A compound band in track 1 (rooms 12, 16, 20, anchored at 12) plus a
+     * separate defended room at 5 in track 0 — so one squad's home track has
+     * real front work while its neighbour's compound still has an open slot.
+     */
+    private static BattleSimulation neighbourCompoundAndHomeWorkSim() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        carveRoom(grid, 5, 5);
+        carveRoom(grid, 12, 5);
+        carveRoom(grid, 16, 5);
+        carveRoom(grid, 20, 5);
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
+    /**
+     * The home-track capture bound. It ships off — see
+     * {@code ConquestCommand.HOME_TRACK_CAPTURES_PROPERTY} for the Conquest
+     * matrix that decided that — so the tests that are about it turn it on for
+     * themselves rather than asserting a default nobody set.
+     */
+    @Nested
+    class HomeTrackCaptureAllocation {
+
+        private boolean restore;
+
+        @BeforeEach
+        void boundOn() {
+            restore = ConquestCommand.HOME_TRACK_CAPTURES_ENABLED;
+            ConquestCommand.HOME_TRACK_CAPTURES_ENABLED = true;
+        }
+
+        @AfterEach
+        void boundBack() {
+            ConquestCommand.HOME_TRACK_CAPTURES_ENABLED = restore;
+        }
+
+        @Test
+        public void aCompoundTwoTracksAwayIsNeverACaptureAssignment() {
+            // The quota is two and only one squad is near it, so the far squad is
+            // refused by the track bound alone — nothing else in the allocation
+            // has run out.
+            BattleSimulation sim = farTrackCompoundSim();
+            registerFarTrackCompound(sim);
+            Squad taker = addMarineSquad(sim, 24f, 1f);   // track 2, the compound's own
+            Squad home = addMarineSquad(sim, 2f, 1f);     // track 0, two tracks off
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            assertTrue(isSecureCompound(taker),
+                    "the compound's own track still fills what it can");
+            assertFalse(isSecureCompound(home),
+                    "a squad does not cross two tracks for a compound while its own "
+                            + "track is a track");
+            assertNotNull(home.assignedObjective,
+                    "and it is not left with nothing — it pushes its own track");
+            assertEquals(AssignmentKind.ADVANCE_TRACK,
+                    home.assignedObjective.kind());
+            assertEquals(0, cmd.frontSnapshot().directiveFor(home.id)
+                    .effectiveTrack(), "the order it does get is its own track's");
+        }
+
+        @Test
+        public void theShippedDefaultIsStillTheMapGlobalFill() {
+            assertEquals("battle.command.conquest.homeTrackCaptures",
+                    ConquestCommand.HOME_TRACK_CAPTURES_PROPERTY,
+                    "the switch name an evidence run is documented with is part "
+                            + "of the contract");
+            ConquestCommand.HOME_TRACK_CAPTURES_ENABLED = false;
+
+            BattleSimulation sim = farTrackCompoundSim();
+            registerFarTrackCompound(sim);
+            addMarineSquad(sim, 24f, 1f);
+            Squad home = addMarineSquad(sim, 2f, 1f);
+
+            ConquestCommand cmd = new ConquestCommand(
+                    TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            assertTrue(isSecureCompound(home),
+                    "off, the pairing is map-global again — the walk the "
+                            + "Conquest matrix says is worth its cost");
+        }
+
+        @Test
+        public void anIdleHomeTrackSupportsANeighboursCompound() {
+            // A track is a coordination preference, not an ownership fence: a
+            // squad with nothing of its own to do takes the neighbour's compound.
+            BattleSimulation sim = compoundAt(13);
+            registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                    13, 5, 12, 4, 14, 6, Faction.DEFENDER, 80, 4));
+            Squad squad = addMarineSquad(sim, 2f, 1f);   // track 0, nothing at home
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            assertTrue(isSecureCompound(squad),
+                    "one track over is support, not a march across the map");
+            assertEquals(sim.getZoneGraph().zoneIdAt(13, 5),
+                    squad.assignedObjective.targetZoneId());
+            ConquestFrontSnapshot.SquadDirective directive =
+                    cmd.frontSnapshot().directiveFor(squad.id);
+            assertEquals(0, directive.preferredTrack());
+            assertEquals(1, directive.effectiveTrack());
+        }
+
+        @Test
+        public void aHomeTrackWithWorkKeepsItsSquadsOffTheNeighboursCompound() {
+            BattleSimulation sim = neighbourCompoundAndHomeWorkSim();
+            registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                    12, 5, 10, 3, 22, 7, Faction.DEFENDER, 90, 4));
+            Squad busy = addMarineSquad(sim, 4f, 4f);     // track 0, in the defended room
+            Squad alsoBusy = addMarineSquad(sim, 8f, 1f); // track 0, behind it
+            Squad free = addMarineSquad(sim, 12f, 1f);    // track 1, nothing at home
+            addDefender(sim, 6, 6);                       // the room that is track 0's work
+            // Direct observation, not the audio belief a synthetic shot leaves: an
+            // audio contact is deliberately placed a cell or two out, which for a
+            // 3x3 room is the difference between a defended zone and a wall.
+            establishDirectMarineContact(sim, busy);
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            assertTrue(isSecureCompound(free),
+                    "the squad whose own track has nothing takes the compound");
+            assertEquals(1, cmd.frontSnapshot().directiveFor(free.id)
+                    .effectiveTrack());
+            // All three squads are actionable and the quota is two, so the front
+            // reserve is not what holds these back — two departures are affordable
+            // and the second slot stays open. Only the home-track rule refuses them.
+            int defendedZone = sim.getZoneGraph().zoneIdAt(5, 5);
+            for (Squad squad : List.of(busy, alsoBusy)) {
+                assertFalse(isSecureCompound(squad),
+                        "a squad whose own track still has a defender zone does not "
+                                + "support a neighbour's capture");
+                assertNotNull(squad.assignedObjective);
+                assertEquals(AssignmentKind.CLEAR_ZONE,
+                        squad.assignedObjective.kind());
+                assertEquals(defendedZone, squad.assignedObjective.targetZoneId(),
+                        "it pushes its own track's defended room instead");
+            }
+        }
+
+        @Test
+        public void aFarTrackRefusalSaysSoRatherThanReadingAsAnEmptyMap() {
+            BattleSimulation sim = farTrackCompoundSim();
+            registerFarTrackCompound(sim);
+            addMarineSquad(sim, 24f, 1f);
+            // At the forward edge, where no staging order is available to mask the
+            // refusal, so the published reason is the capture allocation's own.
+            Squad home = addMarineSquad(sim, 2f, 9f);
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            assertNull(home.assignedObjective);
+            assertEquals(AssignmentReason.CAPTURE_OUT_OF_TRACK_REACH,
+                    cmd.frontSnapshot().directiveFor(home.id).reason(),
+                    "an open slot two tracks away must not read as an empty map");
+        }
+
     }
 
     private static void tick(ConquestCommand command, BattleSimulation sim) {

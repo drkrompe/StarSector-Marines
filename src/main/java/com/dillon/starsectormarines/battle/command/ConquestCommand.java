@@ -36,7 +36,13 @@ import java.util.TreeMap;
  *       {@link AssignmentKind#SECURE_COMPOUND} a compound the moment it is
  *       <em>uncontested</em> — squads without actionable front work go first,
  *       and at least one executable actionable squad remains on the front.
- *       The budget is global across compounds. A compound that
+ *       The budget is global across compounds, and so is the pairing: a fresh
+ *       distant detachment is offered every compound on the map. Bounding it
+ *       to the home track and one neighbour is built and measured, and ships
+ *       off — {@link #HOME_TRACK_CAPTURES_PROPERTY} has the matrix. The two
+ *       convergence phases below are map-global for a different reason, one no
+ *       measurement can move: once the keep or one contested compound is the
+ *       whole remaining objective there is no other front to hold. A compound that
  *       still holds defenders is only assigned to a squad already in/adjacent
  *       to it (commit incidental presence; never feed a lone squad into a
  *       defended building). "Contested" is judged over the compound's
@@ -143,6 +149,65 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
     static final boolean EMPTY_TRACK_ADVANCE_ENABLED = Boolean.parseBoolean(
             System.getProperty(EMPTY_TRACK_ADVANCE_PROPERTY, "true"));
+
+    /**
+     * {@code -Dbattle.command.conquest.homeTrackCaptures=true} bounds a fresh
+     * distant capture detachment to the squad's home track and one neighbour,
+     * own track first. <b>It ships off</b>, on the Conquest matrix below.
+     *
+     * <p>The track partition already limited <em>front</em> support to the
+     * preferred track or one neighbour. The capture allocation never did: it
+     * ranks every uncaptured compound on the map against every uncommitted
+     * squad by straight-line distance and nothing else, and the preserve pass
+     * then keeps whatever that produced for the rest of the battle. Observed in
+     * a live Conquest: a six-marine squad born on the top track, standing at
+     * lateral 48, holding {@code SECURE_COMPOUND} on a barracks at lateral 157
+     * — the bottom track, 110 cells away — while its own track was left to
+     * three marines facing sixteen known contacts and the receiving track
+     * already held nine squads. The walk is a squad out of the battle for about
+     * a minute, and the track it left does not advance while it is gone.
+     *
+     * <p><b>The bound does stop that, and on one fixture it costs most of the
+     * battle.</b> Measured on the canonical matrix, on against off:
+     *
+     * <ul>
+     *   <li><i>reinforced-south</i> — 6 compounds captured and 2 held, against
+     *       12 and 11 with the bound off. 283 defenders killed against 390, 238
+     *       marines lost against 216. Both runs timed out at 18000 ticks.</li>
+     *   <li><i>full-strength-west</i> — 3 captured and 3 held either way, 320
+     *       defenders killed against 311, 425 marines lost against 426. This is
+     *       the one reading in the bound's favour: it timed out at 18000 where
+     *       the control lost outright, TERMINAL to the DEFENDER at 16445.</li>
+     * </ul>
+     *
+     * <p>It does what it claims: fresh far-track distant fills go to zero.
+     * Capture directives more than one track from home fall 77 to 0 on
+     * full-strength-west and 33 to 26 on reinforced-south — and every one of
+     * that residue descends from a single {@code COMPOUND_ASSAULT_ADJACENT}
+     * commit, a squad standing at the compound, which the rule allows on
+     * purpose. So the eleven-to-two swing is not a bound that failed to bite;
+     * it is what the far-track walk was buying. A map with fourteen compounds
+     * spread across three tracks does not offer every track work of its own,
+     * and a squad refused a distant capture mostly stays where it is: held
+     * compounds are what a Conquest is decided on, and losing nine of them to
+     * save the walk is not a trade worth taking on this evidence.
+     *
+     * <p>The cost the user reported is real too, and this is where the next
+     * attempt should start rather than from scratch: the walk is worth
+     * something, so the discrimination wanted is probably <em>which</em> far
+     * compound and <em>how many</em> squads may go — not whether any may.
+     */
+    public static final String HOME_TRACK_CAPTURES_PROPERTY =
+            "battle.command.conquest.homeTrackCaptures";
+
+    /**
+     * Read once from the property above. Not {@code final} so the on path is
+     * reachable from a test as well as from an evidence run — a switch only a
+     * whole JVM can flip is a switch whose other state nothing small ever
+     * exercises. Nothing in the shipped command writes it.
+     */
+    static boolean HOME_TRACK_CAPTURES_ENABLED = Boolean.parseBoolean(
+            System.getProperty(HOME_TRACK_CAPTURES_PROPERTY, "false"));
 
     /** Stand this many cells behind the nearest believed hostile in a track. */
     static final int TRACK_LINE_STANDOFF_CELLS = 8;
@@ -415,6 +480,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 ? Phase.FINAL_COMPOUND_CONVERGENCE : Phase.LANE_ADVANCE;
 
         IntOpenHashSet deferredCaptures = new IntOpenHashSet();
+        IntOpenHashSet farTrackCaptures = new IntOpenHashSet();
         if (keepConvergence) {
             for (PlanningSquad squad : squads) {
                 if (reachableZone(squad, keep.captureZoneId, frame)) {
@@ -431,7 +497,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             // Pass 1: deliberate compound capture. Pulls a capped detachment
             // off the front while preserving ordinary compound quotas.
             assignCompoundCaptures(squads, committed, deferredCaptures,
-                    directives, frame);
+                    farTrackCaptures, directives, frame);
         }
 
         if (!keepConvergence) {
@@ -494,7 +560,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     squad.assignedObjective = null;
                     SquadDirective planned = directive(squad, preferredTrack,
                             preferredTrack,
-                            AssignmentReason.NO_ACTIONABLE_TRACK_TARGET);
+                            farTrackCaptures.contains(squad.id)
+                                    ? AssignmentReason.CAPTURE_OUT_OF_TRACK_REACH
+                                    : AssignmentReason.NO_ACTIONABLE_TRACK_TARGET);
                     if (deferredCaptures.contains(squad.id)) {
                         planned = planned.withDistantCaptureDeferred();
                     }
@@ -562,19 +630,27 @@ public final class ConquestCommand implements ConquestFrontCommand,
      *   <li><b>Adjacent commit.</b> Fill remaining slots with squads already
      *       in/adjacent to the compound. They have reached the objective, so
      *       they do not consume the distant-detachment allowance. This is the
-     *       only way a fresh assignment enters a contested compound.</li>
+     *       only way a fresh assignment enters a contested compound. No track
+     *       bound applies here: a squad standing in the building has not been
+     *       sent anywhere, and refusing it on a lateral coordinate would leave
+     *       an objective it is already inside of unassaulted.</li>
      *   <li><b>Uncontested distant fill.</b> Greedily assign nearest pairs up
      *       to the ordinary per-compound quotas, among compounds the front has
-     *       reached or passed ({@link #frontHasReached}). While an uncommitted
-     *       squad can act on front resistance, fresh distant departures are
-     *       globally bounded so at least one executable actionable squad
-     *       remains on the front. With no actionable resistance the ordinary
-     *       quotas apply.</li>
+     *       reached or passed ({@link #frontHasReached}) and within
+     *       {@link #captureTrackAllowed one track of home}. While an
+     *       uncommitted squad can act on front resistance, fresh distant
+     *       departures are globally bounded so at least one executable
+     *       actionable squad remains on the front. With no actionable
+     *       resistance the ordinary quotas apply.</li>
      * </ol>
+     *
+     * <p>The track bound is on the pairing rather than on the ranking, so the
+     * nearest-pair order is unchanged among whatever survives it.
      */
     private void assignCompoundCaptures(List<PlanningSquad> squads,
                                         IntOpenHashSet committed,
                                         IntOpenHashSet deferredCaptures,
+                                        IntOpenHashSet farTrackCaptures,
                                         Map<Integer, SquadDirective> directives,
                                         ConquestCommandFrame frame) {
         if (compoundTargets.isEmpty() || squads.isEmpty()) return;
@@ -632,6 +708,21 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 squads, committed, frame);
         int actionableRemaining = actionableFrontSquads.size();
 
+        // Read once, from the slot state the preserve and adjacent passes
+        // leave behind, rather than per candidate pair inside the greedy loop:
+        // it is a per-squad property, and asking it there would run the zone
+        // walk squads x compounds x rounds every pulse. A home compound that
+        // somebody else takes during this loop simply frees the squad on the
+        // next pulse, which is when its own track really has run out of work.
+        IntOpenHashSet homeTrackWork = new IntOpenHashSet();
+        if (HOME_TRACK_CAPTURES_ENABLED) {
+            for (PlanningSquad squad : squads) {
+                if (committed.contains(squad.id)) continue;
+                if (homeTrackHasWork(squad, slots, contested, frame)) {
+                    homeTrackWork.add(squad.id);
+                }
+            }
+        }
 
         // Phase 3: greedy nearest-pair fill of uncontested compounds.
         // Non-actionable squads are preferred for capture. An actionable
@@ -652,6 +743,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     if (slots[i] <= 0) continue;
                     if (contested[i] && !unattended(i, slots)) continue;
                     if (!frontHasReached(compoundTargets.get(i))) continue;
+                    if (!captureTrackAllowed(squad, i, homeTrackWork)) continue;
                     if (!reachableZone(squad, compoundTargets.get(i).captureZoneId,
                             frame)) continue;
                     float d = distSq(squad, compoundTargets.get(i));
@@ -693,6 +785,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     // never on offer, and reporting it as withheld for front
                     // resistance would misattribute the gate below.
                     if (!frontHasReached(t)) continue;
+                    // Nor does a slot the track bound refused: that squad was
+                    // not retained for front resistance, it was never offered
+                    // the compound, and one flag saying both would explain
+                    // neither.
+                    if (!captureTrackAllowed(squad, i, homeTrackWork)) continue;
                     if (squadAdjacentToCompound(squad, t, frame)) continue;
                     if (!reachableZone(squad, t.captureZoneId, frame)) continue;
                     deferredCaptures.add(squad.id);
@@ -700,6 +797,93 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 }
             }
         }
+
+        // Explain the squad the track bound leaves with nothing: every slot it
+        // could otherwise have filled is more than one track from home. Its
+        // published reason would otherwise be the generic no-actionable-target
+        // one, which reads identically to an empty map.
+        if (!HOME_TRACK_CAPTURES_ENABLED) return;
+        for (PlanningSquad squad : squads) {
+            if (committed.contains(squad.id)) continue;
+            if (deferredCaptures.contains(squad.id)) continue;
+            for (int i = 0; i < n; i++) {
+                if (slots[i] <= 0) continue;
+                if (contested[i] && !unattended(i, slots)) continue;
+                CompoundTarget t = compoundTargets.get(i);
+                if (!frontHasReached(t)) continue;
+                if (tracksFromHome(squad, t) < 2) continue;
+                if (!reachableZone(squad, t.captureZoneId, frame)) continue;
+                farTrackCaptures.add(squad.id);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Whether this squad may be paired with compound {@code index} by the
+     * distant fill. Two tracks away is never a capture assignment — the design
+     * says a squad may support <em>a neighbour</em>, and the far side of the
+     * map is not one. One track away is support, and support waits: a squad
+     * whose own track still has work takes its own track's compound or none.
+     *
+     * <p>A capture zone no track claims is left alone rather than refused. The
+     * bound is a coordination preference and there is nothing here to prefer;
+     * refusing on an unclassifiable coordinate would quietly strand the
+     * compound instead.
+     */
+    private boolean captureTrackAllowed(PlanningSquad squad, int index,
+                                        IntOpenHashSet homeTrackWork) {
+        if (!HOME_TRACK_CAPTURES_ENABLED) return true;
+        int away = tracksFromHome(squad, compoundTargets.get(index));
+        if (away >= 2) return false;
+        return away == 0 || !homeTrackWork.contains(squad.id);
+    }
+
+    /**
+     * Tracks between the squad's sticky home and the compound's capture zone,
+     * or {@code 0} when the capture zone falls in no track at all — see
+     * {@link #captureTrackAllowed} for why an unclassifiable zone is treated
+     * as home rather than as distant. Read through {@link #trackForZone} so
+     * this and the {@code effectiveTrack} the directive publishes are the same
+     * number.
+     */
+    private int tracksFromHome(PlanningSquad squad, CompoundTarget target) {
+        int compoundTrack = trackForZone(target.captureZoneId);
+        if (compoundTrack < 0) return 0;
+        return Math.abs(compoundTrack - stripFor(squad));
+    }
+
+    /**
+     * Whether the squad's own track still holds something worth doing: a
+     * defender zone the front push would send it to, or an uncaptured compound
+     * on that track it could take itself. Both halves are the questions the
+     * allocation asks anyway — {@link #targetChoice}'s home leg, and phase 3's
+     * own candidate filters — rather than a second private notion of "busy".
+     *
+     * <p>Deliberately not {@link #actionableFrontSquads}: that asks whether a
+     * squad has front work <em>anywhere</em>, including a lane stage into an
+     * adjacent track, and is the front reserve's question. This one is about
+     * the squad's home track only, because that is the track a capture
+     * detachment stops pushing.
+     */
+    private boolean homeTrackHasWork(PlanningSquad squad, int[] slots,
+                                     boolean[] contested,
+                                     ConquestCommandFrame frame) {
+        int home = stripFor(squad);
+        TargetChoice choice = targetChoice(squad, home, frame);
+        if (choice.targetZoneId() >= 0 && choice.trackIndex() == home) {
+            return true;
+        }
+        for (int i = 0; i < compoundTargets.size(); i++) {
+            if (slots[i] <= 0) continue;
+            if (contested[i] && !unattended(i, slots)) continue;
+            CompoundTarget t = compoundTargets.get(i);
+            if (trackForZone(t.captureZoneId) != home) continue;
+            if (!frontHasReached(t)) continue;
+            if (!reachableZone(squad, t.captureZoneId, frame)) continue;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -1788,7 +1972,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 return CommandStabilityBreak.TARGET_UNREACHABLE;
             }
             if (!hasKnownHostileInZone(old.targetZoneId(), frame)
-                    || reason == AssignmentReason.NO_ACTIONABLE_TRACK_TARGET) {
+                    || reason == AssignmentReason.NO_ACTIONABLE_TRACK_TARGET
+                    || reason == AssignmentReason.CAPTURE_OUT_OF_TRACK_REACH) {
                 return CommandStabilityBreak.CONTEXT_INVALIDATED;
             }
         } else if (old.kind() == AssignmentKind.ADVANCE_TRACK
