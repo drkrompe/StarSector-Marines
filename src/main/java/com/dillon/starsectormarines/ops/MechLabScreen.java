@@ -10,10 +10,15 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
+import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.UiPointerEvent;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
@@ -22,6 +27,7 @@ import com.fs.starfarer.api.ui.PositionAPI;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /** Planet-free shipboard room for active support-lance selection and mech refits. */
@@ -33,6 +39,10 @@ public final class MechLabScreen implements Screen {
             "data/ui/components/mech-lab/mech-lab.mlx");
 
     private final Reactor reactor = new Reactor();
+    private final MutableSignal<String> bayContextLabel = reactor.signal("");
+    private final MutableSignal<String> activeBayLabel = reactor.signal("");
+    private final MutableSignal<String> bayNavigatorClasses = reactor.signal("bay-navigator hidden");
+    private final MutableSignal<Integer> selectedBayIndex = reactor.signal(0);
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
     /**
@@ -47,11 +57,14 @@ public final class MechLabScreen implements Screen {
     private MarineOpsContext context;
     private Runnable dismissDialog;
     private MarineRoster roster;
+    private CompanyDeck deck;
     private MechLabViewModel viewModel;
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
+    private MechLabDollCanvas dollCanvas;
+    private UiElement dollElement;
     private double previewSeconds;
 
     @Override
@@ -65,20 +78,21 @@ public final class MechLabScreen implements Screen {
             context.goTo(ScreenId.COMPANY_HQ);
             return;
         }
-        if (viewModel == null || roster != liveRoster) {
+        CompanyDeck liveDeck = context.companyDeck();
+        if (viewModel == null || roster != liveRoster || deck != liveDeck) {
             closeDocument();
             roster = liveRoster;
+            deck = liveDeck;
+            selectedBayIndex.set(0);
             viewModel = new MechLabViewModel(reactor, roster.mechBay(),
                     new CampaignMechFabricationResources(), this::syncGantryScene);
             syncGantryScene();
-            cameraController = new MechLabCameraController(
-                    MechLabCameraController.on(bayFraming(), berths()));
-            cameraController.snap(false, viewModel.selectedGantryIndex(),
-                    viewModel.gantryVariants().size());
+            resetCamera(false);
         } else {
             viewModel.refresh();
             syncGantryScene();
         }
+        refreshBayPresentation();
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
@@ -97,18 +111,22 @@ public final class MechLabScreen implements Screen {
             // the deck itself paints is the deck's own business.
             previewSprites().ensureLayeredMechSprites();
             previewSprites().ensureMechLabFxSprites();
-            built.canvases().set(candidate.requireElement("mech-doll-canvas"),
-                    new MechLabDollCanvas(viewModel::gantryDeployments,
+            dollElement = candidate.requireElement("mech-doll-canvas");
+            dollCanvas = new MechLabDollCanvas(viewModel::gantryDeployments,
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             () -> previewSprites().layeredMechSprites(),
                             () -> previewSprites().mechLabWeldingTorch(),
                             () -> previewSprites().mechLabWeldingSparks(),
                             viewModel::fittingFocused,
-                            () -> context.companyDeck().scene(),
+                            deck::scene,
                             this::framing,
                             this::berths,
-                            () -> previewSeconds));
+                            () -> previewSeconds);
+            built.canvases().set(dollElement, dollCanvas);
+            dollElement.onPointerMove(this::pointAtVacantGantry);
+            dollElement.onPointerDown(this::pressVacantGantry);
+            dollElement.onPointerUp(this::activateVacantGantry);
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -127,8 +145,11 @@ public final class MechLabScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("contextLabel", ShipBreadcrumb.of(context.companyDeck().ship(),
-                context.companyDeck().room(RoomPurpose.VEHICLE_BAY)));
+        props.put("contextLabel", bayContextLabel);
+        props.put("activeBayLabel", activeBayLabel);
+        props.put("bayNavigatorClasses", bayNavigatorClasses);
+        props.put("previousBay", (Runnable) () -> cycleBay(-1));
+        props.put("nextBay", (Runnable) () -> cycleBay(1));
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
@@ -174,7 +195,8 @@ public final class MechLabScreen implements Screen {
                 "mech-lab-root", "marine-ops-page-nav", "page-nav-return",
                 "page-nav-hq", "page-nav-barracks", "page-nav-armory",
                 "page-nav-mech-lab",
-                "mech-lab-room-bar", "mech-lab-body", "mech-asset-picker",
+                "mech-lab-room-bar", "mech-bay-navigator", "mech-previous-bay",
+                "mech-active-bay", "mech-next-bay", "mech-lab-body", "mech-asset-picker",
                 "mech-squad-list", "mech-list", "mech-fitting-workspace",
                 "mech-previous-gantry", "mech-active-gantry", "mech-next-gantry",
                 "mech-performance-grid", "mech-garage-stage", "mech-doll-canvas",
@@ -190,12 +212,45 @@ public final class MechLabScreen implements Screen {
         if (dismissDialog != null) dismissDialog.run();
     }
 
+    private void pointAtVacantGantry(UiPointerEvent event) {
+        CanvasPoint point = canvasPoint(event);
+        if (point == null) return;
+        dollCanvas.pointAt(point.x(), point.y());
+        document.canvases().invalidate(dollElement);
+    }
+
+    private void pressVacantGantry(UiPointerEvent event) {
+        CanvasPoint point = canvasPoint(event);
+        if (point == null || dollCanvas.vacantGantryAt(point.x(), point.y()) < 0) return;
+        event.capturePointer();
+        event.preventDefault();
+    }
+
+    private void activateVacantGantry(UiPointerEvent event) {
+        CanvasPoint point = canvasPoint(event);
+        event.releasePointerCapture();
+        if (point == null) return;
+        int gantry = dollCanvas.vacantGantryAt(point.x(), point.y());
+        if (gantry < 0) return;
+        viewModel.selectGantryAction(gantry).run();
+        document.canvases().invalidate(dollElement);
+        event.preventDefault();
+    }
+
+    private CanvasPoint canvasPoint(UiPointerEvent event) {
+        if (document == null || dollElement == null || dollCanvas == null) return null;
+        CanvasMetrics metrics = document.canvasMetrics(dollElement, 1f);
+        float x = metrics.toCanvasX(event.x());
+        float y = metrics.toCanvasY(event.y());
+        return Float.isFinite(x) && Float.isFinite(y) ? new CanvasPoint(x, y) : null;
+    }
+
     /**
      * The compartment this screen is a camera on: the company ship's vehicle
      * bay. The lab is a place aboard, not a room built beside the ship.
      */
     private ShipDeckBattleScene.RoomView bayFraming() {
-        DeckGraph.Compartment bay = context.companyDeck().room(RoomPurpose.VEHICLE_BAY);
+        DeckGraph.Compartment bay = currentBay();
         if (bay == null) throw new IllegalStateException("this ship has no vehicle bay");
         return ShipDeckBattleScene.RoomView.of(bay, SURROUND_CELLS);
     }
@@ -208,19 +263,64 @@ public final class MechLabScreen implements Screen {
      * this screen is being moved off.
      */
     private BattleSprites previewSprites() {
-        return context.companyDeck().sprites();
+        return deck.sprites();
     }
 
     private void syncGantryScene() {
-        if (context == null || viewModel == null || context.companyDeck() == null) return;
-        context.companyDeck().scene().syncGantries(viewModel.gantryDeployments());
+        if (deck == null || viewModel == null) return;
+        deck.scene().syncGantries(viewModel.gantryDeployments());
     }
 
     /** The berths standing in that bay, in the order the deck authored them. */
     private List<Gantry> berths() {
-        DeckGraph.Compartment bay = context.companyDeck().room(RoomPurpose.VEHICLE_BAY);
+        DeckGraph.Compartment bay = currentBay();
         if (bay == null) return List.of();
-        return context.companyDeck().scene().berthsIn(bay);
+        return deck.scene().berthsIn(bay);
+    }
+
+    private List<DeckGraph.Compartment> mechBays() {
+        return deck == null ? List.of() : deck.rooms(RoomPurpose.VEHICLE_BAY);
+    }
+
+    private DeckGraph.Compartment currentBay() {
+        List<DeckGraph.Compartment> bays = mechBays();
+        if (bays.isEmpty()) return null;
+        int index = Math.max(0, Math.min(bays.size() - 1, selectedBayIndex.get()));
+        return bays.get(index);
+    }
+
+    private void cycleBay(int delta) {
+        List<DeckGraph.Compartment> bays = mechBays();
+        if (bays.size() < 2) return;
+        selectedBayIndex.set(Math.floorMod(selectedBayIndex.get() + delta, bays.size()));
+        refreshBayPresentation();
+        resetCamera(viewModel.fittingFocused());
+        if (document != null && dollElement != null) {
+            document.canvases().invalidate(dollElement);
+        }
+    }
+
+    private void refreshBayPresentation() {
+        List<DeckGraph.Compartment> bays = mechBays();
+        if (bays.isEmpty()) {
+            activeBayLabel.set("NO MECH BAY");
+            bayNavigatorClasses.set("bay-navigator hidden");
+            bayContextLabel.set(deck == null ? "" : ShipBreadcrumb.of(deck.ship(), null));
+            return;
+        }
+        int index = Math.max(0, Math.min(bays.size() - 1, selectedBayIndex.get()));
+        selectedBayIndex.set(index);
+        activeBayLabel.set(String.format(Locale.ROOT,
+                "BAY %02d / %02d", index + 1, bays.size()));
+        bayNavigatorClasses.set(bays.size() > 1 ? "bay-navigator" : "bay-navigator hidden");
+        bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));
+    }
+
+    private void resetCamera(boolean focused) {
+        cameraController = new MechLabCameraController(
+                MechLabCameraController.on(bayFraming(), berths()));
+        cameraController.snap(focused, viewModel.selectedGantryIndex(),
+                viewModel.gantryVariants().size());
     }
 
     /** The framing for this frame: the bay, looked at from the eased camera pose. */
@@ -264,6 +364,10 @@ public final class MechLabScreen implements Screen {
         if (markupInstance != null) markupInstance.close();
         document = null;
         markupInstance = null;
+        dollCanvas = null;
+        dollElement = null;
         input = null;
     }
+
+    private record CanvasPoint(float x, float y) { }
 }
