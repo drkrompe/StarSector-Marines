@@ -128,15 +128,9 @@ public class BriefingScreen implements Screen {
     private MarineOpsContext ctx;
     private BriefingLayout layout;
 
-    /**
-     * Indices into {@link #cachedAvailable} the player has deselected for the
-     * current mission's dropship loadout. Default empty = all selected. Reset
-     * when the selected mission changes (tracked via {@link #lastSelectedMissionId}).
-     */
-    private final java.util.Set<Integer> deselectedTransports = new java.util.HashSet<>();
     private String lastSelectedMissionId;
     /**
-     * Snapshot of {@link PlayerFleetShuttles#queryAvailable()} taken at the start of
+     * Snapshot of the ship's boats taken at the start of
      * each {@link #rebuild()}. Indices are stable within a single briefing layout,
      * so the deselection set keeps referring to the same ships even as rows are redrawn.
      */
@@ -165,7 +159,7 @@ public class BriefingScreen implements Screen {
     /**
      * Indices into {@link #cachedCarriers} the player has deselected for the
      * current mission's fighter cover. Default empty = all carriers committed.
-     * Reset alongside {@link #deselectedTransports} when the mission changes.
+     * Reset when the mission changes.
      */
     private final java.util.Set<Integer> deselectedCarriers = new java.util.HashSet<>();
     /** Snapshot of {@link PlayerFleetWings#committableCarriers()} taken per {@link #rebuild()}, so toggle indices stay stable across a layout. */
@@ -220,7 +214,6 @@ public class BriefingScreen implements Screen {
         // player switches missions so they don't carry over hidden state.
         if (m != null && !m.id.equals(lastSelectedMissionId)) {
             lastSelectedMissionId = m.id;
-            deselectedTransports.clear();
             deselectedCarriers.clear();
             deselectedPowerSources.clear();
             selectedPowerIds.clear();
@@ -230,9 +223,13 @@ public class BriefingScreen implements Screen {
         // Snapshot the available transports + carriers once per build so toggle indices are stable.
         // Debug missions use an exact synthetic roster controlled by the picker;
         // production missions continue to reflect only the real player fleet.
+        // The lift is the boats aboard the ship the company is on, not transports
+        // shopped for out of the fleet. A debug briefing still owns its own
+        // roster through its picker, which is the one place a synthetic set of
+        // craft is the point.
         cachedAvailable = m != null && m.source.isDebug()
                 ? debugTransportRoster(m)
-                : PlayerFleetShuttles.queryAvailable();
+                : ShipsBoatsAboard.lift();
         cachedCarriers = PlayerFleetWings.committableCarriers();
         cachedPowerSources = PlayerFleetPowerSources.committableShips();
         cachedAvailablePowers = availablePowers(m);
@@ -567,40 +564,20 @@ public class BriefingScreen implements Screen {
                     ctx.getSelectedMarineSquadIds(), 0).selectedReady();
             List<ShuttleAssignment> manifest = MissionForceEnvelope.allowsUnderstrength(m)
                     ? DetachmentResolver.buildShuttleManifestForPersonnel(
-                            m, effectivePlayerShuttles(), selectedPersonnel)
+                            m, lift(), selectedPersonnel)
                     : DetachmentResolver.buildShuttleManifest(
-                            m, effectivePlayerShuttles());
-            java.util.Map<Integer, Integer> playerCyclesByIndex = computePlayerCyclesByIndex(m, manifest);
-            for (int i = 0; i < cachedAvailable.size(); i++) {
-                if (y < floor) return;
-                final int idx = i;
-                ShuttleType type = cachedAvailable.get(i);
-                boolean selected = !deselectedTransports.contains(idx);
-                String marker = selected ? "[x]" : "[ ]";
-                int cycles = playerCyclesByIndex.getOrDefault(idx, 0);
-                StringBuilder rowLabel = new StringBuilder();
-                rowLabel.append(marker).append(' ').append(shuttleDisplayName(type));
-                if (selected && cycles > 1) rowLabel.append(" (").append(cycles).append(" sorties)");
-                else if (!selected) rowLabel.append(" — held back");
-                Color rowColor = selected ? VALUE_COLOR : LABEL_COLOR;
-                ButtonWidget toggle = new ButtonWidget(x, y - BTN_H + 6f, rowW, BTN_H,
-                        () -> {
-                            if (deselectedTransports.contains(idx)) deselectedTransports.remove(idx);
-                            else deselectedTransports.add(idx);
-                            rebuild();
-                        });
-                widgets.add(toggle);
-                widgets.add(new SpriteThumbWidget(type.spritePath, x, y - 20f, THUMB, THUMB));
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel.toString(), x + THUMB + 10f, y, rowColor));
-                y -= ROW_GAP;
-            }
+                            m, lift());
+            // Read out rather than chosen from. The boats are the ship's, so
+            // what this section reports is an establishment: how many, of what,
+            // and how hard each is working to cover the drops.
+            y = buildLiftReadout(m, manifest, x, y, floor);
         }
-        boolean transportOk = isTransportSufficient(m, effectivePlayerShuttles());
+        boolean transportOk = isTransportSufficient(m, lift());
         if (!transportOk && y >= floor) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     MissionForceEnvelope.allowsUnderstrength(m)
-                            ? "Need at least 1 player transport"
-                            : "Need at least 1 transport (your fleet or employer)",
+                            ? "No lift: this ship carries no boats"
+                            : "No lift: no boats aboard and none from the employer",
                     x + 6f, y, BLOCKED_COLOR));
             y -= ROW_GAP;
         }
@@ -705,7 +682,7 @@ public class BriefingScreen implements Screen {
         if (mission == null) return Collections.emptyList();
         List<CommandPower> powers = mission.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(mission).powers
-                : DetachmentResolver.resolve(mission, effectivePlayerShuttles(), committedWings(),
+                : DetachmentResolver.resolve(mission, lift(), committedWings(),
                         committedPowerSourceMembers()).powers;
         return debugMechRoster(mission) != null
                 ? debugMechRoster(mission).applyTo(powers) : powers;
@@ -727,7 +704,7 @@ public class BriefingScreen implements Screen {
         PersonnelReadiness readiness = m != null && !debugPersonnel
                 ? personnelReadiness(m) : null;
         boolean transportOk = m == null || m.source == MissionSource.STATIONING
-                || isTransportSufficient(m, effectivePlayerShuttles());
+                || isTransportSufficient(m, lift());
         boolean personnelOk = debugPersonnel || m == null || readiness.ready();
         boolean commandOk = m == null || captainCommandReady(m);
         boolean canAccept = transportOk && personnelOk && commandOk;
@@ -828,7 +805,7 @@ public class BriefingScreen implements Screen {
         if (m == null) return 0;
         List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
                 m, m.source == MissionSource.STATIONING
-                        ? Collections.emptyList() : effectivePlayerShuttles());
+                        ? Collections.emptyList() : lift());
         int firstPlayer = m.source == MissionSource.STATIONING
                 ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
         return CampaignMarineDeployment.requiredSeats(manifest, firstPlayer);
@@ -839,7 +816,7 @@ public class BriefingScreen implements Screen {
         if (m == null) return;
         List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
                 m, m.source == MissionSource.STATIONING
-                        ? java.util.Collections.emptyList() : effectivePlayerShuttles());
+                        ? java.util.Collections.emptyList() : lift());
         int firstPlayer = m.source == MissionSource.STATIONING
                 ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
         int seats = MissionForceEnvelope.allowsUnderstrength(m)
@@ -1351,36 +1328,71 @@ public class BriefingScreen implements Screen {
     }
 
     /**
-     * Currently-selected subset of {@link #cachedAvailable}, preserving the
-     * priority-sorted order. Feeds the manifest + gate logic.
+     * The lift this briefing is planning around: every boat aboard.
+     *
+     * <p>All of them, with no subset to choose. A ship's boats are a fitting
+     * rather than a shopping list, so there is no per-hull commitment left to
+     * make — what the company can put on the ground is what she carries, and
+     * holding one back would be declining to use a lifeboat.
      */
-    private List<ShuttleType> effectivePlayerShuttles() {
-        List<ShuttleType> out = new java.util.ArrayList<>();
-        for (int i = 0; i < cachedAvailable.size(); i++) {
-            if (!deselectedTransports.contains(i)) out.add(cachedAvailable.get(i));
+    private List<ShuttleType> lift() {
+        return cachedAvailable;
+    }
+
+    /**
+     * Maps each boat to the cycle count the manifest gave it. Boats the manifest
+     * did not need are absent (caller treats missing as 0).
+     */
+    private java.util.Map<Integer, Integer> computePlayerCyclesByIndex(
+            Mission m, List<ShuttleAssignment> manifest) {
+        java.util.Map<Integer, Integer> out = new java.util.HashMap<>();
+        int employerPhysical = DetachmentResolver.employerPhysicalShipCount(m);
+        for (int k = 0; k < cachedAvailable.size()
+                && (employerPhysical + k) < manifest.size(); k++) {
+            out.put(k, manifest.get(employerPhysical + k).cycles);
         }
         return out;
     }
 
     /**
-     * Maps each {@link #cachedAvailable} index to the cycle count the manifest
-     * actually assigned it. Deselected and unused transports are absent (caller
-     * treats missing as 0).
+     * The lift, read out: how many boats of what, how hard each is working, and
+     * which ship they come off.
+     *
+     * <p>A summary rather than a list of rows. Every boat aboard is the same
+     * boat — a ship carries a class of them, not an assortment — so six
+     * identical lines would be six ways of saying one thing, and the number is
+     * what a player is actually reading for.
      */
-    private java.util.Map<Integer, Integer> computePlayerCyclesByIndex(
-            Mission m, List<ShuttleAssignment> manifest) {
-        java.util.Map<Integer, Integer> out = new java.util.HashMap<>();
-        List<Integer> selectedIndices = new java.util.ArrayList<>();
-        for (int i = 0; i < cachedAvailable.size(); i++) {
-            if (!deselectedTransports.contains(i)) selectedIndices.add(i);
+    private float buildLiftReadout(Mission m, List<ShuttleAssignment> manifest,
+                                   float x, float y, float floor) {
+        if (cachedAvailable.isEmpty() || y < floor) return y;
+        java.util.Map<Integer, Integer> cyclesByBoat = computePlayerCyclesByIndex(m, manifest);
+        int fewest = Integer.MAX_VALUE;
+        int most = 0;
+        for (int index = 0; index < cachedAvailable.size(); index++) {
+            int cycles = cyclesByBoat.getOrDefault(index, 0);
+            fewest = Math.min(fewest, cycles);
+            most = Math.max(most, cycles);
         }
-        int employerPhysical = DetachmentResolver.employerPhysicalShipCount(m);
-        for (int k = 0; k < selectedIndices.size()
-                && (employerPhysical + k) < manifest.size(); k++) {
-            ShuttleAssignment a = manifest.get(employerPhysical + k);
-            out.put(selectedIndices.get(k), a.cycles);
+        ShuttleType type = cachedAvailable.get(0);
+        StringBuilder label = new StringBuilder();
+        label.append(cachedAvailable.size()).append(" x ").append(shuttleDisplayName(type));
+        if (most > 0) {
+            label.append("  (").append(fewest == most ? String.valueOf(most)
+                    : fewest + "-" + most).append(" sorties each)");
         }
-        return out;
+        widgets.add(new SpriteThumbWidget(type.spritePath, x, y - 20f, THUMB, THUMB));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, label.toString(),
+                x + THUMB + 10f, y, VALUE_COLOR));
+        y -= ROW_GAP;
+
+        String carrier = ShipsBoatsAboard.carrier();
+        if (carrier != null && y >= floor) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Carried by: " + carrier,
+                    x + THUMB + 10f, y, LABEL_COLOR));
+            y -= ROW_GAP;
+        }
+        return y;
     }
 
     private void onAccept() {
@@ -1423,7 +1435,7 @@ public class BriefingScreen implements Screen {
 
         // Resolve the committed detachment (transports + marine fighter cover +
         // command powers) and build the battle. The deselected transports are
-        // already filtered out of effectivePlayerShuttles().
+        // already filtered out of lift().
         Mission launchMission = m.source == MissionSource.DEBUG
                 && m.type == MissionType.CONQUEST
                 ? Mission.builder(m)
@@ -1433,7 +1445,7 @@ public class BriefingScreen implements Screen {
         MissionLaunch.PreparedBattle prepared = MissionLaunch.prepareSimulation(
                 ctx, launchMission,
                 m.source == MissionSource.STATIONING
-                        ? java.util.Collections.emptyList() : effectivePlayerShuttles(),
+                        ? java.util.Collections.emptyList() : lift(),
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : committedWings(),
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : debugWings(),
                 selectedPowerIds,

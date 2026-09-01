@@ -87,6 +87,46 @@ class AHullCarriesHerOwnBoatsTest {
     }
 
     /**
+     * A troop transport carries six boats, which is what the missions are
+     * written around.
+     *
+     * <p>A number rather than a shape, and pinned because it is a requirement
+     * from outside this model: mission design assumes a lift of six, and a bay
+     * that quietly held two fewer would show up as missions that cannot be
+     * flown rather than as a sizing change anybody made on purpose.
+     */
+    @Test
+    void aTroopTransportCarriesSixBoats() {
+        assertEquals(6, ShipsBoats.aboard(TestHulls.transport()).size(),
+                "the company ship's establishment is not six boats");
+    }
+
+    /**
+     * The census matches the berths a generated deck actually lays.
+     *
+     * <p>This is the whole licence for counting boats off a hull's room program
+     * instead of off a deck: a briefing has no deck, and generating one to
+     * answer a question about lift would be an odd bill to pay. The two are the
+     * same arithmetic asked with and without a floor, so the only way they part
+     * company is silently.
+     */
+    @Test
+    void theCensusMatchesTheBerthsTheDeckLays() {
+        CompanyShip ship = TestHulls.transport();
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(
+                DeckSizing.planFor(ship.hullClass(), ship.role(), ship.minCrew(),
+                        ship.maxCrew(), ship.cargo(), ship.aspect()),
+                11L, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), 11L, null)) {
+            assertEquals(scene.simulation().getAirfieldService().berths().size(),
+                    ShipsBoats.aboard(ship).size(),
+                    "what the hull says she carries is not what her deck berths");
+        }
+    }
+
+    /**
      * End to end: what the hull says goes into her berths.
      *
      * <p>A whole deck, because that is the claim — the plan states it, the
