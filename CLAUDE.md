@@ -820,9 +820,10 @@ every one covers ground. Conquest is where it is decided, and two shapes of the
 same step were measured there. Consuming the tick cost reinforced-south ten of
 its fourteen captures; handing it back recovers almost all of that — 12 captures
 and 11 held against the control's 14 and 9, with 56 more defenders killed. It
-ships **off** all the same, on the one clause it misses (no fixture may capture
-fewer, and 12 is fewer than 14), behind `battle.infantry.laneSidestep`, with the
-scene turning it on for its own loop.
+ships **on**, behind `battle.infantry.laneSidestep`, because held compounds are
+the outcome a Conquest is decided on and captures is throughput: 12 taken and 11
+kept beats 14 taken and 9 kept, and it holds more on both fixtures. The scene's
+control loop sets the toggle false for itself.
 
 **A scene answers rather than merely records.** A `BehaviorScene` returns one
 `SceneReport` per loop — its verdicts and the readings they were judged from —

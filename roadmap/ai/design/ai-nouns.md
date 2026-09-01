@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a masked marine steps aside rather than retargeting, and
-what the friendly-lane question costs is the tick, not the step.
+Updated: 2026-09-01 — a masked marine steps aside rather than retargeting, it
+ships on, and what the friendly-lane question ever cost was the tick.
 
 Earlier 2026-09-01 — what sits between a unit having a squad and executing its
 step is a declared reflex chain, one per arm, whose order is a law.
@@ -1139,11 +1139,18 @@ marine who can fire from where he stands will otherwise throw the authored move
 away on the tick it was made. Both are pinned by the scene rather than left to
 be rediscovered.
 
-It is nonetheless still switched off, on one number: the bar is that no fixture
-may capture or hold fewer with it on, and reinforced-south captures 12 against
-14 even while holding 11 against 9. Four measurements across three verbs now
-agree on the part that matters for whatever is tried next — **the lane test has
-never been what any of them condemned**, and neither, now, is the step.
+**It ships on, and which column is the outcome is the reason.** Compounds held
+at the end is what a Conquest is won or lost on; captures is throughput, and a
+run that takes 12 and keeps 11 has done better than one that takes 14 and keeps
+9. On that reading the step-aside wins both fixtures — 11 held against 9 and 3
+against 0 — while killing 56 more defenders and losing 21 fewer marines on one
+and no more on the other. It was first judged against a bar forbidding any
+fixture from capturing fewer, which reinforced-south misses at 12 against 14;
+that bar was stricter than the outcome it was guarding.
+
+Four measurements across three verbs now agree on the part that matters for
+whatever is tried next: **the lane test has never been what any of them
+condemned**, and neither, in the end, was the step.
 
 It was retested once joining fire stopped being priced by a headcount, because
 the standing explanation was that the two were blind anti-concentration
