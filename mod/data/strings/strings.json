@@ -23,6 +23,9 @@
 		"intelSizeFmt":           "Class {0}",
 
 		# Client list row labels
+		"clientNone":             "No local contracts.",
+		"clientNoneAtMarket":     "No contracts are available at this market.",
+		"clientSelectHint":       "Select a client to see their dossiers.",
 		"clientLockedHostile":    "Hostile - unreachable",
 		"clientLockedCredibility": "Insufficient MRB or house standing",
 
