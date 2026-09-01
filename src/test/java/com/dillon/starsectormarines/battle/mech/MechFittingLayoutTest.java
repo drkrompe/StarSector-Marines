@@ -10,12 +10,13 @@ import java.util.EnumSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MechFittingLayoutTest {
 
     @Test
-    void everyChassisOwnsACompleteUniquePositiveSizedSocketLayout() {
+    void everyChassisOwnsAUniquePositiveSizedSocketLayout() {
         for (MechVariant variant : MechVariant.values()) {
             MechFittingLayout layout = MechFittingLayout.forVariant(variant);
             EnumSet<SocketId> ids = EnumSet.noneOf(SocketId.class);
@@ -32,25 +33,26 @@ class MechFittingLayoutTest {
                 assertTrue(anchorToDock > 0.5,
                         "equipment dock should use the gantry around " + socket.id());
             }
-            assertEquals(EnumSet.allOf(SocketId.class), ids);
+            assertTrue(ids.containsAll(EnumSet.of(SocketId.CORE, SocketId.ARMS,
+                    SocketId.AMMO_RESERVE, SocketId.MINI_FAB)));
         }
     }
 
     @Test
-    void authoredSocketCanRemainVisibleWhenNoEquipmentIsInstalled() {
+    void houndOwnsOneCenteredDorsalMountRatherThanBulwarksTwinShoulders() {
         MechFittingLayout hound = MechFittingLayout.forVariant(MechVariant.HOUND);
         MechFittingLayout bulwark = MechFittingLayout.forVariant(MechVariant.BULWARK);
 
-        assertFalse(hound.occupied(SocketId.RIGHT_SHOULDER));
+        assertEquals(5, hound.sockets().size());
+        assertEquals("NOSE MOUNT", hound.socket(SocketId.ARMS).label());
+        assertEquals("DORSAL MOUNT", hound.socket(SocketId.LEFT_SHOULDER).label());
+        assertEquals(0f, hound.socket(SocketId.LEFT_SHOULDER).anchorRight());
+        assertNull(hound.socket(SocketId.RIGHT_SHOULDER));
         assertTrue(bulwark.occupied(SocketId.RIGHT_SHOULDER));
         assertEquals(SocketType.OMNI,
                 bulwark.socket(SocketId.RIGHT_SHOULDER).type());
-        assertNotEquals(hound.socket(SocketId.RIGHT_SHOULDER).capacity(),
-                bulwark.socket(SocketId.RIGHT_SHOULDER).capacity());
         assertNotEquals(hound.socket(SocketId.ARMS).footprintWidthHull(),
                 bulwark.socket(SocketId.ARMS).footprintWidthHull());
-        assertNotEquals(hound.socket(SocketId.RIGHT_SHOULDER).anchorRight(),
-                bulwark.socket(SocketId.RIGHT_SHOULDER).anchorRight());
     }
 
     @Test

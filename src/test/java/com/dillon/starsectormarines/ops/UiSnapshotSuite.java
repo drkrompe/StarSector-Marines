@@ -312,7 +312,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-lab-asset-picker-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, true)),
-                new SnapshotArtifact("mech-lab-hound-empty-socket-wide.png",
+                new SnapshotArtifact("mech-lab-hound-dorsal-mount-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true)),
                 new SnapshotArtifact("mech-lab-chassis-fabrication-wide.png",
@@ -1493,7 +1493,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .filter(row -> row.name().startsWith("Hound"))
                     .findFirst().orElseThrow().select().run();
             viewModel.slotRows().get().stream()
-                    .filter(row -> row.name().equals("R. SHOULDER"))
+                    .filter(row -> row.name().equals("DORSAL MOUNT"))
                     .findFirst().orElseThrow().select().run();
         }
         if (selectVacant) viewModel.previousGantryAction().run();

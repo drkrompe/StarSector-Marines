@@ -132,8 +132,11 @@ public final class MechLabViewModel {
         rightSlotRows = reactor.computed(() -> buildSlots(List.of(
                 SocketId.RIGHT_SHOULDER, SocketId.AMMO_RESERVE, SocketId.MINI_FAB)));
         slotRows = reactor.computed(() -> buildSlots(List.of(SocketId.values())));
-        selectedSlotTitle = reactor.computed(() -> fabricatingChassis()
-                ? "CHASSIS PATTERNS" : selectedSlot.get().label());
+        selectedSlotTitle = reactor.computed(() -> {
+            if (fabricatingChassis()) return "CHASSIS PATTERNS";
+            SocketDef definition = selectedSocketDefinition();
+            return definition != null ? definition.label() : selectedSlot.get().label();
+        });
         selectedSlotCopy = reactor.computed(this::buildSelectedSlotCopy);
         selectedSlotRule = reactor.computed(this::buildSelectedSlotRule);
         catalogRows = reactor.computed(this::buildCatalogRows);
@@ -354,7 +357,7 @@ public final class MechLabViewModel {
                     base + ":component", base + ":type", base + ":grid",
                     slot,
                     slot == selectedSlot.get() ? "doll-slot selected" : "doll-slot",
-                    slot.label(), slotComponent(mech, slot), slotType(definition),
+                    definition.label(), slotComponent(mech, slot), slotType(definition),
                     () -> selectSlot(slot)));
         }
         return List.copyOf(rows);
@@ -580,10 +583,13 @@ public final class MechLabViewModel {
     }
 
     private void selectSlot(SocketId slot) {
-        if (selectedMech() == null) return;
+        CampaignMech mech = selectedMech();
+        if (mech == null) return;
+        SocketDef definition = MechFittingLayout.forVariant(mech.variant()).socket(slot);
+        if (definition == null) return;
         selectedSlot.set(slot);
         fittingFocused.set(true);
-        feedbackText.set(slot.label() + " selected. " + (slot == SocketId.MINI_FAB
+        feedbackText.set(definition.label() + " selected. " + (slot == SocketId.MINI_FAB
                 ? "Compatible fleet stock is ready for refit."
                 : mountFor(slot) != null
                 ? "Compatible owned and fabricable weapon assemblies are shown."
