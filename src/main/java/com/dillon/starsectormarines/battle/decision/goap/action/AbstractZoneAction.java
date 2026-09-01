@@ -132,6 +132,22 @@ abstract class AbstractZoneAction implements Action {
 
     private static final boolean CONTACT_DRILL_ENABLED = Boolean.parseBoolean(
             System.getProperty(CONTACT_DRILL_PROPERTY, "false"));
+
+    /**
+     * Turns off zone-contained objective firing positions, restoring the
+     * behaviour to the attack-move-only form it shipped in. On by default;
+     * {@code -Dbattle.squad.objectiveFiringInZone=false} is the control run.
+     *
+     * <p>It exists because the alternative control is a commit-to-commit
+     * comparison, and this repository has already charged a squad behaviour
+     * with a seven-thousand-tick swing that turned out to be another session's
+     * reinforcement work arriving on a merge. A switch measures one change.
+     */
+    public static final String OBJECTIVE_FIRING_IN_ZONE_PROPERTY =
+            "battle.squad.objectiveFiringInZone";
+
+    private static final boolean OBJECTIVE_FIRING_IN_ZONE = Boolean.parseBoolean(
+            System.getProperty(OBJECTIVE_FIRING_IN_ZONE_PROPERTY, "true"));
     /** Maximum off-axis firing-position radius at full threat weight. */
     static final float ADVANCE_LEASH_MAX = 12f;
 
@@ -378,22 +394,38 @@ abstract class AbstractZoneAction implements Action {
         // shoot, anchored within OBJECTIVE_FIRING_LEASH cells of the
         // destination this member was actually sent to — see that constant
         // for why the destination and not the member is the anchor.
-        // Restricted to an order with no target zone -- which today is
-        // exactly the attack move, the case this was built for. An approach
-        // that is crossing to a named room has one too, and
-        // findFiringPositionWithin scores walkability and leash distance
-        // only: it knows nothing about zones or portals. A room is routinely
-        // smaller across than this leash, so on that path the better shot
-        // could sit inside a different room, or past a portal the squad has
-        // not been told to cross yet. Widening this to a zone-bound approach
-        // is a question about zone containment, and wants answering there
-        // rather than assumed here.
-        if (haltOnContact && !committed && !inContact && targetZoneId < 0
+        //
+        // The footprint is the leash AND the room, when the order names one.
+        // This was restricted to an order with no target zone — the attack
+        // move, which is what it was built for — because the search knows
+        // nothing about rooms and would happily improve a member's angle by
+        // walking it into the room next door. That restriction turned out to
+        // exclude most of the population it was written for: instrumented
+        // over a Conquest matrix, 466,940 member-ticks reached this gate and
+        // 271,732 of them (58%) were refused for naming a zone, of which
+        // 39,342 had a legal firing cell inside their own leash. Containment
+        // is the answer rather than exclusion, and it belongs in the search,
+        // where every candidate can be tested — see the requiredZoneId
+        // overload of findFiringPositionWithin. targetZoneId carries both
+        // cases already: negative for an order with no room, and then the
+        // search is unconstrained exactly as before.
+        if (OBJECTIVE_FIRING_IN_ZONE
+                && haltOnContact && !committed && !inContact
                 && target != 0L && clearShotOnTarget && opportune == 0L) {
             int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                    member, target, destX, destY, OBJECTIVE_FIRING_LEASH);
+                    member, target, destX, destY, OBJECTIVE_FIRING_LEASH, targetZoneId);
             // Uncommitted: this member was never told to fight here, so any
             // refusal simply resumes the order it does have.
+            if (advanceToReachableFiringPosition(member, sim, firingPos)
+                    == FiringApproach.MOVED) return;
+        } else if (haltOnContact && !committed && !inContact && targetZoneId < 0
+                && target != 0L && clearShotOnTarget && opportune == 0L) {
+            // Control path for -Dbattle.squad.objectiveFiringInZone=false: the
+            // behaviour exactly as it shipped before containment, so a matrix
+            // run can be compared against one on the same tree rather than
+            // against an older commit carrying every other difference with it.
+            int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
+                    member, target, destX, destY, OBJECTIVE_FIRING_LEASH);
             if (advanceToReachableFiringPosition(member, sim, firingPos)
                     == FiringApproach.MOVED) return;
         }
