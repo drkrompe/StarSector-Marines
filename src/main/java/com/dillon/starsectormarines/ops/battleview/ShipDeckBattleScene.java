@@ -315,9 +315,11 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                     gantry.centerX, gantry.centerY).mechVariant(variant));
             simulation.world().attachMechLoadout(mech,
                     variant.createLoadout(variant.defaultRole));
-            // A berth records the way out, and a machine parked in one faces it.
+            simulation.world().setPos(mech, gantry.worldCenterX(), gantry.worldCenterY());
+            // Parked machinery presents itself to the room's shared service
+            // space. The berth still records the actual way out for deployment.
             FacingSystem.faceStanding(simulation.getEntityWorld(),
-                    simulation.getBattleComponents(), mech, gantry.facing.degrees());
+                    simulation.getBattleComponents(), mech, parkedFacing(gantry));
             machines[seat] = mech;
             berthedMechs[index] = mech;
             occupiedBerths[index] = true;
@@ -340,22 +342,41 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             if (deployment == null) continue;
             int index = machineBerths[seat];
             long mech = berthedMechs[index];
+            Gantry gantry = gantries.get(index);
             if (mech == 0L) {
-                Gantry gantry = gantries.get(index);
                 mech = simulation.spawn(new EntitySpec(
                         "berthed mech " + (seat + 1), Faction.MARINE, UnitType.HEAVY_MECH,
                         gantry.centerX, gantry.centerY).mechVariant(deployment.variant()));
-                FacingSystem.faceStanding(simulation.getEntityWorld(),
-                        simulation.getBattleComponents(), mech, gantry.facing.degrees());
                 berthedMechs[index] = mech;
                 occupiedBerths[index] = true;
             }
+            simulation.world().setPos(mech, gantry.worldCenterX(), gantry.worldCenterY());
+            FacingSystem.faceStanding(simulation.getEntityWorld(),
+                    simulation.getBattleComponents(), mech, parkedFacing(gantry));
             MechLoadoutComponent loadout = new MechLoadoutComponent(deployment.variant(),
                     deployment.arms(), deployment.leftShoulder(), deployment.rightShoulder(),
                     deployment.role());
             loadout.installMissileReplenisher(deployment.missileReplenisher());
             simulation.world().attachMechLoadout(mech, loadout);
         }
+    }
+
+    /** Heading which turns parked machinery toward the bay's shared inboard space. */
+    private float parkedFacing(Gantry gantry) {
+        if (rooms != null) {
+            for (DeckGraph.Compartment room : rooms.compartments()) {
+                if (!room.contains(gantry.centerX, gantry.centerY)) continue;
+                float roomX = room.left() + room.width() * 0.5f;
+                float roomY = room.top() + room.depth() * 0.5f;
+                float dx = roomX - gantry.worldCenterX();
+                float dy = roomY - gantry.worldCenterY();
+                if (Math.abs(dx) > 0.001f || Math.abs(dy) > 0.001f) {
+                    return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
+                }
+                break;
+            }
+        }
+        return gantry.facing.degrees();
     }
 
     /**
