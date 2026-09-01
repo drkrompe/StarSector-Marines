@@ -1,4 +1,4 @@
-<template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,debugClasses,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,transportRows,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,debugDrawerClasses,debugWorkspaceClasses,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,transportRows,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header surface-dark">
       <div id="mission-briefing-heading" class="mission-briefing-heading">
@@ -123,32 +123,35 @@
           </div>
         </div>
 
-        <div id="mission-debug-workspace" class="{debugClasses}">
-          <div id="mission-debug-heading" class="label heading tone-accent section-heading">{debugHeader}  ·  SCALE &amp; FIXTURE</div>
-          <div id="mission-tier-summary" class="label tone-edge tier-summary">{tierSummary}</div>
-          <div id="mission-tier-track" class="mission-tier-track">
-            <button each="step in tierSteps" key="{step.id}" id="{step.id}" class="{step.classes}" disabled="{step.disabled}" onclick="{step.action}">
-              <div id="{step.numeralId}" class="label heading tier-numeral">{step.numeral}</div>
-              <div id="{step.labelId}" class="label tier-label">{step.label}</div>
-            </button>
-          </div>
-          <div id="mission-debug-controls" class="mission-debug-controls">
-            <div each="control in debugControls" key="{control.id}" id="{control.id}" class="debug-control-row">
-              <div id="{control.labelId}" class="label heading tone-muted debug-control-label">{control.label}</div>
-              <button id="{control.farMinusId}" disabled="{control.farMinusDisabled}" onclick="{control.farMinusAction}">{control.farMinusLabel}</button>
-              <button id="{control.minusId}" disabled="{control.minusDisabled}" onclick="{control.minusAction}">{control.minusLabel}</button>
-              <div id="{control.valueId}" class="label heading debug-control-value">{control.value}</div>
-              <button id="{control.plusId}" disabled="{control.plusDisabled}" onclick="{control.plusAction}">{control.plusLabel}</button>
-              <button id="{control.farPlusId}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
-              <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
+        <div id="mission-debug-drawer" class="{debugDrawerClasses}">
+          <button id="mission-debug-toggle" class="{debugToggleClasses}" disabled="{debugToggleDisabled}" onclick="{debugToggleAction}">{debugToggleLabel}</button>
+          <div id="mission-debug-workspace" class="{debugWorkspaceClasses}">
+            <div id="mission-debug-heading" class="label heading tone-accent section-heading">{debugHeader}  ·  SCALE &amp; FIXTURE</div>
+            <div id="mission-tier-summary" class="label tone-edge tier-summary">{tierSummary}</div>
+            <div id="mission-tier-track" class="mission-tier-track">
+              <button each="step in tierSteps" key="{step.id}" id="{step.id}" class="{step.classes}" disabled="{step.disabled}" onclick="{step.action}">
+                <div id="{step.numeralId}" class="label heading tier-numeral">{step.numeral}</div>
+                <div id="{step.labelId}" class="label tier-label">{step.label}</div>
+              </button>
             </div>
-          </div>
-          <div id="mission-debug-air-heading" class="label heading tone-edge section-heading">AIR SUPPORT</div>
-          <div id="mission-debug-air" class="mission-debug-air">
-            <div each="air in airRows" key="{air.id}" id="{air.id}" class="debug-air-row">
-              <div id="{air.labelId}" class="label heading tone-muted debug-air-label">{air.label}</div>
-              <button id="{air.attackId}" class="{air.attackClasses}" onclick="{air.attackAction}">{air.attackLabel}</button>
-              <button id="{air.defendId}" class="{air.defendClasses}" onclick="{air.defendAction}">{air.defendLabel}</button>
+            <div id="mission-debug-controls" class="mission-debug-controls">
+              <div each="control in debugControls" key="{control.id}" id="{control.id}" class="debug-control-row">
+                <div id="{control.labelId}" class="label heading tone-muted debug-control-label">{control.label}</div>
+                <button id="{control.farMinusId}" disabled="{control.farMinusDisabled}" onclick="{control.farMinusAction}">{control.farMinusLabel}</button>
+                <button id="{control.minusId}" disabled="{control.minusDisabled}" onclick="{control.minusAction}">{control.minusLabel}</button>
+                <div id="{control.valueId}" class="label heading debug-control-value">{control.value}</div>
+                <button id="{control.plusId}" disabled="{control.plusDisabled}" onclick="{control.plusAction}">{control.plusLabel}</button>
+                <button id="{control.farPlusId}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
+                <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
+              </div>
+            </div>
+            <div id="mission-debug-air-heading" class="label heading tone-edge section-heading">AIR SUPPORT</div>
+            <div id="mission-debug-air" class="mission-debug-air">
+              <div each="air in airRows" key="{air.id}" id="{air.id}" class="debug-air-row">
+                <div id="{air.labelId}" class="label heading tone-muted debug-air-label">{air.label}</div>
+                <button id="{air.attackId}" class="{air.attackClasses}" onclick="{air.attackAction}">{air.attackLabel}</button>
+                <button id="{air.defendId}" class="{air.defendClasses}" onclick="{air.defendAction}">{air.defendLabel}</button>
+              </div>
             </div>
           </div>
         </div>
@@ -188,8 +191,13 @@
   .choice-detail { height: 16px; }
   .empty-copy { height: 18px; padding: 3px; }
   .mission-planning { flex-direction: row; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .debug-drawer { flex-direction: row; width: 590px; gap: 6px; overflow: hidden; }
+  .debug-drawer.collapsed { width: 54px; gap: 0px; }
+  .debug-drawer.absent { width: 0px; gap: 0px; }
+  .debug-drawer-toggle { width: 54px; padding: 6px 2px; border-width: 1px; font-family: heading; text-align: center; }
+  .debug-drawer-toggle-hidden { width: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   .debug-workspace { flex-direction: column; width: 530px; padding: 8px; gap: 6px; border-width: 1px; overflow: hidden; }
-  .debug-hidden { width: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; }
+  .debug-workspace-collapsed { width: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; }
   .tier-summary { height: 20px; padding: 2px; }
   .mission-tier-track { flex-direction: row; height: 58px; gap: 4px; }
   .tier-step { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 4px; border-width: 1px; text-align: center; }
@@ -199,11 +207,11 @@
   .tier-label { height: 17px; text-align: center; }
   .mission-debug-controls { flex-direction: column; height: 224px; gap: 4px; }
   .debug-control-row { flex-direction: row; height: 34px; gap: 4px; }
-  .debug-control-label { width: 148px; padding: 8px 3px; }
-  .debug-control-row button { width: 43px; padding: 5px 2px; border-width: 1px; text-align: center; font-family: heading; }
-  .debug-control-row .debug-cycle { width: 68px; }
+  .debug-control-label { width: 132px; padding: 8px 3px; }
+  .debug-control-row button { width: 36px; padding: 5px 2px; border-width: 1px; text-align: center; font-family: heading; }
+  .debug-control-row .debug-cycle { width: 64px; }
   .debug-control-row .debug-cycle-absent { width: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
-  .debug-control-value { width: 68px; padding: 8px 4px; border-width: 1px; border-color: #263b51; text-align: center; }
+  .debug-control-value { width: 60px; padding: 8px 4px; border-width: 1px; border-color: #263b51; text-align: center; }
   .mission-debug-air { flex-direction: column; height: 224px; gap: 4px; overflow: hidden; }
   .debug-air-row { flex-direction: row; height: 32px; gap: 4px; padding: 2px; border-width: 1px; border-color: #263b51; }
   .debug-air-label { width: 100px; padding: 6px 3px; }
