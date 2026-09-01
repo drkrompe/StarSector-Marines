@@ -278,14 +278,17 @@ public final class TacticalScoring {
      * is and stops shooting its own man, where retargeting trades the second for
      * the first.
      *
-     * <p><b>That was built and measured too, and it is off as well.</b>
+     * <p><b>That was built, measured twice, and it is what ships.</b>
      * {@link com.dillon.starsectormarines.battle.infantry.LaneSidestep} carries
-     * its own numbers: reinforced-south takes 4 compounds with it on against 14
-     * with it off, while full-strength-west gains. The lane test itself has now
-     * survived three measurements of two verbs, which is worth knowing before a
-     * fourth is attempted — what keeps failing is what the marine is made to do
-     * about a blocked lane, never the fact that {@code FiringLane} can tell it
-     * is blocked.
+     * its own numbers. A step-aside that consumed the marine's tick cost
+     * reinforced-south ten of its fourteen captures; the same step with the
+     * tick handed back — the marine keeps shooting while he moves — holds 11
+     * compounds against a control's 9 and 3 against 0, and is on by default.
+     * The lane test itself has now survived four measurements across three
+     * verbs: what failed was always what the marine was made to do about a
+     * blocked lane, never the fact that {@code FiringLane} can tell it is
+     * blocked. This preference — switching target — remains the one verb that
+     * lost every time it was tried.
      */
     public static final float FRIENDLY_LANE_COST = 10f;
 

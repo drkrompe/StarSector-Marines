@@ -39,13 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * stepped, empty when he did not. A test that read the boolean would pass on a
  * reflex that had stopped working entirely.
  *
- * <p><b>The reflex ships off and these tests turn it on.</b> That is deliberate
- * rather than a workaround: the Conquest matrix says the verb costs compounds
- * ({@link LaneSidestep} carries the numbers), and what ships is what a default
- * test should pin — but a switched-off behaviour with no tests is a behaviour
- * nobody can revive. So the seam is used here exactly as
- * {@code FiringLineScene} uses it, and one case leaves it alone to pin the
- * shipped answer.
+ * <p><b>These tests set the toggle rather than inheriting it.</b> The reflex
+ * ships on, but a suite that relied on that would go quiet the day somebody
+ * measured it off again, which is exactly when its cases are worth having. So
+ * the seam is set explicitly per case, the way {@code FiringLineScene} sets it
+ * per loop, and one case turns it off to pin what a control run gets.
  */
 public class LaneSidestepTest {
 
@@ -284,13 +282,14 @@ public class LaneSidestepTest {
     }
 
     /**
-     * The shipped answer, and the seam that suspends it. Switched off — which
-     * is how the reflex ships — a masked marine is left alone and the ballistic
-     * model's discipline roll decides, exactly as it did before any of this
-     * existed.
+     * The seam, and what a control run gets. Switched off, a masked marine is
+     * left where he stands and the ballistic model's discipline roll decides,
+     * exactly as it did before any of this existed — which is what makes an
+     * off run a measurement of the tree without the reflex rather than of the
+     * reflex declining.
      */
     @Test
-    public void theShippedDefaultLeavesAMaskedMarineWhereHeStands() {
+    public void switchedOffAMaskedMarineIsLeftWhereHeStands() {
         BattleSimulation sim = arena();
         Masked scene = masked(sim, MATE_X, ROW);
         LaneSidestep.setEnabledForEvidence(false);

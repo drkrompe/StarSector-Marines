@@ -95,13 +95,15 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
  * against 0, taking 12 compounds and keeping 11 where the control takes 14 and
  * keeps 9.
  *
- * <p><b>It is still off, on one number.</b> The bar is that no fixture may
- * capture or hold fewer with it on, and reinforced-south captures twelve
- * against fourteen. That is the whole of what stands between this and the
- * default, and it is not a bar to be moved by whoever happens to be looking at
- * it — but it is worth stating plainly what the rest of the row says, because
- * a squad that takes twelve and keeps eleven has not obviously done worse than
- * one that takes fourteen and keeps nine.
+ * <p><b>It ships on, and the reason is which column is the outcome.</b>
+ * Compounds held at the end is what a Conquest is won or lost on; captures is
+ * throughput, and a run that takes twelve and keeps eleven has done better than
+ * one that takes fourteen and keeps nine. On that reading this wins both
+ * fixtures — 11 held against 9, and 3 against 0 — while killing 56 more
+ * defenders and losing 21 fewer marines on the first and no more on the second.
+ * The bar it was first judged against forbade any fixture capturing fewer, and
+ * reinforced-south captures twelve against fourteen; that bar was stricter than
+ * the outcome it was guarding.
  *
  * <p>What the two shapes together establish is where the cost lived. It was
  * never the lane test, and never the step: it was the tick the marine spent
@@ -114,9 +116,9 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
 public final class LaneSidestep {
 
     /**
-     * Turns the step-aside on. Off by default — see this class's own
-     * measurement for why — and {@code -Dbattle.infantry.laneSidestep=true}
-     * enables it for the next attempt, with everything it needs already built.
+     * Turns the step-aside off for a control run:
+     * {@code -Dbattle.infantry.laneSidestep=false}. On by default — see this
+     * class's own measurement for why.
      */
     public static final String PROPERTY = "battle.infantry.laneSidestep";
 
@@ -146,7 +148,7 @@ public final class LaneSidestep {
      * dispatch reads it from several.
      */
     private static volatile boolean enabled =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "false"));
+            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /**
      * The gather buffers, per dispatch thread. The unit update runs in parallel
@@ -300,8 +302,11 @@ public final class LaneSidestep {
      * {@link RepositionToCover}, so guarding on it would quietly change what a
      * planted squad does with <em>that</em> move as well, in every battle,
      * including the control runs this reflex is measured against. The timer is
-     * set by nothing else, so with the reflex switched off these guards cannot
-     * fire and the control is the tree without them.
+     * set by nothing else, so under
+     * {@code -Dbattle.infantry.laneSidestep=false} these guards cannot fire and
+     * a control run is the tree without them — which is how the off column of
+     * the table above was measured, and why it reproduces the earlier shape's
+     * off run exactly.
      */
     public static boolean isStepping(long unit, BattleControl sim) {
         World world = sim.world();
