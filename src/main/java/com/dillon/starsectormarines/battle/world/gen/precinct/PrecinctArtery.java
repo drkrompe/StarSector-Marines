@@ -30,6 +30,8 @@ public final class PrecinctArtery {
 
     private PrecinctArtery() {}
 
+    private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
     /** Half-width either side of the centreline, giving a drivable odd width. */
     private static final int HALF = PrecinctBoundary.DRIVABLE_GATE_WIDTH / 2;
 
@@ -62,7 +64,7 @@ public final class PrecinctArtery {
         if (gates.stream().anyMatch(PrecinctBoundary.Gate::drivable)) return false;
 
         int[] centre = centroid(claim, who, width, height);
-        int[] target = nearestWayOut(centre, width, height);
+        int[] target = nearestWayOut(claim, who, centre, width, height);
         carve(owner, claim, who, centre, target, width, height);
         return true;
     }
@@ -85,7 +87,7 @@ public final class PrecinctArtery {
     }
 
     /**
-     * Where the artery heads: the nearest map edge.
+     * Where the artery heads: the nearest ground this precinct does not hold.
      *
      * <p>Aiming at a neighbour's road was tried first and is self-defeating.
      * The rule that an artery may not overwrite another precinct's road is
@@ -95,13 +97,54 @@ public final class PrecinctArtery {
      * aimed at town road 56 cells away got two cells of new road and kept the
      * one-cell gate it started with.
      *
-     * <p>An edge is always reachable and the ground on the way is nobody's, so
-     * the corridor can actually be cut. It also produces the right thing: a
-     * road that leaves the map is what {@code SettlementLink.ROAD} means, and a
+     * <p>The nearest map edge was the answer to that, and it is not enough
+     * either, for the same shape of reason: <b>a claim that already touches the
+     * edge it is aimed at is never left</b>. The ray runs off the map still
+     * inside the claim, {@link #carve} returns at the map boundary, and no gate
+     * is made — silently, which is the exact failure this class exists to
+     * prevent. Measured on the raid evidence fixture, whose garrison claims
+     * about 40% of the map and reaches its edge.
+     *
+     * <p>So the target is the first cell outside the claim along whichever of
+     * the four axes leaves it soonest. That is still an edge-ward heading where
+     * the claim is small, and it is a heading that actually crosses the outline
+     * where the claim is large. Beyond it the ray runs on as before, so a
      * neighbour whose own network lies across the route is met on the way
-     * rather than aimed at.
+     * rather than aimed at, and a road that carries on off the map is what
+     * {@code SettlementLink.ROAD} means.
+     *
+     * <p>Where no axis leaves the claim on the map at all, the nearest edge is
+     * kept as the target. That is a precinct spanning the map from side to
+     * side, which has no outside to reach and nothing this can do for it.
      */
-    private static int[] nearestWayOut(int[] centre, int width, int height) {
+    private static int[] nearestWayOut(int[][] claim, int who, int[] centre,
+                                       int width, int height) {
+        int[] nearest = null;
+        int nearestRun = Integer.MAX_VALUE;
+        for (int[] step : STEPS) {
+            int x = centre[0];
+            int y = centre[1];
+            int run = 0;
+            boolean left = false;
+            while (true) {
+                x += step[0];
+                y += step[1];
+                run++;
+                if (x < 0 || x >= width || y < 0 || y >= height) break;
+                if (claim[x][y] != who) {
+                    left = true;
+                    break;
+                }
+            }
+            if (!left || run >= nearestRun) continue;
+            nearestRun = run;
+            nearest = new int[]{x, y};
+        }
+        return nearest != null ? nearest : nearestEdge(centre, width, height);
+    }
+
+    /** The fallback target: the map edge the centroid is closest to. */
+    private static int[] nearestEdge(int[] centre, int width, int height) {
         int cx = centre[0];
         int cy = centre[1];
         int left = cx;

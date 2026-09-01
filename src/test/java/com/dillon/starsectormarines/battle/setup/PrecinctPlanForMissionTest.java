@@ -4,11 +4,14 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -48,6 +51,14 @@ class PrecinctPlanForMissionTest {
             SurfacePalette.ROCK, SettlementLink.ROAD);
 
     private static final long SEED = 607_898L;
+
+    /** The raid evidence fixture's world: a spaceport and heavy industry on rock. */
+    private static final TargetProfile RAID_MARKET = new TargetProfile(
+            6, 5, 4, 2, "independent",
+            EnumSet.of(EconomicFunction.SPACEPORT, EconomicFunction.HEAVY_INDUSTRY),
+            SurfacePalette.ROCK, SettlementLink.ROAD);
+
+    private static final long RAID_SEED = 141_418L;
 
     @Test
     void aBattleWithNoMarketBehindItTakesTheMapItAlreadyHad() {
@@ -128,21 +139,70 @@ class PrecinctPlanForMissionTest {
     @Test
     void aRaidAgainstARealMarketStillFindsSomethingToStrike() {
         for (OperationTier tier : List.of(OperationTier.ESTABLISHED, OperationTier.FIRST_CONTRACT)) {
-            try (BattleSimulation sim = BattleSetup.createPlaceholder(
-                    SEED, manifest(), false, tier, RiskLevel.MEDIUM,
-                    MissionType.RAID, MARKET, FlybyRoster.EMPTY, FlybyRoster.EMPTY)) {
-                RaidObjective raid = sim.getObjectives().stream()
-                        .filter(RaidObjective.class::isInstance)
-                        .map(RaidObjective.class::cast)
-                        .findFirst()
-                        .orElse(null);
-                assertNotNull(raid,
-                        "a raid at " + tier + " on a precinct map found no target to strike");
-                assertNotEquals(PointOfInterest.Kind.RESIDENTIAL.name()
-                                .toLowerCase(Locale.ROOT), raid.targetName(),
-                        "a raid at " + tier + " was sent to strike somebody's housing");
+            assertRaidFindsAPrize(tier, MARKET, SEED);
+            assertRaidFindsAPrize(tier, RAID_MARKET, RAID_SEED);
+        }
+    }
+
+    private static void assertRaidFindsAPrize(OperationTier tier, TargetProfile profile,
+                                              long seed) {
+        try (BattleSimulation sim = BattleSetup.createPlaceholder(
+                seed, manifest(), false, tier, RiskLevel.MEDIUM,
+                MissionType.RAID, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY)) {
+            RaidObjective raid = sim.getObjectives().stream()
+                    .filter(RaidObjective.class::isInstance)
+                    .map(RaidObjective.class::cast)
+                    .findFirst()
+                    .orElse(null);
+            assertNotNull(raid, "a raid at " + tier + " on seed " + seed
+                    + " found no target to strike");
+            assertNotEquals(PointOfInterest.Kind.RESIDENTIAL.name()
+                            .toLowerCase(Locale.ROOT), raid.targetName(),
+                    "a raid at " + tier + " on seed " + seed
+                            + " was sent to strike somebody's housing");
+        }
+    }
+
+    /**
+     * Nothing outside a precinct map is ever cut off from what is inside it.
+     *
+     * <p>A walled precinct whose boundary has no opening is a whole side of the
+     * battle nobody can reach, and it fails late and obscurely: raid
+     * construction throws for want of a reachable prize, and an assault merely
+     * runs for as long as its marines keep asking the pathfinder for a route
+     * that does not exist. Measured on the raid evidence fixture before the
+     * gate rule was widened: all 23 points of interest on the defender's side
+     * had route length 0 from the landing pad.
+     *
+     * <p>Asked of the map layer rather than of a built sim, because that is
+     * where the defect lives and because a {@code BattleSimulation} does not
+     * expose the spawns this reads.
+     */
+    @Test
+    void aPrecinctMapIsNeverSealed() {
+        for (MissionType type : List.of(MissionType.ASSAULT, MissionType.RAID)) {
+            for (OperationTier tier : List.of(OperationTier.ESTABLISHED,
+                    OperationTier.FIRST_CONTRACT)) {
+                assertSidesCanReachEachOther(type, tier, MARKET, SEED);
+                assertSidesCanReachEachOther(type, tier, RAID_MARKET, RAID_SEED);
             }
         }
+    }
+
+    private static void assertSidesCanReachEachOther(MissionType type, OperationTier tier,
+                                                     TargetProfile profile, long seed) {
+        MapScale scale = MapScale.forTier(tier);
+        PrecinctPlan plan = BattleSetup.precinctPlanFor(
+                type, tier, RiskLevel.MEDIUM, profile, scale, seed);
+        assertNotNull(plan, type + " at " + tier + " built no plan to test");
+        MapResult map = new BspCityGenerator()
+                .generate(scale.width, scale.height, seed, null, profile, plan);
+        int[] path = GridPathfinder.findPath(map.grid,
+                map.marineSpawnX, map.marineSpawnY, map.defenderSpawnX, map.defenderSpawnY);
+        assertTrue(path.length > 0, type + " at " + tier + " on seed " + seed
+                + ": no route from the marine spawn at " + map.marineSpawnX + ","
+                + map.marineSpawnY + " to the defender spawn at " + map.defenderSpawnX
+                + "," + map.defenderSpawnY + ", so a walled precinct came out sealed");
     }
 
     private static Precinct objectiveOf(OperationTier tier, RiskLevel risk) {
