@@ -316,6 +316,20 @@ fillers, tactical linking, and final validation. The conquest recipe also
 places its fortress and defense structure, while legacy/preview city generation
 can use the same spatial vocabulary without importing campaign concerns.
 
+**Wild ground is drawn from a field, not a roll.** A weighted pool sampled once
+per cell produces the authored proportions and no shape at all — 15% dirt over a
+meadow arrives as isolated speckles, which reads as static rather than as
+ground. The pick is therefore made against a `PatchField`: a spatially coherent
+value that neighbouring cells usually share. The constraint that makes it
+correct rather than merely smooth is that **the field's own distribution must be
+uniform**, because a field substituted for a roll decides the mix as well as its
+arrangement — a field that favours the middle of its range silently starves a
+pool's rare grounds. Interpolating between hashed lattice corners is the obvious
+construction and fails exactly there; scattering one value per lattice square
+and taking the nearest does not, because assignment depends on position and
+never on the value. Cultivated ground is unaffected: it does not consult the
+palette and does not consult this either.
+
 **A road class is a width, and the bottom class is what a settlement is made
 of.** Trunks carry a class — boulevard, cross-street, back street — and the
 grown junction graph assigns one per junction depth, walking a ladder whose last
