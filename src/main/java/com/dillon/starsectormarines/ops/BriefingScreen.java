@@ -455,8 +455,16 @@ public class BriefingScreen implements Screen {
             return;
         }
 
-        // Mission-shape controls sit first so the DEBUG Conquest fixture knobs
-        // cannot truncate under the general support pickers below.
+        // Difficulty is mission scale, not the debug company's size and not
+        // risk. Keep it first so every DEBUG briefing can move along the same
+        // campaign ladder even when the support lists below are tall.
+        if (m.source.isDebug()) {
+            y = buildDebugDifficultySlider(m, x, y, rowW, floor);
+            y -= SECTION_GAP;
+        }
+
+        // Mission-shape controls follow scale so the DEBUG Conquest fixture
+        // knobs cannot truncate under the general support pickers below.
         if (m.source == MissionSource.DEBUG
                 && m.type == MissionType.CONQUEST) {
             y = buildDebugConquestArrivalPicker(x, y, rowW, floor);
@@ -931,6 +939,32 @@ public class BriefingScreen implements Screen {
     }
 
     // ---- debug-only pickers ----
+
+    /** Mission-scale dial; risk, player force, and field presence stay separate. */
+    private float buildDebugDifficultySlider(Mission mission, float x, float y,
+                                             float rowW, float floor) {
+        if (y < floor) return y;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "MISSION DEBUG — scale demanded", x, y, HEADER_COLOR));
+        y -= ROW_GAP;
+        if (y - OperationTierSliderWidget.DEFAULT_HEIGHT < floor) return y;
+
+        widgets.add(new OperationTierSliderWidget(
+                x, y - OperationTierSliderWidget.DEFAULT_HEIGHT,
+                rowW, OperationTierSliderWidget.DEFAULT_HEIGHT,
+                mission.type, mission.tier, this::adjustDebugOperationTier));
+        return y - OperationTierSliderWidget.DEFAULT_HEIGHT;
+    }
+
+    private void adjustDebugOperationTier(OperationTier tier) {
+        Mission adjusted = DebugMissionDifficulty.atTier(
+                ctx.getSelectedMission(), tier);
+        if (adjusted == null) return;
+        ctx.setSelectedMission(adjusted);
+        debugTransportCount = Math.min(debugTransportCount,
+                adjusted.requiredDrops);
+        rebuild();
+    }
 
     /**
      * Squad dial for the debug company. The stage sets the default; this

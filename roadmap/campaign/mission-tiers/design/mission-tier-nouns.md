@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — separated total commitment from concurrent field presence for covert operations.
+Updated: 2026-09-01 — kept the DEBUG catalog as a tier-aware developer surface.
 
 Mission difficulty is described by two independent axes: **operation tier**
 states how large and consequential the work is, while **risk** states how far
@@ -135,3 +135,9 @@ Mission tiers own scale vocabulary and contracts own offer eligibility and
 terms; battle setup owns how the authored mission becomes a battle; loot owns
 the settled recovery decision. Completed establishment of the split is recorded
 in `shipped.md`.
+
+The planet-level DEBUG catalog is a developer surface, not a campaign offer
+source. Its briefing may move a selected fixture along the Operation Tier
+ladder, but the override must move every tier-owned input together, including
+recommended commitment and lift. Risk and field presence remain independent;
+the control must not turn either into a hidden difficulty alias.
