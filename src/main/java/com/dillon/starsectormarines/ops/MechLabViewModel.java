@@ -352,7 +352,7 @@ public final class MechLabViewModel {
 
     private String buildSelectedSlotRule() {
         if (fabricatingChassis()) {
-            return "PLAYER CARGO  ·  STANDARD FIT INCLUDED  ·  VACANT GANTRY";
+            return "PLAYER CARGO  ·  STANDARD FIT  ·  VACANT GANTRY";
         }
         SocketDef definition = selectedSocketDefinition();
         if (definition == null) return "NO SOCKET DEFINITION";
@@ -377,7 +377,9 @@ public final class MechLabViewModel {
                 || selectedSlot.get() == SocketId.CORE
                 || selectedSlot.get() == SocketId.AMMO_RESERVE;
         return List.of(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
-                base + ":detail", base + ":action", base + ":materials", "catalog-row selected",
+                base + ":detail", base + ":action", base + ":materials", base + ":body",
+                base + ":preview",
+                "catalog-preview hidden", null, "catalog-row selected",
                 slotComponent(mech, selectedSlot.get()), occupied ? "INSTALLED ASSEMBLY" : "EMPTY SOCKET",
                 buildSelectedSlotRule(), definition != null && definition.factoryLocked()
                         ? "FACTORY LOCKED" : "NO COMPATIBLE STOCK", true, List.of(), () -> { }));
@@ -397,7 +399,9 @@ public final class MechLabViewModel {
             boolean disabled = installed || fabricate && !affordable;
             String base = "mech-catalog:" + component.id;
             rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
-                    base + ":detail", base + ":action", base + ":materials",
+                    base + ":detail", base + ":action", base + ":materials", base + ":body",
+                    base + ":preview",
+                    "catalog-preview hidden", null,
                     installed ? "catalog-row selected" : "catalog-row", component.displayName,
                     recipe.provenance() + "  ·  OWN " + owned + " / FREE " + free,
                     component.hardpointType + "  ·  " + component.slotCost + " SLOT"
@@ -419,7 +423,9 @@ public final class MechLabViewModel {
             MechVariant variant = recipe.variant();
             String base = "mech-catalog:" + recipe.id();
             rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
-                    base + ":detail", base + ":action", base + ":materials", "catalog-row",
+                    base + ":detail", base + ":action", base + ":materials", base + ":body",
+                    base + ":preview",
+                    "catalog-preview", variant, "catalog-row chassis-pattern",
                     recipe.displayName(), recipe.provenance(),
                     Math.round(variant.armorCapacity) + " ARMOR  ·  "
                             + number(variant.moveSpeed) + " MOBILITY  ·  "
@@ -441,7 +447,9 @@ public final class MechLabViewModel {
             boolean disabled = mech == null || installed || free <= 0;
             String base = "mech-catalog:" + component.id();
             rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
-                    base + ":detail", base + ":action", base + ":materials",
+                    base + ":detail", base + ":action", base + ":materials", base + ":body",
+                    base + ":preview",
+                    "catalog-preview hidden", null,
                     installed ? "catalog-row selected" : "catalog-row", component.displayName(),
                     "OWN " + owned + "  ·  FIELD " + fielded + "  ·  FREE " + free,
                     "SRM " + number(component.srmReplenishmentSeconds()) + "s  ·  LRM "
@@ -806,7 +814,9 @@ public final class MechLabViewModel {
     }
 
     public record CatalogRow(String id, String copyId, String nameId, String stockId,
-                             String detailId, String actionId, String materialsId,
+                             String detailId, String actionId, String materialsId, String bodyId,
+                             String previewId, String previewClasses,
+                             MechVariant chassisPreview,
                              String classes, String name,
                              String stock, String detail, String actionLabel,
                              boolean actionDisabled, List<MaterialRow> materials, Runnable action)
@@ -814,7 +824,9 @@ public final class MechLabViewModel {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "copyId" -> copyId; case "nameId" -> nameId;
             case "stockId" -> stockId; case "detailId" -> detailId; case "actionId" -> actionId;
-            case "materialsId" -> materialsId;
+            case "materialsId" -> materialsId; case "bodyId" -> bodyId;
+            case "previewId" -> previewId;
+            case "previewClasses" -> previewClasses;
             case "classes" -> classes; case "name" -> name; case "stock" -> stock;
             case "detail" -> detail; case "actionLabel" -> actionLabel;
             case "actionDisabled" -> actionDisabled; case "materials" -> materials;
