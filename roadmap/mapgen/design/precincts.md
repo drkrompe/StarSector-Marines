@@ -409,6 +409,35 @@ A place with no road off the map at all is given one, straight and looking it,
 on the same terms as `PrecinctArtery`: it exists so a place is supplied, not to
 be a good road.
 
+## A mission says roughly where, not exactly where
+
+Conquest culminates in taking an installation, so a scenario has to be able to
+put that installation somewhere and the attacking force somewhere else. A cell
+is the wrong unit to say it in — what cell means "north-east" depends on the map
+— so `MapPlacement` is a fraction of the map and a `PrecinctBrief` is a place
+stated against one. The same brief lays out at 200x140 and at 900x600.
+
+Deliberately coarse: a placement is a region to land somewhere inside, not a
+position. Two missions asking for the north-east should not produce the same
+map, and a placement that pinned a cell would be an authored map wearing a
+generator's clothes.
+
+**Placement wins over separation.** Two places asked for the same corner end up
+close together, because a mission that asks for that means it. Spacing is the
+generator's business only in a derived plan.
+
+**The spawns come from the plan, not from an axis.** A precinct map has neither
+axis nor biome bands, so `SpawnAnchorStage` was falling through to a low-X /
+high-X split that is arbitrary against wherever the objective actually grew — on
+a map whose garrison is in the west it put the attacker on top of it. The
+attacker now arrives at the stated placement and the defender stands inside the
+objective's claim.
+
+**Told nothing, the attacker still starts somewhere worth attacking from**: the
+corner furthest from the objective. A force landing beside the thing it is meant
+to take has no approach to fight through, which is most of what a conquest map
+is for.
+
 ## Still open
 
 0. **A walled precinct has too many gates.** Every arm crossing the outline is a
