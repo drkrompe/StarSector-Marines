@@ -4,10 +4,8 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — perception joined movement and payload as a shipped
-integral-system effect; and the running-system treatment became a halo worn on
-the marine's own silhouette, asymmetric toward the arc it protects, dimming with
-the screen's soak pool and shattering when that pool breaks.
+Updated: 2026-09-01 — ordinary mission briefings now compare visible issued
+experience with coarse opposition quality separately from recommended force size.
 
 ## Purpose
 
@@ -972,7 +970,16 @@ the same obligation, and carries one more: the Armory reports what the
 simulation applies, never what the catalog declares. An authored effect that
 does not run yet is not advertised, because a screen describing intent rather
 than behavior is a brochure, and a player cannot tell the two apart from the
-outside. Avoid stacking redundant
+outside.
+
+Mission briefing follows the same visible-quality law. For ordinary generated
+work it reports the selected company's issued Green/Regular/Veteran/Elite
+distribution beside a coarse risk-derived opposition expectation, while tier
+and recommended squads describe quantity separately. The comparison is advice,
+not an invisible strength calculation or a source of battle scaling; it must
+not prevent a valid understrength fire team from attempting the work.
+
+Avoid stacking redundant
 battlefield overlays; start with the closest decision surface and add in-world
 signal only when it materially improves play.
 
