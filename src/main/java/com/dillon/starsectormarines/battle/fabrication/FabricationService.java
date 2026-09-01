@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.fabrication;
 
-import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
@@ -231,11 +230,6 @@ public final class FabricationService {
     public int bayServicedFrom(int cellX, int cellY) {
         Integer siteId = serviceCells.get(key(cellX, cellY));
         return siteId == null ? -1 : siteId;
-    }
-
-    /** The claim group welding in this bay is published under. */
-    public static String weldingGroup(int siteId) {
-        return JobBoard.group(siteId, Affordance.SERVICE);
     }
 
     /** Every chassis this map's sheds are tooled for, in the order they build them. */
