@@ -305,15 +305,15 @@ class DebugCompanyTest {
     }
 
     @Test
-    void aFullStrengthCompanyFillsAConquestHighManifest() {
-        // 34 squads is 408 marines against 480 seats of lift, so every marine
-        // the stage fields has somewhere to sit.
+    void aFullStrengthCompanyFillsTheThousandMarineConquestManifest() {
+        // Eighty-four squads are the 1,008 marines the full three-lane ferry
+        // must deliver into one Conquest battle.
         DebugCompanyStage stage = DebugCompanyStage.FULL_STRENGTH;
         MarineRoster roster = DebugCompany.roster(stage);
         Set<String> line = new LinkedHashSet<>(DebugCompany.lineSquadIds(roster));
 
         CampaignMarineDeployment frozen = CampaignMarineDeployment.freezeSelection(
-                roster, line, 40 * 12);
+                roster, line, stage.marines());
 
         assertEquals(stage.marines(), frozen.size());
         Set<String> squadIds = new HashSet<>();
@@ -334,9 +334,9 @@ class DebugCompanyTest {
         // more squads than Rank.COLONEL may command, so the fixture says so
         // rather than silently capping.
         assertTrue(DebugCompanyStage.FULL_STRENGTH.exceedsCommandCap(),
-                "34 squads is past a Colonel's 24");
+                "84 squads is past a Colonel's 24");
         assertTrue(DebugCompanyStage.REINFORCED.exceedsCommandCap(),
-                "17 squads is past a Lt. Colonel's 16");
+                "42 squads is past a Lt. Colonel's 16");
         for (DebugCompanyStage stage : List.of(DebugCompanyStage.FIRST_CONTRACT,
                 DebugCompanyStage.ESTABLISHED, DebugCompanyStage.VETERAN_COMPANY)) {
             assertTrue(!stage.exceedsCommandCap(),

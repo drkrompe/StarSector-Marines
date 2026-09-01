@@ -9,16 +9,19 @@ import com.dillon.starsectormarines.marine.SquadExperienceStandard;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
 
-/** Pure quantity/quality read model for an ordinary production deployment. */
+/** Pure quantity/quality read model for a mission deployment. */
 public final class MissionForceEnvelope {
 
     public static final int MINIMUM_READY_PERSONNEL = 4;
+    public static final int REINFORCED_CONQUEST_SQUADS = 42;
+    public static final int FULL_STRENGTH_CONQUEST_SQUADS = 84;
 
     private MissionForceEnvelope() {}
 
@@ -33,8 +36,30 @@ public final class MissionForceEnvelope {
     }
 
     public static int recommendedPersonnel(Mission mission) {
-        return mission != null && mission.tier != null
-                ? mission.tier.squadsDemanded * MarineSquad.CAPACITY : 0;
+        return mission != null
+                ? recommendedPersonnel(mission.type, mission.tier) : 0;
+    }
+
+    public static int recommendedPersonnel(MissionType type, OperationTier tier) {
+        return recommendedSquads(type, tier) * MarineSquad.CAPACITY;
+    }
+
+    /**
+     * Tier supplies the ordinary baseline; Conquest authors the battalion-scale
+     * jump required by its three simultaneous lanes and sustained ferry battle.
+     */
+    public static int recommendedSquads(Mission mission) {
+        return mission != null ? recommendedSquads(mission.type, mission.tier) : 0;
+    }
+
+    public static int recommendedSquads(MissionType type, OperationTier tier) {
+        OperationTier resolved = tier != null ? tier : OperationTier.ESTABLISHED;
+        if (type == MissionType.CONQUEST) {
+            return resolved == OperationTier.FULL_STRENGTH
+                    ? FULL_STRENGTH_CONQUEST_SQUADS
+                    : REINFORCED_CONQUEST_SQUADS;
+        }
+        return resolved.squadsDemanded;
     }
 
     public static ExperienceMix selectedExperience(MarineRoster roster,
