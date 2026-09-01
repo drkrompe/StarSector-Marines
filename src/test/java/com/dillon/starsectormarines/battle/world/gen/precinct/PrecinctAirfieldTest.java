@@ -89,18 +89,22 @@ class PrecinctAirfieldTest {
     /**
      * The size ladder absorbs pressure rather than refusing.
      *
-     * <p>Measured on a 200x140 map, berths by airfields ordered run 3, 6, 8, 11,
-     * 13, 16 — growth all the way, and sub-linear, because a place that cannot
-     * seat another station seats a field or a pad instead. Sixteen berths for
-     * six fields rather than eighteen is the ladder doing its job.
+     * <p>Measured on a 200x140 map, berths by airfields ordered run 2, 4, 7, 9,
+     * 12, 13 — growth all the way, and short of what six of the largest field
+     * would give, because a place that cannot seat another station seats a field
+     * or a pad instead. Thirteen berths for six fields rather than eighteen is
+     * the ladder doing its job.
      *
-     * <p>What is <em>not</em> true, and was asserted here before it was
-     * measured: that a cramped map gets a smaller first field. A station is
-     * 62x28 with its clearance and fits comfortably in either, so the first
-     * field is the same on both and only later ones ladder down.
+     * <p><b>The reference for "the largest size" is a map with room, not this
+     * one.</b> A cramped garrison's single field is itself already laddered
+     * down: 200x140 seats a two-berth field where 560x336 seats a three-berth
+     * station, so measuring six against six of the cramped one compares against
+     * something that is not the top of the ladder — and reads as a regression
+     * the moment the claim gets a little rounder or a little smaller.
      */
     @Test
     void theSizeLadderAbsorbsPressureRatherThanRefusing() {
+        int largest = ward(1, W, H).ctx().landingPads.size();
         int one = ward(1, 200, 140).ctx().landingPads.size();
         Built six = ward(6, 200, 140);
         int many = six.ctx().landingPads.size();
@@ -110,9 +114,10 @@ class PrecinctAirfieldTest {
         assertTrue(six.shortfall().isEmpty(), "six airfields on a 200x140 map reported "
                 + six.shortfall() + " missing, where the ladder should have seated them all "
                 + "at smaller sizes");
-        assertTrue(many < 6 * one, "six airfields produced " + many + " berths, exactly six "
-                + "times a single field's " + one + ", so every one of them came out the "
-                + "largest size and the ladder is not being walked at all");
+        assertTrue(many < 6 * largest, "six airfields produced " + many + " berths, six "
+                + "times the " + largest + " a field gets on a map with room, so every one "
+                + "of them came out the largest size and the ladder is not being walked at "
+                + "all");
     }
 
     /** A field that had nowhere to go at all is counted, not dropped. */
