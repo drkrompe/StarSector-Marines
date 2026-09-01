@@ -721,14 +721,20 @@ public final class BattleSetup {
         // pegged to the highest-priority posts; leftovers form patrol squads).
         // Legacy maps with no tactical layer fall back to the single-cluster
         // spawn around the defender anchor.
+        // A mission whose defender commander is expected to hold a mobile
+        // reserve must be handed enough members for more than one squad.
+        // Pass 1 garrisons greedily down to this floor, so on a map with
+        // plenty of tactical nodes the floor is exactly what the commander
+        // ends up owning: one squad's worth of members is one squad, and one
+        // squad can only ever be routine coverage — the Assault defender's
+        // reserve law deliberately keeps a lone squad guarding an area rather
+        // than waiting in readiness. Assault kept the single-squad floor from
+        // before Raid and Extraction were written and was never revisited; a
+        // fortress map, which emits a tactical node per packed room, then
+        // garrisoned everything else and left the commander with nothing to
+        // dispatch.
         int assaultMobileMembers = switch (type) {
-            case ASSAULT -> Math.min(Math.max(0,
-                    defenders.roster().totalCount - 2),
-                    defenders.roster().patrolSquadSize);
-            case RAID -> Math.min(Math.max(0,
-                    defenders.roster().totalCount - 2),
-                    defenders.roster().patrolSquadSize * 3);
-            case EXTRACTION -> Math.min(Math.max(0,
+            case ASSAULT, RAID, EXTRACTION -> Math.min(Math.max(0,
                     defenders.roster().totalCount - 2),
                     defenders.roster().patrolSquadSize * 3);
             default -> 0;
