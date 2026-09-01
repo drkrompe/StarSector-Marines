@@ -54,6 +54,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFit
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HinterlandFillStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctSkeletonStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctDefenceStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctLandingAreaStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctWardStage;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
@@ -246,6 +247,13 @@ public final class BspCityGenerator implements MapGenerator {
     private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage,
                                         GenStage landingLinkStage, GenStage wardStage,
                                         GenStage defenceStage) {
+        return buildLegacyRecipe(trunkStage, hinterlandStage, landingLinkStage,
+                wardStage, defenceStage, null);
+    }
+
+    private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage,
+                                        GenStage landingLinkStage, GenStage wardStage,
+                                        GenStage defenceStage, GenStage landingAreaStage) {
         return new GenRecipe("LegacyUrban", compose(
                 new InitFloorStage(),                       // Step 0
                 trunkStage,                                 // Step 1a
@@ -267,6 +275,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new DoorwayClearanceStage(),                // Step 4c   nothing stands in a doorway
                 new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
                 new SpawnAnchorStage(),                     // spawn anchors
+                landingAreaStage,                           // precinct-only; null omits it
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
 
@@ -414,7 +423,7 @@ public final class BspCityGenerator implements MapGenerator {
     private GenRecipe precinctRecipe(PrecinctPlan plan) {
         return buildLegacyRecipe(new PrecinctSkeletonStage(plan),
                 new HinterlandFillStage(), null, new PrecinctWardStage(),
-                new PrecinctDefenceStage());
+                new PrecinctDefenceStage(), new PrecinctLandingAreaStage());
     }
 
     private GenRecipe grownLegacyRecipe(GrownTrunkPlan.Profile profile) {
