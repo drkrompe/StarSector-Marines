@@ -621,6 +621,7 @@ public final class SquadStateDumper {
             row.put("friendlyPressure", track.friendlyPressure());
             row.put("knownHostilePressure", track.knownHostilePressure());
             row.put("targetZoneId", track.targetZoneId());
+            row.put("responderCap", track.responderCap());
             tracks.put(row);
         }
         out.put("tracks", tracks);
