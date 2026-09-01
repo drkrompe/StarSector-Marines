@@ -2144,11 +2144,42 @@ public final class TacticalScoring {
 
     private record SegmentProjection(float x, float y, float distance) {}
 
+    /** Zone argument meaning "any cell will do" — the unconstrained search. */
+    public static final int ANY_ZONE = -1;
+
     public int[] findFiringPositionWithin(long self, long target,
                                           int anchorX, int anchorY, float maxDistFromAnchor) {
+        return findFiringPositionWithin(self, target, anchorX, anchorY,
+                maxDistFromAnchor, ANY_ZONE);
+    }
+
+    /**
+     * Zone-contained variant: additionally rejects any candidate cell that is
+     * not inside zone {@code requiredZoneId}. Pass {@link #ANY_ZONE} for the
+     * unconstrained search.
+     *
+     * <p>The plain search scores walkability, leash distance, range and line
+     * of fire, and knows nothing whatever about rooms or portals. That is
+     * exactly right when the leash is the only boundary that exists — an
+     * attack move has no room, only a destination — and wrong when the order
+     * names one, because a leash is a radius and a room is not. Rooms here are
+     * routinely smaller across than the leash, so an unconstrained search
+     * around a destination inside one will happily return the best cell in the
+     * room next door, or on the far side of a portal the squad has not been
+     * told to cross. A member sent to take a room does not improve its firing
+     * position by leaving it.
+     *
+     * <p>A threshold is refused for free, whichever room it stands between,
+     * because it belongs to neither of them — and a doorway is the one cell
+     * near a room that somebody meaning to hold it should not be standing in.
+     */
+    public int[] findFiringPositionWithin(long self, long target,
+                                          int anchorX, int anchorY,
+                                          float maxDistFromAnchor, int requiredZoneId) {
         long _profT0 = System.nanoTime();
         try {
-            return findFiringPositionWithinImpl(self, target, anchorX, anchorY, maxDistFromAnchor);
+            return findFiringPositionWithinImpl(self, target, anchorX, anchorY,
+                    maxDistFromAnchor, requiredZoneId);
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
             if (p != null) p.record(TickInnerProfile.Bucket.FIRING_POSITION, System.nanoTime() - _profT0);
@@ -2156,7 +2187,8 @@ public final class TacticalScoring {
     }
 
     private int[] findFiringPositionWithinImpl(long self, long target,
-                                               int anchorX, int anchorY, float maxDistFromAnchor) {
+                                               int anchorX, int anchorY,
+                                               float maxDistFromAnchor, int requiredZoneId) {
 
         World world = roster.world();
         int tx = world.cellX(target);
@@ -2193,6 +2225,7 @@ public final class TacticalScoring {
                 int dy = cy - ty;
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
                 if (cellDistance(anchorX, anchorY, cx, cy) > maxDistFromAnchor) continue;
+                if (requiredZoneId >= 0 && zoneGraph.zoneIdAt(cx, cy) != requiredZoneId) continue;
 
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > effectiveRange) continue;
