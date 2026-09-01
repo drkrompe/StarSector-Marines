@@ -1,16 +1,13 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
-import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Data owner for the "where does the defender want to reinforce" question for
@@ -18,21 +15,21 @@ import java.util.Map;
  * ({@code reinforcement-nouns.md}).
  *
  * <p>It holds the static set of {@link RecaptureTarget}s (every eligible
- * defender node, bucketed by biome slice at init — nodes don't move) plus the
- * derived state the dispatch layer queries:
+ * defender node, bucketed by {@link FrontDepth} band at init — nodes don't
+ * move) plus the derived state the dispatch layer queries:
  *
  * <ul>
  *   <li><b>Open targets.</b> A node is <i>open</i> when zero alive defenders
  *       are assigned to it — the garrison (original or a prior reinforcement)
  *       has been wiped.</li>
- *   <li><b>Contested slices (the frontline).</b> A biome slice is
+ *   <li><b>Contested bands (the frontline).</b> A front band is
  *       <i>contested</i> while it holds a (debounced) defender presence; once
- *       the marines overrun it the slice is <i>conceded</i> and its targets
+ *       the marines overrun it the band is <i>conceded</i> and its targets
  *       drop out of eligibility.</li>
  * </ul>
  *
  * <p>A target is <b>eligible for dispatch</b> iff {@code open && !dispatched &&
- * contested(slice)}.
+ * contested(band)}.
  *
  * <p>A <b>Service</b> (data owner): it holds the targets + the open/contested
  * results and exposes the read/mutate methods for them; the per-tick recompute
@@ -46,20 +43,22 @@ import java.util.Map;
 public final class RecaptureTargetService {
 
     private final List<RecaptureTarget> targets = new ArrayList<>();
-    private final Map<BiomeKind, List<RecaptureTarget>> bySlice = new EnumMap<>(BiomeKind.class);
+    private final List<List<RecaptureTarget>> byBand = new ArrayList<>();
 
-    private final EnumMap<BiomeKind, Boolean> contested = new EnumMap<>(BiomeKind.class);
+    private final boolean[] contested;
 
-    public RecaptureTargetService(TacticalMap tacticalMap, BiomeMap biomeMap) {
+    public RecaptureTargetService(TacticalMap tacticalMap, FrontDepth frontDepth) {
+        int bands = frontDepth.bands();
+        this.contested = new boolean[bands];
+        for (int b = 0; b < bands; b++) {
+            byBand.add(new ArrayList<>());
+        }
         for (TacticalNode node : tacticalMap.forFaction(Faction.DEFENDER)) {
             if (!isRecaptureEligible(node)) continue;
-            BiomeKind slice = biomeMap.biomeAt(node.anchorX, node.anchorY);
-            RecaptureTarget t = new RecaptureTarget(node, slice);
+            int band = frontDepth.bandAt(node.anchorX, node.anchorY);
+            RecaptureTarget t = new RecaptureTarget(node, band);
             targets.add(t);
-            bySlice.computeIfAbsent(slice, k -> new ArrayList<>()).add(t);
-        }
-        for (BiomeKind b : BiomeKind.values()) {
-            contested.put(b, Boolean.FALSE);
+            byBand.get(band).add(t);
         }
     }
 
@@ -69,29 +68,30 @@ public final class RecaptureTargetService {
                 && node.kind != TacticalNode.Kind.AIRBASE;
     }
 
-    /** Whether {@code slice} currently holds a (debounced) defender presence. */
-    public boolean isContested(BiomeKind slice) {
-        return contested.getOrDefault(slice, Boolean.FALSE);
+    /** Whether {@code band} currently holds a (debounced) defender presence. */
+    public boolean isContested(int band) {
+        return band >= 0 && band < contested.length && contested[band];
     }
 
     /**
-     * Open, undispatched, once-manned targets sitting in contested slices —
+     * Open, undispatched, once-manned targets sitting in contested bands —
      * the dispatch-eligible set the front-line trigger round-robins over.
-     * Conceded slices (marines overran them), already-dispatched targets, and
+     * Conceded bands (marines overran them), already-dispatched targets, and
      * never-manned nodes (positions {@code BattleSetup} never actually
      * garrisoned — nothing was "lost" there) are filtered out.
      */
     public List<RecaptureTarget> eligibleTargets() {
         List<RecaptureTarget> out = new ArrayList<>();
         for (RecaptureTarget t : targets) {
-            if (t.manned && t.open && !t.dispatched && isContested(t.slice)) out.add(t);
+            if (t.manned && t.open && !t.dispatched && isContested(t.band)) out.add(t);
         }
         return out;
     }
 
-    /** Static bucket of every target whose anchor falls in {@code slice}, regardless of state. */
-    public List<RecaptureTarget> targetsInSlice(BiomeKind slice) {
-        return Collections.unmodifiableList(bySlice.getOrDefault(slice, List.of()));
+    /** Static bucket of every target whose anchor falls in {@code band}, regardless of state. */
+    public List<RecaptureTarget> targetsInSlice(int band) {
+        if (band < 0 || band >= byBand.size()) return List.of();
+        return Collections.unmodifiableList(byBand.get(band));
     }
 
     /**
@@ -138,8 +138,9 @@ public final class RecaptureTargetService {
 
     // ---- System-facing mutators (driven by RecaptureTargetSystem) ----
 
-    /** Set a slice's contested result. Called by the recompute in {@link RecaptureTargetSystem}. */
-    void setContested(BiomeKind slice, boolean value) {
-        contested.put(slice, value);
+    /** Set a band's contested result. Called by the recompute in {@link RecaptureTargetSystem}. */
+    void setContested(int band, boolean value) {
+        if (band < 0 || band >= contested.length) return;
+        contested[band] = value;
     }
 }
