@@ -46,6 +46,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
+import com.dillon.starsectormarines.battle.air.BoatSortieSystem;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirframeCookOffSystem;
 import com.dillon.starsectormarines.battle.air.AirProvider;
@@ -359,6 +360,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Stateless tick consumer that stands airframes on their pads, writes off one destroyed where it sat, and counts down a turnaround. */
     private final AirfieldSystem airfieldSystem = new AirfieldSystem();
     /** Decides when the field puts an armed aircraft over the battle. Self-gating: a field with no strip or no sheds flies nothing. */
+    private final BoatSortieSystem boatSorties = new BoatSortieSystem();
     private final AirStrikeSystem airStrikeSystem =
             new AirStrikeSystem(Faction.DEFENDER, Faction.MARINE);
     /** Flies the committed fighter wings as off-map sorties. Self-gating: an empty roster dispatches nothing. */
@@ -1913,6 +1915,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // After the berths, so a shed that just took an aircraft back is
         // airworthy in the same tick a strike might want it.
         airStrikeSystem.tick(TICK_DT, this);
+        // The ship-side sibling: a bay puts a boat off the hull the way a field
+        // puts an aircraft over the battle. Ticked unconditionally like the
+        // strike system and, like it, does nothing where the place it is on has
+        // nothing of its kind — a garrison hardstand has nowhere off this map to
+        // send anything to.
+        boatSorties.tick(TICK_DT, this, airfieldService);
         if (garrisonSystem != null) garrisonSystem.tick(TICK_DT, this, compoundService);
         // Resource production — alive compounds generate tickets (reinforcement,
         // airstrike) into per-faction pools. Ticked after capture so a
