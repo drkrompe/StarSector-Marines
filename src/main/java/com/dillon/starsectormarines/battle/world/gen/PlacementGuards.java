@@ -120,6 +120,18 @@ public final class PlacementGuards {
      * <p>Runs in {@code O(w*h)} on the grid but only fires for anchors that pass
      * the cheaper footprint/doorway gates, so typical use is a handful of calls
      * per gen, not hundreds.
+     *
+     * <p><b>It answers a different question than its name suggests, and the
+     * difference matters.</b> "Would this stamp partition the graph" and "is any
+     * walkable cell unreachable" are the same only on a map that is whole to
+     * begin with. Where an earlier stage has left an orphan pocket — an interior
+     * not yet given its doorway, a cell a fill sealed — this returns true for
+     * <em>every</em> candidate anchor, so the caller places nothing at all and
+     * says nothing about it. That is not hypothetical: a precinct map carrying
+     * three orphan pockets of 21 cells between them refused all 5605 defence-post
+     * anchors on it. Prefer {@link #wouldStrandGround}, which asks locally and is
+     * therefore immune, unless the caller has a reason to want the global
+     * property.
      */
     public static boolean wouldPartitionWalkable(NavigationGrid grid, int[][] stampedCells) {
         int gridW = grid.getWidth();
@@ -218,7 +230,7 @@ public final class PlacementGuards {
         int[] approachX = new int[blocked * Direction.ALL.length];
         int[] approachY = new int[blocked * Direction.ALL.length];
         int approaches = collectApproaches(grid, blockedX, blockedY, blocked,
-                x, y, width, height, approachX, approachY);
+                approachX, approachY);
         // One way in is one way out: with no second approach to separate it
         // from, the footprint carried no route between two places.
         if (approaches <= 1) return false;
@@ -242,10 +254,82 @@ public final class PlacementGuards {
         return wouldStrandGround(grid, x, y, 1, 1);
     }
 
-    /** The distinct cells that can step onto the footprint as the grid stands now. */
+    /**
+     * The same question for a stamp whose footprint is not a filled rectangle.
+     *
+     * <p>A defence post's embankment is a ring, a cross or a notched trapezoid:
+     * cells inside its bounding box that the stamp leaves walkable. Those open
+     * cells are exactly where the interesting failure lives — a ring arm can box
+     * in its own corner against a pre-existing wall — so they are treated as
+     * approaches that must stay connected rather than being excluded the way a
+     * rectangle's interior is.
+     *
+     * <p>Prefer this over {@link #wouldPartitionWalkable} for anything stamped
+     * more than a handful of times per map. That check asks whether <em>any</em>
+     * walkable cell anywhere is unreachable, so a single orphan cell left
+     * somewhere else by an earlier stage makes it answer true for every
+     * candidate on the map — which is silent, total, and looks exactly like a
+     * stamper that was never called.
+     *
+     * @param blockedCells the exact cells the stamp will turn non-walkable
+     */
+    public static boolean wouldStrandGround(NavigationGrid grid, int[][] blockedCells) {
+        if (blockedCells == null || blockedCells.length == 0) return false;
+
+        int[] blockedX = new int[blockedCells.length];
+        int[] blockedY = new int[blockedCells.length];
+        int blocked = 0;
+        for (int[] cell : blockedCells) {
+            if (!grid.inBounds(cell[0], cell[1])) continue;
+            if (!grid.isWalkable(cell[0], cell[1])) continue;
+            blockedX[blocked] = cell[0];
+            blockedY[blocked] = cell[1];
+            blocked++;
+        }
+        // Blocking what is already blocked takes nothing out of the graph.
+        if (blocked == 0) return false;
+
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
+        for (int i = 0; i < blocked; i++) {
+            minX = Math.min(minX, blockedX[i]);
+            maxX = Math.max(maxX, blockedX[i]);
+            minY = Math.min(minY, blockedY[i]);
+            maxY = Math.max(maxY, blockedY[i]);
+        }
+
+        int[] approachX = new int[blocked * Direction.ALL.length];
+        int[] approachY = new int[blocked * Direction.ALL.length];
+        int approaches = collectApproaches(grid, blockedX, blockedY, blocked,
+                approachX, approachY);
+        // One way in is one way out: with no second approach to separate it
+        // from, the footprint carried no route between two places.
+        if (approaches <= 1) return false;
+
+        for (int i = 0; i < blocked; i++) {
+            grid.setWalkable(blockedX[i], blockedY[i], false);
+        }
+        boolean connected = approachesStayConnected(grid, approachX, approachY, approaches,
+                Math.max(0, minX - STRAND_WINDOW_RADIUS),
+                Math.max(0, minY - STRAND_WINDOW_RADIUS),
+                Math.min(grid.getWidth() - 1, maxX + STRAND_WINDOW_RADIUS),
+                Math.min(grid.getHeight() - 1, maxY + STRAND_WINDOW_RADIUS));
+        for (int i = 0; i < blocked; i++) {
+            grid.setWalkable(blockedX[i], blockedY[i], true);
+        }
+        return !connected;
+    }
+
+    /**
+     * The distinct cells that can step onto the footprint as the grid stands now.
+     *
+     * <p>A cell is excluded when the stamp is going to block it too, which for a
+     * filled rectangle is the whole rect and for a sparse footprint is only the
+     * cells actually stamped — an open cell a ring leaves inside itself stays
+     * walkable, so it is somewhere that must still be reachable afterwards.
+     */
     private static int collectApproaches(NavigationGrid grid,
                                          int[] blockedX, int[] blockedY, int blocked,
-                                         int x, int y, int width, int height,
                                          int[] approachX, int[] approachY) {
         int approaches = 0;
         for (int i = 0; i < blocked; i++) {
@@ -253,7 +337,11 @@ public final class PlacementGuards {
                 int nx = blockedX[i] + direction.dx;
                 int ny = blockedY[i] + direction.dy;
                 if (!grid.inBounds(nx, ny)) continue;
-                if (nx >= x && nx < x + width && ny >= y && ny < y + height) continue;
+                boolean alsoBlocked = false;
+                for (int k = 0; k < blocked && !alsoBlocked; k++) {
+                    alsoBlocked = blockedX[k] == nx && blockedY[k] == ny;
+                }
+                if (alsoBlocked) continue;
                 if (!grid.canTraverseCellStep(blockedX[i], blockedY[i], nx, ny)) continue;
                 boolean known = false;
                 for (int k = 0; k < approaches && !known; k++) {

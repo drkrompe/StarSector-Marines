@@ -43,7 +43,11 @@ class PrecinctDefenceTest {
                          PrecinctDefence.Result result) { }
 
     private static Built defend(Fortification fortification) {
-        return defend(fortification, 42L, true);
+        return defend(fortification, 42L, true, false);
+    }
+
+    private static Built defend(Fortification fortification, long seed, boolean crossed) {
+        return defend(fortification, seed, crossed, false);
     }
 
     /**
@@ -54,8 +58,12 @@ class PrecinctDefenceTest {
      *                fortification has no gates to seed from and the same
      *                placement scatters — the control for
      *                {@link #theWayInIsWatched()}
+     * @param orphan  when true, a single walkable cell far from the precinct is
+     *                sealed off from everything else — the condition in
+     *                {@link #anOrphanPocketElsewhereDoesNotDisarmTheGarrison()}
      */
-    private static Built defend(Fortification fortification, long seed, boolean crossed) {
+    private static Built defend(Fortification fortification, long seed, boolean crossed,
+                                boolean orphan) {
         NavigationGrid grid = new NavigationGrid(W, H);
         CellTopology topology = new CellTopology(W, H);
         for (int x = 0; x < W; x++) {
@@ -85,6 +93,16 @@ class PrecinctDefenceTest {
                 grid.setWalkable(x, y, false);
                 grid.setWallHp(x, y, fortification.wallHp());
                 topology.setWall(x, y, true);
+            }
+        }
+
+        if (orphan) {
+            // A cell walled in on all four sides, nowhere near the garrison and
+            // nothing to do with it. This is what an earlier fill leaves behind
+            // on a real map, and it is the whole difference between a guard that
+            // asks about the stamp and one that asks about the map.
+            for (int[] step : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                grid.setWalkable(5 + step[0], 5 + step[1], false);
             }
         }
 
@@ -218,6 +236,31 @@ class PrecinctDefenceTest {
                 + "not tight enough to show a shortfall");
         assertEquals(20, placed + missing, "the placement lost " + (20 - placed - missing)
                 + " emplacements between asking and reporting");
+    }
+
+    /**
+     * Ground stranded somewhere else is not this garrison's problem.
+     *
+     * <p>The placement guard has to ask whether <em>this stamp</em> strands
+     * ground, not whether any ground anywhere is stranded. Those come apart the
+     * moment a map carries an orphan pocket, which every real one does — and the
+     * map-wide form then refuses every anchor on the map and places nothing,
+     * without an exception or a log line. Measured on a generated precinct map,
+     * three orphan pockets totalling 21 cells cost a citadel all fifteen of its
+     * guns while every count still said it had asked for them.
+     *
+     * <p>Held here rather than in a test of the guard itself because this is
+     * where the consequence lives: a guard is only wrong in the caller that
+     * cannot place anything.
+     */
+    @Test
+    void anOrphanPocketElsewhereDoesNotDisarmTheGarrison() {
+        int whole = turrets(defend(Fortification.CITADEL, 42L, true, false).ctx());
+        int orphaned = turrets(defend(Fortification.CITADEL, 42L, true, true).ctx());
+        assertTrue(whole > 0, "the control placed nothing, so this measures nothing");
+        assertEquals(whole, orphaned, "a citadel put " + whole + " guns on an unbroken map and "
+                + orphaned + " on the same map with one cell sealed off in a far corner, so the "
+                + "placement is answering a question about the map rather than about the stamp");
     }
 
     /** A fortification with nothing on it places nothing, and says so quietly. */
