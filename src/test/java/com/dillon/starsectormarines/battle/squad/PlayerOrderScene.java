@@ -19,12 +19,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.debug.SquadOrderRecorder;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
-import com.dillon.starsectormarines.testsupport.DiskRegistries;
-import org.json.JSONObject;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -203,36 +198,10 @@ public final class PlayerOrderScene implements BehaviorScene {
 
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
-        installArmouryCatalogs();
         return List.of(
                 ordered(frames, "handback", false),
                 control(frames),
                 ordered(frames, "contact", true));
-    }
-
-    /**
-     * What {@code onApplicationLoad} would have done for the two catalogs an
-     * armed squad reads.
-     *
-     * <p><b>Neither scene entry point installs these.</b> {@code SceneEvidenceCli}
-     * primes hull geometry and nothing else, and {@code BehaviorSceneSnapshotSuite}
-     * primes nothing at all — while {@code SceneBuilder} arms every squad by
-     * default and both catalogs fail loud rather than degrading, so the first
-     * scene on the instrument with a default kit cannot play at all until they
-     * are in. Done here because one call covers both entry points, and because
-     * both installs are idempotent; it belongs in the runner the day a second
-     * scene needs it.
-     */
-    private static void installArmouryCatalogs() throws Exception {
-        DiskRegistries.installMapGeneration();
-        if (SpecialEquipmentRegistry.installed() == null) {
-            SpecialEquipmentRegistry equipment = new SpecialEquipmentRegistry();
-            for (String path : SpecialEquipmentRegistry.BUILTIN_CATALOGS) {
-                equipment.ingest(new JSONObject(Files.readString(Path.of("mod", path))));
-            }
-            equipment.validateReferences();
-            SpecialEquipmentRegistry.install(equipment);
-        }
     }
 
     /**

@@ -47,6 +47,7 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        SceneRegistries.installArmoury(context.projectRoot());
         BattleReviewFrameRenderer renderer =
                 new BattleReviewFrameRenderer(context.modRoot(), width, height);
         Map<String, List<BufferedImage>> byLoop = new LinkedHashMap<>();
