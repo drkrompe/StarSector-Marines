@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.scene;
 
-import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -135,7 +135,7 @@ public final class OrderTrace implements TickObserver {
             sumY += sim.world().y(member);
         }
         return new Sample(tick,
-                SquadOrderRecorder.assignmentLabel(squad.assignedObjective),
+                missionLabel(sim, squad),
                 executingLabel(squad),
                 suspension == null ? "" : suspension,
                 goal == null ? NONE : goal.name(),
@@ -153,10 +153,23 @@ public final class OrderTrace implements TickObserver {
      * whether it can act on it yet is what {@link Sample#suspension} carries.
      */
     private static String executingLabel(Squad squad) {
-        ObjectiveAssignment player = squad.playerTacticalOrder();
-        return player != null
-                ? SquadOrderRecorder.PLAYER_ORDER_PREFIX + SquadOrderRecorder.assignmentLabel(player)
+        return squad.underPlayerOrder()
+                ? SquadOrderRecorder.PLAYER_ORDER_PREFIX
+                        + SquadOrderRecorder.assignmentLabel(squad.assignedObjective)
                 : SquadOrderRecorder.assignmentLabel(squad.assignedObjective);
+    }
+
+    /**
+     * The commander's standing assignment. A player's order is a lease over the
+     * commander's directive, so while one stands the squad's own field holds
+     * the player's order and the mission is read off the shelf the lease put it
+     * on — which is what keeps this layer saying what a squad will go back to
+     * rather than repeating the layer beside it.
+     */
+    private static String missionLabel(BattleSimulation sim, Squad squad) {
+        CommandDirective shelved = sim.getShelvedSquadDirective(squad.id);
+        return SquadOrderRecorder.assignmentLabel(shelved != null
+                ? shelved.assignment() : squad.assignedObjective);
     }
 
     private static String actionLabel(SquadPlan plan) {

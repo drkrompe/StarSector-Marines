@@ -6,9 +6,10 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 /**
- * A boat bay as four worked bulkhead runs around a clear deck: cargo down one
- * side, fuelling and plant down the other, the deck office at one end and the
- * ready stores at the other.
+ * A boat bay as a door with a room behind it: the outboard bulkhead clear from
+ * end to end, a rank of boats nosed at it from the fuelling run along the
+ * inboard side, and the deck office and the ready stores worked down the two
+ * ends.
  *
  * <p>The clear middle is not the room. It is a <em>constraint</em> on the room —
  * a boat has to be moved through it, and troops form up on it to embark — and
@@ -39,12 +40,22 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
  * and one ranked against the cargo side would put the tankage across the bay
  * from the things it fuels.
  *
- * <p>So the deck stays clear and the perimeter is worked hard. Each of the four
- * bulkheads carries a run {@link #WORKING_BAND} cells deep, and the first cell
- * of clear deck inboard of it is where somebody stands — which makes the
- * standing cells one continuous ring of lane rather than pockets between
- * stacks, and is why this room can be worked heavily without ever risking its
- * own circulation.
+ * <p>So the deck stays clear and the perimeter is worked hard. Three of the
+ * bulkheads carry a run {@link #WORKING_BAND} cells deep, and the first cell of
+ * clear deck inboard of each is where somebody stands — which makes the standing
+ * cells one continuous lane rather than pockets between stacks, and is why this
+ * room can be worked heavily without ever risking its own circulation.
+ *
+ * <p><b>The fourth bulkhead is the door, and nothing stands against it.</b> The
+ * bay names that side as its {@linkplain #outboard() outboard} and the placer
+ * puts it on the hull, so the fitting knows where the door is rather than
+ * finding out afterwards. It used to work all four sides alike and leave the
+ * placer free to use whichever it could reach, and the result was a store with
+ * two boats in the middle: the hull door somewhere behind a rank of crates, and
+ * the boats as often as not parked facing away from it. A hangar is legible by
+ * its exit. So the door wall is bare deck the whole way along, the boats face
+ * it across the lane they leave by, and the cargo that used to line that side
+ * is pushed into the corners where it was always going to end up.
  *
  * <p>Jobs go at {@link #WORK_PITCH}, so the bay's capacity is its perimeter
  * rather than a number written here. A gig bay on a frigate and a boat deck on a
@@ -52,11 +63,10 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
  * the same rule the gantry bays follow.
  *
  * <p>Not {@linkplain RoomFitting#handed() handed} and publishing no
- * {@linkplain RoomFitting#hookups hookups}. Every side of this room is worked
- * the same way and every side can take a hatch, so the placer is left free to
- * put the bay against whichever run of hull it can reach — which matters more
- * here than in any other compartment, since a boat bay buried amidships opens
- * onto nothing.
+ * {@linkplain RoomFitting#hookups hookups}. The two ends and the inboard side
+ * are worked alike and any of them can take a hatch; only the outboard side is
+ * spoken for, and that is the one constraint that matters here, since a boat
+ * bay buried amidships opens onto nothing.
  */
 public final class BoatBayFitting implements RoomFitting {
 
@@ -102,7 +112,7 @@ public final class BoatBayFitting implements RoomFitting {
     private static final int BOAT_GAP = 1;
 
     /**
-     * Clear deck that must remain in front of the rank.
+     * Clear deck that must remain between the rank and the door wall.
      *
      * <p>The lane is the point of the room, so it is subtracted before the boats
      * are sized rather than after: a bay too shallow to hold both gives the deck
@@ -111,12 +121,14 @@ public final class BoatBayFitting implements RoomFitting {
      * the same arrangement holding one boat, and the failure to guard against is
      * a frigate whose only way off the ship is packed solid.
      *
-     * <p>One cell, because this is deck <em>inside</em> the working ring and the
-     * ring is walkable too: the clear run in front of a boat is this plus the
-     * cargo run's own standing row. Two would cost the smallest bays their boat
-     * to buy a lane that is already there.
+     * <p>Four cells: the depth the door wall's working band and its standing row
+     * used to take, plus the one cell of lane the rank always kept in front of
+     * it. That is deliberate rather than tidy. It keeps every boat the size it
+     * was when that side was worked, so a hull's lift is unchanged by the door
+     * wall being cleared — a re-sized boat would re-berth every ship in the
+     * fleet for a change that was about what stands against a bulkhead.
      */
-    private static final int MIN_LANE = 1;
+    private static final int DOOR_LANE = WORKING_BAND + 2;
 
     /** Shallowest spot still worth calling a boat's. */
     private static final int MIN_BOAT_DEPTH = 3;
@@ -142,8 +154,8 @@ public final class BoatBayFitting implements RoomFitting {
     private static final int TALLY_PHASE = 1;
 
     /**
-     * Cargo down one long side: what comes up out of a boat and what goes back
-     * down in it.
+     * Cargo, in the corners: what comes up out of a boat and what goes back
+     * down in it, pushed out of the lane and out of everybody's way.
      */
     private static final String[] CARGO = {
             "doodad.industrial-crate-stack",
@@ -219,8 +231,9 @@ public final class BoatBayFitting implements RoomFitting {
         // rather than shut: a boat is moved through here and a landing party
         // forms up on it, so it is deck people are on and not deck they are kept
         // off - the difference between this and a firing range's beaten zone.
-        reserve(floor, band, band, along - 2 * band, across - 2 * band);
-        mark(floor, band, band, along - 2 * band, across - 2 * band);
+        // It runs right up to the door wall, because the door wall is the door.
+        reserve(floor, band, 0, along - 2 * band, across - band);
+        mark(floor, band, 0, along - 2 * band, across - band);
         clearApproaches(floor);
         layCorners(floor, along, across, band);
         layBowser(floor, along, across, band);
@@ -228,16 +241,23 @@ public final class BoatBayFitting implements RoomFitting {
 
         // One ordinal across the whole bay rather than one per run, so the
         // tallies and the defects are spread round the deck instead of landing
-        // at the same offset on all four bulkheads.
+        // at the same offset on every bulkhead.
         int ordinal = 0;
-        ordinal = layRun(floor, run(band, 0, 1, 0, 0, 1, along - 2 * band),
-                band, CARGO, Affordance.STOW, ordinal);
         ordinal = layRun(floor, run(band, across - 1, 1, 0, 0, -1, along - 2 * band),
                 band, FUELLING, Affordance.TEND, ordinal);
-        ordinal = layRun(floor, run(0, band, 0, 1, 1, 0, across - 2 * band),
+        ordinal = layRun(floor, run(0, 0, 0, 1, 1, 0, across - band),
                 band, OFFICE, Affordance.READOUT, ordinal);
-        layRun(floor, run(along - 1, band, 0, 1, -1, 0, across - 2 * band),
+        layRun(floor, run(along - 1, 0, 0, 1, -1, 0, across - band),
                 band, READY, Affordance.STOW, ordinal);
+    }
+
+    /**
+     * The door wall: canonically the top, {@code across == 0}, which is the side
+     * the boats face and the fuelling run is opposite.
+     */
+    @Override
+    public int[] outboard() {
+        return new int[]{ 0, -1 };
     }
 
     /**
@@ -354,7 +374,7 @@ public final class BoatBayFitting implements RoomFitting {
         int band = band(along, across);
         if (band < 1) return 0;
         int rim = band + 1;
-        int depth = depth(across - 2 * rim);
+        int depth = depth(across - rim);
         if (depth < MIN_BOAT_DEPTH) return 0;
         int deckAlong = along - 2 * rim;
         return Math.max(0, (deckAlong + BOAT_GAP) / (span(depth) + BOAT_GAP));
@@ -368,7 +388,9 @@ public final class BoatBayFitting implements RoomFitting {
         // It would simply be published inside a boat.
         int rim = band + 1;
         int deckAlong = along - 2 * rim;
-        int depth = depth(across - 2 * rim);
+        // Rimmed on the inboard side only: the door wall carries no run, so
+        // the deck reaches it.
+        int depth = depth(across - rim);
         if (depth < MIN_BOAT_DEPTH) return;
         int span = span(depth);
 
@@ -381,9 +403,9 @@ public final class BoatBayFitting implements RoomFitting {
         // and leave a corner of unexplained deck at the other.
         int spread = boats * pitch - BOAT_GAP;
         int first = rim + (deckAlong - spread) / 2;
-        // Backed onto the fuelling side, nose to the deck.
+        // Backed onto the fuelling side, nose to the door.
         int rankAcross = across - rim - depth;
-        int[] out = floor.pose().mapDirection(0, -1);
+        int[] out = floor.pose().mapDirection(outboard()[0], outboard()[1]);
 
         for (int boat = 0; boat < boats; boat++) {
             int start = first + boat * pitch;
@@ -395,7 +417,8 @@ public final class BoatBayFitting implements RoomFitting {
     }
 
     /**
-     * How deep a boat is, given how much deck the bay has inside its ring.
+     * How deep a boat is, given how much deck the bay has between its fuelling
+     * run and the door wall.
      *
      * <p>Odd, always. A berth records half-extents about a centre cell, so an
      * even span rounds down and the berth comes out describing one cell less
@@ -404,7 +427,7 @@ public final class BoatBayFitting implements RoomFitting {
      * the berth to decide how much of it is boat.
      */
     private static int depth(int deckAcross) {
-        int most = Math.min(BOAT_DEPTH, deckAcross - MIN_LANE);
+        int most = Math.min(BOAT_DEPTH, deckAcross - DOOR_LANE);
         return most % 2 == 0 ? most - 1 : most;
     }
 
@@ -485,7 +508,8 @@ public final class BoatBayFitting implements RoomFitting {
     }
 
     /**
-     * The four corner pockets, where one run's band meets another's.
+     * The two inboard corner pockets, where an end run's band meets the
+     * fuelling run's.
      *
      * <p>Stacked rather than reserved, and the distinction is not cosmetic. A
      * corner is enclosed by both runs' gear, so lane laid there is circulation
@@ -494,13 +518,14 @@ public final class BoatBayFitting implements RoomFitting {
      * worked boat bay came out as bare deck. Filled instead, the pocket is what
      * it looks like: the corner everything nobody has dealt with gets pushed
      * into.
+     *
+     * <p>The outboard corners are not pockets: the end runs reach the door wall,
+     * so those cells are simply the end of a run.
      */
     private void layCorners(RoomFloor floor, int along, int across, int band) {
         int index = 0;
         for (int step = 0; step < band; step++) {
             for (int depth = 0; depth < band; depth++) {
-                place(floor, step, depth, CARGO[index++ % CARGO.length]);
-                place(floor, along - 1 - step, depth, CARGO[index++ % CARGO.length]);
                 place(floor, step, across - 1 - depth, CARGO[index++ % CARGO.length]);
                 place(floor, along - 1 - step, across - 1 - depth,
                         CARGO[index++ % CARGO.length]);

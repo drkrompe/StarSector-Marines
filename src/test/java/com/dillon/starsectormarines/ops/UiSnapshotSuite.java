@@ -1488,7 +1488,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             ship::scene,
                             () -> framing.lookingAt(camera.pose().worldX(),
                                     camera.pose().worldY(), camera.pose().zoomNotches()),
-                            () -> ship.scene().berthsIn(vehicleBay), () -> 0d));
+                            () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
+                            () -> 0d));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }

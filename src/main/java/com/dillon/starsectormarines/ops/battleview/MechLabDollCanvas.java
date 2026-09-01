@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
+import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
@@ -11,9 +12,10 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
-import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
@@ -75,6 +77,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<ShipDeckBattleScene> ship;
     private final Supplier<ShipDeckBattleScene.RoomView> roomView;
     private final Supplier<List<Gantry>> berths;
+    private final IntSupplier workSite;
     private final DoubleSupplier elapsedSeconds;
     private List<VacantGantryTarget> vacantGantryTargets = List.of();
     private int hoveredVacantGantry = -1;
@@ -89,14 +92,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              Supplier<ShipDeckBattleScene> ship,
                              Supplier<ShipDeckBattleScene.RoomView> roomView,
                              Supplier<List<Gantry>> berths,
+                             IntSupplier workSite,
                              DoubleSupplier elapsedSeconds) {
         if (deployments == null || selectedGantry == null || selectedSocket == null
                 || assets == null || weldingTorch == null || weldingSparks == null
                 || fittingOverlaysVisible == null
-                || ship == null || roomView == null || berths == null
+                || ship == null || roomView == null || berths == null || workSite == null
                 || elapsedSeconds == null) {
             throw new IllegalArgumentException(
-                    "deployments, gantry, socket, mech assets, a ship and elapsed time are required");
+                    "deployments, gantry, socket, mech assets, a ship, work site and elapsed time are required");
         }
         this.deployments = deployments;
         this.selectedGantry = selectedGantry;
@@ -108,6 +112,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         this.ship = ship;
         this.roomView = roomView;
         this.berths = berths;
+        this.workSite = workSite;
         this.elapsedSeconds = elapsedSeconds;
     }
 
@@ -165,7 +170,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
                     selected, selectedSocket.get(), projection);
         }
-        drawTechnicianFx(context, sceneCamera, host[0], workingPoses(aboard), time,
+        drawTechnicianFx(context, sceneCamera, host[0],
+                workingPoses(aboard, standing, workSite.getAsInt()), time,
                 weldingTorch.get(), weldingSparks.get());
     }
 
@@ -254,15 +260,73 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * bay that is wherever the crew have got to — a fixed list would light up
      * over empty deck the moment the room was laid out differently.
      */
-    private static List<AmbientTaskPose> workingPoses(ShipDeckBattleScene aboard) {
-        List<AmbientTaskPose> working = new ArrayList<>();
+    private static List<TechnicianWork> workingPoses(ShipDeckBattleScene aboard,
+                                                     List<Gantry> berths,
+                                                     int workSite) {
+        List<TechnicianWork> working = new ArrayList<>();
         AmbientTaskService tasks = aboard.simulation().ambientTasks();
         for (long actor : tasks.assigned()) {
-            if (aboard.simulation().identity().type(actor) != UnitType.TECHNICIAN) continue;
+            String pointGroup = tasks.jobInHand(actor);
             AmbientTaskPose pose = tasks.pose(actor);
-            if (pose != null) working.add(pose);
+            if (pose == null) continue;
+            boolean visibleRepairTarget = !focusInsideServicePad(
+                    berths, pose.focusX(), pose.focusY())
+                    && focusHitsFixture(aboard.simulation().getDoodads(),
+                    pose.focusX(), pose.focusY());
+            if (isWeldingJob(pointGroup, workSite, visibleRepairTarget)) {
+                boolean fixtureTarget = !inGroup(pointGroup,
+                        JobBoard.group(workSite, Affordance.SERVICE));
+                working.add(new TechnicianWork(pose, fixtureTarget));
+            }
         }
         return working;
+    }
+
+    /**
+     * Whether this live job warrants a torch inside the currently framed bay.
+     *
+     * <p>A repair only qualifies when its focus actually overlaps a rendered
+     * fixture. A bay's port-rail defect is real work but is represented by the
+     * deck-edge paving; adding a torch there reads as somebody welding the
+     * floor. Service focuses are resolved onto the berthed machine and
+     * fabrication focuses belong to workshop fixtures, so both always provide
+     * an unambiguous visible target.
+     */
+    static boolean isWeldingJob(String pointGroup, int workSite,
+                                boolean visibleRepairTarget) {
+        if (pointGroup == null || workSite < 0) return false;
+        return inGroup(pointGroup, JobBoard.group(workSite, Affordance.SERVICE))
+                || inGroup(pointGroup, JobBoard.group(workSite, Affordance.FABRICATE))
+                || visibleRepairTarget
+                && inGroup(pointGroup, JobBoard.group(workSite, Affordance.REPAIR));
+    }
+
+    private static boolean focusHitsFixture(List<Doodad> fixtures, float focusX, float focusY) {
+        int cellX = (int) Math.floor(focusX);
+        int cellY = (int) Math.floor(focusY);
+        for (Doodad fixture : fixtures) {
+            if (cellX >= fixture.cellX && cellX < fixture.cellX + fixture.footprintCellsX
+                    && cellY >= fixture.cellY && cellY < fixture.cellY + fixture.footprintCellsY) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The pad's own rail defects must not masquerade as work on its occupant. */
+    static boolean focusInsideServicePad(List<Gantry> berths, float focusX, float focusY) {
+        for (Gantry berth : berths) {
+            PadBounds pad = padBounds(berth);
+            if (focusX >= pad.left() && focusX <= pad.right()
+                    && focusY >= pad.bottom() && focusY <= pad.top()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean inGroup(String actual, String expected) {
+        return actual.equals(expected) || actual.startsWith(expected + "@");
     }
 
     private static float berthCellX(List<Gantry> berths, int index) {
@@ -414,14 +478,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     private static void drawTechnicianFx(CanvasContext c, BattleCamera camera,
                                          CanvasHostViewport viewport,
-                                         List<AmbientTaskPose> poses, float time,
+                                         List<TechnicianWork> work, float time,
                                          SpriteAPI torch, SpriteAPI sparks) {
         float cellX = camera.cellPxSize() / viewport.scaleX();
         float cellY = camera.cellPxSize() / viewport.scaleY();
         float surfaceWidth = c.metrics().surfaceWidth();
         float surfaceHeight = c.metrics().surfaceHeight();
-        for (int index = 0; index < poses.size(); index++) {
-            AmbientTaskPose pose = poses.get(index);
+        for (int index = 0; index < work.size(); index++) {
+            TechnicianWork technicianWork = work.get(index);
+            AmbientTaskPose pose = technicianWork.pose();
             if (pose.activity() != AmbientActivity.WORKING) {
                 continue;
             }
@@ -437,15 +502,16 @@ public final class MechLabDollCanvas implements CanvasProducer {
             }
             float torchX = lerp(technicianX, focusX, 0.48f);
             float torchY = lerp(technicianY, focusY, 0.48f);
+            float effectScale = technicianWork.fixtureTarget() ? 0.58f : 1f;
             c.sprite(WELDING_TORCH_PATH, torch,
                     torchX, torchY,
-                    cellX * 0.42f, cellY * 0.72f,
+                    cellX * 0.42f * effectScale, cellY * 0.72f * effectScale,
                     pose.facingDegrees(), WHITE);
             int frame = Math.floorMod(
                     (int) Math.floor(time * 12f + index * 1.7f) + 2, 8);
             c.sprite(WELDING_SPARKS_PATH, sparks,
                     focusX, focusY,
-                    cellX * 1.08f, cellY * 1.08f,
+                    cellX * 1.08f * effectScale, cellY * 1.08f * effectScale,
                     0f, WHITE, CanvasSpriteRegion.frame(4, 2, frame), CanvasBlend.ADDITIVE);
         }
     }
@@ -453,6 +519,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static float lerp(float from, float to, float amount) {
         return from + (to - from) * amount;
     }
+
+    /** One active torch, retaining whether its target is a compact deck fixture. */
+    private record TechnicianWork(AmbientTaskPose pose, boolean fixtureTarget) { }
 
     private static int appearance(MechWeaponComponent component) {
         return component != null ? component.appearanceSelector : LayeredMechAppearance.POD_NONE;

@@ -213,11 +213,17 @@ public final class SquadStateDumper {
         o.put("assignedNodeMustHold", squad.assignedNode != null && squad.assignedNode.mustHold);
         o.put("assignedObjective", squad.assignedObjective != null
                 ? buildAssignmentJson(squad.assignedObjective) : JSONObject.NULL);
-        // A player order stands over assignedObjective without replacing it,
-        // so the executing assignment below is otherwise indistinguishable
-        // from a commander-issued one of the same kind.
-        o.put("playerTacticalOrder", squad.playerTacticalOrder() != null
-                ? buildAssignmentJson(squad.playerTacticalOrder())
+        // A player order is a lease over the commander's directive, so the
+        // squad's own field holds the player's while it stands and the mission
+        // comes off the shelf the lease put it on. Both are dumped: without the
+        // pair, an ATTACK_MOVE the player clicked and an ATTACK_MOVE a
+        // commander assigned read identically.
+        ObjectiveAssignment mission =
+                SquadOrderRecorder.missionAssignment(squad, sim);
+        o.put("missionAssignment", mission != null
+                ? buildAssignmentJson(mission) : JSONObject.NULL);
+        o.put("playerOrder", squad.underPlayerOrder()
+                ? buildAssignmentJson(squad.assignedObjective)
                 : JSONObject.NULL);
         ObjectiveAssignment executable = squad.assignmentForExecution();
         JSONObject execution = new JSONObject();
@@ -1273,6 +1279,12 @@ public final class SquadStateDumper {
             o.put("lastFireGateTick", sim.combat().lastFireGateTick(u));
             o.put("lastFireGateAgeTicks", Math.max(0,
                     sim.getSimTickIndex() - sim.combat().lastFireGateTick(u)));
+            // Which reflex, if any, pre-empted this unit's plan step on its last
+            // dispatch. Null means it was free to execute — so "off its step"
+            // and "evading a grenade" stop looking alike in the dump.
+            String lastReflex = sim.world().hasAiState(u)
+                    ? sim.world().lastReflex(u) : null;
+            o.put("lastReflex", lastReflex != null ? lastReflex : JSONObject.NULL);
             // Pathfinder reachability of the unit's current target. False
             // here means the squad is fixated on someone the pathfinder
             // can't route to from this member — e.g. an enemy behind walls

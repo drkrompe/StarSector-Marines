@@ -21,6 +21,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.decision.ReflexChain;
+import com.dillon.starsectormarines.battle.decision.ReflexContext;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
@@ -106,10 +108,12 @@ public final class GoapMechBehavior implements UnitBehavior {
         Squad squad = sim.squadOf(unit);
         if (squad == null) return;
 
-        // A player move order temporarily owns this exact chassis's
-        // locomotion, not the squad plan. It keeps the ordinary targeting and
-        // weapon pass alive, then releases before doctrine runs on arrival.
-        if (sim.getMechMoveOrderSystem().executeIfActive(unit, squad, sim)) {
+        // Everything that outranks the doctrine step, in this arm's declared
+        // order. One entry today; see MechReflexes for why it is a list.
+        // Opportunity fire is permitted because no mech step withholds it —
+        // the suppression the flag carries is an infantry bounding concern.
+        if (ReflexChain.run(MechReflexes.CHAIN, unit, squad,
+                new ReflexContext(true), sim) != null) {
             return;
         }
 
@@ -274,7 +278,7 @@ public final class GoapMechBehavior implements UnitBehavior {
                                  BattleSimulation sim, Set<Goal> declined) {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null
-                || !squad.hasPlayerTacticalOrder(assignment.kind())) {
+                || !squad.hasPlayerOrder(assignment.kind())) {
             return Goal.pickMostRelevant(MECH_GOALS, current, squad, sim, declined);
         }
         PlayerOrder player = OrderCatalog.playerOrder(assignment.kind());

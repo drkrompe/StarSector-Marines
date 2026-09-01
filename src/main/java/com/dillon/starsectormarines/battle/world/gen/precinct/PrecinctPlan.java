@@ -66,6 +66,39 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
     private static final int EDGE_MARGIN = 30;
 
     /**
+     * How much of a small map a margin or a separation may eat.
+     *
+     * <p>A map seats what it can seat. Both fixed values above are stated for
+     * the map sizes they were measured on, and on a skirmish map they are most
+     * of it: at 112x64 a 30-cell margin leaves a four-cell band to seed in, so
+     * the second place is never found and a defended world came out with no
+     * garrison to attack. Taking a quarter of the map instead leaves the
+     * measured sizes exactly where they were and lets a small map keep the
+     * shape of the model rather than losing places to arithmetic.
+     */
+    private static final int SMALL_MAP_SHARE = 4;
+
+    /**
+     * How much of the map one garrison's ground may be.
+     *
+     * <p>A first guess to be measured rather than a tuned value. It exists so a
+     * program authored for a landing zone does not swallow a skirmish map; what
+     * share actually plays well is an open question, and this number should
+     * move when somebody answers it.
+     */
+    private static final float FIT = 0.35f;
+
+    /** The edge margin this map can afford. */
+    private static int marginFor(int width, int height) {
+        return Math.min(EDGE_MARGIN, Math.min(width, height) / SMALL_MAP_SHARE);
+    }
+
+    /** The separation between two seeds this map can afford. */
+    private static int separationFor(int width, int height) {
+        return Math.min(MIN_SEED_SEPARATION, Math.max(width, height) / SMALL_MAP_SHARE);
+    }
+
+    /**
      * How much of the map is settled.
      *
      * <p>The same world can be a lonely installation or a city with an
@@ -190,6 +223,8 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
                                       int width, int height, Random rng) {
         List<Precinct> out = new ArrayList<>();
         List<int[]> taken = new ArrayList<>();
+        int margin = marginFor(width, height);
+        int separation = separationFor(width, height);
 
         float density = switch (sprawl) {
             // Full density is not "a lot of streets" — it is the point at which
@@ -209,13 +244,17 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
         int mainIndex = -1;
         if (sprawl != Sprawl.REMOTE || !garrison) {
             GrownTrunkPlan.Profile main = GrownTrunkPlan.Profile.of(density, profile.link());
-            int[] seed = placeSeed(taken, width, height, rng);
+            int[] seed = placeSeed(taken, margin, separation, width, height, rng);
             mainIndex = out.size();
             out.add(Precinct.settlement("settlement", seed[0], seed[1], main));
         }
 
         if (garrison) {
-            int[] garrisonSeed = placeSeed(taken, width, height, rng);
+            // A defended world never loses its objective to a small map: where
+            // the draw finds no room, the garrison takes the emptiest cell
+            // there is rather than nothing at all.
+            int[] garrisonSeed = placeSeed(taken, margin, separation, width, height, rng);
+            if (garrisonSeed == null) garrisonSeed = emptiestSeed(taken, margin, width, height);
             // A garrison grows sparsely: it is an installation rather than a
             // town, and its ground comes from its program rather than from how
             // far its streets reach.
@@ -223,12 +262,13 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
             // the world's rating says what is there, the demand says what this
             // operation may be asked to face.
             out.add(Precinct.garrison("garrison", garrisonSeed[0], garrisonSeed[1],
-                    GrownTrunkPlan.Profile.hamlet(), garrisonFor(profile),
+                    GrownTrunkPlan.Profile.hamlet(),
+                    garrisonFor(profile).fittedTo(Math.round(FIT * width * height)),
                     demand.resolve(profile.defenseLevel())));
         }
 
         for (int i = 0; i < outlyingPlaces(profile.marketSize(), sprawl); i++) {
-            int[] hamletSeed = placeSeed(taken, width, height, rng);
+            int[] hamletSeed = placeSeed(taken, margin, separation, width, height, rng);
             if (hamletSeed == null) break;
             out.add(Precinct.settlement("outlying-" + (i + 1), hamletSeed[0], hamletSeed[1],
                     outlyingGrowth(sprawl)));
@@ -310,6 +350,9 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
      * the things being rated, and a heavily defended world fielding the same
      * single field as a lightly defended one wastes the only number that says
      * how fortified it is.
+     *
+     * <p>What the world owes, before the map is asked whether it has room for
+     * it: the caller fits the result to the ground available.
      */
     private static FortressProgram garrisonFor(TargetProfile profile) {
         return FortressProgram.garrison()
@@ -323,17 +366,18 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
      * when the map has no room left — a map that cannot fit another place
      * should have fewer places, not two on top of each other.
      */
-    private static int[] placeSeed(List<int[]> taken, int width, int height, Random rng) {
-        int spanX = Math.max(1, width - 2 * EDGE_MARGIN);
-        int spanY = Math.max(1, height - 2 * EDGE_MARGIN);
+    private static int[] placeSeed(List<int[]> taken, int margin, int separation,
+                                   int width, int height, Random rng) {
+        int spanX = Math.max(1, width - 2 * margin);
+        int spanY = Math.max(1, height - 2 * margin);
         for (int attempt = 0; attempt < 200; attempt++) {
-            int x = EDGE_MARGIN + rng.nextInt(spanX);
-            int y = EDGE_MARGIN + rng.nextInt(spanY);
+            int x = margin + rng.nextInt(spanX);
+            int y = margin + rng.nextInt(spanY);
             boolean clear = true;
             for (int[] other : taken) {
                 int dx = other[0] - x;
                 int dy = other[1] - y;
-                if (dx * dx + dy * dy < MIN_SEED_SEPARATION * MIN_SEED_SEPARATION) {
+                if (dx * dx + dy * dy < separation * separation) {
                     clear = false;
                     break;
                 }
@@ -344,6 +388,43 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
             return seed;
         }
         return null;
+    }
+
+    /**
+     * The in-margin cell furthest from everything already placed.
+     *
+     * <p>The fallback for a place the map must have. It takes no draw, so what
+     * comes out does not depend on how many times the rejection sampler missed
+     * before giving up, and the first cell of the scan wins a tie so two runs
+     * of the same world agree.
+     *
+     * <p>Only the garrison uses it. A map with no room for another hamlet
+     * should have fewer hamlets; a defended world with no room for its garrison
+     * is a mission with nothing to attack.
+     */
+    private static int[] emptiestSeed(List<int[]> taken, int margin, int width, int height) {
+        int spanX = Math.max(1, width - 2 * margin);
+        int spanY = Math.max(1, height - 2 * margin);
+        int[] best = null;
+        long bestGap = -1;
+        for (int y = 0; y < spanY; y++) {
+            for (int x = 0; x < spanX; x++) {
+                int cellX = margin + x;
+                int cellY = margin + y;
+                long gap = Long.MAX_VALUE;
+                for (int[] other : taken) {
+                    long dx = other[0] - cellX;
+                    long dy = other[1] - cellY;
+                    gap = Math.min(gap, dx * dx + dy * dy);
+                }
+                if (gap > bestGap) {
+                    bestGap = gap;
+                    best = new int[]{cellX, cellY};
+                }
+            }
+        }
+        taken.add(best);
+        return best;
     }
 
     /** The seeds these precincts grow from, in order. */

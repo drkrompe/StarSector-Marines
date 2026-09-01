@@ -4,9 +4,15 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — an assignment kind's standing facts are one table, and
-only the player's order is a lookup; a commander's is still won in the MISSION
-bucket.
+Updated: 2026-09-01 — what sits between a unit having a squad and executing its
+step is a declared reflex chain, one per arm, whose order is a law.
+
+Earlier 2026-09-01 — the player's tactical orders are the first lease holder,
+so a directive lease is production rather than a reserved shape.
+
+Earlier 2026-09-01 — machine legs dealt through the rotation; an assignment
+kind's standing facts are one table, and only the player's order is a lookup —
+a commander's is still won in the MISSION bucket.
 
 Earlier 2026-09-01 — a workplace is bounded by its own trade rather than by
 the scarcest thing on the rotation, and berth-bound work is a round of the
@@ -136,6 +142,18 @@ A **unit execution** is the per-tick realization of the assigned role. It can
 move, hold, acquire a target, or author a legal fire intent, but it does not
 silently replace the squad's plan. Combat systems remain responsible for
 whether an authored shot lands and what it damages.
+
+A unit's execution begins with a **reflex chain**: an ordered list of interrupts
+ahead of the plan step, each one pre-empting everything after it and the step
+itself. It is declared once per arm and pinned by a test, because the order is a
+law rather than a convenience — grenade evasion outranks a shot of opportunity, a
+broken fire team outranks the step, a player's per-chassis move outranks doctrine
+— and an if-chain states a law nobody can read, cite, or measure a change to. A
+reflex answers something the unit is already in the middle of or has just walked
+into; it never invents work, and one with nothing to answer declines so the next
+is asked. An individual-tier behaviour that must run before the step is therefore
+a reflex, added to the list at the rank its priority earns, never as another
+branch above the loop.
 
 A **fire team** is the standing organizational element between the squad and
 the individual: a small, stable billet group a marine belongs to for the whole
@@ -338,6 +356,22 @@ technician stands at never mattered and its output is unchanged by this: measure
 either way, the same bay welds the same 254 hand-seconds in five minutes. An
 apron's stands are six independent turnarounds, so it is the case where a pinned
 crew is a field that stops flying.
+
+**The machines are dealt through the rotation, not laid end to end.** The round
+is the right set of stops and was the wrong order. Laid consecutively at the
+front of the loop, a technician on a ship's boat deck worked all six boats in the
+first three minutes of a rotation that then took ten more to come back round — a
+repair round of the hull, the stores, the board, a wash, a meal, a rest — so
+every boat that came home during those ten minutes stood unattended until the
+loop returned. Measured on a Valkyrie: six boats each flew once and never again.
+Dealt out instead — a boat, then a defect; a boat, then the stores — the same
+stops in the same loop are visited across the whole of it. It is still a rotation
+and not a priority: nothing is repeated, nobody works harder, and every job is
+still come round to once. The field went from that to a sustained sortie roughly
+every fifty-seven seconds with every turnaround completing. What remains bounded
+is throughput, which is the number of hands: a hull carrying three technicians
+for six boats turns them round more slowly than one carrying six, and that is a
+manning fact rather than a rotation one.
 
 **A full job is passed over, not queued for.** Where the next job on the rotation
 has no free place to do it, the actor takes the one after it; where nothing on
@@ -621,8 +655,11 @@ is an inclusive minimum hold on a mission assignment, long enough for a squad
 to execute a useful plan before ordinary command scoring may retarget it; an
 objective completing, its target becoming unreachable, its command context
 expiring, squad loss, explicit handoff, or higher authority may end that hold
-early. A lease instead bounds temporary external authority such as a future
-player intervention. Repeating the same assignment renews neither clock.
+early. A lease instead bounds temporary external authority, and the player's
+tactical orders are its first holder: an accepted click is a
+`PLAYER_INTERVENTION` directive that shelves the commander's rather than
+discarding it, and hands it back when the order completes or the bound passes.
+Repeating the same assignment renews neither clock.
 
 Form-up is an execution suspension, not an assignment writer or ownership
 transfer. The authoritative directive remains inspectable and may be updated

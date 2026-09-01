@@ -122,6 +122,7 @@ public final class MechLabScreen implements Screen {
                             deck::scene,
                             this::framing,
                             this::berths,
+                            this::currentBayId,
                             () -> previewSeconds);
             built.canvases().set(dollElement, dollCanvas);
             dollElement.onPointerMove(this::pointAtVacantGantry);
@@ -287,6 +288,11 @@ public final class MechLabScreen implements Screen {
         if (bays.isEmpty()) return null;
         int index = Math.max(0, Math.min(bays.size() - 1, selectedBayIndex.get()));
         return bays.get(index);
+    }
+
+    private int currentBayId() {
+        DeckGraph.Compartment bay = currentBay();
+        return bay != null ? bay.id() : -1;
     }
 
     private void cycleBay(int delta) {
