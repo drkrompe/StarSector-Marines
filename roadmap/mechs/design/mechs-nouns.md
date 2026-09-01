@@ -98,8 +98,10 @@ increasing an encounter's total armored threat.
   visible and blocked so a smaller mount reads against the same scale as a larger
   one. An empty translucent
   footprint means an authored socket is unoccupied; an omitted socket is still
-  genuinely absent. The drag gesture is presentation; the validated resulting
-  placement is domain intent.
+  genuinely absent. Catalog weapon art and installed doll-grid weapon art are
+  drag sources. Hover paints the dragged component's complete footprint green
+  or red against the authored grid; the gesture is presentation and the
+  validated resulting placement is domain intent.
 - A **fitting doll** is the asset-authored maintenance presentation of one mech
   or vehicle class. It references the same ordered appearance and physical scale
   used in battle, while owning the maintenance facing and every socket's physical
@@ -428,7 +430,12 @@ support sortie, subject only to practical runtime resources.
   accepts several equipment types; it does not waive footprint or budgets.
 - Spatial selection and drag previews have no mutation authority. Dropping a
   component may propose a placement, but only a successful campaign command
-  changes the installed loadout.
+  changes the installed loadout. Catalog-to-doll drops use the ordinary atomic
+  fit-or-fabricate command. Doll-to-doll drops move one installed assembly only
+  to a compatible vacant socket. Dropping an installed assembly back over the
+  equipment catalog explicitly clears that mount and makes the same owned copy
+  available in stores; cancelled and invalid drops leave both mounts and stock
+  untouched.
 - The fitting doll consumes the same ordered layer composition and hull-relative
   transforms as battle rendering. A preview may choose a static maintenance pose,
   but it may not approximate mount scale, pivots, absence, or above/below-chassis
@@ -452,8 +459,8 @@ support sortie, subject only to practical runtime resources.
   rendered room becomes useful fitting space.
   The whole footprint is the pointer target; active, occupied, and blocked cells
   project the same rectangular component and socket dimensions used by the atomic
-  campaign refit. A future drag preview may occupy those cells but cannot redefine
-  them. An authored empty socket stays visible
+  campaign refit. The drag preview occupies those cells, including blocked cells
+  when explaining an oversized invalid fit, but cannot redefine them. An authored empty socket stays visible
   while an absent socket produces no footprint.
 - The garage is a flat top-down, non-advancing room simulation assembled from the
   battle renderer's indoor tileset cells and props. Its mech and workers are real

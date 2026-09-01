@@ -18,7 +18,6 @@ public record MechDeploymentSpec(
         if (missileReplenisher == null) {
             missileReplenisher = MissileReplenisherComponent.STANDARD;
         }
-        if (arms == null) arms = variant.arms;
     }
 
     public MechDeploymentSpec(MechVariant variant, MechRole role,

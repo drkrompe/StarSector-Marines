@@ -233,6 +233,29 @@ public final class MechBay implements Serializable {
         return true;
     }
 
+    /** Removes one fitted assembly; owned stock is unchanged so it becomes spare. */
+    public boolean removeWeapon(String mechId, MechMountSlot slot) {
+        CampaignMech mech = mechById(mechId);
+        if (mech == null || slot == null || mech.weaponAt(slot) == null) return false;
+        mech.installWeapon(slot, null);
+        return true;
+    }
+
+    /**
+     * Atomically relocates an installed assembly to a compatible vacant mount.
+     * A failed move leaves both mounts untouched.
+     */
+    public boolean moveWeapon(String mechId, MechMountSlot source, MechMountSlot target) {
+        CampaignMech mech = mechById(mechId);
+        if (mech == null || source == null || target == null || source == target) return false;
+        MechWeaponComponent component = mech.weaponAt(source);
+        if (component == null || mech.weaponAt(target) != null
+                || !canInstallWeapon(mechId, target, component.id)) return false;
+        mech.installWeapon(target, component);
+        mech.installWeapon(source, null);
+        return true;
+    }
+
     /** Frozen values for the active squad; campaign objects stay in the roster. */
     public List<MechDeploymentSpec> activeDeployment() {
         CampaignMechSquad squad = activeSquad();

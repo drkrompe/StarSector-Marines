@@ -20,8 +20,10 @@ import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
@@ -319,6 +321,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 false, false, true)),
+                new SnapshotArtifact("mech-lab-weapon-drag-preview-wide.png",
+                        renderMechLab(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                false, false, false, true)),
                 new SnapshotArtifact("boat-deck-wide.png",
                         renderBoatDeck(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
@@ -1470,13 +1476,22 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             int width, int height, float uiScale, boolean pickerOpen,
             boolean selectHound) throws Exception {
         return renderMechLab(context, renderer, width, height, uiScale,
-                pickerOpen, selectHound, false);
+                pickerOpen, selectHound, false, false);
     }
 
     private static BufferedImage renderMechLab(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale, boolean pickerOpen,
             boolean selectHound, boolean selectVacant) throws Exception {
+        return renderMechLab(context, renderer, width, height, uiScale,
+                pickerOpen, selectHound, selectVacant, false);
+    }
+
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, boolean pickerOpen,
+            boolean selectHound, boolean selectVacant,
+            boolean previewWeaponDrag) throws Exception {
         Reactor reactor = new Reactor();
         MechBay bay = MechBay.legacyStarterFixture();
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
@@ -1497,6 +1512,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .findFirst().orElseThrow().select().run();
         }
         if (selectVacant) viewModel.previousGantryAction().run();
+        if (previewWeaponDrag) {
+            viewModel.gantryRows().get().get(0).select().run();
+            viewModel.selectSocket(MechFittingLayout.SocketId.RIGHT_SHOULDER);
+        }
         if (pickerOpen) viewModel.openAssetPickerAction().run();
         // The lab is photographed aboard the same ship it is in game. There is
         // no substitute garage to photograph instead, and a snapshot of one
@@ -1518,8 +1537,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.canvases().set(instance.requireElement("mech-doll-canvas"),
-                    new MechLabDollCanvas(viewModel::gantryDeployments,
+            MechLabDollCanvas doll = new MechLabDollCanvas(viewModel::gantryDeployments,
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             MechLabDollCanvas::headlessAssets,
@@ -1529,7 +1547,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             () -> framing.lookingAt(camera.pose().worldX(),
                                     camera.pose().worldY(), camera.pose().zoomNotches()),
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
-                            () -> 0d));
+                            () -> 0d);
+            if (previewWeaponDrag) {
+                doll.previewWeaponDrag(MechWeaponComponent.SRM_5, null,
+                        MechFittingLayout.SocketId.RIGHT_SHOULDER, true);
+            }
+            document.canvases().set(instance.requireElement("mech-doll-canvas"), doll);
             for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
                 if (row.chassisPreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),

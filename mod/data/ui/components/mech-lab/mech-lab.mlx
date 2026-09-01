@@ -97,8 +97,8 @@
               </div>
             </div>
             <div id="mech-drag-drop-note" class="surface-dark drag-drop-note">
-              <div id="mech-drag-drop-title" class="label heading tone-edge">DIRECT FIT ACTIVE · RECTANGULAR FOOTPRINTS</div>
-              <div id="mech-drag-drop-types" class="label heading tone-muted">2×3 GRID  ·  BLOCKED CELLS CANNOT ACCEPT HARDWARE</div>
+              <div id="mech-drag-drop-title" class="label heading tone-edge">DRAG HARDWARE TO A DOLL GRID</div>
+              <div id="mech-drag-drop-types" class="label heading tone-muted">DROP AN INSTALLED PART HERE TO RETURN IT TO STORES</div>
             </div>
           </div>
 
@@ -210,6 +210,7 @@
   .material-label { width: 0px; height: 15px; flex-grow: 1; }
   .catalog-action { width: 100%; height: 26px; text-align: center; }
   .drag-drop-note { flex-direction: column; height: 45px; padding: 5px; gap: 1px; }
+  .drag-drop-note.drop-active { background-color: #173f32; border-color: #72e6a1; border-width: 2px; }
   #mech-drag-drop-title, #mech-drag-drop-types { height: 17px; }
 
   .garage-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 1px; overflow: hidden; }

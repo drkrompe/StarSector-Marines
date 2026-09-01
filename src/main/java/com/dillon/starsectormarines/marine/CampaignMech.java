@@ -12,6 +12,8 @@ import java.io.Serializable;
 /** Persistent identity and installed kit for one player-owned support mech. */
 public final class CampaignMech implements Serializable {
 
+    private static final String EMPTY_MOUNT_ID = "__empty_mount__";
+
     private final String id;
     private String displayName;
     private final MechVariant variant;
@@ -52,15 +54,15 @@ public final class CampaignMech implements Serializable {
     }
 
     public MechWeaponComponent arms() {
-        return MechWeaponComponent.resolve(armsComponentId, variant.arms);
+        return installedComponent(armsComponentId, variant.arms);
     }
 
     public MechWeaponComponent leftShoulder() {
-        return MechWeaponComponent.resolve(leftShoulderComponentId, variant.leftShoulder);
+        return installedComponent(leftShoulderComponentId, variant.leftShoulder);
     }
 
     public MechWeaponComponent rightShoulder() {
-        return MechWeaponComponent.resolve(rightShoulderComponentId, variant.rightShoulder);
+        return installedComponent(rightShoulderComponentId, variant.rightShoulder);
     }
 
     public MechWeaponComponent weaponAt(MechMountSlot slot) {
@@ -81,7 +83,7 @@ public final class CampaignMech implements Serializable {
     }
 
     void installWeapon(MechMountSlot slot, MechWeaponComponent component) {
-        String componentId = idOf(component);
+        String componentId = component != null ? component.id : EMPTY_MOUNT_ID;
         switch (slot) {
             case ARMS -> armsComponentId = componentId;
             case LEFT_SHOULDER -> leftShoulderComponentId = componentId;
@@ -91,5 +93,11 @@ public final class CampaignMech implements Serializable {
 
     private static String idOf(MechWeaponComponent component) {
         return component != null ? component.id : null;
+    }
+
+    private static MechWeaponComponent installedComponent(
+            String componentId, MechWeaponComponent legacyFallback) {
+        if (EMPTY_MOUNT_ID.equals(componentId)) return null;
+        return MechWeaponComponent.resolve(componentId, legacyFallback);
     }
 }

@@ -184,6 +184,23 @@ class MechLabDollCanvasTest {
     }
 
     @Test
+    void oversizedDragPreviewShowsTheWholeFootprintAcrossBlockedCells() {
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
+        SocketDef arms = layout.socket(SocketId.ARMS);
+        MechLabDollCanvas.SocketDropTarget target =
+                MechLabDollCanvas.socketDropTarget(layout.doll(), arms,
+                        400f, 300f, 160f, 160f);
+
+        MechLabDollCanvas.EquipmentArea installed = MechLabDollCanvas.equipmentArea(
+                target, 2, 3);
+        MechLabDollCanvas.EquipmentArea preview = MechLabDollCanvas.previewArea(
+                target, 2, 3);
+
+        assertTrue(preview.height() > installed.height());
+        assertEquals(target.gridRows(), 2);
+    }
+
+    @Test
     void upperAndLowerSideSocketsHaveClearVerticalSeparationAtSmallHullScale() {
         MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
         MechLabDollCanvas.SocketDropTarget shoulder =
