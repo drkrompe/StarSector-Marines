@@ -6,11 +6,13 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.ambient.AmbientThreatPolicy;
+import com.dillon.starsectormarines.battle.ambient.BerthedMachineServiceTarget;
 import com.dillon.starsectormarines.battle.ambient.CrewRole;
 import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.ambient.JobSite;
 import com.dillon.starsectormarines.battle.ambient.Shift;
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
+import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
@@ -121,7 +123,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final List<Gantry> gantries;
     private final List<FixtureTask> fixtureTasks;
     private final boolean[] occupiedBerths;
-    private final long[] berthedMechs;
+    private final long[] berthedMachines;
     /**
      * Which of the deck's berths hold machines, by index into {@link #gantries}.
      *
@@ -202,7 +204,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         gantries = deck.gantries;
         fixtureTasks = deck.fixtureTasks;
         occupiedBerths = new boolean[gantries.size()];
-        berthedMechs = new long[gantries.size()];
+        berthedMachines = new long[gantries.size()];
         machineBerths = machineBerthsIn(gantries);
         simulation = BattleSetup.buildMap(deck, Collections.emptyList(),
                 Collections.emptyList(), seed).sim();
@@ -321,7 +323,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             FacingSystem.faceStanding(simulation.getEntityWorld(),
                     simulation.getBattleComponents(), mech, parkedFacing(gantry));
             machines[seat] = mech;
-            berthedMechs[index] = mech;
+            berthedMachines[index] = mech;
             occupiedBerths[index] = true;
         }
         watchBills.clear();
@@ -341,13 +343,13 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             MechDeploymentSpec deployment = deployments.get(seat);
             if (deployment == null) continue;
             int index = machineBerths[seat];
-            long mech = berthedMechs[index];
+            long mech = berthedMachines[index];
             Gantry gantry = gantries.get(index);
             if (mech == 0L) {
                 mech = simulation.spawn(new EntitySpec(
                         "berthed mech " + (seat + 1), Faction.MARINE, UnitType.HEAVY_MECH,
                         gantry.centerX, gantry.centerY).mechVariant(deployment.variant()));
-                berthedMechs[index] = mech;
+                berthedMachines[index] = mech;
                 occupiedBerths[index] = true;
             }
             simulation.world().setPos(mech, gantry.worldCenterX(), gantry.worldCenterY());
@@ -787,9 +789,37 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 rooms == null ? null : rooms.compartments(),
                 fixtureTasks, occupiedBerths, AmbientThreatPolicy.HOSTILE_COMBATANT);
         for (JobSite site : bill.sites()) {
-            JobBoard.publish(simulation.taskPoints(), fixtureTasks, site, occupiedBerths);
+            JobBoard.publish(simulation.taskPoints(), fixtureTasks, site, occupiedBerths,
+                    this::taskFocus);
         }
         return bill;
+    }
+
+    /**
+     * Resolves berth-bound servicing against the body that is actually parked.
+     * Fixture jobs keep the focus authored by their fitting.
+     */
+    private JobBoard.Focus taskFocus(FixtureTask task) {
+        if (task.affordance() != Affordance.SERVICE
+                || task.berth() == FixtureTask.NO_BERTH
+                || task.berth() < 0 || task.berth() >= berthedMachines.length) {
+            return null;
+        }
+        long occupant = berthedMachines[task.berth()];
+        if (occupant == 0L || !simulation.getRoster().isLive(occupant)) return null;
+        Gantry berth = gantries.get(task.berth());
+        float diameter = Math.max(0.5f, simulation.getRoster().radius(occupant) * 2f);
+        MechVariant variant = simulation.identity().mechVariant(occupant);
+        if (variant != null) {
+            diameter = Math.max(diameter,
+                    LayeredMechAppearance.hullWidthCells(variant.renderScale));
+        }
+        BerthedMachineServiceTarget target = new BerthedMachineServiceTarget(
+                simulation.world().x(occupant), simulation.world().y(occupant),
+                berth.facing.dx, berth.facing.dy, diameter * 0.5f, diameter * 0.5f);
+        BerthedMachineServiceTarget.Focus focus = target.focusFrom(
+                task.cellX() + 0.5f, task.cellY() + 0.5f);
+        return new JobBoard.Focus(focus.worldX(), focus.worldY());
     }
 
     /**

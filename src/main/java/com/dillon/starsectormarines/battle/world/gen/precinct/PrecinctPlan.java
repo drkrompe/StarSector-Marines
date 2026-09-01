@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
+import com.dillon.starsectormarines.battle.world.gen.EconomicZoning;
+import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
@@ -170,7 +172,21 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
         return derive(profile, Sprawl.BALANCED, width, height, rng);
     }
 
+    /** As {@link #derive(TargetProfile, Sprawl, Fortification.Demand, int, int, Random)} with nothing said about the attacker. */
     public static PrecinctPlan derive(TargetProfile profile, Sprawl sprawl,
+                                      int width, int height, Random rng) {
+        return derive(profile, sprawl, Fortification.Demand.UNSTATED, width, height, rng);
+    }
+
+    /**
+     * The default set for a target world, under what a mission says about the
+     * force it is sending.
+     *
+     * @param demand what the operation may ask of its attacker; the garrison's
+     *               fortification is the world's rating resolved against it
+     */
+    public static PrecinctPlan derive(TargetProfile profile, Sprawl sprawl,
+                                      Fortification.Demand demand,
                                       int width, int height, Random rng) {
         List<Precinct> out = new ArrayList<>();
         List<int[]> taken = new ArrayList<>();
@@ -190,9 +206,11 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
         // the one thing that would stop it being one. The garrison is then the
         // somewhere the battle happens, so the settlement is only kept when
         // there is no garrison to be that.
+        int mainIndex = -1;
         if (sprawl != Sprawl.REMOTE || !garrison) {
             GrownTrunkPlan.Profile main = GrownTrunkPlan.Profile.of(density, profile.link());
             int[] seed = placeSeed(taken, width, height, rng);
+            mainIndex = out.size();
             out.add(Precinct.settlement("settlement", seed[0], seed[1], main));
         }
 
@@ -201,8 +219,12 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
             // A garrison grows sparsely: it is an installation rather than a
             // town, and its ground comes from its program rather than from how
             // far its streets reach.
+            // How hard it is to take comes from two facts with different jobs:
+            // the world's rating says what is there, the demand says what this
+            // operation may be asked to face.
             out.add(Precinct.garrison("garrison", garrisonSeed[0], garrisonSeed[1],
-                    GrownTrunkPlan.Profile.hamlet(), garrisonFor(profile)));
+                    GrownTrunkPlan.Profile.hamlet(), garrisonFor(profile),
+                    demand.resolve(profile.defenseLevel())));
         }
 
         for (int i = 0; i < outlyingPlaces(profile.marketSize(), sprawl); i++) {
@@ -211,7 +233,48 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
             out.add(Precinct.settlement("outlying-" + (i + 1), hamletSeed[0], hamletSeed[1],
                     outlyingGrowth(sprawl)));
         }
+
+        // What a place is, decided after where every place is: the character
+        // draws come last so nothing about a place's interior moves its seed,
+        // and the same world lays out the same map whatever it is built of.
+        MapDistrictTheme leaning = EconomicZoning.dominantTheme(profile.functions());
+        for (int i = 0; i < out.size(); i++) {
+            Precinct precinct = out.get(i);
+            if (precinct.isProgrammed()) continue;
+            PrecinctCharacter character = i == mainIndex
+                    ? PrecinctCharacter.TOWN.leaning(leaning)
+                    : outlyingCharacter(leaning, sprawl, rng);
+            out.set(i, precinct.withCharacter(character));
+        }
         return new PrecinctPlan(out, null);
+    }
+
+    /**
+     * What an outlying place is.
+     *
+     * <p>Half are the plain kind — hamlets around a town, districts in a city,
+     * because most of what surrounds a place is more of the same. The rest are
+     * what the world's economy makes of them: a depot on an industrial world,
+     * a dormitory on one that mostly houses people. Coarse for the same reason
+     * the rest of the derivation is: a mission that cares should say.
+     */
+    private static PrecinctCharacter outlyingCharacter(MapDistrictTheme leaning, Sprawl sprawl,
+                                                       Random rng) {
+        PrecinctCharacter plain = sprawl == Sprawl.DENSE
+                ? PrecinctCharacter.QUARTER : PrecinctCharacter.HAMLET;
+        return rng.nextFloat() < 0.5f ? plain : economic(leaning);
+    }
+
+    /** The outlying place an economy builds; a dormitory when it says nothing. */
+    private static PrecinctCharacter economic(MapDistrictTheme leaning) {
+        if (leaning == null) return PrecinctCharacter.SUBURB;
+        return switch (leaning) {
+            case INDUSTRIAL, MILITARY_FORT -> PrecinctCharacter.DEPOT;
+            case CIVIC -> PrecinctCharacter.QUARTER;
+            // A farming world's outlying places are more country, not less.
+            case OUTSKIRTS -> PrecinctCharacter.HAMLET;
+            default -> PrecinctCharacter.SUBURB;
+        };
     }
 
     /**

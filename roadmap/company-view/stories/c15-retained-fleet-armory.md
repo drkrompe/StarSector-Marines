@@ -2,10 +2,9 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-09-01 — squad founding uses a dedicated formation emblem; chassis
-founding consumes the projected full five-by-seven pad, whose exact centred machines
-face cardinally along their gantry axes toward the shared inboard service lane and
-receive welding at authored work points.
+Updated: 2026-09-01 — berth work keeps authored technician stands but resolves each
+live focus against the parked asset's oriented service envelope, allowing walkers,
+vehicles, and later heavy assets to share the same gantries without welding the deck.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -84,7 +83,9 @@ breadcrumb keeps every completed level directly reachable.
   workspace gives its width to equipment, the animated fabrication bay, and one
   spatial socket rack. Fixed weapon locations advertise their future ballistic/
   energy/missile/omni sized-slot grammar without offering a false commit. The finite
-  mini-fab inventory retains its explicit install action through `MechBay`.
+  mini-fab inventory retains its explicit install action through `MechBay`. The room's
+  gantries are heavy-asset berths rather than mech-only slots: their authored service
+  stands bind at runtime to the shape of whichever walker or vehicle occupies them.
 
 ## Scope
 
