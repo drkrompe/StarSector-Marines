@@ -81,4 +81,21 @@ public interface RoomFitting {
     default boolean handed() {
         return false;
     }
+
+    /**
+     * The side of this room that has to be the ship's side, as a cardinal in
+     * the canonical frame, or null for a room with no opinion.
+     *
+     * <p>Most rooms that must reach the hull only need to touch it somewhere.
+     * A boat bay is the exception: its outboard bulkhead is a door, and a door
+     * is a fact the arrangement is built around — the deck in front of it kept
+     * clear, the boats nosed at it, nothing stacked against it. A fitting that
+     * left the placer free to use whichever side it could reach was fitted
+     * against a door it could not see, and the door came out behind the boats
+     * with stores against it as often as not. Naming the side lets the placer
+     * put it where the hull is, and lets the fitting stop guessing.
+     */
+    default int[] outboard() {
+        return null;
+    }
 }
