@@ -150,6 +150,8 @@ public final class ShuttleMission {
 
     /** Sortie index within {@link #totalCycles}. 0 on first launch; bumped after each DEPARTING. */
     public int currentCycle = 0;
+    /** True after this sortie has reserved every persistent squad slot it carries. */
+    public boolean fieldPresenceAdmitted;
     /** Total sorties across the battle. 1 = single drop; larger = repeat the state machine that many times. */
     public int totalCycles = 1;
     /** Sim-seconds of offstage re-arm between sorties when cycling. */

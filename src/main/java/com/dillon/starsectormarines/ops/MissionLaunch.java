@@ -271,7 +271,8 @@ public final class MissionLaunch {
                     new CampaignCommandPowerResources();
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
                     firstPlayerShuttle, deployment, det.marineWings, debugWings,
-                    det.powers, Math.max(0, liveResources.availableSupplies()));
+                    det.powers, Math.max(0, liveResources.availableSupplies()),
+                    m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
             if (fixture != null) {
                 fixture = new BattleLaunchFixture(fixture, launch);

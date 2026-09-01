@@ -70,6 +70,8 @@ public final class Mission {
     public final int employerShuttles;
     /** How this mission turns committed transports into physical ground arrivals. */
     public final MarineArrivalPolicy marineArrivalPolicy;
+    /** Concurrent player-squad exposure; independent from total committed force. */
+    public final FieldPresencePolicy fieldPresencePolicy;
     /** Mission-authored Conquest beachhead count, reusable fleet shape, and timing variance. */
     public final ConquestArrivalConfig conquestArrivalConfig;
     /** Planet name (campaign-unique) the mission targets; null for missions not tied to a place. */
@@ -164,6 +166,8 @@ public final class Mission {
         this.employerShuttles = Math.max(0, Math.min(b.employerShuttles, this.requiredDrops));
         this.marineArrivalPolicy = b.marineArrivalPolicy != null
                 ? b.marineArrivalPolicy : MarineArrivalPolicy.defaultFor(this.type);
+        this.fieldPresencePolicy = b.fieldPresencePolicy != null
+                ? b.fieldPresencePolicy : FieldPresencePolicy.defaultFor(this.type);
         this.conquestArrivalConfig = b.conquestArrivalConfig != null
                 ? b.conquestArrivalConfig : ConquestArrivalConfig.defaultFor(this.type);
         this.targetPlanetName = b.targetPlanetName;
@@ -218,6 +222,7 @@ public final class Mission {
         private int requiredDrops;
         private int employerShuttles;
         private MarineArrivalPolicy marineArrivalPolicy;
+        private FieldPresencePolicy fieldPresencePolicy;
         private ConquestArrivalConfig conquestArrivalConfig;
         private String targetPlanetName;
         private String targetIndustryId;
@@ -258,6 +263,7 @@ public final class Mission {
             this.requiredDrops = m.requiredDrops;
             this.employerShuttles = m.employerShuttles;
             this.marineArrivalPolicy = m.marineArrivalPolicy;
+            this.fieldPresencePolicy = m.fieldPresencePolicy;
             this.conquestArrivalConfig = m.conquestArrivalConfig();
             this.targetPlanetName = m.targetPlanetName;
             this.targetIndustryId = m.targetIndustryId;
@@ -355,6 +361,11 @@ public final class Mission {
 
         public Builder marineArrivalPolicy(MarineArrivalPolicy marineArrivalPolicy) {
             this.marineArrivalPolicy = marineArrivalPolicy;
+            return this;
+        }
+
+        public Builder fieldPresencePolicy(FieldPresencePolicy fieldPresencePolicy) {
+            this.fieldPresencePolicy = fieldPresencePolicy;
             return this;
         }
 
