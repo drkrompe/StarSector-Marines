@@ -1,7 +1,7 @@
 # Precincts
 
-Status: DRAFT — proposed model, not built. Supersedes the fortress-specific
-slices in `fortress-first-conquest.md` if adopted.
+Status: ACTIVE — adopted. The noun, multi-seed growth and both claim policies
+are built; fill, boundary and seeding are not.
 
 Written: 2026-09-01
 
@@ -112,20 +112,45 @@ The fix is not a bigger budget for one settlement — that produces one enormous
 town and no variety. It is several precincts, each with its own budget, placed
 where the map wants them.
 
-## Open decisions
+## Settled
 
-1. **The name.** `Precinct`, or rename `DistrictMap` to `ZoningMap` and take
-   `District` for this.
-2. **Where seeds come from.** Authored per mission (a mission says "one walled
-   garrison, two hamlets"), derived from the campaign target profile, or both
-   with authoring overriding.
-3. **How a precinct's claim is bounded.** Nearest-arms alone, or nearest-arms
-   inside an explicit ground budget so a precinct cannot sprawl over the whole
-   map when its neighbours fail to grow.
-4. **Whether `Compound` collapses into this.** A compound is already a claimed
-   group of leaves with a purpose; it may be a small precinct, or it may stay a
-   distinct thing that lives *inside* one.
-5. **What `BiomeKind` becomes.** It is read as front-line progression ordering
+**The name is `Precinct`.** Taking `District` from the zoning overlay was
+costed: about five hundred identifier occurrences, and a meaningful share of
+them — `SpaceportDistrictPlanStage`, `renderFortressDistrict`,
+`civilianDistrict` — already use the word in the place sense this model wants,
+so it needs sense-by-sense judgement rather than a rename. Not worth an hour of
+zero-behaviour change against concurrent work for a word.
+
+**Seeds come from both.** The campaign target profile derives a default set and
+a mission may state its own, which wins. Neither is built yet.
+
+**The claim is a policy, and both are implemented** — `PrecinctClaim.nearest()`
+and `PrecinctClaim.budgeted()` — because which produces better maps is a
+question about how maps should feel, and may not have the same answer for a
+fortress and a hamlet. Measured at 560x336 with three places:
+
+| policy | precinct A | B | C | left over |
+|---|---|---|---|---|
+| nearest, seed 1 | 100763 | 59487 | 27910 | 0 |
+| nearest, seed 42 | 92689 | 81921 | 13550 | 0 |
+| nearest, seed 777 | 131037 | 40334 | 16789 | 0 |
+
+Nearest partitions the whole map and the sizes are a seed lottery — the largest
+place swings between 92k and 131k cells across three seeds. Budgeted holds its
+number exactly, and that is the trap the measurement found: **a flat budget is
+spent almost entirely on the arms**. Roads alone are around twenty thousand
+cells, so budgets of 26000/14000/6000 produced precincts that were their own
+street plan and almost no ground. A precinct's allowance has to be derived from
+what it holds, the way `compound-programs.md` sizes a fortress envelope from its
+program, rather than picked as a free number.
+
+## Still open
+
+1. **Whether `Compound` collapses into this.** A compound is already a claimed
+   group of leaves with a purpose; it may be a small precinct, or a distinct
+   thing that lives *inside* one.
+2. **What `BiomeKind` becomes.** It is read as front-line progression ordering
    by `CounterattackSystem`, `FrontLineReinforcementTrigger` and
    `RecaptureTargetService`. Distance from the objective precinct is the natural
    answer once places exist.
+3. **How a precinct's ground allowance is derived**, per the measurement above.
