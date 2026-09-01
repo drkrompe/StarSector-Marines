@@ -137,6 +137,17 @@ with a road found for it afterwards. The shipped wall stamper does the opposite
 separately tries to align one of them with the vehicle corridor, which is two
 decisions about the same thing that have to be kept in agreement.
 
+**Whose arm does not matter.** The network is one, the fill already counts
+every road inside a claim as that place's circulation whichever precinct grew
+it, and a road between two places is in both of them. The gate rule was the
+one place still asking whose road it was, and once a garrison claimed first it
+mattered: its pooled claim runs far past the ends of its own short arms, so its
+outline is crossed by the settlement's arms in many places and by its own in
+none. Measured on the Raid fixture at 144x80, that was a wall with no opening
+and twenty-three points of interest on the defender's side that nothing could
+reach. A road leaving the map through the outline is still not a gate; a hole
+onto the world outside is not a way through for anyone in the battle.
+
 **A gate's cells are grouped diagonally.** A claim grown by orthogonal steps has
 a diamond-ish boundary, so a road crosses it at an angle and its cells come out
 as a staircase. Grouped orthogonally, one seven-cell crossing reads as seven
@@ -154,16 +165,21 @@ reports that it had to, so the rescue is visible rather than silent. Firing ofte
 means the growth profile is wrong — arms too short for the ground the place
 claims — and the fix belongs there.
 
-Two things about that carve were learned by measuring rather than reasoning.
+Three things about that carve were learned by measuring rather than reasoning.
 It runs as a **ray from the claim's centroid**, not as an L to a target: an L's
 legs run along the axes, so a target nearer the centre than the boundary leaves
-the whole path inside the claim, and the carve never crossed its own outline. And
-it heads for the **nearest map edge**, not for a neighbour's road: the rule that
-an artery may not overwrite another precinct's road is right, but it means a ray
-aimed at that road cannot paint the cells it needs, and the carve stops one cell
-outside its own boundary. An edge is always reachable and the ground on the way
-is nobody's. A neighbour whose network lies across the route is met on the way
-rather than aimed at.
+the whole path inside the claim, and the carve never crossed its own outline. It
+does not head for a neighbour's road: the rule that an artery may not overwrite
+another precinct's road is right, but it means a ray aimed at that road cannot
+paint the cells it needs, and the carve stops one cell outside its own boundary.
+And it does not head for the **nearest map edge** either, which was the second
+answer: a claim that already reaches that edge sends the ray off the map still
+inside itself, and the guarantee fails in silence, which is the one way it must
+not fail. It heads for the **nearest ground that is not its own** — the first
+cell outside the claim along whichever axis reaches one soonest — because that
+is what a way out is. A neighbour whose network lies across the route is met on
+the way rather than aimed at, and only a claim that spans the whole map in every
+direction is left to the edge.
 
 ## What this collapses
 

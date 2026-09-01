@@ -6,7 +6,9 @@ Written: 2026-08-23
 
 Updated: 2026-09-01 — a boat can be lost: a berth stands vacant on the deck and
 on the hangar picture, whoever was aboard is fallen, and the yard builds the
-hull's own pattern back into the hole for a material bill.
+hull's own pattern back into the hole for a material bill. Deployment squad
+cards' compact command block uses the roster officer's persisted Starsector
+portrait beside rank, name, command relationship, and selection availability.
 
 ## Purpose
 
@@ -123,6 +125,10 @@ derived fire teams, including vacancies and personnel who are not ready to deplo
 Each occupied billet carries compact primary/special shorthand and separate visual
 firepower and protection measures. Hover inspection names the marine, availability,
 full primary, armor, special equipment, integral suit system, and issued profile.
+The officer shown above those billets is the actual leader resolved by deployment
+policy: the squad's fit home captain, or the operation commander when command is
+inherited. The portrait is that `MarineCaptain`'s persisted Starsector sprite path,
+not a UI-owned likeness or a name-based substitute.
 Those two measures reuse `LoadoutEffectiveness` against the catalog ceiling; they do
 not collapse reach, specials, systems, morale, terrain, or orders into a fictional
 overall power score. The card remains a projection: its only command is still whole-
