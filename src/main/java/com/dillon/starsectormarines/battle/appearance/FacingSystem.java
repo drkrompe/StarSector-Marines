@@ -323,9 +323,13 @@ public final class FacingSystem {
 
         MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
         MechWeaponMount srm = representativeMount(loadout, WeaponRegistry.MECH_SRM_POD_ID);
+        if (srm == null) {
+            srm = representativeMount(loadout, WeaponRegistry.MECH_PIONEER_ROCKET_ID);
+        }
         MechWeaponMount lrm = representativeMount(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID);
         boolean chaingunActive = arms != null && arms.burstRemaining > 0;
-        boolean srmActive = activeMount(loadout, WeaponRegistry.MECH_SRM_POD_ID) != null;
+        boolean srmActive = activeMount(loadout, WeaponRegistry.MECH_SRM_POD_ID) != null
+                || activeMount(loadout, WeaponRegistry.MECH_PIONEER_ROCKET_ID) != null;
         boolean lrmActive = activeMount(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID) != null;
         chaingunPhase[row] = trackPhase(arms);
         srmPhase[row] = trackPhase(srm);
@@ -337,7 +341,8 @@ public final class FacingSystem {
         if (srmActive) authoredFlags |= LayeredMechAppearance.FLAG_SRM_ACTIVE;
         if (lrmActive) authoredFlags |= LayeredMechAppearance.FLAG_LRM_ACTIVE;
         if (trackFlash(arms)) authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_FLASH;
-        if (anyTrackFlash(loadout, WeaponRegistry.MECH_SRM_POD_ID)) {
+        if (anyTrackFlash(loadout, WeaponRegistry.MECH_SRM_POD_ID)
+                || anyTrackFlash(loadout, WeaponRegistry.MECH_PIONEER_ROCKET_ID)) {
             authoredFlags |= LayeredMechAppearance.FLAG_SRM_FLASH;
         }
         if (anyTrackFlash(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID)) {

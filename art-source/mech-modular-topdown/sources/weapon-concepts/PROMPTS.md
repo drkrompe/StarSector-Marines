@@ -203,3 +203,87 @@ weapon silhouette and removal of all black backdrop, halo, bloom, haze, and
 cast light. ImageGen simplified a few subpixel details during that cleanup, so
 the cleaned result—not the haloed draft—is the explicit retained geometry
 authority for `lions-guard-thermal-lance.png`.
+
+# Common-market mech weapons
+
+Generated with the built-in ImageGen tool on 2026-09-01. These concepts are
+deliberately lower-performance commercial or industrial hardware, not a visual
+shorthand for Independent or pirate equipment. Every prompt used the existing
+modular family as style, scale, and registration reference while demanding a
+strict zenith silhouette.
+
+## CAG-6 Muster commercial autogun
+
+> Create one isolated modular mech arm weapon concept for a 2D tactical game:
+> a cheap, mass-market CAG-6 “Muster” commercial autogun used for convoy and
+> settlement security. Strict 90-degree orthographic top-down view, camera
+> directly overhead, zero perspective and foreshortening. The complete weapon
+> lies flat in the battlefield plane; rear mount at the bottom and barrel firing
+> toward the top edge. The muzzle points away from the viewer and reads only as
+> a thin edge-on dark slit. Use one practical barrel, a boxy olive receiver,
+> paired recoil cylinders, exposed ammunition belt and feed hose, simple rear
+> access plates, commodity fasteners, and small amber service lamps. It should
+> look inexpensive, maintainable, and less capable than a military chaingun,
+> while retaining a crisp painted, weathered, high-detail game-sprite finish.
+> Exactly one centered vertical module with generous transparent padding; no
+> chassis, hands, turret base, cast shadow, scenery, text, logo, border, or
+> checkerboard. Avoid rotary barrels, advanced optics, heroic military ornament,
+> a barrel pointed toward the camera, perspective, isometric, or side view.
+
+The accepted first result became `muster-autogun.png` after deterministic
+checker/background cleanup.
+
+## QBC-2 Quarry breaker cannon
+
+> Create one isolated modular centerline mech weapon concept for a 2D tactical
+> game: a QBC-2 “Quarry” industrial breaker cannon adapted from mining and
+> demolition equipment. Strict 90-degree orthographic top-down view, camera
+> directly overhead, zero perspective and foreshortening. The entire cannon
+> lies flat in the ground plane, rear universal mount at the bottom and an
+> oversized barrel firing toward the top edge. The muzzle must face away from
+> the camera and appear only as a narrow edge-on black opening. Use a heavy dark
+> barrel, blunt breech, broad olive central armor, paired longitudinal frame
+> rails, hydraulic cylinders with restrained hazard stripes, exposed hoses,
+> welded repairs, rough service wheels or pivots, and three loose industrial
+> shells secured to the casing. It must read as a crude short-range structural
+> breaker with poor battlefield ergonomics, not as prestige military artillery.
+> Match the modular family's painterly weathering, upper-left baked object
+> lighting, fine noise, panel seams, and small-sprite readability. One centered
+> object with transparent padding; no chassis, crew, ground, shadow, text,
+> emblem, border, checkerboard, perspective, isometric, or visible face-up bore.
+
+The accepted first result became `quarry-breaker-cannon.png` after deterministic
+checker/background cleanup.
+
+## PRC-4 Pioneer utility rocket cradle
+
+> Create one isolated modular mech shoulder weapon concept for a 2D tactical
+> game: a PRC-4 “Pioneer” commercial utility rocket cradle converted from
+> seismic-charge and obstacle-clearing equipment. Strict 90-degree orthographic
+> top-down view, camera directly overhead, zero perspective and foreshortening.
+> The rack lies flat in the battlefield plane; rear universal mount at the
+> bottom and four exposed rockets pointing toward the top edge. Show exactly
+> four parallel rockets with their noses and fins seen from directly above, not
+> aimed toward the camera. Use open dark rails rather than a military launch
+> box, olive side armor, four square clamp/service covers, yellow industrial
+> bands, exposed orange ignition wiring, simple pipework, hinges, fasteners, and
+> small amber lamps. It should look finite, rugged, unguided, commercially
+> available, and visibly inferior to a sealed military SRM pod. Match the
+> existing crisp, painted, weathered modular-sprite language. Exactly one
+> centered vertical object with generous transparent padding; no mech, vehicle,
+> crew, launch plume, scenery, floor, cast shadow, text, logo, border, or
+> checkerboard. Avoid perspective, isometric, side view, face-up rocket noses,
+> enclosed missile cells, or more or fewer than four rockets.
+
+The original concept arrived on a black field. A first background-removal edit
+retained that field, so the accepted isolation edit used this stronger handoff:
+
+> Preserve the exact accepted rocket-cradle design, top-down geometry, colors,
+> lighting, and internal details. Place the single object on a perfectly flat,
+> featureless pure white isolation plate with no gradient, texture, shadow,
+> halo, bloom, haze, floor line, border, or checkerboard. Keep generous white
+> padding and do not redesign, rotate, crop, resize, add, or remove any part.
+
+`clean_imagegen_backgrounds.py` then converted only that uniform isolation
+plate to real alpha. The cleaned result is the retained geometry authority for
+`pioneer-rocket-cradle.png`.

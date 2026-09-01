@@ -230,6 +230,40 @@ class LayeredMechComposerTest {
                 fileName(layer.path()).equals("marine-muzzle-flash.png")).count());
     }
 
+    @Test
+    void commercialWeaponsUsePairedNoseAndShoulderHardpoints() {
+        LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
+        List<Layer> muster = new ArrayList<>();
+        LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
+                        muster.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
+                assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f,
+                LayeredMechAppearance.FLAG_CHAINGUN_FLASH,
+                MechVariant.BULWARK.chassisAppearance,
+                LayeredMechAppearance.ARMS_MUSTER_AUTOGUN,
+                LayeredMechAppearance.POD_NONE,
+                LayeredMechAppearance.POD_PIONEER_ROCKET, 1f);
+        assertEquals(2, muster.stream().filter(layer ->
+                fileName(layer.path()).equals("muster-autogun.png")).count());
+        assertEquals(1, muster.stream().filter(layer ->
+                fileName(layer.path()).equals("pioneer-rocket-cradle.png")).count());
+        assertEquals(2, muster.stream().filter(layer ->
+                fileName(layer.path()).equals("marine-muzzle-flash.png")).count());
+
+        List<Layer> quarry = new ArrayList<>();
+        LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
+                        quarry.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
+                assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f,
+                LayeredMechAppearance.FLAG_SRM_FLASH,
+                MechVariant.HOUND.chassisAppearance,
+                LayeredMechAppearance.ARMS_QUARRY_BREAKER,
+                LayeredMechAppearance.POD_PIONEER_ROCKET,
+                LayeredMechAppearance.POD_NONE, 1f);
+        assertEquals(1, quarry.stream().filter(layer ->
+                fileName(layer.path()).equals("quarry-breaker-cannon.png")).count());
+        assertEquals(1, quarry.stream().filter(layer ->
+                fileName(layer.path()).equals("marine-muzzle-flash.png")).count());
+    }
+
     private static List<Layer> emitFlashingMech(LayeredMechAssets assets,
                                                 MechVariant variant, int flags) {
         return emitFlashingMech(assets, variant, flags,
