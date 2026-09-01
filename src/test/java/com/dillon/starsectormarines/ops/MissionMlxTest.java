@@ -36,7 +36,11 @@ class MissionMlxTest {
         loader.reload();
         try (MarkupInstance instance = loader.build(new Reactor(),
                 BriefingScreen.ROOT_COMPONENT,
-                BriefingScreen.previewProps(true))) {
+                BriefingScreen.previewProps(true, true))) {
+            assertTrue(instance.requireElement("mission-debug-drawer")
+                    .hasClass("expanded"));
+            assertTrue(instance.requireElement("mission-debug-workspace")
+                    .hasClass("panel"));
             assertTrue(instance.requireElement("tier-first").disabled());
             assertTrue(instance.requireElement("tier-established").disabled());
             assertTrue(instance.requireElement("tier-veteran").disabled());
@@ -50,6 +54,21 @@ class MissionMlxTest {
                     .hasClass("briefing-assign-hidden"));
             assertTrue(instance.requireElement("debug-squads-cycle")
                     .hasClass("debug-cycle-absent"));
+        }
+    }
+
+    @Test
+    void debugDrawerStartsCollapsed() throws Exception {
+        MarkupLoader loader = loader(BriefingScreen.COMPONENT_PATHS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(new Reactor(),
+                BriefingScreen.ROOT_COMPONENT,
+                BriefingScreen.previewProps(false))) {
+            assertTrue(instance.requireElement("mission-debug-drawer")
+                    .hasClass("collapsed"));
+            assertTrue(instance.requireElement("mission-debug-workspace")
+                    .hasClass("debug-workspace-collapsed"));
+            assertFalse(instance.requireElement("mission-debug-toggle").disabled());
         }
     }
 
