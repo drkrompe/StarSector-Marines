@@ -21,10 +21,7 @@ import com.dillon.starsectormarines.campaign.PatronBriefingContextComposer;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.intel.DefenseLevel;
-import com.dillon.starsectormarines.ops.intel.IndustryEntry;
-import com.dillon.starsectormarines.ops.intel.IndustryMissionCatalog;
 import com.dillon.starsectormarines.ops.intel.IntelReader;
-import com.dillon.starsectormarines.ops.intel.MissionArchetype;
 import com.dillon.starsectormarines.ops.intel.PlanetIntel;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
 import com.dillon.starsectormarines.ops.mission.story.StoryMissionRegistry;
@@ -39,19 +36,14 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Generates the mission list for a (planet, client) pair. Mission set is now
- * derived from the planet's industries — every refinery is a "Cripple the Refinery"
- * candidate, every Patrol HQ is a barracks assault, etc. — so the list is
- * recognizably about the *specific* planet, not generic.
+ * Projects the work a client actually owns at one planet. Patron clients read
+ * persisted contract rows; ordinary faction clients expose only authored story
+ * missions. The industry catalog remains candidate content for campaign offer
+ * policy, but opening this screen never manufactures an unpersisted mission.
  *
- * <p>Deterministic per (planet.name, client.factionId): same combination always
- * produces the same set, so revisits feel stable and mission positions don't
- * shuffle on screen rebuild. Industries that are currently {@code disrupted}
- * are skipped — no point staging another sabotage on a downed factory.
- *
- * <p>Risk is derived from {@link DefenseLevel} (planet's defense rating), then
- * softened one tier for stealth-leaning mission types (Sabotage, Extraction).
- * Payout scales with size × risk × per-type multiplier.
+ * <p>Story eligibility and placement remain deterministic per
+ * {@code (planet.name, client.factionId)}, so revisits do not shuffle authored
+ * work under the player.
  */
 public final class MissionGenerator {
 
@@ -90,18 +82,6 @@ public final class MissionGenerator {
             StoryEligibilityContext storyCtx = new StoryEligibilityContext(
                     planet, client, intel, roster, seed);
             out.addAll(StoryMissionRegistry.eligibleFor(storyCtx));
-        }
-
-        // Industry-driven candidates: for each non-disrupted industry, pick one archetype.
-        // Iterating intel.industries (not the catalog) preserves the order Starsector
-        // returns from the market, giving stable positioning on revisit.
-        for (IndustryEntry ind : intel.industries) {
-            if (ind.disrupted) continue;
-            List<MissionArchetype> archetypes = IndustryMissionCatalog.archetypesFor(ind.id);
-            if (archetypes.isEmpty()) continue;
-            MissionArchetype archetype = archetypes.get(r.nextInt(archetypes.size()));
-            out.add(buildMission(r, planet, client, intel, ind, archetype, out.size()));
-            if (out.size() >= MAX_MISSIONS) break;
         }
 
         return out;
@@ -540,44 +520,6 @@ public final class MissionGenerator {
         if (hasPatrol && size >= 5)   return DefenseLevel.MODERATE;
         if (hasPatrol)                return DefenseLevel.LIGHT;
         return DefenseLevel.UNDEFENDED;
-    }
-
-    private static Mission buildMission(Random r,
-                                        PlanetAPI planet, Client client, PlanetIntel intel,
-                                        IndustryEntry industry, MissionArchetype archetype,
-                                        int index) {
-        RiskLevel risk = deriveRisk(intel.defenseLevel, archetype.type);
-        int payout = computePayout(intel.size, risk, archetype.type, r);
-
-        float x = 0.08f + r.nextFloat() * 0.84f;
-        float y = 0.08f + r.nextFloat() * 0.84f;
-
-        FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
-        FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
-
-        OperationTier tier = tierFor(archetype.type, risk);
-        int requiredDrops = requiredDropsFor(archetype.type, tier);
-        int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
-        String requirements = requirementsFor(risk);
-        String id = client.factionId + ":" + industry.id + ":" + index;
-
-        return Mission.builder()
-                .id(id)
-                .name(archetype.name)
-                .type(archetype.type)
-                .source(MissionSource.GENERATED)
-                .payout(payout)
-                .risk(risk)
-                .requirements(requirements)
-                .flavor(archetype.flavor)
-                .mapPosition(x, y)
-                .clientFighterSupport(clientSupport)
-                .enemyFighterSupport(enemySupport)
-                .requiredDrops(requiredDrops)
-                .employerShuttles(employerShuttles)
-                .targetPlanetName(planet.getName())
-                .targetIndustryId(industry.id)
-                .build();
     }
 
     /**
