@@ -275,6 +275,8 @@ public final class BattleComponents {
     public static final int AI_STATE_FALLBACK_CELL_Y = 3;
     /** {@link #AI_STATE} field 4: FLEE-role idle pause between wander legs, sim-seconds (FLOAT). */
     public static final int AI_STATE_WANDER_DWELL_TIMER = 4;
+    /** {@link #AI_STATE} field 5: name of the {@link com.dillon.starsectormarines.battle.decision.Reflex} that pre-empted this unit's plan step on the last tick it was dispatched, {@code null} = none (OBJECT). Diagnostic only — written by {@code ReflexChain.run} and read by the per-member dumps so a unit standing off its step says <em>why</em>; nothing in the simulation reads it back. */
+    public static final int AI_STATE_LAST_REFLEX = 5;
 
     /** {@link #VISION} field 0: how far this unit can see in cells — drives its fog-of-war shadowcast radius (FLOAT). */
     public static final int VISION_RANGE = 0;
@@ -1167,7 +1169,8 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.FLOAT);
         AI_STATE        = world.register(9, "AiState",
-                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT,
+                FieldKind.OBJECT);
         CRASHING        = world.register(10, "Crashing", FieldKind.OBJECT);
         MECH_LOADOUT    = world.register(11, "MechLoadout", FieldKind.OBJECT);
         KINEMATICS      = world.register(12, "Kinematics", FieldKind.OBJECT);

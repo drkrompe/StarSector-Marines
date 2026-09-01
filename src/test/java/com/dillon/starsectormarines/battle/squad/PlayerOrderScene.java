@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.command.AttackMoveGoal;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
@@ -33,14 +35,24 @@ import java.util.OptionalInt;
  *
  * <p>Those are four separate promises and the order path keeps all four or none
  * of them. A click reaches the squad through a mailbox, a validation pass, a
- * destination resolver, a temporary assignment that stands <em>over</em> the
- * commander's without replacing it, an execution invalidation, and a release on
- * arrival. Every unit test around that seam pins one link — the service queues,
- * the system activates, {@code assignmentForExecution} prefers the player's, the
- * release clears it — and none of them can show the thing the path is actually
- * for: that a click is answered on the next tick, is still being carried out
- * three hundred ticks later, and gives the mission back rather than stranding
- * the squad on the ground the player pointed at.
+ * destination resolver, a <em>lease</em> taken through the assignment arbiter
+ * over whatever directive owned the squad, an execution invalidation, and a
+ * handback on arrival. Every unit test around that seam pins one link — the
+ * service queues, the system activates, the arbiter shelves and restores — and
+ * none of them can show the thing the path is actually for: that a click is
+ * answered on the next tick, is still being carried out three hundred ticks
+ * later, and gives the mission back rather than stranding the squad on the
+ * ground the player pointed at.
+ *
+ * <p><b>Two of the readings are about the lease rather than the squad.</b>
+ * {@code mission-shelved} asks whether the commander's order stayed visible
+ * underneath the player's for the whole time it stood, and
+ * {@code directive-provenance} asks whether the command ledger named the player
+ * as the squad's owner while it did and stopped afterwards. A side field
+ * written straight onto the squad would satisfy every other verdict here and
+ * neither of those, which is exactly the difference worth pinning: an order
+ * nobody can see in the ledger is an order nobody can explain, supersede, or
+ * bound.
  *
  * <h2>The map is a corridor the mission runs the length of</h2>
  * <p>Open ground, 96 by 32. The squad starts west with a commander's
@@ -92,41 +104,19 @@ import java.util.OptionalInt;
  * a gap the ladder did not close, which is the {@code YieldFreezeScene} defect
  * arriving by a different road.
  *
- * <h2>What it records today: the order is taken and never given back</h2>
- * <p>The first two promises hold and the last two do not. The click is accepted
- * on tick 61 — the first tick that can see it — and the squad is planning under
- * it on that same tick with no plan-less gap anywhere in the run. It then walks
- * off its mission axis to the ground it was pointed at, arriving around tick
- * 640. <b>And there it stays.</b> The player's order still stands at tick 899,
- * with the squad's centroid parked 2.80 cells from (40.5, 6.5); played out to
- * three thousand ticks it is the identical centroid, to two decimal places, from
- * tick 640 onwards. The commander's {@code ATTACK_MOVE} to the east edge is
- * never resumed, in a battle that would otherwise still have it to do.
- *
- * <p><b>Two radii disagree, and the gap between them is where the squad is
- * stranded.</b> {@code SquadMoveOrderSystem.arrived} releases the order when the
- * squad centroid is within {@link AttackMove#ARRIVAL_RADIUS} — 2 cells — of the
- * destination. {@code AttackMove} itself stops advancing once every member is
- * within {@code SQUAD_ARRIVAL_RADIUS} — 5 cells — and each arrived member then
- * holds its ground rather than closing further, deliberately, so that one
- * marine's arrival cannot complete a step the whole squad shares. A body of six
- * people that has stopped at a five-cell footprint check settles with its
- * centroid a little under three cells out, which satisfies the action and misses
- * the release by 0.8 of a cell. Nothing ever moves it again: the order does not
- * expire, and while it stands it outranks the mission it is masking.
- *
- * <p>The {@code contact} loop parks at 2.59 cells and the same thing happens, so
- * this is not about the fight. The {@code control} loop passes everything it is
- * asked, which is what says the freeze belongs to the order rather than to the
- * map: with nobody clicking, the same squad on the same ground holds its mission
- * goal for all 899 ticks and covers 45.1 cells.
- *
- * <p>Whichever way that is closed — releasing on the squad's own arrival test
- * rather than on a centroid, widening the release to
- * {@code SQUAD_ARRIVAL_RADIUS}, or having the order expire when its action
- * reports success — <b>the bar here does not move</b>. "Handed the order back
- * near where it was sent" is the promise; a scene that relaxes it until the
- * current behaviour passes has stopped measuring the thing it was built for.
+ * <h2>What its first run found</h2>
+ * <p>The order was taken and never given back. The click was accepted on tick
+ * 61, the squad planned under it the same tick with no plan-less gap anywhere,
+ * walked to the ground it was pointed at — and stayed there with the order
+ * still standing, identical centroid to two decimal places out to three
+ * thousand ticks, the commander's mission never resumed. Two rules for one
+ * arrival: the release tested a centroid against {@link AttackMove#ARRIVAL_RADIUS}
+ * while the action stopped every member at its own five-cell footprint, and six
+ * people stopped by the action settle a little under three cells out. The
+ * release now asks {@link AttackMove#squadHasArrived}, the action's own rule,
+ * and the order is a lease through the arbiter that hands the shelved mission
+ * back the tick it ends. The bar did not move to get there: handback at tick
+ * 600 uncontested and 590 under fire, the mission replanned the same tick.
  */
 public final class PlayerOrderScene implements BehaviorScene {
 
@@ -185,6 +175,17 @@ public final class PlayerOrderScene implements BehaviorScene {
     private static final String MARINES = "marines";
     private static final String PICKET = "picket";
 
+    /**
+     * How the ledger names the squad's owner while the player's lease stands.
+     * The issuer and the authority together, because either alone would pass on
+     * a directive that got half of it right.
+     */
+    private static final String PLAYER_OWNER =
+            "player/" + CommandAuthority.PLAYER_INTERVENTION.name();
+
+    /** What the provenance observer records for a squad the ledger does not own. */
+    private static final String UNOWNED = "—";
+
     /** The goal name {@link AttackMoveGoal} reports; both orders are attack moves. */
     private static final String ATTACK_MOVE = AttackMoveGoal.INSTANCE.name();
 
@@ -208,8 +209,8 @@ public final class PlayerOrderScene implements BehaviorScene {
      * Builds the world both kinds of loop share.
      *
      * <p>The squad's mission is written through the builder's {@code assigned}
-     * hook and nothing here ever touches {@code playerTacticalOrder}: the scene
-     * exists to exercise the real order path, and a scene that sets the field
+     * hook and nothing here ever leases a squad by hand: the scene exists to
+     * exercise the real order path, and a scene that writes the assignment
      * directly has tested the goal and skipped everything it meant to be about.
      */
     private static SceneWorld build(boolean picket) {
@@ -247,12 +248,13 @@ public final class PlayerOrderScene implements BehaviorScene {
         int squadId = world.squadId(MARINES);
         OrderTrace trace = new OrderTrace().track(MARINES, squadId);
         ContactTicks contact = new ContactTicks(world);
+        DirectiveProvenance provenance = new DirectiveProvenance(squadId);
         ScriptedPlayer player = ScriptedPlayer.on(world)
                 .moveSquad(ORDER_TICK, MARINES, ORDER_X, ORDER_Y);
 
         SceneRun.of(world)
                 .player(player)
-                .observe(trace, contact)
+                .observe(trace, contact, provenance)
                 .frames(frames, loopId, FRAME_EVERY_TICKS, tick -> caption(trace, squadId, tick))
                 .run(TICKS);
 
@@ -310,6 +312,21 @@ public final class PlayerOrderScene implements BehaviorScene {
                         "took the mission back"));
         if (!picket) {
             verdicts.add(resumedMission(trace, squadId, handbackTick));
+            // The two halves of "leased, not overwritten". A player's order is
+            // a lease over the commander's directive, so the commander's order
+            // has to stay visible underneath it the whole time — and the ledger
+            // has to say the player owns the squad while it does, then stop
+            // saying so. Without the first, a handback that restored the right
+            // assignment could equally have been a fresh commander write; the
+            // second is what says the click went through the arbiter at all
+            // rather than around it.
+            verdicts.add(acceptTick < 0
+                    ? unmeasured("mission-shelved", "the order was never accepted")
+                    : Verdicts.held("mission-shelved", trace, squadId,
+                            acceptTick, heldTo,
+                            s -> missionLabel.equals(s.mission()),
+                            "the shelved " + missionLabel));
+            verdicts.add(directiveProvenance(provenance, acceptTick, handbackTick));
         }
         // Tick 0 is excluded: it precedes the first replan, so every squad in
         // every scene is plan-less there and counting it would make the bar
@@ -423,6 +440,29 @@ public final class PlayerOrderScene implements BehaviorScene {
     }
 
     /**
+     * The ledger named the player as the squad's owner while the order stood,
+     * and stopped naming them once it was handed back. What separates a leased
+     * order from a side field written straight onto the squad: the second
+     * cannot be seen in the command ledger at all, and neither can its end.
+     */
+    private static Verdict directiveProvenance(DirectiveProvenance provenance,
+                                               int acceptTick, int handbackTick) {
+        if (acceptTick < 0) {
+            return unmeasured("directive-provenance", "the order was never accepted");
+        }
+        if (handbackTick < 0) {
+            return unmeasured("directive-provenance", "the order was never handed back");
+        }
+        String held = provenance.at(acceptTick);
+        String released = provenance.at(handbackTick);
+        return Verdict.of("directive-provenance",
+                PLAYER_OWNER.equals(held) && !PLAYER_OWNER.equals(released),
+                "the ledger read " + held + " at tick " + acceptTick + " and "
+                        + released + " at tick " + handbackTick
+                        + " (wanted " + PLAYER_OWNER + " then anybody else)");
+    }
+
+    /**
      * A verdict that could not be read because an earlier one failed. Recorded
      * as a failure rather than dropped: a loop that quietly returns five
      * verdicts instead of eight has changed what it is measuring without
@@ -449,6 +489,34 @@ public final class PlayerOrderScene implements BehaviorScene {
         Sample sample = trace.at(squadId, tick);
         return "player order  t=" + tick + "  "
                 + (sample == null || sample.executing().isEmpty() ? "—" : sample.executing());
+    }
+
+    /**
+     * Who the command ledger says owns the squad, per tick — the issuer and the
+     * authority, which is the pair a directive is identified by. Kept as its own
+     * observer rather than folded into {@link OrderTrace} because it is a fact
+     * about the ledger rather than about the squad's order stack, and the trace
+     * is shared with every other scene.
+     */
+    private static final class DirectiveProvenance implements TickObserver {
+
+        private final int squadId;
+        private final Map<Integer, String> owners = new LinkedHashMap<>();
+
+        private DirectiveProvenance(int squadId) {
+            this.squadId = squadId;
+        }
+
+        @Override
+        public void observe(BattleSimulation sim, int tick) {
+            CommandDirective directive = sim.getSquadCommandDirective(squadId);
+            owners.put(tick, directive == null ? UNOWNED
+                    : directive.issuer() + "/" + directive.authority().name());
+        }
+
+        String at(int tick) {
+            return owners.getOrDefault(tick, UNOWNED);
+        }
     }
 
     /**

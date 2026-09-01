@@ -366,18 +366,20 @@ class SquadPlanDebugPanelTest {
 
         assertEquals("CLEAR_ZONE zone:194",
                 SquadPlanDebugPanel.executingAssignmentLabel(squad, committed));
-        assertNull(SquadPlanDebugPanel.overriddenMissionLabel(squad, committed),
+        assertNull(SquadPlanDebugPanel.overriddenMissionLabel(squad, committed,
+                        sim.getShelvedSquadDirective(squadId)),
                 "with no player order there is nothing standing on the mission");
 
         sim.getSquadMoveOrderService().requestMove(squadId, 15, 9);
         sim.getSquadMoveOrderSystem().tick(sim);
 
-        assertNotNull(squad.playerTacticalOrder(),
+        assertTrue(squad.underPlayerOrder(),
                 "the move order must have been accepted, or this measures nothing");
         assertEquals("player ATTACK_MOVE cell:15,9",
                 SquadPlanDebugPanel.executingAssignmentLabel(squad, committed));
         assertEquals("CLEAR_ZONE zone:194",
-                SquadPlanDebugPanel.overriddenMissionLabel(squad, committed));
+                SquadPlanDebugPanel.overriddenMissionLabel(squad, committed,
+                        sim.getShelvedSquadDirective(squadId)));
     }
 
     private static BattleSimulation openSim() {
