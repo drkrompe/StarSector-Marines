@@ -180,7 +180,7 @@ Do not run builds or leave generated task files there.
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
   a suite degrades to not drawing those sprites if it is missing. Select
-  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,firing-line,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,player-order,point-defence,runway-sortie,ship-decks,ships-boats,sun-shadows,swarm-overkill,turrets,ui,yield-freeze`
+  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,firing-line,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,player-order,point-defence,prosecution-hold,runway-sortie,ship-decks,ships-boats,sun-shadows,swarm-overkill,turrets,ui,yield-freeze`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat sceneEvidence` → plays the behaviour scenes for their verdicts and
   prints a PASS/FAIL table, one row per loop, with a line beneath each failing
@@ -531,6 +531,7 @@ The discovered suite ids and default output directories are:
 | `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
 | `swarm-overkill` | One squad meeting a rush of runners a single rifle kills, both sides ordered to hold the ground so they actually fight. The no-regression control for damage-aware target crowding | `build/snapshots/swarm-overkill/` |
 | `player-order` | One squad under a long standing mission and one ground click off its axis, recorded three ways: the click answered and carried out, the same world with nobody clicking, and the same click into a picket's fire. The acceptance for the order-path rebuild | `build/snapshots/player-order/` |
+| `prosecution-hold` | One squad ordered to take a room with an enemy standing off the way there that nobody can shoot at, recorded three ways: the squad getting on with the order, the same world frozen with the fall-through off, and the same contact placed near enough to take firing positions against | `build/snapshots/prosecution-hold/` |
 | `yield-freeze` | One squad under one order, recorded four ways: the order worth having and the same order over a zone that turns out to be empty, as infantry and again as a mech lance. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
 | `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, marines casting beside the same marines with the shadow layer left out, and one craft at three altitudes walking its shadow away from itself — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
 
@@ -824,6 +825,48 @@ ships **on**, behind `battle.infantry.laneSidestep`, because held compounds are
 the outcome a Conquest is decided on and captures is throughput: 12 taken and 11
 kept beats 14 taken and 9 kept, and it holds more on both fixtures. The scene's
 control loop sets the toggle false for itself.
+
+`ProsecutionHoldScene` is the ninth: one squad ordered to take a room sixty
+cells east, and one stationary enemy thirty-two cells off that axis which not
+one marine can reach. It asks whether a squad prosecuting a contact it has no
+firing position against gets on with the order it was given, and it is the
+acceptance for `battle.squad.prosecutionFallThrough`.
+
+**It was written from two squad dumps of a live battle rather than from a
+theory.** Twelve marines under `CLEAR_ZONE`, executing `EnterZone`, stood on
+their landing pad for a hundred and eighty consecutive frames — nobody moving,
+nobody holding a path, every member settled — under HOLD / ADVANCING /
+PROSECUTE against a defender thirty cells away with zero engageable members and
+a force ratio of 0.18 in their favour. Prosecution leashes its firing-position
+search to the squad centroid at twelve cells; the contact was further off than
+that plus weapon reach; the search returned nothing; and nothing was read as
+"no path", whose answer is to plant. `contactHoldIsFresh` is true while any
+contact is observed, so the picture that caused the freeze was renewed by it.
+
+What it records: the control makes **0.0 cells** of eastward progress in nine
+hundred ticks with 898 of its 899 contact ticks reading PROSECUTE, which is the
+live dump reproduced exactly; the subject makes 46.0 cells with the identical
+picture and not one plan-less tick; and the third loop, with the contact moved
+to twenty cells where a firing position does exist, still puts 25 HP into it and
+covers 6.3 cells to the subject's 15.6 over the first three hundred ticks — so
+the fix did not delete prosecution, it bounded it.
+
+**Two ways the world was wrong before it was right, both silent.** A hole left
+in a wall as ordinary floor is a gap and not a portal: the detector merged the
+room into the field, the order named the zone the squad was already standing
+in, the tactical axis pointed at the middle of the map, and the contact came out
+FRONT rather than flank — so the doctrine was ADVANCE and there was no
+prosecution to measure at all. `SceneBuilder.doorway` is the marked-cell
+version. And the room's own occupant becomes the picture's primary as the squad
+closes on it, which is correct and which halved the measured prosecution share;
+every reading here is gated on the primary being the off-axis body the scene is
+named for.
+
+**A scene whose geometry is measured in weapon reach cannot use a rolled kit.**
+The default roll hands out carbines and one pulse rifle, ten cells apart, so at
+this distance five marines have no firing position and the sixth does — five men
+standing still beside one walking off north, which is neither of the behaviours
+being compared. `SceneBuilder.primary` issues one named weapon to every seat.
 
 **A scene answers rather than merely records.** A `BehaviorScene` returns one
 `SceneReport` per loop — its verdicts and the readings they were judged from —

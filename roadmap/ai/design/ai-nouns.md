@@ -4,7 +4,10 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a masked marine steps aside rather than retargeting, it
+Updated: 2026-09-01 — a refusal from the firing-position search has three
+answers rather than two, and prosecution with nowhere to shoot from walks on.
+
+Earlier 2026-09-01 — a masked marine steps aside rather than retargeting, it
 ships on, and what the friendly-lane question ever cost was the tick.
 
 Earlier 2026-09-01 — what sits between a unit having a squad and executing its
@@ -982,7 +985,8 @@ tells it to prosecute: members with legal fire hold and shoot while the others
 use the shared track to establish bounded firing positions. Prosecution never
 authorizes an unbounded chase or abandonment of the mission route; if no legal
 position exists inside the maneuver leash, the member continues its assigned
-advance.
+advance — which is the third of the three refusals below, and is the answer the
+execution side gives today rather than only the one this paragraph asks for.
 
 Prosecution is nonetheless the one commitment that leaves the destination out
 of the reckoning entirely: its firing positions are leashed to the squad's own
@@ -1345,14 +1349,30 @@ heard, is going where it belongs, and the long way round is the right way when
 it is the only way. Binding those two together would turn "there is a building
 in between" into "do not go home".
 
-**The two refusals are different facts and get different answers.** No path at
+**The three refusals are different facts and get different answers.** No path at
 all means the commitment cannot be prosecuted by walking, so the member holds
 and fights from where it stands — which is what a committed member does on its
 firing line anyway. A path that merely costs more than it is worth leaves a
 member who can still move perfectly well, so it carries on toward the
-objective. Collapsing the two into one answer sends a squad that has decided
+objective. Collapsing those two into one answer sends a squad that has decided
 to fight marching straight past the enemy, and the canonical matrix charged
 several extra squads for it.
+
+The third is **no position at all** — nothing inside the leash has both the
+reach and the line of fire — and which answer it gets depends on which
+commitment asked the question. Under the route-threat commit the enemy stands
+on ground the squad has to cross, so a member with no better angle available
+plants and fights, exactly as it would with no path. Under contact prosecution
+the destination played no part in choosing the fight and the leash is drawn
+round the squad's own centre, so the rule stated above under Doctrine and
+maneuver applies literally: the member continues its assigned advance, keeping
+the target for shots of opportunity. Filing that case under "no path" instead
+was a freeze with no exit — a squad prosecuting a contact further off than
+leash plus weapon reach stopped where it stood for as long as it could see the
+contact, and since a contact being observed is itself what keeps an advancing
+HOLD fresh, seeing it was all that was required. Two squads of one live battle
+were recorded standing on their landing pads with every member settled and not
+one member engageable.
 
 What neither answer may be is the old one. A committed member that returned on
 an unreachable position set an empty path and moved nobody, and because the
@@ -1368,6 +1388,22 @@ designed. Ending it is still right — a squad that stops for no reason is a
 bug, and this one was an expensive bug — but the measured cost is squads lost
 on approach where they used to stand still, and the gain is pressing that had
 not been happening. Which of those a mission wants is doctrine, not a defect.
+
+**The prosecution freeze paid the same rent, and its removal charges the same
+kind of bill: more ground taken, less ground held.** Measured on the canonical
+Conquest matrix with only that switch moved, both fixtures take more and hold
+less. Reinforced-south goes from twelve captures to fifteen and from three
+hundred and ninety defenders killed to four hundred and seventeen, for five
+more marines lost and one fewer compound still held at the clock;
+full-strength-west goes from three captures to six and from three hundred and
+eleven kills to four hundred and thirty-six, for five more marines lost and
+three fewer compounds held. The compounds are the honest cost and are reported
+as such — but on that fixture the frozen build also *loses the battle*,
+terminating as a defender victory at tick 16445, while the build that walks on
+survives the full eighteen thousand. Holding three compounds inside a defeat is
+not a stronger position than holding none inside a draw. The standing reading
+is that a squad which walks on contests more ground and is more exposed on it,
+and that a squad which stops for no reason is still a bug.
 
 **An unreachable answer from the picker is a question, not a verdict.** The
 firing-position search is two-stage: the first scores line of sight and weapon
