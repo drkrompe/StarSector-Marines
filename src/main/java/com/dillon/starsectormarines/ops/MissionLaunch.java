@@ -15,7 +15,9 @@ import com.dillon.starsectormarines.battle.fixture.SabotageBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.campaign.CivilianRescueMissionKey;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
@@ -151,6 +153,12 @@ public final class MissionLaunch {
         TargetProfile profile = TargetProfileResolver.resolve(m.targetPlanetName)
                 .withFactionId(m.defenderFactionOverride);
 
+        // How settled the map is: the mission's own statement where it made one,
+        // and the market's size where it did not. Resolved once here rather than
+        // inside each factory so every mission type reads the same answer.
+        PrecinctPlan.Sprawl sprawl = m.sprawl != null
+                ? m.sprawl : SettlementZoning.sprawlFor(profile.marketSize());
+
         // Wall-clock unless the mission pins a seed, so an ordinary relaunch is
         // a fresh battlefield and a pinned one is the same battlefield twice.
         long seed = m.battleSeed != null ? m.battleSeed : System.currentTimeMillis();
@@ -213,7 +221,7 @@ public final class MissionLaunch {
                                 det.shuttleManifest, enemyHasHeavyArmor,
                                 m.tier, m.risk, profile, det.marineWings,
                                 m.enemyFighterSupport,
-                                conquestArrivalPlan);
+                                conquestArrivalPlan, sprawl);
                 sim = conquestFixture.build();
                 fixture = conquestFixture;
                 break;
@@ -221,7 +229,7 @@ public final class MissionLaunch {
                 RaidBattleFixture raidFixture = RaidBattleFixture.fromFactoryInputs(
                         seed, det.shuttleManifest, enemyHasHeavyArmor,
                         m.tier, m.risk, profile, det.marineWings,
-                        m.enemyFighterSupport);
+                        m.enemyFighterSupport, sprawl);
                 sim = raidFixture.build();
                 fixture = raidFixture;
                 break;
@@ -230,7 +238,7 @@ public final class MissionLaunch {
                         ExtractionBattleFixture.fromFactoryInputs(seed,
                                 det.shuttleManifest, enemyHasHeavyArmor,
                                 m.tier, m.risk, profile, det.marineWings,
-                                m.enemyFighterSupport);
+                                m.enemyFighterSupport, sprawl);
                 sim = extractionFixture.build();
                 fixture = extractionFixture;
                 break;
@@ -238,7 +246,7 @@ public final class MissionLaunch {
             default:
                 sim = BattleSetup.createPlaceholder(seed, det.shuttleManifest,
                         enemyHasHeavyArmor, m.tier, m.risk, m.type, profile,
-                        det.marineWings, m.enemyFighterSupport);
+                        det.marineWings, m.enemyFighterSupport, sprawl);
                 break;
         }
 
