@@ -140,21 +140,8 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                                float areaWidth, float areaHeight) {
         if (areaWidth <= 0f || areaHeight <= 0f) return;
         LayeredMechAssets sprites = assets.get();
-        if (component != null && sprites != null) {
-            LayeredSpriteCache sprite = spriteFor(sprites, component);
-            if (sprite != null) {
-                float angle = previewAngleDegrees(sprite);
-                float visualWidth = angle == 0f ? sprite.pxWidth : sprite.pxHeight;
-                float visualHeight = angle == 0f ? sprite.pxHeight : sprite.pxWidth;
-                float scale = Math.min(areaWidth * 0.88f / visualWidth,
-                        areaHeight * 0.88f / visualHeight);
-                context.sprite(sprite.sourcePath, sprite.sprite,
-                        left + areaWidth * 0.5f, top + areaHeight * 0.5f,
-                        sprite.pxWidth * scale, sprite.pxHeight * scale,
-                        angle, new Color(1f, 1f, 1f, 0.95f));
-                return;
-            }
-        }
+        if (drawWeaponPreview(context, component, sprites,
+                left, top, areaWidth, areaHeight, 0.95f)) return;
         if (subsystem != null) {
             Color utility = color(SocketType.UTILITY);
             float pad = Math.min(areaWidth, areaHeight) * 0.18f;
@@ -170,6 +157,29 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         return sprite != null && sprite.pxHeight > sprite.pxWidth ? 90f : 0f;
     }
 
+    /** Draws the inventory weapon token into one fitting footprint. */
+    static boolean drawWeaponPreview(CanvasContext context,
+                                     MechWeaponComponent component,
+                                     LayeredMechAssets assets,
+                                     float left, float top,
+                                     float areaWidth, float areaHeight,
+                                     float alpha) {
+        if (context == null || component == null || assets == null
+                || areaWidth <= 0f || areaHeight <= 0f) return false;
+        LayeredSpriteCache sprite = spriteFor(assets, component);
+        if (sprite == null) return false;
+        float angle = previewAngleDegrees(sprite);
+        float visualWidth = angle == 0f ? sprite.pxWidth : sprite.pxHeight;
+        float visualHeight = angle == 0f ? sprite.pxHeight : sprite.pxWidth;
+        float scale = Math.min(areaWidth * 0.88f / visualWidth,
+                areaHeight * 0.88f / visualHeight);
+        context.sprite(sprite.sourcePath, sprite.sprite,
+                left + areaWidth * 0.5f, top + areaHeight * 0.5f,
+                sprite.pxWidth * scale, sprite.pxHeight * scale,
+                angle, new Color(1f, 1f, 1f, alpha));
+        return true;
+    }
+
     private static SocketType socketType(MechWeaponComponent component) {
         return switch (component.hardpointType) {
             case BALLISTIC -> SocketType.BALLISTIC;
@@ -178,8 +188,8 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         };
     }
 
-    private static LayeredSpriteCache spriteFor(LayeredMechAssets assets,
-                                                 MechWeaponComponent component) {
+    static LayeredSpriteCache spriteFor(LayeredMechAssets assets,
+                                        MechWeaponComponent component) {
         return switch (component) {
             case DUAL_CHAINGUNS, NOSE_CHAINGUN -> assets.chaingunArm;
             case DUAL_LINEAR_CANNONS -> assets.linearCannon;

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import org.junit.jupiter.api.Test;
@@ -157,6 +158,44 @@ class MechLabDollCanvasTest {
                 MechLabDollCanvas.CapacityCell::active).count());
         assertFalse(cells.get(4).active());
         assertFalse(cells.get(5).active());
+    }
+
+    @Test
+    void installedWeaponAreaCoversItsExactCellsRatherThanTheWholeSocket() {
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
+        SocketDef shoulder = layout.socket(SocketId.LEFT_SHOULDER);
+        MechLabDollCanvas.SocketDropTarget target =
+                MechLabDollCanvas.socketDropTarget(layout.doll(), shoulder,
+                        400f, 300f, 160f, 160f);
+
+        MechLabDollCanvas.EquipmentArea area = MechLabDollCanvas.equipmentArea(
+                target, MechWeaponComponent.SRM_5.footprintColumns,
+                MechWeaponComponent.SRM_5.footprintRows);
+        List<MechLabDollCanvas.CapacityCell> cells =
+                MechLabDollCanvas.capacityCells(target);
+
+        assertEquals(cells.get(0).x(), area.left(), 1e-4f);
+        assertEquals(cells.get(0).y(), area.top(), 1e-4f);
+        assertEquals(cells.get(3).x() + cells.get(3).width(),
+                area.left() + area.width(), 1e-4f);
+        assertEquals(cells.get(3).y() + cells.get(3).height(),
+                area.top() + area.height(), 1e-4f);
+        assertTrue(area.height() < target.height());
+    }
+
+    @Test
+    void upperAndLowerSideSocketsHaveClearVerticalSeparationAtSmallHullScale() {
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
+        MechLabDollCanvas.SocketDropTarget shoulder =
+                MechLabDollCanvas.socketDropTarget(layout.doll(),
+                        layout.socket(SocketId.LEFT_SHOULDER),
+                        400f, 300f, 92f, 92f);
+        MechLabDollCanvas.SocketDropTarget ammo =
+                MechLabDollCanvas.socketDropTarget(layout.doll(),
+                        layout.socket(SocketId.AMMO_RESERVE),
+                        400f, 300f, 92f, 92f);
+
+        assertTrue(shoulder.bottom() + 32f < ammo.top());
     }
 
     @Test
