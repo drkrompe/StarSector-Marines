@@ -4,9 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — cargo-backed company actions use live Starsector commodity
-presentation; ordinary missions freeze the selected named force, including exact
-partial lifts, and brief understrength deployment honestly.
+Updated: 2026-09-01 — new campaigns found line squads and fabricate their first
+mechs from icon-backed fleet cargo instead of receiving deployable starter assets.
 
 ## Purpose
 
@@ -46,6 +45,9 @@ company view composes their stable outputs.
 - **Squad equipment issue** — the explicit atomic transaction that resolves one
   weapon doctrine and one armor doctrine into the selected squad's exact twelve
   materialized kits.
+- **Squad founding** — one Fleet Armory transaction that consumes twelve Marines
+  plus baseline arms, supplies, and provisions before creating a full named line
+  formation. A partial bill creates neither personnel nor squad identity.
 - **Billet** — one stable position in the squad's twelve-place equipment
   establishment. Alpha, Bravo, and Charlie inspect consecutive groups of four.
 - **Conformance** — whether a squad's current personnel and materialized issue
@@ -343,10 +345,11 @@ A formation with no operations says so rather than rendering a row of zeroes, an
 zero states are spelled out in words because the heading face carries no
 placeholder dash glyph.
 
-The campaign roster holder establishes the one-time starting complement and reserve
-formation during game load. Company HQ, Barracks, and Fleet Armory therefore observe
-the same already-established company; visiting an authoring surface is never a
-prerequisite for a read-only room to contain its squad.
+The campaign roster holder establishes only the non-deployable reserve formation
+during game load. A new company has no line squad until the player commits the full
+founding bill in Fleet Armory. Company HQ and Barracks therefore present honest zero
+states, while Fleet Armory keeps the Found Squad transaction visible even when there
+is no squad card to select. Existing saves retain their named formations.
 
 The quarters use a bounded indoor `BattleSimulation` as a scene host, sharing battle
 tiles, registered building doodads, camera scale, and the layered marine compositor

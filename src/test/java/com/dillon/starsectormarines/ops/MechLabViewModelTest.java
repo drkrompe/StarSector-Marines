@@ -38,7 +38,7 @@ class MechLabViewModelTest {
 
     @Test
     void installCommandUsesFiniteMechBayStockAndReturnsCurrentComponent() {
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         viewModel.gantryRows().get().get(0).select().run();
@@ -63,7 +63,7 @@ class MechLabViewModelTest {
 
     @Test
     void selectingTypedWeaponSocketDiscoversCompatibleFabricationPatterns() {
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         String originalReplenisher = mech.missileReplenisherId();
@@ -91,7 +91,8 @@ class MechLabViewModelTest {
 
     @Test
     void assetPickerIsASeparateInternalScreenAndSelectionReturnsToGantry() {
-        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), new MechBay());
+        MechLabViewModel viewModel = new MechLabViewModel(
+                new Reactor(), MechBay.legacyStarterFixture());
 
         assertTrue(viewModel.pickerClasses().get().contains("hidden"));
         assertFalse(viewModel.workspaceClasses().get().contains("hidden"));
@@ -108,7 +109,7 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void lanceOverviewHasNoSelectedChassisOrFittingColumns() {
+    void newCampaignLanceOverviewStartsWithFourVacantGantries() {
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), new MechBay());
 
         assertFalse(viewModel.fittingFocused());
@@ -124,14 +125,16 @@ class MechLabViewModelTest {
 
         viewModel.gantryRows().get().get(0).select().run();
         assertTrue(viewModel.fittingFocused());
-        assertEquals(MechVariant.BULWARK, viewModel.selectedVariant());
+        assertNull(viewModel.selectedVariant());
         assertFalse(viewModel.catalogClasses().get().contains("hidden"));
-        assertFalse(viewModel.slotRackClasses().get().contains("hidden"));
+        assertTrue(viewModel.slotRackClasses().get().contains("hidden"));
+        assertTrue(viewModel.catalogRows().get().stream()
+                .anyMatch(row -> row.name().equals("Hound chassis")));
     }
 
     @Test
     void gantryNavigatorVisitsAssignedAssetsAndVacantStations() {
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
                 "support_mech_02", "Hound 02", MechVariant.HOUND,
                 MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id()));
@@ -164,7 +167,7 @@ class MechLabViewModelTest {
 
     @Test
     void commodityIconsAndCargoCountsDriveWeaponAndChassisFabrication() {
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         TestResources resources = TestResources.stocked(2_000);
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, resources);
         viewModel.gantryRows().get().get(0).select().run();

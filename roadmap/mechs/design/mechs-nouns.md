@@ -4,9 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — made weapon assemblies and complete standard-fit chassis
-fabricable from player-fleet commodities in the Mech Lab, with finite installed
-stock and custom hardpoints frozen through deployment.
+Updated: 2026-09-01 — new campaigns begin with vacant support gantries; their first
+standard-fit chassis is fabricated from player-fleet commodities in the Mech Lab.
 
 ## Purpose
 
@@ -306,7 +305,9 @@ family roster; support preserves that order while partitioning it into physical
 drops and coherent squads of up to four chassis. This deliberately exercises
 the real air-delivery seam but does not confer ownership, inventory, salvage,
 refit, lift, or campaign entitlement. Ordinary campaign state separately owns
-a starter support squad and its subsystem stock. Fleet or employer sourcing
+an empty support-lance gantry group. It receives no chassis or spare subsystem
+stock until the player fabricates or recovers them; legacy saves retain the
+starter Bulwark they already owned. Fleet or employer sourcing
 still determines whether Mech Support is available in an operation; ownership
 determines the payload, not the entitlement to call it.
 The debug roster count has no scenario-authored maximum; every requested chassis
