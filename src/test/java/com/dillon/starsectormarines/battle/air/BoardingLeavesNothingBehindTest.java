@@ -102,7 +102,7 @@ class BoardingLeavesNothingBehindTest {
         AirfieldService.Berth berth = airfield.addBerth(
                 LandingPad.garrison(10, 10, LandingPad.Approach.SOUTH),
                 ShuttleType.AEROSHUTTLE, 0f);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
         system.tick(BattleSimulation.TICK_DT, sim, airfield);
         long airframe = berth.airframeId;
         assertTrue(airframe != 0L, "nothing was stood on the pad");

@@ -4,7 +4,10 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — a boat bay holds boats: berths that say what they hold,
+Updated: 2026-09-01 — a boat bay is a field: its berths are registered with the
+airfield service, the ship owns them, and her crew turn her boats round.
+
+Earlier 2026-09-01 — a boat bay holds boats: berths that say what they hold,
 sized to the bay, publishing the same servicing a garrison apron does.
 
 Earlier 2026-08-29 - getting the company ship ready happens away from the
@@ -194,6 +197,23 @@ authored content.
   field's aircraft are the same machine standing in the same kind of berth, and
   a second model of what a turnaround costs would be a second, quietly different
   opinion about it. See `air-nouns.md`.
+- So **a bay is a field**, installed as one: the deck registers its boat berths
+  with the airfield service and hands the ship the ownership of it. The boat
+  standing in a berth is a unit like any other aboard, drawn by the ordinary
+  unit pass, and the hull a hand puts back on it is the same arithmetic an apron
+  runs. Nothing on the deck ticks it — the ship's own simulation already
+  advances placement and crew — so what this is, is a registration.
+- **A berth is occupied from the moment it is registered, before anybody is
+  hired.** A berth's servicing is live only while something stands in it and the
+  field puts its boats out on its first tick, so a bay asked about its units
+  before then finds every berth empty, publishes no servicing, and is staffed as
+  a store for the rest of the ship's life. The airfield learned this the same
+  way.
+- A **small hull's boat may go unserviced**, and today does: a frigate's single
+  gig bay competes for a forty-hand ship's bunks and comes out with nobody at the
+  berth, while a destroyer and up turn their boats round. That is the manning
+  round-robin rather than the bay, and it is worth revisiting when small hulls
+  matter.
 - A **facility** is a compartment the company operates: a barracks, a mech bay,
   an armory, a medical bay. A facility owns fixture counts, extent, and the
   capacity those imply. It is the thing an upgrade acts on.

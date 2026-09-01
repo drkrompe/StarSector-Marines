@@ -4,7 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
+Updated: 2026-09-01 — a field belongs to whoever owns it rather than to whatever
+ticks it, so a ship's boat bay is a field and her crew turn her boats round on
+the same machinery a garrison apron runs.
+
+Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
 with the release every ending owed it. A wreck still writes, because a wreck is
 nobody's body.
@@ -300,6 +304,22 @@ off the berth, so terrain is the only place left to say it is lying there. That
 makes it the one thing on a stand that marks the ground at all, and nothing has
 to be given back before it does — the wreck-and-obstacle section below owns what
 it marks and why.
+
+**A field is not always a lot, and it belongs to whoever owns it.** A garrison's
+apron on a battle map and a ship's boat bay are the same arrangement: berths with
+machines standing in them, hands who service those machines where they stand, and
+a turnaround paid for in hand-seconds. So a ship's bay installs this service
+rather than a shipboard imitation of it, and the one fact that differs — whose
+aircraft these are — is held by the field rather than by whatever ticks it. It
+was a constructor argument to the tick consumer while every field was a
+garrison's, which would have meant building that consumer one way for a lot and
+another for a bay over something that has nothing to do with what it does.
+`ship-interiors-nouns.md` owns the bay as a room.
+
+A boat berth is a **hardstand**, because that is what the kind means: a berth
+something lifts off rather than rolls out of. A ship's boat leaves through a door
+and needs no run, so it is a hardstand that happens to be indoors — a shelter
+berth would send it looking for a strip.
 
 **A field is worked by people, and they are on the roster.** An apron publishes
 servicing at both flanks of every stand and a board ahead of each nose, and the
