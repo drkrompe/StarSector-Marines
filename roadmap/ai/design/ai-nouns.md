@@ -9,6 +9,16 @@ the scarcest thing on the rotation, and berth-bound work is a round of the
 machines, so a crew comes round to every stand in its room instead of pinning
 one each.
 
+Earlier 2026-09-01 — joining fire is priced by how much of the target is
+already spoken for rather than by how many allies are shooting at it.
+
+Earlier 2026-09-01 — a friendly in the firing lane is now a thing the decision
+side can see; preferring a clear one measured worse than shooting past him, so
+it is built and off.
+
+Earlier 2026-09-01 — target acquisition is perception-gated: a unit may target
+what it can see or what its squad believes, and nothing else.
+
 Earlier 2026-09-01 — an order that names a room may now close its own firing
 gap, contained to that room rather than excluded from the improvement outright.
 
