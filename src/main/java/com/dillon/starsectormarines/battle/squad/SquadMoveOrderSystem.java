@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService.Record;
-import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
 import com.dillon.starsectormarines.battle.nav.ReachableCellResolver;
@@ -54,7 +53,7 @@ public final class SquadMoveOrderSystem {
                 release(squadId, order, squad, sim);
                 continue;
             }
-            if (order instanceof ActiveMoveOrder move && arrived(squad, move)) {
+            if (order instanceof ActiveMoveOrder move && arrived(squad, move, sim)) {
                 release(squadId, order, squad, sim);
                 continue;
             }
@@ -202,10 +201,16 @@ public final class SquadMoveOrderSystem {
         invalidateExecution(squad, sim);
     }
 
-    private static boolean arrived(Squad squad, ActiveMoveOrder order) {
-        return TacticalScoring.cellDistance(squad.centroidX, squad.centroidY,
-                order.destinationX() + 0.5f,
-                order.destinationY() + 0.5f) <= AttackMove.ARRIVAL_RADIUS;
+    /**
+     * Arrival is the action's footprint, not a centroid: the order is over when
+     * the squad has stopped where {@link AttackMove} stops it. See
+     * {@link AttackMove#squadHasArrived} for the parked squad that taught
+     * this.
+     */
+    private static boolean arrived(Squad squad, ActiveMoveOrder order,
+                                   BattleSimulation sim) {
+        return AttackMove.squadHasArrived(squad,
+                order.destinationX(), order.destinationY(), sim);
     }
 
     /**

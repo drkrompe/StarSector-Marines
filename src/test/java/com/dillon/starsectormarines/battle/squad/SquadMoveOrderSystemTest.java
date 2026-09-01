@@ -210,8 +210,7 @@ class SquadMoveOrderSystemTest {
                 "the active player context must not lose to a railroaded specialist goal");
         assertInstanceOf(AttackMove.class, squad.currentPlan.currentStep().action);
 
-        squad.centroidX = 6.5f;
-        squad.centroidY = 5.5f;
+        placeSquadAt(sim, squad, 6, 5);
         sim.getSquadMoveOrderSystem().tick(sim);
         GoapInfantryBehavior.replanIfNeeded(squad, sim);
 
@@ -313,8 +312,7 @@ class SquadMoveOrderSystemTest {
                 squad.assignmentForExecution().kind());
 
         squad.moraleBroken = false;
-        squad.centroidX = 14.5f;
-        squad.centroidY = 5.5f;
+        placeSquadAt(sim, squad, 14, 5);
         sim.getSquadMoveOrderSystem().tick(sim);
         assertNull(sim.getSquadMoveOrderService().activeOrder(squad.id));
         assertSame(mission, squad.assignmentForExecution());
@@ -396,6 +394,21 @@ class SquadMoveOrderSystemTest {
         assertNull(sim.getSquadMoveOrderService().activeOrder(shelterGuard.id));
         assertNull(sim.getSquadMoveOrderService().activeOrder(rescueMech.id));
         assertNull(sim.getSquadMoveOrderService().activeOrder(Integer.MAX_VALUE));
+    }
+
+    /**
+     * Stands every live member on {@code (x, y)}. Arrival is the action's
+     * footprint — every member inside {@code AttackMove.SQUAD_ARRIVAL_RADIUS} —
+     * so a test that wants the order to complete has to move the bodies; a
+     * centroid written by hand describes a squad that is not there.
+     */
+    private static void placeSquadAt(BattleSimulation sim, Squad squad, int x, int y) {
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.resolveUnit(sim.squadMemberAt(squad.id, i));
+            if (member != 0L) sim.world().setCellPos(member, x, y);
+        }
+        squad.centroidX = x + 0.5f;
+        squad.centroidY = y + 0.5f;
     }
 
     private static Squad infantrySquad(BattleSimulation sim, Faction faction,
