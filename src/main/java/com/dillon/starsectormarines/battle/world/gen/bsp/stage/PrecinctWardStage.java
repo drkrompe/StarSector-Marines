@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
+import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
@@ -18,6 +19,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctFill;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -74,9 +76,10 @@ public final class PrecinctWardStage implements GenStage {
                     build(ctx, field, facing);
                 }
                 // After the lots, because authoring one clears tactical nodes
-                // standing on its reservation and a building node has no
-                // business being removed by an airfield.
+                // and points of interest standing on its reservation, and a
+                // building has no business being removed by an airfield.
                 emitTacticalNodes(ctx, result);
+                emitPointsOfInterest(ctx, result);
                 // Recorded rather than dropped. Ground is granted from the
                 // program, but granted ground is not the same as ground the
                 // packer can use: measured on a cramped map, a garrison owed
@@ -110,6 +113,12 @@ public final class PrecinctWardStage implements GenStage {
      * has the keep taken out, so emitting a command post would give the map two.
      * A precinct is self-contained: nothing else is going to provide one, and
      * two garrisons on one map are meant to have one each.
+     *
+     * <p>This is half of what a packed building owes. A node is what the
+     * commander tier reasons over; a mission setup asks the map for
+     * {@link PointOfInterest}s instead, and gets those from
+     * {@link #emitPointsOfInterest}. A garrison's rooms are things a battle can
+     * be about in both vocabularies, so they are said in both.
      */
     private static void emitTacticalNodes(GenContext ctx, FortressInterior.Result result) {
         for (RoomPacker.Placed room : result.placed()) {
@@ -134,6 +143,84 @@ public final class PrecinctWardStage implements GenStage {
                     Faction.DEFENDER, weight(kind), 3, false));
         }
     }
+
+    /**
+     * Turns the same buildings into the vocabulary mission setups read.
+     *
+     * <p>A {@link TacticalNode} is for the commander tier; a
+     * {@link PointOfInterest} is what a mission asks the finished map for when
+     * it needs somewhere to put an objective. Only settlement fills emitted
+     * them, so a garrison had walls, a motor pool and stores and was invisible
+     * to every mission that looks for a prize.
+     *
+     * <p><b>Measured on a 144x80 Raid map</b>, that meant a raid with nothing to
+     * strike: the garrison takes most of such a map, the defender stands inside
+     * its claim, and every point of interest on the board came off the
+     * settlement — which is the marines' side. A raid wants a non-residential
+     * point nearer the defender than the attacker, and there was not one.
+     *
+     * <p>Which rooms are prizes is the whole of the mapping. A store of things
+     * worth taking is a {@code DEPOT} whether it is a magazine, a motor pool, a
+     * workshop or a stores hut; the keep is where the place is run from, and the
+     * guard post is where it is heard from. Barracks, mess, gatehouse and
+     * corridors are not prizes and emit nothing — a raid on somebody's canteen
+     * is a raid nobody would fly.
+     */
+    private static void emitPointsOfInterest(GenContext ctx, FortressInterior.Result result) {
+        for (RoomPacker.Placed room : result.placed()) {
+            PointOfInterest.Kind kind = switch (room.purpose()) {
+                case ARMORY, VEHICLE_BAY, STOCKROOM, PARTS_CAGE -> PointOfInterest.Kind.DEPOT;
+                case KEEP_THRONE -> PointOfInterest.Kind.ADMINISTRATIVE;
+                case CONTROL_ROOM -> PointOfInterest.Kind.COMMS;
+                default -> null;
+            };
+            if (kind == null) continue;
+            int[] inside = standCell(ctx, room);
+            if (inside == null) continue;
+            int[] outside = doorstep(ctx, room);
+            if (outside == null) outside = inside;
+            ctx.pois.add(new PointOfInterest(kind,
+                    room.originX(), room.originY(),
+                    room.originX() + room.shape().width() - 1,
+                    room.originY() + room.shape().height() - 1,
+                    outside[0], outside[1], inside[0], inside[1]));
+        }
+    }
+
+    /**
+     * The walkable cell just outside one of the room's own doors — where a
+     * civilian loiters, a patrol waypoint sits, and an emplacement seeds.
+     *
+     * <p>Null when no door has one, which the caller answers by standing the
+     * exterior anchor on the interior cell. That is the back-compat contract
+     * {@link PointOfInterest}'s seven-argument constructor already documents,
+     * arriving from the other direction: a consumer reading either anchor still
+     * gets somewhere it can stand.
+     */
+    private static int[] doorstep(GenContext ctx, RoomPacker.Placed room) {
+        for (Doorway door : room.doors()) {
+            for (int[] step : STEPS) {
+                int x = door.x() + step[0];
+                int y = door.y() + step[1];
+                if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
+                if (covers(room, x, y)) continue;
+                if (!ctx.grid.isWalkable(x, y) || ctx.grid.isDoorway(x, y)) continue;
+                return new int[]{x, y};
+            }
+        }
+        return null;
+    }
+
+    /** Whether the cell is one of the room's own floor cells. */
+    private static boolean covers(RoomPacker.Placed room, int x, int y) {
+        for (int[] cell : room.shape().filled()) {
+            if (room.originX() + cell[0] == x && room.originY() + cell[1] == y) return true;
+        }
+        return false;
+    }
+
+    /** The four ways out of a doorway. */
+    private static final int[][] STEPS = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
 
     /**
      * How much holding this is worth. The command post is the place, the stores
