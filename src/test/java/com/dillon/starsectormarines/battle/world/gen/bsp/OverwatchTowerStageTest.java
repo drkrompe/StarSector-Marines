@@ -9,13 +9,17 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -107,6 +111,69 @@ public class OverwatchTowerStageTest {
         int a = towers(gen.generate(240, 160, 777L, TraversalAxis.SOUTH_TO_NORTH)).size();
         int b = towers(gen.generate(240, 160, 777L, TraversalAxis.SOUTH_TO_NORTH)).size();
         assertTrue(a == b, "tower count not reproducible from seed (" + a + " vs " + b + ")");
+    }
+
+    /**
+     * Ground stranded somewhere else does not disarm the line.
+     *
+     * <p>The mount guard has to ask whether <em>this cell</em> strands ground,
+     * not whether any ground anywhere is stranded. Those are the same question
+     * only on a map that is whole to begin with, and no generated one is. Under
+     * the map-wide form a single orphan pocket left by an earlier stage refuses
+     * every candidate on the map, so the whole overwatch line goes unmounted
+     * without an exception or a log line.
+     *
+     * <p>Asked of a bare fixture rather than a generated map: a field, one wall
+     * across it, and a blockhouse in the corner. The blockhouse stands in both
+     * runs — so the scorer sees the same geometry and picks the same sites —
+     * and the only difference is the cell at its centre, walled in the control
+     * and walkable-but-unreachable here.
+     */
+    @Test
+    void anOrphanPocketElsewhereDoesNotDisarmTheLine() {
+        int whole = mountedOnFixture(false);
+        int orphaned = mountedOnFixture(true);
+
+        assertTrue(whole > 0, "the control mounted no towers, so this measures nothing");
+        assertEquals(whole, orphaned, "the line mounted " + whole + " towers on an unbroken map "
+                + "and " + orphaned + " on the same map with one cell sealed off in a far corner, "
+                + "so the guard is answering a question about the map rather than about the stamp");
+    }
+
+    private static int mountedOnFixture(boolean orphan) {
+        int w = 200;
+        int h = 100;
+        NavigationGrid grid = new NavigationGrid(w, h);
+        CellTopology topology = new CellTopology(w, h);
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                grid.setWalkableFloor(x, y);
+                topology.setGroundKind(x, y, GroundKind.STREET);
+            }
+        }
+        // The wall the towers back onto — a long one, so site supply rather than
+        // the guard is what the budget runs out against.
+        for (int x = 10; x <= w - 11; x++) {
+            grid.setWalkable(x, 60, false);
+            topology.setWall(x, 60, true);
+        }
+        for (int y = 1; y <= 3; y++) {
+            for (int x = 1; x <= 3; x++) {
+                grid.setWalkable(x, y, false);
+                topology.setWall(x, y, true);
+            }
+        }
+        if (orphan) {
+            grid.setWalkableFloor(2, 2);
+            topology.setWall(2, 2, false);
+        }
+
+        GenContext ctx = new GenContext(grid, topology, new Random(7L), w, h, 7L);
+        // No axis: the fixture's depth bands read UNSET either way, so the stage's
+        // depth gate is skipped and the scorer keeps all four firing directions.
+        ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(grid, topology, null));
+        new OverwatchTowerStage().run(ctx);
+        return ctx.defensePosts.size();
     }
 
     /** LIGHT single-turret posts mounted against a wall with an open arc — the stage's signature (see class doc). */
