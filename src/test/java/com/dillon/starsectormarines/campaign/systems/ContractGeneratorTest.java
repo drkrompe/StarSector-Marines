@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -105,6 +107,79 @@ class ContractGeneratorTest {
         assertEquals(1, state.contractCount);
     }
 
+    @Test
+    void existingOfferAtMarketBlocksAnotherPatronThere() {
+        CampaignState state = new CampaignState();
+        int origin = state.marketRegistry.intern("origin");
+        int target = state.marketRegistry.intern("target");
+        long incumbent = state.addHouse(origin, 1, HouseFlavor.CORPORATE,
+                HouseRank.TIER_1, HouseStatus.ACTIVE,
+                PatronArchetype.ESTABLISHED, "Incumbent");
+        long candidate = state.addHouse(origin, 1, HouseFlavor.FEUDAL,
+                HouseRank.TIER_1, HouseStatus.ACTIVE,
+                PatronArchetype.ESTABLISHED, "Candidate");
+        long targetHouse = state.addHouse(target, 2, HouseFlavor.UNDERWORLD,
+                HouseRank.TIER_1, HouseStatus.ACTIVE,
+                PatronArchetype.ESTABLISHED, "Target");
+        addOpenOffer(state, incumbent, targetHouse, origin);
+
+        ContractGenerator generator = new ContractGenerator(new TestMarkets()
+                .add("origin", "system-a").add("target", "system-b"));
+        generator.tick(state, firstOfferDay(candidate));
+
+        assertEquals(1, openOffersAt(state, origin));
+    }
+
+    @Test
+    void threeOffersAcrossSystemBlockAFourthMarket() {
+        CampaignState state = new CampaignState();
+        TestMarkets markets = new TestMarkets();
+        int[] occupied = new int[3];
+        for (int i = 0; i < occupied.length; i++) {
+            occupied[i] = state.marketRegistry.intern("occupied-" + i);
+            markets.add("occupied-" + i, "crowded");
+            addOpenOffer(state, 10_000L + i, 20_000L + i, occupied[i]);
+        }
+        int candidateMarket = state.marketRegistry.intern("candidate");
+        int targetMarket = state.marketRegistry.intern("target");
+        markets.add("candidate", "crowded").add("target", "elsewhere");
+        long candidate = state.addHouse(candidateMarket, 1, HouseFlavor.CORPORATE,
+                HouseRank.TIER_1, HouseStatus.ACTIVE,
+                PatronArchetype.ESTABLISHED, "Candidate");
+        state.addHouse(targetMarket, 2, HouseFlavor.FEUDAL,
+                HouseRank.TIER_1, HouseStatus.ACTIVE,
+                PatronArchetype.ESTABLISHED, "Target");
+
+        new ContractGenerator(markets).tick(state, firstOfferDay(candidate));
+
+        assertEquals(3, openOffersInSystem(state, markets, "crowded"));
+        assertEquals(0, openOffersAt(state, candidateMarket));
+    }
+
+    @Test
+    void crowdedSystemDoesNotBlockAnotherSystem() {
+        CampaignState state = new CampaignState();
+        TestMarkets markets = new TestMarkets();
+        for (int i = 0; i < 3; i++) {
+            int occupied = state.marketRegistry.intern("occupied-" + i);
+            markets.add("occupied-" + i, "crowded");
+            addOpenOffer(state, 10_000L + i, 20_000L + i, occupied);
+        }
+        int candidateMarket = state.marketRegistry.intern("candidate");
+        int targetMarket = state.marketRegistry.intern("target");
+        markets.add("candidate", "open").add("target", "elsewhere");
+        long candidate = state.addHouse(candidateMarket, 1, HouseFlavor.CORPORATE,
+                HouseRank.TIER_1, HouseStatus.ACTIVE,
+                PatronArchetype.ESTABLISHED, "Candidate");
+        state.addHouse(targetMarket, 2, HouseFlavor.FEUDAL,
+                HouseRank.TIER_1, HouseStatus.ACTIVE,
+                PatronArchetype.ESTABLISHED, "Target");
+
+        new ContractGenerator(markets).tick(state, firstOfferDay(candidate));
+
+        assertEquals(1, openOffersAt(state, candidateMarket));
+    }
+
     private static CampaignState twoActivePatrons() {
         CampaignState state = new CampaignState();
         state.addHouse(1, 1, HouseFlavor.CORPORATE, HouseRank.TIER_1,
@@ -132,9 +207,14 @@ class ContractGeneratorTest {
     }
 
     private static void addOpenOffer(CampaignState state, long patronId, long targetId) {
+        addOpenOffer(state, patronId, targetId, 0);
+    }
+
+    private static void addOpenOffer(CampaignState state, long patronId, long targetId,
+                                     int marketSlot) {
         state.addContract(patronId, targetId, -1L,
                 ContractType.STRIKE, ContractState.OFFERED,
-                0, -1, 30, (byte) 1, -1, 0, -1,
+                0, -1, 30, (byte) 1, -1, marketSlot, -1,
                 25_000, 0, (byte) 60, (byte) 60, (byte) 100);
     }
 
@@ -147,5 +227,41 @@ class ContractGeneratorTest {
             }
         }
         return count;
+    }
+
+    private static int openOffersAt(CampaignState state, int marketSlot) {
+        int count = 0;
+        for (int i = 0; i < state.contractCount; i++) {
+            if (state.contractMarketId[i] == marketSlot
+                    && ContractState.fromByte(state.contractState[i]) == ContractState.OFFERED) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static int openOffersInSystem(CampaignState state, TestMarkets markets,
+                                          String systemId) {
+        int count = 0;
+        for (int i = 0; i < state.contractCount; i++) {
+            if (ContractState.fromByte(state.contractState[i]) != ContractState.OFFERED) continue;
+            String marketId = state.marketRegistry.get(state.contractMarketId[i]);
+            if (systemId.equals(markets.systemId(marketId))) count++;
+        }
+        return count;
+    }
+
+    private static final class TestMarkets implements ContractGenerator.MarketSource {
+        private final Map<String, String> systems = new HashMap<>();
+
+        TestMarkets add(String marketId, String systemId) {
+            systems.put(marketId, systemId);
+            return this;
+        }
+
+        @Override
+        public String systemId(String marketId) {
+            return systems.get(marketId);
+        }
     }
 }
