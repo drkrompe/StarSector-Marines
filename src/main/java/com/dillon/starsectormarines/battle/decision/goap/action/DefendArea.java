@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.infantry.ApproachBound;
+import com.dillon.starsectormarines.battle.infantry.LaneSidestep;
 import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -106,7 +107,15 @@ public final class DefendArea implements Action {
 
         if (canFireHere && sim.movement().atCell(member,
                 firingPosition[0], firingPosition[1])) {
-            PatrolMotion.hold(member, sim);
+            // Planting is the ordinary answer, but a step-aside already under
+            // way is walked instead of dropped: the marine is moving out of a
+            // squadmate's lane, not off his firing position, and he shoots on
+            // the same tick either way.
+            if (LaneSidestep.isStepping(member, sim)) {
+                sim.advanceMovement(member);
+            } else {
+                PatrolMotion.hold(member, sim);
+            }
             sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
             return ActionStatus.RUNNING;
         }
@@ -184,6 +193,13 @@ public final class DefendArea implements Action {
      */
     private void moveToward(long member, int x, int y, BattleControl sim,
                             boolean boundDetour) {
+        // Same exception, on the branch that re-paths rather than plants: a
+        // path whose destination is not this member's own firing position is
+        // normally stale and cleared, and a step-aside's is exactly that.
+        if (LaneSidestep.isStepping(member, sim)) {
+            sim.advanceMovement(member);
+            return;
+        }
         if (sim.movement().atCell(member, x, y)) {
             PatrolMotion.hold(member, sim);
             return;

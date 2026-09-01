@@ -4,11 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — what sits between a unit having a squad and executing its
-step is a declared reflex chain, one per arm, whose order is a law.
+Updated: 2026-09-01 — a masked marine steps aside rather than retargeting, it
+ships on, and what the friendly-lane question ever cost was the tick.
 
-Earlier 2026-09-01 — the player's tactical orders are the first lease holder,
-so a directive lease is production rather than a reserved shape.
+Earlier 2026-09-01 — what sits between a unit having a squad and executing its
+step is a declared reflex chain, one per arm, whose order is a law.
 
 Earlier 2026-09-01 — machine legs dealt through the rotation; an assignment
 kind's standing facts are one table, and only the player's order is a lookup —
@@ -1100,11 +1100,57 @@ different target breaks up concentrated fire, and concentration is what kills.
 The weight was not the problem — reduced to a pure tiebreak between near-equal
 targets it reproduced almost the whole loss — so this is not a constant wanting
 tuning. What the measurement does not condemn is the lane test itself, and the
-likelier answer is a different verb: **step aside rather than switch**, which
+answer tried next was a different verb: **step aside rather than switch**, which
 keeps the squad's fire concentrated and stops shooting its own man, where
 retargeting trades the second for the first. It stays behind
-`battle.targeting.friendlyLanePenalty`, and the geometry it would be built on is
-shared with the mech overwatch position search rather than restated.
+`battle.targeting.friendlyLanePenalty`, and the geometry both verbs are built on
+is shared with the mech overwatch position search rather than restated.
+
+**Stepping aside is built, measured, and off as well.** A masked marine moves a
+cell rather than firing through his own man: the individual-tier `LaneSidestep`
+reflex, ranked last in the marine's chain because nothing about it is urgent and
+a marine whose fire team has broken is leaving rather than adjusting his firing
+position. It refuses whatever a firing line would not want given up — the
+candidate cell must keep the target in range and in line of fire, must not lower
+cover toward that target, and must not put the marine into a squadmate's lane
+onto the same enemy, because clearing your own lane by masking the man behind
+you is the same fault moved a cell back. `FiringLineScene` says it works in the
+small: a column in a corridor puts 5.9 HP into its own men with the reflex off
+and none with it on, landing the identical damage on the enemy and losing
+nobody either way.
+
+Conquest was where it cost, and measuring two shapes of the same step said
+where the cost actually lived. In the first, the reflex **consumed the tick**
+and moved the marine itself: reinforced-south took 4 compounds against the
+control's 14, holding 2 against 9, while killing *fewer* defenders — not a squad
+that traded shooting for safety but one that spent time. In the second it
+**authors the move and declines**, so the assigned step fires the marine's
+weapon and walks him along the path; the same fixture then takes 12 and holds
+11, killing 56 more defenders and losing 21 fewer marines, and full-strength-west
+goes from 0 compounds held to 3.
+
+So the standing law is: **a masked marine steps aside within cover and never
+retargets for a lane, and stepping aside never costs him a shot.** A reflex that
+plants a marine for a second and a half to move him a cell is charged for it by
+any mission decided on a clock; one that hands the tick back is not. Handing it
+back has a matching obligation, which is where the remaining sharp edge is —
+**exactly one caller may move the marine per tick**, and a step that plants a
+marine who can fire from where he stands will otherwise throw the authored move
+away on the tick it was made. Both are pinned by the scene rather than left to
+be rediscovered.
+
+**It ships on, and which column is the outcome is the reason.** Compounds held
+at the end is what a Conquest is won or lost on; captures is throughput, and a
+run that takes 12 and keeps 11 has done better than one that takes 14 and keeps
+9. On that reading the step-aside wins both fixtures — 11 held against 9 and 3
+against 0 — while killing 56 more defenders and losing 21 fewer marines on one
+and no more on the other. It was first judged against a bar forbidding any
+fixture from capturing fewer, which reinforced-south misses at 12 against 14;
+that bar was stricter than the outcome it was guarding.
+
+Four measurements across three verbs now agree on the part that matters for
+whatever is tried next: **the lane test has never been what any of them
+condemned**, and neither, in the end, was the step.
 
 It was retested once joining fire stopped being priced by a headcount, because
 the standing explanation was that the two were blind anti-concentration

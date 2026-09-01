@@ -112,9 +112,9 @@ public class FriendlyLanePenaltyTest {
      * <p>This test pins the shipped answer rather than the switched-on one,
      * for the same reason there is no test of the contact drill: a static
      * default cannot be toggled per test, and the behaviour that ships is the
-     * one worth guarding. The geometry above is what a future attempt — more
-     * likely a sidestep than a retarget — would build on, and it is tested on
-     * its own account.
+     * one worth guarding. The geometry above is what the sidestep attempt was
+     * built on — see {@code LaneSidestepTest} for what a marine does about a
+     * blocked lane instead — and it is tested on its own account.
      */
     @Test
     public void theShippedPickerTakesTheNearestTargetEvenThroughItsOwnMan() {

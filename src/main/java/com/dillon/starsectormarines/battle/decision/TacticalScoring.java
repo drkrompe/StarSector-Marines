@@ -273,12 +273,22 @@ public final class TacticalScoring {
      *
      * <p>So the earlier diagnosis was wrong and the verb is the problem rather
      * than what surrounds it. What the measurement still does not condemn is the
-     * lane test itself, and the remaining candidate is to <b>step aside rather
+     * lane test itself, and the remaining candidate was to <b>step aside rather
      * than switch</b>: a marine who moves a cell keeps the squad's fire where it
      * is and stops shooting its own man, where retargeting trades the second for
-     * the first. {@code FiringLane} is what that would be built on. Two attempts
-     * have now measured the switching form; a third wants the other verb, not
-     * another weight.
+     * the first.
+     *
+     * <p><b>That was built, measured twice, and it is what ships.</b>
+     * {@link com.dillon.starsectormarines.battle.infantry.LaneSidestep} carries
+     * its own numbers. A step-aside that consumed the marine's tick cost
+     * reinforced-south ten of its fourteen captures; the same step with the
+     * tick handed back — the marine keeps shooting while he moves — holds 11
+     * compounds against a control's 9 and 3 against 0, and is on by default.
+     * The lane test itself has now survived four measurements across three
+     * verbs: what failed was always what the marine was made to do about a
+     * blocked lane, never the fact that {@code FiringLane} can tell it is
+     * blocked. This preference — switching target — remains the one verb that
+     * lost every time it was tried.
      */
     public static final float FRIENDLY_LANE_COST = 10f;
 
@@ -864,6 +874,25 @@ public final class TacticalScoring {
             return grid.hasLineOfSight(sx, sy, tx, ty);
         }
         return TurretAim.airLosVisible(grid, sx, sy, tx, ty, shooterAirR, targetAirR);
+    }
+
+    /**
+     * Fills {@code out} with {@code shooter}'s living faction-mates within
+     * {@code radius} of it — the muzzle-side half of a firing-lane question,
+     * asked from outside the target picker.
+     *
+     * <p>The seam exists because {@link FiringLane#gather} wants the roster and
+     * the spatial index, both of which this class already holds and neither of
+     * which a behaviour has any other business reaching for. {@code scratch} is
+     * the caller's reusable id bucket; nothing is retained from it.
+     *
+     * @see com.dillon.starsectormarines.battle.infantry.LaneSidestep the reflex that steps out of the lane this finds
+     */
+    public void gatherFriendlies(long shooter, float radius, LongBucket scratch,
+                                 FiringLane.Friendlies out) {
+        FiringLane.gather(unitIndex, roster, shooter,
+                roster.world().x(shooter), roster.world().y(shooter), radius,
+                roster.identity().faction(shooter), scratch, out);
     }
 
     /**

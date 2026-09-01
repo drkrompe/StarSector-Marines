@@ -135,6 +135,32 @@ class SceneBuilderTest {
         }
     }
 
+    /**
+     * A file, not a cluster. The four-to-a-row default needs four cells of
+     * width and two of depth, which a corridor has not got — half the squad
+     * would spawn inside the walls — and it is the wrong shape for any scene
+     * asking about a column.
+     */
+    @Test
+    void aFiledSquadStandsOneBehindTheOther() {
+        SceneWorld world = SceneBuilder.openGround(W, H)
+                .squad("column").size(4).inFile(5, 6, 1, 0).done()
+                .build();
+
+        long[] members = world.members("column");
+        assertEquals(4, members.length);
+        for (int i = 0; i < members.length; i++) {
+            assertEquals(5 + i, world.sim().world().cellX(members[i]), "member " + i + " x");
+            assertEquals(6, world.sim().world().cellY(members[i]), "member " + i + " y");
+        }
+    }
+
+    @Test
+    void aFileNeedsADirectionToRunIn() {
+        assertThrows(IllegalArgumentException.class,
+                () -> SceneBuilder.openGround(W, H).squad("column").inFile(5, 6, 0, 0));
+    }
+
     @Test
     void looseUnitsSpawnWhereTheyAreToldAndTakeTheirCustomiser() {
         SceneWorld world = SceneBuilder.openGround(W, H)
