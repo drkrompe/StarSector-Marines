@@ -244,7 +244,9 @@ public final class AttackMove extends AbstractZoneAction {
      * pins one that is still in it. Falls back to the squad's whole live
      * roster when the plan or its current step is unavailable, since a
      * member executing this action always belongs to some squad whether or
-     * not a plan currently names it.
+     * not a plan currently names it — minus anyone still rejoining, who is on
+     * their way to the squad rather than to the objective and would otherwise
+     * pin the whole step from the landing zone.
      */
     private boolean squadHasArrived(Squad squad, BattleControl sim) {
         SquadPlan plan = squad.currentPlan;
@@ -253,13 +255,16 @@ public final class AttackMove extends AbstractZoneAction {
             for (long assigned : step.allAssignedMembers()) {
                 long resolved = sim.resolveUnit(assigned);
                 if (resolved == 0L) continue; // no longer alive; not a straggler
+                if (squad.isRejoining(resolved)) continue;
                 if (!withinSquadArrival(resolved, sim)) return false;
             }
             return true;
         }
         int count = sim.squadMemberCount(squad.id);
         for (int i = 0; i < count; i++) {
-            if (!withinSquadArrival(sim.squadMemberAt(squad.id, i), sim)) return false;
+            long member = sim.squadMemberAt(squad.id, i);
+            if (squad.isRejoining(member)) continue;
+            if (!withinSquadArrival(member, sim)) return false;
         }
         return true;
     }
@@ -289,6 +294,9 @@ public final class AttackMove extends AbstractZoneAction {
      * the ground it was pointed at with the player's order still standing over
      * its mission for the rest of the battle. Two rules for one arrival is one
      * too many.
+     *
+     * <p>A member still rejoining the squad is not a straggler on this
+     * objective and is skipped, the same way the action's own rule skips it.
      */
     public static boolean squadHasArrived(Squad squad, int destX, int destY,
                                           BattleView sim) {
@@ -298,6 +306,7 @@ public final class AttackMove extends AbstractZoneAction {
         for (int i = 0; i < count; i++) {
             long member = sim.resolveUnit(sim.squadMemberAt(squad.id, i));
             if (member == 0L) continue;
+            if (squad.isRejoining(member)) continue;
             any = true;
             float distance = TacticalScoring.cellDistance(
                     sim.world().x(member), sim.world().y(member),
