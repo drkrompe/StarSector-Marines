@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.ui.BaseWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.fs.starfarer.api.Global;
@@ -157,9 +158,10 @@ public class DossierCardWidget extends BaseWidget {
             sb.append(mission.targetPlanetName);
         }
         if (sb.length() > 0) sb.append("  ·  ");
+        int recommendedSquads = MissionForceEnvelope.recommendedSquads(mission);
         sb.append(mission.tier.displayName).append("  ·  ")
-                .append(mission.tier.squadsDemanded)
-                .append(mission.tier.squadsDemanded == 1 ? " squad" : " squads");
+                .append(recommendedSquads)
+                .append(recommendedSquads == 1 ? " squad" : " squads");
         sb.append("  ·  ");
         sb.append("$").append(NumberFormat.getIntegerInstance().format(mission.payout));
         int salvage = mission.salvageNegotiated & 0xFF;
