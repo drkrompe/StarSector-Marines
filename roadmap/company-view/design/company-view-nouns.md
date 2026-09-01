@@ -360,7 +360,14 @@ inventory, or refit authority. Wide-screen layout is the
 reference composition; narrow and user-scaled layouts retain access through bounded
 scrolling rather than compressing the room until every label is simultaneously visible.
 
-The weapon-refit catalog is the current click-to-commit form of a future drag gesture.
+The weapon-refit catalog supports both click-to-commit and direct manipulation.
+Dragging catalog weapon art onto a compatible doll grid runs the same atomic fit or
+fabrication command as its button. Dragging installed weapon art between doll grids
+moves it only to a compatible vacant hardpoint; dragging it back across the equipment
+catalog returns it to stores and leaves an explicit empty mount. Pointer capture keeps
+the transaction coherent outside the source element, while a movement threshold keeps
+a click on installed art as socket selection. Green and red footprint previews explain
+the proposed fit without owning mutation.
 Ballistic, energy, missile, and omni are compatibility rules; component slot cost and
 the fabrication bill remain independent constraints. A free owned assembly installs
 directly. If none is free, one atomic campaign command rechecks player cargo, consumes

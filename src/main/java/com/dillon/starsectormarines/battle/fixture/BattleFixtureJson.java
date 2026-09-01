@@ -542,7 +542,8 @@ public final class BattleFixtureJson {
                 mech.put("role", deployment.role().name());
                 mech.put("missileReplenisherId",
                         deployment.missileReplenisher().id());
-                mech.put("armsComponentId", deployment.arms().id);
+                putNullable(mech, "armsComponentId",
+                        componentId(deployment.arms()));
                 putNullable(mech, "leftShoulderComponentId",
                         componentId(deployment.leftShoulder()));
                 putNullable(mech, "rightShoulderComponentId",
@@ -601,7 +602,8 @@ public final class BattleFixtureJson {
 
     private static MechWeaponComponent component(JSONObject object, String key,
                                                   MechWeaponComponent fallback) {
-        if (!object.has(key) || object.isNull(key)) return fallback;
+        if (!object.has(key)) return fallback;
+        if (object.isNull(key)) return null;
         MechWeaponComponent component = MechWeaponComponent.findById(object.optString(key, null));
         return component != null ? component : fallback;
     }

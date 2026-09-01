@@ -47,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleFixtureJsonTest {
 
@@ -321,7 +322,7 @@ class BattleFixtureJsonTest {
                                 new MechDeploymentSpec(MechVariant.SIROCCO,
                                         MechRole.LR_SUPPORT,
                                         MissileReplenisherComponent.ACCELERATED_FEED,
-                                        MechWeaponComponent.QUARRY_BREAKER_CANNON,
+                                        null,
                                         MechWeaponComponent.LRM_5,
                                         MechWeaponComponent.THERMAL_LANCE)))),
                 37,
@@ -336,6 +337,10 @@ class BattleFixtureJsonTest {
                 encoded.getJSONObject("launch").getString("fieldPresencePolicy"));
         assertEquals(2, encoded.getJSONObject("construction")
                 .getInt("schemaVersion"));
+        JSONObject encodedMech = encoded.getJSONObject("launch")
+                .getJSONArray("commandPowers").getJSONObject(1)
+                .getJSONArray("mechDeployments").getJSONObject(0);
+        assertTrue(encodedMech.isNull("armsComponentId"));
         assertEquals(fixture, decoded);
         assertEquals(encoded.toString(), BattleFixtureJson.toJson(decoded).toString());
     }

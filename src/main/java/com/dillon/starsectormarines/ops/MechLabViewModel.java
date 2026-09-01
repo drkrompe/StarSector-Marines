@@ -227,6 +227,80 @@ public final class MechLabViewModel {
                 || id == SocketId.MINI_FAB);
     }
 
+    /** Selects a socket directly from the physical fitting doll. */
+    public void selectSocket(SocketId id) {
+        if (id != null) selectSlot(id);
+    }
+
+    /** Compatibility and availability used by the drag hover preview. */
+    public boolean canDropCatalogWeapon(MechWeaponComponent component, SocketId target) {
+        CampaignMech mech = selectedMech();
+        MechMountSlot mount = mountFor(target);
+        if (mech == null || component == null || mount == null
+                || !bay.canInstallWeapon(mech.id(), mount, component.id)) return false;
+        if (mech.weaponAt(mount) == component || bay.availableWeapon(component.id) > 0) {
+            return true;
+        }
+        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.weapon(component);
+        return recipe != null && resources.canAfford(recipe.cost());
+    }
+
+    /** Installed assemblies can move only to vacant, compatible hardpoints. */
+    public boolean canMoveInstalledWeapon(SocketId source, SocketId target) {
+        CampaignMech mech = selectedMech();
+        MechMountSlot sourceMount = mountFor(source);
+        MechMountSlot targetMount = mountFor(target);
+        if (mech == null || sourceMount == null || targetMount == null
+                || sourceMount == targetMount || mech.weaponAt(sourceMount) == null
+                || mech.weaponAt(targetMount) != null) return false;
+        return bay.canInstallWeapon(mech.id(), targetMount, mech.weaponAt(sourceMount).id);
+    }
+
+    public boolean dropCatalogWeapon(MechWeaponComponent component, SocketId target) {
+        CampaignMech mech = selectedMech();
+        MechMountSlot mount = mountFor(target);
+        if (mech == null || component == null || mount == null) return false;
+        selectedSlot.set(target);
+        return applyWeaponResult(workshop.fitWeapon(mech.id(), mount, component), component);
+    }
+
+    public boolean moveInstalledWeapon(SocketId source, SocketId target) {
+        CampaignMech mech = selectedMech();
+        MechMountSlot sourceMount = mountFor(source);
+        MechMountSlot targetMount = mountFor(target);
+        if (mech == null || sourceMount == null || targetMount == null) return false;
+        MechWeaponComponent component = mech.weaponAt(sourceMount);
+        MechWorkshop.Result result = workshop.moveWeapon(mech.id(), sourceMount, targetMount);
+        if (result.succeeded()) selectedSlot.set(target);
+        feedbackText.set(switch (result.status()) {
+            case MOVED -> component.displayName + " moved to " + target.label() + ".";
+            case TARGET_OCCUPIED -> "Move blocked: the target hardpoint is occupied.";
+            case INCOMPATIBLE -> "Move blocked: incompatible socket type or capacity.";
+            default -> "Move cancelled: campaign hardware was not changed.";
+        });
+        finishWeaponCommand(result);
+        return result.succeeded();
+    }
+
+    public boolean removeInstalledWeapon(SocketId source) {
+        CampaignMech mech = selectedMech();
+        MechMountSlot mount = mountFor(source);
+        if (mech == null || mount == null || mech.weaponAt(mount) == null) return false;
+        MechWeaponComponent component = mech.weaponAt(mount);
+        MechWorkshop.Result result = workshop.removeWeapon(mech.id(), mount);
+        feedbackText.set(result.succeeded()
+                ? component.displayName + " returned to bay stores; " + source.label() + " is empty."
+                : "Removal cancelled: campaign hardware was not changed.");
+        if (result.succeeded()) selectedSlot.set(source);
+        finishWeaponCommand(result);
+        return result.succeeded();
+    }
+
+    public void cancelWeaponDrag() {
+        feedbackText.set("Refit drag cancelled. Campaign hardware was not changed.");
+        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+    }
+
     /** Current lance in authored gantry order for the embedded garage scene. */
     public List<MechVariant> gantryVariants() {
         revision.get();
@@ -623,7 +697,11 @@ public final class MechLabViewModel {
     private void fitWeapon(MechMountSlot mount, MechWeaponComponent component) {
         CampaignMech mech = selectedMech();
         if (mech == null) return;
-        MechWorkshop.Result result = workshop.fitWeapon(mech.id(), mount, component);
+        applyWeaponResult(workshop.fitWeapon(mech.id(), mount, component), component);
+    }
+
+    private boolean applyWeaponResult(MechWorkshop.Result result,
+                                      MechWeaponComponent component) {
         feedbackText.set(switch (result.status()) {
             case ALREADY_INSTALLED -> component.displayName + " is already installed.";
             case INSTALLED_FROM_STORES -> component.displayName + " installed from bay stores.";
@@ -633,6 +711,11 @@ public final class MechLabViewModel {
             case INSUFFICIENT_MATERIALS -> "Fabrication blocked: required fleet materials are short.";
             default -> "Refit blocked: campaign hardware was not changed.";
         });
+        finishWeaponCommand(result);
+        return result.succeeded();
+    }
+
+    private void finishWeaponCommand(MechWorkshop.Result result) {
         feedbackClasses.set(result.succeeded()
                 ? "mech-lab-feedback tone-good surface-dark"
                 : "mech-lab-feedback tone-danger surface-dark");

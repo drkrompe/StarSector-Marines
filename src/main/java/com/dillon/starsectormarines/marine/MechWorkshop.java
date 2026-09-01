@@ -41,6 +41,23 @@ public final class MechWorkshop {
         return Result.of(Status.FABRICATED_AND_INSTALLED);
     }
 
+    public Result removeWeapon(String mechId, MechMountSlot slot) {
+        return bay.removeWeapon(mechId, slot)
+                ? Result.of(Status.RETURNED_TO_STORES) : Result.of(Status.INVALID);
+    }
+
+    public Result moveWeapon(String mechId, MechMountSlot source, MechMountSlot target) {
+        CampaignMech mech = bay.mechById(mechId);
+        if (mech == null || source == null || target == null || source == target
+                || mech.weaponAt(source) == null) return Result.of(Status.INVALID);
+        if (mech.weaponAt(target) != null) return Result.of(Status.TARGET_OCCUPIED);
+        if (!bay.canInstallWeapon(mechId, target, mech.weaponAt(source).id)) {
+            return Result.of(Status.INCOMPATIBLE);
+        }
+        return bay.moveWeapon(mechId, source, target)
+                ? Result.of(Status.MOVED) : Result.of(Status.INVALID);
+    }
+
     public Result fabricateChassis(String squadId, MechVariant variant) {
         if (variant == null || bay.squadById(squadId) == null) return Result.of(Status.INVALID);
         if (!bay.canAddMech(squadId)) return Result.of(Status.LANCE_FULL);
@@ -59,8 +76,11 @@ public final class MechWorkshop {
         ALREADY_INSTALLED,
         INSTALLED_FROM_STORES,
         FABRICATED_AND_INSTALLED,
+        RETURNED_TO_STORES,
+        MOVED,
         CHASSIS_FABRICATED,
         INCOMPATIBLE,
+        TARGET_OCCUPIED,
         INSUFFICIENT_MATERIALS,
         LANCE_FULL,
         INVALID
@@ -72,6 +92,8 @@ public final class MechWorkshop {
             return status == Status.ALREADY_INSTALLED
                     || status == Status.INSTALLED_FROM_STORES
                     || status == Status.FABRICATED_AND_INSTALLED
+                    || status == Status.RETURNED_TO_STORES
+                    || status == Status.MOVED
                     || status == Status.CHASSIS_FABRICATED;
         }
     }
