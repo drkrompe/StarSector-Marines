@@ -50,6 +50,7 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -1506,10 +1507,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
                             () -> 0d));
             for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
-                if (row.chassisPreview() == null) continue;
-                document.canvases().set(instance.requireElement(row.previewId()),
-                        new MechChassisPreviewCanvas(
-                                row.chassisPreview(), MechLabDollCanvas::headlessAssets));
+                if (row.chassisPreview() != null) {
+                    document.canvases().set(instance.requireElement(row.previewId()),
+                            new MechChassisPreviewCanvas(
+                                    row.chassisPreview(), MechLabDollCanvas::headlessAssets));
+                } else if (row.weaponPreview() != null || row.replenisherPreview() != null) {
+                    document.canvases().set(instance.requireElement(row.previewId()),
+                            MechEquipmentGridCanvas.catalog(row.weaponPreview(),
+                                    row.replenisherPreview(),
+                                    MechLabDollCanvas::headlessAssets));
+                }
+            }
+            for (MechLabViewModel.SlotRow row : viewModel.slotRows().get()) {
+                document.canvases().set(instance.requireElement(row.gridId()),
+                        new MechEquipmentGridCanvas(
+                                () -> viewModel.socketDefinition(row.socketId()),
+                                () -> viewModel.installedWeapon(row.socketId()),
+                                () -> viewModel.installedReplenisher(row.socketId()),
+                                () -> viewModel.socketOccupied(row.socketId()),
+                                MechLabDollCanvas::headlessAssets));
             }
             return renderRelative(renderer, document, width, height, uiScale);
         }
