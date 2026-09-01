@@ -163,10 +163,58 @@ public final class PrecinctBoundary {
      */
     public static boolean[][] wall(int[][] claim, int[][] owner, int who,
                                    int width, int height) {
+        return wall(claim, owner, who, width, height, Integer.MAX_VALUE);
+    }
+
+    /**
+     * The same, keeping at most {@code maxGates} of the ways through.
+     *
+     * <p>Growth decides where roads cross the outline; this decides how many of
+     * those crossings stay open, which is the manoeuvre half of how hard a place
+     * is to take. The widest are kept, because a wide crossing is a main road
+     * and a narrow one is where a track happened to touch the line — and because
+     * keeping the widest is what makes at least one of them drivable.
+     *
+     * <p>A crossing that is sealed leaves its road dead-ending at the wall,
+     * which is what a closed gate looks like from outside and wants no special
+     * handling.
+     *
+     * <p>The cap cannot manufacture gates. A place whose roads all leave by one
+     * route has one gate however many it is allowed, which is why this is stated
+     * as a maximum rather than a count.
+     */
+    public static boolean[][] wall(int[][] claim, int[][] owner, int who,
+                                   int width, int height, int maxGates) {
         boolean[][] wall = outline(claim, who, width, height);
-        for (Gate gate : gates(claim, owner, who, width, height)) {
+        for (Gate gate : openGates(claim, owner, who, width, height, maxGates)) {
             for (int[] cell : gate.cells()) wall[cell[0]][cell[1]] = false;
         }
         return wall;
+    }
+
+    /**
+     * The crossings that stay open, widest first.
+     *
+     * <p>At least one drivable crossing survives whatever the cap says, when the
+     * place has one at all: a walled installation its own armour cannot leave is
+     * a defect rather than a difficulty, and it is the same obligation
+     * {@link PrecinctArtery} enforces one step earlier.
+     */
+    public static List<Gate> openGates(int[][] claim, int[][] owner, int who,
+                                       int width, int height, int maxGates) {
+        List<Gate> all = new ArrayList<>(gates(claim, owner, who, width, height));
+        all.sort((a, b) -> Integer.compare(b.width(), a.width()));
+        if (all.size() <= maxGates) return all;
+
+        List<Gate> kept = new ArrayList<>(all.subList(0, Math.max(0, maxGates)));
+        if (kept.stream().noneMatch(Gate::drivable)) {
+            for (Gate gate : all) {
+                if (!gate.drivable()) continue;
+                if (!kept.isEmpty()) kept.remove(kept.size() - 1);
+                kept.add(gate);
+                break;
+            }
+        }
+        return kept;
     }
 }

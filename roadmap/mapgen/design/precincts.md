@@ -438,17 +438,40 @@ corner furthest from the objective. A force landing beside the thing it is meant
 to take has no approach to fight through, which is most of what a conquest map
 is for.
 
+## How hard a place is to take is stated, not discovered
+
+Two failure modes, pulling opposite ways. A wall a handful of low-tier squads
+cannot breach or flank is a refusal rather than a fight; a wall a thousand
+marines walk through is not a climax. Neither is fixed by tuning one number
+harder, because it is the same number pointed at different forces. So
+`Fortification` is stated by whoever knows what is being sent.
+
+It carries two things, and they are different questions. **Gates** are about
+manoeuvre: several give an attacker somewhere to feint and somewhere to commit,
+one makes the approach the whole battle. **Wall hit points** are about materiel:
+a wall worth less than a demolition charge is decoration, one worth more than the
+force can spend is a detour. `PICKET` through `CITADEL` are named points on both.
+
+**Gate count is a cap, not a count.** Growth decides where roads cross the
+outline; the dial decides how many of those crossings stay open. A place whose
+roads all leave by one route has one gate however many it is allowed. The widest
+are kept, because a wide crossing is a main road and a narrow one is where a
+track happened to touch the line — and a sealed crossing leaves its road
+dead-ending at the wall, which is what a closed gate looks like from outside and
+needs no special handling.
+
+**One drivable crossing survives whatever the cap says.** A walled installation
+its own armour cannot leave is a defect rather than a difficulty, and it is the
+same obligation `PrecinctArtery` enforces one step earlier.
+
+The gate *defect* — a wall reading as a dashed line because eleven crossings is
+more gap than wall — turned out to have fixed itself. Pruning the wandering
+open-country road removed most of the crossings with it: measured across five
+seeds afterwards, the outline is 88–97% wall and carries 2–8 gates. What was
+missing was not fewer gates but any control over how many.
+
 ## Still open
 
-0. **A walled precinct has too many gates.** Every arm crossing the outline is a
-   gate, and a rendered garrison came out with eleven — which is not a fortified
-   place. Through the tile renderer the wall reads as a dashed line rather than
-   a wall, because it is more gap than wall. A fortress should keep the few
-   crossings it wants and wall off the rest; the roads that then dead-end at the
-   wall are ordinary. The rule that a gate is a discovered crossing still holds,
-   but which crossings become gates is a decision the precinct has not been
-   given yet. This is the most visible thing wrong with the model as it
-   stands.
 
 1. **A precinct takes what it asks for whether or not the map can spare it.** On
    a 200x140 map one garrison claimed 14640 of 28000 cells and its neighbour was
