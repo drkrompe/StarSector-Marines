@@ -4,7 +4,10 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — an order that names a room may now close its own firing
+Updated: 2026-09-01 — berth-bound work is a round of the machines, so a crew
+comes round to every stand in its room instead of pinning one each.
+
+Earlier 2026-09-01 — an order that names a room may now close its own firing
 gap, contained to that room rather than excluded from the improvement outright.
 
 Earlier 2026-09-01 — a works-crew replacement now arrives the way its own side
@@ -293,6 +296,32 @@ and defects are deliberately everywhere — that is what makes them circuits —
 reading either as a station would make every compartment on the ship a posting
 and put a watch in each of them; and a patrol of every compartment on a capital
 is a rotation nobody completes, whose walker is permanently in a passage.
+
+**Work on a machine is a round of the machines.** A berth-bound job is not a
+circuit — it happens in one room — but it takes the circuit's treatment for a
+related reason: the room holds several machines, and each is its own piece of
+work waiting its turn. A bench is genuinely interchangeable with the bench beside
+it, which is what a claim group means and why one stop is the right answer for
+it. Six aircraft on an apron are six turnarounds, and an hour on one of them is
+an hour the other five did not get. So a berth is **its own claim group**, and a
+shift emits one stop per berth rather than one per servicing cell — both flanks
+of one hull are two places to stand and one turnaround.
+
+Both halves are load-bearing, and either alone leaves the defect standing. With
+the machines filed under one group the claim service hands back the claim already
+held, so the walk back is to the machine never left; with one stop the rotation
+never asks for another. Measured on a conquest airfield before the rule existed:
+three technicians, six stands, and berths 2, 3 and 5 went three hundred seconds
+without a single visit while two of the field's three sheds sat on a full
+turnaround they never worked off and never flew again — a hangar with an aircraft
+in it that a player watches all battle and never sees leave.
+
+**It matters where the machines are separate work, and only there.** A vehicle
+bay builds one machine at a time from any of its gantries, so which gantry a
+technician stands at never mattered and its output is unchanged by this: measured
+either way, the same bay welds the same 254 hand-seconds in five minutes. An
+apron's stands are six independent turnarounds, so it is the case where a pinned
+crew is a field that stops flying.
 
 **A full job is passed over, not queued for.** Where the next job on the rotation
 has no free place to do it, the actor takes the one after it; where nothing on
