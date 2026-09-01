@@ -104,41 +104,19 @@ import java.util.OptionalInt;
  * a gap the ladder did not close, which is the {@code YieldFreezeScene} defect
  * arriving by a different road.
  *
- * <h2>What it records today: the order is taken and never given back</h2>
- * <p>The first two promises hold and the last two do not. The click is accepted
- * on tick 61 — the first tick that can see it — and the squad is planning under
- * it on that same tick with no plan-less gap anywhere in the run. It then walks
- * off its mission axis to the ground it was pointed at, arriving around tick
- * 640. <b>And there it stays.</b> The player's order still stands at tick 899,
- * with the squad's centroid parked 2.80 cells from (40.5, 6.5); played out to
- * three thousand ticks it is the identical centroid, to two decimal places, from
- * tick 640 onwards. The commander's {@code ATTACK_MOVE} to the east edge is
- * never resumed, in a battle that would otherwise still have it to do.
- *
- * <p><b>Two radii disagree, and the gap between them is where the squad is
- * stranded.</b> {@code SquadMoveOrderSystem.arrived} releases the order when the
- * squad centroid is within {@link AttackMove#ARRIVAL_RADIUS} — 2 cells — of the
- * destination. {@code AttackMove} itself stops advancing once every member is
- * within {@code SQUAD_ARRIVAL_RADIUS} — 5 cells — and each arrived member then
- * holds its ground rather than closing further, deliberately, so that one
- * marine's arrival cannot complete a step the whole squad shares. A body of six
- * people that has stopped at a five-cell footprint check settles with its
- * centroid a little under three cells out, which satisfies the action and misses
- * the release by 0.8 of a cell. Nothing ever moves it again: the order does not
- * expire, and while it stands it outranks the mission it is masking.
- *
- * <p>The {@code contact} loop parks at 2.59 cells and the same thing happens, so
- * this is not about the fight. The {@code control} loop passes everything it is
- * asked, which is what says the freeze belongs to the order rather than to the
- * map: with nobody clicking, the same squad on the same ground holds its mission
- * goal for all 899 ticks and covers 45.1 cells.
- *
- * <p>Whichever way that is closed — releasing on the squad's own arrival test
- * rather than on a centroid, widening the release to
- * {@code SQUAD_ARRIVAL_RADIUS}, or having the order expire when its action
- * reports success — <b>the bar here does not move</b>. "Handed the order back
- * near where it was sent" is the promise; a scene that relaxes it until the
- * current behaviour passes has stopped measuring the thing it was built for.
+ * <h2>What its first run found</h2>
+ * <p>The order was taken and never given back. The click was accepted on tick
+ * 61, the squad planned under it the same tick with no plan-less gap anywhere,
+ * walked to the ground it was pointed at — and stayed there with the order
+ * still standing, identical centroid to two decimal places out to three
+ * thousand ticks, the commander's mission never resumed. Two rules for one
+ * arrival: the release tested a centroid against {@link AttackMove#ARRIVAL_RADIUS}
+ * while the action stopped every member at its own five-cell footprint, and six
+ * people stopped by the action settle a little under three cells out. The
+ * release now asks {@link AttackMove#squadHasArrived}, the action's own rule,
+ * and the order is a lease through the arbiter that hands the shelved mission
+ * back the tick it ends. The bar did not move to get there: handback at tick
+ * 600 uncontested and 590 under fire, the mission replanned the same tick.
  */
 public final class PlayerOrderScene implements BehaviorScene {
 
