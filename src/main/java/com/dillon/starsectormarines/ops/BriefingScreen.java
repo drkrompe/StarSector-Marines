@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
 import com.dillon.starsectormarines.campaign.CampaignClock;
+import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -20,6 +21,7 @@ import com.dillon.starsectormarines.campaign.systems.RivalStrikeGarrisonService;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
+import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.ops.detachment.TaskForce;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -42,6 +44,7 @@ import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.Logger;
 
@@ -324,6 +327,21 @@ public class BriefingScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, m.requirements, valueX, y, VALUE_COLOR));
         y -= ROW_GAP;
 
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Operation Scale",
+                labelX, y, LABEL_COLOR));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                m.tier.displayName + " · recommends " + m.tier.squadsDemanded
+                        + (m.tier.squadsDemanded == 1 ? " squad" : " squads"),
+                valueX, y, VALUE_COLOR));
+        y -= ROW_GAP;
+
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Opposition Quality",
+                labelX, y, LABEL_COLOR));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                MissionForceEnvelope.oppositionExpectation(m.risk),
+                valueX, y, VALUE_COLOR));
+        y -= ROW_GAP;
+
         // Opposition intel — enemy air. Neither side's contribution; it's what
         // the target fields against the drop.
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingEnemyAir"),
@@ -467,10 +485,15 @@ public class BriefingScreen implements Screen {
         } else {
             PersonnelReadiness readiness = personnelReadiness(m);
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Personnel", x, y, LABEL_COLOR));
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    readiness.selectedReady() + "/" + readiness.requiredSeats()
+            String personnelLine = MissionForceEnvelope.allowsUnderstrength(m)
+                    ? readiness.selectedReady() + " ready · minimum "
+                            + readiness.requiredSeats() + " · recommend "
+                            + m.tier.squadsDemanded
+                            + (m.tier.squadsDemanded == 1 ? " squad" : " squads")
+                    : readiness.selectedReady() + "/" + readiness.requiredSeats()
                             + " selected · " + readiness.companyReady()
-                            + " company · " + readiness.selectedShortfall() + " short",
+                            + " company · " + readiness.selectedShortfall() + " short";
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, personnelLine,
                     valueX, y, readiness.ready() ? ACCEPT_COLOR : BLOCKED_COLOR));
             TaskForce force = selectedTaskForce();
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
@@ -480,6 +503,16 @@ public class BriefingScreen implements Screen {
                             ? ACCEPT_COLOR : BLOCKED_COLOR));
         }
         y -= ROW_GAP;
+
+        if (!m.source.isDebug() && m.source != MissionSource.STATIONING && y >= floor) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Issued Experience", x, y, LABEL_COLOR));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    MissionForceEnvelope.selectedExperience(liveRoster(),
+                            ctx.getSelectedMarineSquadIds()).display(),
+                    valueX, y, VALUE_COLOR));
+            y -= ROW_GAP;
+        }
 
         // Task force — one row per officer once the operation needs more than
         // one. A single-officer deployment says nothing new, so it stays quiet.
@@ -522,8 +555,13 @@ public class BriefingScreen implements Screen {
         if (m.source.isDebug()) {
             y = buildDebugTransportPicker(m, x, y, rowW, floor);
         } else {
-            List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
-                    m, effectivePlayerShuttles());
+            int selectedPersonnel = PersonnelReadiness.assessSelection(liveRoster(),
+                    ctx.getSelectedMarineSquadIds(), 0).selectedReady();
+            List<ShuttleAssignment> manifest = MissionForceEnvelope.allowsUnderstrength(m)
+                    ? DetachmentResolver.buildShuttleManifestForPersonnel(
+                            m, effectivePlayerShuttles(), selectedPersonnel)
+                    : DetachmentResolver.buildShuttleManifest(
+                            m, effectivePlayerShuttles());
             java.util.Map<Integer, Integer> playerCyclesByIndex = computePlayerCyclesByIndex(m, manifest);
             for (int i = 0; i < cachedAvailable.size(); i++) {
                 if (y < floor) return;
@@ -552,7 +590,10 @@ public class BriefingScreen implements Screen {
         boolean transportOk = isTransportSufficient(m, effectivePlayerShuttles());
         if (!transportOk && y >= floor) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    "Need at least 1 transport (your fleet or employer)", x + 6f, y, BLOCKED_COLOR));
+                    MissionForceEnvelope.allowsUnderstrength(m)
+                            ? "Need at least 1 player transport"
+                            : "Need at least 1 transport (your fleet or employer)",
+                    x + 6f, y, BLOCKED_COLOR));
             y -= ROW_GAP;
         }
 
@@ -720,6 +761,15 @@ public class BriefingScreen implements Screen {
                         : this::openSquadDeployment;
         ButtonWidget deploy = new ButtonWidget(deployX, btnY, btnW, BTN_H, deployAction);
         widgets.add(deploy);
+        boolean showMarineCommodity = readiness != null && readiness.needsPersonnel();
+        if (showMarineCommodity) {
+            String marineIcon = CampaignCommodityPresentation.INSTANCE
+                    .commodityIcon(Commodities.MARINES);
+            if (!marineIcon.isBlank()) {
+                widgets.add(new SpriteThumbWidget(marineIcon,
+                        deployX + 8f, btnY + (BTN_H - 22f) * 0.5f, 22f, 22f));
+            }
+        }
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 canAccept ? Strings.get("briefingAccept")
                         : !transportOk ? Strings.get("briefingAcceptBlocked")
@@ -730,7 +780,8 @@ public class BriefingScreen implements Screen {
                                                 + " · " + cargoCost + " cargo"
                                         : "Need " + personnelShortfall + " · No marines"
                                 : "Assign " + readiness.selectedShortfall(),
-                deployX + INNER_PAD, btnY + BTN_H - 6f,
+                deployX + INNER_PAD + (showMarineCommodity ? 24f : 0f),
+                btnY + BTN_H - 6f,
                 canAccept ? ACCEPT_COLOR : canReinforce ? VALUE_COLOR : BLOCKED_COLOR));
 
         ButtonWidget back = new ButtonWidget(backX, btnY, btnW, BTN_H, this::onBack);
@@ -755,6 +806,9 @@ public class BriefingScreen implements Screen {
 
     private int requiredPersonnelSeats(Mission m) {
         int base = basePersonnelSeats(m);
+        if (MissionForceEnvelope.allowsUnderstrength(m)) {
+            return MissionForceEnvelope.minimumPersonnel(m, base);
+        }
         if (m == null || m.type != MissionType.CONQUEST) return base;
         MarineRoster roster = liveRoster();
         int selected = PersonnelReadiness.assessSelection(roster,
@@ -780,7 +834,9 @@ public class BriefingScreen implements Screen {
                         ? java.util.Collections.emptyList() : effectivePlayerShuttles());
         int firstPlayer = m.source == MissionSource.STATIONING
                 ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
-        int seats = CampaignMarineDeployment.requiredSeats(manifest, firstPlayer);
+        int seats = MissionForceEnvelope.allowsUnderstrength(m)
+                ? MissionForceEnvelope.recommendedPersonnel(m)
+                : CampaignMarineDeployment.requiredSeats(manifest, firstPlayer);
         ctx.setMarineDeploymentCapacity(seats);
 
         MarineRosterScript script = MarineRosterScript.getInstance();
@@ -1272,6 +1328,9 @@ public class BriefingScreen implements Screen {
      * transports cycle to fill any remaining gap.
      */
     private static boolean isTransportSufficient(Mission m, List<ShuttleType> selectedShuttles) {
+        if (MissionForceEnvelope.allowsUnderstrength(m)) {
+            return selectedShuttles != null && !selectedShuttles.isEmpty();
+        }
         return m.source.isDebug()
                 ? !selectedShuttles.isEmpty()
                 : m.employerShuttles >= 1 || !selectedShuttles.isEmpty();

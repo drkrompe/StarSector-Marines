@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — made persisted, geographically bounded supply the sole authority for ordinary offers.
+Updated: 2026-09-01 — made ordinary supply sparse and persisted each mission offer's operation scale.
 
 Campaign contracts turn the player's relationship with a patron into a bounded
 piece of work. They sit between the campaign's political chains and an
@@ -51,11 +51,18 @@ not own the political simulation, battle presentation, cargo, or narrator.
 ## Shape and authority
 
 The standard offer surface serves eligible active Tier 1–3 patrons. Current
-standard generation gives Tier 1 Strike work; Escort and stationing work begin
-at Tier 2; Planetary Assault is Tier 3 work. Tier 4 is outside the ordinary
+standard generation gives Tier 1 Strike and Escort work; stationing begins at
+Tier 2; Planetary Assault is Tier 3 work. Tier 4 is outside the ordinary
 contract surface and belongs to `t3-endgame-nouns.md`. A patron's eligibility
 combines its standing as an active house with the player's house relationship
 and MRB credibility; no individual offer invents a parallel gate.
+
+An ordinary mission offer also persists its authored operation tier alongside
+type, patron, target, risk, and commercial terms. Tier 1–3 patrons normally map
+to First Contract, Established, and Veteran scale; Planetary Assault raises
+that result to its Reinforced floor. The accepted operation consumes the stored
+scale, so later political changes or risk interpretation cannot resize work the
+player was already shown.
 
 Standard supply is geographically sparse. An origin market may hold at most one
 open offer, and the markets in one star system may hold at most three between
@@ -91,7 +98,8 @@ second roster.
 2. Standard offers are deterministic for the same campaign day and patron, and
    bounded per patron, origin market, star system, and sector. Those bounds are
    scarcity ceilings, not refill targets. Eligibility is shared policy for
-   generation and acceptance.
+   generation and acceptance. Mission scale is fixed in the persisted offer,
+   not reconstructed from risk when the operation launches.
 3. A mission result advances only its owning contract. A terminal settlement
    applies the corresponding patron/MRB consequence at most once, even if a
    resolver or campaign frame is replayed.

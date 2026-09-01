@@ -4,8 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — the Mech Lab fabricates and installs discoverable weapon
-assemblies or complete chassis from player cargo, using vanilla commodity icons.
+Updated: 2026-09-01 — cargo-backed company actions use live Starsector commodity
+presentation; ordinary missions freeze the selected named force, including exact
+partial lifts, and brief understrength deployment honestly.
 
 ## Purpose
 
@@ -119,6 +120,9 @@ that consumed personnel, not a separate currency conversion or player-facing enl
 step. Mission shortfalls use the same draw in place instead of routing through another
 Armory screen. The transaction does not invent personnel, move WIA marines out of
 recovery, or claim that replacement equipment conforms to the squad's assigned doctrines.
+Armory formation cards and the mission-shortfall action pair that transaction with
+the base game's Marines icon; the icon identifies the cargo commodity and does not
+change the reserve-first draw order.
 The company, squad, and fire-team projections report WIA counts and the earliest
 remaining recovery clock; the named-marine view reports that individual's remaining
 hours and days.
@@ -199,6 +203,10 @@ and every marine's existing kit untouched. Success spends the complete cargo cos
 writes both ids together, and materializes all twelve exact issues onto
 `MarineSoldier`, which remains the battle-facing state consumed by deployment.
 Later inventory changes do not silently optimize or reshuffle that result.
+The issue surface renders each nonzero line as a live-spec commodity icon with
+available / required quantities and marks shortages in place. Names, paths, and
+inventory quantities remain projections of the commodity registry and cargo
+authority, not a Fleet Armory-owned material catalog.
 
 Built-in weapon definitions are authored deterministic distributions rather than
 live best-fit allocators. This makes faction-flavored profiles such as **Luddic
@@ -301,9 +309,10 @@ A vacant gantry presents the three established chassis patterns rather than fake
 equipment controls. A successful commit consumes ordinary fleet cargo and creates a
 persistent campaign mech with stable identity, default doctrine, standard replenisher,
 and its complete standard roll-out fit. It cannot exceed the lance's four physical
-gantries. Material badges resolve names and icon paths from Starsector's live commodity
-specifications—supplies, heavy machinery, metals, and rare metals use the artwork that
-ships with the base game rather than copied mod assets.
+gantries. Material badges resolve names and icon paths through the same shared live
+commodity presentation seam used by Fleet Armory and battle resource readouts—supplies,
+heavy machinery, metals, and rare metals use the artwork that ships with the base game
+rather than copied mod assets.
 
 The same selection-and-catalog grammar may serve tanks and future scarce heavy armor.
 Each asset class still supplies its own projection and socket layout, so a shared
@@ -405,6 +414,13 @@ demand is deployed rather than labelled as an orbital reserve.
 A debug company intentionally freezes a real detached roster and therefore
 carries campaign-shaped identity without touching campaign state.
 
+For ordinary generated one-shot missions, the selected ready named personnel
+are the deployment manifest even when the player fields less than the tier
+recommendation. The briefing exposes selected headcount, the four-person hard
+minimum, recommended squads, and issued experience-band distribution; it never
+fills missing seats with anonymous generated marines. Authored missions,
+stationing, and Conquest keep their own personnel requirements.
+
 The standing law is **values cross the campaign-to-battle seam; campaign
 objects do not**. Labels remain stable, battle code never resolves the roster,
 and generated personnel never gain campaign identity by accident.
@@ -492,7 +508,10 @@ billet identity remains unchanged.
 
 Hull capacity is a physical maximum, not a promise that every mission fills the
 hold. Small lifts have four seats, medium lifts eight, and the Valkyrie twelve.
-The mission arrival policy owns the embarked seats per sortie. Conquest uses two
+The mission arrival policy owns the embarked seats per sortie. An ordinary
+generated mission freezes only the selected named personnel, so its final craft
+or final pass may carry fewer marines than the hull maximum and all force,
+arrival, and outcome accounting uses that exact embarked count. Conquest uses two
 six-seat Aeroshuttles in each paired arrival group to deliver a twelve-marine
 squad together; the transport boundary may cut across fire-team membership,
 while the ground squad and its three stable fire teams remain unchanged.

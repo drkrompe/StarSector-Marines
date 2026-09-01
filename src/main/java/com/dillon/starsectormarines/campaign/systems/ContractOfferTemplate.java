@@ -32,7 +32,8 @@ public final class ContractOfferTemplate {
         if (rank == null || random == null || rank == HouseRank.TIER_4) return null;
         ContractType type;
         if (rank == HouseRank.TIER_1) {
-            type = ContractType.STRIKE;
+            type = random.nextFloat() < ESCORT_CHANCE
+                    ? ContractType.ESCORT : ContractType.STRIKE;
         } else if (rank == HouseRank.TIER_3
                 && random.nextFloat() < PLANETARY_ASSAULT_CHANCE) {
             return new ContractOfferTemplate(ContractType.PLANETARY_ASSAULT,
@@ -50,8 +51,7 @@ public final class ContractOfferTemplate {
 
     public static ContractOfferTemplate forType(HouseRank rank, ContractType type) {
         if (rank == null || type == null || rank == HouseRank.TIER_4) return null;
-        if ((type == ContractType.ESCORT || type.isStationing())
-                && rank == HouseRank.TIER_1) {
+        if (type.isStationing() && rank == HouseRank.TIER_1) {
             return null;
         }
         if (type.isStationing()) {

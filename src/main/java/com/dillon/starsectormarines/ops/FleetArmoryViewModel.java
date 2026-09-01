@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.ArmorRole;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -39,6 +40,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -112,6 +114,8 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<List<DoctrineTile>> weaponDoctrineTiles;
     private final ComputedSignal<List<DoctrineTile>> armorDoctrineTiles;
     private final ComputedSignal<SquadEquipmentPreview> squadEquipmentPreview;
+    private final ComputedSignal<List<CargoCostRow>> issueCargoRows;
+    private final ComputedSignal<String> issueCargoClasses;
     private final ComputedSignal<String> weaponDoctrineSummary;
     private final ComputedSignal<String> armorDoctrineSummary;
     private final ComputedSignal<String> weaponPickerTabClasses;
@@ -185,6 +189,9 @@ public final class FleetArmoryViewModel {
         candidateSummary = reactor.computed(this::buildCandidateSummary);
         applyLabel = reactor.computed(this::buildApplyLabel);
         squadEquipmentPreview = reactor.computed(this::buildSquadEquipmentPreview);
+        issueCargoRows = reactor.computed(this::buildIssueCargoRows);
+        issueCargoClasses = reactor.computed(() -> issueCargoRows.get().isEmpty()
+                ? "cargo-costs empty" : "cargo-costs");
         transactionSummary = reactor.computed(this::buildViewerStatus);
         transactionClasses = reactor.computed(this::buildViewerStatusClasses);
         applyDisabled = reactor.computed(() -> !squadEquipmentPreview.get().canApply());
@@ -239,6 +246,8 @@ public final class FleetArmoryViewModel {
     public Signal<Boolean> reinforceDisabled() { return reinforceDisabled; }
     public Signal<List<DoctrineTile>> weaponDoctrineTiles() { return weaponDoctrineTiles; }
     public Signal<List<DoctrineTile>> armorDoctrineTiles() { return armorDoctrineTiles; }
+    public Signal<List<CargoCostRow>> issueCargoRows() { return issueCargoRows; }
+    public Signal<String> issueCargoClasses() { return issueCargoClasses; }
     public Signal<String> weaponDoctrineSummary() { return weaponDoctrineSummary; }
     public Signal<String> armorDoctrineSummary() { return armorDoctrineSummary; }
     public Signal<String> weaponPickerTabClasses() { return weaponPickerTabClasses; }
@@ -381,13 +390,14 @@ public final class FleetArmoryViewModel {
             cards.add(new SquadCard(id, id + ":name", id + ":status",
                     id + ":strength", id + ":teams", id + ":command",
                     id + ":location", id + ":recovery", id + ":open",
-                    id + ":reinforce",
+                    id + ":reinforce", id + ":reinforce-icon", id + ":reinforce-label",
                     "squad-card " + readinessClass,
                     "squad-card-status heading " + readinessTone(ready, MarineSquad.CAPACITY),
                     squad.name(), readiness, ready + " / " + MarineSquad.CAPACITY + " RTD",
                     assigned == MarineSquad.TEAMS_PER_SQUAD
                             ? "Squad doctrine issued" : "Individual equipment",
                     command, location, compactRecoverySummary(squad),
+                    equipmentIssueResources.commodityIcon(Commodities.MARINES),
                     reinforcementLabel(squad), reinforcementCapacity(squad) <= 0,
                     () -> {
                         selectSquad(squad.id());
@@ -866,10 +876,32 @@ public final class FleetArmoryViewModel {
     }
 
     private String buildApplyLabel() {
+        return "Issue to Squad";
+    }
+
+    private List<CargoCostRow> buildIssueCargoRows() {
         SquadEquipmentPreview preview = squadEquipmentPreview.get();
-        return preview.issueCost().isZero()
-                ? "Issue to Squad"
-                : "Issue  ·  " + preview.issueCost().display();
+        EquipmentTemplateCost cost = preview.issueCost();
+        EquipmentTemplateCost available = preview.availableCargo();
+        List<CargoCostRow> rows = new ArrayList<>(4);
+        addCargoCostRow(rows, Commodities.SUPPLIES, cost.supplies(), available.supplies());
+        addCargoCostRow(rows, Commodities.HAND_WEAPONS,
+                cost.heavyArmaments(), available.heavyArmaments());
+        addCargoCostRow(rows, Commodities.HEAVY_MACHINERY,
+                cost.heavyMachinery(), available.heavyMachinery());
+        addCargoCostRow(rows, Commodities.FOOD, cost.food(), available.food());
+        return List.copyOf(rows);
+    }
+
+    private void addCargoCostRow(List<CargoCostRow> rows, String commodityId,
+                                 int required, int available) {
+        if (required <= 0) return;
+        String id = "issue-cargo:" + commodityId;
+        rows.add(new CargoCostRow(id, id + ":icon", id + ":label",
+                available >= required ? "cargo-cost" : "cargo-cost short",
+                equipmentIssueResources.commodityIcon(commodityId),
+                equipmentIssueResources.commodityName(commodityId).toUpperCase(Locale.ROOT)
+                        + "  " + available + " / " + required));
     }
 
     private String buildViewerStatus() {
@@ -1424,7 +1456,7 @@ public final class FleetArmoryViewModel {
         return switch (preview.result()) {
             case APPLIED -> preview.issueCost().isZero()
                     ? "Ready  ·  The squad already matches this equipment issue."
-                    : "Ready  ·  Issue cost: " + preview.issueCost().display() + ".";
+                    : "Ready  ·  Fleet cargo bill shown below.";
             case INVALID_SQUAD -> "Select a line squad.";
             case SQUAD_NOT_READY -> "Not ready  ·  This squad needs twelve RTD marines.";
             case STATIONED -> "Unavailable  ·  This squad is stationed away.";
@@ -1432,9 +1464,8 @@ public final class FleetArmoryViewModel {
             case UNKNOWN_ARMOR_DOCTRINE -> "Choose armor equipment.";
             case MISSING_TEMPLATE ->
                     "Blocked  ·  One or more required equipment templates are not known.";
-            case INSUFFICIENT_CARGO -> "Blocked  ·  Requires "
-                    + preview.issueCost().display() + "; available: "
-                    + preview.availableCargo().display() + ".";
+            case INSUFFICIENT_CARGO ->
+                    "Blocked  ·  Fleet cargo shortages are marked below.";
         };
     }
 
@@ -1573,10 +1604,11 @@ public final class FleetArmoryViewModel {
     public record SquadCard(
             String id, String nameId, String statusId, String strengthId,
             String teamsId, String commandId, String locationId, String recoveryId,
-            String openId, String reinforceId,
+            String openId, String reinforceId, String reinforceIconId,
+            String reinforceLabelId,
             String classes, String statusClasses, String name, String status,
             String strength, String teams, String command, String location,
-            String recovery, String reinforceLabel,
+            String recovery, String reinforceIcon, String reinforceLabel,
             boolean reinforceDisabled, Runnable open, Runnable reinforce)
             implements MarkupPropertySource {
         @Override
@@ -1592,6 +1624,8 @@ public final class FleetArmoryViewModel {
                 case "recoveryId" -> recoveryId;
                 case "openId" -> openId;
                 case "reinforceId" -> reinforceId;
+                case "reinforceIconId" -> reinforceIconId;
+                case "reinforceLabelId" -> reinforceLabelId;
                 case "classes" -> classes;
                 case "statusClasses" -> statusClasses;
                 case "name" -> name;
@@ -1601,11 +1635,30 @@ public final class FleetArmoryViewModel {
                 case "command" -> command;
                 case "location" -> location;
                 case "recovery" -> recovery;
+                case "reinforceIcon" -> reinforceIcon;
                 case "reinforceLabel" -> reinforceLabel;
                 case "reinforceDisabled" -> reinforceDisabled;
                 case "open" -> open;
                 case "reinforce" -> reinforce;
                 default -> throw new IllegalArgumentException("Unknown squad-card property");
+            };
+        }
+    }
+
+    public record CargoCostRow(
+            String id, String iconId, String labelId, String classes,
+            String icon, String label) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "iconId" -> iconId;
+                case "labelId" -> labelId;
+                case "classes" -> classes;
+                case "icon" -> icon;
+                case "label" -> label;
+                default -> throw new IllegalArgumentException(
+                        "Unknown cargo-cost property: " + property);
             };
         }
     }

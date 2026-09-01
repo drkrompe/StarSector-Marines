@@ -4,6 +4,9 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-09-01 — cargo-backed reinforcement controls identify generic
+Marine personnel with Starsector's live commodity icon.
+
 ## Purpose
 
 Personnel makes the player's force a continuing company rather than a count of
@@ -41,6 +44,8 @@ are unavailable until recovery; MIA and KIA do not fill a living billet. A
 selection shortage and a whole-company shortage are different facts: selecting
 the wrong available squads must not silently substitute another squad, while a
 company shortage may offer cargo-backed recruitment.
+Where that draw is offered, the base-game Marines icon identifies the cargo
+input without becoming a new personnel or availability authority.
 
 An **operation commander** is the single officer whose operation outcome is
 currently settled. A **task force** is the deployment-time grouping derived

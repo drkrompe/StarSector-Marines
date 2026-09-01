@@ -198,6 +198,8 @@ public final class CampaignMarineDeployment {
                 }
                 mission.cycleLoadouts = cycles;
                 mission.marineLoadout = cycles[0];
+                mission.marinesRemaining = cycles[0] != null
+                        ? cycles[0].length : 0;
         }
     }
 
@@ -229,7 +231,11 @@ public final class CampaignMarineDeployment {
                 }
                 cycles[cycle] = applied;
                 mission.cycleLoadouts = cycles;
-                if (cycle == 0) mission.marineLoadout = cycles[0];
+                if (cycle == 0) {
+                    mission.marineLoadout = cycles[0];
+                    mission.marinesRemaining = cycles[0] != null
+                            ? cycles[0].length : 0;
+                }
             }
         }
     }
@@ -266,7 +272,7 @@ public final class CampaignMarineDeployment {
         for (int i = Math.max(0, firstAssignment); i < manifest.size(); i++) {
             ShuttleAssignment assignment = manifest.get(i);
             if (assignment != null) {
-                total += (long) assignment.seatsPerSortie * assignment.cycles;
+                total += assignment.embarkedPersonnel;
                 if (total >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
             }
         }

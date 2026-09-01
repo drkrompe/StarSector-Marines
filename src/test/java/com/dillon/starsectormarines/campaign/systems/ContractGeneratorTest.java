@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.campaign.HouseFlavor;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
+import com.dillon.starsectormarines.ops.OperationTier;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -23,7 +24,7 @@ class ContractGeneratorTest {
     private static final float OFFER_CHANCE = 0.05f;
 
     @Test
-    void sameStateAndDayProduceSameStrikeOffers() {
+    void sameStateAndDayProduceSameTierOneOffers() {
         CampaignState first = twoActivePatrons();
         CampaignState second = twoActivePatrons();
         int day = firstOfferDay(first.houseId[0]);
@@ -38,14 +39,19 @@ class ContractGeneratorTest {
             assertEquals(first.contractPatronHouseId[i], second.contractPatronHouseId[i]);
             assertEquals(first.contractTargetHouseId[i], second.contractTargetHouseId[i]);
             assertEquals(first.contractOfferExpiresTick[i], second.contractOfferExpiresTick[i]);
-            assertEquals(ContractType.STRIKE, ContractType.fromByte(first.contractType[i]));
+            ContractType type = ContractType.fromByte(first.contractType[i]);
+            assertTrue(type == ContractType.STRIKE || type == ContractType.ESCORT);
             assertEquals(ContractState.OFFERED, ContractState.fromByte(first.contractState[i]));
             assertNotEquals(first.contractPatronHouseId[i], first.contractTargetHouseId[i]);
             assertEquals(1, first.contractPhasesTotal[i] & 0xFF);
-            assertEquals(25_000, first.contractBasePayout[i]);
+            assertEquals(OperationTier.FIRST_CONTRACT,
+                    OperationTier.fromPersistedByte(first.contractOperationTier[i]));
+            assertEquals(type == ContractType.ESCORT ? 30_000 : 25_000,
+                    first.contractBasePayout[i]);
             assertEquals(0, first.contractRetainerPerMonth[i]);
-            assertEquals(60, first.contractSalvageBaseline[i] & 0xFF);
-            assertEquals(60, first.contractSalvageNegotiated[i] & 0xFF);
+            int salvage = type == ContractType.ESCORT ? 10 : 60;
+            assertEquals(salvage, first.contractSalvageBaseline[i] & 0xFF);
+            assertEquals(salvage, first.contractSalvageNegotiated[i] & 0xFF);
             assertEquals(100, first.contractCashMultiplier[i] & 0xFF);
         }
     }

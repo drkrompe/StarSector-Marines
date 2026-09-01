@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.CommodityPresentation;
+
 /** External player-cargo authority used by Mech Lab previews and atomic commits. */
-public interface MechFabricationResources {
+public interface MechFabricationResources extends CommodityPresentation {
 
     MechFabricationResources NONE = new MechFabricationResources() {
         @Override public int available(String commodityId) { return 0; }
@@ -11,11 +13,6 @@ public interface MechFabricationResources {
     };
 
     int available(String commodityId);
-
-    String commodityName(String commodityId);
-
-    /** Base-game commodity icon path from the live commodity specification. */
-    String commodityIcon(String commodityId);
 
     /** Rechecks and consumes the whole cost, or consumes nothing. */
     boolean spend(MechFabricationCost cost);
