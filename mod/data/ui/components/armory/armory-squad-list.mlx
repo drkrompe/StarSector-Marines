@@ -15,7 +15,7 @@
         <div id="{card.squad.reinforceLabelId}" class="squad-reinforce-label label">{card.squad.reinforceLabel}</div>
       </button>
       <button id="{card.founderId}" class="{card.founderClasses}" disabled="{card.foundingDisabled}" onclick="{card.foundSquad}">
-        <div id="{card.plusId}" class="found-squad-plus label heading tone-accent">+</div>
+        <img id="{card.plusId}" class="found-squad-cta-icon" src="graphics/ui/armory/found-squad.png" />
         <div id="{card.founderHeadingId}" class="found-squad-heading label heading tone-accent">FOUND LINE SQUAD</div>
         <div id="{card.founderCopyId}" class="found-squad-copy label tone-muted">Create the next full formation from fleet cargo.</div>
         <div id="{card.founderCostsId}" class="squad-founder-costs">
@@ -101,14 +101,7 @@
     background-color: #0c1620;
   }
   .squad-founder-card:hover { background-color: #132c3d; border-color: #ffd464; }
-  .found-squad-plus {
-    width: 26px;
-    height: 22px;
-    padding: 18px 16px;
-    border-width: 2px;
-    text-align: center;
-    background-color: #0c1620;
-  }
+  .found-squad-cta-icon { width: 108px; height: 108px; }
   .found-squad-heading { height: 30px; white-space: normal; text-align: center; }
   .found-squad-copy { height: 42px; white-space: normal; text-align: center; }
   .squad-founder-costs {

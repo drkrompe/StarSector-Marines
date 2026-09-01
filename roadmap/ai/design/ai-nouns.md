@@ -1053,6 +1053,17 @@ retargeting trades the second for the first. It stays behind
 `battle.targeting.friendlyLanePenalty`, and the geometry it would be built on is
 shared with the mech overwatch position search rather than restated.
 
+It was retested once joining fire stopped being priced by a headcount, because
+the standing explanation was that the two were blind anti-concentration
+pressures compounding. That explanation was wrong: on top of damage-aware
+crowding it still gives up a capture on one fixture and hands back the whole of
+the other fixture's gain, turning a run that survives to the limit into a defeat
+again. The instructive half is that it kills *more* defenders while taking fewer
+compounds — a squad that switches target for a lane stays in the fight rather
+than pressing on, and a timed advance is decided partly on the clock. **The verb
+is what is wrong, not the weight or what surrounds it.** Two attempts have
+measured the switching form; the next wants stepping aside instead.
+
 **Whether to add your fire to a target is a question about damage, not about
 headcount.** Joining fire used to cost a flat toll per ally already aiming at
 the candidate, which is blind in both directions at once. A heavy chassis that
