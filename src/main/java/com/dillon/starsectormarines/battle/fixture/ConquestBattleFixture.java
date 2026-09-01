@@ -6,13 +6,23 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.List;
 import java.util.Objects;
 
-/** Authored inputs to the production Conquest scenario factory. */
+/**
+ * Authored inputs to the production Conquest scenario factory.
+ *
+ * <p>{@code sprawl} is the battle's own statement of how settled its map is,
+ * or {@code null} to derive it from the target market. Carried rather than
+ * consulted for now: Conquest still generates on the stock crossroad recipe,
+ * and section D of {@code conquest-on-precincts.md} is what makes it read
+ * this. Absent from a fixture document means null, so a fixture written
+ * before the field existed replays exactly as it did.
+ */
 public record ConquestBattleFixture(
         long seed,
         List<ShuttleAssignment> manifest,
@@ -22,7 +32,8 @@ public record ConquestBattleFixture(
         TargetProfile targetProfile,
         List<FighterWingCommitment> marineFighterSupport,
         List<FighterWingCommitment> enemyFighterSupport,
-        ShuttleArrivalPlan arrivalPlan) implements BattleFixture {
+        ShuttleArrivalPlan arrivalPlan,
+        PrecinctPlan.Sprawl sprawl) implements BattleFixture {
 
     public static final String KIND = "CONQUEST";
 
@@ -36,6 +47,18 @@ public record ConquestBattleFixture(
         enemyFighterSupport = List.copyOf(Objects.requireNonNull(
                 enemyFighterSupport, "enemyFighterSupport"));
         arrivalPlan = Objects.requireNonNull(arrivalPlan, "arrivalPlan");
+    }
+
+    /** A fixture that says nothing about sprawl; the market derives it. */
+    public ConquestBattleFixture(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile,
+            List<FighterWingCommitment> marineFighterSupport,
+            List<FighterWingCommitment> enemyFighterSupport,
+            ShuttleArrivalPlan arrivalPlan) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                marineFighterSupport, enemyFighterSupport, arrivalPlan, null);
     }
 
     /** V1 fixture compatibility: historical Conquest arrivals were independent. */
@@ -56,12 +79,23 @@ public record ConquestBattleFixture(
             TargetProfile targetProfile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport,
             ShuttleArrivalPlan arrivalPlan) {
+        return fromFactoryInputs(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                targetProfile, marineFighterSupport, enemyFighterSupport,
+                arrivalPlan, null);
+    }
+
+    public static ConquestBattleFixture fromFactoryInputs(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport,
+            ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl) {
         return new ConquestBattleFixture(seed,
                 manifest == null ? List.of() : List.copyOf(manifest),
                 enemyHasHeavyArmor, tier, risk, targetProfile,
                 FighterWingCommitment.captureRoster(marineFighterSupport),
                 FighterWingCommitment.captureRoster(enemyFighterSupport),
-                arrivalPlan);
+                arrivalPlan, sprawl);
     }
 
     public static ConquestBattleFixture fromFactoryInputs(
@@ -84,6 +118,7 @@ public record ConquestBattleFixture(
         return BattleSetup.createConquest(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
-                FighterWingCommitment.toRoster(enemyFighterSupport), arrivalPlan);
+                FighterWingCommitment.toRoster(enemyFighterSupport), arrivalPlan,
+                sprawl);
     }
 }
