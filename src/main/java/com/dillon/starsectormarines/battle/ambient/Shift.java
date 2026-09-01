@@ -390,9 +390,31 @@ public final class Shift {
      * two lanes. A shared job is contended by everyone who reaches it, the claim
      * service already arbitrates that, and a member who finds the range full
      * waits out that stop and comes round again.
+     *
+     * <p><b>A workplace is bounded by the trade it is a workplace for</b>, not
+     * by the scarcest thing on the rotation. The other jobs are things the same
+     * person also does in the same room: a technician fetches parts and reads a
+     * terminal between aircraft, and neither is the reason there is a technician
+     * here. Counting them cost an airfield most of its ground crew — twelve
+     * places to service aircraft and six boards to read them off, and the boards
+     * decided, so a field that could occupy twelve hands was capped at six by
+     * the reading.
+     *
+     * <p>Nobody queues for the shortfall, which is what makes this safe and is
+     * the same reason a circuit is already left out. A full job is passed over
+     * rather than waited at: a technician who finds the one terminal taken goes
+     * to an aircraft instead, and only somebody with nothing free anywhere stays
+     * where they are. The queue this used to prevent cannot form.
      */
     public int capacity() {
         if (CrewRole.isBerthing(base.purpose())) return atBase(Affordance.REST);
+        Affordance trade = role.trade();
+        if (trade != null) {
+            int working = atBase(trade);
+            if (working > 0) return working;
+        }
+        // A role with no trade of its own — every job it has is a circuit — is
+        // still bounded by something rather than unbounded.
         int fewest = Integer.MAX_VALUE;
         for (Affordance job : order) {
             // A circuit is contended by the whole ship and satisfied anywhere on
