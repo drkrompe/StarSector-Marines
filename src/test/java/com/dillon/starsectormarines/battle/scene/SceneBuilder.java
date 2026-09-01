@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
@@ -124,6 +125,28 @@ public final class SceneBuilder {
     }
 
     /**
+     * One walkable doorway cell, cut through whatever was there.
+     *
+     * <p>{@link #wallWithDoor} is the corridor case — a whole column sealed
+     * with one way through — and a room is the other one: four walls a scene
+     * lays itself, with the door somewhere in them. <b>The doorway marker is
+     * what makes it a door</b> rather than a gap: the zone detector links two
+     * zones through a portal, and a hole left as ordinary floor merges the room
+     * into the field around it. A scene that then orders a squad to "the room"
+     * has ordered it to the zone it is already standing in, and records
+     * something else entirely — which is what this method exists to have
+     * stopped happening.
+     */
+    public SceneBuilder doorway(int x, int y) {
+        checkOpen();
+        if (grid.inBounds(x, y)) {
+            grid.setWalkableFloor(x, y);
+            grid.setDoorway(x, y, true);
+        }
+        return this;
+    }
+
+    /**
      * Declares a squad under {@code key}, to be spawned by {@link #build()}.
      *
      * <p>Defaults are a six-strong armed marine squad. <b>Armed and squadded is
@@ -214,6 +237,7 @@ public final class SceneBuilder {
         private int fileStepY;
         private boolean armed = true;
         private long kitSeed = DEFAULT_KIT_SEED;
+        private String primaryWeaponId;
         private boolean stationary;
         private IntFunction<ObjectiveAssignment> assignment;
         private MechVariant mechVariant;
@@ -279,6 +303,26 @@ public final class SceneBuilder {
         }
 
         /**
+         * Issues one named primary to every member instead of rolling the
+         * squad's kit — {@code "weapon.smg"}, {@code "weapon.pulse-rifle"}.
+         *
+         * <p><b>For a scene whose geometry is measured in weapon reach.</b> The
+         * rolled kit hands out weapons whose range differs by ten cells and
+         * gives one seat a rocket tube, so "the squad cannot reach that
+         * contact" is true of five marines and false of the sixth — and a scene
+         * built on that distance records five men standing still beside one man
+         * walking, which is neither of the behaviours it set out to compare.
+         * A kit seed can be hunted until it happens to come out uniform, and
+         * then quietly stops being uniform the next time the roll tables move;
+         * naming the weapon cannot.
+         */
+        public SquadSpec primary(String weaponId) {
+            this.armed = true;
+            this.primaryWeaponId = Objects.requireNonNull(weaponId, "weaponId");
+            return this;
+        }
+
+        /**
          * Spawns without primaries. Only for a scene whose question is about
          * something other than fire — an unarmed squad cannot contest anything.
          */
@@ -319,6 +363,16 @@ public final class SceneBuilder {
             return owner;
         }
 
+        /** Every seat carrying {@link #primaryWeaponId} and nothing else issued. */
+        private MarineLoadout[] uniformKit() {
+            MarineLoadout[] kit = new MarineLoadout[size];
+            for (int i = 0; i < size; i++) {
+                kit[i] = new MarineLoadout(UnitRole.COMBATANT, null,
+                        primaryWeaponId, null, 0);
+            }
+            return kit;
+        }
+
         private int spawnInto(BattleSimulation sim) {
             if (mechVariant != null && !type.hasChassis()) {
                 throw new IllegalStateException("Squad '" + key + "' asks for a mech variant on "
@@ -326,7 +380,8 @@ public final class SceneBuilder {
             }
             int squadId = sim.mintSquad(faction, type);
             MarineLoadout[] kit = armed && mechVariant == null
-                    ? InfantryLoadoutRolls.playerSquad(size, new Random(kitSeed))
+                    ? (primaryWeaponId != null ? uniformKit()
+                            : InfantryLoadoutRolls.playerSquad(size, new Random(kitSeed)))
                     : null;
             spawned = new long[size];
             for (int i = 0; i < size; i++) {

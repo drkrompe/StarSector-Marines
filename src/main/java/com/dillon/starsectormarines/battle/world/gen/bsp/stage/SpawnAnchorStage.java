@@ -68,8 +68,15 @@ public final class SpawnAnchorStage implements GenStage {
         return pickSpawnAnchor(grid, rect[0], rect[1], rect[2], rect[3], rng);
     }
 
-    /** The third of the map whose middle is furthest from the objective. */
-    private static MapPlacement awayFrom(Precinct objective, int width, int height) {
+    /**
+     * The third of the map whose middle is furthest from the objective.
+     *
+     * <p>Shared with {@link PrecinctLandingAreaStage}, which has to seat its
+     * berths in the region the attacker actually arrives in. Two copies of the
+     * rule would be two answers the first time either moved, and a beachhead in
+     * a corner nobody spawns in is a beachhead nobody lands on.
+     */
+    static MapPlacement awayFrom(Precinct objective, int width, int height) {
         if (objective == null) return MapPlacement.ANYWHERE;
         MapPlacement[] corners = {
                 MapPlacement.SOUTH_WEST, MapPlacement.SOUTH_EAST,

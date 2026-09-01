@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,5 +69,25 @@ class SettlementZoningTest {
     @Test
     void noMarketHasNoDensityToDerive() {
         assertEquals(0f, SettlementZoning.densityFor(0), 0f);
+    }
+
+    /**
+     * The derived default, pinned at the sizes where it changes answer and on
+     * either side of each of them.
+     */
+    @Test
+    void howSettledAMarketIsFollowsItsSize() {
+        assertEquals(PrecinctPlan.Sprawl.BALANCED, SettlementZoning.sprawlFor(0),
+                "no market is an absence of information, not a wilderness");
+        assertEquals(PrecinctPlan.Sprawl.REMOTE, SettlementZoning.sprawlFor(3),
+                "the largest outpost is still an outpost");
+        assertEquals(PrecinctPlan.Sprawl.BALANCED, SettlementZoning.sprawlFor(4),
+                "one size above an outpost is a town");
+        assertEquals(PrecinctPlan.Sprawl.BALANCED, SettlementZoning.sprawlFor(7),
+                "the largest town is still a town with country around it");
+        assertEquals(PrecinctPlan.Sprawl.DENSE, SettlementZoning.sprawlFor(8),
+                "eight is where a market stops being a town");
+        assertEquals(PrecinctPlan.Sprawl.DENSE, SettlementZoning.sprawlFor(10),
+                "the top of the vanilla range is a conurbation");
     }
 }

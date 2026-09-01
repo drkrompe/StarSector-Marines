@@ -105,6 +105,7 @@ import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
+import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
@@ -380,10 +381,15 @@ public final class BattleSetup {
         // Defense posts stamp before sim construction for the same reason —
         // the embankment ring cells flip walkability, and the zone graph the
         // sim builds on construction needs to reflect that.
-        List<DefensePost> defensePosts = new ArrayList<>();
-        DefensePostStamper.stampNonConquest(map.grid, map.topology,
-                RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
-                map.pointsOfInterest, map.doodads, defensePosts, rng);
+        List<DefensePost> defensePosts = new ArrayList<>(map.defensePosts);
+        // A fortified place stated its own emplacements, so the setup-time
+        // scatter is skipped: a second random layer on top of an authored
+        // fortification was never a decision anybody made.
+        if (defensePosts.isEmpty()) {
+            DefensePostStamper.stampNonConquest(map.grid, map.topology,
+                    RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
+                    map.pointsOfInterest, map.doodads, defensePosts, rng);
+        }
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor,
                 assignments, defensePosts, marineFighterSupport,
@@ -489,9 +495,19 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport) {
+        return createRaid(seed, manifest, enemyHasHeavyArmor, tier, risk, profile,
+                marineFighterSupport, enemyFighterSupport, null);
+    }
+
+    /** Raid against a map whose settled share the mission stated; null derives it. */
+    public static BattleSimulation createRaid(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport,
-                enemyFighterSupport);
+                enemyFighterSupport, sprawl);
     }
 
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
@@ -500,9 +516,19 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport) {
+        return createExtraction(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, null);
+    }
+
+    /** Extraction against a map whose settled share the mission stated; null derives it. */
+    public static BattleSimulation createExtraction(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.EXTRACTION, profile, marineFighterSupport,
-                enemyFighterSupport);
+                enemyFighterSupport, sprawl);
     }
 
     /**
@@ -624,9 +650,27 @@ public final class BattleSetup {
      */
     static PrecinctPlan precinctPlanFor(MissionType type, OperationTier tier, RiskLevel risk,
                                         TargetProfile profile, MapScale scale, long seed) {
+        return precinctPlanFor(type, tier, risk, profile, scale, seed, null);
+    }
+
+    /**
+     * As above, with the battle's own statement of how settled its map is.
+     *
+     * @param sprawl the mission's stated sprawl, or {@code null} to derive it
+     *               from the market the way {@code SettlementZoning} does.
+     */
+    static PrecinctPlan precinctPlanFor(MissionType type, OperationTier tier, RiskLevel risk,
+                                        TargetProfile profile, MapScale scale, long seed,
+                                        PrecinctPlan.Sprawl sprawl) {
         if (type != MissionType.ASSAULT && type != MissionType.RAID) return null;
         if (profile == null || profile.marketSize() <= 0) return null;
-        return PrecinctPlan.derive(profile, PrecinctPlan.Sprawl.BALANCED,
+        PrecinctPlan.Sprawl resolved = sprawl != null
+                ? sprawl : SettlementZoning.sprawlFor(profile.marketSize());
+        // A raid's target is a point of interest, and a remote map has none.
+        if (type == MissionType.RAID && resolved == PrecinctPlan.Sprawl.REMOTE) {
+            resolved = PrecinctPlan.Sprawl.BALANCED;
+        }
+        return PrecinctPlan.derive(profile, resolved,
                 MissionFortification.demand(tier, risk),
                 scale.width, scale.height, new Random(seed ^ PRECINCT_SEED_SALT));
     }
@@ -638,19 +682,42 @@ public final class BattleSetup {
                                                      MissionType type, TargetProfile profile,
                                                      FlybyRoster marineFighterSupport,
                                                      FlybyRoster enemyFighterSupport) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type,
+                profile, marineFighterSupport, enemyFighterSupport, null);
+    }
+
+    /**
+     * Tier-aware catch-all with the battle's own statement of how settled its
+     * map is.
+     *
+     * @param sprawl the mission's stated sprawl, or {@code null} to derive it
+     *               from the target market.
+     */
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor,
+                                                     OperationTier tier, RiskLevel risk,
+                                                     MissionType type, TargetProfile profile,
+                                                     FlybyRoster marineFighterSupport,
+                                                     FlybyRoster enemyFighterSupport,
+                                                     PrecinctPlan.Sprawl sprawl) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
-        PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed);
+        PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
         MapResult map = MAP_GEN.generate(
                 scale.width, scale.height, seed, null, profile, precincts);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
-        List<DefensePost> defensePosts = new ArrayList<>();
-        DefensePostStamper.stampNonConquest(map.grid, map.topology,
-                RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
-                map.pointsOfInterest, map.doodads, defensePosts, rng);
+        List<DefensePost> defensePosts = new ArrayList<>(map.defensePosts);
+        // A fortified place stated its own emplacements, so the setup-time
+        // scatter is skipped: a second random layer on top of an authored
+        // fortification was never a decision anybody made.
+        if (defensePosts.isEmpty()) {
+            DefensePostStamper.stampNonConquest(map.grid, map.topology,
+                    RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
+                    map.pointsOfInterest, map.doodads, defensePosts, rng);
+        }
         DefenderForcePlan defenders = defenderForcePlan(
                 type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts,
                 marineFighterSupport, enemyFighterSupport, groundRoster);
@@ -1186,6 +1253,27 @@ public final class BattleSetup {
                         0));
     }
 
+    /**
+     * Conquest build carrying the battle's stated sprawl.
+     *
+     * <p><b>Carried, not yet consulted.</b> Conquest still generates on the
+     * stock crossroad recipe, which has no precinct plan to hand a sprawl to;
+     * section D of {@code conquest-on-precincts.md} is what makes it read this.
+     * The parameter is here so the mission, the fixture and the factory already
+     * agree on the value when that lands.
+     */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor,
+                                               OperationTier tier, RiskLevel risk,
+                                               TargetProfile profile,
+                                               FlybyRoster marineFighterSupport,
+                                               FlybyRoster enemyFighterSupport,
+                                               ShuttleArrivalPlan arrivalPlan,
+                                               PrecinctPlan.Sprawl sprawl) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, arrivalPlan);
+    }
+
     /** Conquest build with a fixture-captured mission arrival plan. */
     public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
                                                boolean enemyHasHeavyArmor,
@@ -1533,6 +1621,25 @@ public final class BattleSetup {
     }
 
     /**
+     * Tier-aware Conquest carrying the battle's stated sprawl — carried, not
+     * yet consulted; see {@link #createConquestBuild(long, List, boolean,
+     * OperationTier, RiskLevel, TargetProfile, FlybyRoster, FlybyRoster,
+     * ShuttleArrivalPlan, PrecinctPlan.Sprawl)}.
+     */
+    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile,
+                                                  FlybyRoster marineFighterSupport,
+                                                  FlybyRoster enemyFighterSupport,
+                                                  ShuttleArrivalPlan arrivalPlan,
+                                                  PrecinctPlan.Sprawl sprawl) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
+                tier, risk, profile, marineFighterSupport,
+                enemyFighterSupport, arrivalPlan, sprawl).sim();
+    }
+
+    /**
      * Install the reinforcement layer on the sim. The trigger set depends on
      * mission semantics. Conquest with a biome layer and non-empty
      * {@link TacticalMap} gets the front-line dispatcher; every other mission
@@ -1588,13 +1695,14 @@ public final class BattleSetup {
                                                   RiskLevel risk,
                                                   DeliveryDeploymentPolicy deliveryPolicy) {
         ReinforcementService rs = sim.getReinforcementService();
-        if (missionType == MissionType.CONQUEST && map.biomeMap != null
+        if (missionType == MissionType.CONQUEST && map.frontDepth != null
                 && map.tacticalMap != null && map.tacticalMap.size() > 0) {
-            RecaptureTargetService recaptureTargets = new RecaptureTargetService(map.tacticalMap, map.biomeMap);
-            sim.setRecaptureSystem(new RecaptureTargetSystem(recaptureTargets, map.biomeMap));
-            rs.addTrigger(new FrontLineReinforcementTrigger(recaptureTargets, axis));
+            RecaptureTargetService recaptureTargets =
+                    new RecaptureTargetService(map.tacticalMap, map.frontDepth);
+            sim.setRecaptureSystem(new RecaptureTargetSystem(recaptureTargets, map.frontDepth));
+            rs.addTrigger(new FrontLineReinforcementTrigger(recaptureTargets, map.frontDepth));
             sim.setCounterattackSystem(new CounterattackSystem(
-                    recaptureTargets, rs, sim.getBattleResources(), axis));
+                    recaptureTargets, rs, sim.getBattleResources(), map.frontDepth));
         } else {
             rs.addTrigger(new GarrisonDepletedTrigger());
         }

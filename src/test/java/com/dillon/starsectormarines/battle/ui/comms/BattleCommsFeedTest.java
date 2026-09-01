@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.comms;
 
 import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
-import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,14 +34,14 @@ class BattleCommsFeedTest {
 
     @Test
     void counterattackCopyNamesTheDistrictAndReportsEveryDisposition() {
-        BattleCommsFeed.Notice warning = CounterattackCommsPresenter.warning(BiomeKind.CITY);
-        BattleCommsFeed.Notice launch = CounterattackCommsPresenter.launch(BiomeKind.CITY);
+        BattleCommsFeed.Notice warning = CounterattackCommsPresenter.warning("city district");
+        BattleCommsFeed.Notice launch = CounterattackCommsPresenter.launch("city district");
         BattleCommsFeed.Notice success = CounterattackCommsPresenter.outcome(
-                BiomeKind.CITY, CounterattackSystem.Resolution.SUCCESS);
+                "city district", CounterattackSystem.Resolution.SUCCESS);
         BattleCommsFeed.Notice failure = CounterattackCommsPresenter.outcome(
-                BiomeKind.CITY, CounterattackSystem.Resolution.FAILURE);
+                "city district", CounterattackSystem.Resolution.FAILURE);
         BattleCommsFeed.Notice aborted = CounterattackCommsPresenter.outcome(
-                BiomeKind.CITY, CounterattackSystem.Resolution.ABORTED);
+                "city district", CounterattackSystem.Resolution.ABORTED);
 
         assertTrue(warning.body().contains("city district"));
         assertTrue(launch.body().contains("city district"));

@@ -4,8 +4,7 @@ import com.dillon.starsectormarines.battle.command.BattleResources;
 import com.dillon.starsectormarines.battle.command.ResourceType;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
-import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
@@ -17,12 +16,12 @@ import java.util.List;
  * {@code reinforcement-nouns.md}. Where {@link
  * FrontLineReinforcementTrigger} spreads squads thin to hold the contested
  * front, this masses a burst of reinforcement tickets at one point to push
- * back <em>into</em> a slice the marines have already conceded — the
+ * back <em>into</em> a band the marines have already conceded — the
  * deliberate exception to the frontline eligibility filter.
  *
  * <p>A <b>System</b> (processor): it owns only the phase/timer state machine
  * — the cadence {@link #accumulator}, the current {@link #phase}, its
- * countdown, and the muster snapshot ({@link #bulgeSlice}, the manned
+ * countdown, and the muster snapshot ({@link #bulgeBand}, the manned
  * targets it's pushing on, and the dispatch rotation cursor). It reads
  * {@link RecaptureTargetService} for frontline state, posts prepaid
  * requests to {@link ReinforcementService}, and debits/refunds the earmark
@@ -36,40 +35,40 @@ import java.util.List;
  * <pre>
  * IDLE --(muster)--&gt; TELEGRAPH --(timer)--&gt; ASSAULT --(one tick)--&gt; RESOLVE --(success/timeout)--&gt; COOLDOWN --(timer)--&gt; IDLE
  *                        |                        |
- *                        +--(slice re-contested)--+--&gt; COOLDOWN (short; refund, not counted against the cap)
+ *                        +--(band re-contested)--+--&gt; COOLDOWN (short; refund, not counted against the cap)
  * </pre>
  * <ul>
  *   <li><b>IDLE.</b> Polls muster conditions each cadence tick: budget
- *       surplus, a stable/overflow front, a reclaimable conceded slice, and
+ *       surplus, a stable/overflow front, a reclaimable conceded band, and
  *       at least one registered means able to deliver to it. On muster,
  *       earmarks the ticket burst all-or-nothing and snapshots the target
- *       slice's manned nodes.</li>
+ *       band's manned nodes.</li>
  *   <li><b>TELEGRAPH.</b> The comms-hook window ({@link #TELEGRAPH_SEC}) —
  *       the battle HUD reads the exposed phase, timer, target, and outcome
  *       state to narrate the buildup and mark the threatened district.
- *       Re-validates each tick that the slice is still conceded;
+ *       Re-validates each tick that the band is still conceded;
  *       a natural re-contest aborts with a full refund.</li>
- *   <li><b>ASSAULT.</b> One cadence tick: re-checks the slice is still
+ *   <li><b>ASSAULT.</b> One cadence tick: re-checks the band is still
  *       conceded (a re-contest landing in the one-tick gap since the last
  *       TELEGRAPH check aborts the same as a telegraph-phase re-contest),
  *       then posts up to {@link #BURST_TICKETS} prepaid requests,
  *       round-robining the objective over the snapshot targets and skipping
  *       any that were re-manned since the snapshot was taken. Marks each
  *       dispatched target so the frontline trigger doesn't double-book it
- *       once the slice flips contested.</li>
+ *       once the band flips contested.</li>
  *   <li><b>RESOLVE.</b> Waits up to {@link #RESOLVE_WINDOW_SEC} for {@link
- *       RecaptureTargetService#isContested} to read true on the bulge slice
+ *       RecaptureTargetService#isContested} to read true on the bulge band
  *       for {@link #SUCCESS_HOLD_TICKS} consecutive ticks — the debounced
  *       frontline filter re-including it, <em>sustained</em>, is the success
  *       signal (no wave-squad bookkeeping). A wave that gets wiped shortly
- *       after arriving drops the slice back to conceded before the hold
+ *       after arriving drops the band back to conceded before the hold
  *       completes, correctly reading as failure rather than an instantly-
  *       latched success. Timeout is failure; the earmark stays burned
  *       either way.</li>
  *   <li><b>COOLDOWN.</b> Spaces bulges out. A resolve (success or timeout)
  *       gets the full {@link #COOLDOWN_SEC}; a TELEGRAPH/ASSAULT abort
  *       (natural re-contest) gets the shorter {@link #ABORT_COOLDOWN_SEC} —
- *       enough to stop muster/abort churn at a flickering slice boundary
+ *       enough to stop muster/abort churn at a flickering band boundary
  *       without charging the full post-resolve spacing for a bet that was
  *       never placed.</li>
  * </ul>
@@ -79,16 +78,6 @@ public final class CounterattackSystem {
     private static final Logger LOG = Global.getLogger(CounterattackSystem.class);
 
     private static final float TICK_PERIOD = ReinforcementService.REINFORCEMENT_TICK_PERIOD;
-
-    /**
-     * Nearest-to-defender-rear slice order the muster scan walks looking for
-     * a reclaimable (conceded, but once-manned) objective. Mirrors {@link
-     * FrontLineReinforcementTrigger}'s dispatch order minus the legacy
-     * OUTSKIRTS catch-all — a bulge never targets it.
-     */
-    private static final BiomeKind[] SLICE_ORDER = {
-            BiomeKind.FORTRESS_DISTRICT, BiomeKind.CITY, BiomeKind.PORT, BiomeKind.BEACH
-    };
 
     /**
      * Squads in the massed wave. The lump earmark at muster is {@code
@@ -117,7 +106,7 @@ public final class CounterattackSystem {
     public static final float TELEGRAPH_SEC = 20f;
 
     /**
-     * Sim-seconds the resolve phase waits for the bulge slice to flip back
+     * Sim-seconds the resolve phase waits for the bulge band to flip back
      * to contested before declaring the wave failed. Generous relative to
      * {@link #TELEGRAPH_SEC} — the wave has to travel, fight, and hold long
      * enough for the frontline debounce to notice.
@@ -125,17 +114,17 @@ public final class CounterattackSystem {
     public static final float RESOLVE_WINDOW_SEC = 120f;
 
     /**
-     * Consecutive RESOLVE ticks the bulge slice must read contested,
+     * Consecutive RESOLVE ticks the bulge band must read contested,
      * back-to-back, before the wave counts as having genuinely
-     * re-established presence — not merely transited through the slice on
+     * re-established presence — not merely transited through the band on
      * its way to the objective. {@link RecaptureTargetSystem}'s own
      * presence debounce ({@link RecaptureTargetSystem#PRESENCE_DEBOUNCE_TICKS})
      * only guards against a single stray unit flickering the read; it
      * flips {@code isContested} true the moment the wave's own squads are
-     * physically inside the slice, which can be well before they've beaten
+     * physically inside the band, which can be well before they've beaten
      * back whatever marine presence is holding it. Requiring a longer,
      * unbroken hold gives combat time to actually resolve — a wave wiped
-     * shortly after arriving drops the slice back to conceded before the
+     * shortly after arriving drops the band back to conceded before the
      * streak completes, so it reads as a failure instead of an instantly
      * latched success. Comfortably below {@link #RESOLVE_WINDOW_SEC} so a
      * wave that really does hold still has time to be declared successful.
@@ -151,10 +140,10 @@ public final class CounterattackSystem {
 
     /**
      * Sim-seconds of cooldown after a TELEGRAPH or ASSAULT-launch abort (the
-     * slice re-contests naturally before the wave lands) before the next
+     * band re-contests naturally before the wave lands) before the next
      * muster may fire. Doesn't count against {@link #MAX_BULGES_PER_BATTLE}
-     * — it only spaces muster attempts apart so a slice flickering at a
-     * biome-band boundary can't churn muster&rarr;telegraph&rarr;abort every
+     * — it only spaces muster attempts apart so a band flickering at a
+     * front boundary can't churn muster&rarr;telegraph&rarr;abort every
      * cadence tick, which would defeat {@link #COOLDOWN_SEC}'s "each bulge
      * is an event" intent. Deliberately shorter than the full post-resolve
      * cooldown: an abort spends nothing but the telegraph's reaction
@@ -164,11 +153,14 @@ public final class CounterattackSystem {
     public static final float ABORT_COOLDOWN_SEC = 30f;
 
     /**
-     * Hard cap on bulges per battle. A failed telegraph abort (the slice
+     * Hard cap on bulges per battle. A failed telegraph abort (the band
      * re-contests naturally before the wave launches) does <em>not</em> count
      * against this — only a wave that actually launched and resolved does.
      */
     public static final int MAX_BULGES_PER_BATTLE = 2;
+
+    /** Returned by {@link #getBulgeBand} when no bulge is staged. */
+    public static final int NO_BAND = -1;
 
     /** Phase of the bulge state machine. Public so tests and the HUD/comms presenter can read it directly. */
     public enum Phase { IDLE, TELEGRAPH, ASSAULT, RESOLVE, COOLDOWN }
@@ -179,7 +171,7 @@ public final class CounterattackSystem {
     private final RecaptureTargetService targets;
     private final ReinforcementService reinforcement;
     private final BattleResources resources;
-    private final TraversalAxis axis;
+    private final FrontDepth frontDepth;
 
     private float accumulator = 0f;
     private Phase phase = Phase.IDLE;
@@ -187,10 +179,10 @@ public final class CounterattackSystem {
     /** Countdown for the current phase (TELEGRAPH/RESOLVE/COOLDOWN); unused in IDLE/ASSAULT. */
     private float phaseTimer = 0f;
 
-    /** The slice the current (or most recently mustered) bulge targets. Null in IDLE with no bulge staged. */
-    private BiomeKind bulgeSlice;
+    /** The front band the current (or most recently mustered) bulge targets. {@link #NO_BAND} in IDLE with no bulge staged. */
+    private int bulgeBand = NO_BAND;
 
-    /** Snapshot of the bulge slice's manned targets, taken at muster — the ASSAULT round-robin dispatches over this, not a live re-query. */
+    /** Snapshot of the bulge band's manned targets, taken at muster — the ASSAULT round-robin dispatches over this, not a live re-query. */
     private List<RecaptureTarget> bulgeTargets;
 
     /** Round-robin cursor into {@link #bulgeTargets} for the ASSAULT dispatch. */
@@ -199,29 +191,42 @@ public final class CounterattackSystem {
     /** Bulges that have launched and resolved (success or failure) so far this battle — gates {@link #MAX_BULGES_PER_BATTLE}. */
     private int bulgesFired = 0;
 
-    /** Consecutive RESOLVE ticks the bulge slice has read contested, unbroken. Reset to 0 on entering RESOLVE and whenever a tick reads not-contested. See {@link #SUCCESS_HOLD_TICKS}. */
+    /** Consecutive RESOLVE ticks the bulge band has read contested, unbroken. Reset to 0 on entering RESOLVE and whenever a tick reads not-contested. See {@link #SUCCESS_HOLD_TICKS}. */
     private int holdStreak = 0;
 
     /** Outcome of the current/most recent bulge. Reset when a new muster starts and after cooldown returns to idle. */
     private Resolution resolution = Resolution.NONE;
 
-    /** Representative world cell for the threatened-slice signpost: centroid of the muster's target nodes. */
+    /** Representative world cell for the threatened-band signpost: centroid of the muster's target nodes. */
     private float bulgeCenterX = Float.NaN;
     private float bulgeCenterY = Float.NaN;
 
     public CounterattackSystem(RecaptureTargetService targets, ReinforcementService reinforcement,
-                                BattleResources resources, TraversalAxis axis) {
+                                BattleResources resources, FrontDepth frontDepth) {
         this.targets = targets;
         this.reinforcement = reinforcement;
         this.resources = resources;
-        this.axis = axis;
+        this.frontDepth = frontDepth;
     }
 
     /** Current phase. Exposed for tests and the battle comms presenter. */
     public Phase getPhase() { return phase; }
 
-    /** The slice the current or most recent bulge targets, or {@code null} when no bulge has ever mustered / the last one fully reset. */
-    public BiomeKind getBulgeSlice() { return bulgeSlice; }
+    /** The band the current or most recent bulge targets, or {@link #NO_BAND} when no bulge has ever mustered / the last one fully reset. */
+    public int getBulgeBand() { return bulgeBand; }
+
+    /**
+     * What the comms officer calls the band the current or most recent bulge
+     * targets, or {@code null} when no bulge is staged.
+     *
+     * <p>The presenter is downstream of the simulation and carries no map, so
+     * the name comes from here rather than from a mapping the presentation tier
+     * keeps in step by hand — which is what it used to do, one {@code switch}
+     * over every biome the generator could paint.
+     */
+    public String getBulgeBandName() {
+        return bulgeBand == NO_BAND ? null : frontDepth.bandName(bulgeBand);
+    }
 
     /** Countdown for TELEGRAPH/RESOLVE/COOLDOWN, in simulation seconds. */
     public float getPhaseTimeRemaining() { return Math.max(0f, phaseTimer); }
@@ -229,10 +234,10 @@ public final class CounterattackSystem {
     /** Resolution retained through cooldown; {@link Resolution#NONE} while no bulge has resolved. */
     public Resolution getResolution() { return resolution; }
 
-    /** Representative X cell for the current threatened slice, or NaN while no bulge snapshot exists. */
+    /** Representative X cell for the current threatened band, or NaN while no bulge snapshot exists. */
     public float getBulgeCenterX() { return bulgeCenterX; }
 
-    /** Representative Y cell for the current threatened slice, or NaN while no bulge snapshot exists. */
+    /** Representative Y cell for the current threatened band, or NaN while no bulge snapshot exists. */
     public float getBulgeCenterY() { return bulgeCenterY; }
 
     /** Slow-tick: accumulate {@code dt}, then on cadence advance whichever phase is active. */
@@ -262,9 +267,9 @@ public final class CounterattackSystem {
 
     /**
      * IDLE -&gt; TELEGRAPH. Musters only when the front is stable/overflow
-     * (no eligible frontline targets, but at least one slice still
+     * (no eligible frontline targets, but at least one band still
      * contested — otherwise there's nothing to stage a wave from), a
-     * reclaimable conceded slice exists with at least one means able to
+     * reclaimable conceded band exists with at least one means able to
      * deliver to it, the cap isn't hit, and the burst earmark clears both
      * the surplus-floor check and the all-or-nothing lump debit.
      */
@@ -273,7 +278,7 @@ public final class CounterattackSystem {
         if (!targets.eligibleTargets().isEmpty()) return;
 
         boolean anyContested = false;
-        for (BiomeKind b : BiomeKind.values()) {
+        for (int b = 0; b < frontDepth.bands(); b++) {
             if (targets.isContested(b)) {
                 anyContested = true;
                 break;
@@ -281,18 +286,21 @@ public final class CounterattackSystem {
         }
         if (!anyContested) return;
 
-        BiomeKind slice = null;
+        // Rear-to-front, the same walk the frontline trigger makes: band 0 is
+        // the objective's own ground, so a bulge reclaims the deepest loss it
+        // can before reaching out toward the marine side.
+        int band = NO_BAND;
         List<RecaptureTarget> manned = null;
-        for (BiomeKind candidate : SLICE_ORDER) {
+        for (int candidate = 0; candidate < frontDepth.bands(); candidate++) {
             if (targets.isContested(candidate)) continue;
-            List<RecaptureTarget> mannedInSlice = mannedTargets(candidate);
-            if (!mannedInSlice.isEmpty()) {
-                slice = candidate;
-                manned = mannedInSlice;
+            List<RecaptureTarget> mannedInBand = mannedTargets(candidate);
+            if (!mannedInBand.isEmpty()) {
+                band = candidate;
+                manned = mannedInBand;
                 break;
             }
         }
-        if (slice == null) return;
+        if (band == NO_BAND) return;
         if (!anyMeansCanDeliver(sim, manned)) return;
 
         float cost = resources.reinforcementCost();
@@ -301,14 +309,14 @@ public final class CounterattackSystem {
         float lump = BURST_TICKETS * cost;
         if (!resources.tryConsume(Faction.DEFENDER, ResourceType.REINFORCEMENT, lump)) return;
 
-        bulgeSlice = slice;
+        bulgeBand = band;
         bulgeTargets = manned;
         updateBulgeCenter(manned);
         rotationIndex = 0;
         resolution = Resolution.NONE;
         phase = Phase.TELEGRAPH;
         phaseTimer = TELEGRAPH_SEC;
-        LOG.info("counterattack: mustering bulge against " + slice + " — "
+        LOG.info("counterattack: mustering bulge against " + frontDepth.bandName(band) + " — "
                 + BURST_TICKETS + " tickets earmarked, telegraph in " + TELEGRAPH_SEC + "s");
     }
 
@@ -327,7 +335,7 @@ public final class CounterattackSystem {
     private boolean anyMeansCanDeliver(BattleView sim, List<RecaptureTarget> candidates) {
         RecaptureTarget probeTarget = candidates.get(0);
         int[] rally = FrontLineReinforcementTrigger.rallyRearShift(
-                probeTarget.node.anchorX, probeTarget.node.anchorY, axis, sim.getGrid());
+                probeTarget.node.anchorX, probeTarget.node.anchorY, frontDepth);
         ReinforcementRequest probe = new ReinforcementRequest(
                 Faction.DEFENDER,
                 ReinforcementRequest.Reason.COUNTERATTACK,
@@ -341,10 +349,10 @@ public final class CounterattackSystem {
         return false;
     }
 
-    /** Every target in {@code slice} that has ever been manned — the "had a garrison, then lost it" pool the bulge reclaims, regardless of its current open/dispatched state. */
-    private List<RecaptureTarget> mannedTargets(BiomeKind slice) {
+    /** Every target in {@code band} that has ever been manned — the "had a garrison, then lost it" pool the bulge reclaims, regardless of its current open/dispatched state. */
+    private List<RecaptureTarget> mannedTargets(int band) {
         List<RecaptureTarget> out = new ArrayList<>();
-        for (RecaptureTarget t : targets.targetsInSlice(slice)) {
+        for (RecaptureTarget t : targets.targetsInSlice(band)) {
             if (t.manned) out.add(t);
         }
         return out;
@@ -353,11 +361,11 @@ public final class CounterattackSystem {
     /**
      * TELEGRAPH -&gt; ASSAULT on timer expiry, or -&gt; COOLDOWN (short,
      * refunded, not counted against the cap) if the defenders re-establish
-     * the slice naturally before the wave launches.
+     * the band naturally before the wave launches.
      */
     private void tickTelegraph() {
-        if (targets.isContested(bulgeSlice)) {
-            abortAndRefund("defenders re-established the slice naturally");
+        if (targets.isContested(bulgeBand)) {
+            abortAndRefund("defenders re-established the band naturally");
             return;
         }
         phaseTimer -= TICK_PERIOD;
@@ -368,22 +376,22 @@ public final class CounterattackSystem {
 
     /**
      * ASSAULT -&gt; RESOLVE (single tick), or -&gt; COOLDOWN (short, refunded,
-     * not counted against the cap) if the slice re-contests naturally in the
+     * not counted against the cap) if the band re-contests naturally in the
      * one-tick gap between the last TELEGRAPH check and this tick.
      *
      * <p>Otherwise posts up to {@link #BURST_TICKETS} prepaid requests, one
-     * per snapshot target in round-robin order (wraps if the slice has
+     * per snapshot target in round-robin order (wraps if the band has
      * fewer manned targets than the burst size), skipping any target that's
      * been re-manned ({@link RecaptureTarget#isOpen()} false) since the
      * muster snapshot was taken — e.g. by an in-flight frontline
-     * reinforcement that was already en route when the slice conceded. Each
+     * reinforcement that was already en route when the band conceded. Each
      * posted target is marked {@link RecaptureTargetService#markDispatched
      * dispatched} so the frontline trigger doesn't double-book it once the
-     * slice flips contested and the targets re-enter its eligible set.
+     * band flips contested and the targets re-enter its eligible set.
      */
     private void tickAssault(BattleView sim) {
-        if (targets.isContested(bulgeSlice)) {
-            abortAndRefund("defenders re-established the slice naturally before the wave launched");
+        if (targets.isContested(bulgeBand)) {
+            abortAndRefund("defenders re-established the band naturally before the wave launched");
             return;
         }
         int posted = 0;
@@ -395,7 +403,7 @@ public final class CounterattackSystem {
             attempts++;
             if (!target.isOpen()) continue;
             int[] rally = FrontLineReinforcementTrigger.rallyRearShift(
-                    target.node.anchorX, target.node.anchorY, axis, sim.getGrid());
+                    target.node.anchorX, target.node.anchorY, frontDepth);
             reinforcement.post(new ReinforcementRequest(
                     Faction.DEFENDER,
                     ReinforcementRequest.Reason.COUNTERATTACK,
@@ -413,7 +421,8 @@ public final class CounterattackSystem {
             float unspent = (BURST_TICKETS - posted) * resources.reinforcementCost();
             resources.produce(Faction.DEFENDER, ResourceType.REINFORCEMENT, unspent);
         }
-        LOG.info("counterattack: bulge wave of " + posted + " squads dispatched against " + bulgeSlice
+        LOG.info("counterattack: bulge wave of " + posted + " squads dispatched against "
+                + frontDepth.bandName(bulgeBand)
                 + (posted < BURST_TICKETS ? " (" + (BURST_TICKETS - posted)
                         + " unposted tickets refunded — snapshot targets already re-manned)" : ""));
         holdStreak = 0;
@@ -422,7 +431,7 @@ public final class CounterattackSystem {
     }
 
     /**
-     * RESOLVE -&gt; COOLDOWN on success (the bulge slice reads contested for
+     * RESOLVE -&gt; COOLDOWN on success (the bulge band reads contested for
      * {@link #SUCCESS_HOLD_TICKS} consecutive ticks — no wave-squad
      * bookkeeping, the sustained frontline filter re-inclusion <em>is</em>
      * the signal) or on {@link #RESOLVE_WINDOW_SEC} timeout (failure — the
@@ -430,7 +439,7 @@ public final class CounterattackSystem {
      * {@link #MAX_BULGES_PER_BATTLE} and gets the full {@link #COOLDOWN_SEC}.
      */
     private void tickResolve() {
-        if (targets.isContested(bulgeSlice)) {
+        if (targets.isContested(bulgeBand)) {
             holdStreak++;
         } else {
             holdStreak = 0;
@@ -441,11 +450,11 @@ public final class CounterattackSystem {
             bulgesFired++;
             if (success) {
                 resolution = Resolution.SUCCESS;
-                LOG.info("counterattack: bulge against " + bulgeSlice
+                LOG.info("counterattack: bulge against " + frontDepth.bandName(bulgeBand)
                         + " succeeded — defenders re-established presence, front shifts back");
             } else {
                 resolution = Resolution.FAILURE;
-                LOG.info("counterattack: bulge against " + bulgeSlice
+                LOG.info("counterattack: bulge against " + frontDepth.bandName(bulgeBand)
                         + " failed — wave wiped, earmark burned, front holds");
             }
             holdStreak = 0;
@@ -466,7 +475,7 @@ public final class CounterattackSystem {
      * TELEGRAPH/ASSAULT -&gt; COOLDOWN. Refunds the earmark in full and
      * spaces the next muster attempt by {@link #ABORT_COOLDOWN_SEC} — short
      * of the full {@link #COOLDOWN_SEC}, since this bulge never actually
-     * launched, but long enough that a slice flickering at a biome-band
+     * launched, but long enough that a band flickering at a front
      * boundary can't muster/abort every cadence tick. Does not touch
      * {@link #bulgesFired} — an abort never counts against
      * {@link #MAX_BULGES_PER_BATTLE}.
@@ -474,7 +483,8 @@ public final class CounterattackSystem {
     private void abortAndRefund(String reason) {
         float lump = BURST_TICKETS * resources.reinforcementCost();
         resources.produce(Faction.DEFENDER, ResourceType.REINFORCEMENT, lump);
-        LOG.info("counterattack: bulge against " + bulgeSlice + " aborted — " + reason + ", earmark refunded");
+        LOG.info("counterattack: bulge against " + frontDepth.bandName(bulgeBand)
+                + " aborted — " + reason + ", earmark refunded");
         holdStreak = 0;
         resolution = Resolution.ABORTED;
         phase = Phase.COOLDOWN;
@@ -485,7 +495,7 @@ public final class CounterattackSystem {
     private void resetToIdle() {
         phase = Phase.IDLE;
         phaseTimer = 0f;
-        bulgeSlice = null;
+        bulgeBand = NO_BAND;
         bulgeTargets = null;
         rotationIndex = 0;
         holdStreak = 0;

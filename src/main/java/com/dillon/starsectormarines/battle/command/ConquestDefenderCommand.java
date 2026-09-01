@@ -26,13 +26,85 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-/** Defender-side Conquest command: faction-honest first contact mobilizes a bounded patrol reserve. */
+/**
+ * Defender-side Conquest command: faction-honest first contact mobilizes a
+ * bounded patrol reserve.
+ *
+ * <p>How much of that reserve moves is a share of the pool rather than a fixed
+ * count. The original bound — one squad held back, two responders per
+ * threatened track — was written for a starting force of a few patrols and read
+ * as caution there. At a pool of sixty-two it was not caution but abdication:
+ * a live battle showed three threatened tracks drawing six squads while
+ * fifty-six sat on a home-track hold and the base was taken compound by
+ * compound. A tenth of a defence committed is indistinguishable from no
+ * commander at all.
+ *
+ * <p>So the reserve is {@link #RESERVE_SHARE} of the mobile pool, floored at
+ * {@link #MIN_MOBILE_RESERVE}, and each threatened track may draw its own
+ * fraction of what remains — its share of the believed contacts across every
+ * active threat, floored at {@link #MAX_RESPONDERS_PER_TRACK} so a three-patrol
+ * pool answers exactly as it always did. Contacts rather than the diffused
+ * pressure field: a contact is a counted report, while pressure is sampled at
+ * influence-block centres and measures the block grid as much as the front.
+ *
+ * <p>Conquest evidence, the shipped default against
+ * {@code -Dbattle.command.conquest.scaledDefenderResponse=false}:
+ *
+ * <table>
+ *   <caption>Conquest matrix, scaled response on vs. off</caption>
+ *   <tr><th>fixture</th><th>captures</th><th>held at end</th>
+ *       <th>marines lost</th><th>defenders lost</th><th>ticks</th>
+ *       <th>result</th><th>defender reserve (squad-ticks)</th></tr>
+ *   <tr><td>reinforced-south on</td><td>7</td><td>4</td><td>241</td>
+ *       <td>348</td><td>18000</td><td>TIMEOUT</td><td>57599</td></tr>
+ *   <tr><td>reinforced-south off</td><td>12</td><td>11</td><td>216</td>
+ *       <td>390</td><td>18000</td><td>TIMEOUT</td><td>267524</td></tr>
+ *   <tr><td>full-strength-west on</td><td>2</td><td>0</td><td>420</td>
+ *       <td>470</td><td>15599</td><td>TERMINAL DEFENDER</td><td>188386</td></tr>
+ *   <tr><td>full-strength-west off</td><td>3</td><td>3</td><td>426</td>
+ *       <td>311</td><td>16445</td><td>TERMINAL DEFENDER</td><td>1078704</td></tr>
+ * </table>
+ *
+ * <p>Captures fall and ground held falls, which is the point rather than a
+ * regression: the attacker was taking compounds against a defence that was
+ * standing still. It ships on because the marines still take compounds on both
+ * fixtures and both runs still end the way they did, while the defender's
+ * published {@code DEFEND_TRACK} share rises from 7% to 14% and from 3% to 19%
+ * of its squad-pulses and its reserve time falls by roughly four fifths.
+ */
 public final class ConquestDefenderCommand implements ConquestFrontCommand,
         AutonomousMissionCommand<ConquestCommandFrame, ConquestFrontSnapshot>,
         DeliveryDeploymentPolicy {
 
     static final int MIN_MOBILE_RESERVE = 1;
     static final int MAX_RESPONDERS_PER_TRACK = 2;
+
+    /**
+     * Fraction of the mobile pool held back once the pool is large enough for
+     * a fraction to mean anything. A one-squad reserve is the same reserve at
+     * three patrols and at sixty; expressed as a share it stays a reserve as
+     * the garrison grows instead of becoming a rounding error.
+     */
+    static final float RESERVE_SHARE = 0.25f;
+
+    /**
+     * {@code -Dbattle.command.conquest.scaledDefenderResponse=false} restores
+     * the fixed two-per-track cap and the single-squad reserve, which is the
+     * control this layer has to be measured against. Reaching that control by
+     * checking out an older commit measures every other difference between the
+     * two trees at the same time.
+     */
+    public static final String SCALED_DEFENDER_RESPONSE_PROPERTY =
+            "battle.command.conquest.scaledDefenderResponse";
+
+    /**
+     * Read once at class load and settable for evidence. Volatile because a
+     * control run flips it on one thread while command pulses read it from
+     * whichever thread the commander service is ticking on.
+     */
+    private static volatile boolean scaledResponse = Boolean.parseBoolean(
+            System.getProperty(SCALED_DEFENDER_RESPONSE_PROPERTY, "true"));
+
     static final int COARSE_BAND_CELLS = 16;
     static final int RALLY_REAR_OFFSET_CELLS = 6;
     static final int CONVOY_REAR_STANDOFF_CELLS = 12;
@@ -139,6 +211,23 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public ConquestFrontSnapshot frontSnapshot() { return frontSnapshot; }
 
+    /** Whether the reserve share and the threat-weighted per-track cap are in effect. */
+    public static boolean isScaledResponseEnabled() {
+        return scaledResponse;
+    }
+
+    /**
+     * Evidence seam: switches the scaling on or off for the rest of this JVM.
+     *
+     * <p>Exists so a harness can play its subject and its control in one run.
+     * Restore the previous value in a {@code finally}; production never calls
+     * this, and {@link #SCALED_DEFENDER_RESPONSE_PROPERTY} is what a Conquest
+     * control run switches.
+     */
+    public static void setScaledResponseForEvidence(boolean enabled) {
+        scaledResponse = enabled;
+    }
+
     @Override
     public String strategyId() {
         return "conquest-defender";
@@ -191,14 +280,15 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             candidates.add(squad);
         }
 
-        int responseBudget = candidates.size() >= 2
-                ? candidates.size() - MIN_MOBILE_RESERVE : candidates.size();
+        int mobileReserve = mobileReserveFor(candidates.size());
+        int responseBudget = candidates.size() - mobileReserve;
         Set<Integer> selected = new HashSet<>();
         List<Threat> activeThreats = Arrays.stream(threats)
                 .filter(Threat::active)
                 .sorted(Comparator.comparingInt((Threat t) -> -t.contacts)
                         .thenComparingInt(t -> t.track))
                 .toList();
+        int[] responderCaps = responderCaps(activeThreats, responseBudget);
 
         // First pass spreads the response across distinct threatened tracks.
         for (Threat threat : activeThreats) {
@@ -208,10 +298,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             if (choice != null) assignResponse(choice, threat.track,
                     directives, selected);
         }
-        // A high-pressure track may receive one additional squad, but never the whole reserve.
+        // Concentration follows, up to each track's own share of the budget.
         for (Threat threat : activeThreats) {
             while (selected.size() < responseBudget
-                    && respondersFor(threat.track, directives) < MAX_RESPONDERS_PER_TRACK) {
+                    && respondersFor(threat.track, directives)
+                    < responderCaps[threat.track]) {
                 CandidateChoice choice = chooseCandidate(candidates, selected,
                         threat.track, rallies.get(threat.track), frame.topology());
                 if (choice == null) break;
@@ -229,14 +320,58 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
         Phase phase = activeThreats.isEmpty() ? Phase.LANE_ADVANCE : Phase.FRONT_ADJUST;
         ConquestFrontSnapshot detail = buildFrontSnapshot(frame, influence,
-                threats, directives, allSquads, phase);
+                threats, responderCaps, directives, allSquads, phase);
         List<CommandProposal> proposals = buildProposals(
                 frame, allSquads, directives, threats);
         return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
                 influence != null ? influence.updatedTick() : -1,
                 candidates.size(), candidates.size() - selected.size(),
-                List.of("active threat tracks=" + activeThreats.size()),
+                List.of("active threat tracks=" + activeThreats.size(),
+                        "response budget=" + responseBudget,
+                        "held reserve=" + mobileReserve),
                 proposals, detail);
+    }
+
+    /**
+     * How many of the mobile pool are kept out of the response.
+     *
+     * <p>A share rather than a count, because the pool is the whole starting
+     * garrison and its size varies by an order of magnitude between targets.
+     * The floor is what keeps a three-patrol pool behaving exactly as it did:
+     * two respond and one waits.
+     */
+    private int mobileReserveFor(int poolSize) {
+        if (poolSize < 2) return 0;
+        if (!scaledResponse) return MIN_MOBILE_RESERVE;
+        return Math.max(MIN_MOBILE_RESERVE, Math.round(poolSize * RESERVE_SHARE));
+    }
+
+    /**
+     * The most responders each track may draw, indexed by track, {@code -1}
+     * where no threat is believed.
+     *
+     * <p>A track's share is its fraction of the believed contacts across every
+     * active threat. Contacts are counted reports rather than the diffused
+     * pressure field, which is sampled at influence-block centres and so
+     * measures the block grid as much as the front. The fixed cap survives as
+     * the floor: two responders is the smallest answer a threat gets, however
+     * small its share of a large budget.
+     */
+    private int[] responderCaps(List<Threat> activeThreats, int responseBudget) {
+        int[] caps = new int[trackLayout.trackCount()];
+        Arrays.fill(caps, -1);
+        int totalContacts = 0;
+        for (Threat threat : activeThreats) totalContacts += threat.contacts;
+        for (Threat threat : activeThreats) {
+            if (!scaledResponse || totalContacts <= 0) {
+                caps[threat.track] = MAX_RESPONDERS_PER_TRACK;
+                continue;
+            }
+            int share = (int) Math.ceil((double) responseBudget
+                    * threat.contacts / totalContacts);
+            caps[threat.track] = Math.max(MAX_RESPONDERS_PER_TRACK, share);
+        }
+        return caps;
     }
 
     @Override
@@ -490,6 +625,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             ConquestCommandFrame frame,
             CommanderInfluenceSnapshot influence,
             Threat[] threats,
+            int[] responderCaps,
             Map<Integer, SquadDirective> directives,
             Map<Integer, PlanningSquad> squads,
             Phase phase) {
@@ -531,7 +667,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     preferredSquads[track], effectiveSquads[track],
                     effectiveMembers[track], body, leadProgress[track],
                     threat.knownHostileFront, threat.contacts,
-                    threat.friendlyPressure, threat.hostilePressure, -1));
+                    threat.friendlyPressure, threat.hostilePressure, -1,
+                    responderCaps[track]));
         }
 
         int remainingCompounds = 0;

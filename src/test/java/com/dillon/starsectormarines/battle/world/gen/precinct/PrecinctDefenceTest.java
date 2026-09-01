@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.world.gen.precinct;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
@@ -261,6 +263,48 @@ class PrecinctDefenceTest {
         assertEquals(whole, orphaned, "a citadel put " + whole + " guns on an unbroken map and "
                 + orphaned + " on the same map with one cell sealed off in a far corner, so the "
                 + "placement is answering a question about the map rather than about the stamp");
+    }
+
+    /**
+     * Every gun has somebody standing at it.
+     *
+     * <p>A defence post is a structure and fires on its own; the squad beside it
+     * is what makes crossing the ground in front of it a fight rather than a
+     * shooting gallery against a fixed emplacement. The allocator matches squads
+     * to posts by looking for a {@link TacticalNode.Kind#GUARDPOST} node at the
+     * post's own anchor, so a post with no node is an unmanned one and there is
+     * nothing on the finished map that says so.
+     *
+     * <p>The priority and garrison come off the tier rather than being restated
+     * here: what is being pinned is that a precinct's emplacements are manned on
+     * the same terms as the conquest recipe's, not a particular number.
+     */
+    @Test
+    void everyEmplacementIsManned() {
+        Built built = defend(Fortification.CITADEL);
+        assertTrue(!built.ctx().defensePosts.isEmpty(), "no posts placed, so this measures nothing");
+        for (DefensePost post : built.ctx().defensePosts) {
+            if (post.tier.garrisonSize == 0) continue;
+            TacticalNode manning = null;
+            for (TacticalNode node : built.ctx().tactical) {
+                if (node.kind != TacticalNode.Kind.GUARDPOST) continue;
+                if (node.anchorX == post.anchorX && node.anchorY == post.anchorY) {
+                    manning = node;
+                    break;
+                }
+            }
+            assertTrue(manning != null, "the " + post.tier + " emplacement at " + post.anchorX
+                    + "," + post.anchorY + " has no guard-post node at its anchor, so nothing "
+                    + "will ever stand at it");
+            assertEquals(post.tier.priorityScore, manning.priorityScore,
+                    "the guard post at " + post.anchorX + "," + post.anchorY
+                            + " carries a priority its own tier did not give it");
+            assertEquals(post.tier.garrisonSize, manning.garrisonSize,
+                    "the guard post at " + post.anchorX + "," + post.anchorY
+                            + " carries a garrison its own tier did not give it");
+            assertEquals(Faction.DEFENDER, manning.defaultGuard,
+                    "a garrison's own emplacement is manned by somebody else");
+        }
     }
 
     /** A fortification with nothing on it places nothing, and says so quietly. */
