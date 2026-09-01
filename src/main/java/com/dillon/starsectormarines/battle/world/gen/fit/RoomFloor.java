@@ -425,6 +425,12 @@ public final class RoomFloor {
      * machine cannot be put into.
      */
     public int berth(int x, int y, int spanX, int spanY, Gantry.Facing facing) {
+        return berth(x, y, spanX, spanY, facing, Gantry.Holds.MACHINE);
+    }
+
+    /** The same, for a berth that holds something other than a machine. */
+    public int berth(int x, int y, int spanX, int spanY, Gantry.Facing facing,
+                     Gantry.Holds holds) {
         reserveLane(x, y, spanX, spanY);
         // Half-extents cover an odd number of cells, so an even span has to round
         // down: a berth that claimed one cell more than was reserved would put
@@ -436,7 +442,7 @@ public final class RoomFloor {
                 unturned(facing)));
         if (firstBerth < 0) firstBerth = ctx.gantries.size();
         ctx.gantries.add(new Gantry(left + x + halfX, top + y + halfY,
-                halfX, halfY, facing));
+                halfX, halfY, facing, holds));
         return ctx.gantries.size() - 1;
     }
 

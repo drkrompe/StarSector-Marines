@@ -12,14 +12,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class ContractOfferTemplateTest {
 
     @Test
-    void tierOneAlwaysKeepsShippedStrikeShape() {
-        ContractOfferTemplate template = ContractOfferTemplate.roll(
+    void tierOneOffersExistingEscortAndStrikeShapes() {
+        ContractOfferTemplate escort = ContractOfferTemplate.roll(
                 HouseRank.TIER_1, floatRandom(0f));
+        ContractOfferTemplate strike = ContractOfferTemplate.roll(
+                HouseRank.TIER_1, floatRandom(0.9f));
 
-        assertEquals(ContractType.STRIKE, template.type);
-        assertEquals(25_000, template.payout);
-        assertEquals(60, template.salvageBaseline & 0xFF);
-        assertEquals(1, template.phasesTotal & 0xFF);
+        assertEquals(ContractType.ESCORT, escort.type);
+        assertEquals(30_000, escort.payout);
+        assertEquals(10, escort.salvageBaseline & 0xFF);
+        assertEquals(ContractType.STRIKE, strike.type);
+        assertEquals(25_000, strike.payout);
+        assertEquals(60, strike.salvageBaseline & 0xFF);
+        assertEquals(1, strike.phasesTotal & 0xFF);
     }
 
     @Test

@@ -51,9 +51,13 @@ class ShuttleTransportMechanicsTest {
     void assignmentDefaultsToPhysicalCapacityAndAcceptsAPartialLoad() {
         ShuttleAssignment full = new ShuttleAssignment(ShuttleType.VALKYRIE, 2);
         ShuttleAssignment half = new ShuttleAssignment(ShuttleType.VALKYRIE, 2, 6);
+        ShuttleAssignment partialFinal = new ShuttleAssignment(
+                ShuttleType.VALKYRIE, 2, 12, 13);
 
         assertEquals(ShuttleType.VALKYRIE.capacity, full.seatsPerSortie);
         assertEquals(6, half.seatsPerSortie);
+        assertEquals(12, partialFinal.seatsForCycle(0));
+        assertEquals(1, partialFinal.seatsForCycle(1));
         assertNotEquals(full, half);
     }
 
@@ -84,6 +88,10 @@ class ShuttleTransportMechanicsTest {
                     10.5f, 10.5f, -2f, 10.5f, 22f, 10.5f, 0f, 6);
             ShuttleMission mission = sim.world().mission(shuttle);
             mission.totalCycles = 2;
+            mission.cycleLoadouts = new com.dillon.starsectormarines.battle.infantry.MarineLoadout[][]{
+                    new com.dillon.starsectormarines.battle.infantry.MarineLoadout[6],
+                    new com.dillon.starsectormarines.battle.infantry.MarineLoadout[1]};
+            mission.marineLoadout = mission.cycleLoadouts[0];
             mission.currentCycle = 0;
             mission.marinesRemaining = 0;
             mission.state = ShuttleState.DEPARTING;
@@ -94,7 +102,7 @@ class ShuttleTransportMechanicsTest {
 
             assertEquals(ShuttleState.PENDING, mission.state);
             assertEquals(6, mission.seatsPerSortie);
-            assertEquals(6, mission.marinesRemaining);
+            assertEquals(1, mission.marinesRemaining);
             assertEquals(mission.rearmDelay, mission.pendingDelay);
         }
     }

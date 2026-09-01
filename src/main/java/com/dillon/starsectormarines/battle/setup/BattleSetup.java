@@ -430,7 +430,8 @@ public final class BattleSetup {
             mission.totalCycles = a.cycles;
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
-                cycleLoadouts[c] = buildSabotageLoadout(a.seatsPerSortie, objectives, globalDropIdx, rng);
+                cycleLoadouts[c] = buildSabotageLoadout(
+                        a.seatsForCycle(c), objectives, globalDropIdx, rng);
                 globalDropIdx++;
             }
             mission.cycleLoadouts = cycleLoadouts;
@@ -661,7 +662,8 @@ public final class BattleSetup {
             // shuttle doesn't deboard the same exact fireteam composition twice.
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
-                cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(a.seatsPerSortie, rng);
+                cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(
+                        a.seatsForCycle(c), rng);
             }
             mission.cycleLoadouts = cycleLoadouts;
             mission.marineLoadout = cycleLoadouts[0];
@@ -799,10 +801,10 @@ public final class BattleSetup {
             for (int cycle = 0; cycle < assignment.cycles; cycle++) {
                 cycleLoadouts[cycle] = localMilitia
                         ? InfantryLoadoutRolls.defenderSquad(
-                                assignment.seatsPerSortie, UnitType.MILITIA,
+                                assignment.seatsForCycle(cycle), UnitType.MILITIA,
                                 RiskLevel.LOW, rng)
                         : InfantryLoadoutRolls.playerSquad(
-                                assignment.seatsPerSortie, rng);
+                                assignment.seatsForCycle(cycle), rng);
             }
             shuttleMission.cycleLoadouts = cycleLoadouts;
             shuttleMission.marineLoadout = cycleLoadouts[0];
@@ -921,7 +923,7 @@ public final class BattleSetup {
                         new MarineLoadout[assignment.cycles][];
                 for (int cycle = 0; cycle < assignment.cycles; cycle++) {
                     cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(
-                            assignment.seatsPerSortie, rng);
+                            assignment.seatsForCycle(cycle), rng);
                 }
                 shuttleMission.cycleLoadouts = cycleLoadouts;
                 shuttleMission.marineLoadout = cycleLoadouts[0];
@@ -1044,7 +1046,7 @@ public final class BattleSetup {
                         new MarineLoadout[assignment.cycles][];
                 for (int cycle = 0; cycle < assignment.cycles; cycle++) {
                     cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(
-                            assignment.seatsPerSortie, marineRng);
+                            assignment.seatsForCycle(cycle), marineRng);
                 }
                 shuttleMission.cycleLoadouts = cycleLoadouts;
                 shuttleMission.marineLoadout = cycleLoadouts[0];
@@ -1221,7 +1223,8 @@ public final class BattleSetup {
             mission.expectedArrivalStrength = slot.expectedStrength();
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
-                cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(a.seatsPerSortie, rng);
+                cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(
+                        a.seatsForCycle(c), rng);
             }
             mission.cycleLoadouts = cycleLoadouts;
             mission.marineLoadout = cycleLoadouts[0];
@@ -1313,7 +1316,7 @@ public final class BattleSetup {
             int groupEnd = Math.min(to, i + LandingArea.BERTH_COUNT);
             int expected = 0;
             for (int member = i; member < groupEnd; member++) {
-                expected += assignments.get(member).seatsPerSortie;
+                expected += assignments.get(member).seatsForCycle(0);
             }
             for (int member = i; member < groupEnd; member++) {
                 float pendingJitter = timingJitter(rng, timingJitterSec);

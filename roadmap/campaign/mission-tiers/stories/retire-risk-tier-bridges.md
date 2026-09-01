@@ -27,4 +27,6 @@ recombine the axes.
 
 ## Dependency
 
-`tiered-production-offers.md` must establish production tier authority first.
+Production tier authority is now established in `mission-tier-nouns.md`; the
+remaining compatibility paths may be retired once authored and event missions
+also provide explicit tiers.

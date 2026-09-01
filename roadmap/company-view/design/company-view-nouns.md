@@ -4,8 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — every cargo-backed company action presents its material
-bill with names and icons from Starsector's live commodity specifications.
+Updated: 2026-09-01 — cargo-backed company actions use live Starsector commodity
+presentation; ordinary missions freeze the selected named force, including exact
+partial lifts, and brief understrength deployment honestly.
 
 ## Purpose
 
@@ -413,6 +414,13 @@ demand is deployed rather than labelled as an orbital reserve.
 A debug company intentionally freezes a real detached roster and therefore
 carries campaign-shaped identity without touching campaign state.
 
+For ordinary generated one-shot missions, the selected ready named personnel
+are the deployment manifest even when the player fields less than the tier
+recommendation. The briefing exposes selected headcount, the four-person hard
+minimum, recommended squads, and issued experience-band distribution; it never
+fills missing seats with anonymous generated marines. Authored missions,
+stationing, and Conquest keep their own personnel requirements.
+
 The standing law is **values cross the campaign-to-battle seam; campaign
 objects do not**. Labels remain stable, battle code never resolves the roster,
 and generated personnel never gain campaign identity by accident.
@@ -500,7 +508,10 @@ billet identity remains unchanged.
 
 Hull capacity is a physical maximum, not a promise that every mission fills the
 hold. Small lifts have four seats, medium lifts eight, and the Valkyrie twelve.
-The mission arrival policy owns the embarked seats per sortie. Conquest uses two
+The mission arrival policy owns the embarked seats per sortie. An ordinary
+generated mission freezes only the selected named personnel, so its final craft
+or final pass may carry fewer marines than the hull maximum and all force,
+arrival, and outcome accounting uses that exact embarked count. Conquest uses two
 six-seat Aeroshuttles in each paired arrival group to deliver a twelve-marine
 squad together; the transport boundary may cut across fire-team membership,
 while the ground squad and its three stable fire teams remain unchanged.
