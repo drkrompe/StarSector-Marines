@@ -1245,8 +1245,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                              float lzX, float lzY, float entryX, float entryY,
                              float exitX, float exitY, float pendingDelay,
                              int seatsPerSortie) {
+        return spawnShuttle(type, type, faction, lzX, lzY, entryX, entryY,
+                exitX, exitY, pendingDelay, seatsPerSortie);
+    }
+
+    /** A shuttle of {@code type} flying as {@code frame}; see {@code AirSystem.spawn}. */
+    public long spawnShuttle(ShuttleType type, Airframe frame, Faction faction,
+                             float lzX, float lzY, float entryX, float entryY,
+                             float exitX, float exitY, float pendingDelay,
+                             int seatsPerSortie) {
         requireInternalAir("spawnShuttle");
-        return airSystem.spawn(type, faction, lzX, lzY, entryX, entryY,
+        return airSystem.spawn(type, frame, faction, lzX, lzY, entryX, entryY,
                 exitX, exitY, pendingDelay, seatsPerSortie);
     }
 

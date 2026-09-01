@@ -5,214 +5,195 @@ import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ops.loot.LootSelection;
 import com.dillon.starsectormarines.ops.loot.LootSettlementPlan;
 import com.dillon.starsectormarines.ops.loot.LootSettlementService;
-import com.dillon.starsectormarines.ui.ButtonWidget;
-import com.dillon.starsectormarines.ui.Fonts;
-import com.dillon.starsectormarines.ui.LabelWidget;
-import com.dillon.starsectormarines.ui.WidgetRoot;
-import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.api.ui.PositionAPI;
+import com.dillon.starsectormarines.ops.loot.LootStack;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 
-import java.awt.Color;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glColor4f;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glLineWidth;
-import static org.lwjgl.opengl.GL11.glVertex2f;
+/** MLX-authored budget-aware picker for the frozen recovery manifest. */
+public final class LootScreen extends MissionFlowMlxScreen {
 
-/** Budget-aware review screen for the frozen post-battle recovery manifest. */
-public final class LootScreen implements Screen {
+    static final String ROOT_COMPONENT = "mission-loot";
+    static final List<String> COMPONENT_PATHS = List.of(
+            "data/ui/components/missions/mission-loot.mlx");
 
-    private static final Color FRAME = new Color(0x4A, 0x6B, 0x8C);
-    private static final Color HEADER = new Color(0xC8, 0xE0, 0xFF);
-    private static final Color BUDGET = new Color(0x80, 0xE0, 0xA0);
-    private static final Color META = new Color(0x8F, 0xA8, 0xC0);
-    private static final Color NOTICE = new Color(0xE0, 0xB0, 0x70);
-    private static final Color FENCE = new Color(0xE0, 0xB0, 0x70);
-
-    private static final float MAX_PANEL_W = 1120f;
-    private static final float MAX_PANEL_H = 680f;
-    private static final float OUTER_MARGIN = 32f;
-    private static final float PAD = 20f;
-    private static final float GAP = 12f;
-    private static final float CARD_H = 128f;
-    private static final float HEADER_H = 104f;
-    private static final float FOOTER_H = 104f;
-    private static final float BUTTON_W = 190f;
-    private static final float BUTTON_H = 36f;
-
-    private final WidgetRoot widgets = new WidgetRoot();
-
-    private PositionAPI position;
-    private MarineOpsContext ctx;
     private LootSelection selection;
-    private float panelX;
-    private float panelY;
-    private float panelW;
-    private float panelH;
+
+    public LootScreen() {
+        super(ROOT_COMPONENT, COMPONENT_PATHS);
+    }
 
     @Override
-    public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
-        this.position = position;
-        this.ctx = ctx;
-        LootManifest manifest = ctx != null ? ctx.getLootManifest() : LootManifest.EMPTY;
+    protected void onAttach() {
+        LootManifest manifest = context != null ? context.getLootManifest() : LootManifest.EMPTY;
         if (selection == null || selection.manifest() != manifest) {
             selection = new LootSelection(manifest);
         }
-        rebuild();
     }
 
-    private void rebuild() {
-        widgets.clear();
-        if (position == null || ctx == null || selection == null) return;
-
-        panelW = Math.min(MAX_PANEL_W, Math.max(480f, position.getWidth() - 2f * OUTER_MARGIN));
-        panelH = Math.min(MAX_PANEL_H, Math.max(420f, position.getHeight() - 2f * OUTER_MARGIN));
-        panelX = position.getX() + (position.getWidth() - panelW) / 2f;
-        panelY = position.getY() + (position.getHeight() - panelH) / 2f;
-
-        float headerY = panelY + panelH - PAD;
-        widgets.add(new LabelWidget(Fonts.ORBITRON_24_BOLD, Strings.get("lootHeader"),
-                panelX + PAD, headerY, HEADER));
-
-        LootManifest manifest = selection.manifest();
-        String budget = MessageFormat.format(Strings.get("lootBudgetFmt"),
-                NumberFormat.getIntegerInstance().format(selection.selectedValue()),
-                NumberFormat.getIntegerInstance().format(manifest.selectionBudget));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, budget,
-                panelX + PAD, headerY - 34f, BUDGET));
-
-        String pool = MessageFormat.format(Strings.get("lootPoolFmt"),
-                manifest.stacks.size(), NumberFormat.getIntegerInstance().format(manifest.totalValue));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, pool,
-                panelX + PAD, headerY - 60f, META));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("lootInstructions"),
-                panelX + PAD, headerY - 82f, META));
-
-        addGrid(manifest);
-        addFooter(LootSettlementService.preview(selection));
+    @Override
+    protected Map<String, Object> props() {
+        LootManifest manifest = selection != null ? selection.manifest() : LootManifest.EMPTY;
+        LootSettlementPlan preview = selection != null
+                ? LootSettlementService.preview(selection) : null;
+        MissionOutcome outcome = context != null ? context.getLastOutcome() : null;
+        Map<String, Object> props = baseProps();
+        props.put("missionName", outcome != null && outcome.missionName != null
+                ? outcome.missionName : "Resolved operation");
+        props.put("budgetLabel", MessageFormat.format(Strings.get("lootBudgetFmt"),
+                number(selection != null ? selection.selectedValue() : 0),
+                number(manifest.selectionBudget)));
+        props.put("budgetTone", "label title "
+                + (selection != null && selection.remainingBudget() == 0
+                ? "tone-accent" : "tone-good"));
+        props.put("poolLabel", MessageFormat.format(Strings.get("lootPoolFmt"),
+                manifest.stacks.size(), number(manifest.totalValue)));
+        props.put("instructions", Strings.get("lootInstructions"));
+        props.put("lootRows", lootRows(manifest));
+        putSettlement(props, preview);
+        props.put("backAction", (Runnable) () -> context.goTo(ScreenId.RESULTS));
+        props.put("confirmDisabled", preview == null);
+        props.put("confirmAction", (Runnable) this::confirm);
+        return props;
     }
 
-    private void addGrid(LootManifest manifest) {
-        int count = manifest.stacks.size();
-        if (count == 0) return;
-        int columns = panelW >= 900f ? 4 : 3;
-        int rows = (count + columns - 1) / columns;
-        float gridW = panelW - 2f * PAD;
-        float cardW = (gridW - (columns - 1) * GAP) / columns;
-        float gridTop = panelY + panelH - HEADER_H;
-        float gridBottom = panelY + FOOTER_H;
-        float availableH = gridTop - gridBottom;
-        float cardH = Math.min(CARD_H, (availableH - Math.max(0, rows - 1) * GAP) / rows);
+    static Map<String, Object> previewProps() {
+        Runnable none = () -> { };
+        Map<String, Object> props = baseProps();
+        props.put("title", "Recovered Materiel");
+        props.put("missionName", "SABOTAGE — First Contract");
+        props.put("budgetLabel", "Selected: Cr. 9,800 / Cr. 14,200");
+        props.put("budgetTone", "label title tone-good");
+        props.put("poolLabel", "8 recovered stacks · Cr. 31,400 total pool value");
+        props.put("instructions", "Choose complete recovered stacks up to the negotiated claim budget. Overflow that does not fit cargo is fenced automatically at settlement.");
+        props.put("lootRows", List.of(
+                previewRow(0, "Heavy Machinery", "18 recovered", "Cr. 4,500", "SELECTED", true, false, none),
+                previewRow(1, "Supplies", "40 recovered", "Cr. 4,000", "SELECTED", true, false, none),
+                previewRow(2, "Heavy Autocannon", "1 recovered", "Cr. 1,300", "SELECTED", true, false, none),
+                previewRow(3, "Volturnian Lobster", "12 recovered", "Cr. 2,400", "AVAILABLE", false, false, none),
+                previewRow(4, "AI Core", "1 recovered", "Cr. 8,000", "OVER BUDGET", false, true, none),
+                previewRow(5, "Fuel", "70 recovered", "Cr. 1,750", "AVAILABLE", false, false, none),
+                previewRow(6, "Marines", "10 recovered", "Cr. 1,000", "AVAILABLE", false, false, none),
+                previewRow(7, "Field Armour Pattern", "1 recovered", "Cr. 8,450", "OVER BUDGET", false, true, none)));
+        props.put("carryLabel", "59 units · Cr. 9,800 value");
+        props.put("fenceLabel", "0 units · Cr. 0 paid");
+        props.put("noticeClasses", "label tone-muted");
+        props.put("notice", "4,400 credits of claim budget remain.");
+        props.put("backAction", none);
+        props.put("confirmDisabled", false);
+        props.put("confirmAction", none);
+        return props;
+    }
 
-        for (int i = 0; i < count; i++) {
-            int column = i % columns;
-            int row = i / columns;
-            float x = panelX + PAD + column * (cardW + GAP);
-            float y = gridTop - (row + 1) * cardH - row * GAP;
-            widgets.add(new LootCardWidget(i, manifest.stacks.get(i), selection,
-                    x, y, cardW, cardH, this::rebuild));
+    private static Map<String, Object> baseProps() {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("title", Strings.get("lootHeader"));
+        return props;
+    }
+
+    private List<LootRow> lootRows(LootManifest manifest) {
+        List<LootRow> rows = new ArrayList<>();
+        for (int i = 0; i < manifest.stacks.size(); i++) {
+            LootStack stack = manifest.stacks.get(i);
+            boolean selected = selection.isSelected(i);
+            boolean canSelect = selection.canSelect(i);
+            int index = i;
+            rows.add(new LootRow("loot-stack-" + i,
+                    "loot-card" + (selected ? " selected" : !canSelect ? " blocked" : ""),
+                    stack.iconPath, stack.displayName,
+                    MessageFormat.format(Strings.get("lootQuantityFmt"), stack.quantity),
+                    MessageFormat.format(Strings.get("lootValueFmt"), number(stack.totalValue())),
+                    selected ? Strings.get("lootSelected")
+                            : !canSelect ? Strings.get("lootOverBudget") : "Available",
+                    "label heading "
+                            + (selected ? "tone-good" : !canSelect ? "tone-danger" : "tone-edge"),
+                    !canSelect, () -> toggle(index)));
         }
+        return List.copyOf(rows);
     }
 
-    private void addFooter(LootSettlementPlan preview) {
-        float buttonY = panelY + PAD;
-        float backX = panelX + PAD;
-        widgets.add(new ButtonWidget(backX, buttonY, BUTTON_W, BUTTON_H,
-                () -> ctx.goTo(ScreenId.RESULTS)));
-        String back = Strings.get("lootBack");
-        float backW = Fonts.ORBITRON_20.measureWidth(back);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, back,
-                backX + (BUTTON_W - backW) / 2f, buttonY + BUTTON_H - 6f, HEADER));
+    private static LootRow previewRow(int index, String name, String quantity,
+                                      String value, String status, boolean selected,
+                                      boolean blocked, Runnable action) {
+        String id = "loot-preview-" + index;
+        return new LootRow(id, "loot-card" + (selected ? " selected" : blocked ? " blocked" : ""),
+                null, name, quantity, value, status,
+                "label heading "
+                        + (selected ? "tone-good" : blocked ? "tone-danger" : "tone-edge"),
+                blocked, action);
+    }
 
+    private void putSettlement(Map<String, Object> props, LootSettlementPlan preview) {
         if (preview == null) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("lootCargoUnavailable"),
-                    backX + BUTTON_W + 20f, buttonY + BUTTON_H - 6f, NOTICE));
+            props.put("carryLabel", "Unavailable");
+            props.put("fenceLabel", "Unavailable");
+            props.put("noticeClasses", "label tone-danger");
+            props.put("notice", Strings.get("lootCargoUnavailable"));
             return;
         }
-
-        float summaryY = buttonY + BUTTON_H + 26f;
-        String carry = MessageFormat.format(Strings.get("lootCarryFmt"),
-                preview.keptUnits, NumberFormat.getIntegerInstance().format(preview.keptValue));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, carry,
-                panelX + PAD, summaryY, BUDGET));
-        String fence = MessageFormat.format(Strings.get("lootFenceFmt"),
-                preview.fencedUnits, NumberFormat.getIntegerInstance().format(preview.fencedCredits));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, fence,
-                panelX + panelW / 2f, summaryY, FENCE));
-
-        float confirmX = panelX + panelW - PAD - BUTTON_W;
-        widgets.add(new ButtonWidget(confirmX, buttonY, BUTTON_W, BUTTON_H, this::confirm));
-        String confirm = Strings.get("lootConfirm");
-        float confirmW = Fonts.ORBITRON_20.measureWidth(confirm);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, confirm,
-                confirmX + (BUTTON_W - confirmW) / 2f,
-                buttonY + BUTTON_H - 6f, HEADER));
+        props.put("carryLabel", preview.keptUnits + " units · Cr. "
+                + number(preview.keptValue) + " value");
+        props.put("fenceLabel", preview.fencedUnits + " units · Cr. "
+                + number(preview.fencedCredits) + " paid");
         if (preview.isEmpty()) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("lootNothingSelected"),
-                    backX + BUTTON_W + 20f, buttonY + BUTTON_H - 6f, NOTICE));
+            props.put("noticeClasses", "label tone-accent");
+            props.put("notice", Strings.get("lootNothingSelected"));
+        } else {
+            props.put("noticeClasses", "label tone-muted");
+            props.put("notice", number(selection.remainingBudget())
+                    + " credits of claim budget remain.");
         }
+    }
+
+    private void toggle(int index) {
+        if (selection.toggle(index)) rebuildDocument();
     }
 
     private void confirm() {
-        LootSettlementPlan result = LootSettlementService.settle(ctx, selection);
+        LootSettlementPlan result = LootSettlementService.settle(context, selection);
         if (result == null) {
-            rebuild();
+            rebuildDocument();
             return;
         }
-        ctx.clearResolvedMission();
-        ctx.goTo(ScreenId.MISSION_SELECT);
+        context.clearResolvedMission();
+        context.goTo(ScreenId.MISSION_SELECT);
+    }
+
+    private static String number(int value) {
+        return NumberFormat.getIntegerInstance().format(value);
+    }
+
+    @Override protected void onCancel() {
+        if (context != null) context.goTo(ScreenId.RESULTS);
     }
 
     @Override
-    public void advance(float dt) {
-        widgets.advance(dt);
+    protected List<String> requiredElementIds() {
+        return List.of("mission-loot-root", "mission-loot-header",
+                "mission-loot-summary", "mission-loot-budget", "mission-loot-grid",
+                "mission-loot-settlement", "mission-loot-notice", "mission-loot-actions",
+                "mission-loot-back", "mission-loot-confirm");
     }
 
-    @Override
-    public void render(float alphaMult) {
-        if (position == null) return;
-        drawPanel(alphaMult);
-        widgets.render(alphaMult);
-    }
-
-    @Override
-    public void processInput(List<InputEventAPI> events) {
-        widgets.processInput(events);
-    }
-
-    private void drawPanel(float alphaMult) {
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor4f(0x10 / 255f, 0x14 / 255f, 0x1E / 255f, 0.96f * alphaMult);
-        glBegin(GL_QUADS);
-        glVertex2f(panelX, panelY);
-        glVertex2f(panelX + panelW, panelY);
-        glVertex2f(panelX + panelW, panelY + panelH);
-        glVertex2f(panelX, panelY + panelH);
-        glEnd();
-
-        glColor4f(FRAME.getRed() / 255f, FRAME.getGreen() / 255f,
-                FRAME.getBlue() / 255f, alphaMult);
-        glLineWidth(1f);
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(panelX, panelY);
-        glVertex2f(panelX + panelW, panelY);
-        glVertex2f(panelX + panelW, panelY + panelH);
-        glVertex2f(panelX, panelY + panelH);
-        glEnd();
+    record LootRow(String id, String classes, String icon, String name,
+                   String quantity, String value, String status, String tone,
+                   boolean disabled, Runnable action) implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "classes" -> classes; case "icon" -> icon;
+                case "iconId" -> id + "-icon"; case "copyId" -> id + "-copy";
+                case "name" -> name;
+                case "nameId" -> id + "-name"; case "quantity" -> quantity;
+                case "quantityId" -> id + "-quantity"; case "value" -> value;
+                case "valueId" -> id + "-value"; case "status" -> status;
+                case "statusId" -> id + "-status"; case "tone" -> tone;
+                case "disabled" -> disabled; case "action" -> action; default -> null;
+            };
+        }
     }
 }

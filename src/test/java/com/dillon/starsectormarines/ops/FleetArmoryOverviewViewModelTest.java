@@ -156,7 +156,7 @@ class FleetArmoryOverviewViewModelTest {
     private static void putPageNavigation(Map<String, Object> props) {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
                 MarineOpsPageNav.ANY_SHIP,
-                () -> { }, () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
     }
 
     private static String accessLabel(EquipmentAccessTier tier) {

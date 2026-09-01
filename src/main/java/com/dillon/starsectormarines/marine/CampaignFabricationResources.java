@@ -4,8 +4,8 @@ import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
 
-/** Live player-fleet cargo and vanilla commodity presentation for the Mech Lab. */
-public final class CampaignMechFabricationResources implements MechFabricationResources {
+/** Live player-fleet cargo and vanilla commodity presentation for the workshops. */
+public final class CampaignFabricationResources implements FabricationResources {
 
     @Override
     public int available(String commodityId) {
@@ -25,10 +25,10 @@ public final class CampaignMechFabricationResources implements MechFabricationRe
     }
 
     @Override
-    public boolean spend(MechFabricationCost cost) {
+    public boolean spend(FabricationCost cost) {
         CargoAPI cargo = cargo();
         if (cargo == null || !canAfford(cost)) return false;
-        for (MechFabricationCost.Line line : cost.lines()) {
+        for (FabricationCost.Line line : cost.lines()) {
             cargo.removeCommodity(line.commodityId(), line.quantity());
         }
         return true;

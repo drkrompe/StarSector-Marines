@@ -1,6 +1,6 @@
-<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="mech-lab-root" class="mech-lab-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="{contextLabel}" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
     <div id="mech-lab-room-bar" class="panel room-bar">
       <div id="mech-lab-room-name" class="label heading tone-edge">MECH LAB  //  FABRICATION GANTRY</div>
@@ -79,14 +79,17 @@
             <div id="mech-catalog-rule" class="label heading surface-dark catalog-rule">{selectedSlotRule}</div>
             <div id="mech-catalog-list" class="catalog-list">
               <div each="item in catalogRows" key="{item.id}" id="{item.id}" class="{item.classes}">
-                <div id="{item.copyId}" class="catalog-item-copy">
-                  <div id="{item.nameId}" class="label heading catalog-name">{item.name}</div>
-                  <div id="{item.stockId}" class="label tone-edge catalog-stock">{item.stock}</div>
-                  <div id="{item.detailId}" class="label tone-muted catalog-detail">{item.detail}</div>
-                  <div id="{item.materialsId}" class="material-costs">
-                    <div each="material in item.materials" key="{material.id}" id="{material.id}" class="{material.classes}">
-                      <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
-                      <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
+                <div id="{item.bodyId}" class="catalog-card-body">
+                  <canvas id="{item.previewId}" class="{item.previewClasses}" width="220" height="280" />
+                  <div id="{item.copyId}" class="catalog-item-copy">
+                    <div id="{item.nameId}" class="label heading catalog-name">{item.name}</div>
+                    <div id="{item.stockId}" class="label tone-edge catalog-stock">{item.stock}</div>
+                    <div id="{item.detailId}" class="label tone-muted catalog-detail">{item.detail}</div>
+                    <div id="{item.materialsId}" class="material-costs">
+                      <div each="material in item.materials" key="{material.id}" id="{material.id}" class="{material.classes}">
+                        <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
+                        <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -182,17 +185,21 @@
   .performance-meter { flex-direction: row; width: 0px; flex-grow: 1; padding: 5px; gap: 5px; border-width: 1px; }
   .meter-label { width: 90px; padding-top: 3px; }
   .meter-value { width: 96px; padding-top: 3px; text-align: right; }
-  .meter-track { width: 0px; flex-grow: 1; height: 9px; padding-top: 4px; background-color: #0c1620; border-width: 1px; }
+  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 9px; padding-top: 4px; background-color: #0c1620; border-width: 1px; }
   .meter-fill { height: 100%; background-color: #76b9d4; }
 
   .fitting-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
-  .catalog-panel { flex-direction: column; width: 305px; padding: 7px; gap: 5px; overflow: hidden; }
+  .catalog-panel { flex-direction: column; width: 490px; padding: 7px; gap: 5px; overflow: hidden; }
   .catalog-heading { height: 25px; font-family: title; }
   .catalog-copy { height: 34px; }
   .catalog-rule { height: 36px; padding: 5px; }
   .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
   .catalog-row { flex-direction: column; width: 100%; height: 198px; padding: 7px; gap: 3px; border-width: 1px; }
+  .catalog-card-body { flex-direction: row; width: 100%; height: 151px; gap: 0px; }
   .catalog-item-copy { flex-direction: column; width: 100%; height: 151px; gap: 2px; }
+  .chassis-pattern .catalog-card-body { gap: 6px; }
+  .chassis-pattern .catalog-item-copy { width: 0px; flex-grow: 1; }
+  .catalog-preview { width: 112px; height: 151px; border-width: 1px; }
   .catalog-name { height: 19px; }
   .catalog-stock, .catalog-detail { height: 17px; }
   .material-costs { flex-direction: column; width: 100%; height: 88px; gap: 2px; overflow: hidden; }

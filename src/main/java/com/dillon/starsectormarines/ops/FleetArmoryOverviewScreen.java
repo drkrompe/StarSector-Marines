@@ -119,14 +119,15 @@ public final class FleetArmoryOverviewScreen implements Screen {
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> { },
-                () -> context.goTo(ScreenId.MECH_LAB));
+                () -> context.goTo(ScreenId.MECH_LAB),
+                () -> context.goTo(ScreenId.BOAT_DECK));
     }
 
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "fleet-armory-overview-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab",
+                "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
                 "company-overview-intro", "company-overview-summary",
                 "template-collection-summary", "equipment-access-status",
                 "equipment-access-next",
