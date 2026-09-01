@@ -213,11 +213,17 @@ public final class SquadStateDumper {
         o.put("assignedNodeMustHold", squad.assignedNode != null && squad.assignedNode.mustHold);
         o.put("assignedObjective", squad.assignedObjective != null
                 ? buildAssignmentJson(squad.assignedObjective) : JSONObject.NULL);
-        // A player order stands over assignedObjective without replacing it,
-        // so the executing assignment below is otherwise indistinguishable
-        // from a commander-issued one of the same kind.
-        o.put("playerTacticalOrder", squad.playerTacticalOrder() != null
-                ? buildAssignmentJson(squad.playerTacticalOrder())
+        // A player order is a lease over the commander's directive, so the
+        // squad's own field holds the player's while it stands and the mission
+        // comes off the shelf the lease put it on. Both are dumped: without the
+        // pair, an ATTACK_MOVE the player clicked and an ATTACK_MOVE a
+        // commander assigned read identically.
+        ObjectiveAssignment mission =
+                SquadOrderRecorder.missionAssignment(squad, sim);
+        o.put("missionAssignment", mission != null
+                ? buildAssignmentJson(mission) : JSONObject.NULL);
+        o.put("playerOrder", squad.underPlayerOrder()
+                ? buildAssignmentJson(squad.assignedObjective)
                 : JSONObject.NULL);
         ObjectiveAssignment executable = squad.assignmentForExecution();
         JSONObject execution = new JSONObject();
