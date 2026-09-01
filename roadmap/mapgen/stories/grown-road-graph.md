@@ -5,9 +5,8 @@ Conquest keeps the stock crossroad. The `BiomeKind` question is what remains.
 
 Written: 2026-08-30
 
-Updated: 2026-08-31 — density collapsed to `Profile.of(density)` and measured
-monotonic; the zoning concern retracted as unfounded; the hinterland now dressed
-by `HinterlandFillStage`.
+Updated: 2026-09-01 — the class ladder gained its third rung; the plan's paved
+share fell from 47% to 38% of the map and the blocks stopped being islands.
 
 ## What this is
 
@@ -56,6 +55,27 @@ The grown city reads as more varied than stock — irregular block sizes,
 staggered junctions, streets that do not run edge to edge — and carries more
 content (seed 777: 175 doodads against 174; seed 42: 172 against 151). `town`
 and `hamlet` produce genuine settlement with open country around it.
+
+## The class ladder reaches a back street
+
+Every arm below the first branch used to be drawn as a width-5 cross-street,
+because `TrunkKind` had exactly two values and the stock plan — which lays
+exactly two trunks — needed exactly two. Applied to a graph of twenty-five
+junctions that meant the plan alone paved 47% of an 80x80 map before BSP frames
+or any filler ran, against the stock crossroad's 19%, and the city read as
+buildings marooned in a continuous grey plane.
+
+A third rung at width 3 — `Bsp.ROAD_WIDTH_MIN`, the same floor the BSP frames
+already use — takes that to 38%. Measured on the plan's own mask over twenty
+seeds at 80x80: two rungs 33–54%, three rungs 27–46%. The end-to-end reading on
+the full generator over four seeds moves with it — street share 57.8% to 53.2%,
+and the share of street cells further than 2 cells from anything that is not
+street, which is to say wider than any road the partition may carve, 28.0% to
+18.5%. Seed 42 gains buildings rather than merely losing road: interior cells
+142 to 462, POIs 19 to 26, doodads 191 to 214.
+
+The distributions overlap per seed, so `GrownTrunkClassLadderTest` states the
+mean rather than a per-seed cap, and says why in its own Javadoc.
 
 ## What is not right yet
 

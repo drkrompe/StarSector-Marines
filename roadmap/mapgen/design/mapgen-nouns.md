@@ -316,6 +316,18 @@ fillers, tactical linking, and final validation. The conquest recipe also
 places its fortress and defense structure, while legacy/preview city generation
 can use the same spatial vocabulary without importing campaign concerns.
 
+**A road class is a width, and the bottom class is what a settlement is made
+of.** Trunks carry a class — boulevard, cross-street, back street — and the
+grown junction graph assigns one per junction depth, walking a ladder whose last
+rung repeats. Because a branching graph holds most of its junctions at its
+deepest levels, that repeating rung is the class nearly every arm is drawn at,
+which makes the ladder's *length* a decision about the whole settlement rather
+than about its outskirts. A ladder one rung too short does not produce slightly
+wide lanes; it produces a town whose every street is an arterial, with the
+buildings left as islands in pavement. Any new class is added at the bottom, and
+the plan's own paved share is the measure that says whether the ladder reaches
+far enough — a road network, not the ground the town stands on.
+
 A **ward** is the exception to parcel-first fill, and the conquest fortress is
 the one place that has it. Rather than being filled leaf by leaf and then walled,
 its band is laid out from a program of authored building footprints, packed into
