@@ -271,6 +271,32 @@ So the packer's unplaced list is bound under `BspKeys.UNPLACED_PROGRAM` rather
 than dropped, empty when nothing was short so that "built everything" and
 "nobody asked" stay different answers.
 
+## An ordered airfield is built, not merely paid for
+
+The count reached the sizing before it reached anything else: ordering four
+widened a garrison by five thousand cells of apron and put nothing on it,
+because this path placed no lot at all. Ground bought and unused is worse than
+ground not bought — the place comes out the right size for an air arm it does
+not have.
+
+Lots are now reserved **before** the buildings are packed and from the
+precinct's far end, which is the shipped ward's reasoning: claimed after
+packing, a lot gets whatever shape the leftovers had, and taken from the middle
+it severs the spine everything else crosses. Each is authored through the same
+`AirbaseLot` the fortress uses, and its ground is closed to the four stampers
+that run afterwards — told nothing, they put guns on the runway.
+
+**The size ladder absorbs pressure rather than refusing.** Measured on a
+200x140 map, berths by airfields ordered run 3, 6, 8, 11, 13, 16: growth all the
+way and sub-linear, because a place that cannot seat another station seats a
+field or a pad. What is not true, and was asserted here before it was measured,
+is that a cramped map gets a smaller *first* field — a station is 62x28 with its
+clearance and fits comfortably in either, so only later fields ladder down.
+
+A field with nowhere to go at any size is counted under
+`BspKeys.UNPLACED_AIRFIELDS` rather than dropped, for the same reason unbuilt
+buildings are.
+
 ## Still open
 
 0. **A walled precinct has too many gates.** Every arm crossing the outline is a
@@ -283,24 +309,19 @@ than dropped, empty when nothing was short so that "built everything" and
    given yet. This is the most visible thing wrong with the model as it
    stands.
 
-1. **An airfield buys ground and nothing is built on it.** `withAirfields(4)`
-   widens a garrison by five thousand cells of apron, and `PrecinctWardStage`
-   never places an `AirbaseLot` — the shipped `FortressWardStage` does, and this
-   path has not been given it. Counts are honoured in the sizing and ignored in
-   the building.
-2. **A precinct takes what it asks for whether or not the map can spare it.** On
+1. **A precinct takes what it asks for whether or not the map can spare it.** On
    a 200x140 map one garrison claimed 14640 of 28000 cells and its neighbour was
    simply squeezed. Nothing checks that the places asked for fit the map they
    are being put on.
-3. **Settlement claims read as collars, not districts.** A zoned precinct's
+2. **Settlement claims read as collars, not districts.** A zoned precinct's
    allowance spreads two or three cells either side of its arms, so it draws as
    a road network with a shoulder rather than as a place with streets in it.
    Either the frontage depth is too shallow for the map scale or the allowance
    wants a different derivation.
-4. **Whether `Compound` collapses into this.** A compound is already a claimed
+3. **Whether `Compound` collapses into this.** A compound is already a claimed
    group of leaves with a purpose; it may be a small precinct, or a distinct
    thing that lives *inside* one.
-5. **What `BiomeKind` becomes.** It is read as front-line progression ordering
+4. **What `BiomeKind` becomes.** It is read as front-line progression ordering
    by `CounterattackSystem`, `FrontLineReinforcementTrigger` and
    `RecaptureTargetService`. Distance from the objective precinct is the natural
    answer once places exist.

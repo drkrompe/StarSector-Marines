@@ -111,6 +111,16 @@ public final class BspKeys {
     public static final GenKey<Map<String, List<FortressBuilding>>> UNPLACED_PROGRAM =
             GenKey.of("unplacedProgram");
 
+    /**
+     * How many airfields each precinct owed and had no ground for, by name.
+     *
+     * <p>Separate from {@link #UNPLACED_PROGRAM} because an airfield is a lot
+     * rather than a building, and counted rather than listed because they are
+     * identical to each other — what a caller needs is how many are missing.
+     */
+    public static final GenKey<Map<String, Integer>> UNPLACED_AIRFIELDS =
+            GenKey.of("unplacedAirfields");
+
     /** BSP leaf partition over the trunk sub-rects. Produced by the partition stage, read by label / seed / claim / fill / pedestrian stages. */
     public static final GenKey<Bsp.Partition> PARTITION = GenKey.of("partition");
 
