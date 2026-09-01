@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -113,14 +115,32 @@ class PrecinctPlanForMissionTest {
         }
     }
 
+    /**
+     * A raid needs a prize on the defender's side, and a precinct map is mostly
+     * garrison — so the garrison's own stores and seat of command have to be on
+     * the map as points of interest, or the only prizes are the settlement's and
+     * the settlement is where the marines came from.
+     *
+     * <p>The objective does not carry the point-of-interest kind it was cut
+     * from; its name is that kind spelled out, which is what the assertion below
+     * reads.
+     */
     @Test
     void aRaidAgainstARealMarketStillFindsSomethingToStrike() {
         for (OperationTier tier : List.of(OperationTier.ESTABLISHED, OperationTier.FIRST_CONTRACT)) {
             try (BattleSimulation sim = BattleSetup.createPlaceholder(
                     SEED, manifest(), false, tier, RiskLevel.MEDIUM,
                     MissionType.RAID, MARKET, FlybyRoster.EMPTY, FlybyRoster.EMPTY)) {
-                assertTrue(sim.getObjectives().stream().anyMatch(RaidObjective.class::isInstance),
+                RaidObjective raid = sim.getObjectives().stream()
+                        .filter(RaidObjective.class::isInstance)
+                        .map(RaidObjective.class::cast)
+                        .findFirst()
+                        .orElse(null);
+                assertNotNull(raid,
                         "a raid at " + tier + " on a precinct map found no target to strike");
+                assertNotEquals(PointOfInterest.Kind.RESIDENTIAL.name()
+                                .toLowerCase(Locale.ROOT), raid.targetName(),
+                        "a raid at " + tier + " was sent to strike somebody's housing");
             }
         }
     }
