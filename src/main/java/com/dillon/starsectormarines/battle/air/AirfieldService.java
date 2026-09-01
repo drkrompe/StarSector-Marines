@@ -143,6 +143,24 @@ public final class AirfieldService {
             this.hullHp = airframe.maxHp();
         }
 
+        /**
+         * Where what is kept here goes when it leaves, or {@code null} for a
+         * berth whose craft has nowhere to be but this map.
+         *
+         * <p>A garrison's hardstand has none: an aircraft off it flies to
+         * somewhere on the same battle, and the map's own edge is where it
+         * eventually leaves. A ship's boat berth has one, because a bay opens
+         * onto space and the point beyond its door is the only place a boat can
+         * be that is not aboard. Carried on the berth rather than on the field
+         * because a hull with two bays has two doors on two sides.
+         */
+        public float[] offship;
+
+        /** Whether this berth's craft has somewhere off this map to go. */
+        public boolean hasOffship() {
+            return offship != null;
+        }
+
         /** Whether this berth can put an aircraft in the air right now. */
         public boolean airworthy() {
             return state == BerthState.PARKED;
@@ -296,8 +314,22 @@ public final class AirfieldService {
      * conflating the two is why this needed a method rather than an argument.
      */
     public Berth addBayBerth(Gantry bay, Airframe airframe) {
+        return addBayBerth(bay, airframe, null);
+    }
+
+    /**
+     * The same, for a bay that has a door: {@code offship} is the point beyond
+     * it that a boat leaving here goes to and comes back from.
+     *
+     * <p>A bay with no door registers without one and simply never launches,
+     * which is a bay whose boats are ornaments rather than a generation that
+     * stops. The placer is supposed to give every bay a flank, so that is a
+     * defect upstream, and one the deck already reports.
+     */
+    public Berth addBayBerth(Gantry bay, Airframe airframe, float[] offship) {
         Berth berth = new Berth(null, bay.centerX, bay.centerY,
                 Kind.HARDSTAND, airframe, bay.facing.degrees());
+        berth.offship = offship == null ? null : new float[]{offship[0], offship[1]};
         berths.add(berth);
         return berth;
     }

@@ -4,10 +4,12 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -16,6 +18,7 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadExperienceStandard;
+import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -152,6 +155,12 @@ public final class CampaignMarineDeployment {
 
     /** Applies only after skipping employer-owned physical shuttle missions. */
     public void applyTo(BattleSimulation sim, int shuttleMissionsToSkip) {
+        applyTo(sim, shuttleMissionsToSkip, FieldPresencePolicy.UNRESTRICTED);
+    }
+
+    /** Applies named seats and preserves whole-squad sortie boundaries when limited. */
+    public void applyTo(BattleSimulation sim, int shuttleMissionsToSkip,
+                        FieldPresencePolicy fieldPresencePolicy) {
         if (sim == null || seats.isEmpty()) return;
         BattleComponents components = sim.getBattleComponents();
         List<ShuttleMission> missions = new ArrayList<>();
@@ -172,7 +181,17 @@ public final class CampaignMarineDeployment {
                     .filter(mission -> mission.manifestOrdinal
                             >= Math.max(0, shuttleMissionsToSkip))
                     .toList();
+            if (fieldPresencePolicy != null && fieldPresencePolicy.limited()) {
+                applyLimitedFieldOrder(playerMissions);
+                return;
+            }
             applyPairedWaveOrder(playerMissions);
+            return;
+        }
+
+        if (fieldPresencePolicy != null && fieldPresencePolicy.limited()) {
+            int skip = Math.max(0, Math.min(shuttleMissionsToSkip, missions.size()));
+            applyLimitedFieldOrder(missions.subList(skip, missions.size()));
             return;
         }
 
@@ -201,6 +220,78 @@ public final class CampaignMarineDeployment {
                 mission.marinesRemaining = cycles[0] != null
                         ? cycles[0].length : 0;
         }
+    }
+
+    /**
+     * Re-packs player sorties so one craft never mixes two persistent squads.
+     * Chunks rotate over the already-constructed physical craft and may extend
+     * their cycle schedules when an under-manned squad leaves seats unused.
+     */
+    private void applyLimitedFieldOrder(List<ShuttleMission> missions) {
+        if (missions.isEmpty()) return;
+        List<MarineLoadout> scenarioSeats = new ArrayList<>();
+        for (ShuttleMission mission : missions) {
+            MarineLoadout[][] cycles = mission.cycleLoadouts;
+            if (cycles == null || cycles.length == 0) {
+                cycles = new MarineLoadout[][]{mission.marineLoadout};
+            }
+            for (MarineLoadout[] cycle : cycles) {
+                if (cycle != null) Collections.addAll(scenarioSeats, cycle);
+            }
+        }
+
+        List<List<MarineLoadout[]>> planned = new ArrayList<>(missions.size());
+        for (int i = 0; i < missions.size(); i++) planned.add(new ArrayList<>());
+        int seatIndex = 0;
+        int scenarioIndex = 0;
+        int sortie = 0;
+        while (seatIndex < seats.size()) {
+            String squadId = campaignSquadId(seats.get(seatIndex));
+            if (squadId == null) {
+                throw new IllegalStateException(
+                        "Limited field presence requires persistent squad identity");
+            }
+            int missionIndex = sortie++ % missions.size();
+            ShuttleMission mission = missions.get(missionIndex);
+            int capacity = Math.max(1, mission.seatsPerSortie);
+            List<MarineLoadout> load = new ArrayList<>(capacity);
+            while (seatIndex < seats.size() && load.size() < capacity
+                    && squadId.equals(campaignSquadId(seats.get(seatIndex)))) {
+                MarineLoadout scenario = scenarioIndex < scenarioSeats.size()
+                        ? scenarioSeats.get(scenarioIndex) : MarineLoadout.COMBATANT;
+                if (scenario == null) scenario = MarineLoadout.COMBATANT;
+                load.add(merge(scenario, seats.get(seatIndex)));
+                seatIndex++;
+                scenarioIndex++;
+            }
+            planned.get(missionIndex).add(load.toArray(new MarineLoadout[0]));
+        }
+
+        for (int i = 0; i < missions.size(); i++) {
+            ShuttleMission mission = missions.get(i);
+            List<MarineLoadout[]> loads = planned.get(i);
+            mission.fieldPresenceAdmitted = false;
+            mission.currentCycle = 0;
+            mission.deboardedThisSortie = 0;
+            mission.squadId = Squad.NO_SQUAD;
+            if (loads.isEmpty()) {
+                mission.cycleLoadouts = new MarineLoadout[][]{new MarineLoadout[0]};
+                mission.marineLoadout = mission.cycleLoadouts[0];
+                mission.marinesRemaining = 0;
+                mission.totalCycles = 1;
+                mission.state = ShuttleState.GONE;
+                continue;
+            }
+            mission.cycleLoadouts = loads.toArray(new MarineLoadout[0][]);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+            mission.marinesRemaining = mission.marineLoadout.length;
+            mission.totalCycles = mission.cycleLoadouts.length;
+        }
+    }
+
+    private static String campaignSquadId(MarineLoadout loadout) {
+        return loadout != null && loadout.campaignSquad != null
+                ? loadout.campaignSquad.squadId : null;
     }
 
     /**

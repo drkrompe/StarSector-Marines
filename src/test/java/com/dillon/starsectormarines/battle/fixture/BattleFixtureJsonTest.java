@@ -30,6 +30,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.OperationTier;
+import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import org.json.JSONObject;
@@ -233,7 +234,7 @@ class BattleFixtureJsonTest {
         JSONObject encoded = BattleFixtureJson.toJson(fixture);
         BattleFixture decoded = BattleFixtureJson.fromJson(encoded);
 
-        assertEquals(3, encoded.getInt("schemaVersion"));
+        assertEquals(4, encoded.getInt("schemaVersion"));
         assertEquals(SabotageBattleFixture.KIND, encoded.getString("kind"));
         assertEquals(2, encoded.getJSONObject("construction")
                 .getInt("schemaVersion"));
@@ -243,7 +244,7 @@ class BattleFixtureJsonTest {
     }
 
     @Test
-    void roundTripsV3LaunchOverlayWithV2Construction() throws Exception {
+    void roundTripsV4LaunchOverlayWithFieldPresenceAndV2Construction() throws Exception {
         ConquestBattleFixture construction = new ConquestBattleFixture(
                 8_192L,
                 List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
@@ -277,17 +278,38 @@ class BattleFixtureJsonTest {
                                         MechWeaponComponent.QUARRY_BREAKER_CANNON,
                                         MechWeaponComponent.LRM_5,
                                         MechWeaponComponent.THERMAL_LANCE)))),
-                37);
+                37,
+                FieldPresencePolicy.CAPTURE_TEAM);
         BattleLaunchFixture fixture = new BattleLaunchFixture(construction, launch);
 
         JSONObject encoded = BattleFixtureJson.toJson(fixture);
         BattleFixture decoded = BattleFixtureJson.fromJson(encoded);
 
-        assertEquals(3, encoded.getInt("schemaVersion"));
+        assertEquals(4, encoded.getInt("schemaVersion"));
+        assertEquals(FieldPresencePolicy.CAPTURE_TEAM.name(),
+                encoded.getJSONObject("launch").getString("fieldPresencePolicy"));
         assertEquals(2, encoded.getJSONObject("construction")
                 .getInt("schemaVersion"));
         assertEquals(fixture, decoded);
         assertEquals(encoded.toString(), BattleFixtureJson.toJson(decoded).toString());
+    }
+
+    @Test
+    void v3LaunchFixturesDefaultToUnrestrictedFieldPresence() throws Exception {
+        BattleLaunchFixture fixture = new BattleLaunchFixture(
+                canonicalFixture(), new BattleLaunchOverlay(
+                        0, List.of(), List.of(), List.of(), List.of(), 0,
+                        FieldPresencePolicy.CAPTURE_TEAM));
+        JSONObject legacy = BattleFixtureJson.toJson(fixture);
+        legacy.put("schemaVersion",
+                BattleFixtureJson.PRE_FIELD_PRESENCE_LAUNCH_SCHEMA_VERSION);
+        legacy.getJSONObject("launch").remove("fieldPresencePolicy");
+
+        BattleLaunchFixture decoded = (BattleLaunchFixture)
+                BattleFixtureJson.fromJson(legacy);
+
+        assertEquals(FieldPresencePolicy.UNRESTRICTED,
+                decoded.launch().fieldPresencePolicy());
     }
 
     @Test

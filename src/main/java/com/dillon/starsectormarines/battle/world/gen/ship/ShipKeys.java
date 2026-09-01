@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
 
 import java.util.List;
@@ -19,6 +20,12 @@ public final class ShipKeys {
 
     /** The rooms this deck owes, largest first is not assumed. Supplied by the caller; read by {@code RoomPlacementStage}. */
     public static final GenKey<List<RoomRecipe>> ROOM_PROGRAM = GenKey.of("roomProgram");
+    /**
+     * What this hull keeps in her bays, so the deck that lays the bays can
+     * publish what is in them. Travels the same way the room program does,
+     * because it is the same kind of fact about the same hull.
+     */
+    public static final GenKey<ShuttleType> SHIPS_BOATS = GenKey.of("shipsBoats");
 
     /** Placed compartments and the rooms that could not be fitted. Produced by {@code RoomPlacementStage}. */
     public static final GenKey<DeckGraph> DECK_GRAPH = GenKey.of("deckGraph");
