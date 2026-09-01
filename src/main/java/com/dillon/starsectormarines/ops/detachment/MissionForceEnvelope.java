@@ -59,6 +59,23 @@ public final class MissionForceEnvelope {
                     ? FULL_STRENGTH_CONQUEST_SQUADS
                     : REINFORCED_CONQUEST_SQUADS;
         }
+        if (type == MissionType.SABOTAGE) {
+            return switch (resolved) {
+                case FIRST_CONTRACT -> 1;
+                case ESTABLISHED, VETERAN -> 2;
+                case REINFORCED -> 3;
+                case FULL_STRENGTH -> 4;
+            };
+        }
+        if (type == MissionType.RAID) {
+            return switch (resolved) {
+                case FIRST_CONTRACT -> 2;
+                case ESTABLISHED -> 3;
+                case VETERAN -> 4;
+                case REINFORCED -> 6;
+                case FULL_STRENGTH -> 8;
+            };
+        }
         return resolved.squadsDemanded;
     }
 

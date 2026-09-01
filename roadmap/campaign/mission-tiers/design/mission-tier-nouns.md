@@ -55,6 +55,11 @@ large civilian evacuation. The current production defaults use one active squad
 for Sabotage and two for Raid's target-seizure shape; authored missions may
 override either policy.
 
+Their recommended commitments are bounded to match that shape rather than
+inheriting invasion-scale reserve columns: Sabotage recommends 1/2/2/3/4 squads
+and Raid recommends 2/3/4/6/8 from First Contract through Full Strength. These
+are total commitments; their one- and two-squad field limits remain unchanged.
+
 The limit counts persistent campaign squad identity, not marines, fire teams,
 shuttles, or battle-created squad fragments. Every lift carrying members of an
 already-admitted squad may complete. A lift carrying a different squad remains

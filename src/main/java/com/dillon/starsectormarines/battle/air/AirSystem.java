@@ -33,6 +33,7 @@ import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
@@ -266,6 +267,7 @@ public class AirSystem {
     private final EffectsService effects;   // crash FX on shoot-down (smoke plume + burning wreck)
     private final ResupplyService resupply;
     private final SquadDirectiveControl commandControl;
+    private final FieldPresenceGate fieldPresence;
     /**
      * The berths a based sortie belongs to, or null on a battle with no
      * authored field. Set after construction because the field is registered
@@ -331,12 +333,17 @@ public class AirSystem {
         this.effects = effects;
         this.resupply = resupply;
         this.commandControl = commandControl;
+        this.fieldPresence = new FieldPresenceGate(roster, world);
         this.entityWorld = roster.entityWorld();
         this.components = roster.components();
         this.shuttleArchetype = new ComponentType[]{
                 components.AIR_IDENTITY, components.KINEMATICS, components.SHUTTLE_MISSION,
                 components.APPEARANCE, components.IDENTITY, components.HEALTH,
                 components.ARMOR};
+    }
+
+    public void setFieldPresencePolicy(FieldPresencePolicy policy) {
+        fieldPresence.setPolicy(policy);
     }
 
     /**
@@ -717,6 +724,7 @@ public class AirSystem {
      * what kinematic-limited steering produces.
      */
     private void advanceShuttles(float dt) {
+        fieldPresence.refresh(air);
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
             AirBody body = world.kinematics(id);
@@ -725,7 +733,7 @@ public class AirSystem {
             switch (mission.state) {
                 case PENDING:
                     mission.pendingDelay -= dt;
-                    if (mission.pendingDelay <= 0f) {
+                    if (mission.pendingDelay <= 0f && fieldPresence.admit(mission)) {
                         beginShuttleLeg(mission, body, mission.lzX, mission.lzY);
                         mission.state = ShuttleState.INCOMING;
                     }
@@ -1143,6 +1151,7 @@ public class AirSystem {
                             // Per-cycle loadout refreshes here so SABOTAGE planters
                             // target the next charge site on each return trip.
                             mission.currentCycle++;
+                            mission.fieldPresenceAdmitted = false;
                             if (mission.cycleLoadouts != null && mission.currentCycle < mission.cycleLoadouts.length) {
                                 mission.marineLoadout = mission.cycleLoadouts[mission.currentCycle];
                             }
