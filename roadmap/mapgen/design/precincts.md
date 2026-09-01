@@ -1,8 +1,9 @@
 # Precincts
 
-Status: ACTIVE — adopted. The model is assembled end to end: places are seeded
-from a world or authored, grown, claimed, allowed ground, filled, walled and
-gated. What remains is wiring it into a recipe and the shape work below.
+Status: ACTIVE — adopted and wired. `BspCityGenerator.usePrecincts` builds a
+whole map this way: places seeded from a world or authored, grown, welded onto
+one road network, claimed, allowed ground, filled — zoned or packed — walled and
+gated. What remains is the shape work below.
 
 Written: 2026-09-01
 
@@ -250,10 +251,13 @@ with country between them, at 339 points of interest.
 
 0. **A walled precinct has too many gates.** Every arm crossing the outline is a
    gate, and a rendered garrison came out with eleven — which is not a fortified
-   place. A fortress should keep the few crossings it wants and wall off the
-   rest; the roads that then dead-end at the wall are ordinary. The rule that a
-   gate is a discovered crossing still holds, but which crossings become gates
-   is a decision the precinct has not been given yet.
+   place. Through the tile renderer the wall reads as a dashed line rather than
+   a wall, because it is more gap than wall. A fortress should keep the few
+   crossings it wants and wall off the rest; the roads that then dead-end at the
+   wall are ordinary. The rule that a gate is a discovered crossing still holds,
+   but which crossings become gates is a decision the precinct has not been
+   given yet. This is the most visible thing wrong with the model as it
+   stands.
 
 1. **Settlement claims read as collars, not districts.** A zoned precinct's
    allowance spreads two or three cells either side of its arms, so it draws as

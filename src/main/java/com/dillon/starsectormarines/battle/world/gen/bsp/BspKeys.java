@@ -90,6 +90,13 @@ public final class BspKeys {
      */
     public static final GenKey<int[][]> PRECINCT_CLAIM = GenKey.of("precinctClaim");
 
+    /**
+     * Per-cell road ownership by precinct index. Kept beside the claim because
+     * a place's circulation and its ground are different questions: the wall
+     * goes round the claim, and the gates are where the road crosses it.
+     */
+    public static final GenKey<int[][]> PRECINCT_ROAD = GenKey.of("precinctRoad");
+
     /** BSP leaf partition over the trunk sub-rects. Produced by the partition stage, read by label / seed / claim / fill / pedestrian stages. */
     public static final GenKey<Bsp.Partition> PARTITION = GenKey.of("partition");
 
