@@ -9,6 +9,9 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.StarSystemAPI;
+import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
 import java.util.EnumSet;
 import java.util.Random;
@@ -22,11 +25,16 @@ import java.util.Random;
  * {@link ContractState#OFFERED OFFERED} and remain eligible until acceptance or
  * expiry policy advances them.
  *
- * <p>Two caps prevent runaway generation:
+ * <p>Four caps prevent runaway generation and local mission-board saturation:
  * <ul>
  *   <li>{@link #PER_PATRON_OFFER_CAP} — a patron with an outstanding offer doesn't
  *       generate a second one (forces the player to either accept, decline, or
  *       wait — beats a backlog of zombie offers).</li>
+ *   <li>{@link #PER_MARKET_OFFER_CAP} — a market presents one ordinary opportunity,
+ *       rather than one from every house based there.</li>
+ *   <li>{@link #PER_SYSTEM_OFFER_CAP} — nearby markets share a small opportunity
+ *       field, so a populated system can hold a handful of jobs without every
+ *       planet becoming a contract board.</li>
  *   <li>{@link #GLOBAL_OFFER_CAP} — sector-wide ceiling so the contracts table
  *       doesn't bloat in long games.</li>
  * </ul>
@@ -44,8 +52,29 @@ public final class ContractGenerator implements CampaignSystem {
     /** Outstanding OFFERED contracts a single patron is allowed to have queued. */
     private static final int PER_PATRON_OFFER_CAP = 1;
 
+    /** Outstanding offers whose meeting/origin is one market. */
+    private static final int PER_MARKET_OFFER_CAP = 1;
+
+    /** Outstanding offers across all markets in one star system. */
+    private static final int PER_SYSTEM_OFFER_CAP = 3;
+
     /** Sector-wide cap on OFFERED contracts. */
     private static final int GLOBAL_OFFER_CAP = 20;
+
+    interface MarketSource {
+        /** Stable star-system id for a market, or {@code null} when unavailable. */
+        String systemId(String marketId);
+    }
+
+    private final MarketSource markets;
+
+    public ContractGenerator() {
+        this(new SectorMarkets());
+    }
+
+    ContractGenerator(MarketSource markets) {
+        this.markets = markets;
+    }
 
     @Override
     public String name() {
@@ -75,6 +104,13 @@ public final class ContractGenerator implements CampaignSystem {
             long patronId = state.houseId[i];
             if (!ContractEligibility.patronEligible(state, patronId)) continue;
             if (countOpenOffersForPatron(state, patronId) >= PER_PATRON_OFFER_CAP) continue;
+            int originMarket = state.houseMarketId[i];
+            if (countOpenOffersForMarket(state, originMarket) >= PER_MARKET_OFFER_CAP) continue;
+            String originSystem = systemKey(state, originMarket);
+            if (originSystem != null
+                    && countOpenOffersForSystem(state, originSystem) >= PER_SYSTEM_OFFER_CAP) {
+                continue;
+            }
 
             long seed = ((long) day << 32) ^ patronId;
             Random r = new Random(seed);
@@ -103,7 +139,7 @@ public final class ContractGenerator implements CampaignSystem {
                     offerExpiresTick,                     // offer lapses on this day if unaccepted
                     template.phasesTotal,
                     -1,                                   // captain assigned at acceptance
-                    state.houseMarketId[i],               // patron's market is the meeting/origin
+                    originMarket,                         // patron's market is the meeting/origin
                     -1,                                   // industryId resolved at acceptance
                     template.payout,
                     0,                                    // retainer per month = 0 for mission-mode
@@ -159,5 +195,44 @@ public final class ContractGenerator implements CampaignSystem {
             if (ContractState.fromByte(state.contractState[i]) == ContractState.OFFERED) n++;
         }
         return n;
+    }
+
+    private static int countOpenOffersForMarket(CampaignState state, int marketSlot) {
+        int n = 0;
+        for (int i = 0; i < state.contractCount; i++) {
+            if (state.contractMarketId[i] != marketSlot) continue;
+            if (ContractState.fromByte(state.contractState[i]) == ContractState.OFFERED) n++;
+        }
+        return n;
+    }
+
+    private int countOpenOffersForSystem(CampaignState state, String systemKey) {
+        int n = 0;
+        for (int i = 0; i < state.contractCount; i++) {
+            if (ContractState.fromByte(state.contractState[i]) != ContractState.OFFERED) continue;
+            if (systemKey.equals(systemKey(state, state.contractMarketId[i]))) n++;
+        }
+        return n;
+    }
+
+    private String systemKey(CampaignState state, int marketSlot) {
+        if (marketSlot < 0) return null;
+        String marketId = state.marketRegistry.get(marketSlot);
+        String systemId = markets != null ? markets.systemId(marketId) : null;
+        // A missing live market should not disable the per-market ceiling or make
+        // offer generation fail on a legacy/test state. Treat it as an isolated
+        // venue until the live topology can resolve it again.
+        return systemId != null ? systemId : "market:" + marketSlot;
+    }
+
+    private static final class SectorMarkets implements MarketSource {
+        @Override
+        public String systemId(String marketId) {
+            if (marketId == null || Global.getSector() == null) return null;
+            MarketAPI market = Global.getSector().getEconomy().getMarket(marketId);
+            if (market == null) return null;
+            StarSystemAPI system = market.getStarSystem();
+            return system != null ? system.getId() : null;
+        }
     }
 }

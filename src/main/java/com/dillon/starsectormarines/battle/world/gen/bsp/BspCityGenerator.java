@@ -368,24 +368,44 @@ public final class BspCityGenerator implements MapGenerator {
      * the mission the campaign is built around does not change underneath a
      * quality judgement that has not been made yet.
      */
-    private GenRecipe grownLegacyRecipe(GrownTrunkPlan.Profile profile) {
-        // Omitted rather than run as no-ops: recipe membership is how this
-        // pipeline forks, and a present-but-inert stage is what that convention
-        // exists to avoid.
-        GenStage landingLinkStage = (profile.link == SettlementLink.LANDING)
+    /**
+     * The conquest sequence on a grown skeleton — biome bands, fortress ward
+     * and all — for judging the new ground against the old before anything is
+     * moved onto it. Reached only through an explicit {@link #useGrownRoads},
+     * never from a campaign profile.
+     */
+    private GenRecipe grownConquestRecipe(GrownTrunkPlan.Profile profile) {
+        return buildConquestRecipe(new GrownTrunkSkeletonStage(profile),
+                new HinterlandFillStage(), landingLinkStageFor(profile));
+    }
+
+    /**
+     * Omitted rather than run as a no-op: recipe membership is how this
+     * pipeline forks, and a present-but-inert stage is what that avoids.
+     */
+    private GenStage landingLinkStageFor(GrownTrunkPlan.Profile profile) {
+        return (profile.link == SettlementLink.LANDING)
                 ? new SettlementLandingLinkStage()
                 : null;
+    }
+
+    private GenRecipe grownLegacyRecipe(GrownTrunkPlan.Profile profile) {
         return buildLegacyRecipe(new GrownTrunkSkeletonStage(profile),
-                new HinterlandFillStage(), landingLinkStage);
+                new HinterlandFillStage(), landingLinkStageFor(profile));
     }
 
     /**
      * Which recipe this battle gets.
      *
-     * <p><b>Conquest is pinned to the stock crossroad.</b> It is the mission the
-     * campaign is built around and its balance was measured against the maps it
-     * has, so the ground under it does not move while that judgement stands.
-     * There is deliberately no grown conquest recipe to reach by accident.
+     * <p><b>Conquest is pinned to the stock crossroad</b> unless something asks
+     * for otherwise in as many words. It is the mission the campaign is built
+     * around and its balance was measured against the maps it has, so the
+     * ground under it does not move on the strength of a market size or any
+     * other thing a battle carries incidentally. An explicit
+     * {@link #useGrownRoads} is the one way through, because the comparison has
+     * to be possible before the judgement can be made: this is what renders a
+     * grown conquest map beside the shipped one at the same seed. Nothing in
+     * ordinary play calls it.
      *
      * <p>Every other battle grows its settlement from what the campaign says
      * about the market: {@link SettlementZoning} derives the density and the
@@ -402,7 +422,9 @@ public final class BspCityGenerator implements MapGenerator {
      * density the campaign would never choose.
      */
     private GenRecipe recipeFor(TraversalAxis axis, TargetProfile profile) {
-        if (axis != null) return conquestRecipe;
+        if (axis != null) {
+            return grownOverride == null ? conquestRecipe : grownConquestRecipe(grownOverride);
+        }
         if (grownOverride != null) return grownLegacyRecipe(grownOverride);
         if (profile == null || profile.marketSize() <= 0) return legacyRecipe;
         return grownLegacyRecipe(GrownTrunkPlan.Profile.of(

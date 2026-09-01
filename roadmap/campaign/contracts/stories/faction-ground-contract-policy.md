@@ -1,10 +1,10 @@
 # Faction-ground contract policy
 
-Status: PLANNED — follows accepted-offer lifecycle repair and should coordinate with tiered production offers.
+Status: PLANNED — follows accepted-offer lifecycle repair and sparse persisted supply, and should coordinate with tiered production offers.
 
 Written: 2026-08-24
 
-Updated: 2026-08-26 — routed faction contract-policy authors through the enduring lore guide catalog.
+Updated: 2026-09-01 — made the industry catalog an upstream persisted-offer input rather than a planet-local board.
 
 Read `contracts-nouns.md`, `themes.md`, `mission-tier-nouns.md`, and
 `faction-lore-nouns.md` before implementing this story.
@@ -103,6 +103,9 @@ mission-policy axis with contradictory eligibility.
 - Extend the industry-mission content schema so faction-direct candidates state
   mandate, collateral policy, and relationship gates rather than exposing every
   destructive archetype to every client.
+- Consume those industry candidates while minting the geographically bounded
+  persisted offer. Do not restore a client-side industry enumeration path or
+  create work when the player opens a market.
 - Persist the accepted mandate and policy through `Mission`, briefing, launch,
   and outcome. Legacy offers receive an explicit compatibility default based on
   their frozen contract/mission type; production generation must not use that

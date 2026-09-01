@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — began replacing permanent planet boards with geographically sparse persisted supply.
+Updated: 2026-09-01 — shipped geographically sparse persisted contract supply.
 
 | Status | Story |
 | --- | --- |
@@ -13,7 +13,6 @@ Updated: 2026-09-01 — began replacing permanent planet boards with geographica
 | DRAFT — policy reconciliation | `tier-one-stationing-policy.md` |
 | DRAFT — outcome-policy repair | `cadre-incident-failure-reputation.md` |
 | DRAFT — cohesion cleanup | `stationing-event-label-policy.md` |
-| IN PROGRESS — supply authority | `system-scoped-contract-supply.md` |
 | PLANNED — content and policy vertical | `faction-ground-contract-policy.md` |
 
 The retainer-economy concern remains future balance direction, not contracted

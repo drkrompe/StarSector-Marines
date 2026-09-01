@@ -48,16 +48,15 @@ import java.util.Set;
  * resolved client list, and the player's current selection as they click
  * through. Threaded into every {@link OpsPanel} via {@link OpsPanel#attach}.
  *
- * <p>Clients are resolved once at construction:
+ * <p>Clients are resolved once at construction from work that actually exists:
  * <ul>
- *   <li>Planet's owning faction (if any, and not Independent/Pirates already)</li>
- *   <li>{@link Factions#INDEPENDENT} broker — always present, never locked</li>
- *   <li>{@link Factions#PIRATES} contact — always present, never locked</li>
- *   <li>Any other faction with market presence in the same star system that
- *       the player isn't hostile with</li>
+ *   <li>ordinary faction contacts only when they own an authored local mission;</li>
+ *   <li>patron houses when a persisted offer or continuing commitment is based
+ *       at this market;</li>
+ *   <li>campaign-event and debug clients through their explicit authorities.</li>
  * </ul>
- * Rep gating: factions are <em>locked</em> (visible but unselectable) when the
- * player's relationship is HOSTILE or worse. Pirates/Independent ignore gating.
+ * Reputation still gates authored faction clients when they are present.
+ * Pirates/Independent ignore that gate.
  */
 public class MarineOpsContext {
 
@@ -600,24 +599,27 @@ public class MarineOpsContext {
         if (market != null && market.getFaction() != null) {
             FactionAPI mainFaction = market.getFaction();
             if (seen.add(mainFaction.getId())) {
-                out.add(buildClient(mainFaction, player, false));
+                appendIfWorkExists(out, planet,
+                        buildClient(mainFaction, player, false));
             }
         }
 
-        // 2. Independent broker — always present
+        // 2. Independent broker — available when authored local work exists.
         FactionAPI independent = Global.getSector() != null
                 ? Global.getSector().getFaction(Factions.INDEPENDENT)
                 : null;
         if (independent != null && seen.add(independent.getId())) {
-            out.add(buildClient(independent, player, true));
+            appendIfWorkExists(out, planet,
+                    buildClient(independent, player, true));
         }
 
-        // 3. Pirate contact — always present
+        // 3. Pirate contact — available when authored local work exists.
         FactionAPI pirates = Global.getSector() != null
                 ? Global.getSector().getFaction(Factions.PIRATES)
                 : null;
         if (pirates != null && seen.add(pirates.getId())) {
-            out.add(buildClient(pirates, player, true));
+            appendIfWorkExists(out, planet,
+                    buildClient(pirates, player, true));
         }
 
         // 4. Other factions with market presence in the same system
@@ -629,7 +631,8 @@ public class MarineOpsContext {
                     if (pm == null || pm.getFaction() == null) continue;
                     String fid = pm.getFaction().getId();
                     if (seen.add(fid)) {
-                        out.add(buildClient(pm.getFaction(), player, false));
+                        appendIfWorkExists(out, planet,
+                                buildClient(pm.getFaction(), player, false));
                     }
                 }
             }
@@ -644,6 +647,12 @@ public class MarineOpsContext {
         }
 
         return out;
+    }
+
+    /** Adds an ordinary faction contact only when its authored projection is non-empty. */
+    private static void appendIfWorkExists(List<Client> out, PlanetAPI planet,
+                                           Client client) {
+        if (!MissionGenerator.generate(planet, client).isEmpty()) out.add(client);
     }
 
     private Mission localCampaignEventMission() {

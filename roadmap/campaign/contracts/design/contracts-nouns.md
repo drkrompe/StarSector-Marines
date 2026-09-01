@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — established objective mandate and faction/target fit as contract-term and offer-policy extensions.
+Updated: 2026-09-01 — made persisted, geographically bounded supply the sole authority for ordinary offers.
 
 Campaign contracts turn the player's relationship with a patron into a bounded
 piece of work. They sit between the campaign's political chains and an
@@ -57,6 +57,15 @@ contract surface and belongs to `t3-endgame-nouns.md`. A patron's eligibility
 combines its standing as an active house with the player's house relationship
 and MRB credibility; no individual offer invents a parallel gate.
 
+Standard supply is geographically sparse. An origin market may hold at most one
+open offer, and the markets in one star system may hold at most three between
+them; the per-patron and sector-wide ceilings remain additional backstops. These
+are ceilings rather than quotas: a market or whole system may legitimately have
+no work. System membership is read from the live sector when autonomous policy
+runs, while the offer row remains the persisted authority. Opening a planet or
+switching clients projects those rows and authored exceptions; it never creates
+ordinary work from the industries visible on that screen.
+
 The contract feature owns the agreement and its outcome.
 `campaign-framework-nouns.md` owns the monotonic campaign day and ordered
 autonomous-system seam on which offers, retainers, defaults, incidents, and
@@ -80,7 +89,8 @@ second roster.
    accepted terms, records the commitment, and removes offer-expiry authority
    before the operation can resolve.
 2. Standard offers are deterministic for the same campaign day and patron, and
-   bounded both per patron and globally. Eligibility is shared policy for
+   bounded per patron, origin market, star system, and sector. Those bounds are
+   scarcity ceilings, not refill targets. Eligibility is shared policy for
    generation and acceptance.
 3. A mission result advances only its owning contract. A terminal settlement
    applies the corresponding patron/MRB consequence at most once, even if a
@@ -133,6 +143,11 @@ authority. New stationing event sources may join the notice projection only by
 exposing a persisted pending payload and the same deadline/settlement contract.
 Do not add type-specific reputation or duplicate launch paths around shared
 eligibility, response, and settlement policy.
+
+Industry-bound archetypes are offer-candidate content, not an alternative
+planet-local supply. Future faction policy may select a valid real asset from
+that catalog and persist it in an offer, but a UI consumer must never enumerate
+the catalog to manufacture work on demand.
 
 `faction-ground-contract-policy.md` owns the planned vertical that adds
 objective mandates, asset/relationship admissibility, faction weighting, and
