@@ -192,6 +192,9 @@ class MechLabViewModelTest {
                 .filter(row -> row.name().equals("Hound chassis"))
                 .findFirst().orElseThrow();
         assertFalse(hound.actionDisabled());
+        assertEquals(MechVariant.HOUND, hound.chassisPreview());
+        assertEquals("mech-catalog:recipe.chassis.hound:preview", hound.previewId());
+        assertFalse(hound.previewClasses().contains("hidden"));
         hound.action().run();
         assertEquals(2, bay.activeSquad().mechs().size());
         assertEquals(MechVariant.HOUND, viewModel.selectedVariant());

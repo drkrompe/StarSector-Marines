@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
+import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
@@ -125,6 +126,7 @@ public final class MechLabScreen implements Screen {
                             this::currentBayId,
                             () -> previewSeconds);
             built.canvases().set(dollElement, dollCanvas);
+            wireChassisPreviews(candidate, built);
             dollElement.onPointerMove(this::pointAtVacantGantry);
             dollElement.onPointerDown(this::pressVacantGantry);
             dollElement.onPointerUp(this::activateVacantGantry);
@@ -190,6 +192,23 @@ public final class MechLabScreen implements Screen {
                 viewModel.overviewAction(),
                 () -> context.goTo(ScreenId.BOAT_DECK));
         return props;
+    }
+
+    /**
+     * Catalog rows are keyed and can appear after the document is installed
+     * when the player moves from a fitted gantry to a vacant one. Wire every
+     * newly attached chassis canvas after reconciliation, while leaving weapon
+     * rows as ordinary text-and-material cards.
+     */
+    private void wireChassisPreviews(MarkupInstance instance, UiDocument target) {
+        for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
+            if (row.chassisPreview() == null) continue;
+            UiElement canvas = instance.requireElement(row.previewId());
+            if (target.canvases().producerOf(canvas) == null) {
+                target.canvases().set(canvas, new MechChassisPreviewCanvas(
+                        row.chassisPreview(), () -> previewSprites().layeredMechSprites()));
+            }
+        }
     }
 
     private static void requireWiredElements(MarkupInstance component) {
@@ -344,7 +363,10 @@ public final class MechLabScreen implements Screen {
                     viewModel.selectedGantryIndex(), viewModel.gantryVariants().size());
             cameraController.advance(dt);
         }
-        if (markupInstance != null) markupInstance.flush();
+        if (markupInstance != null) {
+            markupInstance.flush();
+            if (document != null) wireChassisPreviews(markupInstance, document);
+        }
         if (document != null) document.advance(dt);
     }
 
