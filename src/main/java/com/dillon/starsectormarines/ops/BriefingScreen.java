@@ -336,6 +336,12 @@ public class BriefingScreen implements Screen {
                 valueX, y, VALUE_COLOR));
         y -= ROW_GAP;
 
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Field Presence",
+                labelX, y, LABEL_COLOR));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                m.fieldPresencePolicy.briefingText(), valueX, y, VALUE_COLOR));
+        y -= ROW_GAP;
+
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Opposition Quality",
                 labelX, y, LABEL_COLOR));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,

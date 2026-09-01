@@ -128,12 +128,12 @@ public final class DevConfig {
      * {@link com.dillon.starsectormarines.ops.OperationTier} pairing at medium
      * risk for playtesting operation scale without waiting on offer RNG.
      *
-     * <p>The debug client bypasses {@code MissionGenerator.MAX_MISSIONS}; the
-     * tactical map list gets long. That's the point — flip off for any build
-     * showing the intended experience.
+     * <p>Kept off while each legacy debug mission idea is reconsidered against
+     * the campaign progression and field-presence model. The factories remain
+     * available to automated tests and focused evidence entry points.
      */
     @DebugOnly
-    public static final boolean DEBUG_CLIENT = true;
+    public static final boolean DEBUG_CLIENT = false;
 
     /**
      * When {@code true}: DEBUG mission briefings expose a count + reroll picker

@@ -297,6 +297,76 @@ A field with nowhere to go at any size is counted under
 `BspKeys.UNPLACED_AIRFIELDS` rather than dropped, for the same reason unbuilt
 buildings are.
 
+## How much of the map is settled is a knob
+
+The same world can be an installation in wilderness or a city with an
+installation in it, and which one it is belongs to the battle rather than to the
+planet. `PrecinctPlan.Sprawl` says how many places there are and how far they
+reach; per-place density already existed and is not the same question.
+
+Measured through the generator at 560x336 on one seed:
+
+| preset | places | POIs | built | wild |
+|---|---|---|---|---|
+| `REMOTE` | 1 | 0 | 1.2% | 93.6% |
+| `BALANCED` | 4 | 339 | 8.6% | 58.2% |
+| `DENSE` | 11 | 746 | 18.8% | 15.4% |
+
+`BALANCED` is the shipped default and reproduces what the model produced before
+the knob existed.
+
+Two things that make the extremes work are worth stating because neither is a
+tuning value. `REMOTE` **drops the settlement entirely** when there is a
+garrison — the installation is then the somewhere the battle happens, and adding
+a town is the one thing that stops the map being what it is called. `DENSE`
+takes the main settlement to full density, which is not "more streets": it is
+the point at which `Profile.of` stops giving frontage a depth at all, so the
+place claims out to whatever its neighbours and the map edge allow. It also
+seeds many places rather than one, because a single settlement claiming evenly
+comes out a disc, and a city is districts meeting each other.
+
+## Palettes are cosmetic and read that way
+
+All four surface palettes render distinctly at the same seed and produce the
+same layout, which is the boundary working: what a world's ground is made of
+changes what is drawn and nothing about where anything is.
+
+`ROCK` and `ARID` read flatter than `VERDANT` because their pools are dominated
+by one ground and the patch field has nothing to arrange — the measurement in
+the wild-ground section says so directly. `FROZEN`'s dirt shows through around
+settlement, which reads as trampled ground and is a happy accident of its
+50/50 pool rather than anything authored.
+
+Parks and verges stay green on every world, including the rock one. That is the
+cultivated-ground law in `mapgen-nouns.md` made visible: lawn on an airless rock
+is a statement about the colony, not about the planet.
+
+## A place is something a battle can be about
+
+A programmed precinct was geometry: walls, roofs, a motor pool and two runways,
+and nothing to fight over — no objectives, no garrison spawns, nothing for the
+commander tier to reason across. On a map with settlements around it that hides
+behind their fills; on a `REMOTE` map, where the installation is the only place,
+the whole map came out with none.
+
+Its placed rooms now become tactical nodes, at 14 on a balanced map where there
+were none from the garrison before. Two differences from the conquest ward are
+deliberate:
+
+**A precinct garrison keeps its own command post.** The conquest ward is packed
+around a citadel compound the recipe seeded separately, and its program has the
+keep taken out so the map does not end up with two. A precinct is
+self-contained; nothing else is going to provide one, and two garrisons on one
+map are meant to have one each.
+
+**Nodes are emitted after the airfields are authored**, because authoring a lot
+clears tactical nodes standing on its reservation and a building's node has no
+business being removed by an airfield.
+
+Points of interest stay at zero on a remote map, and that is right rather than
+outstanding: those come from settlement fills, and a remote map has no
+civilians.
+
 ## Still open
 
 0. **A walled precinct has too many gates.** Every arm crossing the outline is a

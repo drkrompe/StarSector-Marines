@@ -43,6 +43,31 @@ public record PrecinctPlan(List<Precinct> precincts) {
     /** How far from the map edge a seed may fall, so a place has room to grow both ways. */
     private static final int EDGE_MARGIN = 30;
 
+    /**
+     * How much of the map is settled.
+     *
+     * <p>The same world can be a lonely installation or a city with an
+     * installation in it, and which one is a decision about the battle rather
+     * than about the planet. Density already exists per place — this says how
+     * many places there are and how far they reach, which is the part that
+     * decides whether a map reads as country or as conurbation.
+     */
+    public enum Sprawl {
+        /**
+         * An installation and the country around it. No town: the garrison is
+         * the somewhere the battle happens, and everything else is approach.
+         */
+        REMOTE,
+        /** A town, an installation, and a few outlying places. Country between them. */
+        BALANCED,
+        /**
+         * A city that runs to the map edge. Nature survives only where a park
+         * was left, because the main settlement's frontage covers everything it
+         * can reach — which is what a profile at full density already means.
+         */
+        DENSE
+    }
+
     /** A mission's own answer, which overrides anything derivable. */
     public static PrecinctPlan authored(List<Precinct> precincts) {
         if (precincts.isEmpty()) {
@@ -63,15 +88,36 @@ public record PrecinctPlan(List<Precinct> precincts) {
      */
     public static PrecinctPlan derive(TargetProfile profile, int width, int height,
                                       Random rng) {
+        return derive(profile, Sprawl.BALANCED, width, height, rng);
+    }
+
+    public static PrecinctPlan derive(TargetProfile profile, Sprawl sprawl,
+                                      int width, int height, Random rng) {
         List<Precinct> out = new ArrayList<>();
         List<int[]> taken = new ArrayList<>();
 
-        float density = SettlementZoning.densityFor(profile.marketSize());
-        GrownTrunkPlan.Profile main = GrownTrunkPlan.Profile.of(density, profile.link());
-        int[] seed = placeSeed(taken, width, height, rng);
-        out.add(Precinct.settlement("settlement", seed[0], seed[1], main));
+        float density = switch (sprawl) {
+            // Full density is not "a lot of streets" — it is the point at which
+            // a profile's frontage stops being a depth and covers everything it
+            // can reach, so the settlement claims out to whatever its
+            // neighbours and the map edge allow.
+            case DENSE -> 1f;
+            case REMOTE -> 0f;
+            case BALANCED -> SettlementZoning.densityFor(profile.marketSize());
+        };
+        boolean garrison = profile.defenseLevel() > 0;
 
-        if (profile.defenseLevel() > 0) {
+        // A remote map is an installation in country: adding a town to it is
+        // the one thing that would stop it being one. The garrison is then the
+        // somewhere the battle happens, so the settlement is only kept when
+        // there is no garrison to be that.
+        if (sprawl != Sprawl.REMOTE || !garrison) {
+            GrownTrunkPlan.Profile main = GrownTrunkPlan.Profile.of(density, profile.link());
+            int[] seed = placeSeed(taken, width, height, rng);
+            out.add(Precinct.settlement("settlement", seed[0], seed[1], main));
+        }
+
+        if (garrison) {
             int[] garrisonSeed = placeSeed(taken, width, height, rng);
             // A garrison grows sparsely: it is an installation rather than a
             // town, and its ground comes from its program rather than from how
@@ -80,11 +126,11 @@ public record PrecinctPlan(List<Precinct> precincts) {
                     GrownTrunkPlan.Profile.hamlet(), garrisonFor(profile)));
         }
 
-        for (int i = 0; i < outlyingPlaces(profile.marketSize()); i++) {
+        for (int i = 0; i < outlyingPlaces(profile.marketSize(), sprawl); i++) {
             int[] hamletSeed = placeSeed(taken, width, height, rng);
             if (hamletSeed == null) break;
             out.add(Precinct.settlement("outlying-" + (i + 1), hamletSeed[0], hamletSeed[1],
-                    GrownTrunkPlan.Profile.hamlet()));
+                    outlyingGrowth(sprawl)));
         }
         return new PrecinctPlan(out);
     }
@@ -96,8 +142,23 @@ public record PrecinctPlan(List<Precinct> precincts) {
      * Coarse on purpose — the point is that the count moves with the world, not
      * that this curve is right.
      */
-    private static int outlyingPlaces(int marketSize) {
-        return Math.max(0, (marketSize - 2) / 3);
+    private static int outlyingPlaces(int marketSize, Sprawl sprawl) {
+        return switch (sprawl) {
+            case REMOTE -> 0;
+            case BALANCED -> Math.max(0, (marketSize - 2) / 3);
+            // Enough seeds that the map is places rather than one place with a
+            // very long reach: a single settlement at full density claims
+            // outward evenly and comes out as a disc, where a city is districts
+            // meeting each other.
+            case DENSE -> Math.max(3, marketSize);
+        };
+    }
+
+    /** What an outlying place is. In a city they are districts, not hamlets. */
+    private static GrownTrunkPlan.Profile outlyingGrowth(Sprawl sprawl) {
+        return sprawl == Sprawl.DENSE
+                ? GrownTrunkPlan.Profile.city()
+                : GrownTrunkPlan.Profile.hamlet();
     }
 
     /**

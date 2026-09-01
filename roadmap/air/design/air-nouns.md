@@ -4,9 +4,9 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a field belongs to whoever owns it rather than to whatever
-ticks it, so a ship's boat bay is a field and her crew turn her boats round on
-the same machinery a garrison apron runs.
+Updated: 2026-09-01 — a ship's boats fly real sorties out of her bays and home
+again, on the same mission machinery a garrison sortie runs; a field belongs to
+whoever owns it rather than to whatever ticks it.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -315,6 +315,31 @@ was a constructor argument to the tick consumer while every field was a
 garrison's, which would have meant building that consumer one way for a lot and
 another for a bay over something that has nothing to do with what it does.
 `ship-interiors-nouns.md` owns the bay as a room.
+
+**A ship's boat flies rather than counting down.** A bay could have been given
+a timer that emptied a berth for a while and put a boat back looking serviced,
+and from a deck screen the two are nearly indistinguishable. What a countdown is
+not is the same machinery: the berth would empty with no aircraft existing, the
+hull that came home would not be the hull that left, a boat could not be lost,
+and every consequence a garrison field already has would be owed a second
+implementation for ships. So a boat is an air entity on a mission through the
+ordinary state machine, and everything downstream of that is free — including
+the hand-back, which is the same one every based sortie runs.
+
+Where it goes is **deliberately nowhere**: out through its bay's door to a point
+off the hull, and back. On a deck view there is no elsewhere to fly to, and
+inventing one would be a second world nobody is looking at. What the flight is
+for is the time the berth stands empty, the hull it comes home with, and the
+crew having something to turn round; a mission that means something replaces the
+destination and keeps all of that. Measured on a transport: about half a minute
+off the ship and four minutes in turnaround, with the boat crossing its own
+door 2.4 cells off centre at worst against a 3.5-cell half-width.
+
+`BoatSortieSystem` is the sibling of {@code AirStrikeSystem} and is gated on the
+one thing that separates the two places: a berth with somewhere off this map to
+be. A garrison's hardstand has none — an aircraft on a lot flies to somewhere on
+the same battle — so the ship-side dispatcher finds nothing on a ground map
+without being told which kind of place it is on.
 
 A boat berth is a **hardstand**, because that is what the kind means: a berth
 something lifts off rather than rolls out of. A ship's boat leaves through a door
