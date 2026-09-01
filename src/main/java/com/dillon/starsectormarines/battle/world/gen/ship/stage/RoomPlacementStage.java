@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.HullContact;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayouts;
@@ -226,6 +227,11 @@ public final class RoomPlacementStage implements GenStage {
      * and the packer honours it, so a bay amidships is a defect somewhere
      * upstream. It shows up as a bay with no way out, which the deck can report,
      * and not as a generation that stops.
+     *
+     * <p>A fitting that names its outboard side has its door on that side and
+     * nowhere else. The packer placed the room with that side to the hull, and
+     * the fitting cleared the deck behind it; a longer run of vacuum along an
+     * end would put the door round the corner from the lane that leads to it.
      */
     private static BayAperture doorOnto(GenContext ctx, boolean[][] hull,
                                         DeckGraph.Compartment room) {
@@ -234,9 +240,15 @@ public final class RoomPlacementStage implements GenStage {
         int right = left + room.shape().width() - 1;
         int bottom = top + room.shape().height() - 1;
 
+        RoomFitting fitting = RoomFittings.forRoom(ctx, room.purpose(), room.shape());
+        int[] authored = fitting == null ? null : fitting.outboard();
+        int[] named = authored == null ? null
+                : room.pose().mapDirection(authored[0], authored[1]);
+
         BayAperture best = null;
         int bestRun = 0;
         for (int[] side : new int[][]{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}) {
+            if (named != null && (side[0] != named[0] || side[1] != named[1])) continue;
             boolean vertical = side[0] != 0;
             int from = vertical ? top : left;
             int to = vertical ? bottom : right;
