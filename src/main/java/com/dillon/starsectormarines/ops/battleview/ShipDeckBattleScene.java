@@ -359,14 +359,14 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     }
 
     /**
-     * What a ship's bay keeps in its berths.
+     * What a bay holds on a deck generated without a hull behind it.
      *
-     * <p>One type for now, and the manifest will replace it: which boats a
-     * company actually has is a campaign fact, and a deck that invented its own
-     * answer would be a second opinion about the fleet. What this decides in the
-     * meantime is only what a bay looks like with something in it.
+     * <p>An infrastructure fixture rather than a ship — a deck built at an
+     * explicit size to exercise the pipeline has no hull to ask, and a bay with
+     * nothing in it would make those decks quietly different from every real
+     * one. A ship says what her own boats are; see {@code ShipsBoats}.
      */
-    private static final ShuttleType SHIPS_BOAT = ShuttleType.AEROSHUTTLE;
+    private static final ShuttleType UNSHIPPED_BOAT = ShuttleType.AEROSHUTTLE;
 
     /**
      * Put the ship's boats in her bays and let her crew turn them round.
@@ -389,6 +389,11 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private void openTheBoatBays() {
         AirfieldService bays = simulation.getAirfieldService();
         bays.setOwner(Faction.MARINE);
+        // Asked of the deck rather than decided here. A ship's boats are a
+        // fitting of the hull, so what is in her bays is hers to state and this
+        // is only the host that puts them out.
+        ShuttleType boats = rooms == null || rooms.boats() == null
+                ? UNSHIPPED_BOAT : rooms.boats();
         // The berth a servicing job names is the deck's own berth number, and
         // the field numbers its berths from its own first one. Built in the same
         // loop that registers them, so there is no order for the two to disagree
@@ -399,7 +404,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             Gantry berth = gantries.get(index);
             if (berth.holds != Gantry.Holds.BOAT) continue;
             fieldBerth[index] = bays.berths().size();
-            bays.addBayBerth(berth, SHIPS_BOAT, offshipFrom(berth));
+            bays.addBayBerth(berth, boats, offshipFrom(berth));
             occupiedBerths[index] = true;
         }
         if (bays.berths().isEmpty()) return;

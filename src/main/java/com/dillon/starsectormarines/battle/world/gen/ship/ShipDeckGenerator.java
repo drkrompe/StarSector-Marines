@@ -71,7 +71,8 @@ public final class ShipDeckGenerator {
      */
     public MapResult generateDeck(int width, int height, long seed) {
         return generateDeck(new DeckSizing.DeckPlan(width, height,
-                DeckSizing.programFor(HullClass.CRUISER, HullRole.WARSHIP, 60, 120, 200)),
+                DeckSizing.programFor(HullClass.CRUISER, HullRole.WARSHIP, 60, 120, 200),
+                ShipsBoats.carriedBy(HullRole.WARSHIP)),
                 seed, null);
     }
 
@@ -97,6 +98,7 @@ public final class ShipDeckGenerator {
         GenContext ctx = new GenContext(grid, topology, rng, width, height, seed);
         ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL);
         ctx.put(ShipKeys.ROOM_PROGRAM, plan.rooms());
+        ctx.put(ShipKeys.SHIPS_BOATS, plan.boats());
 
         deckRecipe.run(ctx);
 

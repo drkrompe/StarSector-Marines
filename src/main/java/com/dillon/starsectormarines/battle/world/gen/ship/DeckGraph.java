@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.ambient.JobSite;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.FurnishableRoom;
@@ -126,6 +127,7 @@ public final class DeckGraph {
     private final List<Compartment> compartments;
     private final List<RoomRecipe> unplaced;
     private final List<BayAperture> apertures;
+    private final ShuttleType boats;
 
     /**
      * @param compartments placed rooms, in deterministic placement order
@@ -144,9 +146,32 @@ public final class DeckGraph {
      */
     public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced,
                      List<BayAperture> apertures) {
+        this(compartments, unplaced, apertures, null);
+    }
+
+    /**
+     * @param boats what this hull keeps in her bays, or null for a deck
+     *     generated without a hull behind it — an infrastructure fixture rather
+     *     than a ship
+     */
+    public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced,
+                     List<BayAperture> apertures, ShuttleType boats) {
         this.compartments = List.copyOf(compartments);
         this.unplaced = List.copyOf(unplaced);
         this.apertures = List.copyOf(apertures);
+        this.boats = boats;
+    }
+
+    /**
+     * What stands in this deck's bays.
+     *
+     * <p>A fitting of the hull rather than anybody's property: the ship the
+     * company is aboard is the ship, and her boats are hers the way her bays
+     * are. Published here so the host that stocks the berths asks the deck what
+     * the deck has, rather than deciding for itself and being right by accident.
+     */
+    public ShuttleType boats() {
+        return boats;
     }
 
     public List<Compartment> compartments() {
