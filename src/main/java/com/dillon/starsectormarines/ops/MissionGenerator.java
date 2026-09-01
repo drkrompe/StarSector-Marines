@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.ContractOperationTierPolicy;
 import com.dillon.starsectormarines.campaign.OfficerMoodReader;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultMissionKey;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
@@ -386,7 +387,7 @@ public final class MissionGenerator {
         FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
         FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
 
-        OperationTier tier = tierFor(missionType, risk);
+        OperationTier tier = tierForContract(state, row, missionType);
         int requiredDrops = requiredDropsFor(missionType, tier);
         int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
         java.util.List<String> employerPowers = rollEmployerPowers(r, risk);
@@ -431,7 +432,8 @@ public final class MissionGenerator {
                 .source(MissionSource.GENERATED)
                 .payout(basePayout)
                 .risk(risk)
-                .requirements(requirementsFor(risk))
+                .tier(tier)
+                .requirements(forceEnvelopeRequirements(tier))
                 .flavor(flavor)
                 .mapPosition(x, y)
                 .clientFighterSupport(clientSupport)
@@ -652,6 +654,30 @@ public final class MissionGenerator {
         OperationTier resolved = tier != null ? tier : OperationTier.ESTABLISHED;
         float weight = type != null ? type.liftWeight : 0.6f;
         return Math.max(2, Math.round(resolved.drops * weight));
+    }
+
+    /** Reads the offer-frozen scale; legacy rows derive from patron rank, never target risk. */
+    static OperationTier tierForContract(CampaignState state, int row,
+                                         MissionType missionType) {
+        OperationTier stored = state != null && row >= 0 && row < state.contractCount
+                ? OperationTier.fromPersistedByte(state.contractOperationTier[row])
+                : null;
+        ContractType contractType = state != null && row >= 0 && row < state.contractCount
+                ? ContractType.fromByte(state.contractType[row]) : null;
+        OperationTier selected = stored != null ? stored
+                : ContractOperationTierPolicy.select(state,
+                        state != null && row >= 0 && row < state.contractCount
+                                ? state.contractPatronHouseId[row] : -1L,
+                        contractType);
+        if (selected == null) selected = OperationTier.ESTABLISHED;
+        return OperationTier.clampTo(selected,
+                missionType != null ? missionType.tierFloor : null);
+    }
+
+    static String forceEnvelopeRequirements(OperationTier tier) {
+        OperationTier resolved = tier != null ? tier : OperationTier.ESTABLISHED;
+        return "Minimum 1 fire team · Recommended " + resolved.squadsDemanded
+                + (resolved.squadsDemanded == 1 ? " squad" : " squads");
     }
 
     /**

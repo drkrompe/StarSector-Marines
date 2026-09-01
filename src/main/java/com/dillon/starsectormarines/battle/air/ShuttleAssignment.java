@@ -17,12 +17,20 @@ public final class ShuttleAssignment {
     public final int cycles;
     /** Marines actually embarked per sortie; never exceeds the hull's physical capacity. */
     public final int seatsPerSortie;
+    /** Exact personnel carried across every sortie; the final sortie may be partial. */
+    public final int embarkedPersonnel;
 
     public ShuttleAssignment(ShuttleType type, int cycles) {
         this(type, cycles, capacityOf(type));
     }
 
     public ShuttleAssignment(ShuttleType type, int cycles, int seatsPerSortie) {
+        this(type, cycles, seatsPerSortie,
+                Math.max(1, cycles) * seatsPerSortie);
+    }
+
+    public ShuttleAssignment(ShuttleType type, int cycles, int seatsPerSortie,
+                             int embarkedPersonnel) {
         this.type = Objects.requireNonNull(type, "type");
         this.cycles = Math.max(1, cycles);
         if (seatsPerSortie < 1 || seatsPerSortie > type.capacity) {
@@ -30,6 +38,20 @@ public final class ShuttleAssignment {
                     + type.capacity + " for " + type + ": " + seatsPerSortie);
         }
         this.seatsPerSortie = seatsPerSortie;
+        int fullBeforeFinal = (this.cycles - 1) * seatsPerSortie;
+        int maximum = this.cycles * seatsPerSortie;
+        if (embarkedPersonnel <= fullBeforeFinal || embarkedPersonnel > maximum) {
+            throw new IllegalArgumentException("embarkedPersonnel must fill every sortie "
+                    + "before a possibly partial final sortie: " + embarkedPersonnel
+                    + " not in " + (fullBeforeFinal + 1) + ".." + maximum);
+        }
+        this.embarkedPersonnel = embarkedPersonnel;
+    }
+
+    public int seatsForCycle(int cycle) {
+        if (cycle < 0 || cycle >= cycles) return 0;
+        return Math.min(seatsPerSortie,
+                embarkedPersonnel - cycle * seatsPerSortie);
     }
 
     @Override
@@ -37,13 +59,15 @@ public final class ShuttleAssignment {
         if (this == other) return true;
         if (!(other instanceof ShuttleAssignment assignment)) return false;
         return type == assignment.type && cycles == assignment.cycles
-                && seatsPerSortie == assignment.seatsPerSortie;
+                && seatsPerSortie == assignment.seatsPerSortie
+                && embarkedPersonnel == assignment.embarkedPersonnel;
     }
 
     @Override
     public int hashCode() {
         int result = 31 * type.hashCode() + cycles;
-        return 31 * result + seatsPerSortie;
+        result = 31 * result + seatsPerSortie;
+        return 31 * result + embarkedPersonnel;
     }
 
     private static int capacityOf(ShuttleType type) {

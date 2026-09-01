@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -18,6 +19,25 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
  * lifts, a tally kept of both, and a snag list that never quite empties; the
  * clear deck is what all of that is arranged around rather than what it amounts
  * to.
+ *
+ * <p><b>And the boats stand in it.</b> A rank of them along the fuelling side,
+ * which is why the fuelling run and the bowser are on that side at all, with the
+ * rest of the clear deck left open in front of them — the lane a boat is moved
+ * out through and the deck a landing party forms up on. Each boat publishes
+ * {@link Affordance#SERVICE}, so the trade that turns an aircraft round on a
+ * garrison apron is the trade that turns a boat round here; it is the same work
+ * on the same kind of machine, and modelling it twice would give a ship's boats
+ * a second, quietly different opinion about what servicing costs.
+ *
+ * <p>How many and how big is the bay's own answer, at a pitch, the way its
+ * perimeter work already is. A gig bay on a frigate holds one small boat and a
+ * cruiser's boat deck holds a rank of launches, and neither number is written
+ * down here.
+ *
+ * <p>Their side is the fuelled side and their front is the deck. A boat nosed
+ * into the fuelling run would have to be backed out past the bowser every lift,
+ * and one ranked against the cargo side would put the tankage across the bay
+ * from the things it fuels.
  *
  * <p>So the deck stays clear and the perimeter is worked hard. Each of the four
  * bulkheads carries a run {@link #WORKING_BAND} cells deep, and the first cell
@@ -62,6 +82,44 @@ public final class BoatBayFitting implements RoomFitting {
 
     /** Shallowest room that can carry two working bands and a boat between them. */
     private static final int MIN_CLEAR = 3;
+
+    /**
+     * How much deck one boat stands on, along the bay and across it.
+     *
+     * <p>A boat, not an aircraft's drawn hull: what this reserves is the spot on
+     * the deck it is kept in, which is a decision about how many a bay holds
+     * rather than a measurement of any sprite. The same separation the aprons
+     * keep, and for the same reason — a re-cut hull would otherwise re-berth
+     * every ship in the fleet.
+     */
+    private static final int BOAT_SPAN = 7;
+    private static final int BOAT_DEPTH = 5;
+
+    /** The smallest boat there is: a gig, for a hull with a gig bay. */
+    private static final int GIG_SPAN = 5;
+
+    /** Cells of open deck between one boat and the next, to get round them by. */
+    private static final int BOAT_GAP = 1;
+
+    /**
+     * Clear deck that must remain in front of the rank.
+     *
+     * <p>The lane is the point of the room, so it is subtracted before the boats
+     * are sized rather than after: a bay too shallow to hold both gives the deck
+     * to the lane and keeps fewer, shallower boats, and one too shallow for even
+     * that keeps none. A gig bay on a frigate is the case that matters — it is
+     * the same arrangement holding one boat, and the failure to guard against is
+     * a frigate whose only way off the ship is packed solid.
+     *
+     * <p>One cell, because this is deck <em>inside</em> the working ring and the
+     * ring is walkable too: the clear run in front of a boat is this plus the
+     * cargo run's own standing row. Two would cost the smallest bays their boat
+     * to buy a lane that is already there.
+     */
+    private static final int MIN_LANE = 1;
+
+    /** Shallowest spot still worth calling a boat's. */
+    private static final int MIN_BOAT_DEPTH = 3;
 
     /**
      * Which jobs along a run are a tally rather than the run's own trade, and
@@ -167,6 +225,7 @@ public final class BoatBayFitting implements RoomFitting {
         clearApproaches(floor);
         layCorners(floor, along, across, band);
         layBowser(floor, along, across, band);
+        layBoats(floor, along, across, band);
 
         // One ordinal across the whole bay rather than one per run, so the
         // tallies and the defects are spread round the deck instead of landing
@@ -255,6 +314,116 @@ public final class BoatBayFitting implements RoomFitting {
     /** Whether this point along a run is where a tally is taken rather than worked. */
     private static boolean isTally(int ordinal) {
         return ordinal % TALLY_STRIDE == TALLY_PHASE;
+    }
+
+    /**
+     * The rank of boats, along the fuelling side of the clear deck.
+     *
+     * <p>Laid after the bowser and before the bulkhead runs. After, because the
+     * bowser is a fixture on the band and this reserves deck inboard of it, so
+     * whichever gets the contested cell first should be the one that cannot move
+     * — and before the runs, because a run publishes its work against the first
+     * clear cell inboard, which is deck a boat may now be standing on.
+     *
+     * <p>As many as fit at a pitch, which is the rule the rest of this room
+     * already follows: a gig bay on a frigate and a boat deck on a cruiser are
+     * the same arrangement holding different numbers of boats. A bay with no
+     * depth for a boat and a lane both keeps none, and is a passage with stores
+     * down it — which is what it was before boats existed and is a worse bay
+     * rather than a broken one.
+     */
+    private void layBoats(RoomFloor floor, int along, int across, int band) {
+        // Inside the ring, not on it. The first clear cell inboard of every
+        // bulkhead is where that run's work is done from, so a boat laid on the
+        // ring stands on the fuelling party — and because a berth reserves deck
+        // rather than claiming it, nothing downstream would refuse the point.
+        // It would simply be published inside a boat.
+        int rim = band + 1;
+        int deckAlong = along - 2 * rim;
+        int deckAcross = across - 2 * rim;
+        int depth = depth(deckAcross);
+        if (depth < MIN_BOAT_DEPTH) return;
+        int span = span(depth);
+
+        int pitch = span + BOAT_GAP;
+        int boats = (deckAlong + BOAT_GAP) / pitch;
+        if (boats < 1) return;
+
+        // Centred on the deck's long axis, so a bay that holds two boats in a
+        // space that would nearly take three does not push them both to one end
+        // and leave a corner of unexplained deck at the other.
+        int spread = boats * pitch - BOAT_GAP;
+        int first = rim + (deckAlong - spread) / 2;
+        // Backed onto the fuelling side, nose to the deck.
+        int rankAcross = across - rim - depth;
+        int[] out = floor.pose().mapDirection(0, -1);
+
+        for (int boat = 0; boat < boats; boat++) {
+            int start = first + boat * pitch;
+            int[] rect = floor.toLocalRect(start, rankAcross, span, depth);
+            int berth = floor.berth(rect[0], rect[1], rect[2], rect[3],
+                    Gantry.Facing.of(out[0], out[1]), Gantry.Holds.BOAT);
+            layBoatWork(floor, start, rankAcross, span, berth);
+        }
+    }
+
+    /**
+     * How deep a boat is, given how much deck the bay has inside its ring.
+     *
+     * <p>Odd, always. A berth records half-extents about a centre cell, so an
+     * even span rounds down and the berth comes out describing one cell less
+     * deck than it reserved — a boat that is two cells of deck and one cell of
+     * berth. Nothing refuses that and nothing looks wrong until something reads
+     * the berth to decide how much of it is boat.
+     */
+    private static int depth(int deckAcross) {
+        int most = Math.min(BOAT_DEPTH, deckAcross - MIN_LANE);
+        return most % 2 == 0 ? most - 1 : most;
+    }
+
+    /**
+     * How long a boat is, given how deep the bay could spare to make it.
+     *
+     * <p><b>A small bay holds a small boat, not no boat.</b> A frigate's gig bay
+     * is four cells of deck once the working ring is off it, and a launch needs
+     * five — so a fixed size gave the one hull whose only way off the ship is
+     * its boat exactly nothing in the bay, which is worse than the empty deck it
+     * replaced. It is the rule the rest of this room already follows: a gig bay
+     * on a frigate and a boat deck on a cruiser are the same arrangement at
+     * different sizes.
+     *
+     * <p>Tied to the depth so a shallow boat does not come out a plank, and
+     * capped, because what this must never do is let a bay hold a boat longer
+     * than a boat.
+     */
+    private static int span(int depth) {
+        return Math.min(BOAT_SPAN, Math.max(GIG_SPAN, 2 * depth - 1));
+    }
+
+    /**
+     * Where a boat is worked from: the deck in front of it, twice.
+     *
+     * <p>Both points on the same side, which is the one a boat has. It is backed
+     * onto the fuelling run and its ends are its neighbours or the gap somebody
+     * walks through, so the open side is the deck — and the deck is where the
+     * work would be done anyway. The count matches an apron stand's two flanks;
+     * only the geometry that produces it differs.
+     */
+    private void layBoatWork(RoomFloor floor, int start, int rankAcross, int span,
+                             int berth) {
+        int deck = rankAcross - 1;
+        int bow = start + 1;
+        int stern = start + span - 2;
+        berthTask(floor, bow, deck, berth, bow, rankAcross);
+        berthTask(floor, stern, deck, berth, stern, rankAcross);
+    }
+
+    /** Work done on whatever is berthed in {@code berth}, authored canonically. */
+    private void berthTask(RoomFloor floor, int cellAlong, int cellAcross, int berth,
+                           int fixtureAlong, int fixtureAcross) {
+        int[] stand = floor.toLocal(cellAlong, cellAcross);
+        int[] fixture = floor.toLocal(fixtureAlong, fixtureAcross);
+        floor.berthFixtureTask(stand[0], stand[1], berth, fixture[0], fixture[1]);
     }
 
     /**

@@ -1,8 +1,8 @@
 # Precincts
 
 Status: ACTIVE — adopted. The noun, multi-seed growth, three claim policies,
-the derived allowance and programmed fill are built; the boundary and seeding
-are not.
+the derived allowance, programmed fill and the walled boundary are built;
+seeding is not.
 
 Written: 2026-09-01
 
@@ -106,8 +106,39 @@ other: a wall stamped first can only ever enclose whatever the fill happened to
 leave, however good the wall is.
 
 Its **gates are where arms cross the outline**. An arm leaving the precinct
-crosses its boundary exactly once, so a gate is a discovered fact rather than a
-placed object with a road found for it afterwards.
+crosses its boundary, so a gate is a discovered fact rather than a placed object
+with a road found for it afterwards. The shipped wall stamper does the opposite
+— it rolls one to three gate positions along a rectangle's south side and then
+separately tries to align one of them with the vehicle corridor, which is two
+decisions about the same thing that have to be kept in agreement.
+
+**A gate's cells are grouped diagonally.** A claim grown by orthogonal steps has
+a diamond-ish boundary, so a road crosses it at an angle and its cells come out
+as a staircase. Grouped orthogonally, one seven-cell crossing reads as seven
+one-cell gates: measured, a garrison reported eighteen gates none of which was
+wide enough to drive through, when it had three crossings of three, seven and
+seven. The wall is one cell thick, so the hole a staircase leaves is as passable
+as the hole a row leaves.
+
+**Growth does not always leave a way out, and a walled precinct owes one.** A
+claim large enough relative to how far its arms reach swallows its own road
+network entirely — measured, one seed in three produced a garrison whose road
+was 931 cells inside its claim and none outside it, so nothing crossed and the
+wall had no opening at all. `PrecinctArtery` carves one when growth did not, and
+reports that it had to, so the rescue is visible rather than silent. Firing often
+means the growth profile is wrong — arms too short for the ground the place
+claims — and the fix belongs there.
+
+Two things about that carve were learned by measuring rather than reasoning.
+It runs as a **ray from the claim's centroid**, not as an L to a target: an L's
+legs run along the axes, so a target nearer the centre than the boundary leaves
+the whole path inside the claim, and the carve never crossed its own outline. And
+it heads for the **nearest map edge**, not for a neighbour's road: the rule that
+an artery may not overwrite another precinct's road is right, but it means a ray
+aimed at that road cannot paint the cells it needs, and the carve stops one cell
+outside its own boundary. An edge is always reachable and the ground on the way
+is nobody's. A neighbour whose network lies across the route is met on the way
+rather than aimed at.
 
 ## What this collapses
 
