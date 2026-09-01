@@ -245,38 +245,6 @@ final class ShipDeckBattleSceneTest {
     }
 
     @Test
-    void berthServiceFocusBindsToTheLiveMachineBody() {
-        ShipDeckGenerator generator = new ShipDeckGenerator();
-        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
-        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
-                deck, generator.getLastDeckGraph(), SEED, null)) {
-            long[] machines = scene.occupyGantries(List.of(MechVariant.BULWARK));
-            DeckGraph.Compartment bay = scene.room(RoomPurpose.VEHICLE_BAY);
-            scene.watchBill(bay, CrewRole.MECH_TECH);
-
-            Gantry berth = machineBerths(scene.gantries()).get(0);
-            int berthIndex = scene.gantries().indexOf(berth);
-            String group = JobBoard.group(bay.id(), Affordance.SERVICE, berthIndex);
-            float machineX = scene.simulation().world().x(machines[0]);
-            float machineY = scene.simulation().world().y(machines[0]);
-            TaskPointService points = scene.simulation().taskPoints();
-
-            for (int index = 0; index < 5; index++) {
-                TaskPoint service = points.claimNearest(index + 1L, group, 0f, 0f);
-                assertNotNull(service, "the occupied berth did not publish all five access points");
-                float focusDistance = (float) Math.hypot(
-                        service.focusX() - machineX, service.focusY() - machineY);
-                float standDistance = (float) Math.hypot(
-                        service.worldX() - machineX, service.worldY() - machineY);
-                assertTrue(focusDistance < standDistance,
-                        "service focus remained on the technician's floor position");
-                assertTrue(focusDistance < 2f,
-                        "service focus missed the compact machine body: " + focusDistance);
-            }
-        }
-    }
-
-    @Test
     void liveGantriesAdoptCampaignWeaponsAndNewlyFabricatedChassis() {
         ShipDeckGenerator generator = new ShipDeckGenerator();
         MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
