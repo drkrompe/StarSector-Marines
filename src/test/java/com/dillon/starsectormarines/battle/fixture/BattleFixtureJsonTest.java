@@ -30,6 +30,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.FieldPresencePolicy;
@@ -43,6 +44,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -91,7 +93,7 @@ class BattleFixtureJsonTest {
     @Test
     void roundTripsTheFittingsOnTheCompanysOwnBoats() throws Exception {
         FittedBoat armoured = new FittedBoat(ShuttleType.AEROSHUTTLE,
-                BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE);
+                BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE, "boat_04");
         CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
                 17L,
                 List.of(
@@ -116,8 +118,12 @@ class BattleFixtureJsonTest {
         assertSame(ShuttleType.AEROSHUTTLE, manifest.get(0).airframe,
                 "an employer's craft carries no fitting ids and reads back plain");
         assertEquals(armoured, manifest.get(1).airframe);
+        assertEquals("boat_04", ((FittedBoat) manifest.get(1).airframe).boatId(),
+                "a replay of a mission that lost a boat has to lose the same one");
         assertEquals(FittedBoat.standard(ShuttleType.AEROSHUTTLE),
                 manifest.get(2).airframe);
+        assertNull(((FittedBoat) manifest.get(2).airframe).boatId(),
+                "a fitted frame nobody owns names no boat and must not invent one");
     }
 
     @Test
@@ -350,6 +356,53 @@ class BattleFixtureJsonTest {
 
         assertEquals(FieldPresencePolicy.UNRESTRICTED,
                 decoded.launch().fieldPresencePolicy());
+    }
+
+    /**
+     * How settled the map is survives a round trip, and its absence survives it
+     * too — an absent {@code sprawl} is the derived case, which is what every
+     * fixture written before the field existed means.
+     */
+    @Test
+    void carriesAStatedSprawlAndLeavesAnUnstatedOneAlone() throws Exception {
+        RaidBattleFixture stated = sprawlRaidFixture(PrecinctPlan.Sprawl.DENSE);
+
+        JSONObject encoded = BattleFixtureJson.toJson(stated);
+        assertEquals("DENSE", encoded.getString("sprawl"));
+        BattleFixture decoded = BattleFixtureJson.fromJson(encoded);
+        assertEquals(stated, decoded);
+
+        RaidBattleFixture silent = sprawlRaidFixture(null);
+        JSONObject silentEncoded = BattleFixtureJson.toJson(silent);
+        assertFalse(silentEncoded.has("sprawl"),
+                "a fixture that states no sprawl must write no key, or every "
+                        + "checked-in fixture stops being what it was");
+        RaidBattleFixture silentDecoded =
+                (RaidBattleFixture) BattleFixtureJson.fromJson(silentEncoded);
+        assertNull(silentDecoded.sprawl(),
+                "an absent sprawl decodes to the derived case, not to a value");
+    }
+
+    /** An unknown sprawl fails the way every other unknown enum here does. */
+    @Test
+    void rejectsAnUnknownSprawl() throws Exception {
+        JSONObject encoded = BattleFixtureJson.toJson(
+                sprawlRaidFixture(PrecinctPlan.Sprawl.DENSE));
+        encoded.put("sprawl", "MEGALOPOLIS");
+        assertThrows(IllegalArgumentException.class,
+                () -> BattleFixtureJson.fromJson(encoded));
+    }
+
+    private static RaidBattleFixture sprawlRaidFixture(PrecinctPlan.Sprawl sprawl) {
+        return new RaidBattleFixture(
+                141_418L,
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 3, 6)),
+                true, OperationTier.ESTABLISHED, RiskLevel.HIGH,
+                new TargetProfile(6, 5, 4, 2, "independent",
+                        EnumSet.of(EconomicFunction.SPACEPORT,
+                                EconomicFunction.HEAVY_INDUSTRY),
+                        SurfacePalette.ROCK, SettlementLink.ROAD),
+                List.of(), List.of(), sprawl);
     }
 
     @Test

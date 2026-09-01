@@ -1,4 +1,4 @@
-<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="boat-deck-root" class="boat-deck-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
@@ -24,13 +24,34 @@
       <div id="boat-overview" class="{overviewClasses}">
         <div id="boat-overview-heading" class="section-title label heading tone-edge">BOATS ABOARD</div>
         <div id="boat-list" class="boat-list">
-          <button each="boat in boatRows" key="{boat.id}" id="{boat.id}" class="{boat.classes}" disabled="{boat.disabled}" onclick="{boat.select}">
+          <button each="boat in boatRows" key="{boat.id}" id="{boat.id}" class="{boat.classes}" onclick="{boat.select}">
             <div id="{boat.berthId}" class="label heading tone-edge boat-card-berth">{boat.berth}</div>
             <div id="{boat.nameId}" class="label heading tone-accent boat-card-name">{boat.name}</div>
             <div id="{boat.patternId}" class="label tone-muted boat-card-line">{boat.pattern}</div>
             <div id="{boat.platingId}" class="label boat-card-line">{boat.plating}</div>
             <div id="{boat.driveId}" class="label boat-card-line">{boat.drive}</div>
           </button>
+        </div>
+      </div>
+
+      <div id="boat-fabrication" class="{fabricationClasses}">
+        <div id="boat-fabrication-header" class="panel boat-strip">
+          <div id="boat-fabrication-berth" class="label boat-name tone-accent">{fabricationBerthLabel}</div>
+          <div id="boat-fabrication-pattern" class="label tone-muted boat-identity">{fabricationPatternName}</div>
+          <button id="boat-fabrication-back" class="compact-action" onclick="{backToDeck}">BACK TO DECK</button>
+        </div>
+
+        <div id="boat-fabrication-yard" class="panel fabrication-yard">
+          <div id="boat-fabrication-kicker" class="section-title label heading tone-edge">YARD WORK / EMPTY BERTH</div>
+          <div id="boat-fabrication-copy" class="label tone-muted fabrication-copy">{fabricationCopy}</div>
+          <div id="boat-fabrication-materials" class="fabrication-costs">
+            <div each="material in fabricationMaterials" key="{material.id}" id="{material.id}" class="{material.classes}">
+              <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
+              <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
+            </div>
+          </div>
+          <div id="boat-fabrication-reason" class="label heading tone-muted catalog-reason">{fabricationReason}</div>
+          <button id="boat-fabricate" class="{fabricationActionClasses}" disabled="{fabricationBlocked}" onclick="{fabricate}">FABRICATE</button>
         </div>
       </div>
 
@@ -123,9 +144,17 @@
   .boat-card { flex-direction: column; width: 100%; height: 96px; padding: 7px; gap: 1px; border-width: 1px; text-align: left; }
   .boat-card.selected { background-color: #183b50; border-color: #ffd464; }
   .boat-card.vacant { background-color: #0c1620; border-color: #243849; opacity: 0.72; }
+  .boat-card.vacant.selected { background-color: #183b50; border-color: #ffd464; opacity: 1; }
   .boat-card-berth { height: 16px; }
   .boat-card-name { height: 22px; font-family: title; }
   .boat-card-line { height: 17px; }
+
+  .boat-fabrication { flex-direction: column; width: 430px; gap: 6px; overflow: hidden; }
+  .fabrication-yard { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; padding: 7px; gap: 5px; overflow: hidden; }
+  .fabrication-copy { width: 100%; height: 40px; white-space: normal; overflow: hidden; }
+  .fabrication-costs { flex-direction: column; width: 100%; height: 56px; gap: 2px; overflow: hidden; }
+  .fabricate-action { width: 100%; height: 30px; text-align: center; }
+  .fabricate-action.blocked { border-color: #8f3f44; background-color: #251419; }
 
   .boat-fitting { flex-direction: row; width: 800px; gap: 7px; overflow: hidden; }
   .fitting-side { flex-direction: column; width: 310px; gap: 6px; overflow: hidden; }

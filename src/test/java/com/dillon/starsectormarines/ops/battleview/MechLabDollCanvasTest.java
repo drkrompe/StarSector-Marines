@@ -110,7 +110,8 @@ class MechLabDollCanvasTest {
 
         assertEquals(128f, target.width(), 1e-4f);
         assertEquals(76f, target.height(), 1e-4f);
-        assertEquals(1, target.capacity());
+        assertEquals(1, target.gridColumns());
+        assertEquals(1, target.gridRows());
     }
 
     @Test
@@ -124,7 +125,7 @@ class MechLabDollCanvasTest {
         List<MechLabDollCanvas.CapacityCell> cells =
                 MechLabDollCanvas.capacityCells(target);
 
-        assertEquals(4, cells.size());
+        assertEquals(6, cells.size());
         for (int index = 0; index < cells.size(); index++) {
             MechLabDollCanvas.CapacityCell cell = cells.get(index);
             assertEquals(index, cell.index());
@@ -132,11 +133,30 @@ class MechLabDollCanvasTest {
             assertTrue(cell.height() > 0f);
             assertTrue(target.contains(cell.x(), cell.y()));
             assertTrue(target.contains(cell.x() + cell.width(), cell.y() + cell.height()));
-            if (index > 0) {
+            assertTrue(cell.active());
+            if (index > 0 && cell.row() == cells.get(index - 1).row()) {
                 MechLabDollCanvas.CapacityCell prior = cells.get(index - 1);
                 assertTrue(cell.x() > prior.x() + prior.width());
             }
         }
+    }
+
+    @Test
+    void houndArmGridShowsFourUsableCellsInsideTheCommonSixCellFrame() {
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
+        SocketDef arms = layout.socket(SocketId.ARMS);
+        MechLabDollCanvas.SocketDropTarget target =
+                MechLabDollCanvas.socketDropTarget(layout.doll(), arms,
+                        400f, 300f, 160f, 160f);
+
+        List<MechLabDollCanvas.CapacityCell> cells =
+                MechLabDollCanvas.capacityCells(target);
+
+        assertEquals(6, cells.size());
+        assertEquals(4, cells.stream().filter(
+                MechLabDollCanvas.CapacityCell::active).count());
+        assertFalse(cells.get(2).active());
+        assertFalse(cells.get(5).active());
     }
 
     @Test

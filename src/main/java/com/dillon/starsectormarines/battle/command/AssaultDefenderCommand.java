@@ -46,7 +46,13 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
     private final Map<Integer, Integer> squadRoutineArea = new HashMap<>();
     private final Map<Integer, Integer> squadResponseArea = new HashMap<>();
     private final Map<Long, ContactReport> contactReports = new HashMap<>();
-    private boolean reserveInitialized;
+    /**
+     * Re-derived from the live candidate pool on every pulse rather than
+     * latched from the first one. A squad may join the pool later — an
+     * external owner releases it, or a handoff hands it to this strategy —
+     * and a target frozen at the opening count would leave the commander
+     * permanently unable to hold the reserve it now has the force for.
+     */
     private int targetReserveCount;
     private int minimumRoutineCoverage;
     private volatile AssaultDefenseSnapshot defenseSnapshot =
@@ -112,13 +118,10 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
             candidates.add(squad);
         }
 
-        if (!reserveInitialized) {
-            reserveInitialized = true;
-            targetReserveCount = candidates.size() <= 1 ? 0
-                    : Math.min(2, Math.max(1, candidates.size() / 3));
-            minimumRoutineCoverage = Math.min(frame.facts().areas().size(),
-                    Math.max(0, candidates.size() - targetReserveCount));
-        }
+        targetReserveCount = candidates.size() <= 1 ? 0
+                : Math.min(2, Math.max(1, candidates.size() / 3));
+        minimumRoutineCoverage = Math.min(frame.facts().areas().size(),
+                Math.max(0, candidates.size() - targetReserveCount));
         refreshReserveMembership(candidates);
 
         List<CommandSquadState> routine = candidates.stream()

@@ -52,4 +52,21 @@ class MechFittingLayoutTest {
         assertNotEquals(hound.socket(SocketId.RIGHT_SHOULDER).anchorRight(),
                 bulwark.socket(SocketId.RIGHT_SHOULDER).anchorRight());
     }
+
+    @Test
+    void rectangularFootprintsDistinguishHoundAndHeavyWeaponMounts() {
+        SocketDef houndArms = MechFittingLayout.forVariant(MechVariant.HOUND)
+                .socket(SocketId.ARMS);
+
+        assertEquals(2, houndArms.gridColumns());
+        assertEquals(2, houndArms.gridRows());
+        assertEquals(3, MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintColumns);
+        assertEquals(2, MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintRows);
+        assertFalse(houndArms.accommodates(
+                MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintColumns,
+                MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintRows));
+        assertTrue(houndArms.accommodates(
+                MechWeaponComponent.DEMOLITION_CANNON.footprintColumns,
+                MechWeaponComponent.DEMOLITION_CANNON.footprintRows));
+    }
 }

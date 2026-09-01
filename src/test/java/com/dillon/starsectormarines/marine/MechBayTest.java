@@ -130,6 +130,24 @@ class MechBayTest {
     }
 
     @Test
+    void houndCenterlineMountRejectsAThreeByTwoHeavyCannon() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        CampaignMech hound = new CampaignMech(
+                "support_mech_02", "Hound 02", MechVariant.HOUND,
+                MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id());
+        assertTrue(bay.addMech(MechBay.STARTER_SQUAD_ID, hound));
+        bay.addWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id, 1);
+
+        assertFalse(bay.canInstallWeapon(hound.id(), MechMountSlot.ARMS,
+                MechWeaponComponent.SINGLE_HEAVY_CANNON.id));
+        assertFalse(bay.installWeapon(hound.id(), MechMountSlot.ARMS,
+                MechWeaponComponent.SINGLE_HEAVY_CANNON.id));
+        assertTrue(bay.canInstallWeapon(hound.id(), MechMountSlot.ARMS,
+                MechWeaponComponent.NOSE_CHAINGUN.id));
+        assertEquals(MechWeaponComponent.NOSE_CHAINGUN, hound.arms());
+    }
+
+    @Test
     void legacyRosterBackfillsTheMechBay() throws Exception {
         MarineRoster roster = new MarineRoster();
         Field mechBay = MarineRoster.class.getDeclaredField("mechBay");

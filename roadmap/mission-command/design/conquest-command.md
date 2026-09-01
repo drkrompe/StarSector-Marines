@@ -4,11 +4,14 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-08-30 — a track with no believed front now stages forward, bounded
-by its neighbours' lead, instead of standing still waiting for a sighting only
-advancing can produce. Earlier: a compact player-facing three-lane projection in
-the battle HUD; lane-stage standoff read from the squad's own corridor so a
-front believed off that line does not withhold orders.
+Updated: 2026-09-01 — the defender's reserve is a share of its mobile pool and
+each threatened track's response scales with the threat, so a large garrison
+commits in proportion to itself. Earlier 2026-08-30 — a track with no believed
+front now stages forward, bounded by its neighbours' lead, instead of standing
+still waiting for a sighting only advancing can produce. Earlier: a compact
+player-facing three-lane projection in the battle HUD; lane-stage standoff read
+from the squad's own corridor so a front believed off that line does not
+withhold orders.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `conquest-nouns.md` for territory, compounds, supply, keep, and victory law.
@@ -72,8 +75,28 @@ The defender mobilizes only from defender influence. A legal contact produces
 a coarse threatened track and band, never an enemy identity or exact cell.
 Starting patrols form the mobile pool; born garrisons retain their posts.
 Threatened tracks receive one responder before concentration, home and adjacent
-tracks are preferred, and at least one free patrol remains in reserve when the
-pool permits it. Expired reports release only defender-command-owned responses.
+tracks are preferred, and part of the free pool remains in reserve when the pool
+permits it. Expired reports release only defender-command-owned responses.
+
+**The reserve is a share of the mobile pool, not a count, and the response a
+track receives scales with what is believed to be in it.** A fixed one-squad
+reserve and a fixed two responders per track read as caution at a starting
+force of a few patrols and as abdication at sixty: three threatened tracks
+drawing six squads while the rest hold their home tracks is a tenth of a
+defence committed while the base is taken compound by compound. So a quarter of
+the pool is held back above a floor of one squad, and each threatened track may
+draw its own fraction of the remaining budget — its share of the believed
+contacts summed across every active threat, floored at the old fixed cap so a
+small pool behaves exactly as it did. Counted contacts weight that share rather
+than the diffused pressure field, which is sampled at influence-block centres
+and measures the block grid as much as the front. Concentration remains
+strictly second: every threatened track still receives its first responder
+before any track receives a second.
+
+This is a bound on how much force answers a threat, never a relaxation of
+belief honesty. The share is computed from the same coarse threatened-track
+picture, so a larger response is a larger response to a report — not a finer
+one, and never an enemy identity or an exact cell.
 
 Explicit hold, recapture, and relief tasks outrank soft track response. A
 Conquest convoy enters through the strict defender rear edge, uses a frozen
@@ -86,7 +109,8 @@ defines their handoff.
 
 The perspective front picture publishes phase, track extents, friendly body and
 lead, believed-hostile frontier and pressure, preferred/effective track,
-reserve, assignment reason, and exact commander target or labelled zone marker.
+reserve, the response budget and the per-track responder cap it was split into,
+assignment reason, and exact commander target or labelled zone marker.
 It includes frozen own-squad position, leader zone, local contact, execution
 suspension, active-path count, and the count of own members in the squad's
 assigned target zone. Exact whole-zone occupancy, capture progress, and
