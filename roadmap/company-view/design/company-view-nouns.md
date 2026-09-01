@@ -4,8 +4,10 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — formation creation now occupies the empty place it will fill:
-a trailing squad card and a vacant physical mech gantry, with multi-bay room paging.
+Updated: 2026-09-01 — founding actions read at the scale of what they create: a
+formation emblem in the trailing gallery card and a projected whole-pad action in a
+vacant mech gantry; parked machines are centred, presented inboard, and worked at real
+hull points.
 
 ## Purpose
 
@@ -273,8 +275,10 @@ gantry without changing lance composition.
 The fitting header also provides explicit previous/next controls over the lance's four
 numbered gantry pads. Reaching a vacant station clears the chassis selection and opens
 the chassis fabrication catalog; from the facility overview, the same action begins at
-the `+` drawn and hit-tested over the vacant physical pad rather than at a remote text
-button. Vacant summary cells are informational, while occupied cells remain direct
+the fabrication action drawn and hit-tested over the vacant physical pad rather than at
+a remote text button. Its surface follows the projected five-by-seven pad at any camera
+or UI scale; it is neither a fixed pixel box nor a control snapped to one floor cell.
+Vacant summary cells are informational, while occupied cells remain direct
 refit targets. The asset browser remains the direct way to jump across lances.
 When a generated ship carries more than one vehicle-bay compartment, a separate room
 navigator cycles those actual compartments in fore-to-aft order and derives the ship
@@ -300,8 +304,13 @@ industrial fixtures, service gallery, and connected cross-corridor reuse the bat
 renderer and the same room vocabulary as generated facilities. The selected mech uses
 the battle compositor's actual layer order and hull-relative mount transforms, while
 workers use real layered infantry dolls on shared ambient routes for welding, parts
-movement, inspection, and coordination. Those actors are presentation-only and do not create a
-second schedule, labor, inventory, or refit authority. Wide-screen layout is the
+movement, inspection, and coordination. Every occupied berth publishes two shoulder,
+two waist, and one head service point, and the torch and sparks project the task's
+authored focus in world space so work lands on the machine or fixture rather than open
+deck. Machines stand at the continuous centre of their exact berth footprint and face
+the room's shared inboard service space while parked; their berth heading remains the
+way out. Those actors are presentation-only and do not create a second schedule, labor,
+inventory, or refit authority. Wide-screen layout is the
 reference composition; narrow and user-scaled layouts retain access through bounded
 scrolling rather than compressing the room until every label is simultaneously visible.
 
@@ -354,8 +363,9 @@ placeholder dash glyph.
 The campaign roster holder establishes only the non-deployable reserve formation
 during game load. A new company has no line squad until the player commits the full
 founding bill in Fleet Armory. Company HQ and Barracks therefore present honest zero
-states, while Fleet Armory renders the founding `+` as the gallery's only formation
-slot until the first squad exists and keeps it trailing every later squad. Existing
+states, while Fleet Armory renders a dedicated squad-and-plus founding emblem as the
+gallery's only formation slot until the first squad exists and keeps it trailing every
+later squad. Existing
 saves retain their named formations.
 
 The quarters use a bounded indoor `BattleSimulation` as a scene host, sharing battle
