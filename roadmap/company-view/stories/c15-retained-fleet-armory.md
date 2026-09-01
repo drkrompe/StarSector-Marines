@@ -2,8 +2,9 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-09-01 — squad and chassis founding now begin in contextual `+` slots,
-and the Mech Lab can page across multiple generated vehicle-bay compartments.
+Updated: 2026-09-01 — squad founding uses a dedicated formation emblem; chassis
+founding consumes the projected full five-by-seven pad, whose exact centred machines
+face inboard and receive welding at authored work points.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -39,7 +40,7 @@ breadcrumb keeps every completed level directly reachable.
   readiness before the player enters that squad's equipment workspace. The card body
   remains the inspect target; reinforcement is a compact secondary action rather than
   a replacement inspect button.
-- **Formation founding:** the squad overview appends one `+` card after the real squad
+- **Formation founding:** the squad overview appends one dedicated formation-action card after the real squad
   cards, including live available/required counts and vanilla commodity icons inside
   the future formation slot. Success creates a full twelve-marine line formation; an
   incomplete bill is non-mutating. New campaigns see this as the gallery's first and
@@ -175,7 +176,7 @@ breadcrumb keeps every completed level directly reachable.
   when the canvas content box and authored surface have different aspect ratios.
 - Previous/next gantry actions are visible in the fitting header, cycle through all
   four numbered pads, and keep the room rendered when the focused pad is vacant.
-- The facility overview draws and hit-tests a `+` action over each vacant physical pad;
+- The facility overview draws and hit-tests a full-pad fabrication action over each vacant physical pad;
   its summary cell is informational and cannot become a second chassis-founding route.
 - A ship with multiple generated vehicle-bay compartments exposes a bounded room pager,
   orders those bays fore-to-aft, and updates both framing and breadcrumb together. The

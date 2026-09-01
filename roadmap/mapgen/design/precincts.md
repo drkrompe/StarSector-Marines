@@ -446,11 +446,77 @@ marines walk through is not a climax. Neither is fixed by tuning one number
 harder, because it is the same number pointed at different forces. So
 `Fortification` is stated by whoever knows what is being sent.
 
-It carries two things, and they are different questions. **Gates** are about
+It carries three things, and they are different questions. **Emplacements** are
+what shoots back, and are the one that decides the fight. **Gates** are about
 manoeuvre: several give an attacker somewhere to feint and somewhere to commit,
 one makes the approach the whole battle. **Wall hit points** are about materiel:
 a wall worth less than a demolition charge is decoration, one worth more than the
-force can spend is a detour. `PICKET` through `CITADEL` are named points on both.
+force can spend is a detour. `PICKET` through `CITADEL` are named points on all
+three.
+
+**The wall is the least of it.** A wall is a delay and a detour — it decides
+where the attack goes in and what a breach costs, and then it is over. What
+turns a place into a problem is what is shooting at the ground in front of it,
+so the emplacement loadout is the dial that carries the difficulty and the other
+two shape the fight it produces. This was measured the hard way: rendered at map
+zoom, a picket and a citadel are nearly the same picture, because the difference
+between them was a handful of gaps in a one-cell line. The guns are what
+separates them, and they are what a player can see.
+
+**Stated as a count per kind, never as a number.** Two light posts and two
+rocket batteries are not the same defence at any exchange rate, so a
+fortification names how many of each `DefensePostKind` it holds and the
+generator places exactly that. It is the same 0-to-many shape a programmed
+precinct's building list has, for the same reason: a mission designer asking for
+"a garrison with no artillery but four heavy posts" should be able to say so.
+
+**Two bands, and what distinguishes them is what the emplacement is for.** The
+perimeter tiers are seeded a short way inside each open gate, widest gate first,
+so the heaviest guns cover the way most of the attack will come — a gate nobody
+is watching is a door. Artillery and drone hubs are seeded on the cells furthest
+from the outline, because their whole point is reaching past the wall from
+somewhere the attacker must get through the wall to reach; on the perimeter they
+are heavy weapons with no standoff, which is the one thing they are not. This is
+the same two-band shape the conquest fortress has always had — a kill zone in
+front and a rear battery band behind — derived from the precinct's own claimed
+outline rather than from a biome's bounding box, which is the substitution the
+whole precinct model is.
+
+**What could not be emplaced is recorded**, under `BspKeys.UNPLACED_DEFENCES`,
+for the same reason the unbuilt program is. A citadel that found room for two of
+its four heavy posts is a stronghold wearing a citadel's name, and an emplacement
+that was never stamped leaves nothing at all on the finished map to notice.
+
+### A placement guard asks about the stamp, not about the map
+
+The first working version of this placed **nothing at all**, on every seed and at
+every level, while every count still said it had asked for the guns. The unit
+test passed the whole time, because it proved the mechanism on a clean fixture
+and the fault lived in the case.
+
+`PlacementGuards.wouldPartitionWalkable` is a whole-map check: it floods the
+walkable graph from one seed and refuses the stamp if any walkable cell is left
+unreached. That is the same question as "would this stamp partition the graph"
+only on a map that is whole to begin with. A generated precinct map is not — this
+one carried three orphan pockets of 21 cells between them, left by fills and
+nothing to do with any emplacement — so the guard answered true for all 5605
+candidate anchors and the defence pass placed nothing, with no exception and no
+log line.
+
+`wouldStrandGround` is the same question asked locally, of the cells that can
+actually step onto the footprint, and is immune by construction. It now has a
+sparse-footprint form, because an embankment is a ring rather than a rectangle
+and the cells it leaves open inside itself are exactly where the interesting
+failure lives. Switching the placer to it left the conquest map **anchor for
+anchor identical** across three seeds — that path was never broken, because those
+maps come out with one walkable component — and unblocked the precinct path
+completely.
+
+The general law: **a placement guard must answer about the stamp, not about the
+map.** A guard that reports a pre-existing condition refuses everything, and a
+caller that places nothing looks exactly like a caller that was never invoked.
+`BattleSetup`'s vehicle parking and `OverwatchTowerStage` still use the whole-map
+form and carry the same latent failure.
 
 **Gate count is a cap, not a count.** Growth decides where roads cross the
 outline; the dial decides how many of those crossings stay open. A place whose
@@ -489,6 +555,17 @@ missing was not fewer gates but any control over how many.
    by `CounterattackSystem`, `FrontLineReinforcementTrigger` and
    `RecaptureTargetService`. Distance from the objective precinct is the natural
    answer once places exist.
+5. **Nothing derives `Fortification` from the campaign.** `PrecinctPlan.derive`
+   hands every garrison `GARRISON` regardless of the world's defence rating or
+   the force being sent, which is exactly the "not fun at either end" problem the
+   dial exists to solve, still unsolved at the point where it would bite. It
+   needs a decision about which of those two drives it.
+6. **A wall does not look as strong as it is.** Wall hit points are invisible: an
+   80hp picket fence and a 1200hp citadel wall draw with identical art on a
+   one-cell line. The emplacements carry the reading now, which is most of what
+   was wanted, but a thicker wall for a harder fortification would be nearly
+   free — the outline is already computed — and would make the strength legible
+   before contact as well as harder to breach.
 (The ground allowance is now derived — see below.)
 
 ## The allowance is derived, and there are two derivations

@@ -147,8 +147,9 @@ final class ShipDeckBattleSceneTest {
                 deck, generator.getLastDeckGraph(), SEED, null)) {
             scene.occupyGantries(lance);
             DeckGraph.Compartment bay = scene.room(RoomPurpose.VEHICLE_BAY);
-            long[] hands = scene.staff(bay, CrewRole.MECH_TECH, 3);
-            assertTrue(hands.length > 0, "the bay took on nobody at all");
+            long[] hands = scene.staff(bay, CrewRole.MECH_TECH, 5);
+            assertEquals(5, hands.length,
+                    "one occupied pad should sustain a full five-technician service detail");
 
             TaskPointService points = scene.simulation().taskPoints();
             Set<String> visitedByFirst = new HashSet<>();
@@ -203,24 +204,14 @@ final class ShipDeckBattleSceneTest {
         }
     }
 
-    /**
-     * A berthed machine faces the way its berth says it leaves.
-     *
-     * <p>Every machine berth is filled here rather than only the ones the company
-     * owns, because the berths on one rank of a bay face out one way and those
-     * on the other rank face out the other. Checking the first berth alone would
-     * pass on a machine that had simply kept the heading every unit spawns with.
-     *
-     * <p>Machine berths specifically. A deck's berths are one list holding two
-     * kinds, and a lance stood against the whole of it would put a mech in a
-     * ship's boat.
-     */
+    /** Parked machines are centred on their exact footprints and presented inboard. */
     @Test
-    void berthedMachinesFaceTheWayOut() {
+    void berthedMachinesAreCentredAndFaceIntoTheBay() {
         ShipDeckGenerator generator = new ShipDeckGenerator();
         MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
                 deck, generator.getLastDeckGraph(), SEED, null)) {
+            DeckGraph.Compartment bay = scene.room(RoomPurpose.VEHICLE_BAY);
             List<Gantry> berths = machineBerths(scene.gantries());
             List<MechVariant> lance = new ArrayList<>();
             for (int index = 0; index < berths.size(); index++) lance.add(MechVariant.BULWARK);
@@ -228,20 +219,29 @@ final class ShipDeckBattleSceneTest {
             long[] machines = scene.occupyGantries(lance);
             assertEquals(berths.size(), machines.length, "not every machine berth was filled");
 
-            EntityWorld world = scene.simulation().getEntityWorld();
+            EntityWorld entities = scene.simulation().getEntityWorld();
             BattleComponents components = scene.simulation().getBattleComponents();
             Set<Float> headings = new HashSet<>();
             for (int index = 0; index < machines.length; index++) {
-                float expected = berths.get(index).facing.degrees();
-                float actual = world.getFloat(machines[index],
+                Gantry berth = berths.get(index);
+                assertEquals(berth.worldCenterX(), scene.simulation().world().x(machines[index]),
+                        0.001f, "the machine is not centred across its reserved footprint");
+                assertEquals(berth.worldCenterY(), scene.simulation().world().y(machines[index]),
+                        0.001f, "the machine is not centred down its reserved footprint");
+                float dx = bay.left() + bay.width() * 0.5f - berth.worldCenterX();
+                float dy = bay.top() + bay.depth() * 0.5f - berth.worldCenterY();
+                float expected = (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
+                expected = (expected % 360f + 360f) % 360f;
+                float actual = entities.getFloat(machines[index],
                         components.MECH_LAYERED_ANIMATION,
                         BattleComponents.MECH_LAYERED_FACING_DEGREES);
+                actual = (actual % 360f + 360f) % 360f;
                 assertEquals(expected, actual, 0.01f,
-                        "the machine in berth " + (index + 1) + " is not facing its way out");
+                        "the machine in berth " + (index + 1) + " is not facing inboard");
                 headings.add(actual);
             }
             assertTrue(headings.size() > 1,
-                    "every berth faced the same way, so this proves nothing about facing");
+                    "every berth faced the same way, so the inboard test proves too little");
         }
     }
 
@@ -309,7 +309,8 @@ final class ShipDeckBattleSceneTest {
         // fitting's business. What is asserted here is that the number moves one
         // berth at a time.
         int perBerth = servicing(deck, graph, List.of(variant)).size();
-        assertTrue(perBerth > 0, "a machine was parked and nobody could get at it");
+        assertEquals(5, perBerth,
+                "a parked machine should have two shoulder, two waist and one head work point");
         assertEquals(berths * perBerth,
                 servicing(deck, graph, Collections.nCopies(berths, variant)).size(),
                 "a full bay does not offer every berth's servicing work");
