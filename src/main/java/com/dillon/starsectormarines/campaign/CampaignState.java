@@ -300,6 +300,8 @@ public final class CampaignState implements Serializable {
     /** Parent contract id for system-generated followups; -1 for ordinary contracts. */
     public long[]  contractSourceContractId = filledLongs(INITIAL_CAPACITY, -1L);
     public byte[]  contractType          = new byte[INITIAL_CAPACITY];
+    /** Persisted {@code OperationTier + 1}; zero means legacy/unset or non-mission work. */
+    public byte[]  contractOperationTier = new byte[INITIAL_CAPACITY];
     public byte[]  contractState         = new byte[INITIAL_CAPACITY];
     public int[]   contractAcceptedTick  = new int[INITIAL_CAPACITY];
     /** Sector day when retainer/term ends; -1 for mission-mode (no expiry). */
@@ -981,6 +983,10 @@ public final class CampaignState implements Serializable {
         contractCivilWarContributionAppliedTick[i] = -1;
         contractSourceContractId[i] = -1L;
         contractType[i]             = type.toByte();
+        com.dillon.starsectormarines.ops.OperationTier operationTier =
+                ContractOperationTierPolicy.select(this, patronHouseIdValue, type);
+        contractOperationTier[i]    = operationTier != null
+                ? operationTier.toPersistedByte() : 0;
         contractState[i]            = state.toByte();
         contractAcceptedTick[i]     = acceptedTick;
         contractExpiresTick[i]      = expiresTick;
@@ -1822,6 +1828,18 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractResponseDeadlineTick = filledInts(n, -1);
         }
+        if (contractOperationTier == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractOperationTier = new byte[n];
+            for (int i = 0; i < contractCount; i++) {
+                ContractType type = ContractType.fromByte(contractType[i]);
+                com.dillon.starsectormarines.ops.OperationTier tier =
+                        ContractOperationTierPolicy.select(
+                                this, contractPatronHouseId[i], type);
+                contractOperationTier[i] = tier != null
+                        ? tier.toPersistedByte() : 0;
+            }
+        }
         if (contractNoticeAckKey == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractNoticeAckKey = new long[n];
@@ -1850,6 +1868,7 @@ public final class CampaignState implements Serializable {
         contractSourceContractId  = Arrays.copyOf(contractSourceContractId, n);
         Arrays.fill(contractSourceContractId, oldLength, n, -1L);
         contractType              = Arrays.copyOf(contractType, n);
+        contractOperationTier     = Arrays.copyOf(contractOperationTier, n);
         contractState             = Arrays.copyOf(contractState, n);
         contractAcceptedTick      = Arrays.copyOf(contractAcceptedTick, n);
         contractExpiresTick       = Arrays.copyOf(contractExpiresTick, n);

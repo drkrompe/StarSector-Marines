@@ -42,7 +42,7 @@ public final class BattleForceScore {
         int seats = 0;
         for (ShuttleAssignment assignment : assignments) {
             if (assignment == null) continue;
-            seats += assignment.seatsPerSortie * Math.max(0, assignment.cycles);
+            seats += assignment.embarkedPersonnel;
         }
         return seats * REGULAR_INFANTRY;
     }

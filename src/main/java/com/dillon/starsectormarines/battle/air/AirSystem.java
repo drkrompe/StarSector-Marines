@@ -1152,7 +1152,9 @@ public class AirSystem {
                                     payload != InfantryPayload.INSTANCE
                                             && frame instanceof ShuttleType carrier
                                     ? payload.unitsPerSortie(carrier)
-                                    : mission.seatsPerSortie;
+                                    : mission.marineLoadout != null
+                                            ? mission.marineLoadout.length
+                                            : mission.seatsPerSortie;
                             mission.deboardedThisSortie = 0;   // fresh sortie → loadout index restarts at 0
                             mission.pendingDelay = mission.rearmDelay;
                             // The re-arm is a full refit at the carrier, so repair the hull too —

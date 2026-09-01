@@ -115,7 +115,7 @@ public record ShuttleArrivalPlan(
         for (int i = Math.max(0, from); i < Math.min(to, manifest.size()); i++) {
             ShuttleAssignment assignment = manifest.get(i);
             if (assignment != null) {
-                seats += (long) assignment.seatsPerSortie * assignment.cycles;
+                seats += assignment.embarkedPersonnel;
                 if (seats >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
             }
         }
