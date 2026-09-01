@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 class DebugMissionDifficultyTest {
@@ -70,5 +72,45 @@ class DebugMissionDifficultyTest {
 
         assertSame(production, DebugMissionDifficulty.atTier(
                 production, OperationTier.FULL_STRENGTH));
+    }
+
+    /**
+     * How settled the map is is the battle's statement, so the DEBUG board may
+     * make it — and hand it back, which is what a null request means.
+     */
+    @Test
+    void theDebugBoardStatesHowSettledItsMapIs() {
+        Mission mission = Mission.builder()
+                .id("debug:ASSAULT:ESTABLISHED:0")
+                .name("ASSAULT — Established")
+                .type(MissionType.ASSAULT)
+                .source(MissionSource.DEBUG)
+                .tier(OperationTier.ESTABLISHED)
+                .risk(RiskLevel.MEDIUM)
+                .build();
+
+        Mission dense = DebugMissionDifficulty.atSprawl(
+                mission, PrecinctPlan.Sprawl.DENSE);
+        assertEquals(PrecinctPlan.Sprawl.DENSE, dense.sprawl);
+        assertEquals(OperationTier.ESTABLISHED, dense.tier,
+                "stating a sprawl is not a statement about scale");
+
+        assertNull(DebugMissionDifficulty.atSprawl(dense, null).sprawl,
+                "clearing the statement hands the answer back to the market");
+    }
+
+    @Test
+    void aProductionMissionsMapIsNotADeveloperOverrideTarget() {
+        Mission production = Mission.builder()
+                .id("campaign:raid")
+                .name("Raid")
+                .type(MissionType.RAID)
+                .source(MissionSource.GENERATED)
+                .tier(OperationTier.FIRST_CONTRACT)
+                .risk(RiskLevel.LOW)
+                .build();
+
+        assertSame(production, DebugMissionDifficulty.atSprawl(
+                production, PrecinctPlan.Sprawl.DENSE));
     }
 }

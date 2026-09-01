@@ -4,8 +4,10 @@ Status: IN PROGRESS — implementation is complete; paired live command-duel acc
 
 Written: 2026-08-24
 
-Updated: 2026-08-27 — moved under `conquest-command.md` and retained as paired
-live acceptance for belief-honest patrol mobilization.
+Updated: 2026-09-01 — the mobilization bound is now a share of the mobile pool
+with a threat-weighted per-track cap. Earlier 2026-08-27 — moved under
+`conquest-command.md` and retained as paired live acceptance for belief-honest
+patrol mobilization.
 
 Read `conquest-command.md`, `mission-command-nouns.md`, `conquest-nouns.md`,
 `ai-nouns.md`, and
@@ -31,9 +33,12 @@ knowledge of the enemy.
   squads keep their node assignments. Later squads remain owned by the
   reinforcement and counterattack systems except for the explicit Conquest
   convoy handoff in `defender-convoy-deployment-and-handoff.md`.
-- Mobilization is bounded: threatened tracks receive support before any track
-  receives a second squad, and at least one mobile squad remains in reserve
-  when the starting force is large enough to permit it.
+- Mobilization is bounded by a share of the mobile pool rather than a fixed
+  count: threatened tracks receive support before any track receives a second
+  squad; a quarter of the pool remains in reserve above a floor of one mobile
+  squad; and each threatened track may draw no more than its share of the
+  remaining budget, weighted by its believed contacts and floored at the old
+  fixed per-track cap so a small starting force is unchanged.
 - Home-track squads are preferred; an adjacent-track patrol may reinforce when
   necessary. Orders remain stable while the threat report is live and clear
   when faction knowledge expires, returning the squad to routine patrol.
