@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 /**
@@ -20,8 +19,12 @@ public final class RecaptureTarget {
 
     public final TacticalNode node;
 
-    /** Biome band the node's anchor falls in. Computed once at service init; nodes don't move. */
-    public final BiomeKind slice;
+    /**
+     * Front band the node's anchor falls in — {@code 0} at the objective,
+     * rising toward the attacker. Computed once at service init; nodes don't
+     * move.
+     */
+    public final int band;
 
     /**
      * True when the node currently has zero alive defenders assigned — its
@@ -66,9 +69,9 @@ public final class RecaptureTarget {
     /** Monotonic owner token preventing an expired request from releasing a newer reservation. */
     long dispatchReservationGeneration;
 
-    RecaptureTarget(TacticalNode node, BiomeKind slice) {
+    RecaptureTarget(TacticalNode node, int band) {
         this.node = node;
-        this.slice = slice;
+        this.band = band;
     }
 
     /** Squad-assignment X (the objective — where the deboarded squad advances to). */
@@ -83,6 +86,6 @@ public final class RecaptureTarget {
     @Override
     public String toString() {
         return "RecaptureTarget{" + node.kind + " @(" + node.anchorX + "," + node.anchorY
-                + ") " + slice + (open ? " OPEN" : " HELD") + (dispatched ? " DISPATCHED" : "") + "}";
+                + ") band " + band + (open ? " OPEN" : " HELD") + (dispatched ? " DISPATCHED" : "") + "}";
     }
 }
