@@ -41,10 +41,12 @@ Every family repeats `chassis.png`, `chassis-hound.png`,
 `chassis-sirocco.png`, `chaingun-arm.png`, `linear-cannon-variant.png`,
 `heavy-cannon.png`, `srm-pod.png`, `lrm-pod.png`, `shoulder-laser-cannon.png`,
 `pulse-laser-arm.png`, `hegemony-bastion-autocannon.png`,
-`pather-demolition-cannon.png`, and `lions-guard-thermal-lance.png`. The builder applies each
-accepted base sprite's exact alpha mask, so a skin cannot change silhouette,
+`pather-demolition-cannon.png`, `lions-guard-thermal-lance.png`,
+`muster-autogun.png`, `quarry-breaker-cannon.png`, and
+`pioneer-rocket-cradle.png`. The builder applies each accepted base sprite's
+exact alpha mask, so a skin cannot change silhouette,
 hardpoint authority, scale, or mechanics. Weapon paint is transferred only
-through ten reviewed casing masks; barrels, missiles, rack cavities, vents,
+through thirteen reviewed casing masks; barrels, missiles, rack cavities, vents,
 fasteners, lamps, and gait layers remain the shared base hardware.
 
 Run `python art-source/mech-modular-topdown/build_assets.py` from the repository root after replacing a retained source. The generated
@@ -63,3 +65,8 @@ regenerate the ten-family contact sheet at
 Run `python art-source/mech-modular-topdown/render_faction_weapon_variants.py`
 to review those chassis with the derived faction weapon casings at
 `roadmap/mechs/previews/factional-mech-weapons.png`.
+
+Run `python art-source/mech-modular-topdown/render_commercial_weapon_variants.py`
+to review the three common-market components in every supported livery at
+`roadmap/mechs/previews/commercial-mech-weapons.png`. These are fit checks, not
+authored faction spawn loadouts.
