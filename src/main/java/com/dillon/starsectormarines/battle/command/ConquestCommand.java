@@ -28,7 +28,8 @@ import java.util.TreeMap;
  * the far side). The command evaluates these layers each slow tick:
  *
  * <ol>
- *   <li><b>Deliberate compound capture (map-global).</b> Conquest is won
+ *   <li><b>Deliberate compound capture (bounded to the home track and its
+ *       neighbours).</b> Conquest is won
  *       only when every supply compound is {@code MARINE_HELD}, so capture
  *       is treated as the objective it is rather than an accident of the
  *       front line washing over a building. A <em>measured detachment</em>
@@ -36,13 +37,14 @@ import java.util.TreeMap;
  *       {@link AssignmentKind#SECURE_COMPOUND} a compound the moment it is
  *       <em>uncontested</em> — squads without actionable front work go first,
  *       and at least one executable actionable squad remains on the front.
- *       The budget is global across compounds, and so is the pairing: a fresh
- *       distant detachment is offered every compound on the map. Bounding it
- *       to the home track and one neighbour is built and measured, and ships
- *       off — {@link #HOME_TRACK_CAPTURES_PROPERTY} has the matrix. The two
- *       convergence phases below are map-global for a different reason, one no
- *       measurement can move: once the keep or one contested compound is the
- *       whole remaining objective there is no other front to hold. A compound that
+ *       The reserve budget is global across compounds; the <em>pairing</em> is
+ *       not. A fresh distant detachment reaches its own track and one
+ *       neighbour, own track first (see
+ *       {@link #HOME_TRACK_CAPTURES_PROPERTY}). The two convergence phases
+ *       below stay map-global for a reason no measurement can move: once the
+ *       keep or one contested compound is the whole remaining objective there
+ *       is no other front to hold. A squad already holding or standing at a
+ *       capture keeps it whatever track it is on. A compound that
  *       still holds defenders is only assigned to a squad already in/adjacent
  *       to it (commit incidental presence; never feed a lone squad into a
  *       defended building). "Contested" is judged over the compound's
@@ -151,15 +153,15 @@ public final class ConquestCommand implements ConquestFrontCommand,
             System.getProperty(EMPTY_TRACK_ADVANCE_PROPERTY, "true"));
 
     /**
-     * {@code -Dbattle.command.conquest.homeTrackCaptures=true} bounds a fresh
-     * distant capture detachment to the squad's home track and one neighbour,
-     * own track first. <b>It ships off</b>, on the Conquest matrix below.
+     * {@code -Dbattle.command.conquest.homeTrackCaptures=false} restores the
+     * map-global greedy nearest-pair capture fill, which is the control this
+     * layer has to be measured against.
      *
      * <p>The track partition already limited <em>front</em> support to the
      * preferred track or one neighbour. The capture allocation never did: it
-     * ranks every uncaptured compound on the map against every uncommitted
+     * ranked every uncaptured compound on the map against every uncommitted
      * squad by straight-line distance and nothing else, and the preserve pass
-     * then keeps whatever that produced for the rest of the battle. Observed in
+     * then kept whatever that produced for the rest of the battle. Observed in
      * a live Conquest: a six-marine squad born on the top track, standing at
      * lateral 48, holding {@code SECURE_COMPOUND} on a barracks at lateral 157
      * — the bottom track, 110 cells away — while its own track was left to
@@ -167,47 +169,55 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * already held nine squads. The walk is a squad out of the battle for about
      * a minute, and the track it left does not advance while it is gone.
      *
-     * <p><b>The bound does stop that, and on one fixture it costs most of the
-     * battle.</b> Measured on the canonical matrix, on against off:
+     * <p>So a fresh distant detachment reaches one track either side of home
+     * and no further, and takes a neighbour's compound only while its own track
+     * has nothing worth doing. "A neighbour" is the bound the front push
+     * already runs on; two tracks over is not a neighbour on any reading of it.
+     *
+     * <p><b>The canonical matrix, on against off</b> — it costs nothing either
+     * fixture is decided on:
      *
      * <ul>
-     *   <li><i>reinforced-south</i> — 6 compounds captured and 2 held, against
-     *       12 and 11 with the bound off. 283 defenders killed against 390, 238
-     *       marines lost against 216. Both runs timed out at 18000 ticks.</li>
-     *   <li><i>full-strength-west</i> — 3 captured and 3 held either way, 320
-     *       defenders killed against 311, 425 marines lost against 426. This is
-     *       the one reading in the bound's favour: it timed out at 18000 where
-     *       the control lost outright, TERMINAL to the DEFENDER at 16445.</li>
+     *   <li><i>reinforced-south</i> — 7 compounds captured and 2 held, both
+     *       ways. 377 defenders killed against 370, 232 marines lost against
+     *       228. Both timed out at 18000 ticks.</li>
+     *   <li><i>full-strength-west</i> — 3 captured against 2, 0 held either
+     *       way, 464 defenders killed against 457, 425 marines lost against
+     *       426. Both end TERMINAL to the DEFENDER; the bound survives to
+     *       12315 ticks where the control falls at 10812.</li>
      * </ul>
      *
-     * <p>It does what it claims: fresh far-track distant fills go to zero.
-     * Capture directives more than one track from home fall 77 to 0 on
-     * full-strength-west and 33 to 26 on reinforced-south — and every one of
-     * that residue descends from a single {@code COMPOUND_ASSAULT_ADJACENT}
-     * commit, a squad standing at the compound, which the rule allows on
-     * purpose. So the eleven-to-two swing is not a bound that failed to bite;
-     * it is what the far-track walk was buying. A map with fourteen compounds
-     * spread across three tracks does not offer every track work of its own,
-     * and a squad refused a distant capture mostly stays where it is: held
-     * compounds are what a Conquest is decided on, and losing nine of them to
-     * save the walk is not a trade worth taking on this evidence.
+     * <p><b>What the bound is now mostly buying is that the pathology cannot
+     * come back.</b> On this tree the unbounded fill barely commits a far-track
+     * pairing anyway — capture directives more than one track from home are 1
+     * and 0 across the two fixtures with the bound off. That is the prosecution
+     * fall-through fix upstream of it: a squad under HOLD/PROSECUTE with no
+     * firing cell inside its leash used to freeze for as long as the contact
+     * stayed visible, and a frozen squad is exactly the uncommitted, work-free
+     * squad the distant fill reaches for. Fix the freeze and most of the far
+     * pairings stop being offered. With the bound on the fill's own reason
+     * never appears beyond one track at all; the 18 far pulses that remain are
+     * one squad's <em>preserved</em> capture whose published effective track
+     * drifted late in the battle, which is a held objective rather than a fresh
+     * detachment and is not the allocation this governs.
      *
-     * <p>The cost the user reported is real too, and this is where the next
-     * attempt should start rather than from scratch: the walk is worth
-     * something, so the discrimination wanted is probably <em>which</em> far
-     * compound and <em>how many</em> squads may go — not whether any may.
+     * <p><b>The first measurement of this switch was taken before that fix and
+     * read the opposite</b> — reinforced-south at 6 captures and 2 held with
+     * the bound on against 12 and 11 off — which is why it briefly shipped off.
+     * That number is an artifact of the freeze, not of the track bound; do not
+     * re-derive a trade from it.
      */
     public static final String HOME_TRACK_CAPTURES_PROPERTY =
             "battle.command.conquest.homeTrackCaptures";
 
     /**
-     * Read once from the property above. Not {@code final} so the on path is
-     * reachable from a test as well as from an evidence run — a switch only a
-     * whole JVM can flip is a switch whose other state nothing small ever
+     * Read once from the property above. Not {@code final} so the control path
+     * is reachable from a test as well as from an evidence run — a switch only
+     * a whole JVM can flip is a switch whose off state nothing small ever
      * exercises. Nothing in the shipped command writes it.
      */
     static boolean HOME_TRACK_CAPTURES_ENABLED = Boolean.parseBoolean(
-            System.getProperty(HOME_TRACK_CAPTURES_PROPERTY, "false"));
+            System.getProperty(HOME_TRACK_CAPTURES_PROPERTY, "true"));
 
     /** Stand this many cells behind the nearest believed hostile in a track. */
     static final int TRACK_LINE_STANDOFF_CELLS = 8;
