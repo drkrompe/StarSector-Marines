@@ -36,11 +36,18 @@ public final class FittedBoat implements Airframe, AirHandling {
     private final ShuttleType pattern;
     private final BoatFitting plating;
     private final BoatFitting drive;
+    private final String boatId;
 
     public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive) {
+        this(pattern, plating, drive, null);
+    }
+
+    public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive,
+                      String boatId) {
         this.pattern = Objects.requireNonNull(pattern, "pattern");
         this.plating = requireSlot(plating, BoatFittingSlot.PLATING);
         this.drive = requireSlot(drive, BoatFittingSlot.DRIVE);
+        this.boatId = boatId;
     }
 
     /** The pattern as it leaves the yard, which is every boat a hull comes with. */
@@ -56,6 +63,18 @@ public final class FittedBoat implements Airframe, AirHandling {
     public BoatFitting plating() { return plating; }
 
     public BoatFitting drive() { return drive; }
+
+    /**
+     * The campaign boat this frame was frozen from, or null when nothing owns
+     * it — an employer's craft, a fixture's bare pattern, a standard fit stood
+     * up for a briefing that has no deck behind it.
+     *
+     * <p>The one thread back across the seam, and deliberately only an id: the
+     * sim has no business reading a company's roster, but a boat that burns
+     * over the objective has to be nameable at resolution, and by then the
+     * entity is long reaped.
+     */
+    public String boatId() { return boatId; }
 
     @Override public String spritePath()  { return pattern.spritePath(); }
     @Override public String renderHullId() { return pattern.renderHullId(); }
@@ -76,9 +95,11 @@ public final class FittedBoat implements Airframe, AirHandling {
     @Override public float stationDamping()       { return pattern.stationDamping(); }
 
     /**
-     * By pattern and fitting ids, so a boat frozen twice out of the same
-     * campaign state compares equal and a fixture round-trip can be asserted on
-     * the manifest rather than field by field.
+     * By pattern, fitting ids and owning boat, so a boat frozen twice out of the
+     * same campaign state compares equal and a fixture round-trip can be
+     * asserted on the manifest rather than field by field. Two of the company's
+     * own boats at the same fit are still two boats, which is what the id
+     * carries here — one of them can be lost.
      */
     @Override
     public boolean equals(Object other) {
@@ -86,18 +107,21 @@ public final class FittedBoat implements Airframe, AirHandling {
         if (!(other instanceof FittedBoat boat)) return false;
         return pattern == boat.pattern
                 && plating.id().equals(boat.plating.id())
-                && drive.id().equals(boat.drive.id());
+                && drive.id().equals(boat.drive.id())
+                && Objects.equals(boatId, boat.boatId);
     }
 
     @Override
     public int hashCode() {
         int result = 31 * pattern.hashCode() + plating.id().hashCode();
-        return 31 * result + drive.id().hashCode();
+        result = 31 * result + drive.id().hashCode();
+        return 31 * result + Objects.hashCode(boatId);
     }
 
     @Override
     public String toString() {
-        return pattern + "[" + plating.id() + "," + drive.id() + "]";
+        return pattern + "[" + plating.id() + "," + drive.id()
+                + (boatId != null ? "," + boatId : "") + "]";
     }
 
     private static BoatFitting requireSlot(BoatFitting fitting, BoatFittingSlot slot) {

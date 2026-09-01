@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -75,6 +76,7 @@ public final class BattleFixtureJson {
             root.put("enemyFighterSupport",
                     wingsToJson(conquest.enemyFighterSupport()));
             root.put("arrivalPlan", arrivalPlanToJson(conquest.arrivalPlan()));
+            putSprawl(root, conquest.sprawl());
             return root;
         }
         if (fixture instanceof SabotageBattleFixture sabotage) {
@@ -97,6 +99,7 @@ public final class BattleFixtureJson {
                     wingsToJson(assault.marineFighterSupport()));
             root.put("enemyFighterSupport",
                     wingsToJson(assault.enemyFighterSupport()));
+            putSprawl(root, assault.sprawl());
             return root;
         }
         if (fixture instanceof RaidBattleFixture raid) {
@@ -107,6 +110,7 @@ public final class BattleFixtureJson {
                     wingsToJson(raid.marineFighterSupport()));
             root.put("enemyFighterSupport",
                     wingsToJson(raid.enemyFighterSupport()));
+            putSprawl(root, raid.sprawl());
             return root;
         }
         if (fixture instanceof ExtractionBattleFixture extraction) {
@@ -118,6 +122,7 @@ public final class BattleFixtureJson {
                     wingsToJson(extraction.marineFighterSupport()));
             root.put("enemyFighterSupport",
                     wingsToJson(extraction.enemyFighterSupport()));
+            putSprawl(root, extraction.sprawl());
             return root;
         }
         throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
@@ -241,7 +246,8 @@ public final class BattleFixtureJson {
                 targetProfileFromJson(root.getJSONObject("targetProfile")),
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
                 wingsFromJson(root.getJSONArray("enemyFighterSupport")),
-                arrivalPlanFromJson(root.getJSONObject("arrivalPlan")));
+                arrivalPlanFromJson(root.getJSONObject("arrivalPlan")),
+                sprawlFromJson(root));
     }
 
     private static SabotageBattleFixture decodeSabotage(
@@ -267,7 +273,8 @@ public final class BattleFixtureJson {
                 enumValue(RiskLevel.class, root.getString("risk"), "risk"),
                 targetProfileFromJson(root.getJSONObject("targetProfile")),
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
-                wingsFromJson(root.getJSONArray("enemyFighterSupport")));
+                wingsFromJson(root.getJSONArray("enemyFighterSupport")),
+                sprawlFromJson(root));
     }
 
     private static RaidBattleFixture decodeRaid(JSONObject root) throws Exception {
@@ -279,7 +286,8 @@ public final class BattleFixtureJson {
                 enumValue(RiskLevel.class, root.getString("risk"), "risk"),
                 targetProfileFromJson(root.getJSONObject("targetProfile")),
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
-                wingsFromJson(root.getJSONArray("enemyFighterSupport")));
+                wingsFromJson(root.getJSONArray("enemyFighterSupport")),
+                sprawlFromJson(root));
     }
 
     private static ExtractionBattleFixture decodeExtraction(JSONObject root)
@@ -292,7 +300,8 @@ public final class BattleFixtureJson {
                 enumValue(RiskLevel.class, root.getString("risk"), "risk"),
                 targetProfileFromJson(root.getJSONObject("targetProfile")),
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
-                wingsFromJson(root.getJSONArray("enemyFighterSupport")));
+                wingsFromJson(root.getJSONArray("enemyFighterSupport")),
+                sprawlFromJson(root));
     }
 
     private static void encodeCommon(
@@ -322,6 +331,11 @@ public final class BattleFixtureJson {
             if (shuttle.airframe instanceof FittedBoat boat) {
                 encoded.put("platingId", boat.plating().id());
                 encoded.put("driveId", boat.drive().id());
+                // Which of the company's boats this was, when it was one of
+                // theirs at all. A replay of a mission that lost a boat has to
+                // lose the same one, and the fit alone cannot say which of two
+                // identical Aeroshuttles burned.
+                if (boat.boatId() != null) encoded.put("boatId", boat.boatId());
             }
             encoded.put("cycles", shuttle.cycles);
             encoded.put("seatsPerSortie", shuttle.seatsPerSortie);
@@ -349,7 +363,8 @@ public final class BattleFixtureJson {
                             BoatFitting.resolve(encoded.optString("platingId", null),
                                     BoatFittingSlot.PLATING),
                             BoatFitting.resolve(encoded.optString("driveId", null),
-                                    BoatFittingSlot.DRIVE))
+                                    BoatFittingSlot.DRIVE),
+                            encoded.optString("boatId", null))
                     : type;
             shuttles.add(new ShuttleAssignment(type, frame, cycles, seats,
                     encoded.has("embarkedPersonnel")
@@ -594,6 +609,24 @@ public final class BattleFixtureJson {
     private static String nullableString(JSONObject object, String key)
             throws Exception {
         return object.isNull(key) ? null : object.getString(key);
+    }
+
+    /**
+     * Writes the battle's stated sprawl, and nothing at all when it has none.
+     *
+     * <p>Absent is the derived case, which is what every fixture written
+     * before the field existed means — so the key is omitted rather than
+     * written as null, and the schema version does not move.
+     */
+    private static void putSprawl(JSONObject root, PrecinctPlan.Sprawl sprawl)
+            throws Exception {
+        if (sprawl != null) root.put("sprawl", sprawl.name());
+    }
+
+    /** The document's stated sprawl, or null when it leaves it to the market. */
+    private static PrecinctPlan.Sprawl sprawlFromJson(JSONObject root) throws Exception {
+        return nullableEnum(PrecinctPlan.Sprawl.class,
+                root.has("sprawl") ? root.getString("sprawl") : null, "sprawl");
     }
 
     private static <E extends Enum<E>> E nullableEnum(
