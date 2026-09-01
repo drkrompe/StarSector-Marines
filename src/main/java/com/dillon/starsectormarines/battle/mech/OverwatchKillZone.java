@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
+import com.dillon.starsectormarines.battle.combat.FiringLane;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -59,9 +60,9 @@ public final class OverwatchKillZone implements Action {
     /** Broad lateral frontage in which an ally can credibly screen the threat axis. */
     static final float SCREEN_AXIS_HALF_WIDTH = 8f;
     /** Minimum ally clearance from the actual projectile ray. */
-    static final float SCREEN_FIRE_LANE_CLEARANCE = 1.5f;
+    static final float SCREEN_FIRE_LANE_CLEARANCE = FiringLane.CLEARANCE_CELLS;
     /** Extra clearance around a friendly's authored physical profile. */
-    private static final float SCREEN_FIRE_LANE_MARGIN = 0.5f;
+    private static final float SCREEN_FIRE_LANE_MARGIN = FiringLane.RADIUS_MARGIN_CELLS;
     /** Sentinel returned when any friendly body obstructs the candidate's firing ray. */
     private static final long BLOCKED_FIRING_LANE = Long.MIN_VALUE;
     /** Keeps an ally meaningfully between the shooter and threat rather than touching either endpoint. */
