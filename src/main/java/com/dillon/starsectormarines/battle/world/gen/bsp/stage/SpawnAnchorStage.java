@@ -7,6 +7,9 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.Random;
@@ -28,7 +31,15 @@ public final class SpawnAnchorStage implements GenStage {
         BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
         int[] marine;
         int[] defender;
-        if (axis != null) {
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        if (plan != null) {
+            // A precinct map has no axis and no biome bands, and the low-X /
+            // high-X fallback below is arbitrary against wherever the objective
+            // actually grew - on a map whose garrison is in the west it puts
+            // the attacker on top of it. The plan already says both things.
+            marine = pickPlacementSpawn(grid, plan, rng, ctx.width, ctx.height);
+            defender = pickObjectiveSpawn(grid, ctx, plan, rng);
+        } else if (axis != null) {
             marine   = pickBiomeSpawn(grid, ctx.topology, biomeMap, BiomeKind.BEACH,
                     rng, axis, false);
             defender = pickBiomeSpawn(grid, ctx.topology, biomeMap,
@@ -39,6 +50,75 @@ public final class SpawnAnchorStage implements GenStage {
         }
         ctx.put(BspKeys.MARINE_SPAWN, marine);
         ctx.put(BspKeys.DEFENDER_SPAWN, defender);
+    }
+
+    /**
+     * Where the attacking force arrives on a precinct map.
+     *
+     * <p>The mission's stated placement when it gave one. Failing that, the
+     * corner furthest from the objective — an attacker landing beside the thing
+     * it is meant to take has no approach to fight through, which is most of
+     * what a conquest map is for.
+     */
+    private static int[] pickPlacementSpawn(NavigationGrid grid, PrecinctPlan plan,
+                                            Random rng, int width, int height) {
+        MapPlacement from = plan.attackerFrom();
+        if (from == null) from = awayFrom(plan.objective(), width, height);
+        int[] rect = from.bounds(width, height);
+        return pickSpawnAnchor(grid, rect[0], rect[1], rect[2], rect[3], rng);
+    }
+
+    /** The third of the map whose middle is furthest from the objective. */
+    private static MapPlacement awayFrom(Precinct objective, int width, int height) {
+        if (objective == null) return MapPlacement.ANYWHERE;
+        MapPlacement[] corners = {
+                MapPlacement.SOUTH_WEST, MapPlacement.SOUTH_EAST,
+                MapPlacement.NORTH_WEST, MapPlacement.NORTH_EAST};
+        MapPlacement best = corners[0];
+        long bestDist = -1;
+        for (MapPlacement corner : corners) {
+            int[] centre = corner.centre(width, height);
+            long dx = centre[0] - objective.seedX();
+            long dy = centre[1] - objective.seedY();
+            long dist = dx * dx + dy * dy;
+            if (dist > bestDist) {
+                bestDist = dist;
+                best = corner;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Where the defender stands: inside the place the mission is about.
+     *
+     * <p>Its claim rather than its seed, because a seed is one cell and may have
+     * been built on. Falls back to the far half of the map when nothing on it is
+     * programmed, which is a map with no installation to hold.
+     */
+    private static int[] pickObjectiveSpawn(NavigationGrid grid, GenContext ctx,
+                                            PrecinctPlan plan, Random rng) {
+        Precinct objective = plan.objective();
+        int[][] claim = ctx.get(BspKeys.PRECINCT_CLAIM);
+        if (objective == null || claim == null) {
+            return pickSpawnAnchor(grid, ctx.width / 2, 1, ctx.width - 1, ctx.height - 1, rng);
+        }
+        int who = plan.precincts().indexOf(objective);
+        int x0 = ctx.width;
+        int y0 = ctx.height;
+        int x1 = -1;
+        int y1 = -1;
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                if (claim[x][y] != who) continue;
+                x0 = Math.min(x0, x);
+                y0 = Math.min(y0, y);
+                x1 = Math.max(x1, x);
+                y1 = Math.max(y1, y);
+            }
+        }
+        if (x1 < 0) return new int[]{objective.seedX(), objective.seedY()};
+        return pickSpawnAnchor(grid, x0, y0, x1, y1, rng);
     }
 
     /**
