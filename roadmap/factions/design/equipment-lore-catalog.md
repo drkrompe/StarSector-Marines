@@ -4,7 +4,9 @@ Status: ACTIVE — canonical provenance and faction-fit reference for shipped Ma
 
 Written: 2026-08-26
 
-Updated: 2026-08-28 — the Rampart field revetment shipped as carried directional cover and the Palisade interceptor pod as the first deployable, alongside the Emberjaw breacher, the Quillon vibro-blade, the Aegis composite line suit's predictive volley, and the Halcyon micro-missile it fires.
+Updated: 2026-09-01 — added the common-market Muster autogun, Quarry breaker
+cannon, and Pioneer utility rocket cradle as lower-performance mech components
+whose circulation does not make them faction defaults.
 
 Read `faction-lore-nouns.md` for evidence tiers and the individual faction guides
 for institutional context. `progression-nouns.md` owns acquisition and issue;
@@ -49,6 +51,23 @@ delivery behavior, protection tradeoff, or special activation.
 | `special.point-defence-emplacement` | **PDE-1 Palisade interceptor pod** — a Gilead voidwright shipping-lane point-defence cluster cut down onto a folding infantry tripod, from the same guild tradition as the Breachhand. | Church and Knight convoy custodians who already run lane defences; League and Independent contractors who buy the pattern under licence; recovered pirate and Pather sets running on whatever cells they can scavenge. | It is denial equipment and nothing else: it engages warheads, never bodies, and it is not an anti-infantry turret, a sentry gun, an observation post, or a squad member. Its magazine, its cell, and its own structure all run out, so it degrades a missile threat rather than removing one. Hegemony and Tri-Tachyon field their own hardpoint point defence and need no renamed infantry equivalent without a distinct mechanic. |
 | `special.field-revetment` | **RVT-3 Rampart field revetment** — a Hegemony combat-engineering pattern of folding mesh baskets, liner and stakes, whose specification is old enough and simple enough that every arsenal builds its own. | Hegemony issue; ordinary market stock across the League, the Diktat, Independent contractors, and Church and Knight garrisons; pirate and Pather sets recovered from wherever a line was dug in. | It is cover, not a wall: a soldier steps over it, shoots over it, and sees over it, and it can never be used to close a route, seal a doorway, or cut a map in two. It protects one boundary and gives nothing at all against fire from the other three sides. It is field kit rather than a controlled pattern, so it circulates through markets and salvage rather than through licences, and no faction needs a renamed equivalent. |
 | `special.vibro-blade` | **VBL-1 Quillon vibro-blade** — a rugged Hegemony boarding pattern whose specification spread through coalition arsenals. | Hegemony issue; copied League and Diktat patterns; broad Independent, Pather, and pirate circulation; rare Tri-Tachyon monofilament tools of the same role. | Vibro and monofilament are one edge role; a monofilament label buys presentation and provenance, never extra reach or a hidden bonus. It is anti-personnel reaction equipment and cannot be used on machinery, walls, or emplacements. |
+
+## Mech weapon components
+
+These components define a commercial floor beneath formal military equipment.
+They are deliberately worse because they are security or industrial conversions,
+not because salvage itself implies poor quality. Recovery is one circulation
+channel among manufacture, trade, capture, and black-market resale.
+
+| Stable weapon id | Model and provenance | Plausible circulation | Limits and identity |
+| --- | --- | --- | --- |
+| `weapon.mech-muster-autogun` | **CAG-6 Muster commercial autogun** — a mass-market convoy and settlement-security weapon assembled around commodity receivers and exposed feeds. | Independent commercial worlds, local militias, auxiliaries, contractors, and captured pirate or Pather stocks. | Shorter-ranged, less accurate, less penetrating, and far less saturating than military chainguns or autocannons. It is common-market hardware, not Independent faction issue. |
+| `weapon.mech-quarry-breaker` | **QBC-2 Quarry breaker cannon** — a mining and demolition projector pressed into battlefield service. | Industrial markets, remote extraction works, breaker yards, contractors, and outlaw conversions or recovery. | A crude short-range structural hit with poor accuracy, low armor penetration, slow cycling, and a tiny finite shell bin. Its wall damage does not make it a military Foundry Breaker equivalent. |
+| `weapon.mech-pioneer-rocket` | **PRC-4 Pioneer utility rocket cradle** — an open rail for seismic charges and obstacle-clearing rockets adapted to shoulder hardpoints. | Industrial and frontier markets, public works, remote survey crews, contractors, and recovered outlaw use. | Four straight-fire rockets per trigger, finite salvos, loose dispersion, and no military boost guidance or indirect-fire capability. It is weaker and more exposed than a sealed SRM pod. |
+
+All three are valid future subsystem-inventory or market stock. None belongs in
+`FactionMechLoadouts` merely because a faction can plausibly buy, capture, or
+maintain one; an authored doctrine must choose that weaker fit explicitly.
 
 ## Armor patterns
 

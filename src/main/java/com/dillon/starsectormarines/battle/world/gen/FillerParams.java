@@ -52,8 +52,20 @@ public final class FillerParams {
      * when no ground pool is authored (e.g. wetland, whose base is a carve).
      */
     public GroundKind pickGround(Random rng, GroundKind fallback) {
+        return pickGround(rng.nextFloat(), fallback);
+    }
+
+    /**
+     * The same weighted pick against a roll the caller supplies, so ground can
+     * be drawn from a spatially coherent field ({@link PatchField}) instead of
+     * an independent draw per cell. Identical arithmetic either way: the pool's
+     * proportions are a property of the thresholds, not of where the roll came
+     * from, so a uniform field reproduces the authored mix exactly.
+     *
+     * @param roll a value in {@code [0,1)}
+     */
+    public GroundKind pickGround(float roll, GroundKind fallback) {
         if (groundKinds.length == 0 || groundTotal <= 0) return fallback;
-        float roll = rng.nextFloat();
         int acc = 0;
         for (int i = 0; i < groundKinds.length; i++) {
             acc += groundWeights[i];

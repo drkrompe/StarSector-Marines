@@ -1,6 +1,6 @@
 # Weapon material-ID ImageGen passes
 
-Generated with the built-in ImageGen tool on 2026-08-31. These ten images are
+Generated with the built-in ImageGen tool on 2026-08-31 and 2026-09-01. These thirteen images are
 semantic classification aids, not shipping color or geometry. The builder keys
 their magenta regions into reviewed weapon paint masks, then applies those masks
 to the original weapon pixels.
@@ -39,6 +39,9 @@ table below.
 | `hegemony-bastion-autocannon.png` | `../weapon-concepts/hegemony-bastion-autocannon.png` | Every olive-drab external armor casing plate, including its small painted service marks | Black barrel and shroud, muzzle slit, recoil rails and cylinders, ammunition belt and feed, hoses, vents, fasteners, gaps, cavities, outlines, and bare metal |
 | `pather-demolition-cannon.png` | `../weapon-concepts/pather-demolition-cannon.png` | Olive and rust-red external plates, welded armor braces, access hatch, and painted rear mount casing | Oversized barrel and muzzle slit, weld beads, recoil ram, pressure-cylinder hardware, hoses, pipes, clamps, bolts, joints, gaps, cavities, outlines, and bare steel |
 | `lions-guard-thermal-lance.png` | `../weapon-concepts/lions-guard-thermal-lance.png` | Deep-red lacquer plates, cream identification chevrons, and gold/brass external trim plates | Dark emitter body, edge-on amber emitter seam, cooling fins, heat exchangers, lamps and glowing cells, pipes, vents, fasteners, gaps, cavities, outlines, gunmetal mechanisms, and mounting socket |
+| `muster-autogun.png` | `../weapon-concepts/muster-autogun.png` | Olive central receiver cover, paired side armor panels, rear mounting housing and access plates, and their connected casing | Barrel, collars, recoil cylinders, exposed ammunition belt and feed hose, vents, fasteners, pivots, lamps, gaps, outlines, and bare metal |
+| `quarry-breaker-cannon.png` | `../weapon-concepts/quarry-breaker-cannon.png` | Large olive central armor, paired side supports, longitudinal frame plates, and rear mounting casing | Oversized dark barrel and muzzle, breech, welds, three loose shells, hydraulic cylinders and hazard stripes, hoses, rails, bolts, wheels, gaps, and bare metal |
+| `pioneer-rocket-cradle.png` | `../weapon-concepts/pioneer-rocket-cradle.png` | Long olive side armor, four olive square service or clamp covers, olive lower/rear universal mount, and connected cover plates | All four rockets and yellow bands, dark rails, noses, fins, clamp bands, ignition leads and orange wiring, pipes, fasteners, lamps, hinges, gaps, outlines, and bare metal |
 
 ImageGen returned RGB checker previews rather than real alpha. Its SRM canvas
 was one pixel wider and one pixel shorter than the source; the redesigned laser
@@ -62,3 +65,9 @@ thermal-lance pass added a non-authoritative magenta halo; it is harmless
 because the builder resamples the semantic field to the accepted source crop
 and multiplies it by the normalized base sprite's exact alpha before measuring
 or applying paint. All three passed the reviewed 20–82% casing-coverage guard.
+
+The three common-market passes use the same authority split. ImageGen selected
+semantic painted casing only; normalization, alpha, silhouette, lighting, noise,
+wear, protected hardware, and faction color ramps all come from deterministic
+code and the accepted concept masters. Their masks passed the same 20–82%
+coverage guard before the thirteen-module livery family was rebuilt.

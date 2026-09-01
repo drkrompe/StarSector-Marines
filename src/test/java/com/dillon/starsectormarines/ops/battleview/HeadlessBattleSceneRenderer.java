@@ -518,9 +518,12 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                     layer(MECH_ROOT + "shoulder-laser-cannon.png"),
                     layer(MECH_ROOT + "pulse-laser-arm.png"),
                     layer(MECH_ROOT + "hegemony-bastion-autocannon.png"),
-                    layer(MECH_ROOT + "pather-demolition-cannon.png"),
-                    layer(MECH_ROOT + "lions-guard-thermal-lance.png"),
-                    layer("graphics/battle/marine-modular-topdown/marine-muzzle-flash.png"));
+                      layer(MECH_ROOT + "pather-demolition-cannon.png"),
+                      layer(MECH_ROOT + "lions-guard-thermal-lance.png"),
+                      layer(MECH_ROOT + "muster-autogun.png"),
+                      layer(MECH_ROOT + "quarry-breaker-cannon.png"),
+                      layer(MECH_ROOT + "pioneer-rocket-cradle.png"),
+                      layer("graphics/battle/marine-modular-topdown/marine-muzzle-flash.png"));
         }
 
         private LayeredSpriteCache layer(String path) throws IOException {
