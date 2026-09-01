@@ -1,13 +1,12 @@
 # nature-tiles: two provenances on one strip
 
-Status: SHIPPED — the sheet exports whole; its five field frames declare the
-material their picture comes from
+Status: SHIPPED — the sheet exports whole; its seventeen field frames declare
+the material their picture comes from
 
 Written: 2026-08-28
 
-Updated: 2026-08-28 — option 1 was taken: an authoring entry may declare a
-material, the export places it, and `texture-atlases.json` no longer names this
-sheet.
+Updated: 2026-09-01 — grass and dirt widened from a pair each to eight each;
+the pairs turned out to be one picture apiece.
 
 Read `moddable-tilesets-nouns.md` first; this doc records why one sheet stopped
 short of the path `urban-tileset` and `urban-tileset-3` completed, and what the
@@ -82,6 +81,43 @@ The alternatives, kept because the reasoning is what makes the choice legible:
    cleanest result and the one that needs new art rather than new code. Still
    open for the two water fields, which are the only fields that now take the
    mirror.
+
+## The pairs were one picture, and that is what the material field was hiding
+
+Found 2026-09-01. `grass-1` and `grass-2` named the *same* material file, and so
+did `dirt-1` and `dirt-2`. They packed byte-identical, so
+`TileManifest.pickNatureGrassTileId` hashed per cell between two copies of one
+image and every grass cell in the game drew the same picture. Grass is the
+primary outdoor surface; dirt is fifteen percent of every temperate fill. This
+was the most-repeated image in the project, and it was invisible in every
+artifact that could have shown it — the ids differ, the frames differ, the
+tileset lists two entries, and the atlas holds two frames.
+
+It is the same defect `floors.stone` and `floors.sand` each carried, and it has
+the same shape as those: a pool whose slots were filled by copying. Worth stating
+as a standing hazard rather than as three incidents. **A variant pool is not
+variety until its members differ, and nothing in this pipeline checks that.**
+Declaring a material made it cheaper to write a pool that only looks like one,
+because two slots naming one path is a shorter edit than two slots naming two.
+
+Both pools now run eight frames. Slot 1 of each keeps the material that shipped,
+so an eighth of the cells are pixel-for-pixel unchanged and the ground did not
+move colour; slots 2 through 8 are generated siblings shifted onto that slot's
+exact mean by `normalize_ground_variants.py --mean`. The frame renumbering that
+followed — twelve inserted frames moving seventeen later ones — is safe because
+nothing addresses this sheet by number: `urban.mapping.json` and `TileManifest`
+both name ids and the export assigns the indices. That was proved rather than
+assumed, by checking every pre-existing id's picture is byte-identical at its new
+frame index.
+
+The wrap needed a second method to get here. The four-corner blend that made the
+`floors.*` families is periodic by construction but flattens whatever it wraps,
+which is fine for grain and wrong for structure: the first dirt batch came back
+with its mottle averaged away and a chequerboard of darker tile centres, scoring
+a seam ratio of 5.59 against a threshold of 3.5. `wrap_overlap` cross-fades a
+band at two edges instead and leaves the middle of the tile exactly as drawn —
+1.19 on the same batch, with the mottle intact. Blend for noise, overlap for
+anything with features.
 
 ## What is also wrong here, and is not the export's fault
 

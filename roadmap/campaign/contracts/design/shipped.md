@@ -38,3 +38,4 @@ Written: 2026-08-23
 | `g30-internal-flip-garrison-trigger.md` | 2026-08-12 | `90580a8a` | `contracts-nouns.md` |
 | `g31-stationing-response-deadlines.md` | 2026-08-22 | `e25fa582` | `contracts-nouns.md` |
 | `g32-player-event-popup.md` | 2026-08-22 | `89ad8bac` | `contracts-nouns.md` |
+| `system-scoped-contract-supply.md` | 2026-09-01 | `bd0699b9e` | `contracts-nouns.md` |

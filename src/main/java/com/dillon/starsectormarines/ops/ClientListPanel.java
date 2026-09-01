@@ -70,6 +70,12 @@ public class ClientListPanel extends OpsPanel {
         float rowsTop = rect.y + rect.h - SIDE_PAD;
         float rowsBottom = rect.y + BACK_H + FOOTER_GAP;
 
+        if (ctx.clients.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("clientNone"), rowX, rowsTop - 24f, HEADER_COLOR));
+            return;
+        }
+
         float y = rowsTop - ROW_H;
         for (Client client : ctx.clients) {
             if (y < rowsBottom) break;

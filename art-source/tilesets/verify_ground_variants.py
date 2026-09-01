@@ -14,13 +14,18 @@ GROUND-VARIANT-PROMPTS.md carries the concrete invocation.
 
 Usage:
     python verify_ground_variants.py --baseline <sheet.png> <cx,cy> [<cx,cy> ...]
-    python verify_ground_variants.py <dir-of-56x56-pngs> [--family NAME]
+    python verify_ground_variants.py <dir-of-pngs> [--family NAME] [--cell N]
 
 --family selects the tiles it measures as well as labelling the report, because
 the colour-spread check is a within-family measure: run over a directory holding
 two families it reports the distance between them, which is large and means
 nothing. That was not always so, and the batch that found it scored 162 against
 a threshold of 6 while every tile in it was fine.
+
+--cell is the side the tiles must be, defaulting to 56 (Floors_Tiles' cellPx).
+A family aimed at nature-tiles is 52, because a material-backed frame there is
+sized from its material rather than from the sheet; without this the whole batch
+is flagged the wrong size and a real size fault would be lost in the noise.
 """
 
 import argparse
@@ -95,16 +100,21 @@ def report(name, tiles):
 
 
 def main():
+    global CELL
     ap = argparse.ArgumentParser()
     ap.add_argument("dir", nargs="?")
     ap.add_argument("--baseline", nargs="+", metavar="SHEET CX,CY",
                     help="an atlas path followed by the cells of one pool")
+    ap.add_argument("--cell", type=int, default=CELL,
+                    help="the side every tile must be, in pixels (default 56). "
+                         "nature-tiles materials are 52.")
     ap.add_argument("--family", default=None,
                     help="only the tiles whose filename starts with this, and "
                          "the label for the report. Colour spread is a "
                          "within-family measure, so a mixed directory without "
                          "this reports the spread between families instead.")
     args = ap.parse_args()
+    CELL = args.cell
 
     if args.baseline:
         sheet_path = pathlib.Path(args.baseline[0])

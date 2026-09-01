@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -40,6 +41,31 @@ public final class JobBoard {
     }
 
     /**
+     * The claim group one job on one <em>machine</em> belongs to.
+     *
+     * <p><b>A berth is its own group, and it has to be.</b> The rest of a
+     * room's work is interchangeable — one bench is as good as the next, which
+     * is exactly what a group means — but the machines standing in it are not:
+     * six aircraft on an apron are six turnarounds, and an hour spent on one of
+     * them is an hour the other five did not get. Filed together they behave as
+     * one place to work, and the claim service hands back the claim already
+     * held rather than a different aircraft, so a technician services the
+     * nearest stand for the whole battle and every other machine in the room is
+     * never touched. Measured on a conquest airfield: three technicians, six
+     * stands, and berths 2, 3 and 5 went three hundred seconds without a single
+     * visit while two of the three sheds sat on a full turnaround they never
+     * worked off.
+     *
+     * <p>Work that stands on its own falls through to {@link #group(int,
+     * Affordance)}, because a bench really is interchangeable with the bench
+     * beside it.
+     */
+    public static String group(int siteId, Affordance affordance, int berth) {
+        if (berth == FixtureTask.NO_BERTH) return group(siteId, affordance);
+        return group(siteId, affordance) + "@" + berth;
+    }
+
+    /**
      * Publish a site's live jobs as claimable points.
      *
      * <p>Saying the same thing twice is not an error. A site is published by
@@ -60,9 +86,15 @@ public final class JobBoard {
                                            JobSite site,
                                            boolean[] berthed) {
         Map<Affordance, Integer> counts = new EnumMap<>(Affordance.class);
+        // Ids are numbered within their own group, so the two flanks of one
+        // stand are #0 and #1 of that stand rather than two entries in a
+        // room-wide run — which is what keeps them interchangeable with each
+        // other and with nothing else.
+        Map<String, Integer> withinGroup = new HashMap<>();
         for (FixtureTask task : live(authored, site, berthed)) {
-            String group = group(site.id(), task.affordance());
-            int index = counts.merge(task.affordance(), 1, Integer::sum) - 1;
+            String group = group(site.id(), task.affordance(), task.berth());
+            counts.merge(task.affordance(), 1, Integer::sum);
+            int index = withinGroup.merge(group, 1, Integer::sum) - 1;
             String id = group + "#" + index;
             if (service.isRegistered(id)) continue;
             service.register(new TaskPoint(id, group,
