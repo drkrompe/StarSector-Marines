@@ -37,7 +37,6 @@ public final class AirfieldSystem {
     public void tick(float dt, BattleControl sim, AirfieldService service) {
         if (service == null || service.berths().isEmpty()) return;
         for (AirfieldService.Berth berth : service.berths()) {
-            releaseGroundIfNothingStandsThere(sim, berth);
             switch (berth.state) {
                 // Standing on its concrete, either ready to go or being worked
                 // back up to it. One rule for both, because what is on the pad
@@ -78,43 +77,6 @@ public final class AirfieldSystem {
     }
 
     /**
-     * The one place a berth gives its ground back.
-     *
-     * <p><b>Every way an aircraft stops standing on its stand passes through
-     * here</b>, which is deliberate and is the shape the runway claim was
-     * eventually forced into for exactly this reason: a release written into
-     * each ending is a release the next ending will not have, and what that
-     * leaves behind is an invisible wall in the middle of the apron that
-     * nothing can walk through and nothing explains. So this asks the only
-     * question that matters — is a live airframe standing here? — rather than
-     * enumerating launches, kills, refits and teardowns. A launch, a hull
-     * burned on the concrete, one lost over the objective, and any ending
-     * nobody has written yet are all the same answer.
-     *
-     * <p>Ordered before the berth's own branch on purpose. The kill path stamps
-     * a wreck over this same ground, and a wreck settling onto the dead
-     * aircraft's own footprint would read its marks instead of the concrete and
-     * decide wrongly about who could be stepped where — and would leave the
-     * intact hull's opaque cell underneath a wreck that is supposed to be
-     * shootable across. Given back first, the wreck stamps a clean apron.
-     *
-     * <p>Tolerant of a berth that never stamped anything: an empty claim is a
-     * long compare and a return.
-     */
-    private static void releaseGroundIfNothingStandsThere(BattleControl sim,
-                                                          AirfieldService.Berth berth) {
-        if (berth.closedGround == 0L) return;
-        boolean standing = (berth.state == AirfieldService.BerthState.PARKED
-                        || berth.state == AirfieldService.BerthState.REFITTING)
-                && berth.airframeId != 0L
-                && sim.world().isAlive(berth.airframeId);
-        if (standing) return;
-        AirframeFootprint.lift(sim.getGrid(), sim.getTopology(),
-                berth.centerX, berth.centerY, berth.closedGround);
-        berth.closedGround = 0L;
-    }
-
-    /**
      * Keep the berth's hull in step with the aircraft standing on it, and let it
      * off the turnaround when the crew have it back up.
      *
@@ -143,10 +105,10 @@ public final class AirfieldSystem {
      * {@link AirSystem} settles the same way. This gathers the candidate units
      * the cheap way already at hand here: every live unit on the field.
      *
-     * <p>The intact hull's own ground has already been given back by
-     * {@link #releaseGroundIfNothingStandsThere} on this tick, so what is
-     * stamped here goes onto concrete rather than over the dead aircraft's own
-     * marks.
+     * <p>Nothing has to be given back first. An intact hull writes no terrain,
+     * so the wreck stamps clean concrete rather than the dead aircraft's own
+     * marks — which is exactly what the release this used to need existed to
+     * guarantee.
      */
     private void settleWreck(BattleControl sim, AirfieldService.Berth berth) {
         AirframeFootprint.settleWreck(sim.getGrid(), sim.getTopology(), sim.world(),
@@ -155,33 +117,21 @@ public final class AirfieldSystem {
 
     /**
      * Stands an airframe on its hardstand, carrying whatever hull the berth is
-     * holding, and closes the ground under it.
+     * holding.
      *
-     * <p><b>An aircraft is a thing you walk round.</b> Without the footprint a
-     * marine crossed clean through an intact fighter while its burnt-out wreck
-     * stopped him, which is backwards, and it left the apron a raid is fought
-     * over an open field with aircraft drawn on it. It blocks sight only where
-     * the aircraft actually stands, for a reason {@link AirframeFootprint}
-     * explains: a hull opaque across its whole footprint cannot be shot at all.
+     * <p><b>The aircraft is a unit and nothing else.</b> It holds the cell it
+     * stands on the way every other body does, and being seen, gated by fog,
+     * traced against sight, hit, attributed and killed all come from that
+     * rather than from a second copy of the aircraft written into the
+     * navigation grid. Somebody standing on the pad when it arrives is stepped
+     * aside by the ordinary rule for an immobile arrival — the same rule that
+     * seats a turret on its mount and a machine off a shed's stocks.
      *
-     * <p>The hull covers the middle of the stand and no more. A pad is five
-     * cells across, so a 3x3 leaves a cell of marked concrete all the way
-     * round it — which is where the ground crew stand to reach the aircraft,
-     * and why the size is a fact about the stand rather than about the hull.
-     *
-     * <p>Happens once per arrival rather than per tick — a berth reconciles
-     * every tick but only places when it is holding no airframe, and the
-     * release above guarantees the ground claim is empty by then, so nothing
-     * is ever stamped twice.
+     * <p>Happens once per arrival rather than per tick: a berth reconciles
+     * every tick but only places when it is holding no airframe.
      */
     private void place(BattleControl sim, AirfieldService service,
                        AirfieldService.Berth berth) {
-        // The ground first, and deliberately: the stamp declines to close a cell
-        // somebody is standing in, and an aircraft placed before its own
-        // footprint is somebody standing in the middle of it — which would leave
-        // a hole under the hull for people to walk into.
-        berth.closedGround = AirframeFootprint.stand(sim.getGrid(), sim.getTopology(),
-                sim.world(), everyoneOnTheField(sim), berth.centerX, berth.centerY);
         berth.airframeId = sim.spawn(BasedAircraft.create(
                 "af" + (nextAirframeId++), faction, berth.airframe,
                 berth.centerX, berth.centerY, berth.hullHp));

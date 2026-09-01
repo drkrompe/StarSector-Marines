@@ -4,7 +4,12 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — an authored airfield is a base whose lot published it as
+Updated: 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
+3x3 of navigation grid a parked hull used to stamp around itself is gone, along
+with the release every ending owed it. A wreck still writes, because a wreck is
+nobody's body.
+
+Earlier 2026-08-31 — an authored airfield is a base whose lot published it as
 one, berths and node together, so a generated field loads its crew instead of
 flying pre-loaded. An aircraft on its wheels is a real target rather than a
 damageable one, and it reaches that on the shared terms every body is on: one
@@ -257,39 +262,44 @@ can burn what is standing on it without going indoors — the exposure is the
 point, and it is what makes a raid on the field a real alternative to taking the
 compound. `mapgen-nouns.md` owns the lot's geometry.
 
-**An aircraft standing on a stand is standing on it.** The hull closes the
-ground under it to movement, so a raid on the apron is fought across a field of
-parked machines rather than an open one with pictures drawn on it, and the
-wreckage of an aircraft is no longer more solid than the aircraft. It blocks
-sight on the one cell it stands on and not across the rest of its footprint; the
-wreck-and-obstacle section below owns why, and the reason is that a wider
-opacity makes the aircraft unshootable. It is the middle of the stand and no
-more: a pad is five cells across and
-the hull takes the inner three, leaving a cell of marked concrete all the way
-round — which is exactly where the ground crew stand to reach the aircraft, and
-the reason the size is a fact about the stand rather than about the hull.
+**An aircraft on its stand is a unit, and only a unit.** It holds the cell it
+stands on the way every body does, and being seen, gated by fog, traced against
+sight, hit, attributed, killed and wrecked all follow from that rather than from
+a second copy of the aircraft written into the navigation grid.
 
-**A hull that arrives moves nobody.** A wreck comes down once and steps the
-survivors out from under it; an aircraft is *placed*, at the start of the battle
-and again every time a turnaround finishes, so a placement that pushed people
-would hand whoever owns the field a free repeatable shove at whoever is standing
-on it. It takes the cells nobody is in and leaves the rest open instead, which
-is the same trade the wreck already makes where there is nowhere to put
-somebody. The gap lasts until the aircraft next leaves and is placed again;
-nothing watches for the cell to vacate, because watching costs a write per berth
-per tick to buy back a cell somebody is standing in anyway.
+It was both for a while. A parked hull stamped a 3x3 patch around itself — its
+own cell opaque, the ring non-walkable and see-through, a step-clear for whoever
+was under the wheels, and a packed mask remembering which cells it had taken and
+what had been marked on them, so departure could put them back exactly. All of
+that existed to keep one sentence true, that an aircraft is something you walk
+round, and it bought that sentence at the price of a representation that had to
+be given back correctly by every ending a berth has — launch, burning on the
+concrete, loss over the objective, and whichever ending nobody has written yet.
+Both ways of getting it wrong are silent. A stand that never closed is an apron
+with pictures on it; a claim that outlives its hull is an invisible wall on the
+concrete that nothing can walk through and nothing explains.
 
-**Every way an aircraft stops standing there gives the ground back, in one
-place.** Launching, burning on the concrete, being lost over the objective, and
-whatever ending nobody has written yet: the berth asks whether a live airframe
-is standing on it rather than enumerating the endings, because a release written
-into each ending is a release the next ending will not have — and what that
-leaves is an invisible wall in the middle of the apron that nothing can walk
-through and nothing explains. This is the shape the runway claim was eventually
-forced into for the same reason. The ground is given back *exactly*: the cells
-taken and the marks that were on them, never a blanket declaration of floor,
-because an apron handed back a little flatter on every sortie corrodes without
-anybody seeing it happen.
+The one thing the stamp genuinely carried is kept, and is not the airfield's
+rule: an arriving hull moves whoever is under its wheels, because two bodies in
+one cell is worse and refusing to place is worse still — a pad anybody could
+stand on to stop a field flying. That is the ordinary rule for an immobile
+arrival, the same one that seats a turret on its mount and a machine off a
+shed's stocks, and it moves the one body in the cell rather than shoving whoever
+is merely near a pad on every turnaround.
+
+The rest is simply gone, and with it a defect that was worth the trade on its
+own: a sight line exempts its two endpoints and nothing else, so a hull opaque
+across its own footprint is a hull no round can reach. That emptied the raid on
+the field outright — three aircraft burned in five seconds became none in three
+minutes — and needed a careful rule about which single cell was allowed to be
+opaque. A hull that writes nothing has nothing to be opaque in.
+
+**A wreck still writes, because a wreck is nobody's body.** The hull that died
+is dead, released and never coming back; what is left on the concrete is drawn
+off the berth, so terrain is the only place left to say it is lying there. That
+makes it the one thing on a stand that marks the ground at all, and nothing has
+to be given back before it does — the wreck-and-obstacle section below owns what
+it marks and why.
 
 **A field is worked by people, and they are on the roster.** An apron publishes
 servicing at both flanks of every stand and a board ahead of each nose, and the
@@ -418,18 +428,19 @@ The wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
 everybody sees and shoots straight across it. A non-walkable cell is opaque
 here unless it says otherwise, so the wreck says otherwise — a burnt-out
 airframe is a frame with holes in it, and an apron strewn with them is still an
-apron you can cover by fire. **The intact hull that stood there was a solid
-object** — but only on the cell it stood on, and the difference is not
-fastidiousness. A sight line exempts its two endpoints and nothing else, so an
-object opaque across a footprint wider than one cell is an object nothing can
-shoot: it hides behind its own overhang, and its own explosion cannot reach the
-people who set it off. Measured, a field of three aircraft went from burned in
-five seconds by six riflemen to untouched after three minutes. So the aircraft's
-own cell blocks sight and the ground its wings reach over does not, which is the
-convention a defence post's emplacement already follows for the same reason —
-its turret cell is opaque and the rest of the post is non-walkable and
-see-through. What a footprint gives the people beside it is **cover**, and cover
-comes from being unwalkable rather than from being opaque.
+apron you can cover by fire. What it gives the people beside it is **cover**,
+which comes from being unwalkable rather than from being opaque.
+
+Never opaque, and not out of fastidiousness. A sight line exempts its two
+endpoints and nothing else, so anything opaque across a footprint wider than one
+cell is a thing nothing can shoot: it hides behind its own overhang, and its own
+explosion cannot reach the people who set it off. The intact hull learned that
+the expensive way while it still stamped ground of its own — a field of three
+aircraft went from burned in five seconds by six riflemen to untouched after
+three minutes — and answered it with a careful rule about which single cell was
+allowed to be opaque. It writes nothing now, so the rule survives only here,
+where a hulk covering nine cells would otherwise reinstate the same defect on a
+target that is already dead.
 
 **A wreck never settles on top of somebody.** Whoever is standing where the
 hull comes down — the ground crew who walked out to fly it, the raider who
@@ -437,9 +448,10 @@ walked out to burn it — steps clear to the nearest cell that will take them,
 and a cell nobody could be stepped out of is left open instead. A unit sealed
 into a cell it can never leave stops answering its orders for the rest of the
 battle, which is a far worse outcome than a hull with a gap in it. A hull being
-*placed* on a berth does not step anybody at all — see the berth section above;
-a death happens once and a placement recurs, so only one of them may move
-people.
+*placed* on a berth moves the one body in the cell it needs and nobody else, by
+the ordinary rule for an immobile arrival — see the berth section above. A death
+happens once and a placement recurs, so what a placement may move is bounded
+much more tightly than what a wreck may.
 
 A sortie's passengers are never at risk from this. An aircraft is taken off its
 berth at the moment the request is dispatched, before the crew starts walking,
@@ -772,11 +784,11 @@ a type whose geometry is per-instance answers from the per-instance thing, and
 only a type that is genuinely one size falls through to `UnitType.radius`.
 
 **Being a large thing to hit is deliberately not being a large thing to walk
-round.** The footprint a parked aircraft denies people stays what it was, and is
-not derived from the hull: how much deck an aircraft takes up is a gameplay
-decision, and coupling it to the art would re-tune every apron on every field
-whenever a sprite changed. The same separation the drawn-size fix drew, one seam
-over.
+round.** A parked aircraft denies people no ground at all now, and the ground a
+wreck denies them is a fixed square rather than one derived from the hull: how
+much deck an aircraft takes up is a gameplay decision, and coupling it to the
+art would re-tune every apron on every field whenever a sprite changed. The same
+separation the drawn-size fix drew, one seam over.
 
 Sizing the parked hull honestly is what turned the no-chain rule above from a
 sum into a statement. A cook-off catches a body at *blast radius plus that
