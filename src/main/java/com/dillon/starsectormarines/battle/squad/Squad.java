@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -220,55 +221,44 @@ public final class Squad {
     public ObjectiveAssignment assignedObjective;
 
     /**
-     * Battle-local player tactical context. Ground clicks supply attack-move;
-     * contextual objective clicks supply the mission's existing action shape.
-     * Neither replaces the authoritative directive in
-     * {@link #assignedObjective}.
+     * The authority of the directive that wrote {@link #assignedObjective},
+     * or {@code null} when the squad holds no assignment. A mirror the
+     * {@code AssignmentArbiter} maintains beside the field at every one of its
+     * own write sites, so a reader can tell <em>who</em> pointed the squad
+     * without holding the ledger: a player's leased order and a commander's
+     * assignment of the same kind are otherwise identical here.
+     *
+     * <p>Like {@link #assignedObjective} itself, a writer outside the arbiter
+     * leaves this stale — and the arbiter's compatibility sweep corrects it at
+     * the next command pulse exactly as it corrects the assignment.
      */
-    private volatile ObjectiveAssignment playerTacticalOrder;
+    public volatile CommandAuthority assignedAuthority;
 
     /**
      * The assignment-shaped context tactical behavior may execute this tick.
-     * Form-up masks every order. Once ready, a temporary player tactical order
-     * takes precedence without replacing {@link #assignedObjective}; otherwise
-     * the authoritative mission assignment passes through unchanged.
+     * Form-up masks every order; otherwise the authoritative assignment passes
+     * through unchanged, whether a commander wrote it or a player's lease did.
      */
     public ObjectiveAssignment assignmentForExecution() {
         if (SquadFormUpSystem.formingUp(this)) return null;
-        ObjectiveAssignment tactical = playerTacticalOrder;
-        return tactical != null ? tactical : assignedObjective;
-    }
-
-    void applyTacticalMoveOrder(int cellX, int cellY) {
-        applyPlayerTacticalOrder(ObjectiveAssignment.attackMove(id, cellX, cellY));
-    }
-
-    void applyPlayerTacticalOrder(ObjectiveAssignment order) {
-        if (order == null || order.squadId() != id) {
-            throw new IllegalArgumentException("tactical order must belong to squad " + id);
-        }
-        playerTacticalOrder = order;
+        return assignedObjective;
     }
 
     /**
-     * The battle-local player order standing on this squad, or {@code null}
-     * when the mission assignment is the only order it holds. Unlike
-     * {@link #assignmentForExecution()} this is not masked by form-up, so a
-     * squad still assembling still reports the order it will run once ready —
-     * which is what a diagnostic readout wants to say about it.
+     * Whether the assignment this squad holds is a player's order of
+     * {@code kind}, rather than a commander's assignment that happens to have
+     * the same shape.
      */
-    public ObjectiveAssignment playerTacticalOrder() {
-        return playerTacticalOrder;
+    public boolean hasPlayerOrder(AssignmentKind kind) {
+        ObjectiveAssignment assignment = assignedObjective;
+        return assignedAuthority == CommandAuthority.PLAYER_INTERVENTION
+                && assignment != null && assignment.kind() == kind;
     }
 
-    /** Whether battle-local player authority currently owns this assignment shape. */
-    public boolean hasPlayerTacticalOrder(AssignmentKind kind) {
-        ObjectiveAssignment tactical = playerTacticalOrder;
-        return tactical != null && tactical.kind() == kind;
-    }
-
-    void clearPlayerTacticalOrder() {
-        playerTacticalOrder = null;
+    /** Whether a player's lease is what wrote the assignment this squad holds. */
+    public boolean underPlayerOrder() {
+        return assignedAuthority == CommandAuthority.PLAYER_INTERVENTION
+                && assignedObjective != null;
     }
 
     /** Null when command execution is ready, otherwise a stable diagnostic reason. */

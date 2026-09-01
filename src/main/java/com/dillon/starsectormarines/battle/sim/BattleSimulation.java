@@ -1454,6 +1454,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return commanders.activeDirective(squadId);
     }
 
+    /**
+     * What {@code squadId} goes back to when the lease standing on it ends, or
+     * {@code null} when nothing is being held for it. While a player's order
+     * stands, this is the commander's own directive — the one
+     * {@link #getSquadCommandDirective} is temporarily not reporting.
+     */
+    @Override
+    public CommandDirective getShelvedSquadDirective(int squadId) {
+        return commanders.assignments().shelvedDirective(squadId);
+    }
+
+    /** The per-faction commander tier, and through it the assignment ledger. */
+    public CommanderService getCommanderService() {
+        return commanders;
+    }
+
     @Override
     public void claimSquadCommand(int squadId, CommandAuthority authority,
                                   String issuer, String reason) {

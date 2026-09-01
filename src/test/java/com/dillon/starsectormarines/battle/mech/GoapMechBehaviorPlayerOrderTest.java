@@ -51,7 +51,7 @@ class GoapMechBehaviorPlayerOrderTest {
 
         sim.getSquadMoveOrderService().requestDefendArea(squadId, 36, 20);
         sim.getSquadMoveOrderSystem().tick(sim);
-        assertTrue(lance.hasPlayerTacticalOrder(AssignmentKind.DEFEND_AREA),
+        assertTrue(lance.hasPlayerOrder(AssignmentKind.DEFEND_AREA),
                 "the order has to land on the lance or the test proves nothing");
 
         GoapMechBehavior.replanIfNeeded(lance, sim);

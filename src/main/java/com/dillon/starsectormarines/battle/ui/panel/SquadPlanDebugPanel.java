@@ -286,7 +286,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // common envelope, the ownership ledger adds directive provenance,
         // and Conquest adds its typed track reasoning.
         lines += 3;
-        if (s.playerTacticalOrder() != null) lines += 1;
+        if (s.underPlayerOrder()) lines += 1;
         CommanderSnapshot<?> commander = commanderSnapshot(s, ctx.getSim());
         CommandDirective directive = commandDirective(s, ctx.getSim(), commander);
         CommandDirective activeDirective = ctx.getSim()
@@ -435,16 +435,17 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // the squad picked to pursue *this tick*; the assignment is the task
         // it was handed. They diverge when the assignment's zone is
         // unreachable or its kind doesn't match any registered
-        // MISSION-priority goal. A player order stands over the commander's
-        // assignment without replacing it, so it reads here marked as the
-        // player's and the assignment underneath gets its own row.
+        // MISSION-priority goal. A player order is a lease over the commander's
+        // directive rather than a replacement of it, so it reads here marked as
+        // the player's and the shelved mission gets its own row.
         if (detailScroll.lineVisible(lineY, DETAIL_LINE_H, vpBottomY, vpTopY)) {
             font.drawString("Assignment:", lineX, lineY, DETAIL_LABEL_FG, alphaMult);
             font.drawString(executingAssignmentLabel(s, directive),
                     lineX + 96f, lineY, DETAIL_VALUE_FG, alphaMult);
         }
         lineY -= DETAIL_LINE_H;
-        String overriddenMission = overriddenMissionLabel(s, directive);
+        String overriddenMission = overriddenMissionLabel(s, directive,
+                ctx.getSim().getShelvedSquadDirective(s.id));
         if (overriddenMission != null) {
             if (detailScroll.lineVisible(lineY, DETAIL_LINE_H, vpBottomY, vpTopY)) {
                 font.drawString("Under order:", lineX, lineY, DETAIL_LABEL_FG, alphaMult);
@@ -826,19 +827,15 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     /**
      * The Assignment row's value: the order the squad is actually carrying
-     * out, marked when the player issued it rather than a commander. A player
-     * order overrides the commander's assignment without replacing it, so
-     * reading the commander's side here names an order the squad is not
-     * following. The assignment underneath is drawn by
-     * {@link #overriddenMissionLabel}.
+     * out, marked when the player's lease is what wrote it. The commander's
+     * directive underneath is drawn by {@link #overriddenMissionLabel}.
      */
     static String executingAssignmentLabel(Squad squad, CommandDirective directive) {
-        ObjectiveAssignment player = squad.playerTacticalOrder();
-        return player != null
+        return squad.underPlayerOrder()
                 ? SquadOrderRecorder.PLAYER_ORDER_PREFIX
-                        + SquadOrderRecorder.assignmentLabel(player)
+                        + SquadOrderRecorder.assignmentLabel(squad.assignedObjective)
                 : SquadOrderRecorder.assignmentLabel(
-                        missionAssignment(squad, directive));
+                        missionAssignment(squad, directive, null));
     }
 
     /**
@@ -846,19 +843,23 @@ public final class SquadPlanDebugPanel implements HudPanel {
      * {@code null} when nothing is overridden and the row is not drawn — the
      * value of this panel is that both stay inspectable at once.
      */
-    static String overriddenMissionLabel(Squad squad, CommandDirective directive) {
-        return squad.playerTacticalOrder() == null ? null
+    static String overriddenMissionLabel(Squad squad, CommandDirective directive,
+                                         CommandDirective shelved) {
+        return !squad.underPlayerOrder() ? null
                 : SquadOrderRecorder.assignmentLabel(
-                        missionAssignment(squad, directive));
+                        missionAssignment(squad, directive, shelved));
     }
 
     /**
-     * A committed directive is the fresher statement of what the commander
-     * wants; the squad's own field is what it is still holding when the
-     * directive was rejected or none was published.
+     * A shelved directive is what a leased squad will actually go back to, so
+     * it outranks everything else here while a player's order stands. Failing
+     * that, a committed directive is the fresher statement of what the
+     * commander wants; the squad's own field is what it is still holding when
+     * the directive was rejected or none was published.
      */
     private static ObjectiveAssignment missionAssignment(
-            Squad squad, CommandDirective directive) {
+            Squad squad, CommandDirective directive, CommandDirective shelved) {
+        if (shelved != null) return shelved.assignment();
         return directive != null
                 && directive.status() != CommandDirective.Status.REJECTED
                 ? directive.assignment() : squad.assignedObjective;

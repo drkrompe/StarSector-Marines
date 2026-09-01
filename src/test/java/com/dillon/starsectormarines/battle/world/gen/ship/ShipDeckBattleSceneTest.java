@@ -36,7 +36,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -329,6 +331,13 @@ final class ShipDeckBattleSceneTest {
      *
      * <p>A whole deck, deliberately, because that wiring is the claim — the
      * pieces are each covered on their own where they live.
+     *
+     * <p>Every boat and sampled as it goes, rather than one boat measured at the
+     * end. A ship's boats now fly one after another, so the boat damaged first
+     * may well be off the deck before anybody reaches it — a berth standing
+     * empty for a sortie is the rotation working, not a crew that did nothing —
+     * and hull put back on a boat that then launched is invisible to a single
+     * reading taken afterwards.
      */
     @Test
     void aShipsCrewTurnHerBoatsRound() {
@@ -349,13 +358,26 @@ final class ShipDeckBattleSceneTest {
                         "a bay was registered with nothing standing in it");
             }
 
-            AirfieldService.Berth hurt = bays.berths().get(0);
-            float whole = scene.simulation().world().maxHp(hurt.airframeId);
-            scene.simulation().world().setHp(hurt.airframeId, whole * 0.4f);
-            scene.advanceTo(121f);
+            Map<Long, Float> hurt = new LinkedHashMap<>();
+            for (AirfieldService.Berth boat : bays.berths()) {
+                float whole = scene.simulation().world().maxHp(boat.airframeId);
+                scene.simulation().world().setHp(boat.airframeId, whole * 0.4f);
+                hurt.put(boat.airframeId, whole);
+            }
 
-            assertTrue(scene.simulation().world().hp(hurt.airframeId) > whole * 0.4f,
-                    "two minutes of a ship's time put no hull back on her damaged boat");
+            boolean mended = false;
+            for (float second = 11f; second <= 181f && !mended; second += 10f) {
+                scene.advanceTo(second);
+                for (Map.Entry<Long, Float> boat : hurt.entrySet()) {
+                    if (!scene.simulation().world().isAlive(boat.getKey())) continue;
+                    if (scene.simulation().world().hp(boat.getKey()) > boat.getValue() * 0.4f) {
+                        mended = true;
+                    }
+                }
+            }
+            assertTrue(mended,
+                    "three minutes of a ship's time put no hull back on any of her"
+                            + " damaged boats");
         }
     }
 
