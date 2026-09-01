@@ -1,8 +1,12 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.decision.goap.action.AbstractZoneAction.FiringApproach;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -18,8 +22,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * {@code setPath} stamps the repath throttle only on a non-empty assignment,
  * so the same full-component A* ran again every tick.
  *
- * <p>Both refusals are asked of {@code AbstractZoneAction.worthWalkingTo},
- * which is the boundary itself rather than an action wrapped around it.
+ * <p>Both refusals about a <em>chosen</em> cell are asked of
+ * {@code AbstractZoneAction.worthWalkingTo}, which is the boundary itself
+ * rather than an action wrapped around it. The third answer — the picker
+ * finding no cell at all — is decided one level up, so it is asked of
+ * {@code advanceToReachableFiringPosition} directly.
  */
 public class FiringPositionReachabilityTest {
 
@@ -100,6 +107,45 @@ public class FiringPositionReachabilityTest {
         assertTrue(path.length > 0, "fixture must be reachable");
         assertTrue(AbstractZoneAction.worthWalkingTo(18, 4, spot, path),
                 "a short jog around one blocked cell must not be refused");
+    }
+
+    /**
+     * The three answers the approach can give, asked of the function that
+     * decides them.
+     *
+     * <p>Two of them are about a cell that exists and one is about there being
+     * no cell at all, and the last was folded into "no path" for a while. The
+     * costs differ by more than a name: no path means hold and fight, while no
+     * position means the member has committed to something it cannot reach
+     * from inside its own leash — which under prosecution is the whole squad
+     * standing still for as long as it can see the contact.
+     */
+    @Test
+    public void aSearchThatFoundNothingIsNotTheSameAsACellWithNoPath() {
+        BattleSimulation sealed = walledSim(-1);
+        long member = sealed.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 18, 4));
+
+        assertEquals(FiringApproach.NO_POSITION,
+                AbstractZoneAction.advanceToReachableFiringPosition(member, sealed, null),
+                "a null answer from the picker means no cell inside the leash has "
+                        + "both the reach and the line of fire, which is not a cell "
+                        + "the member merely cannot walk to");
+        assertEquals(FiringApproach.UNREACHABLE,
+                AbstractZoneAction.advanceToReachableFiringPosition(member, sealed,
+                        new int[]{25, 4}),
+                "a cell behind a sealed wall is a real position with no path to it");
+    }
+
+    @Test
+    public void aPositionAroundTheLongWayReportsTheWalkRatherThanNoPosition() {
+        BattleSimulation open = walledSim(22);
+        long member = open.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 18, 4));
+
+        assertEquals(FiringApproach.NOT_WORTH_THE_WALK,
+                AbstractZoneAction.advanceToReachableFiringPosition(member, open,
+                        new int[]{25, 4}),
+                "a member that can still move perfectly well must say so, so the "
+                        + "caller carries on toward the objective");
     }
 
     @Test

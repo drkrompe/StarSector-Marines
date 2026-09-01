@@ -148,6 +148,61 @@ abstract class AbstractZoneAction implements Action {
 
     private static final boolean OBJECTIVE_FIRING_IN_ZONE = Boolean.parseBoolean(
             System.getProperty(OBJECTIVE_FIRING_IN_ZONE_PROPERTY, "true"));
+
+    /**
+     * Whether a prosecuting member that can find <em>no</em> firing cell inside
+     * its maneuver leash carries on with its assigned advance. On by default,
+     * because the noun doc has always said so: "if no legal position exists
+     * inside the maneuver leash, the member continues its assigned advance."
+     * {@code -Dbattle.squad.prosecutionFallThrough=false} restores the freeze.
+     *
+     * <p>The freeze was a live defect rather than a theory. Two squad dumps of
+     * one battle recorded twelve marines standing on their landing pad for a
+     * hundred and eighty consecutive frames — no member moving, no member
+     * holding a path, every member settled — under HOLD/ADVANCING/PROSECUTE
+     * against one stationary contact thirty cells away that not one of them
+     * could engage. Prosecution anchors the search on the squad centroid with
+     * a twelve-cell leash, the contact was further off than leash plus weapon
+     * reach, the search returned nothing, and "nothing" was read as "no path",
+     * whose answer is to plant. It repeated every tick for as long as the
+     * contact stayed visible, which under {@code contactHoldIsFresh} is as
+     * long as anybody can see it at all.
+     *
+     * <p>A switch rather than a bare change for the reason the one above it
+     * exists: the alternative control is a commit-to-commit comparison, and
+     * this repository has already charged a squad behaviour with a swing that
+     * belonged to another session's merge.
+     */
+    public static final String PROSECUTION_FALL_THROUGH_PROPERTY =
+            "battle.squad.prosecutionFallThrough";
+
+    /**
+     * Read once at class load and settable for evidence. Volatile because a
+     * scene's control loop flips it between loops on one thread while the
+     * member dispatch reads it from several.
+     */
+    private static volatile boolean prosecutionFallThrough = Boolean.parseBoolean(
+            System.getProperty(PROSECUTION_FALL_THROUGH_PROPERTY, "true"));
+
+    /** Whether a prosecuting member with nowhere to shoot from walks on. */
+    public static boolean isProsecutionFallThroughEnabled() {
+        return prosecutionFallThrough;
+    }
+
+    /**
+     * Evidence seam: turns the fall-through on or off for the rest of this JVM.
+     *
+     * <p>Exists so one scene can play its subject and its frozen control in a
+     * single run — loops play sequentially on one thread, and a control that
+     * needed a second JVM would be a second command nobody runs. Restore the
+     * previous value in a {@code finally}; production never calls this, and
+     * {@link #PROSECUTION_FALL_THROUGH_PROPERTY} is what a Conquest control run
+     * switches.
+     */
+    public static void setProsecutionFallThroughForEvidence(boolean value) {
+        prosecutionFallThrough = value;
+    }
+
     /** Maximum off-axis firing-position radius at full threat weight. */
     static final float ADVANCE_LEASH_MAX = 12f;
 
@@ -245,6 +300,7 @@ abstract class AbstractZoneAction implements Action {
     protected final void advanceIntoZone(long member, Squad squad, BattleControl sim,
                                          int destX, int destY, boolean haltOnContact) {
         boolean committed = false;
+        boolean routeCommitted = false;
         boolean doctrineHold = false;
         boolean prosecuteContact = false;
         float engageLeash = 0f;
@@ -254,6 +310,10 @@ abstract class AbstractZoneAction implements Action {
         if (haltOnContact) {
             updateAdvanceThreat(squad, sim, destX, destY);
             committed = squad.advanceEngageCommitted;
+            // Kept apart from committed, which three different decisions write.
+            // Only this one means "the enemy is astride the route", and it is
+            // the one whose refusals plant rather than walk on.
+            routeCommitted = committed;
             Doctrine doctrine = squad.contactPicture.doctrine();
             boolean advancingPicture = squad.contactPicture.posture() == Posture.ADVANCING;
             if (advancingPicture && doctrine == Doctrine.DISENGAGE) {
@@ -345,7 +405,7 @@ abstract class AbstractZoneAction implements Action {
         if (committed && target != 0L && threatAnchorX >= 0 && threatAnchorY >= 0) {
             int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
                     member, target, threatAnchorX, threatAnchorY, engageLeash);
-            // The two refusals are different facts and get different
+            // The three refusals are different facts and get different
             // answers. No path at all means the commitment cannot be
             // prosecuted by walking, so the member holds and fights from
             // where it stands — which is what a committed member does on its
@@ -354,8 +414,26 @@ abstract class AbstractZoneAction implements Action {
             // the matrix charged twelve extra squads for that. A path that is
             // merely not worth the walk leaves a member that can still move,
             // so it carries on toward the objective.
+            //
+            // No cell at all is the third, and which answer it gets depends on
+            // which commitment asked. Under the route-threat commit the enemy
+            // is on the ground the squad has to cross, and planting is what
+            // the noun doc prescribes whether or not a better angle exists.
+            // Under prosecution the destination played no part in choosing the
+            // fight, the leash is drawn round the squad's own centre, and the
+            // rule has always been that a member with no legal position inside
+            // it continues its assigned advance — so it does, keeping the
+            // target for opportunity fire on the way.
+            boolean prosecutionOnly = prosecuteContact && !routeCommitted && !doctrineHold;
             switch (advanceToReachableFiringPosition(member, sim, firingPos)) {
                 case MOVED -> { return; }
+                case NO_POSITION -> {
+                    if (!prosecutionFallThrough || !prosecutionOnly) {
+                        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+                        return;
+                    }
+                    // fall through to the objective
+                }
                 case UNREACHABLE -> {
                     if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
                     return;
@@ -494,6 +572,16 @@ abstract class AbstractZoneAction implements Action {
         /** A move was authored toward the position. */
         MOVED,
         /**
+         * The search found no cell at all: nowhere inside the leash has both
+         * the reach and the line of fire. Distinct from {@link #UNREACHABLE},
+         * which is a real cell the member cannot walk to, and the two were
+         * folded together for a while — with the result that a squad
+         * prosecuting a contact further off than leash plus weapon reach
+         * planted itself for as long as it could see the contact, every tick,
+         * having decided to fight something it had no way of reaching.
+         */
+        NO_POSITION,
+        /**
          * No path exists. There is nothing to walk toward, so the commitment
          * cannot be prosecuted by moving and the member should hold where it
          * is rather than resume the objective.
@@ -511,7 +599,7 @@ abstract class AbstractZoneAction implements Action {
     protected static FiringApproach advanceToReachableFiringPosition(long member,
                                                                      BattleControl sim,
                                                                      int[] firingPos) {
-        if (firingPos == null) return FiringApproach.UNREACHABLE;
+        if (firingPos == null) return FiringApproach.NO_POSITION;
         if (!sim.movement().mayRepath(member)) {
             // Throttled: the path in hand was checked when it was set, so
             // walking it on is right. Nothing in hand means nothing to walk.

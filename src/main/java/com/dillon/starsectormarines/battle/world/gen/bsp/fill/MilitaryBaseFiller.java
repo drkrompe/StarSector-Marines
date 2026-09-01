@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.bsp.CompoundFiller;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
@@ -150,7 +151,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
         furnishRoleAprons(compound, roadReservation, grid, topology, doodads, rng);
         stampGunEmplacements(compound, inCompound, roadReservation, grid, topology, pois);
         CompoundWallApertures.stamp(inCompound, grid, topology);
-        emitTacticalNodes(compound, leafPois, tactical);
+        emitTacticalNodes(compound, leafPois, tactical, ctx);
     }
 
     /**
@@ -170,7 +171,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      */
     private void emitTacticalNodes(Compound compound,
                                    Map<BlockLeaf, PointOfInterest> leafPois,
-                                   List<TacticalNode> tactical) {
+                                   List<TacticalNode> tactical, GenContext ctx) {
         for (BlockLeaf m : compound.members) {
             Compound.Role role = compound.roles.get(m);
             if (role == null) continue;
@@ -181,7 +182,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
             TacticalNode.Kind kind;
             int priority, garrison;
             switch (role) {
-                case COMMAND     -> { kind = commandNodeKind(compound.biome); priority = 95; garrison = 4; }
+                case COMMAND     -> { kind = commandNodeKind(compound, ctx);  priority = 95; garrison = 4; }
                 case BARRACKS    -> { kind = TacticalNode.Kind.BARRACKS;      priority = 60; garrison = 4; }
                 case ARMORY      -> { kind = TacticalNode.Kind.ARMORY;        priority = 70; garrison = 3; }
                 // Treat VEHICLE_BAY as ARMORY for now — same supply-line role; could split
@@ -199,6 +200,31 @@ public final class MilitaryBaseFiller implements CompoundFiller {
             node.setCompoundBounds(compound.left, compound.top, compound.right, compound.bottom);
             tactical.add(node);
         }
+    }
+
+    /**
+     * Node kind for the COMMAND leaf, which is a question about the map and not
+     * only about the biome.
+     *
+     * <p>On a precinct map whose plan is about a programmed place, the keep is
+     * that place's: the garrison brings its own command post and a settlement's
+     * military base is a supply hub, exactly the way the port's and the city's
+     * are on the stock recipe. Without that, every settlement base on a map with
+     * no biome emits a second {@code COMMAND_POST} — which disables the keep
+     * phase, because {@code ConquestCommand.canonicalKeep} returns null for more
+     * than one. The kind alternates by compound index so a map with several
+     * bases reads as stores and quarters rather than as a row of armouries.
+     *
+     * <p>Maps with no plan fall through unchanged.
+     */
+    private static TacticalNode.Kind commandNodeKind(Compound compound, GenContext ctx) {
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        if (plan != null && plan.objective() != null && plan.objective().isProgrammed()) {
+            List<Compound> compounds = ctx.get(BspKeys.COMPOUNDS);
+            int index = compounds == null ? 0 : Math.max(0, compounds.indexOf(compound));
+            return index % 2 == 0 ? TacticalNode.Kind.BARRACKS : TacticalNode.Kind.ARMORY;
+        }
+        return commandNodeKind(compound.biome);
     }
 
     /**
