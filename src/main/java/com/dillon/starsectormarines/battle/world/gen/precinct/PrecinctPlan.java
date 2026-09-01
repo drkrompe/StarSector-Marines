@@ -24,10 +24,30 @@ import java.util.Random;
  * battles varied, not a simulation of settlement patterns, and the moment a
  * mission cares about the answer it should be authoring one instead.
  */
-public record PrecinctPlan(List<Precinct> precincts) {
+public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) {
 
     public PrecinctPlan {
         precincts = List.copyOf(precincts);
+    }
+
+    /** A plan with no opinion about where the attack comes from. */
+    public PrecinctPlan(List<Precinct> precincts) {
+        this(precincts, null);
+    }
+
+    /**
+     * The place a mission is about, or {@code null} when nothing on the map is
+     * programmed.
+     *
+     * <p>The first programmed precinct. A map with two garrisons has to pick
+     * one to be the climax, and the order a mission listed them in is the
+     * honest answer — it is the only statement of intent there is.
+     */
+    public Precinct objective() {
+        for (Precinct precinct : precincts) {
+            if (precinct.isProgrammed()) return precinct;
+        }
+        return null;
     }
 
     /**
@@ -74,6 +94,65 @@ public record PrecinctPlan(List<Precinct> precincts) {
             throw new IllegalArgumentException("a map with no places in it is not a map");
         }
         return new PrecinctPlan(precincts);
+    }
+
+    /**
+     * A mission's layout: what places, roughly where, and which way the attack
+     * comes from.
+     *
+     * <p>This is the authoring surface. A conquest scenario says its garrison is
+     * in the north-east and its marines arrive from the south-west, and the same
+     * brief lays out at any map size.
+     *
+     * <p>Placements are honoured over separation, which is the one trade worth
+     * stating. Two places asked for the same corner will end up close together,
+     * because a mission that asks for that means it — a derived plan is where
+     * spacing is the generator's business.
+     *
+     * @param attackerFrom where the attacking force arrives, or {@code null} to
+     *                     let the map decide
+     */
+    public static PrecinctPlan laidOut(List<PrecinctBrief> briefs, MapPlacement attackerFrom,
+                                       int width, int height, Random rng) {
+        if (briefs.isEmpty()) {
+            throw new IllegalArgumentException("a map with no places in it is not a map");
+        }
+        List<Precinct> out = new ArrayList<>();
+        List<int[]> taken = new ArrayList<>();
+        for (PrecinctBrief brief : briefs) {
+            out.add(spaced(brief, taken, width, height, rng));
+        }
+        return new PrecinctPlan(out, attackerFrom);
+    }
+
+    /**
+     * Resolves one brief, retrying inside its own placement so two places do not
+     * land on each other.
+     *
+     * <p>Bounded, and it gives up rather than widening the search: leaving a
+     * place slightly too close to its neighbour is a worse map, and moving it
+     * out of the region the mission asked for is a different map.
+     */
+    private static Precinct spaced(PrecinctBrief brief, List<int[]> taken,
+                                   int width, int height, Random rng) {
+        Precinct best = null;
+        int bestGap = -1;
+        for (int attempt = 0; attempt < 64; attempt++) {
+            Precinct candidate = brief.resolve(width, height, EDGE_MARGIN, rng);
+            int gap = Integer.MAX_VALUE;
+            for (int[] other : taken) {
+                int dx = other[0] - candidate.seedX();
+                int dy = other[1] - candidate.seedY();
+                gap = Math.min(gap, dx * dx + dy * dy);
+            }
+            if (gap > bestGap) {
+                bestGap = gap;
+                best = candidate;
+            }
+            if (gap >= MIN_SEED_SEPARATION * MIN_SEED_SEPARATION) break;
+        }
+        taken.add(new int[]{best.seedX(), best.seedY()});
+        return best;
     }
 
     /**
@@ -132,7 +211,7 @@ public record PrecinctPlan(List<Precinct> precincts) {
             out.add(Precinct.settlement("outlying-" + (i + 1), hamletSeed[0], hamletSeed[1],
                     outlyingGrowth(sprawl)));
         }
-        return new PrecinctPlan(out);
+        return new PrecinctPlan(out, null);
     }
 
     /**
