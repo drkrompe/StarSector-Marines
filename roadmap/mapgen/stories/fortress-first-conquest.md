@@ -1,7 +1,8 @@
 # Fortress-first conquest
 
-Status: IN PROGRESS — the ward is separated from the band that placed it and
-the program is asked for; the district itself is next and must be grown.
+Status: PARKED pending `precincts.md` — the two landed slices stand, but the
+rest of this story assumes a fortress is a special kind of place. If precincts
+are adopted it is not, and slices 3 to 6 belong to that model instead.
 
 Written: 2026-09-01
 
