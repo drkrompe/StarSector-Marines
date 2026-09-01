@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.AttackMoveGoal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedAreaGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.OrderCatalog;
+import com.dillon.starsectormarines.battle.command.OrderCatalog.Arm;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -210,8 +212,7 @@ class SquadMoveOrderSystemTest {
                 "the active player context must not lose to a railroaded specialist goal");
         assertInstanceOf(AttackMove.class, squad.currentPlan.currentStep().action);
 
-        squad.centroidX = 6.5f;
-        squad.centroidY = 5.5f;
+        placeSquadAt(sim, squad, 6, 5);
         sim.getSquadMoveOrderSystem().tick(sim);
         GoapInfantryBehavior.replanIfNeeded(squad, sim);
 
@@ -297,6 +298,40 @@ class SquadMoveOrderSystemTest {
         }
     }
 
+    /**
+     * The same lance, the same click, two different answers — and neither of
+     * them is this system's opinion. Both assertions are stated against the
+     * catalog rather than against the rule, so the day a lance is given the
+     * attack move this test changes with the row instead of contradicting it.
+     */
+    @Test
+    void aLanceGetsTheOrdersTheCatalogAdmitsItToAndNoOthers() {
+        BattleSimulation sim = openSimulation(64, 32);
+        Squad lance = squad(sim, Faction.MARINE, UnitType.HEAVY_MECH,
+                10, 16, 2);
+
+        sim.getSquadMoveOrderService().requestMove(lance.id, 40, 16);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        assertFalse(OrderCatalog.playerOrder(AssignmentKind.ATTACK_MOVE)
+                        .allows(Arm.MECH),
+                "a lance takes its move order per chassis, not as an assignment");
+        assertNull(sim.getSquadMoveOrderService().activeOrder(lance.id));
+        assertNull(lance.playerTacticalOrder(),
+                "a refused request must not leave an order standing on the lance");
+
+        sim.getSquadMoveOrderService().requestDefendArea(lance.id, 40, 16);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        assertTrue(OrderCatalog.playerOrder(AssignmentKind.DEFEND_AREA)
+                        .allows(Arm.MECH),
+                "area defence is the one order both arms take from the player");
+        assertInstanceOf(ActiveDefendAreaOrder.class,
+                sim.getSquadMoveOrderService().activeOrder(lance.id));
+        assertEquals(AssignmentKind.DEFEND_AREA,
+                lance.assignmentForExecution().kind());
+    }
+
     @Test
     void arrivalHandsBackAndSurvivalSuspendsWhileWithdrawalCancels() {
         BattleSimulation sim = openSimulation(20, 12);
@@ -313,8 +348,7 @@ class SquadMoveOrderSystemTest {
                 squad.assignmentForExecution().kind());
 
         squad.moraleBroken = false;
-        squad.centroidX = 14.5f;
-        squad.centroidY = 5.5f;
+        placeSquadAt(sim, squad, 14, 5);
         sim.getSquadMoveOrderSystem().tick(sim);
         assertNull(sim.getSquadMoveOrderService().activeOrder(squad.id));
         assertSame(mission, squad.assignmentForExecution());
@@ -396,6 +430,21 @@ class SquadMoveOrderSystemTest {
         assertNull(sim.getSquadMoveOrderService().activeOrder(shelterGuard.id));
         assertNull(sim.getSquadMoveOrderService().activeOrder(rescueMech.id));
         assertNull(sim.getSquadMoveOrderService().activeOrder(Integer.MAX_VALUE));
+    }
+
+    /**
+     * Stands every live member on {@code (x, y)}. Arrival is the action's
+     * footprint — every member inside {@code AttackMove.SQUAD_ARRIVAL_RADIUS} —
+     * so a test that wants the order to complete has to move the bodies; a
+     * centroid written by hand describes a squad that is not there.
+     */
+    private static void placeSquadAt(BattleSimulation sim, Squad squad, int x, int y) {
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.resolveUnit(sim.squadMemberAt(squad.id, i));
+            if (member != 0L) sim.world().setCellPos(member, x, y);
+        }
+        squad.centroidX = x + 0.5f;
+        squad.centroidY = y + 0.5f;
     }
 
     private static Squad infantrySquad(BattleSimulation sim, Faction faction,

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicZoning;
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Random;
 import java.util.Set;
@@ -31,6 +32,15 @@ import java.util.Set;
  * <p>{@link MapDistrictTheme#WATERFRONT} is constrained to map-edge
  * districts in both passes — the smoothing step refuses to propagate it
  * into the interior.
+ *
+ * <p><b>A map with places on it is asked per place.</b> The map-wide roll is
+ * right for a map that is one city and wrong for one that is four places, so
+ * a precinct may {@linkplain #overlay lay its own themes} over the blocks its
+ * claim touches. {@link #themeAt} then answers from the layer wherever that
+ * precinct owns the cell and from the map-wide roll everywhere else, which on
+ * a precinct map is hinterland. Nothing here rolls a layer — that is
+ * {@code PrecinctZoning}'s, from the precinct's character — and a map nobody
+ * overlays behaves exactly as it did.
  */
 public final class DistrictMap {
 
@@ -48,6 +58,17 @@ public final class DistrictMap {
     private final MapDistrictTheme[][] themes;
     /** The economy-aligned theme interior districts lean toward, or null when the world carries no economic signal (the pre-bridge path). */
     private final MapDistrictTheme econTheme;
+    /**
+     * Which precinct owns each cell, or null until something is overlaid. One
+     * array shared by every layer: the owner index at a cell is the layer that
+     * answers for it.
+     */
+    private int[][] owner;
+    /**
+     * One block grid per owner index, null for an owner that laid nothing.
+     * Within a grid only the blocks that owner touches are non-null.
+     */
+    private MapDistrictTheme[][][] layers;
 
     /** No-economy overload — pure geographic theme rolls, reproducing pre-bridge output. */
     public DistrictMap(int gridW, int gridH, Random rng) {
@@ -77,13 +98,35 @@ public final class DistrictMap {
     public int districtCellWidth()  { return cellW; }
     public int districtCellHeight() { return cellH; }
 
-    /** Look up the theme at a nav-grid cell. Out-of-range coords clamp to the edge district. */
+    /** The block column a nav-grid x falls in; out-of-range clamps to the edge. */
+    public int districtX(int x) {
+        return Math.max(0, Math.min(districtsX - 1, x / cellW));
+    }
+
+    /** The block row a nav-grid y falls in; out-of-range clamps to the edge. */
+    public int districtY(int y) {
+        return Math.max(0, Math.min(districtsY - 1, y / cellH));
+    }
+
+    /** Whether a block lies on the map's border, where the coast is allowed to be. */
+    public boolean isEdgeDistrict(int dx, int dy) {
+        return isEdge(dx, dy);
+    }
+
+    /**
+     * Look up the theme at a nav-grid cell. Out-of-range coords clamp to the
+     * edge district. A cell some precinct has overlaid answers from that
+     * precinct's layer; every other cell answers from the map-wide roll.
+     */
     public MapDistrictTheme themeAt(int x, int y) {
-        int dx = Math.max(0, Math.min(districtsX - 1, x / cellW));
-        int dy = Math.max(0, Math.min(districtsY - 1, y / cellH));
+        int dx = districtX(x);
+        int dy = districtY(y);
+        MapDistrictTheme[][] layer = layerAt(x, y);
+        if (layer != null && layer[dx][dy] != null) return layer[dx][dy];
         return themes[dx][dy];
     }
 
+    /** The map-wide roll at a block, ignoring any layer. Null off the grid. */
     public MapDistrictTheme themeAtDistrict(int dx, int dy) {
         if (dx < 0 || dx >= districtsX || dy < 0 || dy >= districtsY) return null;
         return themes[dx][dy];
@@ -95,12 +138,58 @@ public final class DistrictMap {
      * intersection (the natural city center). No-op if the resolved district
      * is already WATERFRONT — preserving the "coast stays coastal" invariant
      * even when an intersection lands on the map edge.
+     *
+     * <p>A forced block is forced on every layer that holds it as well as on
+     * the map-wide roll, because the thing being forced is a block of the map
+     * — a port pocket is a port whichever place's parcels happen to lie in it —
+     * and a force that landed on one layer would be invisible to a leaf whose
+     * cell another precinct owns.
      */
     public void forceThemeAt(int navX, int navY, MapDistrictTheme theme) {
-        int dx = Math.max(0, Math.min(districtsX - 1, navX / cellW));
-        int dy = Math.max(0, Math.min(districtsY - 1, navY / cellH));
-        if (themes[dx][dy] == MapDistrictTheme.WATERFRONT) return;
-        themes[dx][dy] = theme;
+        int dx = districtX(navX);
+        int dy = districtY(navY);
+        if (themes[dx][dy] != MapDistrictTheme.WATERFRONT) themes[dx][dy] = theme;
+        if (layers == null) return;
+        for (MapDistrictTheme[][] layer : layers) {
+            if (layer == null || layer[dx][dy] == null) continue;
+            if (layer[dx][dy] != MapDistrictTheme.WATERFRONT) layer[dx][dy] = theme;
+        }
+    }
+
+    /**
+     * Lays one owner's own themes over the blocks it touches.
+     *
+     * @param owner       which owner index holds each nav-grid cell; the same
+     *                    array for every call, since it is what keys the layers
+     * @param who         the owner this layer belongs to
+     * @param blockThemes a {@link #districtsX()} x {@link #districtsY()} grid,
+     *                    null where the owner touches nothing
+     */
+    public void overlay(int[][] owner, int who, MapDistrictTheme[][] blockThemes) {
+        if (owner == null || who < 0) {
+            throw new IllegalArgumentException("a layer belongs to an owner on an ownership map");
+        }
+        if (this.owner != null && this.owner != owner) {
+            throw new IllegalArgumentException("one ownership map keys every layer; "
+                    + "a second one would leave a cell claimed by two");
+        }
+        if (blockThemes.length != districtsX || blockThemes[0].length != districtsY) {
+            throw new IllegalArgumentException("a layer is drawn on this map's own "
+                    + districtsX + "x" + districtsY + " blocks");
+        }
+        this.owner = owner;
+        if (layers == null) layers = new MapDistrictTheme[who + 1][][];
+        if (layers.length <= who) layers = Arrays.copyOf(layers, who + 1);
+        layers[who] = blockThemes;
+    }
+
+    private MapDistrictTheme[][] layerAt(int x, int y) {
+        if (owner == null || layers == null) return null;
+        int cx = Math.max(0, Math.min(owner.length - 1, x));
+        int cy = Math.max(0, Math.min(owner[cx].length - 1, y));
+        int who = owner[cx][cy];
+        if (who < 0 || who >= layers.length) return null;
+        return layers[who];
     }
 
     private void assignThemes(Random rng) {

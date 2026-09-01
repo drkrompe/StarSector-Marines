@@ -265,8 +265,47 @@ public final class AttackMove extends AbstractZoneAction {
     }
 
     private boolean withinSquadArrival(long unit, BattleControl sim) {
+        return withinSquadArrival(unit, destX, destY, sim);
+    }
+
+    private static boolean withinSquadArrival(long unit, int destX, int destY,
+                                              BattleView sim) {
         return TacticalScoring.cellDistance(sim.world().x(unit), sim.world().y(unit),
                 destX + 0.5f, destY + 0.5f) <= SQUAD_ARRIVAL_RADIUS;
+    }
+
+    /**
+     * Whether {@code squad} has arrived at {@code (destX, destY)} by the rule
+     * {@link #execute} completes on: somebody is on the objective, inside
+     * {@link #ARRIVAL_RADIUS}, and everybody still alive is inside the
+     * {@link #SQUAD_ARRIVAL_RADIUS} footprint. Offered so whoever decides an
+     * attack move is <em>over</em> agrees with the action about what arriving
+     * is.
+     *
+     * <p>The player order release used to test the squad centroid against
+     * {@link #ARRIVAL_RADIUS} instead. Six people who have each stopped inside
+     * the footprint settle with a centroid a little under three cells out, so
+     * the action was satisfied and the release never was: the squad parked on
+     * the ground it was pointed at with the player's order still standing over
+     * its mission for the rest of the battle. Two rules for one arrival is one
+     * too many.
+     */
+    public static boolean squadHasArrived(Squad squad, int destX, int destY,
+                                          BattleView sim) {
+        int count = sim.squadMemberCount(squad.id);
+        boolean onObjective = false;
+        boolean any = false;
+        for (int i = 0; i < count; i++) {
+            long member = sim.resolveUnit(sim.squadMemberAt(squad.id, i));
+            if (member == 0L) continue;
+            any = true;
+            float distance = TacticalScoring.cellDistance(
+                    sim.world().x(member), sim.world().y(member),
+                    destX + 0.5f, destY + 0.5f);
+            if (distance > SQUAD_ARRIVAL_RADIUS) return false;
+            if (distance <= ARRIVAL_RADIUS) onObjective = true;
+        }
+        return any && onObjective;
     }
 
     /**

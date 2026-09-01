@@ -2,9 +2,11 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.OrderCatalog;
+import com.dillon.starsectormarines.battle.command.OrderCatalog.Arm;
+import com.dillon.starsectormarines.battle.command.OrderCatalog.PlayerOrder;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService.Record;
-import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
 import com.dillon.starsectormarines.battle.nav.ReachableCellResolver;
@@ -22,10 +24,17 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * Resolves a player world click into a temporary squad execution assignment.
- * Infantry ground clicks use attack-move, an uncaptured Conquest compound uses
- * the ordinary secure-compound action until capture completes, and Defend Area
- * is available to either infantry or an ordinary player Mech lance. Mission
- * ownership remains in {@link Squad#assignedObjective} throughout.
+ * A ground click is an attack move, a click on a friendly vehicle with room is
+ * a ride, an uncaptured Conquest compound is the ordinary secure-compound
+ * action until capture completes, and Defend Area is placed where it was asked
+ * for. Mission ownership remains in {@link Squad#assignedObjective} throughout.
+ *
+ * <p>Which squads may be handed each of those, and when each is over, are
+ * {@link OrderCatalog}'s to say — the same rows the dispatchers read to decide
+ * what a squad holding one should be doing. What stays here is the part that
+ * needs the map and the squad's own position: snapping a click to reachable
+ * ground, keeping a compound bound to its live zone, and following a vehicle
+ * that drives off while the squad walks.
  */
 public final class SquadMoveOrderSystem {
 
@@ -43,9 +52,8 @@ public final class SquadMoveOrderSystem {
         for (var active : service.activeEntries()) {
             int squadId = active.getKey();
             ActiveOrder order = active.getValue();
-            Squad squad = order instanceof ActiveDefendAreaOrder
-                    ? validPlayerDefendSquad(squadId, sim)
-                    : validPlayerInfantrySquad(squadId, sim);
+            AssignmentKind kind = kindOf(order);
+            Squad squad = validPlayerSquad(squadId, kind, sim);
             if (squad == null) {
                 release(squadId, order, sim.getSquad(squadId), sim);
                 continue;
@@ -54,25 +62,38 @@ public final class SquadMoveOrderSystem {
                 release(squadId, order, squad, sim);
                 continue;
             }
-            if (order instanceof ActiveMoveOrder move && arrived(squad, move)) {
-                release(squadId, order, squad, sim);
+            // Two orders keep a refresh of their own because their target can
+            // move out from under them; the rest are asked of their row, so a
+            // kind that completes is never persistent merely by being absent
+            // from a list of tests here.
+            if (order instanceof ActiveCaptureOrder capture) {
+                if (!refreshCaptureOrder(squad, capture, sim)) {
+                    release(squadId, order, squad, sim);
+                }
                 continue;
             }
-            if (order instanceof ActiveCaptureOrder capture
-                    && !refreshCaptureOrder(squad, capture, sim)) {
-                release(squadId, order, squad, sim);
+            if (order instanceof ActiveMountOrder mount) {
+                if (!refreshMountOrder(squadId, squad, mount, sim)) {
+                    release(squadId, order, squad, sim);
+                }
                 continue;
             }
-            if (order instanceof ActiveMountOrder mount
-                    && !refreshMountOrder(squadId, squad, mount, sim)) {
+            if (complete(squad, kind, sim)) {
                 release(squadId, order, squad, sim);
             }
         }
 
         for (PendingOrder request : service.drainPending()) {
-            Squad squad = request.kind == PendingOrder.Kind.DEFEND_AREA
-                    ? validPlayerDefendSquad(request.squadId, sim)
-                    : validPlayerInfantrySquad(request.squadId, sim);
+            // A move request has not chosen between its three answers yet — a
+            // ride, a compound, or plain ground — but all three are infantry
+            // orders, so ATTACK_MOVE settles eligibility for the whole branch:
+            // a mount is an attack move onto a cell that can drive away, and a
+            // compound click is refused for a lance in any case.
+            Squad squad = validPlayerSquad(request.squadId,
+                    request.kind == PendingOrder.Kind.DEFEND_AREA
+                            ? AssignmentKind.DEFEND_AREA
+                            : AssignmentKind.ATTACK_MOVE,
+                    sim);
             if (squad == null || withdrawing(squad)) continue;
             int[] origin = origin(squad, sim);
             if (origin == null) continue;
@@ -202,10 +223,19 @@ public final class SquadMoveOrderSystem {
         invalidateExecution(squad, sim);
     }
 
-    private static boolean arrived(Squad squad, ActiveMoveOrder order) {
-        return TacticalScoring.cellDistance(squad.centroidX, squad.centroidY,
-                order.destinationX() + 0.5f,
-                order.destinationY() + 0.5f) <= AttackMove.ARRIVAL_RADIUS;
+    /**
+     * Whether the standing order has met its own objective, asked of the row
+     * rather than answered here. An attack move is over when the squad has
+     * stopped where {@link AttackMove#squadHasArrived} stops it — the action's
+     * own footprint and not a centroid, which is the pair of rules the parked
+     * squad taught us to keep as one. An area defence never says yes; the row
+     * says so out loud rather than leaving persistence to be inferred from a
+     * test nobody wrote.
+     */
+    private static boolean complete(Squad squad, AssignmentKind kind,
+                                    BattleSimulation sim) {
+        return OrderCatalog.playerOrder(kind).completion()
+                .isComplete(squad, squad.playerTacticalOrder(), sim);
     }
 
     /**
@@ -218,18 +248,21 @@ public final class SquadMoveOrderSystem {
                                                BattleSimulation sim) {
         CompoundService compounds = sim.getCompoundService();
         Record record = compounds.getRecord(order.targetNode());
-        if (record == null
-                || record.state == CompoundService.CompoundState.MARINE_HELD) {
+        // Held or gone is the row's answer, the same one the arbiter and the
+        // dispatcher read. What is left here is the half only the order system
+        // can answer, because it needs the squad's own position: whether the
+        // compound is still walkable to, and which live zone it is now.
+        ObjectiveAssignment standing = squad.playerTacticalOrder();
+        if (record == null || standing == null
+                || complete(squad, AssignmentKind.SECURE_COMPOUND, sim)) {
             return false;
         }
         int targetZone = compounds.captureZoneId(record, sim);
         int[] origin = origin(squad, sim);
         if (origin == null || !reachable(origin, targetZone, sim)) return false;
-        ObjectiveAssignment current = squad.playerTacticalOrder();
-        if (current == null
-                || current.kind() != AssignmentKind.SECURE_COMPOUND
-                || current.targetNode() != order.targetNode()
-                || current.targetZoneId() != targetZone) {
+        if (standing.kind() != AssignmentKind.SECURE_COMPOUND
+                || standing.targetNode() != order.targetNode()
+                || standing.targetZoneId() != targetZone) {
             squad.applyPlayerTacticalOrder(ObjectiveAssignment.secureCompound(
                     squad.id, targetZone, order.targetNode()));
             invalidateExecution(squad, sim);
@@ -286,35 +319,44 @@ public final class SquadMoveOrderSystem {
         return 0L;
     }
 
-    private static Squad validPlayerInfantrySquad(int squadId,
-                                                   BattleSimulation sim) {
+    /**
+     * The squad an order of {@code kind} may be given to, or null. Everything
+     * here is about this squad — the right side, a body left to receive the
+     * order, a formation not already spoken for. <b>Which arms the order
+     * itself admits is {@link OrderCatalog}'s answer</b>, so a kind the player
+     * gains later is eligible for the arms its row names and for no others,
+     * without a second list here to keep in step.
+     */
+    private static Squad validPlayerSquad(int squadId, AssignmentKind kind,
+                                          BattleSimulation sim) {
         Squad squad = sim.getSquad(squadId);
         if (squad == null || squad.faction != Faction.MARINE
-                || squad.isMechSquad() || squad.isDroneSquad()
-                || squad.rescueShelterGuard) {
-            return null;
-        }
-        long member = firstLiveMember(squad, sim);
-        return member == 0L || !sim.identity().has(member)
-                || !sim.identity().type(member).usesInfantryTraining()
-                ? null : squad;
-    }
-
-    /** Player-authored area defence is shared by infantry squads and Mech lances. */
-    private static Squad validPlayerDefendSquad(int squadId,
-                                                 BattleSimulation sim) {
-        Squad squad = sim.getSquad(squadId);
-        if (squad == null || squad.faction != Faction.MARINE
-                || squad.isDroneSquad() || squad.rescueShelterGuard
-                || squad.rescuePickupMech) {
+                || squad.isDroneSquad() || squad.rescueShelterGuard) {
             return null;
         }
         long member = firstLiveMember(squad, sim);
         if (member == 0L || !sim.identity().has(member)) return null;
         var type = sim.identity().type(member);
-        boolean defendCapable = type.usesInfantryTraining()
-                || (squad.isMechSquad() && type.isMech());
-        return defendCapable ? squad : null;
+        Arm arm;
+        if (squad.isMechSquad()) {
+            // A lance flying a rescue formation is the rescue commander's for
+            // the duration; the player does not get to re-task it.
+            if (squad.rescuePickupMech || !type.isMech()) return null;
+            arm = Arm.MECH;
+        } else if (type.usesInfantryTraining()) {
+            arm = Arm.INFANTRY;
+        } else {
+            return null;
+        }
+        PlayerOrder player = OrderCatalog.playerOrder(kind);
+        return player != null && player.allows(arm) ? squad : null;
+    }
+
+    /** Which row an accepted order stands on; a mount is an attack move at a moving cell. */
+    private static AssignmentKind kindOf(ActiveOrder order) {
+        if (order instanceof ActiveDefendAreaOrder) return AssignmentKind.DEFEND_AREA;
+        if (order instanceof ActiveCaptureOrder) return AssignmentKind.SECURE_COMPOUND;
+        return AssignmentKind.ATTACK_MOVE;
     }
 
     private static void invalidateExecution(Squad squad,

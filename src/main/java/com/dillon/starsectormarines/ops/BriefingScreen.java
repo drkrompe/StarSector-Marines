@@ -191,6 +191,8 @@ public class BriefingScreen implements Screen {
     /** Stable ids selected into the current mission's command deck. */
     private final java.util.Set<String> selectedPowerIds = new java.util.LinkedHashSet<>();
     private boolean commandDeckInitialized;
+    /** Developer controls are opt-in and never consume briefing width on entry. */
+    private boolean debugDrawerExpanded;
 
     /**
      * Debug aircraft-picker selections — keys {@code "<SIDE>|<PROFILE>"} (e.g.
@@ -311,7 +313,17 @@ public class BriefingScreen implements Screen {
                 ? Strings.get("briefingNoCaptains") : "");
 
         boolean debug = mission.source.isDebug();
-        props.put("debugClasses", debug ? "panel debug-workspace" : "debug-hidden");
+        props.put("debugDrawerClasses", !debug ? "debug-drawer absent"
+                : "debug-drawer " + (debugDrawerExpanded ? "expanded" : "collapsed"));
+        props.put("debugWorkspaceClasses", debug && debugDrawerExpanded
+                ? "panel debug-workspace"
+                : "debug-workspace debug-workspace-collapsed");
+        props.put("debugToggleClasses", debug
+                ? "debug-drawer-toggle" : "debug-drawer-toggle-hidden");
+        props.put("debugToggleLabel", debugDrawerExpanded ? "HIDE" : "DEBUG");
+        props.put("debugToggleDisabled", !debug);
+        props.put("debugToggleAction", debug
+                ? (Runnable) this::toggleDebugDrawer : (Runnable) () -> { });
         props.put("tierSummary", debug
                 ? mission.tier.displayName + "  ·  "
                         + MissionForceEnvelope.recommendedSquads(mission) + " squads  ·  "
@@ -352,6 +364,15 @@ public class BriefingScreen implements Screen {
 
     static Map<String, Object> previewProps(boolean conquest) {
         return BriefingViewModel.previewProps(conquest);
+    }
+
+    static Map<String, Object> previewProps(boolean conquest, boolean debugExpanded) {
+        return BriefingViewModel.previewProps(conquest, debugExpanded);
+    }
+
+    private void toggleDebugDrawer() {
+        debugDrawerExpanded = !debugDrawerExpanded;
+        rebuild();
     }
 
     private List<BriefingViewModel.InfoRow> retainedMissionRows(Mission mission) {
@@ -448,16 +469,16 @@ public class BriefingScreen implements Screen {
         List<BriefingViewModel.DebugControl> controls = new ArrayList<>();
         int squads = ctx.getDebugSquadCount();
         controls.add(new BriefingViewModel.DebugControl("debug-company-squads",
-                "Company squads", Integer.toString(squads), "-10", "-", "+", "+10", "STAGE",
-                squads <= 0, squads <= 0, false, false, false,
+                "Company squads", Integer.toString(squads), "-10", "-", "+", "+10", "",
+                "debug-cycle-absent", squads <= 0, squads <= 0, false, false, true,
                 () -> adjustDebugSquadCount(-10), () -> adjustDebugSquadCount(-1),
                 () -> adjustDebugSquadCount(1), () -> adjustDebugSquadCount(10),
-                this::cycleDebugCompanyStage));
+                () -> { }));
 
         if (DevConfig.DEBUG_MECH_SUPPORT_PICKER) {
             controls.add(new BriefingViewModel.DebugControl("debug-player-mechs",
                     "Player mechs", Integer.toString(debugMechCount), "-10", "-", "+", "+10", "REROLL",
-                    debugMechCount <= 0, debugMechCount <= 0, false, false, false,
+                    "debug-cycle", debugMechCount <= 0, debugMechCount <= 0, false, false, false,
                     () -> adjustDebugMechCount(-10), () -> adjustDebugMechCount(-1),
                     () -> adjustDebugMechCount(1), () -> adjustDebugMechCount(10),
                     this::rerollDebugMechs));
@@ -484,7 +505,7 @@ public class BriefingScreen implements Screen {
         controls.add(new BriefingViewModel.DebugControl("debug-transports",
                 "Transport · " + shuttleDisplayName(debugTransportType),
                 Integer.toString(debugTransportCount), "<", "-", "+", ">", "TYPE",
-                false, debugTransportCount <= 0, debugTransportCount >= maxTransports,
+                "debug-cycle", false, debugTransportCount <= 0, debugTransportCount >= maxTransports,
                 false, false, this::previousDebugTransportType,
                 () -> adjustDebugTransportCount(-1, maxTransports),
                 () -> adjustDebugTransportCount(1, maxTransports),
@@ -496,14 +517,9 @@ public class BriefingScreen implements Screen {
             String id, String label, String value, boolean minusDisabled,
             boolean plusDisabled, Runnable minus, Runnable plus) {
         return new BriefingViewModel.DebugControl(id, label, value,
-                "", "-", "+", "", "", true, minusDisabled,
-                plusDisabled, true, true, () -> { }, minus, plus, () -> { }, () -> { });
-    }
-
-    private void cycleDebugCompanyStage() {
-        ctx.cycleDebugCompanyStage();
-        debugMechCount = ctx.getDebugCompanyStage().mechs;
-        rebuild();
+                "", "-", "+", "", "", "debug-cycle-absent",
+                true, minusDisabled, plusDisabled, true, true,
+                () -> { }, minus, plus, () -> { }, () -> { });
     }
 
     private void rerollDebugMechs() {
@@ -686,11 +702,10 @@ public class BriefingScreen implements Screen {
         boolean canReinforce = transportOk && commandOk && readiness != null
                 && readiness.needsPersonnel() && reinforcement > 0;
 
-        props.put("assignLabel", debug
-                ? "COMPANY: " + ctx.getDebugCompanyStage().displayName.toUpperCase()
-                        + " × " + ctx.getDebugSquadCount()
-                : "ASSIGN SQUADS");
-        props.put("assignAction", debug ? (Runnable) this::cycleDebugCompanyStage
+        props.put("assignLabel", debug ? "" : "ASSIGN SQUADS");
+        props.put("assignClasses", debug ? "briefing-assign-hidden" : "");
+        props.put("assignDisabled", debug);
+        props.put("assignAction", debug ? (Runnable) () -> { }
                 : (Runnable) this::openSquadDeployment);
 
         Runnable deployAction = canAccept ? this::onAccept
@@ -727,9 +742,10 @@ public class BriefingScreen implements Screen {
         for (String id : List.of(
                 "mission-briefing-root", "mission-briefing-header",
                 "mission-briefing-body", "mission-overview", "mission-info-rows",
-                "mission-captain-list", "mission-planning", "mission-debug-workspace",
+                "mission-captain-list", "mission-planning", "mission-debug-drawer",
+                "mission-debug-toggle", "mission-debug-workspace",
                 "mission-tier-track", "mission-debug-controls", "mission-commitment",
-                "mission-commitment-scroll", "mission-power-list", "mission-source-list",
+                "mission-loadout-grid", "mission-power-list", "mission-source-list",
                 "mission-transport-list", "mission-employer-list", "mission-assign",
                 "mission-deploy", "mission-briefing-back")) component.requireElement(id);
     }
@@ -1418,10 +1434,23 @@ public class BriefingScreen implements Screen {
         Mission adjusted = DebugMissionDifficulty.atTier(
                 ctx.getSelectedMission(), tier);
         if (adjusted == null) return;
+        DebugCompanyStage stage = debugCompanyStageFor(tier);
+        ctx.setDebugCompanyStage(stage);
+        debugMechCount = stage.mechs;
         ctx.setSelectedMission(adjusted);
         debugTransportCount = Math.min(debugTransportCount,
                 adjusted.requiredDrops);
         rebuild();
+    }
+
+    static DebugCompanyStage debugCompanyStageFor(OperationTier tier) {
+        return switch (tier) {
+            case FIRST_CONTRACT -> DebugCompanyStage.FIRST_CONTRACT;
+            case ESTABLISHED -> DebugCompanyStage.ESTABLISHED;
+            case VETERAN -> DebugCompanyStage.VETERAN_COMPANY;
+            case REINFORCED -> DebugCompanyStage.REINFORCED;
+            case FULL_STRENGTH -> DebugCompanyStage.FULL_STRENGTH;
+        };
     }
 
     /**

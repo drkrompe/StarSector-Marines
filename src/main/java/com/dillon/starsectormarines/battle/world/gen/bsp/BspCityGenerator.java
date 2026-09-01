@@ -131,8 +131,6 @@ public final class BspCityGenerator implements MapGenerator {
     /** Diamond defense-station recipe — cardinal ports converging inward to a besieged core. Selected via {@link #generateDiamondStation}. */
     private final GenRecipe diamondStationRecipe;
 
-    private PrecinctPlan precinctOverride;
-
     public BspCityGenerator() {
         // Default every kind to a stub. Real fillers replace these via
         // register(...). Order doesn't matter — each filler self-identifies
@@ -367,16 +365,6 @@ public final class BspCityGenerator implements MapGenerator {
      *
      * @return this, for chaining
      */
-    /**
-     * Build this map out of the places in {@code plan} rather than as one
-     * settlement. The comparison and authoring path for {@code precincts.md};
-     * no campaign battle reaches it.
-     */
-    public BspCityGenerator usePrecincts(PrecinctPlan plan) {
-        this.precinctOverride = plan;
-        return this;
-    }
-
     public BspCityGenerator useGrownRoads(GrownTrunkPlan.Profile profile) {
         this.grownOverride = profile;
         return this;
@@ -420,7 +408,8 @@ public final class BspCityGenerator implements MapGenerator {
 
     /**
      * A map made of several places rather than one settlement. Reached only
-     * through an explicit {@link #usePrecincts}; nothing derives it yet.
+     * by passing a plan to
+     * {@link #generate(int, int, long, TraversalAxis, TargetProfile, PrecinctPlan)}.
      */
     private GenRecipe precinctRecipe(PrecinctPlan plan) {
         return buildLegacyRecipe(new PrecinctSkeletonStage(plan),
@@ -435,6 +424,10 @@ public final class BspCityGenerator implements MapGenerator {
 
     /**
      * Which recipe this battle gets.
+     *
+     * <p><b>A stated plan wins outright.</b> A caller that named the places on
+     * the map has answered the question the rest of this method exists to
+     * guess at.
      *
      * <p><b>Conquest is pinned to the stock crossroad</b> unless something asks
      * for otherwise in as many words. It is the mission the campaign is built
@@ -460,8 +453,8 @@ public final class BspCityGenerator implements MapGenerator {
      * is the tooling and comparison path — it is how a render ladder asks for a
      * density the campaign would never choose.
      */
-    private GenRecipe recipeFor(TraversalAxis axis, TargetProfile profile) {
-        if (precinctOverride != null) return precinctRecipe(precinctOverride);
+    private GenRecipe recipeFor(TraversalAxis axis, TargetProfile profile, PrecinctPlan precincts) {
+        if (precincts != null) return precinctRecipe(precincts);
         if (axis != null) {
             return grownOverride == null ? conquestRecipe : grownConquestRecipe(grownOverride);
         }
@@ -495,7 +488,7 @@ public final class BspCityGenerator implements MapGenerator {
     }
 
     /**
-     * Canonical entry point — all overloads funnel here. The {@code profile}
+     * Campaign-aware generation with no places stated. The {@code profile}
      * (campaign → battle bridge) is bound on the context under
      * {@link BspKeys#MARKET_PROFILE} for stages that scale off the target world
      * (e.g. {@link OverwatchTowerStage}'s defense intensity);
@@ -503,6 +496,30 @@ public final class BspCityGenerator implements MapGenerator {
      */
     @Override
     public MapResult generate(int width, int height, long seed, TraversalAxis axis, TargetProfile profile) {
+        return generate(width, height, seed, axis, profile, null);
+    }
+
+    /**
+     * Canonical entry point — every other overload funnels here.
+     *
+     * <p>{@code precincts} is a per-call argument rather than generator state
+     * because one instance serves every battle in a session: a plan remembered
+     * on the generator would build the next battle's map out of the last
+     * battle's places.
+     *
+     * <p><b>A plan with an axis is refused.</b> Conquest is pinned to the stock
+     * crossroad by {@code precincts.md} until the grown maps are judged, and a
+     * rule that important should not be reachable by a caller that passed both
+     * without meaning to.
+     */
+    @Override
+    public MapResult generate(int width, int height, long seed, TraversalAxis axis,
+                              TargetProfile profile, PrecinctPlan precincts) {
+        if (precincts != null && axis != null) {
+            throw new IllegalArgumentException(
+                    "conquest keeps the stock crossroad: a traversal axis and a precinct "
+                            + "plan are two different maps and cannot both be asked for");
+        }
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);
         CellTopology topology = new CellTopology(width, height);
@@ -518,7 +535,7 @@ public final class BspCityGenerator implements MapGenerator {
         // Recipe selection is the conquest/legacy fork: axis present → the full
         // conquest sequence; axis absent → the legacy district recipe (which
         // omits the conquest-only stages rather than running them as no-ops).
-        GenRecipe recipe = recipeFor(axis, profile);
+        GenRecipe recipe = recipeFor(axis, profile, precincts);
         recipe.run(ctx);
         if (axis != null) requireExactlyOneCentralKeep(ctx);
 

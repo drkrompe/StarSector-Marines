@@ -311,7 +311,11 @@ authoritative directive and owner remain unchanged. Local AI still decides how
 the squad crosses contact and fires, form-up and cohesion survival may suspend
 it, and hard withdrawal cancels it. Arrival removes the temporary context before
 the ordinary directive replans, so the intervention neither becomes a second
-assignment writer nor leaves an unowned interval. Until that boundary, the
+assignment writer nor leaves an unowned interval. **Arrival is the action's
+own completion rule and nothing else**: the release asks the attack move
+whether the squad has arrived by the test the action completes on, because a
+second radius kept beside it let a squad satisfy the action, miss the release,
+and park under the player's order for the rest of the battle. Until that boundary, the
 player context is the exclusive MISSION-tier input to local planning; a
 unit-level specialist task or authored last stand cannot compete around the
 executable assignment and make the accepted order inert. Infantry assigned to
