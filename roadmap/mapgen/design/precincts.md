@@ -515,8 +515,11 @@ completely.
 The general law: **a placement guard must answer about the stamp, not about the
 map.** A guard that reports a pre-existing condition refuses everything, and a
 caller that places nothing looks exactly like a caller that was never invoked.
-`BattleSetup`'s vehicle parking and `OverwatchTowerStage` still use the whole-map
-form and carry the same latent failure.
+Every stamper now asks locally: `BattleSetup`'s vehicle parking and
+`OverwatchTowerStage` were switched after the emplacements were, and the same
+before/after probe held their anchors identical across three seeds — except for
+one 200x140 port map that had been parking **no vehicles at all** and now parks
+its five. Latent is not the same as harmless; it only means nobody had looked.
 
 **Gate count is a cap, not a count.** Growth decides where roads cross the
 outline; the dial decides how many of those crossings stay open. A place whose
@@ -566,6 +569,17 @@ missing was not fewer gates but any control over how many.
    was wanted, but a thicker wall for a harder fortification would be nearly
    free — the outline is already computed — and would make the strength legible
    before contact as well as harder to breach.
+7. **A zoned precinct's kind does not reach its interior.** Its parcels are cut
+   from its own claim, which works, and are then themed by
+   `DistrictMap.themeAt` — an absolute map-position lookup on a fixed grid that
+   has never heard of a precinct. Measured on two derived maps, the three zoned
+   places came out 71–85% residential apiece and an *outlying* one carried 225
+   points of interest against the main settlement's 100. Only the ward, the
+   defence and the spawn anchor read a precinct key; the whole fill chain reads
+   none. The programmed path is clear — civilian buildings within thirty cells
+   of an installation seed measured 0 and 1 — so this is the zoned half alone.
+   `precinct-interior-coherence.md` owns it.
+
 (The ground allowance is now derived — see below.)
 
 ## The allowance is derived, and there are two derivations

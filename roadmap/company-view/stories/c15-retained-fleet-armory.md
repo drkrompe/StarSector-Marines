@@ -4,7 +4,8 @@ Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused M
 Written: 2026-08-23
 Updated: 2026-09-01 — squad founding uses a dedicated formation emblem; chassis
 founding consumes the projected full five-by-seven pad, whose exact centred machines
-face inboard and receive welding at authored work points.
+face cardinally along their gantry axes toward the shared inboard service lane and
+receive welding at authored work points.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 

@@ -316,8 +316,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             simulation.world().attachMechLoadout(mech,
                     variant.createLoadout(variant.defaultRole));
             simulation.world().setPos(mech, gantry.worldCenterX(), gantry.worldCenterY());
-            // Parked machinery presents itself to the room's shared service
-            // space. The berth still records the actual way out for deployment.
+            // Parked machinery faces cardinally down the berth's long axis,
+            // toward its mouth and the room's shared service lane.
             FacingSystem.faceStanding(simulation.getEntityWorld(),
                     simulation.getBattleComponents(), mech, parkedFacing(gantry));
             machines[seat] = mech;
@@ -361,21 +361,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         }
     }
 
-    /** Heading which turns parked machinery toward the bay's shared inboard space. */
+    /** Cardinal heading along the berth axis toward its inboard service-lane mouth. */
     private float parkedFacing(Gantry gantry) {
-        if (rooms != null) {
-            for (DeckGraph.Compartment room : rooms.compartments()) {
-                if (!room.contains(gantry.centerX, gantry.centerY)) continue;
-                float roomX = room.left() + room.width() * 0.5f;
-                float roomY = room.top() + room.depth() * 0.5f;
-                float dx = roomX - gantry.worldCenterX();
-                float dy = roomY - gantry.worldCenterY();
-                if (Math.abs(dx) > 0.001f || Math.abs(dy) > 0.001f) {
-                    return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
-                }
-                break;
-            }
-        }
         return gantry.facing.degrees();
     }
 

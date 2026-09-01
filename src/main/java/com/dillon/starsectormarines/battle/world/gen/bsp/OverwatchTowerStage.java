@@ -147,8 +147,12 @@ public final class OverwatchTowerStage implements GenStage {
             if (insideAuthoredInfantryPlace(ctx.tactical, x, y)) continue;
             if (tooClose(posts, placed, x, y)) continue;
             // Turning this single cell non-walkable must not sever the walkable
-            // graph (a tower mounted in a 1-wide gap would wall it off).
-            if (PlacementGuards.wouldPartitionWalkable(grid, new int[][]{{x, y}})) continue;
+            // graph (a tower mounted in a 1-wide gap would wall it off). Asked of
+            // the stamp and not of the map: the whole-map form refuses every
+            // candidate once anything anywhere has been orphaned, so a single
+            // pocket left by an earlier stage would silently cost the map its
+            // whole overwatch line.
+            if (PlacementGuards.wouldStrandGround(grid, x, y)) continue;
             // That guard cannot see a road's width: taking one cell out of the
             // 5-wide vehicle corridor leaves the walkable graph connected, so
             // it passes while the drivable width drops below what a vehicle
