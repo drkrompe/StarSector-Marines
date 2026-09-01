@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -41,8 +43,35 @@ class MissionMlxTest {
             assertFalse(instance.requireElement("tier-reinforced").disabled());
             assertTrue(instance.requireElement("tier-full").hasClass("selected"));
             instance.requireElement("mission-debug-controls");
-            instance.requireElement("mission-commitment-scroll");
+            instance.requireElement("mission-debug-air-heading");
+            instance.requireElement("mission-loadout-grid");
+            instance.requireElement("mission-power-list");
+            assertTrue(instance.requireElement("mission-assign")
+                    .hasClass("briefing-assign-hidden"));
+            assertTrue(instance.requireElement("debug-squads-cycle")
+                    .hasClass("debug-cycle-absent"));
         }
+    }
+
+    @Test
+    void tierSelectorOwnsTheDebugCompanyStage() {
+        assertEquals(DebugCompanyStage.FIRST_CONTRACT,
+                BriefingScreen.debugCompanyStageFor(OperationTier.FIRST_CONTRACT));
+        assertEquals(DebugCompanyStage.ESTABLISHED,
+                BriefingScreen.debugCompanyStageFor(OperationTier.ESTABLISHED));
+        assertEquals(DebugCompanyStage.VETERAN_COMPANY,
+                BriefingScreen.debugCompanyStageFor(OperationTier.VETERAN));
+        assertEquals(DebugCompanyStage.REINFORCED,
+                BriefingScreen.debugCompanyStageFor(OperationTier.REINFORCED));
+        assertEquals(DebugCompanyStage.FULL_STRENGTH,
+                BriefingScreen.debugCompanyStageFor(OperationTier.FULL_STRENGTH));
+
+        MarineOpsContext context = new MarineOpsContext(null);
+        context.setDebugSquadCount(9);
+        context.setDebugCompanyStage(DebugCompanyStage.REINFORCED);
+        assertEquals(DebugCompanyStage.REINFORCED, context.getDebugCompanyStage());
+        assertEquals(DebugCompanyStage.REINFORCED.squads,
+                context.getDebugSquadCount());
     }
 
     private static MarkupLoader loader(java.util.List<String> paths) {

@@ -2,10 +2,13 @@
 
 Status: ACTIVE — adopted and wired. `BspCityGenerator.usePrecincts` builds a
 whole map this way: places seeded from a world or authored, grown, welded onto
-one road network, claimed, allowed ground, filled — zoned or packed — walled and
-gated. What remains is the shape work below.
+one road network, claimed, allowed ground, filled — zoned from a character or
+packed from a program — walled and gated. What remains is the shape work below.
 
 Written: 2026-09-01
+
+Updated: 2026-09-01 — folded `precinct-interior-coherence.md`: a zoned precinct
+has a character, and the district map is asked per precinct.
 
 ## The shift
 
@@ -33,6 +36,7 @@ A **precinct** is a seeded, grown, filled, optionally-walled area of a map:
 | **Seed** | where it starts growing from |
 | **Growth** | how its road skeleton spreads — junction budget, arm lengths, class ladder |
 | **Program** | what it owes, with counts: buildings and lots, any of them zero or many. Absent for an ordinary settlement |
+| **Character** | what a zoned place is on the inside — the mix of district themes its parcels are built from, and whether it has a centre. Absent for a programmed place, whose program already says |
 | **Boundary** | open, or walled — and if walled, where its gates are |
 | **Claim** | how much ground it may take, and what happens where two precincts meet |
 
@@ -92,8 +96,8 @@ Inside its own claim, a precinct is filled one of two ways:
   already works on an arbitrary shape: `FortressInterior.pack` takes a buildable
   mask and a circulation mask, and `Bounds.of` reads the extent off the mask.
   The rectangle a fortress has today enters only through `wardRect`.
-- **Zoned** — hand its parcels to the existing labelling and fillers, which is
-  what a city does now.
+- **Zoned** — hand its parcels to the existing labelling and fillers, themed
+  from the precinct's own character rather than from the map.
 
 That is the whole difference between a fortress and a town. Everything else —
 how the roads grew, how the ground was dressed, how the border landed — is the
@@ -539,6 +543,85 @@ open-country road removed most of the crossings with it: measured across five
 seeds afterwards, the outline is 88–97% wall and carries 2–8 gates. What was
 missing was not fewer gates but any control over how many.
 
+## A zoned place says what it is inside
+
+The model shipped from the outside in. Growth, claim, artery, boundary, gates
+and emplacements were all per-precinct and all measured, and a programmed
+precinct was coherent end to end — civilian buildings within thirty cells of an
+installation seed measured 0 and 1. A zoned precinct was not: its parcels were
+cut from its own claim and then themed by `DistrictMap.themeAt`, an absolute
+position lookup on a fixed grid of twenty-cell blocks that had never heard of a
+precinct. The one nudge that scatter had, a civic block at the trunk crossing,
+was a single point on a map that now had four places. Measured on two derived
+maps at 560x336, three zoned places came out 71–85% residential apiece, and an
+*outlying* place carried 225 points of interest against the main settlement's
+100 — what separated two places was how much ground their claims had won.
+
+A zoned precinct now has a **character**, which is to a settlement what a
+`FortressProgram` is to a garrison: the statement the generator derives the rest
+from. A character is a *mix* — the district themes the place is built from,
+weighted the way that kind of place weights them — and optionally a *centre*,
+the theme forced onto the block its own seed stands on. `TOWN` is the one with a
+centre; `HAMLET`, `SUBURB`, `DEPOT` and `QUARTER` have none, because a hamlet is
+houses along a road. It is stated authored-wins, the shape `Fortification` has:
+a mission says what a place is, and `PrecinctPlan.derive` picks for a place
+nobody described — the main settlement a town leaning toward the world's
+economy, and each outlying place either the plain kind or what that economy
+makes of it, a depot on an industrial world and a dormitory on one that mostly
+houses people.
+
+**A character is not a second zoning system.** It is what the district map is
+asked per precinct instead of once per map. Each zoned precinct lays its own
+themes over the blocks its claim touches, rolled from its character and
+smoothed only against itself so a cluster never crosses a border, and the map
+answers from that layer wherever the precinct owns the cell and from the
+map-wide roll everywhere else. Three things follow and are laws rather than
+steps:
+
+- **Hinterland has no character and must not acquire one.** Open country is
+  dressed rather than built, and on a precinct map the map-wide roll is the
+  answer only there — where nothing is ever partitioned. A cell nobody claims
+  reads exactly what it read before anything was laid over it.
+- **A precinct's centre is its own, not the map's.** The trunk-crossing nudge
+  runs only on maps with no precincts; four places on a map can have four
+  centres, or none.
+- **What a place is never moves where it is.** Character draws come after every
+  seed, so the same world lays out the same map whatever it is built of, and a
+  forced block — a port pocket — is forced on every place that holds it, since a
+  force that landed on one layer would be invisible to a leaf another precinct
+  owns.
+
+Measured again on the same seeds, points of interest attributed to the nearest
+seed as before (which is why the installation's row is left out: the region
+nearer its seed than any other is far larger than its claim):
+
+| world | seed | place | character | POIs | residential | depot |
+|---|---|---|---|---|---|---|
+| habitation | 42 | settlement | town | 73 | 79% | 12% |
+| habitation | 42 | outlying-1 | suburb | 98 | 88% | 7% |
+| habitation | 42 | outlying-2 | hamlet | 101 | 81% | 9% |
+| industry | 42 | settlement | town, industrial | 74 | 66% | 26% |
+| industry | 42 | outlying-1 | depot | 80 | 31% | 56% |
+| industry | 42 | outlying-2 | hamlet | 101 | 61% | 26% |
+| industry | 7 | settlement | town, industrial | 113 | 59% | 29% |
+| industry | 7 | outlying-2 | hamlet | 191 | 57% | 32% |
+
+A depot beside a hamlet is a different place, and an industrial world's town is
+a different town from a residential world's at the same seed. Both directions
+are pinned: different characters must differ and the same character must agree
+with itself, because a change that merely added noise would pass the first
+alone. Two things the table cannot show are worth stating. The point-of-interest
+kinds are a coarse instrument — a commercial building counts as residential —
+so a hamlet and a suburb on a habitation world look alike here and differ in
+what is *not* a point of interest: a hamlet is mostly outskirts, which is parks,
+scrub and wasteland. And the sizes still vary with the claim lottery, which is
+open item 2 seen from the other end; a place whose contents are a statement now
+wants a size that is one too.
+
+The conquest recipe and the grown legacy recipe are untouched by any of this:
+the layers are laid only when a map has precincts, and a map without them takes
+no draw it did not take before.
+
 ## Still open
 
 
@@ -569,16 +652,14 @@ missing was not fewer gates but any control over how many.
    was wanted, but a thicker wall for a harder fortification would be nearly
    free — the outline is already computed — and would make the strength legible
    before contact as well as harder to breach.
-7. **A zoned precinct's kind does not reach its interior.** Its parcels are cut
-   from its own claim, which works, and are then themed by
-   `DistrictMap.themeAt` — an absolute map-position lookup on a fixed grid that
-   has never heard of a precinct. Measured on two derived maps, the three zoned
-   places came out 71–85% residential apiece and an *outlying* one carried 225
-   points of interest against the main settlement's 100. Only the ward, the
-   defence and the spawn anchor read a precinct key; the whole fill chain reads
-   none. The programmed path is clear — civilian buildings within thirty cells
-   of an installation seed measured 0 and 1 — so this is the zoned half alone.
-   `precinct-interior-coherence.md` owns it.
+7. **Two stages on the conquest recipe have no counterpart on the precinct
+   path**, both deliberately so far. `VehicleCorridorStage` is conquest-only,
+   so a walled precinct's guaranteed drivable gate opens onto no reserved
+   corridor; whether it needs one is a real question once armour uses these
+   maps. `OverwatchTowerStage` is parked behind `overwatch-tower-adoption.md`,
+   and `PrecinctDefence` covers the same ground from a stated dial, so that
+   story should be re-read against the emplacement loadout before it is picked
+   up.
 
 (The ground allowance is now derived — see below.)
 
