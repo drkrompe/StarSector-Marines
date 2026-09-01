@@ -10,6 +10,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,6 +36,8 @@ class BoatDeckTest {
 
         assertFalse(cost.any(), "a company that has never moved leaves nothing behind");
         assertEquals(6, deck.berths());
+        assertEquals(ShuttleType.AEROSHUTTLE, deck.pattern(),
+                "the deck remembers what her bays hold, because fabrication needs it");
         assertEquals(6, deck.airworthy().size());
         for (CampaignBoat boat : deck.airworthy()) {
             assertEquals(ShuttleType.AEROSHUTTLE, boat.pattern());
@@ -104,6 +107,60 @@ class BoatDeckTest {
         assertFalse(cost.any());
         assertEquals(6, deck.berths());
         assertEquals(before, ids(deck).subList(0, 3));
+    }
+
+    /**
+     * The whole point of a loss: the deck is read again on the next screen, the
+     * next briefing and the next mission, and none of those may quietly put a
+     * boat back where the one that burned was standing.
+     */
+    @Test
+    void aLostBoatLeavesItsBerthEmptyAndTheNextReadDoesNotRefillIt() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
+        List<String> before = ids(deck);
+
+        assertEquals(1, deck.lose(List.of(before.get(2))));
+        deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
+
+        assertEquals(6, deck.berths(), "the ship still has six bays");
+        assertEquals(5, deck.airworthy().size());
+        assertEquals(List.of(2), deck.vacantBerths());
+        assertNull(deck.boats().get(2));
+        assertEquals(before.get(3), deck.boats().get(3).id(),
+                "the boats either side of the hole stay in their own berths");
+    }
+
+    /** A boat the deck is not standing under is nobody's to strike off. */
+    @Test
+    void losingAnUnknownIdStrikesNothing() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
+
+        assertEquals(0, deck.lose(List.of("boat_99")));
+        assertEquals(0, deck.lose(List.of()));
+        assertEquals(0, deck.lose(null));
+        assertEquals(6, deck.airworthy().size());
+    }
+
+    /**
+     * The berths belong to the hull, so the losses stay with her. Aboard another
+     * ship the company simply has her boats, and what happened over a compound
+     * two systems ago is not her bays' problem.
+     */
+    @Test
+    void movingShipFillsTheVacanciesWithHerOwnBoats() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
+        List<String> before = ids(deck);
+        deck.lose(List.of(before.get(1), before.get(4)));
+
+        deck.reconcile(TENDER, ShuttleType.AEROSHUTTLE, 6);
+
+        assertEquals(6, deck.airworthy().size());
+        assertEquals(List.of(), deck.vacantBerths());
+        assertEquals(List.of(before.get(0), before.get(2), before.get(3), before.get(5)),
+                ids(deck).subList(0, 4), "the survivors compact into her berths in order");
     }
 
     /**

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.BoatDeck;
@@ -38,6 +39,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.VanillaHullSilhouettes;
 import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -79,6 +81,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /** Authored retained-view evidence rendered without a Starsector process. */
@@ -322,6 +325,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-fitting-wide.png",
                         renderBoatDeck(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                new SnapshotArtifact("boat-deck-vacant-wide.png",
+                        renderBoatDeck(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, true)),
                 new SnapshotArtifact("battle-hud-task-force-wide.png",
                         renderBattleHudTaskForce(
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -1157,8 +1163,26 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      */
     private static CompanyDeck companyShip(Supplier<List<MechVariant>> lance,
                                            Supplier<List<MarineSoldier>> company) {
+        return companyShip(lance, company, null);
+    }
+
+    /**
+     * The same, for a hull the company is short a boat on: the berth stands
+     * empty on the picture the way it stands empty on the deck.
+     *
+     * <p>Handed the ship rather than a plain array, because how many berths
+     * there are is the hull's answer and the campaign deck that says which of
+     * them are held has to be built against it. She lays her deck out for the
+     * question and is crewed from the same one, so this costs no second
+     * generation.
+     */
+    private static CompanyDeck companyShip(Supplier<List<MechVariant>> lance,
+                                           Supplier<List<MarineSoldier>> company,
+                                           Function<CompanyDeck, boolean[]> boatsHeld) {
+        boolean[][] held = new boolean[1][];
         CompanyDeck ship = new CompanyDeck(TestHulls.transport(), SHIP_SEED,
-                null, lance, company);
+                null, lance, company, () -> held[0]);
+        if (boatsHeld != null) held[0] = boatsHeld.apply(ship);
         ship.advance(18f);
         return ship;
     }
@@ -1218,7 +1242,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         hull.minCrew(), hull.maxCrew(), hull.cargo(),
                         hull.silhouette(), hull.spriteName()),
                         SHIP_SEED, null, List::of,
-                        () -> MarineOpsContext.companyMarines(roster));
+                        () -> MarineOpsContext.companyMarines(roster), null);
         if (hull != null) ship.advance(18f);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
@@ -1541,8 +1565,33 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderBoatDeck(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean openBoat) throws Exception {
+        return renderBoatDeck(context, renderer, width, height, openBoat, false);
+    }
+
+    /**
+     * @param strikeABoat photograph her a boat down: the third berth struck off
+     *     the deck the way a shoot-down strikes it, opened on the fabrication
+     *     pane, and against a hold that cannot pay for the replacement
+     */
+    private static BufferedImage renderBoatDeck(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean openBoat, boolean strikeABoat)
+            throws Exception {
         Reactor reactor = new Reactor();
-        CompanyDeck ship = companyShip(List::of, List::of);
+        BoatDeck[] campaign = new BoatDeck[1];
+        // The berth struck has to be one the camera is looking at, and the page
+        // opens on her first hangar. A transport spreads six berths over three
+        // bays, so striking the deck's third boat would put the hole in a bay
+        // nobody can see and photograph two intact ones.
+        int[] struck = {-1};
+        CompanyDeck ship = companyShip(List::of, List::of, hull -> {
+            campaign[0] = boatsAboard(hull);
+            if (strikeABoat) {
+                struck[0] = lastBerthInHerFirstHangar(hull);
+                campaign[0].lose(List.of(campaign[0].boats().get(struck[0]).id()));
+            }
+            return heldBerths(campaign[0]);
+        });
         // Her boats are put out by the bay on its first tick, and a ship whose
         // deck was still being laid out when the shutter opened has not had one
         // — so wait for her, then run her clock. Photographed before that, the
@@ -1550,24 +1599,23 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         ship.scene();
         ship.advance(18f);
         List<DeckGraph.Compartment> hangars = ship.rooms(RoomPurpose.HANGAR);
-        int berths = 0;
-        for (DeckGraph.Compartment hangar : hangars) {
-            berths += BoatDeckCanvas.boatBerthsIn(ship.scene(), hangar).size();
-        }
-        BoatDeck deck = new BoatDeck();
-        deck.reconcile("snapshot-ship",
-                ShipsBoats.carriedBy(ship.ship().role()), berths);
-        FabricationResources resources = snapshotMechResources();
-        BoatWorkshop workshop = new BoatWorkshop(deck, resources);
-        if (deck.berths() > 0) {
+        BoatDeck deck = campaign[0];
+        BoatWorkshop workshop = new BoatWorkshop(deck, snapshotMechResources());
+        if (deck.berths() > 0 && deck.boats().get(0) != null) {
             workshop.fit(deck.boats().get(0).id(), BoatFitting.REINFORCED_PLATING.id());
         }
-        if (deck.berths() > 1) {
+        if (deck.berths() > 1 && deck.boats().get(1) != null) {
             workshop.fit(deck.boats().get(1).id(), BoatFitting.TUNED_DRIVE.id());
         }
+        // The hold is the room's rather than the yard's: the refits above are
+        // already paid for, and what this photographs is a bill the company
+        // cannot meet.
+        FabricationResources resources = strikeABoat
+                ? snapshotHoldShortOfMetals() : snapshotMechResources();
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 reactor, deck, resources, "Valkyrie");
         if (openBoat) viewModel.selectBoatAction(0).run();
+        if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -1580,9 +1628,72 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("boat-deck-canvas"),
                     new BoatDeckCanvas(ship, () -> bay,
-                            viewModel::selectedBerthIndex, () -> 0));
+                            viewModel::selectedBerthIndex, () -> 0,
+                            berth -> berth < 0 || berth >= deck.berths()
+                                    || deck.boats().get(berth) != null));
             return renderRelative(renderer, document, width, height, 1f);
         }
+    }
+
+    /**
+     * Which of the deck's boat berths is the last one standing in her first
+     * hangar, by the campaign deck's own numbering.
+     *
+     * <p>Read off her map rather than off her scene, because the answer is
+     * wanted before she is crewed — what stands in her berths is settled while
+     * she is being got ready.
+     */
+    private static int lastBerthInHerFirstHangar(CompanyDeck ship) {
+        DeckGraph.Compartment hangar = ship.rooms(RoomPurpose.HANGAR).get(0);
+        int berth = 0;
+        int last = -1;
+        for (Gantry gantry : ship.map().gantries) {
+            if (gantry.holds != Gantry.Holds.BOAT) continue;
+            if (hangar.contains(gantry.centerX, gantry.centerY)) last = berth;
+            berth++;
+        }
+        return last;
+    }
+
+    /** The company's boats, in the berths this hull cut for them. */
+    private static BoatDeck boatsAboard(CompanyDeck ship) {
+        int berths = 0;
+        for (Gantry berth : ship.map().gantries) {
+            if (berth.holds == Gantry.Holds.BOAT) berths++;
+        }
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile("snapshot-ship", ShipsBoats.carriedBy(ship.ship().role()), berths);
+        return deck;
+    }
+
+    /** @see BoatDeck#boats() */
+    private static boolean[] heldBerths(BoatDeck deck) {
+        List<CampaignBoat> berths = deck.boats();
+        boolean[] held = new boolean[berths.size()];
+        for (int berth = 0; berth < berths.size(); berth++) {
+            held[berth] = berths.get(berth) != null;
+        }
+        return held;
+    }
+
+    /** A hold that cannot pay for an Aeroshuttle's 60 metals. */
+    private static FabricationResources snapshotHoldShortOfMetals() {
+        FabricationResources stocked = snapshotMechResources();
+        return new FabricationResources() {
+            @Override public int available(String commodityId) {
+                return Commodities.METALS.equals(commodityId)
+                        ? 41 : stocked.available(commodityId);
+            }
+            @Override public String commodityName(String commodityId) {
+                return stocked.commodityName(commodityId);
+            }
+            @Override public String commodityIcon(String commodityId) {
+                return stocked.commodityIcon(commodityId);
+            }
+            @Override public boolean spend(FabricationCost cost) {
+                return canAfford(cost) && stocked.spend(cost);
+            }
+        };
     }
 
     private static FabricationResources snapshotMechResources() {
@@ -1810,6 +1921,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("catalogRows", viewModel.catalogRows());
         props.put("overviewClasses", viewModel.overviewClasses());
         props.put("fittingClasses", viewModel.fittingClasses());
+        props.put("fabricationClasses", viewModel.fabricationClasses());
+        props.put("fabricationBerthLabel", viewModel.fabricationBerthLabel());
+        props.put("fabricationPatternName", viewModel.fabricationPatternName());
+        props.put("fabricationCopy", viewModel.fabricationCopy());
+        props.put("fabricationMaterials", viewModel.fabricationMaterials());
+        props.put("fabricationActionClasses", viewModel.fabricationActionClasses());
+        props.put("fabricationBlocked", viewModel.fabricationBlocked());
+        props.put("fabricationReason", viewModel.fabricationReason());
+        props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());

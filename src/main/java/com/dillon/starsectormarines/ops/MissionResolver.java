@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationReport;
 import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
@@ -33,6 +35,8 @@ import com.dillon.starsectormarines.campaign.StationingIncidentMissionKey;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentResolution;
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
+import com.dillon.starsectormarines.marine.BoatDeck;
+import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -50,6 +54,7 @@ import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import org.apache.log4j.Logger;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -182,7 +187,26 @@ public final class MissionResolver {
                 }
             }
         }
-        int marinesEngaged = marinesAlive + rawMarinesLost;
+
+        // The boats the battle burned, and whoever was still strapped into
+        // them. A passenger is neither a live unit nor a corpse — they never
+        // reached the ground — so the two walks above cannot see them and the
+        // ledger is the only place they are counted.
+        List<MissionOutcome.BoatLoss> boatsLost = new ArrayList<>();
+        int marinesLostAboard = 0;
+        BoatDeck deck = liveBoatDeck();
+        for (AirLoss loss : sim.getAirLosses()) {
+            if (!(loss.frame() instanceof FittedBoat boat) || boat.boatId() == null) continue;
+            CampaignBoat owned = deck != null ? deck.boatById(boat.boatId()) : null;
+            boatsLost.add(new MissionOutcome.BoatLoss(boat.boatId(),
+                    owned != null ? owned.displayName() : boat.boatId(),
+                    owned != null ? owned.pattern() : boat.pattern(),
+                    loss.passengersAboard()));
+            marinesLostAboard += loss.passengersAboard();
+            fallenSoldierIds.addAll(loss.passengerSoldierIds());
+        }
+
+        int marinesEngaged = marinesAlive + rawMarinesLost + marinesLostAboard;
 
         // Per-soldier combat telemetry. One gather, two consumers: the whole
         // set (defenders, employer militia, turrets, the fallen) is available
@@ -203,9 +227,12 @@ public final class MissionResolver {
         }
 
         boolean hasFieldMedic = captain != null && captain.traits().contains(Trait.FIELD_MEDIC);
-        int marinesLost = hasFieldMedic
+        // The medic's reduction is applied to the ground casualties only. A
+        // marine who burned in a boat over the objective is not somebody a
+        // corpsman reaches.
+        int marinesLost = (hasFieldMedic
                 ? (int) Math.floor(rawMarinesLost * (1f - FIELD_MEDIC_REDUCTION))
-                : rawMarinesLost;
+                : rawMarinesLost) + marinesLostAboard;
 
         // Cash multiplier applies the salvage-traded-for-cash bump from briefing
         // acceptance (see contracts-nouns.md). 100 = baseline.
@@ -313,6 +340,8 @@ public final class MissionResolver {
                 .salvageEntitlement(salvageEntitlement)
                 .salvageRecoveryBonusPct(recoveryModifier.recoveryBonusPct)
                 .salvageHighValueChancePct(recoveryModifier.highValueChancePct)
+                .boatsLost(boatsLost)
+                .marinesLostAboard(marinesLostAboard)
                 .survivingSoldierIds(survivingSoldierIds)
                 .fallenSoldierIds(fallenSoldierIds)
                 .deployedFireteamIds(deployedFireteamIds)
@@ -375,6 +404,8 @@ public final class MissionResolver {
             applyIndustryDisruption(outcome);
         }
 
+        strikeLostBoats(outcome);
+
         MarineRoster roster = applyPersonnelOutcome(outcome);
         if (outcome.contractId != -1L) {
             applyContractBridge(outcome, roster);
@@ -427,6 +458,35 @@ public final class MissionResolver {
                 + " xp=" + outcome.xpGained
                 + " captainStatus=" + outcome.newCaptainStatus
                 + " promotedTo=" + outcome.promotedTo);
+    }
+
+    /**
+     * Takes the lost boats off their berths, before the personnel outcome is
+     * written. Order matters only for legibility — a debrief that says four
+     * marines went down with a boat should not be applied while the boat is
+     * still standing in its berth.
+     */
+    private static void strikeLostBoats(MissionOutcome outcome) {
+        if (outcome.boatsLost.isEmpty()) return;
+        BoatDeck deck = liveBoatDeck();
+        if (deck == null) return;
+        List<String> ids = new ArrayList<>(outcome.boatsLost.size());
+        for (MissionOutcome.BoatLoss loss : outcome.boatsLost) ids.add(loss.boatId());
+        int struck = deck.lose(ids);
+        LOG.info("MarineOps: struck " + struck + " lost boat(s) off the deck"
+                + " with " + outcome.marinesLostAboard + " marine(s) aboard them");
+    }
+
+    /**
+     * The company's boat deck, or null with no campaign behind the call — a
+     * headless resolve of a fixture battle, which still has to produce an
+     * outcome. Guarded on the sector rather than on the script, because
+     * {@code MarineRosterScript.getInstance} walks one.
+     */
+    private static BoatDeck liveBoatDeck() {
+        if (Global.getSector() == null) return null;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        return script == null ? null : script.roster().boatDeck();
     }
 
     private static MarineRoster applyPersonnelOutcome(MissionOutcome outcome) {

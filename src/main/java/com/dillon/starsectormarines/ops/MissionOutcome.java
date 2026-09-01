@@ -1,13 +1,16 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -78,6 +81,20 @@ public final class MissionOutcome {
     public final int     salvageRecoveryBonusPct;
     /** Frozen deterministic chance for the high-value catalog roll. */
     public final int     salvageHighValueChancePct;
+    /**
+     * The company's own boats this mission destroyed, in the order they were
+     * lost. Named here rather than looked up later because the outcome is shown
+     * after the deck has been struck: by then the boat is off its berth and the
+     * only place its name still exists is this list.
+     */
+    public final List<BoatLoss> boatsLost;
+    /**
+     * Marines who went down aboard a lost boat, counted separately from the
+     * ground casualties they are folded into. They are fallen the same way and
+     * roll the same fate; this is what says how many of the losses never
+     * reached the ground.
+     */
+    public final int marinesLostAboard;
     public final Set<String> survivingSoldierIds;
     public final Set<String> fallenSoldierIds;
     /** Mission-time persistent squad selection, in briefing order. */
@@ -145,6 +162,8 @@ public final class MissionOutcome {
         this.salvageEntitlement = b.salvageEntitlement;
         this.salvageRecoveryBonusPct = Math.max(0, b.salvageRecoveryBonusPct);
         this.salvageHighValueChancePct = Math.max(0, Math.min(100, b.salvageHighValueChancePct));
+        this.boatsLost = immutableBoatLosses(b.boatsLost);
+        this.marinesLostAboard = Math.max(0, b.marinesLostAboard);
         this.survivingSoldierIds = immutableIds(b.survivingSoldierIds);
         this.fallenSoldierIds = immutableIds(b.fallenSoldierIds);
         this.deployedFireteamIds = immutableOrderedIds(b.deployedFireteamIds);
@@ -199,6 +218,8 @@ public final class MissionOutcome {
         private int salvageRecoveryBonusPct;
         private int salvageHighValueChancePct;
 
+        private List<BoatLoss> boatsLost = Collections.emptyList();
+        private int marinesLostAboard;
         private Set<String> survivingSoldierIds = Collections.emptySet();
         private Set<String> fallenSoldierIds = Collections.emptySet();
         private Set<String> deployedFireteamIds = Collections.emptySet();
@@ -399,6 +420,16 @@ public final class MissionOutcome {
             return this;
         }
 
+        public Builder boatsLost(List<BoatLoss> boatsLost) {
+            this.boatsLost = boatsLost;
+            return this;
+        }
+
+        public Builder marinesLostAboard(int marinesLostAboard) {
+            this.marinesLostAboard = marinesLostAboard;
+            return this;
+        }
+
         public Builder survivingSoldierIds(Set<String> survivingSoldierIds) {
             this.survivingSoldierIds = survivingSoldierIds;
             return this;
@@ -422,6 +453,26 @@ public final class MissionOutcome {
         public MissionOutcome build() {
             return new MissionOutcome(this);
         }
+    }
+
+    /**
+     * One of the company's boats that did not come home.
+     *
+     * @param boatId the campaign boat, so the deck can be struck by it
+     * @param displayName her tail name, frozen because the deck will not have
+     *     her by the time this is read
+     * @param pattern what she was
+     * @param passengersLost how many marines were still aboard when she went
+     */
+    public record BoatLoss(String boatId, String displayName, ShuttleType pattern,
+                           int passengersLost) {
+    }
+
+    private static List<BoatLoss> immutableBoatLosses(List<BoatLoss> source) {
+        if (source == null || source.isEmpty()) return Collections.emptyList();
+        List<BoatLoss> copy = new ArrayList<>(source.size());
+        for (BoatLoss loss : source) if (loss != null) copy.add(loss);
+        return Collections.unmodifiableList(copy);
     }
 
     private static Map<String, CombatTelemetryRow> immutableTelemetry(
