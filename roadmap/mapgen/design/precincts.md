@@ -297,6 +297,118 @@ A field with nowhere to go at any size is counted under
 `BspKeys.UNPLACED_AIRFIELDS` rather than dropped, for the same reason unbuilt
 buildings are.
 
+## How much of the map is settled is a knob
+
+The same world can be an installation in wilderness or a city with an
+installation in it, and which one it is belongs to the battle rather than to the
+planet. `PrecinctPlan.Sprawl` says how many places there are and how far they
+reach; per-place density already existed and is not the same question.
+
+Measured through the generator at 560x336 on one seed:
+
+| preset | places | POIs | built | wild |
+|---|---|---|---|---|
+| `REMOTE` | 1 | 0 | 1.2% | 93.6% |
+| `BALANCED` | 4 | 339 | 8.6% | 58.2% |
+| `DENSE` | 11 | 746 | 18.8% | 15.4% |
+
+`BALANCED` is the shipped default and reproduces what the model produced before
+the knob existed.
+
+Two things that make the extremes work are worth stating because neither is a
+tuning value. `REMOTE` **drops the settlement entirely** when there is a
+garrison — the installation is then the somewhere the battle happens, and adding
+a town is the one thing that stops the map being what it is called. `DENSE`
+takes the main settlement to full density, which is not "more streets": it is
+the point at which `Profile.of` stops giving frontage a depth at all, so the
+place claims out to whatever its neighbours and the map edge allow. It also
+seeds many places rather than one, because a single settlement claiming evenly
+comes out a disc, and a city is districts meeting each other.
+
+## Palettes are cosmetic and read that way
+
+All four surface palettes render distinctly at the same seed and produce the
+same layout, which is the boundary working: what a world's ground is made of
+changes what is drawn and nothing about where anything is.
+
+`ROCK` and `ARID` read flatter than `VERDANT` because their pools are dominated
+by one ground and the patch field has nothing to arrange — the measurement in
+the wild-ground section says so directly. `FROZEN`'s dirt shows through around
+settlement, which reads as trampled ground and is a happy accident of its
+50/50 pool rather than anything authored.
+
+Parks and verges stay green on every world, including the rock one. That is the
+cultivated-ground law in `mapgen-nouns.md` made visible: lawn on an airless rock
+is a statement about the colony, not about the planet.
+
+## A place is something a battle can be about
+
+A programmed precinct was geometry: walls, roofs, a motor pool and two runways,
+and nothing to fight over — no objectives, no garrison spawns, nothing for the
+commander tier to reason across. On a map with settlements around it that hides
+behind their fills; on a `REMOTE` map, where the installation is the only place,
+the whole map came out with none.
+
+Its placed rooms now become tactical nodes, at 14 on a balanced map where there
+were none from the garrison before. Two differences from the conquest ward are
+deliberate:
+
+**A precinct garrison keeps its own command post.** The conquest ward is packed
+around a citadel compound the recipe seeded separately, and its program has the
+keep taken out so the map does not end up with two. A precinct is
+self-contained; nothing else is going to provide one, and two garrisons on one
+map are meant to have one each.
+
+**Nodes are emitted after the airfields are authored**, because authoring a lot
+clears tactical nodes standing on its reservation and a building's node has no
+business being removed by an airfield.
+
+Points of interest stay at zero on a remote map, and that is right rather than
+outstanding: those come from settlement fills, and a remote map has no
+civilians.
+
+## Road in open country is a supply route or it is nothing
+
+Growth does not stop at a claim. Arms run their full length whether or not the
+place they belong to holds the ground they cross, so an installation with a
+modest claim throws a street network across the wilderness around it. Measured
+on a remote map, **two thirds of all road lay outside every precinct** — 3086
+cells, fully connected, with no dead ends, and serving nothing. A street grid in
+a field.
+
+What open-country road is *for* is the reason to keep any of it: a remote
+installation is supplied from somewhere and the road out is how. So road beyond
+every claim survives where it carries a place to the map edge, and is removed
+otherwise. On the same map that keeps three highways and prunes 2752 cells; the
+result reads as an installation in country with a couple of roads leaving it.
+
+Four things were learned by measuring rather than reasoning, and each is a rule
+rather than a number.
+
+**A route traced is one cell wide, because a breadth-first path is.** Kept as
+traced, a five-cell road becomes a footpath nothing drives — 193 cells of
+highway across five exits. The route is widened back out over the road that was
+already there, so a highway is as wide as the road it is made of and never
+wider.
+
+**A contiguous run of border road is one way out, not one per cell.** A
+three-cell-wide road traced from each of its cells comes back as three routes,
+so a map with a single supply road reported three exits and spent its whole
+budget on them.
+
+**Only a few are kept.** Growth reaching the border five times is five roads out
+of a place that needs one, and keeping them all leaves the wandering with an
+excuse. The shortest survive, because a supply road takes the near way out.
+
+**The question is whether any road reaches the border, not whether an
+open-country route does.** A dense city has streets to the edge and no open
+country at all; asked the narrow way, every city on the map had a supply road
+cut across it.
+
+A place with no road off the map at all is given one, straight and looking it,
+on the same terms as `PrecinctArtery`: it exists so a place is supplied, not to
+be a good road.
+
 ## Still open
 
 0. **A walled precinct has too many gates.** Every arm crossing the outline is a

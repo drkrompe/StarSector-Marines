@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -36,7 +37,8 @@ public final class BattleFixtureJson {
     public static final int LEGACY_SCHEMA_VERSION = 1;
     public static final int SCHEMA_VERSION = 2;
     public static final int LEGACY_LAUNCH_SCHEMA_VERSION = 2;
-    public static final int LAUNCH_SCHEMA_VERSION = 3;
+    public static final int PRE_FIELD_PRESENCE_LAUNCH_SCHEMA_VERSION = 3;
+    public static final int LAUNCH_SCHEMA_VERSION = 4;
 
     private BattleFixtureJson() {}
 
@@ -129,7 +131,8 @@ public final class BattleFixtureJson {
             case 1 -> decodeV1(root);
             case LEGACY_LAUNCH_SCHEMA_VERSION -> root.has("construction")
                     ? decodeLegacyLaunchV2(root) : decodeConstructionV2(root);
-            case 3 -> decodeLaunchV3(root);
+            case PRE_FIELD_PRESENCE_LAUNCH_SCHEMA_VERSION,
+                 LAUNCH_SCHEMA_VERSION -> decodeLaunchV3(root);
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture schemaVersion: " + version);
         };
@@ -404,6 +407,7 @@ public final class BattleFixtureJson {
         encoded.put("debugFighterSupport",
                 wingsToJson(launch.debugFighterSupport()));
         encoded.put("commandPowers", powersToJson(launch.commandPowers()));
+        encoded.put("fieldPresencePolicy", launch.fieldPresencePolicy().name());
         JSONObject resources = new JSONObject();
         resources.put("supplies", launch.startingSupplies());
         encoded.put("commandPowerResources", resources);
@@ -417,7 +421,11 @@ public final class BattleFixtureJson {
                 wingsFromJson(encoded.getJSONArray("marineFighterSupport")),
                 wingsFromJson(encoded.getJSONArray("debugFighterSupport")),
                 powersFromJson(encoded.getJSONArray("commandPowers")),
-                encoded.getJSONObject("commandPowerResources").getInt("supplies"));
+                encoded.getJSONObject("commandPowerResources").getInt("supplies"),
+                enumValue(FieldPresencePolicy.class,
+                        encoded.optString("fieldPresencePolicy",
+                                FieldPresencePolicy.UNRESTRICTED.name()),
+                        "field presence policy"));
     }
 
     private static JSONArray marineSeatsToJson(

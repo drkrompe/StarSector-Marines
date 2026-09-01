@@ -138,7 +138,8 @@ public final class RoomPlacementStage implements GenStage {
         // passage above reached the nearest thing already connected, which is
         // right each time and leaves a tree overall.
         packer.openLoops(DECK_LOOPS);
-        ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(placed, unplaced, apertures));
+        ctx.put(ShipKeys.DECK_GRAPH,
+                new DeckGraph(placed, unplaced, apertures, ctx.get(ShipKeys.SHIPS_BOATS)));
     }
 
     /**

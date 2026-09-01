@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctAllowance;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctArtery;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctClaim;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctHighways;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctInterconnect;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -58,6 +59,13 @@ public final class PrecinctSkeletonStage implements GenStage {
             PrecinctArtery.ensure(claim, grown.owner(), i,
                     precinct.seedX(), precinct.seedY(), ctx.width, ctx.height);
         }
+
+        // Growth does not stop at a claim, so a place throws a street network
+        // across the country around it: measured on a remote map, two thirds of
+        // all road lay outside every precinct, connected and serving nothing.
+        // What survives out there is what carries a place off the map, because
+        // that is what a road in open country is for.
+        PrecinctHighways.prune(grown.owner(), claim, ctx.width, ctx.height);
 
         // Separately grown places share a road network only by accident.
         // Measured over four derived maps, three came out whole and one came
