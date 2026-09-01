@@ -125,7 +125,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         int gantryIndex = selectedIndex(selectedGantry.getAsInt());
         MechDeploymentSpec selected = gantryIndex < lance.size() ? lance.get(gantryIndex) : null;
         MechVariant selectedVariant = selected != null ? selected.variant() : null;
-        if (assets.get() == null) return;
+        LayeredMechAssets spriteAssets = assets.get();
+        if (spriteAssets == null) return;
 
         ShipDeckBattleScene aboard = ship.get();
         ShipDeckBattleScene.RoomView bay = aboard != null ? roomView.get() : null;
@@ -168,7 +169,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawVacantGantryActions(context, sceneCamera, host[0], standing, lance.size());
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
-                    selected, selectedSocket.get(), projection);
+                    selected, selectedSocket.get(), projection, spriteAssets);
         }
         drawTechnicianFx(context, sceneCamera, host[0],
                 workingPoses(aboard, standing, workSite.getAsInt()), time,
@@ -345,7 +346,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     private static void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,
                                            MechDeploymentSpec deployment, SocketId selectedSocket,
-                                           SceneProjection projection) {
+                                           SceneProjection projection,
+                                           LayeredMechAssets assets) {
         float radians = (float) Math.toRadians(layout.doll().facingDegrees());
         float cos = (float) Math.cos(radians);
         float sin = (float) Math.sin(radians);
@@ -372,8 +374,16 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     : occupied ? socket.gridColumns() : 0;
             int occupiedRows = component != null ? component.footprintRows
                     : occupied ? socket.gridRows() : 0;
-            drawCapacityCells(c, target, base, selected,
-                    occupiedColumns, occupiedRows);
+            drawCapacityCellFills(c, target, base, selected,
+                    occupiedColumns, occupiedRows, component != null);
+            EquipmentArea installedArea = equipmentArea(
+                    target, occupiedColumns, occupiedRows);
+            if (component != null && installedArea != null) {
+                MechEquipmentGridCanvas.drawWeaponPreview(c, component, assets,
+                        installedArea.left(), installedArea.top(),
+                        installedArea.width(), installedArea.height(), 0.96f);
+            }
+            drawCapacityCellStrokes(c, target, base, selected);
         }
     }
 
@@ -448,15 +458,40 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return List.copyOf(cells);
     }
 
-    private static void drawCapacityCells(CanvasContext c, SocketDropTarget target,
-                                          Color base, boolean selected,
-                                          int occupiedColumns, int occupiedRows) {
+    static EquipmentArea equipmentArea(SocketDropTarget target,
+                                       int occupiedColumns, int occupiedRows) {
+        int columns = Math.min(target.gridColumns(), Math.max(0, occupiedColumns));
+        int rows = Math.min(target.gridRows(), Math.max(0, occupiedRows));
+        if (columns == 0 || rows == 0) return null;
+        List<CapacityCell> cells = capacityCells(target);
+        CapacityCell first = cells.get(0);
+        CapacityCell last = cells.get((rows - 1) * MechFittingLayout.MAX_GRID_COLUMNS
+                + columns - 1);
+        return new EquipmentArea(first.x(), first.y(),
+                last.x() + last.width() - first.x(),
+                last.y() + last.height() - first.y());
+    }
+
+    private static void drawCapacityCellFills(CanvasContext c, SocketDropTarget target,
+                                              Color base, boolean selected,
+                                              int occupiedColumns, int occupiedRows,
+                                              boolean weaponInstalled) {
         for (CapacityCell cell : capacityCells(target)) {
             boolean filled = cell.active() && cell.column() < occupiedColumns
                     && cell.row() < occupiedRows;
             c.fillRect(cell.x(), cell.y(), cell.width(), cell.height(),
-                    cell.active() ? withAlpha(base, filled ? selected ? 220 : 135 : 32)
+                    cell.active() ? withAlpha(base, filled
+                            ? weaponInstalled ? selected ? 96 : 48
+                            : selected ? 220 : 135
+                            : 32)
                             : new Color(0x18, 0x1E, 0x24, 215));
+        }
+    }
+
+    private static void drawCapacityCellStrokes(CanvasContext c,
+                                                SocketDropTarget target,
+                                                Color base, boolean selected) {
+        for (CapacityCell cell : capacityCells(target)) {
             c.strokeRect(cell.x(), cell.y(), cell.width(), cell.height(),
                     cell.active() ? withAlpha(base, selected ? 240 : 180)
                             : new Color(0x4B, 0x53, 0x5A, 190), 1f);
@@ -485,6 +520,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     record CapacityCell(int index, int column, int row, boolean active,
                         float x, float y, float width, float height) { }
+
+    record EquipmentArea(float left, float top, float width, float height) { }
 
     record VacantGantryTarget(int index, float x, float y, float width, float height) {
         boolean contains(float pointX, float pointY) {

@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — Mech Lab fitting uses a tall two-by-three grid; catalog art
-is oriented over only the cells occupied by each component footprint.
+Updated: 2026-09-01 — Mech Lab fitting uses a tall two-by-three grid; catalog and
+doll art are oriented over only the cells occupied by each installed component.
 
 ## Purpose
 
@@ -442,9 +442,12 @@ support sortie, subject only to practical runtime resources.
   props, or another chassis.
 - Socket overlays consume the selected asset's authored fitting layout. Their
   strongly translucent type color, tall hull-relative drop footprint, and common
-  two-by-three cell frame occupy the gantry around the physical doll, with a light leader returning
-  to the authored mount anchor. The doll remains readable instead of becoming a
-  pile of UI rectangles, and the rendered room becomes useful fitting space.
+  two-by-three cell frame occupy separated docks around the physical doll, with a
+  light leader returning to the authored mount anchor. Installed weapons render
+  their inventory art across their exact occupied cells before grid edges are
+  restored above them; color-only active cells therefore mean empty capacity.
+  The doll remains readable instead of becoming a pile of UI rectangles, and the
+  rendered room becomes useful fitting space.
   The whole footprint is the pointer target; active, occupied, and blocked cells
   project the same rectangular component and socket dimensions used by the atomic
   campaign refit. A future drag preview may occupy those cells but cannot redefine
