@@ -51,6 +51,14 @@ abstract class MissionFlowMlxScreen implements Screen {
 
     protected abstract List<String> requiredElementIds();
 
+    /** Lets a screen bind retained elements that are repeated from its projected rows. */
+    protected void onDocumentBuilt(MarkupInstance instance, UiDocument built) {
+    }
+
+    /** Lets a screen project hover-only presentation after retained input is resolved. */
+    protected void onInputProcessed() {
+    }
+
     protected void onCancel() {
     }
 
@@ -63,6 +71,7 @@ abstract class MissionFlowMlxScreen implements Screen {
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::onCancel);
             if (viewport != null) built.layout(viewport.documentWidth(), viewport.documentHeight());
+            onDocumentBuilt(candidate, built);
         } catch (RuntimeException failure) {
             candidate.close();
             throw failure;
@@ -90,7 +99,10 @@ abstract class MissionFlowMlxScreen implements Screen {
 
     @Override
     public final void processInput(List<InputEventAPI> events) {
-        if (input != null) input.process(events);
+        if (input == null) return;
+        input.process(events);
+        onInputProcessed();
+        if (document != null) document.advance(0f);
     }
 
     @Override
