@@ -374,8 +374,8 @@ public final class Squad {
 
     /**
      * The memo behind {@code AttackMove.maneuverAim}: the flank cell this squad
-     * last resolved, so the A* fan-out that resolves one is paid per squad per
-     * second rather than per member per tick. See {@link FlankAimMemo}.
+     * last resolved, so the A* fan-out that resolves one is paid once per squad
+     * per tick rather than once per member. See {@link FlankAimMemo}.
      */
     public final FlankAimMemo flankAim = new FlankAimMemo();
 

@@ -225,10 +225,10 @@ public final class AttackMove extends AbstractZoneAction {
         int rawX = (int) Math.floor(contactX + perpX * SQUAD_FLANK_RADIUS);
         int rawY = (int) Math.floor(contactY + perpY * SQUAD_FLANK_RADIUS);
 
-        // The whole squad shares one answer here, and it only moves when the
-        // contact moves cells — but the call is per member per tick, and
-        // snapToReachable costs an A* per candidate over a radius-5 square.
-        // Ask once per squad per second instead; see FlankAimMemo.
+        // Every input below is squad-scoped, so all six members were computing
+        // the identical answer — and snapToReachable costs an A* per candidate
+        // over a radius-5 square. Ask once per squad per tick; see FlankAimMemo,
+        // which also records why the window is not wider than a tick.
         int tick = sim.getSimTickIndex();
         if (squad.flankAim.isFresh(contact, rawX, rawY, tick)) {
             if (squad.flankAim.refused()) return new int[]{destX, destY};
