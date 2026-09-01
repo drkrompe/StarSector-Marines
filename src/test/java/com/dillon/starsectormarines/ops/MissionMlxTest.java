@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
+import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ui.retained.Rect;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -8,6 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -82,6 +87,52 @@ class MissionMlxTest {
             instance.requireElement("squad-deployment-summary");
             instance.requireElement("squad-deployment-grid");
             assertTrue(instance.requireElement("deployment-preview-0").hasClass("selected"));
+            for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+                for (int slot = 0; slot < MarineSquad.TEAM_SIZE; slot++) {
+                    instance.requireElement("deployment-preview-member-0-" + team + "-" + slot);
+                }
+            }
+            assertEquals("Corporal Hale",
+                    instance.requireElement("squad-deployment-inspector-title").text());
+            assertTrue(instance.requireElement("squad-deployment-inspector-firepower")
+                    .text().contains("FIREPOWER"));
+            assertFalse(instance.requireElement("squad-deployment-inspector")
+                    .hasClass("empty"));
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void hoveringADeploymentBilletProjectsThatMarinesLoadout() throws Exception {
+        MarkupLoader loader = loader(SquadDeploymentScreen.COMPONENT_PATHS);
+        loader.reload();
+        Map<String, Object> props = SquadDeploymentScreen.previewProps();
+        try (MarkupInstance instance = loader.build(new Reactor(),
+                SquadDeploymentScreen.ROOT_COMPONENT, props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard()).layout(1920f, 1080f);
+            SquadDeploymentScreen.MemberInspector inspector =
+                    SquadDeploymentScreen.MemberInspector.bind(instance,
+                            (List<SquadDeploymentScreen.SquadRow>) props.get("squadRows"));
+
+            Rect vega = instance.requireElement("deployment-preview-member-0-0-1")
+                    .box().borderBox();
+            document.pointerMoved(vega.x() + vega.width() * 0.5f,
+                    vega.y() + vega.height() * 0.5f);
+            inspector.update();
+
+            assertEquals("Marine Vega",
+                    instance.requireElement("squad-deployment-inspector-title").text());
+            assertTrue(instance.requireElement("squad-deployment-inspector-primary")
+                    .text().contains("FIELD RIFLE"));
+
+            document.pointerMoved(4f, 4f);
+            inspector.update();
+            assertEquals("HOVER A MARINE",
+                    instance.requireElement("squad-deployment-inspector-title").text());
+            assertTrue(instance.requireElement("squad-deployment-inspector")
+                    .hasClass("empty"));
         }
     }
 

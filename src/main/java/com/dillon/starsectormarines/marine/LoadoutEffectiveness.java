@@ -186,9 +186,19 @@ public final class LoadoutEffectiveness {
         return index(firepower(doctrine), MarineSquad.CAPACITY * bestEffectiveDps());
     }
 
+    /** One issued primary's firepower as a percentage of the catalog ceiling. */
+    public static int billetWeaponRating(WeaponDef weapon, EquipmentGrade grade) {
+        return index(effectiveDps(weapon, grade), bestEffectiveDps());
+    }
+
     /** A tactic sheet's protection as a percentage of the best twelve suits catalogued. */
     public static int armorRating(SquadArmorDoctrine doctrine) {
         return index(protection(doctrine), MarineSquad.CAPACITY * bestResilience());
+    }
+
+    /** One issued suit's protection as a percentage of the catalog ceiling. */
+    public static int billetArmorRating(MarineArmorCatalogDef pattern) {
+        return index(patternResilience(pattern), bestResilience());
     }
 
     private static int index(float value, float ceiling) {
