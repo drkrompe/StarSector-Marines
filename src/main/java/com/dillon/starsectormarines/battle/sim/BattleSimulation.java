@@ -66,6 +66,7 @@ import com.dillon.starsectormarines.battle.air.AirfieldSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
@@ -936,6 +937,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     /** Inject the detachment-resolved command-power roster. Called once at battle setup ({@code ops.MissionLaunch}), mirroring {@link #setFlybyRoster}; an empty/{@code null} list leaves the power UI hidden. */
     public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) { commandPowers.setPowers(powers); }
+
+    /** Installs the mission-owned concurrent player-squad limit before ticking. */
+    public void setFieldPresencePolicy(FieldPresencePolicy policy) {
+        airSystem.setFieldPresencePolicy(policy);
+    }
     /** Hands the sim the map's building registry. Called by BattleSetup after generation. Subsequent visibility passes will reveal/hide these buildings as contributor units move. */
     public void setBuildings(com.dillon.starsectormarines.battle.world.model.Buildings buildings) {
         fogOfWar.setBuildings(buildings);
