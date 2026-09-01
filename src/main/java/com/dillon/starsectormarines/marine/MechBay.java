@@ -213,7 +213,9 @@ public final class MechBay implements Serializable {
         MechFittingLayout.SocketId socketId = socketFor(slot);
         MechFittingLayout.SocketDef socket = MechFittingLayout.forVariant(
                 mech.variant()).socket(socketId);
-        if (socket == null || socket.factoryLocked() || component.slotCost > socket.capacity()) {
+        if (socket == null || socket.factoryLocked()
+                || !socket.accommodates(component.footprintColumns,
+                        component.footprintRows)) {
             return false;
         }
         return socket.type() == MechFittingLayout.SocketType.OMNI

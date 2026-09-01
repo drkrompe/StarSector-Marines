@@ -90,6 +90,29 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void houndCatalogShowsOversizedBallisticPatternsWithoutAllowingFit() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
+                "support_mech_02", "Hound 02", MechVariant.HOUND,
+                MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id()));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        viewModel.mechRows().get().stream()
+                .filter(row -> row.name().startsWith("Hound"))
+                .findFirst().orElseThrow().select().run();
+        viewModel.slotRows().get().stream()
+                .filter(row -> row.name().equals("ARM ASSEMBLY"))
+                .findFirst().orElseThrow().select().run();
+
+        MechLabViewModel.CatalogRow heavy = viewModel.catalogRows().get().stream()
+                .filter(row -> row.name().equals("Heavy cannon"))
+                .findFirst().orElseThrow();
+        assertEquals("TOO LARGE", heavy.actionLabel());
+        assertTrue(heavy.actionDisabled());
+        assertEquals(MechWeaponComponent.SINGLE_HEAVY_CANNON, heavy.weaponPreview());
+        assertTrue(heavy.detail().contains("3×2 GRID"));
+    }
+
+    @Test
     void assetPickerIsASeparateInternalScreenAndSelectionReturnsToGantry() {
         MechLabViewModel viewModel = new MechLabViewModel(
                 new Reactor(), MechBay.legacyStarterFixture());
@@ -192,6 +215,9 @@ class MechLabViewModelTest {
                 .filter(row -> row.name().equals("Hound chassis"))
                 .findFirst().orElseThrow();
         assertFalse(hound.actionDisabled());
+        assertEquals(MechVariant.HOUND, hound.chassisPreview());
+        assertEquals("mech-catalog:recipe.chassis.hound:preview", hound.previewId());
+        assertFalse(hound.previewClasses().contains("hidden"));
         hound.action().run();
         assertEquals(2, bay.activeSquad().mechs().size());
         assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
