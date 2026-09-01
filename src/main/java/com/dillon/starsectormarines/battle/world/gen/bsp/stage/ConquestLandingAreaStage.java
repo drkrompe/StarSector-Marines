@@ -78,10 +78,9 @@ public final class ConquestLandingAreaStage implements GenStage {
 
     private static boolean isLegalArea(LandingArea area, GenContext ctx,
                                        BiomeMap biomes) {
+        if (!LandingGround.isOpen(ctx, area)) return false;
         for (int y = area.bottom; y <= area.top; y++) {
             for (int x = area.left; x <= area.right; x++) {
-                if (!ctx.grid.inBounds(x, y) || !ctx.grid.isWalkable(x, y)) return false;
-                if (ctx.topology.getBuildingId(x, y) != 0) return false;
                 if (biomes.biomeAt(x, y) != BiomeKind.BEACH) return false;
             }
         }

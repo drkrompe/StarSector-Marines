@@ -220,7 +220,7 @@ final class MannedDeckTest {
         assertTrue(!company.isEmpty(), "the company has nobody in it");
 
         CompanyDeck ship = new CompanyDeck(
-                TestHulls.transport(), SEED, null, null, () -> company);
+                TestHulls.transport(), SEED, null, null, () -> company, null);
         try {
             ShipDeckBattleScene scene = ship.scene();
             int billeted = 0;

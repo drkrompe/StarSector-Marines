@@ -167,6 +167,18 @@ public final class BspKeys {
      */
     public static final GenKey<int[]> FORTRESS_WARD = GenKey.of("fortressWard");
 
+    /**
+     * How many paired arrival areas the landing stage seated, bound even when
+     * that is zero.
+     *
+     * <p>Same law as {@link #UNPLACED_PROGRAM}: a region that seated none and a
+     * map nobody asked to be landed on are different answers, and a beachhead
+     * that was never authored leaves nothing on the finished map to notice
+     * until the mission asks for its drop zones and throws.
+     */
+    public static final GenKey<Integer> LANDING_AREAS_AUTHORED =
+            GenKey.of("landingAreasAuthored");
+
     public static final GenKey<int[]> MARINE_SPAWN = GenKey.of("marineSpawn");
 
     /** Defender spawn cell {@code [x, y]}. Produced by the spawn stage. */
