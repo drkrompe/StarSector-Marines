@@ -4,8 +4,8 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — a bay knows its aperture: the door in its outboard
-bulkhead, derived at placement from the run of its ring that faces space.
+Updated: 2026-09-01 — same-purpose facility rooms now publish a stable fore-to-aft
+order so room screens can page every generated bay and keep their breadcrumb honest.
 
 Earlier 2026-09-01 — a boat bay is a field: its berths are registered with the
 airfield service, the ship owns them, and her crew turn her boats round.
@@ -706,6 +706,10 @@ carrying eighteen. The middle segment is what makes the vessel feel like a
 place rather than a menu - two squads berthed port and starboard of the same
 spine are living in different parts of a ship, and the heading is where the
 player finds that out.
+When more than one compartment answers the same room route, the screen pages the
+actual compartments in fore-to-aft order and derives its breadcrumb from the page
+currently framed. Choosing the largest remains the single-room convenience, not a
+license for a multi-bay ship to hide the other facilities.
 
 **There is one answer to what a room looks like.** A screen has no substitute
 scene to draw when the ship is unavailable, and a canvas that cannot reach her
