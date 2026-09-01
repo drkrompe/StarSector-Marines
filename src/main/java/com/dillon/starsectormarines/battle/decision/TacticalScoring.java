@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
+import com.dillon.starsectormarines.battle.combat.FiringLane;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -209,6 +210,68 @@ public final class TacticalScoring {
     public static final float TARGET_NO_LOS_COST = 10f;
 
     /**
+     * Penalty added to a target whose lane holds one of the shooter's own.
+     * <b>Built, measured, and off.</b>
+     *
+     * <p>The reasoning is sound and the measurement disagreed with it. Nothing
+     * on the decision side had ever asked whether a friendly stood in the lane,
+     * while {@link com.dillon.starsectormarines.battle.combat.BallisticResolver}
+     * modelled it from the round's side all along — so a marine with a
+     * squadmate in front read its lane as clear and fired into their back, and
+     * about a third of those rounds arrived there at half damage. Preferring a
+     * target it could shoot cleanly looked like the obvious answer.
+     *
+     * <p>Against a control on the same tree, it cost the reinforced-south
+     * fixture four of its fourteen captures and four of its eleven held
+     * compounds, killed 56 fewer defenders, and lost more marines doing it;
+     * full-strength-west is lost either way, and this lost it 4,600 ticks
+     * sooner. The mechanism is not mysterious in hindsight. <b>A blocked lane
+     * usually means a squadmate is between this marine and the enemy the squad
+     * is already engaging</b> — which is a firing line working correctly — so
+     * moving somebody onto a different target breaks up concentrated fire, and
+     * concentration is what kills things. The defender-loss column is where
+     * that shows.
+     *
+     * <p>The weight is not the problem, which is the part worth knowing. Tried
+     * at {@code 3f}, a pure tiebreak that only switches between near-equal
+     * targets, it reproduced essentially the whole loss: eleven captures rather
+     * than fourteen, the same seven held, the same 334 defenders killed. So
+     * this is not a constant that wants tuning; the act of switching target for
+     * a lane is itself the cost. Left at a value matched to
+     * {@link #TARGET_NO_LOS_COST} because a future attempt should start from a
+     * principled figure rather than from a tuned-down one that measured the
+     * same.
+     *
+     * <p>What the measurement does not condemn is the lane test itself, and the
+     * likelier answer is a different verb: <b>step aside rather than switch</b>.
+     * A marine who moves a cell keeps the squad's fire concentrated and stops
+     * shooting its own man, where retargeting trades the second for the first.
+     * {@code FiringLane} is what that would be built on.
+     */
+    public static final float FRIENDLY_LANE_COST = 10f;
+
+    /**
+     * Turns the friendly-lane preference on. Off by default — see
+     * {@link #FRIENDLY_LANE_COST} for the measurement that put it there;
+     * {@code -Dbattle.targeting.friendlyLanePenalty=true} enables it for the
+     * next attempt, and everything it needs is built.
+     */
+    public static final String FRIENDLY_LANE_PENALTY_PROPERTY =
+            "battle.targeting.friendlyLanePenalty";
+
+    private static final boolean FRIENDLY_LANE_PENALTY = Boolean.parseBoolean(
+            System.getProperty(FRIENDLY_LANE_PENALTY_PROPERTY, "false"));
+
+    /**
+     * Whether the friendly-lane preference is in effect. Exposed for the
+     * search-equivalence reference, which re-implements the picker to check
+     * that two scan orders agree: it has to mirror whatever the picker is
+     * actually doing, so that if this default is ever flipped the reference
+     * follows rather than the test failing for having been left behind.
+     */
+    static boolean friendlyLanePenaltyEnabled() { return FRIENDLY_LANE_PENALTY; }
+
+    /**
      * Turns off perception-gated target picking, restoring the omniscient
      * acquisition this shipped with. On by default;
      * {@code -Dbattle.targeting.perceptionGated=false} is the control run.
@@ -388,36 +451,6 @@ public final class TacticalScoring {
                 self, roster.vision().airLosRadius(self));
     }
 
-    /**
-     * Stickiness gate for {@code self.target}: keeps the current target only
-     * while it's still shootable from {@code self}'s current cell (alive,
-     * within {@code world.attackRange(id)}, and with line of sight). Anything
-     * outside that — dead, out of range, behind cover — drops the cached pick
-     * and re-runs {@link #findBestTarget}, so a closer visible enemy that
-     * stepped into LoS while we were locked onto someone now-unshootable wins
-     * the next tick. Without this, every mech combat action (overwatch,
-     * parity engage, the legacy behavior loop) hyper-fixates: their gate was
-     * only "is the cached target alive?", which let a target hide behind a
-     * wall forever while the mech ignored opportunities in its own kill lane.
-     *
-     * <p>Range check uses {@code self.getAttackRange()} because for mechs it's set
-     * to the LRM range (40 cells, matching {@link UnitType#HEAVY_MECH}) — the
-     * longest weapon's reach, which is the right "could this mech ever shoot
-     * this target from here" bound. Indirect-fire (no LoS) still works on the
-     * returned target because the per-weapon fire gate handles that downstream;
-     * we only ask "is the current pick clearly the wrong choice right now?".
-     */
-    public long refreshTargetIfNotShootable(long self) {
-        World world = roster.world();
-        long cur = world.targetId(self);
-        if (roster.isAliveById(cur)) {
-            if (cellDistance(world.x(self), world.y(self), world.x(cur), world.y(cur)) <= world.attackRange(self)
-                    && hasClearShot(self, cur)) {
-                return cur;
-            }
-        }
-        return findBestTarget(self);
-    }
 
     /**
      * Primitive-args overload — used by callers that aren't a {@code Entity}
@@ -608,6 +641,14 @@ public final class TacticalScoring {
         private float perceptionRange;
         /** Ids this perceiver's squad believes in. Refilled once per scan. */
         private final LongOpenHashSet believed = new LongOpenHashSet();
+        /**
+         * The shooter's own faction-mates near it, gathered at most once per
+         * scan and only when a candidate actually survives far enough to be
+         * scored -- most scans never reach one.
+         */
+        private final FiringLane.Friendlies friendlies = new FiringLane.Friendlies();
+        private final LongBucket friendlyScratch = new LongBucket();
+        private boolean friendliesGathered;
 
         long best;
         float bestScore;
@@ -638,6 +679,8 @@ public final class TacticalScoring {
             this.bestAny = 0L;
             this.bestAnyDist = Float.MAX_VALUE;
             this.perceptionRange = resolvePerceptionRange(scoring, excludeFromCrowding, maxRange);
+            this.friendliesGathered = false;
+            this.friendlies.clear();
             believed.clear();
             if (selfSquadId != Squad.NO_SQUAD) {
                 Squad squad = scoring.roster.getSquad(selfSquadId);
@@ -727,6 +770,7 @@ public final class TacticalScoring {
             if (!visible && !allowNoLos) return;
             float score = scoring.scoreTargetCandidate(id, d, visible, selfFaction,
                     selfSquadId, excludeFromCrowding, selfCellX, selfCellY, ox, oy);
+            score += laneCost(id);
             if (score < bestScore
                     || (score == bestScore && best != 0L && earlierInRoster(id, best))) {
                 bestScore = score;
@@ -743,6 +787,29 @@ public final class TacticalScoring {
             // the scan expanding on its own.
             if (bestAny == 0L || bestAnyDist > reachable) return true;
             return reachable - MAX_TARGET_SCORE_BONUS <= bestScore;
+        }
+
+        /**
+         * What it costs to shoot at {@code id} through one of your own.
+         *
+         * <p>Needs a muzzle, so a scan run from a squad centroid rather than
+         * from a unit -- which names no shooter and has no body -- asks nothing
+         * and pays nothing. The gather is deferred to the first candidate that
+         * gets this far, because a scan that scores nobody should not pay for a
+         * spatial query.
+         */
+        private float laneCost(long id) {
+            if (!FRIENDLY_LANE_PENALTY) return 0f;
+            if (excludeFromCrowding == 0L) return 0f;
+            if (!friendliesGathered) {
+                friendliesGathered = true;
+                FiringLane.gather(scoring.unitIndex, scoring.roster,
+                        excludeFromCrowding, selfX, selfY, perceptionRange,
+                        selfFaction, friendlyScratch, friendlies);
+            }
+            if (friendlies.size() == 0) return 0f;
+            return FiringLane.blocked(friendlies, selfX, selfY,
+                    world.x(id), world.y(id)) ? FRIENDLY_LANE_COST : 0f;
         }
 
         private boolean earlierInRoster(long candidate, long incumbent) {

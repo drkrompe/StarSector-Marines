@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.fit.CirculationLoops;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
+import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckProfile;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckSide;
@@ -99,7 +100,8 @@ public final class RoomPlacementStage implements GenStage {
                     "RoomPlacementStage requires a deck profile and a room program");
         }
 
-        RoomPacker packer = new RoomPacker(ctx, hullMask(ctx, profile),
+        boolean[][] hull = hullMask(ctx, profile);
+        RoomPacker packer = new RoomPacker(ctx, hull,
                 spineMask(ctx, profile), DECK_PALETTE);
 
         List<RoomRecipe> ordered = new ArrayList<>(program);
@@ -108,12 +110,27 @@ public final class RoomPlacementStage implements GenStage {
 
         List<DeckGraph.Compartment> placed = new ArrayList<>();
         List<RoomRecipe> unplaced = new ArrayList<>();
+        List<BayAperture> apertures = new ArrayList<>();
         for (RoomRecipe recipe : ordered) {
             RoomPacker.Placed room = packer.place(request(profile, recipe, fit), true);
             if (room == null) {
                 unplaced.add(recipe);
             } else {
-                placed.add(describe(profile, room, placed.size()));
+                DeckGraph.Compartment compartment = describe(profile, room, placed.size());
+                placed.add(compartment);
+                // Here rather than in the fill, because this is the moment the
+                // hull is known and the room's position in it is settled. A
+                // fitting sees a floor and a pose; which of its bulkheads has
+                // vacuum behind it is the placer's doing.
+                // A flank, not any hull contact. The two contacts mean different
+                // things: a flank is where a bay launches something, and a
+                // transom is where an engine room has to sit to be driving
+                // anything. Giving the engine room a door would publish an
+                // opening onto space at the back of every ship in the fleet.
+                if (recipe.contact() == HullContact.FLANK) {
+                    BayAperture door = doorOnto(ctx, hull, compartment);
+                    if (door != null) apertures.add(door);
+                }
             }
         }
         fillPockets(profile, packer, placed);
@@ -121,7 +138,7 @@ public final class RoomPlacementStage implements GenStage {
         // passage above reached the nearest thing already connected, which is
         // right each time and leaves a tree overall.
         packer.openLoops(DECK_LOOPS);
-        ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(placed, unplaced));
+        ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(placed, unplaced, apertures));
     }
 
     /**
@@ -182,6 +199,79 @@ public final class RoomPlacementStage implements GenStage {
         DeckZone zone = profile.zone(clampFrame(profile, (left + right) / 2));
         return new DeckGraph.Compartment(id, room.shape(), left, top,
                 room.pose(), side, zone, room.purpose(), room.doors());
+    }
+
+    /**
+     * How wide a bay's door is, at most.
+     *
+     * <p>Enough for the largest thing kept in one to go through it, and no more
+     * than the outboard run the room actually has. It is a bound rather than a
+     * size: a gig bay's door is as wide as the gig bay, and widening it to a
+     * number written here would put a door through the compartment next along.
+     */
+    private static final int DOOR_CELLS = 7;
+
+    /**
+     * The door onto the outside for a room the placer pushed against the hull,
+     * or null for one that somehow ended up amidships.
+     *
+     * <p>Found by asking which of the room's own bulkhead cells have vacuum
+     * behind them and taking the longest unbroken run of them, which is the same
+     * question the packer asked to place the room at all — {@code meetsEdge}
+     * accepts a room one of whose ring cells lies outside the hull, and this
+     * recovers <em>which</em> ones did.
+     *
+     * <p>Returning null rather than throwing: the recipe demands hull contact
+     * and the packer honours it, so a bay amidships is a defect somewhere
+     * upstream. It shows up as a bay with no way out, which the deck can report,
+     * and not as a generation that stops.
+     */
+    private static BayAperture doorOnto(GenContext ctx, boolean[][] hull,
+                                        DeckGraph.Compartment room) {
+        int left = room.originX();
+        int top = room.originY();
+        int right = left + room.shape().width() - 1;
+        int bottom = top + room.shape().height() - 1;
+
+        BayAperture best = null;
+        int bestRun = 0;
+        for (int[] side : new int[][]{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}) {
+            boolean vertical = side[0] != 0;
+            int from = vertical ? top : left;
+            int to = vertical ? bottom : right;
+            int fixed = side[0] < 0 ? left - 1 : side[0] > 0 ? right + 1
+                    : side[1] < 0 ? top - 1 : bottom + 1;
+
+            int run = 0;
+            int runFrom = from;
+            for (int along = from; along <= to + 1; along++) {
+                int x = vertical ? fixed : along;
+                int y = vertical ? along : fixed;
+                boolean open = along <= to && !insideHull(ctx, hull, x, y);
+                if (open) {
+                    if (run == 0) runFrom = along;
+                    run++;
+                    continue;
+                }
+                if (run > bestRun) {
+                    bestRun = run;
+                    int width = Math.min(DOOR_CELLS, run);
+                    float middle = runFrom + (run - 1) / 2f;
+                    float doorX = vertical ? fixed : middle;
+                    float doorY = vertical ? middle : fixed;
+                    best = new BayAperture(room.id(), doorX, doorY,
+                            side[0], side[1], width);
+                }
+                run = 0;
+            }
+        }
+        return best;
+    }
+
+    /** Whether this cell is deck the ship actually has, rather than the space around her. */
+    private static boolean insideHull(GenContext ctx, boolean[][] hull, int x, int y) {
+        if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) return false;
+        return hull[x][y];
     }
 
     /** Everything inside the hull profile is buildable; everything else is sea. */

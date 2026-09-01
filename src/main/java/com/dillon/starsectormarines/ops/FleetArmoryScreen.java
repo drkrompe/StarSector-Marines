@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.CampaignEquipmentIssueResources;
+import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -76,7 +77,8 @@ public final class FleetArmoryScreen implements Screen {
             closeDocument();
             roster = liveRoster;
             viewModel = new FleetArmoryViewModel(reactor, roster, this::showSelectedSquad,
-                    CampaignClock::dayFloat, new CampaignEquipmentIssueResources());
+                    CampaignClock::dayFloat, new CampaignEquipmentIssueResources(),
+                    new CampaignSquadFoundingResources());
         } else {
             viewModel.refresh();
         }
@@ -157,6 +159,11 @@ public final class FleetArmoryScreen implements Screen {
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("squadCards", viewModel.squadCards());
+        props.put("foundingCargoRows", viewModel.foundingCargoRows());
+        props.put("foundingDisabled", viewModel.foundingDisabled());
+        props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
+        props.put("foundingFeedbackClasses", viewModel.foundingFeedbackClasses());
+        props.put("foundSquad", viewModel.foundSquadAction());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
@@ -256,7 +263,9 @@ public final class FleetArmoryScreen implements Screen {
                 : List.of("fleet-armory-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-armory", "page-nav-mech-lab",
-                "squad-breadcrumb", "squad-overview-intro", "squad-card-list");
+                "squad-breadcrumb", "squad-overview-intro", "squad-founder",
+                "squad-founder-costs", "found-squad", "squad-founder-feedback",
+                "squad-card-list");
         for (String id : required) {
             component.requireElement(id);
         }

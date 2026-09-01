@@ -125,14 +125,28 @@ public final class DeckGraph {
 
     private final List<Compartment> compartments;
     private final List<RoomRecipe> unplaced;
+    private final List<BayAperture> apertures;
 
     /**
      * @param compartments placed rooms, in deterministic placement order
      * @param unplaced rooms from the program the deck had no space for
      */
     public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced) {
+        this(compartments, unplaced, List.of());
+    }
+
+    /**
+     * @param compartments placed rooms, in deterministic placement order
+     * @param unplaced rooms from the program the deck had no space for
+     * @param apertures the deck's doors onto the outside, one per bay that has
+     *     one; carried here rather than on the map because a hull is the only
+     *     kind of place that has an outside in this sense
+     */
+    public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced,
+                     List<BayAperture> apertures) {
         this.compartments = List.copyOf(compartments);
         this.unplaced = List.copyOf(unplaced);
+        this.apertures = List.copyOf(apertures);
     }
 
     public List<Compartment> compartments() {
@@ -160,6 +174,27 @@ public final class DeckGraph {
             if (best == null || candidate.area() > best.area()) best = candidate;
         }
         return best;
+    }
+
+    /**
+     * Every door on this deck that opens onto nothing.
+     *
+     * <p>Empty on a deck whose program owed no bay, and — worth knowing —
+     * on one whose bay the packer could only fit amidships. The recipe demands
+     * hull contact, so that should not happen; a bay that reached the outside
+     * has a door here and one that did not is a sizing defect the same way an
+     * unplaced room is.
+     */
+    public List<BayAperture> apertures() {
+        return apertures;
+    }
+
+    /** The door out of one compartment, or null where it has none. */
+    public BayAperture apertureOf(int compartmentId) {
+        for (BayAperture door : apertures) {
+            if (door.compartmentId() == compartmentId) return door;
+        }
+        return null;
     }
 
     /** Rooms the program owed that would not fit. Empty on a correctly sized deck. */
