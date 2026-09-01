@@ -175,10 +175,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("mission-briefing-first-contract-wide.png",
                         renderMissionBriefing(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false)),
                 new SnapshotArtifact("mission-briefing-conquest-wide.png",
                         renderMissionBriefing(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false)),
+                new SnapshotArtifact("mission-briefing-conquest-debug-expanded-wide.png",
+                        renderMissionBriefing(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true)),
                 new SnapshotArtifact("company-hq-bridge-wide.png",
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
@@ -929,14 +932,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     private static BufferedImage renderMissionBriefing(
             SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, boolean conquest) throws Exception {
+            int width, int height, boolean conquest,
+            boolean debugExpanded) throws Exception {
         Reactor reactor = new Reactor();
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), MISSION_BRIEFING_COMPONENTS);
         loader.reload();
         try (MarkupInstance instance = loader.build(reactor,
                 BriefingScreen.ROOT_COMPONENT,
-                BriefingScreen.previewProps(conquest))) {
+                BriefingScreen.previewProps(conquest, debugExpanded))) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());

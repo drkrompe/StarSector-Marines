@@ -191,6 +191,8 @@ public class BriefingScreen implements Screen {
     /** Stable ids selected into the current mission's command deck. */
     private final java.util.Set<String> selectedPowerIds = new java.util.LinkedHashSet<>();
     private boolean commandDeckInitialized;
+    /** Developer controls are opt-in and never consume briefing width on entry. */
+    private boolean debugDrawerExpanded;
 
     /**
      * Debug aircraft-picker selections — keys {@code "<SIDE>|<PROFILE>"} (e.g.
@@ -311,7 +313,17 @@ public class BriefingScreen implements Screen {
                 ? Strings.get("briefingNoCaptains") : "");
 
         boolean debug = mission.source.isDebug();
-        props.put("debugClasses", debug ? "panel debug-workspace" : "debug-hidden");
+        props.put("debugDrawerClasses", !debug ? "debug-drawer absent"
+                : "debug-drawer " + (debugDrawerExpanded ? "expanded" : "collapsed"));
+        props.put("debugWorkspaceClasses", debug && debugDrawerExpanded
+                ? "panel debug-workspace"
+                : "debug-workspace debug-workspace-collapsed");
+        props.put("debugToggleClasses", debug
+                ? "debug-drawer-toggle" : "debug-drawer-toggle-hidden");
+        props.put("debugToggleLabel", debugDrawerExpanded ? "HIDE" : "DEBUG");
+        props.put("debugToggleDisabled", !debug);
+        props.put("debugToggleAction", debug
+                ? (Runnable) this::toggleDebugDrawer : (Runnable) () -> { });
         props.put("tierSummary", debug
                 ? mission.tier.displayName + "  ·  "
                         + MissionForceEnvelope.recommendedSquads(mission) + " squads  ·  "
@@ -352,6 +364,15 @@ public class BriefingScreen implements Screen {
 
     static Map<String, Object> previewProps(boolean conquest) {
         return BriefingViewModel.previewProps(conquest);
+    }
+
+    static Map<String, Object> previewProps(boolean conquest, boolean debugExpanded) {
+        return BriefingViewModel.previewProps(conquest, debugExpanded);
+    }
+
+    private void toggleDebugDrawer() {
+        debugDrawerExpanded = !debugDrawerExpanded;
+        rebuild();
     }
 
     private List<BriefingViewModel.InfoRow> retainedMissionRows(Mission mission) {
@@ -721,9 +742,10 @@ public class BriefingScreen implements Screen {
         for (String id : List.of(
                 "mission-briefing-root", "mission-briefing-header",
                 "mission-briefing-body", "mission-overview", "mission-info-rows",
-                "mission-captain-list", "mission-planning", "mission-debug-workspace",
+                "mission-captain-list", "mission-planning", "mission-debug-drawer",
+                "mission-debug-toggle", "mission-debug-workspace",
                 "mission-tier-track", "mission-debug-controls", "mission-commitment",
-                "mission-commitment-scroll", "mission-power-list", "mission-source-list",
+                "mission-loadout-grid", "mission-power-list", "mission-source-list",
                 "mission-transport-list", "mission-employer-list", "mission-assign",
                 "mission-deploy", "mission-briefing-back")) component.requireElement(id);
     }
