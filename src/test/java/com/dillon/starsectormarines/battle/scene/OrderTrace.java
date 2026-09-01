@@ -101,23 +101,39 @@ public final class OrderTrace implements TickObserver {
     public void observe(BattleSimulation sim, int tick) {
         for (Map.Entry<Integer, List<Sample>> e : streams.entrySet()) {
             Squad squad = sim.getSquad(e.getKey());
-            e.getValue().add(squad == null ? Sample.missing(tick) : read(tick, squad));
+            e.getValue().add(squad == null ? Sample.missing(tick) : read(sim, tick, squad));
         }
     }
 
     /**
      * Records one sample directly, separated from the world reads so the query
-     * arithmetic can be exercised on synthetic streams — the seam
-     * recorder's own label-stream seam exists for the same reason.
+     * arithmetic can be exercised on synthetic streams — the recorder's own
+     * label-stream seam exists for the same reason.
      */
     void sample(int tick, int squadId, Sample s) {
         streams.computeIfAbsent(squadId, k -> new ArrayList<>()).add(s);
         labels.putIfAbsent(squadId, "squad " + squadId);
     }
 
-    private static Sample read(int tick, Squad squad) {
+    /**
+     * The centroid is taken from the live members rather than from
+     * {@code Squad.centroidX/Y}, which the alert pass writes and which therefore
+     * still reads (0, 0) on the tick before the first advance — a leg from the
+     * origin that would be charged to {@link #cellsTravelled} as ground covered.
+     */
+    private static Sample read(BattleSimulation sim, int tick, Squad squad) {
         String suspension = squad.assignmentExecutionSuspension();
         Goal goal = squad.currentGoal;
+        int alive = 0;
+        float sumX = 0f;
+        float sumY = 0f;
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
+            if (sim.resolveUnit(member) == 0L) continue;
+            alive++;
+            sumX += sim.world().x(member);
+            sumY += sim.world().y(member);
+        }
         return new Sample(tick,
                 SquadOrderRecorder.assignmentLabel(squad.assignedObjective),
                 executingLabel(squad),
@@ -126,9 +142,9 @@ public final class OrderTrace implements TickObserver {
                 goal == null ? "" : goal.priority().name(),
                 actionLabel(squad.currentPlan),
                 squad.currentPlan == null,
-                squad.aliveMembers,
-                squad.centroidX,
-                squad.centroidY);
+                alive,
+                alive == 0 ? 0f : sumX / alive,
+                alive == 0 ? 0f : sumY / alive);
     }
 
     /**
