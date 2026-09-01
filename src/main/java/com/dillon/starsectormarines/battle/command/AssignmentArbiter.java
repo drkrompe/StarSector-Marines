@@ -23,6 +23,12 @@ public final class AssignmentArbiter {
     public static final int MIN_STABILITY_TICKS = Math.max(1, Math.round(
             CommanderService.COMMANDER_TICK_PERIOD / BattleSimulation.TICK_DT));
     private final Map<Integer, CommandDirective> active = new HashMap<>();
+    /**
+     * What a leased squad goes back to. Keyed by squad id and populated only
+     * while a lease stands over that squad: a lease does not discard the
+     * directive it covers, it holds it here and puts it back on handback.
+     */
+    private final Map<Integer, CommandDirective> shelved = new HashMap<>();
 
     /**
      * Adopts assignments written by not-yet-migrated systems before frames are
@@ -36,19 +42,34 @@ public final class AssignmentArbiter {
             liveSquads.add(squad.id);
             if (squad.aliveMembers <= 0 && sim.squadMemberCount(squad.id) <= 0) {
                 active.remove(squad.id);
-                squad.assignedObjective = null;
+                shelved.remove(squad.id);
+                clearAssignment(squad);
                 continue;
             }
             CommandDirective current = active.get(squad.id);
+            if (isLease(current)) {
+                adoptWriteUnderLease(squad, current,
+                        missionIssuers.get(squad.faction), sim.getSimTickIndex());
+                continue;
+            }
+            // Nothing is leased, so nothing is being held back for a handback.
+            // A shelved directive that outlived its lease — superseded by a
+            // higher authority, say — would otherwise be restored on top of
+            // whoever took the squad next.
+            shelved.remove(squad.id);
             if (current != null && Objects.equals(current.assignment(),
-                    squad.assignedObjective)) continue;
+                    squad.assignedObjective)) {
+                squad.assignedAuthority = assignmentAuthority(current);
+                continue;
+            }
             if (current != null) {
                 // Registered provenance wins over legacy direct writes. Every
                 // migrated writer must use this arbiter or an explicit handoff.
-                squad.assignedObjective = current.assignment();
+                applyAssignment(squad, current);
                 continue;
             }
             if (squad.assignedObjective == null) {
+                squad.assignedAuthority = null;
                 continue;
             }
             String missionIssuer = missionIssuers.get(squad.faction);
@@ -56,19 +77,50 @@ public final class AssignmentArbiter {
                     missionIssuer, sim.getSimTickIndex());
         }
         active.keySet().removeIf(id -> !liveSquads.contains(id));
+        shelved.keySet().removeIf(id -> !liveSquads.contains(id));
+    }
+
+    /**
+     * A commander's direct write during a lease is shelved rather than lost.
+     *
+     * <p>The sweep above already re-asserts registered provenance over a legacy
+     * direct write; this is the same rule with the write kept instead of
+     * discarded. The lease still owns what the squad executes — so the lease's
+     * assignment is re-asserted on the field — but the squad hands back to what
+     * the commander wants <em>now</em>, not to the intent that happened to be
+     * standing at the instant the player clicked.
+     */
+    private void adoptWriteUnderLease(Squad squad, CommandDirective lease,
+                                      String missionIssuer, int tick) {
+        if (squad.assignedObjective != null
+                && !Objects.equals(lease.assignment(), squad.assignedObjective)) {
+            shelved.put(squad.id, compatibilityDirective(squad,
+                    squad.assignedObjective, missionIssuer, tick));
+        }
+        applyAssignment(squad, lease);
     }
 
     private void adoptCompatibilityAssignment(Squad squad,
                                               ObjectiveAssignment assignment,
                                               String missionIssuer,
                                               int tick) {
+        CommandDirective adopted = compatibilityDirective(squad, assignment,
+                missionIssuer, tick);
+        active.put(squad.id, adopted);
+        squad.assignedAuthority = assignmentAuthority(adopted);
+    }
+
+    /** The directive an assignment written without provenance stands as. */
+    private static CommandDirective compatibilityDirective(
+            Squad squad, ObjectiveAssignment assignment,
+            String missionIssuer, int tick) {
         CommandAuthority authority = externalAuthority(assignment,
                 missionIssuer != null);
         String issuer = authority == CommandAuthority.MISSION_COMMAND
                 ? missionIssuer : EXTERNAL_ISSUER;
-        active.put(squad.id, new CommandDirective(squad.id, squad.faction,
+        return new CommandDirective(squad.id, squad.faction,
                 issuer, authority, "compatibility assignment adopted",
-                assignment, tick, -1, CommandDirective.Status.ACTIVE, ""));
+                assignment, tick, -1, CommandDirective.Status.ACTIVE, "");
     }
 
     /**
@@ -93,6 +145,177 @@ public final class AssignmentArbiter {
 
     public CommandDirective activeDirective(int squadId) {
         return active.get(squadId);
+    }
+
+    /**
+     * The directive a leased squad will go back to, or {@code null} when
+     * nothing is being held for it. A readout that wants to name the mission a
+     * squad is still under while it carries out somebody else's order asks
+     * this; {@link #activeDirective} names the order it is carrying out.
+     */
+    public CommandDirective shelvedDirective(int squadId) {
+        return shelved.get(squadId);
+    }
+
+    /**
+     * Takes a squad on a bounded external authority, shelving whatever owned it.
+     *
+     * <p>This is the door the player's tactical orders come through, and the
+     * reason they are not a side field on the squad: a lease is registered
+     * provenance like any other directive, so the ledger can say who pointed a
+     * squad somewhere and what it will go back to. The incumbent is not
+     * displaced but <em>held</em> — {@link #endLease} puts it back — which is
+     * what lets an order end without leaving the squad unowned for a tick.
+     *
+     * <p><b>A second lease keeps the first one's shelf.</b> Re-clicking is one
+     * player changing their mind, not the player's own previous order becoming
+     * the mission underneath; the commander's directive stays where the first
+     * lease put it however many times the order is reissued.
+     *
+     * <p>An assignment written without provenance is adopted onto the shelf the
+     * same way {@link #synchronizeCompatibilityAssignments} adopts one into the
+     * ledger, so a squad whose mission arrived as a direct write still has one
+     * to resume.
+     *
+     * @param leaseUntilTick last tick the lease may stand, or -1 for no bound
+     */
+    public CommandDirective lease(Squad squad, ObjectiveAssignment assignment,
+                                  String issuer, String reason, int tick,
+                                  int leaseUntilTick) {
+        Objects.requireNonNull(squad, "squad");
+        Objects.requireNonNull(assignment, "assignment");
+        Objects.requireNonNull(issuer, "issuer");
+        if (assignment.squadId() != squad.id) {
+            throw new IllegalArgumentException("assignment squad does not match target");
+        }
+        CommandDirective incumbent = active.get(squad.id);
+        String disposition;
+        if (isLease(incumbent)) {
+            disposition = "leased over " + incumbent.issuer();
+        } else if (incumbent != null) {
+            shelved.put(squad.id, incumbent);
+            disposition = "leased over " + incumbent.issuer();
+        } else {
+            if (squad.assignedObjective != null) {
+                shelved.put(squad.id, compatibilityDirective(squad,
+                        squad.assignedObjective, null, tick));
+            } else {
+                shelved.remove(squad.id);
+            }
+            disposition = "leased an unowned squad";
+        }
+        CommandDirective leased = new CommandDirective(squad.id, squad.faction,
+                issuer, CommandAuthority.PLAYER_INTERVENTION, reason, assignment,
+                tick, -1, leaseUntilTick, CommandDirective.Status.ACTIVE,
+                disposition);
+        active.put(squad.id, leased);
+        applyAssignment(squad, leased);
+        return leased;
+    }
+
+    /**
+     * Hands a leased squad back to what it was doing, if {@code issuer} is the
+     * one holding the lease.
+     *
+     * <p>The shelved directive is restored in the same call that drops the
+     * lease, so there is no tick on which the squad owns no assignment at all —
+     * which is the whole difference between a handback and a release.
+     *
+     * @return false when no lease of {@code issuer}'s stands on this squad
+     */
+    public boolean endLease(Squad squad, String issuer, String reason, int tick) {
+        Objects.requireNonNull(squad, "squad");
+        CommandDirective standing = active.get(squad.id);
+        if (!isLease(standing) || !standing.issuer().equals(issuer)) return false;
+        CommandDirective resumed = resumptionFor(squad, standing, tick);
+        if (resumed == null) {
+            active.remove(squad.id);
+            clearAssignment(squad);
+            return true;
+        }
+
+        CommandDirective restored = new CommandDirective(resumed.squadId(),
+                resumed.perspective(), resumed.issuer(), resumed.authority(),
+                resumed.reason(), resumed.assignment(), resumed.issuedTick(),
+                resumed.stableUntilTick(), resumed.leaseUntilTick(),
+                CommandDirective.Status.ACTIVE, "resumed after lease: " + reason);
+        install(squad, restored);
+        return true;
+    }
+
+    /**
+     * What a squad resumes when its lease ends: the shelf, unless a direct
+     * write landed on the field since.
+     *
+     * <p>The compatibility sweep already moves such a write onto the shelf, but
+     * only at command-pulse cadence, and an order can end between two pulses.
+     * Restoring the shelf over the write would then discard it — which is how a
+     * hard withdrawal written straight onto a leased squad disappeared, leaving
+     * the squad resuming the task it had before anybody asked it to leave.
+     */
+    private CommandDirective resumptionFor(Squad squad, CommandDirective lease,
+                                           int tick) {
+        ObjectiveAssignment written = squad.assignedObjective;
+        if (written != null && !Objects.equals(lease.assignment(), written)) {
+            shelved.remove(squad.id);
+            return compatibilityDirective(squad, written, null, tick);
+        }
+        return shelved.remove(squad.id);
+    }
+
+    /**
+     * Ends a lease whose bound has passed. A lease with no bound (-1) never
+     * expires here; it ends when its holder says so.
+     *
+     * @return true when this call ended a lease
+     */
+    public boolean expireLease(Squad squad, int tick) {
+        Objects.requireNonNull(squad, "squad");
+        CommandDirective standing = active.get(squad.id);
+        if (!isLease(standing)) return false;
+        if (standing.leaseUntilTick() < 0
+                || standing.leaseUntilTick() >= tick) return false;
+        return endLease(squad, standing.issuer(), "lease expired", tick);
+    }
+
+    /**
+     * Whether a directive is one {@link #lease} installed.
+     * {@link CommandAuthority#PLAYER_INTERVENTION} is that method's alone —
+     * no other writer issues it — so the authority is the marker rather than a
+     * second flag on {@link CommandDirective} for the ledger to keep in step.
+     */
+    private static boolean isLease(CommandDirective directive) {
+        return directive != null
+                && directive.authority() == CommandAuthority.PLAYER_INTERVENTION;
+    }
+
+    /**
+     * Makes {@code directive} the squad's active one and writes the field.
+     *
+     * <p>Anything but a lease landing here has taken the squad away from one,
+     * so the shelf goes with it: a directive held for a handback that will
+     * never come would otherwise be restored on top of whoever owns the squad
+     * now.
+     */
+    private void install(Squad squad, CommandDirective directive) {
+        active.put(squad.id, directive);
+        if (!isLease(directive)) shelved.remove(squad.id);
+        applyAssignment(squad, directive);
+    }
+
+    /** Writes a directive's assignment and the authority mirror beside it. */
+    private static void applyAssignment(Squad squad, CommandDirective directive) {
+        squad.assignedObjective = directive.assignment();
+        squad.assignedAuthority = assignmentAuthority(directive);
+    }
+
+    private static void clearAssignment(Squad squad) {
+        squad.assignedObjective = null;
+        squad.assignedAuthority = null;
+    }
+
+    private static CommandAuthority assignmentAuthority(CommandDirective directive) {
+        return directive.assignment() == null ? null : directive.authority();
     }
 
     /** Scoped mutation facade used by legacy mission planners during their serial pulse. */
@@ -167,8 +390,7 @@ public final class AssignmentArbiter {
                 issuer, authority, reason, assignment, tick,
                 stabilityFloor(authority, tick), leaseUntilTick,
                 CommandDirective.Status.ACTIVE, disposition);
-        active.put(squad.id, directive);
-        squad.assignedObjective = assignment;
+        install(squad, directive);
     }
 
     /** Claims command-pool ownership without imposing a tactical assignment. */
@@ -179,11 +401,10 @@ public final class AssignmentArbiter {
         if (!mayReplace(incumbent, authority, issuer, tick)) return;
         if (incumbent != null && incumbent.issuer().equals(issuer)
                 && incumbent.authority() == authority) return;
-        active.put(squad.id, new CommandDirective(squad.id, squad.faction,
+        install(squad, new CommandDirective(squad.id, squad.faction,
                 issuer, authority, reason, null, tick, -1, -1,
                 CommandDirective.Status.ACTIVE,
                 supersessionDisposition(incumbent, authority, issuer, tick)));
-        squad.assignedObjective = null;
     }
 
     private static boolean mayReplace(CommandDirective incumbent,
@@ -214,8 +435,7 @@ public final class AssignmentArbiter {
                 -1,
                 CommandDirective.Status.ACTIVE,
                 "handed off from " + currentIssuer);
-        active.put(squad.id, next);
-        squad.assignedObjective = nextAssignment;
+        install(squad, next);
         return true;
     }
 
@@ -226,7 +446,8 @@ public final class AssignmentArbiter {
         CommandDirective incumbent = active.get(squad.id);
         if (incumbent == null || !incumbent.issuer().equals(issuer)) return false;
         active.remove(squad.id);
-        squad.assignedObjective = null;
+        shelved.remove(squad.id);
+        clearAssignment(squad);
         return true;
     }
 
@@ -294,10 +515,8 @@ public final class AssignmentArbiter {
 
         if (proposal.action() == CommandProposal.Action.CLAIM) {
             if (incumbent != null && !incumbent.issuer().equals(plan.strategy())
-                    && ownershipBlocks(incumbent, proposal.authority(), tick)) {
-                return rejected(plan, proposal,
-                        "owned by " + incumbent.issuer() + " ("
-                                + incumbent.authority() + ")");
+                    && ownershipBlocks(incumbent, proposal, tick)) {
+                return rejected(plan, proposal, ownershipRejection(incumbent));
             }
             boolean unchanged = incumbent != null
                     && incumbent.issuer().equals(plan.strategy())
@@ -313,15 +532,13 @@ public final class AssignmentArbiter {
                     proposal.leaseUntilTick(), CommandDirective.Status.ACTIVE,
                     unchanged ? incumbent.dispositionReason()
                             : supersessionDisposition(incumbent, proposal, tick));
-            active.put(squad.id, claimed);
-            squad.assignedObjective = null;
+            install(squad, claimed);
             return claimed;
         }
 
         if (incumbent != null && !incumbent.issuer().equals(plan.strategy())
-                && ownershipBlocks(incumbent, proposal.authority(), tick)) {
-            return rejected(plan, proposal,
-                    "owned by " + incumbent.issuer() + " (" + incumbent.authority() + ")");
+                && ownershipBlocks(incumbent, proposal, tick)) {
+            return rejected(plan, proposal, ownershipRejection(incumbent));
         }
 
         if (proposal.action() == CommandProposal.Action.RELEASE) {
@@ -333,7 +550,8 @@ public final class AssignmentArbiter {
                 return stabilityRetained(incumbent, proposal, tick);
             }
             active.remove(squad.id);
-            squad.assignedObjective = null;
+            shelved.remove(squad.id);
+            clearAssignment(squad);
             return new CommandDirective(squad.id, plan.perspective(),
                     plan.strategy(), proposal.authority(), proposal.reason(),
                     null, tick, -1, proposal.leaseUntilTick(),
@@ -366,9 +584,45 @@ public final class AssignmentArbiter {
                 stableUntilTick, leaseUntilTick, CommandDirective.Status.ACTIVE,
                 unchanged ? incumbent.dispositionReason()
                         : supersessionDisposition(incumbent, proposal, tick));
-        active.put(squad.id, committed);
-        squad.assignedObjective = applied;
+        install(squad, committed);
         return committed;
+    }
+
+    /**
+     * Why a proposal cannot have this squad. A lease says so in its own terms
+     * — who holds it and how long it may stand — because "owned by player"
+     * reads like a permanent loss of the squad rather than a bounded one, and
+     * the tick the commander may have it back is the fact a reader wants.
+     */
+    private static String ownershipRejection(CommandDirective incumbent) {
+        if (!isLease(incumbent)) {
+            return "owned by " + incumbent.issuer()
+                    + " (" + incumbent.authority() + ")";
+        }
+        return "leased by " + incumbent.issuer() + " until "
+                + (incumbent.leaseUntilTick() < 0
+                        ? "completion" : "tick " + incumbent.leaseUntilTick());
+    }
+
+    /**
+     * Whether {@code incumbent} keeps this proposal off the squad.
+     *
+     * <p>A lease does not survive a hard withdrawal. Everything else the player
+     * may order is a place to be, and a bounded interval of the commander not
+     * getting its way about that is the whole point of a lease; a withdrawal is
+     * the mission saying this squad is leaving, and a squad that walks where it
+     * was pointed for another two minutes first is not withdrawing. The
+     * exemption is deliberately narrow — an assignment of that one kind, never a
+     * bare claim — so it cannot become the general escape hatch from a lease.
+     */
+    private static boolean ownershipBlocks(CommandDirective incumbent,
+                                           CommandProposal proposal,
+                                           int tick) {
+        if (isLease(incumbent) && proposal.assignment() != null
+                && proposal.assignment().kind() == AssignmentKind.WITHDRAW) {
+            return false;
+        }
+        return ownershipBlocks(incumbent, proposal.authority(), tick);
     }
 
     private static boolean ownershipBlocks(CommandDirective incumbent,

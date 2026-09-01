@@ -44,8 +44,14 @@ class ABoatBayHoldsBoatsTest {
 
     /** One fitted boat bay, and what it laid. */
     private static GenContext bay(int width, int height) {
-        int mapWidth = width + 8;
-        int mapHeight = height + 8;
+        return bay(width, height, RoomPose.CANONICAL);
+    }
+
+    /** The same bay laid down in a given pose, which is how a deck lays one. */
+    private static GenContext bay(int width, int height, RoomPose pose) {
+        RoomShape shape = RoomShape.rectangle(width, height).posed(pose);
+        int mapWidth = shape.width() + 8;
+        int mapHeight = shape.height() + 8;
         NavigationGrid grid = new NavigationGrid(mapWidth, mapHeight);
         CellTopology topology = new CellTopology(mapWidth, mapHeight);
         for (int y = 0; y < mapHeight; y++) {
@@ -53,9 +59,8 @@ class ABoatBayHoldsBoatsTest {
         }
         GenContext ctx = new GenContext(grid, topology, new Random(7L),
                 mapWidth, mapHeight, 7L);
-        Room room = new Room(RoomShape.rectangle(width, height), ORIGIN, ORIGIN,
-                RoomPose.CANONICAL, RoomPurpose.HANGAR,
-                List.of(new Doorway(ORIGIN, ORIGIN + height / 2)));
+        Room room = new Room(shape, ORIGIN, ORIGIN, pose, RoomPurpose.HANGAR,
+                List.of(new Doorway(ORIGIN, ORIGIN + shape.height() / 2)));
         RoomFloor floor = new RoomFloor(ctx, room, RoomFit.STANDARD);
         new BoatBayFitting().fit(floor);
         floor.dropUnreachableWork();
@@ -175,6 +180,52 @@ class ABoatBayHoldsBoatsTest {
             if (task.affordance() != Affordance.SERVICE) continue;
             assertTrue(task.berth() != FixtureTask.NO_BERTH,
                     "an empty bay would still offer this servicing");
+        }
+    }
+
+    /**
+     * The door wall is a door, and nothing stands against it.
+     *
+     * <p>Three of the bay's bulkheads are worked and the fourth is bare deck
+     * end to end, because that is the one somebody drives through. Lined with
+     * the cargo run it used to carry, a hangar read as a store that happened to
+     * have boats in the middle of it, and the way off the ship was behind a
+     * stack of crates.
+     */
+    @Test
+    void theDoorWallIsBareDeck() {
+        GenContext ctx = bay(28, 16);
+
+        int band = BoatBayFitting.WORKING_BAND;
+        for (int x = ORIGIN + band; x <= ORIGIN + 28 - band - 1; x++) {
+            assertTrue(ctx.grid.isWalkable(x, ORIGIN),
+                    "the door wall is blocked at " + x + "," + ORIGIN);
+        }
+    }
+
+    /**
+     * And the boats face it, in whatever pose the bay was laid down in.
+     *
+     * <p>The heading is the whole reason the fitting names its outboard side.
+     * Backed onto the fuelling run is only half an arrangement — a rank facing
+     * the wrong way is a rank that has to be turned round on its own deck before
+     * anything can leave — and a fitting that could not say which bulkhead was
+     * the hull had no way to be sure which half it had.
+     */
+    @Test
+    void everyBoatNosesAtTheDoor() {
+        for (Gantry boat : boats(bay(28, 16))) {
+            assertEquals(Gantry.Facing.of(0, -1), boat.facing,
+                    "a boat on a canonical deck is parked facing " + boat.facing);
+        }
+
+        RoomPose turned = new RoomPose(1, false);
+        int[] out = turned.mapDirection(0, -1);
+        List<Gantry> aboard = boats(bay(28, 16, turned));
+        assertTrue(!aboard.isEmpty(), "a turned bay kept no boat at all");
+        for (Gantry boat : aboard) {
+            assertEquals(Gantry.Facing.of(out[0], out[1]), boat.facing,
+                    "a boat in a quarter-turned bay is parked facing " + boat.facing);
         }
     }
 

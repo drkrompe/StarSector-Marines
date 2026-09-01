@@ -929,6 +929,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return groundSystem == null ? null : groundSystem.moveOrders();
     }
     /** Exact-mech move executor used by the mech unit-dispatch path. */
+    @Override
     public MechMoveOrderSystem getMechMoveOrderSystem() { return mechMoveOrderSystem; }
     /** Player battle-only infantry squad move-order mailbox and projection. */
     public SquadMoveOrderService getSquadMoveOrderService() { return squadMoveOrders; }
@@ -1452,6 +1453,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public CommandDirective getSquadCommandDirective(int squadId) {
         return commanders.activeDirective(squadId);
+    }
+
+    /**
+     * What {@code squadId} goes back to when the lease standing on it ends, or
+     * {@code null} when nothing is being held for it. While a player's order
+     * stands, this is the commander's own directive — the one
+     * {@link #getSquadCommandDirective} is temporarily not reporting.
+     */
+    @Override
+    public CommandDirective getShelvedSquadDirective(int squadId) {
+        return commanders.assignments().shelvedDirective(squadId);
+    }
+
+    /** The per-faction commander tier, and through it the assignment ledger. */
+    public CommanderService getCommanderService() {
+        return commanders;
     }
 
     @Override

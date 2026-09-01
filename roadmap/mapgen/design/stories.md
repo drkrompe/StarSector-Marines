@@ -5,8 +5,8 @@ stories remain open.
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — retired precinct interior coherence; a zoned precinct's
-character now reaches what is built in it.
+Updated: 2026-09-01 — precinct mission wiring shipped: Assault and Raid are the
+first campaign battles on the precinct recipe.
 
 | Story | Status | Outcome |
 |---|---|---|

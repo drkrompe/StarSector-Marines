@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+
 /**
  * Top-level entry point for battle-map procedural generators. Implementations
  * own their algorithm (BSP, striped grid, wilderness biome, etc.) and produce
@@ -43,5 +45,27 @@ public interface MapGenerator {
      */
     default MapResult generate(int width, int height, long seed, TraversalAxis axis, TargetProfile profile) {
         return generate(width, height, seed, axis);
+    }
+
+    /**
+     * Place-aware build: the map is made of the places in {@code precincts}
+     * rather than of one settlement themed by a map-wide scatter.
+     *
+     * <p>The plan is an argument rather than generator state on purpose. One
+     * generator instance serves every battle in a session, so a plan stored on
+     * it would be read by the next battle that did not want one.
+     *
+     * <p>Default implementation delegates when {@code precincts} is null and
+     * refuses otherwise: a generator that does not know places cannot build
+     * them, and quietly ignoring the plan would hand back a map that looks
+     * right and is not the one asked for.
+     */
+    default MapResult generate(int width, int height, long seed, TraversalAxis axis,
+                               TargetProfile profile, PrecinctPlan precincts) {
+        if (precincts != null) {
+            throw new UnsupportedOperationException(getClass().getName()
+                    + " cannot build a map out of places");
+        }
+        return generate(width, height, seed, axis, profile);
     }
 }

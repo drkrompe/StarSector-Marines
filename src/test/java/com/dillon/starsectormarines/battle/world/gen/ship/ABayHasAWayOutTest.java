@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
@@ -57,6 +58,35 @@ class ABayHasAWayOutTest {
         assertTrue(bays > 0, "the transport was generated without a boat bay");
         assertEquals(bays, deck.graph().apertures().size(),
                 "the deck published a door for something that is not a bay");
+    }
+
+    /**
+     * And it is on the side the fitting asked for, not merely on some side.
+     *
+     * <p>A boat bay names its outboard bulkhead, the placer puts that side on
+     * the hull, and the fitting clears the deck behind it and ranks the boats
+     * nosed at it. A door recovered from a longer run of vacuum along one of the
+     * ends would be round the corner from the lane that leads to it, and the
+     * bay's whole arrangement would be pointing at a bulkhead.
+     */
+    @Test
+    void theDoorIsOnTheSideTheFittingNamed() {
+        Deck deck = generate(HullClass.CRUISER, 10, 250, 50);
+        int[] authored = RoomFittings.forPurpose(RoomPurpose.HANGAR).outboard();
+        assertNotNull(authored, "a boat bay no longer names the side it opens through");
+
+        int bays = 0;
+        for (DeckGraph.Compartment room : deck.graph().compartments()) {
+            if (room.purpose() != RoomPurpose.HANGAR) continue;
+            BayAperture door = deck.graph().apertureOf(room.id());
+            if (door == null) continue;
+            bays++;
+            int[] named = room.pose().mapDirection(authored[0], authored[1]);
+            assertEquals(named[0] + "," + named[1], door.outDx() + "," + door.outDy(),
+                    "bay " + room.id() + " opens through a bulkhead it was not built"
+                            + " around");
+        }
+        assertTrue(bays > 0, "the transport was generated without a boat bay");
     }
 
     /**

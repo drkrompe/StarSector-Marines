@@ -304,9 +304,16 @@ public final class RoomPacker {
     public Placed place(Request request, boolean mayTunnel) {
         RoomFitting fitting = RoomFittings.forRoom(ctx, request.purpose(), request.shape());
         List<Hookup> hookups = fitting == null ? List.of() : fitting.hookups(request.shape());
-        boolean handed = fitting != null && fitting.handed();
+        int[] outboard = fitting == null ? null : fitting.outboard();
+        // A room that names its outboard side is orientation-sensitive by
+        // definition, which is what handedness means here. Deduping its poses
+        // by mask throws away exactly the ones that distinguish which bulkhead
+        // faces out: a rectangle keeps only the quarter-turn and the identity,
+        // so every bay on every hull opened up or to starboard and none ever
+        // opened to port or aft.
+        boolean handed = fitting != null && (fitting.handed() || outboard != null);
         List<Candidate> candidates =
-                candidates(request, posesFor(request.shape(), handed));
+                candidates(request, posesFor(request.shape(), handed), outboard);
 
         if (!hookups.isEmpty()) {
             Placed hooked = placeHooked(request, hookups, candidates, mayTunnel);
@@ -730,10 +737,16 @@ public final class RoomPacker {
      * floating in open deck, so rooms gather into blocks and the space they
      * leave collects into passages instead of scattering as slivers.
      */
-    private List<Candidate> candidates(Request request, List<RoomPose> poses) {
+    private List<Candidate> candidates(Request request, List<RoomPose> poses,
+                                       int[] outboard) {
         Shortlist found = new Shortlist(SHORTLIST);
         for (RoomPose pose : poses) {
             RoomShape shape = request.shape().posed(pose);
+            // The fitting names its outboard side in its own frame; the edge
+            // test looks at posed ring cells, so the side is turned with the
+            // room.
+            int[] side = outboard == null ? null
+                    : pose.mapDirection(outboard[0], outboard[1]);
             int w = shape.width();
             int h = shape.height();
             int slack = w * h - shape.area();
@@ -752,7 +765,7 @@ public final class RoomPacker {
                     int contact = solid ? ringContact(x, y, w, h)
                             : wallContact(shape, x, y);
                     if (contact < 0) continue;
-                    if (!meetsEdge(request.contact(), shape, x, y)) continue;
+                    if (!meetsEdge(request.contact(), shape, x, y, side)) continue;
                     int belongs = request.affinity().prefers(x + w / 2, y + h / 2)
                             ? AFFINITY_BONUS : 0;
                     int excess = massing.sharedSeamAllowance() == Integer.MAX_VALUE ? 0
@@ -816,16 +829,36 @@ public final class RoomPacker {
      * a bay, on the after side for the drive — is what makes the placer find
      * those rooms somewhere they could do their job. It is also the test a
      * breach point will want when boarding entry is authored.
+     *
+     * <p>A fitting that names its outboard side narrows &quot;any side&quot;
+     * to that one: the cell that lies outside has to be on the named side, and
+     * not at a corner, which belongs to two sides and would let a bay pass with
+     * only its end against the hull.
+     *
+     * @param side the posed cardinal that must face the outside, or null for
+     *     a room that will take any side
      */
-    private boolean meetsEdge(EdgeContact contact, RoomShape shape, int ox, int oy) {
+    private boolean meetsEdge(EdgeContact contact, RoomShape shape, int ox, int oy,
+                              int[] side) {
         if (contact == EdgeContact.NONE) return true;
         for (int[] cell : shape.wall()) {
             if (contact == EdgeContact.TRAILING && cell[0] != shape.width()) continue;
+            if (side != null && !onSide(shape, cell, side)) continue;
             int x = ox + cell[0];
             int y = oy + cell[1];
             if (!inBounds(x, y) || !outside[x + 1][y + 1]) return true;
         }
         return false;
+    }
+
+    /** Whether a ring cell lies along the given side of the shape, corners excluded. */
+    private static boolean onSide(RoomShape shape, int[] cell, int[] side) {
+        if (side[0] != 0) {
+            int edge = side[0] < 0 ? -1 : shape.width();
+            return cell[0] == edge && cell[1] >= 0 && cell[1] < shape.height();
+        }
+        int edge = side[1] < 0 ? -1 : shape.height();
+        return cell[1] == edge && cell[0] >= 0 && cell[0] < shape.width();
     }
 
     /**

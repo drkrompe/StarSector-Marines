@@ -35,7 +35,7 @@ public final class DefendAssignedAreaGoal implements Goal {
                 && state.get(Predicate.HAS_TARGET)) return 0f;
         // A deliberate player area must beat role-specific Mech mission goals;
         // commander-authored areas retain their ordinary mission relevance.
-        return squad.hasPlayerTacticalOrder(AssignmentKind.DEFEND_AREA)
+        return squad.hasPlayerOrder(AssignmentKind.DEFEND_AREA)
                 ? 1.75f : 0.86f;
     }
 

@@ -309,6 +309,15 @@ public final class World {
     public float wanderDwellTimer(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER); }
     public void setWanderDwellTimer(long id, float v) { entityWorld.setFloat(id, components.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER, v); }
 
+    /**
+     * Name of the {@code battle.decision.Reflex} that pre-empted this unit's
+     * plan step on the last tick it was dispatched, or {@code null} when it was
+     * free to execute. Diagnostic only: written by {@code ReflexChain.run} and
+     * read by the per-member dumps, never by the simulation.
+     */
+    public String lastReflex(long id) { return (String) entityWorld.getObject(id, components.AI_STATE, BattleComponents.AI_STATE_LAST_REFLEX); }
+    public void setLastReflex(long id, String v) { entityWorld.setObject(id, components.AI_STATE, BattleComponents.AI_STATE_LAST_REFLEX, v); }
+
     // Mech loadout is an OPTIONAL capability in the world's MECH_LOADOUT component
     // (one OBJECT column holding the MechLoadoutComponent state bag) — presence IS
     // "is a mech". mechLoadout returns null when absent (so the scattered

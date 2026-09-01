@@ -4,7 +4,9 @@ Status: PLANNED — follows a competent zero-input baseline and the commander tr
 
 Written: 2026-08-25
 
-Updated: 2026-08-27 — moved under the shared Mission Command authority model.
+Updated: 2026-09-01 — the tactical squad move ships as an arbiter lease, which
+settles the handback acceptance; the strategic request vocabulary is what
+remains.
 
 Read `mission-command-nouns.md`, `autonomous-mission-command-foundation.md`,
 `commander-trace-and-balance-harness.md`, and `command-powers-nouns.md` before
@@ -40,8 +42,10 @@ mission command.
   stolen by a lower-authority player request.
 - [ ] Invalid or unreachable requests fail visibly without clearing the current
   competent directive.
-- [ ] Expiry, completion, cancellation, or hard invalidation returns authority
-  to mission command without a planless/ghost-path interval.
+- [x] Expiry, completion, cancellation, or hard invalidation returns authority
+  to mission command without a planless/ghost-path interval. `PlayerOrderScene`
+  is the evidence: the handback tick, the mission replanned on that same tick,
+  and zero plan-less ticks across the run.
 - [ ] Cooldown, concurrency, and cost rules prevent repeated requests from
   sustaining permanent manual override.
 - [ ] Existing command powers remain immediate tactical interventions and are
@@ -50,6 +54,9 @@ mission command.
 ## Constraints
 
 - Do not add raw writes to `Squad.assignedObjective` from presentation code.
+  The tactical squad move now goes through the arbiter as a lease at
+  `PLAYER_INTERVENTION`, so the click path is already provenanced; a strategic
+  request must arrive the same way rather than reopening a side channel.
 - Do not tune missions around constant player order throughput.
 - Faction doctrine remains independent of player intent.
 

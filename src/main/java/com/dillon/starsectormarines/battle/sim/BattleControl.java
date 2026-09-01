@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -140,4 +141,12 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
      *  variant + faction, seeding the caller-built {@link VehicleMission} as its
      *  {@code VEHICLE_MISSION} column. Configure the mission (route inputs, loadout) before calling. */
     void addConvoyVehicle(VehicleType type, Faction faction, VehicleMission mission);
+
+    /**
+     * The player's per-chassis mech move orders. Declared on the mutate window
+     * rather than only on {@code BattleSimulation} because it is consumed as a
+     * {@code battle.decision.Reflex} — the lance's one interrupt ahead of its
+     * doctrine step — and a reflex is handed this interface.
+     */
+    MechMoveOrderSystem getMechMoveOrderSystem();
 }

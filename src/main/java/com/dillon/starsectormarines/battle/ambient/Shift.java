@@ -447,7 +447,8 @@ public final class Shift {
     public AmbientTaskRoute member(int index) {
         if (order.isEmpty()) return null;
         int start = Math.floorMod(index, order.size());
-        List<AmbientTaskRoute.Stop> stops = new ArrayList<>(order.size());
+        List<AmbientTaskRoute.Stop> machines = new ArrayList<>();
+        List<AmbientTaskRoute.Stop> rest = new ArrayList<>(order.size());
         for (int step = 0; step < order.size(); step++) {
             Affordance job = order.get((start + step) % order.size());
             List<Placed> places = byJob.get(job);
@@ -464,18 +465,85 @@ public final class Shift {
                 // answers every later request with the claim already held, so
                 // the walk back is to the machine they never left, and nothing
                 // else in the room is ever touched.
-                List<Placed> legs = CrewRole.isCircuit(job)
+                boolean circuit = CrewRole.isCircuit(job);
+                List<Placed> legs = circuit
                         ? oneLegPerSite(places, index)
                         : oneLegPerBerth(places, index);
+                List<AmbientTaskRoute.Stop> into = circuit ? rest : machines;
                 for (int leg = 0; leg < legs.size(); leg++) {
-                    stops.add(stopAt(legs.get(Math.floorMod(index + leg, legs.size())), job));
+                    into.add(stopAt(legs.get(Math.floorMod(index + leg, legs.size())), job));
                 }
             } else {
-                stops.add(stopAt(places.get(Math.floorMod(index, places.size())), job));
+                rest.add(stopAt(places.get(Math.floorMod(index, places.size())), job));
             }
         }
+        List<AmbientTaskRoute.Stop> stops = dealt(machines, rest, index);
         String id = role.name().toLowerCase(Locale.ROOT) + "-" + base.id() + "-" + index;
         return new AmbientTaskRoute(id, index * PHASE_STEP, WALK_SPEED,
                 THREAT_RADIUS, threatPolicy, stops);
+    }
+
+    /**
+     * The machines dealt through the rest of the rotation, rather than laid
+     * end to end at the front of it.
+     *
+     * <p>A round of the machines is the right <em>set</em> of stops and was the
+     * wrong <em>order</em>. Laid consecutively, a technician on a ship's boat
+     * deck worked all six boats in the first three minutes of a rotation that
+     * then took ten more to come back round — a repair round of the whole hull,
+     * the stores, the board, a wash, a meal, a rest — so every boat that came
+     * home in those ten minutes stood on its stand with nobody near it. The
+     * berths had hands for three minutes in thirteen, and the ship's boats flew
+     * once each and never again.
+     *
+     * <p>Dealt out, the same stops in the same loop put a machine between every
+     * other job: a boat, then a defect; a boat, then the stores; a boat, then a
+     * meal. The loop is no shorter and nobody works harder — this is still a
+     * rotation and not a priority, and a technician still comes round to every
+     * job on it — but the machines are visited across the whole of it instead of
+     * in a burst at the start, which is the difference between a stand that
+     * waits a couple of minutes for its turn and one that waits a quarter of an
+     * hour.
+     *
+     * <p>Whichever list is longer carries the other, spread evenly along it, so
+     * a bay with six machines and one board reads as three boats, the board,
+     * three boats, and a bay with two machines and ten other jobs reads as five
+     * jobs, a machine, five jobs, a machine. Nothing is repeated: each machine
+     * and each other job still appears exactly once per loop. The result is
+     * turned by member so a watch coming on starts spread across the loop
+     * rather than all on the first machine.
+     */
+    private static List<AmbientTaskRoute.Stop> dealt(List<AmbientTaskRoute.Stop> machines,
+                                                     List<AmbientTaskRoute.Stop> rest,
+                                                     int index) {
+        if (machines.isEmpty()) return rest;
+        List<AmbientTaskRoute.Stop> major = machines.size() >= rest.size() ? machines : rest;
+        List<AmbientTaskRoute.Stop> minor = major == machines ? rest : machines;
+        List<AmbientTaskRoute.Stop> loop = new ArrayList<>(major.size() + minor.size());
+        int dealtOut = 0;
+        for (int slot = 0; slot < major.size(); slot++) {
+            loop.add(major.get(slot));
+            // The k-th minor stop follows the major stop at the k-th evenly
+            // spaced position, so the minor list lands in the middle of a run
+            // rather than at either end of it.
+            while (dealtOut < minor.size()
+                    && after(dealtOut, major.size(), minor.size()) == slot) {
+                loop.add(minor.get(dealtOut++));
+            }
+        }
+        int turn = Math.floorMod(index, loop.size());
+        List<AmbientTaskRoute.Stop> turned = new ArrayList<>(loop.size());
+        for (int step = 0; step < loop.size(); step++) {
+            turned.add(loop.get((turn + step) % loop.size()));
+        }
+        return turned;
+    }
+
+    /** Which major stop the k-th of {@code minor} minor stops follows, spread over {@code major}. */
+    private static int after(int k, int major, int minor) {
+        // ceil((k + 1) * major / (minor + 1)) - 1: the minor stops at the
+        // minor + 1 evenly spaced gaps in the major run, skipping the gap
+        // before the first major stop.
+        return ((k + 1) * major + minor) / (minor + 1) - 1;
     }
 }
