@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
@@ -95,18 +96,44 @@ public record ShuttleArrivalPlan(
         int baseCycles = completePairCycles / activePairs;
         int extraCycles = completePairCycles % activePairs;
         boolean oddSortie = (sorties & 1) != 0;
+        int taken = 0;
         for (int pair = 0; pair < activePairs; pair++) {
             int pairedCycles = baseCycles + (pair < extraCycles ? 1 : 0);
             int firstCycles = pairedCycles
                     + (oddSortie && pair == activePairs - 1 ? 1 : 0);
             if (firstCycles > 0) {
                 resolved.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE,
-                        firstCycles, seatsPerSortie));
+                        frameFor(source, from, to, taken++), firstCycles,
+                        seatsPerSortie, Math.max(1, firstCycles) * seatsPerSortie));
             }
             if (pairedCycles <= 0) continue;
             resolved.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE,
-                    pairedCycles, seatsPerSortie));
+                    frameFor(source, from, to, taken++), pairedCycles,
+                    seatsPerSortie, Math.max(1, pairedCycles) * seatsPerSortie));
         }
+    }
+
+    /**
+     * Which of the segment's boats a collapsed craft flies as.
+     *
+     * <p>A collapse is fewer craft than boats on purpose — six committed
+     * Aeroshuttles become two that fly more sorties each — so the fit cannot
+     * survive one-for-one, and the boats past the collapsed count simply do not
+     * make the descent. What is kept is the boats in berth order, which is the
+     * same order the manifest was built in: the company's first boats are the
+     * ones that go down, fit and all.
+     *
+     * <p>Only an Aeroshuttle-pattern boat carries through, because the pair the
+     * collapse builds is an Aeroshuttle. A Valkyrie's plating has nothing to do
+     * with the craft that replaces her.
+     */
+    private static Airframe frameFor(List<ShuttleAssignment> source,
+                                     int from, int to, int index) {
+        int at = from + index;
+        if (at < from || at >= to || at >= source.size()) return ShuttleType.AEROSHUTTLE;
+        ShuttleAssignment origin = source.get(at);
+        return origin != null && origin.type == ShuttleType.AEROSHUTTLE
+                ? origin.airframe : ShuttleType.AEROSHUTTLE;
     }
 
     private static int seatCapacity(List<ShuttleAssignment> manifest,

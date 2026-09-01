@@ -443,10 +443,35 @@ public class AirSystem {
                       float lzX, float lzY, float entryX, float entryY,
                       float exitX, float exitY, float pendingDelay,
                       int seatsPerSortie) {
+        return spawn(type, type, faction, lzX, lzY, entryX, entryY,
+                exitX, exitY, pendingDelay, seatsPerSortie);
+    }
+
+    /**
+     * Spawns an infantry shuttle of {@code type} that is flying as
+     * {@code frame} — one of the company's boats with a yard's work on it.
+     *
+     * <p>Two arguments for one aircraft because they are two different facts.
+     * The <b>type</b> is what the craft is, and it owns the things a hold has:
+     * how many seats there are to validate against and how fast people get out
+     * of them. The <b>frame</b> is what has been done to it, and it owns
+     * everything the sim measures — identity, so the steering tick reads its
+     * handling through {@code frame.flight()}; durability, so plating is what
+     * anti-air has to get through. Passing the type as its own frame is the
+     * unfitted case and is what every other caller does.
+     *
+     * <p>Deliberately <em>not</em> the deboard cadence: the rotation is a fact
+     * about hands, and a better boat is not unloaded faster.
+     */
+    public long spawn(ShuttleType type, Airframe frame, Faction faction,
+                      float lzX, float lzY, float entryX, float entryY,
+                      float exitX, float exitY, float pendingDelay,
+                      int seatsPerSortie) {
         if (seatsPerSortie < 1 || seatsPerSortie > type.capacity) {
             throw new IllegalArgumentException("seatsPerSortie must be between 1 and "
                     + type.capacity + " for " + type + ": " + seatsPerSortie);
         }
+        Airframe flying = frame != null ? frame : type;
         AirBody body = new AirBody();
         body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
         ShuttleMission mission = new ShuttleMission(lzX, lzY, entryX, entryY, exitX, exitY,
@@ -455,10 +480,10 @@ public class AirSystem {
         // the hull says what it can do and the sortie says what it is doing.
         mission.deboardInterval = type.deboardInterval;
         long id = roster.allocateAir(shuttleArchetype);
-        world.setAirIdentity(id, type, faction);
+        world.setAirIdentity(id, flying, faction);
         world.setKinematics(id, body);
         world.setMission(id, mission);
-        seedDurability(id, type, faction);
+        seedDurability(id, flying, faction);
         // Seed the authored render-state column (cruise altitude, zero wobble
         // phase). The state-machine tick drives it thereafter; the render/audio
         // passes read it by id.

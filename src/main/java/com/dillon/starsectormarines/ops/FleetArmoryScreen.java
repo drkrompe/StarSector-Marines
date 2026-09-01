@@ -228,14 +228,15 @@ public final class FleetArmoryScreen implements Screen {
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> { },
-                () -> context.goTo(ScreenId.MECH_LAB));
+                () -> context.goTo(ScreenId.MECH_LAB),
+                () -> context.goTo(ScreenId.BOAT_DECK));
     }
 
     private void requireWiredElements(MarkupInstance component) {
         List<String> required = view == View.FIRETEAMS
                 ? List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab",
+                "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
                 "fireteam-breadcrumb", "back-to-squads", "fireteam-body",
                 "squad-doctrine-strip", "equipment-picker-tabs", "show-weapon-picker",
                 "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
@@ -248,7 +249,7 @@ public final class FleetArmoryScreen implements Screen {
                 : view == View.DESIGNER
                 ? List.of("equipment-designer-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab",
+                "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
                 "designer-breadcrumb", "back-to-fireteams", "designer-mode-row",
                 "designer-definition-library", "designer-definition-list",
                 "designer-editor", "designer-name-input", "designer-team-tabs",
@@ -258,12 +259,12 @@ public final class FleetArmoryScreen implements Screen {
                 : view == View.ARMOR_COMPARISON
                 ? List.of("armor-comparison-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab",
+                "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
                 "comparison-breadcrumb", "back-to-fireteams",
                 "comparison-intro", "comparison-list")
                 : List.of("fleet-armory-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab",
+                "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
                 "squad-breadcrumb", "squad-overview-intro",
                 "squad-founder-costs", "found-squad", "squad-founder-feedback",
                 "squad-card-list");

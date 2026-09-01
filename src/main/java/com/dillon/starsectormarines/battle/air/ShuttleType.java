@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.turret.TurretRole;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Static config for each shuttle variant — sprite, lift capacity, handling
@@ -173,6 +174,19 @@ public enum ShuttleType implements AirHandling, Airframe {
     @Override
     public String renderHullId() {
         return matchingHullIds.isEmpty() ? "kite" : matchingHullIds.get(0);
+    }
+
+    /**
+     * The pattern's name as a player reads it: {@code AEROSHUTTLE} is an
+     * Aeroshuttle.
+     *
+     * <p>On the type rather than on each screen that shows one. A briefing row
+     * and the Boat Deck's summary are naming the same thing, and two private
+     * title-casers would be two places for it to drift.
+     */
+    public String displayName() {
+        String name = name();
+        return name.charAt(0) + name.substring(1).toLowerCase(Locale.ROOT);
     }
 
     @Override public String spritePath()              { return spritePath; }

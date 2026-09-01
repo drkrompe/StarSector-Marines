@@ -51,7 +51,8 @@ class ShipRoomAvailabilityTest {
 
     /** The compartments the shell can frame, which is what has to be answered for. */
     private static final Set<RoomPurpose> FRAMED = EnumSet.copyOf(
-            List.of(RoomPurpose.BARRACKS, RoomPurpose.ARMORY, RoomPurpose.VEHICLE_BAY));
+            List.of(RoomPurpose.BARRACKS, RoomPurpose.ARMORY, RoomPurpose.VEHICLE_BAY,
+                    RoomPurpose.HANGAR));
 
     /**
      * Asking whether the ship has a room gives the same answer as looking for
@@ -88,7 +89,7 @@ class ShipRoomAvailabilityTest {
             CompanyDeck deck = new CompanyDeck(ship, SEED);
             Map<String, Object> props = new LinkedHashMap<>();
             MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, laidOut(deck),
-                    () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+                    () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
 
             for (MarineOpsPageNav.Page page : MarineOpsPageNav.Page.values()) {
                 if (page.room() == null) continue;
@@ -128,25 +129,30 @@ class ShipRoomAvailabilityTest {
      */
     @Test
     void aRoomTheShipLacksIsShownButNotReachable() {
-        boolean[] opened = new boolean[3];
+        boolean[] opened = new boolean[4];
         Map<String, Object> props = new LinkedHashMap<>();
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
                 only(RoomPurpose.ARMORY),
                 () -> { }, () -> { },
-                () -> opened[0] = true, () -> opened[1] = true, () -> opened[2] = true);
+                () -> opened[0] = true, () -> opened[1] = true, () -> opened[2] = true,
+                () -> opened[3] = true);
 
         assertEquals("page-nav-absent", props.get("barracksClasses"),
                 "berthing reads as available on a ship with no berthing");
         assertEquals("page-nav-absent", props.get("mechLabClasses"),
                 "the lab reads as available on a ship with no bay");
+        assertEquals("page-nav-absent", props.get("boatsClasses"),
+                "the boat deck reads as available on a ship with no hangar");
         assertEquals("", props.get("armoryClasses"),
                 "the armory this ship does have was shown as absent");
 
         ((Runnable) props.get("barracksAction")).run();
         ((Runnable) props.get("mechLabAction")).run();
+        ((Runnable) props.get("boatsAction")).run();
         ((Runnable) props.get("armoryAction")).run();
         assertFalse(opened[0], "clicking berthing the ship lacks navigated anyway");
         assertFalse(opened[2], "clicking the lab the ship lacks navigated anyway");
+        assertFalse(opened[3], "clicking the boat deck the ship lacks navigated anyway");
         assertTrue(opened[1], "the armory the ship has would not open");
     }
 
@@ -169,20 +175,23 @@ class ShipRoomAvailabilityTest {
      */
     @Test
     void aShipStillBeingLaidOutIsNotAShipWithoutRooms() {
-        boolean[] opened = new boolean[3];
+        boolean[] opened = new boolean[4];
         Map<String, Object> props = new LinkedHashMap<>();
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
                 purpose -> MarineOpsPageNav.Aboard.UNKNOWN,
                 () -> { }, () -> { },
-                () -> opened[0] = true, () -> opened[1] = true, () -> opened[2] = true);
+                () -> opened[0] = true, () -> opened[1] = true, () -> opened[2] = true,
+                () -> opened[3] = true);
 
         assertEquals("page-nav-waiting", props.get("barracksClasses"));
         assertEquals("page-nav-waiting", props.get("armoryClasses"));
         assertEquals("page-nav-waiting", props.get("mechLabClasses"));
+        assertEquals("page-nav-waiting", props.get("boatsClasses"));
 
         ((Runnable) props.get("barracksAction")).run();
         ((Runnable) props.get("armoryAction")).run();
         ((Runnable) props.get("mechLabAction")).run();
+        ((Runnable) props.get("boatsAction")).run();
         for (boolean went : opened) {
             assertTrue(went, "a room that is merely being laid out lost its route "
                     + "and would never get it back");
@@ -274,7 +283,7 @@ class ShipRoomAvailabilityTest {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
                 purpose -> MarineOpsPageNav.Aboard.NO,
                 () -> { }, () -> wentHome[0] = true,
-                () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { });
         ((Runnable) props.get("hqAction")).run();
         assertTrue(wentHome[0], "a ship with no rooms at all stranded the player");
         assertEquals("", props.get("hqClasses"), "headquarters was shown as absent");

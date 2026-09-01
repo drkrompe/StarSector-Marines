@@ -6,8 +6,8 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
-import com.dillon.starsectormarines.marine.MechFabricationCost;
-import com.dillon.starsectormarines.marine.MechFabricationResources;
+import com.dillon.starsectormarines.marine.FabricationCost;
+import com.dillon.starsectormarines.marine.FabricationResources;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -305,11 +305,11 @@ class MechLabViewModelTest {
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 MarineOpsPageNav.ANY_SHIP,
-                () -> { }, () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         return props;
     }
 
-    private static final class TestResources implements MechFabricationResources {
+    private static final class TestResources implements FabricationResources {
         private final Map<String, Integer> stock = new HashMap<>();
 
         private static TestResources stocked(int quantity) {
@@ -333,9 +333,9 @@ class MechLabViewModelTest {
             return "graphics/icons/cargo/" + commodityId + ".png";
         }
 
-        @Override public boolean spend(MechFabricationCost cost) {
+        @Override public boolean spend(FabricationCost cost) {
             if (!canAfford(cost)) return false;
-            for (MechFabricationCost.Line line : cost.lines()) {
+            for (FabricationCost.Line line : cost.lines()) {
                 stock.merge(line.commodityId(), -line.quantity(), Integer::sum);
             }
             return true;

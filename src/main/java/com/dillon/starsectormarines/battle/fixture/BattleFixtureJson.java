@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -18,6 +20,8 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
@@ -309,6 +313,16 @@ public final class BattleFixtureJson {
         for (ShuttleAssignment shuttle : manifest) {
             JSONObject encoded = new JSONObject();
             encoded.put("type", shuttle.type.name());
+            // A replay has to fly the same boats, so a craft that is one of the
+            // company's own carries its fitting ids beside its pattern. Written
+            // for a standard fit too rather than only for an upgraded one: the
+            // absence of these keys is what tells the reader this was an
+            // employer's craft rather than a boat, and encoding only the
+            // interesting case would make those two decode identically.
+            if (shuttle.airframe instanceof FittedBoat boat) {
+                encoded.put("platingId", boat.plating().id());
+                encoded.put("driveId", boat.drive().id());
+            }
             encoded.put("cycles", shuttle.cycles);
             encoded.put("seatsPerSortie", shuttle.seatsPerSortie);
             encoded.put("embarkedPersonnel", shuttle.embarkedPersonnel);
@@ -327,7 +341,17 @@ public final class BattleFixtureJson {
             int cycles = encoded.getInt("cycles");
             int seats = encoded.has("seatsPerSortie")
                     ? encoded.getInt("seatsPerSortie") : type.capacity;
-            shuttles.add(new ShuttleAssignment(type, cycles, seats,
+            // A fixture written before boats had fittings names no ids and
+            // reads as the plain pattern it was, which is what it flew.
+            boolean fitted = encoded.has("platingId") || encoded.has("driveId");
+            Airframe frame = fitted
+                    ? new FittedBoat(type,
+                            BoatFitting.resolve(encoded.optString("platingId", null),
+                                    BoatFittingSlot.PLATING),
+                            BoatFitting.resolve(encoded.optString("driveId", null),
+                                    BoatFittingSlot.DRIVE))
+                    : type;
+            shuttles.add(new ShuttleAssignment(type, frame, cycles, seats,
                     encoded.has("embarkedPersonnel")
                             ? encoded.getInt("embarkedPersonnel")
                             : cycles * seats));

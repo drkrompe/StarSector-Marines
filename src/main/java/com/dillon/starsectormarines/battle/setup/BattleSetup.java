@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 
 import com.dillon.starsectormarines.battle.air.AirArmament;
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.AirfieldWork;
@@ -421,7 +422,7 @@ public final class BattleSetup {
             float lzCenterY = lz.centerY + 0.5f;
             float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, lz.approach);
             long shuttleId = sim.spawnShuttle(
-                    a.type, Faction.MARINE,
+                    a.type, a.airframe, Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entry[0], entry[1],
                     entry[2], entry[3],
@@ -696,7 +697,7 @@ public final class BattleSetup {
             float lzCenterY = lz.centerY + 0.5f;
             float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, lz.approach);
             long shuttleId = sim.spawnShuttle(
-                    a.type, Faction.MARINE,
+                    a.type, a.airframe, Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entry[0], entry[1],
                     entry[2], entry[3],
@@ -831,7 +832,7 @@ public final class BattleSetup {
             float[] entry = shuttleEntryFor(lzCenterX, lzCenterY,
                     scale.width, scale.height, lz.approach);
             long shuttleId = sim.spawnShuttle(
-                    assignment.type, Faction.MARINE,
+                    assignment.type, assignment.airframe, Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entry[0], entry[1], entry[2], entry[3],
                     i * SHUTTLE_DROP_STAGGER_SEC,
@@ -958,7 +959,7 @@ public final class BattleSetup {
                 float[] entry = shuttleEntryFor(lzCenterX, lzCenterY,
                         scale.width, scale.height, lz.approach);
                 long shuttleId = sim.spawnShuttle(
-                        assignment.type, Faction.MARINE,
+                        assignment.type, assignment.airframe, Faction.MARINE,
                         lzCenterX, lzCenterY,
                         entry[0], entry[1], entry[2], entry[3],
                         i * SHUTTLE_DROP_STAGGER_SEC,
@@ -1078,7 +1079,7 @@ public final class BattleSetup {
                 float[] entry = shuttleEntryFor(lzCenterX, lzCenterY,
                         scale.width, scale.height, lz.approach);
                 long shuttleId = sim.spawnShuttle(
-                        assignment.type, Faction.MARINE,
+                        assignment.type, assignment.airframe, Faction.MARINE,
                         lzCenterX, lzCenterY,
                         entry[0], entry[1], entry[2], entry[3],
                         i * SHUTTLE_DROP_STAGGER_SEC,
@@ -1252,7 +1253,8 @@ public final class BattleSetup {
             float lzCenterY = slot.pad().centerY + 0.5f;
             float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, gridW, gridH, axis);
             long shuttleId = sim.spawnShuttle(
-                    resolvedArrivalPlan.deliveryCraft(a.type), Faction.MARINE,
+                    resolvedArrivalPlan.deliveryCraft(a.type),
+                    deliveryFrame(resolvedArrivalPlan, a), Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entry[0], entry[1],
                     entry[2], entry[3], slot.pendingDelay(),
@@ -1301,6 +1303,22 @@ public final class BattleSetup {
         installReinforcementLayer(sim, map, MissionType.CONQUEST, axis,
                 groundRoster, risk, defenderCommand);
         return new MapBuild(sim, build.structures());
+    }
+
+    /**
+     * The frame a Conquest arrival actually descends in.
+     *
+     * <p>A paired Conquest arrival substitutes a delivery craft for whatever
+     * the company committed, and a fit belongs to a particular boat rather than
+     * to whatever ends up flying in its place. So the fitted frame is used only
+     * when the substitution is the identity one — the delivery pattern is the
+     * assignment's own — and otherwise the delivery type flies plain. A
+     * Valkyrie's armoured plate is not transferable to the Aeroshuttle that
+     * goes down instead of her.
+     */
+    private static Airframe deliveryFrame(ShuttleArrivalPlan plan, ShuttleAssignment a) {
+        ShuttleType delivery = plan.deliveryCraft(a.type);
+        return delivery == a.type ? a.airframe : delivery;
     }
 
     private record ConquestArrivalSlot(

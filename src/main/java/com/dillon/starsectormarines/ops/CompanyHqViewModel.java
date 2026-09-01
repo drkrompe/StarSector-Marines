@@ -54,6 +54,7 @@ final class CompanyHqViewModel {
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
+            Runnable openBoatDeck,
             Runnable openShipTransfer,
             Runnable openShipView,
             Runnable close,
@@ -67,7 +68,7 @@ final class CompanyHqViewModel {
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
         return build(standing, clocks, news, day, aboard, shipView,
                 openBarracks, openArmory,
-                openMechLab, openShipTransfer, openShipView, close, respond);
+                openMechLab, openBoatDeck, openShipTransfer, openShipView, close, respond);
     }
 
     private static CompanyHqViewModel build(
@@ -80,6 +81,7 @@ final class CompanyHqViewModel {
             Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
+            Runnable openBoatDeck,
             Runnable openShipTransfer,
             Runnable openShipView,
             Runnable close,
@@ -131,7 +133,7 @@ final class CompanyHqViewModel {
         props.put("shipViewAction", openShipView);
         props.put("shipView", shipView);
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, aboard, close,
-                () -> { }, openBarracks, openArmory, openMechLab);
+                () -> { }, openBarracks, openArmory, openMechLab, openBoatDeck);
         return new CompanyHqViewModel(props);
     }
 
@@ -231,7 +233,7 @@ final class CompanyHqViewModel {
         props.put("shipView", shipViewWorking(CompanyDeck.Work.LAYING_OUT, 4.9f));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
                 purpose -> MarineOpsPageNav.Aboard.UNKNOWN,
-                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         return new CompanyHqViewModel(props);
     }
 
@@ -244,7 +246,7 @@ final class CompanyHqViewModel {
         props.put("shipViewAction", (Runnable) () -> { });
         props.put("shipView", shipViewReady());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, MarineOpsPageNav.ANY_SHIP,
-                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         props.put("assessmentHeader", "BRIDGE ADJUTANT  //  DAILY ASSESSMENT");
         props.put("ratingHeader", "MERCENARY RATING");
         props.put("rating", "RECOGNIZED");
