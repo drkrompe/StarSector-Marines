@@ -118,6 +118,9 @@ class MechVariantTest {
         assertSame(MechWeaponComponent.SRM_15,
                 independent.mount(MechMountSlot.RIGHT_SHOULDER).component);
         assertFalse(independent.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
+        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_MUSTER_AUTOGUN_ID));
+        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_QUARRY_BREAKER_ID));
+        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_PIONEER_ROCKET_ID));
         assertFalse(independent.hasWeapon(WeaponRegistry.MECH_PULSE_LASER_ID));
 
         BattleSimulation sim = arena();

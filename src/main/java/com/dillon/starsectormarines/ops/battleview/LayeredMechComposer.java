@@ -274,6 +274,17 @@ final class LayeredMechComposer {
         } else if (arms == LayeredMechAppearance.ARMS_DEMOLITION_CANNON) {
             emitFromRearPivot(out, assets.demolitionCannon, actorX, actorY, hullWidth,
                     facingDeg, 0f, -0.05f, 1f, 0f, alpha);
+        } else if (arms == LayeredMechAppearance.ARMS_MUSTER_AUTOGUN) {
+            emitFromRearPivot(out, assets.musterAutogun, actorX, actorY, hullWidth,
+                    facingDeg, -0.37f, -0.15f + kick, 0.5f, 0f, alpha);
+            emitFromRearPivot(out, assets.musterAutogun, actorX, actorY, hullWidth,
+                    facingDeg, 0.37f, -0.15f + kick, 0.5f, 0f, alpha);
+        } else if (arms == LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN) {
+            emitFromRearPivot(out, assets.musterAutogun, actorX, actorY, hullWidth,
+                    facingDeg, 0f, -0.02f + kick, 1f, 0f, alpha);
+        } else if (arms == LayeredMechAppearance.ARMS_QUARRY_BREAKER) {
+            emitFromRearPivot(out, assets.quarryBreakerCannon, actorX, actorY, hullWidth,
+                    facingDeg, 0f, -0.05f, 1f, 0f, alpha);
         }
     }
 
@@ -301,7 +312,8 @@ final class LayeredMechComposer {
         if (arms == LayeredMechAppearance.ARMS_CHAINGUN
                 || arms == LayeredMechAppearance.ARMS_LINEAR_CANNON
                 || arms == LayeredMechAppearance.ARMS_PULSE_LASER
-                || arms == LayeredMechAppearance.ARMS_BASTION_AUTOCANNON) {
+                || arms == LayeredMechAppearance.ARMS_BASTION_AUTOCANNON
+                || arms == LayeredMechAppearance.ARMS_MUSTER_AUTOGUN) {
             MechHardpointGeometry.LocalPoint secondary =
                     MechHardpointGeometry.armsMuzzle(arms, 1);
             emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
@@ -377,6 +389,9 @@ final class LayeredMechComposer {
         } else if (pod == LayeredMechAppearance.POD_THERMAL_LANCE) {
             emitFromRearPivot(out, assets.thermalLance, actorX, actorY, hullWidth, facingDeg,
                     localX, -0.30f, 1f, 0f, alpha);
+        } else if (pod == LayeredMechAppearance.POD_PIONEER_ROCKET) {
+            emitFromRearPivot(out, assets.pioneerRocketCradle, actorX, actorY, hullWidth,
+                    facingDeg, localX, -0.30f - srmKick, 1f, 0f, alpha);
         } else if (isSmallPod(pod)) {
             emitFromRearPivot(out, assets.srmPod, actorX, actorY, hullWidth, facingDeg,
                     localX, -0.30f - (isSrmPod(pod) ? srmKick : lrmKick), 1f, 0f, alpha);
@@ -398,7 +413,8 @@ final class LayeredMechComposer {
 
     private static boolean isSrmPod(int pod) {
         return pod == LayeredMechAppearance.POD_SMALL_SRM
-                || pod == LayeredMechAppearance.POD_LARGE_SRM;
+                || pod == LayeredMechAppearance.POD_LARGE_SRM
+                || pod == LayeredMechAppearance.POD_PIONEER_ROCKET;
     }
 
     private static boolean isLrmPod(int pod) {
