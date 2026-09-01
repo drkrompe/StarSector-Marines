@@ -487,6 +487,37 @@ for the same reason the unbuilt program is. A citadel that found room for two of
 its four heavy posts is a stronghold wearing a citadel's name, and an emplacement
 that was never stamped leaves nothing at all on the finished map to notice.
 
+### A placement guard asks about the stamp, not about the map
+
+The first working version of this placed **nothing at all**, on every seed and at
+every level, while every count still said it had asked for the guns. The unit
+test passed the whole time, because it proved the mechanism on a clean fixture
+and the fault lived in the case.
+
+`PlacementGuards.wouldPartitionWalkable` is a whole-map check: it floods the
+walkable graph from one seed and refuses the stamp if any walkable cell is left
+unreached. That is the same question as "would this stamp partition the graph"
+only on a map that is whole to begin with. A generated precinct map is not — this
+one carried three orphan pockets of 21 cells between them, left by fills and
+nothing to do with any emplacement — so the guard answered true for all 5605
+candidate anchors and the defence pass placed nothing, with no exception and no
+log line.
+
+`wouldStrandGround` is the same question asked locally, of the cells that can
+actually step onto the footprint, and is immune by construction. It now has a
+sparse-footprint form, because an embankment is a ring rather than a rectangle
+and the cells it leaves open inside itself are exactly where the interesting
+failure lives. Switching the placer to it left the conquest map **anchor for
+anchor identical** across three seeds — that path was never broken, because those
+maps come out with one walkable component — and unblocked the precinct path
+completely.
+
+The general law: **a placement guard must answer about the stamp, not about the
+map.** A guard that reports a pre-existing condition refuses everything, and a
+caller that places nothing looks exactly like a caller that was never invoked.
+`BattleSetup`'s vehicle parking and `OverwatchTowerStage` still use the whole-map
+form and carry the same latent failure.
+
 **Gate count is a cap, not a count.** Growth decides where roads cross the
 outline; the dial decides how many of those crossings stay open. A place whose
 roads all leave by one route has one gate however many it is allowed. The widest

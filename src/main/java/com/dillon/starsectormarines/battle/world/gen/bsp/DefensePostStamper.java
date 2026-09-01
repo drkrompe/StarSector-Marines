@@ -406,15 +406,22 @@ public final class DefensePostStamper implements GenStage {
                 cy = slid[1];
             }
             if (tooCloseToExistingPost(defensePosts, cx, cy)) continue;
-            // Final gate — would stamping this footprint partition the walkable
-            // graph? Catches the post sealing a thin strip against an existing
+            // Final gate — would stamping this footprint strand walkable ground?
+            // Catches the post sealing a thin strip against an existing
             // non-walkable mass (BSP wall, building, fortress wall), AND the
             // post boxing in one of its OWN open footprint cells (a vent ring's
             // corner trapped between the ring arms and pre-existing water/wall).
             // Pass the actual blocked cells, not the bbox — sparse footprints
             // (LIGHT cross, WEDGE/TRAPEZOID notches) leave bbox cells walkable,
             // and those open cells must stay in the connectivity check.
-            if (PlacementGuards.wouldPartitionWalkable(grid, blockedFootprint(layout, cx, cy))) continue;
+            //
+            // Asked locally rather than of the whole map. The map-wide form
+            // answers "is any walkable cell unreachable", which is a different
+            // question and is true whenever an earlier stage left an orphan
+            // anywhere — measured on a precinct map with three orphan pockets
+            // totalling 21 cells, it refused every one of 5605 candidate
+            // anchors and the defence pass placed nothing at all, silently.
+            if (PlacementGuards.wouldStrandGround(grid, blockedFootprint(layout, cx, cy))) continue;
             DefensePost post = stampPost(grid, topology, doodads, layout, cx, cy);
             defensePosts.add(post);
             // Tiers with a zero garrison (DRONE_HUB) defend themselves via
