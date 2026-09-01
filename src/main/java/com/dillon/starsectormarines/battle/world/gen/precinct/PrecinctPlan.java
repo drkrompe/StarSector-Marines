@@ -172,7 +172,21 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
         return derive(profile, Sprawl.BALANCED, width, height, rng);
     }
 
+    /** As {@link #derive(TargetProfile, Sprawl, Fortification.Demand, int, int, Random)} with nothing said about the attacker. */
     public static PrecinctPlan derive(TargetProfile profile, Sprawl sprawl,
+                                      int width, int height, Random rng) {
+        return derive(profile, sprawl, Fortification.Demand.UNSTATED, width, height, rng);
+    }
+
+    /**
+     * The default set for a target world, under what a mission says about the
+     * force it is sending.
+     *
+     * @param demand what the operation may ask of its attacker; the garrison's
+     *               fortification is the world's rating resolved against it
+     */
+    public static PrecinctPlan derive(TargetProfile profile, Sprawl sprawl,
+                                      Fortification.Demand demand,
                                       int width, int height, Random rng) {
         List<Precinct> out = new ArrayList<>();
         List<int[]> taken = new ArrayList<>();
@@ -205,8 +219,12 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
             // A garrison grows sparsely: it is an installation rather than a
             // town, and its ground comes from its program rather than from how
             // far its streets reach.
+            // How hard it is to take comes from two facts with different jobs:
+            // the world's rating says what is there, the demand says what this
+            // operation may be asked to face.
             out.add(Precinct.garrison("garrison", garrisonSeed[0], garrisonSeed[1],
-                    GrownTrunkPlan.Profile.hamlet(), garrisonFor(profile)));
+                    GrownTrunkPlan.Profile.hamlet(), garrisonFor(profile),
+                    demand.resolve(profile.defenseLevel())));
         }
 
         for (int i = 0; i < outlyingPlaces(profile.marketSize(), sprawl); i++) {
