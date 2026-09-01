@@ -38,10 +38,11 @@ import java.util.Map;
  * re-tasking it faster than it can execute anything.
  *
  * <p>{@link Layer#MISSION} and {@link Layer#ASSIGNMENT} are separate rungs for
- * the same reason. A player order overrides the commander's assignment without
- * replacing it, so the two disagree for as long as the order stands — and a
- * capture that reported only the commander's side confidently named an order
- * the squad was not carrying out.
+ * the same reason. A player order is a lease over the commander's directive
+ * rather than a replacement of it, so the two disagree for as long as the order
+ * stands — the mission is read off the shelf the lease put it on — and a
+ * capture that reported only one side confidently named an order the squad was
+ * not carrying out.
  *
  * <p>Sampling is per UI frame and deduplicated by {@code simTickIndex}, so a
  * paused battle contributes no samples and a frame that advanced several
@@ -233,7 +234,7 @@ public final class SquadOrderRecorder {
     private static String label(Layer layer, Squad squad, BattleSimulation sim) {
         return switch (layer) {
             case DIRECTIVE -> directiveLabel(sim.getSquadCommandDirective(squad.id));
-            case MISSION -> assignmentLabel(squad.assignedObjective);
+            case MISSION -> assignmentLabel(missionAssignment(squad, sim));
             case ASSIGNMENT -> executingAssignmentLabel(squad);
             case EXECUTION -> executionLabel(squad);
             case GOAL -> goalLabel(squad);
@@ -252,10 +253,9 @@ public final class SquadOrderRecorder {
     }
 
     /**
-     * The order the squad is actually carrying out. A battle-local player
-     * order stands over the commander's assignment without replacing it, so
-     * this reports the player's when one is set and marks it as theirs; the
-     * assignment it stands on stays readable in {@link Layer#MISSION}.
+     * The order the squad is actually carrying out, marked when the player's
+     * lease is what wrote it. The commander's directive underneath stays
+     * readable in {@link Layer#MISSION}.
      *
      * <p>Deliberately the order the squad <em>holds</em> rather than
      * {@code assignmentForExecution()}, which form-up masks to null: a squad
@@ -263,10 +263,19 @@ public final class SquadOrderRecorder {
      * {@link Layer#EXECUTION} is for.
      */
     static String executingAssignmentLabel(Squad squad) {
-        ObjectiveAssignment player = squad.playerTacticalOrder();
-        return player != null
-                ? PLAYER_ORDER_PREFIX + assignmentLabel(player)
+        return squad.underPlayerOrder()
+                ? PLAYER_ORDER_PREFIX + assignmentLabel(squad.assignedObjective)
                 : assignmentLabel(squad.assignedObjective);
+    }
+
+    /**
+     * The commander's standing assignment, whatever the squad is carrying out.
+     * While a lease stands the squad's own field holds the player's order, so
+     * the mission comes off the shelf the lease put it on.
+     */
+    static ObjectiveAssignment missionAssignment(Squad squad, BattleSimulation sim) {
+        CommandDirective shelved = sim.getShelvedSquadDirective(squad.id);
+        return shelved != null ? shelved.assignment() : squad.assignedObjective;
     }
 
     /** Same shape the panel's Assignment row draws: kind plus whichever target slots the kind populates. */
