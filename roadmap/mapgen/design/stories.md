@@ -1,16 +1,15 @@
 # Map generation story board
 
-Status: ACTIVE — sixteen bounded precinct, station, city, economic, or cross-feature
+Status: ACTIVE — fifteen bounded precinct, station, city, economic, or cross-feature
 stories remain open.
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — added precinct mission wiring: Assault and Raid are the first
-campaign battles to reach the precinct recipe.
+Updated: 2026-09-01 — precinct mission wiring shipped: Assault and Raid are the
+first campaign battles on the precinct recipe.
 
 | Story | Status | Outcome |
 |---|---|---|
-| `precinct-mission-wiring.md` | IN PROGRESS | Assault and Raid against a real market generate their map as places; the plan is a per-call argument, fits the map it is given, and the Raid target is on the defender's side. |
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `world-surface-palette.md` | IN PROGRESS | Wild ground follows the target planet, not an Earth default; rock is the baseline. Cultivated ground and ice art open. |
