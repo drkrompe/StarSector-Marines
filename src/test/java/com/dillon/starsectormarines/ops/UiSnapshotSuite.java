@@ -6,8 +6,11 @@ import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
-import com.dillon.starsectormarines.marine.MechFabricationCost;
-import com.dillon.starsectormarines.marine.MechFabricationResources;
+import com.dillon.starsectormarines.marine.FabricationCost;
+import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.BoatDeck;
+import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.marine.BoatWorkshop;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
@@ -34,16 +37,19 @@ import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.VanillaHullSilhouettes;
 import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
+import com.dillon.starsectormarines.ops.battleview.BoatDeckCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.DeckPlanCanvas;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
+import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -87,6 +93,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/missions/mission-select.mlx");
     private static final List<String> MISSION_BRIEFING_COMPONENTS = List.of(
             "data/ui/components/missions/mission-briefing.mlx");
+    private static final List<String> SQUAD_DEPLOYMENT_COMPONENTS = List.of(
+            "data/ui/components/missions/squad-deployment.mlx");
+    private static final List<String> STATIONING_COMPONENTS = List.of(
+            "data/ui/components/missions/stationing-screen.mlx");
+    private static final List<String> MISSION_RESULTS_COMPONENTS = List.of(
+            "data/ui/components/missions/mission-results.mlx");
+    private static final List<String> MISSION_LOOT_COMPONENTS = List.of(
+            "data/ui/components/missions/mission-loot.mlx");
     private static final List<String> BARRACKS_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/shipboard-barracks.mlx");
@@ -145,6 +159,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> MECH_LAB_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/mech-lab/mech-lab.mlx");
+    private static final List<String> BOAT_DECK_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/boat-deck/boat-deck.mlx");
     private static final List<String> BATTLE_HUD_COMPONENTS =
             List.of(BattleHudOverlay.COMPONENT_PATH,
                     BattleSquadOverlay.COMPONENT_PATH,
@@ -182,6 +199,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mission-briefing-conquest-debug-expanded-wide.png",
                         renderMissionBriefing(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true)),
+                new SnapshotArtifact("mission-squad-deployment-wide.png",
+                        renderMissionFlow(context, renderer, SQUAD_DEPLOYMENT_COMPONENTS,
+                                SquadDeploymentScreen.ROOT_COMPONENT,
+                                SquadDeploymentScreen.previewProps())),
+                new SnapshotArtifact("mission-stationing-offer-wide.png",
+                        renderMissionFlow(context, renderer, STATIONING_COMPONENTS,
+                                StationingScreen.ROOT_COMPONENT,
+                                StationingScreen.previewProps(false, false))),
+                new SnapshotArtifact("mission-stationing-response-wide.png",
+                        renderMissionFlow(context, renderer, STATIONING_COMPONENTS,
+                                StationingScreen.ROOT_COMPONENT,
+                                StationingScreen.previewProps(true, true))),
+                new SnapshotArtifact("mission-results-wide.png",
+                        renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
+                                ResultsScreen.ROOT_COMPONENT,
+                                ResultsScreen.previewProps(true, true))),
+                new SnapshotArtifact("mission-loot-wide.png",
+                        renderMissionFlow(context, renderer, MISSION_LOOT_COMPONENTS,
+                                LootScreen.ROOT_COMPONENT, LootScreen.previewProps())),
                 new SnapshotArtifact("company-hq-bridge-wide.png",
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
@@ -279,6 +315,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 false, false, true)),
+                new SnapshotArtifact("boat-deck-wide.png",
+                        renderBoatDeck(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                new SnapshotArtifact("boat-deck-fitting-wide.png",
+                        renderBoatDeck(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("battle-hud-task-force-wide.png",
                         renderBattleHudTaskForce(
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -948,6 +990,23 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    private static BufferedImage renderMissionFlow(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            List<String> components, String rootComponent,
+            Map<String, Object> props) throws Exception {
+        Reactor reactor = new Reactor();
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), components);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, rootComponent, props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            return renderRelative(renderer, document,
+                    FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f);
+        }
+    }
+
     private static BufferedImage renderCompanyHq(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale) throws Exception {
@@ -1072,7 +1131,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("contextLabel", viewModel.contextLabel());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_TRANSFER,
                 MarineOpsPageNav.ANY_SHIP,
-                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         return props;
     }
 
@@ -1170,7 +1229,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("contextLabel", "COMPANY SHIP / UNDERWAY");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW,
                 MarineOpsPageNav.ANY_SHIP,
-                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         try (MarkupInstance instance = loader.build(reactor, "ship-view", props)) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
@@ -1446,12 +1505,72 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     camera.pose().worldY(), camera.pose().zoomNotches()),
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
                             () -> 0d));
+            for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
+                if (row.chassisPreview() == null) continue;
+                document.canvases().set(instance.requireElement(row.previewId()),
+                        new MechChassisPreviewCanvas(
+                                row.chassisPreview(), MechLabDollCanvas::headlessAssets));
+            }
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
 
-    private static MechFabricationResources snapshotMechResources() {
-        return new MechFabricationResources() {
+    /**
+     * The company's own boats, in the hangar they are actually kept in.
+     *
+     * <p>Photographed with two of them refitted, because a deck of six
+     * yard-standard boats cannot show whether the room says what is fitted
+     * where — every plate would read the same and be right by accident.
+     */
+    private static BufferedImage renderBoatDeck(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean openBoat) throws Exception {
+        Reactor reactor = new Reactor();
+        CompanyDeck ship = companyShip(List::of, List::of);
+        // Her boats are put out by the bay on its first tick, and a ship whose
+        // deck was still being laid out when the shutter opened has not had one
+        // — so wait for her, then run her clock. Photographed before that, the
+        // room is a hangar with six empty berths in it.
+        ship.scene();
+        ship.advance(18f);
+        List<DeckGraph.Compartment> hangars = ship.rooms(RoomPurpose.HANGAR);
+        int berths = 0;
+        for (DeckGraph.Compartment hangar : hangars) {
+            berths += BoatDeckCanvas.boatBerthsIn(ship.scene(), hangar).size();
+        }
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile("snapshot-ship",
+                ShipsBoats.carriedBy(ship.ship().role()), berths);
+        FabricationResources resources = snapshotMechResources();
+        BoatWorkshop workshop = new BoatWorkshop(deck, resources);
+        if (deck.berths() > 0) {
+            workshop.fit(deck.boats().get(0).id(), BoatFitting.REINFORCED_PLATING.id());
+        }
+        if (deck.berths() > 1) {
+            workshop.fit(deck.boats().get(1).id(), BoatFitting.TUNED_DRIVE.id());
+        }
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(
+                reactor, deck, resources, "Valkyrie");
+        if (openBoat) viewModel.selectBoatAction(0).run();
+        DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
+
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BOAT_DECK_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, "boat-deck", props(viewModel, ship, bay, hangars.size()))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("boat-deck-canvas"),
+                    new BoatDeckCanvas(ship, () -> bay,
+                            viewModel::selectedBerthIndex, () -> 0));
+            return renderRelative(renderer, document, width, height, 1f);
+        }
+    }
+
+    private static FabricationResources snapshotMechResources() {
+        return new FabricationResources() {
             @Override public int available(String commodityId) { return 2_000; }
             @Override public String commodityName(String commodityId) { return switch (commodityId) {
                 case Commodities.SUPPLIES -> "Supplies";
@@ -1467,7 +1586,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 case Commodities.RARE_METALS -> "graphics/icons/cargo/raremetals.png";
                 default -> "";
             }; }
-            @Override public boolean spend(MechFabricationCost cost) { return cost != null; }
+            @Override public boolean spend(FabricationCost cost) { return cost != null; }
         };
     }
 
@@ -1560,7 +1679,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("quartersStatus", viewModel.quartersStatus());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
                 MarineOpsPageNav.ANY_SHIP,
-                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         return props;
     }
 
@@ -1651,7 +1770,37 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static void putArmoryPageNavigation(Map<String, Object> props) {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
                 MarineOpsPageNav.ANY_SHIP,
-                () -> { }, () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+    }
+
+    private static Map<String, Object> props(BoatDeckViewModel viewModel,
+                                             CompanyDeck ship,
+                                             DeckGraph.Compartment bay, int bays) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("contextLabel", ShipBreadcrumb.of(ship.ship(), bay));
+        props.put("activeBayLabel", String.format(Locale.ROOT, "BAY 01 / %02d", bays));
+        props.put("bayNavigatorClasses",
+                bays > 1 ? "bay-navigator" : "bay-navigator hidden");
+        props.put("previousBay", (Runnable) () -> { });
+        props.put("nextBay", (Runnable) () -> { });
+        props.put("deckSummary", viewModel.deckSummary());
+        props.put("boatRows", viewModel.boatRows());
+        props.put("selectedBoatName", viewModel.selectedBoatName());
+        props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
+        props.put("performanceMeters", viewModel.performanceMeters());
+        props.put("slotRows", viewModel.slotRows());
+        props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
+        props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
+        props.put("catalogRows", viewModel.catalogRows());
+        props.put("overviewClasses", viewModel.overviewClasses());
+        props.put("fittingClasses", viewModel.fittingClasses());
+        props.put("backToDeck", viewModel.backToDeckAction());
+        props.put("feedbackText", viewModel.feedbackText());
+        props.put("feedbackClasses", viewModel.feedbackClasses());
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BOAT_DECK,
+                MarineOpsPageNav.ANY_SHIP,
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+        return props;
     }
 
     private static Map<String, Object> props(MechLabViewModel viewModel,
@@ -1695,7 +1844,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 MarineOpsPageNav.ANY_SHIP,
-                () -> { }, () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         return props;
     }
 }

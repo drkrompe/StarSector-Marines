@@ -4,9 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a ship's boats fly real sorties out of her bays and home
-again, on the same mission machinery a garrison sortie runs; a field belongs to
-whoever owns it rather than to whatever ticks it.
+Updated: 2026-09-01 — a ship's boat has a pattern and a fit: the company owns
+the boat, the hull decides the pattern, and battle flies the frozen frame.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -315,6 +314,34 @@ was a constructor argument to the tick consumer while every field was a
 garrison's, which would have meant building that consumer one way for a lot and
 another for a bay over something that has nothing to do with what it does.
 `ship-interiors-nouns.md` owns the bay as a room.
+
+**A boat pattern is what the hull carries; a fitted boat is what flies.** The
+pattern is the airframe — a `ShuttleType` — and it is a fitting of the hull
+rather than anybody's property: landing craft for a hull whose reason for
+existing is putting a ground force somewhere, a gig for every other. What the
+*company* owns is the boat standing in the berth, and what a yard has bolted to
+it. `company-view-nouns.md` owns that campaign side.
+
+A **fitted boat** is the two put together: the pattern's numbers with the
+fittings' factors applied, frozen at launch and read nowhere else. It is what a
+`ShuttleAssignment` carries and what an air entity's identity, durability and
+handling come from, so a refit in the middle of a mission is not a thing the sim
+has to have an opinion about. Only the numbers a fitting is about are touched —
+plating scales the hull, the drive scales forward speed and both accelerations —
+and turn rate, damping, seats, hardpoints, sprite and hull id are the pattern's
+and are delegated untouched. A better boat is faster and tougher, not a
+different aircraft.
+
+**The rotation is unchanged by the fit.** The deboard cadence and the deck
+turnaround are deliberately not on the fitted frame: a turnaround is paid for in
+hand-seconds and a fitting does not buy more hands. Fitting a boat makes her
+harder to shoot down on the way in and no quicker to send out again.
+
+**A fixture carries the fitting ids, not the frame.** A replay that rebuilt a
+plain pattern would fly different aircraft than the run it is replaying, so the
+codec writes the ids beside the type and rebuilds the frame on read; a fixture
+without them reads as standard fit, which is what every boat that has never been
+refitted actually is.
 
 **A ship's boat flies rather than counting down.** A bay could have been given
 a timer that emptied a berth for a while and put a boat back looking serviced,

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.ops.Mission;
@@ -20,8 +21,7 @@ class DebugTransportManifestTest {
         Mission mission = mission(MissionSource.DEBUG, 11, 4);
 
         List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
-                mission, Arrays.asList(
-                        ShuttleType.MULE, ShuttleType.MULE, ShuttleType.MULE));
+                mission, boats(ShuttleType.MULE, ShuttleType.MULE, ShuttleType.MULE));
 
         assertEquals(0, DetachmentResolver.employerPhysicalShipCount(mission));
         assertEquals(3, manifest.size());
@@ -35,7 +35,7 @@ class DebugTransportManifestTest {
         Mission mission = mission(MissionSource.DEBUG_CIVILIAN_RESCUE, 5, 3);
 
         List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
-                mission, Arrays.asList(ShuttleType.KITE, ShuttleType.KITE));
+                mission, boats(ShuttleType.KITE, ShuttleType.KITE));
 
         assertEquals(2, manifest.size());
         assertAssignment(manifest.get(0), ShuttleType.KITE, 3);
@@ -47,7 +47,7 @@ class DebugTransportManifestTest {
         Mission mission = mission(MissionSource.GENERATED, 11, 4);
 
         List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
-                mission, Arrays.asList(ShuttleType.MULE, ShuttleType.MULE));
+                mission, boats(ShuttleType.MULE, ShuttleType.MULE));
 
         assertEquals(3, DetachmentResolver.employerPhysicalShipCount(mission));
         assertEquals(5, manifest.size());
@@ -64,8 +64,7 @@ class DebugTransportManifestTest {
 
         List<ShuttleAssignment> manifest =
                 DetachmentResolver.buildShuttleManifestForPersonnel(
-                        mission, Arrays.asList(
-                                ShuttleType.VALKYRIE, ShuttleType.VALKYRIE), 25);
+                        mission, boats(ShuttleType.VALKYRIE, ShuttleType.VALKYRIE), 25);
 
         assertEquals(5, manifest.size(), "three employer craft plus two player craft");
         ShuttleAssignment firstPlayer = manifest.get(3);
@@ -76,6 +75,11 @@ class DebugTransportManifestTest {
         assertEquals(12, secondPlayer.seatsForCycle(0));
         assertEquals(1, secondPlayer.seatsForCycle(1));
         assertEquals(25, CampaignMarineDeployment.requiredSeats(manifest, 3));
+    }
+
+    /** The company's boats at standard fit; what is under test here is the split. */
+    private static List<FittedBoat> boats(ShuttleType... patterns) {
+        return Arrays.stream(patterns).map(FittedBoat::standard).toList();
     }
 
     private static Mission mission(MissionSource source, int requiredDrops,

@@ -8,9 +8,9 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 public final class MechWorkshop {
 
     private final MechBay bay;
-    private final MechFabricationResources resources;
+    private final FabricationResources resources;
 
-    public MechWorkshop(MechBay bay, MechFabricationResources resources) {
+    public MechWorkshop(MechBay bay, FabricationResources resources) {
         if (bay == null || resources == null) {
             throw new IllegalArgumentException("mech bay and fabrication resources are required");
         }

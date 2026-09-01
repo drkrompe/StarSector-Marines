@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -23,6 +24,7 @@ import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
@@ -41,6 +43,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BattleFixtureJsonTest {
@@ -78,6 +81,43 @@ class BattleFixtureJsonTest {
                 BattleFixtureJson.toJson(fixture));
 
         assertEquals(fixture, decoded);
+    }
+
+    /**
+     * A replay has to fly the same boats. The manifest is compared by equality,
+     * so a lost fitting id shows up here as an unequal fixture rather than as a
+     * quietly softer Aeroshuttle in a rerun.
+     */
+    @Test
+    void roundTripsTheFittingsOnTheCompanysOwnBoats() throws Exception {
+        FittedBoat armoured = new FittedBoat(ShuttleType.AEROSHUTTLE,
+                BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE);
+        CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
+                17L,
+                List.of(
+                        new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),
+                        new ShuttleAssignment(armoured, 2, 6),
+                        new ShuttleAssignment(
+                                FittedBoat.standard(ShuttleType.AEROSHUTTLE), 1, 6)),
+                false,
+                RiskLevel.LOW,
+                12,
+                new TargetProfile(3, 3, 3, 1, "independent",
+                        EnumSet.of(EconomicFunction.HABITATION),
+                        SurfacePalette.ROCK, SettlementLink.ROAD),
+                false);
+
+        BattleFixture decoded = BattleFixtureJson.fromJson(
+                BattleFixtureJson.toJson(fixture));
+
+        assertEquals(fixture, decoded);
+        List<ShuttleAssignment> manifest =
+                ((CivilianRescueBattleFixture) decoded).manifest();
+        assertSame(ShuttleType.AEROSHUTTLE, manifest.get(0).airframe,
+                "an employer's craft carries no fitting ids and reads back plain");
+        assertEquals(armoured, manifest.get(1).airframe);
+        assertEquals(FittedBoat.standard(ShuttleType.AEROSHUTTLE),
+                manifest.get(2).airframe);
     }
 
     @Test
