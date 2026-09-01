@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
@@ -182,6 +183,8 @@ public final class AirfieldService {
     private static final float REFIT_REPAIR_FRACTION = 0.5f;
 
     private final List<Berth> berths = new ArrayList<>();
+    /** Whose field this is; a garrison's unless a host says otherwise. */
+    private Faction owner = Faction.DEFENDER;
     /** Standing cell of every servicing point on the apron, to the berth it works. */
     private final Map<Long, Integer> serviceCells = new HashMap<>();
     /**
@@ -279,6 +282,27 @@ public final class AirfieldService {
     }
 
     /**
+     * Registers one boat berth in a ship's bay, and the boat kept in it.
+     *
+     * <p>A {@link Kind#HARDSTAND} because that is what the kind says — a berth
+     * something lifts off rather than rolls out of. A ship's boat leaves through
+     * a door in the hull and needs no run, so it is a hardstand that happens to
+     * be indoors, and a shelter berth would have it looking for a strip.
+     *
+     * <p>Registered from a {@link Gantry} rather than a {@link LandingPad}
+     * because that is what authored it: a bay's berths are cut with the room the
+     * way a mech bay's are, where a field's hardstands are marked out on a lot.
+     * Which of those authored a berth says nothing about how it is used, and
+     * conflating the two is why this needed a method rather than an argument.
+     */
+    public Berth addBayBerth(Gantry bay, Airframe airframe) {
+        Berth berth = new Berth(null, bay.centerX, bay.centerY,
+                Kind.HARDSTAND, airframe, bay.facing.degrees());
+        berths.add(berth);
+        return berth;
+    }
+
+    /**
      * Registers one hangar bay and the aircraft kept in it.
      *
      * <p>Only worth doing on a field with a strip: an aircraft in a shed
@@ -290,6 +314,25 @@ public final class AirfieldService {
                 Kind.SHELTER, airframe, shelter.facing.degrees());
         berths.add(berth);
         return berth;
+    }
+
+    /**
+     * Whose field this is, and therefore whose aircraft stand on it.
+     *
+     * <p>A fact about the field rather than about whatever ticks it, which is
+     * why it lives here. It was a constructor argument to {@code AirfieldSystem}
+     * while there was only one kind of field — a garrison's, on a battle map —
+     * and the moment a second appeared the tick consumer would have had to be
+     * built differently for a ship than for a lot, for a reason that has nothing
+     * to do with what it does.
+     */
+    public Faction owner() {
+        return owner;
+    }
+
+    /** Hand this field to a side. Called at setup, before anything stands on it. */
+    public void setOwner(Faction owner) {
+        if (owner != null) this.owner = owner;
     }
 
     /** Every berth on the field, in registration order. */
