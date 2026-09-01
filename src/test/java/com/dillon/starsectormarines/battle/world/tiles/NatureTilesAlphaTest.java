@@ -57,7 +57,10 @@ class NatureTilesAlphaTest {
 
     /** Frame order is the sheet's only address, so the ids are listed in it. */
     private static final List<String> FRAMES = List.of(
-            "nature.grass-1", "nature.grass-2", "nature.dirt-1", "nature.dirt-2",
+            "nature.grass-1", "nature.grass-2", "nature.grass-3", "nature.grass-4",
+            "nature.grass-5", "nature.grass-6", "nature.grass-7", "nature.grass-8",
+            "nature.dirt-1", "nature.dirt-2", "nature.dirt-3", "nature.dirt-4",
+            "nature.dirt-5", "nature.dirt-6", "nature.dirt-7", "nature.dirt-8",
             "nature.sand", "nature.water-1", "nature.water-2",
             "nature.shrub-1", "nature.shrub-2", "nature.tuft-1", "nature.tuft-2",
             "nature.shrub-3", "nature.tuft-3",
@@ -88,10 +91,22 @@ class NatureTilesAlphaTest {
     private static final Map<String, String> LABELS = new LinkedHashMap<>();
 
     static {
-        LABELS.put("nature.grass-1", "grass");
-        LABELS.put("nature.grass-2", "grass-alt");
-        LABELS.put("nature.dirt-1", "dirt");
-        LABELS.put("nature.dirt-2", "dirt-alt");
+        LABELS.put("nature.grass-1", "grass-1");
+        LABELS.put("nature.grass-2", "grass-2");
+        LABELS.put("nature.grass-3", "grass-3");
+        LABELS.put("nature.grass-4", "grass-4");
+        LABELS.put("nature.grass-5", "grass-5");
+        LABELS.put("nature.grass-6", "grass-6");
+        LABELS.put("nature.grass-7", "grass-7");
+        LABELS.put("nature.grass-8", "grass-8");
+        LABELS.put("nature.dirt-1", "dirt-1");
+        LABELS.put("nature.dirt-2", "dirt-2");
+        LABELS.put("nature.dirt-3", "dirt-3");
+        LABELS.put("nature.dirt-4", "dirt-4");
+        LABELS.put("nature.dirt-5", "dirt-5");
+        LABELS.put("nature.dirt-6", "dirt-6");
+        LABELS.put("nature.dirt-7", "dirt-7");
+        LABELS.put("nature.dirt-8", "dirt-8");
         LABELS.put("nature.sand", "sand");
         LABELS.put("nature.water-1", "water");
         LABELS.put("nature.water-2", "water-alt");
