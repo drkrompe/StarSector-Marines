@@ -128,12 +128,13 @@ public final class DevConfig {
      * {@link com.dillon.starsectormarines.ops.OperationTier} pairing at medium
      * risk for playtesting operation scale without waiting on offer RNG.
      *
-     * <p>Kept off while each legacy debug mission idea is reconsidered against
-     * the campaign progression and field-presence model. The factories remain
-     * available to automated tests and focused evidence entry points.
+     * <p>This is a developer surface, not a campaign offer source. Keep it
+     * available while the entries are reconsidered individually: hiding the
+     * catalog removes the quickest live route to the mission constructors it
+     * is meant to exercise.
      */
     @DebugOnly
-    public static final boolean DEBUG_CLIENT = false;
+    public static final boolean DEBUG_CLIENT = true;
 
     /**
      * When {@code true}: DEBUG mission briefings expose a count + reroll picker
