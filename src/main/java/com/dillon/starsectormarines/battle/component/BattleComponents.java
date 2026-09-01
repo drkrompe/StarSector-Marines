@@ -277,6 +277,8 @@ public final class BattleComponents {
     public static final int AI_STATE_WANDER_DWELL_TIMER = 4;
     /** {@link #AI_STATE} field 5: name of the {@link com.dillon.starsectormarines.battle.decision.Reflex} that pre-empted this unit's plan step on the last tick it was dispatched, {@code null} = none (OBJECT). Diagnostic only — written by {@code ReflexChain.run} and read by the per-member dumps so a unit standing off its step says <em>why</em>; nothing in the simulation reads it back. */
     public static final int AI_STATE_LAST_REFLEX = 5;
+    /** {@link #AI_STATE} field 6: sim-seconds left in a {@code LaneSidestep} step-aside, {@code 0} = not stepping aside (FLOAT). The reflex's own ownership marker: {@link #AI_STATE_REPOSITION_COOLDOWN} alone cannot say <em>whose</em> short move is in flight, and a reflex that adopted the post-fire cover reposition as well would stop the marine authoring fire intent for the whole of it. */
+    public static final int AI_STATE_SIDESTEP_TIMER = 6;
 
     /** {@link #VISION} field 0: how far this unit can see in cells — drives its fog-of-war shadowcast radius (FLOAT). */
     public static final int VISION_RANGE = 0;
@@ -1170,7 +1172,7 @@ public final class BattleComponents {
                 FieldKind.FLOAT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT,
-                FieldKind.OBJECT);
+                FieldKind.OBJECT, FieldKind.FLOAT);
         CRASHING        = world.register(10, "Crashing", FieldKind.OBJECT);
         MECH_LOADOUT    = world.register(11, "MechLoadout", FieldKind.OBJECT);
         KINEMATICS      = world.register(12, "Kinematics", FieldKind.OBJECT);

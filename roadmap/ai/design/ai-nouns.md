@@ -4,11 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — what sits between a unit having a squad and executing its
-step is a declared reflex chain, one per arm, whose order is a law.
+Updated: 2026-09-01 — a masked marine steps aside rather than retargeting, and
+the third measurement of the friendly-lane question keeps it switched off.
 
-Earlier 2026-09-01 — the player's tactical orders are the first lease holder,
-so a directive lease is production rather than a reserved shape.
+Earlier 2026-09-01 — what sits between a unit having a squad and executing its
+step is a declared reflex chain, one per arm, whose order is a law.
 
 Earlier 2026-09-01 — machine legs dealt through the rotation; an assignment
 kind's standing facts are one table, and only the player's order is a lookup —
@@ -1100,11 +1100,39 @@ different target breaks up concentrated fire, and concentration is what kills.
 The weight was not the problem — reduced to a pure tiebreak between near-equal
 targets it reproduced almost the whole loss — so this is not a constant wanting
 tuning. What the measurement does not condemn is the lane test itself, and the
-likelier answer is a different verb: **step aside rather than switch**, which
+answer tried next was a different verb: **step aside rather than switch**, which
 keeps the squad's fire concentrated and stops shooting its own man, where
 retargeting trades the second for the first. It stays behind
-`battle.targeting.friendlyLanePenalty`, and the geometry it would be built on is
-shared with the mech overwatch position search rather than restated.
+`battle.targeting.friendlyLanePenalty`, and the geometry both verbs are built on
+is shared with the mech overwatch position search rather than restated.
+
+**Stepping aside is built, measured, and off as well.** A masked marine moves a
+cell rather than firing through his own man: the individual-tier `LaneSidestep`
+reflex, ranked last in the marine's chain because nothing about it is urgent and
+a marine whose fire team has broken is leaving rather than adjusting his firing
+position. It refuses whatever a firing line would not want given up — the
+candidate cell must keep the target in range and in line of fire, must not lower
+cover toward that target, and must not put the marine into a squadmate's lane
+onto the same enemy, because clearing your own lane by masking the man behind
+you is the same fault moved a cell back. `FiringLineScene` says it works in the
+small: a column in a corridor puts 5.9 HP into its own men with the reflex off
+and none with it on, landing the identical damage on the enemy and losing
+nobody either way.
+
+Conquest says it costs, and by the same shape as before. Reinforced-south takes
+4 compounds with it on against 14 with it off and holds 2 against 9;
+full-strength-west gains — 4 captures against 3, 3 held against 0, and survival
+to the tick limit where the control is defeated — but the standing bar is that
+no fixture may take or hold less. **The instructive number is that the losing
+fixture also kills fewer defenders**, which is not a squad that traded shooting
+for safety; it is a squad that spent time. A sidestep holds its marine for the
+length of the move, during which no step runs and no fire intent is authored,
+and a timed advance is charged for that. So the standing law is: **a masked
+marine steps aside within cover and never retargets for a lane**, and the
+remaining candidate is to stop consuming the tick — author the path and decline,
+so the step still fires and still walks the marine along it. Three attempts have
+now measured this question; the lane test has never been what any of them
+condemned.
 
 It was retested once joining fire stopped being priced by a headcount, because
 the standing explanation was that the two were blind anti-concentration
