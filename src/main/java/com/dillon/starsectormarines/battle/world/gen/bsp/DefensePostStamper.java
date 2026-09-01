@@ -115,6 +115,48 @@ public final class DefensePostStamper implements GenStage {
     public DefensePostStamper() {}
 
     /**
+     * Which cells a placement pass may anchor a post on.
+     *
+     * <p>The conquest path asks "is this cell in the fortress biome?"; a
+     * precinct asks "is this cell mine?". Neither generalises to the other and
+     * both are one predicate, so the placer takes the predicate.
+     */
+    public interface Ground {
+        boolean allows(int x, int y);
+
+        /** No constraint beyond the footprint rules — the non-conquest case. */
+        Ground ANYWHERE = (x, y) -> true;
+    }
+
+    /**
+     * Place up to {@code count} posts of one tier on {@code where}, and say how
+     * many actually landed.
+     *
+     * <p>The shared placement core, exposed for callers whose defended region
+     * is not a biome: {@code seeds} are tried in order and each slides to the
+     * nearest valid footprint, then the remaining budget falls back to uniform
+     * picks inside the rect. The rect is a bound on the random fallback, not the
+     * region — {@code where} is the region, and a rect that is merely the
+     * region's bounding box is the usual thing to pass.
+     *
+     * <p>The count returned is the point of the return type. Posts that cannot
+     * be placed drop silently by design (better a thinner defence than a hung
+     * generator), and a caller that asked for five emplacements and got three
+     * has a materially easier objective than the one it asked for — which is
+     * only recoverable if the placer says so.
+     */
+    public static int stampInto(NavigationGrid grid, CellTopology topology, Ground where,
+                                boolean[][] roadReservation,
+                                List<Doodad> doodads, List<TacticalNode> tactical,
+                                List<DefensePost> defensePosts, Random rng,
+                                DefensePostKind tier, int count, List<int[]> seeds,
+                                int bLeft, int bTop, int bRight, int bBot) {
+        return placePostsInRect(grid, topology, where, roadReservation,
+                doodads, tactical, defensePosts, rng, tier, count, seeds,
+                bLeft, bTop, bRight, bBot);
+    }
+
+    /**
      * Roll per-biome counts, place posts, mutate {@code ctx.grid} /
      * {@code ctx.topology} to stamp each ring + turret cell, append doodads,
      * emit {@link TacticalNode}s, and append the {@link DefensePost} records.
@@ -215,22 +257,22 @@ public final class DefensePostStamper implements GenStage {
         List<int[]> mediumSeeds = poiSeeds(pointsOfInterest, rectLeft, /*highValueOnly=*/true,  rng);
         List<int[]> lightSeeds  = poiSeeds(pointsOfInterest, rectLeft, /*highValueOnly=*/false, rng);
 
-        placePostsInRect(grid, topology, /*biomeMap*/ null, /*biome*/ null, roadReservation,
+        placePostsInRect(grid, topology, Ground.ANYWHERE, roadReservation,
                 doodads, /*tactical*/ null, defensePosts, rng,
                 DefensePostKind.LARGE, largeCount, largeSeeds,
                 rectLeft, rectTop, rectRight, rectBot);
-        placePostsInRect(grid, topology, null, null, roadReservation,
+        placePostsInRect(grid, topology, Ground.ANYWHERE, roadReservation,
                 doodads, null, defensePosts, rng,
                 DefensePostKind.MEDIUM, mediumCount, mediumSeeds,
                 rectLeft, rectTop, rectRight, rectBot);
-        placePostsInRect(grid, topology, null, null, roadReservation,
+        placePostsInRect(grid, topology, Ground.ANYWHERE, roadReservation,
                 doodads, null, defensePosts, rng,
                 DefensePostKind.LIGHT, lightCount, lightSeeds,
                 rectLeft, rectTop, rectRight, rectBot);
         // Drone hub — reuses the high-value-POI seed pool so the hub clusters
         // around the things worth defending from the air rather than landing
         // in an empty street tile.
-        placePostsInRect(grid, topology, null, null, roadReservation,
+        placePostsInRect(grid, topology, Ground.ANYWHERE, roadReservation,
                 doodads, null, defensePosts, rng,
                 DefensePostKind.DRONE_HUB, droneHubCount, mediumSeeds,
                 rectLeft, rectTop, rectRight, rectBot);
@@ -296,8 +338,8 @@ public final class DefensePostStamper implements GenStage {
                 bRight = bandRight;
             }
         }
-        placePostsInRect(grid, topology, biomeMap, biome, roadReservation,
-                doodads, tactical, defensePosts, rng,
+        placePostsInRect(grid, topology, (x, y) -> biomeMap.biomeAt(x, y) == biome,
+                roadReservation, doodads, tactical, defensePosts, rng,
                 tier, count, /*seeds*/ null,
                 bLeft, bTop, bRight, bBot);
     }
@@ -321,19 +363,19 @@ public final class DefensePostStamper implements GenStage {
      * <p>Posts that fail validation after every attempt silently drop — better
      * a few missing posts than a hung generator.
      */
-    private static void placePostsInRect(NavigationGrid grid, CellTopology topology,
-                                         BiomeMap biomeMap, BiomeKind biome,
-                                         boolean[][] roadReservation,
-                                         List<Doodad> doodads, List<TacticalNode> tactical,
-                                         List<DefensePost> defensePosts, Random rng,
-                                         DefensePostKind tier, int count, List<int[]> seeds,
-                                         int bLeft, int bTop, int bRight, int bBot) {
-        if (count <= 0) return;
+    private static int placePostsInRect(NavigationGrid grid, CellTopology topology,
+                                        Ground where,
+                                        boolean[][] roadReservation,
+                                        List<Doodad> doodads, List<TacticalNode> tactical,
+                                        List<DefensePost> defensePosts, Random rng,
+                                        DefensePostKind tier, int count, List<int[]> seeds,
+                                        int bLeft, int bTop, int bRight, int bBot) {
+        if (count <= 0) return 0;
         // Minimum rect span every LARGE/ARTILLERY shape needs — 5×3 or 3×5
         // bbox. LIGHT/MEDIUM fit in 3×3.
         int minSpanLong = (tier == DefensePostKind.LARGE || tier == DefensePostKind.ARTILLERY) ? 5 : 3;
-        if (bRight - bLeft < minSpanLong) return;
-        if (bBot - bTop < minSpanLong) return;
+        if (bRight - bLeft < minSpanLong) return 0;
+        if (bBot - bTop < minSpanLong) return 0;
 
         int placed = 0;
         int seedIdx = 0;
@@ -355,9 +397,9 @@ public final class DefensePostStamper implements GenStage {
                 cx = bLeft + rng.nextInt(bRight - bLeft + 1);
                 cy = bTop  + rng.nextInt(bBot  - bTop  + 1);
             }
-            if (biomeMap != null && biomeMap.biomeAt(cx, cy) != biome) continue;
+            if (!where.allows(cx, cy)) continue;
             if (!hasValidFootprint(grid, topology, roadReservation, cx, cy, layout)) {
-                int[] slid = slideToValid(grid, topology, biomeMap, biome,
+                int[] slid = slideToValid(grid, topology, where,
                         roadReservation, cx, cy, layout);
                 if (slid == null) continue;
                 cx = slid[0];
@@ -383,6 +425,7 @@ public final class DefensePostStamper implements GenStage {
             }
             placed++;
         }
+        return placed;
     }
 
     /** Resolves a compatibility tier/shape request to its authoritative layout. */
@@ -483,11 +526,12 @@ public final class DefensePostStamper implements GenStage {
     /**
      * Spiral search outward from {@code (cx, cy)} up to {@link #ANCHOR_SLIDE_RADIUS}
      * for a cell whose footprint validates. Returns the first valid center, or
-     * null if none found in the search radius. Pass {@code biomeMap == null} to
-     * skip the biome match (non-conquest path).
+     * null if none found in the search radius. A slid anchor must still satisfy
+     * {@code where} — sliding out of the region it was asked to defend is how a
+     * post ends up guarding somebody else's ground.
      */
     private static int[] slideToValid(NavigationGrid grid, CellTopology topology,
-                                      BiomeMap biomeMap, BiomeKind biome,
+                                      Ground where,
                                       boolean[][] roadReservation,
                                       int cx, int cy, DefensePostLayoutDef layout) {
         for (int r = 1; r <= ANCHOR_SLIDE_RADIUS; r++) {
@@ -497,7 +541,7 @@ public final class DefensePostStamper implements GenStage {
                     int nx = cx + dx;
                     int ny = cy + dy;
                     if (!grid.inBounds(nx, ny)) continue;
-                    if (biomeMap != null && biomeMap.biomeAt(nx, ny) != biome) continue;
+                    if (!where.allows(nx, ny)) continue;
                     if (hasValidFootprint(grid, topology, roadReservation,
                             nx, ny, layout)) return new int[]{nx, ny};
                 }
