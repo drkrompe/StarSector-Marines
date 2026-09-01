@@ -101,7 +101,7 @@ class AircraftGroundAirHandoffScaleTest {
         berthedSim.getAirfieldService().addBerth(
                 LandingPad.garrison(12, 14, LandingPad.Approach.SOUTH),
                 ShuttleType.AEROSHUTTLE, 90f);
-        new AirfieldSystem(Faction.DEFENDER).tick(1f / 30f, berthedSim, berthedSim.getAirfieldService());
+        new AirfieldSystem().tick(1f / 30f, berthedSim, berthedSim.getAirfieldService());
         RenderContext berthCtx = new RenderContext(berthedSim, camera(), null, 1f, 0f, false,
                 new HighlightOverlay(), new Selection());
         DrawList berthOut = new DrawList();
