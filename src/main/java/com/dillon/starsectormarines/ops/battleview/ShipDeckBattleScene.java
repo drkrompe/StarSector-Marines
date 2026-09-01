@@ -33,6 +33,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -119,6 +120,23 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final boolean[] occupiedBerths;
     private final long[] berthedMechs;
     /**
+     * Which of the deck's berths hold machines, by index into {@link #gantries}.
+     *
+     * <p>The deck's berths are one list because they are one kind of thing —
+     * cleared ground with a heading and servicing beside it — and what stands in
+     * one is the host's business. A lance is stood in the machine berths only:
+     * before this the lance was walked against the flat list, so the first mech
+     * of a company whose deck happened to lay its boat bay first was parked in a
+     * ship's boat, which is a legal spawn and looks like nothing until somebody
+     * counts the boats.
+     *
+     * <p>Indices rather than a filtered list, because the berth index is what
+     * {@code FixtureTask.berth()} names and what {@link #occupiedBerths} is
+     * addressed by: re-numbering the machine berths from zero would publish
+     * servicing against the wrong ones.
+     */
+    private final int[] machineBerths;
+    /**
      * Watch bills already drawn up, by compartment and role.
      *
      * <p>Drawing one up reads every compartment on the deck and every fixture
@@ -182,6 +200,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         fixtureTasks = deck.fixtureTasks;
         occupiedBerths = new boolean[gantries.size()];
         berthedMechs = new long[gantries.size()];
+        machineBerths = machineBerthsIn(gantries);
         simulation = BattleSetup.buildMap(deck, Collections.emptyList(),
                 Collections.emptyList(), seed).sim();
         // A deck is not a mission. Left alone, the simulation installs its
@@ -259,8 +278,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     }
 
     /**
-     * Stand a lance in the deck's berths, in order, and return the machine in
-     * each, aligned with {@link #gantries()}.
+     * Stand a lance in the deck's <em>machine</em> berths, in order, and return
+     * the machine in each, aligned with the lance.
      *
      * <p>Occupancy is the host's call, not the map's, which is why this is a
      * separate step rather than something the constructor does. On the home
@@ -280,21 +299,22 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     public long[] occupyGantries(List<MechVariant> lance) {
         if (lance == null || lance.isEmpty()) return new long[0];
-        int berthed = Math.min(lance.size(), gantries.size());
+        int berthed = Math.min(lance.size(), machineBerths.length);
         long[] machines = new long[berthed];
-        for (int index = 0; index < berthed; index++) {
-            MechVariant variant = lance.get(index);
+        for (int seat = 0; seat < berthed; seat++) {
+            MechVariant variant = lance.get(seat);
             if (variant == null) continue;
+            int index = machineBerths[seat];
             Gantry gantry = gantries.get(index);
             long mech = simulation.spawn(new EntitySpec(
-                    "berthed mech " + (index + 1), Faction.MARINE, UnitType.HEAVY_MECH,
+                    "berthed mech " + (seat + 1), Faction.MARINE, UnitType.HEAVY_MECH,
                     gantry.centerX, gantry.centerY).mechVariant(variant));
             simulation.world().attachMechLoadout(mech,
                     variant.createLoadout(variant.defaultRole));
             // A berth records the way out, and a machine parked in one faces it.
             FacingSystem.faceStanding(simulation.getEntityWorld(),
                     simulation.getBattleComponents(), mech, gantry.facing.degrees());
-            machines[index] = mech;
+            machines[seat] = mech;
             berthedMechs[index] = mech;
             occupiedBerths[index] = true;
         }
@@ -310,15 +330,16 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     public void syncGantries(List<MechDeploymentSpec> deployments) {
         if (deployments == null) return;
-        int count = Math.min(deployments.size(), gantries.size());
-        for (int index = 0; index < count; index++) {
-            MechDeploymentSpec deployment = deployments.get(index);
+        int count = Math.min(deployments.size(), machineBerths.length);
+        for (int seat = 0; seat < count; seat++) {
+            MechDeploymentSpec deployment = deployments.get(seat);
             if (deployment == null) continue;
+            int index = machineBerths[seat];
             long mech = berthedMechs[index];
             if (mech == 0L) {
                 Gantry gantry = gantries.get(index);
                 mech = simulation.spawn(new EntitySpec(
-                        "berthed mech " + (index + 1), Faction.MARINE, UnitType.HEAVY_MECH,
+                        "berthed mech " + (seat + 1), Faction.MARINE, UnitType.HEAVY_MECH,
                         gantry.centerX, gantry.centerY).mechVariant(deployment.variant()));
                 FacingSystem.faceStanding(simulation.getEntityWorld(),
                         simulation.getBattleComponents(), mech, gantry.facing.degrees());
@@ -331,6 +352,16 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             loadout.installMissileReplenisher(deployment.missileReplenisher());
             simulation.world().attachMechLoadout(mech, loadout);
         }
+    }
+
+    /** The indices of every berth on the deck that holds a machine. */
+    private static int[] machineBerthsIn(List<Gantry> berths) {
+        int[] found = new int[berths.size()];
+        int count = 0;
+        for (int index = 0; index < berths.size(); index++) {
+            if (berths.get(index).holds == Gantry.Holds.MACHINE) found[count++] = index;
+        }
+        return Arrays.copyOf(found, count);
     }
 
     /**

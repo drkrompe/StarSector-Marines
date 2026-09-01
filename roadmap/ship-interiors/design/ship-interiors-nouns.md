@@ -4,7 +4,10 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-29 - getting the company ship ready happens away from the
+Updated: 2026-09-01 — a boat bay holds boats: berths that say what they hold,
+sized to the bay, publishing the same servicing a garrison apron does.
+
+Earlier 2026-08-29 - getting the company ship ready happens away from the
 frame that opens the shell; every way aboard says a room is being got ready
 rather than that the hull lacks it, keeps its route while it waits, and is
 rebuilt where it stands when she arrives, and where there is room for words it
@@ -170,6 +173,27 @@ authored content.
   the surface, where they return, and the natural place for boarders to arrive.
   Alone among rooms it must reach the side of the ship, which is the first
   placement constraint that is about the hull rather than about fit.
+- A **boat** is what stands in one, and it is a **berth** — the same noun a
+  mech bay's gantry is. Both are cleared deck with a heading and servicing
+  published beside it; what differs is only what the host stands there. So a
+  berth says what it holds, at the point it is authored, and a lance is stood in
+  the machine berths alone. Derived instead from which room a berth fell in,
+  that distinction would have to be re-derived by every consumer that walks the
+  deck's berths, and would be wrong silently — a mech parked in a ship's boat is
+  a legal spawn.
+- A bay holds **as many boats as it has deck for, at the size it has depth for**,
+  which is the rule its perimeter work already follows. A cruiser's boat deck
+  keeps a rank of launches and a frigate's gig bay keeps one gig; neither number
+  is authored. The failure worth naming is the small one — a bay too shallow for
+  the standard boat must keep a smaller boat rather than none, because the hull
+  whose only way off the ship is her gig is exactly the hull that cannot afford
+  an empty bay.
+- **Servicing a boat is the same job as servicing an aircraft on an apron**, and
+  is deliberately the same one: `SERVICE` published against the berth, worked in
+  hand-seconds by whoever is standing at it. A ship's boats and a garrison
+  field's aircraft are the same machine standing in the same kind of berth, and
+  a second model of what a turnaround costs would be a second, quietly different
+  opinion about it. See `air-nouns.md`.
 - A **facility** is a compartment the company operates: a barracks, a mech bay,
   an armory, a medical bay. A facility owns fixture counts, extent, and the
   capacity those imply. It is the thing an upgrade acts on.
