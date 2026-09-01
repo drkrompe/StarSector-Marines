@@ -252,11 +252,33 @@ public final class TacticalScoring {
      * principled figure rather than from a tuned-down one that measured the
      * same.
      *
-     * <p>What the measurement does not condemn is the lane test itself, and the
-     * likelier answer is a different verb: <b>step aside rather than switch</b>.
-     * A marine who moves a cell keeps the squad's fire concentrated and stops
-     * shooting its own man, where retargeting trades the second for the first.
-     * {@code FiringLane} is what that would be built on.
+     * <p><b>Retested once concentration stopped being governed by a headcount,
+     * and it still costs.</b> The standing explanation for the first result was
+     * that this was a second blind anti-concentration pressure stacked on
+     * {@link #TARGET_CROWDING_COST}, which then charged the same toll whether a
+     * target needed one more rifle or six; on that reading, pricing crowding by
+     * what is already spoken for should have left this pulling marines only off
+     * targets that were dead anyway, where switching is free. It did not.
+     * Against the same tree it gives up a capture and a held compound on
+     * reinforced-south, and on full-strength-west it hands back exactly the gain
+     * the crowding change had just bought — three captures against seven, one
+     * held against three, and a defeat at 16,412 ticks where the run without it
+     * survives to the limit.
+     *
+     * <p>Reinforced-south is the more instructive half, because it kills
+     * <em>more</em> defenders with this on (402 against 361) while taking fewer
+     * compounds. That is what the cost actually is: a squad that switches
+     * targets for a lane stays in the fight longer instead of pressing on, and
+     * Conquest is decided partly on a clock.
+     *
+     * <p>So the earlier diagnosis was wrong and the verb is the problem rather
+     * than what surrounds it. What the measurement still does not condemn is the
+     * lane test itself, and the remaining candidate is to <b>step aside rather
+     * than switch</b>: a marine who moves a cell keeps the squad's fire where it
+     * is and stops shooting its own man, where retargeting trades the second for
+     * the first. {@code FiringLane} is what that would be built on. Two attempts
+     * have now measured the switching form; a third wants the other verb, not
+     * another weight.
      */
     public static final float FRIENDLY_LANE_COST = 10f;
 
