@@ -175,6 +175,13 @@ public interface BattleView {
     /** Current command-ledger generation for one squad, or {@code null}. */
     CommandDirective getSquadCommandDirective(int squadId);
 
+    /**
+     * The directive a leased squad will go back to, or {@code null} when
+     * nothing is held for it. A readout naming the mission a squad is still
+     * under while it carries out a player's order asks this.
+     */
+    CommandDirective getShelvedSquadDirective(int squadId);
+
     /** Tactical scoring service — firing-position / vantage queries. Read-only in the replan window. */
     TacticalScoring getTacticalScoring();
 

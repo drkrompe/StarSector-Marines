@@ -4,7 +4,10 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — an assignment kind's standing facts are one table, and
+Updated: 2026-09-01 — the player's tactical orders are the first lease holder,
+so a directive lease is production rather than a reserved shape.
+
+Earlier 2026-09-01 — an assignment kind's standing facts are one table, and
 only the player's order is a lookup; a commander's is still won in the MISSION
 bucket.
 
@@ -621,8 +624,11 @@ is an inclusive minimum hold on a mission assignment, long enough for a squad
 to execute a useful plan before ordinary command scoring may retarget it; an
 objective completing, its target becoming unreachable, its command context
 expiring, squad loss, explicit handoff, or higher authority may end that hold
-early. A lease instead bounds temporary external authority such as a future
-player intervention. Repeating the same assignment renews neither clock.
+early. A lease instead bounds temporary external authority, and the player's
+tactical orders are its first holder: an accepted click is a
+`PLAYER_INTERVENTION` directive that shelves the commander's rather than
+discarding it, and hands it back when the order completes or the bound passes.
+Repeating the same assignment renews neither clock.
 
 Form-up is an execution suspension, not an assignment writer or ownership
 transfer. The authoritative directive remains inspectable and may be updated
