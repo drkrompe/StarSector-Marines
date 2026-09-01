@@ -154,6 +154,10 @@ class BaysAreTheBusiestRoomsTest {
      * boat is moved through it and a landing party forms up on it — so the test
      * is that the work went round it rather than into it. A bay that filled its
      * deck would pass a job count and be useless for the one thing it is for.
+     *
+     * <p>The deck runs right up to the door wall, so the rectangle starts at
+     * the bulkhead rather than a band inside it. Three sides are worked and the
+     * fourth is the way out.
      */
     @Test
     void aBoatBayIsWorkedRoundAClearDeck() {
@@ -170,7 +174,7 @@ class BaysAreTheBusiestRoomsTest {
                 "the boat bay published work nobody can walk to");
 
         int band = BoatBayFitting.WORKING_BAND;
-        assertTrue(bay.within(band, band, 28 - 2 * band, 16 - 2 * band).isEmpty(),
+        assertTrue(bay.within(band, 0, 28 - 2 * band, 16 - band).isEmpty(),
                 "something is standing on the deck the boat has to be moved through");
     }
 

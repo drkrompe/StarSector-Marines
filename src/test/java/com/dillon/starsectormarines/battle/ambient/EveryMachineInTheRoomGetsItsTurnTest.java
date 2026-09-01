@@ -12,6 +12,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * A room's benches are interchangeable; the machines standing in it are not.
@@ -64,12 +65,28 @@ class EveryMachineInTheRoomGetsItsTurnTest {
                 AmbientThreatPolicy.HOSTILE_COMBATANT);
     }
 
+    /**
+     * A bay with two stands in it and a watch's worth of bench work around
+     * them, so the machines are the shorter list rather than the longer one.
+     */
+    private static Shift benchesOutnumberingMachines() {
+        List<FixtureTask> work = new ArrayList<>(bayOf(2));
+        for (Affordance bench : List.of(Affordance.STOW, Affordance.WASH,
+                Affordance.UNWIND, Affordance.EXERCISE)) {
+            work.add(FixtureTask.at(0, 3, bench, 0, 4));
+        }
+        return Shift.of(CrewRole.MECH_TECH, List.of(BAY), work,
+                new boolean[]{ true, true }, AmbientThreatPolicy.HOSTILE_COMBATANT);
+    }
+
+    private static boolean isServicing(AmbientTaskRoute.Stop stop) {
+        return stop.pointGroup().contains(Affordance.SERVICE.name().toLowerCase());
+    }
+
     private static List<AmbientTaskRoute.Stop> servicing(AmbientTaskRoute route) {
         List<AmbientTaskRoute.Stop> stops = new ArrayList<>();
         for (AmbientTaskRoute.Stop stop : route.stops()) {
-            if (stop.pointGroup().contains(Affordance.SERVICE.name().toLowerCase())) {
-                stops.add(stop);
-            }
+            if (isServicing(stop)) stops.add(stop);
         }
         return stops;
     }
@@ -121,6 +138,51 @@ class EveryMachineInTheRoomGetsItsTurnTest {
         }
 
         assertEquals(1, boards, "the bay's one board became a round of itself");
+    }
+
+    /**
+     * The round is the right set of stops and was the wrong order. Laid end to
+     * end at the front of the rotation, the machines are all worked in the
+     * first minutes of it and then stand unattended for the whole of the rest.
+     */
+    @Test
+    void theMachinesAreDealtThroughTheRotation() {
+        List<AmbientTaskRoute.Stop> stops = shift(6).member(0).stops();
+
+        int board = -1;
+        for (int at = 0; at < stops.size(); at++) {
+            if (isServicing(stops.get(at))) continue;
+            board = at;
+        }
+
+        assertTrue(board > 0, "the loop opens on the board, so the six stands"
+                + " are still worked one after another");
+        assertTrue(board < stops.size() - 1, "the loop ends on the board, so the"
+                + " six stands are still worked one after another");
+        assertTrue(isServicing(stops.get(board - 1)) && isServicing(stops.get(board + 1)),
+                "the board was dealt somewhere other than between two stands");
+    }
+
+    /**
+     * And dealt the other way round when the benches are the longer list: two
+     * stands among five bench jobs are spread through the loop rather than
+     * worked back to back within it.
+     */
+    @Test
+    void machinesOutnumberedByBenchesAreStillSpreadOut() {
+        List<AmbientTaskRoute.Stop> stops = benchesOutnumberingMachines().member(0).stops();
+
+        int stands = 0;
+        for (AmbientTaskRoute.Stop stop : stops) {
+            if (isServicing(stop)) stands++;
+        }
+        assertEquals(2, stands, "the bay's two stands were not both offered");
+        for (int at = 0; at < stops.size(); at++) {
+            AmbientTaskRoute.Stop next = stops.get((at + 1) % stops.size());
+            assertTrue(!(isServicing(stops.get(at)) && isServicing(next)),
+                    "two stands are worked back to back at stop " + at
+                            + " of " + stops.size());
+        }
     }
 
     /** Two technicians in the same bay do not make for the same machine first. */
