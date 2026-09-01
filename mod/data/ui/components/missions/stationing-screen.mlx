@@ -1,0 +1,116 @@
+<template props="title,subtitle,kicker,overviewRows,captainHeader,captainRows,formationHeader,formationSummary,squadRows,noticeClasses,noticeTitle,noticeBody,termClasses,termLabel,termValue,retainerLabel,retainerValue,minusDisabled,minusAction,plusDisabled,plusAction,backAction,primaryDisabled,primaryClasses,primaryLabel,primaryAction,secondaryDisabled,secondaryClasses,secondaryLabel,secondaryAction">
+  <div id="stationing-root" class="stationing-root">
+    <div id="stationing-header" class="mission-flow-header surface-dark">
+      <div id="stationing-heading" class="mission-flow-heading">
+        <div id="stationing-title" class="label title tone-edge">{title}</div>
+        <div id="stationing-subtitle" class="label tone-muted">{subtitle}</div>
+      </div>
+      <div id="stationing-kicker" class="label heading tone-accent mission-flow-context">{kicker}</div>
+    </div>
+    <div id="stationing-body" class="stationing-body">
+      <div id="stationing-overview" class="panel stationing-overview">
+        <div id="stationing-overview-heading" class="label heading tone-edge section-heading">ASSIGNMENT TERMS</div>
+        <div id="stationing-overview-rows" class="stationing-overview-rows surface-dark">
+          <div each="row in overviewRows" key="{row.id}" id="{row.id}" class="stationing-overview-row">
+            <div id="{row.labelId}" class="label heading tone-muted">{row.label}</div>
+            <div id="{row.valueId}" class="label stationing-overview-value">{row.value}</div>
+          </div>
+        </div>
+        <div id="stationing-term-controls" class="{termClasses}">
+          <div id="stationing-term-copy" class="stationing-term-copy">
+            <div id="stationing-term-label" class="label heading tone-muted">{termLabel}</div>
+            <div id="stationing-term-value" class="label title tone-accent">{termValue}</div>
+          </div>
+          <button id="stationing-term-minus" disabled="{minusDisabled}" onclick="{minusAction}">−</button>
+          <button id="stationing-term-plus" disabled="{plusDisabled}" onclick="{plusAction}">+</button>
+        </div>
+        <div id="stationing-retainer" class="stationing-retainer surface-dark">
+          <div id="stationing-retainer-label" class="label heading tone-muted">{retainerLabel}</div>
+          <div id="stationing-retainer-value" class="label title tone-good">{retainerValue}</div>
+        </div>
+        <div id="stationing-notice" class="{noticeClasses}">
+          <div id="stationing-notice-title" class="label heading">{noticeTitle}</div>
+          <div id="stationing-notice-body" class="label">{noticeBody}</div>
+        </div>
+      </div>
+      <div id="stationing-formation" class="panel stationing-formation">
+        <div id="stationing-formation-heading" class="formation-heading surface-dark">
+          <div id="stationing-formation-heading-copy" class="formation-heading-copy">
+            <div id="stationing-captain-header" class="label heading tone-edge">{captainHeader}</div>
+            <div id="stationing-captain-subtitle" class="label tone-muted">One posting, one accountable commander.</div>
+          </div>
+          <div id="stationing-formation-summary" class="label heading tone-accent formation-summary">{formationSummary}</div>
+        </div>
+        <div id="stationing-captains" class="captain-strip">
+          <button each="captain in captainRows" key="{captain.id}" id="{captain.id}" class="{captain.classes}" onclick="{captain.action}">
+            <div id="{captain.nameId}" class="label heading">{captain.name}</div>
+            <div id="{captain.detailId}" class="label tone-muted">{captain.detail}</div>
+          </button>
+        </div>
+        <div id="stationing-list-heading" class="formation-list-heading">
+          <div id="stationing-list-title" class="label heading tone-edge">{formationHeader}</div>
+          <div id="stationing-list-subtitle" class="label tone-muted">Whole squads remain bound for the term.</div>
+        </div>
+        <div id="stationing-squads" class="stationing-squad-grid">
+          <button each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="{squad.classes}" disabled="{squad.disabled}" onclick="{squad.action}">
+            <div id="{squad.topId}" class="stationing-squad-top">
+              <div id="{squad.nameId}" class="label heading">{squad.name}</div>
+              <div id="{squad.statusId}" class="{squad.tone}">{squad.status}</div>
+            </div>
+            <div id="{squad.detailId}" class="label tone-muted">{squad.detail}</div>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="stationing-actions" class="mission-flow-actions panel surface-dark">
+      <button id="stationing-back" onclick="{backAction}">BACK</button>
+      <div id="stationing-action-spacer" class="action-spacer"></div>
+      <button id="stationing-secondary" class="{secondaryClasses}" disabled="{secondaryDisabled}" onclick="{secondaryAction}">{secondaryLabel}</button>
+      <button id="stationing-primary" class="{primaryClasses}" disabled="{primaryDisabled}" onclick="{primaryAction}">{primaryLabel}</button>
+    </div>
+  </div>
+</template>
+
+<style>
+  .stationing-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .mission-flow-header { flex-direction: row; height: 58px; padding: 8px 10px; border-width: 1px; }
+  .mission-flow-heading { flex-direction: column; flex-grow: 1; gap: 4px; }
+  .mission-flow-heading .title { height: 24px; }
+  .mission-flow-context { width: 360px; padding: 11px 4px; text-align: right; }
+  .stationing-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .stationing-overview { flex-direction: column; width: 430px; padding: 10px; gap: 9px; border-width: 1px; overflow: hidden; }
+  .section-heading { height: 20px; }
+  .stationing-overview-rows { flex-direction: column; height: 172px; gap: 1px; padding: 5px; border-width: 1px; }
+  .stationing-overview-row { flex-direction: row; height: 40px; padding: 10px 7px; border-width: 1px; border-color: #263b51; }
+  .stationing-overview-row .heading { width: 150px; }
+  .stationing-overview-value { width: 0px; flex-grow: 1; text-align: right; }
+  .stationing-term-controls { flex-direction: row; height: 78px; padding: 9px; gap: 8px; border-width: 1px; }
+  .stationing-term-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; }
+  .stationing-term-controls button { width: 54px; padding: 15px; border-width: 1px; font-family: title; text-align: center; }
+  .stationing-retainer { flex-direction: column; height: 84px; padding: 10px; gap: 9px; border-width: 1px; }
+  .stationing-notice { flex-direction: column; height: 112px; padding: 11px; gap: 10px; border-width: 1px; }
+  .stationing-notice.neutral { border-color: #263b51; color: #8b9aaf; }
+  .stationing-notice.warning { background-color: #332b1c; border-color: #ffd464; color: #ffd464; }
+  .stationing-notice.danger { background-color: #3d2a26; border-color: #e98b83; color: #e98b83; }
+  .stationing-formation { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
+  .formation-heading { flex-direction: row; height: 62px; padding: 9px; border-width: 1px; }
+  .formation-heading-copy { flex-direction: column; flex-grow: 1; gap: 6px; }
+  .formation-summary { width: 430px; padding: 12px 4px; text-align: right; }
+  .captain-strip { display: grid; height: 98px; gap: 7px; overflow: hidden; }
+  .captain-card { flex-direction: column; width: 245px; height: 84px; padding: 10px; gap: 9px; border-width: 1px; text-align: left; }
+  .captain-card.selected { background-color: #183b50; border-color: #ffd464; }
+  .formation-list-heading { flex-direction: row; height: 32px; padding: 7px; }
+  .formation-list-heading .heading { width: 280px; }
+  .formation-list-heading .tone-muted { width: 0px; flex-grow: 1; text-align: right; }
+  .stationing-squad-grid { display: grid; height: 0px; flex-grow: 1; gap: 7px; overflow: scroll; }
+  .stationing-squad-card { flex-direction: column; width: 310px; height: 76px; padding: 9px; gap: 9px; border-width: 1px; text-align: left; }
+  .stationing-squad-card.selected { background-color: #183b50; border-color: #78d494; }
+  .stationing-squad-top { flex-direction: row; height: 20px; }
+  .stationing-squad-top .label { width: 0px; flex-grow: 1; }
+  .stationing-squad-status { width: 110px; text-align: right; }
+  .mission-flow-actions { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; }
+  .mission-flow-actions button { width: 250px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
+  .action-spacer { width: 0px; flex-grow: 1; }
+  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+</style>

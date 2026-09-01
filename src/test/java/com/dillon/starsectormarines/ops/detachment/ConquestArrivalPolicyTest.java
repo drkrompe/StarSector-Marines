@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
@@ -24,8 +25,9 @@ class ConquestArrivalPolicyTest {
                 .marineArrivalPolicy(MarineArrivalPolicy.INDEPENDENT_FULL_LOAD)
                 .build();
 
-        List<ShuttleType> transports = List.of(
-                ShuttleType.VALKYRIE, ShuttleType.VALKYRIE);
+        List<FittedBoat> transports = List.of(
+                FittedBoat.standard(ShuttleType.VALKYRIE),
+                FittedBoat.standard(ShuttleType.VALKYRIE));
         List<ShuttleAssignment> pairedManifest =
                 DetachmentResolver.buildShuttleManifest(paired, transports);
         List<ShuttleAssignment> independentManifest =

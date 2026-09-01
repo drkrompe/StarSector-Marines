@@ -117,7 +117,8 @@ public final class ShipTransferScreen implements Screen {
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> context.openCompanyArmoryFrom(ScreenId.SHIP_TRANSFER),
-                () -> context.goTo(ScreenId.MECH_LAB));
+                () -> context.goTo(ScreenId.MECH_LAB),
+                () -> context.goTo(ScreenId.BOAT_DECK));
         return props;
     }
 
@@ -135,7 +136,8 @@ public final class ShipTransferScreen implements Screen {
         for (String id : List.of(
                 "transfer-root", "marine-ops-page-nav", "page-nav-return",
                 "page-nav-hq", "page-nav-barracks", "page-nav-armory",
-                "page-nav-mech-lab", "transfer-room-bar", "transfer-body",
+                "page-nav-mech-lab", "page-nav-boats",
+                "transfer-room-bar", "transfer-body",
                 "transfer-fleet-list", "transfer-stage", "transfer-plan",
                 "transfer-commit", "transfer-cost", "transfer-facility-cells")) {
             component.requireElement(id);

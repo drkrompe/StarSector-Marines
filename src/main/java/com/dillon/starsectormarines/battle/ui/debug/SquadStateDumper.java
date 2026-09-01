@@ -1279,6 +1279,12 @@ public final class SquadStateDumper {
             o.put("lastFireGateTick", sim.combat().lastFireGateTick(u));
             o.put("lastFireGateAgeTicks", Math.max(0,
                     sim.getSimTickIndex() - sim.combat().lastFireGateTick(u)));
+            // Which reflex, if any, pre-empted this unit's plan step on its last
+            // dispatch. Null means it was free to execute — so "off its step"
+            // and "evading a grenade" stop looking alike in the dump.
+            String lastReflex = sim.world().hasAiState(u)
+                    ? sim.world().lastReflex(u) : null;
+            o.put("lastReflex", lastReflex != null ? lastReflex : JSONObject.NULL);
             // Pathfinder reachability of the unit's current target. False
             // here means the squad is fixated on someone the pathfinder
             // can't route to from this member — e.g. an enemy behind walls

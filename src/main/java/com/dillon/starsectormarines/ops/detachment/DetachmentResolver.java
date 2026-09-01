@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -46,14 +47,14 @@ public final class DetachmentResolver {
      * @param committedWings    the player's committed marine-side fighter cover
      */
     public static Detachment resolve(Mission m,
-                                     List<ShuttleType> committedShuttles,
+                                     List<FittedBoat> committedShuttles,
                                      FlybyRoster committedWings) {
         return resolve(m, committedShuttles, committedWings, committedShips());
     }
 
     /** Resolve using the exact fleet members committed as command-power sources. */
     public static Detachment resolve(Mission m,
-                                     List<ShuttleType> committedShuttles,
+                                     List<FittedBoat> committedShuttles,
                                      FlybyRoster committedWings,
                                      List<FleetMemberAPI> committedPowerSources) {
         List<ShuttleAssignment> manifest = buildShuttleManifest(m, committedShuttles);
@@ -117,8 +118,12 @@ public final class DetachmentResolver {
      * <p>When the player commits zero transports and the employer doesn't cover
      * all the drops, the fallback pads with one-cycle Aeroshuttles. The briefing
      * gate normally blocks before that path is reachable.
+     *
+     * <p>The employer's craft and those padding Aeroshuttles stay plain
+     * patterns. A fitting is work a yard did on a boat the company owns, and
+     * neither of those is one.
      */
-    public static List<ShuttleAssignment> buildShuttleManifest(Mission m, List<ShuttleType> playerShuttles) {
+    public static List<ShuttleAssignment> buildShuttleManifest(Mission m, List<FittedBoat> playerShuttles) {
         List<ShuttleAssignment> out = new ArrayList<>();
         int employerPhysical = employerPhysicalShipCount(m);
         if (employerPhysical > 0) {
@@ -156,9 +161,11 @@ public final class DetachmentResolver {
         int extraCycles = playerDrops % transportsUsed;
         for (int i = 0; i < transportsUsed; i++) {
             int cycles = baseCycles + (i < extraCycles ? 1 : 0);
-            ShuttleType type = playerShuttles.get(i);
-            out.add(new ShuttleAssignment(type, cycles,
-                    m.marineArrivalPolicy.seatsPerSortie(type)));
+            // The company's own boat, fit and all. Seats and cycles are still
+            // facts about the pattern — a yard's plating does not add a seat.
+            FittedBoat boat = playerShuttles.get(i);
+            out.add(new ShuttleAssignment(boat, cycles,
+                    m.marineArrivalPolicy.seatsPerSortie(boat.pattern())));
         }
         return out;
     }
@@ -168,7 +175,7 @@ public final class DetachmentResolver {
      * the exact named force selected for an understrength ordinary operation.
      */
     public static List<ShuttleAssignment> buildShuttleManifestForPersonnel(
-            Mission m, List<ShuttleType> playerShuttles, int playerPersonnel) {
+            Mission m, List<FittedBoat> playerShuttles, int playerPersonnel) {
         if (!MissionForceEnvelope.allowsUnderstrength(m)) {
             return buildShuttleManifest(m, playerShuttles);
         }
@@ -184,12 +191,13 @@ public final class DetachmentResolver {
             return out;
         }
         for (int i = 0; i < playerShuttles.size() && remaining > 0; i++) {
-            ShuttleType type = playerShuttles.get(i);
-            int seatsPerSortie = m.marineArrivalPolicy.seatsPerSortie(type);
+            FittedBoat boat = playerShuttles.get(i);
+            int seatsPerSortie = m.marineArrivalPolicy.seatsPerSortie(boat.pattern());
             int passengers = i == playerShuttles.size() - 1
                     ? remaining : Math.min(remaining, seatsPerSortie);
             int cycles = (passengers + seatsPerSortie - 1) / seatsPerSortie;
-            out.add(new ShuttleAssignment(type, cycles, seatsPerSortie, passengers));
+            out.add(new ShuttleAssignment(boat.pattern(), boat, cycles,
+                    seatsPerSortie, passengers));
             remaining -= passengers;
         }
         return out;

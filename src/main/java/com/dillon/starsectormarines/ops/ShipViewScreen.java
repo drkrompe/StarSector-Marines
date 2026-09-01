@@ -118,7 +118,8 @@ public final class ShipViewScreen implements Screen {
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> context.openCompanyArmoryFrom(ScreenId.SHIP_VIEW),
-                () -> context.goTo(ScreenId.MECH_LAB));
+                () -> context.goTo(ScreenId.MECH_LAB),
+                () -> context.goTo(ScreenId.BOAT_DECK));
         return props;
     }
 

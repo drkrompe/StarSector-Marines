@@ -1,6 +1,6 @@
-<template props="contextLabel,squadRows,musterRows,recordCells,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="contextLabel,squadRows,musterRows,recordCells,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="barracks-root" class="barracks-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="{contextLabel}" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
     <div id="barracks-room-bar" class="panel barracks-room-bar">
       <div id="barracks-room-title" class="label heading tone-edge">BARRACKS  //  COMPANY QUARTERS</div>

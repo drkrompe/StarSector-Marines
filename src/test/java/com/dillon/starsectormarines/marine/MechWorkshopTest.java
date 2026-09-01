@@ -79,7 +79,7 @@ class MechWorkshopTest {
         assertEquals(4, bay.activeSquad().mechs().size());
     }
 
-    static final class TestResources implements MechFabricationResources {
+    static final class TestResources implements FabricationResources {
         private final Map<String, Integer> stock = new HashMap<>();
 
         static TestResources stocked(int quantity) {
@@ -103,9 +103,9 @@ class MechWorkshopTest {
             return "graphics/icons/cargo/" + commodityId + ".png";
         }
 
-        @Override public boolean spend(MechFabricationCost cost) {
+        @Override public boolean spend(FabricationCost cost) {
             if (!canAfford(cost)) return false;
-            for (MechFabricationCost.Line line : cost.lines()) {
+            for (FabricationCost.Line line : cost.lines()) {
                 stock.merge(line.commodityId(), -line.quantity(), Integer::sum);
             }
             return true;

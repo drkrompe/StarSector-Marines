@@ -9,7 +9,9 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.ReachableCellResolver;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
@@ -63,7 +65,7 @@ public final class MechMoveOrderSystem {
      *         ordinary squad-plan execution should continue this tick
      */
     public boolean executeIfActive(long mech, Squad squad,
-                                   BattleSimulation sim) {
+                                   BattleControl sim) {
         ActiveOrder order = service.activeOrder(mech);
         if (order == null) return false;
         if (validPlayerLance(mech, sim) != squad || !sim.movement().has(mech)) {
@@ -105,7 +107,7 @@ public final class MechMoveOrderSystem {
     }
 
     private static void moveToward(long mech, ActiveOrder order,
-                                   BattleSimulation sim) {
+                                   BattleControl sim) {
         int[] path = sim.world().path(mech);
         boolean wrongDestination = Paths.isEmpty(path)
                 || Paths.destX(path) != order.destinationX()
@@ -123,7 +125,7 @@ public final class MechMoveOrderSystem {
         }
     }
 
-    private static void fireWhileMoving(long mech, BattleSimulation sim) {
+    private static void fireWhileMoving(long mech, BattleControl sim) {
         long target = MechTargeting.refreshTarget(mech, sim);
         sim.world().setTargetId(mech, target);
         if (target == 0L) return;
@@ -137,7 +139,7 @@ public final class MechMoveOrderSystem {
                 mech, loadout, target, distance, sim, visible);
     }
 
-    private static Squad validPlayerLance(long mech, BattleSimulation sim) {
+    private static Squad validPlayerLance(long mech, BattleView sim) {
         if (!sim.world().isAlive(mech)
                 || !sim.world().hasMechLoadout(mech)
                 || !sim.identity().has(mech)

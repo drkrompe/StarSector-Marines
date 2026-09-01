@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
-import com.dillon.starsectormarines.battle.decision.goap.action.BreakContact;
 import com.dillon.starsectormarines.battle.decision.goap.action.EnterZone;
 import com.dillon.starsectormarines.battle.command.DefendAssignedTrackGoal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedSiteGoal;
@@ -22,6 +21,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
+import com.dillon.starsectormarines.battle.decision.ReflexChain;
+import com.dillon.starsectormarines.battle.decision.ReflexContext;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 
@@ -48,6 +49,11 @@ import java.util.Set;
  *       Stage 1 has three postures; Stage 2 will add suppress / flank / cover /
  *       advance-under-cover.</li>
  * </ul>
+ *
+ * <p>Between "this unit has a squad" and "execute the step" sits
+ * {@link InfantryReflexes#CHAIN}, the ordered list of interrupts that may
+ * pre-empt the plan for one marine on one tick. It is declared there rather
+ * than branched here so its priority order can be read and pinned.
  *
  * <p>Solo units (no squad) idle here — the planner is a squad-level
  * construct, and a unit without a squad has no plan to consult. In
@@ -118,42 +124,25 @@ public final class GoapInfantryBehavior implements UnitBehavior {
     private GoapInfantryBehavior() {}
 
     /**
-     * Lifecycle prep called once before {@link Action#execute} each tick:
-     * advance a committed special-equipment action if active (short-circuits the action
-     * for this tick), tick cooldowns, then opportunistically commit a rocket
-     * if a turret-of-opportunity sits in range with LOS. Returns {@code false}
-     * when the unit is locked in aim (existing or freshly initiated) — caller
-     * should skip {@code action.execute} this frame. Satchels use this seam only
-     * for a hardened target already in contact range; they never author an approach.
+     * Runs the squad-free prefix of {@link InfantryReflexes#CHAIN} for one
+     * marine — everything up to the broken-fire-team peel — and reports whether
+     * he is still free to act. Returns {@code false} when a reflex consumed the
+     * tick, in which case the caller skips {@link Action#execute} this frame.
      *
-     * <p>{@code permitsOpportunityFire} narrows rather than disables that
-     * commit. A move-only coordinated role withholds the general special-
-     * equipment path — satchel, frag, deployable, close-contact — because each
-     * spends a squad resource or freezes the carrier mid-bound. It still
-     * reaches {@link InfantryUnitPrep#tryHardenedOpportunity}, so an advancing
-     * squad answers an emplacement with the one weapon that hurts it, and
-     * {@link InfantryUnitPrep#tryOnsetScreen}, so a marine who has just walked
-     * into somebody can still raise a screen on the bearing they arrived on.
+     * <p>{@code permitsOpportunityFire} narrows rather than silences the
+     * opportunity reflexes; which of the three answer under which value is
+     * {@link InfantryReflexes}' to say.
+     *
+     * <p>Kept as a named entry point rather than folded into {@link #update}
+     * because it is how a coordinated action's suppression is stated and asked
+     * about from outside — a marine with no squad at all can be handed to it,
+     * which is exactly what the bounding-overwatch evidence does.
      */
     public static boolean prepareForAction(long unit, BattleControl sim,
                                            boolean permitsOpportunityFire) {
-        if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
-        InfantryUnitPrep.tickCooldowns(unit, sim.world());
-        if (SatchelTactics.evadeFriendlyCharge(unit, sim)) return false;
-        if (FragGrenadeTactics.evadeKnownGrenade(unit, sim)) return false;
-        if (permitsOpportunityFire) {
-            if (InfantryUnitPrep.tryOpportunitySpecial(unit, sim)) return false;
-        } else if (InfantryUnitPrep.tryHardenedOpportunity(unit, sim)
-                || InfantryUnitPrep.tryOnsetScreen(unit, sim)) {
-            // A move-only coordinated role still answers an emplacement, and
-            // still screens against a threat that has only just arrived. The
-            // suppression above exists so a passing shot cannot divert the
-            // moving half of a bound; a turret in rocket range, and somebody
-            // who has just appeared at ten cells, are both the reason the
-            // advance is in trouble rather than a distraction from it.
-            return false;
-        }
-        return true;
+        return ReflexChain.run(InfantryReflexes.PREPARATION_CHAIN, unit,
+                sim.squadOf(unit), new ReflexContext(permitsOpportunityFire),
+                sim) == null;
     }
 
     @Override
@@ -166,11 +155,11 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             return;
         }
 
-        // Consult the assigned action before the preparation hook so a
-        // move-only role cannot initiate an opportunity rocket and then skip
-        // the action that was supposed to keep it moving. An already-started
-        // aim still completes — tickAimAndShortCircuit is a committed-shot
-        // lifecycle, not a fresh tactical choice.
+        // Consult the assigned action before the reflex chain so a move-only
+        // role cannot initiate an opportunity rocket and then skip the action
+        // that was supposed to keep it moving. An already-started aim still
+        // completes — the committed-aim reflex is a shot's lifecycle, not a
+        // fresh tactical choice.
         SquadPlan prepPlan = squad.currentPlan;
         if (prepPlan == null && !Paths.isEmpty(sim.world().path(unit))) {
             // A path is execution state owned by the plan that authored it.
@@ -179,7 +168,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             // plan. A merely-complete plan is intentionally excluded: another
             // member may have just completed Approach while siblings still
             // need that path under the next Engage plan. Committed aim still
-            // completes in prepareForAction below.
+            // completes in the reflex chain below.
             sim.clearPath(unit);
         }
         SquadPlan.Step prepStep = prepPlan != null && !prepPlan.isComplete()
@@ -187,22 +176,12 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         boolean permitsPreparationFire = prepStep == null
                 || prepStep.slotOf(unit) == null
                 || prepStep.action.permitsOpportunityFire();
-        if (!prepareForAction(unit, sim, permitsPreparationFire)) return;
 
-        // Fire-team morale override — the tier between the individual and the
-        // squad plan. Cohesion breaks at fire-team granularity, so a marine
-        // whose team has broken pulls back to cover on his team's own account
-        // while his composed siblings keep executing the squad's plan. The
-        // squad is not the thing that breaks.
-        //
-        // No plan bookkeeping here on purpose: BreakContact runs perpetually
-        // and the peeled team is excluded from role assignment
-        // (replanIfNeeded), so it cannot advance or fail a step it was never
-        // assigned. When the team's morale clears the hysteresis, the replan
-        // that fires on the flip puts these marines back in the slot pool and
-        // this branch stops catching them.
-        if (squad.fireTeamBroken(sim.squad().fireTeamIndex(unit))) {
-            BreakContact.INSTANCE.execute(unit, squad, sim);
+        // Everything that outranks the assigned step, in the one order that is
+        // this arm's law. See InfantryReflexes for what each entry answers and
+        // InfantryReflexOrderTest for why the order may not be shuffled.
+        if (ReflexChain.run(InfantryReflexes.CHAIN, unit, squad,
+                new ReflexContext(permitsPreparationFire), sim) != null) {
             return;
         }
 

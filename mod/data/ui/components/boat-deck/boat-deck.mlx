@@ -1,0 +1,171 @@
+<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+  <div id="boat-deck-root" class="boat-deck-root">
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
+
+    <div id="boat-deck-room-bar" class="panel room-bar">
+      <div id="boat-deck-room-name" class="label heading tone-edge">BOAT DECK  //  HANGAR</div>
+      <div id="boat-bay-navigator" class="{bayNavigatorClasses}">
+        <button id="boat-previous-bay" class="bay-step" onclick="{previousBay}">‹</button>
+        <div id="boat-active-bay" class="label heading tone-accent bay-position">{activeBayLabel}</div>
+        <button id="boat-next-bay" class="bay-step" onclick="{nextBay}">›</button>
+      </div>
+      <div id="boat-deck-summary" class="label tone-muted room-summary">{deckSummary}</div>
+    </div>
+
+    <div id="boat-deck-body" class="deck-body">
+      <div id="boat-deck-stage" class="bay-stage">
+        <div id="boat-deck-stage-heading" class="stage-heading">
+          <div id="boat-deck-stage-title" class="label heading tone-edge">BOAT BAY  //  BERTHS</div>
+          <div id="boat-deck-stage-status" class="label heading tone-muted stage-status">DECK CREW ON WATCH  //  TURNAROUND IN HAND-SECONDS</div>
+        </div>
+        <canvas id="boat-deck-canvas" class="bay-canvas" width="900" height="520" />
+      </div>
+
+      <div id="boat-overview" class="{overviewClasses}">
+        <div id="boat-overview-heading" class="section-title label heading tone-edge">BOATS ABOARD</div>
+        <div id="boat-list" class="boat-list">
+          <button each="boat in boatRows" key="{boat.id}" id="{boat.id}" class="{boat.classes}" disabled="{boat.disabled}" onclick="{boat.select}">
+            <div id="{boat.berthId}" class="label heading tone-edge boat-card-berth">{boat.berth}</div>
+            <div id="{boat.nameId}" class="label heading tone-accent boat-card-name">{boat.name}</div>
+            <div id="{boat.patternId}" class="label tone-muted boat-card-line">{boat.pattern}</div>
+            <div id="{boat.platingId}" class="label boat-card-line">{boat.plating}</div>
+            <div id="{boat.driveId}" class="label boat-card-line">{boat.drive}</div>
+          </button>
+        </div>
+      </div>
+
+      <div id="boat-fitting" class="{fittingClasses}">
+        <div id="boat-fitting-side" class="fitting-side">
+          <div id="boat-fitting-header" class="panel boat-strip">
+            <div id="selected-boat-name" class="label boat-name tone-accent">{selectedBoatName}</div>
+            <div id="selected-boat-identity" class="label tone-muted boat-identity">{selectedBoatIdentity}</div>
+            <button id="boat-back-to-deck" class="compact-action" onclick="{backToDeck}">BACK TO DECK</button>
+          </div>
+
+          <div id="boat-performance-grid" class="panel performance-grid">
+            <div each="meter in performanceMeters" key="{meter.id}" id="{meter.id}" class="performance-meter surface-dark">
+              <div id="{meter.labelId}" class="label heading tone-muted meter-label">{meter.label}</div>
+              <div id="{meter.valueId}" class="label heading tone-edge meter-value">{meter.value}</div>
+              <div id="{meter.trackId}" class="meter-track">
+                <div id="{meter.fillId}" class="meter-fill" style="{meter.fillStyle}" />
+              </div>
+            </div>
+          </div>
+
+          <div id="boat-slot-rack" class="panel slot-panel">
+            <div id="boat-slot-heading" class="section-title label heading tone-edge">FITTED SLOTS</div>
+            <div id="boat-slot-list" class="slot-list">
+              <button each="slot in slotRows" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
+                <div id="{slot.nameId}" class="label heading tone-edge slot-name">{slot.name}</div>
+                <div id="{slot.fittingId}" class="label slot-fitting">{slot.fitting}</div>
+                <div id="{slot.tierId}" class="label heading tone-muted slot-tier">{slot.tier}</div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="boat-catalog" class="panel catalog-panel">
+          <div id="boat-catalog-kicker" class="section-title label heading tone-edge">YARD WORK / SELECTED SLOT</div>
+          <div id="boat-catalog-heading" class="label catalog-heading tone-accent">{selectedSlotTitle}</div>
+          <div id="boat-catalog-copy" class="label tone-muted catalog-copy">{selectedSlotCopy}</div>
+          <div id="boat-catalog-list" class="catalog-list">
+            <div each="item in catalogRows" key="{item.id}" id="{item.id}" class="{item.classes}">
+              <div id="{item.copyId}" class="catalog-item-copy">
+                <div id="{item.nameId}" class="label heading catalog-name">{item.name}</div>
+                <div id="{item.lineId}" class="catalog-line">
+                  <div id="{item.tierId}" class="label heading tone-edge catalog-tier">{item.tier}</div>
+                  <div id="{item.effectId}" class="label tone-accent catalog-effect">{item.effect}</div>
+                </div>
+                <div id="{item.provenanceId}" class="label tone-muted catalog-provenance">{item.provenance}</div>
+                <div id="{item.materialsId}" class="material-costs">
+                  <div each="material in item.materials" key="{material.id}" id="{material.id}" class="{material.classes}">
+                    <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
+                    <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
+                  </div>
+                </div>
+              </div>
+              <div id="{item.reasonId}" class="label heading tone-muted catalog-reason">{item.reason}</div>
+              <button id="{item.actionId}" class="catalog-action" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="boat-deck-feedback" class="{feedbackClasses}">{feedbackText}</div>
+  </div>
+</template>
+
+<style>
+  .boat-deck-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+  .section-title { height: 19px; padding: 1px 3px; }
+  .compact-action { width: 100%; height: 26px; text-align: center; }
+
+  .room-bar { flex-direction: row; height: 34px; padding: 6px 8px; gap: 10px; }
+  #boat-deck-room-name { width: 300px; }
+  .bay-navigator { flex-direction: row; width: 205px; height: 24px; gap: 3px; }
+  .bay-step { width: 32px; height: 24px; padding: 2px; }
+  .bay-position { width: 0px; height: 24px; flex-grow: 1; padding: 4px; text-align: center; border-width: 1px; }
+  .room-summary { width: 0px; flex-grow: 1; text-align: right; }
+
+  .deck-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
+
+  .bay-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 1px; overflow: hidden; }
+  .stage-heading { flex-direction: row; width: 100%; height: 19px; padding: 0px 3px; }
+  #boat-deck-stage-title { width: 240px; }
+  .stage-status { width: 0px; flex-grow: 1; text-align: right; }
+  .bay-canvas { width: 100%; height: 0px; flex-grow: 1; }
+
+  .boat-overview { flex-direction: column; width: 430px; padding: 7px; gap: 5px; overflow: hidden; }
+  .boat-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
+  .boat-card { flex-direction: column; width: 100%; height: 96px; padding: 7px; gap: 1px; border-width: 1px; text-align: left; }
+  .boat-card.selected { background-color: #183b50; border-color: #ffd464; }
+  .boat-card.vacant { background-color: #0c1620; border-color: #243849; opacity: 0.72; }
+  .boat-card-berth { height: 16px; }
+  .boat-card-name { height: 22px; font-family: title; }
+  .boat-card-line { height: 17px; }
+
+  .boat-fitting { flex-direction: row; width: 800px; gap: 7px; overflow: hidden; }
+  .fitting-side { flex-direction: column; width: 310px; gap: 6px; overflow: hidden; }
+  .boat-strip { flex-direction: column; height: 96px; padding: 7px; gap: 3px; }
+  .boat-name { height: 27px; font-family: title; }
+  .boat-identity { height: 18px; }
+
+  .performance-grid { flex-direction: column; height: 122px; padding: 7px; gap: 4px; }
+  .performance-meter { flex-direction: row; width: 100%; height: 22px; padding: 3px 5px; gap: 5px; border-width: 1px; }
+  .meter-label { width: 88px; padding-top: 1px; }
+  .meter-value { width: 84px; padding-top: 1px; text-align: right; }
+  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 8px; padding-top: 4px; background-color: #0c1620; border-width: 1px; }
+  .meter-fill { height: 100%; background-color: #76b9d4; }
+
+  .slot-panel { flex-direction: column; height: 0px; flex-grow: 1; padding: 7px; gap: 5px; overflow: hidden; }
+  .slot-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
+  .boat-slot { flex-direction: column; width: 100%; height: 61px; padding: 5px; gap: 1px; border-width: 1px; text-align: left; }
+  .boat-slot.selected, .catalog-row.selected { background-color: #183b50; border-color: #ffd464; }
+  .slot-name, .slot-tier { height: 16px; }
+  .slot-fitting { height: 17px; }
+
+  .catalog-panel { flex-direction: column; width: 0px; flex-grow: 1; padding: 7px; gap: 5px; overflow: hidden; }
+  .catalog-heading { height: 25px; font-family: title; }
+  .catalog-copy { height: 36px; white-space: normal; overflow: hidden; }
+  .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
+  .catalog-row { flex-direction: column; width: 100%; height: 220px; padding: 7px; gap: 3px; border-width: 1px; }
+  .catalog-item-copy { flex-direction: column; width: 100%; height: 158px; gap: 2px; }
+  .catalog-name { height: 19px; }
+  .catalog-line { flex-direction: row; width: 100%; height: 17px; gap: 6px; }
+  .catalog-tier { width: 62px; }
+  .catalog-effect { width: 0px; flex-grow: 1; }
+  .catalog-provenance { height: 64px; white-space: normal; overflow: hidden; }
+  .material-costs { flex-direction: column; width: 100%; height: 52px; gap: 2px; overflow: hidden; }
+  .material-cost { flex-direction: row; width: 100%; height: 16px; padding: 0px 3px; gap: 4px; background-color: #0c1620; border-width: 1px; }
+  .material-cost.short { border-color: #8f3f44; background-color: #251419; }
+  .material-icon { width: 13px; height: 13px; }
+  .material-label { width: 0px; height: 14px; flex-grow: 1; }
+  .catalog-reason { height: 16px; padding: 0px 2px; }
+  .catalog-action { width: 100%; height: 26px; text-align: center; }
+
+  .boat-deck-feedback { height: 29px; padding: 6px 9px; border-width: 1px; overflow: hidden; }
+  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+</style>
