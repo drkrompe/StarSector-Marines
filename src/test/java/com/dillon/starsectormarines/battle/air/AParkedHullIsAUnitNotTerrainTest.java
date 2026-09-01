@@ -60,7 +60,7 @@ class AParkedHullIsAUnitNotTerrainTest {
         berth(sim);
         NavigationGrid grid = sim.getGrid();
 
-        new AirfieldSystem(Faction.DEFENDER).tick(DT, sim, sim.getAirfieldService());
+        new AirfieldSystem().tick(DT, sim, sim.getAirfieldService());
 
         for (int dy = -2; dy <= 2; dy++) {
             for (int dx = -2; dx <= 2; dx++) {
@@ -78,7 +78,7 @@ class AParkedHullIsAUnitNotTerrainTest {
         BattleSimulation sim = openSim();
         AirfieldService.Berth berth = berth(sim);
 
-        new AirfieldSystem(Faction.DEFENDER).tick(DT, sim, sim.getAirfieldService());
+        new AirfieldSystem().tick(DT, sim, sim.getAirfieldService());
 
         assertNotEquals(0L, berth.airframeId, "the stand produced no aircraft");
         assertTrue(sim.world().isAlive(berth.airframeId));
@@ -105,7 +105,7 @@ class AParkedHullIsAUnitNotTerrainTest {
         long besideIt = sim.spawn(
                 new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, PAD_X + 1, PAD_Y));
 
-        new AirfieldSystem(Faction.DEFENDER).tick(DT, sim, sim.getAirfieldService());
+        new AirfieldSystem().tick(DT, sim, sim.getAirfieldService());
 
         assertNotEquals(PAD_X + "," + PAD_Y,
                 sim.world().cellX(onTheStand) + "," + sim.world().cellY(onTheStand),
@@ -135,7 +135,7 @@ class AParkedHullIsAUnitNotTerrainTest {
     void aRifleTeamOnTheApronCanStillHitTheAircraft() {
         BattleSimulation sim = openSim();
         berth(sim);
-        new AirfieldSystem(Faction.DEFENDER).tick(DT, sim, sim.getAirfieldService());
+        new AirfieldSystem().tick(DT, sim, sim.getAirfieldService());
 
         for (int dx = -4; dx <= 4; dx++) {
             assertTrue(sim.getGrid().hasLineOfSight(PAD_X + dx, PAD_Y - 4, PAD_X, PAD_Y),
@@ -157,7 +157,7 @@ class AParkedHullIsAUnitNotTerrainTest {
         BattleSimulation sim = openSim();
         AirfieldService airfield = sim.getAirfieldService();
         AirfieldService.Berth berth = berth(sim);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
 
         system.tick(DT, sim, airfield);
         assertOpen(sim, "with the aircraft on it");
@@ -181,7 +181,7 @@ class AParkedHullIsAUnitNotTerrainTest {
         BattleSimulation sim = openSim();
         AirfieldService airfield = sim.getAirfieldService();
         AirfieldService.Berth berth = berth(sim);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
         system.tick(DT, sim, airfield);
         airfield.launch(berth);
         airfield.destroyed(berth);

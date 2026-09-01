@@ -575,8 +575,14 @@ public final class GrownTrunkPlan {
         return out;
     }
 
-    /** Peels a blocked mask's free space into rectangles, largest first. */
-    private static void decompose(boolean[][] blocked, int w, int h, List<SubRect> out) {
+    /**
+     * Peels a blocked mask's free space into rectangles, largest first.
+     *
+     * <p>Public so a precinct can decompose its own claimed ground the
+     * same way: what the partition is handed has to be the parcels of one place
+     * rather than of the whole map, or the places stop being places.
+     */
+    public static void decompose(boolean[][] blocked, int w, int h, List<SubRect> out) {
         boolean[][] taken = new boolean[w][h];
         for (int x = 0; x < w; x++) {
             for (int y = 0; y < h; y++) taken[x][y] = blocked[x][y];
